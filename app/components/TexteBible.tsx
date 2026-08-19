@@ -21,8 +21,8 @@ import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
-  borderRadius:'3px', width:'18px', height:'18px', display:'inline-flex',
-  alignItems:'center', justifyContent:'center', fontSize:'0.85rem',
+  borderRadius:'4px', width:'18px', height:'18px', display:'inline-flex',
+  alignItems:'center', justifyContent:'center', fontSize:'0.84375rem',
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
@@ -345,9 +345,9 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'0 8px 32px rgba(0,0,0,0.18)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
-          <p style={{ fontSize:'0.75rem', fontWeight:600, color:'#9a5a2a', margin:0 }}>
+          <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
             Modifier {refCourt} de la {traductionLabel}
           </p>
           <button onClick={onClose} style={{ fontSize:'0.875rem', color:'var(--cs-texte-faible)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
@@ -365,11 +365,11 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
         </div>
         {/* Zone d'édition UNIQUE : les enrichissements s'y voient directement (WYSIWYG). */}
         <div ref={edRef} contentEditable suppressContentEditableWarning onInput={sync}
-          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid var(--cs-bord)', borderRadius:'5px', background:'var(--cs-fond-clair)', color:'var(--cs-texte-fort)', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
+          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid var(--cs-bord)', borderRadius:'4px', background:'var(--cs-fond-clair)', color:'var(--cs-texte-fort)', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
           {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', alignSelf:'center' }}>Erreur d’enregistrement.</span>}
           <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'#fff', cursor:'pointer', fontWeight:500 }}>
+          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'var(--cs-surface)', cursor:'pointer', fontWeight:500 }}>
             {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
@@ -498,7 +498,7 @@ export default function TexteBible({
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
             <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
-            <span style={{ fontSize: '1.05rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
+            <span style={{ fontSize: '1.0625rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
           <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
@@ -515,7 +515,7 @@ export default function TexteBible({
           {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois.
               Le trait est coloré dès le tiers extérieur (et non seulement au ras du menu) pour
               rester perceptible même sur une faible largeur. */}
-          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to right, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
+          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--cs-or-doux) 38%, var(--cs-texte-doux) 100%)' }} />
           <div style={{ position: 'relative' }}>
             <button onClick={() => setTradOuverte(!tradOuverte)} style={{
               display: 'flex', alignItems: 'center', gap: '5px',
@@ -529,19 +529,19 @@ export default function TexteBible({
               <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{tradOuverte ? '▲' : '▼'}</span>
             </button>
             {tradOuverte && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '7px', zIndex: 50, boxShadow: '0 10px 26px rgba(47,63,53,0.12)', minWidth: '230px', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', minWidth: '230px', overflow: 'hidden' }}>
                 {traductions.map((t, i) => (
                   <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
                     width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
                     border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none',
-                    background: traductionIndex === i ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff',
+                    background: traductionIndex === i ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
                     color: traductionIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
                     fontWeight: traductionIndex === i ? 600 : 400, cursor: 'pointer',
                     fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
                     transition: 'background 0.12s',
                   }}
                     onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(var(--cs-vert-rgb),0.04)' }}
-                    onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = '#fff' }}>
+                    onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'var(--cs-surface)' }}>
                     {t.label}
                   </button>
                 ))}
@@ -549,7 +549,7 @@ export default function TexteBible({
             )}
           </div>
           {/* Double filet à droite, symétrique. */}
-          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to left, transparent 0%, #c3b7a0 38%, #a4977f 100%)' }} />
+          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to left, transparent 0%, var(--cs-or-doux) 38%, var(--cs-texte-doux) 100%)' }} />
         </div>
           <div />
         </div>
@@ -620,13 +620,13 @@ export default function TexteBible({
                   préférée à une suite de points. */}
               <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.125rem', color: 'var(--cs-texte-faible)' }}>
                 <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
-                <span style={{ fontSize: '0.9rem', letterSpacing: '0.25em' }}>◦◦◦</span>
+                <span style={{ fontSize: '0.875rem', letterSpacing: '0.25em' }}>◦◦◦</span>
                 <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
               </span>
               <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
                 Lacune du manuscrit
               </p>
-              <p style={{ fontSize: '0.76rem', color: 'var(--cs-texte-doux)', margin: '0.5rem 0 0', maxWidth: '22rem', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', margin: '0.5rem 0 0', maxWidth: '22rem', lineHeight: 1.5 }}>
                 Ce chapitre — {nomLivre} {chapitreActif} — n’est pas conservé dans ce témoin.
               </p>
             </div>
@@ -662,7 +662,7 @@ export default function TexteBible({
               style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: mobile ? '0.03125rem 0.375rem' : '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: mobile ? '0.05rem' : '0.25rem', background: 'transparent' }}>
 
               <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'5px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'4px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
                     {v.verset}
@@ -677,7 +677,7 @@ export default function TexteBible({
                       TR0009 : lacune du manuscrit rendue explicitement ; marqueurs éditoriaux
                       inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
                       statut technique d'alignement n'est montré au lecteur. */}
-                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.86rem', lineHeight: mobile ? 1.42 : 1.5, color: 'var(--cs-texte-fort)', margin: 0, textAlign: mobile ? 'left' : 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word' } as React.CSSProperties}>
+                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', lineHeight: mobile ? 1.42 : 1.5, color: 'var(--cs-texte-fort)', margin: 0, textAlign: mobile ? 'left' : 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word' } as React.CSSProperties}>
                     {lacune ? (
                       // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique
                       // de labeur, capitale initiale, teinte effacée : signalé sans peser.
@@ -699,7 +699,7 @@ export default function TexteBible({
                   // Au-dessus du verset (et non sur lui) : le texte reste lisible.
                   position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
-                  background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                  background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
                 } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible' }}>
                   {/* TR0009 : prélèvement / signalement / édition ciblent un id de verset
                       canonique, inexistant pour le manuscrit. On masque ces actions ; la

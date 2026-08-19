@@ -385,7 +385,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
   if (!estAdminReel || modeUtilisateurStandard) {
     return (
       <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', padding: '2rem' }}>
-        <div style={{ maxWidth: '30rem', textAlign: 'center', padding: '2.5rem 2rem', border: '1px solid #d4b896', borderRadius: 8, background: '#fdf8f2', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+        <div style={{ maxWidth: '30rem', textAlign: 'center', padding: '2.5rem 2rem', border: '1px solid var(--cs-or-doux)', borderRadius: 8, background: 'var(--cs-fond-clair)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🚧</p>
           <h1 style={{ fontSize: '1.25rem', fontWeight: 'normal', marginBottom: '1rem', color: '#5a3e28' }}>Jeu en cours de construction</h1>
           <p style={{ color: '#7a6250', lineHeight: 1.7, margin: 0 }}>Le quiz biblique est actuellement en cours de développement.<br />Il sera bientôt disponible.</p>
@@ -397,14 +397,14 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
   return (
     <section style={{ maxWidth: '65rem', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
       <style>{`
-        @keyframes bibleGamesGlow { 0%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} 35%{box-shadow:0 0 34px rgba(210,241,153,0.75);transform:scale(1.035)} 100%{box-shadow:0 0 0 rgba(206,236,170,0);transform:scale(1)} }
+        @keyframes bibleGamesGlow { 0%{box-shadow:var(--cs-ombre-posee);transform:scale(1)} 35%{box-shadow:var(--cs-ombre-modale);transform:scale(1.035)} 100%{box-shadow:var(--cs-ombre-posee);transform:scale(1)} }
         @keyframes bibleGamesSpark { 0%{opacity:0;transform:scale(0.6) translateY(8px)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.35) translateY(-20px)} }
         @keyframes jacobClimb { 0%{transform:translateY(3px)} 100%{transform:translateY(-3px)} }
         @keyframes chassePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(0.97)} }
         @media (max-width:880px) { .bg-layout{grid-template-columns:1fr !important} .bg-score{min-height:auto !important} .bg-ladder{display:none !important} .bg-answer{grid-template-columns:1fr !important} }
       `}</style>
 
-      <div style={{ background: 'linear-gradient(135deg, #f8fbf2 0%, #eef6e7 46%, #dfeedd 100%)', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 18px 42px rgba(33,68,45,0.12)', position: 'relative' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--cs-fond-clair) 0%, var(--cs-fond) 46%, var(--cs-vert-pale) 100%)', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--cs-ombre-modale)', position: 'relative' }}>
         {flashScore && <FeuArtifice />}
 
         {/* ── Onglets ──────────────────────────────────────────────────── */}
@@ -416,7 +416,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
               transition: 'border-color 0.15s',
             }}>
               <p style={{ margin: 0, fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: mode === o.id ? 'var(--cs-vert)' : '#9aab9a', fontWeight: 800 }}>{o.sousTitre}</p>
-              <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: mode === o.id ? '#193824' : '#6b8a70', fontWeight: mode === o.id ? 800 : 600 }}>{o.label}</p>
+              <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: mode === o.id ? 'var(--cs-encre-fonce)' : '#6b8a70', fontWeight: mode === o.id ? 800 : 600 }}>{o.label}</p>
             </button>
           ))}
         </div>
@@ -428,7 +428,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
             <aside className="bg-score" style={{ background: 'rgba(255,255,255,0.72)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '12px', padding: '14px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '420px' }}>
               <div>
                 <p style={{ fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#6b8a70', fontWeight: 800, margin: '0 0 8px' }}>Score</p>
-                <div style={{ fontSize: '2.625rem', lineHeight: 1, fontWeight: 900, color: '#2f6a48', animation: flashScore ? 'bibleGamesGlow 0.9s ease-out' : 'none', borderRadius: '12px', padding: '4px 0' }}>{score}</div>
+                <div style={{ fontSize: '2.625rem', lineHeight: 1, fontWeight: 900, color: 'var(--cs-vert)', animation: flashScore ? 'bibleGamesGlow 0.9s ease-out' : 'none', borderRadius: '12px', padding: '4px 0' }}>{score}</div>
                 <p style={{ fontSize: '0.6875rem', lineHeight: 1.35, color: '#5f725f', margin: '8px 0 0' }}>{messageScore(score)}</p>
               </div>
               <button onClick={mode === 'biblique' ? nouveauVerset : nouveauSegment} style={btnSecondaire}>
@@ -531,7 +531,7 @@ function JeuChasse() {
       {/* Mot vedette */}
       <div style={{
         background: 'rgba(255,255,255,0.80)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)',
-        borderRadius: '14px', padding: '28px 20px', textAlign: 'center',
+        borderRadius: '12px', padding: '28px 20px', textAlign: 'center',
       }}>
         <p style={{ margin: '0 0 6px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: '#6b8a70', fontWeight: 800 }}>
           Retrouvez ce mot dans trois versets
@@ -539,8 +539,8 @@ function JeuChasse() {
         <p style={{
           margin: '0 0 10px',
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          fontSize: 'clamp(32px, 5vw, 48px)',
-          fontWeight: 'normal', color: '#193824', letterSpacing: '0.04em',
+          fontSize: 'clamp(2rem, 5vw, 3rem)',
+          fontWeight: 'normal', color: 'var(--cs-encre-fonce)', letterSpacing: '0.04em',
           fontStyle: 'italic',
           animation: phase === 'attente' ? 'chassePulse 2.8s ease-in-out infinite' : 'none',
         }}>
@@ -562,7 +562,7 @@ function JeuChasse() {
               {indiceVisible ? 'Masquer l\'indice' : 'Voir un indice'}
             </button>
             {indiceVisible && (
-              <p style={{ fontStyle: 'italic', fontSize: '0.8125rem', color: '#5a6b5e', margin: '0 0 16px' }}>{entree.indice}</p>
+              <p style={{ fontStyle: 'italic', fontSize: '0.8125rem', color: 'var(--cs-texte-second)', margin: '0 0 16px' }}>{entree.indice}</p>
             )}
             <button onClick={demarrer} style={{ ...btnPrincipal, fontSize: '0.8125rem', padding: '10px 28px' }}>
               Lancer le chronomètre
@@ -607,13 +607,13 @@ function JeuChasse() {
       {phase === 'resultat' && (
         <div style={{ background: 'rgba(255,255,255,0.74)', border: '1px solid rgba(var(--cs-vert-rgb),0.16)', borderRadius: '12px', padding: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#2f6a48' }}>{scoreChasse} pts</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--cs-vert)' }}>{scoreChasse} pts</span>
             <span style={{ fontSize: '0.8125rem', color: '#5f725f' }}>{nbCorrects}/3 versets corrects · {formatTemps(secondes)}</span>
           </div>
 
           {verification.map((v, i) => (
             <div key={i} style={{
-              marginBottom: '10px', padding: '10px 12px', borderRadius: '9px',
+              marginBottom: '10px', padding: '10px 12px', borderRadius: '8px',
               background: !v ? 'rgba(0,0,0,0.03)' : v.ok ? 'rgba(var(--cs-vert-rgb),0.08)' : 'rgba(var(--cs-danger-rgb),0.07)',
               border: `1px solid ${!v ? 'var(--cs-bord-clair)' : v.ok ? 'rgba(var(--cs-vert-rgb),0.20)' : 'rgba(var(--cs-danger-rgb),0.18)'}`,
             }}>
@@ -643,14 +643,14 @@ function JeuChasse() {
 
       {/* Aide */}
       {phase === 'jeu' && (
-        <div style={{ padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(var(--cs-vert-rgb),0.10)', fontSize: '0.71875rem', color: '#6b7d6d', lineHeight: 1.6 }}>
+        <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(var(--cs-vert-rgb),0.10)', fontSize: '0.71875rem', color: '#6b7d6d', lineHeight: 1.6 }}>
           <strong style={{ color: 'var(--cs-vert)' }}>Astuce :</strong> Ouvrez la Bible dans un autre onglet et utilisez la navigation par livre et chapitre.
           {!indiceVisible && phase === 'jeu' && (
             <button onClick={() => setIndiceVisible(true)} style={{ marginLeft: '10px', fontSize: '0.6875rem', color: '#9aab9a', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
               Voir l’indice
             </button>
           )}
-          {indiceVisible && <span style={{ display: 'block', marginTop: '4px', fontStyle: 'italic', color: '#5a6b5e' }}>{entree.indice}</span>}
+          {indiceVisible && <span style={{ display: 'block', marginTop: '4px', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>{entree.indice}</span>}
         </div>
       )}
     </div>
@@ -675,8 +675,8 @@ function JeuBiblique({ verset, livreCorrect, etape, resultats, etapesRestantes, 
 }) {
   return (
     <>
-      <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.58, color: '#203528', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
+      <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '12px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
+        <p lang="fr" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.58, color: 'var(--cs-encre-fonce)', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
@@ -749,8 +749,8 @@ function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAute
 }) {
   return (
     <>
-      <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '13px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.65, color: '#203528', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {rendreTexteEnrichi(segment.texte)} »</p>
+      <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '12px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
+        <p lang="fr" style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.65, color: 'var(--cs-encre-fonce)', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {rendreTexteEnrichi(segment.texte)} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
@@ -799,7 +799,7 @@ function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAute
         )}
         {etape === 'resultat' && (
           <BlocJeu titre="Résultat">
-            <p style={{ fontSize: '0.875rem', color: '#163422', margin: '0 0 2px', fontWeight: 900 }}>{segment.nomAuteur}</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', margin: '0 0 2px', fontWeight: 900 }}>{segment.nomAuteur}</p>
             <p style={{ fontSize: '0.8125rem', color: 'var(--cs-vert)', fontStyle: 'italic', margin: '0 0 8px' }}>{segment.titreOeuvre}</p>
             <p style={{ fontSize: '0.8125rem', color: 'var(--cs-vert)', fontWeight: 800, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
             {resultats.map((r, i) => (
@@ -827,7 +827,7 @@ function BlocResultat({ verset, livreCorrect, score, resultats, nouveauVerset, s
   const ref = `${livreCorrect.nom} ${verset.chapitre}, ${verset.verset}`
   return (
     <BlocJeu titre="Résultat">
-      <p style={{ fontSize: '1.25rem', color: '#163422', margin: '0 0 5px', fontWeight: 900 }}>{ref}</p>
+      <p style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', margin: '0 0 5px', fontWeight: 900 }}>{ref}</p>
       <p style={{ fontSize: '0.8125rem', color: 'var(--cs-vert)', fontWeight: 800, margin: '0 0 12px' }}>{score} points — {messageScore(score)}</p>
       {resultats.map((r, i) => (
         <p key={`${r.label}-${i}`} style={{ fontSize: '0.75rem', color: '#536756', margin: '4px 0' }}>
@@ -839,7 +839,7 @@ function BlocResultat({ verset, livreCorrect, score, resultats, nouveauVerset, s
         <button onClick={() => setSignalementOuvert(o => !o)} style={btnSecondaire}>Signaler ce verset</button>
       </div>
       {signalementOuvert && (
-        <div style={{ marginTop: '14px', padding: '12px', border: '1px solid #d7e3d3', borderRadius: '10px', background: '#fbfdf8' }}>
+        <div style={{ marginTop: '14px', padding: '12px', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', background: 'var(--cs-fond-clair)' }}>
           <select value={raisonSignalement} onChange={e => setRaisonSignalement(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
             {['verset trop générique','verset trop court','doublon ou quasi-doublon','dépend trop du verset précédent','problème de traduction','autre'].map(r => <option key={r}>{r}</option>)}
           </select>
@@ -863,8 +863,8 @@ function BarreProgression({ resultats, etapesRestantes }: { resultats: Resultat[
         const aVenir = i >= resultats.length
         return (
           <div key={`${r.label}-${i}`} style={{ flex: '1 0 100px', minHeight: '36px', borderRadius: '8px', padding: '6px 7px', background: aVenir ? 'rgba(255,255,255,0.68)' : r.points > 0 ? 'rgba(var(--cs-vert-rgb),0.13)' : 'rgba(194,112,38,0.10)', border: `1px solid ${aVenir ? 'rgba(var(--cs-vert-rgb),0.14)' : r.points > 0 ? 'rgba(var(--cs-vert-rgb),0.20)' : 'rgba(194,112,38,0.18)'}` }}>
-            <p style={{ margin: 0, fontSize: '0.5625rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: aVenir ? '#66806a' : r.points > 0 ? 'var(--cs-vert)' : '#9a5520', fontWeight: 900 }}>{r.label}</p>
-            <p style={{ margin: '2px 0 0', fontSize: '0.625rem', color: '#294b35', fontWeight: 800 }}>{aVenir ? 'À jouer' : `${r.points} pts${r.reponse ? ` — ${r.reponse}` : ''}`}</p>
+            <p style={{ margin: 0, fontSize: '0.5625rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: aVenir ? '#66806a' : r.points > 0 ? 'var(--cs-vert)' : 'var(--cs-attente)', fontWeight: 900 }}>{r.label}</p>
+            <p style={{ margin: '2px 0 0', fontSize: '0.625rem', color: 'var(--cs-vert-fonce)', fontWeight: 800 }}>{aVenir ? 'À jouer' : `${r.points} pts${r.reponse ? ` — ${r.reponse}` : ''}`}</p>
           </div>
         )
       })}
@@ -924,7 +924,7 @@ function FeuArtifice() {
   return (
     <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 20 }}>
       {Array.from({ length: 18 }).map((_, i) => (
-        <span key={i} style={{ position: 'absolute', left: `${18 + (i * 37) % 70}%`, top: `${10 + (i * 23) % 55}%`, width: '7px', height: '7px', borderRadius: '50%', background: i % 3 === 0 ? '#f6cf62' : i % 3 === 1 ? '#8bcf83' : '#ffffff', animation: `bibleGamesSpark ${0.55 + (i % 4) * 0.08}s ease-out forwards`, boxShadow: '0 0 12px currentColor' }} />
+        <span key={i} style={{ position: 'absolute', left: `${18 + (i * 37) % 70}%`, top: `${10 + (i * 23) % 55}%`, width: '7px', height: '7px', borderRadius: '50%', background: i % 3 === 0 ? '#f6cf62' : i % 3 === 1 ? '#8bcf83' : 'var(--cs-surface)', animation: `bibleGamesSpark ${0.55 + (i % 4) * 0.08}s ease-out forwards`, boxShadow: '0 0 12px currentColor' }} />
       ))}
     </div>
   )
@@ -934,20 +934,20 @@ function FeuArtifice() {
 function BlocJeu({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.74)', border: '1px solid rgba(var(--cs-vert-rgb),0.16)', borderRadius: '12px', padding: '14px' }}>
-      <h3 style={{ fontSize: '0.9375rem', color: '#1d3e29', margin: '0 0 10px', fontWeight: 900 }}>{titre}</h3>
+      <h3 style={{ fontSize: '0.9375rem', color: 'var(--cs-encre)', margin: '0 0 10px', fontWeight: 900 }}>{titre}</h3>
       {children}
     </div>
   )
 }
 
 /* ── Styles partagés ─────────────────────────────────────────────────────── */
-const btnPrincipal = { fontSize: '0.75rem', padding: '8px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
+const btnPrincipal = { fontSize: '0.75rem', padding: '8px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
 const btnSecondaire = { fontSize: '0.75rem', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 800 } as const
-const inputStyle = { minWidth: 0, fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: 'var(--cs-surface)', color: '#203528', outline: 'none', boxSizing: 'border-box' } as const
-const tagStyle = { fontSize: '0.6875rem', color: '#2f6a48', background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '999px', padding: '4px 8px', fontWeight: 700 } as const
-const menuSuggestionsStyle = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: 'var(--cs-surface)', border: '1px solid #bdd2bf', borderRadius: '9px', zIndex: 30, boxShadow: '0 10px 26px rgba(35,66,44,0.14)', overflow: 'hidden' } as const
-const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.75rem', color: '#203528', background: 'var(--cs-surface)', border: 'none', borderBottom: '1px solid #eef3eb', cursor: 'pointer' } as const
-const blocJeSaisStyle = { display: 'grid', gridTemplateColumns: 'minmax(150px,1fr) minmax(220px,1.25fr)', gap: '12px', alignItems: 'center', background: '#fffdf6', border: '1px solid rgba(190,154,73,0.28)', borderRadius: '12px', padding: '12px' } as const
+const inputStyle = { minWidth: 0, fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', outline: 'none', boxSizing: 'border-box' } as const
+const tagStyle = { fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '999px', padding: '4px 8px', fontWeight: 700 } as const
+const menuSuggestionsStyle = { position: 'absolute', left: 0, right: 0, top: 'calc(100% + 4px)', background: 'var(--cs-surface)', border: '1px solid #bdd2bf', borderRadius: '8px', zIndex: 30, boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' } as const
+const suggestionStyle = { display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.75rem', color: 'var(--cs-encre-fonce)', background: 'var(--cs-surface)', border: 'none', borderBottom: '1px solid var(--cs-fond)', cursor: 'pointer' } as const
+const blocJeSaisStyle = { display: 'grid', gridTemplateColumns: 'minmax(150px,1fr) minmax(220px,1.25fr)', gap: '12px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid rgba(190,154,73,0.28)', borderRadius: '12px', padding: '12px' } as const
 const aideStyle = { fontSize: '0.75rem', color: '#5d735f', margin: '0 0 10px', lineHeight: 1.45 } as const
-const messageChaudStyle = { marginTop: '10px', padding: '9px 11px', borderRadius: '9px', background: '#fff4df', border: '1px solid rgba(194,112,38,0.26)', color: '#9a5520', fontSize: '0.75rem', fontWeight: 700 } as const
+const messageChaudStyle = { marginTop: '10px', padding: '9px 11px', borderRadius: '8px', background: 'var(--cs-danger-fond)', border: '1px solid rgba(194,112,38,0.26)', color: 'var(--cs-attente)', fontSize: '0.75rem', fontWeight: 700 } as const
 const etatTexte = { textAlign: 'center', color: '#6c7b6d', fontStyle: 'italic', fontSize: '0.8125rem' } as const

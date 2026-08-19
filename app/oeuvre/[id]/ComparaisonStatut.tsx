@@ -10,7 +10,7 @@ export function BadgeStatutAlignement({ status, estAdmin }: { status: string | n
         borderRadius: '999px',
         background: 'rgba(190, 145, 66, 0.09)',
         color: '#7a5a2d',
-        fontSize: '0.58rem',
+        fontSize: '0.59375rem',
         lineHeight: 1,
         letterSpacing: '0.04em',
         padding: '3px 7px',

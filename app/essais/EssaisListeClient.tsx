@@ -9,6 +9,7 @@ import EtoileFavori from '@/app/components/EtoileFavori'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -29,7 +30,7 @@ type EssaiPerso = {
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
   brouillon: { label: 'Brouillon', couleur: 'var(--cs-texte-doux)' },
-  en_attente: { label: 'En attente', couleur: '#9a5a2a' },
+  en_attente: { label: 'En attente', couleur: 'var(--cs-attente)' },
   publie: { label: 'Publié', couleur: 'var(--cs-vert)' },
   a_reviser: { label: 'À réviser', couleur: 'var(--cs-danger)' },
   refuse: { label: 'Refusé', couleur: 'var(--cs-danger)' },
@@ -101,7 +102,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
         {/* En-tête — sobre : le titre, un discret losange, puis les onglets. */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
 
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.6875rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, letterSpacing: '0.02em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, letterSpacing: '0.02em' }}>
             Publications
           </h1>
           <div aria-hidden="true" style={{ color: 'var(--cs-or)', fontSize: '0.4375rem', letterSpacing: '0.4em', margin: '6px 0 8px' }}>◆</div>
@@ -141,7 +142,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
                 { key: 'suggestion' as const, label: 'Commenter un verset' },
               ]).map(s => (
                 <button key={s.key} onClick={() => setSousEcrire(s.key)}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? 'var(--cs-vert)' : '#8a8278', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
                   {s.label}
                 </button>
               ))}
@@ -239,7 +240,7 @@ function OngletCommunaute({
         .couverture {
           container-type: inline-size;
           position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
-          border-radius: 2px; text-decoration: none; isolation: isolate;
+          border-radius: 4px; text-decoration: none; isolation: isolate;
           font-family: var(--font-source-sans), Arial, sans-serif;
           box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
           transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.24s ease;
@@ -420,7 +421,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
     return (
       <div style={{ textAlign: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
         <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
-        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
           Se connecter
         </Link>
       </div>
@@ -428,7 +429,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   }
   if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
   return (
-    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '30px 34px', textAlign: 'center' }}>
+    <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '30px 34px', textAlign: 'center' }}>
       <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
@@ -438,7 +439,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '27.5rem' }}>
         Le titre, le résumé, les catégories et le texte se renseignent désormais dans la même page.
       </p>
-      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
         Ouvrir la rédaction
       </Link>
     </div>
@@ -544,11 +545,11 @@ function OngletMesEcrits({
             const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
             const timer = verrouille ? formatTimer(restant) : ''
             return (
-              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '7px', padding: '8px 12px' }}>
+              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '8px 12px' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.titre}</span>
-                    {e.sous_titre && <span style={{ fontSize: '0.71875rem', color: '#8a8278', fontStyle: 'italic' }}>{e.sous_titre}</span>}
+                    {e.sous_titre && <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>{e.sous_titre}</span>}
                   </div>
                   {/* Méta sur UNE seule ligne : statut · date · vues · cœurs. La révision en
                       cours est signalée là, sans encart séparé. */}
@@ -558,7 +559,7 @@ function OngletMesEcrits({
                     <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
                     <span>♥ {e.nb_likes ?? 0}</span>
                     {e.statut === 'en_attente' && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#9a5a2a', fontWeight: 600 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cs-attente)', fontWeight: 600 }}>
                         <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                           <circle cx="8" cy="8" r="6.2" stroke="#9a5a2a" strokeWidth="1.4"/>
                           <path d="M8 4.6V8l2.4 1.6" stroke="#9a5a2a" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -574,7 +575,7 @@ function OngletMesEcrits({
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
                     {timer && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{timer}</span>}
                     <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
+                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: 'var(--cs-ombre-nette)' }} />
                     </span>
                   </button>
                   <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
@@ -661,14 +662,14 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
         </p>
       ) : (
         <>
-          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '34px 36px 28px', marginBottom: '18px' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '34px 36px 28px', marginBottom: '18px' }}>
             <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', lineHeight: 1.8, color: 'var(--cs-encre-fonce)', fontStyle: 'italic', margin: '0 0 18px' }}>
               «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
-            <p style={{ fontSize: '0.75rem', color: '#8a8278', margin: 0 }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', margin: 0 }}>
               {ABREV_FR[verset.livre] ?? verset.livre} {verset.chapitre},{verset.verset}
             </p>
           </div>
@@ -680,12 +681,12 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
                 const ref = `${LIVRES.find(l => l.code === verset.livre)?.nom ?? verset.livre} ${verset.chapitre},${verset.verset}`
                 sessionStorage.setItem('suggestion-verset-en-tete', JSON.stringify({ ref, texte: verset.texte }))
               }}
-              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
               Écrire sur ce verset
             </Link>
             <Link
               href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}&verset=${verset.verset}`}
-              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: 'var(--cs-vert)', borderRadius: '6px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
+              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: 'var(--cs-vert)', borderRadius: '8px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
               Lire dans la Bible
             </Link>
           </div>
@@ -727,7 +728,7 @@ function tagFiltre(actif: boolean): React.CSSProperties {
     fontSize: '0.625rem', padding: '3px 10px', borderRadius: '999px',
     border: '1px solid ' + (actif ? 'var(--cs-vert)' : 'transparent'),
     background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'rgba(120,110,96,0.06)',
-    color: actif ? 'var(--cs-vert)' : '#8a8278', cursor: 'pointer',
+    color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
     fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', lineHeight: 1.3,
     transition: 'background 0.12s, color 0.12s',
   }
@@ -740,8 +741,8 @@ function formatTimer(ms: number): string {
 }
 function styleStatut(statut: string): { fond: string; bordure: string; accent: string } {
   if (statut === 'publie') return { fond: 'rgba(var(--cs-vert-rgb),0.075)', bordure: 'rgba(var(--cs-vert-rgb),0.24)', accent: 'var(--cs-vert)' }
-  if (statut === 'en_attente') return { fond: 'rgba(154,90,42,0.075)', bordure: 'rgba(154,90,42,0.24)', accent: '#9a5a2a' }
+  if (statut === 'en_attente') return { fond: 'rgba(154,90,42,0.075)', bordure: 'rgba(154,90,42,0.24)', accent: 'var(--cs-attente)' }
   if (statut === 'a_reviser') return { fond: 'rgba(var(--cs-danger-rgb),0.08)', bordure: 'rgba(var(--cs-danger-rgb),0.25)', accent: 'var(--cs-danger)' }
-  if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: '#a02d2d' }
-  return { fond: '#fff', bordure: 'var(--cs-bord-clair)', accent: 'var(--cs-bord)' }
+  if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: 'var(--cs-danger-fonce)' }
+  return { fond: 'var(--cs-surface)', bordure: 'var(--cs-bord-clair)', accent: 'var(--cs-bord)' }
 }

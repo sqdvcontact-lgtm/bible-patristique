@@ -20,7 +20,7 @@ const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQ
 // Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
 const MORDORE = "#7d5f28";
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "0.375rem", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "8px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
 const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "0.3125rem" };
 
 /** Où revenir après avoir confirmé son adresse par courriel. */
@@ -326,8 +326,8 @@ function Prevenir() {
 
   if (etat === "fait") {
     return (
-      <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "0.5rem", padding: "1rem 1.125rem" }}>
-        <p style={{ fontSize: "0.8125rem", color: "#2a6040", margin: 0, lineHeight: 1.6 }}>
+      <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "1rem 1.125rem" }}>
+        <p style={{ fontSize: "0.8125rem", color: "var(--cs-vert-fonce)", margin: 0, lineHeight: 1.6 }}>
           C’est noté. Vous recevrez un message le jour de l’ouverture. Un seul, et rien d’autre.
         </p>
       </div>
@@ -348,7 +348,7 @@ function Prevenir() {
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -427,9 +427,9 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                        color: var(--cs-vert); letter-spacing: 0.16em; text-transform: uppercase;
                        font-size: 1.875rem; line-height: 1.1; margin: 1rem 0 0.25rem; }
         .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
-                    color: #1e2e22; line-height: 1.3; letter-spacing: -0.005em;
+                    color: var(--cs-encre-fonce); line-height: 1.3; letter-spacing: -0.005em;
                     font-size: 1.25rem; font-style: italic; margin: 0.625rem 0 1rem; }
-        .cs-chapeau { font-size: 0.90625rem; color: var(--cs-texte-second); line-height: 1.75;
+        .cs-chapeau { font-size: 0.875rem; color: var(--cs-texte-second); line-height: 1.75;
                       max-width: 32.5rem; margin: 0 auto; }
         /* Chevron d'invite à descendre : bouton discret, un peu plus grand, qui
            oscille doucement pour signaler qu'il y a une suite, et pousse au clic
@@ -437,7 +437,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            de mouvement. */
         .cs-suite { display: inline-flex; align-items: center; justify-content: center;
                     margin-top: 1.25rem; width: 2.75rem; height: 2.75rem; padding: 0;
-                    border: none; background: none; color: #b0a48f; cursor: pointer;
+                    border: none; background: none; color: var(--cs-texte-faible); cursor: pointer;
                     border-radius: 50%; transition: color 0.2s ease;
                     animation: cs-suite-bob 2.4s ease-in-out infinite; }
         .cs-suite:hover { color: #7d5f28; }
@@ -455,30 +455,30 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            rangée. Ivoire léger (distinct du fond, sans blanc froid), angles peu
            arrondis, filet fin beige, ombre à peine perceptible. */
         .cs-encart { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-                     text-align: center; padding: 2rem 2.125rem; border: 1px solid #e7e0d4;
-                     border-radius: 0.5rem; background: #faf6ec; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
+                     text-align: center; padding: 2rem 2.125rem; border: 1px solid var(--cs-bord-clair);
+                     border-radius: 8px; background: var(--cs-fond); box-shadow: var(--cs-ombre-posee); }
         .cs-encart-ico { display: flex; align-items: center; justify-content: center;
                          width: 2.875rem; height: 2.875rem; border-radius: 50%; margin-bottom: 0.75rem;
-                         color: var(--cs-vert); background: #eef3ee; border: 1px solid #dbe6dd; }
+                         color: var(--cs-vert); background: var(--cs-fond); border: 1px solid var(--cs-vert-pale); }
         /* Vert et mordoré mêlés : une teinte par encart, en alternance. Sur deux colonnes,
            cela pose le vert d'un côté et le mordoré de l'autre — les deux couleurs de la
            charte (le vert des reliures, le brun doré des filets) se répondent. */
-        .cs-encart--mordore .cs-encart-ico { color: #7d5f28; background: #f5efe1; border-color: #e6d8ba; }
+        .cs-encart--mordore .cs-encart-ico { color: #7d5f28; background: var(--cs-fond-doux); border-color: #e6d8ba; }
         .cs-encart--mordore .cs-encart-titre { color: #4a3d24; }
         .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
         .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                            font-size: 1.0625rem; color: var(--cs-encre); margin: 0 0 0.625rem; padding-bottom: 0.625rem;
                            position: relative; }
         .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
-                                  width: 1.625rem; height: 1px; background: #cdb98c; transform: translateX(-50%); }
+                                  width: 1.625rem; height: 1px; background: var(--cs-or-doux); transform: translateX(-50%); }
         .cs-encart-texte { font-size: 0.78125rem; color: var(--cs-texte-second); line-height: 1.65; margin: 0; max-width: 34ch; }
         /* Le point surnuméraire enjambe les deux colonnes et se centre. */
         .cs-principe-seul { grid-column: 1 / -1; max-width: 21.25rem; margin: 0 auto; }
         .cs-cartes { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
         /* Cartes du bas (prévenir, soutenir, connexion) accordées aux encarts :
            même ivoire, mêmes angles, même filet, même ombre à peine perceptible. */
-        .cs-carte, .cs-connexion { background: #faf6ec; border: 1px solid #e7e0d4;
-                     border-radius: 0.5rem; box-shadow: 0 1px 2px rgba(60,50,30,0.04); }
+        .cs-carte, .cs-connexion { background: var(--cs-fond); border: 1px solid var(--cs-bord-clair);
+                     border-radius: 8px; box-shadow: var(--cs-ombre-posee); }
         /* Titre de bloc : sérif, sobre, centré — la voix des titres du site. */
         .cs-bloc-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                          font-size: 1rem; color: var(--cs-encre); text-align: center; margin: 0 0 1rem; }
@@ -501,7 +501,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                            gap: 2rem 2.25rem; max-width: 46rem; margin: 0 auto; }
         .cs-phase-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                           font-size: 1.1875rem; color: var(--cs-encre); text-align: center;
-                          margin: 0 0 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid #e5ddce; }
+                          margin: 0 0 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid var(--cs-bord-clair); }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
                           display: flex; flex-direction: column; gap: 0.75rem; }
         .cs-route-item { display: flex; align-items: baseline; gap: 0.5625rem; }
@@ -510,7 +510,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-route-puce { flex: 0 0 auto; width: 0.875rem; text-align: center;
                          font-size: 0.6875rem; color: #bca877; }
         .cs-phase--fait .cs-route-puce { color: var(--cs-vert); }
-        .cs-phase--apres .cs-route-puce { color: #c3b9a6; }
+        .cs-phase--apres .cs-route-puce { color: var(--cs-or-doux); }
         .cs-route-titre { font-size: 0.84375rem; line-height: 1.45; color: #4a463f; }
         .cs-chiffres { display: flex; justify-content: center; gap: 3.375rem; flex-wrap: wrap; margin: 0.375rem 0 2.125rem; }
 
@@ -531,7 +531,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-ouverture-corps { padding: 0 1rem; }
           .cs-ecran { padding: 1.625rem 1rem 1.375rem; }
           .cs-enseigne { font-size: 1.375rem; letter-spacing: 0.13em; }
-          .cs-titre { font-size: 1.03125rem; margin: 0.5rem 0 0.875rem; }
+          .cs-titre { font-size: 1rem; margin: 0.5rem 0 0.875rem; }
           .cs-chapeau { font-size: 0.84375rem; line-height: 1.7; }
           .cs-suite { margin-top: 0.75rem; }
           .cs-principes { grid-template-columns: 1fr; gap: 1.125rem; margin-bottom: 1.875rem; }
@@ -539,7 +539,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-route { padding: 1.375rem 0 1.5rem; }
           .cs-route-liste { gap: 0.75rem; }
           .cs-chiffres { gap: 0; justify-content: space-between; margin: 0.25rem 0 1.75rem; }
-          .cs-chiffre-valeur { font-size: 1.5625rem !important; }
+          .cs-chiffre-valeur { font-size: 1.5rem !important; }
           .cs-chiffre-libelle { font-size: 0.5625rem !important; letter-spacing: 0.06em !important; }
           .cs-prevenir-champs { flex-direction: column; }
           .cs-prevenir-champs > * { width: 100%; }
@@ -627,7 +627,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "0.375rem", border: "none", background: "var(--cs-vert)", color: "#fff", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
                   stroke="currentColor" strokeWidth="2.5" fill="rgba(255,255,255,0.15)" strokeLinejoin="round" />
@@ -645,11 +645,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </h2>
         </div>
         {erreur === "__confirm__" ? (
-          <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.2)", borderRadius: "0.375rem", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
-            <p style={{ fontSize: "0.8125rem", color: "#2a6040", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
+          <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.2)", borderRadius: "8px", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
+            <p style={{ fontSize: "0.8125rem", color: "var(--cs-vert-fonce)", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
           </div>
         ) : erreur ? (
-          <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "0.375rem", padding: "0.625rem 0.875rem", marginBottom: "1.125rem" }}>
+          <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "8px", padding: "0.625rem 0.875rem", marginBottom: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
           </div>
         ) : null}
@@ -669,7 +669,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "0.375rem", border: "none", background: chargement ? "#8aaa96" : "var(--cs-vert)", color: "#fff", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "#8aaa96" : "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>
@@ -716,11 +716,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         </nav>
 
         {/* ── Démarchage ── */}
-        <aside style={{ marginTop: "2.125rem", border: "1px solid #ddc9c2", background: "#fdf6f4", borderRadius: "0.5rem", padding: "1.375rem 1.625rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
+        <aside style={{ marginTop: "2.125rem", border: "1px solid var(--cs-bord)", background: "var(--cs-fond-clair)", borderRadius: "8px", padding: "1.375rem 1.625rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: "normal", fontSize: "0.9375rem", color: "#9a4a3a", margin: "0 0 0.5rem" }}>
             Aucun démarchage
           </h2>
-          <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.7, margin: 0 }}>
             Toute sollicitation commerciale relative à ce site est
             <strong style={{ color: "#8a3a2a" }}> refusée par avance</strong>, qu’elle soit
             envoyée par une personne ou par un automate. Cela vaut pour le référencement,
@@ -728,7 +728,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             de développement. Les adresses figurant sur ce site ne valent pas consentement
             et ne sont pas collectables.
           </p>
-          <p style={{ fontSize: "0.78125rem", color: "#6a5a54", lineHeight: 1.7, margin: "0.625rem 0 0" }}>
+          <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.7, margin: "0.625rem 0 0" }}>
             La prospection par voie électronique sans accord préalable est interdite en France
             (article L. 34-5 du code des postes et des communications électroniques) et
             constitue un traitement de données sans base légale au sens du RGPD. Tout message

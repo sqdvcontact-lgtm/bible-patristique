@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 export default function BienvenuePage() {
   const router = useRouter()
@@ -31,7 +32,7 @@ export default function BienvenuePage() {
         <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7aaa8e', margin: '0 0 18px' }}>
           Corpus Scriptura
         </p>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 10px', lineHeight: 1.3 }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: 1.3 }}>
           Bienvenue.
         </h1>
         <p style={{ fontSize: '0.84375rem', color: '#7a7068', lineHeight: 1.75, margin: '0 0 52px', maxWidth: '21.25rem', marginLeft: 'auto', marginRight: 'auto' }}>
@@ -57,7 +58,7 @@ export default function BienvenuePage() {
               desc: 'Rédigez et publiez une méditation scripturaire.',
             },
           ].map(({ href, titre, desc }) => (
-            <a key={href} href={href} style={{ display: 'block', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '20px 24px', textAlign: 'left', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
+            <a key={href} href={href} style={{ display: 'block', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '20px 24px', textAlign: 'left', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a8c4b4'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(var(--cs-vert-rgb),0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-bord)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 4px' }}>{titre}</p>

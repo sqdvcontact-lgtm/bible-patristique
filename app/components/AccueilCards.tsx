@@ -173,7 +173,7 @@ export default function AccueilCards() {
           align-items: center;
           justify-content: center;
           gap: 0.8125rem;
-          border-radius: 10px;
+          border-radius: 8px;
           text-decoration: none;
           min-height: 8.875rem;
           padding: 0;
@@ -236,13 +236,13 @@ export default function AccueilCards() {
         /* Trois tons terreux SOBRES et coordonnés (assourdis) : vert sombre,
            bronze doux, olive — distincts mais sans éclat. */
         .ac-bible {
-          background: linear-gradient(160deg, #2c3a31 0%, #222e27 100%);
+          background: linear-gradient(160deg, var(--cs-encre) 0%, var(--cs-encre-fonce) 100%);
         }
         .ac-patristique {
-          background: linear-gradient(160deg, #52472c 0%, #3b3320 100%);
+          background: linear-gradient(160deg, #52472c 0%, var(--cs-texte) 100%);
         }
         .ac-publications {
-          background: linear-gradient(160deg, #3a3d2b 0%, #2d3021 100%);
+          background: linear-gradient(160deg, var(--cs-texte) 0%, var(--cs-texte-fort) 100%);
         }
         .ac-title {
           font-family: var(--font-source-serif), Georgia, serif;
@@ -291,7 +291,7 @@ export default function AccueilCards() {
         }
         .ac-hover-choice:first-child {
           border-bottom: 1px solid rgba(255,255,255,0.22);
-          border-radius: 10px 10px 0 0;
+          border-radius: 8px 10px 0 0;
         }
         .ac-hover-choice:last-child {
           border-radius: 0 0 10px 10px;

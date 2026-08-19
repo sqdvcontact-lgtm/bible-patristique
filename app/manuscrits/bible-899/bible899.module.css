@@ -1,8 +1,8 @@
 /* CSS Module : uniquement des sélecteurs de classe locaux (aucun reset global). */
 .page {
   min-height: 100%;
-  background: #f5f1e8;
-  color: #2a2520;
+  background: var(--cs-fond);
+  color: var(--cs-texte-fort);
   padding: 2.5rem clamp(1rem, 3vw, 3rem) 3rem;
 }
 
@@ -13,8 +13,8 @@
 
 .eyebrow {
   margin: 0 0 0.35rem;
-  color: #8b6031;
-  font-size: 0.72rem;
+  color: var(--cs-lacune);
+  font-size: 0.71875rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -22,7 +22,7 @@
 
 .hero h1 {
   margin: 0;
-  color: #1e2e24;
+  color: var(--cs-encre-fonce);
   font-size: clamp(1.8rem, 4vw, 3.1rem);
   font-weight: 540;
   line-height: 1.08;
@@ -36,7 +36,7 @@
   margin: 0.5rem 0 0;
   color: var(--cs-vert);
   font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
   font-style: italic;
 }
 
@@ -45,7 +45,7 @@
   margin: 1rem 0 0;
   color: #5e574e;
   font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 0.9375rem;
   line-height: 1.65;
 }
 
@@ -57,13 +57,13 @@
 }
 
 .metadata div {
-  border-left: 2px solid #c8bba5;
+  border-left: 2px solid var(--cs-or-doux);
   padding-left: 0.7rem;
 }
 
 .metadata dt {
-  color: #8b8175;
-  font-size: 0.62rem;
+  color: var(--cs-texte-gris);
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -71,9 +71,9 @@
 
 .metadata dd {
   margin: 0.18rem 0 0;
-  color: #3a342e;
+  color: var(--cs-texte);
   font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
 }
 
@@ -86,8 +86,8 @@
   gap: 0.8rem 1.25rem;
   width: min(76rem, 100%);
   margin: 0 auto 1.25rem;
-  border: 1px solid #d4cbbb;
-  border-radius: 0.65rem;
+  border: 1px solid var(--cs-bord);
+  border-radius: 12px;
   background: rgba(255, 253, 248, 0.97);
   box-shadow: 0 0.45rem 1.4rem rgba(53, 44, 32, 0.1);
   padding: 0.65rem;
@@ -103,10 +103,10 @@
 .mode,
 .modeActive {
   border: 1px solid transparent;
-  border-radius: 0.42rem;
+  border-radius: 8px;
   padding: 0.48rem 0.7rem;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.71875rem;
   font-weight: 650;
   cursor: pointer;
 }
@@ -123,7 +123,7 @@
 .modeActive {
   border-color: var(--cs-vert);
   background: var(--cs-vert);
-  color: #fff;
+  color: var(--cs-surface);
 }
 
 .mode:focus-visible,
@@ -138,7 +138,7 @@
   align-items: center;
   gap: 0.42rem;
   color: #514a42;
-  font-size: 0.72rem;
+  font-size: 0.71875rem;
   white-space: nowrap;
 }
 
@@ -152,8 +152,8 @@
 
 .modeDescription {
   margin: 0;
-  color: #8a8177;
-  font-size: 0.66rem;
+  color: var(--cs-texte-gris);
+  font-size: 0.65625rem;
   text-align: right;
 }
 
@@ -171,21 +171,21 @@
   gap: 0.55rem;
   width: min(76rem, 100%);
   margin: 0 auto 1rem;
-  border: 1px solid #d6cdbd;
-  border-radius: 0.65rem;
-  background: #ebe4d7;
+  border: 1px solid var(--cs-bord);
+  border-radius: 12px;
+  background: var(--cs-bord-clair);
   padding: 0.6rem;
 }
 
 .manuscriptNavigation button,
 .manuscriptNavigation select {
-  border: 1px solid #bcb1a1;
-  border-radius: 0.38rem;
-  background: #fffdfa;
-  color: #32483a;
+  border: 1px solid var(--cs-or-doux);
+  border-radius: 8px;
+  background: var(--cs-surface);
+  color: var(--cs-vert-fonce);
   padding: 0.42rem 0.62rem;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
 }
 
 .manuscriptNavigation button:not(:disabled),
@@ -202,8 +202,8 @@
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.4rem;
-  color: #655d53;
-  font-size: 0.68rem;
+  color: var(--cs-texte-second);
+  font-size: 0.6875rem;
 }
 
 .columnNavigation {
@@ -215,14 +215,14 @@
 .columnNavigationActive {
   border-color: var(--cs-vert) !important;
   background: var(--cs-vert) !important;
-  color: #fff !important;
+  color: var(--cs-surface) !important;
 }
 
 .column {
   overflow: hidden;
-  border: 1px solid #d6cdbd;
-  border-radius: 0.75rem;
-  background: #fffdfa;
+  border: 1px solid var(--cs-bord);
+  border-radius: 12px;
+  background: var(--cs-surface);
   box-shadow: 0 0.35rem 1.25rem rgba(58, 48, 35, 0.08);
 }
 
@@ -230,21 +230,21 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  border-bottom: 1px solid #ded6ca;
-  background: #ebe4d7;
+  border-bottom: 1px solid var(--cs-bord);
+  background: var(--cs-bord-clair);
   padding: 0.65rem 1rem;
 }
 
 .columnHeader h2 {
   margin: 0;
-  color: #2d4535;
+  color: var(--cs-encre);
   font-size: 1rem;
   font-weight: 600;
 }
 
 .columnHeader span {
-  color: #887e72;
-  font-size: 0.65rem;
+  color: var(--cs-texte-gris);
+  font-size: 0.65625rem;
 }
 
 .columnBody {
@@ -255,7 +255,7 @@
 
 .facsimile {
   margin: 0;
-  background: #201f1c;
+  background: var(--cs-texte-fort);
 }
 
 .loadingReader {
@@ -264,14 +264,14 @@
   place-items: center;
   width: min(76rem, 100%);
   margin: 0 auto;
-  color: #655d53;
+  color: var(--cs-texte-second);
   font-family: var(--font-source-serif), Georgia, serif;
 }
 
 .facsimileViewer {
   min-width: 0;
-  border-right: 1px solid #ded6ca;
-  background: #201f1c;
+  border-right: 1px solid var(--cs-bord);
+  background: var(--cs-texte-fort);
 }
 
 .facsimileChoices {
@@ -284,19 +284,19 @@
 
 .facsimileChoices button {
   border: 1px solid #777168;
-  border-radius: 0.35rem;
-  background: #34322e;
-  color: #e9e2d7;
+  border-radius: 8px;
+  background: var(--cs-texte);
+  color: var(--cs-bord-clair);
   padding: 0.38rem 0.55rem;
   font: inherit;
-  font-size: 0.66rem;
+  font-size: 0.65625rem;
   cursor: pointer;
 }
 
 .facsimileChoices button[aria-pressed="true"] {
-  border-color: #d4bc8f;
-  background: #f1e6d2;
-  color: #2a2520;
+  border-color: var(--cs-or-clair);
+  background: var(--cs-fond-doux);
+  color: var(--cs-texte-fort);
 }
 
 .facsimile img {
@@ -309,7 +309,7 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  background: #201f1c;
+  background: var(--cs-texte-fort);
 }
 
 .facsimileMissing {
@@ -317,23 +317,23 @@
   min-height: 18rem;
   place-items: center;
   padding: 1.5rem;
-  background: #2c2a26;
-  color: #d7cfc3;
-  font-size: 0.72rem;
+  background: var(--cs-texte-fort);
+  color: var(--cs-bord);
+  font-size: 0.71875rem;
   text-align: center;
 }
 
 .facsimile figcaption {
   padding: 0.5rem 0.8rem;
   color: #c9c1b6;
-  font-size: 0.62rem;
+  font-size: 0.625rem;
   text-align: center;
 }
 
 .transcription {
   padding: 1rem clamp(0.8rem, 2vw, 1.5rem) 1.4rem;
   font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 0.92rem;
+  font-size: 0.9375rem;
   line-height: 1.65;
 }
 
@@ -351,9 +351,9 @@
 }
 
 .lineNumber {
-  color: #a39788;
+  color: var(--cs-texte-doux);
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.64rem;
+  font-size: 0.625rem;
   line-height: 2.35;
   text-align: right;
   user-select: none;
@@ -374,10 +374,10 @@
 
 .catchwords {
   margin-top: 1rem;
-  border-top: 1px solid #d8cdb8;
+  border-top: 1px solid var(--cs-bord);
   padding-top: 0.75rem;
   color: #5f503d;
-  font-size: 0.84rem;
+  font-size: 0.84375rem;
 }
 
 .catchwords p {
@@ -386,15 +386,15 @@
 
 .catchwordLabel {
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.71875rem;
   font-weight: 600;
 }
 
 .missingModernized,
 .emptyEdition {
-  border: 1px dashed #c6b899;
-  border-radius: 0.45rem;
-  background: #faf5e9;
+  border: 1px dashed var(--cs-or-doux);
+  border-radius: 8px;
+  background: var(--cs-fond);
   color: #73664f;
   padding: 0.9rem;
   font-family: var(--font-source-sans), Arial, sans-serif;
@@ -409,14 +409,14 @@
 .gap,
 .unclear,
 .marginalAddition {
-  border-radius: 0.18rem;
+  border-radius: 4px;
   padding: 0 0.12rem;
   font-family: var(--font-source-sans), Arial, sans-serif;
   font-size: 0.78em;
 }
 
 .gap {
-  background: #efe0d9;
+  background: var(--cs-bord-clair);
   color: #8d432e;
 }
 
@@ -426,15 +426,15 @@
 }
 
 .marginalAddition {
-  background: #dde9e1;
-  color: #355f46;
+  background: var(--cs-vert-pale);
+  color: var(--cs-vert-fonce);
 }
 
 .sourceNote {
   width: min(76rem, 100%);
   margin: 1.5rem auto 0;
   color: #7d746a;
-  font-size: 0.65rem;
+  font-size: 0.65625rem;
   line-height: 1.5;
 }
 
@@ -444,7 +444,7 @@
 
 .sourceNote code {
   overflow-wrap: anywhere;
-  font-size: 0.62rem;
+  font-size: 0.625rem;
 }
 
 .alternativeSources {
@@ -454,7 +454,7 @@
 .alternativeSources summary {
   width: fit-content;
   cursor: pointer;
-  color: #5d6d62;
+  color: var(--cs-texte-second);
   font-weight: 650;
 }
 
@@ -464,7 +464,7 @@
 }
 
 .alternativeSources a {
-  color: #3f664d;
+  color: var(--cs-vert);
 }
 
 @media (max-width: 900px) {
@@ -520,7 +520,7 @@
 
   .facsimileViewer {
     border-right: 0;
-    border-bottom: 1px solid #ded6ca;
+    border-bottom: 1px solid var(--cs-bord);
   }
 }
 

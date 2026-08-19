@@ -67,20 +67,20 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
         style={{
           position: 'fixed', top: 'calc(3.5rem + 6px)', right: '12px',
           width: 'min(26rem, calc(100vw - 20px))', maxHeight: 'calc(100vh - 3.5rem - 22px)',
-          background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px',
-          boxShadow: '0 16px 44px rgba(30,26,20,0.24)', zIndex: 2500,
+          background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px',
+          boxShadow: 'var(--cs-ombre-modale)', zIndex: 2500,
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
         {/* En-tête : titre + tout archiver + fermer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '12px 14px 10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.95rem', color: 'var(--cs-encre-fonce)' }}>Notifications</span>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)' }}>Notifications</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {onglet === 'nouvelles' && nouvelles.length > 0 && (
               <button onClick={archiverTout} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}>
                 Tout archiver
               </button>
             )}
-            <button onClick={onFermer} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.95rem', lineHeight: 1, padding: 0 }}>✕</button>
+            <button onClick={onFermer} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.9375rem', lineHeight: 1, padding: 0 }}>✕</button>
           </div>
         </div>
 
@@ -91,7 +91,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
             { key: 'archivees' as Onglet, label: 'Archivées', count: archivees.length },
           ]).map(o => (
             <button key={o.key} onClick={() => setOnglet(o.key)}
-              style={{ padding: '8px 12px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? 'var(--cs-vert)' : '#8a8278', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer' }}>
+              style={{ padding: '8px 12px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer' }}>
               {o.label}<span style={{ marginLeft: '5px', fontSize: '0.5625rem', color: 'var(--cs-texte-faible)' }}>({o.count})</span>
             </button>
           ))}
@@ -108,7 +108,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           ) : (
             liste.map(n => (
               <article key={n.key}
-                style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${onglet === 'nouvelles' ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '7px', padding: '9px 11px' }}>
+                style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${onglet === 'nouvelles' ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '8px', padding: '9px 11px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', marginBottom: '4px' }}>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 2px' }}>{n.titre}</p>
@@ -117,7 +117,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                   <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', flexShrink: 0 }}>{dateCourte(n.date)}</span>
                 </div>
                 {n.contexte && (
-                  <p style={{ fontSize: '0.65625rem', color: '#8a8278', fontStyle: 'italic', margin: '0 0 5px', lineHeight: 1.35 }}>À propos : {n.contexte}</p>
+                  <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 5px', lineHeight: 1.35 }}>À propos : {n.contexte}</p>
                 )}
                 <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: '0 0 3px' }}>Message de <strong style={{ color: 'var(--cs-texte)' }}>{n.auteur}</strong></p>
                 <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-fort)', lineHeight: 1.45, whiteSpace: 'pre-wrap', margin: 0 }}>{n.message}</p>

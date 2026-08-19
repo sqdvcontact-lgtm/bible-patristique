@@ -60,13 +60,13 @@ export default function Consentement() {
           style={{
             position: 'fixed', left: '50%', transform: 'translateX(-50%)',
             bottom: '16px', zIndex: 3000, width: 'min(680px, calc(100% - 24px))',
-            background: 'var(--cs-fond-clair)', border: '1px solid #d9d3c8',
-            borderRadius: '12px', boxShadow: '0 12px 40px rgba(30,26,22,0.18)',
+            background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord)',
+            borderRadius: '12px', boxShadow: 'var(--cs-ombre-modale)',
             padding: '18px 20px',
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px',
           }}
         >
-          <p style={{ margin: 0, flex: '1 1 320px', fontSize: '0.86rem', lineHeight: 1.5, color: '#3a352e' }}>
+          <p style={{ margin: 0, flex: '1 1 320px', fontSize: '0.875rem', lineHeight: 1.5, color: 'var(--cs-texte)' }}>
             Corpus Scriptura utilise une mesure d’audience anonyme (Google Analytics)
             pour comprendre comment le site est consulté. Rien n’est chargé sans votre
             accord.{' '}
@@ -79,9 +79,9 @@ export default function Consentement() {
             <button
               onClick={() => decider('refuse')}
               style={{
-                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
                 padding: '9px 16px', borderRadius: '8px',
-                border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: '#6f675f',
+                border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)',
               }}
             >
               Refuser
@@ -89,9 +89,9 @@ export default function Consentement() {
             <button
               onClick={() => decider('accepte')}
               style={{
-                fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
                 padding: '9px 18px', borderRadius: '8px',
-                border: '1px solid var(--cs-vert)', background: 'var(--cs-vert)', color: '#fff',
+                border: '1px solid var(--cs-vert)', background: 'var(--cs-vert)', color: 'var(--cs-surface)',
               }}
             >
               Accepter

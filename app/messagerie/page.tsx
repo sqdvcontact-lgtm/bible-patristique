@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 type Conversation = {
   partenaire_pseudo: string
@@ -49,21 +50,21 @@ export default function MessageriePage() {
       <div style={{ maxWidth: '44rem', width: '100%', margin: 'auto', padding: '40px 24px 64px', boxSizing: 'border-box' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', marginBottom: '10px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: '10px' }}>
             Messages
           </h1>
           <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto' }} />
         </div>
 
         {connecte === false ? (
-          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '28px 24px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', textAlign: 'center' }}>
             <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '0 0 14px' }}>Connectez-vous pour accéder à votre messagerie.</p>
             <Link href="/chantier" style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
           </div>
         ) : conversations === null ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
         ) : conversations.length === 0 ? (
-          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '32px 24px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '32px 24px', textAlign: 'center' }}>
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Aucun message</p>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-bord)', margin: 0 }}>
               Rendez-vous sur le{' '}
@@ -77,7 +78,7 @@ export default function MessageriePage() {
               <Link key={c.partenaire_pseudo} href={`/messagerie/${encodeURIComponent(c.partenaire_pseudo)}`}
                 style={{ display: 'block', textDecoration: 'none' }}>
                 <article style={{
-                  background: c.nb_non_lus > 0 ? '#f9fcf9' : '#fff',
+                  background: c.nb_non_lus > 0 ? 'var(--cs-fond-clair)' : 'var(--cs-surface)',
                   border: '1px solid var(--cs-bord-clair)',
                   borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
                   borderRadius: '8px',
@@ -90,7 +91,7 @@ export default function MessageriePage() {
                         {c.partenaire_pseudo}
                       </span>
                       {c.nb_non_lus > 0 && (
-                        <span style={{ background: 'var(--cs-vert)', color: '#fff', fontSize: '0.59375rem', fontWeight: 700, borderRadius: '10px', padding: '1px 7px', letterSpacing: '0.04em' }}>
+                        <span style={{ background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontSize: '0.59375rem', fontWeight: 700, borderRadius: '8px', padding: '1px 7px', letterSpacing: '0.04em' }}>
                           {c.nb_non_lus}
                         </span>
                       )}
@@ -99,7 +100,7 @@ export default function MessageriePage() {
                       {dateRelative(c.dernier_at)}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.78125rem', color: c.nb_non_lus > 0 ? 'var(--cs-texte)' : '#8a8278', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                  <p style={{ fontSize: '0.78125rem', color: c.nb_non_lus > 0 ? 'var(--cs-texte)' : 'var(--cs-texte-gris)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
                     {c.dernier_message}
                   </p>
                 </article>

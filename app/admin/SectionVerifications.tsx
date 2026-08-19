@@ -161,12 +161,12 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
       {/* Compteur central, élégant : le nombre en chiffre serif, mis en avant. */}
       <div style={{ textAlign: 'center', margin: '4px 0 20px' }}>
         {chargement ? (
-          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+          <p style={{ margin: 0, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
         ) : paires.length === 0 ? (
-          <p style={{ margin: 0, fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun lien en attente de vérification.</p>
+          <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun lien en attente de vérification.</p>
         ) : (
-          <p style={{ margin: 0, color: 'var(--cs-texte-second)', fontSize: '0.9rem', letterSpacing: '0.01em' }}>
-            <strong style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', fontSize: '1.65rem', color: 'var(--cs-vert)', verticalAlign: '-2px' }}>{paires.length}</strong>
+          <p style={{ margin: 0, color: 'var(--cs-texte-second)', fontSize: '0.875rem', letterSpacing: '0.01em' }}>
+            <strong style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', fontSize: '1.625rem', color: 'var(--cs-vert)', verticalAlign: '-2px' }}>{paires.length}</strong>
             {'  '}lien{paires.length > 1 ? 's' : ''} à vérifier
           </p>
         )}
@@ -211,7 +211,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
               {/* Boutons de qualification */}
               <div style={{ display: 'flex', gap: '7px', padding: '10px 16px 12px', borderTop: '1px solid var(--cs-fond-doux)', flexWrap: 'wrap' }}>
                 {st === 'err' && (
-                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-danger)', fontStyle: 'italic', alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.78125rem', color: 'var(--cs-danger)', fontStyle: 'italic', alignSelf: 'center' }}>
                     Erreur : {statut[`${key}_msg`] || 'inconnue'}
                   </span>
                 )}
@@ -219,7 +219,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   <button key={opt.action}
                     onClick={() => choisir(seg, idVerset, opt.action)}
                     style={{
-                      fontSize: '0.79062rem', padding: '5px 11px', borderRadius: '4px', fontWeight: 600,
+                      fontSize: '0.78125rem', padding: '5px 11px', borderRadius: '4px', fontWeight: 600,
                       border: opt.couleur ? `1px solid ${opt.couleur}` : '1px solid var(--cs-bord)',
                       background: 'var(--cs-surface)',
                       color: opt.couleur ?? 'var(--cs-vert)',
@@ -229,12 +229,12 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   </button>
                 ))}
                 {st === 'loading' && (
-                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', alignSelf: 'center' }}>
                     Enregistrement…
                   </span>
                 )}
                 {st === 'ok' && (
-                  <span style={{ fontSize: '0.79062rem', color: 'var(--cs-vert)', fontWeight: 600, alignSelf: 'center' }}>
+                  <span style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', fontWeight: 600, alignSelf: 'center' }}>
                     ✓ Enregistré
                   </span>
                 )}
@@ -259,7 +259,7 @@ function Pagination({ page, nbPages, onPage, bas = false }: {
       <button aria-label="Page précédente" onClick={() => onPage(p => Math.max(0, p - 1))} disabled={page === 0} style={flecheBtn(page === 0)}>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
-      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.85rem', color: '#8a8278', minWidth: '6.5rem', textAlign: 'center' }}>
+      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.84375rem', color: 'var(--cs-texte-gris)', minWidth: '6.5rem', textAlign: 'center' }}>
         Page {page + 1} sur {nbPages}
       </span>
       <button aria-label="Page suivante" onClick={() => onPage(p => Math.min(nbPages - 1, p + 1))} disabled={page >= nbPages - 1} style={flecheBtn(page >= nbPages - 1)}>
@@ -272,13 +272,13 @@ function Pagination({ page, nbPages, onPage, bas = false }: {
 function flecheBtn(disabled: boolean): React.CSSProperties {
   return {
     width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-    background: 'var(--cs-surface)', color: disabled ? '#cfc7bb' : 'var(--cs-vert)', cursor: disabled ? 'default' : 'pointer',
+    background: 'var(--cs-surface)', color: disabled ? 'var(--cs-bord)' : 'var(--cs-vert)', cursor: disabled ? 'default' : 'pointer',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: disabled ? 'none' : '0 1px 5px rgba(60,50,30,0.06)', transition: 'color 0.12s, box-shadow 0.12s',
   }
 }
 
 const carteStyle: React.CSSProperties = { background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden' }
-const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-encre-fonce)', fontSize: '0.8625rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
-const texteBibleStyle: React.CSSProperties = { fontSize: '0.89844rem', color: 'var(--cs-texte)', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
-const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.89844rem', color: 'var(--cs-texte-fort)', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }
+const enteteColStyle: React.CSSProperties = { display: 'block', padding: '9px 16px', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-encre-fonce)', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', minWidth: 0, letterSpacing: '0.01em' }
+const texteBibleStyle: React.CSSProperties = { fontSize: '0.875rem', color: 'var(--cs-texte)', lineHeight: 1.58, margin: 0, textAlign: 'justify' }
+const textePatristiqueStyle: React.CSSProperties = { fontSize: '0.875rem', color: 'var(--cs-texte-fort)', lineHeight: 1.58, margin: 0, textAlign: 'justify', wordSpacing: '-0.02em' }

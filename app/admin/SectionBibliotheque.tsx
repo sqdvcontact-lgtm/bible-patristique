@@ -31,10 +31,10 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   const inchangees = lignes.length - modifiees.length
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'var(--cs-surface)', borderRadius: '10px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
+      <div style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--cs-bord-clair)', flexShrink: 0 }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.22187rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l’import</h2>
-          <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l’import</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
             Fichier : <strong style={{ color: 'var(--cs-texte-fort)' }}>{nomFichier}</strong>{' — '}
             <span style={{ color: 'var(--cs-vert)', fontWeight: 500 }}>{modifiees.length} ligne{modifiees.length > 1 ? 's' : ''} modifiée{modifiees.length > 1 ? 's' : ''}</span>
             {inchangees > 0 && <span style={{ color: 'var(--cs-texte-doux)' }}> · {inchangees} inchangée{inchangees > 1 ? 's' : ''}</span>}
@@ -42,9 +42,9 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {modifiees.length === 0 ? (
-            <p style={{ padding: '24px', fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune modification détectée.</p>
+            <p style={{ padding: '24px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune modification détectée.</p>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82656rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
               <thead><tr style={{ background: 'var(--cs-fond)', position: 'sticky', top: 0 }}>
                 <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--cs-texte-second)', fontWeight: 500, borderBottom: '1px solid var(--cs-bord-clair)', width: '60px' }}>§</th>
                 <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--cs-texte-second)', fontWeight: 500, borderBottom: '1px solid var(--cs-bord-clair)', width: '90px' }}>Fiabilité</th>
@@ -53,7 +53,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
               </tr></thead>
               <tbody>
                 {modifiees.map((l, i) => (
-                  <tr key={l.id || String(i)} style={{ background: i % 2 === 0 ? '#fff' : 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-fond-doux)' }}>
+                  <tr key={l.id || String(i)} style={{ background: i % 2 === 0 ? 'var(--cs-surface)' : 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                     <td style={{ padding: '7px 12px', color: 'var(--cs-vert)', fontWeight: 500 }}>{l.segment_numero}</td>
                     <td style={{ padding: '7px 12px' }}>
                       {l._fiabilite_orig !== l.fiabilite ? (
@@ -61,7 +61,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
                       ) : <span style={{ color: 'var(--cs-texte-second)' }}>{l.fiabilite || '—'}</span>}
                     </td>
                     <td style={{ padding: '7px 12px', color: 'var(--cs-texte-fort)' }}>{l.segment_texte.slice(0, 60)}…</td>
-                    <td style={{ padding: '7px 12px', color: 'var(--cs-texte-second)', fontFamily: 'monospace', fontSize: '0.75469rem' }}>{[l.lien_1, l.lien_2, l.lien_3, l.lien_4].filter(Boolean).join(' · ') || '—'}</td>
+                    <td style={{ padding: '7px 12px', color: 'var(--cs-texte-second)', fontFamily: 'monospace', fontSize: '0.75rem' }}>{[l.lien_1, l.lien_2, l.lien_3, l.lien_4].filter(Boolean).join(' · ') || '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -69,9 +69,9 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
           )}
         </div>
         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
-          <button onClick={onAnnuler} disabled={importing} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onAnnuler} disabled={importing} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
           <button onClick={onConfirmer} disabled={importing || modifiees.length === 0}
-            style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', cursor: modifiees.length > 0 ? 'pointer' : 'default', background: modifiees.length > 0 ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: modifiees.length > 0 ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+            style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', cursor: modifiees.length > 0 ? 'pointer' : 'default', background: modifiees.length > 0 ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: modifiees.length > 0 ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
             {importing ? 'Import en cours…' : `Confirmer l'import (${modifiees.length} ligne${modifiees.length > 1 ? 's' : ''})`}
           </button>
         </div>
@@ -80,8 +80,8 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   )
 }
 
-const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.8625rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
-const lbl: React.CSSProperties = { fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '2px' }
+const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.875rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
+const lbl: React.CSSProperties = { fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '2px' }
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid var(--cs-fond-doux)', gridColumn: '1 / -1', margin: '2px 0' }
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -157,16 +157,16 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '28px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '41rem', background: 'var(--cs-fond)', borderRadius: '10px', padding: '18px', boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '41rem', background: 'var(--cs-fond)', borderRadius: '8px', padding: '18px', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.07813rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
+          <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
             Cadrer le portrait – <em style={{ color: 'var(--cs-texte-second)' }}>{auteur.nom}</em>
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '1.07813rem', padding: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '1.0625rem', padding: 0 }}>×</button>
         </div>
 
-        <p style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', margin: '0 0 12px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', margin: '0 0 12px', lineHeight: 1.5 }}>
           Le portrait paraît sur trois surfaces, dont les cadres n’ont pas les mêmes proportions : la carte et la fiche gardent donc chacune son réglage. Glissez l’image, ou tournez la molette pour agrandir. Les trois aperçus ci-dessous sont composés avec les mesures RÉELLES des pages.
         </p>
 
@@ -195,19 +195,19 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
               onPointerDown={debutGlisse} curseur={glisse ? 'grabbing' : 'grab'} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>
+            <p style={{ fontSize: '0.65625rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>
               {CADRES_PORTRAIT[cadreManipule].libelle} — {CADRES_PORTRAIT[cadreManipule].largeur} × {CADRES_PORTRAIT[cadreManipule].hauteur}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', flex: 1 }}>Zoom</span>
+              <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', flex: 1 }}>Zoom</span>
               <button onClick={() => zoomer(-0.1)} style={BTN_ROND}>−</button>
-              <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', minWidth: '48px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{Math.round(pos.scale * 100)} %</span>
+              <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', minWidth: '48px', textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{Math.round(pos.scale * 100)} %</span>
               <button onClick={() => zoomer(0.1)} style={BTN_ROND}>+</button>
             </div>
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', margin: '0 0 10px', fontVariantNumeric: 'tabular-nums' }}>
               Point visé : {Math.round(pos.x)} % · {Math.round(pos.y)} %
             </p>
-            <button onClick={reinitialiser} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', padding: '5px 12px', cursor: 'pointer' }}>
+            <button onClick={reinitialiser} style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '4px', padding: '5px 12px', cursor: 'pointer' }}>
               Rétablir le cadrage par défaut
             </button>
           </div>
@@ -215,7 +215,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
 
         {/* Les trois surfaces, ensemble : on voit d'un coup ce que le réglage donne
             partout, y compris là où on ne le modifie pas. */}
-        <p style={{ fontSize: '0.64687rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '16px 0 8px' }}>Les trois surfaces, en direct</p>
+        <p style={{ fontSize: '0.65625rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '16px 0 8px' }}>Les trois surfaces, en direct</p>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '14px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px' }}>
           {(Object.keys(CADRES_PORTRAIT) as SurfacePortrait[]).map(surface => (
             <div key={surface} style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
@@ -229,8 +229,8 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--cs-bord-clair)' }}>
-          <button onClick={onClose} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.8625rem', padding: '7px 18px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+          <button onClick={onClose} style={{ fontSize: '0.875rem', padding: '7px 16px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
@@ -340,8 +340,8 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
 
   return (
     // Une LIGNE claire : libellé fixe à gauche, valeur à droite (éditable au clic).
-    <div style={{ display: 'flex', gap: '14px', padding: '4px 0', alignItems: enEdition ? 'flex-start' : 'baseline', borderTop: '1px solid #f4efe6' }}>
-      <span style={{ flexShrink: 0, width: '8rem', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: manque ? '#c6a08c' : '#b3a893', lineHeight: 1.5 }}>{label}</span>
+    <div style={{ display: 'flex', gap: '14px', padding: '4px 0', alignItems: enEdition ? 'flex-start' : 'baseline', borderTop: '1px solid var(--cs-fond)' }}>
+      <span style={{ flexShrink: 0, width: '8rem', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: manque ? '#c6a08c' : 'var(--cs-texte-faible)', lineHeight: 1.5 }}>{label}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         {enEdition ? (
           <>
@@ -349,15 +349,15 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
               onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') valider(); if (e.key === 'Escape') { setEnEdition(false); setErreur(null) } }}
               onBlur={valider}
-              style={{ fontSize: '0.8rem', padding: '2px 7px', border: '1px solid #b8ccc0', borderRadius: '4px', background: 'var(--cs-surface)', color: '#2a322a', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
-            {erreur && <span style={{ fontSize: '0.64687rem', color: '#b3261e', lineHeight: 1.25, marginTop: '1px', display: 'block' }}>{erreur}</span>}
+              style={{ fontSize: '0.8125rem', padding: '2px 7px', border: '1px solid #b8ccc0', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', outline: 'none', width: '100%', boxSizing: 'border-box' }} />
+            {erreur && <span style={{ fontSize: '0.65625rem', color: '#b3261e', lineHeight: 1.25, marginTop: '1px', display: 'block' }}>{erreur}</span>}
           </>
         ) : estUrl ? (
           <a href={texte} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.4, wordBreak: 'break-all' }}>{texte}</a>
+            style={{ fontSize: '0.8125rem', fontWeight: accent ? 700 : 400, color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.4, wordBreak: 'break-all' }}>{texte}</a>
         ) : (
           <span onClick={ouvrir} title={edit ? 'Cliquer pour modifier' : undefined}
-            style={{ fontSize: '0.8rem', fontWeight: accent ? 700 : 400, fontStyle: manque ? 'italic' : 'normal', color: manque ? '#c0836a' : 'var(--cs-texte-fort)', lineHeight: 1.4, wordBreak: 'break-word', cursor: edit ? 'pointer' : 'default', borderBottom: edit && !manque ? '1px dotted #e2dccd' : 'none' }}>
+            style={{ fontSize: '0.8125rem', fontWeight: accent ? 700 : 400, fontStyle: manque ? 'italic' : 'normal', color: manque ? '#c0836a' : 'var(--cs-texte-fort)', lineHeight: 1.4, wordBreak: 'break-word', cursor: edit ? 'pointer' : 'default', borderBottom: edit && !manque ? '1px dotted var(--cs-bord-clair)' : 'none' }}>
             {texte}
           </span>
         )}
@@ -369,9 +369,9 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
 // Bouton de redirection vers une URL (notice ou fichier en ligne). Grisé si absent.
 function BoutonLienNotice({ href, label }: { href: string | null; label: string }) {
   const ok = !!href && /^https?:\/\//i.test(href)
-  const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', fontWeight: 500, textDecoration: 'none', padding: '4px 13px', borderRadius: '999px', lineHeight: 1.3 }
-  if (!ok) return <span style={{ ...base, color: 'var(--cs-bord)', border: '1px solid var(--cs-fond-doux)', background: '#faf7f1', cursor: 'default' }} title="Aucune URL renseignée">{label}<span aria-hidden="true"> —</span></span>
-  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: 'var(--cs-vert)', border: '1px solid #cfdccb', background: 'var(--cs-surface)' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
+  const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', fontWeight: 500, textDecoration: 'none', padding: '4px 13px', borderRadius: '999px', lineHeight: 1.3 }
+  if (!ok) return <span style={{ ...base, color: 'var(--cs-bord)', border: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', cursor: 'default' }} title="Aucune URL renseignée">{label}<span aria-hidden="true"> —</span></span>
+  return <a href={href!} target="_blank" rel="noopener noreferrer" style={{ ...base, color: 'var(--cs-vert)', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)' }}>{label}<span aria-hidden="true" style={{ opacity: 0.7 }}>↗</span></a>
 }
 
 // Petite flèche oblique nette (nord-est) pour les liens sortants.
@@ -404,7 +404,7 @@ function LiensUrlNotice({ urlTexte, urlNotice }: { urlTexte: string | null; urlN
 function LigneCatalogue({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <div style={{ padding: '0 16px' }}>
-      <p style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '13px 0 0' }}>{titre}</p>
+      <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '13px 0 0' }}>{titre}</p>
       {children}
     </div>
   )
@@ -437,19 +437,19 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
 }) {
   if (notices.length === 0) {
     return (
-      <div style={{ margin: '0 18px 8px 34px', padding: '10px 14px', borderRadius: '7px', border: '1px solid #f0c4b8', background: '#fff5f3', color: 'var(--cs-danger)', fontSize: '0.82656rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '1.07813rem', lineHeight: 1 }}>⚠</span>
+      <div style={{ margin: '0 18px 8px 34px', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-danger-fond)', color: 'var(--cs-danger)', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '1.0625rem', lineHeight: 1 }}>⚠</span>
         Aucune fiche catalogue reliée à cette œuvre.
       </div>
     )
   }
   const groupes = regrouperNoticesCatalogue(notices, oeuvre.titre)
   return (
-    <div style={{ margin: '0 18px 8px 34px', background: '#fdfcf9', border: '1px solid #e6ddcc', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ margin: '0 18px 8px 34px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
       {groupes.map((groupe, gi) => (
-        <div key={groupe.cle} style={{ borderTop: gi > 0 ? '2px solid #e2d9c8' : 'none' }}>
-          <div style={{ padding: '9px 14px', background: '#f7f3ec', borderBottom: '1px solid #ebe3d6' }}>
-            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.99187rem', fontWeight: 700, color: '#1a2820', lineHeight: 1.3 }}>
+        <div key={groupe.cle} style={{ borderTop: gi > 0 ? '2px solid var(--cs-bord-clair)' : 'none' }}>
+          <div style={{ padding: '9px 14px', background: 'var(--cs-fond)', borderBottom: '1px solid var(--cs-bord-clair)' }}>
+            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 700, color: 'var(--cs-encre-fonce)', lineHeight: 1.3 }}>
               {groupe.titre}
             </span>
             <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', marginLeft: '8px' }}>
@@ -462,12 +462,12 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
             const ed = (champ: string, brut: string | number | null): EditChamp =>
               ({ champ, brut, onEnregistrer: (c, v) => onEditerNotice(n.id, c, v) })
             return (
-            <div key={n.id} style={{ borderTop: ni > 0 ? '1px solid #e8e1d4' : 'none' }}>
+            <div key={n.id} style={{ borderTop: ni > 0 ? '1px solid var(--cs-bord-clair)' : 'none' }}>
 
           {/* En-tête de la notice */}
-          <div style={{ padding: '10px 14px 9px', background: '#faf7f0', borderBottom: '1px solid #ede7dc', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
+          <div style={{ padding: '10px 14px 9px', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-fond-doux)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '14px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.90562rem', fontWeight: 500, color: '#4a4038', marginBottom: '8px', lineHeight: 1.3, fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
+              <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontWeight: 500, color: '#4a4038', marginBottom: '8px', lineHeight: 1.3, fontStyle: n.titre_edition || n.titre_original ? 'italic' : 'normal' }}>
                 {n.titre_edition || n.titre_original || n.titre_stable || oeuvre.titre}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -477,10 +477,10 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                   ['Auteur', n.id_auteur],
                 ] as [string, string | null | undefined][]).map(([label, val]) => (
                   <span key={label} style={{
-                    fontSize: '0.68281rem', fontFamily: 'monospace',
-                    background: val ? '#ede9e0' : '#fff5f3',
+                    fontSize: '0.6875rem', fontFamily: 'monospace',
+                    background: val ? 'var(--cs-fond-doux)' : 'var(--cs-danger-fond)',
                     color: val ? '#5a5650' : 'var(--cs-danger)',
-                    padding: '2px 7px', borderRadius: '3px',
+                    padding: '2px 7px', borderRadius: '4px',
                     border: `1px solid ${val ? 'var(--cs-bord)' : '#e5a99b'}`,
                     display: 'inline-flex', gap: '4px',
                   }}>
@@ -495,20 +495,20 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{
-                  fontSize: '1.07813rem', fontWeight: 700, lineHeight: 1,
+                  fontSize: '1.0625rem', fontWeight: 700, lineHeight: 1,
                   color: couleurScoreCatalogue(n.score_fiabilite),
                   background: 'var(--cs-surface)',
                   border: `1.5px solid ${couleurScoreCatalogue(n.score_fiabilite)}`,
-                  padding: '3px 9px', borderRadius: '5px',
+                  padding: '3px 9px', borderRadius: '4px',
                   minWidth: '40px', textAlign: 'center',
                 }}>
                   {n.score_fiabilite ?? '?'}
                 </span>
                 <span style={{
-                  fontSize: '0.68281rem', fontWeight: 600, padding: '3px 8px', borderRadius: '3px',
-                  border: `1px solid ${n.verifie ? '#c1dbcb' : '#ecd6cc'}`,
-                  background: n.verifie ? '#f1f7f3' : '#fbf3ef',
-                  color: n.verifie ? '#3a6b50' : '#b06a54',
+                  fontSize: '0.6875rem', fontWeight: 600, padding: '3px 8px', borderRadius: '4px',
+                  border: `1px solid ${n.verifie ? '#c1dbcb' : 'var(--cs-bord-clair)'}`,
+                  background: n.verifie ? 'var(--cs-fond)' : 'var(--cs-danger-fond)',
+                  color: n.verifie ? 'var(--cs-vert)' : '#b06a54',
                   whiteSpace: 'nowrap',
                 }}>
                   {n.verifie ? '✓ Validée' : '· À vérifier'}
@@ -521,10 +521,10 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                 <button onClick={() => onValiderAdmin(n.id)} disabled={n.verifie_admin}
                   title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
                   style={{
-                    fontSize: '0.68281rem', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
-                    border: `1px solid ${n.verifie_admin ? '#a9c9b6' : '#cbe0d4'}`,
-                    background: n.verifie_admin ? 'var(--cs-vert)' : '#f4faf6',
-                    color: n.verifie_admin ? '#fff' : '#2f6046',
+                    fontSize: '0.6875rem', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
+                    border: `1px solid ${n.verifie_admin ? 'var(--cs-vert-clair)' : '#cbe0d4'}`,
+                    background: n.verifie_admin ? 'var(--cs-vert)' : 'var(--cs-fond-clair)',
+                    color: n.verifie_admin ? 'var(--cs-surface)' : 'var(--cs-vert-fonce)',
                     cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap',
                   }}>
                   {n.verifie_admin ? '✓ Validation admin' : 'Validation admin'}
@@ -532,8 +532,8 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                 <button onClick={() => onRefuser(n.id)}
                   title="Refuser et consigner cette fiche (elle disparaît de la liste)"
                   style={{
-                    fontSize: '0.68281rem', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
-                    border: '1px solid #e3c3b8', background: '#fdf4f0', color: '#a85a44',
+                    fontSize: '0.6875rem', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
+                    border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-danger-fond)', color: '#a85a44',
                     cursor: 'pointer', whiteSpace: 'nowrap',
                   }}>
                   Refus admin
@@ -601,15 +601,15 @@ function BoutonsAdminNotice({ n, onValiderAdmin, onRefuser }: {
     <>
       <button onClick={() => onValiderAdmin(n.id)} disabled={n.verifie_admin}
         title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
-        style={{ fontSize: '0.68281rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
-          border: `1px solid ${n.verifie_admin ? '#a9c9b6' : '#cbe0d4'}`,
-          background: n.verifie_admin ? 'var(--cs-vert)' : '#f4faf6', color: n.verifie_admin ? '#fff' : '#2f6046',
+        style={{ fontSize: '0.6875rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
+          border: `1px solid ${n.verifie_admin ? 'var(--cs-vert-clair)' : '#cbe0d4'}`,
+          background: n.verifie_admin ? 'var(--cs-vert)' : 'var(--cs-fond-clair)', color: n.verifie_admin ? 'var(--cs-surface)' : 'var(--cs-vert-fonce)',
           cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
         {n.verifie_admin ? '✓ Validation admin' : 'Validation admin'}
       </button>
       <button onClick={() => onRefuser(n.id)} title="Refuser et consigner cette fiche (elle disparaît de la liste)"
-        style={{ fontSize: '0.68281rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
-          border: '1px solid #e3c3b8', background: '#fdf4f0', color: '#a85a44', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        style={{ fontSize: '0.6875rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
+          border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-danger-fond)', color: '#a85a44', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         Refus admin
       </button>
     </>
@@ -627,15 +627,15 @@ function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
 }) {
   const [ouvert, setOuvert] = useState(false)
   return (
-    <div style={{ border: '1px solid #e7ddc6', borderRadius: '8px', background: '#fdfcf7', overflow: 'hidden' }}>
+    <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', background: 'var(--cs-fond-clair)', overflow: 'hidden' }}>
       <button onClick={() => setOuvert(o => !o)}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '8px 14px', background: '#faf6ec', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '8px 14px', background: 'var(--cs-fond)', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
         <span style={{ display: 'flex', alignItems: 'baseline', gap: '9px', minWidth: 0 }}>
-          <span style={{ fontSize: '0.575rem', color: '#b0a480' }}>{ouvert ? '▲' : '▼'}</span>
-          <span style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.8625rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#7a6a48' }}>{nom}</span>
+          <span style={{ fontSize: '0.5625rem', color: '#b0a480' }}>{ouvert ? '▲' : '▼'}</span>
+          <span style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#7a6a48' }}>{nom}</span>
           <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{notices.length} œuvre{notices.length > 1 ? 's' : ''} au catalogue</span>
         </span>
-        <span style={{ fontSize: '0.575rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c0a86a', flexShrink: 0 }}>Catalogue seul</span>
+        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c0a86a', flexShrink: 0 }}>Catalogue seul</span>
       </button>
       {ouvert && (
         <div>
@@ -643,21 +643,21 @@ function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
               en-tête ; en dessous, une ligne par édition portant SON titre propre. */}
           {regrouperNoticesCatalogue(notices, '').map(groupe => (
             <div key={groupe.cle}>
-              <div style={{ padding: '6px 14px 2px', borderTop: '1px solid #f0ebdd', background: '#faf6ec', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.86rem', fontWeight: 700, color: '#1a2820' }}>
+              <div style={{ padding: '6px 14px 2px', borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontWeight: 700, color: 'var(--cs-encre-fonce)' }}>
                 {groupe.titre}
               </div>
               {groupe.notices.map(n => (
-                <div key={n.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap', padding: '8px 14px', borderTop: '1px solid #f4efe4' }}>
+                <div key={n.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap', padding: '8px 14px', borderTop: '1px solid var(--cs-fond-doux)' }}>
                   <div style={{ flex: 1, minWidth: '200px' }}>
-                    <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.3 }}>
+                    <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.3 }}>
                       {n.titre_edition || n.titre_original || n.titre_stable || '(sans titre)'}
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '3px', fontSize: '0.75469rem', color: '#9a8f7e' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '3px', fontSize: '0.75rem', color: 'var(--cs-texte-doux)' }}>
                       {n.annee_edition && <span>{n.annee_edition}</span>}
                       {n.traducteur && <span style={{ fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
                       {n.editeur && <span>{n.editeur}</span>}
                       {n.decision_import && (
-                        <span title={n.decision_import} style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 4px', borderRadius: '3px', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', display: 'inline-block', ...decorDecision(n.decision_import) }}>
+                        <span title={n.decision_import} style={{ fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '1px 4px', borderRadius: '4px', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', display: 'inline-block', ...decorDecision(n.decision_import) }}>
                           {abregerDecision(n.decision_import)}
                         </span>
                       )}
@@ -703,13 +703,13 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
         {GENRES_PAR_CATEGORIE.map(({ cat, genres }) => (
           <div key={cat} style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.64687rem', color: 'var(--cs-texte-faible)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0, minWidth: '120px' }}>{cat}</span>
+            <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0, minWidth: '120px' }}>{cat}</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               {genres.map(g => {
                 const actif = tags.includes(g)
                 return (
                   <button key={g} onClick={() => actif ? supprimer(g) : ajouter(g)}
-                    style={{ fontSize: '0.75469rem', borderRadius: '3px', padding: '2px 7px', cursor: 'pointer', border: actif ? '1px solid rgba(var(--cs-vert-rgb),0.35)' : '1px solid var(--cs-bord)', background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-fond)', color: actif ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)', fontWeight: actif ? 600 : 400 }}>
+                    style={{ fontSize: '0.75rem', borderRadius: '4px', padding: '2px 7px', cursor: 'pointer', border: actif ? '1px solid rgba(var(--cs-vert-rgb),0.35)' : '1px solid var(--cs-bord)', background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-fond)', color: actif ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)', fontWeight: actif ? 600 : 400 }}>
                     {g}
                   </button>
                 )
@@ -723,12 +723,12 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
           <>
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
-              autoFocus style={{ ...inputStyleAuteur, width: '10rem', fontSize: '0.79062rem', padding: '4px 8px' }} />
-            <button onClick={ajouterCustom} style={{ fontSize: '0.75469rem', padding: '3px 10px', borderRadius: '3px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }}>Ajouter</button>
-            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.75469rem', padding: '3px 8px', borderRadius: '3px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', cursor: 'pointer' }}>Annuler</button>
+              autoFocus style={{ ...inputStyleAuteur, width: '10rem', fontSize: '0.78125rem', padding: '4px 8px' }} />
+            <button onClick={ajouterCustom} style={{ fontSize: '0.75rem', padding: '3px 10px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>Ajouter</button>
+            <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', cursor: 'pointer' }}>Annuler</button>
           </>
         ) : (
-          <button onClick={() => setNouveau(true)} style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-second)', border: '1px dashed var(--cs-bord)', background: 'transparent', borderRadius: '3px', padding: '2px 10px', cursor: 'pointer' }}>
+          <button onClick={() => setNouveau(true)} style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', border: '1px dashed var(--cs-bord)', background: 'transparent', borderRadius: '4px', padding: '2px 10px', cursor: 'pointer' }}>
             + Autre genre
           </button>
         )}
@@ -736,7 +736,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingTop: '6px', borderTop: '1px solid var(--cs-fond-doux)' }}>
           {tags.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.79062rem', background: 'rgba(var(--cs-vert-rgb),0.10)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '3px', padding: '1px 8px' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78125rem', background: 'rgba(var(--cs-vert-rgb),0.10)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '4px', padding: '1px 8px' }}>
               {t}<button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-doux)', fontSize: '0.71875rem', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
             </span>
           ))}
@@ -785,7 +785,7 @@ function TagsInput({ tags, onChange, tousLesTags }: { tags: string[]; onChange: 
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '5px' }}>
           {tags.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.79062rem', background: 'rgba(var(--cs-vert-rgb),0.10)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '3px', padding: '1px 7px' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78125rem', background: 'rgba(var(--cs-vert-rgb),0.10)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '4px', padding: '1px 7px' }}>
               {t}
               <button onClick={() => supprimer(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-doux)', fontSize: '0.71875rem', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
             </span>
@@ -797,7 +797,7 @@ function TagsInput({ tags, onChange, tousLesTags }: { tags: string[]; onChange: 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
           {suggestions.map(t => (
             <button key={t} onClick={() => ajouter(t)}
-              style={{ fontSize: '0.75469rem', background: 'var(--cs-fond)', color: 'var(--cs-texte-second)', border: '1px solid var(--cs-bord)', borderRadius: '3px', padding: '1px 7px', cursor: 'pointer' }}>
+              style={{ fontSize: '0.75rem', background: 'var(--cs-fond)', color: 'var(--cs-texte-second)', border: '1px solid var(--cs-bord)', borderRadius: '4px', padding: '1px 7px', cursor: 'pointer' }}>
               {t}
             </button>
           ))}
@@ -884,10 +884,10 @@ function abregerDecision(d: string): string {
 
 function decorDecision(d: string): React.CSSProperties {
   const s = d.toLowerCase()
-  if (s.startsWith('candidat')) return { background: 'var(--cs-vert-pale)', color: '#2f6046', border: '1px solid #c8d8ce' }
-  if (s.startsWith('bibliographie')) return { background: '#f4f2fa', color: '#5a4b9c', border: '1px solid #cfc8e6' }
-  if (s.startsWith('écarter') || s.startsWith('ecarter')) return { background: '#fdf0ec', color: 'var(--cs-danger-fonce)', border: '1px solid #e6c4b4' }
-  return { background: '#f4f2ee', color: 'var(--cs-texte-second)', border: '1px solid #ddd6cc' }
+  if (s.startsWith('candidat')) return { background: 'var(--cs-vert-pale)', color: 'var(--cs-vert-fonce)', border: '1px solid #c8d8ce' }
+  if (s.startsWith('bibliographie')) return { background: 'var(--cs-fond)', color: '#5a4b9c', border: '1px solid #cfc8e6' }
+  if (s.startsWith('écarter') || s.startsWith('ecarter')) return { background: 'var(--cs-danger-fond)', color: 'var(--cs-danger-fonce)', border: '1px solid var(--cs-danger-bord)' }
+  return { background: 'var(--cs-fond)', color: 'var(--cs-texte-second)', border: '1px solid var(--cs-bord)' }
 }
 
 // ── Filtre d'affichage des auteurs (menu déroulant) ─────────────────────────
@@ -1513,10 +1513,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           <div onClick={() => setConfigOeuvre(null)}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()}
-              style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '24px 28px', width: '30rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+              style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '24px 28px', width: '30rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', color: 'var(--cs-encre)', margin: 0 }}>{oeuvreNom}</p>
-                <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '1.00625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)', margin: 0 }}>{oeuvreNom}</p>
+                <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
 
               {(['sommaire', 'corps'] as const).map(type => {
@@ -1527,7 +1527,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     <p style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-doux)', marginBottom: '10px', textTransform: 'uppercase', borderBottom: '1px solid var(--cs-fond-doux)', paddingBottom: '6px' }}>
                       {type === 'sommaire' ? 'Sommaire' : 'Corps du texte'}
                     </p>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82656rem' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
                       <thead>
                         <tr>
                           <th style={{ textAlign: 'left', padding: '3px 8px', color: 'var(--cs-texte-doux)', fontWeight: 400, fontSize: '0.71875rem' }}>Niveau</th>
@@ -1545,14 +1545,14 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                               <td style={{ padding: '5px 8px', color: affiche ? 'var(--cs-encre)' : 'var(--cs-texte-faible)' }}>{label}</td>
                               <td style={{ textAlign: 'center', padding: '5px 8px' }}>
                                 <button onClick={() => setCfg({ [type]: affiche && niv <= niveauActuel ? (niv === 1 ? 1 : niv - 1) : niv })}
-                                  style={{ fontSize: '0.79062rem', padding: '2px 10px', borderRadius: '3px', border: '1px solid var(--cs-bord)', background: affiche ? 'var(--cs-vert)' : '#fff', color: affiche ? '#fff' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+                                  style={{ fontSize: '0.78125rem', padding: '2px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: affiche ? 'var(--cs-vert)' : 'var(--cs-surface)', color: affiche ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
                                   {affiche ? '✓' : '○'}
                                 </button>
                               </td>
                               <td style={{ textAlign: 'center', padding: '5px 8px' }}>
                                 {affiche ? (
                                   <button onClick={() => toggleTxt(txtKey, i)}
-                                    style={{ fontSize: '0.71875rem', padding: '2px 10px', borderRadius: '3px', border: '1px solid var(--cs-bord)', background: txtAffiche ? 'var(--cs-encre)' : '#fff', color: txtAffiche ? '#fff' : 'var(--cs-texte-faible)', cursor: 'pointer' }}>
+                                    style={{ fontSize: '0.71875rem', padding: '2px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: txtAffiche ? 'var(--cs-encre)' : 'var(--cs-surface)', color: txtAffiche ? 'var(--cs-surface)' : 'var(--cs-texte-faible)', cursor: 'pointer' }}>
                                     {txtAffiche ? 'Texte affiché' : 'Texte masqué'}
                                   </button>
                                 ) : <span style={{ color: 'var(--cs-bord-clair)', fontSize: '0.71875rem' }}>—</span>}
@@ -1568,17 +1568,17 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
               {/* Numéros de segments */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderTop: '1px solid var(--cs-fond-doux)', marginTop: '4px' }}>
-                <span style={{ fontSize: '0.82656rem', color: 'var(--cs-texte)' }}>Numéros de segments</span>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>Numéros de segments</span>
                 <button onClick={() => setCfg({ afficherNumeros: !cfg.afficherNumeros })}
-                  style={{ fontSize: '0.79062rem', padding: '4px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: cfg.afficherNumeros ? 'var(--cs-vert)' : '#fff', color: cfg.afficherNumeros ? '#fff' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+                  style={{ fontSize: '0.78125rem', padding: '4px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: cfg.afficherNumeros ? 'var(--cs-vert)' : 'var(--cs-surface)', color: cfg.afficherNumeros ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
                   {cfg.afficherNumeros ? 'Affichés' : 'Masqués'}
                 </button>
               </div>
 
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
-                <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '0.875rem', padding: '7px 16px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={() => sauvegarderNiveaux(configOeuvre, niveauxConfig[configOeuvre] ?? cfg)}
-                  style={{ fontSize: '0.8625rem', padding: '7px 16px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                  style={{ fontSize: '0.875rem', padding: '7px 16px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
               </div>
             </div>
           </div>
@@ -1589,31 +1589,31 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
         <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
           placeholder="Rechercher un auteur ou une œuvre…"
-          style={{ flex: 1, fontSize: '0.8625rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
-        {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
+          style={{ flex: 1, fontSize: '0.875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
+        {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
         <button onClick={() => { setAjoutAuteur(!coAuteurAAjouter); setMsgAjoutAuteur(null) }}
-          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: coAuteurAAjouter ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.875rem', padding: '6px 10px', borderRadius: '4px', border: 'none', background: coAuteurAAjouter ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {coAuteurAAjouter ? 'Fermer' : '+ Nouvel auteur'}
         </button>
         <button onClick={() => { setAjoutOeuvre(!ajoutOeuvre); setVueBibliotheque('oeuvres') }}
-          style={{ width: '8rem', textAlign: 'center', fontSize: '0.8625rem', padding: '6px 10px', borderRadius: '5px', border: 'none', background: ajoutOeuvre ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          style={{ width: '8rem', textAlign: 'center', fontSize: '0.875rem', padding: '6px 10px', borderRadius: '4px', border: 'none', background: ajoutOeuvre ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {ajoutOeuvre ? 'Fermer' : '+ Nouvelle œuvre'}
         </button>
         {/* Menu déroulant de filtrage des auteurs (remplace l'ancien bouton bascule). */}
         <div style={{ position: 'relative' }}>
           <button onClick={() => setMenuFiltreOuvert(v => !v)}
             title="Filtrer les auteurs affichés"
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8625rem', padding: '6px 12px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: filtreAuteurs === 'publiees' ? '#fff' : 'var(--cs-fond)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: filtreAuteurs === 'publiees' ? 'var(--cs-surface)' : 'var(--cs-fond)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
             {FILTRES_AUTEURS.find(f => f.code === filtreAuteurs)?.label ?? 'Filtrer'}
-            <span style={{ fontSize: '0.575rem', color: 'var(--cs-texte-faible)' }}>▼</span>
+            <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)' }}>▼</span>
           </button>
           {menuFiltreOuvert && (
             <>
               <div onClick={() => setMenuFiltreOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 41, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', boxShadow: '0 6px 20px rgba(0,0,0,0.12)', overflow: 'hidden', minWidth: '190px' }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, zIndex: 41, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden', minWidth: '190px' }}>
                 {FILTRES_AUTEURS.map(f => (
                   <button key={f.code} onClick={() => { setFiltreAuteurs(f.code); setMenuFiltreOuvert(false) }}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.8625rem', padding: '7px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: filtreAuteurs === f.code ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: filtreAuteurs === f.code ? '#2f6046' : 'var(--cs-texte)', fontWeight: filtreAuteurs === f.code ? 600 : 400, cursor: 'pointer' }}>
+                    style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.875rem', padding: '7px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: filtreAuteurs === f.code ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: filtreAuteurs === f.code ? 'var(--cs-vert-fonce)' : 'var(--cs-texte)', fontWeight: filtreAuteurs === f.code ? 600 : 400, cursor: 'pointer' }}>
                     {f.label}
                   </button>
                 ))}
@@ -1625,7 +1625,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             « Segments » ne disait pas ce qu'on y fait, ni ce qu'on y risque. */}
         <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
           title="Remplacer intégralement les segments d’une œuvre par un nouveau fichier"
-          style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-danger)', background: vueBibliotheque === 'segments' ? 'var(--cs-danger)' : '#fff7f4', color: vueBibliotheque === 'segments' ? '#fff' : 'var(--cs-danger-fonce)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
+          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-danger)', background: vueBibliotheque === 'segments' ? 'var(--cs-danger)' : 'var(--cs-fond-clair)', color: vueBibliotheque === 'segments' ? 'var(--cs-surface)' : 'var(--cs-danger-fonce)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
           ↺ Remplacer la base
         </button>
       </div>
@@ -1643,36 +1643,36 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       {/* Formulaire nouvel auteur */}
       {coAuteurAAjouter && (
         <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
-          <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
           <ChampsAuteur
             valeurs={nouvelAuteur}
             onChange={(champ, val) => setNouvelAuteur(p => ({ ...p, [champ]: val }))}
             onChangeTags={tags => setNouvelAuteur(p => ({ ...p, traditions: tags }))}
             tousLesTags={tousLesTags}
           />
-          {msgAjoutAuteur && <p style={{ fontSize: '0.82656rem', color: 'var(--cs-danger)', marginBottom: '8px' }}>{msgAjoutAuteur}</p>}
+          {msgAjoutAuteur && <p style={{ fontSize: '0.8125rem', color: 'var(--cs-danger)', marginBottom: '8px' }}>{msgAjoutAuteur}</p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button onClick={() => { setAjoutAuteur(false); setMsgAjoutAuteur(null) }} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-            <button onClick={creerAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
+            <button onClick={() => { setAjoutAuteur(false); setMsgAjoutAuteur(null) }} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+            <button onClick={creerAuteur} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
           </div>
         </div>
       )}
 
       {erreurCatalogue && (
-        <div style={{ background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '6px', padding: '10px 14px', marginBottom: '8px' }}>
-          <p style={{ fontSize: '0.8625rem', fontWeight: 600, color: 'var(--cs-danger-fonce)', marginBottom: '4px' }}>Le catalogue n’a pas pu être chargé.</p>
-          <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)', marginBottom: '8px' }}>
+        <div style={{ background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '10px 14px', marginBottom: '8px' }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-danger-fonce)', marginBottom: '4px' }}>Le catalogue n’a pas pu être chargé.</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', marginBottom: '8px' }}>
             Les filtres « candidates », « non candidates », « critiques » et « non publiées » restent vides tant que la panne dure. Détail renvoyé par <code>/api/admin/catalogue</code> : {erreurCatalogue}
           </p>
           <button onClick={() => { setErreurCatalogue(null); setCatalogueParAuteur(null); setCatalogueAutres(null) }}
-            style={{ fontSize: '0.8625rem', padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
+            style={{ fontSize: '0.875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
             Réessayer
           </button>
         </div>
       )}
 
       {auteursFiltres.length === 0 && !erreurCatalogue && (
-        <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '12px 0' }}>Aucun auteur trouvé.</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '12px 0' }}>Aucun auteur trouvé.</p>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1688,33 +1688,33 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: (ouvert || editionAuteur === auteur.id_auteur) ? '1px solid var(--cs-bord-clair)' : 'none' }}>
               <button onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.07813rem', fontWeight: 700, color: 'var(--cs-vert)' }}>{auteur.nom}</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 700, color: 'var(--cs-vert)' }}>{auteur.nom}</span>
                 {(() => {
                   const nbPub = auteur.oeuvres.length
                   const surLeSite = new Set(auteur.oeuvres.map(o => o.id_oeuvre))
                   const nbNonPub = (catalogueParAuteur?.[auteur.id_auteur] ?? [])
                     .filter(n => !n.id_oeuvre_stable || !surLeSite.has(n.id_oeuvre_stable)).length
                   return (
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '12px', fontSize: '0.79062rem' }}>
-                      <span style={{ color: '#2f6046' }}>{nbPub} œuvre{nbPub > 1 ? 's' : ''} publiée{nbPub > 1 ? 's' : ''}</span>
-                      {nbNonPub > 0 && <span style={{ color: '#a2542f' }}>{nbNonPub} non publiée{nbNonPub > 1 ? 's' : ''}</span>}
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '12px', fontSize: '0.78125rem' }}>
+                      <span style={{ color: 'var(--cs-vert-fonce)' }}>{nbPub} œuvre{nbPub > 1 ? 's' : ''} publiée{nbPub > 1 ? 's' : ''}</span>
+                      {nbNonPub > 0 && <span style={{ color: 'var(--cs-attente)' }}>{nbNonPub} non publiée{nbNonPub > 1 ? 's' : ''}</span>}
                     </span>
                   )
                 })()}
               </button>
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center', marginLeft: '12px' }}>
-                <code style={{ fontSize: '0.71875rem', background: 'var(--cs-fond-doux)', padding: '2px 6px', borderRadius: '3px', color: 'var(--cs-texte-second)' }}>{auteur.id_auteur}</code>
+                <code style={{ fontSize: '0.71875rem', background: 'var(--cs-fond-doux)', padding: '2px 6px', borderRadius: '4px', color: 'var(--cs-texte-second)' }}>{auteur.id_auteur}</code>
                 <button
                   onClick={() => photoRefs.current[auteur.id_auteur]?.click()}
                   title={photos[auteur.id_auteur] ? 'Remplacer la photo' : 'Ajouter une photo'}
-                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${photos[auteur.id_auteur] ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: photos[auteur.id_auteur] ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: photos[auteur.id_auteur] ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${photos[auteur.id_auteur] ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: photos[auteur.id_auteur] ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: photos[auteur.id_auteur] ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   {photos[auteur.id_auteur] ? '✓ Photo' : '+ Photo'}
                 </button>
                 {photos[auteur.id_auteur] && (
                   <button
                     onClick={() => setPositionAuteur(auteur.id_auteur)}
                     title="Cadrer la photo"
-                    style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Cadrer
                   </button>
                 )}
@@ -1726,7 +1726,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     e.target.value = ''
                   }} />
                 <button onClick={() => editionAuteur === auteur.id_auteur ? fermerEditionAuteur() : ouvrirEditionAuteur(auteur)}
-                  style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
+                  style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
                   {editionAuteur === auteur.id_auteur ? 'Fermer' : 'Modifier'}
                 </button>
                 <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', cursor: 'pointer' }} onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}>
@@ -1739,10 +1739,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             {editionAuteur === auteur.id_auteur && (
               <div style={{ padding: '16px 20px 18px', borderBottom: auteurOuvert === auteur.id_auteur ? '1px solid var(--cs-bord-clair)' : 'none', background: 'var(--cs-surface)', borderLeft: '3px solid var(--cs-vert)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
-                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.97031rem', color: 'var(--cs-encre)' }}>
+                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>
                     Modification — <em>{auteur.nom}</em>
                   </span>
-                  <code style={{ fontSize: '0.68281rem', background: 'var(--cs-fond-doux)', padding: '2px 6px', borderRadius: '3px', color: 'var(--cs-texte-second)' }}>{auteur.id_auteur}</code>
+                  <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '2px 6px', borderRadius: '4px', color: 'var(--cs-texte-second)' }}>{auteur.id_auteur}</code>
                 </div>
                 <ChampsAuteur
                   valeurs={formAuteur}
@@ -1752,12 +1752,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                 />
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '14px' }}>
                   {statutAuteur?.id === auteur.id_auteur && (
-                    <span style={{ fontSize: '0.82656rem', color: statutAuteur?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>
+                    <span style={{ fontSize: '0.8125rem', color: statutAuteur?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>
                       {statutAuteur?.ok ? '✓' : '✗'} {statutAuteur?.msg}
                     </span>
                   )}
-                  <button onClick={fermerEditionAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                  <button onClick={sauvegarderAuteur} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                  <button onClick={fermerEditionAuteur} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                  <button onClick={sauvegarderAuteur} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                 </div>
               </div>
             )}
@@ -1766,7 +1766,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             {ouvert && (
               <div style={{ padding: '6px 0' }}>
                 {oeuvresAfficheesDe(auteur).length === 0 && !besoinCatalogue && (
-                  <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 18px' }}>Aucune œuvre pour cet auteur — utilisez « + Ajouter une œuvre ».</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 18px' }}>Aucune œuvre pour cet auteur — utilisez « + Ajouter une œuvre ».</p>
                 )}
                 {[...oeuvresAfficheesDe(auteur)].sort((a, b) => a.titre.localeCompare(b.titre, 'fr')).map(oeuvre => {
                   const titreMatch = rechercheNormalisee && oeuvre.titre.toLowerCase().includes(rechercheNormalisee)
@@ -1774,7 +1774,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     if (!rechercheNormalisee) return <>{texte}</>
                     const idx = texte.toLowerCase().indexOf(rechercheNormalisee)
                     if (idx === -1) return <>{texte}</>
-                    return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(var(--cs-vert-rgb),0.18)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
+                    return <>{texte.slice(0, idx)}<mark style={{ background: 'rgba(var(--cs-vert-rgb),0.18)', color: 'inherit', borderRadius: '4px', padding: '0 1px' }}>{texte.slice(idx, idx + rechercheNormalisee.length)}</mark>{texte.slice(idx + rechercheNormalisee.length)}</>
                   }
                   const noticesCatalogue = filtrerNoticesSelonVue(
                     catalogueParOeuvre[oeuvre.id_oeuvre] ?? [], filtreAuteurs)
@@ -1782,11 +1782,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   const catalogueOuvert = !!catalogueDeploye[oeuvre.id_oeuvre]
                   const publiee = estOeuvrePubliee(oeuvre)
                   const btnSobre = {
-                    fontSize: '0.75469rem',
+                    fontSize: '0.75rem',
                     padding: '3px 6px',
                     borderRadius: '4px',
-                    border: '1px solid #d8d1c6',
-                    background: '#fffdf9',
+                    border: '1px solid var(--cs-bord)',
+                    background: 'var(--cs-surface)',
                     color: '#5f5952',
                     cursor: 'pointer',
                     fontWeight: 500,
@@ -1796,19 +1796,19 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   const btnVert = {
                     ...btnSobre,
                     border: '1px solid #c8d8ce',
-                    background: '#f7fbf8',
-                    color: '#2f6046',
+                    background: 'var(--cs-fond-clair)',
+                    color: 'var(--cs-vert-fonce)',
                   }
                   const btnActif = {
                     ...btnSobre,
                     border: '1px solid var(--cs-vert)',
                     background: 'var(--cs-vert)',
-                    color: '#fff',
+                    color: 'var(--cs-surface)',
                   }
                   return (
                   /* Œuvre PUBLIÉE : léger liseré vert discret (par opposition à l'ocre-rouge
                      des œuvres seulement au catalogue). */
-                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid var(--cs-fond-doux)', borderLeft: `2px solid ${publiee ? '#cfe0d5' : '#e0cdbe'}`, background: titreMatch ? 'rgba(var(--cs-vert-rgb),0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid var(--cs-fond-doux)', borderLeft: `2px solid ${publiee ? '#cfe0d5' : 'var(--cs-bord)'}`, background: titreMatch ? 'rgba(var(--cs-vert-rgb),0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 14px', gap: '12px', flexWrap: 'nowrap', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                       <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" title="Ouvrir l'œuvre"
@@ -1818,9 +1818,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           <path d="M7.2 5H11v3.8" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </a>
-                      <span style={{ fontSize: '0.8625rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
                       {oeuvre.trad_auteur && (
-                        <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '9.375rem', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '9.375rem', flexShrink: 0 }}>
                           Trad. {oeuvre.trad_auteur}
                         </span>
                       )}
@@ -1829,17 +1829,17 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           se corrige au lieu de se lire seulement. */}
                       {!publiee && (
                         <span title="Œuvre conservée au catalogue mais retirée de la lecture"
-                          style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a6a3e', background: '#f6ece1', border: '1px solid #e0cdbe', borderRadius: '3px', padding: '1px 6px', flexShrink: 0 }}>
+                          style={{ fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a6a3e', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord)', borderRadius: '4px', padding: '1px 6px', flexShrink: 0 }}>
                           Dépubliée
                         </span>
                       )}
-                      {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '0.75469rem', color: resultat.ok ? 'var(--cs-vert)' : 'var(--cs-danger)', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
+                      {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '0.75rem', color: resultat.ok ? 'var(--cs-vert)' : 'var(--cs-danger)', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
                     </div>
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                       <span style={{ width: '1px', height: '16px', background: 'var(--cs-bord-clair)', display: 'inline-block' }} />
                       <button onClick={() => setConfigOeuvre(configOeuvre === oeuvre.id_oeuvre ? null : oeuvre.id_oeuvre)}
                         title="Configurer les niveaux d'affichage"
-                        style={configOeuvre === oeuvre.id_oeuvre ? btnActif : { ...btnSobre, padding: '3px 7px', color: '#8a8278' }}>
+                        style={configOeuvre === oeuvre.id_oeuvre ? btnActif : { ...btnSobre, padding: '3px 7px', color: 'var(--cs-texte-gris)' }}>
                         ⚙
                       </button>
                       <button onClick={() => editionOeuvre === oeuvre.id_oeuvre ? fermerEditionOeuvre() : ouvrirEditionOeuvre(oeuvre)}
@@ -1856,11 +1856,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       </button>
                       <span style={{ width: '1px', height: '16px', background: 'var(--cs-bord-clair)', display: 'inline-block', marginLeft: '2px' }} />
                       <span title="Score de la fiche catalogue"
-                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid #ded8ce', background: 'var(--cs-fond-clair)', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, minWidth: '58px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)', color: couleurScoreCatalogue(noticeCatalogue?.score_fiabilite), fontWeight: 700, minWidth: '58px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         Score {noticeCatalogue?.score_fiabilite ?? '?'}
                       </span>
                       <span title="Validation ADMIN de la fiche catalogue (distincte du score IA)"
-                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : '#e4d3c8'}`, background: noticeCatalogue?.verifie ? '#f7fbf8' : '#fbf7f2', color: noticeCatalogue?.verifie ? '#2f6046' : '#8a5a32', fontWeight: 600, width: '78px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : 'var(--cs-bord)'}`, background: noticeCatalogue?.verifie ? 'var(--cs-fond-clair)' : 'var(--cs-fond-clair)', color: noticeCatalogue?.verifie ? 'var(--cs-vert-fonce)' : 'var(--cs-attente)', fontWeight: 600, width: '78px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {noticeCatalogue?.verifie ? 'Validé' : 'À vérifier'}
                       </span>
                       {/* Redirections directes : notice source et fichier plein texte en ligne.
@@ -1888,11 +1888,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       <span style={{ width: '1px', height: '16px', background: 'var(--cs-bord-clair)', display: 'inline-block', marginLeft: '4px' }} />
                       <button onClick={() => basculerPublication(oeuvre)} disabled={bascule === oeuvre.id_oeuvre}
                         title={publiee ? 'Retirer de la lecture (reste au catalogue)' : 'Remettre en lecture'}
-                        style={{ ...(publiee ? btnSobre : { ...btnSobre, border: '1px solid #d8b48f', background: '#fbf3ea', color: '#9a6a3e' }), minWidth: '72px', textAlign: 'center', opacity: bascule === oeuvre.id_oeuvre ? 0.6 : 1 }}>
+                        style={{ ...(publiee ? btnSobre : { ...btnSobre, border: '1px solid #d8b48f', background: 'var(--cs-danger-fond)', color: '#9a6a3e' }), minWidth: '72px', textAlign: 'center', opacity: bascule === oeuvre.id_oeuvre ? 0.6 : 1 }}>
                         {bascule === oeuvre.id_oeuvre ? '…' : (publiee ? 'Dépublier' : 'Publier')}
                       </button>
                       <button onClick={() => supprimerOeuvre(oeuvre.id_oeuvre, oeuvre.titre)}
-                        style={{ ...btnSobre, border: '1px solid #e6c8be', background: '#fffaf8', color: '#b44a34', marginLeft: '4px' }}>
+                        style={{ ...btnSobre, border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-fond-clair)', color: '#b44a34', marginLeft: '4px' }}>
                         Supprimer
                       </button>
                     </div>
@@ -1910,10 +1910,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     <div style={{ padding: '16px 22px 18px', background: 'var(--cs-surface)', borderTop: '1px solid var(--cs-fond-doux)', borderLeft: '3px solid var(--cs-vert)' }}>
                       {/* En-tête */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
-                        <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.97031rem', color: 'var(--cs-encre)' }}>
+                        <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>
                           Modification — <em>{oeuvre.titre}</em>
                         </span>
-                        <code style={{ fontSize: '0.68281rem', background: 'var(--cs-fond-doux)', padding: '2px 6px', borderRadius: '3px', color: 'var(--cs-texte-second)' }}>{oeuvre.id_oeuvre}</code>
+                        <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '2px 6px', borderRadius: '4px', color: 'var(--cs-texte-second)' }}>{oeuvre.id_oeuvre}</code>
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -1941,16 +1941,16 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           <label style={lbl}>Auteurs</label>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
                             {auteursOeuvre.map(a => (
-                              <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', color: 'var(--cs-texte-fort)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '3px', padding: '2px 6px' }}>
+                              <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.71875rem', color: 'var(--cs-texte-fort)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '4px', padding: '2px 6px' }}>
                                 {a.nom}
                                 {a.rang === 1
-                                  ? <span style={{ fontSize: '0.62rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>premier</span>
+                                  ? <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>premier</span>
                                   : <button onClick={() => majAuteursOeuvre(oeuvre.id_oeuvre, 'retirer', a.id_auteur)}
                                       title="Retirer cet auteur de l’œuvre"
-                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-danger)', fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>×</button>}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-danger)', fontSize: '0.8125rem', lineHeight: 1, padding: 0 }}>×</button>}
                               </span>
                             ))}
-                            {auteursOeuvre.length === 0 && <span style={{ fontSize: '0.7rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</span>}
+                            {auteursOeuvre.length === 0 && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</span>}
                           </div>
                           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                             <select value={coAuteurAAjouter} onChange={e => setCoAuteurAAjouter(e.target.value)} style={{ ...inputStyleAuteur, flex: 1 }}>
@@ -1963,7 +1963,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                               disabled={!coAuteurAAjouter} style={{ ...btnSobre, opacity: coAuteurAAjouter ? 1 : 0.5 }}>Ajouter</button>
                           </div>
                           {statutAuteursOeuvre && (
-                            <p style={{ margin: '5px 0 0', fontSize: '0.68rem', color: /ajouté|retiré/.test(statutAuteursOeuvre) ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{statutAuteursOeuvre}</p>
+                            <p style={{ margin: '5px 0 0', fontSize: '0.6875rem', color: /ajouté|retiré/.test(statutAuteursOeuvre) ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{statutAuteursOeuvre}</p>
                           )}
                         </div>
 
@@ -2015,12 +2015,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '16px' }}>
                         {statutOeuvre?.id === oeuvre.id_oeuvre && (
-                          <span style={{ fontSize: '0.82656rem', color: statutOeuvre?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>
+                          <span style={{ fontSize: '0.8125rem', color: statutOeuvre?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>
                             {statutOeuvre?.ok ? '✓' : '✗'} {statutOeuvre?.msg}
                           </span>
                         )}
-                        <button onClick={fermerEditionOeuvre} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                        <button onClick={() => sauvegarderOeuvre(oeuvre.id_oeuvre)} style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                        <button onClick={fermerEditionOeuvre} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                        <button onClick={() => sauvegarderOeuvre(oeuvre.id_oeuvre)} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                       </div>
                     </div>
                   )}
@@ -2034,7 +2034,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     pas encore de texte derrière. */}
                 {besoinCatalogue && (() => {
                   if (chargementCatalogue) {
-                    return <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '8px 0 0' }}>Chargement du catalogue…</p>
+                    return <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '8px 0 0' }}>Chargement du catalogue…</p>
                   }
                   const restantes = restantesAfficheesDe(auteur)
                   if (restantes.length === 0) return null
@@ -2048,18 +2048,18 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                             moderne…), plutôt que le titre stable répété. */}
                         {regrouperNoticesCatalogue(restantes, auteur.oeuvres[0]?.titre ?? '').map(groupe => (
                           <div key={groupe.cle}>
-                            <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', margin: '0 0 3px 2px' }}>
+                            <div style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', margin: '0 0 3px 2px' }}>
                               {groupe.titre}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               {groupe.notices.map(n => (
                                 <div key={n.id}
-                                  style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #c07a4a', background: '#fbf3ee', borderRadius: '0 4px 4px 0' }}>
-                                  <span style={{ fontSize: '0.82656rem', color: 'var(--cs-texte)', fontStyle: (n.titre_edition || n.titre_original) ? 'italic' : 'normal' }}>
+                                  style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', padding: '6px 10px', borderLeft: '2px solid #c07a4a', background: 'var(--cs-danger-fond)', borderRadius: '0 4px 4px 0' }}>
+                                  <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)', fontStyle: (n.titre_edition || n.titre_original) ? 'italic' : 'normal' }}>
                                     {n.titre_edition || n.titre_original || n.titre_stable || '(sans titre)'}
                                   </span>
-                                  {n.annee_edition && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)' }}>{n.annee_edition}</span>}
-                                  {n.traducteur && <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
+                                  {n.annee_edition && <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)' }}>{n.annee_edition}</span>}
+                                  {n.traducteur && <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>trad. {n.traducteur}</span>}
                                   {/* Liens URL/Notice d'abord, puis la pastille de décision en dernier :
                                       sa case a une largeur fixe et se cale au bord droit, si bien que
                                       toutes les décisions (« Prioritaire », « Candidat »…) s'alignent. */}
@@ -2067,7 +2067,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                                     <LiensUrlNotice urlTexte={n.url_texte_integral} urlNotice={n.url_source} />
                                     {n.decision_import && (
                                       <span title={n.decision_import}
-                                        style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 4px', borderRadius: '3px', whiteSpace: 'nowrap', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', ...decorDecision(n.decision_import) }}>
+                                        style={{ fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '2px 4px', borderRadius: '4px', whiteSpace: 'nowrap', width: '5.75rem', textAlign: 'center', boxSizing: 'border-box', ...decorDecision(n.decision_import) }}>
                                         {abregerDecision(n.decision_import)}
                                       </span>
                                     )}
@@ -2089,7 +2089,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         {/* Auteurs présents UNIQUEMENT au catalogue (aucune fiche `auteurs`) : sans ce
             bloc, « Tout afficher » laissait invisible l'essentiel du catalogue. */}
         {besoinCatalogue && chargementCatalogue && catalogueAutres === null && (
-          <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 2px' }}>Chargement du catalogue…</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 2px' }}>Chargement du catalogue…</p>
         )}
         {besoinCatalogue && catalogueAutres && (() => {
           const entrees = Object.entries(catalogueAutres)
@@ -2104,10 +2104,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           return (
             <>
               <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '0.64687rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-or)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-or)', whiteSpace: 'nowrap' }}>
                   Auteurs seulement au catalogue — {entrees.length} auteur{entrees.length > 1 ? 's' : ''}, {total} œuvre{total > 1 ? 's' : ''}
                 </span>
-                <span style={{ flex: 1, height: '1px', background: '#e6ddc6' }} />
+                <span style={{ flex: 1, height: '1px', background: 'var(--cs-bord-clair)' }} />
               </div>
               {entrees.map(([nom, ns]) => (
                 <BlocCatalogueAuteurSeul key={nom} nom={nom} notices={ns}

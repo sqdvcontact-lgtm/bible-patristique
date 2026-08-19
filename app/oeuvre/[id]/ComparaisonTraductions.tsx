@@ -102,7 +102,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
       </sup>
       {ouvert && typeof document !== 'undefined' && createPortal(
         <div data-appel-note="" onMouseDown={e => e.stopPropagation()}
-          style={{ position: 'fixed', left: placement.left, top: placement.top, width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: placement.hauteurMax, overflowY: 'auto', background: '#faf6ee', border: '1px solid var(--cs-or-doux)', borderRadius: 5, boxShadow: '0 6px 24px rgba(44,30,10,0.20)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: '#2a2218' }}>
+          style={{ position: 'fixed', left: placement.left, top: placement.top, width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: placement.hauteurMax, overflowY: 'auto', background: 'var(--cs-fond)', border: '1px solid var(--cs-or-doux)', borderRadius: 4, boxShadow: 'var(--cs-ombre-flottante)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: 'var(--cs-texte-fort)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Note {note.noteNumber}</span>
             <button onClick={() => setOuvert(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
@@ -133,7 +133,7 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
 const STYLE_TEXTE_PARALLELE = {
   margin: 0,
   fontFamily: 'var(--font-source-serif), Georgia, serif',
-  fontSize: '0.82rem',
+  fontSize: '0.8125rem',
   lineHeight: 1.62,
   color: 'var(--cs-texte-fort)',
   wordSpacing: '-0.025em',
@@ -171,7 +171,7 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
   const composer = originale ? cesurerLatin : (t: string) => t
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
-    return <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
+    return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
   }
 
   // Blocs : la prose d'un même paragraphe coule ensemble ; les vers consécutifs
@@ -443,7 +443,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}`, langue: alignement.alignedLangue },
     ] as const).map(colonne => (
       <div key={colonne.label} style={{ minWidth: 0 }}>
-        {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
+        {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
         <ColonneLecture membres={colonne.members} segments={segments} notes={notes} vide={colonne.empty} langue={colonne.langue}
           segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment} mobile={mobile} />
       </div>
@@ -453,14 +453,14 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
     <section aria-label={`Traductions parallèles : ${alignement.referenceLabel} et ${alignement.alignedLabel}`}>
       {estAdmin && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '10px' }}>
-          <div aria-label="Filtrer les groupes d’alignement" style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '5px', overflow: 'hidden' }}>
+          <div aria-label="Filtrer les groupes d’alignement" style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '4px', overflow: 'hidden' }}>
             {([['tous', 'Tous'], ['uncertain', 'À relire']] as [FiltreAlignement, string][]).map(([valeur, libelle]) => (
               <button
                 key={valeur}
                 data-filtre-alignement={valeur}
                 aria-pressed={filtre === valeur}
                 onClick={() => setFiltre(valeur)}
-                style={{ border: 0, borderLeft: valeur === 'uncertain' ? '1px solid var(--cs-bord)' : 0, background: filtre === valeur ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: filtre === valeur ? 'var(--cs-encre)' : 'var(--cs-texte-second)', padding: '5px 9px', cursor: 'pointer', fontSize: '0.68rem' }}
+                style={{ border: 0, borderLeft: valeur === 'uncertain' ? '1px solid var(--cs-bord)' : 0, background: filtre === valeur ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: filtre === valeur ? 'var(--cs-encre)' : 'var(--cs-texte-second)', padding: '5px 9px', cursor: 'pointer', fontSize: '0.6875rem' }}
               >
                 {libelle}
               </button>
@@ -468,17 +468,17 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
           </div>
         </div>
       )}
-      {chargement && <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.76rem' }}>Chargement de la division…</p>}
-      {erreur && <p role="alert" style={{ color: 'var(--cs-danger)', fontSize: '0.76rem' }}>{erreur}</p>}
+      {chargement && <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.75rem' }}>Chargement de la division…</p>}
+      {erreur && <p role="alert" style={{ color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
       {!chargement && !erreur && groupesAffiches.length === 0 && (
-        <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.76rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>
+        <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.75rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>
       )}
       {/* Deux traductions nommées en tête de colonnes — discret (pas de fond, pas de
           bandeau), pour savoir laquelle est laquelle sans quitter la mise en page de lecture. */}
       {!mobile && !chargement && !erreur && groupesAffiches.length > 0 && (
         <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.6rem', padding: '0 0 8px', borderBottom: '1px solid var(--cs-bord-clair)', marginBottom: '6px' }}>
           {[alignement.referenceLabel, alignement.alignedLabel].map(label => (
-            <p key={label} style={{ margin: 0, fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{label}</p>
+            <p key={label} style={{ margin: 0, fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{label}</p>
           ))}
         </div>
       )}
@@ -518,7 +518,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
         const segData = { id: s.id, idTexte: s.id_texte, numeroSource: s.segment_numero, texte: s.segment_texte } as unknown as SegData
         return createPortal(
           <div data-seg-toolbar="" onMouseEnter={() => { if (timerSurvol.current) clearTimeout(timerSurvol.current) }} onMouseLeave={() => masquerToolbar(segSurvol.id)}
-            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
+            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '2px 4px' }}>
             {userId && s.id_oeuvre && <BoutonEnregistrerSegment seg={segData} auteur={auteur} titreOeuvre={meta?.titre ?? ''} idOeuvre={s.id_oeuvre} userId={userId} dejaSauvegarde={sauvegardes.has(s.id)} onSauvegarde={() => marquerSauvegarde(s.id)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.segment_texte)} auteur={auteur} titre={meta?.titre} sousTitre={meta?.sous_titre ?? undefined} tradAuteur={meta?.trad_auteur ?? undefined} editeur={meta?.editeur ?? undefined} collection={meta?.collection ?? undefined} ville={meta?.ville ?? undefined} datePublication={meta?.date_publication ?? undefined} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.segment_texte)} titreOeuvre={meta?.titre ?? ''} />

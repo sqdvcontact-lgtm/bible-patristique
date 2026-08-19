@@ -1,3 +1,4 @@
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 export const metadata = {
   title: 'Acheter des livres',
   description: 'Où trouver les éditions bibliques et patristiques, neuves, anciennes ou critiques.',
@@ -53,11 +54,11 @@ export default function LibrairiesPage() {
     <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px' }}>
             Acheter des livres
           </h1>
           <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 10px' }} />
-          <p style={{ fontSize: '0.78125rem', color: '#8a8278', fontStyle: 'italic', margin: 0 }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: 0 }}>
             Où trouver les textes, en éditions neuves, anciennes ou critiques.
           </p>
         </div>
@@ -99,7 +100,7 @@ export default function LibrairiesPage() {
             pointer-events: none;
             transition: opacity 0.18s ease;
             font-family: var(--font-source-serif), Georgia, serif;
-            font-size:0.96875rem;
+            font-size:0.9375rem;
             letter-spacing: 0.01em;
           }
           .lib-row:hover .lib-survol { opacity: 1; }
@@ -125,7 +126,7 @@ export default function LibrairiesPage() {
           }
           .lib-desc {
             font-size:0.75rem;
-            color: #6a6258;
+            color: var(--cs-texte-second);
             margin: 0;
             line-height: 1.45;
           }
@@ -143,7 +144,7 @@ export default function LibrairiesPage() {
             .lib-logo-zone { width: 54px; }
             .lib-sep { margin: 0 12px; }
             .lib-nom { font-size: 1rem; }
-            .lib-desc { font-size: 0.72rem; }
+            .lib-desc { font-size: 0.71875rem; }
           }
         `}</style>
         {LIBRAIRIES.map(lib => (

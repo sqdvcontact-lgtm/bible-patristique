@@ -63,7 +63,7 @@ function BarreProgression({ label, pourcentage, couleur }: { label: string; pour
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontWeight: 600 }}>{label}</span>
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', fontWeight: 700 }}>{Math.round(pourcentage)}%</span>
       </div>
-      <div style={{ height: '7px', background: '#ebe7df', borderRadius: '999px', overflow: 'hidden' }}>
+      <div style={{ height: '7px', background: 'var(--cs-fond-doux)', borderRadius: '999px', overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${pourcentage}%`, background: couleur,
           borderRadius: '999px', transition: 'width 0.5s ease',
@@ -77,7 +77,7 @@ function StatutLecture({ label, valeur }: { label: string; valeur: string }) {
   return (
     <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'rgba(var(--cs-vert-rgb),0.055)', border: '1px solid rgba(var(--cs-vert-rgb),0.10)' }}>
       <p style={{ fontSize: '1.125rem', color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", margin: '0 0 2px' }}>{valeur}</p>
-      <p style={{ fontSize: '0.65625rem', color: '#7a867b', margin: 0 }}>{label}</p>
+      <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', margin: 0 }}>{label}</p>
     </div>
   )
 }
@@ -123,12 +123,12 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
       display: 'flex', alignItems: 'center', gap: '10px',
       padding: '10px 12px', borderRadius: '8px',
       border: `1px solid ${lu ? 'rgba(var(--cs-vert-rgb),0.35)' : 'var(--cs-bord-clair)'}`,
-      background: lu ? 'rgba(var(--cs-vert-rgb),0.07)' : '#fff',
+      background: lu ? 'rgba(var(--cs-vert-rgb),0.07)' : 'var(--cs-surface)',
       cursor: 'pointer', textAlign: 'left', width: '100%',
       transition: 'background 0.2s, border-color 0.2s',
     }}>
       <span style={{
-        width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+        width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0,
         border: `1.5px solid ${lu ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
         background: lu ? 'var(--cs-vert)' : 'transparent',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -273,14 +273,14 @@ export default function ProgressionClient() {
         </p>
 
         <section style={{
-          background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px',
+          background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px',
           padding: '20px 22px', marginBottom: '24px', boxShadow: '0 8px 28px rgba(var(--cs-vert-rgb),0.06)',
           position: 'sticky', top: '56px', zIndex: 10,
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
             <div style={{
               width: '8.25rem', height: '132px', borderRadius: '50%',
-              background: `conic-gradient(var(--cs-vert) ${pourcentTotalAnime}%, #ece8df 0)`,
+              background: `conic-gradient(var(--cs-vert) ${pourcentTotalAnime}%, var(--cs-fond-doux) 0)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
               <div style={{ width: '6.625rem', height: '106px', borderRadius: '50%', background: 'var(--cs-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>

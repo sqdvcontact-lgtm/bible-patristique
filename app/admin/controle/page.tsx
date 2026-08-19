@@ -4,6 +4,7 @@ import { estAdmin } from '@/app/lib/verifAdmin'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import TodosControle from './TodosControle'
 import ScellesBible899 from './ScellesBible899'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 export const metadata = { title: 'Centre de contrôle' }
 export const dynamic = 'force-dynamic'
@@ -100,7 +101,7 @@ function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; det
   const expire = erreur?.code === '57014'
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '3rem 1.5rem' }}>
-      <div style={{ maxWidth: '46rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', borderRadius: '10px', padding: '1.5rem 1.75rem' }}>
+      <div style={{ maxWidth: '46rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '1.5rem 1.75rem' }}>
         <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: 'var(--cs-danger-fonce)', margin: '0 0 0.5rem' }}>
           Les indicateurs n’ont pas pu être chargés
         </h1>
@@ -109,7 +110,7 @@ function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; det
             ? 'La requête a dépassé le délai autorisé. Le tableau de bord agrège tout le corpus en direct ; sous charge, il peut franchir la limite de huit secondes. Réessayez dans un instant.'
             : 'La RPC controle_tableau_bord n’a rien renvoyé. Le détail technique est ci-dessous.'}
         </p>
-        <pre style={{ fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace', color: 'var(--cs-texte)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '0.75rem', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+        <pre style={{ fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace', color: 'var(--cs-texte)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '0.75rem', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
           {erreur
             ? [
                 erreur.code ? `code    : ${erreur.code}` : null,
@@ -127,13 +128,13 @@ function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; det
 function EcranReserve() {
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '36px 40px', width: '21.25rem', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre)', marginBottom: '6px' }}>Centre de contrôle</h1>
-        <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', marginBottom: '20px' }}>Corpus Scriptura</p>
-        <p style={{ fontSize: '0.89844rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, marginBottom: '22px' }}>
+      <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '36px 40px', width: '21.25rem', textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, marginBottom: '6px' }}>Centre de contrôle</h1>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', marginBottom: '20px' }}>Corpus Scriptura</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, marginBottom: '22px' }}>
           Cette page est réservée au compte administrateur. Connectez-vous avec ce compte pour y accéder.
         </p>
-        <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.93437rem', fontWeight: 500, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>Se connecter</a>
+        <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.9375rem', fontWeight: 500, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>Se connecter</a>
       </div>
     </main>
   )
@@ -279,13 +280,13 @@ const styles = `
 
   .cc-grille { max-width: 74rem; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr)); gap: 1.25rem; align-items: start; }
 
-  .cc-carte { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-radius: 10px; padding: 1.125rem 1.25rem 0.875rem; display: flex; flex-direction: column; }
+  .cc-carte { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 1.125rem 1.25rem 0.875rem; display: flex; flex-direction: column; }
   .cc-carte-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.1875rem; font-weight: normal; color: var(--cs-encre-fonce); margin: 0 0 0.875rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--cs-bord-clair); }
   .cc-carte-corps { display: flex; flex-direction: column; gap: 0.5rem; }
   .cc-carte-pied { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-bord-clair); font-size: 0.6875rem; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; }
 
   .cc-tuiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 0.625rem; }
-  .cc-tuile { background: var(--cs-fond-clair); border: 1px solid var(--cs-bord-clair); border-radius: 7px; padding: 0.625rem 0.75rem; }
+  .cc-tuile { background: var(--cs-fond-clair); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 0.625rem 0.75rem; }
   .cc-tuile-val { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.375rem; line-height: 1.1; }
   .cc-tuile-lbl { font-size: 0.6875rem; color: var(--cs-texte-second); margin-top: 0.25rem; font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.3; }
 
@@ -306,8 +307,8 @@ const styles = `
   .cc-todos-compte { color: var(--cs-texte-doux); font-weight: 500; margin-left: 0.25rem; }
   .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
   .cc-todo { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.4; }
-  .cc-todo-case { flex-shrink: 0; width: 1rem; height: 1rem; border: 1px solid var(--cs-bord); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--cs-vert); margin-top: 0.0625rem; }
-  .cc-todo-fait .cc-todo-case { background: var(--cs-vert); border-color: var(--cs-vert); color: #fff; }
+  .cc-todo-case { flex-shrink: 0; width: 1rem; height: 1rem; border: 1px solid var(--cs-bord); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--cs-vert); margin-top: 0.0625rem; }
+  .cc-todo-fait .cc-todo-case { background: var(--cs-vert); border-color: var(--cs-vert); color: var(--cs-surface); }
   .cc-todo-fait .cc-todo-txt { color: var(--cs-texte-doux); text-decoration: line-through; }
 
   /* — Édition discrète des todos — */
@@ -322,7 +323,7 @@ const styles = `
   .cc-todo-btn:hover { color: var(--cs-texte); background: var(--cs-fond-doux); }
   .cc-todo-btn-suppr { font-size: 1rem; }
   .cc-todo-btn-suppr:hover { color: var(--cs-danger); background: var(--cs-danger-fond); }
-  .cc-todo-input { flex: 1; width: 100%; font-size: 0.8125rem; font-family: var(--font-source-sans), Arial, sans-serif; color: var(--cs-texte); line-height: 1.4; border: 1px solid var(--cs-bord); border-radius: 5px; padding: 0.1875rem 0.375rem; background: var(--cs-surface); resize: vertical; }
+  .cc-todo-input { flex: 1; width: 100%; font-size: 0.8125rem; font-family: var(--font-source-sans), Arial, sans-serif; color: var(--cs-texte); line-height: 1.4; border: 1px solid var(--cs-bord); border-radius: 4px; padding: 0.1875rem 0.375rem; background: var(--cs-surface); resize: vertical; }
   .cc-todo-input:focus { outline: none; border-color: var(--cs-vert); }
   .cc-todo-ajout { margin-top: 0.375rem; }
   .cc-todo-ajout-btn { border: none; background: transparent; cursor: pointer; font-size: 0.75rem; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; padding: 0.125rem 0; opacity: 0.55; transition: opacity .12s, color .12s; }
@@ -338,7 +339,7 @@ const styles = `
   @media (max-width: 640px) {
     .cc-page { padding: 1rem 0.75rem 2.5rem; }
     .cc-entete { margin-bottom: 1rem; }
-    .cc-titre { font-size: 1.4rem; }
+    .cc-titre { font-size: 1.375rem; }
     .cc-carte { padding: 1rem 0.875rem 0.75rem; }
     .cc-carte-titre { font-size: 1.0625rem; }
   }

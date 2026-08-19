@@ -54,7 +54,7 @@ export default function AssocierVerset({ segId, onAssocie }: {
       <button
         onClick={() => { setErreur(null); setOuvert(true) }}
         title="Ajouter un lien biblique à ce segment"
-        style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
+        style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
       >
         + Ajouter un lien biblique
       </button>

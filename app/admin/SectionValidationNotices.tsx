@@ -12,13 +12,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { colorMix } from '@/app/lib/couleurs'
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 type Statut = 'a_revoir' | 'en_cours' | 'valide' | 'rejete'
 const L_STATUT: Record<string, string> = { a_revoir: 'À revoir', en_cours: 'En cours', valide: 'Validé', rejete: 'Rejeté' }
-const C_STATUT: Record<string, string> = { a_revoir: '#9a7a38', en_cours: '#5f6b86', valide: '#3d6b4f', rejete: '#9a2a2a' }
+const C_STATUT: Record<string, string> = { a_revoir: 'var(--cs-or)', en_cours: 'var(--cs-systeme)', valide: 'var(--cs-vert)', rejete: 'var(--cs-danger-fonce)' }
 
 type Grille = {
   pericope_id: string
@@ -88,11 +89,11 @@ const admissible = (l: Lien): boolean => {
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const grilleComplete = (g: Grille | null) => !!g && CASES.every(c => g[c.champ] === true)
 
-const btnV: React.CSSProperties = { fontFamily: SANS, fontSize: '0.78rem', fontWeight: 600, padding: '6px 13px', borderRadius: '6px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }
-const btnG: React.CSSProperties = { fontFamily: SANS, fontSize: '0.76rem', padding: '5px 11px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }
+const btnV: React.CSSProperties = { fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }
+const btnG: React.CSSProperties = { fontFamily: SANS, fontSize: '0.75rem', padding: '5px 11px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }
 
 function Puce({ txt, coul }: { txt: string; coul: string }) {
-  return <span style={{ fontFamily: SANS, fontSize: '0.62rem', fontWeight: 700, color: coul, background: `${coul}18`, border: `1px solid ${coul}40`, borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>{txt}</span>
+  return <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, color: coul, background: `${colorMix(coul, 9)}`, border: `1px solid ${colorMix(coul, 25)}`, borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>{txt}</span>
 }
 
 // ── Ordre de suggestion : ouvrage retenu, lien principal, commentaire/monographie,
@@ -299,7 +300,7 @@ export default function SectionValidationNotices() {
   }), [file, qn, filtre])
   const nbValidees = useMemo(() => file.filter(l => l.statut_editorial === 'valide').length, [file])
 
-  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
 
   const FILTRES: { code: string; label: string }[] = [
     { code: 'a_revoir', label: 'À revoir' }, { code: 'en_cours', label: 'En cours' }, { code: 'valide', label: 'Validées' },
@@ -316,48 +317,48 @@ export default function SectionValidationNotices() {
       `}</style>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', margin: '0 0 12px', flexWrap: 'wrap' }}>
-        <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Validation des notices</h2>
-        <span style={{ fontFamily: SANS, fontSize: '0.82rem', fontWeight: 700, color: 'var(--cs-vert-fonce)' }}>{nbValidees} validées / {file.length}</span>
+        <h2 style={{ fontFamily: SERIF, fontSize: '1.3125rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Validation des notices</h2>
+        <span style={{ fontFamily: SANS, fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert-fonce)' }}>{nbValidees} validées / {file.length}</span>
       </div>
 
-      {erreur && <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 12px' }}>{erreur}</p>}
-      {info && <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-vert-fonce)', background: 'rgba(var(--cs-vert-rgb),0.08)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 12px' }}>{info}</p>}
+      {erreur && <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '8px 11px', margin: '0 0 12px' }}>{erreur}</p>}
+      {info && <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-vert-fonce)', background: 'rgba(var(--cs-vert-rgb),0.08)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '8px', padding: '8px 11px', margin: '0 0 12px' }}>{info}</p>}
 
       <div className="vn-grid">
         {/* ── FILE ── */}
         <div className="vn-file">
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filtrer par nom…" style={{ width: '100%', fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '6px 9px', marginBottom: '8px' }} />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filtrer par nom…" style={{ width: '100%', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '6px 9px', marginBottom: '8px' }} />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '10px' }}>
             {FILTRES.map(f => (
               <button key={f.code} onClick={() => setFiltre(filtre === f.code ? '' : f.code)}
-                style={{ fontFamily: SANS, fontSize: '0.68rem', fontWeight: filtre === f.code ? 700 : 500, cursor: 'pointer', padding: '3px 8px', borderRadius: '20px', border: `1px solid ${filtre === f.code ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: filtre === f.code ? 'rgba(var(--cs-vert-rgb),0.1)' : 'var(--cs-surface)', color: filtre === f.code ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)' }}>{f.label}</button>
+                style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: filtre === f.code ? 700 : 500, cursor: 'pointer', padding: '3px 8px', borderRadius: '999px', border: `1px solid ${filtre === f.code ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: filtre === f.code ? 'rgba(var(--cs-vert-rgb),0.1)' : 'var(--cs-surface)', color: filtre === f.code ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)' }}>{f.label}</button>
             ))}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {filtree.map(l => (
               <button key={l.id} onClick={() => ouvrir(l.id)}
-                style={{ textAlign: 'left', border: `1px solid ${selId === l.id ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: selId === l.id ? 'rgba(var(--cs-vert-rgb),0.05)' : 'var(--cs-surface)', borderRadius: '7px', padding: '7px 9px', cursor: 'pointer' }}>
+                style={{ textAlign: 'left', border: `1px solid ${selId === l.id ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: selId === l.id ? 'rgba(var(--cs-vert-rgb),0.05)' : 'var(--cs-surface)', borderRadius: '8px', padding: '7px 9px', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
-                  <span style={{ fontFamily: SERIF, fontSize: '0.86rem', color: 'var(--cs-texte)' }}>{l.nom}</span>
-                  <Puce txt={L_STATUT[l.statut_editorial] ?? l.statut_editorial} coul={C_STATUT[l.statut_editorial] ?? '#5f6b86'} />
+                  <span style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte)' }}>{l.nom}</span>
+                  <Puce txt={L_STATUT[l.statut_editorial] ?? l.statut_editorial} coul={C_STATUT[l.statut_editorial] ?? 'var(--cs-systeme)'} />
                 </div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '3px', fontFamily: SANS, fontSize: '0.64rem', color: 'var(--cs-texte-faible)', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '3px', fontFamily: SANS, fontSize: '0.625rem', color: 'var(--cs-texte-faible)', alignItems: 'center' }}>
                   {l.categorie && <span>{l.categorie}</span>}
                   <span title="Exégèse / Théologie / Tradition">§ {['statut_exegetique', 'statut_theologique', 'statut_tradition'].map(k => (L_STATUT[(l as unknown as Record<string, string>)[k]] ?? '?')[0]).join('·')}</span>
-                  <span style={{ color: l.nb_refs === 0 ? 'var(--cs-danger)' : l.nb_refs < 4 ? '#9a7a38' : 'var(--cs-vert-fonce)' }}>{l.nb_refs} réf.</span>
+                  <span style={{ color: l.nb_refs === 0 ? 'var(--cs-danger)' : l.nb_refs < 4 ? 'var(--cs-or)' : 'var(--cs-vert-fonce)' }}>{l.nb_refs} réf.</span>
                   <span title="Grille de contrôle">{grilleComplete(l.grille) ? '✓ grille' : '○ grille'}</span>
                   {l.valide_at && <span>· {new Date(l.valide_at).toLocaleDateString('fr-FR')}</span>}
                 </div>
               </button>
             ))}
-            {filtree.length === 0 && <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Aucune notice.</p>}
+            {filtree.length === 0 && <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Aucune notice.</p>}
           </div>
         </div>
 
         {/* ── PANNEAU ── */}
         <div>
           {!detail ? (
-            <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '24px 0' }}>Sélectionnez une notice dans la file.</p>
+            <p style={{ fontFamily: SANS, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '24px 0' }}>Sélectionnez une notice dans la file.</p>
           ) : (
             <PanneauValidation
               detail={detail} liens={liens} grille={grille ?? GRILLE_VIDE(detail.id)} note={note} setNote={setNote}
@@ -412,19 +413,19 @@ function PanneauValidation(p: {
       <div>
         <button onClick={() => p.setApercu(false)} style={{ ...btnG, marginBottom: '14px' }}>← Retour à la validation</button>
         <div style={{ maxWidth: '42rem' }}>
-          <h3 style={{ fontFamily: SERIF, fontSize: '1.4rem', color: 'var(--cs-encre)', margin: '0 0 14px' }}>{detail.nom}</h3>
+          <h3 style={{ fontFamily: SERIF, fontSize: '1.375rem', color: 'var(--cs-encre)', margin: '0 0 14px' }}>{detail.nom}</h3>
           {SECTIONS.filter(s => (s.texte ?? '').trim()).map(s => (
             <section key={s.titre} style={{ marginBottom: '16px' }}>
-              <p style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>{s.titre}</p>
-              <p style={{ fontFamily: SERIF, fontSize: '0.95rem', lineHeight: 1.65, color: 'var(--cs-texte)', margin: 0, whiteSpace: 'pre-wrap' }}>{s.texte}</p>
+              <p style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>{s.titre}</p>
+              <p style={{ fontFamily: SERIF, fontSize: '0.9375rem', lineHeight: 1.65, color: 'var(--cs-texte)', margin: 0, whiteSpace: 'pre-wrap' }}>{s.texte}</p>
             </section>
           ))}
           {refs.length > 0 && (
             <section style={{ borderTop: '1px solid var(--cs-bord-clair)', paddingTop: '12px', marginTop: '6px' }}>
-              <p style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 6px' }}>Bibliographie</p>
+              <p style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 6px' }}>Bibliographie</p>
               {refs.map(r => {
                 const o = r.ouvrages_bibliographiques!
-                return <p key={r.id} style={{ fontFamily: SERIF, fontSize: '0.82rem', color: 'var(--cs-texte-second)', margin: '0 0 4px', lineHeight: 1.4 }}>{o.auteurs}, <em>{o.titre}</em>{o.annee ? `, ${o.annee}` : ''}{r.reference_passage ? ` — ${r.reference_passage}` : ''}</p>
+                return <p key={r.id} style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte-second)', margin: '0 0 4px', lineHeight: 1.4 }}>{o.auteurs}, <em>{o.titre}</em>{o.annee ? `, ${o.annee}` : ''}{r.reference_passage ? ` — ${r.reference_passage}` : ''}</p>
               })}
             </section>
           )}
@@ -436,7 +437,7 @@ function PanneauValidation(p: {
   return (
     <div style={{ display: 'grid', gap: '16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-        <h3 style={{ fontFamily: SERIF, fontSize: '1.15rem', color: 'var(--cs-encre)', margin: 0 }}>{detail.nom}</h3>
+        <h3 style={{ fontFamily: SERIF, fontSize: '1.125rem', color: 'var(--cs-encre)', margin: 0 }}>{detail.nom}</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => p.setApercu(true)} style={btnG}>Aperçu public</button>
           <button onClick={p.onRouvrir} disabled={p.enCours} style={btnG}>Rouvrir</button>
@@ -447,17 +448,17 @@ function PanneauValidation(p: {
       {SECTIONS.map((s, i) => (
         <div key={s.titre} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px', margin: '0 0 6px' }}>
-            <p style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: 0 }}>{s.titre}</p>
+            <p style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: 0 }}>{s.titre}</p>
             {edite !== s.champ && (
-              <button onClick={() => ouvrirEdition(s.champ, s.texte)} style={{ fontFamily: SANS, fontSize: '0.7rem', fontWeight: 600, color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Modifier</button>
+              <button onClick={() => ouvrirEdition(s.champ, s.texte)} style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Modifier</button>
             )}
           </div>
           {edite === s.champ ? (
             <div>
               <textarea value={brouillon} onChange={e => setBrouillon(e.target.value)} rows={9} autoFocus
-                style={{ width: '100%', fontFamily: SERIF, fontSize: '0.88rem', lineHeight: 1.55, color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '8px 10px', boxSizing: 'border-box', resize: 'vertical' }} />
+                style={{ width: '100%', fontFamily: SERIF, fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 10px', boxSizing: 'border-box', resize: 'vertical' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '7px' }}>
-                <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Enregistrer rouvrira la notice pour relecture.</span>
+                <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Enregistrer rouvrira la notice pour relecture.</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => setEdite(null)} style={btnG}>Annuler</button>
                   <button onClick={() => enregistrerSection(s)} disabled={enregistre} style={{ ...btnV, opacity: enregistre ? 0.6 : 1 }}>{enregistre ? 'Enregistrement…' : 'Enregistrer'}</button>
@@ -465,9 +466,9 @@ function PanneauValidation(p: {
               </div>
             </div>
           ) : (
-            <p style={{ fontFamily: SERIF, fontSize: '0.88rem', lineHeight: 1.55, color: (s.texte ?? '').trim() ? 'var(--cs-texte)' : 'var(--cs-danger)', margin: '0 0 9px', whiteSpace: 'pre-wrap', maxHeight: '11rem', overflow: 'auto' }}>{(s.texte ?? '').trim() || '(section vide)'}</p>
+            <p style={{ fontFamily: SERIF, fontSize: '0.875rem', lineHeight: 1.55, color: (s.texte ?? '').trim() ? 'var(--cs-texte)' : 'var(--cs-danger)', margin: '0 0 9px', whiteSpace: 'pre-wrap', maxHeight: '11rem', overflow: 'auto' }}>{(s.texte ?? '').trim() || '(section vide)'}</p>
           )}
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte-second)', cursor: 'pointer', marginTop: edite === s.champ ? '9px' : 0 }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-second)', cursor: 'pointer', marginTop: edite === s.champ ? '9px' : 0 }}>
             <input type="checkbox" checked={grille[CASES[i].champ] as boolean} onChange={e => p.onCase(CASES[i].champ, e.target.checked)} style={{ marginTop: '2px' }} />
             {CASES[i].label}
           </label>
@@ -477,7 +478,7 @@ function PanneauValidation(p: {
       {/* Deux contrôles généraux */}
       <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px', display: 'grid', gap: '7px' }}>
         {[CASES[4], CASES[5]].map(c => (
-          <label key={c.champ} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
+          <label key={c.champ} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
             <input type="checkbox" checked={grille[c.champ] as boolean} onChange={e => p.onCase(c.champ, e.target.checked)} style={{ marginTop: '2px' }} />
             {c.label}
           </label>
@@ -487,7 +488,7 @@ function PanneauValidation(p: {
       {/* Sélection bibliographique */}
       <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '9px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: 0 }}>Bibliographie retenue ({selection.length}/4)</p>
+          <p style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: 0 }}>Bibliographie retenue ({selection.length}/4)</p>
           <div style={{ display: 'flex', gap: '7px' }}>
             <button onClick={p.onProposer} style={btnG}>Suggérer</button>
             <button onClick={p.onAppliquer} style={btnV}>Appliquer la sélection</button>
@@ -498,58 +499,58 @@ function PanneauValidation(p: {
           {[0, 1, 2, 3].map(i => {
             const s = selection[i]; const l = s ? lienDe(s.lien_id) : null; const o = l?.ouvrages_bibliographiques
             return (
-              <div key={i} style={{ display: 'flex', gap: '9px', alignItems: 'center', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '6px 9px', background: l ? 'var(--cs-surface)' : '#faf8f4', minHeight: '34px' }}>
-                <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: '0.8rem', color: 'var(--cs-vert)', width: '16px' }}>{i + 1}</span>
+              <div key={i} style={{ display: 'flex', gap: '9px', alignItems: 'center', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '6px 9px', background: l ? 'var(--cs-surface)' : 'var(--cs-fond-clair)', minHeight: '34px' }}>
+                <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: '0.8125rem', color: 'var(--cs-vert)', width: '16px' }}>{i + 1}</span>
                 {l && o ? (
                   <>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontFamily: SERIF, fontSize: '0.82rem', color: 'var(--cs-texte)' }}>{o.auteurs}, <em>{o.titre}</em>{o.annee ? ` (${o.annee})` : ''}</span>
-                      <input value={s.motif} onChange={e => p.onMotif(l.id, e.target.value)} placeholder="Motif de sélection (facultatif)…" style={{ display: 'block', width: '100%', fontFamily: SANS, fontSize: '0.7rem', color: 'var(--cs-texte-second)', background: 'transparent', border: 'none', borderBottom: '1px dotted var(--cs-bord)', padding: '2px 0', marginTop: '2px', outline: 'none' }} />
+                      <span style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>{o.auteurs}, <em>{o.titre}</em>{o.annee ? ` (${o.annee})` : ''}</span>
+                      <input value={s.motif} onChange={e => p.onMotif(l.id, e.target.value)} placeholder="Motif de sélection (facultatif)…" style={{ display: 'block', width: '100%', fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', background: 'transparent', border: 'none', borderBottom: '1px dotted var(--cs-bord)', padding: '2px 0', marginTop: '2px', outline: 'none' }} />
                     </div>
                     <button onClick={() => p.onDeplacer(i, -1)} disabled={i === 0} title="Monter" style={{ ...btnG, padding: '2px 7px' }}>↑</button>
                     <button onClick={() => p.onDeplacer(i, 1)} disabled={i === selection.length - 1} title="Descendre" style={{ ...btnG, padding: '2px 7px' }}>↓</button>
                     <button onClick={() => p.onRetirer(l.id)} title="Retirer" style={{ ...btnG, padding: '2px 7px', color: 'var(--cs-danger)' }}>×</button>
                   </>
-                ) : <span style={{ fontFamily: SANS, fontSize: '0.74rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>emplacement libre</span>}
+                ) : <span style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>emplacement libre</span>}
               </div>
             )
           })}
         </div>
         {/* Liens admissibles disponibles */}
-        <p style={{ fontFamily: SANS, fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>Références francophones admissibles ({dispo.length})</p>
+        <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>Références francophones admissibles ({dispo.length})</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '18rem', overflow: 'auto' }}>
           {dispo.map(l => {
             const o = l.ouvrages_bibliographiques!
             return (
-              <div key={l.id} style={{ display: 'flex', gap: '9px', alignItems: 'flex-start', padding: '6px 8px', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px' }}>
+              <div key={l.id} style={{ display: 'flex', gap: '9px', alignItems: 'flex-start', padding: '6px 8px', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontFamily: SERIF, fontSize: '0.82rem', color: 'var(--cs-texte)' }}>{o.auteurs}, <em>{o.titre}</em>{o.annee ? ` (${o.annee})` : ''}</span>
-                  <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', marginTop: '2px', fontFamily: SANS, fontSize: '0.66rem', color: 'var(--cs-texte-faible)', alignItems: 'center' }}>
+                  <span style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>{o.auteurs}, <em>{o.titre}</em>{o.annee ? ` (${o.annee})` : ''}</span>
+                  <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', marginTop: '2px', fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', alignItems: 'center' }}>
                     {l.rubrique && <span>{l.rubrique}</span>}
                     {l.importance && <span>· {l.importance}</span>}
                     {l.reference_passage && <span>· {l.reference_passage}</span>}
                     {o.type_ouvrage && <span>· {o.type_ouvrage.replace(/_/g, ' ')}</span>}
-                    {l.pages ? <span>· p. {l.pages}</span> : <Puce txt="sans pagination" coul="#9a7a38" />}
-                    {l.statut_verification === 'a_verifier' && <Puce txt="à vérifier" coul="#9a7a38" />}
+                    {l.pages ? <span>· p. {l.pages}</span> : <Puce txt="sans pagination" coul="var(--cs-or)" />}
+                    {l.statut_verification === 'a_verifier' && <Puce txt="à vérifier" coul="var(--cs-or)" />}
                     {o.statut_scientifique === 'secondaire' && <Puce txt="secondaire" coul="#6f8a3e" />}
                   </div>
-                  {l.note_editoriale && <p style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-doux)', margin: '2px 0 0', fontStyle: 'italic' }}>{l.note_editoriale}</p>}
+                  {l.note_editoriale && <p style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', margin: '2px 0 0', fontStyle: 'italic' }}>{l.note_editoriale}</p>}
                 </div>
                 <button onClick={() => p.onAjouter(l.id)} disabled={selection.length >= 4} style={{ ...btnG, whiteSpace: 'nowrap', opacity: selection.length >= 4 ? 0.5 : 1 }}>Ajouter</button>
               </div>
             )
           })}
-          {dispo.length === 0 && <p style={{ fontFamily: SANS, fontSize: '0.74rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Aucune autre référence admissible.</p>}
+          {dispo.length === 0 && <p style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Aucune autre référence admissible.</p>}
         </div>
       </div>
 
       {/* Note + validation */}
       <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px' }}>
-        <label style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Note de validation</label>
-        <textarea value={p.note} onChange={e => p.setNote(e.target.value)} onBlur={p.onNoteBlur} rows={2} style={{ width: '100%', fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '6px 9px', boxSizing: 'border-box', resize: 'vertical' }} />
+        <label style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Note de validation</label>
+        <textarea value={p.note} onChange={e => p.setNote(e.target.value)} onBlur={p.onNoteBlur} rows={2} style={{ width: '100%', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '6px 9px', boxSizing: 'border-box', resize: 'vertical' }} />
         <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
           {!p.peutValider && (
-            <span style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-faible)' }}>
+            <span style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-faible)' }}>
               {!p.sectionsPleines ? 'Sections incomplètes' : !grilleComplete(grille) ? 'Grille incomplète' : selection.length < 1 ? 'Aucune référence' : p.selInadmissible ? 'Référence devenue inadmissible' : ''}
             </span>
           )}

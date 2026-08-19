@@ -102,7 +102,7 @@ export default function ProfilPublicPage() {
   }, [pseudo])
 
   if (erreur) return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
@@ -112,7 +112,7 @@ export default function ProfilPublicPage() {
   )
 
   if (!profil) return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
     </main>
   )
@@ -146,11 +146,11 @@ export default function ProfilPublicPage() {
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#f3efe2', padding: '48px 20px 96px' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '48px 20px 96px' }}>
       <style>{`
         .profil-section {
-          background: #faf8f2;
-          border: 1px solid #d8cdb0;
+          background: var(--cs-fond-clair);
+          border: 1px solid var(--cs-danger-bord);
           border-radius: 8px;
           padding: 28px 32px;
           margin-bottom: 10px;
@@ -158,15 +158,15 @@ export default function ProfilPublicPage() {
         .profil-livre-link {
           display: flex; align-items: baseline; gap: 0;
           padding: 5px 0; text-decoration: none;
-          border-bottom: 1px solid #ede8df;
+          border-bottom: 1px solid var(--cs-fond-doux);
           transition: background 0.1s;
         }
         .profil-livre-link:last-child { border-bottom: none; }
-        .profil-livre-link:hover { background: #f4f1ea; }
+        .profil-livre-link:hover { background: var(--cs-fond); }
         .profil-essai-link {
           display: flex; align-items: baseline; gap: 10px;
           padding: 5px 0; text-decoration: none;
-          border-bottom: 1px solid #ede8df;
+          border-bottom: 1px solid var(--cs-fond-doux);
           transition: opacity 0.1s;
         }
         .profil-essai-link:last-child { border-bottom: none; }
@@ -178,7 +178,7 @@ export default function ProfilPublicPage() {
           letter-spacing: .025em; text-decoration: none; cursor: pointer;
           transition: background .14s, border-color .14s, color .14s;
         }
-        .profil-action-message { background: #d8bd78; border: 1px solid #e2ca91; color: #203a2c; }
+        .profil-action-message { background: var(--cs-or-clair); border: 1px solid #e2ca91; color: var(--cs-encre); }
         .profil-action-message:hover { background: #e4cc91; }
         .profil-action-report { background: rgba(255,255,255,.035); border: 1px solid rgba(235,218,175,.46); color: #e4d7b6; }
         .profil-action-report:hover { background: rgba(255,255,255,.085); border-color: rgba(235,218,175,.7); }
@@ -189,8 +189,8 @@ export default function ProfilPublicPage() {
         {/* ── EN-TÊTE CENTRÉ ────────────────────────────────────────────────── */}
         <div style={{
           textAlign: 'center', marginBottom: '10px', border: '1px solid rgba(198,169,100,.42)',
-          borderRadius: '10px', padding: '30px 28px 24px', position: 'relative', overflow: 'hidden',
-          backgroundColor: '#294c39',
+          borderRadius: '8px', padding: '30px 28px 24px', position: 'relative', overflow: 'hidden',
+          backgroundColor: 'var(--cs-vert-fonce)',
           backgroundImage: [
             'radial-gradient(circle at 8% 18%, rgba(222,190,111,.34) 0 1px, transparent 1.7px)',
             'radial-gradient(circle at 18% 74%, rgba(222,190,111,.18) 0 1px, transparent 1.6px)',
@@ -200,9 +200,9 @@ export default function ProfilPublicPage() {
             'radial-gradient(circle at 68% 68%, rgba(222,190,111,.20) 0 1.1px, transparent 1.8px)',
             'radial-gradient(circle at 82% 30%, rgba(233,204,136,.30) 0 1px, transparent 1.7px)',
             'radial-gradient(circle at 92% 79%, rgba(222,190,111,.18) 0 1px, transparent 1.6px)',
-            'linear-gradient(145deg, #315b44 0%, #294c39 48%, #203e30 100%)',
+            'linear-gradient(145deg, var(--cs-vert-fonce) 0%, var(--cs-vert-fonce) 48%, var(--cs-encre) 100%)',
           ].join(', '),
-          boxShadow: '0 8px 24px rgba(35,58,44,.12)',
+          boxShadow: 'var(--cs-ombre-flottante)',
         }}>
 
           {/* Photo ou monogramme */}
@@ -222,8 +222,8 @@ export default function ProfilPublicPage() {
                 />
               </div>
             ) : (
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, #3a5030, #2a3d22)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid #b8c8b0', boxShadow: '0 2px 12px rgba(40,60,30,0.14)' }}>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: '#e0ead8', fontWeight: 'normal', lineHeight: 1 }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, #3a5030, var(--cs-encre))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid #b8c8b0', boxShadow: 'var(--cs-ombre-flottante)' }}>
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: 'var(--cs-vert-pale)', fontWeight: 'normal', lineHeight: 1 }}>
                   {profil.pseudo.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -231,18 +231,18 @@ export default function ProfilPublicPage() {
           </div>
 
           {/* Pseudo */}
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: '#f3eddd', margin: '0 0 4px', letterSpacing: '0.01em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-fond-doux)', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
           </h1>
 
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: '#d7ccb1', margin: '0 0 6px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-danger-bord)', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
 
           {/* Date + email */}
-          <p style={{ fontSize: '0.625rem', color: '#c8bea7', margin: '0 0 12px', letterSpacing: '0.05em' }}>
+          <p style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
             {profil.contact_email && (
               <>
@@ -263,7 +263,7 @@ export default function ProfilPublicPage() {
 
           {/* Filet */}
           <div style={{ marginBottom: rang || profil.bio ? '14px' : '0' }}>
-            <Filet couleur='#aa986b' symbole='❧' maxWidth='120px' />
+            <Filet couleur='var(--cs-etiquette)' symbole='❧' maxWidth='120px' />
           </div>
 
           {/* Rang */}
@@ -272,7 +272,7 @@ export default function ProfilPublicPage() {
               <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'normal', color: '#e2c98d' }}>
                 {rang.rang}
               </span>
-              <span style={{ fontSize: '0.625rem', color: '#c8bea7', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 · {profil.classement!.score} pt{profil.classement!.score !== 1 ? 's' : ''}
               </span>
             </div>
@@ -280,7 +280,7 @@ export default function ProfilPublicPage() {
 
           {/* Bio */}
           {profil.bio && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: '#eee7d6', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-fond-doux)', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
               {profil.bio}
             </p>
           )}
@@ -306,7 +306,7 @@ export default function ProfilPublicPage() {
         {citationPreferee && (
           <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
             <Filet couleur='#c8a858' symbole='★' maxWidth='80px' />
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: '#2a2010', lineHeight: 1.45, margin: '10px 0 8px' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-fort)', lineHeight: 1.45, margin: '10px 0 8px' }}>
               «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
             </p>
             {(citationPreferee.ref || citationPreferee.auteur) && (
@@ -326,10 +326,10 @@ export default function ProfilPublicPage() {
             <div>
               {profil.bibliotheque!.map((o) => (
                 <Link key={o.id} href={`/oeuvre/${o.id}`} className="profil-livre-link">
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>
-                  <span style={{ fontSize: '0.65625rem', color: '#8a7e72', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                     {o.auteur}
                   </span>
                 </Link>
@@ -345,10 +345,10 @@ export default function ProfilPublicPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {profil.versets_favoris!.map((v, i) => (
                 <div key={i} style={{ paddingLeft: '10px', borderLeft: '2px solid #c8d8b8' }}>
-                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: '#2a2818', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
+                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
                     «&#8201;{v.texte.length > 160 ? v.texte.slice(0, 160) + '…' : v.texte}&#8201;»
                   </p>
-                  <p style={{ fontSize: '0.59375rem', color: '#8a7e72', margin: 0, letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  <p style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-gris)', margin: 0, letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                     {v.ref_livre_abr} {v.ref_chapitre},{v.ref_verset}
                     {v.traduction && <span style={{ marginLeft: '5px', opacity: 0.65 }}>· {v.traduction}</span>}
                   </p>
@@ -365,11 +365,11 @@ export default function ProfilPublicPage() {
             <div>
               {profil.essais!.map(e => (
                 <Link key={e.id} href={`/essais/${e.id}`} className="profil-essai-link">
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', fontStyle: 'italic', color: '#1a2818', flex: 1, lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', fontStyle: 'italic', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
                     {e.titre}
                   </span>
                   {e.publie_at && (
-                    <span style={{ fontSize: '0.625rem', color: '#b0a090', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                    <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       {new Date(e.publie_at).getFullYear()}
                     </span>
                   )}

@@ -58,9 +58,9 @@ const LIENS_ALLER_PLUS_LOIN: { href: string; label: string }[] = [
 const FAMILLES_ADMIN = [
   // `couleur` : menu déroulant (fond clair). `couleurMobile` : variante claire,
   // lisible sur le fond vert foncé du panneau mobile.
-  { cle: "corpus",     label: "Corpus & catalogue",  couleur: "#3d6b4f", couleurMobile: "#a7d3b6" },
-  { cle: "communaute", label: "Communauté",           couleur: "#9a7a38", couleurMobile: "#d8bd7e" },
-  { cle: "systeme",    label: "Système & doctrine",   couleur: "#5f6b86", couleurMobile: "#aab3cf" },
+  { cle: "corpus",     label: "Corpus & catalogue",  couleur: "var(--cs-vert)", couleurMobile: "var(--cs-vert-clair)" },
+  { cle: "communaute", label: "Communauté",           couleur: "var(--cs-or)", couleurMobile: "var(--cs-or-clair)" },
+  { cle: "systeme",    label: "Système & doctrine",   couleur: "var(--cs-systeme)", couleurMobile: "var(--cs-systeme-clair)" },
 ] as const;
 const LIENS_ADMIN: { href: string; label: string; famille: string }[] = [
   { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus" },
@@ -91,7 +91,7 @@ const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899", fami
 const DOMAINE = {
   bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.12)",  survol: "rgba(58,90,140,0.22)" },
   patristique:  { base: "var(--cs-vert)", fond: "rgba(var(--cs-vert-rgb),0.12)",  survol: "rgba(var(--cs-vert-rgb),0.20)" },
-  publications: { base: "#9a6a2e", fond: "rgba(154,106,46,0.13)", survol: "rgba(154,106,46,0.22)" },
+  publications: { base: "var(--cs-lacune)", fond: "rgba(154,106,46,0.13)", survol: "rgba(154,106,46,0.22)" },
   chronologie:  { base: "#6d5a86", fond: "rgba(109,90,134,0.12)", survol: "rgba(109,90,134,0.22)" },
 } as const;
 
@@ -124,15 +124,15 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
       <Link href={href} className="cs-onglet" style={style}>{label}</Link>
       {ouvert && recentes.length > 0 && (
         <div onMouseEnter={ouvrir} onMouseLeave={fermer}
-          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "0 10px 30px rgba(30,26,20,0.18)", padding: "7px", zIndex: 3000 }}>
-          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "#a89f95", margin: "2px 8px 6px" }}>{"Derni\u00e8res \u0153uvres consult\u00e9es"}</p>
+          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "7px", zIndex: 3000 }}>
+          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--cs-texte-faible)", margin: "2px 8px 6px" }}>{"Derni\u00e8res \u0153uvres consult\u00e9es"}</p>
           {recentes.map(o => (
             <Link key={o.id} href={`/oeuvre/${o.id}`} onClick={() => setOuvert(false)}
-              style={{ display: "block", padding: "6px 8px", borderRadius: "5px", textDecoration: "none" }}
+              style={{ display: "block", padding: "6px 8px", borderRadius: "4px", textDecoration: "none" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.07)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.75rem", color: "var(--cs-texte-second)", lineHeight: 1.2 }}>{sansPointFinal(o.titre)}</span>
-              {o.auteur && <span style={{ display: "block", fontSize: "0.5625rem", color: "#a89f95", fontStyle: "italic", marginTop: "1px" }}>{o.auteur}</span>}
+              {o.auteur && <span style={{ display: "block", fontSize: "0.5625rem", color: "var(--cs-texte-faible)", fontStyle: "italic", marginTop: "1px" }}>{o.auteur}</span>}
             </Link>
           ))}
         </div>
@@ -205,7 +205,7 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
   return (
     <>
       {texte.slice(0, idx)}
-      <strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '2px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
+      <strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
       {texte.slice(idx + query.length)}
     </>
   )
@@ -225,7 +225,7 @@ function extraireEtSurligner(texte: string, q: string, longueur = 110): React.Re
   if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
   return (
     <>
-      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '2px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
+      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
     </>
   )
 }
@@ -623,10 +623,10 @@ export default function Navbar() {
     // de feuille, et `.cs-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
     return {
-      display: "inline-block", padding: "0.25rem 0.5rem", borderRadius: "5px",
+      display: "inline-block", padding: "0.25rem 0.5rem", borderRadius: "4px",
       fontSize: "0.9375rem", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
       fontWeight: primaire ? 600 : 400,
-      color: actif ? "#fff" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
+      color: actif ? "var(--cs-surface)" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
       "--fond": actif ? "rgba(255,255,255,0.14)" : "transparent",
       "--fond-survol": actif ? "rgba(255,255,255,0.19)" : "rgba(255,255,255,0.085)",
     } as React.CSSProperties;
@@ -675,7 +675,7 @@ export default function Navbar() {
           }}
           placeholder="Rechercher…"
           className="recherche-rapide-input cs-focus-clair"
-          style={{ width: mobile ? "100%" : "13.75rem", height: "1.875rem", fontSize: "0.84rem", padding: "0 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "#fff", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          style={{ width: mobile ? "100%" : "13.75rem", height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-surface)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
@@ -686,8 +686,8 @@ export default function Navbar() {
             fermerRechercheRapide();
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "1.875rem", boxSizing: "border-box", padding: "0 9px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.77rem", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "#fff"; }}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "1.875rem", boxSizing: "border-box", padding: "0 9px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78125rem", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "var(--cs-surface)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
           <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
             <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
@@ -700,8 +700,8 @@ export default function Navbar() {
         <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, right: 0, width: mobile ? "100%" : "auto", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "#faf8f5" }}>
-            <span style={{ fontSize: "0.71rem", color: "var(--cs-texte-second)", fontWeight: 500 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "var(--cs-fond-clair)" }}>
+            <span style={{ fontSize: "0.71875rem", color: "var(--cs-texte-second)", fontWeight: 500 }}>
               {(rechercheRapideLoading || pericopesLoading) && (nbTotalResultats + pericopes.length) === 0
                 ? "Recherche…"
                 : (nbTotalResultats + pericopes.length) === 0 && rechercheTerminee && pericopesFait
@@ -728,15 +728,15 @@ export default function Navbar() {
           </div>
 
           {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && evenementsTrouves.length === 0 ? (
-            <p style={{ fontSize: "0.78rem", color: "var(--cs-texte-faible)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-faible)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
-            <p style={{ fontSize: "0.78rem", color: "var(--cs-texte-doux)", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
             <>
               {/* ── Péricopes (RPC) : section distincte, en tête. Domaine biblique (bleu). ── */}
               {(pericopesLoading || pericopes.length > 0 || (pericopesFait && !pericopesErreur) || pericopesErreur) && (
                 <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Péricopes</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Péricopes</p>
                   {pericopes.length > 0 ? (
                     pericopes.map((p, idx) => {
                       const ref = referencePericope(p);
@@ -747,28 +747,28 @@ export default function Navbar() {
                           onMouseEnter={e => { e.currentTarget.style.background = DOMAINE.bible.survol; }}
                           onMouseLeave={e => { e.currentTarget.style.background = actif ? DOMAINE.bible.survol : "transparent"; }}
                           style={{ display: "block", padding: "3px 12px", textDecoration: "none", background: actif ? DOMAINE.bible.survol : "transparent" }}>
-                          <span style={{ display: "block", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{p.titre}</span>
-                          <span style={{ display: "block", fontSize: "0.71rem", color: "var(--cs-texte-second)", lineHeight: 1.25 }}>
+                          <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{p.titre}</span>
+                          <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-second)", lineHeight: 1.25 }}>
                             {ref}
                             {ref && p.categorie ? <span style={{ color: "var(--cs-texte-faible)" }}> · </span> : null}
                             {p.categorie ? <span style={{ color: "var(--cs-texte-doux)" }}>{libelleCategoriePericope(p.categorie)}</span> : null}
                           </span>
-                          {corr && <span style={{ display: "block", fontSize: "0.66rem", color: "var(--cs-texte-doux)", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à : {corr}</span>}
+                          {corr && <span style={{ display: "block", fontSize: "0.65625rem", color: "var(--cs-texte-doux)", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à : {corr}</span>}
                         </Link>
                       );
                     })
                   ) : pericopesLoading ? (
                     <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-faible)", margin: "1px 12px 3px" }}>…</p>
                   ) : pericopesErreur ? (
-                    <p style={{ fontSize: "0.72rem", color: "var(--cs-texte-faible)", fontStyle: "italic", margin: "1px 12px 3px" }}>Recherche de péricopes momentanément indisponible.</p>
+                    <p style={{ fontSize: "0.71875rem", color: "var(--cs-texte-faible)", fontStyle: "italic", margin: "1px 12px 3px" }}>Recherche de péricopes momentanément indisponible.</p>
                   ) : (
-                    <p style={{ fontSize: "0.72rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: "1px 12px 3px" }}>Aucune péricope trouvée.</p>
+                    <p style={{ fontSize: "0.71875rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: "1px 12px 3px" }}>Aucune péricope trouvée.</p>
                   )}
                 </div>
               )}
               {evenementsTrouves.length > 0 && (
                 <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.chronologie.base}`, background: DOMAINE.chronologie.fond }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.chronologie.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Chronologie</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.chronologie.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Chronologie</p>
                   {evenementsTrouves.map(e => {
                     const titrePropre = e.titre.replace(/\*{1,2}|\+\+|\^\^/g, '');
                     return (
@@ -776,8 +776,8 @@ export default function Navbar() {
                         style={{ display: "block", padding: "3px 12px", textDecoration: "none" }}
                         onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.chronologie.survol)}
                         onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
-                        <span style={{ display: "block", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, requeteRapide.trim())}</span>
-                        {e.date_affichage && <span style={{ display: "block", fontSize: "0.71rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
+                        <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, requeteRapide.trim())}</span>
+                        {e.date_affichage && <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
                       </Link>
                     );
                   })}
@@ -785,10 +785,10 @@ export default function Navbar() {
               )}
               {auteursTrouves.length > 0 && (
                 <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
                   {auteursTrouves.slice(0, 3).map(a => (
                     <Link key={a.id_auteur} id={`nav-au:${a.id_auteur}`} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(a.nom, requeteRapide.trim())}
@@ -798,24 +798,24 @@ export default function Navbar() {
               )}
               {oeuvresTrouvees.length > 0 && (
                 <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: auteursTrouves.length > 0 ? "1px solid rgba(var(--cs-vert-rgb),0.14)" : "none" }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Œuvres patristiques</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Œuvres patristiques</p>
                   {oeuvresTrouvees.slice(0, 3).map(o => (
                     <Link key={o.id_oeuvre} id={`nav-oe:${o.id_oeuvre}`} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(o.titre, requeteRapide.trim())}
-                      {o.auteurs?.nom && <span style={{ fontSize: "0.71rem", color: "var(--cs-texte-doux)", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
+                      {o.auteurs?.nom && <span style={{ fontSize: "0.71875rem", color: "var(--cs-texte-doux)", marginLeft: "7px" }}>{o.auteurs.nom}</span>}
                     </Link>
                   ))}
                 </div>
               )}
               {essaisTrouves.length > 0 && (
                 <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Essais et méditations</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Essais et méditations</p>
                   {essaisTrouves.slice(0, 3).map(e => (
                     <Link key={e.id} id={`nav-es:${e.id}`} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.publications.survol)}
                       onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(e.titre, requeteRapide.trim())}
@@ -825,10 +825,10 @@ export default function Navbar() {
               )}
               {livresTrouves.length > 0 && (
                 <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Livres bibliques</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Livres bibliques</p>
                   {livresTrouves.slice(0, 3).map(l => (
                     <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(l.nom, requeteRapide.trim())}
@@ -838,10 +838,10 @@ export default function Navbar() {
               )}
               {traductionsTrouvees.length > 0 && (
                 <div style={{ padding: "4px 0 6px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.605rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Traductions</p>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Traductions</p>
                   {traductionsTrouvees.slice(0, 3).map(t => (
                     <Link key={t.code} id={`nav-tr:${t.code}`} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.83rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
+                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       {surlignerMatch(t.nom, requeteRapide.trim())}
@@ -852,11 +852,11 @@ export default function Navbar() {
               {(auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (
                 <div style={{ borderTop: "1px solid var(--cs-fond-doux)", padding: "4px 0" }}>
                   <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78rem", color: "var(--cs-vert)", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78125rem", color: "var(--cs-vert)", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
                     onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                     Tout voir
-                    <span style={{ fontSize: "0.9rem", lineHeight: 1 }}>→</span>
+                    <span style={{ fontSize: "0.875rem", lineHeight: 1 }}>→</span>
                   </Link>
                 </div>
               )}
@@ -871,8 +871,8 @@ export default function Navbar() {
   // ── Interrupteur admin / utilisateur standard — visible directement dans la barre ─
   const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
     <div style={mobile
-      ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "0.91rem", color: "rgba(255,255,255,0.85)" }
-      : { display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: "0 0.375rem 0 0.125rem", fontSize: "0.77rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
+      ? { display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", fontSize: "0.9375rem", color: "rgba(255,255,255,0.85)" }
+      : { display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: "0 0.375rem 0 0.125rem", fontSize: "0.78125rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
       <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
         onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
         aria-label="Affichage administrateur"
@@ -883,7 +883,7 @@ export default function Navbar() {
           boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(var(--cs-vert-rgb),0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
           position: "relative", transition: "background 0.15s, border-color 0.15s",
         }}>
-        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "#fff" : "var(--cs-vert)", transition: "left 0.15s, background 0.15s" }} />
+        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "var(--cs-surface)" : "var(--cs-vert)", transition: "left 0.15s, background 0.15s" }} />
       </button>
       {/* À l'étroit, l'interrupteur parle seul : son infobulle et son `aria-label`
           portent le sens, le mot cède la place. */}
@@ -896,20 +896,20 @@ export default function Navbar() {
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
         <button onClick={() => setMenuOuvert(!menuOuvert)} aria-label={`Compte de ${pseudo ?? user.email.split("@")[0]}`} aria-expanded={menuOuvert}
-          style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "6px", padding: "0 0.5rem 0 0.4375rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+          style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "8px", padding: "0 0.5rem 0 0.4375rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84375rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
           {/* Le pseudonyme est le SEUL élément de la barre dont la largeur ne se connaît
               pas d'avance (jusqu'à 6rem). À l'étroit il s'efface : c'est ce qui rend la
               tenue de la barre calculable, et non dépendante de la longueur d'un nom. */}
           {!etroit && <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>}
-          <span style={{ fontSize: "0.63rem", opacity: 0.6 }}>▼</span>
+          <span style={{ fontSize: "0.625rem", opacity: 0.6 }}>▼</span>
         </button>
       )}
-      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "0 6px 24px rgba(0,0,0,0.10)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
+      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
           <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
-            <p style={{ fontSize: "0.735rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
-            <p style={{ fontSize: "0.805rem", color: "var(--cs-encre)", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
+            <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
+            <p style={{ fontSize: "0.8125rem", color: "var(--cs-encre)", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
           </div>
         )}
         {/* Rubrique « Aller plus loin », recueillie ici quand la barre est trop étroite
@@ -917,7 +917,7 @@ export default function Navbar() {
             groupe distinct des liens du compte, et non une liste qui s'y fondrait. */}
         {!mobile && allerPlusLoinDansCompte && (
           <div style={{ borderBottom: "1px solid var(--cs-bord-clair)" }}>
-            <p style={{ fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--cs-texte-doux)", margin: 0, padding: "9px 14px 3px" }}>Aller plus loin</p>
+            <p style={{ fontSize: "0.65625rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--cs-texte-doux)", margin: 0, padding: "9px 14px 3px" }}>Aller plus loin</p>
             {LIENS_ALLER_PLUS_LOIN.map(l => (
               <Link key={l.href} href={l.href} onClick={() => setMenuOuvert(false)}
                 style={{ display: "block", padding: "7px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none" }}>
@@ -938,18 +938,18 @@ export default function Navbar() {
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
             style={mobile
-              ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "0.91rem", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
+              ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "0.9375rem", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
               : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
             <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
             {item.badge > 0 && (
-              <span style={{ marginLeft: '4px', fontSize: '0.7rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
+              <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
           </Link>
         ))}
         <button onClick={seDeconnecter}
           style={mobile
-            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.91rem", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
+            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.9375rem", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
             : { width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-danger-fonce)", background: "none", border: "none", cursor: "pointer" }}>
           Se déconnecter
         </button>
@@ -958,8 +958,8 @@ export default function Navbar() {
     </div>
   ) : (
     <Link href="/chantier" onClick={() => setMobileOuvert(false)} style={mobile
-      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "6px", fontSize: "0.91rem", color: "#fff", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
-      : { display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.6875rem", borderRadius: "5px", fontSize: "0.875rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
+      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "8px", fontSize: "0.9375rem", color: "var(--cs-surface)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
+      : { display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.6875rem", borderRadius: "4px", fontSize: "0.875rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
     </Link>
   );
@@ -973,12 +973,12 @@ export default function Navbar() {
         // `display: block` OBLIGATOIRE : dans les groupes d'« Administration », les liens
         // sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans cela, les
         // <a> restent inline et se chevauchent (pastilles superposées, texte illisible).
-        style={{ display: "block", padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        style={{ display: "block", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-surface)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
         {label}
       </Link>
     );
   };
-  const styleSectionMobile: React.CSSProperties = { fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: "8px 10px 2px" };
+  const styleSectionMobile: React.CSSProperties = { fontSize: "0.65625rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: "8px 10px 2px" };
 
   return (
     <>
@@ -1023,7 +1023,7 @@ export default function Navbar() {
           }
           .cs-onglet:hover {
             background: var(--fond-survol, rgba(255,255,255,0.085));
-            color: #fff;
+            color: var(--cs-surface);
             transition-duration: 140ms;
           }
           /* Onglet « Bible » : au repos, un onglet plat comme les autres liens de la barre
@@ -1034,28 +1034,28 @@ export default function Navbar() {
           /* overflow:hidden — les surbrillances internes (survol des segments, segment
              actif) sont rognées par le rayon du conteneur : plus de coins carrés qui débordent
              sur les angles arrondis. */
-          .cs-bible { position: relative; display: inline-flex; border-radius: 5px; overflow: hidden; transition: background 220ms ease-in-out; }
+          .cs-bible { position: relative; display: inline-flex; border-radius: 4px; overflow: hidden; transition: background 220ms ease-in-out; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
           .cs-bible-face { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
           .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
           .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 0.375rem; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
-          .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: #fff; }
+          .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: var(--cs-surface); }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
-          .cs-bible-seg--actif { color: #fff; background: rgba(255,255,255,0.10); }
+          .cs-bible-seg--actif { color: var(--cs-surface); background: rgba(255,255,255,0.10); }
           /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
              mort — le menu touche le déclencheur). */
           .cs-plus { position: relative; }
-          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
+          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
           .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
-          .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.82rem; color: var(--cs-encre); text-decoration: none; border-radius: 5px; white-space: nowrap; }
+          .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.8125rem; color: var(--cs-encre); text-decoration: none; border-radius: 4px; white-space: nowrap; }
           .cs-plus-lien:hover { background: rgba(var(--cs-vert-rgb),0.08); }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 4px 6px; }
           /* Familles d'administration : intertitre coloré + filet coloré à gauche de
              chaque entrée, pour différencier les catégories par domaine. */
           .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 7px 12px 3px; opacity: 0.9; }
-          .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 5px 5px 0; }
+          .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 4px 4px 0; }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
@@ -1068,12 +1068,12 @@ export default function Navbar() {
 
           <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
-            <span style={{ fontSize: "0.85rem", opacity: 0.6 }}>✦</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
+            <span style={{ fontSize: "0.84375rem", opacity: 0.6 }}>✦</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
             {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                 ni capitales — un simple murmure de version. */}
             <span title="Version bêta" aria-label="Version bêta"
-              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────────
@@ -1114,7 +1114,7 @@ export default function Navbar() {
               {etroit ? (
                 <button type="button" onClick={() => setRechercheDeployee(v => !v)}
                   aria-label="Rechercher" aria-expanded={rechercheDeployee}
-                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.22)", background: rechercheDeployee ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", cursor: "pointer", padding: 0, flexShrink: 0, transition: "background 0.13s" }}>
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: rechercheDeployee ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", cursor: "pointer", padding: 0, flexShrink: 0, transition: "background 0.13s" }}>
                   <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <circle cx="5" cy="5" r="3.6" stroke="currentColor" strokeWidth="1.3" />
                     <path d="M7.7 7.7L10.6 10.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
@@ -1142,12 +1142,12 @@ export default function Navbar() {
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
             {user && (
-              <button onClick={() => setMessagerieOuverte(v => !v)} aria-label="Messages" aria-expanded={messagerieOuverte} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+              <button onClick={() => setMessagerieOuverte(v => !v)} aria-label="Messages" aria-expanded={messagerieOuverte} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconParchemin />
                 {nbMessages > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: '#fff', borderRadius: '7px', fontSize: '0.63rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbMessages > 99 ? '99+' : nbMessages}
                   </span>
                 )}
@@ -1155,12 +1155,12 @@ export default function Navbar() {
             )}
             {user && (
               <button type="button" onClick={() => setNotifsOuvertes(o => !o)} aria-label="Notifications" aria-expanded={notifsOuvertes}
-                style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '6px', border: 'none', cursor: 'pointer', color: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
+                style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', border: 'none', cursor: 'pointer', color: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconAngeTrompette />
                 {nbNotifications > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: '#fff', borderRadius: '7px', fontSize: '0.63rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbNotifications > 99 ? '99+' : nbNotifications}
                   </span>
                 )}
@@ -1174,7 +1174,7 @@ export default function Navbar() {
 
           {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
           <button onClick={() => setMobileOuvert(!mobileOuvert)} className="lg:hidden"
-            style={{ marginLeft: "auto", background: "none", border: "none", color: "#fff", padding: "6px", cursor: "pointer" }}
+            style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--cs-surface)", padding: "6px", cursor: "pointer" }}
             aria-label="Menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               {mobileOuvert ? (
@@ -1188,14 +1188,14 @@ export default function Navbar() {
 
         {/* ── Recherche dépliée sous la barre (palier étroit) ─────────────────── */}
         {etroit && rechercheDeployee && (
-          <div className="hidden lg:block" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
+          <div className="hidden lg:block" style={{ background: "var(--cs-vert-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
             {blocRecherche(true)}
           </div>
         )}
 
         {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
         {mobileOuvert && (
-          <div className="lg:hidden" style={{ background: "#345c43", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="lg:hidden" style={{ background: "var(--cs-vert-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
@@ -1222,7 +1222,7 @@ export default function Navbar() {
             </div>
             {blocRecherche(true)}
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "6px", fontSize: "0.98rem", color: "#fff", textDecoration: "none" }}>
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-surface)", textDecoration: "none" }}>
               <IconCoeur /> Soutenir le projet
             </Link>
             {toggleAdmin(true)}
@@ -1231,10 +1231,10 @@ export default function Navbar() {
         )}
         {toastNotification && (
           <div key={toastNotification.id} role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "0 12px 34px rgba(0,0,0,0.16)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
-            <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.98rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
-            <p style={{ fontSize: "0.805rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
+            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
+            <p style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
+            <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
             {/* Jauge du temps restant : elle court sur toute la largeur, en pied de
                 vignette, et se retire vers la gauche pendant les trois secondes. */}
             <div aria-hidden style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "2px", background: "rgba(var(--cs-vert-rgb),0.14)" }}>

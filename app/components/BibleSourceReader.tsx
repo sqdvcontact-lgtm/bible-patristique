@@ -17,6 +17,7 @@ import {
   type TranslationReadingCapabilities,
 } from '@/app/lib/bibleReadingModes'
 import BibleReadingModeSelector from './BibleReadingModeSelector'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 
 type Translation = { code: string; label: string }
 
@@ -115,9 +116,9 @@ export default function BibleSourceReader({
         </div>
       </header>
 
-      <article style={{ maxWidth: '44rem', margin: '0 auto', padding: '1.5rem clamp(1rem, 4vw, 2.5rem)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '0.5rem' }}>
+      <article style={{ maxWidth: '44rem', margin: '0 auto', padding: '1.5rem clamp(1rem, 4vw, 2.5rem)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px' }}>
         <header style={{ marginBottom: '1rem', borderBottom: '1px solid var(--cs-bord)', paddingBottom: '0.75rem' }}>
-          <h1 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.25rem', fontWeight: 500 }}>
+          <h1 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE }}>
             {nativeDivisionLabel(selectedDivision, parentBook)}
           </h1>
           {firstUnit?.native_folio_raw ? (

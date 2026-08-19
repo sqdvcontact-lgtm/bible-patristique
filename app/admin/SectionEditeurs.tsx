@@ -102,9 +102,9 @@ export default function SectionEditeurs() {
     await charger()
   }
 
-  const champ: React.CSSProperties = { width: '100%', fontSize: '0.8rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
-  const label: React.CSSProperties = { display: 'block', fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.05em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 2px' }
-  const entete: React.CSSProperties = { fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }
+  const champ: React.CSSProperties = { width: '100%', fontSize: '0.8125rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
+  const label: React.CSSProperties = { display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase', margin: '0 0 2px' }
+  const entete: React.CSSProperties = { fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }
 
   return (
     <div>
@@ -119,15 +119,15 @@ export default function SectionEditeurs() {
         }
       `}</style>
 
-      <p style={{ fontSize: '0.84rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: '0 0 16px', maxWidth: '52rem' }}>
+      <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: '0 0 16px', maxWidth: '52rem' }}>
         Table de référence des maisons d’édition. Le <strong>nom complet</strong> s’affiche partout où l’éditeur est répertorié ; les <strong>variantes</strong> (abréviations, graphies) le résolvent. Les données des œuvres restent intactes.
       </p>
 
       <div className="ed-grid">
         {/* ── Colonne gauche : formulaire + à normaliser (collante) ── */}
         <div className="ed-aside">
-          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '9px', padding: '13px 14px' }}>
-            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
+          <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '13px 14px' }}>
+            <p style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>{brouillon.id ? 'Modifier un éditeur' : 'Ajouter un éditeur'}</p>
             <div style={{ display: 'grid', gap: '8px', marginBottom: '11px' }}>
               <div>
                 <label style={label}>Nom complet *</label>
@@ -156,10 +156,10 @@ export default function SectionEditeurs() {
                 <input style={champ} value={brouillon.notes} onChange={e => setBrouillon(b => ({ ...b, notes: e.target.value }))} placeholder="Facultatif" />
               </div>
             </div>
-            {statut === 'err' && <p style={{ fontSize: '0.76rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreur}</p>}
+            {statut === 'err' && <p style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreur}</p>}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.79rem', padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
-              <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.79rem', padding: '5px 15px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+              {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
+              <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.78125rem', padding: '5px 15px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 600 }}>
                 {statut === 'envoi' ? 'Enregistrement…' : brouillon.id ? 'Enregistrer' : 'Ajouter'}
               </button>
             </div>
@@ -168,12 +168,12 @@ export default function SectionEditeurs() {
           {/* À normaliser */}
           {aNormaliser.length > 0 && (
             <div style={{ marginTop: '16px' }}>
-              <p style={{ ...entete, color: '#9a5a2a' }}>À normaliser ({aNormaliser.length})</p>
-              <p style={{ fontSize: '0.74rem', color: '#8a8278', lineHeight: 1.45, margin: '0 0 9px' }}>Formes rencontrées dans le catalogue, pas encore répertoriées. Cliquez pour préremplir le formulaire.</p>
+              <p style={{ ...entete, color: 'var(--cs-attente)' }}>À normaliser ({aNormaliser.length})</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', lineHeight: 1.45, margin: '0 0 9px' }}>Formes rencontrées dans le catalogue, pas encore répertoriées. Cliquez pour préremplir le formulaire.</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                 {aNormaliser.map(nom => (
                   <button key={nom} onClick={() => setBrouillon({ ...VIDE, nom_complet: nom })}
-                    style={{ fontSize: '0.76rem', padding: '3px 10px', borderRadius: '999px', border: '1px solid #e3cdb0', background: '#fdf6ef', color: '#9a5a2a', cursor: 'pointer' }}>
+                    style={{ fontSize: '0.75rem', padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-danger-fond)', color: 'var(--cs-attente)', cursor: 'pointer' }}>
                     {nom}
                   </button>
                 ))}
@@ -184,25 +184,25 @@ export default function SectionEditeurs() {
 
         {/* ── Colonne droite : liste des éditeurs répertoriés ── */}
         <div>
-          <p style={{ ...entete, color: '#8a8278' }}>Répertoriés ({editeurs?.length ?? 0})</p>
+          <p style={{ ...entete, color: 'var(--cs-texte-gris)' }}>Répertoriés ({editeurs?.length ?? 0})</p>
           {editeurs === null ? (
-            <p style={{ fontSize: '0.84rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
           ) : editeurs.length === 0 ? (
-            <p style={{ fontSize: '0.84rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun éditeur répertorié pour l’instant.</p>
+            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun éditeur répertorié pour l’instant.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {editeurs.map(e => (
-                <div key={e.id} className="ed-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '7px 11px', transition: 'border-color 0.12s' }}>
+                <div key={e.id} className="ed-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '7px 11px', transition: 'border-color 0.12s' }}>
                   <div style={{ minWidth: 0 }}>
-                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9rem', color: 'var(--cs-encre-fonce)' }}>{e.nom_complet}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginTop: '1px' }}>
+                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)' }}>{e.nom_complet}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginTop: '1px' }}>
                       {e.variantes?.length > 0 && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>≈ {e.variantes.join(', ')}</span>}
                       {(e.ville || e.annee_debut || e.annee_fin) && <span>{[e.ville, [e.annee_debut, e.annee_fin].filter(Boolean).join('–')].filter(Boolean).join(', ')}</span>}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '9px', flexShrink: 0 }}>
-                    <button className="ed-lien" onClick={() => editer(e)} style={{ fontSize: '0.72rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
-                    <button className="ed-lien" onClick={() => supprimer(e.id)} style={{ fontSize: '0.72rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Supprimer</button>
+                    <button className="ed-lien" onClick={() => editer(e)} style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
+                    <button className="ed-lien" onClick={() => supprimer(e.id)} style={{ fontSize: '0.71875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Supprimer</button>
                   </div>
                 </div>
               ))}

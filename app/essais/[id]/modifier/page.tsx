@@ -19,7 +19,7 @@ export default async function ModifierEssaiPage({ params }: { params: Promise<{ 
   if (!essai) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#8a8278' }}>Essai introuvable.</p>
+        <p style={{ color: 'var(--cs-texte-gris)' }}>Essai introuvable.</p>
       </main>
     )
   }
@@ -30,7 +30,7 @@ export default async function ModifierEssaiPage({ params }: { params: Promise<{ 
   if (!estProprietaire && !estAdminConnecte) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#8a8278' }}>Vous ne pouvez modifier que vos propres essais.</p>
+        <p style={{ color: 'var(--cs-texte-gris)' }}>Vous ne pouvez modifier que vos propres essais.</p>
       </main>
     )
   }

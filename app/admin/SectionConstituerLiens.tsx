@@ -128,24 +128,24 @@ export default function SectionConstituerLiens() {
   const pageAff = Math.min(page, nbPages - 1) // clamp dérivé (les suppressions réduisent le total)
   const pageCourante = useMemo(() => liens.slice(pageAff * PAR_PAGE, (pageAff + 1) * PAR_PAGE), [liens, pageAff])
 
-  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
 
   return (
     <div>
       <div style={{ textAlign: 'center', margin: '4px 0 8px' }}>
-        <p style={{ margin: 0, color: 'var(--cs-texte-second)', fontSize: '0.9rem' }}>
-          <strong style={{ fontFamily: SERIF, fontWeight: 'normal', fontSize: '1.65rem', color: 'var(--cs-vert)', verticalAlign: '-2px' }}>{liens.length}</strong>
-          {'  '}lien{liens.length > 1 ? 's' : ''} à constituer{traites > 0 && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.8rem' }}> · {traites} traité{traites > 1 ? 's' : ''} cette session</span>}
+        <p style={{ margin: 0, color: 'var(--cs-texte-second)', fontSize: '0.875rem' }}>
+          <strong style={{ fontFamily: SERIF, fontWeight: 'normal', fontSize: '1.625rem', color: 'var(--cs-vert)', verticalAlign: '-2px' }}>{liens.length}</strong>
+          {'  '}lien{liens.length > 1 ? 's' : ''} à constituer{traites > 0 && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.8125rem' }}> · {traites} traité{traites > 1 ? 's' : ''} cette session</span>}
         </p>
       </div>
-      <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '0 0 18px', maxWidth: '48rem', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
+      <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '0 0 18px', maxWidth: '48rem', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
         Ces renvois ont été repérés sans verset rattaché. Saisissez la référence pour rattacher le verset (le lien rejoint alors la file « à vérifier »), ou écartez-le s’il n’est pas biblique.
       </p>
 
-      {erreur && <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 12px' }}>{erreur}</p>}
+      {erreur && <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '8px 11px', margin: '0 0 12px' }}>{erreur}</p>}
 
       {liens.length === 0 ? (
-        <p style={{ fontFamily: SANS, fontSize: '0.9rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', padding: '24px 0' }}>Plus aucun lien à constituer.</p>
+        <p style={{ fontFamily: SANS, fontSize: '0.875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', padding: '24px 0' }}>Plus aucun lien à constituer.</p>
       ) : (
         <>
           {nbPages > 1 && <Pagination page={pageAff} nbPages={nbPages} onPage={setPage} />}
@@ -156,42 +156,42 @@ export default function SectionConstituerLiens() {
               const refsPatr = seg ? [seg.ref_niv1, seg.ref_niv2, seg.ref_niv3].filter(Boolean).join(', ') : ''
               const st = statut[lien.id]
               return (
-                <article key={lien.id} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '9px', overflow: 'hidden', background: 'var(--cs-surface)' }}>
+                <article key={lien.id} style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)' }}>
                   <div style={{ padding: '8px 14px', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-fond-doux)', display: 'flex', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                    <a href={seg ? `/oeuvre/${seg.id_oeuvre}#s${seg.segment_numero}` : '#'} target="_blank" rel="noopener noreferrer" style={{ fontFamily: SANS, fontSize: '0.8rem', textDecoration: 'none', color: 'var(--cs-texte)' }}>
+                    <a href={seg ? `/oeuvre/${seg.id_oeuvre}#s${seg.segment_numero}` : '#'} target="_blank" rel="noopener noreferrer" style={{ fontFamily: SANS, fontSize: '0.8125rem', textDecoration: 'none', color: 'var(--cs-texte)' }}>
                       <strong>{o.auteur}</strong> <span style={{ fontStyle: 'italic' }}>{o.titre}</span>
                     </a>
-                    {refsPatr && <span style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-doux)' }}>{refsPatr}</span>}
+                    {refsPatr && <span style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{refsPatr}</span>}
                   </div>
                   <div style={{ padding: '11px 14px' }}>
-                    {lien.motif && <p style={{ fontFamily: SANS, fontSize: '0.76rem', color: '#8a5a32', background: '#fbf5ee', border: '1px solid #ecdcc9', borderRadius: '6px', padding: '6px 9px', margin: '0 0 9px', lineHeight: 1.45 }}>{lien.motif}</p>}
-                    {seg && <p style={{ fontFamily: SERIF, fontSize: '0.86rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: '0 0 11px', maxHeight: '7rem', overflow: 'auto' }}>{seg.segment_texte}</p>}
+                    {lien.motif && <p style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-attente)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '6px 9px', margin: '0 0 9px', lineHeight: 1.45 }}>{lien.motif}</p>}
+                    {seg && <p style={{ fontFamily: SERIF, fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: '0 0 11px', maxHeight: '7rem', overflow: 'auto' }}>{seg.segment_texte}</p>}
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <input value={refSaisie[lien.id] ?? ''} onChange={e => setRefSaisie(p => ({ ...p, [lien.id]: e.target.value }))}
                         onKeyDown={e => { if (e.key === 'Enter') constituer(lien) }} placeholder="Référence — ex. Mt 10,40"
-                        style={{ flex: '1 1 12rem', minWidth: '10rem', fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '6px 9px' }} />
+                        style={{ flex: '1 1 12rem', minWidth: '10rem', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '6px 9px' }} />
                       <button onClick={() => constituer(lien)} disabled={st?.etat === 'loading'}
-                        style={{ fontFamily: SANS, fontSize: '0.78rem', fontWeight: 600, padding: '6px 14px', borderRadius: '6px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }}>Rattacher le verset</button>
+                        style={{ fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>Rattacher le verset</button>
                       <button onClick={() => ouvrirNote(lien)} disabled={st?.etat === 'loading'}
-                        style={{ fontFamily: SANS, fontSize: '0.78rem', fontWeight: 600, padding: '6px 12px', borderRadius: '6px', border: `1px solid ${noteOuverte === lien.id ? 'var(--cs-vert)' : '#d8b48f'}`, background: noteOuverte === lien.id ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fbf3ea', color: '#9a6a3e', cursor: 'pointer' }}>Ajouter une note</button>
+                        style={{ fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 12px', borderRadius: '8px', border: `1px solid ${noteOuverte === lien.id ? 'var(--cs-vert)' : '#d8b48f'}`, background: noteOuverte === lien.id ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-danger-fond)', color: '#9a6a3e', cursor: 'pointer' }}>Ajouter une note</button>
                       <button onClick={() => ecarter(lien)} disabled={st?.etat === 'loading'}
-                        style={{ fontFamily: SANS, fontSize: '0.78rem', padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>Supprimer</button>
+                        style={{ fontFamily: SANS, fontSize: '0.78125rem', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>Supprimer</button>
                     </div>
                     {noteOuverte === lien.id && (
                       <div style={{ marginTop: '9px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <textarea value={noteTexte[lien.id] ?? ''} onChange={e => setNoteTexte(p => ({ ...p, [lien.id]: e.target.value }))} rows={3} autoFocus
                           placeholder="Texte de la note (référence non biblique)…"
-                          style={{ width: '100%', fontFamily: SERIF, fontSize: '0.84rem', lineHeight: 1.5, color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '7px 9px', boxSizing: 'border-box', resize: 'vertical' }} />
+                          style={{ width: '100%', fontFamily: SERIF, fontSize: '0.84375rem', lineHeight: 1.5, color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '7px 9px', boxSizing: 'border-box', resize: 'vertical' }} />
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>L’appel de note sera placé en fin de segment ; le lien biblique est retiré.</span>
+                          <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>L’appel de note sera placé en fin de segment ; le lien biblique est retiré.</span>
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            <button onClick={() => setNoteOuverte(null)} style={{ fontFamily: SANS, fontSize: '0.76rem', padding: '5px 11px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                            <button onClick={() => ajouterNote(lien)} disabled={st?.etat === 'loading'} style={{ fontFamily: SANS, fontSize: '0.76rem', fontWeight: 600, padding: '5px 13px', borderRadius: '6px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }}>Enregistrer la note</button>
+                            <button onClick={() => setNoteOuverte(null)} style={{ fontFamily: SANS, fontSize: '0.75rem', padding: '5px 11px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                            <button onClick={() => ajouterNote(lien)} disabled={st?.etat === 'loading'} style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '5px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>Enregistrer la note</button>
                           </div>
                         </div>
                       </div>
                     )}
-                    {st?.etat === 'err' && <p style={{ fontFamily: SANS, fontSize: '0.74rem', color: 'var(--cs-danger)', margin: '7px 0 0' }}>{st.msg}</p>}
+                    {st?.etat === 'err' && <p style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-danger)', margin: '7px 0 0' }}>{st.msg}</p>}
                   </div>
                 </article>
               )
@@ -207,9 +207,9 @@ export default function SectionConstituerLiens() {
 function Pagination({ page, nbPages, onPage }: { page: number; nbPages: number; onPage: (n: number) => void }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', margin: '0 0 14px' }}>
-      <button onClick={() => onPage(Math.max(0, page - 1))} disabled={page === 0} style={{ fontFamily: SANS, fontSize: '0.78rem', padding: '5px 12px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: page === 0 ? 'default' : 'pointer', opacity: page === 0 ? 0.5 : 1 }}>← Précédent</button>
-      <span style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte-doux)' }}>Page {page + 1} / {nbPages}</span>
-      <button onClick={() => onPage(Math.min(nbPages - 1, page + 1))} disabled={page >= nbPages - 1} style={{ fontFamily: SANS, fontSize: '0.78rem', padding: '5px 12px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: page >= nbPages - 1 ? 'default' : 'pointer', opacity: page >= nbPages - 1 ? 0.5 : 1 }}>Suivant →</button>
+      <button onClick={() => onPage(Math.max(0, page - 1))} disabled={page === 0} style={{ fontFamily: SANS, fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: page === 0 ? 'default' : 'pointer', opacity: page === 0 ? 0.5 : 1 }}>← Précédent</button>
+      <span style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>Page {page + 1} / {nbPages}</span>
+      <button onClick={() => onPage(Math.min(nbPages - 1, page + 1))} disabled={page >= nbPages - 1} style={{ fontFamily: SANS, fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: page >= nbPages - 1 ? 'default' : 'pointer', opacity: page >= nbPages - 1 ? 0.5 : 1 }}>Suivant →</button>
     </div>
   )
 }

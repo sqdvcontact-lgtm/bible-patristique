@@ -36,7 +36,7 @@ export default function BandeauMobile() {
           <p style={{ fontSize: '0.8125rem', color: 'var(--cs-encre)', fontWeight: 700, margin: '0 0 4px', lineHeight: 1.4 }}>
             Site non optimisé pour mobile
           </p>
-          <p style={{ fontSize: '0.71875rem', color: '#5f675b', margin: '0 0 10px', lineHeight: 1.55 }}>
+          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-second)', margin: '0 0 10px', lineHeight: 1.55 }}>
             Corpus Scriptura est conçu pour ordinateur. L’expérience mobile est incomplète ; une refonte est prévue.
           </p>
           <a

@@ -92,13 +92,13 @@ export default function ConversationPage() {
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }
         .msg-send:disabled { opacity: 0.4; cursor: not-allowed; }
-        .msg-send:not(:disabled):hover { background: #2e5240 !important; }
+        .msg-send:not(:disabled):hover { background: var(--cs-vert-fonce) !important; }
       `}</style>
 
       {/* En-tête */}
       <div style={{ background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord-clair)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: '3.5rem', zIndex: 10 }}>
         <button onClick={() => router.push('/messagerie')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8a8278', padding: '4px', lineHeight: 0 }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-gris)', padding: '4px', lineHeight: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -134,8 +134,8 @@ export default function ConversationPage() {
                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.de_moi ? 'flex-end' : 'flex-start', marginTop: (!memeExp || !sameMinute) ? '6px' : '0' }}>
                   <div className="msg-bubble" style={{
                     maxWidth: '72%',
-                    background: m.de_moi ? 'var(--cs-vert)' : '#fff',
-                    color: m.de_moi ? '#f0f7f2' : 'var(--cs-encre-fonce)',
+                    background: m.de_moi ? 'var(--cs-vert)' : 'var(--cs-surface)',
+                    color: m.de_moi ? 'var(--cs-fond)' : 'var(--cs-encre-fonce)',
                     border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)',
                     borderRadius: m.de_moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                     padding: '9px 13px',
@@ -180,7 +180,7 @@ export default function ConversationPage() {
                 flex: 1,
                 resize: 'none',
                 border: '1px solid var(--cs-bord)',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 padding: '9px 12px',
                 fontSize: '0.8125rem',
                 background: 'var(--cs-surface)',
@@ -196,9 +196,9 @@ export default function ConversationPage() {
               disabled={!texte.trim() || envoi}
               style={{
                 background: 'var(--cs-vert)',
-                color: '#fff',
+                color: 'var(--cs-surface)',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 padding: '10px 18px',
                 fontSize: '0.8125rem',
                 fontWeight: 600,

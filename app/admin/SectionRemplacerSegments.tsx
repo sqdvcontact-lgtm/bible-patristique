@@ -113,15 +113,15 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
     }
   }
 
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: '0.89844rem', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: '0.875rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
 
   return (
     <div style={{ maxWidth: '40rem' }}>
-      <div style={{ background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '8px', padding: '14px 18px', marginBottom: '24px' }}>
-        <p style={{ fontSize: '0.89844rem', color: '#8a4a1a', margin: 0, fontWeight: 500 }}>
+      <div style={{ background: 'var(--cs-fond-clair)', border: '1px solid #e4c4a0', borderRadius: '8px', padding: '14px 18px', marginBottom: '24px' }}>
+        <p style={{ fontSize: '0.875rem', color: '#8a4a1a', margin: 0, fontWeight: 500 }}>
           ⚠ Opération irréversible — remplace l’intégralité de la table segments.
         </p>
-        <p style={{ fontSize: '0.82656rem', color: '#9a6a3a', margin: '4px 0 0' }}>
+        <p style={{ fontSize: '0.8125rem', color: '#9a6a3a', margin: '4px 0 0' }}>
           Les segments avec <code>fiabilite = vérifié</code> sont conservés. Le CSV doit contenir une colonne <code>id_oeuvre</code>.
         </p>
       </div>
@@ -131,17 +131,17 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
         <label style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }}>FICHIER CSV (table segments complète)</label>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button onClick={() => fileRef.current?.click()}
-            style={{ fontSize: '0.8625rem', padding: '6px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
+            style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
             ↑ Choisir un CSV
           </button>
           <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }}
             onChange={e => { const f = e.target.files?.[0]; if (f) chargerCSV(f) }} />
-          {fichier && <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-second)' }}>{fichier.name}</span>}
+          {fichier && <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)' }}>{fichier.name}</span>}
         </div>
       </div>
 
       {msg && (
-        <p style={{ fontSize: '0.8625rem', color: statut === 'err' ? 'var(--cs-danger)' : statut === 'ok' ? 'var(--cs-vert)' : 'var(--cs-texte-second)', marginBottom: '16px' }}>
+        <p style={{ fontSize: '0.875rem', color: statut === 'err' ? 'var(--cs-danger)' : statut === 'ok' ? 'var(--cs-vert)' : 'var(--cs-texte-second)', marginBottom: '16px' }}>
           {msg}
         </p>
       )}
@@ -149,9 +149,9 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
       {/* Aperçu */}
       {preview && preview.length > 0 && (
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ fontSize: '0.82656rem', color: 'var(--cs-texte-second)', marginBottom: '10px' }}>Aperçu des 3 premiers segments :</p>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '10px' }}>Aperçu des 3 premiers segments :</p>
           {preview.slice(0, 3).map((s, i) => (
-            <div key={i} style={{ padding: '8px 12px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', marginBottom: '6px', fontSize: '0.82656rem', color: 'var(--cs-texte-fort)' }}>
+            <div key={i} style={{ padding: '8px 12px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', marginBottom: '6px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)' }}>
               <span style={{ color: 'var(--cs-texte-doux)', marginRight: '8px' }}>{s.id_oeuvre}</span>
               <span style={{ color: 'var(--cs-vert)', marginRight: '8px' }}>#{s.segment_numero}</span>
               <span style={{ color: 'var(--cs-texte-faible)', marginRight: '8px' }}>{s.ref_niv1}{s.ref_niv2 ? ` ${s.ref_niv2}` : ''}</span>
@@ -161,7 +161,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px' }}>
             <input type="checkbox" id="confirme-remplace" checked={confirme} onChange={e => setConfirme(e.target.checked)} />
-            <label htmlFor="confirme-remplace" style={{ fontSize: '0.8625rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+            <label htmlFor="confirme-remplace" style={{ fontSize: '0.875rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
               Je confirme vouloir remplacer l’intégralité de la table segments
             </label>
           </div>
@@ -170,7 +170,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
 
       {confirme && preview && (
         <button onClick={remplacer} disabled={statut === 'loading'}
-          style={{ fontSize: '0.93437rem', padding: '8px 20px', borderRadius: '6px', border: 'none', background: statut === 'loading' ? '#a0b8aa' : 'var(--cs-danger)', color: '#fff', cursor: statut === 'loading' ? 'default' : 'pointer', fontWeight: 600 }}>
+          style={{ fontSize: '0.9375rem', padding: '8px 20px', borderRadius: '8px', border: 'none', background: statut === 'loading' ? '#a0b8aa' : 'var(--cs-danger)', color: 'var(--cs-surface)', cursor: statut === 'loading' ? 'default' : 'pointer', fontWeight: 600 }}>
           {statut === 'loading' ? 'Remplacement en cours…' : '↺ Remplacer la table segments'}
         </button>
       )}

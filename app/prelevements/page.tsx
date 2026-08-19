@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -178,7 +179,7 @@ function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
 }
 
 function BoutonCoeur({ active, onClick }: { active: boolean; onClick: (e: React.MouseEvent) => void }) {
-  const c = active ? "var(--cs-or)" : "#c0b0a8";
+  const c = active ? "var(--cs-or)" : "var(--cs-or-doux)";
   const cf = active ? "var(--cs-or)" : "none";
   return (
     <button onClick={onClick} className={`prel-action prel-coeur${active ? " prel-coeur-active" : ""}`}
@@ -217,7 +218,7 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
   label: React.ReactNode; count: number; ouvert: boolean; onToggle: () => void; children: React.ReactNode;
 }) {
   return (
-    <div style={{ borderTop: "2px solid #c8bdb0" }}>
+    <div style={{ borderTop: "2px solid var(--cs-or-doux)" }}>
       <button onClick={onToggle}
         style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(var(--cs-vert-rgb),0.05)", border: "none", cursor: "pointer", padding: "11px 10px 10px", width: "100%", textAlign: "left" }}>
         <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
@@ -387,7 +388,7 @@ export default function PrelevementsPage() {
   }, [onglet, prelevements]);
 
   if (chargement) return (
-    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <main style={{ minHeight: "calc(100vh - 3.5rem)", background: "var(--cs-fond-doux)", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Chargement…</p>
     </main>
   );
@@ -395,12 +396,12 @@ export default function PrelevementsPage() {
   const listeActive = onglet === "biblique" ? bibliques : patristiques;
 
   return (
-    <main style={{ background: "#f0ebe0", minHeight: "calc(100vh - 3.5rem)" }}>
+    <main style={{ background: "var(--cs-fond-doux)", minHeight: "calc(100vh - 3.5rem)" }}>
       <style>{`
         .prel-item {
           display: flex; align-items: flex-start; gap: 0;
           padding: 9px 10px 9px 12px;
-          border-bottom: 1px solid #e8e1d8;
+          border-bottom: 1px solid var(--cs-bord-clair);
           position: relative;
           border-left: 2px solid transparent;
           transition: background 0.12s;
@@ -413,7 +414,7 @@ export default function PrelevementsPage() {
           background: rgba(154,122,56,0.07) !important;
           border-left: none !important;
           box-shadow: inset 0 0 0 1.5px rgba(184,160,80,0.55) !important;
-          border-radius: 3px;
+          border-radius: 4px;
           margin: 2px 0;
         }
         .prel-pref .prel-actions { opacity: 1 !important; }
@@ -428,7 +429,7 @@ export default function PrelevementsPage() {
           appearance: none; -webkit-appearance: none;
           font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
           color: #5a4e3a; background: transparent; border: none;
-          border-bottom: 1px solid #c8b8a0; padding: 3px 20px 3px 0;
+          border-bottom: 1px solid var(--cs-or-doux); padding: 3px 20px 3px 0;
           cursor: pointer; outline: none; text-align: center;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%239a8a72'/%3E%3C/svg%3E");
           background-repeat: no-repeat; background-position: right 2px center; background-size: 7px;
@@ -441,13 +442,13 @@ export default function PrelevementsPage() {
 
         {/* ── En-tête ── */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(22px, 4vw, 28px)", fontWeight: "normal", color: "#1e1a14", margin: "0 0 10px", letterSpacing: "0.015em" }}>
+          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: "0 0 10px", letterSpacing: "0.015em" }}>
             Mes citations
           </h1>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", maxWidth: "13rem", margin: "2px auto 12px" }}>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #c8b8a4)" }} />
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
             <img src="/icons/sacre-coeur.png" alt="" aria-hidden="true" style={{ height: "26px", width: "auto", display: "block" }} />
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #c8b8a4)" }} />
+            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
           </div>
           <p style={{ fontSize: "0.65625rem", color: "#b8a888", margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: "0.04em" }}>
             {prelevements.length} citation{prelevements.length > 1 ? "s" : ""} enregistrée{prelevements.length > 1 ? "s" : ""}
@@ -455,13 +456,13 @@ export default function PrelevementsPage() {
         </div>
 
         {/* ── Onglets ── */}
-        <div style={{ display: "flex", justifyContent: "center", borderBottom: "1px solid #ddd5c8", marginBottom: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "center", borderBottom: "1px solid var(--cs-bord)", marginBottom: "20px" }}>
           {(["biblique", "patristique"] as TypePrelevement[]).map(t => (
             <button key={t} onClick={() => setOnglet(t)}
               style={{
                 padding: "9px 22px", fontSize: "0.75rem", fontFamily: "var(--font-source-sans), Arial, sans-serif",
                 fontWeight: onglet === t ? 600 : 400,
-                color: onglet === t ? "#1e1a14" : "#a89e8e",
+                color: onglet === t ? "#1e1a14" : "var(--cs-texte-doux)",
                 background: "transparent", border: "none",
                 borderBottom: onglet === t ? "1.5px solid var(--cs-vert)" : "1.5px solid transparent",
                 cursor: "pointer", letterSpacing: "0.01em", transition: "color 0.12s",
@@ -564,7 +565,7 @@ export default function PrelevementsPage() {
                           {auteur}
                         </Link>
                       ) : auteur}
-                      {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "#7a6e5e" }}>,&ensp;{titre}</span>}
+                      {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "var(--cs-texte-second)" }}>,&ensp;{titre}</span>}
                     </>
                   } count={items.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
                     {items.map(p => {

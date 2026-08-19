@@ -35,7 +35,7 @@ export function ContexteSegment({ segId, segMap }: { segId: number | null; segMa
   if (!segId || !segMap[segId]) return null
   const s = segMap[segId]
   return (
-    <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
+    <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
       Segment §{s.numero} — <a href={`/oeuvre/${s.id_oeuvre}?texte=${encodeURIComponent(s.id_texte)}&segment=${segId}#segment-${segId}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>{s.texte.slice(0, 80)}…</a>
     </p>
   )
@@ -46,7 +46,7 @@ export function ContexteVerset({ versetId, versetMap }: { versetId: string | nul
   if (!versetId) return null
   const ref = versetMap[versetId] ?? versetId
   return (
-    <p style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
+    <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '4px 0 8px', lineHeight: 1.4 }}>
       Verset biblique — <a href={`/?verset=${encodeURIComponent(versetId)}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>{ref}</a>
     </p>
   )

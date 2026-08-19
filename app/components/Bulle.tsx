@@ -98,17 +98,17 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           position: 'absolute',
           ...posStyle(position),
           background: 'var(--cs-encre)',
-          color: '#f2ede6',
+          color: 'var(--cs-fond-doux)',
           fontSize: '0.6875rem',
           lineHeight: 1.45,
           padding: '5px 9px',
-          borderRadius: '5px',
+          borderRadius: '4px',
           whiteSpace: 'nowrap',
           zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
           gap: '7px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+          boxShadow: 'var(--cs-ombre-nette)',
           pointerEvents: fixee ? 'auto' : 'none',
           userSelect: 'none',
         }}>
@@ -141,7 +141,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
                 color: 'rgba(242,237,230,0.55)', fontSize: '0.875rem', lineHeight: 1,
                 padding: '0 0 0 1px', flexShrink: 0,
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#f2ede6')}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-fond-doux)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(242,237,230,0.55)')}
             >
               ×

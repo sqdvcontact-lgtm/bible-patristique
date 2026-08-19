@@ -263,7 +263,7 @@ export default async function OeuvrePage({
   const oeuvre = oeuvreResult.data
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
-      <p style={{color:'#8a8278'}}>Œuvre introuvable.</p>
+      <p style={{color:'var(--cs-texte-gris)'}}>Œuvre introuvable.</p>
     </div>
   )
   const textesAccessibles = (textesResult.data ?? []) as TexteVersionRow[]
@@ -271,7 +271,7 @@ export default async function OeuvrePage({
   const texteActif = texteDemande ?? textesAccessibles.find(t => t.is_default) ?? textesAccessibles[0]
   if (!texteActif) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
-      <p style={{color:'#8a8278'}}>Aucun texte accessible pour cette œuvre.</p>
+      <p style={{color:'var(--cs-texte-gris)'}}>Aucun texte accessible pour cette œuvre.</p>
     </div>
   )
   const idTexte = texteActif.id_texte as string

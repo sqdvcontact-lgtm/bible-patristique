@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 const NOM_LIVRE: Record<string, string> = {
   GEN: 'Genèse', EXO: 'Exode', LEV: 'Lévitique', NUM: 'Nombres', DEU: 'Deutéronome', JOS: 'Josué', JDG: 'Juges', RUT: 'Ruth',
@@ -66,7 +67,7 @@ export default function StatistiquesClient() {
     <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px' }}>
             Statistiques
           </h1>
           <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 12px' }} />
@@ -92,7 +93,7 @@ export default function StatistiquesClient() {
                   <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0' }}>{detailCite(v)}</p>
                 </div>
                 <span title="Score patristique"
-                  style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.09)', border: '1px solid rgba(var(--cs-vert-rgb),0.22)', borderRadius: '6px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                  style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.09)', border: '1px solid rgba(var(--cs-vert-rgb),0.22)', borderRadius: '8px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
                   {v.score}
                 </span>
               </Link>

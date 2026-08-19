@@ -9,6 +9,7 @@ import { supabase } from '@/app/lib/supabase'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import { estUrl, type RangChrono } from '@/app/lib/frise'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -67,10 +68,10 @@ function formaterProse(html: string): string {
 // Ligne « étiquette · valeur » de la section technique. Composants purs, définis
 // au niveau module (jamais recréés à chaque rendu — sinon React perd l'identité
 // et l'état des sous-arbres).
-const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#b8afa2', lineHeight: 1.5, paddingTop: '1px' }
+const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.5, paddingTop: '1px' }
 const LigneTech = ({ c, children }: { c: string; children: React.ReactNode }) => children ? (
-  <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid #f3efe8', alignItems: 'baseline' }}>
-    <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.72rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
+  <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond)', alignItems: 'baseline' }}>
+    <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
   </div>
 ) : null
 const Consulter = ({ url, libelle }: { url: string | null; libelle: string }) => (url && estUrl(url))
@@ -110,38 +111,38 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
 
   return createPortal(
     <div onClick={onFermer} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}>
-      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '10px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+      <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
         <style>{`
-          .trad-notice h2 { font-family: ${SERIF}; font-size: 0.95rem; font-weight: 600; color: #3a4a34; margin: 13px 0 3px; }
+          .trad-notice h2 { font-family: ${SERIF}; font-size: 0.9375rem; font-weight: 600; color: #3a4a34; margin: 13px 0 3px; }
           .trad-notice h2:first-child { margin-top: 0; }
-          .trad-notice p { font-size: 0.8rem; line-height: 1.4; color: #4a4038; margin: 0 0 8px; text-align: justify; }
+          .trad-notice p { font-size: 0.8125rem; line-height: 1.4; color: #4a4038; margin: 0 0 8px; text-align: justify; }
           .trad-tech > summary { list-style: none; cursor: pointer; }
           .trad-tech > summary::-webkit-details-marker { display: none; }
         `}</style>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
-            <h1 style={{ fontFamily: SERIF, fontSize: '1.15rem', color: 'var(--cs-encre-fonce)', margin: 0, fontWeight: 500, lineHeight: 1.25 }}>{i.nom || nomFallback}</h1>
+            <h1 style={{ fontFamily: SERIF, fontSize: TITRE_VOLET, color: ENCRE_TITRE, margin: 0, fontWeight: GRAISSE_TITRE_VOLET, lineHeight: 1.25 }}>{i.nom || nomFallback}</h1>
             {intitule && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', margin: '2px 0 0' }}>{rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}</p>}
           </div>
           <button onClick={onFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
         {info === null ? (
-          <p style={{ fontSize: '0.8rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
         ) : (
           <>
-            {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.72rem', fontStyle: 'italic', color: '#6f665c', lineHeight: 1.55, margin: '0 0 14px' }}>{rendreSiecles(i.bio_courte)}</p>}
+            {i.bio_courte && <p style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 14px' }}>{rendreSiecles(i.bio_courte)}</p>}
 
             {/* 4. Notice éditoriale : HTML (h2/p) rendu tel quel, aux styles de la page. */}
             {i.commentaire_editorial && (
-              <div className="trad-notice" style={{ borderTop: '1px solid #efeae0', paddingTop: '13px', marginBottom: '16px' }}
+              <div className="trad-notice" style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '13px', marginBottom: '16px' }}
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formaterProse(i.commentaire_editorial)) }} />
             )}
 
             {/* 5. Édition et état du texte : section secondaire, repliable (natif, accessible). */}
-            <details className="trad-tech" style={{ borderTop: '1px solid #efeae0', paddingTop: '12px', marginBottom: '16px' }}>
-              <summary style={{ fontFamily: SERIF, fontSize: '0.82rem', fontWeight: 600, color: '#6b6250', display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <span aria-hidden style={{ fontSize: '0.6rem', color: '#b8afa2' }}>▸</span>
+            <details className="trad-tech" style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '12px', marginBottom: '16px' }}>
+              <summary style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-texte-second)', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <span aria-hidden style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)' }}>▸</span>
                 Édition et état du texte
               </summary>
               <div style={{ marginTop: '8px' }}>
@@ -149,7 +150,7 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
                 <LigneTech c="Première publication">{i.date_publication}</LigneTech>
                 <LigneTech c="Confession">{i.confession}</LigneTech>
                 <LigneTech c="Langue">{i.langue}</LigneTech>
-                <LigneTech c="Titre de l’édition">{i.titre_edition ? <>{i.titre_edition}{i.sous_titre_edition ? <><br /><span style={{ fontStyle: 'italic', color: '#8a8272' }}>{i.sous_titre_edition}</span></> : null}</> : null}</LigneTech>
+                <LigneTech c="Titre de l’édition">{i.titre_edition ? <>{i.titre_edition}{i.sous_titre_edition ? <><br /><span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>{i.sous_titre_edition}</span></> : null}</> : null}</LigneTech>
                 {/* Année et lieu : deux lignes distinctes. */}
                 <LigneTech c="Année">{i.annee_edition}</LigneTech>
                 <LigneTech c="Lieu">{i.lieu_edition}</LigneTech>
@@ -173,8 +174,8 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
                         style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
                       {verifNote && (
                         <div style={{ margin: '5px 0 1px' }}>
-                          {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.7rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
-                          {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.66rem', fontStyle: 'italic', color: '#8a8272', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
+                          {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
+                          {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
                         </div>
                       )}
                     </>
@@ -185,8 +186,8 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
 
             {/* 6. Frise chronologique — le composant même des pages d'auteur. */}
             {chrono.length > 0 && (
-              <div style={{ borderTop: '1px solid #efeae0', paddingTop: '14px' }}>
-                <h2 style={{ fontFamily: SERIF, fontSize: '0.95rem', fontWeight: 600, color: '#3a4a34', margin: '0 0 12px' }}>Chronologie</h2>
+              <div style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '14px' }}>
+                <h2 style={{ fontFamily: SERIF, fontSize: '0.9375rem', fontWeight: 600, color: '#3a4a34', margin: '0 0 12px' }}>Chronologie</h2>
                 <FriseAuteur evenements={chrono} sansLegende />
               </div>
             )}
@@ -201,23 +202,23 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
 function EncartTraduction({ trad }: { trad: Traduction }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
   return (
-    <div style={{ flexShrink: 0, minHeight: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 10px 9px', borderBottom: '1px solid var(--cs-bord)', background: '#f3efe7', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-      <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#9e8e6a' }}>Traduction</span>
+    <div style={{ flexShrink: 0, minHeight: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 10px 9px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+      <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)' }}>Traduction</span>
       {/* Auteur avec ses dates de vie complètes, puis la référence complète de l'édition
           présentée (ville, éditeur, date). La langue n'est pas indiquée ici. */}
       <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.22 }}>
         {trad.auteur || trad.label || '—'}
-        {trad.auteurDates && <span style={{ fontWeight: 400, color: '#7c8a72' }}> ({trad.auteurDates})</span>}
+        {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> ({trad.auteurDates})</span>}
       </span>
       {/* Div BLOC volontaire : `-webkit-line-clamp` sur un enfant DIRECT du flex serait
           neutralisé (blockification). Certaines références sont très longues (Crampon),
           on les borne à deux lignes ; la fiche « En savoir plus » donne le détail. */}
       {trad.editionRef && (
         <div>
-          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65rem', color: 'var(--cs-texte-second)', lineHeight: 1.3 }}>{trad.editionRef}</span>
+          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65625rem', color: 'var(--cs-texte-second)', lineHeight: 1.3 }}>{trad.editionRef}</span>
         </div>
       )}
-      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', paddingTop: '4px', fontSize: '0.6rem', color: 'var(--cs-texte-faible)', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
+      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', paddingTop: '4px', fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
     </div>
   )
@@ -483,7 +484,7 @@ export default function NavLivres({
       <div key={livre.code}>
         <button onClick={() => handleLivre(livre.code)} style={{
           width: '100%', textAlign: 'left',
-          padding: '2px 6px', borderRadius: '4px', fontSize: '0.85456rem',
+          padding: '2px 6px', borderRadius: '4px', fontSize: '0.84375rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(var(--cs-vert-rgb),0.12)' : actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
           color: vide ? '#b3bdb0' : actif || suggere ? 'var(--cs-encre)' : '#4f5f52',
@@ -493,7 +494,7 @@ export default function NavLivres({
           opacity: vide ? 0.55 : 1,
         }}>
           <span>{livre.nom}</span>
-          {!vide && !sansChapitres && <span style={{ color: '#a9b6a6', fontSize: '0.50497rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
+          {!vide && !sansChapitres && <span style={{ color: '#a9b6a6', fontSize: '0.5rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 
         {montrerOptions && polyMode && onChoisirLivreEntier && (
@@ -501,10 +502,10 @@ export default function NavLivres({
             {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = gris léger. */}
             <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
               style={{
-                width: '100%', fontSize: '0.73803rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
+                width: '100%', fontSize: '0.75rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
                 background: entierSel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)',
-                color: entierSel ? '#fff' : 'var(--cs-texte-second)',
+                color: entierSel ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
                 fontWeight: entierSel ? 600 : 400, lineHeight: 1,
               }}>
               Livre entier
@@ -528,14 +529,14 @@ export default function NavLivres({
                     handleChapitre(livre.code, ch)
                   }
                 }} style={{
-                  fontSize: '0.70rem', height: '1.45rem', borderRadius: '4px',
+                  fontSize: '0.6875rem', height: '1.45rem', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
                   cursor: 'pointer', padding: 0,
                   /* Cases plus petites, gris léger au repos (le vert reste l'accent du
                      chapitre courant et de la suggestion de recherche). */
                   background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert)'
                     : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : 'var(--cs-fond-doux)',
-                  color: (actif && chapitreActifLocal === ch) ? '#fff'
+                  color: (actif && chapitreActifLocal === ch) ? 'var(--cs-surface)'
                     : estChapSuggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
                   fontWeight: estChapSuggere ? 700 : 400,
                   lineHeight: 1, textAlign: 'center',
@@ -561,7 +562,7 @@ export default function NavLivres({
       // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -575,7 +576,7 @@ export default function NavLivres({
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.6215rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>{titre ?? 'Livres de la Bible'}</span>
+        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>{titre ?? 'Livres de la Bible'}</span>
       </button>
     )
   }
@@ -604,7 +605,7 @@ export default function NavLivres({
       position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401,
       background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)',
       display: 'flex', flexDirection: 'column', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`,
-      boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
+      boxShadow: 'var(--cs-ombre-modale)',
     }) : {
       width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: 'var(--cs-fond-clair)',
       borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%',
@@ -635,7 +636,7 @@ export default function NavLivres({
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
-          style={{ flex: 1, minWidth: 0, fontSize: '0.81572rem', padding: '4px 7px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: '#f0ede7', color: 'var(--cs-texte)', outline: 'none', boxSizing: 'border-box' }}
+          style={{ flex: 1, minWidth: 0, fontSize: '0.8125rem', padding: '4px 7px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-doux)', color: 'var(--cs-texte)', outline: 'none', boxSizing: 'border-box' }}
         />
         {/* Flèche « réduire » inutile en mode onglets (mobile) : les onglets en haut
             font office de navigation. Conservée pour le repli desktop, sauf quand le
@@ -655,7 +656,7 @@ export default function NavLivres({
         <div style={{ padding: '8px' }}>
           <button onClick={appliquerRefParsee} style={{
             width: '100%', textAlign: 'left',
-            fontSize: '0.85456rem', padding: '8px 9px', borderRadius: '5px',
+            fontSize: '0.84375rem', padding: '8px 9px', borderRadius: '4px',
             background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)',
             color: 'var(--cs-encre)', cursor: 'pointer', lineHeight: 1.5, boxSizing: 'border-box',
           }}>
@@ -679,8 +680,8 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '5px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Ancien Testament</span>
-              <span style={{ fontSize: '0.54381rem', color: 'var(--cs-texte-faible)' }}>{atOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Ancien Testament</span>
+              <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{atOuvert ? '▲' : '▼'}</span>
             </button>
             {atOuvert && AT.map(renderLivre)}
           </>
@@ -693,8 +694,8 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#3a4a3e', textTransform: 'uppercase' }}>Nouveau Testament</span>
-              <span style={{ fontSize: '0.54381rem', color: 'var(--cs-texte-faible)' }}>{ntOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Nouveau Testament</span>
+              <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{ntOuvert ? '▲' : '▼'}</span>
             </button>
             {ntOuvert && NT.map(renderLivre)}
           </>
@@ -707,15 +708,15 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.73803rem', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
-              <span style={{ fontSize: '0.54381rem', color: 'var(--cs-texte-faible)' }}>{autresOuvert ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
+              <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{autresOuvert ? '▲' : '▼'}</span>
             </button>
             {autresOuvert && AUTRES.map(renderLivre)}
           </>
         )}
 
         {AT.length === 0 && NT.length === 0 && AUTRES.length === 0 && (
-          <p style={{ fontSize: '0.85456rem', color: 'var(--cs-texte-doux)', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
+          <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
         )}
       </div>
       )}

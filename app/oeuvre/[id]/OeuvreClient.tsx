@@ -181,12 +181,12 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   return (
     <>
       <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; setTexte(''); setStatut('idle'); setOuvert(true) }}
-        style={{ fontSize: '0.6875rem', color: '#6b8270', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
+        style={{ fontSize: '0.6875rem', color: '#6b8270', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
         + Proposer un lien biblique
       </button>
       {ouvert && (
         <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
               <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
@@ -200,12 +200,12 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
               <>
                 <textarea value={texte} onChange={e => setTexte(e.target.value)} rows={3} autoFocus
                   placeholder="Référence biblique proposée…"
-                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
+                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
                   {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d'envoi.</span>}
                   <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                   <button onClick={envoyer} disabled={statut === 'envoi' || !texte.trim()}
-                    style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? '#fff' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                    style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                     {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
                   </button>
                 </div>
@@ -222,7 +222,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 // Styles partagés des contrôles du volet gauche (Lecture / Texte / Traduction) :
 // listes verticales pleine largeur, de même gabarit, pour un alignement parfait.
 const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block' }
-const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
+const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
@@ -1404,9 +1404,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .seg-wrapper .seg-btn-action { opacity: 0; }
         .seg-wrapper--actif .seg-btn-action { opacity: 0.5; }
         /* Mode paragraphes : segments coulant dans un même bloc, délimités au survol. */
-        .seg-inline { border-radius: 2px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+        .seg-inline { border-radius: 4px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: rgba(var(--cs-vert-rgb),0.09); }
-        .seg-inline--actif { background: #ddeee2; }
+        .seg-inline--actif { background: var(--cs-vert-pale); }
         .para-bilingue { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: 1.6rem; align-items: start; border-bottom: 1px solid rgba(var(--cs-bord-rgb),0.55); margin-bottom: 0.85rem; }
         .para-bilingue > p { margin-bottom: 0.85rem !important; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
@@ -1427,7 +1427,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           .titre-colophon > span{display:inline!important;width:auto!important;max-width:100%!important;}
           .titre-colophon > span:not(:last-child)::after{content:" ";}
           .para-bilingue { grid-template-columns: 1fr; gap: 0.15rem; }
-          .para-bilingue > .texte-original { padding-left: 0.85rem; border-left: 2px solid #ddd6cb; }
+          .para-bilingue > .texte-original { padding-left: 0.85rem; border-left: 2px solid var(--cs-bord); }
         }
         .toc-lien-n1:hover, .toc-lien-n2:hover { color: var(--cs-vert) !important; }
         .ref-lien:hover { color: var(--cs-vert) !important; }
@@ -1445,7 +1445,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
         {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <nav ref={refNav} data-sommaire-panneau style={mobile ? {
-          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 28px rgba(45,35,25,0.22)',
+          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)',
         } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {!mobile && <div data-sommaire-poignee onMouseDown={e => {
             e.preventDefault()
@@ -1515,12 +1515,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             {modesLecture.length > 0 ? (
               <div style={{ marginTop: '10px' }}>
                 <style>{`
-                  .lec-split { position: relative; border-radius: 5px; overflow: hidden; }
+                  .lec-split { position: relative; border-radius: 4px; overflow: hidden; }
                   .lec-split-face { transition: opacity 200ms ease; }
                   .lec-split:hover .lec-split-face, .lec-split:focus-within .lec-split-face { opacity: 0; pointer-events: none; }
-                  .lec-split-menu { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 200ms ease; border-radius: 5px; overflow: hidden; }
+                  .lec-split-menu { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 200ms ease; border-radius: 4px; overflow: hidden; }
                   .lec-split:hover .lec-split-menu, .lec-split:focus-within .lec-split-menu { opacity: 1; pointer-events: auto; }
-                  .lec-split-seg { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: inherit; font-size: 0.57rem; color: var(--cs-texte-second); transition: background 140ms ease, color 140ms ease; }
+                  .lec-split-seg { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: inherit; font-size: 0.5625rem; color: var(--cs-texte-second); transition: background 140ms ease, color 140ms ease; }
                   .lec-split-seg:hover { background: rgba(var(--cs-vert-rgb),0.12); color: var(--cs-encre); }
                   .lec-split-seg + .lec-split-seg { box-shadow: inset 1px 0 0 rgba(var(--cs-vert-rgb),0.18); }
                   .lec-split-seg--actif { color: var(--cs-encre); background: rgba(var(--cs-vert-rgb),0.10); font-weight: 600; }
@@ -1582,7 +1582,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <button key={v.id_oeuvre} disabled={actif}
                         onClick={() => { if (!actif) router.push(`/oeuvre/${v.id_oeuvre}`) }}
                         title={actif ? 'Édition affichée' : 'Afficher cette édition'}
-                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
+                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
                         {libelleEdition(v)}
                       </button>
                     )
@@ -1774,7 +1774,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         </>
         ) : mobile ? (
           <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
-            style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: '0 1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Sommaire</span>
           </button>
@@ -1831,9 +1831,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: prev ? 'pointer' : 'default', padding: 0, pointerEvents: prev ? 'auto' : 'none' }}>
                   {prev ? '‹' : ''}
                 </button>
-                <span style={{ fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3 }}>
+                <span style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3 }}>
                   {titreLivre}
-                  <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{titreDivision}</span>
+                  <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{titreDivision}</span>
                 </span>
                 <button onClick={() => next && naviguerComparaison(next.book, next.division)} disabled={!next} aria-label="Division suivante"
                   style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: next ? 'pointer' : 'default', padding: 0, pointerEvents: next ? 'auto' : 'none' }}>
@@ -1850,12 +1850,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
-              <span style={{ fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
+              <span style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
                 {niv1Erreur ? (
                   <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
                     <button onClick={() => changerNiv1(niv1Erreur, { forceRefresh: true })}
-                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '3px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>
+                      style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>
                       Réessayer
                     </button>
                   </span>
@@ -1874,7 +1874,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
                       const notesTitre = notesDuTitre([txt], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes)
                       return txt && configNiveaux.txtCorps[0]
-                        ? <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
+                        ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
                         : null
                     })()}
                     {estAdmin && niv1Actif !== NIV1_LIMINAIRES && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
@@ -1913,10 +1913,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 return (
                 <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
                   <div lang="fr" onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
-                    style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.74rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '3px', padding: '2px 6px', margin: 0, background: segActif === s.id ? '#ddeee2' : 'transparent' } as React.CSSProperties}>
+                    style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', margin: 0, background: segActif === s.id ? 'var(--cs-vert-pale)' : 'transparent' } as React.CSSProperties}>
                     {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                   </div>
-                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 2px 10px rgba(45,35,25,0.12)', padding: '2px 4px' }}>
+                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
                     {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
                     <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
                     <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
@@ -1950,14 +1950,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                   {showNiv1 && (
                     <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
-                      {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
+                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
+                      {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.1rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
-                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.92rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.125rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
+                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
@@ -1969,8 +1969,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     </div>
                   )}
                   {showNiv3 && (
-                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid #ddd6cb', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
-                      <p style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre, true)}</p>
+                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
+                      <p style={{ fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre, true)}</p>
                       {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
@@ -1983,7 +1983,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     </div>
                   )}
                   {showNiv4 && (
-                    <p style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--cs-texte-faible)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
+                    <p style={{ fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-faible)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
                       {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre, true)}
                       {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTitreColophonAvecNotes(groupe.niv4_texte, notesTitre)}</span>}
                       {estAdmin && (
@@ -2007,7 +2007,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
                       style={{ paddingRight: gouttiereTitre }}>
-                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
                           if (!s) return null
@@ -2051,7 +2051,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
                         style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: estSignature ? '0.12rem' : '0.45rem', scrollMarginTop: '60px' }}>
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                           {(() => {
                             const texte = preparerTexteSegment(s.texte)
@@ -2065,7 +2065,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           })()}
                         </p>
                         <div className="seg-actions" style={mobile ? {
-                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.18)', padding: '0.25rem 0.375rem',
+                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
                         } : { display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
                           {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
                           <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} className="seg-btn-action" />
@@ -2116,8 +2116,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: '60px' }}>
                       {showNiv1 && (
                         <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.45rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
-                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.95rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
+                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
@@ -2126,13 +2126,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                       {showNiv2 && (
                         <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
-                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.05rem', fontWeight: 500, color: '#3d3832', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
-                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.86rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
+                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
                       {modeLecture === 'paragraphes' ? paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
                         <div key={`apparat-para-${chunk.ids[0]}`} style={{ paddingRight: gouttiereTitre }}>
-                          <p lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          <p lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null
@@ -2159,7 +2159,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         return (
                           <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: '60px' }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.82rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '3px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? '#ddeee2' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: '60px', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                               {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
                             </p>
@@ -2188,7 +2188,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <aside ref={refAside} style={mobile ? {
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)',
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
         } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100vh - 3.5rem)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
           <div onMouseDown={e => {
             e.preventDefault()
@@ -2221,7 +2221,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 return (
                   <Fragment key={key}>
                     {idx > 0 && (
-                      <span style={{ width: '1px', background: '#ddd8d0', alignSelf: 'center', height: '16px', flexShrink: 0 }} />
+                      <span style={{ width: '1px', background: 'var(--cs-bord-clair)', alignSelf: 'center', height: '16px', flexShrink: 0 }} />
                     )}
                     <button onClick={() => setOngletDroit(key)} className="onglet-btn"
                       style={{ flex: 1, padding: '11px 4px 10px', background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
@@ -2245,15 +2245,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       pilule verte). Le vert ne sert plus qu'à l'option active et au focus. */}
                   <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 4px' }}>Traduction</p>
                   <button onClick={() => setTradOuverte(!tradOuverte)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '5px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   {tradOuverte && (
-                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' }}>
                       {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? '#eef5f1' : '#fff', color: tradIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
+                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? 'var(--cs-fond)' : 'var(--cs-surface)', color: tradIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
                           {t.label}
                         </button>
                       ))}
@@ -2303,7 +2303,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                       voit la référence d'abord, et peut savoir à quel
                                       titre elle est là s'il y prend garde. */}
                                   {natures.length > 0 && (
-                                    <span style={{ fontSize: '0.59375rem', color: '#a89f92', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                                       {natures.join(' · ')}
                                     </span>
                                   )}
@@ -2321,14 +2321,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 </div>
                               </div>
                               {note && (
-                                <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: '#9a8a6a', margin: '0 0 3px', lineHeight: 1.3 }}>
+                                <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-etiquette)', margin: '0 0 3px', lineHeight: 1.3 }}>
                                   ↳ {note}
                                 </p>
                               )}
                               {/* Texte du/des verset(s) réuni(s) : SANS SÉRIF, même mise en forme que les
                                   citations patristiques du panneau Bible — justifié, wordSpacing serré,
                                   césure. Enrichissement (« <i> » de Sacy) rendu. */}
-                              <p lang="fr" style={{ fontSize: '0.7rem', lineHeight: '1.38', color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
+                              <p lang="fr" style={{ fontSize: '0.6875rem', lineHeight: '1.38', color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
                                 {corps ? rendreTexteEnrichi(corps) : '—'}
                               </p>
                             </div>
@@ -2400,8 +2400,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           s.liens.map(l => l.canon_id).filter(Boolean) as string[]
                         ))
                         const pill = s.aConstituer
-                          ? { color: '#9a5a2a', background: '#fbf1e5', border: '1px solid #e8d3b6' }
-                          : { color: '#3d5a4f', background: '#eef4f0', border: '1px solid #cbd8cf' }
+                          ? { color: 'var(--cs-attente)', background: 'var(--cs-danger-fond)', border: '1px solid #e8d3b6' }
+                          : { color: '#3d5a4f', background: 'var(--cs-fond)', border: '1px solid var(--cs-bord)' }
                         return (
                           <div key={s.id} style={{ paddingBottom: '14px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
                             {/* En-tête : pastille de type, puis le titre de l'œuvre à côté, pour
@@ -2410,7 +2410,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               <span style={{ flexShrink: 0, display: 'inline-block', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', ...pill }}>
                                 {s.aConstituer ? 'À constituer' : 'À vérifier'}
                               </span>
-                              <span style={{ minWidth: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.6875rem', color: '#8a8278', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <span style={{ minWidth: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {rendreTexteEnrichi(titreAffiche)}
                               </span>
                             </div>
@@ -2418,7 +2418,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
                             </div>
                             {s.reference_manuelle && (
-                              <p style={{ fontSize: '0.65625rem', color: '#9a5a2a', fontStyle: 'italic', margin: '0 0 6px' }}>
+                              <p style={{ fontSize: '0.65625rem', color: 'var(--cs-attente)', fontStyle: 'italic', margin: '0 0 6px' }}>
                                 Référence proposée : {s.reference_manuelle}
                               </p>
                             )}
@@ -2432,7 +2432,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     <button key={idV} type="button"
                                       onClick={() => setApercuVerset({ label, texte: vi.texte ? bornerGuillemets(vi.texte) : vi.texte })}
                                       title="Voir le verset"
-                                      style={{ fontSize: '0.65625rem', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: '#c8d2cb' }}>
+                                      style={{ fontSize: '0.65625rem', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: 'var(--cs-bord)' }}>
                                       {label}
                                       {vi.chapAlt != null && (
                                         <span style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
@@ -2456,14 +2456,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               {s.aConstituer ? (
                                 <>
                                   <button onClick={() => { if (exigerCompte('suggérer une référence')) setSuggestionSignalee({ ...s, nature: 'suggestion' }) }} title="Proposer une référence biblique pour ce passage"
-                                    style={{ ...pilleAction, color: '#9a5a2a', border: '1px solid #e3cdb0' }}>Suggérer une référence</button>
+                                    style={{ ...pilleAction, color: 'var(--cs-attente)', border: '1px solid var(--cs-danger-bord)' }}>Suggérer une référence</button>
                                   <button onClick={() => { if (exigerCompte('signaler ce passage')) setSuggestionSignalee({ ...s, nature: 'pas_de_reference' }) }} title="Signaler que ce passage ne renvoie à aucun verset"
-                                    style={{ ...pilleAction, color: '#8a8278', border: '1px solid #ddd6cb' }}>Pas de référence</button>
+                                    style={{ ...pilleAction, color: 'var(--cs-texte-gris)', border: '1px solid var(--cs-bord)' }}>Pas de référence</button>
                                 </>
                               ) : (
                                 ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
                                   <button key={nat} onClick={() => { if (exigerCompte('signaler ce lien')) setSuggestionSignalee({ ...s, nature: nat }) }} title={`Signaler ce lien comme « ${label} »`}
-                                    style={{ ...pilleAction, color: '#3d5a4f', border: '1px solid #cbd8cf' }}>{label}</button>
+                                    style={{ ...pilleAction, color: '#3d5a4f', border: '1px solid var(--cs-bord)' }}>{label}</button>
                                 ))
                               )}
                             </div>
@@ -2481,7 +2481,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         </>
         ) : mobile ? (
           <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-surface)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-surface)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Références &amp; commentaires</span>
           </button>
@@ -2501,7 +2501,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         return createPortal(
           <div data-seg-toolbar="" onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
             onMouseLeave={() => masquerToolbar(segSurvol.id)}
-            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(45,35,25,0.16)', padding: '2px 4px' }}>
+            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '2px 4px' }}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
@@ -2517,12 +2517,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       {apercuVerset && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
           onClick={() => setApercuVerset(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: '#faf6ee', borderRadius: '8px', border: '1px solid var(--cs-or-doux)', padding: '16px 18px', width: '23.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(44,30,10,0.22)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-or-doux)', padding: '16px 18px', width: '23.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)' }}>{apercuVerset.label}</span>
               <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
             </div>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.6, color: '#2a2218', margin: 0, whiteSpace: 'pre-line' }}>
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.6, color: 'var(--cs-texte-fort)', margin: 0, whiteSpace: 'pre-line' }}>
               {apercuVerset.texte || <em style={{ color: '#b0a08a' }}>Texte du verset indisponible.</em>}
             </p>
           </div>
@@ -2533,7 +2533,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '10px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
@@ -2554,7 +2554,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: 'var(--cs-encre)' }}>{rendreTexteEnrichi(titreAffiche)}</span>
                 </p>
                 {oeuvreLocale.sous_titre && (
-                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', color: '#8a8278', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
+                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
                 )}
               </div>
               <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
@@ -2565,9 +2565,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue_originale || (oeuvreLocale.genres && oeuvreLocale.genres.length))
               const aEdition = !!(oeuvreAffichee.trad_auteur || oeuvreAffichee.trad_date || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.commentaire_traduction?.trim() || versionActive?.editionDescription || versionActive?.sourceUrl)
               if (!aOriginal && !aEdition) return null
-              const carte: React.CSSProperties = { background: '#f6f8f3', border: '1px solid #e2ebdc', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
+              const carte: React.CSSProperties = { background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-vert-pale)', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
               const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
-              const cle: React.CSSProperties = { fontSize: '0.53125rem', color: '#a9b0a2', display: 'block', marginBottom: '-3px', lineHeight: 0.95 }
+              const cle: React.CSSProperties = { fontSize: '0.53125rem', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '-3px', lineHeight: 0.95 }
               const val: React.CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.15 }
               return (
                 <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
@@ -2592,7 +2592,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {versionActive?.sourceUrl && <div style={{ marginTop: '6px' }}><span style={cle}>Source</span><a href={versionActive.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ ...val, color: 'var(--cs-vert)' }}>Consulter la source</a></div>}
                       {/* Commentaire éventuel destiné au public, dans la carte « Édition de référence ». */}
                       {oeuvreAffichee.commentaire_traduction?.trim() && (
-                        <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid #e2ebdc' }}>
+                        <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid var(--cs-vert-pale)' }}>
                           <span style={{ ...cle, marginBottom: '2px' }}>Commentaire</span>
                           <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px' }}>{sansPointFinal(oeuvreAffichee.commentaire_traduction)}</span>
                         </div>
@@ -2622,15 +2622,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
           onClick={() => setConfigOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: '0 12px 40px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
-            <p style={{ fontSize: '0.6875rem', color: '#8a8278', lineHeight: 1.5, margin: '0 0 16px' }}>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 16px' }}>
               Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: 'var(--cs-texte-second)' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: 'var(--cs-texte-second)' }}>corps</strong> du texte.
             </p>
-            <div style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '7px', border: '1px solid var(--cs-fond-doux)' }}>
+            <div style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '8px', border: '1px solid var(--cs-fond-doux)' }}>
               <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>Mode de lecture</p>
               <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                 {[
@@ -2638,19 +2638,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   { valeur: true, libelle: 'Texte entier paginé' },
                 ].map(option => (
                   <button key={option.libelle} onClick={() => setConfigNiveaux(prev => ({ ...prev, texteEntier: option.valeur }))}
-                    style={{ flex: 1, minHeight: '34px', padding: '5px 8px', borderRadius: '5px', border: `1px solid ${configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : '#fff', color: configNiveaux.texteEntier === option.valeur ? '#fff' : 'var(--cs-texte-second)', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: configNiveaux.texteEntier === option.valeur ? 700 : 400 }}>
+                    style={{ flex: 1, minHeight: '34px', padding: '5px 8px', borderRadius: '4px', border: `1px solid ${configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-surface)', color: configNiveaux.texteEntier === option.valeur ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: configNiveaux.texteEntier === option.valeur ? 700 : 400 }}>
                     {option.libelle}
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '0.625rem', color: '#8a8278', lineHeight: 1.45, margin: 0 }}>Le texte entier conserve ses titres et son sommaire. La pagination ne s’arrête plus à chaque niveau 1.</p>
+              <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-gris)', lineHeight: 1.45, margin: 0 }}>Le texte entier conserve ses titres et son sommaire. La pagination ne s’arrête plus à chaque niveau 1.</p>
             </div>
             {(['sommaire', 'corps'] as const).map(type => {
               const key = type === 'sommaire' ? 'sommaire' : 'corps'
               const txtKey = type === 'sommaire' ? 'txtSommaire' : 'txtCorps'
               const titre = type === 'sommaire' ? 'Sommaire' : 'Corps du texte'
               return (
-                <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '7px', border: '1px solid var(--cs-fond-doux)' }}>
+                <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '8px', border: '1px solid var(--cs-fond-doux)' }}>
                   <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>{titre}</p>
 
                   <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
@@ -2661,7 +2661,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       return (
                         <button key={n} disabled={vide} onClick={() => { if (!vide) setConfigNiveaux(prev => ({ ...prev, [key]: n })) }}
                           title={vide ? `Le niveau ${n} n’existe pas dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}
-                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert)' : '#fff', color: choisi ? '#fff' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
                           {n}
                         </button>
                       )
@@ -2680,7 +2680,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           return { ...prev, [txtKey]: arr }
                         })}
                           title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
-                          style={{ width: '34px', height: '30px', borderRadius: '5px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert)' : '#fff', color: actif ? '#fff' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert)' : 'var(--cs-surface)', color: actif ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
                           N{n}
                         </button>
                       )
@@ -2692,7 +2692,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-faible)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
-                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert)' : '#fff', color: configNiveaux.afficherNumeros ? '#fff' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
@@ -2721,7 +2721,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 setConfigOuverte(false)
                 if (modeModifie) window.location.reload()
               }}
-                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: '#fff', fontWeight: 500, cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontWeight: 500, cursor: 'pointer' }}>
                 {configEnvoi ? 'Enregistrement…' : 'Enregistrer'}
               </button>
             </div>
@@ -2754,8 +2754,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             borderRadius: '999px',
             border: '1px solid rgba(198,184,158,0.62)',
             background: 'rgba(250,246,237,0.86)',
-            color: '#6f665b',
-            boxShadow: '0 6px 20px rgba(55,45,35,0.12)',
+            color: 'var(--cs-texte-second)',
+            boxShadow: 'var(--cs-ombre-flottante)',
             backdropFilter: 'blur(6px)',
             fontSize: '0.71875rem',
             fontFamily: 'var(--font-source-serif), Georgia, serif',

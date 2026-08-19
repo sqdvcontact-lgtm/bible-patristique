@@ -13,10 +13,10 @@ type Proposition = {
 }
 
 const STATUTS: Record<string, { label: string; couleur: string; bg: string }> = {
-  en_attente: { label: 'En attente', couleur: '#9a5a2a', bg: '#fdf3ea' },
-  acceptee:   { label: 'Acceptée',   couleur: 'var(--cs-vert)', bg: '#edf5f0' },
+  en_attente: { label: 'En attente', couleur: 'var(--cs-attente)', bg: 'var(--cs-danger-fond)' },
+  acceptee:   { label: 'Acceptée',   couleur: 'var(--cs-vert)', bg: 'var(--cs-fond)' },
   refusee:    { label: 'Refusée',    couleur: 'var(--cs-danger)', bg: 'var(--cs-danger-fond)' },
-  en_cours:   { label: 'En cours',   couleur: '#5a6b9a', bg: '#eef0f8' },
+  en_cours:   { label: 'En cours',   couleur: '#5a6b9a', bg: 'var(--cs-fond)' },
 }
 
 async function getHeaders(): Promise<Record<string, string>> {
@@ -87,11 +87,11 @@ export default function SectionPropositions() {
   )
   const compteATraiter = (comptes.en_attente ?? 0) + (comptes.en_cours ?? 0)
 
-  if (chargement) return <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Chargement…</p>
+  if (chargement) return <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Chargement…</p>
   if (erreur) return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', maxWidth: '31.25rem' }}>
-      <span style={{ fontSize: '0.8625rem', color: 'var(--cs-danger)' }}>{erreur}</span>
-      <button onClick={charger} style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', maxWidth: '31.25rem' }}>
+      <span style={{ fontSize: '0.875rem', color: 'var(--cs-danger)' }}>{erreur}</span>
+      <button onClick={charger} style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer', whiteSpace: 'nowrap' }}>Réessayer</button>
     </div>
   )
 
@@ -101,32 +101,32 @@ export default function SectionPropositions() {
         <h2 style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: 0 }}>
           Propositions d’œuvres
         </h2>
-        <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-faible)' }}>{propositions.length} proposition{propositions.length > 1 ? 's' : ''}</span>
+        <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{propositions.length} proposition{propositions.length > 1 ? 's' : ''}</span>
       </div>
 
       {/* Onglets statut */}
-      <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid #344d3e', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--cs-vert-fonce)', marginBottom: '20px' }}>
         {([['a_traiter', 'En attente', compteATraiter], ['acceptee', 'Acceptées', comptes.acceptee], ['refusee', 'Refusées', comptes.refusee]] as [string, string, number][]).map(([key, label, count]) => (
           <button key={key} onClick={() => setFiltreStatut(key)} style={{
-            padding: '7px 14px', fontSize: '0.79062rem', background: 'none', border: 'none',
+            padding: '7px 14px', fontSize: '0.78125rem', background: 'none', border: 'none',
             borderBottom: filtreStatut === key ? '2px solid #7aaa8e' : '2px solid transparent',
-            color: filtreStatut === key ? '#a8d4b8' : '#6a9080', cursor: 'pointer',
+            color: filtreStatut === key ? 'var(--cs-vert-clair)' : '#6a9080', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', marginBottom: '-1px',
           }}>
             {label}
             {count > 0 && (
-              <span style={{ fontSize: '0.68281rem', background: key === 'a_traiter' ? 'var(--cs-danger)' : '#4a6459', color: '#fff', borderRadius: '10px', padding: '1px 5px' }}>{count}</span>
+              <span style={{ fontSize: '0.6875rem', background: key === 'a_traiter' ? 'var(--cs-danger)' : 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 5px' }}>{count}</span>
             )}
           </button>
         ))}
       </div>
 
       {filtrees.length === 0 ? (
-        <p style={{ fontSize: '0.89844rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune proposition dans cette catégorie.</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune proposition dans cette catégorie.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filtrees.map(p => {
-            const s = STATUTS[p.statut] ?? { label: p.statut, couleur: 'var(--cs-texte-doux)', bg: '#f5f3ef' }
+            const s = STATUTS[p.statut] ?? { label: p.statut, couleur: 'var(--cs-texte-doux)', bg: 'var(--cs-fond)' }
             const estOuverte = ouverte === p.id
             return (
               <div key={p.id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
@@ -135,14 +135,14 @@ export default function SectionPropositions() {
                   onClick={() => setOuverte(estOuverte ? null : p.id)}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.97031rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{p.titre}</span>
-                      <span style={{ fontSize: '0.8625rem', color: '#8a8278' }}>{p.auteur_nom}</span>
+                      <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{p.titre}</span>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--cs-texte-gris)' }}>{p.auteur_nom}</span>
                     </div>
-                    <div style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-faible)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>{[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, formaterDateHistorique(p.date_publication)].filter(Boolean).join(' · ')}</span>
                       <span>{new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
                       {p.nb_30j != null && p.nb_30j > 1 && (
-                        <span style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? 'var(--cs-danger-fond)' : '#fef5e8', color: p.nb_30j >= 3 ? 'var(--cs-danger)' : '#9a5a2a' }}>
+                        <span style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? 'var(--cs-danger-fond)' : 'var(--cs-danger-fond)', color: p.nb_30j >= 3 ? 'var(--cs-danger)' : 'var(--cs-attente)' }}>
                           {p.nb_30j} propositions / 30 j
                         </span>
                       )}
@@ -164,31 +164,31 @@ export default function SectionPropositions() {
                         .filter(([, v]) => v)
                         .map(([k, v]) => (
                           <div key={k}>
-                            <span style={{ fontSize: '0.68281rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block' }}>{k}</span>
-                            <span style={{ fontSize: '0.8625rem', color: 'var(--cs-encre)' }}>{v}</span>
+                            <span style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block' }}>{k}</span>
+                            <span style={{ fontSize: '0.875rem', color: 'var(--cs-encre)' }}>{v}</span>
                           </div>
                         ))}
                     </div>
 
                     {p.note && (
-                      <div style={{ background: 'var(--cs-fond)', borderRadius: '5px', padding: '10px 12px' }}>
-                        <span style={{ fontSize: '0.68281rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }}>Note</span>
-                        <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte)', lineHeight: 1.6, margin: 0 }}>{p.note}</p>
+                      <div style={{ background: 'var(--cs-fond)', borderRadius: '4px', padding: '10px 12px' }}>
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }}>Note</span>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte)', lineHeight: 1.6, margin: 0 }}>{p.note}</p>
                       </div>
                     )}
 
                     {p.texte && (
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.68281rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
+                          <span style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
                             Texte · {p.texte.length.toLocaleString('fr-FR')} caractères
                           </span>
                           <button onClick={() => navigator.clipboard.writeText(p.texte!)}
-                            style={{ fontSize: '0.71875rem', color: '#6a9080', background: 'none', border: '1px solid #4a6459', borderRadius: '3px', padding: '2px 8px', cursor: 'pointer' }}>
+                            style={{ fontSize: '0.71875rem', color: '#6a9080', background: 'none', border: '1px solid var(--cs-vert)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer' }}>
                             Copier
                           </button>
                         </div>
-                        <pre style={{ fontSize: '0.82656rem', lineHeight: 1.65, color: 'var(--cs-texte-fort)', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord-clair)', borderRadius: '5px', padding: '10px 12px', maxHeight: '280px', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'ui-monospace, Consolas, monospace' }}>
+                        <pre style={{ fontSize: '0.8125rem', lineHeight: 1.65, color: 'var(--cs-texte-fort)', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord-clair)', borderRadius: '4px', padding: '10px 12px', maxHeight: '280px', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'ui-monospace, Consolas, monospace' }}>
                           {p.texte}
                         </pre>
                       </div>
@@ -198,13 +198,13 @@ export default function SectionPropositions() {
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingTop: '4px', borderTop: '1px solid var(--cs-fond-doux)' }}>
                       {(['en_attente', 'en_cours', 'acceptee', 'refusee'] as const).filter(st => st !== p.statut).map(st => (
                         <button key={st} onClick={() => changerStatut(p.id, st)} style={{
-                          fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', border: 'none',
+                          fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', border: 'none',
                           background: STATUTS[st].bg, color: STATUTS[st].couleur, fontWeight: 500,
                         }}>
                           → {STATUTS[st].label}
                         </button>
                       ))}
-                      <button onClick={() => supprimer(p.id)} style={{ fontSize: '0.79062rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', background: 'transparent', color: 'var(--cs-danger)', border: '1px solid var(--cs-danger-bord)', marginLeft: 'auto' }}>
+                      <button onClick={() => supprimer(p.id)} style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', cursor: 'pointer', background: 'transparent', color: 'var(--cs-danger)', border: '1px solid var(--cs-danger-bord)', marginLeft: 'auto' }}>
                         Supprimer
                       </button>
                     </div>

@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 type EssaiPerso = { id: number; titre: string; sous_titre: string | null; statut: string; updated_at: string }
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
   brouillon:    { label: 'Brouillon',               couleur: 'var(--cs-texte-doux)' },
-  en_attente:   { label: 'En attente de validation', couleur: '#9a5a2a' },
+  en_attente:   { label: 'En attente de validation', couleur: 'var(--cs-attente)' },
   a_reviser:    { label: 'À réviser',                couleur: 'var(--cs-danger)' },
   publie:       { label: 'Publié',                   couleur: 'var(--cs-vert)' },
 }
@@ -40,9 +41,9 @@ export default function MesEcritsPage() {
   if (connecte === false) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '10px', padding: '36px 40px', textAlign: 'center' }}>
+        <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '36px 40px', textAlign: 'center' }}>
           <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '16px' }}>Connectez-vous pour voir vos écrits.</p>
-          <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', textDecoration: 'none' }}>
+          <Link href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.8125rem', fontWeight: 500, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>
             Se connecter
           </Link>
         </div>
@@ -54,8 +55,8 @@ export default function MesEcritsPage() {
     <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingTop: '3.5rem' }}>
       <div style={{ maxWidth: '43.75rem', margin: '0 auto', padding: '40px 32px 80px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '24px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(22px, 4vw, 28px)', color: 'var(--cs-encre-fonce)', margin: 0 }}>Mes écrits</h1>
-          <Link href="/essais/nouveau" style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '5px', background: 'var(--cs-vert)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0 }}>Mes écrits</h1>
+          <Link href="/essais/nouveau" style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '4px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', textDecoration: 'none', fontWeight: 500 }}>
             + Écrire
           </Link>
         </div>
@@ -65,7 +66,7 @@ export default function MesEcritsPage() {
         ) : essais.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: '40px' }}>
             <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginBottom: '16px' }}>Aucun écrit pour l&apos;instant.</p>
-            <Link href="/essais/nouveau" style={{ fontSize: '0.8125rem', padding: '9px 20px', borderRadius: '6px', background: 'var(--cs-vert)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+            <Link href="/essais/nouveau" style={{ fontSize: '0.8125rem', padding: '9px 20px', borderRadius: '8px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', textDecoration: 'none', fontWeight: 500 }}>
               Commencer un essai
             </Link>
           </div>
@@ -84,7 +85,7 @@ export default function MesEcritsPage() {
                     href={e.statut === 'publie' ? `/essais/${e.id}` : `/essais/${e.id}/modifier`}
                     style={{ flex: 1, minWidth: 0, textDecoration: 'none' }}>
                     <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.titre}</p>
-                    {e.sous_titre && <p style={{ fontSize: '0.75rem', color: '#8a8278', fontStyle: 'italic', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.sous_titre}</p>}
+                    {e.sous_titre && <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.sous_titre}</p>}
                   </Link>
 
                   {/* Méta droite */}
@@ -117,7 +118,7 @@ export default function MesEcritsPage() {
       {/* Modale de confirmation suppression */}
       {supprConfirm !== null && (
         <div onClick={() => setSupprConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.32)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '10px', padding: '28px 28px 24px', maxWidth: '22.5rem', width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.18)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '28px 28px 24px', maxWidth: '22.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 12px' }}>
               Supprimer ce brouillon ?
             </h3>
@@ -127,10 +128,10 @@ export default function MesEcritsPage() {
               <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)' }}>Cette action est irréversible.</span>
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button onClick={() => setSupprConfirm(null)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+              <button onClick={() => setSupprConfirm(null)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Annuler
               </button>
-              <button onClick={() => supprimer(supprConfirm)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '5px', border: 'none', background: 'var(--cs-danger)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={() => supprimer(supprConfirm)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 600 }}>
                 Supprimer définitivement
               </button>
             </div>

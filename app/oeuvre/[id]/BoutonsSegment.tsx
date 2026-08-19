@@ -15,7 +15,7 @@ import { citationPatristique, copierCitation } from '@/app/lib/citation'
 // Style partagé par tous les petits boutons d'action (segment ET verset)
 export const BTN_STYLE: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
-  borderRadius:'3px', width:'16px', height:'16px', display:'inline-flex',
+  borderRadius:'4px', width:'16px', height:'16px', display:'inline-flex',
   alignItems:'center', justifyContent:'center', fontSize:'0.75rem',
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }

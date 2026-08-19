@@ -97,10 +97,10 @@ export default async function AccueilPage() {
           margin: 24px auto 0;
         }
         .accueil-carte {
-          background: #fcfbf7;
-          border: 1px solid #e7dfcc;
+          background: var(--cs-fond-clair);
+          border: 1px solid var(--cs-bord-clair);
           border-radius: 12px;
-          box-shadow: 0 2px 12px rgba(70,55,25,0.05);
+          box-shadow: var(--cs-ombre-flottante);
           padding: 18px 24px 18px;
           box-sizing: border-box;
         }
@@ -122,7 +122,7 @@ export default async function AccueilPage() {
           justify-content: center;
           padding: 4px 8px;
         }
-        .accueil-stat + .accueil-stat { border-left: 1px solid #eae2cf; }
+        .accueil-stat + .accueil-stat { border-left: 1px solid var(--cs-bord-clair); }
         /* Ajouts récents : au survol, « Lire » remplace TOUTE la ligne auteur-titre
            (la date, elle, reste). Fondu croisé : le titre s'efface, « Lire » — en
            lettres espacées, sobre et large — apparaît à sa place. */
@@ -142,7 +142,7 @@ export default async function AccueilPage() {
           position: relative;
           font-family: var(--font-source-serif), Georgia, serif;
           font-style: italic;
-          font-size: 0.9rem;
+          font-size: 0.875rem;
           letter-spacing: 0.03em;
           color: var(--cs-vert);
         }
@@ -175,7 +175,7 @@ export default async function AccueilPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <main style={{
         minHeight: "calc(100vh - 3.5rem)",
-        background: "#f5f1e7",
+        background: "var(--cs-fond)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -213,9 +213,9 @@ export default async function AccueilPage() {
           {/* Titre principal */}
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: "clamp(30px, 4.4vw, 54px)",
+            fontSize: "clamp(1.875rem, 4.4vw, 3.375rem)",
             fontWeight: "normal",
-            color: "#1a2818",
+            color: "var(--cs-encre-fonce)",
             lineHeight: 1.2,
             letterSpacing: "0.04em",
             paddingLeft: "0.04em",
@@ -227,7 +227,7 @@ export default async function AccueilPage() {
           {/* Filet */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 10px", maxWidth: "15rem" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
-            <span style={{ fontSize: "0.95rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
+            <span style={{ fontSize: "0.9375rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
           </div>
 
@@ -265,14 +265,14 @@ export default async function AccueilPage() {
       </main>
 
       {/* ── À propos — style colophon ─────────────────────────────────────── */}
-      <div id="apropos" style={{ background: "#efe8d9", scrollMarginTop: "3.5rem", borderTop: "1px solid #ddd3bf" }}>
+      <div id="apropos" style={{ background: "var(--cs-fond-doux)", scrollMarginTop: "3.5rem", borderTop: "1px solid var(--cs-bord)" }}>
         <div style={{
           maxWidth: "35rem",
           margin: "0 auto",
           padding: "72px 32px 80px",
           textAlign: "center",
           fontFamily: "var(--font-source-serif), Georgia, serif",
-          color: "#2a2c20",
+          color: "var(--cs-texte-fort)",
         }}>
 
           {/* En-tête colophon */}
@@ -281,9 +281,9 @@ export default async function AccueilPage() {
               ❧
             </div>
             <h2 style={{
-              fontSize: "clamp(19px, 2.8vw, 24px)",
+              fontSize: "clamp(1.1875rem, 2.8vw, 1.5rem)",
               fontWeight: "normal",
-              color: "#1a2018",
+              color: "var(--cs-texte-fort)",
               lineHeight: 1.3,
               marginBottom: "18px",
               letterSpacing: "0.02em",
@@ -338,7 +338,7 @@ export default async function AccueilPage() {
             </div>
 
             {/* Marque finale */}
-            <div style={{ marginTop: "42px", fontSize: "1.4rem", color: "var(--cs-or)", lineHeight: 1 }}>
+            <div style={{ marginTop: "42px", fontSize: "1.375rem", color: "var(--cs-or)", lineHeight: 1 }}>
               ❧
             </div>
 
@@ -370,7 +370,7 @@ function OrnementsTriple() {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "46px auto", maxWidth: "18.75rem" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
-      <span style={{ fontSize: "1.15rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
+      <span style={{ fontSize: "1.125rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
     </div>
   )
@@ -402,7 +402,7 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
 const paraStyle: React.CSSProperties = {
   fontSize: "0.875rem",
   lineHeight: "1.75",
-  color: "#2a2c20",
+  color: "var(--cs-texte-fort)",
   margin: 0,
 }
 
@@ -416,7 +416,7 @@ const motStyle: React.CSSProperties = {
   lineHeight: 1.5,
   letterSpacing: "-0.006em",
   wordSpacing: "-0.03em",
-  color: "#3a3a2e",
+  color: "var(--cs-texte)",
   margin: 0,
   textAlign: "center",
 }
@@ -441,14 +441,14 @@ const boutonSoutenir: React.CSSProperties = {
 function VoletUnMot() {
   return (
     <div className="accueil-carte" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l&rsquo;Église, anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L&rsquo;accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l&rsquo;édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
       {/* Signature rapprochée du texte : « Merci. » juste au-dessus de SQDV. */}
       <div style={{ marginTop: "12px" }}>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#3a3a2e", margin: "0 0 2px" }}>Merci.</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte)", margin: "0 0 2px" }}>Merci.</p>
         <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#8a7440", letterSpacing: "0.14em", margin: 0 }}>SQDV</p>
       </div>
       {/* Bouton ancré au bas de la carte, quelle que soit la hauteur du volet voisin. */}
@@ -468,7 +468,7 @@ function formaterDateAjout(iso: string | null): string {
 function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   return (
     <div className="accueil-carte" style={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.2rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
       {recentes.length === 0 ? (
         <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
       ) : (
@@ -479,7 +479,7 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
             <li key={o.id_oeuvre} className="ajout-item" style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "7.5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
               <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", flex: 1, minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
-                <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "#2a2c20", lineHeight: 1.32 }}>
+                <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "var(--cs-texte-fort)", lineHeight: 1.32 }}>
                   {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
                 </span>
                 {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
@@ -512,7 +512,7 @@ function BandeauStats({ nbTextes, nbAuteurs, nbTraductions }: { nbTextes: number
             <span style={{ color: "var(--cs-vert)", display: "inline-flex" }}>{s.icon}</span>
             <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre-fonce)", lineHeight: 1 }}>{s.valeur}</span>
           </div>
-          <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "#8a8268", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
+          <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "var(--cs-texte-gris)", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
         </div>
       ))}
     </div>

@@ -29,6 +29,7 @@ import ModalSignalement from "@/app/components/ModalSignalement";
 import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -115,24 +116,24 @@ const VERT = "var(--cs-vert)";
 // deux aplats identiques se lisaient comme un seul bandeau, et on ne voyait plus où commençait
 // le tableau. Un vert nettement plus sombre garde la parenté sans la confusion.
 // Trois niveaux d'en-tête NETTEMENT distincts (charte de refonte §7), du plus clair au
-// plus sombre à mesure qu'on approche du texte : navbar du site (--cs-vert #3d6b4f) →
+// plus sombre à mesure qu'on approche du texte : navbar du site (--cs-vert var(--cs-vert)) →
 // bandeau des traductions → bandeau du livre (le plus profond, l'ancre de lecture).
-const VERT_ENTETE = "#223a2c";       // bandeau du livre — le plus sombre
-const VERT_ENTETE_BAS = "#33553f";   // la ligne des traductions, un cran plus clair
+const VERT_ENTETE = "var(--cs-encre)";       // bandeau du livre — le plus sombre
+const VERT_ENTETE_BAS = "var(--cs-vert-fonce)";   // la ligne des traductions, un cran plus clair
 const ROUGE = "#b3261e";
-const ROUGE_FOND = "#fbeceb";
+const ROUGE_FOND = "var(--cs-danger-fond)";
 // Rose : les cas qui RÉSISTENT (statut « resiste » dans points_sensibles). Examinés,
 // correction tentée ou pesée, non résolue — souvent parce que le contrôle de contenu
 // a refusé le déplacement que le comptage suggérait. À distinguer du rouge, qui
 // signale un point à vérifier : ici, on a déjà cherché et l'on a buté.
-const ROSE_FOND = "#fdeaf4";
+const ROSE_FOND = "var(--cs-danger-fond)";
 // Zébrage : un vert franc mais tenu, assez présent pour guider l'œil d'une colonne à
 // l'autre sur une ligne, assez pâle pour ne pas concurrencer les fonds signalétiques
 // (rouge, rose, violet) qui, eux, veulent dire quelque chose.
 // Contraste réduit entre les deux fonds de lignes : les deux tons sont désormais très
 // proches (guidage discret d'une colonne à l'autre, sans effet de bandes marqué).
-const VERT_ZEBRE = "#eef4ef";
-const VERT_ZEBRE_CLAIR = "#f7fbf7";
+const VERT_ZEBRE = "var(--cs-fond)";
+const VERT_ZEBRE_CLAIR = "var(--cs-fond-clair)";
 // Filets du corps : baisser le contraste pour quitter l'impression de tableur. La
 // séparation ENTRE TRADUCTIONS reste lisible (elle sépare deux textes distincts) ; la
 // séparation ENTRE VERSETS s'efface presque (elle ne fait que rythmer). Deux poids,
@@ -140,7 +141,7 @@ const VERT_ZEBRE_CLAIR = "#f7fbf7";
 const FILET_COL = "rgba(61,107,79,0.16)";
 const FILET_LIGNE = "rgba(61,107,79,0.07)";
 const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
-const SURNUM_FOND = "#f0eef9";
+const SURNUM_FOND = "var(--cs-fond)";
 const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'écran)
 const CLE_SLOTS = "polyglotte-slots2";  // choix des traductions, mémorisé (v2 : colonnes adaptatives)
 // Nombre de colonnes de traduction ADAPTATIF : calculé d'après la largeur réelle
@@ -151,7 +152,7 @@ const MAX_SLOTS = 5;
 const MIN_SLOTS = 2;
 const ORDRE_NT = 52;
 const ORDRE_CANON_MAX = 78;     // au-delà : écrits non canoniques
-const FOND = "#f6f2e8";         // fond commun aux autres pages du site
+const FOND = "var(--cs-fond)";   // le fond du site, celui de --cs-fond
 
 // ── Analyse des points sensibles → ensembles de versets/chapitres concernés ──
 function construireSensibilite(points: Point[]) {
@@ -242,7 +243,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
   };
   return (
     <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 9, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "0 12px 36px rgba(40,30,15,0.24)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
           <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-faible)", lineHeight: 1, padding: 0 }}>✕</button>
@@ -261,19 +262,19 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
         <textarea ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
           onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
           rows={5}
-          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 5, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
+          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 4, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
         {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
         <div style={{ marginTop: 8 }}>
           <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-faible)" }}>Aperçu</span>
-          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 5, background: "var(--cs-surface)" }}>
+          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 4, background: "var(--cs-surface)" }}>
             {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "var(--cs-bord)", fontStyle: "italic" }}>—</span>}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
           {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE, marginRight: "auto" }}>échec de l’enregistrement</span>}
-          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid #d6cfc2", background: "var(--cs-surface)", color: "#8a8378", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-gris)", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
-            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "#fff", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "var(--cs-surface)", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
             {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
           </button>
         </div>
@@ -285,7 +286,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 // ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
 // Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
 // citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
-const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 19, height: 19, borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.9rem', lineHeight: 1, transition: "color .15s" };
+const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 19, height: 19, borderRadius: 4, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.875rem', lineHeight: 1, transition: "color .15s" };
 function IconeSignet({ rempli }: { rempli?: boolean }) {
   return (
     <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
@@ -329,7 +330,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
   return (
     <button onClick={basculer} title={saved ? "Retirer de mes citations" : "Ajouter à mes citations"} className="poly-act"
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
-      style={{ ...ACT_BTN, color: montrerCroix ? "#b5502f" : saved ? VERT : "#b7ad9a" }}
+      style={{ ...ACT_BTN, color: montrerCroix ? "var(--cs-danger)" : saved ? VERT : "var(--cs-texte-faible)" }}
       aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
       {busy ? "…" : montrerCroix ? "✕" : <IconeSignet rempli={!!saved} />}
     </button>
@@ -353,7 +354,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte("signaler une erreur")) setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "#b7ad9a" }} aria-label="Signaler"><IconeDrapeau /></button>
+        style={{ ...ACT_BTN, color: "var(--cs-texte-faible)" }} aria-label="Signaler"><IconeDrapeau /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
@@ -366,7 +367,7 @@ function CelluleAbsente({ deutero }: { deutero?: boolean }) {
   return (
     <span
       title={deutero ? "Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli." : undefined}
-      style={{ display: "block", textAlign: "center", fontStyle: "italic", color: "#b3a89b", fontSize: "0.72rem", lineHeight: 1.35, padding: "3px 6px", cursor: deutero ? "help" : "default" }}>
+      style={{ display: "block", textAlign: "center", fontStyle: "italic", color: "var(--cs-texte-faible)", fontSize: "0.71875rem", lineHeight: 1.35, padding: "3px 6px", cursor: deutero ? "help" : "default" }}>
       {deutero ? "Absent des Bibles hébraïque et protestante" : "Cette traduction ne contient pas ce verset"}
     </span>
   );
@@ -386,8 +387,8 @@ function CelluleNote({ valeur, refLisible, onChange }: {
       <button onClick={() => { demarrer.current = true; setFocus(true); }}
         style={{ width: "100%", minHeight: "1.9rem", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
           background: "none", border: "none", borderRadius: 4, cursor: "text",
-          fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", fontSize: "0.66rem",
-          color: "#a7b0a6", padding: "3px 6px", lineHeight: 1.3 }}>
+          fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", fontSize: "0.65625rem",
+          color: "var(--cs-texte-faible)", padding: "3px 6px", lineHeight: 1.3 }}>
         Prendre une note sur {refLisible}
       </button>
     );
@@ -396,9 +397,9 @@ function CelluleNote({ valeur, refLisible, onChange }: {
     <textarea value={valeur} onChange={e => onChange(e.target.value)}
       ref={el => { if (el && demarrer.current) { el.focus(); demarrer.current = false; } }}
       onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
-      style={{ width: "100%", resize: "none", minHeight: "1.9rem", boxSizing: "border-box", border: "1px solid #e4e0d6", borderRadius: 4,
+      style={{ width: "100%", resize: "none", minHeight: "1.9rem", boxSizing: "border-box", border: "1px solid var(--cs-bord-clair)", borderRadius: 4,
         background: "rgba(255,255,255,0.8)", padding: "3px 6px", fontFamily: "var(--font-source-sans), Arial, sans-serif",
-        fontSize: "0.72rem", lineHeight: 1.35, color: "#2a2620", outline: "none" }} />
+        fontSize: "0.71875rem", lineHeight: 1.35, color: "var(--cs-texte-fort)", outline: "none" }} />
   );
 }
 
@@ -444,7 +445,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
 
   const ligne = (actif: boolean): React.CSSProperties => ({
     display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
-    padding: "7px 10px", borderRadius: 5, border: "none", cursor: "pointer",
+    padding: "7px 10px", borderRadius: 4, border: "none", cursor: "pointer",
     background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "transparent",
     fontFamily: "var(--font-source-sans), Arial, sans-serif",
   });
@@ -475,7 +476,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       {ouvert && rect && createPortal(
         <div ref={panRef} role="listbox"
           style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
-            background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 9, boxShadow: "0 12px 34px rgba(40,30,15,0.22)",
+            background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 8, boxShadow: "var(--cs-ombre-modale)",
             padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
           {GROUPES_LANG.map(g => {
             const membres = trads.filter(t => t.lang === g.code);
@@ -495,7 +496,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
                       {coche(actif)}
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-encre-fonce)", lineHeight: 1.25 }}>{t.nom}</span>
-                        <span style={{ display: "block", fontSize: "0.625rem", color: "#9a8f80", marginTop: 1 }}>
+                        <span style={{ display: "block", fontSize: "0.625rem", color: "var(--cs-texte-doux)", marginTop: 1 }}>
                           {t.edition ?? ""}
                           {ailleurs && courante && <span style={{ color: "#b07d1e" }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
                         </span>
@@ -990,7 +991,7 @@ export default function PolyglottePage() {
         .poly-cellact {
           position: absolute; top: 2px; right: 4px; z-index: 2;
           display: flex; align-items: center; gap: 8px;
-          padding: 2px 7px; border-radius: 6px;
+          padding: 2px 7px; border-radius: 8px;
           background: transparent; box-shadow: none;
           transition: background .12s, box-shadow .12s;
         }
@@ -998,7 +999,7 @@ export default function PolyglottePage() {
            bouge : la classe poly-curseur-actif est retirée après une seconde d'immobilité
            (JS), ce qui efface les actions pour ne pas gêner la lecture. */
         .poly-curseur-actif .poly-texte-cell:hover .poly-cellact {
-          background: rgba(255,255,255,0.88); box-shadow: 0 1px 3px rgba(45,35,25,0.14);
+          background: rgba(255,255,255,0.88); box-shadow: var(--cs-ombre-nette);
         }
         .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
         .poly-curseur-actif .poly-texte-cell:hover .poly-act { opacity: .9; }
@@ -1011,7 +1012,7 @@ export default function PolyglottePage() {
         .poly-notes-head:hover .lbl-fermer { opacity: 1; }
         /* Rail réduit : le crayon s'éclaire au survol. */
         .poly-notes-rail { transition: background .14s ease, color .14s ease; }
-        .poly-notes-rail:hover { background: rgba(255,255,255,0.14) !important; color: #fff !important; }
+        .poly-notes-rail:hover { background: rgba(255,255,255,0.14) !important; color: var(--cs-surface) !important; }
         /* Surbrillance très légère de la ligne survolée. Elle passe par un filtre
            (et non par le background) pour agir par-dessus les fonds inline — zébrage,
            signalétique, surnuméraires — sans les remplacer. */
@@ -1085,14 +1086,14 @@ export default function PolyglottePage() {
           position: absolute; inset: 0;
           display: flex; align-items: center; justify-content: flex-end;
           opacity: 0; pointer-events: none;
-          border-radius: 2px; padding: 0 1px;
+          border-radius: 4px; padding: 0 1px;
         }
         .poly-texte-cell:hover .poly-edit,
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
       `}</style>
 
       <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.375rem', color: VERT, margin: "0 0 16px" }}>Polyglotte</h1>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
           <br /><br />
@@ -1136,8 +1137,8 @@ export default function PolyglottePage() {
                 const actif = nbTradPref === val;
                 return (
                   <button key={lbl} onClick={() => setNbTradPref(val)}
-                    style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                      border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "var(--cs-texte-second)",
+                    style={{ fontSize: "0.625rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
+                      border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "var(--cs-surface)", color: actif ? VERT : "var(--cs-texte-second)",
                       fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                     {lbl}
                   </button>
@@ -1155,8 +1156,8 @@ export default function PolyglottePage() {
                   return (
                     <button key={val} onClick={() => setCouche899(val)}
                       title={val === "expanded" ? "Abréviations développées" : "Transcription diplomatique du manuscrit"}
-                      style={{ fontSize: "0.62rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                        border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "#fff", color: actif ? VERT : "var(--cs-texte-second)",
+                      style={{ fontSize: "0.625rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
+                        border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "var(--cs-surface)", color: actif ? VERT : "var(--cs-texte-second)",
                         fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                       {lbl}
                     </button>
@@ -1186,7 +1187,7 @@ export default function PolyglottePage() {
           )}
         </div>
 
-      <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "#2a2620" }}>
+      <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "12px 18px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "var(--cs-texte-fort)" }}>
         {/* Aucun livre choisi : la page reste vide et l'explique */}
         {!onglet && (
           // Le groupe (image + légende) est centré VERTICALEMENT et HORIZONTALEMENT dans le bloc.
@@ -1218,17 +1219,17 @@ export default function PolyglottePage() {
                 sur un fond opaque : le texte du tableau ne défile donc jamais dans
                 l'interstice entre la navbar et l'en-tête. */}
             <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, zIndex: 5, background: FOND, paddingTop: HAUT_NAV }}>
-              <div style={{ borderRadius: "8px 8px 0 0", overflow: "hidden", boxShadow: "0 2px 10px rgba(55,45,35,0.14)" }}>
+              <div style={{ borderRadius: "8px 8px 0 0", overflow: "hidden", boxShadow: "var(--cs-ombre-posee)" }}>
               {/* Barre de titre, calée sur LA MÊME grille que le tableau. Le nom du livre
                   s'étend de la deuxième piste à la dernière (`2 / -1`) : il se centre donc
                   exactement sur les colonnes de traduction, la numérotation canonique restant
                   hors de son compte. Les réglages de relecture sont posés en `absolute` sur la
                   barre entière, DEHORS de la grille : ils ne pèsent d'aucun poids dans ce
                   centrage — le titre reste au même endroit qu'on soit admin ou non. */}
-              <div style={{ position: "relative", background: VERT_ENTETE, color: "#fff", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
+              <div style={{ position: "relative", background: VERT_ENTETE, color: "var(--cs-surface)", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: tmpl, alignItems: "center", minHeight: HAUT_TITRE }}>
                   <div />
-                  <div style={{ gridColumn: "2 / -2", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', letterSpacing: "0.01em" }}>
+                  <div style={{ gridColumn: "2 / -2", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', letterSpacing: "0.01em" }}>
                     {toutAfficher
                       ? LIBELLE_ONGLET[onglet]
                       : `${livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet]}${chapitreChoisi != null ? ` · Chapitre ${chapitreChoisi}` : ""}`}
@@ -1250,14 +1251,14 @@ export default function PolyglottePage() {
                           style={{ padding: "2px 9px", fontSize: '0.65625rem', fontWeight: 500, cursor: "pointer", borderRadius: 999, fontFamily: "var(--font-source-sans), Arial, sans-serif",
                             border: `1px solid ${actif ? teinte : "rgba(255,255,255,0.30)"}`,
                             background: actif ? teinte : "transparent",
-                            color: actif ? "#22301f" : "rgba(255,255,255,0.72)", transition: "all .15s", whiteSpace: "nowrap" }}>
+                            color: actif ? "var(--cs-encre-fonce)" : "rgba(255,255,255,0.72)", transition: "all .15s", whiteSpace: "nowrap" }}>
                           {libelle}
                         </button>
                       ))}
                     </span>
                   )}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "#fff", fontSize: '0.75rem', minHeight: HAUT_ENTETE }}>
+              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "var(--cs-surface)", fontSize: '0.75rem', minHeight: HAUT_ENTETE }}>
                 <div />
                 {/* Un en-tête par colonne de traduction, exactement : la numérotation
                     d'origine ayant rejoint le texte en lettrine, il n'y a plus de seconde
@@ -1304,8 +1305,8 @@ export default function PolyglottePage() {
             </div>
 
             {/* Corps : un bloc par livre, rendu paresseux (content-visibility) */}
-            <div style={{ border: "1px solid #e4ded3", borderTop: "none", borderRadius: "0 0 6px 6px", background: "var(--cs-surface)" }}>
-              {colonnes.length === 0 && <div style={{ padding: 20, color: "#a49b8c" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
+            <div style={{ border: "1px solid var(--cs-bord-clair)", borderTop: "none", borderRadius: "0 0 8px 8px", background: "var(--cs-surface)" }}>
+              {colonnes.length === 0 && <div style={{ padding: 20, color: "var(--cs-texte-doux)" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
         {/* On NE démonte PAS le corps pendant un rechargement : changer de traduction ne
             fait que remplacer le texte des cellules, la structure (lignes du canon) reste
             en place — la position de lecture ne bouge donc pas et la transition est fluide. */}
@@ -1364,10 +1365,10 @@ export default function PolyglottePage() {
             if (!srs.length) return null;
             return (
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
-                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ trad, ed }) => (
-                  <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                  <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
                     {trad} : {ed.nom}
                   </span>
                 ))}
@@ -1395,10 +1396,10 @@ export default function PolyglottePage() {
                   en dessous le donnait à lire deux fois. Les désignations propres aux éditions,
                   elles, restent dans tous les cas — l'en-tête ne les porte pas. */}
               {(toutAfficher || titresEdition(l.code).length > 0) && (
-                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "#eef2ee", borderTop: "1px solid #dfe6df", borderBottom: "1px solid #dfe6df", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {toutAfficher && l.nom_fr}
                   {titresEdition(l.code).map(({ trad, ed }) => (
-                    <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "#8a8378", marginTop: 2 }}>
+                    <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
                       {trad} : {ed.nom}
                     </span>
                   ))}
@@ -1424,7 +1425,7 @@ export default function PolyglottePage() {
                 // Le rose prime sur le rouge : un cas qui a résisté à la correction est une
                 // information plus précise qu'un point simplement à vérifier.
                 const resiste = estAdmin && sens.resiste(l.code, r.ch_canon, r.v_canon);
-                const fond = resiste ? ROSE_FOND : signaler ? ROUGE_FOND : ligneVide ? "#e8ece8" : r.est_suscription ? "#e3eee6" : (idx % 2 ? VERT_ZEBRE : VERT_ZEBRE_CLAIR);
+                const fond = resiste ? ROSE_FOND : signaler ? ROUGE_FOND : ligneVide ? "var(--cs-fond-doux)" : r.est_suscription ? "var(--cs-vert-pale)" : (idx % 2 ? VERT_ZEBRE : VERT_ZEBRE_CLAIR);
                 const apres = sensiblesOnly ? [] : (surnumApres.get(r.id) ?? []);
                 // Référence canonique lisible, partagée par les actions de chaque cellule
                 // (chaque cellule cite et signale SA propre traduction).
@@ -1451,7 +1452,7 @@ export default function PolyglottePage() {
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
-                            style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? "#7a1d16" : "#2a302b" }}>
+                            style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? "#7a1d16" : "var(--cs-encre-fonce)" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un
                                 créneau du canon — leurs numéros s'écrivent alors l'un sous l'autre,
@@ -1495,7 +1496,7 @@ export default function PolyglottePage() {
                             ) : lacuneCell ? (
                               // Même convention que la page Bible : « Lacune du manuscrit », en
                               // serif italique effacé, sans crochets. Fait du témoin, discret.
-                              <span title="Lacune matérielle du manuscrit" style={{ display: "flex", height: "100%", minHeight: "1.6em", alignItems: "center", justifyContent: "center", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", color: "var(--cs-lacune)", fontSize: "0.78rem", lineHeight: 1.4 }}>Lacune du manuscrit</span>
+                              <span title="Lacune matérielle du manuscrit" style={{ display: "flex", height: "100%", minHeight: "1.6em", alignItems: "center", justifyContent: "center", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", color: "var(--cs-lacune)", fontSize: "0.78125rem", lineHeight: 1.4 }}>Lacune du manuscrit</span>
                             ) : cs.map((c, k) => (
                               // Colonne TR0009 : le texte porte des marqueurs éditoriaux inline
                               // (`[lecture incertaine : …]`, `[lacune : …]`, `[ajout marginal : …]`).
@@ -1512,7 +1513,7 @@ export default function PolyglottePage() {
                         {notesReduites ? null : userId ? (
                           <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
                         ) : (
-                          <span style={{ fontSize: "0.6rem", fontStyle: "italic", color: "#b8b2a6", alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
+                          <span style={{ fontSize: "0.59375rem", fontStyle: "italic", color: "var(--cs-texte-faible)", alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
                         )}
                       </div>
                     </div>

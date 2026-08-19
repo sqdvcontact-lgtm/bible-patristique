@@ -90,7 +90,7 @@ export const COUL_FAMILLE: Record<string, string> = {
   'Pouvoirs, conflits et ruptures': '#b54d3f',
   'Culture et contexte': '#746187',
 }
-export const coulFamille = (f?: string | null) => (f && COUL_FAMILLE[f]) || '#8a8278'
+export const coulFamille = (f?: string | null) => (f && COUL_FAMILLE[f]) || 'var(--cs-texte-gris)'
 
 // ── Importance : quatre degrés, du plus fort au plus discret ───────────────
 export type Densite = 'essentiel' | 'etendu' | 'complet'
@@ -138,7 +138,7 @@ export const COUL_TYPE: Record<string, string> = {
   edition: '#8a7440',
   reception: '#83a06a',
 }
-export const coulType = (t?: string | null) => (t && COUL_TYPE[t]) || '#8a8278'
+export const coulType = (t?: string | null) => (t && COUL_TYPE[t]) || 'var(--cs-texte-gris)'
 
 export const LIB_TYPE: Record<string, string> = {
   vie: 'Vie',

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 // Point de contact du site. Public par nature — il vit hors du verrou (le proxy
 // le laisse passer), pour que les mentions légales puissent y renvoyer même
@@ -8,7 +9,7 @@ import React, { useState } from "react";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)",
-  borderRadius: "6px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none",
+  borderRadius: "8px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none",
   boxSizing: "border-box", fontFamily: "inherit",
 };
 const labelStyle: React.CSSProperties = {
@@ -49,7 +50,7 @@ export default function ContactPage() {
         <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px" }}>
           Nous écrire
         </p>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)", fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "12px", lineHeight: 1.25 }}>
+        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "12px", lineHeight: 1.25 }}>
           Contact
         </h1>
         <p style={{ fontSize: "0.84375rem", color: "#566150", lineHeight: 1.7, marginBottom: "28px" }}>
@@ -59,7 +60,7 @@ export default function ContactPage() {
 
         {etat === "fait" ? (
           <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "18px 20px" }}>
-            <p style={{ fontSize: "0.84375rem", color: "#2a6040", margin: 0, lineHeight: 1.65 }}>
+            <p style={{ fontSize: "0.84375rem", color: "var(--cs-vert-fonce)", margin: 0, lineHeight: 1.65 }}>
               Votre message est parti. Merci&#8239;! Nous vous répondrons si vous avez laissé une adresse.
             </p>
           </div>
@@ -92,8 +93,8 @@ export default function ContactPage() {
                 style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }} />
             </div>
             <button type="submit" disabled={etat === "envoi"}
-              style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "6px", border: "none",
-                background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "#fff", fontSize: "0.84375rem",
+              style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "8px", border: "none",
+                background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.84375rem",
                 fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer" }}>
               {etat === "envoi" ? "Envoi…" : "Envoyer"}
             </button>

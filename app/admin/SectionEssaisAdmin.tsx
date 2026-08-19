@@ -28,9 +28,9 @@ export default function SectionEssaisAdmin({
           { key: 'archive' as const, label: 'Publiés & brouillons', badge: 0 },
         ]).map(o => (
           <button key={o.key} onClick={() => setSous(o.key)}
-            style={{ padding: '9px 14px', fontSize: '0.8625rem', fontWeight: sous === o.key ? 600 : 400, color: sous === o.key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', borderBottom: sous === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+            style={{ padding: '9px 14px', fontSize: '0.875rem', fontWeight: sous === o.key ? 600 : 400, color: sous === o.key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', borderBottom: sous === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
             {o.label}
-            {o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600 }}>{o.badge}</span>}
+            {o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600 }}>{o.badge}</span>}
           </button>
         ))}
       </div>
@@ -108,7 +108,7 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
   }
 
   if (essais.length === 0) {
-    return <p style={{ fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '0 24px' }}>Aucun essai en attente de modération.</p>
+    return <p style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '0 24px' }}>Aucun essai en attente de modération.</p>
   }
 
   return (
@@ -139,13 +139,13 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
             <tr key={e.id} style={{ borderBottom: '1px solid var(--cs-fond-doux)' }}>
               <Td>
                 <Link href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer"
-                  style={{ fontSize: '0.8625rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 600 }}>{e.titre} ↗</Link>
+                  style={{ fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 600 }}>{e.titre} ↗</Link>
                 {e.sous_titre && <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{e.sous_titre}</p>}
-                <p style={{ fontSize: '0.68281rem', color: 'var(--cs-texte-faible)', margin: '2px 0 0' }}>#{e.id}</p>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', margin: '2px 0 0' }}>#{e.id}</p>
               </Td>
               <Td>{e.auteur_pseudo ?? '—'}</Td>
               <Td>
-                <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: e._groupe === 'modification' ? '#9a5a2a' : 'var(--cs-vert)' }}>
+                <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: e._groupe === 'modification' ? 'var(--cs-attente)' : 'var(--cs-vert)' }}>
                   {e._groupe === 'modification' ? 'À modifier' : 'En attente'}
                 </span>
               </Td>
@@ -157,16 +157,16 @@ function TableModeration({ essais: init, actionPublierEssai, actionRenvoyerBroui
               <Td><span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)' }}>—</span></Td>
               <Td align="right">
                 {action[e.id] === 'loading' ? (
-                  <span style={{ fontSize: '0.75469rem', color: 'var(--cs-texte-doux)' }}>…</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)' }}>…</span>
                 ) : action[e.id] === 'publie' ? (
-                  <span style={{ fontSize: '0.75469rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Publié</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Publié</span>
                 ) : action[e.id] === 'renvoye' ? (
-                  <span style={{ fontSize: '0.75469rem', color: 'var(--cs-danger)' }}>Renvoyé</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)' }}>Renvoyé</span>
                 ) : (
                   <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
                     <button onClick={() => renvoyer(e.id)} style={petitBouton('var(--cs-texte-second)', 'var(--cs-bord)')}>Renvoyer</button>
                     <button onClick={() => renvoyer(e.id, true)} style={petitBouton('var(--cs-danger)', 'var(--cs-danger-bord)')}>Refus</button>
-                    <button onClick={() => publier(e.id)} style={petitBouton('var(--cs-vert)', '#b4d4c0')}>Publier ✓</button>
+                    <button onClick={() => publier(e.id)} style={petitBouton('var(--cs-vert)', 'var(--cs-vert-clair)')}>Publier ✓</button>
                   </div>
                 )}
               </Td>
@@ -224,7 +224,7 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
   }
 
   if (essais.length === 0) {
-    return <p style={{ fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '0 24px' }}>Aucun essai publié ni brouillon pour l’instant.</p>
+    return <p style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '0 24px' }}>Aucun essai publié ni brouillon pour l’instant.</p>
   }
 
   return (
@@ -257,13 +257,13 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
               <tr key={e.id} style={{ borderBottom: '1px solid var(--cs-fond-doux)' }}>
                 <Td>
                   <Link href={estBrouillon ? `/essais/${e.id}/modifier` : `/essais/${e.id}`} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize: '0.8625rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 600 }}>{e.titre} ↗</Link>
+                    style={{ fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 600 }}>{e.titre} ↗</Link>
                   {e.sous_titre && <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{e.sous_titre}</p>}
-                  <p style={{ fontSize: '0.68281rem', color: 'var(--cs-texte-faible)', margin: '2px 0 0' }}>#{e.id} · {e.nb_signes.toLocaleString('fr')} signes</p>
+                  <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', margin: '2px 0 0' }}>#{e.id} · {e.nb_signes.toLocaleString('fr')} signes</p>
                 </Td>
                 <Td>{e.auteur}</Td>
                 <Td>
-                  <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: estBrouillon ? '#9a5a2a' : 'var(--cs-vert)' }}>
+                  <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: estBrouillon ? 'var(--cs-attente)' : 'var(--cs-vert)' }}>
                     {estBrouillon ? 'Brouillon' : 'Publié'}
                   </span>
                 </Td>
@@ -279,12 +279,12 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
                 <Td><CountInfo label="signalements" valeur={e.nb_signalements} alerte={e.nb_signalements > 0} /></Td>
                 <Td align="right">
                   {action[e.id] === 'ok' ? (
-                    <span style={{ fontSize: '0.75469rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Renvoyé</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Renvoyé</span>
                   ) : (
                     <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
                       <Link href={`/essais/${e.id}/modifier`} style={petitBouton('var(--cs-vert)', 'var(--cs-bord)')}>Modifier</Link>
                       {!estBrouillon ? (
-                        <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('#9a5a2a', '#e4d2bd')}>
+                        <button onClick={() => demanderModification(e.id)} disabled={action[e.id] === 'loading'} style={petitBouton('var(--cs-attente)', 'var(--cs-bord)')}>
                           Renvoyer
                         </button>
                       ) : (
@@ -310,19 +310,19 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
 /* ── Helpers ── */
 
 function Th({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
-  return <th style={{ padding: '7px 8px', fontSize: '0.64687rem', color: '#8a8278', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: align, fontWeight: 700 }}>{children}</th>
+  return <th style={{ padding: '7px 8px', fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: align, fontWeight: 700 }}>{children}</th>
 }
 
 function ThSort({ label, active, dir, onClick }: { label: string; active: boolean; dir: Dir; onClick: () => void }) {
   return (
-    <th onClick={onClick} style={{ padding: '7px 8px', fontSize: '0.64687rem', color: active ? 'var(--cs-vert)' : '#8a8278', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'left', fontWeight: 700, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
-      {label} <span style={{ opacity: active ? 1 : 0.3, fontSize: '0.575rem' }}>{active && dir === 'desc' ? '▼' : '▲'}</span>
+    <th onClick={onClick} style={{ padding: '7px 8px', fontSize: '0.65625rem', color: active ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'left', fontWeight: 700, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
+      {label} <span style={{ opacity: active ? 1 : 0.3, fontSize: '0.5625rem' }}>{active && dir === 'desc' ? '▼' : '▲'}</span>
     </th>
   )
 }
 
 function Td({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
-  return <td style={{ padding: '8px 8px', verticalAlign: 'top', fontSize: '0.79062rem', color: '#4a4540', textAlign: align, overflow: 'hidden' }}>{children}</td>
+  return <td style={{ padding: '8px 8px', verticalAlign: 'top', fontSize: '0.78125rem', color: '#4a4540', textAlign: align, overflow: 'hidden' }}>{children}</td>
 }
 
 function DateInfo({ label, valeur, discret = false }: { label: string; valeur: string | null | undefined; discret?: boolean }) {

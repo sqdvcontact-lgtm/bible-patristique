@@ -5,13 +5,13 @@
 //     posé sur la page de titre entre le titre et les mentions d'édition.
 //     `size` en gouverne la HAUTEUR, la largeur suit le rapport d'origine. Le PNG est
 //     détouré (fond transparent) et ses traits sont teintés dans le brun-gris de
-//     « Traduction par » (#655d54), légèrement grisés (opacity 0.82) ; il se pose donc
+//     « Traduction par » (var(--cs-texte-second)), légèrement grisés (opacity 0.82) ; il se pose donc
 //     directement sur le papier, sans rectangle visible ;
 //   · FeuilleVigne — fleuron de séparation (le glyphe ❧), qui remplace le long filet
 //     entre la page de titre et le niveau 1.
 // Purement décoratifs : aria-hidden, aucune sémantique.
 
-const FEUILLE = '#6a635b' // gris chaud, légèrement plus clair que le corps
+const FEUILLE = 'var(--cs-texte-second)' // gris chaud, légèrement plus clair que le corps
 
 export function MarqueImprimeur({ size = 150 }: { size?: number }) {
   return (

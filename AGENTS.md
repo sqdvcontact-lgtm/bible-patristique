@@ -66,7 +66,37 @@ Le site est dessiné en pixels fixes calibrés pour un portable. Pour l'agrandir
 - **Piège des blocs `<style>` (trouvaille)** : les conversions qui ne visent que les styles *inline* (`fontSize`) laissent intacts les `font-size` en **kebab-case** DANS les blocs `` <style>{`…`}</style> ``. Ces restes ont persisté sur le chantier, les sections admin et plusieurs pages lecteur (recherche, essais, traductions, bibliothèque, compte, commentaires…), restant petits sur grand écran alors que le reste grossissait. **Convertir aussi le CSS des blocs `<style>`**, en **sautant les lignes `@media`** (sinon on casse la valeur du breakpoint) et en gardant le garde-fou iOS `font-size: 16px` au focus. Repérage : `grep -rnE 'font-size: *[0-9]+px' app` (doit ne plus rien renvoyer hors le `16px !important` iOS).
 - **Mesure de lecture** : tokens `--mesure-*` dans `:root` (`globals.css`), en rem, pour que la colonne conserve ses proportions (mêmes caractères/ligne) quand le texte grossit.
 - **Navbar** : hauteur = **`HAUTEUR_NAVBAR = '3.5rem'`** (chaîne rem, dans `app/lib/mesures.ts`) → la barre grandit avec la police racine. Tous les décalages du site sont accordés à cette valeur : `calc(100vh/100dvh - 3.5rem)`, `top/paddingTop/scrollMarginTop: '3.5rem'`. ⚠️ **`HAUTEUR_NAVBAR` n'est plus un nombre** : ne jamais faire d'arithmétique JS dessus — composer en `calc(${HAUTEUR_NAVBAR} + Npx)` (cf. `SOMMET_CORPS` dans `polyglotte/page.tsx`, en-têtes collants). Pour changer la hauteur, modifier `mesures.ts` **et** répercuter la valeur sur ces décalages. Breakpoint du menu desktop : `md` → **`lg` (1024px)** pour éviter le tassement des liens.
+- ⛔ **Piège du `clamp(…px…)` — il POSE UN PLAFOND au lieu de faire grandir.** Seize déclarations de taille gardaient des bornes en pixels, et c'étaient sans exception les **titres de page**, donc les plus gros caractères du site. Les bornes d'un `clamp` en px sont absolues : elles ne suivent pas la police racine. Mesuré sur `/contact`, le titre restait à **34 px de 1280 px à 2400 px de large** pendant que le corps de texte passait de 13,5 à 18,6 px. Le rapport titre/texte tombait de **2,52 à 1,83** : la hiérarchie s'aplatissait à mesure que l'écran s'agrandissait. Converties en rem, les seize bornes rendent un rapport **constant à 2,07**. Repérage : `grep -rnE "fontSize: *['\"]clamp\([^)]*px" app` doit ne rien renvoyer.
 - **Portée** : desktop d'abord ; le mobile est traité ensuite (ci-dessous).
+
+# Échelle typographique et rangs de titre (2026-08-19)
+
+## L'échelle — `app/lib/echelleTypographique.ts`
+
+Le site comptait **112 tailles de texte distinctes**, dont une trentaine se pressaient entre 10 et 14 px, séparées par des **centièmes de pixel** : 12,64 et 12,65 ; 11,50 et 11,52 ; 10,08, 10,17, 10,24, 10,35, 10,40. Aucun œil ne les distingue, et aucune grille ne survit à trente valeurs voisines.
+
+**L'origine est instructive** : deux familles se superposaient, une échelle de base (9, 10, 10,5, 11, 12, 13…) et la même **multipliée par 1,15** (10,35, 11,50, 12,075, 12,65, 13,80, 13,225…), résidu d'une hausse générale passée sur une partie du site. La conversion px → rem est arrivée par-dessus et a **figé le désordre au lieu de le résoudre** : elle a converti fidèlement des valeurs qui n'avaient jamais été réduites à une grille. *Corollaire de méthode : convertir une unité n'est pas poser un système.*
+
+Les 112 valeurs sont rabattues sur **32 rangs**, pas de 0,5 px sous 14 px puis 1 px, puis des sauts plus larges. Le rabattage est **ancré sur les valeurs dominantes** (11,5 · 11 · 12 · 13 ; 13,80 → 14 ; 12,65 → 12,5) et son déplacement maximal est de **0,86 px, soit 3,5 % au pire** : le rendu ne bouge pas, seuls les doublons disparaissent. Même méthode que la passe couleur, et pour la même raison.
+
+`app/lib/echelleTypographique.test.ts` parcourt `app/` et refuse toute taille hors grille, **styles en ligne comme blocs `<style>`**. C'est ce test, et non la bonne volonté, qui empêche la dérive de revenir. Exemptions : les unités **relatives** (`em`, `%`), qui se règlent sur leur contexte, les `clamp(…)` des frontispices, et `EssaiPDF.tsx`.
+
+## Les rangs de titre — `app/lib/hierarchieTitres.ts`
+
+Chaque page composait son `<h1>` pour elle-même. Il n'en résultait pas une variété voulue mais une **absence de rang** : le même titre principal allait de **16,8 px en gras** (volet de l'Histoire, catalogue des péricopes) à **50 px en maigre** (frontispice d'œuvre), en six encres et trois graisses. Sur deux pages, le titre principal était plus petit que le texte courant de la page voisine, et mis en gras : composé comme une étiquette, pas comme un titre.
+
+Quatre rangs, chacun **ancré sur celui qui dominait déjà** :
+
+| Rang | Taille | Graisse | Encre | Ancre |
+|---|---|---|---|---|
+| **Frontispice** | `clamp(…rem…)` propre à chaque surface | normal | `--cs-encre-fonce` | page de titre d'œuvre, ouverture d'essai, accroche d'accueil |
+| **Titre de page** | `TITRE_PAGE` = `1.75rem` | normal | `--cs-encre-fonce` | `.cc-titre` du centre de contrôle |
+| **Titre de volet** | `TITRE_VOLET` = `1.15rem` | 500 | `--cs-encre-fonce` | `NavLivres` |
+| **Titre de carte** | `TITRE_CARTE` = `1.375rem` | normal | `--cs-encre` | écrans d'exception centrés, formulaires courts |
+
+⚠️ **Pas de `clamp(…vw…)` sur ces rangs, et c'est délibéré.** La police racine est déjà fluide : un `rem` grandit tout seul. Un `clamp` par-dessus ne faisait que poser un plafond (voir le piège ci-dessus). Les **frontispices** gardent le leur, en rem : ce sont des compositions à part, où la taille fait partie du dessin.
+
+⚠️ **Un `<h1>` n'est pas toujours un titre de page.** Plusieurs vivent dans une **carte centrée** (« écran réservé », « écran large requis », choix du pseudonyme) : les hausser au rang de la page serait un contresens. Regarder ce que le titre surmonte avant de lui donner un rang.
 
 ### Corollaire : un nombre de LIGNES ne s'écrit pas en dur
 
@@ -250,9 +280,33 @@ Familles :
 
 **Bascule** : script `scratchpad/sweep-palette.mjs` (table de rabat curée, exceptions SVG protégées), migration sur 89 fichiers / ~2082 usages, en plus des 681 usages du vert. `globals.css` est exclu du balayage (c'est là que les tokens sont **définis**). Référence visuelle de la palette : maquette « Palette d'harmonie » (voir charte §18).
 
-**Mode sombre** : le site est en thème **clair** ; les tokens ne portent qu'un jeu de valeurs. Un mode sombre éventuel se dérivera de ces mêmes tokens (chantier distinct — ne pas activer un `@media (prefers-color-scheme: dark)` partiel, le reste du site n'est pas prêt).
+**Mode sombre** : le site est en thème **clair** ; les tokens portent trois jeux de valeurs (Clair, Sépia, Cuir), mais seul le Clair est servi tant que le sélecteur de confort de lecture est en pause. Ne pas activer un `@media (prefers-color-scheme: dark)` partiel : le reste du site n'est pas prêt.
 
-**Reliquat** : les `rgba(...)` translucides non « de marque » (ombres `rgba(0,0,0,·)` / `rgba(255,255,255,·)`, et quelques teintes rares utilisées &lt; 5 fois) restent en dur — hors périmètre de cette passe.
+## Seconde passe (2026-08-19) — ce que la première avait laissé
+
+Audit d'harmonie, dix constats. Les corrections, dans l'ordre de leur importance.
+
+⛔ **Le bloc `@media (prefers-color-scheme: dark)` du gabarit Next était TOUJOURS LÀ**, malgré la consigne ci-dessus, et il était **actif** : mesuré au navigateur, un poste réglé en thème sombre recevait un `document.body` à `rgb(10, 10, 10)` sous des pages crème. Rien ne paraissait, parce que chaque page peint son fond et chaque texte son encre ; le noir n'attendait qu'une page qui oublie l'un ou l'autre. `--background` et `--foreground` étaient de surcroît **les deux seules variables qu'aucun thème ne redéfinissait**. Le bloc est retiré, et les deux noms **dérivent** désormais de `--cs-fond` / `--cs-texte`.
+
+**Six tokens de plus**, chacun pour un rôle que la palette n'avait pas :
+- `--cs-texte-gris` (`#8a8278`) : le barreau qui manquait entre `--cs-texte-doux` et `--cs-texte-second`. Il était écrit en dur **80 fois dans 40 fichiers**, à 46 du token le plus proche. Ce n'était pas un doublon, c'était un rang que le code avait créé tout seul. On nomme, on ne rabat pas.
+- `--cs-attente` (`#9a5a2a`) : « à normaliser », « brouillon », « en cours ». Un état de FILE, ni le danger (destructif), ni l'or (apparat), ni l'ocre de lacune (absence d'un témoin).
+- `--cs-systeme` (`#5f6b86`) : la famille « Système & doctrine » de la navbar, seule teinte froide du site, jusqu'ici en dur et donc intransposable en Sépia et en Cuir. Les deux autres familles prennent `--cs-vert` et `--cs-or`.
+- `--cs-vert-clair`, `--cs-or-clair`, `--cs-systeme-clair` : les variantes des trois familles sur le panneau mobile, qui est vert sombre **en toutes circonstances**. Pas de surcouche de thème : leur fond ne change pas.
+
+**Bascule** : 1 033 couleurs rabattues sur un token, dans 87 fichiers, au seuil ΔE ≤ 30 (indiscernable ou presque). Le résidu est de 273 valeurs pour 440 occurrences, chacune employée moins de huit fois et à plus de 30 de tout token : les rabattre serait un changement de dessin, pas une harmonisation.
+
+⛔ **Deux fichiers sont HORS PÉRIMÈTRE de toute passe de bascule**, et les balayer a déjà fait des dégâts :
+- `app/essais/[id]/EssaiPDF.tsx` — feuille `@react-pdf` composée en POINTS. PDFKit ne résout aucune custom property (`_normalizeColor` renvoie `null`, `_setColorCore` sort sans rien appliquer) : onze `var(--cs-…)` faisaient tomber au noir le vert du titre et l'or du fleuron, sans erreur. Et sa base `rem` vaut **18 points**, pas 16 : la composition avait grossi d'un huitième pendant que les marges, en points, ne bougeaient pas. Rétabli en hex et en nombres.
+- `app/lib/couverturesEssai.ts` — le contraste de chaque couverture est **testé** (WCAG AA) : un token y rend le calcul impossible. C'est le test qui l'a rattrapé.
+
+⚠️ **Le piège de l'alpha collé.** Le site affaiblissait une teinte en lui concaténant deux chiffres : ``background: `${coul}14` ``. Cela ne vaut que si la teinte est un hex littéral. Dès qu'elle devient un token, la chaîne produit `var(--cs-vert)14`, que le navigateur **jette en silence** : le fond translucide disparaît, le texte garde sa couleur, et la pastille reste lisible sans son fond. Douze occurrences. Passer par **`colorMix(teinte, pourcentage)`** (`app/lib/couleurs.ts`), qui accepte les deux formes. `app/lib/formes.test.ts` refuse tout retour de la forme collée.
+
+**Élévations** : 63 formules d'ombre, dont des paires que rien ne séparait à l'œil (mêmes décalages, 0,16 contre 0,18). Six tokens : `--cs-ombre-posee` (surface au repos), `--cs-ombre-nette` (petit objet qui flotte : bascule, infobulle, cellule d'actions — flou court mais ombre franche, sinon l'objet retombe sur la page), `--cs-ombre-flottante`, `--cs-ombre-modale`, plus `--cs-ombre-posee-haut` et `--cs-ombre-modale-haut` pour les barres et tiroirs du bas, dont l'ombre se porte dans l'autre sens. Restent en dur, volontairement : les `inset`, les ombres latérales des tiroirs, et les deux ombres teintées de marque.
+
+**Rayons** : tous les entiers de 2 à 20 servaient. Quatre valeurs désormais, à pas doublé : **4px** (puce, champ, bouton), **8px** (carte, encart), **12px** (modale, panneau), **999px** (pilule), plus `50%` pour le rond. Contrôlé par `app/lib/formes.test.ts`.
+
+**Fonds de page** : cinq sols coexistaient pour un seul « fond du site » — `var(--cs-fond)`, `#f4f0eb` (Histoire, catalogue des péricopes), `#f6f2e8` (Polyglotte, dont la constante était pourtant annotée « fond commun aux autres pages du site »), `#f3efe2` (Profil), `#e8eceb` (Administration, un gris-bleu franchement hors de la famille chaude, alors que `/admin/controle` employait déjà le token). Tous ramenés à `var(--cs-fond)`.
 
 # Perf du chemin de lecture (audit, point 2)
 
@@ -342,7 +396,7 @@ Règle fixée : le mode « Traductions parallèles » (`ComparaisonTraductions.t
 - **`ComparaisonTraductions` = rendu de la division courante** (props `book` / `division` / `userId` / `auteur`), **remonté par `key={set:book:division}`** (état initial `chargement=true`, pas de setState synchrone en tête d'effet).
 - **Segments cliquables + prélèvement** (comme en lecture) : chaque segment est un `.seg-inline` (CSS hérité du `<style>` parent) ; survol/clic → **cellule d'actions flottante** (prélever / copier / signaler, composants `BoutonsSegment`). Le `select` des segments ajoute `id_oeuvre` ; les métadonnées de citation sont chargées PAR œuvre (chaque colonne = une traduction, donc sa propre attribution). Notes en **infobulle** (`AppelNote`, contenu via `ContenuNoteStructuree`) — plus de bloc `<details>` ni de renvois bibliques bruts en ligne.
 - **Colonnes symétriques, container 52rem** : grille `repeat(2, minmax(0,1fr))`, gap 1.6rem, même police/teinte des deux côtés. La **prose** garde un filet fin sous chaque groupe (alignement empan par empan). Les **groupes de VERS consécutifs sont FUSIONNÉS** en un seul bloc à deux colonnes continues → interligne **rigoureusement constant** ; alinéa poétique (retrait des vers de rang pair + retrait de continuation). Ne pas réintroduire un rendu vers-par-groupe (interlignes inégaux).
-- **Étiquettes des deux traductions** : discrètes, **NON collantes, fond transparent** (petites capitales grises, filet fin). ⛔ Ne jamais leur donner `background: var(--background)` : ce token vire au **noir** en mode sombre (le fameux « bandeau noir »).
+- **Étiquettes des deux traductions** : discrètes, **NON collantes, fond transparent** (petites capitales grises, filet fin). *(Le « bandeau noir » qui les guettait est éteint depuis le 2026-08-19 : `--background` ne portait plus sa propre valeur et virait au noir sur un poste en thème sombre. Il dérive maintenant de `--cs-fond`. Préférer quand même le token de rôle, `--cs-surface` ou `--cs-fond`, à ce nom hérité du gabarit Next.)*
 - **Notes — vers cités** (`ContenuNoteStructuree`) : plus d'étiquette « Vers » ; un bloc `form==='verse'` se rend en **police réduite (0.9em) + léger retrait gauche**.
 - **Apparat critique** : masqué dans le sommaire en mode comparaison.
 

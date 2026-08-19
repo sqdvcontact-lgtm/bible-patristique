@@ -8,12 +8,12 @@ import { useCompte } from '@/app/lib/contexteCompte'
 export default function InvitationCompteInline({ action = 'participer' }: { action?: string }) {
   const { exigerCompte } = useCompte()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', background: 'rgba(var(--cs-vert-rgb),0.06)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '7px', padding: '11px 13px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', background: 'rgba(var(--cs-vert-rgb),0.06)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', padding: '11px 13px' }}>
       <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0 }}>
         La création de compte est libre et gratuite. Elle vous permet de {action}, de prélever des passages et de retrouver vos contributions.
       </p>
       <button onClick={() => exigerCompte(action)}
-        style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '6px 14px', borderRadius: '6px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer' }}>
+        style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>
         Créer un compte
       </button>
     </div>

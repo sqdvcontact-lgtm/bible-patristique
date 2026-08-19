@@ -135,27 +135,27 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     return (
       <article className="commentaire-carte" style={{ padding: '9px 0', borderBottom: '1px solid var(--cs-fond-doux)', viewTransitionName: `commentaire-essai-${c.id}` }}>
         {c.supprime ? (
-          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '6px 9px', borderRadius: '4px' }}>
+          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: 'var(--cs-fond)', padding: '6px 9px', borderRadius: '4px' }}>
             {c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : cache ? (
           <CommentaireRetracte c={c} />
         ) : (
-          <div className="commentaire-carte" style={{ ...styleCarte, padding: '8px 10px', borderRadius: '5px' }}>
+          <div className="commentaire-carte" style={{ ...styleCarte, padding: '8px 10px', borderRadius: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px', gap: '8px' }}>
               <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
                 {c.auteur_nom ?? 'Anonyme'}
-                {rang && rangCouleur && <span style={{ marginLeft: '6px', fontSize: '0.53125rem', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '3px', padding: '1px 5px' }}>{rang}</span>}
-                {!c.valide && <span style={{ marginLeft: '6px', fontSize: '0.46875rem', fontWeight: 700, color: 'var(--cs-danger)', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '3px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
+                {rang && rangCouleur && <span style={{ marginLeft: '6px', fontSize: '0.53125rem', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '4px', padding: '1px 5px' }}>{rang}</span>}
+                {!c.valide && <span style={{ marginLeft: '6px', fontSize: '0.46875rem', fontWeight: 700, color: 'var(--cs-danger)', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
               </p>
               <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
             </div>
             {c.passage_cite && (
-              <blockquote style={{ fontSize: '0.71875rem', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '8px', margin: '0 0 5px' }}>
+              <blockquote style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '8px', margin: '0 0 5px' }}>
                 « {c.passage_cite} »
               </blockquote>
             )}
-            <div style={{ fontSize: '0.75rem', color: c.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.5 }}>{rendreTexteEnrichi(c.texte)}</div>
+            <div style={{ fontSize: '0.75rem', color: c.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.5 }}>{rendreTexteEnrichi(c.texte)}</div>
             <LigneActions c={c} />
           </div>
         )}
@@ -168,25 +168,25 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             return (
           <div className="commentaire-carte" key={r.id} style={{ marginLeft: '14px', marginTop: '7px', paddingLeft: '10px', borderLeft: '2px solid var(--cs-fond-doux)', viewTransitionName: `commentaire-essai-${r.id}` }}>
             {r.supprime ? (
-              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: '#f3f0ea', padding: '5px 8px', borderRadius: '4px' }}>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: 'var(--cs-fond)', padding: '5px 8px', borderRadius: '4px' }}>
                 {r.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
               </p>
             ) : cacheReponse ? (
               <CommentaireRetracte c={r} petit />
             ) : (
-              <div className="commentaire-carte" style={{ padding: '7px 9px', borderRadius: '4px', background: r.valide ? '#fff' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? 'var(--cs-bord-clair)' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? 'var(--cs-bord)' : 'var(--cs-danger)'}` }}>
+              <div className="commentaire-carte" style={{ padding: '7px 9px', borderRadius: '4px', background: r.valide ? 'var(--cs-surface)' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? 'var(--cs-bord-clair)' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? 'var(--cs-bord)' : 'var(--cs-danger)'}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
                   <p style={{ fontSize: '0.65625rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
                     {r.auteur_nom ?? 'Anonyme'}
-                    {rangR && rangCouleurR && <span style={{ marginLeft: '5px', fontSize: '0.5rem', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '3px', padding: '1px 4px' }}>{rangR}</span>}
+                    {rangR && rangCouleurR && <span style={{ marginLeft: '5px', fontSize: '0.5rem', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '4px', padding: '1px 4px' }}>{rangR}</span>}
                     {!r.valide && <span style={{ marginLeft: '5px', fontSize: '0.4375rem', fontWeight: 700, color: 'var(--cs-danger)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
                   </p>
                   <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
                 </div>
                 {r.passage_cite && (
-                  <blockquote style={{ fontSize: '0.6875rem', color: '#756d64', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
+                  <blockquote style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
                 )}
-                <div style={{ fontSize: '0.71875rem', color: r.valide ? '#3a3020' : '#6f3d35', lineHeight: 1.48 }}>{rendreTexteEnrichi(r.texte)}</div>
+                <div style={{ fontSize: '0.71875rem', color: r.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.48 }}>{rendreTexteEnrichi(r.texte)}</div>
                 <LigneActions c={r} petit />
               </div>
             )}
@@ -270,7 +270,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
               style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? '#fff' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
+          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}
           </button>
         </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 type Traduction = {
   trad_id: string; nom: string; auteur: string | null; dates: string | null;
@@ -57,7 +58,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
   const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
 
   const fondSombre = estSombre !== false
-  const couleurTexte = t.photo ? (fondSombre ? '#f2efe8' : '#18130f') : 'var(--cs-encre-fonce)'
+  const couleurTexte = t.photo ? (fondSombre ? 'var(--cs-fond)' : '#18130f') : 'var(--cs-encre-fonce)'
   const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : 'var(--cs-texte-second)'
   const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : 'var(--cs-bord)'
 
@@ -73,7 +74,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         width: '100%', position: 'relative',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0', minHeight: t.photo ? '92px' : undefined,
-        background: t.photo ? 'transparent' : estOuvert ? 'rgba(var(--cs-vert-rgb),0.04)' : '#fff',
+        background: t.photo ? 'transparent' : estOuvert ? 'rgba(var(--cs-vert-rgb),0.04)' : 'var(--cs-surface)',
         border: 'none', cursor: 'pointer', textAlign: 'left',
         transition: 'background 0.15s', overflow: 'hidden',
       }}
@@ -198,8 +199,8 @@ export default function AllerPlusLoinClient() {
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: 'clamp(1.3125rem, 3.6vw, 1.8125rem)', fontWeight: 'normal',
-            color: 'var(--cs-encre-fonce)', lineHeight: 1.15, marginBottom: '8px',
+            fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE,
+            color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px',
           }}>
             Les traductions
           </h1>
@@ -234,7 +235,7 @@ export default function AllerPlusLoinClient() {
                     <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
                       {t.bio_courte && (
                         <p style={{
-                          fontSize: '0.78125rem', color: '#5a6b5e', lineHeight: 1.65,
+                          fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65,
                           margin: '0 0 12px', fontStyle: 'italic',
                           textAlign: 'justify', hyphens: 'auto',
                         }}>

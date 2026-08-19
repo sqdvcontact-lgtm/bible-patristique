@@ -133,7 +133,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
         {/* En-tête */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 16px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)' }}>
           {pseudoActif ? (
-            <button onClick={() => { setPseudoActif(null); setMessages(null) }} title="Retour" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8a8278', padding: '2px', lineHeight: 0 }}>
+            <button onClick={() => { setPseudoActif(null); setMessages(null) }} title="Retour" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-gris)', padding: '2px', lineHeight: 0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           ) : null}
@@ -159,7 +159,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {messages.map(m => (
                     <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.de_moi ? 'flex-end' : 'flex-start' }}>
-                      <div style={{ maxWidth: '78%', background: m.de_moi ? 'var(--cs-vert)' : '#fff', color: m.de_moi ? '#f0f7f2' : 'var(--cs-encre-fonce)', border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      <div style={{ maxWidth: '78%', background: m.de_moi ? 'var(--cs-vert)' : 'var(--cs-surface)', color: m.de_moi ? 'var(--cs-fond)' : 'var(--cs-encre-fonce)', border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {m.contenu}
                       </div>
                       <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', margin: '2px 4px 0' }}>
@@ -176,9 +176,9 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 onChange={e => setTexte(sansEmoticones(e.target.value))}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyer() } }}
                 placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
-                style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '9px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
+                style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
               <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
-                style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert)', color: '#fff', border: 'none', borderRadius: '9px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
+                style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', borderRadius: '8px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
                 {envoi ? '…' : 'Envoyer'}
               </button>
             </div>
@@ -191,7 +191,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 placeholder="Chercher un pseudonyme pour écrire…"
                 style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', padding: '7px 11px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
               {recherche.trim().length >= 2 && (
-                <div style={{ position: 'absolute', left: '14px', right: '14px', top: 'calc(100% - 2px)', zIndex: 5, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: '14px', right: '14px', top: 'calc(100% - 2px)', zIndex: 5, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' }}>
                   {resultats.length === 0 ? (
                     <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 12px', margin: 0 }}>Aucun pseudonyme trouvé.</p>
                   ) : resultats.map(p => (
@@ -206,7 +206,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             <div style={{ flexShrink: 0, display: 'flex', gap: '4px', padding: '8px 14px 4px' }}>
               {([['tous', 'Toutes'], ['non-lus', 'Non lues']] as const).map(([k, lab]) => (
                 <button key={k} onClick={() => setFiltre(k)}
-                  style={{ fontSize: '0.6875rem', padding: '3px 11px', borderRadius: '999px', border: `1px solid ${filtre === k ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: filtre === k ? 'rgba(var(--cs-vert-rgb),0.09)' : '#fff', color: filtre === k ? 'var(--cs-vert)' : '#8a8278', fontWeight: filtre === k ? 600 : 400, cursor: 'pointer' }}>{lab}</button>
+                  style={{ fontSize: '0.6875rem', padding: '3px 11px', borderRadius: '999px', border: `1px solid ${filtre === k ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: filtre === k ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: filtre === k ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: filtre === k ? 600 : 400, cursor: 'pointer' }}>{lab}</button>
               ))}
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 14px' }}>
@@ -220,15 +220,15 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {convsFiltrees.map(c => (
                     <button key={c.partenaire_pseudo} onClick={() => ouvrirConversation(c.partenaire_pseudo)}
-                      style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? '#f9fcf9' : '#fff', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
+                      style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? 'var(--cs-fond-clair)' : 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
                       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>{c.partenaire_pseudo}</span>
-                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert)', color: '#fff', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '10px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
+                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '8px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
                         </span>
                         <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', flexShrink: 0 }}>{dateRelative(c.dernier_at)}</span>
                       </span>
-                      <span style={{ display: 'block', fontSize: '0.75rem', color: c.nb_non_lus > 0 ? 'var(--cs-texte)' : '#8a8278', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.dernier_message}</span>
+                      <span style={{ display: 'block', fontSize: '0.75rem', color: c.nb_non_lus > 0 ? 'var(--cs-texte)' : 'var(--cs-texte-gris)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.dernier_message}</span>
                     </button>
                   ))}
                 </div>

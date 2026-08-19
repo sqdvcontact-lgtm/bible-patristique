@@ -24,9 +24,9 @@ export type Verdict = {
 }
 
 export const RANGS: Record<Rang, { label: string; fond: string; bord: string; texte: string }> = {
-  bon:      { label: 'Bon',      fond: 'var(--cs-vert-pale)', bord: 'var(--cs-vert)', texte: '#2f6046' },
-  moyen:    { label: 'Moyen',    fond: '#fff8ec', bord: '#c7832f', texte: '#8a541d' },
-  critique: { label: 'Critique', fond: '#fff0ed', bord: 'var(--cs-danger)', texte: 'var(--cs-danger-fonce)' },
+  bon:      { label: 'Bon',      fond: 'var(--cs-vert-pale)', bord: 'var(--cs-vert)', texte: 'var(--cs-vert-fonce)' },
+  moyen:    { label: 'Moyen',    fond: 'var(--cs-danger-fond)', bord: '#c7832f', texte: '#8a541d' },
+  critique: { label: 'Critique', fond: 'var(--cs-danger-fond)', bord: 'var(--cs-danger)', texte: 'var(--cs-danger-fonce)' },
 }
 
 export function rangDepuisScore(score: number): Rang {

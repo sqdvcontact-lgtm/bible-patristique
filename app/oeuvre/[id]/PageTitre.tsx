@@ -9,6 +9,7 @@ import { sansPointFinal } from '@/app/lib/titres'
 // Libellé du traducteur : logique pure dans `app/lib/traducteurs.ts` (testée),
 // ré-exportée ici pour les appelants historiques.
 import { libelleTrad } from '@/app/lib/traducteurs'
+import { ENCRE_TITRE, GRAISSE_TITRE } from '@/app/lib/hierarchieTitres'
 export { enumererNoms, libelleTrad } from '@/app/lib/traducteurs'
 
 /** Affichage d'un éditeur : « / » pour les co-éditeurs (jamais le « ; » brut du catalogue),
@@ -114,13 +115,13 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
     }}>
       {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des
           lettres) pour une capitale plus dense et plus posée. */}
-      <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#345c44', marginBottom: '34px', paddingLeft: '0.12em' }}>
+      <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)', marginBottom: '34px', paddingLeft: '0.12em' }}>
         {auteur}
       </p>
 
       {/* Titre principal (nom de l'œuvre en français) — agrandi */}
       <div style={{ position: 'relative', maxWidth: '35rem' }}>
-        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(33px, 4.7vw, 50px)', fontWeight: 'normal', color: '#141f18', lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '14px' : oeuvre.titre_original ? '20px' : '34px', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '14px' : oeuvre.titre_original ? '20px' : '34px', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
           {rendreIntitule(sansPointFinal(oeuvre.titre_affichage || titre))}
@@ -134,7 +135,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(18px, 2.4vw, 24px)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 24px' : '0 0 42px', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 24px' : '0 0 42px', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
@@ -147,7 +148,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Titre original */}
       {(oeuvre.titre_original || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(16px, 2.1vw, 21px)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '42px', letterSpacing: 0, whiteSpace: 'pre-line' }}>
             {oeuvre.titre_original ? rendreIntitule(oeuvre.titre_original) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
@@ -160,7 +161,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Traducteur — vient AVANT la marque d'imprimeur */}
       {(traducteur || estAdmin) && (
         <div style={{ position: 'relative' }}>
-          <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: '#655d54', marginBottom: '6px' }}>
+          <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
             {traducteur ? <>{traducteurLabel}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
           </p>
           {estAdmin && !versionActive && (
@@ -171,14 +172,14 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       )}
 
       {versionActive?.editionDescription && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: '#655d54', margin: '2px 0 0' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte-second)', margin: '2px 0 0' }}>
           {versionActive.editionDescription}
         </p>
       )}
 
       {/* Commentaire sur la traduction (ex. attribution discutée) — note discrète. */}
       {commentaireTraduction?.trim() && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: '#8a8278', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px' }}>
           {sansPointFinal(commentaireTraduction)}
         </p>
       )}
@@ -194,14 +195,14 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
         Corpus Scriptura
       </p>
       {(editeur || ville || datePublication) && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: '#a89f95', marginBottom: '3px' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginBottom: '3px' }}>
           {versionActive?.editionDescription && versionActive.publicationLabel
             ? versionActive.publicationLabel
             : formulerProvenance(editeur, ville, formaterDateHistorique(datePublication))}
         </p>
       )}
       {anneeEnLigne && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: '#a89f95' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>
           Édition en ligne, {anneeEnLigne}
         </p>
       )}

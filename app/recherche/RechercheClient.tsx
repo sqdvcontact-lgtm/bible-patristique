@@ -130,8 +130,8 @@ function surligneParts(texte: string, terme: string, mode: Mode, rouge: boolean,
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
   const style = rouge
-    ? { background: '#f6cfca', color: '#8a1710', fontWeight: 700, borderRadius: '2px', padding: '0 2px' }
-    : { background: '#b2ddc2', color: '#12401f', fontWeight: 700, borderRadius: '2px', padding: '0 2px' }
+    ? { background: '#f6cfca', color: '#8a1710', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
+    : { background: '#b2ddc2', color: '#12401f', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
   try {
     const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
     const alt = termesN.map(echapperRegex).join('|')
@@ -696,9 +696,9 @@ export default function RechercheClient() {
   return (
     <>
       <style>{`
-        .res-card { display:block; text-decoration:none; padding:6px 12px; background:var(--cs-surface); border-radius:7px; border:1px solid var(--cs-bord-clair); transition:border-color 0.12s, box-shadow 0.12s; }
+        .res-card { display:block; text-decoration:none; padding:6px 12px; background:var(--cs-surface); border-radius:8px; border:1px solid var(--cs-bord-clair); transition:border-color 0.12s, box-shadow 0.12s; }
         .res-card:hover { border-color:var(--cs-vert); box-shadow:0 1px 6px rgba(var(--cs-vert-rgb),0.10); }
-        .res-card--absent { background:#fff9f7; border-color:#f0c4b8; }
+        .res-card--absent { background:var(--cs-fond-clair); border-color:var(--cs-danger-bord); }
         .res-card--absent:hover { border-color:var(--cs-danger); }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
         .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:var(--cs-texte-second); line-height:1.4; font-family:inherit; transition:background 0.1s; }
@@ -707,37 +707,37 @@ export default function RechercheClient() {
         .brk-row--actif:hover { background:rgba(var(--cs-vert-rgb),0.2); }
         .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-faible); }
         .brk-row--actif .brk-count { color:#6a9a7a; }
-        .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:#8a8278; font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
+        .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:var(--cs-texte-gris); font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
         .ong-btn--actif { color:var(--cs-encre); font-weight:600; border-bottom-color:var(--cs-vert); }
         .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:#c0d8c8; }
         .ong-count { margin-left:5px; font-size:0.59375rem; color:var(--cs-texte-faible); font-weight:400; }
         .ong-btn--actif .ong-count { color:#6a9a7a; }
-        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:20px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .pag-btn:hover:not(:disabled) { background:var(--cs-vert); color:#fff; border-color:var(--cs-vert); }
-        .pag-btn:disabled { color:#c8c0b8; border-color:#ece8e2; cursor:default; }
+        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .pag-btn:hover:not(:disabled) { background:var(--cs-vert); color:var(--cs-surface); border-color:var(--cs-vert); }
+        .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
         .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .mode-btn--actif { background:var(--cs-vert); color:#fff; font-weight:500; }
+        .mode-btn--actif { background:var(--cs-vert); color:var(--cs-surface); font-weight:500; }
         .mode-btn--inactif { background:var(--cs-surface); color:var(--cs-texte-second); }
         .mode-btn--inactif:hover { background:var(--cs-fond-doux); }
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
-        .poly-outer { border-radius:0 0 8px 8px; border:1px solid #cdd8cf; border-top:none; box-shadow:0 4px 14px rgba(30,46,38,0.10); overflow:hidden; }
-        .poly-hd { background:#2b4536; display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
+        .poly-outer { border-radius:0 0 8px 8px; border:1px solid var(--cs-bord); border-top:none; box-shadow:var(--cs-ombre-flottante); overflow:hidden; }
+        .poly-hd { background:var(--cs-encre); display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
         .poly-hd-col { display:flex; align-items:center; gap:6px; padding:0 12px; height:38px; border-right:1px solid rgba(255,255,255,0.14); }
         .poly-hd-col:last-child { border-right:none; }
         .poly-hd-sel { font-size:0.625rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; text-align-last:center; color:rgba(255,255,255,0.9); background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 16px; flex:1; transition:color 0.12s; }
-        .poly-hd-sel:hover { color:#a8ccb8; }
-        .poly-hd-sel option { background:#2b4536; color:#e4ede7; font-weight:400; text-transform:none; font-size:0.75rem; }
+        .poly-hd-sel:hover { color:var(--cs-vert-clair); }
+        .poly-hd-sel option { background:var(--cs-encre); color:var(--cs-vert-pale); font-weight:400; text-transform:none; font-size:0.75rem; }
         .poly-hd-sel option:disabled { color:#6a8474; }
         .poly-hd-chevron { color:#6a8c76; pointer-events:none; flex-shrink:0; transition:color 0.12s; }
-        .poly-hd-col:hover .poly-hd-chevron { color:#a8ccb8; }
+        .poly-hd-col:hover .poly-hd-chevron { color:var(--cs-vert-clair); }
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
-        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:#1f3b2b; background:#b7d3bf; border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
+        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:var(--cs-encre); background:var(--cs-vert-clair); border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
         .poly-row { display:grid; border-top:1px solid var(--cs-vert-pale); font-size:0.8125rem; text-decoration:none; }
         .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:var(--cs-vert); border-right:1px solid var(--cs-vert-pale); white-space:nowrap; }
-        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid var(--cs-vert-pale); text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:#2a302b; }
+        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid var(--cs-vert-pale); text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:var(--cs-encre-fonce); }
         .poly-texte-cell::after { content:""; display:block; clear:both; }
-        .poly-texte-cell--absent { background:#fbeceb; color:#7a1d16; }
+        .poly-texte-cell--absent { background:var(--cs-danger-fond); color:#7a1d16; }
         .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(var(--cs-vert-rgb),0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
         .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
         .poly-lettrine-ref { display:block; white-space:nowrap; font-size:0.53125rem; line-height:1; }
@@ -747,9 +747,9 @@ export default function RechercheClient() {
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:7px; box-shadow:0 10px 28px rgba(30,46,38,0.14); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
-        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:3px}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:4px}
       `}</style>
 
       {/* Le layout global (`app/layout.tsx`) décale DÉJÀ le contenu de HAUTEUR_NAVBAR sous
@@ -763,8 +763,8 @@ export default function RechercheClient() {
             navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,
             prennent le reste et défilent si besoin. */}
         <aside style={mobile
-          ? { width:'100%', borderBottom:'1px solid var(--cs-bord)', background:'#fbf9f4', display:'flex', flexDirection:'column' }
-          : { width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid var(--cs-bord)', background:'#fbf9f4', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+          ? { width:'100%', borderBottom:'1px solid var(--cs-bord)', background:'var(--cs-fond-clair)', display:'flex', flexDirection:'column' }
+          : { width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid var(--cs-bord)', background:'var(--cs-fond-clair)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
 
             {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
@@ -772,7 +772,7 @@ export default function RechercheClient() {
               <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.75rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--cs-texte-doux)', fontWeight:400 }}>Recherche</span>
               {done && (() => {
                 const total = versetsRes.length + segmentsRes.length + essaisRes.length
-                return <span style={{ fontSize:'0.65625rem', color:'#b8b0a6', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
+                return <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-faible)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
               })()}
             </div>
 
@@ -794,7 +794,7 @@ export default function RechercheClient() {
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid var(--cs-bord)', borderRadius:'7px', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }} />
+                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid var(--cs-bord)', borderRadius:'8px', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'var(--cs-ombre-posee)' }} />
               {query ? (
                 <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
@@ -805,12 +805,12 @@ export default function RechercheClient() {
                 </svg>
               )}
               {showSugg && sugg.length > 0 && (
-                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'var(--cs-surface)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'0 6px 20px rgba(0,0,0,0.09)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
+                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'var(--cs-surface)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-flottante)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
                       style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
-                      onMouseEnter={e => (e.currentTarget.style.background='#f4f0ea')}
+                      onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond)')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
                       {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'var(--cs-texte-faible)' }}>{s.freq}</span>}
@@ -821,8 +821,8 @@ export default function RechercheClient() {
                       (ils commencent tous par le préfixe). Légèrement mis en évidence. */}
                   <li
                     onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
-                    style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'#2f6046', background:'var(--cs-vert-pale)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
-                    onMouseEnter={e => (e.currentTarget.style.background='#e7f2ea')}
+                    style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert-fonce)', background:'var(--cs-vert-pale)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
+                    onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond-doux)')}
                     onMouseLeave={e => (e.currentTarget.style.background='var(--cs-vert-pale)')}>
                     <span>Tout rechercher</span>
                     <span style={{ fontSize:'0.8125rem' }}>↵</span>
@@ -844,20 +844,20 @@ export default function RechercheClient() {
                       <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'var(--cs-texte-doux)', marginBottom:'7px' }}>Les deux modes</span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
-                        <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Début de mot</span>
+                        <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Début de mot</span>
                         <span style={{ display:'block' }}>Trouve les mots qui commencent par ce que vous tapez ; plusieurs termes à la fois sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'#8a8278', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier ; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier ; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
                       </span>
 
                       <span style={{ display:'block' }}>
-                        <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Mot exact</span>
+                        <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Mot exact</span>
                         <span style={{ display:'block' }}>Ne trouve que le mot entier ; plusieurs mots entiers, non consécutifs, sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'#8a8278', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
                       </span>
                     </span>
                   </span>
                 </p>
-                <div style={{ display:'flex', border:'1px solid var(--cs-bord)', borderRadius:'5px', overflow:'hidden' }}>
+                <div style={{ display:'flex', border:'1px solid var(--cs-bord)', borderRadius:'4px', overflow:'hidden' }}>
                   <button className={`mode-btn ${mode==='prefixe'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1 }} onClick={()=>setMode('prefixe')}>Début de mot</button>
                   <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1, borderLeft:'1px solid var(--cs-bord)' }} onClick={()=>setMode('exact')}>Mot exact</button>
                 </div>
@@ -891,7 +891,7 @@ export default function RechercheClient() {
                 <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid var(--cs-bord)', borderRadius:'8px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
                       onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.12)')}
                       onMouseLeave={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.06)')}>
                       <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
@@ -905,7 +905,7 @@ export default function RechercheClient() {
                   {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
                   {rechercheSauvee && (
                     <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid #cdd8cf', borderRadius:'6px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid var(--cs-bord)', borderRadius:'8px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
                       onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.12)')}
                       onMouseLeave={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.06)')}>
                       <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
@@ -916,7 +916,7 @@ export default function RechercheClient() {
                         Reprendre ma recherche
                         <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
                       </span>
-                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'#b8b0a6', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
+                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-faible)', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
                     </button>
                   )}
                 </div>
@@ -1000,7 +1000,7 @@ export default function RechercheClient() {
 
           {/* Bannière troncature */}
           {done && tronque.length > 0 && (
-            <div style={{ flexShrink:0, background:'#fef8ec', border:'1px solid #e8c96a', borderRadius:'6px', padding:'7px 14px', margin:'12px 24px 0', display:'flex', alignItems:'center', gap:'8px' }}>
+            <div style={{ flexShrink:0, background:'var(--cs-danger-fond)', border:'1px solid #e8c96a', borderRadius:'8px', padding:'7px 14px', margin:'12px 24px 0', display:'flex', alignItems:'center', gap:'8px' }}>
               <span style={{ fontSize:'0.8125rem' }}>⚠️</span>
               <span style={{ fontSize:'0.71875rem', color:'#7a5a10' }}>
                 Résultats trop nombreux dans {tronque.join(', ')} — seuls les premiers affichés. Affinez votre recherche ou utilisez le mode <strong>Mot exact</strong>.
@@ -1124,7 +1124,7 @@ export default function RechercheClient() {
                           latin en italiques, grec en romain). Sinon, le texte français. */}
                       {s.matchOrig && s.texte_original ? (
                         <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
-                          <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--cs-vert)', background:'var(--cs-vert-pale)', borderRadius:'3px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
+                          <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--cs-vert)', background:'var(--cs-vert-pale)', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
                           <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
                             {rendreEtSurligner(nettoyerFin(s.texte_original), lastQuery, mode)}
                           </span>
@@ -1153,7 +1153,7 @@ export default function RechercheClient() {
                           <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{e.titre}</span>
                           {e.categories?.[0] && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>{e.categories[0]}</span>}
                         </div>
-                        {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'#8a8278', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
+                        {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
                         <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.55, color:'var(--cs-texte-fort)', margin:0 }}>
                           {highlighter(texteAffiche, lastQuery, mode)}
                         </p>
@@ -1179,7 +1179,7 @@ export default function RechercheClient() {
                           if (estNouveauLivre) livresVus.add(v.livre)
                           // Pas d'alternance : un fond uniforme, très clair. Le zébrage
                           // n'apporte rien ici et brouillait la lecture des colonnes.
-                          const fond = '#fbfdfb'
+                          const fond = 'var(--cs-surface)'
                           return (
                             <Fragment key={v.id_verset}>
                               {/* En-tête de livre : NOM SEUL, centré sur les colonnes de
@@ -1261,7 +1261,7 @@ export default function RechercheClient() {
         <div onClick={() => setConfirmEcrasement(false)}
           style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background:'#fbf9f4', border:'1px solid var(--cs-bord)', borderRadius:'10px', boxShadow:'0 14px 40px rgba(30,46,38,0.25)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
+            style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
             <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
             <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-second)', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
@@ -1269,9 +1269,9 @@ export default function RechercheClient() {
             </p>
             <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
               <button onClick={() => setConfirmEcrasement(false)}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'6px', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'8px', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'6px', background:'var(--cs-vert)', color:'#fff', fontWeight:600, cursor:'pointer' }}>Écraser</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'var(--cs-vert)', color:'var(--cs-surface)', fontWeight:600, cursor:'pointer' }}>Écraser</button>
             </div>
           </div>
         </div>

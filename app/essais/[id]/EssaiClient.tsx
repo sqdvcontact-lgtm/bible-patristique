@@ -51,7 +51,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
   }
   return (
     <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: flash ? '#edf5f0' : '#fff', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: flash ? 'var(--cs-fond)' : 'var(--cs-surface)', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
       {children}
     </button>
   )
@@ -265,7 +265,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         .essai-note-spinner {
           display: inline-block;
           width: 14px; height: 14px;
-          border: 2px solid #e0dbd4;
+          border: 2px solid var(--cs-bord-clair);
           border-top-color: var(--cs-vert);
           border-radius: 50%;
           animation: essai-note-spin 0.65s linear infinite;
@@ -282,7 +282,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             )}
             <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
             {essai.sous_titre && (
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: '#8a8278', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
             )}
             <p style={{ fontSize: '0.625rem', letterSpacing: '0.04em', color: 'var(--cs-texte-faible)', margin: '12px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Publié le {dateFormatee}</p>
             <p style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', margin: '3px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Lu {nbVues} fois</p>
@@ -298,9 +298,9 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               <nav style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                 {sommaire.map(s => (
                   <button key={s.id} onClick={() => allerAu(s.id)}
-                    style={{ textAlign: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? '#6f665c' : 'var(--cs-texte)', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
+                    style={{ textAlign: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? 'var(--cs-texte-second)' : 'var(--cs-texte)', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
                     onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? '#6f665c' : 'var(--cs-texte)' }}>
+                    onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? 'var(--cs-texte-second)' : 'var(--cs-texte)' }}>
                     {rendreTexteEnrichi(s.titre)}
                   </button>
                 ))}
@@ -315,7 +315,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '0 56px 80px' }}>
 
           {essai.statut === 'en_attente' && (
-            <p style={{ fontSize: '0.71875rem', color: '#9a5a2a', background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '6px', padding: '8px 12px', margin: '24px 0 0' }}>
+            <p style={{ fontSize: '0.71875rem', color: 'var(--cs-attente)', background: 'var(--cs-fond-clair)', border: '1px solid #e4c4a0', borderRadius: '8px', padding: '8px 12px', margin: '24px 0 0' }}>
               Cet essai est en attente de validation par l’administration — seul vous pouvez le voir ainsi.
             </p>
           )}
@@ -332,11 +332,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 {essai.auteur_pseudo}
               </p>
             )}
-            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>
+            <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(1.625rem, 4vw, 2.375rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>
               {essai.titre}
             </h1>
             {essai.sous_titre && (
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(15px, 2vw, 18px)', fontStyle: 'italic', color: '#8a8278', margin: '0 0 24px', letterSpacing: '0.01em' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(0.9375rem, 2vw, 1.125rem)', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '0 0 24px', letterSpacing: '0.01em' }}>
                 {essai.sous_titre}
               </p>
             )}
@@ -366,10 +366,10 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
           {versetParse && (
             <div style={{ margin: '0 auto 52px', maxWidth: '26.25rem', textAlign: 'center' }}>
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.90625rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                 {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
-              <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: '#a09890', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
+              <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-doux)', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
                 {expanderRef(versetParse.ref)}
               </p>
             </div>
@@ -387,7 +387,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <>
         {mobile && <div onClick={() => setVoletOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <div style={mobile
-          ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 28px rgba(45,35,25,0.22)' }
+          ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale-haut)' }
           : { width: '18.75rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
           {/* Barre supérieure : fermer | titre | partager */}
@@ -416,7 +416,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       ) : mobile ? (
         /* Volet droit — barre fixe en bas (mobile) */
         <button onClick={() => setVoletOuvert(true)} title="Ouvrir les commentaires"
-          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: '0 -1px 4px rgba(45,35,25,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>

@@ -17,6 +17,7 @@ import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
 import { ABREV_FR } from '@/app/lib/bible'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import {
   libelleCategoriePericope,
   chargerTextePericope,
@@ -68,7 +69,7 @@ const SANS = 'var(--font-source-sans), Arial, sans-serif'
 function Etat({ children }: { children: React.ReactNode }) {
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: FOND, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <p style={{ color: 'var(--cs-texte-doux)', fontSize: '0.9rem' }}>{children}</p>
+      <p style={{ color: 'var(--cs-texte-doux)', fontSize: '0.875rem' }}>{children}</p>
     </main>
   )
 }
@@ -95,7 +96,7 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
           <div key={v.id_verset} className="peri-verset-row">
             {nouveauChapitre && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: i === 0 ? '0 0 8px' : '15px 0 8px' }}>
-                <span style={{ fontFamily: SANS, fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', whiteSpace: 'nowrap' }}>Chapitre {v.chapitre}</span>
+                <span style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', whiteSpace: 'nowrap' }}>Chapitre {v.chapitre}</span>
                 <span style={{ flex: 1, height: '1px', background: 'var(--cs-bord)' }} />
               </div>
             )}
@@ -131,7 +132,7 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
   return (
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOuvert(o => !o)} aria-expanded={ouvert} aria-haspopup="listbox"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '6px', padding: '6px 10px', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '8px', padding: '6px 10px', cursor: 'pointer' }}>
         {active.nom}
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.5, flexShrink: 0, transform: ouvert ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -140,16 +141,16 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
       {ouvert && (
         <>
           <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-          <div role="listbox" style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '8px', boxShadow: '0 10px 28px rgba(45,35,25,0.14)', overflow: 'hidden', padding: '4px' }}>
+          <div role="listbox" style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden', padding: '4px' }}>
             {TRADUCTIONS_BIBLE.map(t => {
               const actif = t.code === trad
               return (
                 <button key={t.code} role="option" aria-selected={actif} onClick={() => { setTrad(t.code); setOuvert(false) }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', fontFamily: SANS, fontSize: '0.75rem', color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400, background: actif ? 'rgba(var(--cs-vert-rgb),0.08)' : 'transparent', border: 'none', borderRadius: '5px', padding: '6px 9px', cursor: 'pointer' }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', fontFamily: SANS, fontSize: '0.75rem', color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400, background: actif ? 'rgba(var(--cs-vert-rgb),0.08)' : 'transparent', border: 'none', borderRadius: '4px', padding: '6px 9px', cursor: 'pointer' }}
                   onMouseEnter={e => { if (!actif) e.currentTarget.style.background = 'rgba(var(--cs-vert-rgb),0.05)' }}
                   onMouseLeave={e => { if (!actif) e.currentTarget.style.background = 'transparent' }}>
                   <span>{t.nom}</span>
-                  {actif && <span aria-hidden="true" style={{ color: VERT, fontSize: '0.72rem' }}>✓</span>}
+                  {actif && <span aria-hidden="true" style={{ color: VERT, fontSize: '0.71875rem' }}>✓</span>}
                 </button>
               )
             })}
@@ -328,13 +329,13 @@ export default function PericopePage() {
       `}</style>
       <header style={{ textAlign: 'center', paddingBottom: '1rem', marginBottom: '1.3rem', borderBottom: `1px solid ${SEP}` }}>
         {categorie && (
-          <p style={{ fontFamily: SANS, fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 7px' }}>
+          <p style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 7px' }}>
             {categorie}{peri.est_collection ? ' · Ensemble' : ''}
           </p>
         )}
-        <h1 style={{ fontFamily: SERIF, fontSize: mobile ? '1.55rem' : '1.85rem', fontWeight: 500, color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.13, textWrap: 'balance' } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.nom))}</h1>
+        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: 1.13, textWrap: 'balance' } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.nom))}</h1>
         {principale && (
-          <p style={{ fontFamily: SERIF, fontSize: '0.92rem', color: 'var(--cs-texte-second)', margin: '6px 0 0' }}>
+          <p style={{ fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-texte-second)', margin: '6px 0 0' }}>
             {formaterPlageCanonique(principale.canon_id_debut, principale.canon_id_fin)}
           </p>
         )}
@@ -347,15 +348,15 @@ export default function PericopePage() {
             <div key={o.id} lang={langAttr}>
               {occurrences.length > 1 && (
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', marginBottom: '7px', paddingBottom: '4px', borderBottom: `1px solid ${SEP}` }}>
-                  <span style={{ fontFamily: SERIF, fontSize: '0.86rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{formaterPlageCanonique(o.canon_id_debut, o.canon_id_fin)}</span>
-                  {o.est_principale && <span style={{ fontFamily: SANS, fontSize: '0.53rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-vert)' }}>principale</span>}
-                  {o.fiabilite && <span style={{ fontFamily: SANS, fontSize: '0.65rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{o.fiabilite}</span>}
+                  <span style={{ fontFamily: SERIF, fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{formaterPlageCanonique(o.canon_id_debut, o.canon_id_fin)}</span>
+                  {o.est_principale && <span style={{ fontFamily: SANS, fontSize: '0.53125rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-vert)' }}>principale</span>}
+                  {o.fiabilite && <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{o.fiabilite}</span>}
                 </div>
               )}
               {texteLoading ? (
-                <p style={{ fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement du texte…</p>
+                <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement du texte…</p>
               ) : vs.length === 0 ? (
-                <p style={{ fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Texte indisponible dans cette traduction.</p>
+                <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Texte indisponible dans cette traduction.</p>
               ) : <BlocVersets vs={vs} ctx={{ ...ctxBase, livre: o.livre }} />}
             </div>
           )
@@ -385,7 +386,7 @@ export default function PericopePage() {
             <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>Occurrences</p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {occurrences.map(o => (
-                <li key={o.id} style={{ fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', display: 'flex', alignItems: 'baseline', gap: '7px' }}>
+                <li key={o.id} style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', display: 'flex', alignItems: 'baseline', gap: '7px' }}>
                   <span>{formaterPlageCanonique(o.canon_id_debut, o.canon_id_fin)}</span>
                   {o.est_principale && <span style={{ fontFamily: SANS, fontSize: '0.5rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-vert)' }}>princ.</span>}
                 </li>
@@ -407,7 +408,7 @@ export default function PericopePage() {
           <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Notice</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {peri.notice && (
-              <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
+              <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
             )}
             {([
               { label: 'Contexte', v: peri.notice_contexte },
@@ -417,7 +418,7 @@ export default function PericopePage() {
             ] as const).filter(b => b.v).map(b => (
               <div key={b.label}>
                 <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>{b.label}</p>
-                <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
+                <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
               </div>
             ))}
           </div>
@@ -440,7 +441,7 @@ export default function PericopePage() {
                 vus.add(cle); return true
               })
             })().map((r, i) => (
-              <li key={i} style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
+              <li key={i} style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
                 <ReferenceBiblio r={r} />
               </li>
             ))}
@@ -456,8 +457,8 @@ export default function PericopePage() {
       <main style={{ background: FOND, minHeight: 'calc(100vh - 3.5rem)', padding: '1.5rem 1.1rem 3rem' }}>
         <div style={{ maxWidth: '44rem', margin: '0 auto' }}>
           {centre}
-          <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '10px' }}>{voletDroit}</div>
-          <div style={{ marginTop: '1.5rem', border: `1px solid ${BORD}`, borderRadius: '10px', overflow: 'hidden', background: 'var(--cs-surface)' }}>{panneauPatristique}</div>
+          <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '8px' }}>{voletDroit}</div>
+          <div style={{ marginTop: '1.5rem', border: `1px solid ${BORD}`, borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)' }}>{panneauPatristique}</div>
         </div>
       </main>
     )
@@ -481,8 +482,8 @@ export default function PericopePage() {
 function LigneInfo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '5.5rem 1fr', columnGap: '10px', alignItems: 'baseline' }}>
-      <dt style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.03em', color: 'var(--cs-texte-doux)' }}>{label}</dt>
-      <dd style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', margin: 0, lineHeight: 1.4 }}>{children}</dd>
+      <dt style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 600, letterSpacing: '0.03em', color: 'var(--cs-texte-doux)' }}>{label}</dt>
+      <dd style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', margin: 0, lineHeight: 1.4 }}>{children}</dd>
     </div>
   )
 }

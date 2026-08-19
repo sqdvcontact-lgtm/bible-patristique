@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import type { Auteur } from './adminTypes'
+import { colorMix } from '@/app/lib/couleurs'
 
 // Curation de la chronologie : événements centraux et leurs associations aux auteurs.
 // On NE crée ni ne corrige de données historiques ici (elles sont fournies séparément,
@@ -30,9 +31,9 @@ const STATUTS = ['sourcé', 'à consolider']
 const NATURES = ['direct', 'biographique', 'bibliographique', 'doctrinal', 'géographique', 'institutionnel', 'politique', 'contextuel', 'réception']
 const PERTINENCES = ['indispensable', 'utile', 'secondaire']
 
-const champ: React.CSSProperties = { width: '100%', fontSize: '0.83rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }
-const label: React.CSSProperties = { display: 'block', fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.04em', color: '#8a8278', textTransform: 'uppercase', margin: '0 0 3px' }
-const btn = (bg: string, fg: string, bd?: string): React.CSSProperties => ({ fontSize: '0.79rem', padding: '5px 12px', borderRadius: '5px', border: bd ? `1px solid ${bd}` : 'none', background: bg, color: fg, cursor: 'pointer', fontWeight: 600 })
+const champ: React.CSSProperties = { width: '100%', fontSize: '0.84375rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }
+const label: React.CSSProperties = { display: 'block', fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase', margin: '0 0 3px' }
+const btn = (bg: string, fg: string, bd?: string): React.CSSProperties => ({ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: bd ? `1px solid ${bd}` : 'none', background: bg, color: fg, cursor: 'pointer', fontWeight: 600 })
 
 function Selecteur({ value, onChange, options, vide }: { value: string; onChange: (v: string) => void; options: string[]; vide?: string }) {
   return (
@@ -121,35 +122,35 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
 
   return (
     <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
-      <p style={{ fontSize: '0.9rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 8px' }}>
+      <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 8px' }}>
         Curation de la <strong>chronologie</strong> : les événements centraux et leurs liens aux auteurs.
         On n’y invente ni ne corrige les données historiques (charte §26) ; on édite, on contrôle, on relie à
         des auteurs déjà répertoriés. <strong>Supprimer une association ne supprime jamais l’événement.</strong>
       </p>
-      <p style={{ fontSize: '0.8rem', color: 'var(--cs-texte-doux)', margin: '0 0 18px' }}>
+      <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', margin: '0 0 18px' }}>
         {evts ? `${evts.length} événement${evts.length > 1 ? 's' : ''} · ${assocs.length} association${assocs.length > 1 ? 's' : ''} · ${aControler.length} à contrôler` : 'Chargement…'}
       </p>
 
-      {msg && <p style={{ fontSize: '0.82rem', color: 'var(--cs-danger)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '6px', padding: '7px 11px', margin: '0 0 16px' }}>{msg}</p>}
+      {msg && <p style={{ fontSize: '0.8125rem', color: 'var(--cs-danger)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '7px 11px', margin: '0 0 16px' }}>{msg}</p>}
 
       {/* ── File « à contrôler » ─────────────────────────────────────── */}
       {aControler.length > 0 && (
-        <div style={{ background: 'var(--cs-surface)', border: '1px solid #e7d3b8', borderRadius: '9px', padding: '14px 16px', marginBottom: '22px' }}>
-          <p style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#9a5a2a', margin: '0 0 10px' }}>À contrôler ({aControler.length})</p>
+        <div style={{ background: 'var(--cs-surface)', border: '1px solid #e7d3b8', borderRadius: '8px', padding: '14px 16px', marginBottom: '22px' }}>
+          <p style={{ fontSize: '0.78125rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-attente)', margin: '0 0 10px' }}>À contrôler ({aControler.length})</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
             {aControler.map(a => {
               const e = evts?.find(x => x.id === a.evenement_id)
               return (
-                <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', borderTop: '1px solid #f1ece0', paddingTop: '7px' }}>
+                <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '7px' }}>
                   <div style={{ minWidth: 0 }}>
-                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9rem', color: 'var(--cs-encre-fonce)' }}>{auteurNom.get(a.auteur_id) ?? a.auteur_id}</span>
+                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)' }}>{auteurNom.get(a.auteur_id) ?? a.auteur_id}</span>
                     <span style={{ color: 'var(--cs-texte-faible)', margin: '0 6px' }}>·</span>
-                    <span style={{ fontSize: '0.82rem', color: 'var(--cs-texte)' }}>{e?.titre ?? a.evenement_id}</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--cs-texte-doux)', marginLeft: '7px' }}>{a.nature_lien} · {a.pertinence}{a.est_affiche ? '' : ' · masquée'}</span>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>{e?.titre ?? a.evenement_id}</span>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginLeft: '7px' }}>{a.nature_lien} · {a.pertinence}{a.est_affiche ? '' : ' · masquée'}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                    <button onClick={() => setOuvert(a.evenement_id)} style={{ ...btn('#fff', 'var(--cs-vert)', '#cdd8d0'), fontSize: '0.74rem' }}>Ouvrir</button>
-                    <button onClick={() => majAssoc(a.id, { a_controler: false })} style={{ ...btn('var(--cs-vert)', '#fff'), fontSize: '0.74rem' }}>Marquer contrôlé</button>
+                    <button onClick={() => setOuvert(a.evenement_id)} style={{ ...btn('var(--cs-surface)', 'var(--cs-vert)', 'var(--cs-bord)'), fontSize: '0.75rem' }}>Ouvrir</button>
+                    <button onClick={() => majAssoc(a.id, { a_controler: false })} style={{ ...btn('var(--cs-vert)', 'var(--cs-surface)'), fontSize: '0.75rem' }}>Marquer contrôlé</button>
                   </div>
                 </div>
               )
@@ -169,16 +170,16 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
           <option value="">Toutes familles</option>
           {familles.map(f => <option key={f} value={f}>{f}</option>)}
         </select>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8125rem', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>
           <input type="checkbox" checked={seulControle} onChange={e => setSeulControle(e.target.checked)} /> à contrôler
         </label>
       </div>
 
       {/* ── Liste des événements ─────────────────────────────────────── */}
       {evts === null ? (
-        <p style={{ fontSize: '0.86rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
       ) : liste.length === 0 ? (
-        <p style={{ fontSize: '0.86rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun événement pour ces critères.</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun événement pour ces critères.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {liste.map(e => {
@@ -186,18 +187,18 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
             const nControl = liens.filter(a => a.a_controler).length
             const estOuvert = ouvert === e.id
             return (
-              <div key={e.id} style={{ background: 'var(--cs-surface)', border: `1px solid ${estOuvert ? '#cdd8d0' : 'var(--cs-bord-clair)'}`, borderRadius: '8px', overflow: 'hidden' }}>
+              <div key={e.id} style={{ background: 'var(--cs-surface)', border: `1px solid ${estOuvert ? 'var(--cs-bord)' : 'var(--cs-bord-clair)'}`, borderRadius: '8px', overflow: 'hidden' }}>
                 <button onClick={() => setOuvert(estOuvert ? null : e.id)} style={{ display: 'grid', gridTemplateColumns: '5.5rem 1fr auto', gap: '12px', alignItems: 'center', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 13px' }}>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8rem', color: '#b7a06a', whiteSpace: 'nowrap' }}>{annees(e)}</span>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: '#b7a06a', whiteSpace: 'nowrap' }}>{annees(e)}</span>
                   <span style={{ minWidth: 0 }}>
-                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.92rem', color: 'var(--cs-encre-fonce)' }}>{e.titre}</span>
-                    <span style={{ fontSize: '0.66rem', color: 'var(--cs-texte-doux)', marginLeft: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{e.portee} · {familleDe(e)}</span>
+                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)' }}>{e.titre}</span>
+                    <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', marginLeft: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{e.portee} · {familleDe(e)}</span>
                   </span>
                   <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                     {!e.est_publie && <Etiquette texte="dépublié" coul="var(--cs-danger)" />}
-                    {nControl > 0 && <Etiquette texte={`${nControl} à contrôler`} coul="#9a5a2a" />}
-                    <span style={{ fontSize: '0.72rem', color: 'var(--cs-texte-doux)' }}>{liens.length} lien{liens.length > 1 ? 's' : ''}</span>
-                    <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.8rem' }}>{estOuvert ? '▲' : '▼'}</span>
+                    {nControl > 0 && <Etiquette texte={`${nControl} à contrôler`} coul="var(--cs-attente)" />}
+                    <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{liens.length} lien{liens.length > 1 ? 's' : ''}</span>
+                    <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.8125rem' }}>{estOuvert ? '▲' : '▼'}</span>
                   </span>
                 </button>
 
@@ -218,7 +219,7 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
 }
 
 function Etiquette({ texte, coul }: { texte: string; coul: string }) {
-  return <span style={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', color: coul, background: `${coul}14`, border: `1px solid ${coul}40`, borderRadius: '999px', padding: '1px 8px' }}>{texte}</span>
+  return <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', color: coul, background: `${colorMix(coul, 8)}`, border: `1px solid ${colorMix(coul, 25)}`, borderRadius: '999px', padding: '1px 8px' }}>{texte}</span>
 }
 
 // ── Éditeur d'un événement + ses associations ────────────────────────────
@@ -252,7 +253,7 @@ function EditeurEvenement({ e, liens, genresTries, auteurNom, auteursTries, onMa
   }
 
   return (
-    <div style={{ borderTop: '1px solid #eee6da', background: '#fbf9f5', padding: '15px 16px' }}>
+    <div style={{ borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', padding: '15px 16px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '11px' }}>
         <div style={{ gridColumn: '1 / -1' }}><label style={label}>Titre</label><input style={champ} value={b.titre} onChange={ev => set('titre', ev.target.value)} /></div>
         <div><label style={label}>Année début</label><input type="number" style={champ} value={b.date_debut} onChange={ev => set('date_debut', ev.target.value === '' ? 0 : Number(ev.target.value))} /></div>
@@ -267,7 +268,7 @@ function EditeurEvenement({ e, liens, genresTries, auteurNom, auteursTries, onMa
         </div>
         <div><label style={label}>Importance {generale ? '' : '(portée générale seulement)'}</label>
           {generale ? <Selecteur value={b.importance_generale ?? ''} onChange={v => set('importance_generale', v)} options={IMPORTANCES} vide="—" />
-            : <input style={{ ...champ, background: '#f2efe9', color: 'var(--cs-texte-doux)' }} value="—" disabled />}
+            : <input style={{ ...champ, background: 'var(--cs-fond)', color: 'var(--cs-texte-doux)' }} value="—" disabled />}
         </div>
         <div><label style={label}>Lieu</label><input style={champ} value={b.lieu ?? ''} onChange={ev => set('lieu', ev.target.value)} /></div>
         <div style={{ gridColumn: '1 / -1' }}><label style={label}>Notice</label><textarea style={{ ...champ, minHeight: '58px', resize: 'vertical' }} value={b.notice ?? ''} onChange={ev => set('notice', ev.target.value)} /></div>
@@ -279,22 +280,22 @@ function EditeurEvenement({ e, liens, genresTries, auteurNom, auteursTries, onMa
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '13px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.83rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84375rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
           <input type="checkbox" checked={b.est_publie} onChange={ev => set('est_publie', ev.target.checked)} /> Publié
         </label>
-        <span style={{ fontSize: '0.68rem', color: 'var(--cs-texte-faible)' }}>{e.id}</span>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>{e.id}</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-          <button onClick={enregistrer} disabled={envoi} style={btn('var(--cs-vert)', '#fff')}>{envoi ? 'Enregistrement…' : 'Enregistrer l’événement'}</button>
+          <button onClick={enregistrer} disabled={envoi} style={btn('var(--cs-vert)', 'var(--cs-surface)')}>{envoi ? 'Enregistrement…' : 'Enregistrer l’événement'}</button>
         </div>
       </div>
 
       {/* ── Associations aux auteurs ─────────────────────────────────── */}
-      <p style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#8a8278', margin: '20px 0 8px' }}>Associations aux auteurs ({liens.length})</p>
+      <p style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-gris)', margin: '20px 0 8px' }}>Associations aux auteurs ({liens.length})</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {liens.map(a => (
           <LigneAssoc key={a.id} a={a} nom={auteurNom.get(a.auteur_id) ?? a.auteur_id} onMaj={onMajAssoc} onSuppr={onSupprAssoc} />
         ))}
-        {liens.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune association.</p>}
+        {liens.length === 0 && <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune association.</p>}
       </div>
 
       <AjoutAssoc auteursTries={auteursTries} dejaLies={new Set(liens.map(l => l.auteur_id))} onCreer={onCreerAssoc} />
@@ -309,12 +310,12 @@ function LigneAssoc({ a, nom, onMaj, onSuppr }: { a: Assoc; nom: string; onMaj: 
   const set = (k: keyof Assoc, v: any) => setD(p => ({ ...p, [k]: v }))
   const modifie = d.nature_lien !== a.nature_lien || d.pertinence !== a.pertinence || (d.titre_personnalise ?? '') !== (a.titre_personnalise ?? '')
   return (
-    <div style={{ border: '1px solid #e7e1d6', borderRadius: '7px', padding: '10px 12px', background: a.a_controler ? '#fdf9f2' : '#fff' }}>
+    <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '10px 12px', background: a.a_controler ? 'var(--cs-fond-clair)' : 'var(--cs-surface)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9rem', color: 'var(--cs-encre-fonce)' }}>{nom}</span>
-        <span style={{ fontSize: '0.66rem', color: 'var(--cs-texte-faible)' }}>{a.auteur_id}</span>
-        {a.a_controler && <Etiquette texte="à contrôler" coul="#9a5a2a" />}
-        {!a.est_affiche && <Etiquette texte="masquée" coul="#8a8278" />}
+        <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)' }}>{nom}</span>
+        <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)' }}>{a.auteur_id}</span>
+        {a.a_controler && <Etiquette texte="à contrôler" coul="var(--cs-attente)" />}
+        {!a.est_affiche && <Etiquette texte="masquée" coul="var(--cs-texte-gris)" />}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.4fr', gap: '9px', alignItems: 'end' }}>
         <div><label style={label}>Nature du lien</label><Selecteur value={d.nature_lien} onChange={v => set('nature_lien', v)} options={NATURES} /></div>
@@ -322,15 +323,15 @@ function LigneAssoc({ a, nom, onMaj, onSuppr }: { a: Assoc; nom: string; onMaj: 
         <div><label style={label}>Titre personnalisé (facultatif)</label><input style={champ} value={d.titre_personnalise ?? ''} onChange={ev => set('titre_personnalise', ev.target.value)} placeholder="remplace le titre de l’événement" /></div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '10px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8125rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
           <input type="checkbox" checked={d.est_affiche} onChange={ev => { set('est_affiche', ev.target.checked); onMaj(a.id, { est_affiche: ev.target.checked }) }} /> Affichée
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8125rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
           <input type="checkbox" checked={d.a_controler} onChange={ev => { set('a_controler', ev.target.checked); onMaj(a.id, { a_controler: ev.target.checked }) }} /> À contrôler
         </label>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
-          {modifie && <button onClick={() => onMaj(a.id, { nature_lien: d.nature_lien, pertinence: d.pertinence, titre_personnalise: d.titre_personnalise })} style={{ ...btn('var(--cs-vert)', '#fff'), fontSize: '0.74rem' }}>Enregistrer</button>}
-          <button onClick={() => { if (window.confirm(`Supprimer l’association de ${nom} ? L’événement central n’est pas touché.`)) onSuppr(a.id) }} style={{ ...btn('#fff', 'var(--cs-danger)', 'var(--cs-danger-bord)'), fontSize: '0.74rem' }}>Supprimer</button>
+          {modifie && <button onClick={() => onMaj(a.id, { nature_lien: d.nature_lien, pertinence: d.pertinence, titre_personnalise: d.titre_personnalise })} style={{ ...btn('var(--cs-vert)', 'var(--cs-surface)'), fontSize: '0.75rem' }}>Enregistrer</button>}
+          <button onClick={() => { if (window.confirm(`Supprimer l’association de ${nom} ? L’événement central n’est pas touché.`)) onSuppr(a.id) }} style={{ ...btn('var(--cs-surface)', 'var(--cs-danger)', 'var(--cs-danger-bord)'), fontSize: '0.75rem' }}>Supprimer</button>
         </div>
       </div>
     </div>
@@ -360,7 +361,7 @@ function AjoutAssoc({ auteursTries, dejaLies, onCreer }: { auteursTries: Auteur[
       </div>
       <div><label style={label}>Nature</label><Selecteur value={nature} onChange={setNature} options={NATURES} /></div>
       <div><label style={label}>Pertinence</label><Selecteur value={pertinence} onChange={setPertinence} options={PERTINENCES} /></div>
-      <button onClick={ajouter} disabled={!auteurId || envoi} style={{ ...btn('var(--cs-vert)', '#fff'), opacity: auteurId ? 1 : 0.5 }}>{envoi ? '…' : 'Relier'}</button>
+      <button onClick={ajouter} disabled={!auteurId || envoi} style={{ ...btn('var(--cs-vert)', 'var(--cs-surface)'), opacity: auteurId ? 1 : 0.5 }}>{envoi ? '…' : 'Relier'}</button>
     </div>
   )
 }

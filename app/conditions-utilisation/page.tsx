@@ -1,3 +1,4 @@
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 export const metadata = {
   title: { absolute: "Conditions d’utilisation · Corpus Scriptura" },
   description: "Conditions générales d’utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
@@ -16,8 +17,8 @@ export default function ConditionsUtilisationPage() {
         </p>
 
         <h1 style={{
-          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "clamp(26px, 3.5vw, 34px)",
-          fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "8px", lineHeight: 1.25,
+          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE,
+          fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "8px", lineHeight: 1.25,
         }}>
           Conditions d&rsquo;utilisation
         </h1>

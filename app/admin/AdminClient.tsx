@@ -19,6 +19,7 @@ import SectionValidationNotices from './SectionValidationNotices'
 import SectionConstituerLiens from './SectionConstituerLiens'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import type { AdminProps as Props, Onglet } from './adminTypes'
+import { colorMix } from '@/app/lib/couleurs'
 
 export default function AdminClient({
   commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, traductions,
@@ -69,7 +70,7 @@ export default function AdminClient({
 
   // Familles d'administration, chacune sa couleur (division visuelle) :
   // Corpus & catalogue (vert), Communauté & modération (or), Système & doctrine (ardoise).
-  const COUL_FAMILLE: Record<string, string> = { corpus: '#3d6b4f', communaute: '#9a7a38', systeme: '#5f6b86' }
+  const COUL_FAMILLE: Record<string, string> = { corpus: 'var(--cs-vert)', communaute: 'var(--cs-or)', systeme: 'var(--cs-systeme)' }
   const LABEL_FAMILLE: Record<'corpus' | 'communaute' | 'systeme', string> = { corpus: 'Corpus & catalogue', communaute: 'Communauté', systeme: 'Système & doctrine' }
   const ONGLETS: { key: Onglet; label: string; famille: 'corpus' | 'communaute' | 'systeme'; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque',      famille: 'corpus' },
@@ -90,18 +91,18 @@ export default function AdminClient({
   ]
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: '#e8eceb' }}>
+    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <style>{`
-        .btn-vert { background: var(--cs-vert) !important; color: #fff !important; border: none !important; }
+        .btn-vert { background: var(--cs-vert) !important; color: var(--cs-surface) !important; border: none !important; }
         .btn-vert:hover { background: var(--cs-vert-fonce) !important; }
         .btn-rouge { background: var(--cs-surface) !important; color: var(--cs-danger) !important; border: 1px solid var(--cs-danger-bord) !important; }
         .btn-rouge:hover { background: var(--cs-danger-fond) !important; }
         /* Bouton secondaire neutre — réaccordé à la mise en page claire (l'ancienne
            version, pensée pour l'en-tête sombre, jurait sur fond clair). */
         .btn-gris { background: var(--cs-surface) !important; color: var(--cs-texte-second) !important; border: 1px solid var(--cs-bord) !important; }
-        .btn-gris:hover { background: #f4f2ee !important; border-color: var(--cs-bord) !important; }
+        .btn-gris:hover { background: var(--cs-fond) !important; border-color: var(--cs-bord) !important; }
         .btn-gris:disabled { opacity: 0.5 !important; cursor: default !important; }
-        .adm-onglet:hover { color: #2f6046 !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
+        .adm-onglet:hover { color: var(--cs-vert-fonce) !important; background: rgba(var(--cs-vert-rgb),0.05) !important; }
         /* Garde-fous mobiles communs à TOUTES les sections (elles posent leur mise en
            page en styles inline, non surchargeables autrement) : un tableau large défile
            au lieu de déborder la page ; champs, images et blocs préformatés se bornent à
@@ -128,10 +129,10 @@ export default function AdminClient({
           par un menu déroulant groupé par famille (compact, natif). Sur desktop, la barre
           d'outils inchangée : onglets clairs, grands, actif souligné de vert. */}
       {mobile ? (
-        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', padding: '8px 12px', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
-          <label style={{ display: 'block', fontSize: '0.56rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
+        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', padding: '8px 12px', boxShadow: 'var(--cs-ombre-posee)' }}>
+          <label style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
           <select value={onglet} onChange={e => setOnglet(e.target.value as Onglet)} aria-label="Section d’administration"
-            style={{ width: '100%', font: 'inherit', fontSize: '0.95rem', padding: '9px 10px', border: `1px solid ${COUL_FAMILLE[ONGLETS.find(o => o.key === onglet)?.famille ?? 'corpus']}`, borderRadius: '6px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)' }}>
+            style={{ width: '100%', font: 'inherit', fontSize: '0.9375rem', padding: '9px 10px', border: `1px solid ${COUL_FAMILLE[ONGLETS.find(o => o.key === onglet)?.famille ?? 'corpus']}`, borderRadius: '8px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)' }}>
             {(['corpus', 'communaute', 'systeme'] as const).map(fam => (
               <optgroup key={fam} label={LABEL_FAMILLE[fam]}>
                 {ONGLETS.filter(o => o.famille === fam).map(o => (
@@ -142,21 +143,21 @@ export default function AdminClient({
           </select>
         </div>
       ) : (
-        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid #dfe4e1', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: '0 2px 8px rgba(30,46,38,0.08)' }}>
+        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
           {ONGLETS.map((o) => {
             const actif = onglet === o.key
             const coul = COUL_FAMILLE[o.famille]
             return (
               <React.Fragment key={o.key}>
                 {o.separateur && (
-                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: '#e2e6e3' }} />
+                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: 'var(--cs-vert-pale)' }} />
                 )}
                 <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                  style={{ padding: '12px 14px', fontSize: '0.97031rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${coul}14` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '5px 5px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
+                  style={{ padding: '12px 14px', fontSize: '1rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
                   {/* Pastille de famille : division par couleur. */}
                   <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', background: coul, flexShrink: 0, opacity: actif ? 1 : 0.55 }} />
                   {o.label}
-                  {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: '#fff', borderRadius: '10px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
+                  {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
                 </button>
               </React.Fragment>
             )

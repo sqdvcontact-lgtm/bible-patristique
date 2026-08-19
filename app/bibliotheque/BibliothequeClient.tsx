@@ -20,6 +20,7 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 type Oeuvre = {
   id_oeuvre: string; id_auteur: string; titre: string; sous_titre: string | null
@@ -129,7 +130,7 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
   const [ouverte, setOuverte] = useState(false)
   const deployee = ouverte || ouverteDeForce
   return (
-    <div style={{ borderTop: '1px solid #f3efe9' }}>
+    <div style={{ borderTop: '1px solid var(--cs-fond)' }}>
       <button onClick={() => setOuverte(o => !o)} aria-expanded={deployee}
         title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
         style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '6px 18px 6px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
@@ -211,8 +212,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   return (
     <div
       style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = '#a9c9b6'; e.currentTarget.style.backgroundColor = '#f8fbf9'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'none' }}>
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cs-vert-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-surface)'; e.currentTarget.style.transform = 'none' }}>
 
       {/* Hauteur d'en-tête CONSTANTE pour toutes les cartes (notice longue rognée) :
           la liste dépliée s'ajoute ensuite en dessous, hors de ce bloc. */}
@@ -244,13 +245,13 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
               </h2>
               <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
                 style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '17px', height: '17px', borderRadius: '50%', border: '1px solid #cfe0d5', background: 'transparent', color: 'var(--cs-vert)', cursor: 'pointer', padding: 0, transition: 'all 0.12s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-vert)'; e.currentTarget.style.color = '#fff' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-vert)'; e.currentTarget.style.color = 'var(--cs-surface)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cs-vert)' }}>
                 <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
             </div>
             {!compact && datesAuteur && (
-              <p style={{ fontSize: '0.71875rem', color: '#9a8a70', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', letterSpacing: '0.01em' }}>
+              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-etiquette)', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', letterSpacing: '0.01em' }}>
                 <HistoricalDate value={datesAuteur} variant="long" />
               </p>
             )}
@@ -327,8 +328,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
               return (
                 <div key={grp.versions[0].id_oeuvre}
                   className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
-                  style={{ borderTop: idx > 0 ? '1px solid #f3efe9' : 'none', borderLeft: correspond ? '3px solid var(--cs-vert)' : '3px solid transparent', padding: '4px 0 5px' }}>
-                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? '#2a4d35' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  style={{ borderTop: idx > 0 ? '1px solid var(--cs-fond)' : 'none', borderLeft: correspond ? '3px solid var(--cs-vert)' : '3px solid transparent', padding: '4px 0 5px' }}>
+                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? 'var(--cs-vert-fonce)' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
                   {/* Œuvre à plusieurs auteurs : elle est sur l'étagère de chacun,
                       et porte les deux noms pour qu'on sache d'où qu'on vienne qui
                       l'a écrite. Une œuvre à auteur unique ne répète pas le nom de
@@ -363,7 +364,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                             <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                               <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>Texte original {langueOrig}</span>
-                              {o.titre_original && <span style={{ fontSize: '0.625rem', color: '#a59c90', fontStyle: 'italic' }}>{o.titre_original}</span>}
+                              {o.titre_original && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.titre_original}</span>}
                             </span>
                             <span className="bib-lire">
                               Lire
@@ -384,8 +385,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 500 }}>{libelle}</span>
-                            {trad && aEdition && <span style={{ fontSize: '0.625rem', color: '#a59c90' }}>{edition}</span>}
-                            {!trad && !aEdition && <span style={{ fontSize: '0.625rem', color: '#c4bcb0', fontStyle: 'italic' }}>Certaines données manquent.</span>}
+                            {trad && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
+                            {!trad && !aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
                           <span className="bib-lire">
                             Lire
@@ -438,10 +439,10 @@ function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; o
   const t = THEMES[theme] ?? THEMES.genre
   return (
     <button onClick={onClick} style={{
-      padding: '2px 9px', borderRadius: '3px', fontSize: '0.6875rem',
+      padding: '2px 9px', borderRadius: '4px', fontSize: '0.6875rem',
       border: `1px solid ${actif ? t.borderActif : t.border}`,
       background: actif ? t.bgActif : t.bg,
-      color: actif ? '#fff' : t.color,
+      color: actif ? 'var(--cs-surface)' : t.color,
       cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
       transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
     }}>
@@ -522,9 +523,9 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }} title="Signaler une erreur sur cette traduction"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: '#c4b8a4', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: 'var(--cs-or-doux)', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}
         onMouseEnter={e => (e.currentTarget.style.color = '#b0442a')}
-        onMouseLeave={e => (e.currentTarget.style.color = '#c4b8a4')}><IconeDrapeau /></button>
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}><IconeDrapeau /></button>
       {ouvert && <ModalSignalement titre={reference} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   )
@@ -552,13 +553,13 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
   return (
     <div
       style={{ background: 'var(--cs-fond-clair)', borderRadius: '8px', border: '1px solid var(--cs-bord)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = '#d6bd84'; e.currentTarget.style.backgroundColor = '#fdfaf2'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cs-or-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.transform = 'none' }}>
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
         {/* Zone initiales — carré discret (réduit : la vignette prenait trop de place). */}
-        <div style={{ width: '44px', flexShrink: 0, background: '#e8e2d6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '44px', flexShrink: 0, background: 'var(--cs-bord-clair)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', letterSpacing: '0.03em', userSelect: 'none' }}>{initiale}</span>
         </div>
 
@@ -578,7 +579,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
       {/* Liste des œuvres déployée */}
       {ouvert && (
-        <div style={{ borderTop: '1px solid #e4dcd0', padding: '6px 0 10px' }}>
+        <div style={{ borderTop: '1px solid var(--cs-bord-clair)', padding: '6px 0 10px' }}>
           <style>{`
             .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background-color 0.18s ease; gap: 10px; }
             .cat-ligne:hover { background-color: rgba(139,107,60,0.05); }
@@ -605,7 +606,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
             return (
               <div key={groupe.cle}
                 className="cat-ligne"
-                style={{ borderTop: idx > 0 ? '1px solid #eee8de' : 'none' }}>
+                style={{ borderTop: idx > 0 ? '1px solid var(--cs-fond-doux)' : 'none' }}>
                 {/* Titre + éditions */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.35 }}>{groupe.titreStable}</span>
@@ -622,7 +623,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       const meta = [metaAvantDate, dateEdition].filter(Boolean).join(', ')
                       const dp = n.domaine_public?.includes('oui')
                       return (
-                        <span key={n.id} style={{ fontSize: '0.65625rem', color: '#a09080', lineHeight: 1.4 }}>
+                        <span key={n.id} style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.4 }}>
                           {meta ? <>{metaAvantDate}{metaAvantDate && dateEdition ? ', ' : null}{dateEdition && <span title={n.date_edition_precision_affichage ?? undefined}><HistoricalDate value={dateEdition} variant="short" /></span>}</> : titreDeclineCatalogue(n)}
                           {dp && <span title="Domaine public — œuvre libre de droits" style={{ marginLeft: '5px', fontSize: '0.5625rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em', cursor: 'help' }}>DP</span>}
                           <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDeclineCatalogue(n)} />
@@ -647,7 +648,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                     onClick={() => onProposer(nomAuteur, groupe.titreStable)}
                     title="Proposer cette œuvre à l'équipe éditoriale"
                     style={{ ...BOUTON_ICONE, color: '#b8a888' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#8a6a30')}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-lacune)')}
                     onMouseLeave={e => (e.currentTarget.style.color = '#b8a888')}>
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
@@ -656,7 +657,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                   <button
                     onClick={() => onVoter(groupe.notices)}
                     title={userId ? (aVoté ? 'Retirer mon vote' : 'Je veux cette œuvre') : 'Connectez-vous pour voter'}
-                    style={{ ...BOUTON_ICONE, width: 'auto', gap: '2px', cursor: userId ? 'pointer' : 'default', color: aVoté ? '#b87a30' : '#c4b8a4' }}>
+                    style={{ ...BOUTON_ICONE, width: 'auto', gap: '2px', cursor: userId ? 'pointer' : 'default', color: aVoté ? '#b87a30' : 'var(--cs-or-doux)' }}>
                     <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"
                       fill={aVoté ? 'currentColor' : 'none'}>
                       <path d="M8 13.5S2.5 9.8 2.5 6.3A2.9 2.9 0 0 1 8 5a2.9 2.9 0 0 1 5.5 1.3c0 3.5-5.5 7.2-5.5 7.2z"
@@ -708,8 +709,8 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
     <div onMouseDown={tenterFermer}
       style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(30,26,20,0.42)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
       <div onMouseDown={e => e.stopPropagation()} onInput={() => { toucheRef.current = true }}
-        style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '10px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid #e4dcd0' }}>
+        style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: 'var(--cs-ombre-modale)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte)', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
           <button onClick={tenterFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
@@ -724,18 +725,18 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
         <div onMouseDown={e => { e.stopPropagation(); setDemandeFermeture(false) }}
           style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'rgba(30,26,20,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onMouseDown={e => e.stopPropagation()}
-            style={{ background: 'var(--cs-surface)', borderRadius: '10px', border: '1px solid #e4dcd0', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: '0 12px 40px rgba(0,0,0,0.24)' }}>
+            style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h4 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-texte)', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 18px' }}>
               Les informations que vous avez saisies seront perdues.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '9px' }}>
               <button onClick={() => setDemandeFermeture(false)}
-                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Continuer l’édition
               </button>
               <button onClick={onClose}
-                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '5px', border: 'none', background: 'var(--cs-danger)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>
                 Fermer sans enregistrer
               </button>
             </div>
@@ -892,14 +893,14 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
           ouvrant une fenêtre plutôt que de basculer d'onglet. */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', minHeight: '40px' }}>
         <button onClick={() => setProposition({ auteur: '', titre: '' })}
-          style={{ position: 'absolute', left: 0, fontSize: '0.6875rem', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '5px', cursor: 'pointer', padding: '7px 12px' }}>
+          style={{ position: 'absolute', left: 0, fontSize: '0.6875rem', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '4px', cursor: 'pointer', padding: '7px 12px' }}>
           Proposer une œuvre
         </button>
         {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
         <div style={{ position: 'relative', width: '100%', maxWidth: '21.25rem' }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Rechercher un auteur ou une œuvre"
-            style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
@@ -937,7 +938,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
                 aria-label="Page précédente"
                 style={{ position: 'fixed', left: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
                   width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-                  background: 'var(--cs-surface)', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive === 0 ? 'default' : 'pointer',
+                  background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)', cursor: pageActive === 0 ? 'default' : 'pointer',
                   opacity: pageActive === 0 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
@@ -945,7 +946,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
                 aria-label="Page suivante"
                 style={{ position: 'fixed', right: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
                   width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-                  background: 'var(--cs-surface)', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer',
+                  background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer',
                   opacity: pageActive >= nbPages - 1 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
@@ -956,7 +957,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
                   style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: pageActive === 0 ? 'default' : 'pointer', opacity: pageActive === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
-                <span style={{ fontSize: '0.6875rem', color: '#a09484', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                   Page {pageActive + 1} sur {nbPages}
                 </span>
                 <button onClick={() => changerPage(1)} disabled={pageActive >= nbPages - 1} aria-label="Page suivante"
@@ -983,7 +984,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
 // ── Onglet Proposer ───────────────────────────────────────────────────────────
 const CHAMP_STYLE: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '8px 11px',
-  border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)',
+  border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)',
   color: 'var(--cs-texte-fort)', outline: 'none', fontFamily: 'var(--font-source-serif), Georgia, serif',
 }
 
@@ -1030,7 +1031,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
       <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Nom de l'auteur" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId(null) }}
-        style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
       </button>
     </div>
@@ -1042,18 +1043,18 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '4px', boxShadow: 'var(--cs-ombre-flottante)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map(s => (
             <div key={s.id_auteur} onMouseDown={() => choisir(s.nom, s.id_auteur)}
               style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
               onMouseLeave={e => (e.currentTarget.style.background = '')}>
               {s.nom}
             </div>
           ))}
           <div onMouseDown={choisirAutre}
-            style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+            style={{ padding: '8px 12px', fontSize: '0.75rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
             onMouseLeave={e => (e.currentTarget.style.background = '')}>
             Autre auteur (saisie libre)
           </div>
@@ -1108,7 +1109,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
       <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Titre de l'œuvre" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange('') }}
-        style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: '#8a7f74', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
       </button>
     </div>
@@ -1120,18 +1121,18 @@ function ComboTitre({ value, onChange, auteurNom }: {
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '5px', boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '4px', boxShadow: 'var(--cs-ombre-flottante)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map((titre, i) => (
             <div key={i} onMouseDown={() => choisir(titre)}
               style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
               onMouseLeave={e => (e.currentTarget.style.background = '')}>
               {titre}
             </div>
           ))}
           <div onMouseDown={choisirAutre}
-            style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#8a7f74', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#f5f2ec')}
+            style={{ padding: '8px 12px', fontSize: '0.75rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
             onMouseLeave={e => (e.currentTarget.style.background = '')}>
             Autre titre (saisie libre)
           </div>
@@ -1220,11 +1221,11 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <circle cx="20" cy="14" r="7" stroke="#2a3d30" strokeWidth="1.4" fill="none"/>
         <path d="M4 38 Q6 24 20 20 Q34 24 36 38" stroke="#2a3d30" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
       </svg>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#3d4a40', marginBottom: '6px' }}>Connexion requise</p>
-      <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '22px' }}>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-vert-fonce)', marginBottom: '6px' }}>Connexion requise</p>
+      <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '22px' }}>
         Seuls les membres de Corpus Scriptura peuvent proposer un texte.<br/>Connectez-vous pour contribuer à la bibliothèque.
       </p>
-      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: 'var(--cs-vert)', color: '#fff', borderRadius: '6px', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: 500 }}>
+      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: 500 }}>
         Se connecter
       </a>
     </div>
@@ -1232,8 +1233,8 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
 
   if (statut === 'limite') return (
     <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: '#9a5a2a', marginBottom: '8px' }}>Limite journalière atteinte</p>
-      <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-attente)', marginBottom: '8px' }}>Limite journalière atteinte</p>
+      <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '24px' }}>
         {messageErreur ?? 'Vous avez atteint le nombre maximum de propositions pour aujourd\'hui. Revenez demain.'}
       </p>
     </div>
@@ -1245,10 +1246,10 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l5 5 7-8" stroke="#3d6b4f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </div>
       <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', marginBottom: '8px' }}>Proposition envoyée</p>
-      <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
+      <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '24px' }}>
         Merci pour votre contribution. L’équipe éditoriale examinera votre proposition.
       </p>
-      <button onClick={() => setStatut('idle')} style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', background: 'none', border: '1px solid var(--cs-vert)', borderRadius: '6px', padding: '8px 20px', cursor: 'pointer' }}>
+      <button onClick={() => setStatut('idle')} style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', background: 'none', border: '1px solid var(--cs-vert)', borderRadius: '8px', padding: '8px 20px', cursor: 'pointer' }}>
         Proposer une autre œuvre
       </button>
     </div>
@@ -1257,7 +1258,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
   return (
     <div style={{ maxWidth: '38.75rem', margin: '0 auto', padding: '8px 0 80px' }}>
       <div style={{ background: 'rgba(var(--cs-vert-rgb),0.06)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', padding: '14px 18px', marginBottom: '28px' }}>
-        <p style={{ fontSize: '0.78125rem', color: '#3a5040', lineHeight: 1.65, margin: 0 }}>
+        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert-fonce)', lineHeight: 1.65, margin: 0 }}>
           Vous souhaitez enrichir la bibliothèque patristique ? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
           Fournissez de préférence un texte propre, déjà structuré. L’équipe éditoriale vous contactera si nécessaire.
         </p>
@@ -1360,10 +1361,10 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         </div>
 
         {/* Garantie droits */}
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px 14px', background: 'rgba(var(--cs-vert-rgb),0.05)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '6px' }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px 14px', background: 'rgba(var(--cs-vert-rgb),0.05)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px' }}>
           <input type="checkbox" checked={droitsGarantis} onChange={e => setDroitsGarantis(e.target.checked)}
             style={{ marginTop: '2px', accentColor: 'var(--cs-vert)', flexShrink: 0, width: '14px', height: '14px' }} />
-          <span style={{ fontSize: '0.75rem', color: '#3a5040', lineHeight: 1.6 }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', lineHeight: 1.6 }}>
             <strong>J’atteste</strong> que cette traduction est <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans ou édition dans le domaine public) et que le texte n’a pas été dénaturé.
           </span>
         </label>
@@ -1390,7 +1391,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             const pret = !!form.auteur_nom.trim() && !!form.titre.trim() && !!form.texte.trim() && droitsGarantis
             return (
               <button onClick={envoyer} disabled={statut === 'envoi' || !pret}
-                style={{ padding: '10px 28px', background: 'var(--cs-vert)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.8125rem', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+                style={{ padding: '10px 28px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
                 {statut === 'envoi' ? 'Envoi…' : 'Envoyer la proposition'}
               </button>
             )
@@ -1584,7 +1585,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
         {/* En-tête : titre, onglets et recherche, avec une même respiration verticale (≈14 px)
             entre chaque strate pour former un bloc au rythme régulier. */}
         <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: 'clamp(20px, 3vw, 25px)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em', margin: 0, lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, letterSpacing: '0.01em', margin: 0, lineHeight: 1.1 }}>
             Bibliothèque
           </h1>
         </div>
@@ -1594,13 +1595,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
           {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Catalogue des traductions']] as [Onglet, string][]).map(([key, label], idx) => (
             <React.Fragment key={key}>
               {idx > 0 && (
-                <span style={{ width: '1px', background: '#e0d8ce', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
+                <span style={{ width: '1px', background: 'var(--cs-bord-clair)', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
               )}
               <button onClick={() => setOnglet(key)} style={{
                 flex: 1, padding: '8px 8px', fontSize: '0.75rem', fontFamily: 'var(--font-source-serif), Georgia, serif',
                 textAlign: 'center',
                 background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid var(--cs-vert)' : '2px solid transparent',
-                color: onglet === key ? 'var(--cs-vert)' : '#8a8278', cursor: 'pointer',
+                color: onglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
                 fontWeight: onglet === key ? 600 : 400, marginBottom: '-1px',
                 transition: 'color 0.15s',
               }}>
@@ -1618,18 +1619,18 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
               <div style={{ position: 'relative', flex: 1, maxWidth: '21.25rem' }}>
                 <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                   placeholder="Rechercher un auteur ou une œuvre"
-                  style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
                   <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
                   <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
               </div>
               <button onClick={() => setFiltresOuverts(o => !o)} aria-expanded={filtresOuverts}
-                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : '#fff', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? '#a9c9b6' : 'var(--cs-bord)'}`, borderRadius: '6px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
+                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : 'var(--cs-surface)', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, borderRadius: '8px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
                 <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 3h11M3.5 7h7M5.5 11h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                 Filtres
                 {nbFiltres > 0 && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '15px', height: '15px', padding: '0 4px', borderRadius: '999px', background: 'var(--cs-vert)', color: '#fff', fontSize: '0.5625rem', fontWeight: 700, lineHeight: 1 }}>{nbFiltres}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '15px', height: '15px', padding: '0 4px', borderRadius: '999px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontSize: '0.5625rem', fontWeight: 700, lineHeight: 1 }}>{nbFiltres}</span>
                 )}
               </button>
             </div>

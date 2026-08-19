@@ -22,15 +22,15 @@ type Auteur = { id: number; nom: string; score: number | null; motif: string | n
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 // 1 = le plus fiable (vert) … 5 = le moins (rouge).
-const FORT: Record<number, string> = { 1: '#3d6b4f', 2: '#6f8a3e', 3: '#9a7a38', 4: '#c0562a', 5: '#9a2a2a' }
+const FORT: Record<number, string> = { 1: 'var(--cs-vert)', 2: '#6f8a3e', 3: 'var(--cs-or)', 4: 'var(--cs-danger)', 5: 'var(--cs-danger-fonce)' }
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 // En-tête d'une liste (Éditeurs / Auteurs) avec son décompte. Défini hors du composant
 // pour ne pas être recréé à chaque rendu.
 const Bloc = ({ titre, n }: { titre: string; n: number }) => (
   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '0 0 4px' }}>
-    <span style={{ fontFamily: SANS, fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{titre}</span>
-    <span style={{ fontFamily: SANS, fontSize: '0.6rem', color: 'var(--cs-texte-faible)' }}>{n}</span>
+    <span style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{titre}</span>
+    <span style={{ fontFamily: SANS, fontSize: '0.59375rem', color: 'var(--cs-texte-faible)' }}>{n}</span>
   </div>
 )
 
@@ -39,11 +39,11 @@ const Bloc = ({ titre, n }: { titre: string; n: number }) => (
 function Score({ v, on }: { v: number | null; on: (n: number | null) => void }) {
   const cell = (actif: boolean, couleur: string, bordDroit: boolean): React.CSSProperties => ({
     width: '23px', height: '24px', border: 'none', borderRight: bordDroit ? '1px solid var(--cs-bord)' : 'none',
-    cursor: 'pointer', fontFamily: SANS, fontSize: '0.72rem', fontWeight: 700,
-    background: actif ? couleur : 'var(--cs-surface)', color: actif ? '#fff' : 'var(--cs-texte-faible)', transition: 'background 0.1s',
+    cursor: 'pointer', fontFamily: SANS, fontSize: '0.71875rem', fontWeight: 700,
+    background: actif ? couleur : 'var(--cs-surface)', color: actif ? 'var(--cs-surface)' : 'var(--cs-texte-faible)', transition: 'background 0.1s',
   })
   return (
-    <div style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '7px', overflow: 'hidden', flexShrink: 0 }}>
+    <div style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
       <button onClick={() => on(null)} aria-label="Non évalué" aria-pressed={v == null}
         style={cell(v == null, 'var(--cs-texte-faible)', true)}>—</button>
       {[1, 2, 3, 4, 5].map(n => (
@@ -106,21 +106,21 @@ export default function SectionFiabilite() {
   const edFiltres = useMemo(() => editeurs.filter(e => !qn || sansAccents(e.nom).includes(qn)), [editeurs, qn])
   const auFiltres = useMemo(() => auteurs.filter(a => !qn || sansAccents(a.nom).includes(qn)), [auteurs, qn])
 
-  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
 
   return (
     <div style={{ maxWidth: '46rem' }}>
-      <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Valeur académique des sources</h2>
-      <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 16px' }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: '1.3125rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Valeur académique des sources</h2>
+      <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 16px' }}>
         Score de <b style={{ color: FORT[1] }}>1</b> (le plus fiable) à <b style={{ color: FORT[5] }}>5</b>, ou <b>—</b> pour non évalué, sur critères objectifs. Les Pères de l’Église, sources primaires, n’y figurent pas. La <b>réserve</b> écarte les références d’un auteur pour protéger un public fragile, avec un motif obligatoire&nbsp;; ce n’est pas un jugement de la personne.
       </p>
 
       {erreur && (
-        <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 16px' }}>{erreur}</p>
+        <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '8px 11px', margin: '0 0 16px' }}>{erreur}</p>
       )}
 
       <input value={q} onChange={e => setQ(e.target.value)} placeholder="Filtrer par nom…"
-        style={{ width: '100%', maxWidth: '20rem', fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '7px', padding: '7px 11px', marginBottom: '22px' }} />
+        style={{ width: '100%', maxWidth: '20rem', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '7px 11px', marginBottom: '22px' }} />
 
       {/* ── Éditeurs ── */}
       <section style={{ marginBottom: '30px' }}>
@@ -129,8 +129,8 @@ export default function SectionFiabilite() {
           <div key={e.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--cs-bord-clair)' }}>
             <Score v={e.score} on={n => majEditeur(e.id, n)} />
             <div style={{ minWidth: 0 }}>
-              <span style={{ fontFamily: SERIF, fontSize: '0.88rem', color: 'var(--cs-texte)' }}>{e.nom}</span>
-              {e.note && <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{e.note}</span>}
+              <span style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte)' }}>{e.nom}</span>
+              {e.note && <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{e.note}</span>}
             </div>
           </div>
         ))}
@@ -146,13 +146,13 @@ export default function SectionFiabilite() {
               <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '12px', alignItems: 'center' }}>
                 <Score v={a.score} on={n => majAuteur(a.id, { score: n })} />
                 <div style={{ minWidth: 0 }}>
-                  <span style={{ fontFamily: SERIF, fontSize: '0.88rem', color: a.reserve ? 'var(--cs-texte-faible)' : 'var(--cs-texte)', textDecoration: a.reserve ? 'line-through' : 'none' }}>{a.nom}</span>
-                  {a.motif && <span style={{ fontFamily: SANS, fontSize: '0.68rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{a.motif}</span>}
+                  <span style={{ fontFamily: SERIF, fontSize: '0.875rem', color: a.reserve ? 'var(--cs-texte-faible)' : 'var(--cs-texte)', textDecoration: a.reserve ? 'line-through' : 'none' }}>{a.nom}</span>
+                  {a.motif && <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginLeft: '8px' }}>{a.motif}</span>}
                 </div>
                 <button
                   onClick={() => a.reserve ? majAuteur(a.id, { reserve: false }) : setReserveEnCours(enSaisie ? null : { id: a.id, motif: a.motif ?? '' })}
                   title="Écarter ses références (protection d'un public fragile) ; motif obligatoire"
-                  style={{ fontFamily: SANS, fontSize: '0.63rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '20px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? '#fff' : 'var(--cs-texte-faible)' }}>
+                  style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '999px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? 'var(--cs-surface)' : 'var(--cs-texte-faible)' }}>
                   Réserve
                 </button>
               </div>
@@ -162,13 +162,13 @@ export default function SectionFiabilite() {
                     onChange={ev => setReserveEnCours({ id: a.id, motif: ev.target.value })}
                     onKeyDown={ev => { if (ev.key === 'Enter') confirmerReserve(); if (ev.key === 'Escape') setReserveEnCours(null) }}
                     placeholder="Motif de la réserve (obligatoire)…"
-                    style={{ flex: 1, fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '5px 9px' }} />
+                    style={{ flex: 1, fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '5px 9px' }} />
                   <button onClick={confirmerReserve} disabled={!reserveEnCours.motif.trim()}
-                    style={{ fontFamily: SANS, fontSize: '0.7rem', fontWeight: 700, cursor: reserveEnCours.motif.trim() ? 'pointer' : 'not-allowed', padding: '5px 12px', borderRadius: '6px', border: 'none', background: reserveEnCours.motif.trim() ? 'var(--cs-danger-fonce)' : 'var(--cs-bord)', color: '#fff', opacity: reserveEnCours.motif.trim() ? 1 : 0.7 }}>
+                    style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 700, cursor: reserveEnCours.motif.trim() ? 'pointer' : 'not-allowed', padding: '5px 12px', borderRadius: '8px', border: 'none', background: reserveEnCours.motif.trim() ? 'var(--cs-danger-fonce)' : 'var(--cs-bord)', color: 'var(--cs-surface)', opacity: reserveEnCours.motif.trim() ? 1 : 0.7 }}>
                     Mettre en réserve
                   </button>
                   <button onClick={() => setReserveEnCours(null)}
-                    style={{ fontFamily: SANS, fontSize: '0.7rem', cursor: 'pointer', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--cs-bord)', background: 'transparent', color: 'var(--cs-texte-faible)' }}>
+                    style={{ fontFamily: SANS, fontSize: '0.6875rem', cursor: 'pointer', padding: '5px 10px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'transparent', color: 'var(--cs-texte-faible)' }}>
                     Annuler
                   </button>
                 </div>

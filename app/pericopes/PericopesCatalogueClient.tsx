@@ -12,15 +12,16 @@ import { useEstMobile } from '@/app/lib/useEstMobile'
 import { parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import IconeChevron from '@/app/components/IconeChevron'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import {
   libelleCategoriePericope,
   type PericopeCatalogueItem,
 } from '@/app/lib/pericopes'
 
-const FOND = '#f4f0eb'
+const FOND = 'var(--cs-fond)'
 const TEXTE2 = '#7a746d'
-const BORD = '#ddd4ca'
-const SEP = '#ece6db'
+const BORD = 'var(--cs-bord)'
+const SEP = 'var(--cs-fond-doux)'
 const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
@@ -72,8 +73,8 @@ function LigneCase({ actif, onClick, children }: { actif: boolean; onClick: () =
       display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
       background: 'none', border: 'none', borderLeft: `2px solid ${actif ? VERT : 'transparent'}`,
       padding: '2px 0 2px 9px', margin: 0,
-      fontFamily: SERIF, fontSize: '0.76rem', lineHeight: 1.35,
-      color: actif ? VERT : '#8a8278', fontWeight: actif ? 600 : 400,
+      fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
+      color: actif ? VERT : 'var(--cs-texte-gris)', fontWeight: actif ? 600 : 400,
       transition: 'color 0.12s, border-color 0.12s',
     }}>{children}</button>
   )
@@ -83,7 +84,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
     <LigneCase actif={actif} onClick={onClick}>
       <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        <span style={{ fontFamily: SANS, fontSize: '0.62rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
+        <span style={{ fontFamily: SANS, fontSize: '0.625rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
       </span>
     </LigneCase>
   )
@@ -159,14 +160,14 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       <div style={{ position: 'relative', marginTop: '2px' }}>
         <input value={q} onChange={e => setQ(e.target.value)} type="text"
           placeholder="Rechercher une péricope…" aria-label="Rechercher une péricope"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 10px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
         <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
           <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
           <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
         {q && (
           <button onClick={() => setQ('')} aria-label="Effacer la recherche"
-            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: TEXTE2, fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>✕</button>
+            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: TEXTE2, fontSize: '0.8125rem', lineHeight: 1, padding: 0 }}>✕</button>
         )}
       </div>
 
@@ -179,14 +180,14 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
               if (livres.length === 0) return null
               return (
                 <div key={grp.code}>
-                  <p style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 6px' }}>{grp.label}</p>
+                  <p style={{ fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 6px' }}>{grp.label}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px 8px' }}>
                     {livres.map(g => (
                       <button key={g.livre} onClick={() => allerAuLivre(g.livre)}
                         title={NOM_LIVRE[g.livre] ?? g.livre}
-                        style={{ fontFamily: SANS, fontSize: '0.68rem', color: '#6f665b', background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                        style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', whiteSpace: 'nowrap' }}
                         onMouseEnter={e => (e.currentTarget.style.color = VERT)}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#6f665b')}>
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte-second)')}>
                         {ABREV_FR[g.livre] ?? g.livre}
                       </button>
                     ))}
@@ -218,7 +219,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
       {filtresActifs && (
         <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
+          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.75rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -231,11 +232,11 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         /* En-tête de livre : au fer à gauche, prolongé d'un filet qui s'estompe. */
         .peri-livre-tete { display: flex; align-items: baseline; gap: 11px; margin: 0 0 6px; }
         .peri-livre-tete h2 {
-          font-family: ${SERIF}; font-size: 1rem; font-weight: 600; color: #2f4034;
+          font-family: ${SERIF}; font-size: 1rem; font-weight: 600; color: var(--cs-encre);
           margin: 0; white-space: nowrap; letter-spacing: 0.01em;
         }
-        .peri-livre-tete .rule { flex: 1; height: 1px; align-self: center; background: linear-gradient(to right, #d8cfbf, transparent); }
-        .peri-livre-tete .n { font-family: ${SANS}; font-size: 0.6rem; color: #8a8272; flex-shrink: 0; }
+        .peri-livre-tete .rule { flex: 1; height: 1px; align-self: center; background: linear-gradient(to right, var(--cs-bord), transparent); }
+        .peri-livre-tete .n { font-family: ${SANS}; font-size: 0.59375rem; color: var(--cs-texte-gris); flex-shrink: 0; }
 
         /* Entrée : titre serif à gauche, référence dorée à droite (comme la table d'un
            livre) ; en dessous, registre en petit gris et un chevron doré révélé au survol,
@@ -243,15 +244,15 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-bloc { position: relative; break-inside: avoid; }
         .peri-entree {
           display: block; text-decoration: none; color: inherit;
-          padding: 2px 2px 2px 0; border-radius: 5px; transition: background 0.14s ease;
+          padding: 2px 2px 2px 0; border-radius: 4px; transition: background 0.14s ease;
         }
         .peri-entree:hover { background: rgba(var(--cs-vert-rgb),0.045); }
         .peri-l1 { display: flex; align-items: baseline; gap: 10px; }
-        .peri-titre { flex: 1; min-width: 0; font-family: ${SERIF}; font-size: 0.88rem; font-weight: 500; color: #26302a; line-height: 1.26; }
-        .peri-ens { margin-left: 5px; font-family: ${SERIF}; font-style: italic; font-size: 0.66rem; font-weight: 400; color: #a99f92; }
-        .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.73rem; color: #b08f48; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .peri-titre { flex: 1; min-width: 0; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; }
+        .peri-ens { margin-left: 5px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; font-weight: 400; color: var(--cs-texte-faible); }
+        .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.71875rem; color: #b08f48; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 1px; min-height: 0.9rem; }
-        .peri-reg { font-family: ${SANS}; font-size: 0.53rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cs-texte-second); }
+        .peri-reg { font-family: ${SANS}; font-size: 0.53125rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cs-texte-second); }
         /* Affordance de navigation : le chevron du site, doré, révélé au survol du bloc
            et glissé d'un cran vers la droite — il signale « aller à la péricope ». */
         .peri-fleche {
@@ -262,7 +263,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-entree:hover .peri-fleche,
         .peri-entree:focus-visible .peri-fleche { opacity: 1; transform: translateX(0); }
         @media (hover: none) { .peri-fleche { opacity: 0.5; transform: none; } }
-        .peri-via { display: block; margin-top: 2px; font-family: ${SERIF}; font-style: italic; font-size: 0.65rem; color: #a08f5f; }
+        .peri-via { display: block; margin-top: 2px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; color: var(--cs-etiquette); }
       `}</style>
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
@@ -272,20 +273,20 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           position: mobile ? 'static' : 'sticky', top: '3.5rem',
           height: mobile ? 'auto' : 'calc(100vh - 3.5rem)',
           display: 'flex', flexDirection: 'column',
-          background: '#fbf8f3',
+          background: 'var(--cs-fond-clair)',
           borderRight: mobile ? 'none' : `1px solid ${BORD}`,
           borderBottom: mobile ? `1px solid ${BORD}` : 'none',
         }}>
           <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 13px' }}>
             <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a088', margin: '0 0 4px' }}>Catalogue</p>
-            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: '1.05rem', fontWeight: 600, color: VERT, lineHeight: 1.15, letterSpacing: '0.01em' }}>Les péricopes</h1>
+            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Les péricopes</h1>
             {/* Chapeau : la définition, puis une ligne d'accroche en italique pour le
                 rythme. Énumération par deux-points (pas d'incise entre tirets). */}
-            <p style={{ margin: '8px 0 0', fontFamily: SERIF, fontSize: '0.72rem', lineHeight: 1.55, color: '#6f6a62' }}>
+            <p style={{ margin: '8px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte-second)' }}>
               Une péricope est un passage biblique formant une unité de sens :{' '}
-              <span style={{ fontStyle: 'italic', color: '#8a7f70' }}>récit, parabole, discours ou psaume</span>.
+              <span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>récit, parabole, discours ou psaume</span>.
             </p>
-            <p style={{ margin: '5px 0 0', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.68rem', lineHeight: 1.4, color: '#a99f92' }}>
+            <p style={{ margin: '5px 0 0', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-faible)' }}>
               Ce catalogue les rassemble, livre après livre.
             </p>
           </div>
@@ -293,9 +294,9 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           {mobile ? (
             <>
               <button onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="pericopes-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8rem', color: '#5a5044' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: '#5a5044' }}>
                 <span>Filtres{filtresActifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ color: TEXTE2, fontSize: '0.7rem' }}>{panneauOuvert ? '▲' : '▼'}</span>
+                <span aria-hidden style={{ color: TEXTE2, fontSize: '0.6875rem' }}>{panneauOuvert ? '▲' : '▼'}</span>
               </button>
               {panneauOuvert && <div id="pericopes-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
             </>
@@ -312,10 +313,10 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
             {groupes.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: '20px' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
                 {filtresActifs && (
                   <button onClick={reinitialiser}
-                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
+                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78125rem' }}>
                     Réinitialiser les filtres
                   </button>
                 )}

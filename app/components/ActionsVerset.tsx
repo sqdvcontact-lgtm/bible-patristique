@@ -15,8 +15,8 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 
 const BTN: React.CSSProperties = {
   background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px',
-  borderRadius: '3px', width: '18px', height: '18px', display: 'inline-flex',
-  alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem',
+  borderRadius: '4px', width: '18px', height: '18px', display: 'inline-flex',
+  alignItems: 'center', justifyContent: 'center', fontSize: '0.84375rem',
   lineHeight: 1, flexShrink: 0, transition: 'color 0.15s',
 }
 

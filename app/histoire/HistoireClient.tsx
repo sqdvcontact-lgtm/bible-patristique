@@ -8,17 +8,19 @@ import {
   libelleSource, estUrl, siecleDe,
 } from '@/app/lib/frise'
 import HistoricalDate from '@/app/components/HistoricalDate'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { colorMix } from '@/app/lib/couleurs'
 
 // Frise générale de l'histoire de l'Église.
 // Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
 // Les dates affichées et leurs précisions viennent de `rechercher_frise_v2`.
 // L'ordre éditorial ne doit jamais être recalculé ici.
 
-const FOND = '#f4f0eb'
-const TEXTE = '#1f1b18'
+const FOND = 'var(--cs-fond)'
+const TEXTE = 'var(--cs-texte-fort)'
 const TEXTE2 = '#7a746d'
-const BORD = '#ddd4ca'
-const SEP = '#ece6db'
+const BORD = 'var(--cs-bord)'
+const SEP = 'var(--cs-fond-doux)'
 const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
@@ -70,7 +72,7 @@ function surligner(texte: string, cle: string, q: string): React.ReactNode[] {
   if (!q) return [texte]
   const parts = texte.split(new RegExp(`(${echapperRegex(q)})`, 'gi'))
   return parts.map((p, i) => (i % 2 === 1)
-    ? <mark key={`${cle}-m${i}`} style={{ background: 'rgba(183,160,106,0.38)', color: 'inherit', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
+    ? <mark key={`${cle}-m${i}`} style={{ background: 'rgba(183,160,106,0.38)', color: 'inherit', borderRadius: '4px', padding: '0 1px' }}>{p}</mark>
     : <React.Fragment key={`${cle}-t${i}`}>{p}</React.Fragment>)
 }
 
@@ -266,21 +268,21 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
       <div style={{ position: 'relative', marginTop: '2px' }}>
         <input value={recherche} onChange={e => setRecherche(e.target.value)} type="text"
           placeholder="Rechercher un événement…" aria-label="Rechercher dans la frise"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px 7px 28px', borderRadius: '6px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
+          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 10px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
         <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
           <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
           <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
         {recherche && (
           <button onClick={() => setRecherche('')} aria-label="Effacer la recherche"
-            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: TEXTE2, fontSize: '0.8rem', lineHeight: 1, padding: 0 }}>✕</button>
+            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: TEXTE2, fontSize: '0.8125rem', lineHeight: 1, padding: 0 }}>✕</button>
         )}
       </div>
 
       {/* Afficher/masquer les notices (et l'accès aux « Sources et détail »). */}
       <button onClick={() => setToutesNotes(o => !o)} aria-pressed={toutesNotes}
-        style={{ marginTop: '10px', width: '100%', fontFamily: SERIF, fontSize: '0.76rem', padding: '7px 10px', borderRadius: '6px', cursor: 'pointer',
-          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : '#fff', color: toutesNotes ? VERT : 'var(--cs-texte-second)' }}>
+        style={{ marginTop: '10px', width: '100%', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer',
+          border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)', color: toutesNotes ? VERT : 'var(--cs-texte-second)' }}>
         {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
       </button>
 
@@ -289,9 +291,9 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           {([['liste', 'Liste'], ['echelle', 'À l’échelle']] as ['liste' | 'echelle', string][]).map(([cle, label], i) => (
             <button key={cle} onClick={() => setVue(cle)} aria-pressed={vue === cle}
               style={{
-                flex: 1, fontSize: '0.68rem', padding: '5px 4px', border: 'none',
+                flex: 1, fontSize: '0.6875rem', padding: '5px 4px', border: 'none',
                 borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: vue === cle ? VERT : '#fff', color: vue === cle ? '#fff' : 'var(--cs-texte-second)',
+                background: vue === cle ? VERT : 'var(--cs-surface)', color: vue === cle ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
                 fontFamily: 'inherit', fontWeight: vue === cle ? 600 : 400, whiteSpace: 'nowrap',
               }}>
               {label}
@@ -305,9 +307,9 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           {DENSITES.map((d, i) => (
             <button key={d.cle} onClick={() => setDensite(d.cle)} aria-pressed={densite === d.cle}
               style={{
-                flex: 1, fontSize: '0.68rem', padding: '5px 4px', border: 'none',
+                flex: 1, fontSize: '0.6875rem', padding: '5px 4px', border: 'none',
                 borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: densite === d.cle ? VERT : '#fff', color: densite === d.cle ? '#fff' : 'var(--cs-texte-second)',
+                background: densite === d.cle ? VERT : 'var(--cs-surface)', color: densite === d.cle ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
                 fontFamily: 'inherit', fontWeight: densite === d.cle ? 600 : 400, whiteSpace: 'nowrap',
               }}>
               {d.label}
@@ -318,7 +320,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
 
       {rep.siecles.length > 1 && (
         <GroupeFiltre label="Période">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.72rem', color: TEXTE2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.71875rem', color: TEXTE2 }}>
             <label htmlFor="frise-de" style={{ flexShrink: 0 }}>Du</label>
             <SelectSiecle id="frise-de" valeur={f.sDe} siecles={rep.siecles} tout="Début"
               onChange={v => setF(p => ({ ...p, sDe: v }))} />
@@ -361,11 +363,11 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
         <GroupeFiltre label="Pays actuel">
           <select value={f.pays} onChange={e => setF(p => ({ ...p, pays: e.target.value }))}
             aria-label="Filtrer par pays actuel"
-            style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '5px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
+            style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.71875rem', padding: '4px 8px', borderRadius: '4px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
             <option value="">Tous les pays</option>
             {rep.pays.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <p style={{ margin: '6px 0 0', fontSize: '0.62rem', lineHeight: 1.4, color: '#a39a8e', fontStyle: 'italic' }}>
+          <p style={{ margin: '6px 0 0', fontSize: '0.625rem', lineHeight: 1.4, color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
             Territoire actuel du lieu. La désignation historique reste affichée sur l’événement.
           </p>
         </GroupeFiltre>
@@ -373,7 +375,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
 
       {filtresActifs && (
         <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.76rem' }}>
+          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.75rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -390,21 +392,21 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           position: mobile ? 'static' : 'sticky', top: '3.5rem',
           height: mobile ? 'auto' : 'calc(100vh - 3.5rem)',
           display: 'flex', flexDirection: 'column',
-          background: '#fbf8f3',
+          background: 'var(--cs-fond-clair)',
           borderRight: mobile ? 'none' : `1px solid ${BORD}`,
           borderBottom: mobile ? `1px solid ${BORD}` : 'none',
         }}>
           <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 12px' }}>
             <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a088', margin: '0 0 4px' }}>Aller plus loin</p>
-            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: '1.05rem', fontWeight: 600, color: VERT, lineHeight: 1.15, letterSpacing: '0.01em' }}>Histoire de l’Église</h1>
+            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Histoire de l’Église</h1>
           </div>
 
           {mobile ? (
             <>
               <button onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="frise-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8rem', color: '#5a5044' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: '#5a5044' }}>
                 <span>Filtres et densité{filtresActifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ color: TEXTE2, fontSize: '0.7rem' }}>{panneauOuvert ? '▲' : '▼'}</span>
+                <span aria-hidden style={{ color: TEXTE2, fontSize: '0.6875rem' }}>{panneauOuvert ? '▲' : '▼'}</span>
               </button>
               {panneauOuvert && <div id="frise-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
             </>
@@ -421,19 +423,19 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           <div style={{ maxWidth: vue === 'echelle' ? 'none' : '48rem', margin: '0 auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '0 0 16px', paddingBottom: '12px', borderBottom: `1px solid ${SEP}` }}>
-              <span style={{ fontSize: '0.68rem', color: '#a39a8e', whiteSpace: 'nowrap' }} aria-live="polite">
+              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }} aria-live="polite">
                 {visibles.length} repère{visibles.length > 1 ? 's' : ''}
               </span>
             </div>
 
             {visibles.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: '20px' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>
+                <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>
                   Aucun événement ne correspond aux filtres retenus.
                 </p>
                 {filtresActifs && (
                   <button onClick={reinitialiser}
-                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78rem' }}>
+                    style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78125rem' }}>
                     Réinitialiser les filtres
                   </button>
                 )}
@@ -467,7 +469,7 @@ function FriseEchelle({ echelle, recherche }: {
   recherche: string
 }) {
   if (!echelle) return (
-    <p style={{ fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '20px' }}>
+    <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '20px' }}>
       Aucun repère daté à placer sur l’échelle pour cette sélection.
     </p>
   )
@@ -481,7 +483,7 @@ function FriseEchelle({ echelle, recherche }: {
   for (let b = debut; b <= echelle.fin; b += 100) bornesSiecles.push(b)
 
   return (
-    <div style={{ overflowX: 'auto', border: `1px solid ${BORD}`, borderRadius: '10px', background: '#fdfbf7' }}>
+    <div style={{ overflowX: 'auto', border: `1px solid ${BORD}`, borderRadius: '8px', background: 'var(--cs-fond-clair)' }}>
       <div style={{ position: 'relative', width: largTotale, height: H_ENTETE_ECHELLE + hauteur, minWidth: '100%' }}>
 
         {/* En-têtes de colonnes (une par famille). */}
@@ -489,10 +491,10 @@ function FriseEchelle({ echelle, recherche }: {
           <div key={c.fam} style={{
             position: 'absolute', top: 0, left: xCol[i], width: largCol(c), height: H_ENTETE_ECHELLE,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textAlign: 'center',
-            borderBottom: `1.5px solid ${coulFamille(c.fam)}44`, padding: '0 8px', boxSizing: 'border-box',
+            borderBottom: `1.5px solid ${colorMix(coulFamille(c.fam), 27)}`, padding: '0 8px', boxSizing: 'border-box',
           }}>
             <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', background: coulFamille(c.fam), flexShrink: 0 }} />
-            <span style={{ fontFamily: SANS, fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: coulFamille(c.fam), lineHeight: 1.25 }}>{c.fam}</span>
+            <span style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: coulFamille(c.fam), lineHeight: 1.25 }}>{c.fam}</span>
           </div>
         ))}
 
@@ -505,7 +507,7 @@ function FriseEchelle({ echelle, recherche }: {
               <React.Fragment key={b}>
                 <div style={{ position: 'absolute', top: y, left: LARG_GOUTTIERE - 6, width: largTotale - LARG_GOUTTIERE + 6, borderTop: `1px solid ${SEP}` }} />
                 {b < echelle.fin && s != null && (
-                  <div style={{ position: 'absolute', top: y + 5, left: 0, width: LARG_GOUTTIERE - 12, textAlign: 'right', fontFamily: SERIF, fontSize: '0.72rem', color: '#c3b48c' }}>
+                  <div style={{ position: 'absolute', top: y + 5, left: 0, width: LARG_GOUTTIERE - 12, textAlign: 'right', fontFamily: SERIF, fontSize: '0.71875rem', color: 'var(--cs-or-doux)' }}>
                     <Siecle n={s} />
                   </div>
                 )}
@@ -522,10 +524,10 @@ function FriseEchelle({ echelle, recherche }: {
                 <div key={e.id}
                   title={`${e.date_affichage} · ${e.titre}${e.notice ? '\n\n' + e.notice : ''}`}
                   style={{ position: 'absolute', top, left: gauche, width: LARG_LANE, height: occ }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, width: BARRE_W, height: Math.max(H_BARRE_MIN, dureeH), background: teinte, opacity: 0.9, borderRadius: '2px' }} />
+                  <div style={{ position: 'absolute', left: 0, top: 0, width: BARRE_W, height: Math.max(H_BARRE_MIN, dureeH), background: teinte, opacity: 0.9, borderRadius: '4px' }} />
                   <div style={{ paddingLeft: BARRE_W + GAP_TXT, paddingTop: PAD_BLOC }}>
-                    <div style={{ fontFamily: SERIF, fontSize: '0.62rem', color: teinte, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>{rendreSiecles(formaterDateHistoire(e.date_affichage))}</div>
-                    <div style={{ fontFamily: SERIF, fontSize: '0.72rem', color: TEXTE, lineHeight: 1.28, marginTop: '1px' }}>{rendreFrise(e.titre, recherche)}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: '0.625rem', color: teinte, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>{rendreSiecles(formaterDateHistoire(e.date_affichage))}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: TEXTE, lineHeight: 1.28, marginTop: '1px' }}>{rendreFrise(e.titre, recherche)}</div>
                   </div>
                 </div>
               )
@@ -573,19 +575,19 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
   // Colonnes date et famille : chacune sur UNE ligne (troncature discrète si trop long,
   // le texte entier restant accessible en infobulle).
   const dateCol = (
-    <div title={dateTexte} style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#b7a06a', lineHeight: 1.35, fontVariantNumeric: 'tabular-nums', textAlign: mobile ? 'left' : 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <div title={dateTexte} style={{ fontFamily: SERIF, fontSize: '0.75rem', color: '#b7a06a', lineHeight: 1.35, fontVariantNumeric: 'tabular-nums', textAlign: mobile ? 'left' : 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
       <HistoricalDate value={e.date_affichage} variant="short" />
     </div>
   )
   const familleCol = (
-    <div title={e.famille ?? ''} style={{ fontFamily: SANS, fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <div title={e.famille ?? ''} style={{ fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
       {e.famille ?? ''}
     </div>
   )
 
   // Intitulé sur une seule ligne ; cliquable (quand il y a une notice) pour la déplier.
   const styleTitre: React.CSSProperties = {
-    margin: 0, fontFamily: SERIF, fontSize: '0.92rem', lineHeight: 1.35, color: TEXTE, fontWeight: 500,
+    margin: 0, fontFamily: SERIF, fontSize: '0.9375rem', lineHeight: 1.35, color: TEXTE, fontWeight: 500,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
   }
   const titre = aNotice ? (
@@ -603,19 +605,19 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
       {titre}
 
       {afficheNotice && noticeCourte && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.78rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
           {rendreFrise(noticeCourte, recherche)}
         </p>
       )}
 
       {afficheNotice && e.date_precision_affichage && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
           <HistoricalDate value={e.date_precision_affichage} variant="short" />
         </p>
       )}
 
       {afficheNotice && e.note_datation && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.76rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
           {rendreFrise(e.note_datation, recherche)}
         </p>
       )}
@@ -623,7 +625,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
       {afficheNotice && (
         <div style={{ marginTop: '5px' }}>
           <button onClick={() => setDetailOuvert(o => !o)} aria-expanded={detailOuvert} aria-controls={idCarte}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: '0.63rem', color: '#9a938a', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: '0.625rem', color: 'var(--cs-texte-doux)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
             {detailOuvert ? 'Réduire' : 'Sources et détail'}
           </button>
         </div>
@@ -699,8 +701,8 @@ function Lien({ valeur }: { valeur: string }) {
 
 function LigneDetail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <p style={{ margin: '0 0 3px', fontFamily: SANS, fontSize: '0.66rem', lineHeight: 1.5, color: 'var(--cs-texte-second)' }}>
-      <span style={{ color: '#a39a8e' }}>{label} : </span>{children}
+    <p style={{ margin: '0 0 3px', fontFamily: SANS, fontSize: '0.65625rem', lineHeight: 1.5, color: 'var(--cs-texte-second)' }}>
+      <span style={{ color: 'var(--cs-texte-doux)' }}>{label} : </span>{children}
     </p>
   )
 }
@@ -711,7 +713,7 @@ function SelectSiecle({ id, valeur, siecles, tout, onChange }: {
 }) {
   return (
     <select id={id} value={valeur ?? ''} onChange={e => onChange(e.target.value ? Number(e.target.value) : null)}
-      style={{ flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.72rem', padding: '3px 5px', borderRadius: '5px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
+      style={{ flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.71875rem', padding: '3px 5px', borderRadius: '4px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
       <option value="">{tout}</option>
       {siecles.map(s => <option key={s} value={s}>{s > 0 ? `${s}e s.` : `${-s}e s. av. J.-C.`}</option>)}
     </select>
@@ -732,13 +734,13 @@ function BoutonFamille({ fam, actif, onClick }: { fam: string; actif: boolean; o
   return (
     <button onClick={onClick} aria-pressed={actif} style={{
       display: 'flex', alignItems: 'center', gap: '9px', width: '100%', textAlign: 'left',
-      padding: '6px 9px', borderRadius: '6px', cursor: 'pointer',
-      border: `1px solid ${actif ? c : `${c}40`}`,
-      background: actif ? `${c}22` : `${c}0d`,
+      padding: '6px 9px', borderRadius: '8px', cursor: 'pointer',
+      border: `1px solid ${actif ? c : `${colorMix(c, 25)}`}`,
+      background: actif ? `${colorMix(c, 13)}` : `${colorMix(c, 5)}`,
       transition: 'background 0.12s, border-color 0.12s',
     }}>
       <span aria-hidden style={{ width: '9px', height: '9px', borderRadius: '50%', background: c, flexShrink: 0 }} />
-      <span style={{ fontFamily: SERIF, fontSize: '0.79rem', color: c, fontWeight: actif ? 600 : 500, lineHeight: 1.25 }}>{fam}</span>
+      <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: c, fontWeight: actif ? 600 : 500, lineHeight: 1.25 }}>{fam}</span>
     </button>
   )
 }
@@ -749,8 +751,8 @@ function LigneCase({ actif, onClick, children }: { actif: boolean; onClick: () =
       display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
       background: 'none', border: 'none', borderLeft: `2px solid ${actif ? VERT : 'transparent'}`,
       padding: '2px 0 2px 9px', margin: 0,
-      fontFamily: SERIF, fontSize: '0.76rem', lineHeight: 1.35,
-      color: actif ? VERT : '#8a8278', fontWeight: actif ? 600 : 400,
+      fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
+      color: actif ? VERT : 'var(--cs-texte-gris)', fontWeight: actif ? 600 : 400,
       transition: 'color 0.12s, border-color 0.12s',
     }}>{children}</button>
   )

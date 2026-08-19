@@ -59,7 +59,7 @@ export function titreSansAppelsDeNote(texte: string) {
 export type VarianteAppelNote = 'corps' | 'titre' | 'frontispice'
 
 const FORME_APPEL: Record<VarianteAppelNote, React.CSSProperties> = {
-  corps: { fontSize: '0.60em', color: '#8a6a3e' },
+  corps: { fontSize: '0.60em', color: 'var(--cs-lacune)' },
   titre: { fontSize: '0.42em', color: 'currentColor', opacity: 0.55 },
   frontispice: { fontSize: '0.30em', color: 'currentColor', opacity: 0.45 },
 }
@@ -185,16 +185,16 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
         maxWidth: 'calc(100vw - 16px)',
         maxHeight: placement.hauteurMax,
         overflowY: 'auto',
-        background: '#faf6ee',
+        background: 'var(--cs-fond)',
         border: '1px solid var(--cs-or-doux)',
-        borderRadius: 5,
-        boxShadow: '0 6px 24px rgba(44,30,10,0.20)',
+        borderRadius: 4,
+        boxShadow: 'var(--cs-ombre-flottante)',
         padding: '10px 12px',
         zIndex: 9999,
         fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: '0.78125rem',
         lineHeight: 1.45,
-        color: '#2a2218',
+        color: 'var(--cs-texte-fort)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>

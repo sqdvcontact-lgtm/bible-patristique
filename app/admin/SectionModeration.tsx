@@ -43,10 +43,10 @@ type Props = {
 // ── Localisation ──────────────────────────────────────────────────────────────
 type Lieu = 'Bible' | 'Patristique' | 'Publications' | 'Profil'
 const COULEUR_LIEU: Record<Lieu, { fond: string; texte: string }> = {
-  Bible:        { fond: '#eaf3ee', texte: 'var(--cs-vert)' },
-  Patristique:  { fond: '#f4efe2', texte: '#8a6a30' },
-  Publications: { fond: '#eaf1f6', texte: '#3d5a6b' },
-  Profil:       { fond: '#edf2e8', texte: '#45633b' },
+  Bible:        { fond: 'var(--cs-fond)', texte: 'var(--cs-vert)' },
+  Patristique:  { fond: 'var(--cs-fond-doux)', texte: 'var(--cs-lacune)' },
+  Publications: { fond: 'var(--cs-fond)', texte: '#3d5a6b' },
+  Profil:       { fond: 'var(--cs-fond-doux)', texte: '#45633b' },
 }
 
 function localiserCommentaire(c: Commentaire, segMap: Record<number, SegInfo>, versetMap: Record<string, string>, versetTexteMap: Record<string, string>, oeuvreTitreMap: Record<string, string>) {
@@ -91,10 +91,10 @@ function localiserSignalement(
 // Dégradé de rouges selon la gravité (mineur → bloquant), pour teinter le bloc.
 function styleImportance(imp: string | null | undefined) {
   switch (imp) {
-    case 'bloquant':  return { fond: '#fbe3e0', bord: '#db988c', accent: '#8a1f1f', label: 'Bloquant' as string | null }
-    case 'important': return { fond: '#fdeae2', bord: '#e6ab95', accent: '#b0442a', label: 'Important' as string | null }
-    case 'mineur':    return { fond: '#fdf4ef', bord: '#eccdbd', accent: '#9a6650', label: 'Mineur' as string | null }
-    default:          return { fond: 'var(--cs-fond-clair)', bord: 'var(--cs-bord-clair)', accent: '#8a8278', label: null as string | null }
+    case 'bloquant':  return { fond: 'var(--cs-fond-doux)', bord: '#db988c', accent: '#8a1f1f', label: 'Bloquant' as string | null }
+    case 'important': return { fond: 'var(--cs-danger-fond)', bord: '#e6ab95', accent: '#b0442a', label: 'Important' as string | null }
+    case 'mineur':    return { fond: 'var(--cs-danger-fond)', bord: 'var(--cs-danger-bord)', accent: '#9a6650', label: 'Mineur' as string | null }
+    default:          return { fond: 'var(--cs-fond-clair)', bord: 'var(--cs-bord-clair)', accent: 'var(--cs-texte-gris)', label: null as string | null }
   }
 }
 
@@ -149,31 +149,31 @@ export default function SectionModeration(props: Props) {
     <div>
       <style>{`
         .mod-tabs{display:flex;justify-content:center;gap:8px;margin:0 0 22px;}
-        .mod-tab{font-family:var(--font-source-serif), Georgia, serif;font-size:0.875rem;color:#8a8278;background:transparent;border:0;border-radius:999px;padding:7px 20px;cursor:pointer;transition:background .14s,color .14s;display:inline-flex;align-items:center;gap:8px;}
+        .mod-tab{font-family:var(--font-source-serif), Georgia, serif;font-size:0.875rem;color:var(--cs-texte-gris);background:transparent;border:0;border-radius:999px;padding:7px 20px;cursor:pointer;transition:background .14s,color .14s;display:inline-flex;align-items:center;gap:8px;}
         .mod-tab:hover{color:var(--cs-vert);}
-        .mod-tab.active{background:var(--cs-vert);color:#fff;}
+        .mod-tab.active{background:var(--cs-vert);color:var(--cs-surface);}
         .mod-tab .n{font-size:0.625rem;font-family:var(--font-source-sans), Arial, sans-serif;border-radius:999px;padding:1px 7px;background:rgba(0,0,0,.06);}
         .mod-tab.active .n{background:rgba(255,255,255,.25);}
         .mod-liste{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto;}
-        .mod-card{background:var(--cs-surface);border:1px solid var(--cs-bord-clair);border-radius:9px;padding:13px 16px;}
+        .mod-card{background:var(--cs-surface);border:1px solid var(--cs-bord-clair);border-radius:8px;padding:13px 16px;}
         .mod-entete{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;}
         .mod-ref{font-family:var(--font-source-serif), Georgia, serif;font-size:0.78125rem;color:var(--cs-vert);text-decoration:none;}
         .mod-ref:hover{text-decoration:underline;}
         .mod-date{margin-left:auto;font-size:0.65625rem;color:var(--cs-texte-faible);white-space:nowrap;}
         .mod-texte{font-size:0.8125rem;color:var(--cs-texte-fort);line-height:1.6;margin:0 0 10px;white-space:pre-line;}
-        .mod-cible{font-size:0.71875rem;color:var(--cs-texte-second);line-height:1.55;font-style:italic;border-left:2px solid #ddd0b0;padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
+        .mod-cible{font-size:0.71875rem;color:var(--cs-texte-second);line-height:1.55;font-style:italic;border-left:2px solid var(--cs-danger-bord);padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
         /* Message auquel un commentaire répond : encart discret, gris-vert, au-dessus du texte. */
-        .mod-reponse{font-size:0.6875rem;color:var(--cs-texte-second);line-height:1.5;background:#f4f6f2;border-left:2px solid #b8ccbd;border-radius:0 5px 5px 0;padding:6px 10px;margin:0 0 8px;}
+        .mod-reponse{font-size:0.6875rem;color:var(--cs-texte-second);line-height:1.5;background:var(--cs-fond);border-left:2px solid #b8ccbd;border-radius:0 4px 4px 0;padding:6px 10px;margin:0 0 8px;}
         .mod-reponse .qui{display:block;font-size:0.59375rem;font-weight:700;letter-spacing:.03em;color:var(--cs-vert);margin-bottom:2px;}
         .mod-reponse .quoi{display:block;font-style:italic;color:#7a746c;max-height:70px;overflow:auto;}
         .mod-auteur{font-size:0.6875rem;color:var(--cs-texte-second);font-weight:500;margin:0 0 10px;}
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
-        .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid var(--cs-bord);background:var(--cs-surface);color:var(--cs-texte);transition:background .12s,border-color .12s;}
+        .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--cs-bord);background:var(--cs-surface);color:var(--cs-texte);transition:background .12s,border-color .12s;}
         .mod-btn:hover{background:var(--cs-fond);}
-        .mod-btn.vert{background:var(--cs-vert);color:#fff;border-color:var(--cs-vert);}
+        .mod-btn.vert{background:var(--cs-vert);color:var(--cs-surface);border-color:var(--cs-vert);}
         .mod-btn.vert:hover{background:var(--cs-vert-fonce);}
-        .mod-btn.rouge{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:#fff7f4;}
-        .mod-btn.violet{background:#6b4fa0;color:#fff;border-color:#6b4fa0;}
+        .mod-btn.rouge{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:var(--cs-fond-clair);}
+        .mod-btn.violet{background:#6b4fa0;color:var(--cs-surface);border-color:#6b4fa0;}
         .mod-btn.violet:hover{background:#573f86;}
         .mod-btn:disabled{opacity:.5;cursor:default;}
         .mod-badge{font-size:0.59375rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
@@ -203,7 +203,7 @@ export default function SectionModeration(props: Props) {
             // Message parent (si ce commentaire est une réponse) : affiché en contexte.
             const parent = (!estPub && item.c.reponse_a) ? commentaireParentMap[item.c.reponse_a] : null
             return (
-              <div key={item.key} className="mod-card" style={estCertif ? { background: '#f7f3fb', borderColor: '#d8c9ec' } : undefined}>
+              <div key={item.key} className="mod-card" style={estCertif ? { background: 'var(--cs-fond-clair)', borderColor: '#d8c9ec' } : undefined}>
                 <div className="mod-entete">
                   <BadgeLieu lieu={loc.lieu} />
                   {estCertif && <span className="mod-badge" style={{ background: '#ece3f8', color: '#6b4fa0' }}>Demande de certification</span>}
@@ -261,7 +261,7 @@ export default function SectionModeration(props: Props) {
                 <div className="mod-entete">
                   {imp.label && <span className="mod-badge" style={{ background: 'var(--cs-surface)', color: imp.accent, border: `1px solid ${imp.bord}` }}>{imp.label}</span>}
                   <BadgeLieu lieu={loc.lieu} />
-                  {s.source === 'quiz_signalements' && <span className="mod-badge" style={{ background: '#ece9f6', color: '#6b5fa0' }}>Quiz</span>}
+                  {s.source === 'quiz_signalements' && <span className="mod-badge" style={{ background: 'var(--cs-fond-doux)', color: '#6b5fa0' }}>Quiz</span>}
                   {loc.href ? <a className="mod-ref" href={loc.href} target="_blank" rel="noopener noreferrer">{loc.titre}</a> : <span className="mod-ref">{loc.titre}</span>}
                   <span className="mod-date">{dateFormat(s.created_at)}</span>
                 </div>

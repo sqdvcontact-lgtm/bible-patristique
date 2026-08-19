@@ -29,7 +29,7 @@ export default function SoutenirPage() {
     <section style={{
       minHeight: "calc(100dvh - 3.5rem)",
       boxSizing: "border-box",
-      background: "#f7f3eb",
+      background: "var(--cs-fond)",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
@@ -84,11 +84,11 @@ export default function SoutenirPage() {
       <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
         style={{
           display: "inline-flex", alignItems: "center", gap: "0.6em",
-          background: "var(--cs-vert)", color: "#fff", textDecoration: "none",
+          background: "var(--cs-vert)", color: "var(--cs-surface)", textDecoration: "none",
           fontFamily: "var(--font-source-serif), Georgia, serif",
           fontSize: "clamp(0.875rem, 0.68rem + 0.28vw, 1.05rem)", fontWeight: 500,
           padding: "clamp(10px, 1.1vh, 14px) clamp(24px, 2vw, 38px)",
-          borderRadius: "6px",
+          borderRadius: "8px",
           boxShadow: "0 3px 12px rgba(var(--cs-vert-rgb),0.22)",
           letterSpacing: "0.01em",
           flexShrink: 0,
@@ -99,7 +99,7 @@ export default function SoutenirPage() {
 
       <p style={{
         fontSize: "clamp(0.65625rem, 0.55rem + 0.18vw, 0.8rem)",
-        color: "#a09488",
+        color: "var(--cs-texte-doux)",
         marginTop: "clamp(10px, 1.4vh, 16px)",
         fontStyle: "italic",
         flexShrink: 0,

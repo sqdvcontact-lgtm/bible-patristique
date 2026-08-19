@@ -130,20 +130,20 @@ export default function ApercuAuteur({
         <div onMouseEnter={() => { if (timerFerme.current) clearTimeout(timerFerme.current) }}
           onMouseLeave={sortir}
           onClick={onOuvrirFiche}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: LARGEUR, maxWidth: 'calc(100vw - 16px)', maxHeight: pos.hauteurMax, overflowY: 'auto', zIndex: 2500, background: 'var(--cs-fond)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', boxShadow: '0 12px 34px rgba(40,30,15,0.22)', padding: '13px 15px', cursor: 'pointer' }}>
+          style={{ position: 'fixed', top: pos.top, left: pos.left, width: LARGEUR, maxWidth: 'calc(100vw - 16px)', maxHeight: pos.hauteurMax, overflowY: 'auto', zIndex: 2500, background: 'var(--cs-fond)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', padding: '13px 15px', cursor: 'pointer' }}>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             <div style={{ width: '3.25rem', height: '4.25rem', flexShrink: 0, overflow: 'hidden', borderRadius: '4px', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--cs-bord)' }}>
               {photoOk ? (
                 <img src={photoUrl} alt={auteur.nom} onError={() => setPhotoOk(false)}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.25rem', color: '#c3b48c', fontStyle: 'italic' }}>{initiales}</span>
+                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.25rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>{initiales}</span>
               )}
             </div>
             <div style={{ minWidth: 0 }}>
               <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.15 }}>{auteur.nom}</p>
               {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
-              {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.53125rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: '#a8a094', margin: '5px 0 0', lineHeight: 1.3 }}>{meta}</p>}
+              {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.53125rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '5px 0 0', lineHeight: 1.3 }}>{meta}</p>}
             </div>
           </div>
           {auteur.note_biographique && (

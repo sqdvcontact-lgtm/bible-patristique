@@ -146,19 +146,19 @@ export default function SectionCharte() {
           </span>
         )}
       </div>
-      <p style={{ fontSize: '0.8625rem', color: '#8a8278', lineHeight: 1.55, margin: '0 0 14px' }}>
+      <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.55, margin: '0 0 14px' }}>
         Document de référence transmis à l’IA avant chaque session. Rédigez-le librement, copiez-le, collez-le dans la conversation.
       </p>
 
       <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 18px', marginBottom: '12px' }}>
         {statut === 'loading' ? (
-          <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement…</p>
         ) : (
           <textarea
             value={contenu}
             onChange={e => setContenu(e.target.value)}
             rows={32}
-            style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.89844rem', fontFamily: 'ui-monospace, Consolas, monospace', lineHeight: 1.65, padding: '10px 12px', border: '1px solid var(--cs-bord)', borderRadius: '5px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.875rem', fontFamily: 'ui-monospace, Consolas, monospace', lineHeight: 1.65, padding: '10px 12px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none' }}
           />
         )}
         <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', margin: '5px 0 0' }}>{contenu.length.toLocaleString('fr-FR')} caractères</p>
@@ -166,20 +166,20 @@ export default function SectionCharte() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <button onClick={sauvegarder} disabled={statut === 'loading' || statut === 'saving'} className="btn-vert"
-          style={{ fontSize: '0.8625rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.875rem', padding: '8px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: 500 }}>
           {statut === 'saving' ? 'Enregistrement…' : statut === 'ok' ? '✓ Enregistré' : 'Sauvegarder'}
         </button>
         <button onClick={copier} disabled={!contenu || statut === 'loading'} className="btn-gris"
-          style={{ fontSize: '0.8625rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.875rem', padding: '8px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: 500 }}>
           {copie ? '✓ Copié' : 'Copier'}
         </button>
         {!contenu && statut === 'idle' && (
           <button onClick={preRemplir} className="btn-gris"
-            style={{ fontSize: '0.8625rem', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+            style={{ fontSize: '0.875rem', padding: '8px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: 500 }}>
             Pré-remplir avec le modèle
           </button>
         )}
-        {statut === 'erreur' && <span style={{ fontSize: '0.79062rem', color: 'var(--cs-danger)' }}>Erreur de connexion.</span>}
+        {statut === 'erreur' && <span style={{ fontSize: '0.78125rem', color: 'var(--cs-danger)' }}>Erreur de connexion.</span>}
       </div>
     </div>
   )

@@ -21,7 +21,7 @@ export function inlineVersHtml(s: string): string {
   r = r.replace(/\[\^(.+?)\]/g, (_m, p1) =>
     `<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(p1).replace(/\*/g, '%2A')}" style="${styleNote}">note</span>&nbsp;`)
   r = r.replace(/\[(.+?)\]\((verset|segment):(.+?)\)/g, (_m, label, type, id) =>
-    `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:var(--cs-vert);text-decoration:underline;background:rgba(var(--cs-vert-rgb),0.07);padding:1px 5px;border-radius:3px;cursor:pointer;">${label}</span>&nbsp;`)
+    `<span contenteditable="false" data-chip="${type}" data-id="${id}" data-label="${label}" style="display:inline-block;color:var(--cs-vert);text-decoration:underline;background:rgba(var(--cs-vert-rgb),0.07);padding:1px 5px;border-radius:4px;cursor:pointer;">${label}</span>&nbsp;`)
   r = r.replace(/\[(.+?)\]\(((?:https?:)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
   r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   r = r.replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.02em">$1</span>')

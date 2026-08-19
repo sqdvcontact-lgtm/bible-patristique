@@ -17,15 +17,16 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { messageErreurQualification } from './qualification'
+import { colorMix } from '@/app/lib/couleurs'
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 // ── Libellés français (rang académique, non une note populaire) ─────────────
 const L_SCI: Record<string, string> = { retenu: 'Retenu', secondaire: 'Source secondaire', a_verifier: 'À vérifier', exclu: 'Exclu' }
-const C_SCI: Record<string, string> = { retenu: '#3d6b4f', secondaire: '#6f8a3e', a_verifier: '#9a7a38', exclu: '#9a2a2a' }
+const C_SCI: Record<string, string> = { retenu: 'var(--cs-vert)', secondaire: '#6f8a3e', a_verifier: 'var(--cs-or)', exclu: 'var(--cs-danger-fonce)' }
 const L_EDITO: Record<string, string> = { a_revoir: 'À revoir', en_cours: 'En cours', valide: 'Validé', rejete: 'Rejeté' }
-const C_EDITO: Record<string, string> = { a_revoir: '#9a7a38', en_cours: '#5f6b86', valide: '#3d6b4f', rejete: '#9a2a2a' }
+const C_EDITO: Record<string, string> = { a_revoir: 'var(--cs-or)', en_cours: 'var(--cs-systeme)', valide: 'var(--cs-vert)', rejete: 'var(--cs-danger-fonce)' }
 const L_ROLE: Record<string, string> = { auteur_scientifique: 'Auteur (chercheur)', auteur_source: 'Auteur source (ancien)', editeur_scientifique: 'Éditeur scientifique', traducteur: 'Traducteur' }
 const L_NATURE: Record<string, string> = { chercheur: 'Chercheur moderne', auteur_ancien: 'Auteur ancien', collectif: 'Collectif' }
 const L_GARANTIE: Record<string, string> = { editeur_universitaire: 'Éditeur universitaire', collection_scientifique: 'Collection scientifique', edition_critique: 'Édition critique', a_verifier: 'À vérifier' }
@@ -60,19 +61,19 @@ const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').to
 // ── Puce de statut (couleur + libellé, jamais d'étoile) ─────────────────────
 function Puce({ txt, coul }: { txt: string; coul: string }) {
   return (
-    <span style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.02em', color: coul, background: `${coul}18`, border: `1px solid ${coul}40`, borderRadius: '5px', padding: '1px 7px', whiteSpace: 'nowrap' }}>{txt}</span>
+    <span style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.02em', color: coul, background: `${colorMix(coul, 9)}`, border: `1px solid ${colorMix(coul, 25)}`, borderRadius: '4px', padding: '1px 7px', whiteSpace: 'nowrap' }}>{txt}</span>
   )
 }
 
 // Filtre en pastille. Défini hors du composant pour ne pas être recréé à chaque rendu.
 function Chip({ actif, onClick, children }: { actif: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} style={{ fontFamily: SANS, fontSize: '0.72rem', fontWeight: actif ? 700 : 500, cursor: 'pointer', padding: '4px 11px', borderRadius: '20px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.1)' : 'var(--cs-surface)', color: actif ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>{children}</button>
+    <button onClick={onClick} style={{ fontFamily: SANS, fontSize: '0.71875rem', fontWeight: actif ? 700 : 500, cursor: 'pointer', padding: '4px 11px', borderRadius: '999px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.1)' : 'var(--cs-surface)', color: actif ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>{children}</button>
   )
 }
 
-const champStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '6px', padding: '6px 9px', width: '100%' }
-const labelStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '3px' }
+const champStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '6px 9px', width: '100%' }
+const labelStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '3px' }
 
 export default function SectionOuvrages() {
   const [lignes, setLignes] = useState<LigneQualite[]>([])
@@ -128,17 +129,17 @@ export default function SectionOuvrages() {
     return true
   }), [lignes, qn, filtreSci, filtreDrapeau])
 
-  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.85rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (chargement) return <p style={{ fontFamily: SANS, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
 
   return (
     <div>
-      <h2 style={{ fontFamily: SERIF, fontSize: '1.3rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Ouvrages bibliographiques</h2>
-      <p style={{ fontFamily: SANS, fontSize: '0.8rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 16px', maxWidth: '52rem' }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: '1.3125rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Ouvrages bibliographiques</h2>
+      <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 16px', maxWidth: '52rem' }}>
         La valeur scientifique est calculée par la base à partir de l’éditeur, de la collection et des contributeurs. On peut ici consulter ce statut, saisir une décision manuelle si nécessaire, et rattacher un ouvrage à ses autorités normalisées. Les Pères et autres auteurs anciens sont des sources, jamais des fiches notées.
       </p>
 
-      {erreur && <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 12px' }}>{erreur}</p>}
-      {info && <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-vert-fonce)', background: 'rgba(var(--cs-vert-rgb),0.08)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '7px', padding: '8px 11px', margin: '0 0 12px' }}>{info}</p>}
+      {erreur && <p role="alert" style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '8px 11px', margin: '0 0 12px' }}>{erreur}</p>}
+      {info && <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-vert-fonce)', background: 'rgba(var(--cs-vert-rgb),0.08)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)', borderRadius: '8px', padding: '8px 11px', margin: '0 0 12px' }}>{info}</p>}
 
       {/* Filtres */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'center', marginBottom: '14px' }}>
@@ -154,10 +155,10 @@ export default function SectionOuvrages() {
         <Chip actif={filtreDrapeau === 'edito_rejete'} onClick={() => setFiltreDrapeau(filtreDrapeau === 'edito_rejete' ? '' : 'edito_rejete')}>Rejeté</Chip>
       </div>
 
-      <p style={{ fontFamily: SANS, fontSize: '0.7rem', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>{filtrees.length} ouvrage{filtrees.length > 1 ? 's' : ''}</p>
+      <p style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>{filtrees.length} ouvrage{filtrees.length > 1 ? 's' : ''}</p>
 
       {/* Liste */}
-      <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '9px', overflow: 'hidden' }}>
+      <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
         {filtrees.map((l, i) => {
           const ouvert = ouvertId === l.id
           const enReserve = (l.contributeurs ?? []).some(c => c.reserve)
@@ -166,18 +167,18 @@ export default function SectionOuvrages() {
               <button onClick={() => setOuvertId(ouvert ? null : l.id)}
                 style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', padding: '9px 12px' }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: SERIF, fontSize: '0.9rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {l.titre}{l.annee ? <span style={{ color: 'var(--cs-texte-faible)' }}> ({l.annee})</span> : null}
                   </div>
-                  <div style={{ fontFamily: SANS, fontSize: '0.72rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {l.auteurs || '—'}{l.editeur ? ` · ${l.editeur}` : ''}{l.collection ? ` · ${l.collection}` : ''}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-                  {enReserve && <span title="Un contributeur est en réserve" style={{ fontSize: '0.72rem', color: 'var(--cs-danger-fonce)' }}>⚑</span>}
-                  {l.statut_scientifique_override && <Puce txt="Manuel" coul="#5f6b86" />}
-                  <Puce txt={L_EDITO[l.statut_editorial] ?? l.statut_editorial} coul={C_EDITO[l.statut_editorial] ?? '#5f6b86'} />
-                  <Puce txt={L_SCI[l.statut_scientifique] ?? l.statut_scientifique} coul={C_SCI[l.statut_scientifique] ?? '#5f6b86'} />
+                  {enReserve && <span title="Un contributeur est en réserve" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)' }}>⚑</span>}
+                  {l.statut_scientifique_override && <Puce txt="Manuel" coul="var(--cs-systeme)" />}
+                  <Puce txt={L_EDITO[l.statut_editorial] ?? l.statut_editorial} coul={C_EDITO[l.statut_editorial] ?? 'var(--cs-systeme)'} />
+                  <Puce txt={L_SCI[l.statut_scientifique] ?? l.statut_scientifique} coul={C_SCI[l.statut_scientifique] ?? 'var(--cs-systeme)'} />
                 </div>
               </button>
               {ouvert && <Editeur id={l.id} ligne={l} editeursV={editeursV} collectionsV={collectionsV} auteursV={auteursV}
@@ -185,7 +186,7 @@ export default function SectionOuvrages() {
             </div>
           )
         })}
-        {filtrees.length === 0 && <p style={{ fontFamily: SANS, fontSize: '0.82rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', padding: '14px 12px', margin: 0 }}>Aucun ouvrage ne correspond.</p>}
+        {filtrees.length === 0 && <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', padding: '14px 12px', margin: 0 }}>Aucun ouvrage ne correspond.</p>}
       </div>
     </div>
   )
@@ -230,7 +231,7 @@ function Editeur({ id, ligne, editeursV, collectionsV, auteursV, onErreur, onInf
     return true
   }
 
-  if (!detail) return <p style={{ fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', padding: '10px 14px' }}>Chargement de la fiche…</p>
+  if (!detail) return <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', padding: '10px 14px' }}>Chargement de la fiche…</p>
 
   const sciCalc = ligne.statut_scientifique // valeur calculée par la base, en lecture seule
   const overrideActuel = f.statut_scientifique_override ?? null
@@ -274,12 +275,12 @@ function Editeur({ id, ligne, editeursV, collectionsV, auteursV, onErreur, onInf
     <div style={{ padding: '4px 14px 16px', display: 'grid', gap: '16px' }}>
       {/* A · Décision scientifique */}
       <fieldset style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px', margin: 0 }}>
-        <legend style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Valeur scientifique</legend>
+        <legend style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Valeur scientifique</legend>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
-          <span style={{ fontFamily: SANS, fontSize: '0.76rem', color: 'var(--cs-texte-second)' }}>Calcul de la base :</span>
-          <Puce txt={L_SCI[sciCalc] ?? sciCalc} coul={C_SCI[sciCalc] ?? '#5f6b86'} />
-          {ligne.editeur_canonique && <span style={{ fontFamily: SANS, fontSize: '0.7rem', color: 'var(--cs-texte-faible)' }}>éditeur : {ligne.editeur_canonique}{ligne.statut_editeur ? ` (${ligne.statut_editeur})` : ''}</span>}
-          {ligne.collection_canonique && <span style={{ fontFamily: SANS, fontSize: '0.7rem', color: 'var(--cs-texte-faible)' }}>· collection : {ligne.collection_canonique}{ligne.statut_collection ? ` (${ligne.statut_collection})` : ''}</span>}
+          <span style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte-second)' }}>Calcul de la base :</span>
+          <Puce txt={L_SCI[sciCalc] ?? sciCalc} coul={C_SCI[sciCalc] ?? 'var(--cs-systeme)'} />
+          {ligne.editeur_canonique && <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>éditeur : {ligne.editeur_canonique}{ligne.statut_editeur ? ` (${ligne.statut_editeur})` : ''}</span>}
+          {ligne.collection_canonique && <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>· collection : {ligne.collection_canonique}{ligne.statut_collection ? ` (${ligne.statut_collection})` : ''}</span>}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))', gap: '10px', alignItems: 'end' }}>
           <div>
@@ -306,14 +307,14 @@ function Editeur({ id, ligne, editeursV, collectionsV, auteursV, onErreur, onInf
           <input value={f.motif_statut_scientifique ?? ''} onChange={e => set('motif_statut_scientifique', e.target.value)} style={champStyle} />
         </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '11px' }}>
-          <button onClick={enregistrerDecision} className="btn-vert" style={{ fontFamily: SANS, fontSize: '0.76rem', fontWeight: 600, padding: '6px 14px', borderRadius: '6px', cursor: 'pointer' }}>Enregistrer la décision</button>
-          {ligne.statut_scientifique_override && <button onClick={revenirAuto} className="btn-gris" style={{ fontFamily: SANS, fontSize: '0.76rem', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer' }}>Revenir au calcul automatique</button>}
+          <button onClick={enregistrerDecision} className="btn-vert" style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer' }}>Enregistrer la décision</button>
+          {ligne.statut_scientifique_override && <button onClick={revenirAuto} className="btn-gris" style={{ fontFamily: SANS, fontSize: '0.75rem', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer' }}>Revenir au calcul automatique</button>}
         </div>
       </fieldset>
 
       {/* B · Rattachements normalisés */}
       <fieldset style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px', margin: 0 }}>
-        <legend style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Autorités & contributeurs</legend>
+        <legend style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Autorités & contributeurs</legend>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))', gap: '10px', marginBottom: '12px' }}>
           <div>
             <label style={labelStyle}>Autorité éditrice</label>
@@ -335,12 +336,12 @@ function Editeur({ id, ligne, editeursV, collectionsV, auteursV, onErreur, onInf
 
       {/* C · Statut éditorial */}
       <fieldset style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px', margin: 0 }}>
-        <legend style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Statut éditorial</legend>
+        <legend style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Statut éditorial</legend>
         <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
           {(['a_revoir', 'en_cours', 'valide', 'rejete'] as const).map(s => {
             const actif = (f.statut_editorial ?? detail.statut_editorial) === s
             return (
-              <button key={s} onClick={() => majEditorial(s)} style={{ fontFamily: SANS, fontSize: '0.74rem', fontWeight: actif ? 700 : 500, cursor: 'pointer', padding: '5px 12px', borderRadius: '6px', border: `1px solid ${actif ? C_EDITO[s] : 'var(--cs-bord)'}`, background: actif ? `${C_EDITO[s]}18` : 'var(--cs-surface)', color: actif ? C_EDITO[s] : 'var(--cs-texte-second)' }}>{L_EDITO[s]}</button>
+              <button key={s} onClick={() => majEditorial(s)} style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: actif ? 700 : 500, cursor: 'pointer', padding: '5px 12px', borderRadius: '8px', border: `1px solid ${actif ? C_EDITO[s] : 'var(--cs-bord)'}`, background: actif ? `${colorMix(C_EDITO[s], 9)}` : 'var(--cs-surface)', color: actif ? C_EDITO[s] : 'var(--cs-texte-second)' }}>{L_EDITO[s]}</button>
             )
           })}
         </div>
@@ -348,7 +349,7 @@ function Editeur({ id, ligne, editeursV, collectionsV, auteursV, onErreur, onInf
 
       {/* D · Champs bibliographiques (affichage / compatibilité) */}
       <fieldset style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '11px 13px', margin: 0 }}>
-        <legend style={{ fontFamily: SANS, fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Notice bibliographique</legend>
+        <legend style={{ fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', padding: '0 5px' }}>Notice bibliographique</legend>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))', gap: '9px' }}>
           {([['auteurs', 'Auteurs'], ['titre', 'Titre'], ['sous_titre', 'Sous-titre'], ['directeurs', 'Directeurs'], ['traducteurs', 'Traducteurs'], ['editeur', 'Éditeur (texte)'], ['collection', 'Collection (texte)'], ['numero_collection', 'N° collection'], ['lieu', 'Lieu'], ['isbn', 'ISBN']] as const).map(([k, lab]) => (
             <div key={k}>
@@ -381,7 +382,7 @@ function Editeur({ id, ligne, editeursV, collectionsV, auteursV, onErreur, onInf
             directeurs: f.directeurs || null, traducteurs: f.traducteurs || null, editeur: (f.editeur ?? '').trim(),
             collection: f.collection || null, numero_collection: f.numero_collection || null, lieu: f.lieu || null,
             isbn: f.isbn || null, annee: f.annee ?? null, type_ouvrage: f.type_ouvrage || null, garantie_scientifique: f.garantie_scientifique || null,
-          }, 'Notice enregistrée.')} className="btn-vert" style={{ fontFamily: SANS, fontSize: '0.76rem', fontWeight: 600, padding: '6px 14px', borderRadius: '6px', cursor: 'pointer' }}>Enregistrer la notice</button>
+          }, 'Notice enregistrée.')} className="btn-vert" style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer' }}>Enregistrer la notice</button>
         </div>
       </fieldset>
     </div>
@@ -426,16 +427,16 @@ function ContributeursEditeur({ ouvrageId, contribs, setContribs, auteursV, onEr
       <label style={labelStyle}>Contributeurs</label>
       <div style={{ display: 'grid', gap: '5px', marginBottom: '10px' }}>
         {contribs.map(c => (
-          <div key={c.id} style={{ display: 'flex', gap: '9px', alignItems: 'center', fontFamily: SANS, fontSize: '0.78rem', color: 'var(--cs-texte)', padding: '5px 8px', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px' }}>
+          <div key={c.id} style={{ display: 'flex', gap: '9px', alignItems: 'center', fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte)', padding: '5px 8px', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px' }}>
             <span style={{ flex: 1, minWidth: 0 }}>{c.nom_affiche}</span>
-            <span style={{ fontSize: '0.68rem', color: 'var(--cs-texte-faible)' }}>{L_ROLE[c.role_contributeur] ?? c.role_contributeur}</span>
-            <span style={{ fontSize: '0.66rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{L_NATURE[c.nature_personne] ?? c.nature_personne}</span>
-            <button onClick={() => supprimer(c.id)} title="Retirer" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--cs-danger)', fontSize: '0.85rem', lineHeight: 1 }}>×</button>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>{L_ROLE[c.role_contributeur] ?? c.role_contributeur}</span>
+            <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{L_NATURE[c.nature_personne] ?? c.nature_personne}</span>
+            <button onClick={() => supprimer(c.id)} title="Retirer" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--cs-danger)', fontSize: '0.84375rem', lineHeight: 1 }}>×</button>
           </div>
         ))}
-        {contribs.length === 0 && <span style={{ fontFamily: SANS, fontSize: '0.74rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Aucun contributeur rattaché.</span>}
+        {contribs.length === 0 && <span style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Aucun contributeur rattaché.</span>}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '7px', alignItems: 'end', background: 'rgba(var(--cs-vert-rgb),0.03)', border: '1px solid var(--cs-bord-clair)', borderRadius: '7px', padding: '9px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '7px', alignItems: 'end', background: 'rgba(var(--cs-vert-rgb),0.03)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '9px' }}>
         <div>
           <label style={labelStyle}>Nature</label>
           <select value={nature} onChange={e => setNature(e.target.value as typeof nature)} style={champStyle}>
@@ -464,7 +465,7 @@ function ContributeursEditeur({ ouvrageId, contribs, setContribs, auteursV, onEr
             <input value={nomLibre} onChange={e => setNomLibre(e.target.value)} placeholder="Origène, Auteurs patristiques divers…" style={champStyle} />
           </div>
         )}
-        <button onClick={ajouter} className="btn-vert" style={{ fontFamily: SANS, fontSize: '0.74rem', fontWeight: 600, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', height: 'fit-content' }}>Ajouter</button>
+        <button onClick={ajouter} className="btn-vert" style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', height: 'fit-content' }}>Ajouter</button>
       </div>
     </div>
   )
