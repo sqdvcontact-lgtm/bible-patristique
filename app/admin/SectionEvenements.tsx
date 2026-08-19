@@ -123,8 +123,8 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
     <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
       <p style={{ fontSize: '0.9rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 8px' }}>
         Curation de la <strong>chronologie</strong> : les événements centraux et leurs liens aux auteurs.
-        On n'y invente ni ne corrige les données historiques (charte §26) ; on édite, on contrôle, on relie à
-        des auteurs déjà répertoriés. <strong>Supprimer une association ne supprime jamais l'événement.</strong>
+        On n’y invente ni ne corrige les données historiques (charte §26) ; on édite, on contrôle, on relie à
+        des auteurs déjà répertoriés. <strong>Supprimer une association ne supprime jamais l’événement.</strong>
       </p>
       <p style={{ fontSize: '0.8rem', color: 'var(--cs-texte-doux)', margin: '0 0 18px' }}>
         {evts ? `${evts.length} événement${evts.length > 1 ? 's' : ''} · ${assocs.length} association${assocs.length > 1 ? 's' : ''} · ${aControler.length} à contrôler` : 'Chargement…'}

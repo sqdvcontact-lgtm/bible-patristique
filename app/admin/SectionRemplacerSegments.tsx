@@ -119,7 +119,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
     <div style={{ maxWidth: '40rem' }}>
       <div style={{ background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '8px', padding: '14px 18px', marginBottom: '24px' }}>
         <p style={{ fontSize: '0.89844rem', color: '#8a4a1a', margin: 0, fontWeight: 500 }}>
-          ⚠ Opération irréversible — remplace l'intégralité de la table segments.
+          ⚠ Opération irréversible — remplace l’intégralité de la table segments.
         </p>
         <p style={{ fontSize: '0.82656rem', color: '#9a6a3a', margin: '4px 0 0' }}>
           Les segments avec <code>fiabilite = vérifié</code> sont conservés. Le CSV doit contenir une colonne <code>id_oeuvre</code>.
@@ -162,7 +162,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px' }}>
             <input type="checkbox" id="confirme-remplace" checked={confirme} onChange={e => setConfirme(e.target.checked)} />
             <label htmlFor="confirme-remplace" style={{ fontSize: '0.8625rem', color: 'var(--cs-texte)', cursor: 'pointer' }}>
-              Je confirme vouloir remplacer l'intégralité de la table segments
+              Je confirme vouloir remplacer l’intégralité de la table segments
             </label>
           </div>
         </div>

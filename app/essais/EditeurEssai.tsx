@@ -552,7 +552,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         {comparaisonOuverte && diff ? (
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION D'ORIGINE</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION D’ORIGINE</p>
               <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '6px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.gauche.map((s, i) => s.type === 'supprime'
                   ? <span key={i} style={{ color: 'var(--cs-danger)', textDecoration: 'line-through' }}>{s.texte}</span>

@@ -126,7 +126,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.00625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
-            Positionner l'image · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
+            Positionner l’image · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.07813rem', color: 'var(--cs-texte-faible)', padding: 0, lineHeight: 1 }}>✕</button>
         </div>

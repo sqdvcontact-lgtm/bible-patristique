@@ -526,7 +526,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   }, [source])
 
   if (items === null) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
-  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l'instant.</p>
+  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l’instant.</p>
 
   const choisir = async (it: any) => {
     if (source === 'bible') {

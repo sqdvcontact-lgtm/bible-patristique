@@ -40,7 +40,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
     if (!autorise) {
       return (
         <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#8a8278' }}>Cet essai n'est pas encore publié.</p>
+          <p style={{ color: '#8a8278' }}>Cet essai n’est pas encore publié.</p>
         </main>
       )
     }

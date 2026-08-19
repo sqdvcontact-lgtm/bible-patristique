@@ -147,7 +147,7 @@ export default function SectionCharte() {
         )}
       </div>
       <p style={{ fontSize: '0.8625rem', color: '#8a8278', lineHeight: 1.55, margin: '0 0 14px' }}>
-        Document de référence transmis à l'IA avant chaque session. Rédigez-le librement, copiez-le, collez-le dans la conversation.
+        Document de référence transmis à l’IA avant chaque session. Rédigez-le librement, copiez-le, collez-le dans la conversation.
       </p>
 
       <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 18px', marginBottom: '12px' }}>

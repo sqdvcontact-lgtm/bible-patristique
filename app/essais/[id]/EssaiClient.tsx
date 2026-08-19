@@ -316,7 +316,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
           {essai.statut === 'en_attente' && (
             <p style={{ fontSize: '0.71875rem', color: '#9a5a2a', background: '#fff8f0', border: '1px solid #e4c4a0', borderRadius: '6px', padding: '8px 12px', margin: '24px 0 0' }}>
-              Cet essai est en attente de validation par l'administration — seul vous pouvez le voir ainsi.
+              Cet essai est en attente de validation par l’administration — seul vous pouvez le voir ainsi.
             </p>
           )}
 

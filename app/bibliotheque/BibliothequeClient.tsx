@@ -1244,7 +1244,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
       </div>
       <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', marginBottom: '8px' }}>Proposition envoyée</p>
       <p style={{ fontSize: '0.78125rem', color: '#8a8278', lineHeight: 1.65, marginBottom: '24px' }}>
-        Merci pour votre contribution. L'équipe éditoriale examinera votre proposition.
+        Merci pour votre contribution. L’équipe éditoriale examinera votre proposition.
       </p>
       <button onClick={() => setStatut('idle')} style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', background: 'none', border: '1px solid var(--cs-vert)', borderRadius: '6px', padding: '8px 20px', cursor: 'pointer' }}>
         Proposer une autre œuvre
@@ -1257,7 +1257,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
       <div style={{ background: 'rgba(var(--cs-vert-rgb),0.06)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', padding: '14px 18px', marginBottom: '28px' }}>
         <p style={{ fontSize: '0.78125rem', color: '#3a5040', lineHeight: 1.65, margin: 0 }}>
           Vous souhaitez enrichir la bibliothèque patristique ? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
-          Fournissez de préférence un texte propre, déjà structuré. L'équipe éditoriale vous contactera si nécessaire.
+          Fournissez de préférence un texte propre, déjà structuré. L’équipe éditoriale vous contactera si nécessaire.
         </p>
         {quotaRestant !== null && (
           <p style={{ fontSize: '0.6875rem', color: quotaRestant === 0 ? 'var(--cs-danger)' : '#6a8c78', margin: '10px 0 0', borderTop: '1px solid rgba(var(--cs-vert-rgb),0.15)', paddingTop: '10px' }}>
@@ -1281,7 +1281,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>
-              Titre de l'œuvre <span style={{ color: 'var(--cs-danger)' }}>*</span>
+              Titre de l’œuvre <span style={{ color: 'var(--cs-danger)' }}>*</span>
             </label>
             <ComboTitre value={form.titre}
               onChange={v => setForm(prev => ({ ...prev, titre: v }))}
@@ -1320,7 +1320,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Siècle + langue */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Siècle de l'auteur</label>
+            <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Siècle de l’auteur</label>
             <input value={form.siecle} onChange={set('siecle')} placeholder="ex. IVe" style={CHAMP_STYLE} />
           </div>
           <div>
@@ -1362,7 +1362,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
           <input type="checkbox" checked={droitsGarantis} onChange={e => setDroitsGarantis(e.target.checked)}
             style={{ marginTop: '2px', accentColor: 'var(--cs-vert)', flexShrink: 0, width: '14px', height: '14px' }} />
           <span style={{ fontSize: '0.75rem', color: '#3a5040', lineHeight: 1.6 }}>
-            <strong>J'atteste</strong> que cette traduction est <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans ou édition dans le domaine public) et que le texte n'a pas été dénaturé.
+            <strong>J’atteste</strong> que cette traduction est <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans ou édition dans le domaine public) et que le texte n’a pas été dénaturé.
           </span>
         </label>
 

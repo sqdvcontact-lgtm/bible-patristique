@@ -99,7 +99,7 @@ export default function SectionPropositions() {
     <div style={{ maxWidth: '51.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: 0 }}>
-          Propositions d'œuvres
+          Propositions d’œuvres
         </h2>
         <span style={{ fontSize: '0.79062rem', color: 'var(--cs-texte-faible)' }}>{propositions.length} proposition{propositions.length > 1 ? 's' : ''}</span>
       </div>

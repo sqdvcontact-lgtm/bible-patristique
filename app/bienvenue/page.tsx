@@ -35,7 +35,7 @@ export default function BienvenuePage() {
           Bienvenue.
         </h1>
         <p style={{ fontSize: '0.84375rem', color: '#7a7068', lineHeight: 1.75, margin: '0 0 52px', maxWidth: '21.25rem', marginLeft: 'auto', marginRight: 'auto' }}>
-          Corpus Scriptura est un espace de lecture et de méditation des Écritures, éclairé par les Pères de l'Église.
+          Corpus Scriptura est un espace de lecture et de méditation des Écritures, éclairé par les Pères de l’Église.
         </p>
 
         {/* Trois actions */}

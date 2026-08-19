@@ -852,7 +852,7 @@ export default function RechercheClient() {
                       <span style={{ display:'block' }}>
                         <span style={{ display:'block', fontWeight:700, color:'#2f6046', marginBottom:'1px' }}>Mot exact</span>
                         <span style={{ display:'block' }}>Ne trouve que le mot entier ; plusieurs mots entiers, non consécutifs, sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'#8a8278', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l'un et l'autre.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'#8a8278', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
                       </span>
                     </span>
                   </span>
@@ -1265,7 +1265,7 @@ export default function RechercheClient() {
             <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
             <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-second)', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
-              L'enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».
+              L’enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».
             </p>
             <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
               <button onClick={() => setConfirmEcrasement(false)}

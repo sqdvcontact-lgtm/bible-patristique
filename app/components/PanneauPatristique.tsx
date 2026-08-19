@@ -716,7 +716,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
               style={{ width:'100%', fontSize:'0.70625rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
-            <p style={{ fontSize:'0.63562rem', color:'var(--cs-texte-faible)', margin:0 }}>* L'adresse e-mail ne sera pas publiée.</p>
+            <p style={{ fontSize:'0.63562rem', color:'var(--cs-texte-faible)', margin:0 }}>* L’adresse e-mail ne sera pas publiée.</p>
           </>
         )}
         {erreur && <p style={{ fontSize:'0.67094rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}

@@ -146,7 +146,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
 
       {!elementActif ? (
         <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.6 }}>
-          Cliquez sur une note ou une citation dans le texte pour l'afficher ici.
+          Cliquez sur une note ou une citation dans le texte pour l’afficher ici.
         </p>
       ) : (
         <>

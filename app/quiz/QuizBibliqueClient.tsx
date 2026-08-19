@@ -647,7 +647,7 @@ function JeuChasse() {
           <strong style={{ color: 'var(--cs-vert)' }}>Astuce :</strong> Ouvrez la Bible dans un autre onglet et utilisez la navigation par livre et chapitre.
           {!indiceVisible && phase === 'jeu' && (
             <button onClick={() => setIndiceVisible(true)} style={{ marginLeft: '10px', fontSize: '0.6875rem', color: '#9aab9a', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-              Voir l'indice
+              Voir l’indice
             </button>
           )}
           {indiceVisible && <span style={{ display: 'block', marginTop: '4px', fontStyle: 'italic', color: '#5a6b5e' }}>{entree.indice}</span>}
@@ -756,7 +756,7 @@ function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAute
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
         {etape === 'auteur' && (
           <BlocJeu titre={`1. Père de l'Église (essai ${Math.min(essaisAuteurs.length + 1, 5)}/5)`}>
-            <p style={aideStyle}>Entrez le nom d'un père de l'Église. Si vous êtes dans le bon siècle, le jeu vous le dira.</p>
+            <p style={aideStyle}>Entrez le nom d’un père de l’Église. Si vous êtes dans le bon siècle, le jeu vous le dira.</p>
             <div style={{ position: 'relative' }}>
               <input value={saisieAuteur} onChange={e => setSaisieAuteur(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && suggestionsAuteur[0]) proposerAuteur(suggestionsAuteur[0]) }}

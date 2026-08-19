@@ -32,7 +32,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ background: 'var(--cs-surface)', borderRadius: '10px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--cs-bord-clair)', flexShrink: 0 }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.22187rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l'import</h2>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.22187rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l’import</h2>
           <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
             Fichier : <strong style={{ color: 'var(--cs-texte-fort)' }}>{nomFichier}</strong>{' — '}
             <span style={{ color: 'var(--cs-vert)', fontWeight: 500 }}>{modifiees.length} ligne{modifiees.length > 1 ? 's' : ''} modifiée{modifiees.length > 1 ? 's' : ''}</span>

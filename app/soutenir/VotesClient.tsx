@@ -125,8 +125,8 @@ export default function VotesClient() {
           padding: '13px 18px',
         }}>
         <p style={{ fontSize: '0.84375rem', color: '#4f604f', lineHeight: 1.72, margin: 0 }}>
-          Pour continuer à développer Corpus Scriptura et y consacrer davantage de temps, j'explore plusieurs pistes.
-          Aucune décision n'est prise : vos votes m'aident à comprendre ce qui vous semble acceptable.
+          Pour continuer à développer Corpus Scriptura et y consacrer davantage de temps, j’explore plusieurs pistes.
+          Aucune décision n’est prise : vos votes m’aident à comprendre ce qui vous semble acceptable.
         </p>
         </div>
       </div>

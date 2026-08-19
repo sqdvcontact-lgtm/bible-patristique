@@ -142,7 +142,7 @@ export default function SectionCharteAccentuation() {
     <div style={{ maxWidth: '48.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '4px' }}>
         <h2 style={{ fontSize: '0.71875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: 0 }}>
-          Charte d'accentuation
+          Charte d’accentuation
         </h2>
         {misAJour && (
           <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)' }}>

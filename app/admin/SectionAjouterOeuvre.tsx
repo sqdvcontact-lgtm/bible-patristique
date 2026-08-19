@@ -452,7 +452,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
       {etape === 'selection' && (
         <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '22px 24px' }}>
           <p style={{ fontSize: '0.8625rem', color: 'var(--cs-texte-second)', marginBottom: '14px', marginTop: 0 }}>
-            Recherchez l'œuvre dans le catalogue pour pré-remplir les métadonnées automatiquement.
+            Recherchez l’œuvre dans le catalogue pour pré-remplir les métadonnées automatiquement.
           </p>
           <label style={lbl}>Titre, auteur ou titre original</label>
           <RechercheCatalogue onSelect={selectionnerDepuisCatalogue} />
@@ -687,7 +687,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
             {resultat.idOeuvre && (
               <a href={`/oeuvre/${resultat.idOeuvre}`} target="_blank" rel="noopener noreferrer"
                 style={{ fontSize: '0.89844rem', padding: '7px 16px', borderRadius: '5px', border: '1px solid var(--cs-bord)', color: 'var(--cs-encre)', textDecoration: 'none' }}>
-                Lire l'œuvre ↗
+                Lire l’œuvre ↗
               </a>
             )}
             <button onClick={reset} style={{ fontSize: '0.89844rem', padding: '7px 16px', borderRadius: '5px', border: 'none', background: 'var(--cs-vert)', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>

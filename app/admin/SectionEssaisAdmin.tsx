@@ -224,7 +224,7 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
   }
 
   if (essais.length === 0) {
-    return <p style={{ fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '0 24px' }}>Aucun essai publié ni brouillon pour l'instant.</p>
+    return <p style={{ fontSize: '0.93437rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '0 24px' }}>Aucun essai publié ni brouillon pour l’instant.</p>
   }
 
   return (

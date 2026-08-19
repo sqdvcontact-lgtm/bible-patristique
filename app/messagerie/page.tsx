@@ -67,7 +67,7 @@ export default function MessageriePage() {
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Aucun message</p>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-bord)', margin: 0 }}>
               Rendez-vous sur le{' '}
-              <Link href="/" style={{ color: 'var(--cs-vert)', textDecoration: 'none' }}>profil d'un lecteur</Link>
+              <Link href="/" style={{ color: 'var(--cs-vert)', textDecoration: 'none' }}>profil d’un lecteur</Link>
               {' '}pour lui écrire.
             </p>
           </div>
