@@ -1,5 +1,5 @@
 // TR0009 « Bible française du XIIIᵉ siècle » (manuscrit Français 899) — accès au
-// texte des versets CANONIQUES recomposé depuis les tables éditoriales Bible 899.
+// texte canonique et aux gloses manuscrites recomposés depuis les tables éditoriales.
 //
 // Une seule traduction, plusieurs états textuels (couches) : `diplomatic`
 // (transcription diplomatique) et `expanded` (abréviations développées). Le texte
@@ -72,6 +72,10 @@ export type Ligne899 = {
   alignment_status: string
   verification_status: string
   segment_key: string | null
+  editorial_label?: string | null
+  phenomenon?: string | null
+  manuscript_extra?: boolean | null
+  canonical_context?: string | null
   texte_diplomatic: string | null
   texte_expanded: string | null
   /** Présent seulement si la vue expose la couche modernisée (voir couchesDisponibles899). */
@@ -82,7 +86,7 @@ export type Ligne899 = {
 const TAILLE_TRANCHE_899 = 1000
 
 const COLONNES_META_899 =
-  'trad_id, canon_id, canon_id_fin, livre, chapitre, verset, alignment_order, alignment_status, verification_status, segment_key'
+  'trad_id, canon_id, canon_id_fin, livre, chapitre, verset, alignment_order, alignment_status, verification_status, segment_key, editorial_label, phenomenon, manuscript_extra, canonical_context'
 const COLONNE_TEXTE_899: Record<Couche899, string> = {
   diplomatic: 'texte_diplomatic',
   expanded: 'texte_expanded',
@@ -116,6 +120,16 @@ export function rendu899(
   return 'texte'
 }
 
+/** Une glose manuscrite autonome : visible, mais jamais transformée en faux verset. */
+export function estGlose899(
+  ligne: Pick<Ligne899, 'canon_id' | 'alignment_status' | 'phenomenon' | 'manuscript_extra'>,
+): boolean {
+  return ligne.canon_id == null
+    && ligne.alignment_status === 'MANUSCRIPT_EXTRA'
+    && ligne.manuscript_extra === true
+    && ligne.phenomenon === 'gloss'
+}
+
 /** Alignement à signaler discrètement « à revoir » (relecture non close). */
 export function aRevoir899(
   ligne: Pick<Ligne899, 'alignment_status' | 'verification_status'>,
@@ -124,9 +138,11 @@ export function aRevoir899(
 }
 
 /**
- * Charge les versets canoniques recomposés de TR0009 pour un livre (et,
- * facultativement, un seul chapitre). Les lignes MANUSCRIPT_EXTRA (canon_id null,
- * livre null) sont naturellement écartées par le filtre sur `livre`.
+ * Charge le flux recomposé de TR0009 pour un livre (et, facultativement, un chapitre).
+ * La vue attribue aux MANUSCRIPT_EXTRA leur livre/chapitre via leurs métadonnées : on
+ * les reçoit donc ici dans l'ordre matériel, puis les adaptateurs décident lesquels
+ * sont publiables. La Bible classique ne montre actuellement que les gloses ; les
+ * autres surnuméraires restent exclus du flux canonique.
  */
 export async function chargerVersets899(
   client: SupabaseClient,
@@ -138,11 +154,9 @@ export async function chargerVersets899(
   // n'est donc demandée que si l'appelant l'a vue disponible.
   const select = [COLONNES_META_899, ...couches.map((c) => COLONNE_TEXTE_899[c])].join(', ')
   // ⚠️ L'API de données plafonne à 1000 lignes par réponse. Un CHAPITRE tient toujours
-  // sous ce plafond, mais un LIVRE ENTIER (mode « livre entier » de la Polyglotte) ne le
-  // tient pas toujours : au 2026-08-19, huit livres le dépassent — Psaumes 2527, Genèse
-  // 1533, Nombres 1289, Exode 1213, Luc 1149, Job 1070, Matthieu 1068, Actes 1002. Sans
-  // pagination, la lecture s'arrêtait au millième verset SANS RIEN SIGNALER : le livre
-  // paraissait simplement s'interrompre. On lit donc par tranches jusqu'à épuisement.
+  // sous ce plafond, mais un LIVRE ENTIER ne le tient pas toujours. On lit par tranches
+  // jusqu'à épuisement. `alignment_order` est l'unique ordre pertinent ici : lui seul
+  // intercale correctement un surnuméraire entre les deux créneaux canoniques voisins.
   const lignes: Ligne899[] = []
   for (let debut = 0; ; debut += TAILLE_TRANCHE_899) {
     let requete = client
@@ -152,15 +166,13 @@ export async function chargerVersets899(
       .eq('livre', params.livre)
     if (params.chapitre != null) requete = requete.eq('chapitre', params.chapitre)
     const { data, error } = await requete
-      .order('chapitre', { ascending: true })
-      .order('verset', { ascending: true })
+      .order('alignment_order', { ascending: true })
       .range(debut, debut + TAILLE_TRANCHE_899 - 1)
     if (error) throw new Error(`Versets Bible 899 illisibles : ${error.message}`)
     // `select` dynamique : supabase-js ne peut plus inférer la forme des lignes, d'où le
     // passage par `unknown` (les colonnes demandées correspondent bien à Ligne899).
     const tranche = (data ?? []) as unknown as Ligne899[]
     lignes.push(...tranche)
-    // Une tranche incomplète est la dernière. Un chapitre se lit donc en UN aller-retour.
     if (tranche.length < TAILLE_TRANCHE_899) break
   }
   return lignes
@@ -170,13 +182,7 @@ export async function chargerVersets899(
 export async function livresDisponibles899(client: SupabaseClient): Promise<Set<string>> {
   // ⛔ On demande la LISTE DES LIVRES, jamais tous les versets pour en déduire la liste.
   // C'est la règle déjà posée pour les traductions ordinaires (`livres_par_traduction`,
-  // cf. le commentaire de `BibleLayout`), et TR0009 l'avait rouverte : la vue de
-  // recomposition était interrogée sans borne, l'API plafonne à 1000 lignes, si bien que
-  // sur 18 957 lignes alignées seuls les livres tombant dans cette fenêtre étaient vus —
-  // RUT, TOB, MRK, 1PE, JAS. Les dix-neuf autres, GENÈSE COMPRISE, étaient marqués
-  // « vides », donc INERTES dans NavLivres (`handleLivre` sort aussitôt) : la Bible du
-  // XIIIᵉ ne s'ouvrait plus. Le défaut est né en silence le jour où le corpus a dépassé
-  // les mille lignes. Vue jumelle : `livres_bible899` (sql/20260819_livres_bible899.sql).
+  // cf. le commentaire de `BibleLayout`). Vue jumelle : `livres_bible899`.
   const { data, error } = await client
     .from('livres_bible899')
     .select('livre')
@@ -217,7 +223,8 @@ export async function couchesDisponibles899(client: SupabaseClient): Promise<Cou
 
 // Une ligne recomposée, adaptée au CONTRAT ORDINAIRE de la page Bible : la mécanique
 // (offsets, unités-source, join_before, folios, colonnes, segmentation) reste derrière
-// la vue et cette fonction. L'interface ne voit qu'un verset canonique et son texte.
+// la vue et cette fonction. Une glose est portée comme ligne de lecture distincte avec
+// `verset=0`, mais `_estGlose899=true` interdit de l'interpréter comme un verset.
 export type VersetAdapte899 = {
   id_verset: string
   ref: string
@@ -226,14 +233,16 @@ export type VersetAdapte899 = {
   verset: number
   _est899: true
   _estLacune: boolean
+  _estGlose899?: true
+  _libelle899?: string | null
+  _canonContexte899?: string | null
   [traduction: string]: string | number | boolean | null | undefined
 }
 
 /**
- * Adapte les lignes 899 vers la forme consommée par TexteBible (texte sous la clé
- * dynamique `trad`). Écarte MANUSCRIPT_EXTRA (jamais un faux verset canonique) ; pose
- * le texte à `null` sur une lacune du manuscrit. N'expose AUCUN statut technique
- * (alignment_status / verification_status / confidence restent internes).
+ * Adapte les lignes 899 vers la forme consommée par TexteBible. Les gloses manuscrites
+ * sont conservées comme lignes de lecture identifiées « Glose » ; tous les autres
+ * MANUSCRIPT_EXTRA restent écartés. Aucun surnuméraire ne reçoit de faux `canon_id`.
  */
 export function adapterVersets899(
   lignes: readonly Ligne899[],
@@ -245,7 +254,23 @@ export function adapterVersets899(
   const out: VersetAdapte899[] = []
   for (const ligne of lignes) {
     const mode = rendu899(ligne)
-    if (mode === 'exclu') continue
+    if (mode === 'exclu') {
+      if (!estGlose899(ligne)) continue
+      out.push({
+        id_verset: `899:${ligne.segment_key ?? `glose:${ligne.alignment_order}`}`,
+        ref: ligne.canonical_context ?? '',
+        livre: ligne.livre ?? livre,
+        chapitre: ligne.chapitre ?? chapitreDefaut,
+        verset: 0,
+        _est899: true,
+        _estLacune: false,
+        _estGlose899: true,
+        _libelle899: ligne.editorial_label ?? 'Glose',
+        _canonContexte899: ligne.canonical_context ?? null,
+        [trad]: texteCouche899(ligne, couche),
+      })
+      continue
+    }
     const estLacune = mode === 'lacune'
     out.push({
       id_verset: `899:${ligne.canon_id}`,
