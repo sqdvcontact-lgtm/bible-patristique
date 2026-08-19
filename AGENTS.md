@@ -49,6 +49,14 @@ Notation éditoriale des sources bibliographiques — **doctrine : charte §29 e
 
 Pour toute prose destinée au site (cartes, chapeaux, messages, mentions) : **ne pas employer d'incises entre tirets** (`— … —` ou `– … –`). Faire des phrases distinctes, ou introduire une énumération par deux-points. C'est le style de l'auteur (« dans mon style, toujours »). Vaut aussi pour retoucher les textes existants, pas seulement les nouveaux.
 
+# Titre d’onglet — le gabarit du layout suffit
+
+`app/layout.tsx` pose `template: "%s · Corpus Scriptura"`. **Une page ne nomme donc jamais le site dans son propre `title`** : elle écrit `title: 'Statistiques'`, et le gabarit fait le reste. Une page qui doit porter un titre entier (l’accueil, la lecture biblique, la page d’œuvre, les pages légales) déclare `title: { absolute: … }`, qui neutralise le gabarit.
+
+- ⚠️ Onze pages écrivaient « — Corpus Scriptura » en plus du gabarit, d’où « Statistiques — Corpus Scriptura · Corpus Scriptura » dans l’onglet, dans les partages et dans les résultats de recherche (relevé le 2026-08-19). Le séparateur du site est le point médian `·`.
+- Le test `app/lib/titresPages.test.ts` parcourt les `page.tsx` et refuse tout titre qui nomme le site sans `absolute`. Seule `/quiz` en est exemptée (route neutralisée, version vivante sur la branche Holy Guessr).
+
+
 # Responsive / mise à l'échelle (écrans desktop)
 
 Le site est dessiné en pixels fixes calibrés pour un portable. Pour l'agrandir sur grand écran **sans le refondre**, on scale par une **police racine fluide** et une conversion **px → rem** progressive, page par page.
