@@ -35,7 +35,7 @@ export async function generateMetadata({ params, searchParams }: {
       .eq('is_public', true),
     chargerAuteursDOeuvre(supabase, id),
   ])
-  if (!data) return { title: 'Corpus Scriptura' }
+  if (!data) return { title: { absolute: 'Corpus Scriptura' } }
   // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
   const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as any)?.nom
   const textesPublics = textes ?? []
@@ -52,7 +52,10 @@ export async function generateMetadata({ params, searchParams }: {
     traducteur ? `traduction de ${traducteur}` : null,
   ].filter(Boolean).join('. ') + '. Texte et notice sur Corpus Scriptura.'
   return {
-    title: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura`,
+    // `absolute` : le gabarit « %s · Corpus Scriptura » du layout racine s'ajouterait
+    // sinon à ce titre qui porte déjà le nom du site, d'où un « … · Corpus Scriptura ·
+    // Corpus Scriptura » dans l'onglet et dans les partages.
+    title: { absolute: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura` },
     description: description.slice(0, 300),
     keywords: motsCles,
   }
