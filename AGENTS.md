@@ -457,6 +457,16 @@ Le contrôle produisait ~150 corrections pour 35 pages, toutes à relire une par
 - **Vue par défaut = la file humaine seule**, ordonnée par `review_priority` (désaccord, crop mauvais, lecture tierce, chiffre illisible, segmentation, plusieurs mots, distance). Les décisions automatiques restent consultables par filtre (Auto-acceptées / OCR conservé / Réf. et nombres / Structure / Caractères spéciaux / Toutes) et **contredisables** d'un clic. Rapport : bouton « Rapport de contrôle » → `exports/<nom>.controle-triage.md` + `.json`, avec case « mode audit ».
 - **Métriques** (`mesurerTriage`) : `human_review_rate` est le KPI. Le dénominateur est le total des candidats — on ne le fait jamais baisser en écartant des propositions.
 
+# Schéma `public` = surface d’attaque (audit du 2026-08-19)
+
+Tout ce qui vit dans `public` est servi par l’API REST. `anon` n’y a aucun droit (base fermée), mais **le rôle `authenticated` en a beaucoup par défaut** : un simple titulaire de compte interroge PostgREST directement, sans passer par le site.
+
+- ⛔ **Aucune table de travail ni de sauvegarde dans `public`.** 48 tables `backup_*` y dormaient sans RLS, avec SELECT/INSERT/UPDATE/DELETE pour `authenticated` : n’importe quel compte pouvait les vider. Elles sont passées dans `internal`, que ni `anon` ni `authenticated` ne peuvent seulement parcourir (`USAGE` refusé). **Créer les sauvegardes directement dans `internal`.**
+- **Une vue de lecture ne porte pas de droit d’écriture.** Les dix vues publiques avaient INSERT/UPDATE/DELETE pour `authenticated`, sans usage. Révoqués.
+- **`security_invoker = true` est la règle**, pour que la RLS de l’appelant s’applique. Deux exceptions assumées, écrites dans les migrations : `classement_utilisateurs` (la politique de `profils` est « soi-même » ; en invoker on ne verrait plus le score des AUTRES lecteurs) et `v_bible899_verse_recomposed` (chantier en cours, ses segmentations non publiées disparaîtraient).
+- ⚠️ **Le passage en invoker a un COÛT, mesurer avant de basculer.** Les politiques de `segments` et `liens_bibliques` se réévaluent à l’intérieur des agrégats : `versets_plus_cites` est passée de quelques centaines de ms à 2,4 s cache chaud et a dépassé le délai d’attente à froid, la page /statistiques renvoyant une 500. Elle est revenue en DEFINER. Les vues d’agrégat sur `segments` (`oeuvres_controle_stats`, `oeuvres_liens_stats`, `avancement_liens`) coûtent 2,5 s à un lecteur ordinaire contre 1 s au propriétaire ; l’administrateur, lui, court-circuite par `is_admin()`. La bonne réponse pour une vue lourde est la MATÉRIALISATION (modèle `oeuvres_controle_stats_mat`), pas le DEFINER.
+
+
 # Appels aux routes admin — le verrou renvoie une REDIRECTION, pas une erreur
 
 ⚠️ Quand la session n'est pas reconnue, `proxy.ts` ne répond pas par un 401 : il **redirige** vers `/chantier?suite=…`. Or `fetch` suit les redirections par défaut, si bien qu'un appel à `/api/admin/…` revient en **`200` porteur de HTML** et satisfait `res.ok`. Le seul symptôme est un « Unexpected token < » au `res.json()`, généralement avalé par un `catch`.
