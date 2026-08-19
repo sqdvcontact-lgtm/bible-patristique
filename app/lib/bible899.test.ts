@@ -75,24 +75,9 @@ describe('rendu899', () => {
 
 describe('estGlose899', () => {
   it('reconnaît seulement une glose manuscrite explicitement typée', () => {
-    expect(estGlose899(ligne({
-      canon_id: null,
-      alignment_status: 'MANUSCRIPT_EXTRA',
-      manuscript_extra: true,
-      phenomenon: 'gloss',
-    }))).toBe(true)
-    expect(estGlose899(ligne({
-      canon_id: null,
-      alignment_status: 'MANUSCRIPT_EXTRA',
-      manuscript_extra: true,
-      phenomenon: 'dittography',
-    }))).toBe(false)
-    expect(estGlose899(ligne({
-      canon_id: null,
-      alignment_status: 'MANUSCRIPT_EXTRA',
-      manuscript_extra: false,
-      phenomenon: 'gloss',
-    }))).toBe(false)
+    expect(estGlose899(ligne({ canon_id: null, alignment_status: 'MANUSCRIPT_EXTRA', manuscript_extra: true, phenomenon: 'gloss' }))).toBe(true)
+    expect(estGlose899(ligne({ canon_id: null, alignment_status: 'MANUSCRIPT_EXTRA', manuscript_extra: true, phenomenon: 'dittography' }))).toBe(false)
+    expect(estGlose899(ligne({ canon_id: null, alignment_status: 'MANUSCRIPT_EXTRA', manuscript_extra: false, phenomenon: 'gloss' }))).toBe(false)
   })
 })
 
@@ -129,10 +114,8 @@ describe('normaliserCouche899 — piloté par les couches disponibles', () => {
 
 describe('couchesDisponiblesDepuisColonnes', () => {
   it('déduit les couches des colonnes réelles de la vue', () => {
-    expect(couchesDisponiblesDepuisColonnes(['canon_id', 'texte_diplomatic', 'texte_expanded']))
-      .toEqual(['diplomatic', 'expanded'])
-    expect(couchesDisponiblesDepuisColonnes(['texte_expanded', 'texte_modernized']))
-      .toEqual(['expanded', 'modernized'])
+    expect(couchesDisponiblesDepuisColonnes(['canon_id', 'texte_diplomatic', 'texte_expanded'])).toEqual(['diplomatic', 'expanded'])
+    expect(couchesDisponiblesDepuisColonnes(['texte_expanded', 'texte_modernized'])).toEqual(['expanded', 'modernized'])
     expect(couchesDisponiblesDepuisColonnes([])).toEqual(['expanded'])
   })
 })
@@ -148,10 +131,7 @@ describe('texteCouche899 — couche modernisée', () => {
 
 describe('adapterVersets899', () => {
   it('mappe une ligne alignée au contrat ordinaire, SANS statut technique', () => {
-    const [v] = adapterVersets899(
-      [ligne({ canon_id: 'RUT.1.1', alignment_status: 'MATCH', verification_status: 'review' })],
-      'TR0009', 'RUT', 1, 'expanded',
-    )
+    const [v] = adapterVersets899([ligne({ canon_id: 'RUT.1.1', alignment_status: 'MATCH', verification_status: 'review' })], 'TR0009', 'RUT', 1, 'expanded')
     expect(v.id_verset).toBe('899:RUT.1.1')
     expect(v.livre).toBe('RUT')
     expect(v.verset).toBe(1)
@@ -162,20 +142,17 @@ describe('adapterVersets899', () => {
     expect('_statutVerification' in v).toBe(false)
   })
   it('pose le texte à null sur une lacune (CANONICAL_GAP)', () => {
-    const [v] = adapterVersets899(
-      [ligne({ alignment_status: 'CANONICAL_GAP', texte_diplomatic: null, texte_expanded: null })],
-      'TR0009', 'RUT', 1, 'expanded',
-    )
+    const [v] = adapterVersets899([ligne({ alignment_status: 'CANONICAL_GAP', texte_diplomatic: null, texte_expanded: null })], 'TR0009', 'RUT', 1, 'expanded')
     expect(v._estLacune).toBe(true)
     expect(v.TR0009).toBeNull()
   })
   it('conserve une glose MANUSCRIPT_EXTRA comme ligne de lecture sans faux numéro', () => {
-    const [v] = adapterVersets899(
-      [ligne({
+    const [v] = adapterVersets899([
+      ligne({
         canon_id: null,
         livre: 'JHN',
         chapitre: 1,
-        verset: null,
+        verset: 51,
         alignment_order: 52,
         alignment_status: 'MANUSCRIPT_EXTRA',
         segment_key: 'JHN.EXTRA.GLOSS.1.51',
@@ -184,29 +161,19 @@ describe('adapterVersets899', () => {
         manuscript_extra: true,
         canonical_context: 'JHN.1.51',
         texte_expanded: 'Ihesus est apelez filz dome par droit.',
-      })],
-      'TR0009', 'JHN', 1, 'expanded',
-    )
+      }),
+    ], 'TR0009', 'JHN', 1, 'expanded')
     expect(v.id_verset).toBe('899:JHN.EXTRA.GLOSS.1.51')
     expect(v.ref).toBe('JHN.1.51')
-    expect(v.verset).toBe(0)
+    expect(v.verset).toBe(-52)
     expect(v._estGlose899).toBe(true)
     expect(v._libelle899).toContain('Glose après Jn 1,51')
     expect(v._canonContexte899).toBe('JHN.1.51')
     expect(v.TR0009).toBe('Ihesus est apelez filz dome par droit.')
   })
   it('écarte les autres MANUSCRIPT_EXTRA — jamais de faux verset canonique', () => {
-    expect(adapterVersets899(
-      [ligne({
-        canon_id: null,
-        livre: 'RUT',
-        chapitre: 4,
-        verset: null,
-        alignment_status: 'MANUSCRIPT_EXTRA',
-        manuscript_extra: true,
-        phenomenon: null,
-      })],
-      'TR0009', 'RUT', 4, 'expanded',
-    )).toEqual([])
+    expect(adapterVersets899([
+      ligne({ canon_id: null, livre: 'RUT', chapitre: 4, verset: 22, alignment_status: 'MANUSCRIPT_EXTRA', manuscript_extra: true, phenomenon: null }),
+    ], 'TR0009', 'RUT', 4, 'expanded')).toEqual([])
   })
 })
