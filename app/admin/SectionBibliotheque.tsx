@@ -1746,7 +1746,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                     Cadrer
                   </button>
                 )}
-                <input ref={el => { photoRefs.current[auteur.id_auteur] = el }} type="file" accept="image/*" style={{ display: 'none' }}
+                <input ref={el => { photoRefs.current[auteur.id_auteur] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
                   onChange={async e => {
                     const f = e.target.files?.[0]
                     if (!f) return

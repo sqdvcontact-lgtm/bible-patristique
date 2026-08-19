@@ -1038,7 +1038,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: t.photo ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
                 ⊹ Cadrer
               </button>
-              <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept="image/*" style={{ display: 'none' }}
+              <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
                 onChange={async e => {
                   const f = e.target.files?.[0]
                   if (!f) return

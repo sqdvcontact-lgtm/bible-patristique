@@ -166,7 +166,7 @@ export default function SectionAuteurs() {
                         style={{ fontSize: '0.79062rem', padding: '4px 10px', borderRadius: '4px', border: `1px solid ${photos[a.id_auteur] ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: photos[a.id_auteur] ? 'rgba(var(--cs-vert-rgb),0.08)' : '#fff', color: photos[a.id_auteur] ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         {photos[a.id_auteur] ? '✓ Photo' : '+ Photo'}
                       </button>
-                      <input ref={el => { photoRefs.current[a.id_auteur] = el }} type="file" accept="image/*" style={{ display: 'none' }}
+                      <input ref={el => { photoRefs.current[a.id_auteur] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
                         onChange={async e => {
                           const f = e.target.files?.[0]
                           if (!f) return
