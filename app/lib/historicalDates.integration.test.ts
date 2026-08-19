@@ -8,11 +8,31 @@ describe('intégration des dates historiques', () => {
   it('emploie auteurs.dates et HistoricalDate long dans la Bibliothèque', () => {
     const page = lire('../bibliotheque/page.tsx')
     const client = lire('../bibliotheque/BibliothequeClient.tsx')
+    // Les colonnes lues par la bibliothèque vivent dans un module partagé : la page
+    // serveur et le rechargement client doivent lire les MÊMES (une liste dupliquée
+    // avait dérivé et privé la section « Opuscules » de nb_signes).
+    const selects = lire('./bibliothequeSelects.ts')
 
-    expect(page).toContain('titre, dates, siecle')
+    expect(page).toContain('SELECT_AUTEURS_BIBLIOTHEQUE')
+    for (const colonne of ['dates', 'siecle', 'date_naissance', 'date_mort']) {
+      expect(selects).toContain(colonne)
+    }
     expect(client).toContain('const datesAuteur = auteur.dates')
     expect(client).toContain('<HistoricalDate value={datesAuteur} variant="long" />')
     expect(client).not.toContain('formaterDateHistorique(auteur.dates)')
+  })
+
+  it('lit nb_signes des deux côtés, sans quoi la section Opuscules ne peut pas paraître', () => {
+    const page = lire('../bibliotheque/page.tsx')
+    const client = lire('../bibliotheque/BibliothequeClient.tsx')
+    const selects = lire('./bibliothequeSelects.ts')
+
+    expect(selects).toContain('nb_signes')
+    expect(page).toContain('SELECT_OEUVRES_BIBLIOTHEQUE')
+    expect(client).toContain('SELECT_OEUVRES_BIBLIOTHEQUE')
+    // Aucune liste de colonnes recomposée sur place : c'est la dérive qui avait tout cassé.
+    expect(page).not.toContain('date_publication_affichage_courte,')
+    expect(client).not.toContain('const SELECT_OEUVRES_DATES')
   })
 
   it('emploie les vues canoniques pour les œuvres et les notices rencontrées', () => {
