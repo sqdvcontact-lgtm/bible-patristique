@@ -369,6 +369,19 @@ button:focus-visible,
      style inline, et c'est elle qui place la puce. align-items sur la puce ne
      gouvernerait que le bouton À L'INTÉRIEUR d'elle, sans la déplacer d'un pixel. */
   .bib-etoile { align-self: flex-start !important; padding-top: 3px !important; }
+  /* ── Le blanc entre le titre et ses sous-données ───────────────────────────
+     Il venait de trois endroits, dont un invisible à la lecture du code : le
+     `gap: 7px` de la ligne d'édition est posé pour séparer le libellé de sa
+     mention d'édition SUR UNE MÊME LIGNE, mais un `gap` gouverne aussi les
+     RANGÉES. Dès que le texte s'enroule, ce qui est la règle sur un téléphone,
+     les mêmes 7px s'installaient donc entre les deux lignes, où personne ne les
+     avait voulus. On ne garde qu'un `row-gap` de 3px et l'interligne descend de
+     1,5 à 1,35 : ce sont des libellés courts, pas de la prose.
+     Mesuré : 3px de blanc sous le titre, 2px entre les sous-lignes. Le premier
+     reste au-dessus du second, sans quoi le titre cesserait de coiffer ce qui
+     le suit. */
+  .bib-ligne a > span { row-gap: 3px !important; line-height: 1.35 !important; }
+  .bib-ligne { margin-top: 1px !important; }
 }
 
 @media (hover: none) {

@@ -349,7 +349,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                       décrochement qui distingue le titre de ses éditions est préservé. */}
                   {etoileAuTitre ? (
                     <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: '4px' }}>
-                      <EtoileFavori actif={favorisOeuvres.has(grp.versions[0].id_oeuvre)} onToggle={() => toggleFavoriOeuvre(grp.versions[0].id_oeuvre)} size={12} style={{ marginTop: '3px' }} />
+                      <EtoileFavori actif={favorisOeuvres.has(grp.versions[0].id_oeuvre)} onToggle={() => toggleFavoriOeuvre(grp.versions[0].id_oeuvre)} size={12} style={{ marginTop: '1px' }} />
                       <span style={{ flex: 1, minWidth: 0, ...styleTitre, padding: '0 18px 0 0' }}>{grp.titre}</span>
                     </div>
                   ) : (
