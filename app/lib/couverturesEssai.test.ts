@@ -30,6 +30,17 @@ describe('jeu de couvertures', () => {
       expect(contraste, `couverture « ${c.libelle} »`).toBeGreaterThan(4.5)
     }
   })
+
+  // Un blanc pur sur un vert profond fait un rectangle de bureau, non un
+  // cartonnage. La règle tient donc dans les chiffres : aucune encre ne doit être
+  // un gris, c'est-à-dire avoir ses trois composantes voisines.
+  it('ne donne à aucune couverture une encre grise, blanche ou noire', () => {
+    for (const c of COUVERTURES) {
+      const canaux = [0, 1, 2].map(i => parseInt(c.encre.slice(1 + i * 2, 3 + i * 2), 16))
+      const ecart = Math.max(...canaux) - Math.min(...canaux)
+      expect(ecart, `encre de « ${c.libelle} » (${c.encre})`).toBeGreaterThanOrEqual(12)
+    }
+  })
 })
 
 describe('tirage par défaut', () => {

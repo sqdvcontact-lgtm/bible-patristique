@@ -25,22 +25,30 @@ export type Couverture = {
 }
 
 // L'ordre est celui du choix offert à l'auteur, et c'est celui de la gamme : du
-// vert le plus sombre au crème. Les quatre premières portent une encre claire,
-// les deux dernières une encre brune.
+// vert le plus sombre au crème.
+//
+// ⛔ AUCUNE ENCRE N'EST NI NOIRE NI BLANCHE. Un blanc pur sur un vert profond
+// fait un rectangle de bureau, non un cartonnage : ce qui donne le livre relié,
+// c'est une encre TEINTÉE, prise dans l'autre famille de la gamme. Les verts
+// portent donc un or pâle, les ors et les ocres un vert très clair ou très
+// profond, le crème le vert d'encre du site. Chaque couple est CROISÉ : le fond
+// et l'encre ne sont jamais de la même famille, faute de quoi le texte s'assoupit
+// sur son fond.
 export const COUVERTURES: Couverture[] = [
-  { cle: 'encre', libelle: 'Vert d’encre', fond: '#2a3d30', encre: '#f2ede3', filet: 'rgba(242,237,227,0.34)' },
-  { cle: 'vert',  libelle: 'Vert',         fond: '#3d6b4f', encre: '#f8f5ee', filet: 'rgba(248,245,238,0.36)' },
-  // La sauge claire (#7d8f77) ne portait pas une encre claire : 3,3 de contraste.
-  // Assombrie jusqu'à 5,0, elle garde son gris-vert sans devenir un second vert.
-  { cle: 'sauge', libelle: 'Sauge',        fond: '#5e7058', encre: '#fbf8f1', filet: 'rgba(251,248,241,0.42)' },
-  // L'or du site (`--cs-or`, #9a7a38) sert d'accent sur fond crème ; en aplat sous
-  // une encre claire il ne contraste pas assez (3,8 pour 4,5 exigé). La couverture
-  // le prend donc plus profond, en vieil or.
-  { cle: 'or',    libelle: 'Vieil or',     fond: '#7d6224', encre: '#fbf7ef', filet: 'rgba(251,247,239,0.40)' },
-  // Les deux claires prennent l'encre brune des textes. L'ocre est `--cs-or-doux`
-  // tel quel, le crème est le papier des encarts.
-  { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#c8b89e', encre: '#2a2520', filet: 'rgba(42,37,32,0.34)' },
-  { cle: 'creme', libelle: 'Crème',        fond: '#ece5d8', encre: '#3a3026', filet: 'rgba(58,48,38,0.34)' },
+  // Or pâle sur vert profond : le couple des reliures d'éditeur du XIXe.
+  { cle: 'encre', libelle: 'Vert d’encre', fond: '#2a3d30', encre: '#e0c894', filet: 'rgba(224,200,148,0.34)' },
+  // Le vert d'accent est plus clair : son or doit l'être aussi pour tenir 4,5.
+  { cle: 'vert',  libelle: 'Vert',         fond: '#3d6b4f', encre: '#f2e2bb', filet: 'rgba(242,226,187,0.36)' },
+  // La sauge a encore été assombrie d'un ton (#5e7058 -> #55654c) : sous une encre
+  // TEINTÉE, qui est moins claire qu'un blanc, elle ne tenait plus que 4,3.
+  { cle: 'sauge', libelle: 'Sauge',        fond: '#55654c', encre: '#f4e6c4', filet: 'rgba(244,230,196,0.42)' },
+  // L'or du site (`--cs-or`, #9a7a38) sert d'accent sur fond crème ; en aplat il ne
+  // contraste pas assez, d'où ce vieil or plus profond. Son encre est un vert très
+  // pâle : sur un fond doré, un or clair ne serait qu'un ton sur ton.
+  { cle: 'or',    libelle: 'Vieil or',     fond: '#7d6224', encre: '#eef0dd', filet: 'rgba(238,240,221,0.40)' },
+  // Les deux fonds clairs prennent au contraire le vert le plus profond de la gamme.
+  { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#c8b89e', encre: '#233a2c', filet: 'rgba(35,58,44,0.34)' },
+  { cle: 'creme', libelle: 'Crème',        fond: '#ece5d8', encre: '#2a3d30', filet: 'rgba(42,61,48,0.34)' },
 ]
 
 /** Couverture posée quand l'auteur n'a rien choisi, et quand la clé stockée ne
