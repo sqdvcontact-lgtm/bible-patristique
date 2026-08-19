@@ -996,7 +996,10 @@ export default function PanneauPatristique({
   ]
 
   // Reset page when sous-onglet changes
-  useEffect(() => { setPageItems(0) }, [sousOnglet])
+  // Ajusté pendant le rendu (doc React) : changer d'onglet ne montre plus fugitivement
+  // la page courante de l'onglet précédent.
+  const [sousOngletRecu, setSousOngletRecu] = useState(sousOnglet)
+  if (sousOngletRecu !== sousOnglet) { setSousOngletRecu(sousOnglet); setPageItems(0) }
 
   // Sans verset (mode chapitre), l'onglet Commentaires n'existe pas : on revient
   // sur « Pères de l'Église » pour ne pas laisser un onglet actif fantôme.

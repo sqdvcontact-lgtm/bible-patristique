@@ -377,8 +377,13 @@ export default function NavLivres({
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
   const [chapitreActifLocal, setChapitreActifLocal] = useState(chapitreActif)
-  useEffect(() => { setLivreActifLocal(livreActif) }, [livreActif])
-  useEffect(() => { setChapitreActifLocal(chapitreActif) }, [chapitreActif])
+  // Réalignement sur la propriété PENDANT le rendu, et non dans un effet : React
+  // réexécute le composant immédiatement, au lieu de peindre l'ancienne valeur puis
+  // la nouvelle. C'est le motif « ajuster l'état pendant le rendu » de la doc React.
+  const [livreRecu, setLivreRecu] = useState(livreActif)
+  if (livreRecu !== livreActif) { setLivreRecu(livreActif); setLivreActifLocal(livreActif) }
+  const [chapitreRecu, setChapitreRecu] = useState(chapitreActif)
+  if (chapitreRecu !== chapitreActif) { setChapitreRecu(chapitreActif); setChapitreActifLocal(chapitreActif) }
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
   const polyMode = !!onChoisirChapitre
   const [atOuvert, setAtOuvert] = useState(true)

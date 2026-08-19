@@ -874,8 +874,10 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
   const pageActive = Math.min(page, nbPages - 1)
   const auteursPage = auteursTriés.slice(pageActive * PAR_PAGE, pageActive * PAR_PAGE + PAR_PAGE)
 
-  // La recherche remet à la première page.
-  useEffect(() => { setPage(0) }, [recherche])
+  // La recherche remet à la première page. Ajusté pendant le rendu et non dans un
+  // effet : sinon la première page de l'ancienne liste s'affiche un instant.
+  const [rechercheRecue, setRechercheRecue] = useState(recherche)
+  if (rechercheRecue !== recherche) { setRechercheRecue(recherche); setPage(0) }
 
   // Changement de page sans saut : on conserve la position de défilement.
   const changerPage = (delta: number) => {

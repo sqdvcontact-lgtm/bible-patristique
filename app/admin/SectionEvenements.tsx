@@ -231,7 +231,10 @@ function EditeurEvenement({ e, liens, genresTries, auteurNom, auteursTries, onMa
   onCreerAssoc: (auteur_id: string, nature_lien: string, pertinence: string) => Promise<boolean>
 }) {
   const [b, setB] = useState(e)
-  useEffect(() => { setB(e) }, [e])
+  // Ajustement pendant le rendu plutôt que dans un effet (doc React) : le formulaire
+  // se recale sur l'événement reçu sans rendu intermédiaire.
+  const [evtRecu, setEvtRecu] = useState(e)
+  if (evtRecu !== e) { setEvtRecu(e); setB(e) }
   const [envoi, setEnvoi] = useState(false)
   const set = (k: keyof Evt, v: any) => setB(p => ({ ...p, [k]: v }))
   const generale = b.portee === 'générale'
