@@ -279,10 +279,17 @@ Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant
   - Elle produit aussi **`outils/icone-serveur.ico`** (16 à 256 px), l'icône du raccourci « Serveur Bible-Patristique » épinglé à la barre des tâches. ⚠️ Ce raccourci pointait sur `app/favicon.ico` : le fichier appartenant au dépôt, l'icône **changeait avec la branche cochée**, et restait l'ancienne tant que le poste travaillait ailleurs que sur `master`. Il pointe désormais sur une copie hors dépôt, `C:\Corpus Scriptura\icone-corpus-scriptura.ico`. Après refabrication, recopier le fichier là-bas.
 - **`monogramme-creme.png`** (le monogramme seul sur crème) est le **logo du site**. Le détourage ne sert que l'**alpha** : la couleur, on la repose. D'où deux fichiers dans `public/logo/`, même tracé à la teinte près — `monogramme-encre.png` en `--cs-encre-fonce` `rgb(30, 46, 36)` et `monogramme-creme.png` en `rgb(244, 231, 200)`.
   - ⚠️ **L'encre de la planche (#232323) ne sert PAS telle quelle.** Posé dans le titre, entre « Corpus » et « Scriptura », ce noir franc jurait avec le vert d'encre des lettres qui l'entourent. Le monogramme prend donc la teinte du titre lui-même : le noir s'en trouve adouci, et la marque appartient à la ligne au lieu d'y trancher.
-- **Poses.** Dans le titre de `app/accueil/page.tsx`, **entre les deux mots et sur leur ligne** (`.titre-monogramme`) ; dans `app/components/Navbar.tsx`, à la place du fleuron `✦`, à `1.875rem` contre le nom du site.
-  - ⚠️ **Dans le titre, la mesure est en `em` et le calage se CENTRE sur la bande des capitales.** L'`em` évite de répéter le `clamp` du titre. Le calage, lui, n'est pas cosmétique : `vertical-align` pose par défaut le pied de l'image sur la ligne d'écriture, si bien qu'une marque plus haute que les capitales surplombe le mot de toute sa différence. Mesurée dans Source Serif 4, la capitale monte à **0,685em** (37 px pour un corps de 54) : une image de 0,95em se centre donc à `vertical-align: -0.13em`, et déborde de 7 px en haut comme en bas.
-  - Sous 400 px, c'est le fleuron qui cède (0,85em) : le titre est déjà à sa taille plancher, et la ligne déborderait. Il n'y a d'ailleurs **aucun blanc** entre les mots et l'image — les marges font le vide — donc aucune occasion de retour à la ligne.
+- **Poses.** En tête du frontispice de `app/accueil/page.tsx` (`.hero-monogramme`, 4,5rem, mesuré en **hauteur** puisqu'il est plus haut que large, et en **rem** pour suivre la police racine) ; dans `app/components/Navbar.tsx`, à la place du fleuron `✦`, à `1.875rem` contre le nom du site.
+  - ⛔ **Pas DANS le titre**, essayé et écarté le 2026-08-19. Lacé entre « Corpus » et « Scriptura », il oblige à le centrer sur la bande des capitales (`vertical-align`, faute de quoi il surplombe le mot), et surtout il coupe le nom en deux là où on le lit. La marque se tient au-dessus, seule.
 - ⚠️ **En `<img>`, jamais en `<Image>`** — même raison que les ornements ci-dessus, et le rectangle crème est bien plus visible sur une barre verte que sur du papier.
+
+## Le frontispice de l'accueil — quatre temps (2026-08-19)
+
+`app/accueil/page.tsx`. La marque, le nom, un filet gravé, la devise. Il en comptait sept, et **trois ornements se disputaient le même office** : un bandeau gravé en tête, un `❧ · ❧` que le CSS masquait précisément quand le bandeau était là (`.hero-title-ornament + div { display: none }`, une règle qui ne servait qu'à cacher son voisin), et un filet à fleuron sous le titre.
+
+- **La gravure descend sous le titre**, où elle remplace le filet à fleuron : elle EST un filet, et sa place est en pied (voir « Une gravure se pose EN PIED » ci-dessus). Son opacité passe de 0,82 à **0,72**, l'intensité suivant la place. Le `❧ · ❧` et le filet à fleuron sont supprimés, pas masqués.
+- ⚠️ **Elle était rendue en `<Image>` alors qu'elle porte une couche alpha** — exactement le défaut intermittent décrit plus haut. Passée en `<img>`, ce qui a rendu l'import `next/image` inutile dans le fichier.
+- **Écarts mesurés dans la page** (corps de titre 54 px) : monogramme 72 px, 20 px, titre, 12 px, gravure de 265 px, 14 px, sous-titre.
 
 ## La couleur appartient à l'auteur
 

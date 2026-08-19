@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import AccueilCards from "../components/AccueilCards";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
@@ -81,19 +80,17 @@ export default async function AccueilPage() {
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 1.125rem; color: #7a6a52; letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
-        /* Le monogramme se mesure en HAUTEUR — il est plus haut que large — et en
-           EM, puisqu'il vit dans le titre : il suit sa taille fluide sans qu'on ait
-           à répéter le clamp. Le décalage vertical le CENTRE sur la bande des
-           capitales, mesurée dans Source Serif 4 à 0,685em (37 px pour un corps de
-           54) : sans lui, l'image poserait son pied sur la ligne d'écriture et
-           surplomberait le mot de toute sa différence de hauteur. Il déborde ainsi
-           de 7 px en haut comme en bas, et se lit comme une initiale ornée. */
-        .titre-monogramme { height: 0.95em; width: auto; display: inline-block; vertical-align: -0.13em; margin: 0 0.3em; }
-        /* Sur un très petit écran, le titre est déjà à sa taille plancher : c'est
-           le fleuron qui cède, faute de quoi la ligne déborderait. */
-        @media (max-width: 400px) { .titre-monogramme { height: 0.85em; vertical-align: -0.08em; margin: 0 0.22em; } }
-        .hero-title-ornament { width: min(265px, 48vw); height: auto; display: block; margin: 0 auto 8px; opacity: .82; }
-        .hero-title-ornament + div { display: none; }
+        /* Le monogramme se mesure en HAUTEUR : il est plus haut que large, et
+           c'est sa hauteur qui doit s'accorder à celle du titre. En rem, pour
+           suivre la police racine fluide comme tout le reste du frontispice. */
+        .hero-monogramme { height: 4.5rem; width: auto; display: block; margin: 0 auto 20px; }
+        /* La gravure ferme le titre au lieu de l'annoncer. Son intensité suit sa
+           place : 0,72, comme toute gravure qui porte encore le propos, et non
+           les 0,42 à 0,5 d'un cul-de-lampe qui n'orne qu'un vide. */
+        .hero-filet-grave { width: min(265px, 48vw); height: auto; display: block; margin: 2px auto 14px; opacity: .72; }
+        @media (max-width: 640px) {
+          .hero-monogramme { height: 3.5rem; margin-bottom: 16px; }
+        }
         /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
            les lignes longues débordaient (« soins » rejeté seul). On bascule alors
            sur un découpage mobile en lignes plus courtes et plus nombreuses. */
@@ -205,21 +202,17 @@ export default async function AccueilPage() {
           width: "100%",
           padding: "clamp(22px, 3.5vh, 52px) 0 0",
         }}>
+        {/* Le frontispice tient en quatre temps : la marque, le nom, un filet
+            gravé, la devise. Il en comptait sept, et trois ornements se
+            disputaient le même office — un bandeau gravé en tête, un « ❧ · ❧ »
+            que le CSS masquait dès que le bandeau était là, un filet à fleuron
+            sous le titre. La gravure fait à elle seule le travail du filet, et
+            elle le fait EN PIED, où sa place est (charte, « Une gravure se pose
+            en pied »). La marque prend la tête, seule : c'est elle l'enseigne. */}
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
-          <Image
-            src="/icons/home-title-ornament.png"
-            width={2062}
-            height={131}
-            sizes="min(720px, 92vw)"
-            alt=""
-            aria-hidden="true"
-            className="hero-title-ornament"
-          />
-
-          {/* Marque typographique supérieure */}
-          <div style={{ fontSize: "0.9375rem", color: "var(--cs-or)", marginBottom: "14px", letterSpacing: "0.38em" }}>
-            ❧ · ❧
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo/monogramme-encre.png" alt="" aria-hidden="true"
+            className="hero-monogramme" />
 
           {/* Titre principal */}
           <h1 style={{
@@ -232,24 +225,17 @@ export default async function AccueilPage() {
             paddingLeft: "0.04em",
             marginBottom: "10px",
           }}>
-            {/* Le monogramme se lace ENTRE les deux mots, sur la ligne du titre.
-                Il y tient lieu de fleuron, et son alt reste vide : le nom du site
-                est déjà lu de part et d'autre, l'annoncer une troisième fois
-                encombrerait le lecteur d'écran. En <img> et non en <Image>, comme
-                les ornements (charte, « Les ornements se DÉTOURENT »). */}
-            Corpus
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo/monogramme-encre.png" alt="" aria-hidden="true"
-              className="titre-monogramme" />
-            Scriptura
+            Corpus Scriptura
           </h1>
 
-          {/* Filet */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "0 auto 10px", maxWidth: "15rem" }}>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
-            <span style={{ fontSize: "0.9375rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
-            <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
-          </div>
+          {/* Le filet du frontispice : la gravure elle-même, qui EST un filet.
+              En <img> et non en <Image> — elle porte une couche alpha, et
+              l'optimiseur l'aplatit par intermittence sur du blanc, si bien que
+              le rectangle crème reparaît (charte, « Les ornements se DÉTOURENT »).
+              Elle était justement rendue en <Image> jusqu'ici. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/home-title-ornament.png" alt="" aria-hidden="true"
+            className="hero-filet-grave" />
 
           {/* Sous-titre */}
           <p style={{
