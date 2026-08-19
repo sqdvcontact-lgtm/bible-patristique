@@ -22,6 +22,23 @@ export const MANIFEST_RELATIVE_PATH = "data/manuscrits/bible-899/manifest.json";
 export const PUBLIC_IMAGE_DIRECTORY = "public/manuscrits/bible-899";
 export const PUBLIC_IMAGE_URL = "/manuscrits/bible-899";
 
+// Base des fac-similés SERVIS AU LECTEUR. Les 1 488 images (1,89 Go) ne sont plus dans
+// le dépôt : Vercel les redéployait à chaque build, et 1 264 d'entre elles n'y étaient
+// même pas versées, si bien que tous les folios à partir du 57 renvoyaient 404 en ligne.
+// Elles vivent maintenant dans le seau Supabase `manuscrits`, versées telles quelles :
+// aucun octet n'a changé, les empreintes du manifeste restent donc valables.
+//
+// Le MANIFESTE, lui, garde des chemins relatifs (PUBLIC_IMAGE_URL ci-dessus) : un
+// document scellé ne doit pas dépendre de l'hôte qui le sert. La base n'est appliquée
+// qu'au moment du rendu.
+export const BASE_PUBLIQUE_FACSIMILES =
+  process.env.NEXT_PUBLIC_BIBLE899_IMAGES?.replace(new RegExp(String.raw`/+$`, "u"), "")
+  ?? `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/object/public/manuscrits/${MANUSCRIPT_ID}`;
+
+export function urlFacsimile(file: string): string {
+  return `${BASE_PUBLIQUE_FACSIMILES}/${file}`;
+}
+
 export type Bible899Manifest = {
   schemaVersion: 1;
   manuscriptId: string;
@@ -280,7 +297,7 @@ function alternativeFacsimile(image: AlternativeManifestImageInfo): FacsimileRef
   return {
     sourceReference: image.reference,
     imageReference: image.reference,
-    publicUrl: image.publicUrl,
+    publicUrl: urlFacsimile(image.file),
     zoneId: null,
     coordinates: null,
     coordinatesPresent: false,
@@ -306,7 +323,7 @@ async function loadBible899ReaderSource(rootDirectory: string): Promise<ReaderSo
     const imageReferences = new Set(manifest.images.map((image) => image.reference));
     const edition = parseBible899Tei(xml, {
       sourcePath: teiPath,
-      publicImageBase: PUBLIC_IMAGE_URL,
+      publicImageBase: BASE_PUBLIQUE_FACSIMILES,
       manifestImages: manifest.images,
       imageExists: (reference) => imageReferences.has(reference),
     });
@@ -334,7 +351,8 @@ export async function loadBible899ReaderEdition(
   const selectedColumn = edition.columns.find((column) => column.key === selectedKey) ?? edition.columns[0];
   if (!selectedColumn) throw new Error("Le TEI Bible 899 ne contient aucune colonne à afficher.");
 
-  const alternativeImages = manifest.alternativeImages ?? [];
+  const alternativeImages = (manifest.alternativeImages ?? [])
+    .map((image) => ({ ...image, publicUrl: urlFacsimile(image.file) }));
   const primaryReferences = new Set(selectedColumn.facsimiles.map((item) => item.imageReference));
   const selectedAlternativeFacsimiles = alternativeImages
     .filter((image) => image.alternativeFor !== null && primaryReferences.has(image.alternativeFor))

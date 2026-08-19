@@ -235,7 +235,7 @@ describe("manifeste de la source maîtresse", () => {
   it("rattache le second scan à la dernière surface matérielle", async () => {
     const edition = await loadBible899ReaderEdition("f372v_b");
     expect(edition.selectedAlternativeFacsimiles.map((image) => image.publicUrl))
-      .toContain("/manuscrits/bible-899/f372v_b.png");
+      .toContainEqual(expect.stringContaining("/manuscrits/bible-899/f372v_b.png"));
   }, 20_000);
 
   it("refuse une modification du TEI tant que le manifeste n’a pas été régénéré", async () => {

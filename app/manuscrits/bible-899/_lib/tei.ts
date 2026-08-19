@@ -428,7 +428,7 @@ function resolveFacsimiles(
     return [{
       sourceReference,
       imageReference,
-      publicUrl: manifestImage?.publicUrl ?? `${publicImageBase}/${file}`,
+      publicUrl: `${publicImageBase}/${manifestImage?.file ?? file}`,
       zoneId,
       coordinates,
       coordinatesPresent: coordinates !== null,
