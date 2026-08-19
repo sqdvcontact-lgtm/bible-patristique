@@ -1,4 +1,19 @@
-name: Sauvegarde Supabase
+# Sauvegarde QUOTIDIENNE, au format custom (restaurable sélectivement avec pg_restore).
+# Complète la sauvegarde hebdomadaire en clair de sauvegarde-supabase.yml.
+#
+# ⚠️ Elle se connectait à db.<ref>.supabase.co, qui ne publie QU'UN enregistrement AAAA
+# (IPv6). Les exécuteurs GitHub sont en IPv4 seul : la connexion ne pouvait pas aboutir,
+# et la sauvegarde échouait chaque nuit en silence (constaté le 19 août 2026). Elle passe
+# désormais par l'URI du secret SUPABASE_DB_URL, celui qu'emploie déjà la sauvegarde
+# hebdomadaire, qui pointe le pooler joignable en IPv4.
+#
+# Contrairement à l'hebdomadaire, ce vidage CONSERVE les privilèges : sans les GRANT,
+# une base restaurée ne rendrait plus rien à PostgREST, les rôles anon et authenticated
+# n'ayant plus aucun droit.
+#
+# RESTAURATION : pg_restore --no-owner --dbname="URI_DE_CONNEXION" backup_*.dump
+
+name: Sauvegarde Supabase (quotidienne)
 
 on:
   schedule:
@@ -15,23 +30,21 @@ jobs:
     steps:
       - name: Installer pg_dump (PostgreSQL 17)
         run: |
-          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-          wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
-          sudo apt-get update -qq
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y postgresql-client-17
 
       - name: Dump de la base
         env:
-          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_dump --version
           FILENAME="backup_$(date +'%Y-%m-%d_%H-%M').dump"
-          pg_dump \
-            --host=db.oucotpxcjalwgetylfbz.supabase.co \
-            --port=5432 \
-            --username=postgres \
-            --dbname=postgres \
+          pg_dump "$DB_URL" \
             --format=custom \
-            --no-password \
+            --no-owner \
             --file="$FILENAME"
           echo "FILENAME=$FILENAME" >> $GITHUB_ENV
           echo "Taille : $(du -sh $FILENAME | cut -f1)"
