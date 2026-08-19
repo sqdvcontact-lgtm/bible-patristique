@@ -7,7 +7,7 @@ import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
 import { codesTraductionsLecture } from "@/app/lib/traductions";
 
 export const metadata = {
-  title: "Corpus Scriptura",
+  title: { absolute: "Corpus Scriptura" },
   description: "Lectures bibliques et patristiques.",
 };
 

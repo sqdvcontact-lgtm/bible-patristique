@@ -1,5 +1,5 @@
 export const metadata = {
-  title: { absolute: "Conditions d’utilisation – Corpus Scriptura" },
+  title: { absolute: "Conditions d’utilisation · Corpus Scriptura" },
   description: "Conditions générales d’utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
 };
 

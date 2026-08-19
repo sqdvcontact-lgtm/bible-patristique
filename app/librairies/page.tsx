@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Acheter des livres — Corpus Scriptura',
+  title: 'Acheter des livres',
   description: 'Où trouver les éditions bibliques et patristiques, neuves, anciennes ou critiques.',
 }
 

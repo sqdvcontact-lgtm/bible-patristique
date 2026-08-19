@@ -125,7 +125,7 @@ function compteSignalementsEssai(id: number, signalementsEssais: { message: stri
   }).length
 }
 
-export const metadata = { title: 'Administration — Corpus Scriptura' }
+export const metadata = { title: 'Administration' }
 
 export default async function AdminPage() {
   const autorise = await estAdmin()

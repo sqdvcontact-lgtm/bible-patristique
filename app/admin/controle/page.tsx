@@ -4,7 +4,7 @@ import { estAdmin } from '@/app/lib/verifAdmin'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import TodosControle from './TodosControle'
 
-export const metadata = { title: 'Centre de contrôle — Corpus Scriptura' }
+export const metadata = { title: 'Centre de contrôle' }
 export const dynamic = 'force-dynamic'
 
 const supabaseAdmin = createClient(

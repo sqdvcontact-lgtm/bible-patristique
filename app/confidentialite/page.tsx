@@ -1,7 +1,7 @@
 import GestionConsentement from "../components/GestionConsentement";
 
 export const metadata = {
-  title: { absolute: "Politique de confidentialité – Corpus Scriptura" },
+  title: { absolute: "Politique de confidentialité · Corpus Scriptura" },
   description: "Traitement des données personnelles sur Corpus Scriptura (corpus-scriptura.fr).",
 };
 

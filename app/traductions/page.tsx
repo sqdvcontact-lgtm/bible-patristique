@@ -4,7 +4,7 @@ import AllerPlusLoinClient from './AllerPlusLoinClient'
 import { JsonLd, donneesBibles } from '@/app/lib/donneesStructurees'
 
 export const metadata = {
-  title: 'Les traductions — Corpus Scriptura',
+  title: 'Les traductions',
   description:
     "Les traductions bibliques éditées sur Corpus Scriptura : Bible de Sacy, Bible Segond, Bible Crampon, Vulgate clémentine, Septante… avec leurs notices.",
   keywords: [

@@ -4,7 +4,7 @@
 // travail ; seule la route publique est neutralisée ici.
 import { notFound } from 'next/navigation'
 
-export const metadata = { title: 'Corpus Scriptura' }
+export const metadata = { title: { absolute: 'Corpus Scriptura' } }
 
 export default function QuizPage() {
   notFound()

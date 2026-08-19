@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
 export const revalidate = 1800
 
 export const metadata = {
-  title: 'Publications — Corpus Scriptura',
+  title: 'Publications',
   description: 'Liste des publications de la communauté Corpus Scriptura.',
 }
 

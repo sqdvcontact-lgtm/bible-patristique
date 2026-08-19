@@ -1,6 +1,6 @@
 // app/recherche/page.tsx
 export const metadata = {
-  title: 'Recherche — Corpus Scriptura',
+  title: 'Recherche',
   description: 'Rechercher dans les lectures bibliques et patristiques.',
 }
 
