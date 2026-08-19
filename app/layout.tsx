@@ -9,6 +9,7 @@ import { ProvisionCompte } from "./lib/contexteCompte";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import { JsonLd, donneesSite } from "./lib/donneesStructurees";
 import "./globals.css";
+import "./glosses899.css";
 
 const sourceSans = Source_Sans_3({
   variable: "--font-source-sans",
