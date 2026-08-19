@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import TodosControle from './TodosControle'
+import ScellesBible899 from './ScellesBible899'
 
 export const metadata = { title: 'Centre de contrôle' }
 export const dynamic = 'force-dynamic'
@@ -250,6 +251,11 @@ export default async function CentreControlePage() {
             <Tuile valeur={nb(ch.evenements)} label="Événements" />
             <Tuile valeur={nb(ch.a_classer)} label="À classer" ton={ch.a_classer > 0 ? 'danger' : undefined} />
           </div>
+        </Carte>
+
+        {/* 7. Fac-similé Bible 899 — les images vivent hors du dépôt, leurs scellés se contrôlent ici. */}
+        <Carte titre="Fac-similé Bible 899" note={sec('facsimile_bible899').commentaire_ia} cle="facsimile_bible899" todos={sec('facsimile_bible899').todos} majLe={sec('facsimile_bible899').maj_le}>
+          <ScellesBible899 />
         </Carte>
 
         {/* 7. Chantier éditorial (œuvres) — compte rendu transverse et par œuvre. */}
