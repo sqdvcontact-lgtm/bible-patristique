@@ -518,7 +518,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            Sous ~750px, les six cartes passent sur une seule colonne, pleine
            largeur, et leur corps de texte remonte à 15px : lu de près sur un
            téléphone, le petit corps de la version deux-colonnes se lirait mal. */
-        @media (max-width: 750px) {
+        @media (max-width: 760px) {
           .cs-principes { grid-template-columns: 1fr; gap: 1.125rem; }
           .cs-encart-texte { font-size: 0.9375rem; line-height: 1.6; max-width: 40ch; }
         }

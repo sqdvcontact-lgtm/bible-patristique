@@ -333,7 +333,7 @@ export default function AccueilCards() {
           white-space: nowrap;
           text-align: center;
         }
-        @media (max-width: 620px) {
+        @media (max-width: 640px) {
           .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
           .ac-card { min-height: 124px; }
         }

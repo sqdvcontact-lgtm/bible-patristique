@@ -66,6 +66,7 @@ Le site est dessiné en pixels fixes calibrés pour un portable. Pour l'agrandir
 - **Piège des blocs `<style>` (trouvaille)** : les conversions qui ne visent que les styles *inline* (`fontSize`) laissent intacts les `font-size` en **kebab-case** DANS les blocs `` <style>{`…`}</style> ``. Ces restes ont persisté sur le chantier, les sections admin et plusieurs pages lecteur (recherche, essais, traductions, bibliothèque, compte, commentaires…), restant petits sur grand écran alors que le reste grossissait. **Convertir aussi le CSS des blocs `<style>`**, en **sautant les lignes `@media`** (sinon on casse la valeur du breakpoint) et en gardant le garde-fou iOS `font-size: 16px` au focus. Repérage : `grep -rnE 'font-size: *[0-9]+px' app` (doit ne plus rien renvoyer hors le `16px !important` iOS).
 - **Mesure de lecture** : tokens `--mesure-*` dans `:root` (`globals.css`), en rem, pour que la colonne conserve ses proportions (mêmes caractères/ligne) quand le texte grossit.
 - **Navbar** : hauteur = **`HAUTEUR_NAVBAR = '3.5rem'`** (chaîne rem, dans `app/lib/mesures.ts`) → la barre grandit avec la police racine. Tous les décalages du site sont accordés à cette valeur : `calc(100vh/100dvh - 3.5rem)`, `top/paddingTop/scrollMarginTop: '3.5rem'`. ⚠️ **`HAUTEUR_NAVBAR` n'est plus un nombre** : ne jamais faire d'arithmétique JS dessus — composer en `calc(${HAUTEUR_NAVBAR} + Npx)` (cf. `SOMMET_CORPS` dans `polyglotte/page.tsx`, en-têtes collants). Pour changer la hauteur, modifier `mesures.ts` **et** répercuter la valeur sur ces décalages. Breakpoint du menu desktop : `md` → **`lg` (1024px)** pour éviter le tassement des liens.
+  - ⛔ **Un décalage de navbar ne s'écrit JAMAIS en pixels** (relevé et corrigé le 2026-08-19). Treize `scrollMarginTop: '60px'` traînaient contre un seul composé sur `HAUTEUR_NAVBAR`, plus un en-tête collant à `top: '56px'` dans `/progression`. Or la barre mesure 56 px à la racine 16 mais **77 px à la racine 22** : un saut d'ancre déposait donc sa cible **17 px sous la barre** sur un grand écran, et l'en-tête collant s'y glissait dessous. Tous rattachés à `calc(${HAUTEUR_NAVBAR} + 4px)`, qui rend exactement 60 px à la racine 16 et suit la barre ensuite. Repérage : `grep -rnE "scrollMarginTop: '[0-9]+px'" app` doit ne rien renvoyer.
 - ⛔ **Piège du `clamp(…px…)` — il POSE UN PLAFOND au lieu de faire grandir.** Seize déclarations de taille gardaient des bornes en pixels, et c'étaient sans exception les **titres de page**, donc les plus gros caractères du site. Les bornes d'un `clamp` en px sont absolues : elles ne suivent pas la police racine. Mesuré sur `/contact`, le titre restait à **34 px de 1280 px à 2400 px de large** pendant que le corps de texte passait de 13,5 à 18,6 px. Le rapport titre/texte tombait de **2,52 à 1,83** : la hiérarchie s'aplatissait à mesure que l'écran s'agrandissait. Converties en rem, les seize bornes rendent un rapport **constant à 2,07**. Repérage : `grep -rnE "fontSize: *['\"]clamp\([^)]*px" app` doit ne rien renvoyer.
 - **Portée** : desktop d'abord ; le mobile est traité ensuite (ci-dessous).
 
@@ -123,6 +124,25 @@ Chantier distinct du scaling desktop. Seuil unique **900px** via le hook `useEst
 - **Conteneur.** Le shell Bible passe de `flex` (rangée, hauteur fixe `100vh - navbar`, `overflow:hidden`) à `flex-direction:column`, hauteur auto, `overflow:visible` → défilement naturel du document. Les zones de scroll internes (`overflow-y-auto flex-1`) redeviennent du flux (`className` neutralisée en mobile).
 - **Piège inline.** Ces composants sont pilotés par styles **inline** (largeur/hauteur), non surchargeables par média-query : le patron passe donc par un **prop `mobile` en JS** (comme la Navbar), pas par du CSS `@media`.
 - **La Navbar est déjà mobile** (hamburger + versions mobiles recherche/compte) — rien à refaire.
+
+### L'échelle des seuils (audit de responsiveness, 2026-08-19)
+
+Le JavaScript est irréprochable : les **onze** appels à `useEstMobile` passent tous **900**, sans une exception. Le CSS, lui, employait **onze seuils distincts** — 520, 600, 620, 640, 700, 750, 760, 820, 880, 900, 980 — soit la même dérive que celle des tailles de texte, transposée aux points de rupture. Trois d'entre eux ne se distinguaient de leur voisin que par quelques dizaines de pixels et ont été fondus (600 et 620 → 640 ; 750 → 760). Il en reste **huit**, et chacun a désormais une raison :
+
+| Seuil | Ce qu'il gouverne |
+|---|---|
+| **520** | une couverture de publication par rang (charte, section Publications) |
+| **640** | grilles à une colonne, champs qui passent l'un sous l'autre, variantes de colophon |
+| **700** | ce qui DISPARAÎT sur un téléphone : photo de la carte d'auteur, portrait latéral d'une traduction, justification d'une colonne étroite |
+| **760** | volets de l'accueil et grilles de principes, à une colonne |
+| **820** | la Polyglotte bascule sur « écran large requis » |
+| **880** | le quiz (route neutralisée en production) |
+| **900** | **le seuil de la charte**, celui du hook `useEstMobile` |
+| **980** | tableaux d'administration larges, sommaire de l'œuvre |
+
+⚠️ **Deux de ces seuils ne sont PAS à aligner sur 900, et c'est délibéré.** Le **820** de la Polyglotte décide qui reçoit l'outil et qui reçoit le message « écran large requis » : le hausser à 900 retirerait un outil qui fonctionne aux tablettes de 820 à 900 px. Tidier le code n'est pas une raison de retirer une fonction. Le **880** du quiz vit sur une route neutralisée, dont la version vivante est sur la branche Holy Guessr : on n'y touche pas.
+
+**Règle** : avant d'écrire une média-query, prendre un seuil de ce tableau. En inventer un douzième demande une raison qu'on écrit dans le commentaire.
 - **Test** : le navigateur *intégré* (Browser pane) honore le viewport (`resize_window` → largeur réelle) ; le navigateur *claude-in-chrome* NON (reste à 1920). Les pages derrière le verrou exigent une session (compte invité `ACCES_INVITES`).
 
 # Contrôle des œuvres (admin) — score de qualité figé

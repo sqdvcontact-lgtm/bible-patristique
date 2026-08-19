@@ -162,7 +162,7 @@ export default async function AccueilPage() {
           .accueil-stat { flex: 1 0 44%; padding: 13px 8px; }
           .accueil-stat + .accueil-stat { border-left: none; }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
           .colophon-pyr-desktop { display: none; }
           .colophon-pyr-mobile { display: block; }
           .colophon-pyr-mobile p { margin: 0 auto; max-width: 90vw; }

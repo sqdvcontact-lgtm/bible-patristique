@@ -335,6 +335,17 @@ button:focus-visible,
      règle .trad-article p plus haut, qui impose la justification sur grand écran. */
   .trad-fiche-texte p,
   .trad-article p { text-align: left !important; }
+  /* Et le portrait latéral s'efface : il perturbait la lecture, et il fait double
+     emploi avec le bandeau qui surmonte la fiche, où le même visage paraît déjà en
+     pleine largeur. Le texte prend toute la place, comme sur la carte d'auteur. */
+  .trad-fiche-portrait { display: none !important; }
+
+  /* ── Progression : la jauge passe AU-DESSUS du texte ──
+     La colonne de gauche est un disque de 132 px, plantée dans une grille 150px 1fr.
+     Sur un téléphone de 375 px, la carte dispose de 283 px : la jauge et sa gouttière
+     en prennent 172, et il ne reste que 111 px pour le texte. Empilé, chacun a toute
+     la largeur, et la jauge reste centrée. */
+  .prog-entete { grid-template-columns: 1fr !important; gap: 14px !important; }
 
   .bib-photo { display: none !important; }
   /* Sans la photo, la hauteur fixe de 200px (posée en inline pour uniformiser la

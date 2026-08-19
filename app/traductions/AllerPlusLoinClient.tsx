@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 type Traduction = {
   trad_id: string; nom: string; auteur: string | null; dates: string | null;
@@ -214,7 +215,7 @@ export default function AllerPlusLoinClient() {
             const estOuvert = ouvert === t.trad_id
             return (
               <div key={t.trad_id} id={t.trad_id} style={{
-                scrollMarginTop: '60px',
+                scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`,
                 border: '1px solid var(--cs-bord)', borderRadius: '8px',
                 overflow: 'hidden', background: 'var(--cs-surface)',
               }}>
@@ -223,15 +224,17 @@ export default function AllerPlusLoinClient() {
                 {estOuvert && (
                   <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'stretch' }}>
                     {t.photo && (
-                      <div style={{
+                      <div className="trad-fiche-portrait" style={{
                         // ⚠️ La largeur était figée à 8.75rem (140 px) avec `flexShrink: 0`, donc
                         // insensible à l'écran. Sur un téléphone de 375 px, la carte dispose de
                         // 327 px : le portrait en prenait 141, et il restait 144 px de texte
                         // JUSTIFIÉ, soit dix-sept signes par ligne. Le portrait mangeait la fiche.
-                        // La largeur suit désormais l'écran et retrouve ses 140 px dès 700 px de
-                        // large : le dessin de bureau ne bouge pas.
-                        // N.B. le portrait paraît DÉJÀ en bandeau au-dessus de la fiche : sur un
-                        // téléphone, cette colonne est un rappel, pas une découverte.
+                        // ⛔ Sous 700 px, cette colonne DISPARAÎT (règle `.trad-fiche-portrait`
+                        // dans globals.css, à côté de celle de la carte d'auteur, qui répond au
+                        // même défaut). Décision de l'auteur : elle perturbait la lecture, et le
+                        // portrait paraît DÉJÀ en bandeau au-dessus de la fiche — sur un téléphone,
+                        // cette colonne était un rappel, pas une découverte.
+                        // Entre 700 px et le bureau, la largeur suit l'écran et retrouve ses 140 px.
                         width: 'clamp(4rem, 20vw, 8.75rem)', flexShrink: 0,
                         borderRight: '1px solid var(--cs-fond-doux)',
                         overflow: 'hidden',

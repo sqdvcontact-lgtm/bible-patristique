@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { LIVRES, LivreBible } from '@/app/lib/bible'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 // ── Feu d'artifice ─────────────────────────────────────────────────────────────
 const COULEURS_FEU = ['var(--cs-vert)', 'var(--cs-danger)', '#d4af37', '#8a6fb0', '#3d8bc0', '#c0566a']
@@ -275,9 +276,9 @@ export default function ProgressionClient() {
         <section style={{
           background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px',
           padding: '20px 22px', marginBottom: '24px', boxShadow: '0 8px 28px rgba(var(--cs-vert-rgb),0.06)',
-          position: 'sticky', top: '56px', zIndex: 10,
+          position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 10,
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
+          <div className="prog-entete" style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
             <div style={{
               width: '8.25rem', height: '132px', borderRadius: '50%',
               background: `conic-gradient(var(--cs-vert) ${pourcentTotalAnime}%, var(--cs-fond-doux) 0)`,
