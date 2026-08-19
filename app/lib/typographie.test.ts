@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normaliserEspaces, normaliserEspacesOriginal, normaliserSaisie } from './typographie'
+import { normaliserEspaces, normaliserEspacesOriginal, normaliserPonctuationCitations, normaliserSaisie, normaliserTypographieLecture } from './typographie'
 
 const FINE = ' '   // espace fine insécable U+202F
 const NBSP = ' '   // espace insécable U+00A0
@@ -61,6 +61,32 @@ describe('normaliserEspaces (français, harmonisation du type d’espace)', () =
   it('laisse le deux-points intact', () => {
     expect(normaliserEspaces(`mot${NBSP}: suite`)).toBe(`mot${NBSP}: suite`)
     expect(normaliserEspaces('mot : suite')).toBe('mot : suite')
+  })
+})
+
+describe('ponctuation des citations au rendu — charte §3.8', () => {
+  it('supprime une virgule, un point-virgule ou un deux-points avant le guillemet fermant', () => {
+    expect(normaliserPonctuationCitations(`«${FINE}pères,${NBSP}»`)).toBe(`«${FINE}pères${FINE}»`)
+    expect(normaliserPonctuationCitations(`«${FINE}glaive${FINE};${NBSP}»`)).toBe(`«${FINE}glaive${FINE}»`)
+    expect(normaliserPonctuationCitations(`«${FINE}annonce :${NBSP}»`)).toBe(`«${FINE}annonce${FINE}»`)
+  })
+
+  it('fonctionne quand un appel de note précède la ponctuation faible', () => {
+    expect(normaliserTypographieLecture('« Je suis étranger et voyageur comme tous mes pères[[20]], »'))
+      .toBe(`«${FINE}Je suis étranger et voyageur comme tous mes pères[[20]]${FINE}»`)
+    expect(normaliserTypographieLecture('« Il y en a qui, tout en parlant, tuent avec le glaive[[65]] ; »'))
+      .toBe(`«${FINE}Il y en a qui, tout en parlant, tuent avec le glaive[[65]]${FINE}»`)
+  })
+
+  it('conserve la ponctuation forte finale', () => {
+    expect(normaliserTypographieLecture('« Est-ce vrai ? »')).toBe(`«${FINE}Est-ce vrai${FINE}?${FINE}»`)
+    expect(normaliserTypographieLecture('« C’est vrai ! »')).toBe(`«${FINE}C’est vrai${FINE}!${FINE}»`)
+  })
+
+  it('normalise aussi le deux-points et reste idempotent', () => {
+    const attendu = `Il dit${NBSP}: «${FINE}mot${FINE}»`
+    expect(normaliserTypographieLecture('Il dit : « mot »')).toBe(attendu)
+    expect(normaliserTypographieLecture(attendu)).toBe(attendu)
   })
 })
 
