@@ -364,8 +364,11 @@ button:focus-visible,
   .bib-ligne a { padding: 2px 8px 2px 9px !important; }
   /* L'étoile des œuvres à PLUSIEURS éditions reste sur sa ligne, mais se cale
      sur la PREMIÈRE ligne du libellé au lieu de se centrer sur un bloc enroulé :
-     c'est le même défaut que celle du titre, au même endroit. */
-  .bib-etoile { align-items: flex-start !important; padding-top: 3px !important; }
+     c'est le même défaut que celle du titre, au même endroit.
+     ⚠️ align-SELF, et non align-items : la rangée parente porte alignItems: center en
+     style inline, et c'est elle qui place la puce. align-items sur la puce ne
+     gouvernerait que le bouton À L'INTÉRIEUR d'elle, sans la déplacer d'un pixel. */
+  .bib-etoile { align-self: flex-start !important; padding-top: 3px !important; }
 }
 
 @media (hover: none) {
