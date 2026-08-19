@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { sansPointFinal, normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
+import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import type { NoteAffichee } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
@@ -28,10 +29,10 @@ const FINE_TITRE_COLOPHON = ' '
 export function preparerTitreColophon(texte: string) {
   return normaliserTitreTechnique(texte)
     .trim()
-    .replace(/[ 	  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
-    .replace(/[ 	  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
-    .replace(/([«])[ 	  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
-    .replace(/[ 	  ]+([,.])/g, '$1')
+    .replace(/[ \t  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
+    .replace(/[ \t  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
+    .replace(/([«])[ \t  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
+    .replace(/[ \t  ]+([,.])/g, '$1')
 }
 
 // Le sommaire est une navigation compacte : la note y serait un appel qu'on ne
@@ -294,6 +295,7 @@ export function rendreTexteAvecNotes(
   notes: Record<string, NoteAffichee>,
   variante: VarianteAppelNote = 'corps',
 ): React.ReactNode {
+  const texteRendu = normaliserTypographieLecture(texte)
   const noeuds: React.ReactNode[] = []
   // Le marqueur stocké ([[A]], [[B]]…) reste la clé de la note en base : c'est
   // lui qui donne accès au texte. Seul l'appel AFFICHÉ change — un numéro, selon
@@ -314,8 +316,8 @@ export function rendreTexteAvecNotes(
   // en fin d'alternance pour ne pas renuméroter les groupes), plus les [[appels]].
   const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\+\+(.+?)\+\+/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
-  while ((m = regex.exec(texte))) {
-    if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
+  while ((m = regex.exec(texteRendu))) {
+    if (m.index > dernierIndex) noeuds.push(texteRendu.slice(dernierIndex, m.index))
     // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
     // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
     if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante)}</strong>)
@@ -328,7 +330,7 @@ export function rendreTexteAvecNotes(
       // L’appel n’est pas rendu seul : on lit la suite entière (appels collés,
       // ponctuation attachée) et on lui adjoint le mot qui le précède, pour que
       // rien de tout cela ne puisse se retrouver seul à la ligne.
-      const { marqueurs, ponctuation, fin } = lireSuiteAppels(texte, m.index)
+      const { marqueurs, ponctuation, fin } = lireSuiteAppels(texteRendu, m.index)
       regex.lastIndex = fin
       let attache = ''
       const precedent = noeuds[noeuds.length - 1]
@@ -362,7 +364,7 @@ export function rendreTexteAvecNotes(
     }
     dernierIndex = regex.lastIndex
   }
-  if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
+  if (dernierIndex < texteRendu.length) noeuds.push(texteRendu.slice(dernierIndex))
   return noeuds
 }
 
