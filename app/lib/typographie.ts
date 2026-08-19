@@ -26,6 +26,32 @@ export function normaliserEspaces(texte: string): string {
     .replace(new RegExp(`${ESPACES}(»)`, 'g'), `${FINE}$1`)
 }
 
+// Règle déterministe de la charte §3.8 : une citation ne se ferme jamais sur
+// une ponctuation faible. La virgule, le point-virgule ou le deux-points placés
+// immédiatement avant le guillemet fermant disparaissent AU RENDU. Les espaces
+// qui les entourent sont absorbées dans la même opération afin de ne laisser
+// qu'une fine insécable devant ». La donnée source n'est jamais réécrite.
+export function normaliserPonctuationCitations(texte: string): string {
+  return texte.replace(
+    new RegExp(`${ESPACES}*[,;:]${ESPACES}*»`, 'g'),
+    `${FINE}»`,
+  )
+}
+
+// Composition complète d'un texte de corpus à l'écran. Contrairement à
+// `normaliserEspaces`, cette fonction peut changer la longueur : elle n'est donc
+// jamais employée dans les parcours qui dépendent d'indices source (notamment le
+// surlignage de la recherche). Elle sert au lecteur, une fois les ancres et les
+// offsets de la donnée déjà établis.
+export function normaliserTypographieLecture(texte: string): string {
+  const espace = texte
+    .replace(new RegExp(`${ESPACES}*([;!?]+)`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`${ESPACES}*:`, 'g'), `${INSECABLE}:`)
+    .replace(new RegExp(`«${ESPACES}*`, 'g'), `«${FINE}`)
+    .replace(new RegExp(`${ESPACES}*»`, 'g'), `${FINE}»`)
+  return normaliserPonctuationCitations(espace)
+}
+
 // Texte en LANGUE ORIGINALE (latin, grec) : l'édition source porte la ponctuation
 // COLLÉE (« valde: », « dixit: »), à l'anglaise, alors que le corpus français rend déjà
 // une fine insécable avant les hautes ponctuations. Pour un couple bilingue homogène, on
