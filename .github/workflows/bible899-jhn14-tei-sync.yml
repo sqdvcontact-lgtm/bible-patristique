@@ -28,33 +28,38 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import hashlib, json, re, os
+          import hashlib, re, os
 
           tei_path = Path('data/manuscrits/bible-899/Bible_899_master.xml')
           manifest_path = Path('data/manuscrits/bible-899/manifest.json')
-          data = tei_path.read_text(encoding='utf-8')
+          data = tei_path.read_bytes()
 
-          old = '<l xml:id="f342r_a_l40" n="40" status="corrected_after_review">aucune chose en mon non ce ferai ge. Deu uos</l>'
-          new = '<l xml:id="f342r_a_l40" n="40" status="corrected_after_review">aucune chose en mon non ce ferai ge. Se uos</l>'
+          old = b'<l xml:id="f342r_a_l40" n="40" status="corrected_after_review">aucune chose en mon non ce ferai ge. Deu uos</l>'
+          new = b'<l xml:id="f342r_a_l40" n="40" status="corrected_after_review">aucune chose en mon non ce ferai ge. Se uos</l>'
           n = data.count(old)
           if n != 1:
               raise SystemExit(f'Jn 14,15 : ancien contenu trouvé {n} fois')
           data = data.replace(old, new, 1)
-          tei_path.write_text(data, encoding='utf-8')
+          tei_path.write_bytes(data)
 
-          tei_bytes = tei_path.read_bytes()
-          tei_sha = hashlib.sha256(tei_bytes).hexdigest()
-          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-          if manifest.get('teiSha256') != 'c3dfd8c0035587d46b43cbde3c888ba458486535c83a965417379c110465426c':
-              raise SystemExit('SHA TEI du manifeste inattendu avant correction')
-          manifest['teiSha256'] = tei_sha
-          manifest['generatedAt'] = '2026-08-19T20:10:00.000Z'
-          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          tei_sha = hashlib.sha256(data).hexdigest()
+          manifest = manifest_path.read_bytes()
+          replacements = [
+            (b'"teiSha256": "cc026e2c5b5daee278743151962b3ed0b78d72517ea9a8b0ff794a25955310b9"', f'"teiSha256": "{tei_sha}"'.encode()),
+            (b'"generatedAt": "2026-08-19T20:01:32Z"', b'"generatedAt": "2026-08-19T20:22:00Z"'),
+          ]
+          for before, after in replacements:
+              n = manifest.count(before)
+              if n != 1:
+                  raise SystemExit(f'Manifeste : garde absente ou multiple {before!r}: {n}')
+              manifest = manifest.replace(before, after, 1)
+          manifest_path.write_bytes(manifest)
 
-          manifest_sha = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+          manifest_sha = hashlib.sha256(manifest).hexdigest()
           Path('work/bible899/current_manifest_sha256.txt').write_text(manifest_sha + '\n', encoding='utf-8')
           Path('work/bible899/jhn14_sync_run_id.txt').write_text(os.environ['GITHUB_RUN_ID'] + '\n', encoding='utf-8')
 
+          text = data.decode('utf-8')
           ids = [
             'f329v_a_l40','f329v_b_l01','f339r_b_l04','f342r_a_l40','f342r_b_l01',
             'f345v_b_l40','f346r_a_l01','f349v_a_l10','f349v_a_l11',
@@ -62,7 +67,7 @@ jobs:
           ]
           audit=[]
           for xid in ids:
-              m=re.search(r'<l\b[^>]*xml:id="'+re.escape(xid)+r'"[^>]*>.*?</l>', data)
+              m=re.search(r'<l\b[^>]*xml:id="'+re.escape(xid)+r'"[^>]*>.*?</l>', text)
               if not m:
                   raise SystemExit(f'Ligne TEI introuvable: {xid}')
               audit.append(m.group(0))
@@ -72,7 +77,7 @@ jobs:
 
       - name: Valider le parseur et les comptages
         run: |
-          npx tsx -e "import fs from 'node:fs'; import { parseBible899Tei, sha256Text } from './app/manuscrits/bible-899/_lib/tei'; const p='data/manuscrits/bible-899/Bible_899_master.xml'; const xml=fs.readFileSync(p,'utf8'); const e=parseBible899Tei(xml,{sourcePath:p,publicImageBase:'/manuscrits/bible-899'}); const s=e.statistics; console.log(s); if(s.lines!==58314||s.choice!==27107||s.unclear!==661||s.gap!==8||s.add!==2||s.catchword!==1) process.exit(1); const m=JSON.parse(fs.readFileSync('data/manuscrits/bible-899/manifest.json','utf8')); if(m.teiSha256!==sha256Text(xml)) process.exit(1);"
+          npx tsx -e "import fs from 'node:fs'; import { parseBible899Tei, sha256Text } from './app/manuscrits/bible-899/_lib/tei'; const p='data/manuscrits/bible-899/Bible_899_master.xml'; const xml=fs.readFileSync(p,'utf8'); const e=parseBible899Tei(xml,{sourcePath:p,publicImageBase:'/manuscrits/bible-899'}); const s=e.statistics; console.log(s); if(s.lines!==58312||s.choice!==27106||s.unclear!==661||s.gap!==8||s.add!==2||s.catchword!==1) process.exit(1); const m=JSON.parse(fs.readFileSync('data/manuscrits/bible-899/manifest.json','utf8')); if(m.teiSha256!==sha256Text(xml)) process.exit(1);"
           npx vitest run app/lib/bible899.test.ts
 
       - name: Vérifier le diff borné
@@ -88,4 +93,4 @@ jobs:
           git commit -m 'Bible 899 : corriger Jn 14,15 dans le TEI'
           git push
 
-# déclenchement contrôlé 2026-08-19
+# recale sur SOURCE_FIXES_20260819
