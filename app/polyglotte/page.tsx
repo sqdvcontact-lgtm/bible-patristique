@@ -1092,7 +1092,19 @@ export default function PolyglottePage() {
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
       `}</style>
 
-      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
+      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "40px 22px 56px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
+        {/* Un écran qui refuse doit donner autre chose qu'un refus. La gravure porte
+            l'invitation avant la phrase : l'ordinateur sous les langues de feu de la
+            Pentecôte, l'alpha et l'oméga sur le moniteur. C'est la Polyglotte dite en une
+            image, celle des langues rassemblées, et la raison pour laquelle on demande un
+            grand écran s'entend alors comme une promesse plutôt que comme une porte fermée.
+            PNG DÉTOURÉ, jamais mix-blend-mode. L'opacité posée sur la même image crée un
+            contexte d'empilement qui isole l'élément et annule le mélange : le fond crème
+            réapparaîtrait (voir la note des ornements dans app/chantier/page.tsx). Ici la
+            luminance du crème est passée en canal alpha, et l'encre décomposée de ce même
+            crème, si bien que le trait garde son anti-crénelage sans bord lavé. */}
+        <img src="/ornements/ordinateur-pentecote.png" alt="" aria-hidden="true"
+          style={{ display: "block", width: "min(20rem, 88%)", height: "auto", margin: "0 auto 4px", opacity: 0.9 }} />
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
