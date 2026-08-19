@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSansSurvol } from "@/app/lib/useEstMobile";
 
 type DernierBible   = { livre: string; chapitre: number; trad: string; nomLivre: string }
 type DerniereOeuvre = { id: string; titre: string; auteur: string }
@@ -79,9 +80,40 @@ function CarteAccueil({
   reprendreHref?: string
   reprendreLabel?: string
 }) {
+  // ── Sans survol, le choix se prend AU TAP ──────────────────────────────────
+  // Le dessin de bureau cache deux liens derrière le survol de la carte. Au doigt
+  // il n'y a pas de survol : le tap suivait le lien du dessous et emmenait
+  // toujours vers une lecture NEUVE, si bien que « reprendre » était non pas
+  // discret mais inatteignable. Le premier tap ouvre donc la carte en deux, le
+  // second choisit.
+  // On n'ouvre que s'il Y A quelque chose à reprendre : sans lecture récente, la
+  // moitié haute serait morte, et l'on ferait taper deux fois pour un seul choix.
+  const sansSurvol = useSansSurvol()
+  const [ouvert, setOuvert] = useState(false)
+  const carteRef = useRef<HTMLDivElement | null>(null)
+  const choixAuTap = sansSurvol && !!reprendreHref
+
+  useEffect(() => {
+    if (!ouvert) return
+    // `pointerdown` et non `click` : la carte doit se refermer dès que le doigt
+    // se pose ailleurs, y compris sur une autre carte, qui s'ouvrira ensuite.
+    const ailleurs = (e: PointerEvent) => {
+      if (!carteRef.current?.contains(e.target as Node)) setOuvert(false)
+    }
+    const echap = (e: KeyboardEvent) => { if (e.key === 'Escape') setOuvert(false) }
+    document.addEventListener('pointerdown', ailleurs)
+    document.addEventListener('keydown', echap)
+    return () => {
+      document.removeEventListener('pointerdown', ailleurs)
+      document.removeEventListener('keydown', echap)
+    }
+  }, [ouvert])
+
   return (
-    <div className={`ac-card ${className}`}>
-      <Link href={href} className="ac-card-main" aria-label={titre}>
+    <div ref={carteRef} className={`ac-card ${className}${ouvert ? ' ac-card--ouvert' : ''}`}>
+      <Link href={href} className="ac-card-main" aria-label={titre}
+        aria-expanded={choixAuTap ? ouvert : undefined}
+        onClick={e => { if (choixAuTap && !ouvert) { e.preventDefault(); setOuvert(true) } }}>
         {icon}
         <span className="ac-title">{titre}</span>
       </Link>
@@ -337,6 +369,24 @@ export default function AccueilCards() {
           .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
           .ac-card { min-height: 124px; }
         }
+
+        /* ── Écran tactile : on ÉTEINT le survol, on ne le laisse pas clignoter ──
+           Certains navigateurs déclenchent :hover au tap, et :focus-within se
+           déclenche de toute façon quand le lien prend le focus. Le volet
+           paraissait donc un instant au moment même où l'on appuyait, puis la
+           page changeait : un clignotement, jamais un choix. Ici le volet ne
+           répond plus qu'à l'état ac-card--ouvert, posé par le premier tap. */
+        @media (hover: none) {
+          .ac-card:hover { transform: none; box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08); }
+          .ac-card:hover .ac-card-main,
+          .ac-card:focus-within .ac-card-main { opacity: 1; transform: none; }
+          .ac-card:hover .ac-hover-panel,
+          .ac-card:focus-within .ac-hover-panel { opacity: 0; pointer-events: none; }
+        }
+
+        /* Posé APRÈS le bloc ci-dessus : c'est lui qui doit l'emporter. */
+        .ac-card--ouvert .ac-card-main { opacity: 0.12; transform: scale(0.99); }
+        .ac-card--ouvert .ac-hover-panel { opacity: 1; pointer-events: auto; }
       `}</style>
     </div>
   );
