@@ -352,4 +352,29 @@ button:focus-visible,
      grille sur grand écran) laissait un grand blanc entre la notice et la ligne
      « N œuvre(s) disponible(s) ». En une seule colonne, la carte épouse son contenu. */
   .bib-carte-haut { height: auto !important; }
+
+  /* ── La liste des œuvres, resserrée ────────────────────────────────────────
+     Sur un téléphone, chaque œuvre tenait 81px pour deux lignes de texte. Le
+     coupable n'était pas l'interligne mais la LARGEUR volée : « Lire → » est
+     posé en flex-shrink: 0 et white-space: nowrap, donc il réserve sa place en
+     permanence, alors qu'il ne s'affiche qu'au survol. Sans curseur il est
+     invisible ET encombrant, et le libellé de l'édition s'enroulait sur la
+     ligne suivante pour lui laisser un couloir qui ne servait à personne. */
+  .bib-oeuvre { padding: 2px 0 3px !important; }
+  .bib-ligne a { padding: 2px 8px 2px 9px !important; }
+  /* L'étoile des œuvres à PLUSIEURS éditions reste sur sa ligne, mais se cale
+     sur la PREMIÈRE ligne du libellé au lieu de se centrer sur un bloc enroulé :
+     c'est le même défaut que celle du titre, au même endroit. */
+  .bib-etoile { align-items: flex-start !important; padding-top: 3px !important; }
+}
+
+@media (hover: none) {
+  /* Rien ne se survole sur un écran tactile : « Lire → » ne paraîtra jamais. On
+     ne le cache pas seulement, on lui retire sa place. La ligne entière est déjà
+     un lien, l'indice était un confort de bureau. */
+  .bib-lire { display: none !important; }
+  /* La cible de l'étoile, agrandie SANS toucher à la mise en page : un pseudo
+     élément déborde de la puce. À 12px de glyphe, on visait un carré de 16px. */
+  .etoile-favori { position: relative; }
+  .etoile-favori::after { content: ''; position: absolute; inset: -7px -6px; }
 }

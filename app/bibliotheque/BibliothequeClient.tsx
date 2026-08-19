@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { supabase } from '@/app/lib/supabase'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 import IconeChevron from '@/app/components/IconeChevron'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
@@ -163,6 +164,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   ouvertParDefaut?: boolean
   compact?: boolean
 }) {
+  // La liste est pilotée par des styles INLINE : une média-query ne peut pas les
+  // surcharger, d'où la détection en JS (patron de la charte, § Responsive).
+  const estMobile = useEstMobile()
   const q = sansAccents(recherche.trim())
   const oeuvresTriees = useMemo(
     () => [...auteur.oeuvres].sort((a, b) => comparerTitres(a.titre, b.titre)),
@@ -325,11 +329,32 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             const opusculeCorrespond = opuscules.some(g => g.versions.some(v => v.id_oeuvre === oeuvreCorrespondante?.id_oeuvre))
             const rendreGroupe = (grp: GroupeTitre, idx: number) => {
               const correspond = !!oeuvreCorrespondante && grp.versions.some(v => v.id_oeuvre === oeuvreCorrespondante.id_oeuvre)
+              const styleTitre: React.CSSProperties = { fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? 'var(--cs-vert-fonce)' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3 }
+              const etoileAuTitre = estMobile && grp.versions.length === 1
               return (
                 <div key={grp.versions[0].id_oeuvre}
                   className={`bib-oeuvre${correspond ? ' bib-correspond' : ''}`}
                   style={{ borderTop: idx > 0 ? '1px solid var(--cs-fond)' : 'none', borderLeft: correspond ? '3px solid var(--cs-vert)' : '3px solid transparent', padding: '4px 0 5px' }}>
-                  <span style={{ display: 'block', fontSize: '0.8125rem', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', color: correspond ? 'var(--cs-vert-fonce)' : 'var(--cs-encre)', fontWeight: correspond ? 600 : 400, lineHeight: 1.3, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  {/* L'ÉTOILE FAIT FACE AU NOM DE CE QU'ELLE MET EN FAVORI. Elle vivait sur la
+                      ligne de l'édition, verticalement centrée sur elle ; sur un téléphone cette
+                      ligne s'enroule sur deux ou trois lignes, et l'étoile se retrouvait au MILIEU
+                      du bloc, en face de rien. Comme 94 % des œuvres n'ont qu'une seule édition
+                      (32 sur 34, mesuré le 2026-08-19), le nom de ce qu'on met en favori est alors
+                      le TITRE de l'œuvre : l'étoile monte donc l'y rejoindre. Les 6 % à plusieurs
+                      éditions gardent une étoile par édition, faute de quoi on ne saurait plus
+                      laquelle on marque ; là, le nom de ce qu'on met en favori est le libellé de
+                      l'édition, et l'étoile s'aligne sur sa PREMIÈRE ligne (voir globals.css).
+                      Le retrait de 4px place l'étoile dans la marge : 4 + 16 = 20px, soit très
+                      exactement le retrait qu'avait le titre. Rien d'autre ne bouge, et le
+                      décrochement qui distingue le titre de ses éditions est préservé. */}
+                  {etoileAuTitre ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', paddingLeft: '4px' }}>
+                      <EtoileFavori actif={favorisOeuvres.has(grp.versions[0].id_oeuvre)} onToggle={() => toggleFavoriOeuvre(grp.versions[0].id_oeuvre)} size={12} style={{ marginTop: '3px' }} />
+                      <span style={{ flex: 1, minWidth: 0, ...styleTitre, padding: '0 18px 0 0' }}>{grp.titre}</span>
+                    </div>
+                  ) : (
+                    <span style={{ display: 'block', ...styleTitre, padding: '0 18px 0 20px' }}>{grp.titre}</span>
+                  )}
                   {/* Œuvre à plusieurs auteurs : elle est sur l'étagère de chacun,
                       et porte les deux noms pour qu'on sache d'où qu'on vienne qui
                       l'a écrite. Une œuvre à auteur unique ne répète pas le nom de
@@ -377,10 +402,18 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           original (1px), tandis que la marge de 5px au-dessus de la ligne
                           originale continue de séparer les œuvres entre elles. */}
                       <div className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
-                        {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction. */}
-                        <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
-                          <EtoileFavori actif={favorisOeuvres.has(o.id_oeuvre)} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={12} />
-                        </div>
+                        {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction.
+                            Montée au titre, l'étoile laisse ici la même cale que la ligne de texte
+                            original, pour que les libellés restent alignés entre eux. */}
+                        {etoileAuTitre ? (
+                          <div aria-hidden style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
+                            <span style={{ display: 'block', width: '16px', height: '12px' }} />
+                          </div>
+                        ) : (
+                          <div className="bib-etoile" style={{ display: 'flex', flexShrink: 0, paddingLeft: '20px' }}>
+                            <EtoileFavori actif={favorisOeuvres.has(o.id_oeuvre)} onToggle={() => toggleFavoriOeuvre(o.id_oeuvre)} size={12} />
+                          </div>
+                        )}
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
