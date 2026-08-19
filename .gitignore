@@ -75,3 +75,8 @@ __pycache__/
 
 # réglages Claude Code locaux (spécifiques à la machine)
 .claude/settings.local.json
+
+# fac-similés Bible 899 : 1 488 images, 1,89 Go, servies depuis le seau Supabase
+# `manuscrits` et non plus par le dépôt. Le dossier reste le MIROIR DE TRAVAIL local,
+# où tournent les scripts d'atelier. Empreintes contrôlées par `npm run bible899:verifier`.
+/public/manuscrits/bible-899/*.png

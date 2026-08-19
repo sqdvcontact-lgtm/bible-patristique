@@ -35,14 +35,8 @@ jobs:
       - name: Types (bloquant)
         run: npx tsc --noEmit
 
-      # L'exclusion vise UN fichier, et elle est provisoire. Le manifeste Bible 899
-      # versé sur master référence 1 488 images dont 1 264 ne sont pas dans le dépôt
-      # (folios 57 et suivants) : le test échoue donc ici alors qu'il passe sur la
-      # branche de travail, où les images existent. À lever dès que les images seront
-      # versées ou le manifeste ramené à ce que le dépôt contient. Les 40 autres
-      # fichiers de test, eux, bloquent.
       - name: Tests (bloquant)
-        run: npx vitest run --exclude "**/node_modules/**" --exclude "app/manuscrits/bible-899/_lib/tei.test.ts"
+        run: npm test
 
       - name: Linter (informatif)
         id: linter

@@ -13,7 +13,8 @@
     "bible899:multimode:build": "tsx scripts/bible899/build-multimode-import.mjs",
     "bible899:multimode:dry-run": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs",
     "bible899:multimode:import-staged": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs",
-    "bible899:multimode:validate-publication": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs --validate-publication"
+    "bible899:multimode:validate-publication": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs --validate-publication",
+    "bible899:verifier": "node scripts/bible899/verifier-facsimiles.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.12",
@@ -24,6 +25,7 @@
     "dompurify": "^3.4.12",
     "fast-xml-parser": "^5.10.1",
     "next": "16.2.9",
+    "pixi.js": "^8.19.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^4.0.1"

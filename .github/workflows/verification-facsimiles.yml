@@ -1,0 +1,32 @@
+# Contrôle des scellés du fac-similé Bible 899, une fois par semaine.
+#
+# Les 1 488 images vivent dans le seau Supabase `manuscrits` et non plus dans le dépôt.
+# Ce contrôle les retélécharge et recalcule leur empreinte SHA-256 pour la comparer au
+# manifeste. Il pèse 1,89 Go, c'est pourquoi il ne tourne PAS à chaque poussée : la
+# vérification de code (verification.yml) reste légère et rapide.
+#
+# Le seau étant public, aucun secret n'est nécessaire.
+# Lancement manuel possible à tout moment par le bouton « Run workflow », ou en local
+# par `npm run bible899:verifier`.
+
+name: Scellés du fac-similé Bible 899
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'   # chaque dimanche 04:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  sceller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Contrôler les scellés
+        run: npm run bible899:verifier

@@ -257,11 +257,17 @@ export async function loadBible899Edition(rootDirectory = process.cwd()): Promis
   }
 
   const imageByReference = new Map(manifest.images.map((image) => [image.reference, image]));
+  // Les 1 488 fac-similés ne vivent plus dans le dépôt : ils sont dans le seau Supabase
+  // `manuscrits`. On contrôle donc les empreintes des images RÉELLEMENT présentes — le
+  // miroir de travail local, quand il existe — et l'absence n'est plus une erreur.
+  //
+  // Ce n'est pas un renoncement : le contrôle intégral des 1 488 scellés se fait contre
+  // le seau par `npm run bible899:verifier`, à la demande et chaque dimanche
+  // (.github/workflows/verification-facsimiles.yml). Le scellé du TEI, les comptages et
+  // la concordance des références, eux, restent vérifiés ici à chaque chargement.
   for (const image of manifest.images) {
     const imagePath = resolveInside(rootDirectory, image.publicPath);
-    if (!existsSync(imagePath)) {
-      throw new Error(`${manifestPath} : image absente : ${image.publicPath}`);
-    }
+    if (!existsSync(imagePath)) continue;
     const actualImageSha256 = await sha256File(imagePath);
     if (actualImageSha256 !== image.sha256) {
       throw new Error(`${manifestPath} : empreinte d’image différente : ${image.publicPath}`);
