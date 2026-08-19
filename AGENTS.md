@@ -249,6 +249,21 @@ Une publication se présente désormais comme un **petit livre**, et la liste co
 - **La quatrième** (`.couverture-dos`) se retourne au survol : le résumé, **seul endroit en empattement**, écrêté à neuf lignes, un bouton « Lire », puis les vues, les ♥ et la mention « parmi les plus lus ». Elle prend le fond de la couverture, si bien que le livre paraît se retourner et non s'ouvrir.
 - ⚠️ **Tactile : pas de quatrième.** Sous `@media (hover: none)`, le dos n'est pas rendu du tout et la face reste : rien ne se survole sur un téléphone, et le résumé se lit sur la page de la publication, à un doigt de là. Ne pas « corriger » en affichant les deux, la couverture y perdrait son titre.
 
+## Les ornements se DÉTOURENT, jamais `mix-blend-mode`
+
+Les gravures de `public/ornements/` arrivent sur un fond crème. Pour qu'elles se posent sur le papier du site, ce fond doit devenir un vrai canal alpha.
+
+⛔ **`mix-blend-mode: multiply` ne peut pas marcher ici, et l'erreur se répète.** L'opacité posée sur la même image crée un contexte d'empilement, lequel isole l'élément et annule le mélange : le fond réapparaît partout où l'ornement est atténué, c'est-à-dire précisément là où on l'atténue. La note de `app/chantier/page.tsx` le raconte pour la première fois ; le refus s'applique à toute gravure.
+
+**La recette, faute d'outil.** Ni `sharp` ni ImageMagick ne sont installés (`convert` dans `system32` est le convertisseur de partitions de Windows, pas celui d'ImageMagick). On passe donc par **System.Drawing en PowerShell**, avec un `Add-Type` C# pour la boucle sur les pixels — une boucle PowerShell sur trois millions d'octets est trop lente. Deux étapes, dans cet ordre :
+
+1. **Redimensionner d'abord**, sur des pixels encore opaques (`HighQualityBicubic`), sinon le rééchantillonnage mélange de l'encre avec du transparent et lave le trait. 1024 px de large suffit : la plus grande pose du site est de 20rem.
+2. **Puis détourer** : le fond se MESURE (moyenne des quatre coins), il ne se suppose pas blanc — celui-ci est crème. `alpha = (lumFond − lum) / lumFond × 255`, puis **décomposition** de l'encre de ce même crème (`c = (vu − fond × (1−a)) / a`). Sans cette seconde opération, les bords anti-crénelés gardent le crème et paraissent lavés sur un fond plus sombre.
+
+**Contrôle**, avant de committer : l'histogramme du canal alpha. Sur `ordinateur-pentecote.png`, 81 % du plan est réellement transparent, 3 % est de l'encre pleine et 15,7 % des partiels — les hachures. Un fond mal mesuré se voit tout de suite : le taux de transparents s'effondre.
+
+⚠️ **Rendu en `<img>`, pas en `<Image>`, ou alors `unoptimized`.** À certaines largeurs (640 px, mais ni 384 ni 828), l'optimiseur rend un PNG à trois canaux : la couche alpha est aplatie sur du blanc et le fond réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
+
 ## La couleur appartient à l'auteur
 
 - **Jeu de couvertures** : `app/lib/couverturesEssai.ts` (module pur, 7 tests). Treize couleurs, tons du site d'abord (vert d'encre, crème, vieil or, sauge), puis la roue entière, rabattue vers le rompu : bordeaux, brique, prune, indigo, ardoise, sarcelle, olive, terre de Sienne, encre noire.
