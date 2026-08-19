@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 export const metadata = {
   title: 'Acheter des livres',
@@ -146,9 +147,39 @@ export default function LibrairiesPage() {
             .lib-nom { font-size: 1rem; }
             .lib-desc { font-size: 0.71875rem; }
           }
+
+          /* ── Sans curseur, ou sur petit écran : le survol n'a plus lieu d'être ──
+             Le dessin de bureau repose sur un survol : le contenu de la rangée s'efface
+             presque entièrement (opacité 0,06) et glisse vers la gauche, tandis que
+             « Visiter la librairie » paraît par-dessus. Sur un écran tactile il n'y a
+             pas de curseur, et le survol que certains navigateurs déclenchent au tap
+             fait donc CLIGNOTER la rangée avant la navigation : le nom de la librairie
+             s'efface au moment précis où l'on appuie dessus. On éteint le mécanisme.
+             À la place, une cible franche à droite, qui montre où l'on va sans rien
+             cacher. La couleur vient de la librairie, portée par la rangée en propriété
+             CSS (jamais un alpha collé à la teinte : voir la charte, fonction colorMix). */
+          @media (hover: none), (max-width: 640px) {
+            .lib-row:hover .lib-contenu { opacity: 1; transform: none; }
+            .lib-survol { display: none; }
+            .lib-fleche {
+              margin-left: 12px;
+              padding-left: 0;
+              width: 56px;
+              height: 44px;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.25rem;
+              opacity: 1;
+              border: 1px solid color-mix(in srgb, var(--lib-couleur) 42%, transparent);
+              background: color-mix(in srgb, var(--lib-couleur) 8%, transparent);
+            }
+          }
         `}</style>
         {LIBRAIRIES.map(lib => (
-          <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row">
+          <a key={lib.nom} href={lib.url} target="_blank" rel="noopener noreferrer" className="lib-row"
+            style={{ '--lib-couleur': lib.couleur } as CSSProperties}>
             <div className="lib-contenu">
               <div className="lib-logo-zone">
                 {lib.logo ? (
@@ -162,7 +193,7 @@ export default function LibrairiesPage() {
                 <p className="lib-nom" style={{ color: lib.couleur }}>{lib.nom}</p>
                 <p className="lib-desc">{lib.description}</p>
               </div>
-              <span className="lib-fleche" style={{ color: lib.couleur }}>→</span>
+              <span className="lib-fleche" aria-hidden="true" style={{ color: lib.couleur }}>→</span>
             </div>
             <span className="lib-survol" style={{ color: lib.couleur }}>
               Visiter la librairie <span style={{ fontSize: '0.8125rem', opacity: 0.7 }}>→</span>
