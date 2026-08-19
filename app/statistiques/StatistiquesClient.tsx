@@ -16,7 +16,6 @@ const NOM_LIVRE: Record<string, string> = {
   '1JN': '1 Jean', '2JN': '2 Jean', '3JN': '3 Jean', JUD: 'Jude', REV: 'Apocalypse',
 }
 
-type VersetPopulaire = { id_verset: string; livre: string; chapitre: number; verset: number; TR0002: string; nb_lectures: number }
 type VersetCite = {
   canon_id: string; livre: string; chapitre: number; verset: number;
   score: number; nb_citations: number; nb_commentaires: number; nb_allusions: number; nb_oeuvres: number;
@@ -43,7 +42,6 @@ function EnteteStat({ titre, intro, style }: { titre: string; intro: string; sty
 
 export default function StatistiquesClient() {
   const [cites, setCites] = useState<VersetCite[] | null>(null)
-  const [lus, setLus] = useState<VersetPopulaire[] | null>(null)
 
   // Versets les plus cités et commentés par les Pères : le score est calculé en base
   // (vue versets_plus_cites) à partir des liens patristiques.
@@ -54,22 +52,6 @@ export default function StatistiquesClient() {
       .order('nb_commentaires', { ascending: false })
       .limit(30)
       .then(({ data }) => setCites((data as VersetCite[]) ?? []))
-  }, [])
-
-  // Versets les plus lus : ne s'affiche que si la donnée existe (le classement de lecture
-  // n'est pas toujours alimenté).
-  useEffect(() => {
-    const charger = () => {
-      supabase.from('versets_plus_lus')
-        .select('id_verset, livre, chapitre, verset, TR0002, nb_lectures')
-        .order('nb_lectures', { ascending: false })
-        .limit(30)
-        .then(({ data }) => setLus((data as VersetPopulaire[]) ?? []))
-    }
-    charger()
-    const onVisible = () => { if (!document.hidden) charger() }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [])
 
   const detailCite = (v: VersetCite) => {
@@ -116,24 +98,6 @@ export default function StatistiquesClient() {
               </Link>
             ))}
           </div>
-        )}
-
-        {lus && lus.length > 0 && (
-          <>
-            <EnteteStat titre="Les plus lus" intro="D'après les consultations des versets sur le site." style={{ marginTop: '30px' }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {lus.map((v, i) => (
-                <Link key={v.id_verset} href={`/?livre=${v.livre}&chapitre=${v.chapitre}&trad=TR0002&verset=${v.verset}`} style={statLigne}>
-                  <span style={statRang}>{i + 1}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
-                    <p style={statTexte}>{v.TR0002}</p>
-                  </div>
-                  <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>{v.nb_lectures} lecture{v.nb_lectures > 1 ? 's' : ''}</span>
-                </Link>
-              ))}
-            </div>
-          </>
         )}
       </div>
     </main>
