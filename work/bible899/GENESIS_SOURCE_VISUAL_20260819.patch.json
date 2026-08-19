@@ -1,0 +1,50 @@
+{
+  "mission": "TR0009 Genesis grouped facsimile source check",
+  "date": "2026-08-19",
+  "source": "BnF Français 899",
+  "tei_path": "data/manuscrits/bible-899/Bible_899_master.xml",
+  "tei_blob_sha_guard": "fa595a141cf6764708a000a142c69e2922a9e7ee",
+  "rule": "Apply only if each exact old TEI line is still present; do not alter any other line.",
+  "corrections": [
+    {
+      "canon_id": "GEN.39.13",
+      "source_unit_key": "f23r_a_l06",
+      "old": "<l xml:id=\"f23r_a_l06\" n=\"6\" status=\"reviewed\" break=\"no\">re. <choice><abbr>⁊</abbr><expan>et</expan></choice> que il sauoit degypte. ele ape</l>",
+      "new": "<l xml:id=\"f23r_a_l06\" n=\"6\" status=\"reviewed\" break=\"no\">re. <choice><abbr>⁊</abbr><expan>et</expan></choice> que il sen estoit foiz. ele ape</l>",
+      "diplomatic_before": "re. ⁊ que il sauoit degypte. ele ape",
+      "diplomatic_after": "re. ⁊ que il sen estoit foiz. ele ape",
+      "expanded_before": "re. et que il sauoit degypte. ele ape",
+      "expanded_after": "re. et que il sen estoit foiz. ele ape"
+    },
+    {
+      "canon_id": "GEN.43.9",
+      "source_unit_key": "f25v_a_l34",
+      "old": "<l xml:id=\"f25v_a_l34\" n=\"34\" status=\"reviewed\" break=\"no\">urai lenfant de ma main le <choice><abbr>demā</abbr><expan>demande</expan></choice></l>",
+      "new": "<l xml:id=\"f25v_a_l34\" n=\"34\" status=\"reviewed\" break=\"no\">urai lenfant de ma main le deman</l>",
+      "diplomatic_before": "urai lenfant de ma main le demā",
+      "diplomatic_after": "urai lenfant de ma main le deman",
+      "expanded_before": "urai lenfant de ma main le demande",
+      "expanded_after": "urai lenfant de ma main le deman"
+    },
+    {
+      "canon_id": "GEN.45.20",
+      "source_unit_key": "f27r_b_l29",
+      "old": "<l xml:id=\"f27r_b_l29\" n=\"29\" status=\"reviewed\" break=\"no\">tes les <unclear cert=\"high\" reason=\"deletion\">richesces</unclear> degypte richesces se</l>",
+      "new": "<l xml:id=\"f27r_b_l29\" n=\"29\" status=\"reviewed\" break=\"no\">tes les richesces degypte uostre ce</l>",
+      "diplomatic_before": "tes les [lecture incertaine : richesces] degypte richesces se",
+      "diplomatic_after": "tes les richesces degypte uostre ce",
+      "expanded_before": "tes les [lecture incertaine : richesces] degypte richesces se",
+      "expanded_after": "tes les richesces degypte uostre ce"
+    }
+  ],
+  "confirmed_unchanged": [
+    "GEN.41.54 — f24v_a_l25: degypte nauoit point de pain. Et",
+    "GEN.47.4 — f28r_a_l40–f28r_b_l01: famine en / en la terre",
+    "GEN.47.27 — f28v_b_l01–02: la possi / furent",
+    "GEN.48.21 — f29r_b_l12: et dist a ioseph son pere fil",
+    "GEN.49.2 — f29r_b_l22–23: uos / Tre pere",
+    "GEN.49.31 — f29v_b_l29: fu enseueliz sarre sa feme",
+    "GEN.50.7 — f30r_a_l16: mesniee israel",
+    "GEN.50.9 — f30r_a_l21: autres"
+  ]
+}
