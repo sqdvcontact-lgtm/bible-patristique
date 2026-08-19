@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import IconeChevron from '@/app/components/IconeChevron'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 export const metadata = {
   title: 'Acheter des livres',
@@ -131,13 +132,20 @@ export default function LibrairiesPage() {
             margin: 0;
             line-height: 1.45;
           }
+          /* Le chevron du site, jamais le glyphe « → » : celui-ci dépend de la police,
+             s'y étire en trait long et mince, et ne ressemble à aucune autre flèche du
+             site. C'est exactement ce que le composant IconeChevron a été fait pour
+             remplacer. La taille se règle ici, en CSS, plutôt qu'au rendu : elle doit
+             pouvoir changer d'un écran à l'autre. */
           .lib-fleche {
             margin-left: auto;
             padding-left: 18px;
-            font-size:1.125rem;
             flex-shrink: 0;
             opacity: 0.82;
+            display: flex;
+            align-items: center;
           }
+          .lib-fleche svg { width: 14px; height: 14px; }
           /* Mobile : plus de hauteur fixe (la description s'enroule et débordait des
              80px). La rangée grandit avec son contenu ; logo et séparateur resserrés. */
           @media (max-width: 640px) {
@@ -170,11 +178,12 @@ export default function LibrairiesPage() {
               display: flex;
               align-items: center;
               justify-content: center;
-              font-size: 1.25rem;
               opacity: 1;
               border: 1px solid color-mix(in srgb, var(--lib-couleur) 42%, transparent);
               background: color-mix(in srgb, var(--lib-couleur) 8%, transparent);
             }
+            /* Le chevron grandit avec le bouton : à 14 px il flotterait dans 56 × 44. */
+            .lib-fleche svg { width: 18px; height: 18px; }
           }
         `}</style>
         {LIBRAIRIES.map(lib => (
@@ -193,10 +202,10 @@ export default function LibrairiesPage() {
                 <p className="lib-nom" style={{ color: lib.couleur }}>{lib.nom}</p>
                 <p className="lib-desc">{lib.description}</p>
               </div>
-              <span className="lib-fleche" aria-hidden="true" style={{ color: lib.couleur }}>→</span>
+              <span className="lib-fleche" aria-hidden="true" style={{ color: lib.couleur }}><IconeChevron dir="right" strokeWidth={1.6} /></span>
             </div>
             <span className="lib-survol" style={{ color: lib.couleur }}>
-              Visiter la librairie <span style={{ fontSize: '0.8125rem', opacity: 0.7 }}>→</span>
+              Visiter la librairie <span style={{ display: 'inline-flex', opacity: 0.7 }}><IconeChevron dir="right" size={12} strokeWidth={1.5} /></span>
             </span>
           </a>
         ))}
