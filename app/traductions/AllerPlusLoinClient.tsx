@@ -224,7 +224,15 @@ export default function AllerPlusLoinClient() {
                   <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'stretch' }}>
                     {t.photo && (
                       <div style={{
-                        width: '8.75rem', flexShrink: 0,
+                        // ⚠️ La largeur était figée à 8.75rem (140 px) avec `flexShrink: 0`, donc
+                        // insensible à l'écran. Sur un téléphone de 375 px, la carte dispose de
+                        // 327 px : le portrait en prenait 141, et il restait 144 px de texte
+                        // JUSTIFIÉ, soit dix-sept signes par ligne. Le portrait mangeait la fiche.
+                        // La largeur suit désormais l'écran et retrouve ses 140 px dès 700 px de
+                        // large : le dessin de bureau ne bouge pas.
+                        // N.B. le portrait paraît DÉJÀ en bandeau au-dessus de la fiche : sur un
+                        // téléphone, cette colonne est un rappel, pas une découverte.
+                        width: 'clamp(4rem, 20vw, 8.75rem)', flexShrink: 0,
                         borderRight: '1px solid var(--cs-fond-doux)',
                         overflow: 'hidden',
                       }}>
@@ -232,7 +240,9 @@ export default function AllerPlusLoinClient() {
                           style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, transform: `scale(${t.photo_position?.lateral?.scale ?? 1})`, transformOrigin: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, display: 'block' }} />
                       </div>
                     )}
-                    <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
+                    {/* Les marges internes suivent aussi : 40 px de blanc pris sur une colonne
+                        de 184 px, c'était près du quart de la place restante. */}
+                    <div className="trad-fiche-texte" style={{ flex: 1, minWidth: 0, padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
                       {t.bio_courte && (
                         <p style={{
                           fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65,
