@@ -87,3 +87,5 @@ jobs:
           git add data/manuscrits/bible-899/Bible_899_master.xml data/manuscrits/bible-899/manifest.json work/bible899/current_manifest_sha256.txt work/bible899/jhn14_sync_run_id.txt work/bible899/remaining_facsimile_tei_audit_20260819.txt
           git commit -m 'Bible 899 : corriger Jn 14,15 dans le TEI'
           git push
+
+# déclenchement contrôlé 2026-08-19
