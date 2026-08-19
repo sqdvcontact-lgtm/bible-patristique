@@ -68,12 +68,19 @@ export default function LibrairiesPage() {
 
       <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '2px 24px 60px' }}>
         <style>{`
+          /* La hauteur de rangée se mesure en rem, jamais en pixels. La police racine
+             du site grandit avec la fenêtre, jusqu'à un tiers de plus sur un grand
+             écran ; une hauteur figée à 80 px laissait donc le texte grossir dans une
+             boîte qui, elle, ne bougeait pas, et la rangée paraissait d'autant plus
+             serrée que l'écran était large. C'est un plancher et non une hauteur : le
+             contenu peut pousser au-delà. Avec l'air intérieur, la liste occupe enfin
+             la page, au lieu de laisser un quart de sa hauteur vide en dessous. */
           .lib-row {
             display: flex;
             align-items: center;
-            height: 80px;
+            min-height: 6rem;
             box-sizing: border-box;
-            padding: 0;
+            padding: 1.125rem 0;
             text-decoration: none;
             border-bottom: 1px solid rgba(var(--cs-bord-rgb),0.55);
             position: relative;
@@ -107,7 +114,7 @@ export default function LibrairiesPage() {
           }
           .lib-row:hover .lib-survol { opacity: 1; }
           .lib-logo-zone {
-            width: 78px;
+            width: 5rem;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -115,15 +122,15 @@ export default function LibrairiesPage() {
           }
           .lib-sep {
             width: 1px;
-            height: 44px;
+            height: 3.25rem;
             flex-shrink: 0;
-            margin: 0 20px;
+            margin: 0 1.5rem;
           }
           .lib-nom {
             font-family: var(--font-source-serif), Georgia, serif;
             font-size:1.0625rem;
             font-weight: normal;
-            margin: 0 0 4px;
+            margin: 0 0 6px;
             line-height: 1.15;
           }
           .lib-desc {
@@ -139,19 +146,21 @@ export default function LibrairiesPage() {
              pouvoir changer d'un écran à l'autre. */
           .lib-fleche {
             margin-left: auto;
-            padding-left: 18px;
+            padding-left: 1.5rem;
             flex-shrink: 0;
             opacity: 0.82;
             display: flex;
             align-items: center;
           }
           .lib-fleche svg { width: 14px; height: 14px; }
-          /* Mobile : plus de hauteur fixe (la description s'enroule et débordait des
-             80px). La rangée grandit avec son contenu ; logo et séparateur resserrés. */
+          /* Mobile : la description s'enroule sur deux ou trois lignes et pousse
+             elle-même la rangée au-delà du plancher ; celui-ci redescend donc, et
+             l'air intérieur avec lui. Logo et séparateur resserrés : l'écran est
+             étroit, et la largeur y vaut plus cher que la hauteur. */
           @media (max-width: 640px) {
-            .lib-row { height: auto; min-height: 72px; }
-            .lib-logo-zone { width: 54px; }
-            .lib-sep { margin: 0 12px; }
+            .lib-row { min-height: 4.5rem; padding: 1rem 0; }
+            .lib-logo-zone { width: 3.5rem; }
+            .lib-sep { height: 2.75rem; margin: 0 0.875rem; }
             .lib-nom { font-size: 1rem; }
             .lib-desc { font-size: 0.71875rem; }
           }

@@ -105,6 +105,8 @@ Quatre rangs, chacun **ancré sur celui qui dominait déjà** :
 
 Cas rencontré le 2026-08-17, carte auteur de la bibliothèque (`app/bibliotheque/BibliothequeClient.tsx`) : bandeau `height: 200px`, notice bornée par `-webkit-line-clamp: 3`. Mesuré, la zone laissée à la notice vaut **100 px à 16 px de racine** et **81 px à 22 px** ; trois lignes y occupent 54 px et 74 px. La valeur était donc juste sur grand écran et laissait **46 px de blanc** sur un portable, sous une notice pourtant tronquée : du texte existait, la place aussi, et rien ne les réunissait.
 
+**Variante du même défaut, sans écrêtage : la RANGÉE DE LISTE.** Sur « Acheter des livres » (`app/librairies/page.tsx`), la rangée valait `height: 80px`, sans marge intérieure : le texte s'y logeait tout juste à 16 px de racine, et sur un écran de 1920 la police montait à 19 px dans une boîte restée à 80. Mesurée, la page ne défilait pas et laissait **257 px de vide sous une liste de 400 px** — un quart de la hauteur utile. La rangée est donc passée en `min-height: 6rem` avec `padding: 1.125rem 0`, et le séparateur, la zone de logo et le retrait du chevron avec elle. Deux enseignements : **une hauteur de rangée de CONTENU se mesure en rem**, elle appartient au texte et non au chrome (la charte de conversion ci-dessus ne réserve le px qu'au chrome à hauteur fixe) ; et **un plancher (`min-height`) plutôt qu'une hauteur**, pour que le contenu qui s'enroule puisse pousser au lieu d'être rogné.
+
 Patron retenu, à reprendre pour tout bloc écrêté de hauteur fixe :
 
 - la zone de texte prend la hauteur restante (`flex: 1 1 auto; min-height: 0; overflow: hidden`) et repousse elle-même le pied de carte, à la place d'une marge automatique ;
