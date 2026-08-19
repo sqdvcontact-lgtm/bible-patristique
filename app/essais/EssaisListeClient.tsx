@@ -9,6 +9,7 @@ import EtoileFavori from '@/app/components/EtoileFavori'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { emblemeDe } from '@/app/lib/emblemesCouverture'
+import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 const CATEGORIES = CATEGORIES_ESSAIS
@@ -242,7 +243,8 @@ function OngletCommunaute({
            gabarit, et un accent grave le referme. */
         .couverture {
           container-type: inline-size;
-          position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
+          position: relative; display: flex; flex-direction: column;
+          aspect-ratio: 2 / 3; overflow: hidden;
           border-radius: 2px; text-decoration: none; isolation: isolate;
           font-family: var(--font-source-serif), Georgia, serif;
           font-kerning: normal; font-variant-ligatures: common-ligatures contextual;
@@ -254,7 +256,7 @@ function OngletCommunaute({
            La lumière en haut à gauche, l'ombre au bord. C'est ce qui fait le
            cartonnage plutôt que le rectangle coloré. */
         .couverture::after {
-          content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+          content: ""; position: absolute; inset: 0; z-index: 7; pointer-events: none;
           background:
             radial-gradient(120% 90% at 22% 8%, rgba(255,255,255,0.09), rgba(255,255,255,0) 58%),
             radial-gradient(130% 100% at 50% 100%, rgba(0,0,0,0.16), rgba(0,0,0,0) 62%);
@@ -263,25 +265,40 @@ function OngletCommunaute({
 
         /* Le dos de reliure : une bande sombre au bord gauche, discrète. */
         .couverture::before {
-          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; z-index: 2;
+          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; z-index: 6;
           background: linear-gradient(90deg, rgba(0,0,0,0.24), rgba(0,0,0,0.03) 78%, rgba(255,255,255,0.07));
           pointer-events: none;
         }
 
+        /* ⛔ La TÊTE — le nom de l'auteur, son losange, l'étoile des favoris — et le
+           CADRE n'appartiennent à aucune des deux faces : ils sont posés sur le carton
+           lui-même. C'est ce qui les rend IMMOBILES quand la couverture se retourne :
+           un nom d'auteur qui saute de trois pixels au survol défait toute l'illusion
+           du livre. Ne jamais les redescendre dans la règle .couverture-face, même pour
+           simplifier le balisage. */
+        .couverture-tete {
+          position: relative; z-index: 3;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          padding: 10cqw 8cqw 0 8.8cqw;
+        }
+        /* Le corps occupe tout ce qui reste sous la tête, et les deux faces s'y
+           superposent : elles reçoivent donc exactement la même boîte, sans qu'aucune
+           mesure ait à être recopiée d'une règle à l'autre. */
+        .couverture-corps { position: relative; z-index: 2; flex: 1; min-height: 0; }
         /* La suite verticale. Rien n'est posé en absolu : chaque temps pousse le
            suivant, et l'emblème, seul à porter des marges automatiques, absorbe la
            hauteur qui reste. Un titre de quatre lignes serre donc la composition au
            lieu de la faire déborder. */
         .couverture-face {
-          position: absolute; inset: 0; z-index: 1;
+          position: absolute; inset: 0;
           display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: 10cqw 8cqw 7.5cqw 8.8cqw;
+          padding: 0 8cqw 7.5cqw 8.8cqw;
           transition: opacity 0.22s ease;
         }
         /* Cadre doublé, comme un cartonnage d'éditeur : un filet net au bord, un
            second en retrait. Le retrait vaut la moitié du blanc de tête, ce qui
            assied le cadre sur la composition au lieu de la cerner de trop près. */
-        .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw 4.6cqw; border: 1px solid; pointer-events: none; }
+        .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw 4.6cqw; border: 1px solid; pointer-events: none; z-index: 4; }
         .couverture-cadre::before { content: ""; position: absolute; inset: 1.7cqw; border: 1px solid currentColor; opacity: 0.42; }
 
         .couverture-auteur {
@@ -340,7 +357,7 @@ function OngletCommunaute({
           padding-left: 0.24em; font-variation-settings: "opsz" 9, "wght" 400;
         }
 
-        .couverture-etoile { position: absolute; top: 2.4cqw; right: 2.6cqw; z-index: 4; line-height: 1; }
+        .couverture-etoile { position: absolute; top: 9.6cqw; right: 7cqw; z-index: 8; line-height: 1; }
 
         /* La quatrième : elle se retourne au survol. Même famille que la face — la
            couverture entière est en empattement — mais une composition plus large :
@@ -350,14 +367,11 @@ function OngletCommunaute({
         .couverture-dos {
           position: absolute; inset: 0; z-index: 3;
           display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-          padding: 13cqw 11cqw 15cqw 11.8cqw;
+          padding: 5cqw 11cqw 15cqw 11.8cqw;
           opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
         }
         .couverture:hover .couverture-dos { opacity: 1; pointer-events: auto; }
         .couverture:hover .couverture-face { opacity: 0; }
-        /* Le losange de tête, seul, sans ses filets : il rappelle la face sans
-           refaire le même ornement. */
-        .couverture-dos-fleuron { font-size: 2.6cqw; opacity: 0.5; line-height: 1; margin-bottom: 5cqw; }
         /* Le résumé prend une interligne large et une coupe de petit corps : c'est un
            paragraphe de lecture, pas une légende. Écrêté à sept lignes — une de moins
            qu'avant, le blanc valant mieux que la ligne de trop. */
@@ -378,9 +392,9 @@ function OngletCommunaute({
         }
         .couverture-lire::before {
           content: ""; position: absolute; left: 50%; top: -3.6cqw;
-          width: 20cqw; height: 1px; transform: translateX(-50%);
+          width: 24cqw; height: 1px; transform: translateX(-50%);
           background: linear-gradient(90deg, transparent, currentColor 30%, currentColor 70%, transparent);
-          opacity: 0.42;
+          opacity: 0.5;
         }
         .couverture:hover .couverture-lire { opacity: 1; }
         /* Les chiffres au pied, hors du bloc de lecture : ils appartiennent au carton,
@@ -437,47 +451,57 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   // l’emblème. Une publication peut en porter plusieurs : la première est la
   // principale, les autres servent au filtrage et n’ont pas leur place ici.
   const categorie = e.categories?.[0] ?? null
+  // Titre, sous-titre et résumé sont tapés par l’auteur dans un formulaire : ils
+  // arrivent avec l’apostrophe droite et la ponctuation collée du clavier. La norme
+  // s’applique AU RENDU (charte §3.2), jamais dans la donnée.
+  const titre = normaliserSaisie(e.titre)
+  const sousTitre = e.sous_titre ? normaliserSaisie(e.sous_titre) : null
+  const resume = e.resume ? normaliserSaisie(e.resume) : null
   return (
     <Link href={`/essais/${e.id}`} className="couverture"
       style={{ background: c.fond, color: c.encre }}
       title={`${e.titre} — ${e.auteur}`}>
 
-      <span className="couverture-etoile">
-        <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />
-      </span>
-
-      <span className="couverture-face">
-        <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
+      {/* La tête et le cadre sont posés sur le CARTON, hors des deux faces : ils ne
+          bougent pas d'un pixel quand la couverture se retourne. */}
+      <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
+      <span className="couverture-tete">
         <span className="couverture-auteur">{e.auteur}</span>
         <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
-        {categorie && <span className="couverture-categorie">{categorie}</span>}
-        <span className="couverture-titre">{e.titre}</span>
-        {e.sous_titre && <span className="couverture-soustitre">{e.sous_titre}</span>}
-        {/* L'emblème est un ornement, pas une information : il double la catégorie,
-            déjà écrite au-dessus, et n'a donc rien à annoncer. */}
-        <span className="couverture-embleme" aria-hidden="true">
-          <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorie)}</svg>
-        </span>
-        <span className="couverture-pied">
-          <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
-          {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
+        <span className="couverture-etoile">
+          <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />
         </span>
       </span>
 
-      {/* La quatrième de couverture. `aria-hidden` : le résumé est déjà porté par
-          le titre du lien et par la page de la publication ; ce calque est un
-          doublon visuel, il n'a pas à être annoncé deux fois. */}
-      <span className="couverture-dos" style={{ background: c.fond }} aria-hidden="true">
-        <span className="couverture-cadre" style={{ borderColor: c.filet }} />
-        <span className="couverture-dos-fleuron">◆</span>
-        {e.resume
-          ? <span className="couverture-resume">{e.resume}</span>
-          : <span className="couverture-resume" style={{ opacity: 0.7, fontStyle: 'italic' }}>{e.titre}</span>}
-        <span className="couverture-lire">Lire</span>
-        <span className="couverture-dos-meta">
-          <span>{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
-          {e.nb_likes > 0 && <span>♥ {e.nb_likes}</span>}
-          {plusLu && <span>◆ parmi les plus lus</span>}
+      <span className="couverture-corps">
+        <span className="couverture-face">
+          {categorie && <span className="couverture-categorie">{categorie}</span>}
+          <span className="couverture-titre">{titre}</span>
+          {sousTitre && <span className="couverture-soustitre">{sousTitre}</span>}
+          {/* L'emblème est un ornement, pas une information : il double la catégorie,
+              déjà écrite au-dessus, et n'a donc rien à annoncer. */}
+          <span className="couverture-embleme" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorie)}</svg>
+          </span>
+          <span className="couverture-pied">
+            <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
+            {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
+          </span>
+        </span>
+
+        {/* La quatrième de couverture. `aria-hidden` : le résumé est déjà porté par
+            le titre du lien et par la page de la publication ; ce calque est un
+            doublon visuel, il n'a pas à être annoncé deux fois. */}
+        <span className="couverture-dos" style={{ background: c.fond }} aria-hidden="true">
+          {resume
+            ? <span className="couverture-resume">{resume}</span>
+            : <span className="couverture-resume" style={{ opacity: 0.7, fontStyle: 'italic' }}>{titre}</span>}
+          <span className="couverture-lire">Lire</span>
+          <span className="couverture-dos-meta">
+            <span>{e.nb_vues} vue{e.nb_vues !== 1 ? 's' : ''}</span>
+            {e.nb_likes > 0 && <span>♥ {e.nb_likes}</span>}
+            {plusLu && <span>◆ parmi les plus lus</span>}
+          </span>
         </span>
       </span>
     </Link>

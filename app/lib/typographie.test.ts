@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normaliserEspaces, normaliserEspacesOriginal } from './typographie'
+import { normaliserEspaces, normaliserEspacesOriginal, normaliserSaisie } from './typographie'
 
 const FINE = ' '   // espace fine insécable U+202F
 const NBSP = ' '   // espace insécable U+00A0
@@ -61,5 +61,48 @@ describe('normaliserEspaces (français, harmonisation du type d’espace)', () =
   it('laisse le deux-points intact', () => {
     expect(normaliserEspaces(`mot${NBSP}: suite`)).toBe(`mot${NBSP}: suite`)
     expect(normaliserEspaces('mot : suite')).toBe('mot : suite')
+  })
+})
+
+describe('normaliserSaisie — texte tapé par un auteur du site', () => {
+  const FINE = ' '
+  const INSEC = ' '
+
+  it('pose une fine insécable avant les hautes ponctuations, collées ou espacées', () => {
+    expect(normaliserSaisie('L’amour, c’est quoi ?')).toBe(`L’amour, c’est quoi${FINE}?`)
+    expect(normaliserSaisie('L’amour, c’est quoi?')).toBe(`L’amour, c’est quoi${FINE}?`)
+    expect(normaliserSaisie('Vraiment !')).toBe(`Vraiment${FINE}!`)
+    expect(normaliserSaisie('Ici ; là')).toBe(`Ici${FINE}; là`)
+  })
+
+  // Une fine par signe écarterait les deux signes l'un de l'autre.
+  it('ne pose qu’une fine devant une SUITE de hautes ponctuations', () => {
+    expect(normaliserSaisie('Quoi ?!')).toBe(`Quoi${FINE}?!`)
+  })
+
+  // Règle de l'Imprimerie nationale, charte §3.2 : le deux-points fait exception.
+  it('donne au deux-points l’insécable pleine chasse, non la fine', () => {
+    expect(normaliserSaisie('Trois verbes : garder, méditer, retenir')).toBe(`Trois verbes${INSEC}: garder, méditer, retenir`)
+  })
+
+  it('courbe l’apostrophe et resserre les points de suspension', () => {
+    expect(normaliserSaisie("l'esprit")).toBe('l’esprit')
+    expect(normaliserSaisie('et puis...')).toBe('et puis…')
+  })
+
+  it('francise les guillemets droits, mais seulement par paires complètes', () => {
+    expect(normaliserSaisie('il dit "bonjour" et sort')).toBe(`il dit «${FINE}bonjour${FINE}» et sort`)
+    expect(normaliserSaisie('un " orphelin')).toBe('un " orphelin')
+  })
+
+  // Une normalisation qui ne serait pas idempotente ajouterait une espace à
+  // chaque rendu, et la couverture bâillerait un peu plus à chaque affichage.
+  it('est idempotente', () => {
+    const cas = ['L’amour, c’est quoi ?', 'Trois verbes : garder', 'il dit "bonjour"', 'Quoi ?!']
+    for (const t of cas) expect(normaliserSaisie(normaliserSaisie(t))).toBe(normaliserSaisie(t))
+  })
+
+  it('ne touche ni à la virgule ni au point', () => {
+    expect(normaliserSaisie('Deux hommes marchent, un troisième les rejoint.')).toBe('Deux hommes marchent, un troisième les rejoint.')
   })
 })

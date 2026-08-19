@@ -7,6 +7,7 @@
 // surlignage de la page Recherche, qui découpe par indices.
 const ESPACES = '[   ]'
 const FINE = ' '
+const INSECABLE = ' '
 
 // Texte FRANÇAIS. Le corpus porte déjà l'espacement de son édition source, mais
 // pas d'un seul caractère : autour des guillemets, un relevé sur 20 000 segments
@@ -37,4 +38,31 @@ export function normaliserEspacesOriginal(texte: string): string {
     .replace(new RegExp(`${ESPACES}*([:;!?])`, 'g'), `${FINE}$1`)
     .replace(new RegExp(`«${ESPACES}*`, 'g'), `«${FINE}`)
     .replace(new RegExp(`${ESPACES}*»`, 'g'), `${FINE}»`)
+}
+
+// Texte SAISI par un auteur du site — titre, sous-titre et résumé d'une
+// publication. À la différence du corpus, il n'a traversé aucun atelier
+// d'édition : il arrive tel que le clavier l'a produit, apostrophe droite,
+// ponctuation collée, guillemets droits, points de suspension en trois points.
+// On lui applique donc la norme AU RENDU, jamais dans la donnée — l'auteur
+// reste maître de son texte, et une règle qui changerait demain ne laisserait
+// pas derrière elle un corpus à moitié converti.
+//
+// Fine insécable avant ; ! ? et autour des guillemets ; insécable PLEINE CHASSE
+// avant le deux-points (règle de l'Imprimerie nationale, charte §3.2). Idempotente.
+export function normaliserSaisie(texte: string): string {
+  return texte
+    .replace(/\.\.\./g, '…')
+    // Les guillemets droits vont par paires : on ne convertit que les paires
+    // complètes, un guillemet orphelin restant tel quel plutôt que de fermer
+    // au hasard.
+    .replace(/"([^"]*)"/g, `«${FINE}$1${FINE}»`)
+    .replace(/'/g, '’')
+    // Une suite de hautes ponctuations (« quoi ?! ») ne prend qu'UNE fine, en
+    // tête : une par signe les écarterait les uns des autres.
+    .replace(new RegExp(`${ESPACES}*([;!?]+)`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`${ESPACES}*:`, 'g'), `${INSECABLE}:`)
+    .replace(new RegExp(`«${ESPACES}*`, 'g'), `«${FINE}`)
+    .replace(new RegExp(`${ESPACES}*»`, 'g'), `${FINE}»`)
+    .trim()
 }
