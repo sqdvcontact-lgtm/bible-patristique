@@ -1,7 +1,11 @@
-# Détourage d une gravure d ornement : le fond crème devient un vrai canal alpha.
+# Détourage d'une gravure d'ornement : le fond crème devient un vrai canal alpha,
+# si bien que le trait se pose sur le papier du site sans rectangle clair. On n'emploie
+# surtout pas mix-blend-mode, que l'opacité de l'image annulerait.
 # La recette et le pourquoi sont dans AGENTS.md, section « Les ornements se DÉTOURENT ».
-# Usage : .scriptsdetourer-ornement.ps1 -Source "…gravure.png" -Dest "publicornements
-om.png" -Largeur 1024
+#
+# La stratégie d'exécution du poste refuse les scripts : passer -ExecutionPolicy Bypass.
+# Usage :
+#   .\scripts\detourer-ornement.ps1 -Source "…\gravure.png" -Dest "public\ornements\nom.png" -Largeur 1024
 
 param([string]$Source, [string]$Dest, [int]$Largeur = 1024)
 
