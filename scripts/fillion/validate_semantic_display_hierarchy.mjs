@@ -109,18 +109,30 @@ if (!(registre.styles.titre_section_livre?.aliases ?? []).includes('titre_sectio
 // Deux niveaux voisins doivent se distinguer autrement que par la couleur.
 // On contrôle que chaque classe de niveau règle au moins une propriété qui
 // n'est pas une teinte.
-const NON_COULEUR = /(font-size|font-weight|font-style|letter-spacing|margin|padding|border|text-transform|font-variant)/
+// `text-align` compte : centrer un rang le distingue autant qu'un corps de
+// caractère, et sans dépendre de la teinte.
+const NON_COULEUR = /(font-size|font-weight|font-style|letter-spacing|margin|padding|border|text-transform|text-align|font-variant)/
 for (const jeton of [...JETONS_TITRE, ...JETONS_INFO]) {
   const prefixe = jeton.startsWith('T') ? 'cs-bible-title--' : 'cs-bible-info--'
   const classe = `.${prefixe}${jeton.toLowerCase()}`
-  const debut = theme.indexOf(classe)
-  if (debut === -1) continue
-  const corps = theme.slice(debut, theme.indexOf('}', debut))
-  if (!NON_COULEUR.test(corps)) {
+  // ⚠️ Une classe peut être réglée en PLUSIEURS endroits — une règle groupée
+  // qui centre, puis une règle propre qui donne le corps. Ne lire que la
+  // première occurrence faisait crier le contrôle à tort.
+  let porteUneForme = false
+  let depuis = 0
+  for (;;) {
+    const debut = theme.indexOf(classe, depuis)
+    if (debut === -1) break
+    const ouvrante = theme.indexOf('{', debut)
+    const fermante = theme.indexOf('}', ouvrante)
+    if (ouvrante === -1 || fermante === -1) break
+    if (NON_COULEUR.test(theme.slice(ouvrante, fermante))) porteUneForme = true
+    depuis = fermante
+  }
+  if (theme.includes(classe) && !porteUneForme) {
     refuser(`${classe} ne se distingue que par la couleur ; ajouter une propriété de forme.`)
   }
 }
-
 if (erreurs.length > 0) {
   console.error(`Registre refusé — ${erreurs.length} anomalie(s) :`)
   for (const erreur of erreurs) console.error(`  · ${erreur}`)

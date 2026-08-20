@@ -56,7 +56,8 @@ const SERIF = 'var(--font-source-serif), Georgia, serif'
 // grise — c’est le change de caractère qui sépare les deux colonnes, mieux
 // qu’un filet. Même encre et même chasse que la colonne originale d’une œuvre.
 //
-// Le texte est RESSERRÉ : interligne court et gouttière étroite entre versets.
+// Le texte est RESSERRÉ dans la LIGNE — interligne court — mais les versets
+// respirent ENTRE eux : trop serrés, ils formaient un pavé où l'œil se perdait.
 const INTERLIGNE = 1.42
 const STYLE_VERSET = {
   fontFamily: SERIF,
@@ -66,7 +67,7 @@ const STYLE_VERSET = {
   textAlign: 'justify' as const,
   hyphens: 'auto' as const,
   overflowWrap: 'break-word' as const,
-  margin: '0 0 0.12rem',
+  margin: '0 0 0.4rem',
 }
 
 // L’encre de la colonne originale des œuvres, reprise telle quelle pour que
@@ -186,7 +187,7 @@ export default function BibleBilingue({
       gridTemplateColumns: `repeat(${colonnesOrdonnees.length}, minmax(0, 1fr))`,
       alignItems: 'baseline',
       columnGap: '1.1rem',
-      rowGap: '0.12rem',
+      rowGap: '0.4rem',
     }
 
   return (

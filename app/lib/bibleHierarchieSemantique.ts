@@ -207,3 +207,33 @@ export function intituleDeRendu(bloc: {
   const propre = brut?.trim()
   return propre ? propre : null
 }
+
+/**
+ * Un intitulé imprimé porte souvent deux choses d'un coup : le genre du
+ * développement et son objet — « Introduction — 1° La personne de l'auteur ».
+ * Les rendre sur une seule ligne les met sur le même plan, alors que le second
+ * est subordonné au premier.
+ *
+ * On les sépare donc en titre et sous-titre, sur le modèle du titre et de son
+ * chapeau à la page d'œuvre. La coupure se fait au TIRET séparateur, entouré
+ * d'espaces : un tiret collé appartient au mot (« sous-section », « Jésus-Christ »)
+ * et ne coupe rien.
+ *
+ * ⛔ Rien n'est deviné : sans tiret séparateur, l'intitulé reste entier.
+ */
+export function diviserIntitule(intitule: string | null): { titre: string; sousTitre: string | null } | null {
+  const propre = intitule?.trim()
+  if (!propre) return null
+  const coupure = propre.match(/^(.+?)\s+[—–-]\s+(.+)$/)
+  if (!coupure) return { titre: propre, sousTitre: null }
+  return { titre: coupure[1].trim(), sousTitre: ordinalLisible(coupure[2].trim()) }
+}
+
+/**
+ * « 1° » se lit « primo » : à l'écran, le point est plus clair que le degré, et
+ * c'est la forme qu'emploient les autres pages. La conversion ne touche que
+ * l'ordinal de TÊTE, jamais un degré au fil du texte.
+ */
+function ordinalLisible(texte: string): string {
+  return texte.replace(/^(\d+)\s*°\s*/, '$1. ')
+}

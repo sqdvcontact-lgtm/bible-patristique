@@ -1,4 +1,74 @@
-/* Sources de Tailwind bornées à `app/`, la seule arborescence que Next compile.
+/* Sources de Tailwind bornées à `app/`, la seule arborescence que Next compile/* Les rangs hauts se CENTRENT, les rangs bas restent au fer : c’est la façon
+   dont la page d’œuvre distingue un titre de partie d’un intertitre, et c’est
+   ce qui rend la hiérarchie lisible d’un coup d’œil, sans compter les tailles. */
+.cs-bible-title--t1,
+.cs-bible-title--t2,
+.cs-bible-title--t3 { text-align: center; }
+
+.cs-bible-title--t1 { font-size: 1.25rem;    font-weight: 500; color: var(--cs-encre-fonce); letter-spacing: 0.01em; }
+.cs-bible-title--t2 { font-size: 1.125rem;   font-weight: 500; color: var(--cs-encre); letter-spacing: 0.01em; }
+.cs-bible-title--t3 { font-size: 1.0625rem;  font-weight: 500; color: var(--cs-texte-fort); }
+.cs-bible-title--t4 { font-size: 1rem;       font-weight: 400; color: var(--cs-texte-fort); font-style: italic; }
+.cs-bible-title--t5 { font-size: 0.9375rem;  font-weight: 600; color: var(--cs-texte); letter-spacing: 0.01em; }
+.cs-bible-title--t6 { font-size: 0.78125rem; font-weight: 600; color: var(--cs-texte); letter-spacing: 0.02em; text-transform: uppercase; }
+
+/* Le jeton d’information ne crie pas : il se lit au blanc qui le précède, non
+   à un filet dans la marge. Plus la portée est large, plus le bloc respire. */
+.cs-bible-info--i1,
+.cs-bible-info--i2,
+.cs-bible-info--i3,
+.cs-bible-info--i4,
+.cs-bible-info--i5,
+.cs-bible-info--i6 {
+  font-family: var(--font-source-serif), Georgia, serif;
+  margin: 1.25rem 0 0.9rem;
+}
+
+.cs-bible-info--i1 { margin: 2rem 0 1.5rem; }
+.cs-bible-info--i2 { margin: 1.75rem 0 1.25rem; }
+.cs-bible-info--i3 { margin: 1.5rem 0 1.1rem; }
+.cs-bible-info--i4 { margin: 1.35rem 0 1rem; }
+.cs-bible-info--i5 { margin: 1.25rem 0 0.9rem; }
+.cs-bible-info--i6 { margin: 1rem 0 0.75rem; font-size: 0.8125rem; }
+
+/* Le repère d’un bloc d’information : ce n’est PAS un titre — pas de balise de
+   titre, pas de place au plan. Les deux portées les plus larges le centrent,
+   comme les titres hauts ; les plus étroites le laissent au fer. */
+.cs-bible-info-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.78125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--cs-texte);
+}
+.cs-bible-info--i1 > .cs-bible-info-label { text-align: center; font-size: 1.0625rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--cs-encre); }
+.cs-bible-info--i2 > .cs-bible-info-label,
+.cs-bible-info--i3 > .cs-bible-info-label { text-align: center; font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.02em; color: var(--cs-texte-fort); }
+
+/* Le chapeau d’un titre : subordonné, donc sur sa propre ligne, en italique et
+   plus clair — jamais accolé au titre par un tiret. */
+.cs-bible-chapeau {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--cs-texte-second);
+}
+
+/* La nature est un modificateur, non un niveau : elle se marque discrètement,
+   et se cumule avec le jeton sans le contredire. ⛔ Aucun filet. */
+.cs-bible-block--title { font-variant-numeric: oldstyle-nums; }
+.cs-bible-block--introduction { font-style: normal; }
+.cs-bible-block--commentary { font-style: normal; }
+.cs-bible-block--notice { font-size: 0.78125rem; }
+.cs-bible-block--summary { letter-spacing: 0.01em; }
+.cs-bible-block--excursus { font-size: 0.78125rem; }
+.cs-bible-block--conclusion { font-style: italic; }
+.cs-bible-block--note { font-size: 0.8125rem; }
+
    ⚠️ Ne pas revenir à la détection automatique (`@import "tailwindcss";` seul) :
    elle balaie tout le dépôt, or `work/bible899` est une JONCTION NTFS vers
    `D:\Corpus Scriptura\…`. Turbopack refuse alors une dépendance hors racine

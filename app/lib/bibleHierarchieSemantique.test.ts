@@ -3,6 +3,7 @@ import {
   baliseTitre,
   classesDuStyle,
   construirePlan,
+  diviserIntitule,
   empilerTitre,
   intituleDeRendu,
   JETONS_INFO,
@@ -140,5 +141,31 @@ describe('hiérarchie sémantique de la page Bible', () => {
     it('ne dépasse jamais h6', () => {
       expect(baliseTitre(['T1', 'T2', 'T3', 'T4', 'T5'], 'T6')).toBe(6)
     })
+  })
+})
+
+describe('intitulé en deux temps', () => {
+  it('sépare le genre du développement et son objet', () => {
+    expect(diviserIntitule('Introduction — 1° La personne de l’auteur')).toEqual({
+      titre: 'Introduction',
+      sousTitre: '1. La personne de l’auteur',
+    })
+    expect(diviserIntitule('Notice – Le Jourdain')).toEqual({
+      titre: 'Notice', sousTitre: 'Le Jourdain',
+    })
+  })
+
+  it('ne coupe pas un tiret qui appartient au mot', () => {
+    expect(diviserIntitule('Jésus-Christ et les siens')).toEqual({
+      titre: 'Jésus-Christ et les siens', sousTitre: null,
+    })
+    expect(diviserIntitule('Le précurseur fait son apparition')).toEqual({
+      titre: 'Le précurseur fait son apparition', sousTitre: null,
+    })
+  })
+
+  it('ne rend rien d’un intitulé vide', () => {
+    expect(diviserIntitule(null)).toBeNull()
+    expect(diviserIntitule('   ')).toBeNull()
   })
 })

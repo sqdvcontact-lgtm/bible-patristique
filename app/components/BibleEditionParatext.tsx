@@ -11,6 +11,7 @@ import {
   classeIntituleTitre,
   classesDuStyle,
   resoudreStyleSemantique,
+  diviserIntitule,
 } from '@/app/lib/bibleHierarchieSemantique'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
@@ -34,16 +35,6 @@ export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 // n'est pas une alerte, c'est du texte d'édition.
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
-// Repère interne d'un bloc d'information : ce n'est pas un titre, il ne porte
-// donc pas de balise de titre et n'entre pas au plan. La graisse et
-// l'espacement le signalent, non le corps de caractère.
-const STYLE_REPERE: CSSProperties = {
-  margin: '0 0 0.4rem',
-  fontSize: '0.78125rem',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-  color: 'var(--cs-texte)',
-}
 
 // Corps d'un paratexte : la composition d'un verset de la page Bible, mais un
 // cran en dessous. Une introduction de Fillion se lit AUTOUR du texte biblique,
@@ -124,7 +115,7 @@ export function BlocEditorialBible({
   const resolu = resoudreStyleSemantique(bloc.semanticStyleCode)
   if (!resolu || !resolu.bodyBlock) return null
 
-  const intitule = bloc.heading?.trim() || null
+  const intitule = diviserIntitule(bloc.heading ?? null)
   // La balise vient des parents réellement présents, jamais du chiffre du jeton.
   const Balise = `h${bloc.niveauHtml ?? 2}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
@@ -134,15 +125,22 @@ export function BlocEditorialBible({
       {intitule && (resolu.headingRole === 'title' && resolu.headingLevel ? (
         // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
         // du développement qui le suit. Les deux ne se concatènent jamais.
-        <Balise className={classeIntituleTitre(resolu.headingLevel)} style={{ marginTop: 0 }}>
-          {intitule}
+        <Balise className={classeIntituleTitre(resolu.headingLevel)}>
+          {intitule.titre}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
         </Balise>
       ) : resolu.kind === 'title' ? (
-        <Balise className={classesDuStyle(resolu)[0]} style={{ marginTop: 0 }}>{intitule}</Balise>
+        <Balise className={classesDuStyle(resolu)[0]}>
+          {intitule.titre}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
+        </Balise>
       ) : (
         // Simple repère interne : jamais une balise de titre, sans quoi il
         // entrerait dans le plan d'accessibilité par la bande.
-        <p className="cs-bible-info-label" style={STYLE_REPERE}>{intitule}</p>
+        <p className="cs-bible-info-label">
+          {intitule.titre}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
+        </p>
       ))}
       {bloc.textBlocks.map(rendreBlocTexte)}
       {rendreIllustrations(dansLeFlux)}
@@ -228,7 +226,7 @@ export function NotesBibleChapitre({
       aria-labelledby="notes-bible-chapitre"
       style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--cs-bord)' }}
     >
-      <h2 id="notes-bible-chapitre" style={{ ...STYLE_REPERE, margin: '0 0 0.75rem', lineHeight: 1.3 }}>
+      <h2 id="notes-bible-chapitre" className="cs-bible-info-label">
         Notes
       </h2>
       <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
