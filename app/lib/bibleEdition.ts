@@ -188,6 +188,25 @@ export function styleSemantiqueBloc(
   return `${BLOCK_KIND_STYLE[blockKind]}_${SCOPE_KIND_STYLE[scopeKind]}`
 }
 
+/**
+ * Rang d'un titre de bloc, sur le modèle des niveaux de la page d'œuvre.
+ *
+ * Ce n'est pas une taille choisie par type de contenu, c'est un RANG : la
+ * portée du bloc dit à quelle hauteur son titre se compose, exactement comme
+ * niv1, niv2 et niv3 hiérarchisent une œuvre. Une introduction de livre et un
+ * sommaire de livre partagent donc le même rang, parce qu'ils surmontent la
+ * même étendue.
+ *
+ * Le rang 1 reste sous le titre de chapitre de la page : un paratexte ne prend
+ * jamais le pas sur le nom du chapitre qu'on lit.
+ */
+export function rangTitreBloc(semanticStyleCode: string): 1 | 2 | 3 {
+  const portee = semanticStyleCode.slice(semanticStyleCode.indexOf('_') + 1)
+  if (['bible', 'testament', 'groupe_livres', 'livre'].includes(portee)) return 1
+  if (['partie', 'chapitre', 'section'].includes(portee)) return 2
+  return 3
+}
+
 export function appartientAuMembre(
   objet: Pick<BibleEditorialBlock | BibleVerseNote, 'appliesTo' | 'appliesToMemberId'>,
   memberId: string,

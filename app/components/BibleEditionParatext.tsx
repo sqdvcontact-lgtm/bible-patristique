@@ -7,6 +7,7 @@ import type {
   BibleEditionDisplayNote,
   BibleEditionDisplayTextBlock,
 } from '@/app/lib/bibleEdition'
+import { rangTitreBloc } from '@/app/lib/bibleEdition'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
@@ -22,25 +23,42 @@ export type NoteBibliqueAffichable = Pick<
 
 export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 
-const STYLE_BLOC: CSSProperties = {
-  margin: '1.5rem 0',
-  padding: '1rem 1.125rem',
-  borderLeft: '2px solid var(--cs-bord)',
-  background: 'var(--cs-fond-clair)',
-  color: 'var(--cs-texte)',
-  fontFamily: 'inherit',
+// Le paratexte se compose comme le reste du site, non comme un encart : la
+// police et la mesure de la page Bible pour le texte, et les rangs de titre de
+// la page d'œuvre pour ce qui surmonte. Les encadrés à fond teinté qui
+// tenaient lieu de style au premier jet ont disparu — un commentaire de Fillion
+// n'est pas une alerte, c'est du texte d'édition.
+const SERIF = 'var(--font-source-serif), Georgia, serif'
+
+/** Rangs de titre, calqués sur niv1 · niv2 · niv3 de la page d'œuvre. */
+const RANGS_TITRE: Record<1 | 2 | 3, CSSProperties> = {
+  1: { fontFamily: SERIF, fontSize: '1.125rem', fontWeight: 500, color: 'var(--cs-encre)', letterSpacing: '0.01em' },
+  2: { fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-texte-fort)' },
+  3: { fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)', letterSpacing: '0.02em' },
+}
+
+// Corps d'un paratexte : la composition d'un verset de la page Bible.
+const STYLE_CORPS: CSSProperties = {
+  fontFamily: SERIF,
+  fontSize: '0.875rem',
+  lineHeight: 1.5,
+  color: 'var(--cs-texte-fort)',
+  textAlign: 'justify',
+  hyphens: 'auto',
+  overflowWrap: 'break-word',
 }
 
 function rendreBlocTexte(bloc: BlocTexteBiblique): ReactNode {
+  const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
   const style: CSSProperties = {
-    margin: bloc.kind === 'reference' || bloc.kind === 'attribution' ? '0.45rem 0 0' : '0 0 0.75rem',
+    ...STYLE_CORPS,
+    margin: discret ? '0.35rem 0 0' : '0 0 0.6rem',
     whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
     fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
-    color: bloc.kind === 'reference' || bloc.kind === 'attribution'
-      ? 'var(--cs-texte-second)'
-      : 'inherit',
-    fontSize: bloc.kind === 'reference' || bloc.kind === 'attribution' ? '0.875rem' : '1rem',
-    lineHeight: bloc.form === 'verse' ? 1.7 : 1.65,
+    ...(discret
+      ? { color: 'var(--cs-texte-second)', fontSize: '0.8125rem', textAlign: 'left' as const }
+      : {}),
+    ...(bloc.form === 'verse' ? { lineHeight: 1.6, textAlign: 'left' as const } : {}),
   }
   return <p key={bloc.id} lang={bloc.language ?? undefined} style={style}>{bloc.text}</p>
 }
@@ -64,7 +82,7 @@ export function IllustrationBible({ illustration }: { illustration: Illustration
         style={{ display: 'block', width: '100%', height: 'auto', objectFit: 'contain' }}
       />
       {illustration.caption && (
-        <figcaption style={{ marginTop: '0.5rem', color: 'var(--cs-texte-second)', fontSize: '0.8125rem', lineHeight: 1.45 }}>
+        <figcaption style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: '0.8125rem', lineHeight: 1.4 }}>
           {illustration.caption}
         </figcaption>
       )}
@@ -88,11 +106,16 @@ export function BlocEditorialBible({
   const avant = illustrations.filter((illustration) => illustration.placement === 'before')
   const dansLeFlux = illustrations.filter((illustration) => illustration.placement === 'inline')
   const apres = illustrations.filter((illustration) => illustration.placement === 'after')
+  const rang = rangTitreBloc(bloc.semanticStyleCode)
+  // Une notice et un excursus se tiennent à côté du fil : ils prennent le filet
+  // de gauche des intertitres d'œuvre. Le reste est du texte suivi.
+  const enMarge = bloc.semanticStyleCode.startsWith('notice_')
+    || bloc.semanticStyleCode.startsWith('excursus_')
   const contenu = (
     <>
       {rendreIllustrations(avant)}
       {bloc.heading && (
-        <h3 style={{ margin: '0 0 0.875rem', color: 'var(--cs-texte-fort)', fontSize: '1.125rem' }}>
+        <h3 style={{ ...RANGS_TITRE[rang], margin: '0 0 0.5rem', lineHeight: 1.3, whiteSpace: 'pre-line' }}>
           {bloc.heading}
         </h3>
       )}
@@ -120,11 +143,14 @@ export function BlocEditorialBible({
     'data-semantic-style': bloc.semanticStyleCode,
     'data-notice-subtype': bloc.noticeSubtype ?? undefined,
     'data-placement': bloc.placement,
-    style: STYLE_BLOC,
+    style: {
+      margin: rang === 1 ? '1.5rem 0 1.25rem' : '1.25rem 0 0.9rem',
+      ...(enMarge
+        ? { paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)' }
+        : {}),
+    } as CSSProperties,
   }
-  if (bloc.semanticStyleCode.startsWith('notice_') || bloc.semanticStyleCode.startsWith('excursus_')) {
-    return <aside {...props}>{contenu}</aside>
-  }
+  if (enMarge) return <aside {...props}>{contenu}</aside>
   return <section {...props}>{contenu}</section>
 }
 
@@ -152,7 +178,7 @@ export function AppelNoteBible({
         id={ancreAppelNoteBible(noteId, memberId)}
         href={`#note-bible-${noteId}`}
         aria-label={`Note ${displayNumber}`}
-        style={{ color: 'var(--cs-encre)', textDecoration: 'none', fontFamily: 'inherit' }}
+        style={{ color: 'var(--cs-encre)', textDecoration: 'none', fontFamily: SERIF }}
       >
         {displayNumber}
       </a>
@@ -177,7 +203,7 @@ export function NotesBibleChapitre({
       aria-labelledby="notes-bible-chapitre"
       style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--cs-bord)' }}
     >
-      <h2 id="notes-bible-chapitre" style={{ fontSize: '1rem', color: 'var(--cs-texte-fort)', margin: '0 0 1rem' }}>
+      <h2 id="notes-bible-chapitre" style={{ ...RANGS_TITRE[3], margin: '0 0 0.75rem', lineHeight: 1.3 }}>
         Notes
       </h2>
       <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -191,7 +217,7 @@ export function NotesBibleChapitre({
             <a
               href={`#${ancresRetour?.get(note.id) ?? ancreAppelNoteBible(note.id)}`}
               aria-label={`Retour à l’appel de la note ${note.displayNumber}`}
-              style={{ color: 'var(--cs-encre)', textDecoration: 'none', fontSize: '0.8125rem' }}
+              style={{ color: 'var(--cs-texte-faible)', textDecoration: 'none', fontSize: '0.625rem', fontWeight: 600, fontFamily: SERIF, textAlign: 'right', paddingTop: '0.2rem' }}
             >
               {note.displayNumber}.
             </a>

@@ -44,6 +44,22 @@ import {
   NotesBibleChapitre,
 } from './BibleEditionParatext'
 
+const SERIF = 'var(--font-source-serif), Georgia, serif'
+
+// Un verset se compose ici EXACTEMENT comme sur la page Bible : même police,
+// même corps, même interligne, même justification. Rien ne doit trahir qu'on
+// lit en deux colonnes plutôt qu'en une.
+const STYLE_VERSET = {
+  fontFamily: SERIF,
+  fontSize: '0.875rem',
+  lineHeight: 1.5,
+  color: 'var(--cs-texte-fort)',
+  textAlign: 'justify' as const,
+  hyphens: 'auto' as const,
+  overflowWrap: 'break-word' as const,
+  margin: '0 0 0.35rem',
+}
+
 type Appartenance = { appliesTo: 'family' | 'member'; appliesToMemberId: string | null }
 type BlocBilingue = BibleEditionDisplayBodyBlock & Appartenance
 type IllustrationBilingue = BibleEditionDisplayAsset & Appartenance
@@ -202,8 +218,9 @@ export default function BibleBilingue({
                 margin: 0,
                 paddingBottom: '0.35rem',
                 borderBottom: '1px solid var(--cs-bord)',
+                fontFamily: SERIF,
                 color: 'var(--cs-texte-gris)',
-                fontSize: '0.6875rem',
+                fontSize: '0.625rem',
                 letterSpacing: '0.09em',
                 textTransform: 'uppercase',
               }}
@@ -232,18 +249,19 @@ export default function BibleBilingue({
                   {cellule === null ? (
                     // Un créneau que cette édition ne porte pas reste vide :
                     // on n'y met jamais le texte de l'autre colonne.
-                    <p aria-hidden style={{ margin: '0 0 0.35rem', color: 'var(--cs-texte-faible)' }}>
+                    <p aria-hidden style={{ ...STYLE_VERSET, color: 'var(--cs-texte-faible)' }}>
                       &nbsp;
                     </p>
                   ) : (
-                    <p style={{ margin: '0 0 0.35rem', lineHeight: 1.7 }}>
+                    <p style={STYLE_VERSET}>
                       {cellule.referenceNative && (
                         <span
                           style={{
-                            color: 'var(--cs-or)',
-                            fontSize: '0.6875rem',
-                            marginRight: '0.35rem',
-                            verticalAlign: 'baseline',
+                            fontSize: '0.625rem',
+                            fontWeight: 600,
+                            color: 'var(--cs-texte-faible)',
+                            marginRight: '0.3125rem',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {cellule.referenceNative}

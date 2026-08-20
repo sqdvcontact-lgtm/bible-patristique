@@ -11,6 +11,7 @@ import {
   ordonnerMembresBilingues,
   couperPointsDeCode,
   recomposerFragmentsMateriels,
+  rangTitreBloc,
   styleSemantiqueBloc,
   trierBlocsMateriels,
   type BibleEditionMember,
@@ -38,6 +39,21 @@ describe('modèle éditorial biblique', () => {
     expect(styleSemantiqueBloc('commentary', 'pericope')).toBe('commentaire_pericope')
     expect(styleSemantiqueBloc('summary', 'chapter')).toBe('sommaire_chapitre')
     expect(styleSemantiqueBloc('title', 'book_group')).toBe('titre_groupe_livres')
+  })
+
+  it('donne à un titre de bloc le rang de sa portée, comme les niveaux d’une œuvre', () => {
+    // Ce qui surmonte la même étendue partage le même rang, quel que soit le
+    // genre du bloc : une introduction de livre et son sommaire vont ensemble.
+    expect(rangTitreBloc('introduction_livre')).toBe(1)
+    expect(rangTitreBloc('sommaire_livre')).toBe(1)
+    expect(rangTitreBloc('introduction_testament')).toBe(1)
+    expect(rangTitreBloc('introduction_chapitre')).toBe(2)
+    expect(rangTitreBloc('commentaire_section')).toBe(2)
+    expect(rangTitreBloc('titre_partie')).toBe(2)
+    expect(rangTitreBloc('commentaire_pericope')).toBe(3)
+    expect(rangTitreBloc('conclusion_pericope')).toBe(3)
+    // Un style inconnu descend au rang le plus bas plutôt que de dominer la page.
+    expect(rangTitreBloc('excursus_inconnu')).toBe(3)
   })
 
   it('garde le sous-type de notice hors du style sémantique', () => {
@@ -128,7 +144,7 @@ describe('modèle éditorial biblique', () => {
     expect(index.byNote.get('note-1')?.map((asset) => asset.id)).toEqual(['note'])
   })
 
-  it('place le latin avant le français sur ordinateur et sur mobile', () => {
+  it('suit l’ordre déclaré par l’édition, à l’écran comme sur mobile', () => {
     const membres: BibleEditionMember[] = [
       { id: 'fr', translationId: 'fr', languageCode: 'fr', displayOrder: 2, desktopPosition: 'right', mobileOrder: 2 },
       { id: 'la', translationId: 'la', languageCode: 'la', displayOrder: 1, desktopPosition: 'left', mobileOrder: 1 },

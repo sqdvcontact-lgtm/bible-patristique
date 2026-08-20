@@ -6,11 +6,11 @@ import type { MembreBilingue } from '@/app/lib/bibleEditionBilingue'
 
 const LATIN: MembreBilingue = {
   id: 'la', translationId: 'TR0011', languageCode: 'la', label: 'Vulgate Fillion',
-  memberRole: 'source_text', displayOrder: 1, desktopPosition: 'left', mobileOrder: 1,
+  memberRole: 'source_text', displayOrder: 2, desktopPosition: 'right', mobileOrder: 2,
 }
 const FRANCAIS: MembreBilingue = {
   id: 'fr', translationId: 'TR0010', languageCode: 'fr', label: 'Fillion français',
-  memberRole: 'translation', displayOrder: 2, desktopPosition: 'right', mobileOrder: 2,
+  memberRole: 'translation', displayOrder: 1, desktopPosition: 'left', mobileOrder: 1,
 }
 
 const COMMUN = {
@@ -34,9 +34,9 @@ const COMMUN = {
 }
 
 describe('lecture bilingue de la page Bible', () => {
-  it('met le latin à gauche et garde les deux références natives', () => {
+  it('suit l’ordre de l’édition — français à gauche — et garde les deux références natives', () => {
     const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} />)
-    expect(html.indexOf('lang="la"')).toBeLessThan(html.indexOf('lang="fr"'))
+    expect(html.indexOf('lang="fr"')).toBeLessThan(html.indexOf('lang="la"'))
     expect(html).toContain('I, 1')
     expect(html).toContain('>1<')
     // Le créneau que le français ne porte pas ne reçoit jamais le texte latin.
@@ -44,12 +44,12 @@ describe('lecture bilingue de la page Bible', () => {
     expect(apresDeuxieme.split('Sicut scriptum est in Isaia')).toHaveLength(2)
   })
 
-  it('empile latin puis français sur mobile, en une seule colonne', () => {
+  it('empile les colonnes sur mobile, dans l’ordre de l’édition', () => {
     const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} mobile />)
     expect(html).toContain('minmax(0, 1fr)')
     expect(html).not.toContain('repeat(2,')
-    // L'ordre déclaré par l'édition tient : le latin vient d'abord.
-    expect(html.indexOf('lang="la"')).toBeLessThan(html.indexOf('lang="fr"'))
+    // L'ordre déclaré par l'édition tient : le français vient d'abord.
+    expect(html.indexOf('lang="fr"')).toBeLessThan(html.indexOf('lang="la"'))
     // Les étiquettes de colonne n'ont plus lieu d'être : chaque verset porte sa langue.
     expect(html).not.toContain('Vulgate Fillion')
   })
@@ -94,9 +94,10 @@ describe('lecture bilingue de la page Bible', () => {
     )
     expect(html).toContain('id="appel-note-bible-n1-la"')
     expect(html).toContain('id="appel-note-bible-n1-fr"')
-    // Une seule note au bas du chapitre, et elle revient à la première colonne.
+    // Une seule note au bas du chapitre, et elle revient à la PREMIÈRE colonne,
+    // celle que le lecteur a sous les yeux en tête de rangée — ici le français.
     expect(html.split('Note commune à l’édition.')).toHaveLength(2)
-    expect(html).toContain('href="#appel-note-bible-n1-la"')
+    expect(html).toContain('href="#appel-note-bible-n1-fr"')
   })
 
   // Quatre régressions à empêcher : un contenu propre à une langue ne doit
