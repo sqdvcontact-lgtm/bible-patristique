@@ -1347,6 +1347,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     )
   }
 
+  // Corps d'un segment : lettrine et citation sortie comprises (charte §3.8,
+  // cinquième règle). UN SEUL rendu pour les deux modes de lecture. Le mode
+  // paragraphes le pose dans un <span> partagé avec ses voisins, le mode segments
+  // dans le <p> que le segment possède en propre : la citation étant TERMINALE
+  // par construction (`detecterCitationSortie`), le bloc ferme le segment et les
+  // suivants reprennent à la ligne, sans qu'aucun voisin soit coupé en deux.
+  const rendreCorpsSegment = (s: SegData, estPremier: boolean): React.ReactNode => {
+    const texte = composerCorps(preparerTexteSegment(s.texte))
+    // La lettrine garde la priorité : un premier segment orné ne se sort pas.
+    if (estPremier && texte.length > 0) return rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {})
+    const sortie = detecterCitationSortie(texte)
+    if (!sortie) return rendreTexteAvecNotes(texte, s.notes ?? {})
+    return (
+      <>
+        {rendreTexteAvecNotes(sortie.avant, s.notes ?? {})}
+        <span className="citation-sortie">{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
+      </>
+    )
+  }
+
   // Mode paragraphes : découpe les segments d'un groupe en paragraphes (colonne
   // `paragraphe`, charte §6.1), ordonnés en interne par `rang`. Segments
   // consécutifs de même paragraphe → un bloc coulant. Un `paragraphe` nul isole
@@ -2032,7 +2052,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                 onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                 {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                                {estPremier && preparerTexteSegment(s.texte).length > 0 ? rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {}) : rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
+                                {rendreCorpsSegment(s, estPremier)}
                               </span>
                             </Fragment>
                           )
@@ -2064,16 +2084,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                          {(() => {
-                            const texte = composerCorps(preparerTexteSegment(s.texte))
-                            if (sid === premierSegmentId && texte.length > 0) return rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {})
-                            const sortie = detecterCitationSortie(texte)
-                            if (!sortie) return rendreTexteAvecNotes(texte, s.notes ?? {})
-                            return (<>
-                              {rendreTexteAvecNotes(sortie.avant, s.notes ?? {})}
-                              <span className="citation-sortie">{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
-                            </>)
-                          })()}
+                          {rendreCorpsSegment(s, sid === premierSegmentId)}
                         </p>
                         <div className="seg-actions" style={mobile ? {
                           position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
