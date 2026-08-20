@@ -9,7 +9,7 @@ import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleRe
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import { loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
-import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import { sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -156,6 +156,7 @@ export default async function Home({
       bodyBlocks: payload.bodyBlocks.filter(appartientAuMembre).map((block) => ({
         id: block.id,
         semanticStyleCode: block.semantic_style_code,
+        noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
         heading: block.heading,
         placement: block.placement,
         canonIdStart: block.canon_id_start,

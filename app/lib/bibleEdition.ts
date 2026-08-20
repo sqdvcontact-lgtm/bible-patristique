@@ -22,9 +22,22 @@ export const BIBLE_EDITORIAL_SCOPE_KINDS = [
 
 export const BIBLE_EDITORIAL_PLACEMENTS = ['before', 'after', 'inline'] as const
 
+// Le sous-type qualifie la matière d'une notice, non sa place : il reste hors
+// des trois axes normalisés et ne modifie donc pas le style sémantique dérivé.
+export const BIBLE_EDITORIAL_NOTICE_SUBTYPES = [
+  'historical',
+  'geographical',
+  'literary',
+  'doctrinal',
+  'chronological',
+  'liturgical',
+  'other',
+] as const
+
 export type BibleEditorialBlockKind = typeof BIBLE_EDITORIAL_BLOCK_KINDS[number]
 export type BibleEditorialScopeKind = typeof BIBLE_EDITORIAL_SCOPE_KINDS[number]
 export type BibleEditorialPlacement = typeof BIBLE_EDITORIAL_PLACEMENTS[number]
+export type BibleEditorialNoticeSubtype = typeof BIBLE_EDITORIAL_NOTICE_SUBTYPES[number]
 export type BibleEditionApplicability = 'family' | 'member'
 
 export type BibleEditionMember = {
@@ -41,6 +54,7 @@ export type BibleEditorialBlock = {
   blockKey: string
   blockKind: BibleEditorialBlockKind
   scopeKind: BibleEditorialScopeKind
+  noticeSubtype: BibleEditorialNoticeSubtype | null
   placement: BibleEditorialPlacement
   appliesTo: BibleEditionApplicability
   appliesToMemberId: string | null
@@ -77,6 +91,7 @@ export type BibleEditionDisplayTextBlock = {
 export type BibleEditionDisplayBodyBlock = {
   id: string
   semanticStyleCode: string
+  noticeSubtype?: BibleEditorialNoticeSubtype | null
   heading?: string | null
   placement: BibleEditorialPlacement
   canonIdStart: string | null
@@ -317,6 +332,40 @@ export function erreursApplicabilite(
     return ['Un contenu propre à un membre doit désigner ce membre.']
   }
   return []
+}
+
+/**
+ * Jumeau applicatif de la contrainte SQL : un sous-type ne qualifie qu'une
+ * notice, et seul le vocabulaire arrêté est admis. Une classification qui
+ * échoue ici doit partir en validation humaine, jamais en base.
+ */
+export function erreursSousTypeNotice(
+  blockKind: BibleEditorialBlockKind,
+  noticeSubtype: string | null,
+): string[] {
+  if (noticeSubtype === null) return []
+  const erreurs: string[] = []
+  if (blockKind !== 'notice') {
+    erreurs.push('Un sous-type de notice ne qualifie qu’une notice.')
+  }
+  if (!(BIBLE_EDITORIAL_NOTICE_SUBTYPES as readonly string[]).includes(noticeSubtype)) {
+    erreurs.push(`Sous-type de notice hors vocabulaire : ${noticeSubtype}.`)
+  }
+  return erreurs
+}
+
+/**
+ * Le rendu ne fait pas foi sur la classification : un sous-type incohérent ou
+ * inconnu est tu plutôt qu'affiché, et la base reste seule à l'arbitrer.
+ */
+export function sousTypeNoticeValide(
+  blockKind: string,
+  noticeSubtype: string | null,
+): BibleEditorialNoticeSubtype | null {
+  if (noticeSubtype === null) return null
+  const erreurs = erreursSousTypeNotice(blockKind as BibleEditorialBlockKind, noticeSubtype)
+  if (erreurs.length > 0) return null
+  return noticeSubtype as BibleEditorialNoticeSubtype
 }
 
 export function couperPointsDeCode(

@@ -12,7 +12,7 @@ export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
-  'id' | 'semanticStyleCode' | 'heading' | 'placement' | 'textBlocks'
+  'id' | 'semanticStyleCode' | 'noticeSubtype' | 'heading' | 'placement' | 'textBlocks'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
 
 export type NoteBibliqueAffichable = Pick<
@@ -118,6 +118,7 @@ export function BlocEditorialBible({
   const props = {
     className: `cs-bible-bloc cs-bible-${bloc.semanticStyleCode}`,
     'data-semantic-style': bloc.semanticStyleCode,
+    'data-notice-subtype': bloc.noticeSubtype ?? undefined,
     'data-placement': bloc.placement,
     style: STYLE_BLOC,
   }

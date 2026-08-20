@@ -45,6 +45,7 @@ export type BibleEditionBodyBlockRow = {
   block_key: string
   block_kind: string
   scope_kind: string
+  notice_subtype: string | null
   placement: 'before' | 'after' | 'inline'
   applies_to: 'family' | 'member'
   applies_to_member_id: string | null

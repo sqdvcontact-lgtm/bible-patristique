@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   appartientAuMembre,
   erreursApplicabilite,
+  erreursSousTypeNotice,
+  sousTypeNoticeValide,
   indexerNotesParVerset,
   indexerBlocsDeCorps,
   indexerIllustrations,
@@ -36,6 +38,29 @@ describe('modèle éditorial biblique', () => {
     expect(styleSemantiqueBloc('commentary', 'pericope')).toBe('commentaire_pericope')
     expect(styleSemantiqueBloc('summary', 'chapter')).toBe('sommaire_chapitre')
     expect(styleSemantiqueBloc('title', 'book_group')).toBe('titre_groupe_livres')
+  })
+
+  it('garde le sous-type de notice hors du style sémantique', () => {
+    // Deux notices de portées différentes gardent leurs styles ; le sous-type
+    // ne s'y invite pas et reste une qualification séparée.
+    expect(styleSemantiqueBloc('notice', 'book')).toBe('notice_livre')
+    expect(styleSemantiqueBloc('notice', 'pericope')).toBe('notice_pericope')
+  })
+
+  it('n’admet un sous-type que sur une notice, et dans le vocabulaire arrêté', () => {
+    expect(erreursSousTypeNotice('notice', 'geographical')).toEqual([])
+    expect(erreursSousTypeNotice('notice', null)).toEqual([])
+    expect(erreursSousTypeNotice('introduction', null)).toEqual([])
+    expect(erreursSousTypeNotice('introduction', 'historical')).toHaveLength(1)
+    expect(erreursSousTypeNotice('notice', 'zoologique')).toHaveLength(1)
+    expect(erreursSousTypeNotice('commentary', 'zoologique')).toHaveLength(2)
+  })
+
+  it('tait au rendu un sous-type incohérent plutôt que de l’afficher', () => {
+    expect(sousTypeNoticeValide('notice', 'liturgical')).toBe('liturgical')
+    expect(sousTypeNoticeValide('notice', null)).toBeNull()
+    expect(sousTypeNoticeValide('commentary', 'liturgical')).toBeNull()
+    expect(sousTypeNoticeValide('notice', 'zoologique')).toBeNull()
   })
 
   it('distingue contenu commun et contenu propre à un membre', () => {

@@ -39,6 +39,26 @@ node scripts/fillion/dry-run-editorial-migration.mjs
 
 Après application, `sql/tests/20260820_bible_fillion_editorial_model_verification.sql` a été exécuté et le rechargement du cache PostgREST vérifié. Les nouvelles tables publiques ont RLS ; `anon` et `authenticated` n’obtiennent que `SELECT`. Les écritures restent réservées à `service_role`.
 
+### 3 bis. Régulariser le journal, puis appliquer le sous-type de notice
+
+Deux opérations restent à faire dans cet ordre.
+
+**Inscrire la migration du socle au journal.** Le schéma est en place, mais `supabase_migrations.schema_migrations` ne porte pas la version `20260820093045` : elle a été appliquée par `exec_sql`. Or le fichier enchaîne seize `create table` sans `if not exists` ; un `supabase db push` la rejouerait et échouerait sur la première table déjà présente. L'inscription ne touche pas le schéma, elle rétablit seulement la concordance entre le dépôt et la base :
+
+```sql
+insert into supabase_migrations.schema_migrations (version, name)
+values ('20260820093045', 'bible_fillion_editorial_model')
+on conflict (version) do nothing;
+```
+
+**Appliquer le sous-type de notice.** Migration `supabase/migrations/20260820150500_bible_editorial_notice_subtype.sql` : une colonne facultative `notice_subtype`, deux contraintes de cohérence, et la vue `v_bible_editorial_body_blocks` reconstruite parce qu'elle développait `b.*`. L'essai transactionnel a réussi et a été annulé :
+
+```powershell
+node scripts/fillion/dry-run-migration.mjs supabase/migrations/20260820150500_bible_editorial_notice_subtype.sql sql/tests/20260820_bible_editorial_notice_subtype_verification.sql
+```
+
+Le code lisant la vue par `select('*')`, il tolère l'absence comme la présence de la colonne : l'ordre entre son déploiement et cette migration est libre. La vue est brièvement supprimée puis recréée dans la même transaction ; aucune lecture publique n'en dépend aujourd'hui, la famille Fillion étant en brouillon.
+
 ### 4. Créer les objets Fillion en brouillon
 
 `work/fillion/bootstrap_draft.sql` a réservé `TR0010` pour le français de Fillion et `TR0011` pour la Vulgate effectivement imprimée dans ses volumes, puis créé leur famille et les huit composants bibliographiques. Ne jamais réutiliser `TR0004`.
