@@ -6,6 +6,7 @@ import {
   lectureBilinguePossible,
   notesDuChapitreBilingue,
   rangeesNonVides,
+  referenceNativeEnChiffres,
   repartirBlocsDeCorps,
   type ColonneBilingue,
   type MembreBilingue,
@@ -122,5 +123,25 @@ describe('lecture bilingue d’une édition biblique', () => {
     expect(lectureBilinguePossible(MEMBRES)).toBe(true)
     expect(lectureBilinguePossible([LATIN])).toBe(false)
     expect(lectureBilinguePossible([LATIN, LATIN])).toBe(false)
+  })
+})
+
+describe('référence native imprimée', () => {
+  it('rend le chapitre en chiffres arabes', () => {
+    expect(referenceNativeEnChiffres('I, 1')).toBe('1, 1')
+    expect(referenceNativeEnChiffres('IV, 12')).toBe('4, 12')
+    expect(referenceNativeEnChiffres('XIV, 3')).toBe('14, 3')
+    expect(referenceNativeEnChiffres('XXIII, 45')).toBe('23, 45')
+    expect(referenceNativeEnChiffres('I')).toBe('1')
+  })
+
+  it('ne touche à rien d’autre', () => {
+    expect(referenceNativeEnChiffres(null)).toBeNull()
+    expect(referenceNativeEnChiffres('12, 5')).toBe('12, 5')
+    expect(referenceNativeEnChiffres('Prologue')).toBe('Prologue')
+    // Un romain mal formé se relit différemment : on ne le corrige pas en
+    // silence, on rend la référence telle quelle.
+    expect(referenceNativeEnChiffres('IIII, 2')).toBe('IIII, 2')
+    expect(referenceNativeEnChiffres('VV')).toBe('VV')
   })
 })

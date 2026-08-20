@@ -31,6 +31,7 @@ import {
   apparierRangees,
   colonnesBilingues,
   rangeesNonVides,
+  referenceNativeEnChiffres,
   repartirBlocsDeCorps,
   repartirIllustrations,
   notesDuChapitreBilingue,
@@ -76,6 +77,25 @@ const STYLE_VERSET_ORIGINAL = {
   fontSize: '0.8125rem',
   color: '#575048',
   wordSpacing: '-0.025em',
+}
+
+// La référence occupe sa propre colonne, étroite et alignée à droite, comme le
+// numéro de verset de la page Bible. Sans cela, chaque ligne commençait après
+// une référence de longueur variable et les deux colonnes ne s’alignaient pas.
+const STYLE_LIGNE_VERSET = {
+  display: 'grid',
+  gridTemplateColumns: 'auto minmax(0, 1fr)',
+  columnGap: '0.3125rem',
+  alignItems: 'baseline' as const,
+}
+
+const STYLE_REFERENCE = {
+  minWidth: '1.6rem',
+  textAlign: 'right' as const,
+  fontSize: '0.625rem',
+  fontWeight: 600,
+  color: 'var(--cs-texte-faible)',
+  whiteSpace: 'nowrap' as const,
 }
 
 type Appartenance = { appliesTo: 'family' | 'member'; appliesToMemberId: string | null }
@@ -164,7 +184,8 @@ export default function BibleBilingue({
     : {
       display: 'grid',
       gridTemplateColumns: `repeat(${colonnesOrdonnees.length}, minmax(0, 1fr))`,
-      columnGap: '1.6rem',
+      alignItems: 'baseline',
+      columnGap: '1.1rem',
       rowGap: '0.12rem',
     }
 
@@ -172,34 +193,6 @@ export default function BibleBilingue({
     <div data-lecture="bilingue">
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
-
-      {/* Étiquettes de colonne : discrètes, sans fond, comme en traductions
-          parallèles. Sur mobile, chaque verset porte déjà sa langue.
-          ⚠️ Elles précèdent tout ce qui vit DANS une colonne — une introduction
-          propre au français, par exemple : on doit savoir de quelle langue on
-          lit avant de la lire. Ce qui est commun à l'édition les précède, lui,
-          puisqu'il n'appartient à aucune des deux. */}
-      {!mobile && (
-        <div style={{ ...styleGrille, rowGap: 0, marginBottom: '0.75rem' }}>
-          {colonnesOrdonnees.map((colonne) => (
-            <p
-              key={colonne.membre.id}
-              style={{
-                margin: 0,
-                paddingBottom: '0.35rem',
-                borderBottom: '1px solid var(--cs-bord)',
-                fontFamily: SERIF,
-                color: 'var(--cs-texte-gris)',
-                fontSize: '0.625rem',
-                letterSpacing: '0.09em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {colonne.membre.label}
-            </p>
-          ))}
-        </div>
-      )}
 
       {rangees.map((rangee) => (
         <div key={rangee.canonId}>
@@ -218,33 +211,25 @@ export default function BibleBilingue({
                   {cellule === null ? (
                     // Un créneau que cette édition ne porte pas reste vide :
                     // on n'y met jamais le texte de l'autre colonne.
-                    <p aria-hidden style={{ ...STYLE_VERSET, color: 'var(--cs-texte-faible)' }}>
+                    <p aria-hidden style={STYLE_VERSET}>
                       &nbsp;
                     </p>
                   ) : (
-                    <p style={membre.memberRole === 'source_text' ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
-                      {cellule.referenceNative && (
-                        <span
-                          style={{
-                            fontSize: '0.625rem',
-                            fontWeight: 600,
-                            color: 'var(--cs-texte-faible)',
-                            marginRight: '0.3125rem',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {cellule.referenceNative}
-                        </span>
-                      )}
-                      {cellule.texte}
-                      {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
-                        <AppelNoteBiblique
-                          key={`${membre.id}:${note.id}`}
-                          note={note}
-                          memberId={membre.id}
-                        />
-                      ))}
-                    </p>
+                    <div style={STYLE_LIGNE_VERSET}>
+                      <span style={STYLE_REFERENCE}>
+                        {referenceNativeEnChiffres(cellule.referenceNative)}
+                      </span>
+                      <p style={membre.memberRole === 'source_text' ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
+                        {cellule.texte}
+                        {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
+                          <AppelNoteBiblique
+                            key={`${membre.id}:${note.id}`}
+                            note={note}
+                            memberId={membre.id}
+                          />
+                        ))}
+                      </p>
+                    </div>
                   )}
                 </div>
               )

@@ -484,10 +484,10 @@ button:focus-visible,
 /* La nature est un modificateur, non un niveau : elle se marque discrètement,
    et se cumule avec le jeton sans le contredire. */
 .cs-bible-block--title { font-variant-numeric: oldstyle-nums; }
-.cs-bible-block--introduction { border-left: 1px solid transparent; }
-.cs-bible-block--commentary { border-left: 1px solid var(--cs-bord-clair); }
-.cs-bible-block--notice { border-left: 1px solid var(--cs-bord); font-size: 0.84375rem; }
-.cs-bible-block--summary { border-left: 1px dashed var(--cs-bord); }
-.cs-bible-block--excursus { border-left: 2px solid var(--cs-bord); }
-.cs-bible-block--conclusion { border-left: 1px solid var(--cs-bord-clair); font-style: italic; }
-.cs-bible-block--note { border-left: 0; font-size: 0.8125rem; }
+.cs-bible-block--introduction { font-style: normal; }
+.cs-bible-block--commentary { font-style: normal; }
+.cs-bible-block--notice { font-size: 0.78125rem; }
+.cs-bible-block--summary { letter-spacing: 0.01em; }
+.cs-bible-block--excursus { font-size: 0.78125rem; }
+.cs-bible-block--conclusion { font-style: italic; }
+.cs-bible-block--note { font-size: 0.8125rem; }

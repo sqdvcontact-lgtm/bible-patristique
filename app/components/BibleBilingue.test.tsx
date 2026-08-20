@@ -37,7 +37,10 @@ describe('lecture bilingue de la page Bible', () => {
   it('suit l’ordre de l’édition — français à gauche — et garde les deux références natives', () => {
     const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} />)
     expect(html.indexOf('lang="fr"')).toBeLessThan(html.indexOf('lang="la"'))
-    expect(html).toContain('I, 1')
+    // Fillion imprime « I, 1 » ; le site lit en chiffres arabes. La référence
+    // native reste intacte en base, la conversion est un fait de rendu.
+    expect(html).toContain('1, 1')
+    expect(html).not.toContain('I, 1')
     expect(html).toContain('>1<')
     // Le créneau que le français ne porte pas ne reçoit jamais le texte latin.
     const apresDeuxieme = html.slice(html.indexOf('MRK.1.2'))

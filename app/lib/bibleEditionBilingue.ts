@@ -177,3 +177,45 @@ export function appelsDuVerset(
 export function lectureBilinguePossible(membres: readonly MembreBilingue[]): boolean {
   return new Set(membres.map((membre) => membre.id)).size >= 2
 }
+
+const VALEUR_ROMAINE: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
+
+/**
+ * Fillion imprime le chapitre en chiffres romains : « I, 5 ». Le site lit en
+ * chiffres arabes, « 1, 5 ».
+ *
+ * La conversion est un fait de RENDU, comme la typographie : la référence
+ * native reste en base telle que l'édition l'imprime, et c'est elle qui fait
+ * foi. Rien d'autre n'est touché — si la tête n'est pas un nombre romain bien
+ * formé, la référence est rendue inchangée plutôt que devinée.
+ */
+export function referenceNativeEnChiffres(reference: string | null): string | null {
+  if (reference === null) return null
+  const decoupe = reference.match(/^([IVXLCDM]+)(\s*[,.]\s*.*)?$/)
+  if (!decoupe) return reference
+  const romain = decoupe[1]
+  let total = 0
+  for (let i = 0; i < romain.length; i += 1) {
+    const valeur = VALEUR_ROMAINE[romain[i]]
+    const suivante = VALEUR_ROMAINE[romain[i + 1]] ?? 0
+    total += valeur < suivante ? -valeur : valeur
+  }
+  // Un nombre mal formé — « IIII », « VV » — se relit différemment : on ne le
+  // corrige pas en silence, on rend la référence telle quelle.
+  if (enChiffresRomains(total) !== romain) return reference
+  return `${total}${decoupe[2] ?? ''}`
+}
+
+const RANGS_ROMAINS: [number, string][] = [
+  [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
+  [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+]
+
+function enChiffresRomains(valeur: number): string {
+  let reste = valeur
+  let sortie = ''
+  for (const [poids, signe] of RANGS_ROMAINS) {
+    while (reste >= poids) { sortie += signe; reste -= poids }
+  }
+  return sortie
+}

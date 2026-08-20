@@ -45,12 +45,16 @@ const STYLE_REPERE: CSSProperties = {
   color: 'var(--cs-texte)',
 }
 
-// Corps d'un paratexte : la composition d'un verset de la page Bible.
+// Corps d'un paratexte : la composition d'un verset de la page Bible, mais un
+// cran en dessous. Une introduction de Fillion se lit AUTOUR du texte biblique,
+// non à sa place : elle se compose donc plus petit, plus serré et d'une encre
+// plus claire. C’est cette différence de composition qui la situe, et non un
+// filet dans la marge — ⛔ aucun filet à gauche ni sous un bloc.
 const STYLE_CORPS: CSSProperties = {
   fontFamily: SERIF,
-  fontSize: '0.875rem',
-  lineHeight: 1.5,
-  color: 'var(--cs-texte-fort)',
+  fontSize: '0.8125rem',
+  lineHeight: 1.4,
+  color: 'var(--cs-texte-second)',
   textAlign: 'justify',
   hyphens: 'auto',
   overflowWrap: 'break-word',
