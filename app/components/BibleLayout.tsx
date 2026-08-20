@@ -11,7 +11,9 @@ import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/l
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
 import { estVerseEditorial } from '@/app/lib/bibleMultimode'
-import { livresDisponibles899, type Couche899 } from '@/app/lib/bible899'
+import { livresDisponibles899, TRAD_ID_BIBLE899, type Couche899 } from '@/app/lib/bible899'
+import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
+import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -19,7 +21,7 @@ type Verset = {
   chapitre: number; verset: number
   // TR0009 (Bible 899) : marqueurs de l'adaptateur — ligne recomposée et lacune du
   // manuscrit. Aucun statut technique d'alignement n'est exposé au rendu public.
-  _est899?: boolean; _estLacune?: boolean
+  _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
   [traduction: string]: string | number | boolean | null | undefined
 }
 type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; editionRef?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
@@ -39,6 +41,8 @@ type Props = {
   couchesDisponibles?: Couche899[]
   /** L'URL a explicitement fixé `?trad=` : on l'honore, sans lui substituer la préférence. */
   tradExplicite?: boolean
+  /** Introductions, commentaires de plage, notes et illustrations de l’édition. */
+  editionChapter?: BibleEditionChapterDisplay | null
 }
 
 // Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
@@ -51,7 +55,7 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -132,10 +136,14 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       }
       setLivresVidesCache((cache) => ({ ...cache, [trad]: vides }))
     }
-    // TR0009 (Bible 899) n'est pas dans `versets_v2`/`livres_par_traduction` : ses
-    // livres réellement portés se lisent sur la vue de recomposition.
+    // Les éditions à segmentation éditoriale ne sont pas dans
+    // `versets_v2`/`livres_par_traduction` : leurs livres réellement portés se
+    // lisent dans leur structure source. Bible 899 conserve son chemin spécialisé.
     if (estVerseEditorial(readingCapabilities[trad])) {
-      livresDisponibles899(supabase).then(marquerVides).catch(() => {})
+      const chargerLivres = trad === TRAD_ID_BIBLE899
+        ? livresDisponibles899(supabase)
+        : livresDisponiblesEditoriaux(supabase, trad)
+      chargerLivres.then(marquerVides).catch(() => {})
       return () => { annule = true }
     }
     // On demande la LISTE DES LIVRES, pas tous les versets pour en déduire la liste : l'API
@@ -208,7 +216,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       cancelled = true
       cancelAnimationFrame(frame)
     }
-  }, [listeTraductions, readingCapabilities, tradExplicite])
+  }, [listeTraductions, readingCapabilities, tradExplicite, traduction])
 
   useEffect(() => {
     const trad = listeTraductions[traductionIndex]?.code ?? 'TR0001'
@@ -284,6 +292,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           setVersetSelectionne={setVersetSelectionne}
           mobile={mobile}
           couche={couche}
+          editionChapter={editionChapter}
           couchesDisponibles={couchesDisponibles}
         />
       </div>

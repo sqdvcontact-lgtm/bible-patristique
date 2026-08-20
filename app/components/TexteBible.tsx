@@ -1,7 +1,7 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
 
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from "@/app/lib/supabase"
@@ -18,6 +18,14 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { type Couche899 } from '@/app/lib/bible899'
 import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { AppelNoteBible, BlocEditorialBible, IllustrationBible, NotesBibleChapitre } from '@/app/components/BibleEditionParatext'
+import {
+  indexerBlocsDeCorps,
+  indexerIllustrations,
+  type BibleEditionChapterDisplay,
+  type BibleEditionDisplayAsset,
+  type BibleEditionDisplayBodyBlock,
+} from '@/app/lib/bibleEdition'
 
 const VERSET_ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -31,8 +39,8 @@ type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
   chapitre_alternatif?: number | null; verset_alternatif?: number | null
-  // TR0009 (Bible 899) : marqueurs de l'adaptateur (ligne recomposée, lacune du manuscrit).
-  _est899?: boolean; _estLacune?: boolean
+  // Marqueurs des adaptateurs éditoriaux ; Bible 899 ajoute son statut de lacune.
+  _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
   [traduction: string]: string | number | boolean | null | undefined
 }
 
@@ -52,6 +60,7 @@ type Props = {
   mobile?: boolean
   couche?: Couche899
   couchesDisponibles?: Couche899[]
+  editionChapter?: BibleEditionChapterDisplay | null
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -382,7 +391,7 @@ export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, mobile = false,
-  couche, couchesDisponibles
+  couche, couchesDisponibles, editionChapter
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const [estAdmin, setEstAdmin] = useState(false)
@@ -469,7 +478,41 @@ export default function TexteBible({
   const coucheActive: Couche899 = couche ?? 'expanded'
   const graphieModerniseeDispo = (couchesDisponibles ?? []).includes('modernized')
   const estLigne899 = (v: Verset) => v._est899 === true
+  const estLigneEditoriale = (v: Verset) => v._estEditorial === true
   const estLacune899 = (v: Verset) => v._estLacune === true
+  const indexBlocs = indexerBlocsDeCorps(editionChapter?.bodyBlocks ?? [])
+  const indexIllustrations = indexerIllustrations(editionChapter?.assets ?? [])
+  const rendreFluxEditorial = (
+    blocs: readonly BibleEditionDisplayBodyBlock[],
+    illustrations: readonly BibleEditionDisplayAsset[],
+  ) => [
+    ...blocs.map((bloc) => ({ kind: 'block' as const, materialOrder: bloc.materialOrder, id: bloc.id, value: bloc })),
+    ...illustrations.map((illustration) => ({
+      kind: 'illustration' as const,
+      materialOrder: illustration.materialOrder,
+      id: illustration.id,
+      value: illustration,
+    })),
+  ]
+    .sort((a, b) => a.materialOrder - b.materialOrder || a.id.localeCompare(b.id, 'fr'))
+    .map((item) => item.kind === 'block'
+      ? (
+          <BlocEditorialBible
+            key={`bloc:${item.id}`}
+            bloc={item.value}
+            illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
+          />
+        )
+      : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />)
+  const notesParCanon = new Map<string, NonNullable<typeof editionChapter>['notes']>()
+  for (const note of editionChapter?.notes ?? []) {
+    const notes = notesParCanon.get(note.canonId) ?? []
+    notes.push(note)
+    notesParCanon.set(note.canonId, notes)
+  }
+  for (const notes of notesParCanon.values()) {
+    notes.sort((a, b) => a.displayNumber - b.displayNumber || a.materialOrder - b.materialOrder)
+  }
   // Chapitre entièrement absent du témoin (ex. 1 Samuel 1 dans la Bible 899) : au lieu
   // d'aligner autant de « [Lacune du manuscrit] » que de versets attendus, on donne UNE
   // mention de chapitre. On ne le fait qu'en contexte 899 (toutes les lignes en sont) et
@@ -591,6 +634,8 @@ export default function TexteBible({
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
 
+          {rendreFluxEditorial(indexBlocs.opening, indexIllustrations.opening)}
+
           {(versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))) && (
             // Charte : l'image + légende se placent au tiers supérieur du bloc,
             // non centrées verticalement dans le vide.
@@ -638,9 +683,18 @@ export default function TexteBible({
           {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction]).map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
             const ligne899 = estLigne899(v)
+            const ligneEditoriale = estLigneEditoriale(v)
+            const ligneSource = ligne899 || ligneEditoriale
             const lacune = estLacune899(v)
+            const blocsAvant = indexBlocs.beforeByCanon.get(v.id_verset) ?? []
+            const blocsApres = indexBlocs.afterByCanon.get(v.id_verset) ?? []
+            const illustrationsAvant = indexIllustrations.beforeByCanon.get(v.id_verset) ?? []
+            const illustrationsApres = indexIllustrations.afterByCanon.get(v.id_verset) ?? []
+            const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
             return (
-            <div key={v.id_verset}
+            <Fragment key={v.id_verset}>
+            {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
+            <div
               id={`verset-${v.verset}`}
               onClick={() => {
                 const incrementer = () => fetch('/api/versets/incrementer-lecture', {
@@ -650,12 +704,13 @@ export default function TexteBible({
                 if (mobile) {
                   // Sur mobile, un tap sélectionne le verset ET fait apparaître
                   // immédiatement le pavé d'actions ; un second tap referme.
-                  // TR0009 : pas de comptage de lecture ni de pavé d'actions (id non canonique).
+                  // Les lignes recomposées ne ciblent pas `versets_v2` : pas de comptage
+                  // de lecture ni de pavé d'actions tant que ces routes ne les acceptent pas.
                   if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
-                  else { if (!ligne899) { incrementer(); setActionsMobileId(v.id_verset) } setVersetSelectionne(v) }
+                  else { if (!ligneSource) { incrementer(); setActionsMobileId(v.id_verset) } setVersetSelectionne(v) }
                   return
                 }
-                if (!actif && !ligne899) incrementer()
+                if (!actif && !ligneSource) incrementer()
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
@@ -689,6 +744,9 @@ export default function TexteBible({
                     ) : (
                       <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>
                     )}
+                    {notesDuVerset.map((note) => (
+                      <AppelNoteBible key={note.id} noteId={note.id} displayNumber={note.displayNumber} />
+                    ))}
                   </p>
                 </div>
 
@@ -701,10 +759,10 @@ export default function TexteBible({
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
                 } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible' }}>
-                  {/* TR0009 : prélèvement / signalement / édition ciblent un id de verset
-                      canonique, inexistant pour le manuscrit. On masque ces actions ; la
-                      colonne reste réservée pour préserver l'alignement de la mise en page. */}
-                  {!ligne899 && (
+                  {/* Les actions écrivent encore dans le modèle `versets_v2`. On les masque
+                      pour toutes les lignes éditoriales recomposées ; la colonne reste
+                      réservée pour préserver l'alignement de la mise en page. */}
+                  {!ligneSource && (
                     <>
                       {userId && (
                         <BoutonEnregistrer
@@ -733,8 +791,15 @@ export default function TexteBible({
                 </div>
               </div>
             </div>
+            {rendreFluxEditorial(blocsApres, illustrationsApres)}
+            </Fragment>
             )
           })}
+          {rendreFluxEditorial(indexBlocs.closing, indexIllustrations.closing)}
+          <NotesBibleChapitre
+            notes={editionChapter?.notes ?? []}
+            illustrationsByNote={indexIllustrations.byNote}
+          />
         </div>
       </div>
       {editionCible && (

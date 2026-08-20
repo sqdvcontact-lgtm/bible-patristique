@@ -1,0 +1,224 @@
+import 'server-only'
+
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
+
+type CanonRow = {
+  id: string
+  livre: string
+  ch_canon: number | string
+  v_canon: number | string
+  ordre: number
+}
+
+type AlignmentRow = {
+  id: string
+  source_id: string
+  segment_id: string | null
+  alignment_order: number
+  canon_id: string
+  canon_id_fin: string | null
+}
+
+type EditorialSegmentRow = {
+  id: string
+  source_id: string
+  editorial_sequence: number
+  editorial_label: string | null
+  metadata: Record<string, unknown> | null
+}
+
+type SegmentSourceRow = {
+  source_id: string
+  segment_id: string
+  unit_id: string
+  unit_sequence: number
+  start_offset: number | null
+  end_offset: number | null
+  join_before: BibleSourceFragment['joinBefore']
+}
+
+type UnitTextRow = {
+  source_id: string
+  unit_id: string
+  layer_code: string
+  layer_kind: string
+  text_content: string
+}
+
+export type VersetEditorialAdapte = {
+  id_verset: string
+  ref: string
+  livre: string
+  chapitre: number
+  verset: number
+  ordre: number
+  _estEditorial: true
+  [key: string]: string | number | boolean | null | undefined
+}
+
+const LAYER_KIND_PRIORITY: Record<string, number> = {
+  expanded: 0,
+  translation: 1,
+  diplomatic: 2,
+  modernized: 3,
+  other: 4,
+}
+
+function sourceUnitKey(sourceId: string, unitId: string): string {
+  return `${sourceId}:${unitId}`
+}
+
+function nativeLabel(segment: EditorialSegmentRow): string | null {
+  if (segment.editorial_label?.trim()) return segment.editorial_label.trim()
+  const metadataLabel = segment.metadata?.native_reference
+  return typeof metadataLabel === 'string' && metadataLabel.trim() ? metadataLabel.trim() : null
+}
+
+export async function chargerVersetsEditoriaux(
+  client: SupabaseClient,
+  options: {
+    sourceIds: string[]
+    translationId: string
+    livre: string
+    chapitre: number
+    preferredLayerCode?: string
+  },
+): Promise<VersetEditorialAdapte[]> {
+  const sourceIds = [...new Set(options.sourceIds)]
+  if (sourceIds.length === 0) return []
+
+  const { data: canonData, error: canonError } = await client
+    .from('versets_canon')
+    .select('id,livre,ch_canon,v_canon,ordre')
+    .eq('livre', options.livre)
+    .eq('ch_canon', options.chapitre)
+    .order('ordre')
+  if (canonError) throw new Error(`Créneaux canoniques illisibles : ${canonError.message}`)
+  const canonRows = (canonData ?? []) as CanonRow[]
+  if (canonRows.length === 0) return []
+  const canonIds = canonRows.map((row) => row.id)
+
+  const { data: alignmentData, error: alignmentError } = await client
+    .from('bible_canonical_alignments')
+    .select('id,source_id,segment_id,alignment_order,canon_id,canon_id_fin')
+    .in('source_id', sourceIds)
+    .in('canon_id', canonIds)
+    .in('verification_status', ['review', 'verified'])
+    .order('alignment_order')
+  if (alignmentError) throw new Error(`Alignements éditoriaux illisibles : ${alignmentError.message}`)
+  const alignments = ((alignmentData ?? []) as AlignmentRow[])
+    .filter((row) => row.segment_id !== null)
+  const segmentIds = [...new Set(alignments.flatMap((row) => row.segment_id ? [row.segment_id] : []))]
+  if (segmentIds.length === 0) {
+    return canonRows.map((row) => adapterCanonSansTexte(row, options.translationId))
+  }
+
+  const [segmentsResult, sourcesResult] = await Promise.all([
+    client
+      .from('bible_editorial_segments')
+      .select('id,source_id,editorial_sequence,editorial_label,metadata')
+      .in('id', segmentIds),
+    client
+      .from('bible_editorial_segment_sources')
+      .select('source_id,segment_id,unit_id,unit_sequence,start_offset,end_offset,join_before')
+      .in('segment_id', segmentIds)
+      .order('unit_sequence'),
+  ])
+  if (segmentsResult.error) throw new Error(`Segments éditoriaux illisibles : ${segmentsResult.error.message}`)
+  if (sourcesResult.error) throw new Error(`Unités des versets éditoriaux illisibles : ${sourcesResult.error.message}`)
+  const segments = (segmentsResult.data ?? []) as EditorialSegmentRow[]
+  const segmentSources = (sourcesResult.data ?? []) as SegmentSourceRow[]
+  const unitIds = [...new Set(segmentSources.map((row) => row.unit_id))]
+
+  const { data: textData, error: textError } = await client
+    .from('v_bible_source_unit_texts')
+    .select('source_id,unit_id,layer_code,layer_kind,text_content')
+    .in('source_id', sourceIds)
+    .in('unit_id', unitIds)
+  if (textError) throw new Error(`Texte éditorial des versets illisible : ${textError.message}`)
+  const unitTexts = (textData ?? []) as UnitTextRow[]
+  const bestUnitText = new Map<string, UnitTextRow>()
+  for (const row of unitTexts) {
+    const key = sourceUnitKey(row.source_id, row.unit_id)
+    const current = bestUnitText.get(key)
+    const rowPriority = row.layer_code === options.preferredLayerCode
+      ? -1
+      : (LAYER_KIND_PRIORITY[row.layer_kind] ?? 99)
+    const currentPriority = current?.layer_code === options.preferredLayerCode
+      ? -1
+      : (LAYER_KIND_PRIORITY[current?.layer_kind ?? ''] ?? 99)
+    if (!current || rowPriority < currentPriority) bestUnitText.set(key, row)
+  }
+
+  const sourcesBySegment = new Map<string, SegmentSourceRow[]>()
+  for (const row of segmentSources) {
+    const group = sourcesBySegment.get(row.segment_id) ?? []
+    group.push(row)
+    sourcesBySegment.set(row.segment_id, group)
+  }
+  const textBySegment = new Map<string, string>()
+  for (const segment of segments) {
+    const fragments = (sourcesBySegment.get(segment.id) ?? [])
+      .sort((a, b) => a.unit_sequence - b.unit_sequence)
+      .flatMap((source): BibleSourceFragment[] => {
+        const text = bestUnitText.get(sourceUnitKey(source.source_id, source.unit_id))?.text_content
+        return text === undefined ? [] : [{
+          text,
+          startOffset: source.start_offset,
+          endOffset: source.end_offset,
+          joinBefore: source.join_before,
+        }]
+      })
+    textBySegment.set(segment.id, recomposerFragmentsMateriels(fragments))
+  }
+
+  const segmentById = new Map(segments.map((segment) => [segment.id, segment]))
+  const alignmentsByCanon = new Map<string, AlignmentRow[]>()
+  for (const alignment of alignments) {
+    const group = alignmentsByCanon.get(alignment.canon_id) ?? []
+    group.push(alignment)
+    alignmentsByCanon.set(alignment.canon_id, group)
+  }
+
+  return canonRows.map((canon) => {
+    const canonAlignments = (alignmentsByCanon.get(canon.id) ?? []).sort((a, b) => {
+      const segmentA = a.segment_id ? segmentById.get(a.segment_id) : undefined
+      const segmentB = b.segment_id ? segmentById.get(b.segment_id) : undefined
+      return a.alignment_order - b.alignment_order
+        || (segmentA?.editorial_sequence ?? 0) - (segmentB?.editorial_sequence ?? 0)
+    })
+    const textParts: string[] = []
+    const labels: string[] = []
+    for (const alignment of canonAlignments) {
+      if (!alignment.segment_id) continue
+      const text = textBySegment.get(alignment.segment_id)
+      if (text) textParts.push(text)
+      const segment = segmentById.get(alignment.segment_id)
+      const label = segment ? nativeLabel(segment) : null
+      if (label && labels.at(-1) !== label) labels.push(label)
+    }
+    return {
+      ...adapterCanonSansTexte(canon, options.translationId),
+      [options.translationId]: textParts.length > 0 ? textParts.join(' ') : null,
+      [`num_${options.translationId}`]: labels.length > 0 ? labels.join(' · ') : null,
+    }
+  })
+}
+
+function adapterCanonSansTexte(canon: CanonRow, translationId: string): VersetEditorialAdapte {
+  const chapitre = Number(canon.ch_canon)
+  const verset = Number(canon.v_canon)
+  return {
+    id_verset: canon.id,
+    ref: `${canon.livre} ${canon.ch_canon}:${canon.v_canon}`,
+    livre: canon.livre,
+    chapitre: Number.isFinite(chapitre) ? chapitre : 0,
+    verset: Number.isFinite(verset) ? verset : 0,
+    ordre: canon.ordre,
+    _estEditorial: true,
+    [translationId]: null,
+    [`num_${translationId}`]: null,
+  }
+}

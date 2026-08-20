@@ -1,12 +1,15 @@
 import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, type ComponentProps } from 'react'
 import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
 import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
-import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899 } from '@/app/lib/bible899'
+import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
+import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
+import { loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
+import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -43,8 +46,9 @@ export default async function Home({
   const livre = params.livre || 'GEN'
   const chapitre = parseInt(params.chapitre || '1')
   const supabase = await creerSupabaseServeur()
-  const [catalog, { data: rawTranslations }] = await Promise.all([
+  const [catalog, editionCatalog, { data: rawTranslations }] = await Promise.all([
     loadBibleReadingCatalog(supabase),
+    loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `source_edition` = référence complète de
     // l'édition présentée (ville, éditeur, date), toutes deux pour l'encart Traduction.
     supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').order('ordre', { ascending: true }),
@@ -95,21 +99,33 @@ export default async function Home({
 
   // Deux origines pour le mode « verset », même contrat de données pour BibleLayout :
   //   - éditions historiques (TR0001–TR0005) : vue large `versets_lecture` ;
-  //   - segmentation éditoriale (TR0009, Bible 899) : texte recomposé et aligné sur
+  //   - segmentations éditoriales (Bible 899, Fillion, Vulgate Fillion…) : texte
+  //     recomposé et aligné sur
   //     canon_id, ADAPTÉ au contrat ordinaire (aucune copie vers versets_v2). La
   //     mécanique (offsets, unités-source, folios…) reste derrière l'adaptateur.
   const editorial = estVerseEditorial(catalog.capabilities[trad])
+  const bible899 = trad === TRAD_ID_BIBLE899
   // Couches réellement disponibles pour la page Bible, lues sur les DONNÉES. La graphie
   // « diplomatique » n'est pas destinée à la page Bible (charte) : on l'écarte, ne
   // laissant que « Manuscrit » (expanded) et, quand elle existera, « Modernisée ».
-  const couchesBible = editorial
+  const couchesBible = bible899
     ? (await couchesDisponibles899(supabase)).filter((c) => c !== 'diplomatic')
     : []
   const couche = normaliserCouche899(params.couche, couchesBible)
-  let versets: any[]
-  if (editorial) {
+  let versets: ComponentProps<typeof BibleLayout>['versets']
+  if (bible899) {
     const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
     versets = adapterVersets899(lignes, trad, livre, chapitre, couche)
+  } else if (editorial) {
+    const sourceIds = catalog.rows
+      .filter((row) => row.trad_id === trad && row.mode_code === 'verse' && row.is_available)
+      .map((row) => row.source_id)
+    versets = await chargerVersetsEditoriaux(supabase, {
+      sourceIds,
+      translationId: trad,
+      livre,
+      chapitre,
+    })
   } else {
     const { data } = await supabase
       // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
@@ -120,6 +136,81 @@ export default async function Home({
       .eq('chapitre', chapitre)
       .order('verset')
     versets = data || []
+  }
+
+  const editionMember = editionCatalog.find((row) => row.trad_id === trad)
+  let editionChapter: BibleEditionChapterDisplay | null = null
+  if (editionMember) {
+    const payload = await loadBibleEditionChapter(supabase, {
+      familyId: editionMember.family_id,
+      bookCode: livre,
+      canonIds: versets.map((verset) => verset.id_verset),
+      includeBookFrontMatter: chapitre === 1,
+    })
+    const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
+      row.applies_to === 'family' || row.applies_to_member_id === editionMember.member_id
+    )
+    editionChapter = {
+      familyId: editionMember.family_id,
+      memberId: editionMember.member_id,
+      bodyBlocks: payload.bodyBlocks.filter(appartientAuMembre).map((block) => ({
+        id: block.id,
+        semanticStyleCode: block.semantic_style_code,
+        heading: block.heading,
+        placement: block.placement,
+        canonIdStart: block.canon_id_start,
+        canonIdEnd: block.canon_id_end,
+        materialOrder: block.material_order,
+        textBlocks: [{
+          id: `${block.id}:text`,
+          kind: 'commentary',
+          form: 'prose',
+          text: block.text_content,
+        }],
+        internalNotes: block.internal_notes.map((note) => ({
+          id: note.id,
+          displayNumber: note.display_number,
+          printedMarker: note.printed_marker,
+          blocks: note.blocks.map((noteBlock) => ({
+            id: noteBlock.block_id,
+            kind: noteBlock.kind,
+            form: noteBlock.form,
+            text: noteBlock.text,
+            language: noteBlock.language,
+          })),
+        })),
+      })),
+      notes: payload.notes.filter(appartientAuMembre).map((note) => ({
+        id: note.id,
+        displayNumber: note.display_number,
+        canonId: note.canon_id,
+        materialOrder: note.material_order,
+        blocks: note.blocks.map((block) => ({
+          id: block.block_id,
+          kind: block.kind,
+          form: block.form,
+          text: block.text,
+          language: block.language,
+        })),
+      })),
+      assets: payload.assets.filter(appartientAuMembre).map((asset) => ({
+        id: asset.id,
+        assetKey: asset.asset_key,
+        assetKind: asset.asset_kind,
+        url: asset.public_uri,
+        width: asset.width_px,
+        height: asset.height_px,
+        altText: asset.alt_text,
+        caption: asset.editorial_caption ?? asset.printed_caption,
+        printedPage: asset.printed_page,
+        placement: asset.placement,
+        canonIdStart: asset.canon_id_start,
+        canonIdEnd: asset.canon_id_end,
+        bodyBlockId: asset.body_block_id,
+        noteId: asset.note_id,
+        materialOrder: asset.material_order,
+      })),
+    }
   }
 
   return (
@@ -133,9 +224,10 @@ export default async function Home({
         nomLivre={NOMS_LIVRES[livre] || livre}
         tradInitiale={trad}
         readingCapabilities={catalog.capabilities}
-        couche={editorial ? couche : undefined}
+        couche={bible899 ? couche : undefined}
         couchesDisponibles={couchesBible}
         tradExplicite={!!params.trad}
+        editionChapter={editionChapter}
       />
     </Suspense>
   )
