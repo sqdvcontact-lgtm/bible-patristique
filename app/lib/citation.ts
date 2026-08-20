@@ -1,4 +1,5 @@
 import { formaterDateHistorique } from './datesHistoriques'
+import { mentionTraducteurs } from './traducteurs'
 import { normaliserEspaces } from './typographie'
 import { sansCesures } from './cesuresLatines'
 
@@ -93,7 +94,9 @@ export function citationPatristique(texte: string, info: InfoCitation): Citation
   if (info.auteur?.trim()) avant.push(info.auteur.trim())
 
   const apres: string[] = []
-  if (info.tradAuteur?.trim()) apres.push('trad. ' + info.tradAuteur.trim())
+  // Le champ porte une LISTE (« A ; B ») : c'est ici qu'elle devient « trad. A et B ».
+  const trad = mentionTraducteurs(info.tradAuteur)
+  if (trad) apres.push(trad)
   if (info.editeur?.trim()) apres.push(info.editeur.trim())
   if (info.collection?.trim()) apres.push(info.collection.trim())
   if (info.ville?.trim()) apres.push(info.ville.trim())

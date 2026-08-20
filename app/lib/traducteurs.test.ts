@@ -1,11 +1,46 @@
 import { describe, it, expect } from 'vitest'
-import { libelleTrad, enumererNoms } from './traducteurs'
+import { libelleTrad, enumererNoms, nomsTraducteurs, mentionTraducteurs } from './traducteurs'
 
 describe('enumererNoms', () => {
   it('remplace les points-virgules du catalogue par une énumération française', () => {
     expect(enumererNoms(['A'])).toBe('A')
     expect(enumererNoms(['A', 'B'])).toBe('A et B')
     expect(enumererNoms(['A', 'B', 'C'])).toBe('A, B et C')
+  })
+})
+
+describe('nomsTraducteurs — le point-virgule, et lui seul, sépare les noms', () => {
+  it('rend la liste telle que le catalogue la porte', () => {
+    expect(nomsTraducteurs('Henri Barreau ; Marcel Charpentier')).toEqual(['Henri Barreau', 'Marcel Charpentier'])
+    // Espaces libres autour du séparateur, ligne vide en fin : sans effet.
+    expect(nomsTraducteurs('Henri Barreau;Marcel Charpentier ; ')).toEqual(['Henri Barreau', 'Marcel Charpentier'])
+    expect(nomsTraducteurs('')).toEqual([])
+    expect(nomsTraducteurs(null)).toEqual([])
+  })
+  it('écarte un qualificatif dès qu’un vrai nom l’accompagne', () => {
+    expect(nomsTraducteurs('M. Jeannin ; traducteurs multiples')).toEqual(['M. Jeannin'])
+    expect(nomsTraducteurs('traducteurs multiples')).toEqual(['traducteurs multiples'])
+  })
+})
+
+describe('mentionTraducteurs — fragment d’une ligne bibliographique', () => {
+  it('énumère les noms derrière « trad. »', () => {
+    expect(mentionTraducteurs('Louis Judicis de Mirandol')).toBe('trad. Louis Judicis de Mirandol')
+    expect(mentionTraducteurs('H. Barreau ; M. Charpentier')).toBe('trad. H. Barreau et M. Charpentier')
+    expect(mentionTraducteurs('A ; B ; C')).toBe('trad. A, B et C')
+  })
+  it('laisse une mention collective se présenter seule, sans « trad. »', () => {
+    // Dans « Augustin, *Titre*, …, Paris, 1861 », « trad. sous la direction de » ferait
+    // une phrase dans la phrase ; la formule entre telle quelle, initiale en bas de casse.
+    expect(mentionTraducteurs('Sous la direction de M. Jeannin ; traducteurs multiples'))
+      .toBe('sous la direction de M. Jeannin')
+    expect(mentionTraducteurs('Équipe sous la direction de Michel Sot et Christiane Veyrard-Cosme'))
+      .toBe('sous la direction de Michel Sot et Christiane Veyrard-Cosme')
+  })
+  it('ne dit rien quand le champ est vide', () => {
+    expect(mentionTraducteurs('')).toBe('')
+    expect(mentionTraducteurs(null)).toBe('')
+    expect(mentionTraducteurs('Non établi')).toBe('')
   })
 })
 

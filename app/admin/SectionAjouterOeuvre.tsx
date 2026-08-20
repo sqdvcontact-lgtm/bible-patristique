@@ -4,6 +4,7 @@ import React from 'react'
 import { supabase, parseCSV, telechargerCSVModele, headersAdmin } from './adminShared'
 import type { Auteur } from './adminTypes'
 import { formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
+import { mentionTraducteurs } from '@/app/lib/traducteurs'
 
 const lbl: React.CSSProperties = { fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '3px' }
 const inp: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.875rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
@@ -537,7 +538,8 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
             {/* Édition */}
             <div><label style={lbl}>Éditeur</label><input value={meta.editeur} onChange={e => set('editeur', e.target.value)} style={inp} /></div>
-            <div><label style={lbl}>Traducteur</label><input value={meta.trad_auteur} onChange={e => set('trad_auteur', e.target.value)} style={inp} /></div>
+            {/* Plusieurs traducteurs : séparés par un point-virgule (mise en forme à l'affichage). */}
+            <div><label style={lbl}>Traducteur</label><input value={meta.trad_auteur} onChange={e => set('trad_auteur', e.target.value)} placeholder="Prénom Nom ; Prénom Nom" style={inp} /></div>
             <div><label style={lbl}>Ville</label><input value={meta.ville} onChange={e => set('ville', e.target.value)} style={inp} /></div>
             <div><label style={lbl}>Collection</label><input value={meta.collection} onChange={e => set('collection', e.target.value)} style={inp} /></div>
             <div><label style={lbl}>Date de publication</label><input value={meta.date_publication} onChange={e => set('date_publication', e.target.value)} style={inp} /></div>
@@ -639,7 +641,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
               {meta.id_oeuvre && <span style={{ fontSize: '0.78125rem', fontFamily: 'monospace', color: 'var(--cs-texte-doux)', marginLeft: '10px' }}>{meta.id_oeuvre}</span>}
             </p>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
-              {segments.length} segments{meta.trad_auteur ? ` · trad. ${meta.trad_auteur}` : ''}{meta.genres.length > 0 ? ` · ${meta.genres.join(', ')}` : ''}
+              {segments.length} segments{meta.trad_auteur ? ` · ${mentionTraducteurs(meta.trad_auteur) || meta.trad_auteur}` : ''}{meta.genres.length > 0 ? ` · ${meta.genres.join(', ')}` : ''}
             </p>
           </div>
           <div style={{ maxHeight: '280px', overflowY: 'auto' }}>

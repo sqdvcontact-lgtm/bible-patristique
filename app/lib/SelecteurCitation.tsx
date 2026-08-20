@@ -7,6 +7,7 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { cleTriTitre } from '@/app/lib/titres'
+import { mentionTraducteurs } from '@/app/lib/traducteurs'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -137,7 +138,8 @@ function refNotePatristique(auteur: string, o: OeuvreMeta, segs: SegPatr[]): str
   const contigu = nums.length > 1 && nums.every((n, i) => i === 0 || n === nums[i - 1] + 1)
   const locus = nums.length === 1 ? `\u00a7${nums[0]}` : contigu ? `\u00a7${nums[0]}\u2013\u00a7${nums[nums.length - 1]}` : `\u00a7${nums.join(', ')}`
   const parts = [auteur, `*${o.titre}*`]
-  if (o.trad_auteur) parts.push(`trad. ${o.trad_auteur}`)
+  const trad = mentionTraducteurs(o.trad_auteur)
+  if (trad) parts.push(trad)
   if (o.editeur) parts.push(String(o.editeur))
   if (o.ville) parts.push(String(o.ville))
   if (o.date_publication) parts.push(formaterDateHistorique(o.date_publication))
@@ -438,7 +440,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
     .filter(o => o.id_oeuvre === oeuvre.id_oeuvre || memeTexte(o))
     .sort((a, b) => (a.trad_auteur ?? '').localeCompare(b.trad_auteur ?? '', 'fr'))
   const libelleTradOeuvre = (o: OeuvreItem) =>
-    o.trad_auteur ? `trad. ${o.trad_auteur}` : (o.editeur || (o.date_publication ? formaterDateHistorique(o.date_publication) : '') || 'édition')
+    mentionTraducteurs(o.trad_auteur) || o.editeur || (o.date_publication ? formaterDateHistorique(o.date_publication) : '') || 'édition'
 
   const insererSelection = () => {
     if (segsSelectionnes.length === 0) return

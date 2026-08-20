@@ -14,6 +14,9 @@ const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |A
 // mot, pour que « Domitien » ne devienne pas « domitien ».
 const TITRE_MINUSCULE_RE = /^(Abbé|Dom|Père|Frère|Sœur|Chanoine|Cardinal|Monseigneur|Mgr|Mère)(?=[\s.]|$)/
 
+// Mention de travail gardée en base quand le traducteur n'est pas identifié.
+const EST_NON_ETABLI = /^non établi/i
+
 // ── Mentions de responsabilité collective ─────────────────────────────────────
 // Le champ ne porte alors pas un nom de personne mais une formule entière. La
 // préfixer de « Traduction par » donnait « Traduction par Sous la direction de
@@ -57,15 +60,42 @@ function libelleDirection(mention: string): string {
   return `Traduction ${minusculeInitiale(mention.replace(TETE_COLLECTIVE_RE, ''))}`
 }
 
-export function libelleTrad(trad: string | null | undefined): string {
-  const brut = (trad ?? '').split(/\s*;\s*/).map(s => s.trim()).filter(Boolean)
+/** Découpe brute : le catalogue sépare les noms par un point-virgule, et lui seul. */
+function decouper(trad: string | null | undefined): string[] {
+  return (trad ?? '').split(';').map(s => s.trim()).filter(Boolean)
+}
+
+/** Les noms d'une mention « A ; B ; C », nettoyés pour l'affichage. Les qualificatifs
+ *  qui ne nomment personne sont écartés, sauf s'ils sont tout ce qu'on a. C'est la
+ *  seule lecture du champ : tout le reste met en forme cette liste. */
+export function nomsTraducteurs(trad: string | null | undefined): string[] {
   // « Non établi » n'est pas un nom : traducteur inconnu.
-  const nomsBruts = brut.map(nettoyerNomTrad).filter(n => n && !/^non établi/i.test(n))
-  if (nomsBruts.length === 0) {
-    return brut.some(b => /^non établi/i.test(b)) ? 'Traducteur non identifié' : ''
-  }
+  const nomsBruts = decouper(trad).map(nettoyerNomTrad).filter(n => n && !EST_NON_ETABLI.test(n))
   const nomsUtiles = nomsBruts.filter(n => !NON_NOM_RE.test(n))
-  const noms = nomsUtiles.length ? nomsUtiles : nomsBruts
+  return nomsUtiles.length ? nomsUtiles : nomsBruts
+}
+
+/** Fragment prêt à entrer dans une ligne bibliographique déjà faite (« Augustin,
+ *  *Confessions*, trad. A et B, Paris, 1861 »), où « Traduction par… » ferait une
+ *  phrase dans la phrase. Une mention de responsabilité collective se suffit à
+ *  elle-même : elle entre sans « trad. ». */
+export function mentionTraducteurs(trad: string | null | undefined): string {
+  const noms = nomsTraducteurs(trad)
+  if (noms.length === 0) return ''
+  const direction = noms.find(n => DIRECTION_RE.test(n))
+  if (direction) {
+    const autres = noms.filter(n => n !== direction)
+    const formule = minusculeInitiale(direction.replace(TETE_COLLECTIVE_RE, ''))
+    return autres.length ? `${formule} et ${enumererNoms(autres)}` : formule
+  }
+  return `trad. ${enumererNoms(noms)}`
+}
+
+export function libelleTrad(trad: string | null | undefined): string {
+  const noms = nomsTraducteurs(trad)
+  if (noms.length === 0) {
+    return decouper(trad).some(b => EST_NON_ETABLI.test(b)) ? 'Traducteur non identifié' : ''
+  }
 
   // Une mention de direction commande tout le libellé : elle porte sa propre formule.
   const direction = noms.find(n => DIRECTION_RE.test(n))

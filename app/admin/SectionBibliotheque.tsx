@@ -16,6 +16,7 @@ import { revaliderBibliotheque } from '@/app/actions/revalider'
 import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { chargerAuteursDOeuvre, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+import { enumererNoms, nomsTraducteurs } from '@/app/lib/traducteurs'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -1824,7 +1825,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       <span style={{ fontSize: '0.875rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
                       {oeuvre.trad_auteur && (
                         <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '9.375rem', flexShrink: 0 }}>
-                          Trad. {oeuvre.trad_auteur}
+                          Trad. {enumererNoms(nomsTraducteurs(oeuvre.trad_auteur)) || oeuvre.trad_auteur}
                         </span>
                       )}
                       {/* Le commentaire sur l'édition ne paraît plus ici : il a rejoint le
@@ -1974,7 +1975,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                         {/* Édition */}
                         <div><label style={lbl}>Éditeur</label><input type="text" value={formOeuvre.editeur ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, editeur: e.target.value }))} style={inputStyleAuteur} /></div>
-                        <div><label style={lbl}>Traducteur</label><input type="text" value={formOeuvre.trad_auteur ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, trad_auteur: e.target.value }))} style={inputStyleAuteur} /></div>
+                        {/* Plusieurs traducteurs : un par un, séparés par un point-virgule.
+                            La mise en forme (« Traduction par A et B » sur la page de titre,
+                            « trad. A et B » en citation) se fait à l'affichage seulement. */}
+                        <div><label style={lbl}>Traducteur</label><input type="text" value={formOeuvre.trad_auteur ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, trad_auteur: e.target.value }))} placeholder="Prénom Nom ; Prénom Nom" style={inputStyleAuteur} /></div>
                         <div><label style={lbl}>Ville</label><input type="text" value={formOeuvre.ville ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, ville: e.target.value }))} style={inputStyleAuteur} /></div>
                         <div><label style={lbl}>Collection</label><input type="text" value={formOeuvre.collection ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, collection: e.target.value }))} style={inputStyleAuteur} /></div>
                         <div><label style={lbl}>Date de publication</label><input type="text" value={formOeuvre.date_publication ?? ''} onChange={e => setFormOeuvre(p => ({ ...p, date_publication: e.target.value }))} style={inputStyleAuteur} /></div>
