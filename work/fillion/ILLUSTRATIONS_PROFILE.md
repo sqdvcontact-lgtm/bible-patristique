@@ -2,7 +2,7 @@
 
 ## Autorité et dérivés
 
-Le PDF haché demeure la source d’autorité. Une exécution du profil `fillion-illustration` produit deux fichiers fonctionnellement distincts :
+Le PDF haché demeure la source d’autorité. Une exécution du profil `fillion-illustration` 1.1.0 produit deux fichiers fonctionnellement distincts :
 
 | Rôle | Format | Paramètres | Accès prévu |
 |---|---|---|---|
@@ -25,10 +25,11 @@ fillion/<code-volume>/<asset-key>/web.webp
 3. repérer les composantes graphiques restantes ;
 4. supprimer les candidats presque entièrement contenus dans une figure composite ;
 5. reporter le recadrage sur le rendu à 400 ppp ;
-6. convertir en niveaux de gris, normaliser le fond jauni et blanchir le papier résiduel ;
-7. supprimer seulement les petites composantes sombres isolées sous le seuil versionné ;
-8. écarter la légende voisine lorsqu’un blanc horizontal la sépare nettement de la figure ;
-9. produire le master, le WebP, les SHA-256, le manifeste et les planches QA.
+6. pour une planche sans aucun mot OCR, couvrant au moins 30 % de la page et nettement verticale, appliquer automatiquement la rotation horaire de 90° et l’inscrire au manifeste ;
+7. convertir en niveaux de gris, normaliser le fond jauni et blanchir le papier résiduel ;
+8. supprimer seulement les petites composantes sombres isolées sous le seuil versionné ;
+9. écarter la légende voisine lorsqu’un blanc horizontal la sépare nettement de la figure ;
+10. produire le master, le WebP, les SHA-256, le manifeste et les planches QA.
 
 La légende imprimée est transcrite dans les métadonnées ; elle n’a pas besoin d’être incluse dans le bitmap nettoyé.
 
@@ -52,9 +53,9 @@ Une figure composite reste un seul actif lorsque l’édition la présente comme
 python scripts/fillion/process_illustrations.py `
   --pdf tmp/pdfs/fillion/lasaintebibletex07fill.pdf `
   --ocr tmp/pdfs/fillion/lasaintebibletex07fill_djvu.xml `
-  --page 92 `
+  --page 202 `
   --volume-code t07 `
-  --output work/fillion/pilot_illustrations/page_0092_current
+  --output work/fillion/pilot_illustrations/page_0202
 ```
 
 Le script accepte `--pdftoppm` ou la variable `PDFTOPPM` lorsque Poppler n’est pas dans le `PATH`.

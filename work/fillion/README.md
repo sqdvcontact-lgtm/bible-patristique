@@ -17,7 +17,7 @@ Ce dossier reçoit les artefacts locaux du chantier Fillion. Les fac-similés re
 
 ## Illustrations
 
-Le pipeline `scripts/fillion/process_illustrations.py` part du PDF et de son XML DjVu OCR. Il masque les zones de texte reconnues, repère les régions graphiques, extrait les candidats à la résolution source, puis produit :
+Le pipeline `scripts/fillion/process_illustrations.py` part du PDF et de son XML DjVu OCR. Il masque les zones de texte reconnues, repère les régions graphiques, extrait les candidats à la résolution source et remet automatiquement à l’horizontale les planches hors texte qui satisfont la règle conservatrice du profil 1.1.0, puis produit :
 
 - un master PNG en niveaux de gris, sans perte et non public ;
 - un dérivé WebP limité à 1 600 px, qualité 90, destiné au site ;

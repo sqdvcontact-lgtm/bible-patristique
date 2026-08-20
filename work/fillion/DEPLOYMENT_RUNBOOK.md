@@ -1,6 +1,6 @@
 # Déploiement du socle Fillion
 
-État au 20 août 2026 : préparation locale terminée ; aucun schéma, seau, traduction ou contenu Fillion n’a été créé dans la base distante.
+État au 20 août 2026 : code déployé sur `master`, deux seaux créés, migration additive appliquée, famille TR0011/TR0010 amorcée en brouillon et pilote privé Marc I, 1-20 importé en revue. Aucune ligne Fillion n’est exposée au catalogue public.
 
 ## Ordre impératif
 
@@ -31,17 +31,17 @@ Documentation de référence : [contrôle d’accès Storage](https://supabase.c
 
 Migration : `supabase/migrations/20260820093045_bible_fillion_editorial_model.sql`.
 
-Avant l’application réelle, l’essai transactionnel doit encore réussir :
+L’essai transactionnel a réussi avant l’application réelle :
 
 ```powershell
 node scripts/fillion/dry-run-editorial-migration.mjs
 ```
 
-Après application, exécuter `sql/tests/20260820_bible_fillion_editorial_model_verification.sql`, puis vérifier le rechargement du cache PostgREST. Les nouvelles tables publiques ont RLS ; `anon` et `authenticated` n’obtiennent que `SELECT`. Les écritures restent réservées à `service_role`.
+Après application, `sql/tests/20260820_bible_fillion_editorial_model_verification.sql` a été exécuté et le rechargement du cache PostgREST vérifié. Les nouvelles tables publiques ont RLS ; `anon` et `authenticated` n’obtiennent que `SELECT`. Les écritures restent réservées à `service_role`.
 
 ### 4. Créer les objets Fillion en brouillon
 
-Exécuter `work/fillion/bootstrap_draft.sql`. Le script réserve `TR0010` pour le français de Fillion et `TR0011` pour la Vulgate effectivement imprimée dans ses volumes, puis crée leur famille et les huit composants bibliographiques. Ne jamais réutiliser `TR0004`.
+`work/fillion/bootstrap_draft.sql` a réservé `TR0010` pour le français de Fillion et `TR0011` pour la Vulgate effectivement imprimée dans ses volumes, puis créé leur famille et les huit composants bibliographiques. Ne jamais réutiliser `TR0004`.
 
 L’amorçage est volontairement non idempotent : il s’interrompt si l’un des deux identifiants ou la famille existe déjà. Les deux fiches gardent `schema_numerotation = NULL` et ne reçoivent aucune capacité de lecture ; elles demeurent donc absentes des catalogues bibliques tant que le corpus n’est pas prêt. Tous les objets créés portent le statut de brouillon.
 
@@ -51,18 +51,19 @@ Pour chaque actif :
 
 1. valider le manifeste local ;
 2. comparer l’empreinte avec un éventuel objet déjà présent ;
-3. téléverser `master.png` dans le seau privé ;
-4. téléverser `web.webp` dans le seau public ;
-5. insérer l’actif matériel, puis ses deux lignes de fichier ;
-6. relire les lignes et les objets depuis leurs API respectives ;
-7. ne passer le WebP à `validated` et `is_public = true` qu’après contrôle ;
-8. publier ensuite l’actif parent, la garde SQL refusant l’opération sans WebP public validé.
+3. téléverser `master.png` dans le seau privé et inscrire sa ligne de fichier en `review` ;
+4. conserver `web.webp` localement tant que sa validation visuelle n’est pas acquise, puisque le seau web est public ;
+5. relire la ligne et le master depuis leurs API respectives, puis comparer les SHA-256 ;
+6. après validation seulement, téléverser `web.webp` dans le seau public et inscrire sa ligne en `validated`, `is_public = true` avec son URI publique ;
+7. publier ensuite l’actif parent, la garde SQL refusant l’opération sans WebP public validé.
 
 Éviter l’`upsert` aveugle. Si un remplacement explicite devient nécessaire, Supabase exige les droits `INSERT`, `SELECT` et `UPDATE` sur `storage.objects`; le script serveur doit d’abord comparer les SHA-256.
 
 ### 6. Publier seulement après le pilote bilingue
 
-Le passage à `published` intervient après contrôle de Marc 1 sur ordinateur et mobile : texte latin à gauche puis français à droite, ordre inverse interdit ; sur mobile, latin puis français ; blocs communs pleine largeur ; notes et illustrations à leur emplacement logique.
+Le pilote privé `work/fillion/marc1_pilot_draft.sql` contient vingt versets dans chaque langue, six blocs de corps, une note de verset ancrée sur les deux membres et l’illustration du Jourdain après I, 9. `sql/tests/20260820_fillion_marc1_pilot_verification.sql` contrôle ses invariants.
+
+Le passage à `published` intervient seulement après contrôle de Marc 1 sur ordinateur et mobile : texte latin à gauche puis français à droite, ordre inverse interdit ; sur mobile, latin puis français ; blocs communs pleine largeur ; notes et illustrations à leur emplacement logique.
 
 ## Retour arrière
 
