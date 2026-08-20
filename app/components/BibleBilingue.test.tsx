@@ -44,6 +44,16 @@ describe('lecture bilingue de la page Bible', () => {
     expect(apresDeuxieme.split('Sicut scriptum est in Isaia')).toHaveLength(2)
   })
 
+  it('empile latin puis français sur mobile, en une seule colonne', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} mobile />)
+    expect(html).toContain('minmax(0, 1fr)')
+    expect(html).not.toContain('repeat(2,')
+    // L'ordre déclaré par l'édition tient : le latin vient d'abord.
+    expect(html.indexOf('lang="la"')).toBeLessThan(html.indexOf('lang="fr"'))
+    // Les étiquettes de colonne n'ont plus lieu d'être : chaque verset porte sa langue.
+    expect(html).not.toContain('Vulgate Fillion')
+  })
+
   it('rend un commentaire commun UNE seule fois, hors des colonnes', () => {
     const html = renderToStaticMarkup(
       <BibleBilingue
