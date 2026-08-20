@@ -27,14 +27,30 @@ Le fond du problème est un contresens : le pipeline traite une planche gravée 
 
 ## Ce qui est demandé
 
-### 1. Deux familles, décidées d'après la source
+### 1. Deux familles, décidées d'après la planche — jamais d'après son sujet
 
 Le traitement ne peut pas être unique. Distinguer, et enregistrer la décision dans le manifeste :
 
-- **Gravure au trait** — bas-relief, ivoire, miniature, objet, plan, carte. Le sujet est un dessin, le papier n'est qu'un support. → **PNG à fond blanc.**
-- **Demi-teinte** — photographie, vue, paysage, tout ce qui est rendu par une trame continue. Le fond EST le sujet. → **aucun détourage**, on garde le ton et le cadre imprimé ; l'encadrement se fait au rendu.
+- **Gravure au trait** — le sujet est un dessin, le papier n'est qu'un support. → **PNG à fond blanc.**
+- **Demi-teinte** — le sujet est rendu par une trame continue, et le fond EST le sujet. → **aucun détourage**, on garde le ton et le cadre imprimé ; l'encadrement se fait au rendu.
 
-⛔ Ne jamais détourer une demi-teinte. C'est ce qui a crevé le ciel du Jourdain.
+⛔ **Ne pas classer par sujet.** Une carte de Fillion peut être une gravure au trait — contours, noms, hachures sèches — ou une carte à teintes, dont le relief lavé et le fond de mer sont une demi-teinte. Le mot « carte » ne tranche rien ; la planche, si. Le premier jet de cette consigne rangeait « plan, carte » d'office au trait : c'était une erreur, à ne pas reconduire.
+
+**Le tri se mesure, en deux temps.** La source n'a aucun blanc : le papier y est scanné en gris moyen, si bien qu'un simple comptage de demi-teintes ne sépare rien (71 % pour la miniature au trait, 82 % pour la photographie — indiscernables). Il faut donc :
+
+1. étaler les niveaux comme au §2, sans seuil ni division par le fond ;
+2. puis mesurer la masse de tons moyens (60-200) sur le résultat.
+
+Relevé sur deux planches du tome VII :
+
+| Planche | papier > 230 | tons moyens | famille |
+|---|---|---|---|
+| Miniature du paralytique | 52,2 % | 31,9 % | trait |
+| Le Jourdain (photographie) | 13,8 % | 54,7 % | demi-teinte |
+
+Frontière proposée : **moins de 35 % de tons moyens ⇒ trait ; 35 % et plus ⇒ demi-teinte.** À vérifier sur les onze planches avant de la figer, et à consigner dans le manifeste avec la valeur mesurée, non seulement la conclusion.
+
+⛔ **En cas de doute, demi-teinte.** Les deux erreurs ne coûtent pas le même prix : traiter une demi-teinte comme du trait crève le ciel, comme sur le Jourdain, et rien ne le rattrape ; traiter du trait comme une demi-teinte laisse seulement un fond légèrement gris, qu'un réglage ultérieur corrige. Une planche mixte — carte à teintes, vue au trait rehaussée d'un lavis — va donc à la demi-teinte.
 
 ### 2. Le fond blanc s'obtient par les NIVEAUX, jamais par un seuil
 
