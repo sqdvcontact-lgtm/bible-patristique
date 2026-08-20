@@ -504,6 +504,11 @@ Doctrine : charte `parametres.charte_ia` **§3.8**, cinquième règle. Une citat
   - **Hors champ, volontairement** : l'**apparat** (les deux branches de `segMapApparat`) ne sort pas ses citations — c'est une vue de comparaison, pas la lecture suivie.
 - **La lettrine garde la priorité** : un premier segment orné ne se coupe pas en deux.
 - **Chiffres du relevé (2026-08-17)** : 214 citations dépassent 400 signes, 146 sont isolées, **61** sont en outre terminales. Ce sont ces 61 que la règle atteint aujourd'hui.
+- ⛔ **Le LEMME d'un commentaire est hors d'atteinte de la règle, et aucun seuil ne l'y ramènera.** Question posée par l'auteur le 2026-08-20 sur le *Commentaire sur Joël* (segment 100, « Une nation forte et innombrable… ») : le lemme qui ouvre le paragraphe est bien un segment entièrement cité, mais il ne compte que **322 signes**. Baisser le seuil serait le mauvais outil, et les chiffres le disent :
+  - ces lemmes sont **systématiques** — 13 dans le Joël (dont 12 suivis de leur variante « Les Septante : « … » »), 5 dans l'Abdias (dont 4 appariés) — et leurs longueurs vont de **57 à 359 signes** : aucune coupure ne les saisit comme classe ;
+  - un seuil à 320 sortirait le lemme (322) en laissant sa Septante (293) au fil du texte, **coupant la paire en deux** — le pire résultat possible ;
+  - portée d'un abaissement, sur le corpus public : 72 segments à 400, 160 à 320, 202 à 300, 264 à 275, 323 à 250.
+  - Le lemme se détache par sa **fonction** (il ouvre le paragraphe qu'il commente), non par sa taille : ce serait une règle structurelle, pas un seuil. **Décision de l'auteur, 2026-08-20 : ne rien changer.** Le seuil reste à 400 et les lemmes se lisent au fil du texte.
 - ⚠️ La francisation des guillemets internes est **l'inverse** de `convertirGuillemetsInternes` (`app/lib/citation.ts`), qui bascule les internes en anglais parce que le copier-coller ajoute un encadrement français. Symétriques, opposées : ne pas les confondre.
 
 # Césures du texte latin — aucun navigateur ne sait les faire
