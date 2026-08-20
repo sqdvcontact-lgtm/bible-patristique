@@ -18,7 +18,8 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { type Couche899 } from '@/app/lib/bible899'
 import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
-import { AppelNoteBible, BlocEditorialBible, IllustrationBible, NotesBibleChapitre } from '@/app/components/BibleEditionParatext'
+import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre } from '@/app/components/BibleEditionParatext'
+import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { urlLectureBible } from '@/app/lib/bibleNavigation'
 import {
   indexerBlocsDeCorps,
@@ -765,7 +766,7 @@ export default function TexteBible({
                       <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>
                     )}
                     {notesDuVerset.map((note) => (
-                      <AppelNoteBible key={note.id} noteId={note.id} displayNumber={note.displayNumber} />
+                      <AppelNoteBiblique key={note.id} note={note} />
                     ))}
                   </p>
                 </div>

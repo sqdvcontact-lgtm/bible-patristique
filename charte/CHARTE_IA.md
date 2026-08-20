@@ -1431,4 +1431,4 @@ Une **note de verset** est `I6` et son emplacement est `footnote_only` : appel d
 
 Les premiers fichiers de revue emploient `heading`, les paratextes candidats `source_heading`. Les deux se normalisent vers une même propriété de rendu **sans perdre la forme source**.
 
-En lecture latin-français, un bloc commun à l’édition se rend sur toute la largeur, un bloc propre à un membre dans sa colonne, et **les niveaux sont identiques dans les deux modes**. Sur mobile, l’ordre reste titre, information, texte biblique : un bloc du corps ne devient jamais une note parce que l’écran est étroit.
+En lecture latin-français, **tout bloc du corps se rend sur toute la largeur**, qu’il soit commun à l’édition ou propre à une langue : un commentaire sans équivalent dans l’autre langue laisserait sinon, en face, une colonne vide de sa hauteur. L’appartenance reste une donnée de provenance. Les niveaux sont **identiques dans les deux modes**. Sur mobile, l’ordre reste titre, information, texte biblique : un bloc du corps ne devient jamais une note parce que l’écran est étroit.

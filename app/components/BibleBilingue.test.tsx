@@ -102,7 +102,7 @@ describe('lecture bilingue de la page Bible', () => {
 
   // Quatre régressions à empêcher : un contenu propre à une langue ne doit
   // jamais disparaître faute d'une place dans la grille.
-  it('rend une introduction propre à une langue dans SA colonne', () => {
+  it('rend un bloc propre à une langue sur TOUTE la largeur, hors des colonnes', () => {
     const html = renderToStaticMarkup(
       <BibleBilingue
         {...COMMUN}
@@ -122,12 +122,11 @@ describe('lecture bilingue de la page Bible', () => {
       />,
     )
     expect(html.split('Propre au français, sans ancre.')).toHaveLength(2)
-    // Il vit dans la colonne du français, pas en pleine largeur.
+    // Une introduction de Fillion n'a pas d'équivalent latin : l'enfermer dans
+    // la colonne française laisserait en face une colonne vide de sa hauteur.
+    // Elle passe donc sur toute la largeur, hors de toute cellule de membre.
     const avant = html.slice(0, html.indexOf('Propre au français, sans ancre.'))
-    expect(avant.lastIndexOf('lang="fr"')).toBeGreaterThan(avant.lastIndexOf('lang="la"'))
-    // Et il vient APRÈS l'étiquette de sa colonne : on sait de quelle langue on
-    // lit avant de la lire.
-    expect(avant).toContain('Fillion français')
+    expect(avant.lastIndexOf('data-membre=')).toBe(-1)
   })
 
   it('rend une conclusion propre à une langue ancrée sur un verset', () => {
@@ -242,5 +241,37 @@ describe('lecture bilingue de la page Bible', () => {
     )
     expect(html).toContain('id="appel-note-bible-n2-fr"')
     expect(html).not.toContain('id="appel-note-bible-n2-la"')
+  })
+
+  it('compose le latin en regard : sans empattements, plus petit, grisé', () => {
+    // Reprise de la colonne originale des œuvres : c’est le change de
+    // caractère qui sépare les deux colonnes, mieux qu’un filet.
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} />)
+    const latin = html.slice(html.indexOf('lang="la"'))
+    expect(latin).toContain('font-source-sans')
+    expect(latin).toContain('#575048')
+    const francais = html.slice(html.indexOf('lang="fr"'), html.indexOf('lang="la"'))
+    expect(francais).toContain('font-source-serif')
+    expect(francais).not.toContain('#575048')
+  })
+
+  it('ouvre la note dans une fenêtre, sur le modèle du site', () => {
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        notes={[{
+          id: 'nf', displayNumber: 1, canonId: 'MRK.1.1', materialOrder: 1,
+          appliesTo: 'family', appliesToMemberId: null,
+          blocks: [{ id: 'nf:1', kind: 'commentary', form: 'prose', text: 'Le titre.' }],
+        }]}
+      />,
+    )
+    // Un appel qui S’OUVRE, et non un simple lien vers le bas de page.
+    expect(html).toContain('role="button"')
+    expect(html).toContain('aria-expanded="false"')
+    expect(html).toContain('Consulter la note 1')
+    // ⛔ Jamais de pointillé sous un appel de note.
+    expect(html).not.toContain('textDecoration:underline dotted')
+    expect(html).not.toContain('text-decoration:underline dotted')
   })
 })
