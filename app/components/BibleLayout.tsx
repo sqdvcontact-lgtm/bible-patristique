@@ -16,6 +16,7 @@ import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import LectureBilingueBible from './LectureBilingueBible'
 import type { LectureBilingueProps } from './BibleBilingue'
+import { urlLectureBible } from '@/app/lib/bibleNavigation'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -237,7 +238,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
       const saved = localStorage.getItem(`cs_bible_mode:${code}`)
       const mode = modes.find((item) => item.value === saved)?.value ?? modes[0]?.value ?? 'verse'
-      router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${code}&mode=${mode}`)
+      router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: code, mode }))
     }
   }
 
@@ -280,6 +281,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         setVoletMobile={setVoletMobile}
         barreMobile={false}
         presentation="inline"
+        bilingue={!!lectureBilingue}
       />
       {/* Onglet « Texte » : masqué (et non démonté, pour préserver le défilement)
           quand un autre onglet est actif sur mobile. `display: contents` en desktop
@@ -332,14 +334,14 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
       {mobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
-          <button onClick={() => chapitreActif > 1 && router.push(`/?livre=${livreActif}&chapitre=${chapitreActif - 1}&trad=${traduction}`)}
+          <button onClick={() => chapitreActif > 1 && router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif - 1, trad: traduction, bilingue: !!lectureBilingue }))}
             aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? 'var(--cs-texte-gris)' : 'var(--cs-bord)', padding: '0 8px' }}>‹</button>
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: '#5a7260' }}>{chapitreActif}</span>
           </span>
-          <button onClick={() => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif + 1}&trad=${traduction}`)}
+          <button onClick={() => router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif + 1, trad: traduction, bilingue: !!lectureBilingue }))}
             aria-label="Chapitre suivant" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.375rem', lineHeight: 1, color: 'var(--cs-texte-gris)', padding: '0 8px' }}>›</button>
         </div>
       )}

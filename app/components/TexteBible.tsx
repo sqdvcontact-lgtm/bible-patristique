@@ -19,6 +19,7 @@ import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { type Couche899 } from '@/app/lib/bible899'
 import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { AppelNoteBible, BlocEditorialBible, IllustrationBible, NotesBibleChapitre } from '@/app/components/BibleEditionParatext'
+import { urlLectureBible } from '@/app/lib/bibleNavigation'
 import {
   indexerBlocsDeCorps,
   indexerIllustrations,
@@ -472,7 +473,7 @@ export default function TexteBible({
   // Changement de chapitre en navigation douce : on ne recharge pas toute la page,
   // le composant reçoit simplement les nouveaux versets et les volets latéraux (état
   // client : largeurs, verset sélectionné) restent en place.
-  const allerAuChapitre = (n: number) => router.push(`/?livre=${livreActif}&chapitre=${n}&trad=${tradCode}`)
+  const allerAuChapitre = (n: number) => router.push(urlLectureBible({ livre: livreActif, chapitre: n, trad: tradCode }))
 
   // TR0009 (Bible 899) : une ligne « 899 » est marquée par l'adaptateur (`_est899`). Le
   // contrôle « Graphie » n'apparaît QUE si la couche « modernized » est disponible
@@ -520,7 +521,7 @@ export default function TexteBible({
   // mention de chapitre. On ne le fait qu'en contexte 899 (toutes les lignes en sont) et
   // seulement si au moins une ligne existe.
   const chapitreToutLacune = versets.length > 0 && versets.every(v => estLigne899(v) && estLacune899(v))
-  const changerGraphie = (c: Couche899) => router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&couche=${c}`)
+  const changerGraphie = (c: Couche899) => router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: tradCode, mode: 'verse', couche: c }))
 
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
@@ -595,7 +596,7 @@ export default function TexteBible({
                     donc des traductions par un filet, comme en page d'œuvre. */}
                 {bilingueDisponible && (
                   <button
-                    onClick={() => { setTradOuverte(false); router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&bilingue=1`) }}
+                    onClick={() => { setTradOuverte(false); router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: tradCode, mode: 'verse', bilingue: true })) }}
                     style={{
                       width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
                       border: 'none', borderTop: '1px solid var(--cs-bord)',

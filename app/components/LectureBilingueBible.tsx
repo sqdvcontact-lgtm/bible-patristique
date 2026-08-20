@@ -8,6 +8,7 @@
 import { useRouter } from 'next/navigation'
 
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
+import { urlLectureBible } from '@/app/lib/bibleNavigation'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 
 export type LectureBilingueBibleProps = LectureBilingueProps & {
@@ -27,10 +28,10 @@ export default function LectureBilingueBible({
 }: LectureBilingueBibleProps) {
   const router = useRouter()
   const allerAuChapitre = (chapitre: number) => {
-    router.push(`/?livre=${livreActif}&chapitre=${chapitre}&trad=${tradCode}&mode=verse&bilingue=1`)
+    router.push(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
   }
   const quitterLeBilingue = () => {
-    router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse`)
+    router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: tradCode, mode: 'verse' }))
   }
   const fleche = {
     color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none',

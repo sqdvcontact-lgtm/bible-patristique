@@ -10,6 +10,7 @@ import { rendreSiecles } from '@/app/lib/siecles'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import { estUrl, type RangChrono } from '@/app/lib/frise'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { urlLectureBible } from '@/app/lib/bibleNavigation'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -339,6 +340,9 @@ type Props = {
   barreMobile?: boolean                     // afficher la barre fixe mobile (false : sans barre)
   presentation?: 'drawer' | 'inline'        // mobile : tiroir superposé, ou page pleine (onglets)
   sansReduire?: boolean                     // masque la flèche « Réduire » (Polyglotte gère le repli du volet entier)
+  // Le volet navigue par URL : sans ce report, changer de chapitre ferait sortir
+  // le lecteur de la lecture « Latin-français » sans qu'il l'ait demandé.
+  bilingue?: boolean
 }
 
 /**
@@ -373,7 +377,7 @@ export default function NavLivres({
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
-  sansReduire = false,
+  sansReduire = false, bilingue = false,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -433,7 +437,7 @@ export default function NavLivres({
       setLivreOuvert(null)
     } else {
       setLivreOuvert(code)
-      router.push(`/?livre=${code}&chapitre=1&trad=${tradCode}`)
+      router.push(urlLectureBible({ livre: code, chapitre: 1, trad: tradCode, bilingue }))
     }
     requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = pos
@@ -448,7 +452,7 @@ export default function NavLivres({
     if (mobile) setOuvert(false)
     // Polyglotte : on reste sur place et l'on demande le chapitre au parent.
     if (onChoisirChapitre) { onChoisirChapitre(code, ch); return }
-    router.push(`/?livre=${code}&chapitre=${ch}&trad=${tradCode}`)
+    router.push(urlLectureBible({ livre: code, chapitre: ch, trad: tradCode, bilingue }))
   }
 
   // Navigation vers ref parsée :
@@ -463,7 +467,10 @@ export default function NavLivres({
     setRecherche('')
     // Polyglotte : cibler le verset sur place, sans changer de page.
     if (onChoisirVerset) { onChoisirVerset(refParsee.code, refParsee.chapitre, refParsee.verset); return }
-    router.push(`/?livre=${refParsee.code}&chapitre=${refParsee.chapitre}&trad=${tradCode}&verset=${refParsee.verset}`)
+    // Volontairement SANS report du bilingue : viser un verset précis suppose de
+    // pouvoir le désigner, ce que la lecture en regard ne fait pas. Le lecteur
+    // retrouve donc la colonne unique, qui sait mettre le verset en évidence.
+    router.push(urlLectureBible({ livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode, verset: refParsee.verset, bilingue }))
   }
 
   const renderLivre = (livre: Livre) => {
