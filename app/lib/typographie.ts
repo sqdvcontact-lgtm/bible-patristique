@@ -26,15 +26,24 @@ export function normaliserEspaces(texte: string): string {
     .replace(new RegExp(`${ESPACES}(»)`, 'g'), `${FINE}$1`)
 }
 
-// Règle déterministe de la charte §3.8 : une citation ne se ferme jamais sur
-// une ponctuation faible. La virgule, le point-virgule ou le deux-points placés
-// immédiatement avant le guillemet fermant disparaissent AU RENDU. Les espaces
-// qui les entourent sont absorbées dans la même opération afin de ne laisser
-// qu'une fine insécable devant ». La donnée source n'est jamais réécrite.
+// Règles déterministes 1 et 3 de la charte §3.8 :
+// 1. une citation ne se ferme jamais sur une ponctuation faible ;
+// 3. si elle porte déjà une ponctuation forte à l'intérieur, une seconde
+//    ponctuation juste après le guillemet fermant disparaît.
+//
+// Les trois points placés APRÈS le guillemet sont volontairement préservés :
+// dans plusieurs éditions ils servent de marque d'omission entre deux citations
+// (« phrase. »... « reprise ») et ne constituent donc pas un doublon univoque.
+// La donnée source n'est jamais réécrite : tout ceci appartient au rendu.
 export function normaliserPonctuationCitations(texte: string): string {
-  return texte.replace(
+  const sansPonctuationFaible = texte.replace(
     new RegExp(`${ESPACES}*[,;:]${ESPACES}*»`, 'g'),
     `${FINE}»`,
+  )
+
+  return sansPonctuationFaible.replace(
+    new RegExp(`([.!?…])(${ESPACES}*»)${ESPACES}*(?:[,;:!?]+|\\.(?!\\.))`, 'g'),
+    '$1$2',
   )
 }
 
