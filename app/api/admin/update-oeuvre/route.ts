@@ -20,6 +20,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
   }
 
+  // « Commentaires privés » : notes de travail de l'administration. Elles ne sont
+  // PAS une colonne d'`oeuvres` — la page publique de l'œuvre lit cette table avec
+  // select('*') sous la session du lecteur, une colonne de plus y aurait donc été
+  // servie à tout compte connecté. Elles vivent dans une table sans droit de lecture
+  // pour anon ni authenticated, atteinte ici par la clé de service.
+  if (champ === 'commentaire_prive') {
+    const texte = typeof valeur === 'string' ? valeur.trim() : ''
+    const { error: erreurPrive } = texte
+      ? await supabaseAdmin.from('oeuvres_commentaires_prives')
+          .upsert({ id_oeuvre, commentaire: texte, modifie_le: new Date().toISOString() })
+      : await supabaseAdmin.from('oeuvres_commentaires_prives').delete().eq('id_oeuvre', id_oeuvre)
+    if (erreurPrive) return NextResponse.json({ error: erreurPrive.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
   const CHAMPS_AUTORISES = new Set([
     'titre', 'sous_titre', 'note', 'note_traduction', 'statut', 'id_auteur',
     'langue_originale', 'date_composition', 'date_publication', 'trad_date',

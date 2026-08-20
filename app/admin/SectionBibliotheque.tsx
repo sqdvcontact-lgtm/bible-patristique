@@ -1175,7 +1175,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     { key: 'date_publication', label: 'Date de publication' },
     { key: 'date_composition', label: 'Date de composition originale' },
     { key: 'url_source', label: 'URL source' },
-    { key: 'commentaire_traduction', label: 'Commentaires' },
+    { key: 'commentaire_traduction', label: 'Commentaires publics' },
+    // Enregistré par la même route, mais dans une table à part (voir l'API).
+    { key: 'commentaire_prive', label: 'Commentaires privés' },
   ]
 
   const ouvrirEditionOeuvre = (o: Oeuvre) => {
@@ -1188,6 +1190,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',
       langue_originale: o.langue_originale ?? '',
       commentaire_traduction: o.commentaire_traduction ?? '',
+      commentaire_prive: o.commentaire_prive ?? '',
     })
     setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
     setStatutOeuvre(null)
@@ -1995,15 +1998,28 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
 
                         <hr style={sepOeuvre} />
 
-                        {/* Commentaires (colonne `commentaire_traduction`) : une note en
-                            clair sur l'édition ou la traduction, du genre « Traduction de
-                            Louis Judicis de Mirandol, édition de 1861 ». Une phrase, donc
-                            une zone de texte et non une ligne. */}
+                        {/* Commentaires publics (colonne `commentaire_traduction`) : une
+                            note en clair sur l'édition ou la traduction, du genre
+                            « Traduction de Louis Judicis de Mirandol, édition de 1861 ».
+                            Elle paraît sur la page de l'œuvre. Une phrase, donc une zone
+                            de texte et non une ligne. */}
                         <div style={{ gridColumn: '1 / -1' }}>
-                          <label style={lbl}>Commentaires</label>
+                          <label style={lbl}>Commentaires publics</label>
                           <textarea value={formOeuvre.commentaire_traduction ?? ''}
                             onChange={e => setFormOeuvre(p => ({ ...p, commentaire_traduction: e.target.value }))}
                             rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+                        </div>
+
+                        {/* Commentaires privés (table `oeuvres_commentaires_prives`) : le
+                            carnet de l'administration sur cette œuvre — état de l'import,
+                            doutes sur l'édition, travail restant. Rien n'en paraît sur le
+                            site, et la table n'est lisible que par la clé de service. */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Commentaires privés</label>
+                          <textarea value={formOeuvre.commentaire_prive ?? ''}
+                            onChange={e => setFormOeuvre(p => ({ ...p, commentaire_prive: e.target.value }))}
+                            rows={3} placeholder="Notes de travail visibles de l’administration seule."
+                            style={{ ...inputStyleAuteur, resize: 'vertical', background: 'var(--cs-fond-clair)' }} />
                         </div>
 
                         {/* Genre */}

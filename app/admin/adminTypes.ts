@@ -28,6 +28,9 @@ export type Oeuvre = {
   afficher_numeros?: boolean | null
   note?: string | null
   commentaire_traduction?: string | null
+  // Notes de travail réservées à l'administration : elles ne viennent pas de la
+  // table `oeuvres` mais de `oeuvres_commentaires_prives`, lue par la clé de service.
+  commentaire_prive?: string | null
 }
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }

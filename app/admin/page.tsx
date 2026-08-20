@@ -163,6 +163,9 @@ export default async function AdminPage() {
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
     supabaseAdmin.rpc('count_verifications_pending'),
     supabaseAdmin.from('essais_commentaires').select('id, id_essai, texte, auteur_nom, created_at, user_id').eq('valide', false).eq('supprime', false).order('created_at', { ascending: false }),
+    // Commentaires privés des œuvres : table à part, sans droit de lecture pour
+    // anon ni authenticated — elle ne s'atteint donc que par la clé de service.
+    supabaseAdmin.from('oeuvres_commentaires_prives').select('id_oeuvre, commentaire'),
   ])
   const [
     { data: commentaires },
@@ -178,6 +181,7 @@ export default async function AdminPage() {
     { data: traductions },
     { data: nbVerifRaw },
     { data: commentairesPublicationsRaw },
+    { data: commentairesPrivesOeuvres },
   ] = vague1
   const nbVerifications = (nbVerifRaw as number | null) ?? 0
 
@@ -321,7 +325,18 @@ export default async function AdminPage() {
   }
   const essaisPublies = (essaisPubliesRaw ?? []).map(resoudreEssaiListe)
   const essaisBrouillons = (essaisBrouillonsRaw ?? []).map(resoudreEssaiListe)
-  const auteurs = auteursData ?? []
+  // Le commentaire privé rejoint son œuvre : le formulaire de modification le
+  // présente sous le commentaire public, mais il vient d'une autre table.
+  const commentairePriveParOeuvre = new Map(
+    (commentairesPrivesOeuvres ?? []).map(c => [c.id_oeuvre, c.commentaire])
+  )
+  const auteurs = (auteursData ?? []).map(a => ({
+    ...a,
+    oeuvres: (a.oeuvres ?? []).map(o => ({
+      ...o,
+      commentaire_prive: commentairePriveParOeuvre.get(o.id_oeuvre) ?? null,
+    })),
+  }))
 
   return (
     <AdminClient
