@@ -402,7 +402,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const affichageBilingue = modeTexte === 'bilingue'
   const afficherOriginalSeul = modeTexte === 'la'
   // Libellés du choix de lecture selon la langue de l'original (grec ou, par défaut, latin).
-  const estGrec = oeuvre.langue_originale === 'Grec'
+  // La langue s'écrit « Grec » ou « grec » selon les fiches : la comparaison stricte
+  // laissait passer la minuscule, et un texte grec repartait alors avec les libellés
+  // et le syllabateur latins.
+  const estGrec = /grec/i.test(oeuvre.langue_originale ?? '')
   const labelOriginal = estGrec ? 'Grec' : 'Latin'
   const labelBilingue = estGrec ? 'Français & Grec' : 'Français & Latin'
   const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
@@ -1216,6 +1219,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const editionCourante = versions.find(v => v.id_oeuvre === idOeuvre) ?? null
   const couranteEstOriginale = editionCourante ? estEditionOriginale(editionCourante)
     : (!!oeuvre.langue_originale && !aTexteOriginal)
+  // Une œuvre en langue originale lue POUR ELLE-MÊME (le latin autonome, à ses titres
+  // d'origine) a son CORPS en latin ou en grec : il se compose alors comme la colonne
+  // originale du bilingue. Sans quoi le corps se déclarait « fr » et « hyphens: auto »
+  // coupait le latin avec le dictionnaire français, faute que le navigateur en ait un
+  // pour ces langues — c'est justement pourquoi nous posons les césures nous-mêmes.
+  const langueCorps = couranteEstOriginale ? codeLangue(oeuvre.langue_originale) : 'fr'
+  const composerCorps = (texte: string) => !couranteEstOriginale ? texte
+    : estGrec ? cesurerGrec(texte) : cesurerLatin(normaliserEspacesOriginal(texte))
   const editionsTraduction = versions.filter(v => !estEditionOriginale(v))
   const editionsOriginal = versions.filter(estEditionOriginale)
   const langueOrigLabel = editionsOriginal[0]?.langue_originale || oeuvre.langue_originale || 'Latin'
@@ -1912,9 +1923,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
                 return (
                 <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
-                  <div lang="fr" onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
+                  <div lang={langueCorps} onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
                     style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', margin: 0, background: segActif === s.id ? 'var(--cs-vert-pale)' : 'transparent' } as React.CSSProperties}>
-                    {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
+                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
                   </div>
                   <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
                     {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
@@ -2007,7 +2018,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
                       style={{ paddingRight: gouttiereTitre }}>
-                      <p lang="fr" style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                      <p lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
                           if (!s) return null
@@ -2021,7 +2032,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                 onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                 {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                                {estPremier && preparerTexteSegment(s.texte).length > 0 ? rendreAvecLettrine(s.texte, s.notes ?? {}) : rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
+                                {estPremier && preparerTexteSegment(s.texte).length > 0 ? rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {}) : rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
                               </span>
                             </Fragment>
                           )
@@ -2051,11 +2062,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
                         style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: estSignature ? '0.12rem' : '0.45rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                           {(() => {
-                            const texte = preparerTexteSegment(s.texte)
-                            if (sid === premierSegmentId && texte.length > 0) return rendreAvecLettrine(s.texte, s.notes ?? {})
+                            const texte = composerCorps(preparerTexteSegment(s.texte))
+                            if (sid === premierSegmentId && texte.length > 0) return rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {})
                             const sortie = detecterCitationSortie(texte)
                             if (!sortie) return rendreTexteAvecNotes(texte, s.notes ?? {})
                             return (<>
@@ -2132,7 +2143,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                       {modeLecture === 'paragraphes' ? paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
                         <div key={`apparat-para-${chunk.ids[0]}`} style={{ paddingRight: gouttiereTitre }}>
-                          <p lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          <p lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null
@@ -2145,7 +2156,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                                    {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
+                                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
                                   </span>
                                 </Fragment>
                               )
@@ -2159,9 +2170,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         return (
                           <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang="fr" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                              lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
-                              {rendreTexteAvecNotes(preparerTexteSegment(s.texte), s.notes ?? {})}
+                              {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"

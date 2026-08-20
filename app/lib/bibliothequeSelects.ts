@@ -11,4 +11,4 @@ export const SELECT_AUTEURS_BIBLIOTHEQUE =
 
 // `nb_signes` commande le partage entre œuvres longues et opuscules : ne pas le retirer.
 export const SELECT_OEUVRES_BIBLIOTHEQUE =
-  'id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale, nb_signes'
+  'id_oeuvre, id_auteur, titre, sous_titre, titre_original, editeur, trad_auteur, ville, date_publication_affichage_courte, date_publication_precision_affichage, genre, note, langue_originale, langue_trad, nb_signes'

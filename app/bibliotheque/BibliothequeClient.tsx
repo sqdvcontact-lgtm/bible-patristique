@@ -30,7 +30,10 @@ type Oeuvre = {
   editeur: string | null; ville: string | null
   date_publication_affichage_courte: string | null
   date_publication_precision_affichage: string | null
-  genre: string | null; note?: string | null; langue_originale?: string | null
+  genre: string | null; note?: string | null
+  // Langue de l'original, et langue de la traduction — vide sur une édition en
+  // langue originale, ce qui la distingue d'une traduction.
+  langue_originale?: string | null; langue_trad?: string | null
   nb_signes?: number | null
   // Tous les auteurs de l'œuvre, `id_auteur` compris (qui n'est que le premier).
   // Une œuvre à deux auteurs paraît sur les deux étagères, et porte les deux noms.
@@ -381,7 +384,15 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     const aEdition = !!(editionTexte || datePublication)
                     const edition = <>{editionTexte}{editionTexte && datePublication ? ', ' : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
                     const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-                    const libelle = trad || (aEdition ? edition : 'Édition')
+                    // Une édition en LANGUE ORIGINALE (langue_trad vide, langue_originale
+                    // renseignée) n'a pas de traducteur à nommer : c'est sa langue qui la
+                    // désigne, comme dans les menus de lecture de la page d'œuvre. Sans
+                    // cela, l'œuvre latine autonome ne se donnait que par son éditeur, et
+                    // rien ne disait qu'on allait lire du latin.
+                    const langueSeule = !(o.langue_trad && o.langue_trad.trim()) && !!(o.langue_originale && o.langue_originale.trim())
+                      ? (/grec/i.test(o.langue_originale ?? '') ? 'Texte grec' : 'Texte latin')
+                      : ''
+                    const libelle = trad || langueSeule || (aEdition ? edition : 'Édition')
                     // Texte original parallèle (latin/grec) disponible pour cette édition :
                     // on propose une sous-ligne menant à l'œuvre en mode « texte original ».
                     const aOriginal = !!originaux?.has(o.id_oeuvre)
@@ -429,8 +440,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 400 }}>{libelle}</span>
-                            {trad && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
-                            {!trad && !aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
+                            {(trad || langueSeule) && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
+                            {!trad && !langueSeule && !aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
                           <span className="bib-lire">
                             Lire
