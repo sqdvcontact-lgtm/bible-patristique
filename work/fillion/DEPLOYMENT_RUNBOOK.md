@@ -83,7 +83,9 @@ Pour chaque actif :
 
 Le pilote privé `work/fillion/marc1_pilot_draft.sql` contient vingt versets dans chaque langue, six blocs de corps, une note de verset ancrée sur les deux membres et l’illustration du Jourdain après I, 9. `sql/tests/20260820_fillion_marc1_pilot_verification.sql` contrôle ses invariants.
 
-Le passage à `published` intervient seulement après contrôle de Marc 1 sur ordinateur et mobile : texte latin à gauche puis français à droite, ordre inverse interdit ; sur mobile, latin puis français ; blocs communs pleine largeur ; notes et illustrations à leur emplacement logique.
+Le passage à `published` intervient seulement après contrôle de Marc 1 sur ordinateur et mobile : **français à gauche, latin à droite**, comme la page imprimée, et dans cet ordre sur mobile ; blocs communs pleine largeur ; notes et illustrations à leur emplacement logique.
+
+L'ordre des colonnes est une DONNÉE, non du code : il se règle par `display_order`, `desktop_position` et `mobile_order` sur `bible_edition_members`, et le rendu ne fait qu'honorer ce que l'édition déclare. Les deux contraintes d'unicité obligent à passer par des rangs temporaires pour échanger deux membres.
 
 ## Retour arrière
 
