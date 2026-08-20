@@ -205,10 +205,13 @@ export default function BibleBilingue({
     <div data-lecture="bilingue">
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
-      {bandeauSansAncre('opening')}
 
       {/* Étiquettes de colonne : discrètes, sans fond, comme en traductions
-          parallèles. Sur mobile, chaque verset porte déjà sa langue. */}
+          parallèles. Sur mobile, chaque verset porte déjà sa langue.
+          ⚠️ Elles précèdent tout ce qui vit DANS une colonne — une introduction
+          propre au français, par exemple : on doit savoir de quelle langue on
+          lit avant de la lire. Ce qui est commun à l'édition les précède, lui,
+          puisqu'il n'appartient à aucune des deux. */}
       {!mobile && (
         <div style={{ ...styleGrille, rowGap: 0, marginBottom: '0.75rem' }}>
           {colonnesOrdonnees.map((colonne) => (
@@ -230,6 +233,7 @@ export default function BibleBilingue({
           ))}
         </div>
       )}
+      {bandeauSansAncre('opening')}
 
       {rangees.map((rangee) => (
         <div key={rangee.canonId}>

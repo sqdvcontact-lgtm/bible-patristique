@@ -122,9 +122,12 @@ describe('lecture bilingue de la page Bible', () => {
       />,
     )
     expect(html.split('Propre au français, sans ancre.')).toHaveLength(2)
-    // Il vit dans la cellule du français, pas en pleine largeur.
+    // Il vit dans la colonne du français, pas en pleine largeur.
     const avant = html.slice(0, html.indexOf('Propre au français, sans ancre.'))
     expect(avant.lastIndexOf('lang="fr"')).toBeGreaterThan(avant.lastIndexOf('lang="la"'))
+    // Et il vient APRÈS l'étiquette de sa colonne : on sait de quelle langue on
+    // lit avant de la lire.
+    expect(avant).toContain('Fillion français')
   })
 
   it('rend une conclusion propre à une langue ancrée sur un verset', () => {
