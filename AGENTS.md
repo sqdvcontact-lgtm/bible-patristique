@@ -563,6 +563,16 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 - **Notes et tâches** : table **`controle_sections`** (`cle` PK, `titre`, `ordre`, `commentaire_ia`, `todos` jsonb `[{texte, fait}]`, `maj_le`). RLS : lecture `authenticated` + `is_admin()` ; écriture par l'assistant (service_role). **Après une avancée notable, mettre à jour la note et cocher les tâches** de la section concernée, pour que la page reste fidèle à l'état réel.
 - **Nombre de traductions bibliques lisibles** : via `codesTraductionsLecture()` (mêmes règles que l'accueil), jamais le simple `count(*)` de `traductions` (qui compte aussi les non matérialisées comme TR0009).
 
+## ⚠️ Une section nouvelle ne s'affiche pas toute seule (2026-08-20)
+
+Les cartes du centre sont **codées en dur** dans `app/admin/controle/page.tsx` (`<Carte titre="…" cle="…">`), et `sec(cle)` va chercher la ligne correspondante. Ajouter une ligne à `controle_sections` ne fait donc **rien paraître** : il faut la carte avec. Neuf cartes au 2026-08-20, la dernière étant « Bible Fillion ».
+
+## ⛔ Le service_role CONTOURNE la RLS : n'y comptez jamais ce qui est « public »
+
+La page lit tout en `supabaseAdmin`. Interroger une vue publique depuis l'admin rend donc **aussi les brouillons**, et un compteur nommé « lignes au catalogue public » ment. Constaté le 2026-08-20 : la carte Fillion annonçait « 2 lignes au catalogue public » sous une note disant que rien n'était visible — les deux ne pouvaient pas être vraies, et c'est le chiffre qu'on croit.
+
+**Règle** : ce que voit le lecteur se recalcule à la main, avec les mêmes conditions que les politiques (`is_public` **et** `validation_status = 'validated'`, **et** le statut de l'entité parente), ou se lit avec une clé anonyme. Jamais par un `count` en service_role sur une vue publique.
+
 ## Panne « Impossible de charger les indicateurs » (2026-08-11)
 
 ⚠️ **Ne jamais destructurer `data` sans `error`.** La page se contentait de `const [{ data: tbRaw }] = await Promise.all([...])` : l'erreur PostgREST était jetée, et tout échec se réduisait au message générique « Impossible de charger les indicateurs (RPC `controle_tableau_bord`) », indiagnosticable. Corrigé : `error` est destructurée, journalisée côté serveur (`console.error`), et rendue à l'écran par `EcranPanne` (code, message, détails, piste).
