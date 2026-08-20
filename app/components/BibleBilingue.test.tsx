@@ -89,6 +89,98 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html).toContain('href="#appel-note-bible-n1-la"')
   })
 
+  // Quatre régressions à empêcher : un contenu propre à une langue ne doit
+  // jamais disparaître faute d'une place dans la grille.
+  it('rend une introduction propre à une langue dans SA colonne', () => {
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        blocs={[{
+          id: 'intro-fr',
+          semanticStyleCode: 'introduction_livre',
+          heading: null,
+          placement: 'before',
+          canonIdStart: null,
+          canonIdEnd: null,
+          materialOrder: 1,
+          appliesTo: 'member',
+          appliesToMemberId: 'fr',
+          textBlocks: [{ id: 'i:1', kind: 'commentary', form: 'prose', text: 'Propre au français, sans ancre.' }],
+          internalNotes: [],
+        }]}
+      />,
+    )
+    expect(html.split('Propre au français, sans ancre.')).toHaveLength(2)
+    // Il vit dans la cellule du français, pas en pleine largeur.
+    const avant = html.slice(0, html.indexOf('Propre au français, sans ancre.'))
+    expect(avant.lastIndexOf('lang="fr"')).toBeGreaterThan(avant.lastIndexOf('lang="la"'))
+  })
+
+  it('rend une conclusion propre à une langue ancrée sur un verset', () => {
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        blocs={[{
+          id: 'concl-la',
+          semanticStyleCode: 'conclusion_pericope',
+          heading: null,
+          placement: 'after',
+          canonIdStart: 'MRK.1.1',
+          canonIdEnd: 'MRK.1.1',
+          materialOrder: 2,
+          appliesTo: 'member',
+          appliesToMemberId: 'la',
+          textBlocks: [{ id: 'c:1', kind: 'commentary', form: 'prose', text: 'Clôture latine.' }],
+          internalNotes: [],
+        }]}
+      />,
+    )
+    expect(html.split('Clôture latine.')).toHaveLength(2)
+  })
+
+  it('rend une illustration propre à une langue', () => {
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        illustrations={[{
+          id: 'img-fr', assetKey: 'jourdain', assetKind: 'illustration',
+          url: 'https://exemple.test/j.webp', width: 400, height: 300,
+          altText: 'Le Jourdain', caption: null, printedPage: null,
+          placement: 'after', canonIdStart: 'MRK.1.1', canonIdEnd: null,
+          bodyBlockId: null, noteId: null, materialOrder: 1,
+          appliesTo: 'member', appliesToMemberId: 'fr',
+        }]}
+      />,
+    )
+    expect(html).toContain('data-asset-key="jourdain"')
+  })
+
+  it('garde dans sa note une illustration propre à une langue', () => {
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        notes={[{
+          id: 'n5', displayNumber: 5, canonId: 'MRK.1.1', materialOrder: 5,
+          appliesTo: 'family', appliesToMemberId: null,
+          blocks: [{ id: 'n5:1', kind: 'commentary', form: 'prose', text: 'Note illustrée.' }],
+        }]}
+        illustrations={[{
+          id: 'img-note', assetKey: 'passoire', assetKind: 'illustration',
+          url: 'https://exemple.test/p.webp', width: 300, height: 200,
+          altText: 'Passoire antique', caption: null, printedPage: null,
+          placement: 'inline', canonIdStart: null, canonIdEnd: null,
+          bodyBlockId: null, noteId: 'n5', materialOrder: 2,
+          appliesTo: 'member', appliesToMemberId: 'la',
+        }]}
+      />,
+    )
+    // L'image appartient au latin, mais elle est matériellement dans la note :
+    // elle reste donc dans la note, rendue une seule fois au bas du chapitre.
+    const notes = html.slice(html.indexOf('notes-bible-chapitre'))
+    expect(notes).toContain('data-asset-key="passoire"')
+    expect(html.split('data-asset-key="passoire"')).toHaveLength(2)
+  })
+
   it('n’appelle une note propre au français que dans sa colonne', () => {
     const html = renderToStaticMarkup(
       <BibleBilingue

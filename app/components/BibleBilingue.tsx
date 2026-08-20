@@ -4,13 +4,26 @@
 // par l'axe canonique. Ce qui appartient à l'ensemble éditorial — introductions,
 // commentaires de péricope, conclusions — se rend PLEINE LARGEUR, hors des
 // colonnes et une seule fois : le dupliquer dans chaque langue ferait lire deux
-// fois le même commentaire.
+// fois le même commentaire. Ce qui appartient à une langue reste dans sa colonne.
 //
-// Le composant ne décide de rien : la répartition et l'appariement viennent de
-// `bibleEditionBilingue.ts`, qui est pur et testé.
+// ⚠️ Une illustration matériellement attachée à un bloc ou à une note suit CE
+// bloc ou CETTE note, quel que soit le membre à qui elle appartient : la charte
+// veut que l'image d'une note reste dans sa note. Les trois index sont donc
+// fusionnés, à la différence des ancres de verset, qui restent par colonne.
+//
+// Le composant ne décide de rien : la répartition, l'appariement et l'indexation
+// viennent de modules purs et testés.
 
 import type { ReactNode } from 'react'
 
+import {
+  indexerBlocsDeCorps,
+  indexerIllustrations,
+  type BibleEditionAssetIndex,
+  type BibleEditionBodyBlockIndex,
+  type BibleEditionDisplayAsset,
+  type BibleEditionDisplayBodyBlock,
+} from '@/app/lib/bibleEdition'
 import {
   appelsDuVerset,
   apparierRangees,
@@ -23,10 +36,6 @@ import {
   type MembreBilingue,
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
-import type {
-  BibleEditionDisplayAsset,
-  BibleEditionDisplayBodyBlock,
-} from '@/app/lib/bibleEdition'
 import {
   ancreAppelNoteBible,
   AppelNoteBible,
@@ -50,27 +59,19 @@ export type LectureBilingueProps = {
   mobile?: boolean
 }
 
-function grouperParCanon<T extends { canonIdStart: string | null; placement: string }>(
-  elements: readonly T[],
-  position: 'before' | 'after',
-): Map<string, T[]> {
-  const index = new Map<string, T[]>()
-  for (const element of elements) {
-    if (element.canonIdStart === null || element.placement !== position) continue
-    const groupe = index.get(element.canonIdStart) ?? []
-    groupe.push(element)
-    index.set(element.canonIdStart, groupe)
-  }
-  return index
+type ApparatColonne = {
+  blocs: BibleEditionBodyBlockIndex
+  images: BibleEditionAssetIndex
 }
 
-function sansAncre<T extends { canonIdStart: string | null; placement: string }>(
-  elements: readonly T[],
-  position: 'before' | 'after',
-): T[] {
-  return elements.filter((element) => element.canonIdStart === null && (
-    position === 'after' ? element.placement === 'after' : element.placement !== 'after'
-  ))
+function fusionner<T>(sources: readonly Map<string, T[]>[]): Map<string, T[]> {
+  const fusion = new Map<string, T[]>()
+  for (const source of sources) {
+    for (const [cle, valeurs] of source) {
+      fusion.set(cle, [...(fusion.get(cle) ?? []), ...valeurs])
+    }
+  }
+  return fusion
 }
 
 export default function BibleBilingue({
@@ -91,30 +92,23 @@ export default function BibleBilingue({
   const illustrationsReparties = repartirIllustrations(illustrations, ordre)
   const notesRetenues = notesDuChapitreBilingue(notes, ordre)
 
-  const illustrationsParBloc = new Map<string, IllustrationBilingue[]>()
-  const illustrationsParNote = new Map<string, IllustrationBilingue[]>()
-  for (const illustration of illustrationsReparties.communs) {
-    if (illustration.bodyBlockId) {
-      const groupe = illustrationsParBloc.get(illustration.bodyBlockId) ?? []
-      groupe.push(illustration)
-      illustrationsParBloc.set(illustration.bodyBlockId, groupe)
-    } else if (illustration.noteId) {
-      const groupe = illustrationsParNote.get(illustration.noteId) ?? []
-      groupe.push(illustration)
-      illustrationsParNote.set(illustration.noteId, groupe)
-    }
+  const commun: ApparatColonne = {
+    blocs: indexerBlocsDeCorps(blocsRepartis.communs),
+    images: indexerIllustrations(illustrationsReparties.communs),
   }
+  const parMembre = new Map<string, ApparatColonne>(ordre.map((membre) => [membre.id, {
+    blocs: indexerBlocsDeCorps(blocsRepartis.parMembre.get(membre.id) ?? []),
+    images: indexerIllustrations(illustrationsReparties.parMembre.get(membre.id) ?? []),
+  }]))
 
-  const blocsAvant = grouperParCanon(blocsRepartis.communs, 'before')
-  const blocsApres = grouperParCanon(blocsRepartis.communs, 'after')
-  const illustrationsAvant = grouperParCanon(
-    illustrationsReparties.communs.filter((item) => !item.bodyBlockId && !item.noteId),
-    'before',
-  )
-  const illustrationsApres = grouperParCanon(
-    illustrationsReparties.communs.filter((item) => !item.bodyBlockId && !item.noteId),
-    'after',
-  )
+  const imagesParBloc = fusionner([
+    commun.images.byBodyBlock,
+    ...[...parMembre.values()].map((apparat) => apparat.images.byBodyBlock),
+  ])
+  const imagesParNote = fusionner([
+    commun.images.byNote,
+    ...[...parMembre.values()].map((apparat) => apparat.images.byNote),
+  ])
 
   const rangees = rangeesNonVides(apparierRangees(axeCanonique, colonnesOrdonnees))
 
@@ -128,12 +122,15 @@ export default function BibleBilingue({
     if (premier) ancresRetour.set(note.id, ancreAppelNoteBible(note.id, premier.membre.id))
   }
 
-  const rendreBlocs = (liste: readonly BlocBilingue[]) => liste.map((bloc) => (
+  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc) => (
     <BlocEditorialBible
       key={bloc.id}
       bloc={bloc}
-      illustrations={illustrationsParBloc.get(bloc.id) ?? []}
+      illustrations={imagesParBloc.get(bloc.id) ?? []}
     />
+  ))
+  const rendreImages = (liste: readonly BibleEditionDisplayAsset[]) => liste.map((illustration) => (
+    <IllustrationBible key={illustration.id} illustration={illustration} />
   ))
 
   const styleGrille = mobile
@@ -145,9 +142,38 @@ export default function BibleBilingue({
       rowGap: '0.35rem',
     }
 
+  /**
+   * Ce qu'un membre porte sans ancre de verset ouvre ou ferme SA colonne : une
+   * introduction propre au français n'a pas à passer pleine largeur, ni à
+   * disparaître faute d'un verset auquel se rattacher.
+   */
+  const rendreBandeauMembres = (position: 'opening' | 'closing') => {
+    const contenus = colonnesOrdonnees.map((colonne) => {
+      const apparat = parMembre.get(colonne.membre.id)
+      return {
+        membre: colonne.membre,
+        blocs: apparat?.blocs[position] ?? [],
+        images: apparat?.images[position] ?? [],
+      }
+    })
+    if (contenus.every((c) => c.blocs.length === 0 && c.images.length === 0)) return null
+    return (
+      <div style={styleGrille}>
+        {contenus.map((contenu) => (
+          <div key={contenu.membre.id} lang={contenu.membre.languageCode} style={{ minWidth: 0 }}>
+            {rendreBlocs(contenu.blocs)}
+            {rendreImages(contenu.images)}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div data-lecture="bilingue">
-      {rendreBlocs(sansAncre(blocsRepartis.communs, 'before'))}
+      {rendreBlocs(commun.blocs.opening)}
+      {rendreImages(commun.images.opening)}
+      {rendreBandeauMembres('opening')}
 
       {/* Étiquettes de colonne : discrètes, sans fond, comme en traductions
           parallèles. Sur mobile, chaque verset porte déjà sa langue. */}
@@ -172,80 +198,71 @@ export default function BibleBilingue({
         </div>
       )}
 
-      {rangees.map((rangee) => {
-        const avant = blocsAvant.get(rangee.canonId) ?? []
-        const apres = blocsApres.get(rangee.canonId) ?? []
-        return (
-          <div key={rangee.canonId}>
-            {rendreBlocs(avant)}
-            {(illustrationsAvant.get(rangee.canonId) ?? []).map((illustration) => (
-              <IllustrationBible key={illustration.id} illustration={illustration} />
-            ))}
-            <div style={styleGrille} data-canon-id={rangee.canonId}>
-              {rangee.cellules.map((cellule, index) => {
-                const membre = colonnesOrdonnees[index].membre
-                const propres = blocsRepartis.parMembre.get(membre.id) ?? []
-                const blocsDuVerset = propres.filter((bloc) => (
-                  bloc.canonIdStart === rangee.canonId && bloc.placement !== 'after'
-                ))
-                return (
-                  <div
-                    key={membre.id}
-                    lang={membre.languageCode}
-                    data-membre={membre.id}
-                    style={{ minWidth: 0 }}
-                  >
-                    {rendreBlocs(blocsDuVerset)}
-                    {cellule === null ? (
-                      // Un créneau que cette édition ne porte pas reste vide :
-                      // on n'y met jamais le texte de l'autre colonne.
-                      <p
-                        aria-hidden
-                        style={{ margin: '0 0 0.35rem', color: 'var(--cs-texte-faible)' }}
-                      >
-                        &nbsp;
-                      </p>
-                    ) : (
-                      <p style={{ margin: '0 0 0.35rem', lineHeight: 1.7 }}>
-                        {cellule.referenceNative && (
-                          <span
-                            style={{
-                              color: 'var(--cs-or)',
-                              fontSize: '0.6875rem',
-                              marginRight: '0.35rem',
-                              verticalAlign: 'baseline',
-                            }}
-                          >
-                            {cellule.referenceNative}
-                          </span>
-                        )}
-                        {cellule.texte}
-                        {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
-                          <AppelNoteBible
-                            key={`${membre.id}:${note.id}`}
-                            noteId={note.id}
-                            displayNumber={note.displayNumber}
-                            memberId={membre.id}
-                          />
-                        ))}
-                      </p>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            {(illustrationsApres.get(rangee.canonId) ?? []).map((illustration) => (
-              <IllustrationBible key={illustration.id} illustration={illustration} />
-            ))}
-            {rendreBlocs(apres)}
+      {rangees.map((rangee) => (
+        <div key={rangee.canonId}>
+          {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
+          {rendreImages(commun.images.beforeByCanon.get(rangee.canonId) ?? [])}
+          <div style={styleGrille} data-canon-id={rangee.canonId}>
+            {rangee.cellules.map((cellule, index) => {
+              const membre = colonnesOrdonnees[index].membre
+              const apparat = parMembre.get(membre.id)
+              return (
+                <div
+                  key={membre.id}
+                  lang={membre.languageCode}
+                  data-membre={membre.id}
+                  style={{ minWidth: 0 }}
+                >
+                  {rendreBlocs(apparat?.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
+                  {rendreImages(apparat?.images.beforeByCanon.get(rangee.canonId) ?? [])}
+                  {cellule === null ? (
+                    // Un créneau que cette édition ne porte pas reste vide :
+                    // on n'y met jamais le texte de l'autre colonne.
+                    <p aria-hidden style={{ margin: '0 0 0.35rem', color: 'var(--cs-texte-faible)' }}>
+                      &nbsp;
+                    </p>
+                  ) : (
+                    <p style={{ margin: '0 0 0.35rem', lineHeight: 1.7 }}>
+                      {cellule.referenceNative && (
+                        <span
+                          style={{
+                            color: 'var(--cs-or)',
+                            fontSize: '0.6875rem',
+                            marginRight: '0.35rem',
+                            verticalAlign: 'baseline',
+                          }}
+                        >
+                          {cellule.referenceNative}
+                        </span>
+                      )}
+                      {cellule.texte}
+                      {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
+                        <AppelNoteBible
+                          key={`${membre.id}:${note.id}`}
+                          noteId={note.id}
+                          displayNumber={note.displayNumber}
+                          memberId={membre.id}
+                        />
+                      ))}
+                    </p>
+                  )}
+                  {rendreImages(apparat?.images.afterByCanon.get(rangee.canonId) ?? [])}
+                  {rendreBlocs(apparat?.blocs.afterByCanon.get(rangee.canonId) ?? [])}
+                </div>
+              )
+            })}
           </div>
-        )
-      })}
+          {rendreImages(commun.images.afterByCanon.get(rangee.canonId) ?? [])}
+          {rendreBlocs(commun.blocs.afterByCanon.get(rangee.canonId) ?? [])}
+        </div>
+      ))}
 
-      {rendreBlocs(sansAncre(blocsRepartis.communs, 'after'))}
+      {rendreBandeauMembres('closing')}
+      {rendreImages(commun.images.closing)}
+      {rendreBlocs(commun.blocs.closing)}
       <NotesBibleChapitre
         notes={notesRetenues}
-        illustrationsByNote={illustrationsParNote}
+        illustrationsByNote={imagesParNote}
         ancresRetour={ancresRetour}
       />
     </div>
