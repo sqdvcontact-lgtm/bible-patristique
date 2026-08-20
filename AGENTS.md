@@ -785,6 +785,14 @@ Le socle est **générique**, pas « fait pour Fillion » : une **famille édito
   - ⛔ **Ce qui appartient à une langue ne se perd pas faute de place dans la grille** (défaut corrigé le 2026-08-20). La première version n'accueillait un contenu propre à un membre que s'il était ancré sur un verset ET placé avant lui : une introduction propre au français, une conclusion latine placée après son verset, et **toutes** les illustrations propres à une langue tombaient dans le vide sans rien signaler — leur index était calculé puis jamais lu. Ce qui n'a pas d'ancre de verset ouvre ou ferme désormais SA colonne. L'indexation passe par `indexerBlocsDeCorps` et `indexerIllustrations`, déjà testées, plutôt que d'être refaite à la main.
   - ⚠️ **Une illustration matériellement attachée à un bloc ou à une note suit CE bloc ou CETTE note**, quel que soit le membre à qui elle appartient : la charte veut que l'image d'une note reste dans sa note. Les index par bloc et par note sont donc fusionnés entre le commun et les membres, à la différence des ancres de verset, qui restent par colonne.
 
+## ⚠️ Un comptage DOM sur la page Bible compte DOUBLE
+
+La variante mobile est **rendue puis masquée** (`display: none`), et non démontée — c'est voulu, pour préserver le défilement au changement d'onglet. Un `querySelectorAll` compte donc deux fois chaque verset, chaque titre et chaque bloc : 62 versets pour Genèse 1, qui en a 31. Vérifié le 2026-08-20 sur la Bible de Sacy, sans aucun code Fillion en jeu.
+
+**Règle** : pour compter ce que le lecteur voit, filtrer sur la visibilité (`offsetParent`, ou une boîte de largeur non nulle), ou compter dans le HTML **serveur** plutôt que dans le DOM.
+
+⚠️ Et compter un nom de classe par sous-chaîne trompe aussi : `cs-bible-block--commentary` contient `cs-bible-bloc`.
+
 ## L'adresse de la page Bible s'écrit en UN seul endroit
 
 `urlLectureBible` (`app/lib/bibleNavigation.ts`, pur et testé) compose seule l'adresse de lecture. Elle était écrite à la main en **huit endroits, dans quatre fichiers**, et c'est ainsi que la lecture « Latin-français » se perdait : le volet des livres et les flèches mobiles reconstruisaient l'adresse sans reporter le mode, si bien que changer de chapitre ramenait le lecteur à une colonne sans qu'il l'ait demandé — sur l'action la plus courante de la page.
