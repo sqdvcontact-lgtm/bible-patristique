@@ -31,7 +31,7 @@ describe('normaliserEspaces (français, harmonisation du type d’espace)', () =
   })
 
   // Le corpus emploie indifféremment les trois espaces autour des guillemets
-  // (relevé : ~14 600 insécables, ~3 000 ordinaires, ~1 530 fines). Les trois
+  // (relevé : ~14 600 insécables, ~3 000 ordinaires et ~1 530 fines). Les trois
   // doivent aboutir à la même fine, sans quoi la page reste bigarrée.
   it('convertit aussi l’espace ORDINAIRE, majoritaire dans plusieurs lots d’import', () => {
     expect(normaliserEspaces('« mot »')).toBe(`«${FINE}mot${FINE}»`)
@@ -81,6 +81,20 @@ describe('ponctuation des citations au rendu — charte §3.8', () => {
   it('conserve la ponctuation forte finale', () => {
     expect(normaliserTypographieLecture('« Est-ce vrai ? »')).toBe(`«${FINE}Est-ce vrai${FINE}?${FINE}»`)
     expect(normaliserTypographieLecture('« C’est vrai ! »')).toBe(`«${FINE}C’est vrai${FINE}!${FINE}»`)
+  })
+
+  it('supprime une ponctuation extérieure qui double une ponctuation forte déjà intérieure', () => {
+    expect(normaliserTypographieLecture('Il demande : « Es-tu prêt ? », puis il part.'))
+      .toBe(`Il demande${NBSP}: «${FINE}Es-tu prêt${FINE}?${FINE}» puis il part.`)
+    expect(normaliserTypographieLecture('Moysen : « Quid clamas ad me[[86]] ? », cum utique'))
+      .toBe(`Moysen${NBSP}: «${FINE}Quid clamas ad me[[86]]${FINE}?${FINE}» cum utique`)
+    expect(normaliserTypographieLecture('Il conclut : « Ainsi soit-il. ». Ensuite'))
+      .toBe(`Il conclut${NBSP}: «${FINE}Ainsi soit-il.${FINE}» Ensuite`)
+  })
+
+  it('préserve les trois points placés après une citation close lorsqu’ils marquent une omission', () => {
+    expect(normaliserTypographieLecture('« Première citation. »... « Seconde citation. »'))
+      .toBe(`«${FINE}Première citation.${FINE}»... «${FINE}Seconde citation.${FINE}»`)
   })
 
   it('normalise aussi le deux-points et reste idempotent', () => {
