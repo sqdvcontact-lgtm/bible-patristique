@@ -595,5 +595,8 @@ button:focus-visible,
   font-style: italic;
   letter-spacing: 0;
   text-transform: none;
+  /* ⚠️ Le chapeau n’hérite PAS des petites capitales de son titre : c’est un
+     sous-titre, il se lit en italique ordinaire. */
+  font-variant-caps: normal;
   color: var(--cs-texte-second);
 }
