@@ -500,7 +500,15 @@ button:focus-visible,
 }
 .cs-bible-title--t4 { font-size: 1rem;      font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
 .cs-bible-title--t5 { font-size: 0.9375rem; font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
-.cs-bible-title--t6 { font-size: 0.9375rem; font-weight: 500; color: var(--cs-texte-fort); letter-spacing: 0.03em; }
+/* Intertitre de péricope : au fer, en petites capitales sobres, avec de l’air
+   au-dessus et peu au-dessous — le texte qui suit lui appartient. */
+.cs-bible-title--t6 {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--cs-texte-fort);
+  letter-spacing: 0.03em;
+  margin: 1.75rem 0 0.35rem;
+}
 
 /* Le jeton d'information ne crie pas : il se lit au retrait et à la mesure. Une
    information de large portée s'écarte du fil, une information de verset s'y
@@ -529,6 +537,14 @@ button:focus-visible,
    blanc généreux au-dessus et au-dessous. C'est ce retrait qui dit qu'on n'est
    pas encore dans le texte, mieux qu'un encadré ou qu'un filet. */
 .cs-bible-block--introduction {
+  margin-top: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+/* Seul le PRÉAMBULE — l’introduction du livre ou d’une partie — s’écarte du fil
+   par de larges marges. Celle d’une section ou d’une péricope accompagne un
+   passage précis : elle reste au fer, dans la mesure ordinaire. */
+.cs-bible-info--i1.cs-bible-block--introduction,
+.cs-bible-info--i2.cs-bible-block--introduction {
   padding-left: 12%;
   padding-right: 12%;
   margin-top: 2.25rem;

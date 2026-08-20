@@ -12,7 +12,7 @@ import {
   classesDuStyle,
   resoudreStyleSemantique,
   diviserIntitule,
-  type NatureBloc,
+  type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
@@ -52,12 +52,15 @@ const STYLE_CORPS: CSSProperties = {
   overflowWrap: 'break-word',
 }
 
-function rendreBlocTexte(bloc: BlocTexteBiblique, nature?: NatureBloc): ReactNode {
+function rendreBlocTexte(bloc: BlocTexteBiblique, resolu?: StyleResolu): ReactNode {
   const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
-  // Une introduction s'écarte du fil : centrée, en italique, un cran plus
-  // petite, et largement margée. Elle PRÉPARE la lecture, elle n'en fait pas
-  // partie — et le lecteur doit le voir avant même de la lire.
-  const introductif = nature === 'introduction'
+  // ⚠️ La composition d’une introduction dépend de sa PORTÉE, non de sa seule
+  // nature. Celle du LIVRE est un préambule : elle s’écarte du fil, centrée et
+  // en italique. Celle d’une PÉRICOPE appartient au fil : elle se lit au fer et
+  // en romain, sous son intertitre. Le même traitement pour les deux faisait
+  // flotter au milieu de la page un texte qui accompagne un passage précis.
+  const preambule = resolu?.nature === 'introduction'
+    && (resolu.level === 'I1' || resolu.level === 'I2')
   const style: CSSProperties = {
     ...STYLE_CORPS,
     margin: discret ? '0.35rem 0 0' : '0 0 0.6rem',
@@ -69,7 +72,7 @@ function rendreBlocTexte(bloc: BlocTexteBiblique, nature?: NatureBloc): ReactNod
     ...(bloc.form === 'verse' ? { lineHeight: 1.6, textAlign: 'left' as const } : {}),
     // ⚠️ En DERNIER : la composition de l’introduction doit l’emporter sur les
     // réglages généraux, dont `fontStyle`, qui écraserait sinon l'italique.
-    ...(introductif
+    ...(preambule
       ? {
         fontSize: '0.78125rem',
         fontStyle: 'italic' as const,
@@ -158,7 +161,7 @@ export function BlocEditorialBible({
           {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
         </p>
       ))}
-      {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu.nature))}
+      {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu))}
       {rendreIllustrations(dansLeFlux)}
       {(bloc.internalNotes?.length ?? 0) > 0 && (
         <aside

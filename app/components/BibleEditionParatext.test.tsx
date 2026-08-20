@@ -193,4 +193,17 @@ describe('composition d’une introduction', () => {
     expect(paragraphe).toContain('font-style:normal')
     expect(paragraphe).not.toContain('text-align:center')
   })
+
+  it('laisse l’introduction d’une PÉRICOPE au fer et en romain', () => {
+    // Le préambule du livre s’écarte du fil ; l’introduction d’une péricope
+    // accompagne un passage précis et appartient au fil. Le même traitement
+    // pour les deux faisait flotter au milieu de la page un texte qui suit
+    // son intertitre.
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{ ...introduction, semanticStyleCode: 'introduction_pericope', niveauHtml: 3 }} />,
+    )
+    const paragraphe = html.slice(html.indexOf('Comme nous') - 320, html.indexOf('Comme nous'))
+    expect(paragraphe).toContain('font-style:normal')
+    expect(paragraphe).not.toContain('text-align:center')
+  })
 })
