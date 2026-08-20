@@ -471,9 +471,18 @@ button:focus-visible,
    sérif et centrés, avec un vrai écart de corps ; les trois bas passent au
    SANS et au fer à gauche, comme les intertitres de la page d'œuvre. Le
    change de caractère fait le gros du travail, la taille achève. */
-.cs-bible-title--t1 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
-.cs-bible-title--t2 { font-size: 1.25rem;   font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; }
-.cs-bible-title--t3 { font-size: 1rem;      font-weight: 500; color: var(--cs-encre); letter-spacing: 0.08em; }
+.cs-bible-title--t1 { font-size: 1.625rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
+.cs-bible-title--t2 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; margin: 3rem 0 0.75rem; }
+/* La section descend d’un cran FRANC sous la partie — rapport 1,4, non 1,05 —
+   et prend les petites capitales : deux axes, pas un seul. */
+.cs-bible-title--t3 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--cs-encre);
+  letter-spacing: 0.04em;
+  font-variant-caps: small-caps;
+  margin: 2rem 0 0.6rem;
+}
 
 /* Les rangs bas quittent le sérif : c'est le signal le plus net dont on dispose
    encore, et celui que la page d'œuvre emploie déjà pour ses intertitres. */
@@ -540,26 +549,23 @@ button:focus-visible,
   letter-spacing: 0;
   color: var(--cs-texte-gris);
 }
-.cs-bible-info--i1 > .cs-bible-info-label {
-  text-align: center;
-  font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 1.125rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  /* Petites capitales VRAIES : la casse de la source est préservée, et le mot
-     garde sa forme au lieu d’être crié. */
-  font-variant-caps: small-caps;
-  color: var(--cs-encre-fonce);
-}
+/* ⚠️ « Introduction » n’est PAS un titre de structure : c’est le nom d’un genre
+   éditorial. Le rendre comme une division le mettait en concurrence avec
+   « Première partie », et son corps intermédiaire lui prêtait un rang qu’il
+   n’a pas. Il prend donc la RUBRIQUE du site — très petite, largement chassée,
+   grise — celle qui coiffe déjà « TRADUCTION » ou « AU SOMMAIRE » ailleurs.
+   Petites capitales vraies : la casse de la source est préservée. */
+.cs-bible-info--i1 > .cs-bible-info-label,
 .cs-bible-info--i2 > .cs-bible-info-label,
 .cs-bible-info--i3 > .cs-bible-info-label {
   text-align: center;
-  font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 1rem;
-  font-weight: 400;
-  letter-spacing: 0.05em;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   font-variant-caps: small-caps;
-  color: var(--cs-encre);
+  color: var(--cs-texte-gris);
+  margin-bottom: 0.6rem;
 }
 
 /* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
