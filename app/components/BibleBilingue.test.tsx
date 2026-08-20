@@ -138,6 +138,36 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html.split('Clôture latine.')).toHaveLength(2)
   })
 
+  it('ne laisse PAS un commentaire propre à une langue décaler les versets', () => {
+    // Le défaut vu sur le pilote Marc : rendu dans la cellule du verset, le
+    // commentaire français poussait son verset vers le bas pendant que le latin
+    // restait en haut. Les deux textes cessaient d'être en regard.
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        blocs={[{
+          id: 'comm-fr',
+          semanticStyleCode: 'commentaire_pericope',
+          heading: 'Le précurseur fait son apparition',
+          placement: 'before',
+          canonIdStart: 'MRK.1.1',
+          canonIdEnd: 'MRK.1.8',
+          materialOrder: 1,
+          appliesTo: 'member',
+          appliesToMemberId: 'fr',
+          textBlocks: [{ id: 'cf:1', kind: 'commentary', form: 'prose', text: 'Commentaire de la péricope.' }],
+          internalNotes: [],
+        }]}
+      />,
+    )
+    const rangee = html.indexOf('data-canon-id="MRK.1.1"')
+    const commentaire = html.indexOf('Commentaire de la péricope.')
+    expect(commentaire).toBeGreaterThan(-1)
+    // Il précède la rangée : il occupe sa colonne dans une bande à part, et la
+    // rangée du verset garde ses deux cellules à la même hauteur.
+    expect(commentaire).toBeLessThan(rangee)
+  })
+
   it('rend une illustration propre à une langue', () => {
     const html = renderToStaticMarkup(
       <BibleBilingue

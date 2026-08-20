@@ -143,19 +143,25 @@ export default function BibleBilingue({
     }
 
   /**
-   * Ce qu'un membre porte sans ancre de verset ouvre ou ferme SA colonne : une
-   * introduction propre au français n'a pas à passer pleine largeur, ni à
-   * disparaître faute d'un verset auquel se rattacher.
+   * Ce qu'un membre porte à lui seul occupe SA colonne, dans une bande à part.
+   *
+   * ⚠️ La bande est une RANGÉE DISTINCTE, et non un contenu glissé dans la
+   * cellule du verset. Rendu dans la cellule, un commentaire propre au français
+   * poussait son verset vers le bas pendant que le latin restait en haut : les
+   * deux textes cessaient d'être en regard, ce qui défait toute la lecture
+   * bilingue. Une bande garde l'alignement des versets tout en laissant le
+   * commentaire dans sa langue.
    */
-  const rendreBandeauMembres = (position: 'opening' | 'closing') => {
-    const contenus = colonnesOrdonnees.map((colonne) => {
-      const apparat = parMembre.get(colonne.membre.id)
-      return {
-        membre: colonne.membre,
-        blocs: apparat?.blocs[position] ?? [],
-        images: apparat?.images[position] ?? [],
-      }
-    })
+  const rendreBandeauMembres = (
+    choisir: (apparat: ApparatColonne | undefined) => {
+      blocs: readonly BibleEditionDisplayBodyBlock[]
+      images: readonly BibleEditionDisplayAsset[]
+    },
+  ) => {
+    const contenus = colonnesOrdonnees.map((colonne) => ({
+      membre: colonne.membre,
+      ...choisir(parMembre.get(colonne.membre.id)),
+    }))
     if (contenus.every((c) => c.blocs.length === 0 && c.images.length === 0)) return null
     return (
       <div style={styleGrille}>
@@ -169,11 +175,21 @@ export default function BibleBilingue({
     )
   }
 
+  const bandeauSansAncre = (position: 'opening' | 'closing') => rendreBandeauMembres((apparat) => ({
+    blocs: apparat?.blocs[position] ?? [],
+    images: apparat?.images[position] ?? [],
+  }))
+  const bandeauDuVerset = (canonId: string, position: 'beforeByCanon' | 'afterByCanon') =>
+    rendreBandeauMembres((apparat) => ({
+      blocs: apparat?.blocs[position].get(canonId) ?? [],
+      images: apparat?.images[position].get(canonId) ?? [],
+    }))
+
   return (
     <div data-lecture="bilingue">
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
-      {rendreBandeauMembres('opening')}
+      {bandeauSansAncre('opening')}
 
       {/* Étiquettes de colonne : discrètes, sans fond, comme en traductions
           parallèles. Sur mobile, chaque verset porte déjà sa langue. */}
@@ -202,10 +218,10 @@ export default function BibleBilingue({
         <div key={rangee.canonId}>
           {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
           {rendreImages(commun.images.beforeByCanon.get(rangee.canonId) ?? [])}
+          {bandeauDuVerset(rangee.canonId, 'beforeByCanon')}
           <div style={styleGrille} data-canon-id={rangee.canonId}>
             {rangee.cellules.map((cellule, index) => {
               const membre = colonnesOrdonnees[index].membre
-              const apparat = parMembre.get(membre.id)
               return (
                 <div
                   key={membre.id}
@@ -213,8 +229,6 @@ export default function BibleBilingue({
                   data-membre={membre.id}
                   style={{ minWidth: 0 }}
                 >
-                  {rendreBlocs(apparat?.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
-                  {rendreImages(apparat?.images.beforeByCanon.get(rangee.canonId) ?? [])}
                   {cellule === null ? (
                     // Un créneau que cette édition ne porte pas reste vide :
                     // on n'y met jamais le texte de l'autre colonne.
@@ -246,18 +260,17 @@ export default function BibleBilingue({
                       ))}
                     </p>
                   )}
-                  {rendreImages(apparat?.images.afterByCanon.get(rangee.canonId) ?? [])}
-                  {rendreBlocs(apparat?.blocs.afterByCanon.get(rangee.canonId) ?? [])}
                 </div>
               )
             })}
           </div>
+          {bandeauDuVerset(rangee.canonId, 'afterByCanon')}
           {rendreImages(commun.images.afterByCanon.get(rangee.canonId) ?? [])}
           {rendreBlocs(commun.blocs.afterByCanon.get(rangee.canonId) ?? [])}
         </div>
       ))}
 
-      {rendreBandeauMembres('closing')}
+      {bandeauSansAncre('closing')}
       {rendreImages(commun.images.closing)}
       {rendreBlocs(commun.blocs.closing)}
       <NotesBibleChapitre
