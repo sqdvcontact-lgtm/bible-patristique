@@ -491,7 +491,15 @@ button:focus-visible,
 /* La nature est un modificateur, non un niveau : elle se marque discrètement,
    et se cumule avec le jeton sans le contredire. */
 .cs-bible-block--title { font-variant-numeric: oldstyle-nums; }
-.cs-bible-block--introduction { font-style: normal; }
+/* Une introduction se tient À L'ÉCART du fil : marges larges des deux côtés et
+   blanc généreux au-dessus et au-dessous. C'est ce retrait qui dit qu'on n'est
+   pas encore dans le texte, mieux qu'un encadré ou qu'un filet. */
+.cs-bible-block--introduction {
+  padding-left: 12%;
+  padding-right: 12%;
+  margin-top: 2.25rem;
+  margin-bottom: 2rem;
+}
 .cs-bible-block--commentary { font-style: normal; }
 .cs-bible-block--notice { font-size: 0.78125rem; }
 .cs-bible-block--summary { letter-spacing: 0.01em; }

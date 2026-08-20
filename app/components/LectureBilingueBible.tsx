@@ -80,7 +80,7 @@ export default function LectureBilingueBible({
         className={mobile ? '' : 'flex-1 overflow-y-auto'}
         style={{ padding: mobile ? '1rem 1.125rem 0' : '1.5rem 2rem 3rem' }}
       >
-        <div style={{ maxWidth: mobile ? '100%' : '68rem', margin: '0 auto' }}>
+        <div style={{ maxWidth: mobile ? '100%' : '52rem', margin: '0 auto' }}>
           <BibleBilingue {...contenu} mobile={mobile} />
         </div>
       </div>

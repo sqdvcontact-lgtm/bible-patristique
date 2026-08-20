@@ -12,6 +12,7 @@ import {
   classesDuStyle,
   resoudreStyleSemantique,
   diviserIntitule,
+  type NatureBloc,
 } from '@/app/lib/bibleHierarchieSemantique'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
@@ -51,8 +52,12 @@ const STYLE_CORPS: CSSProperties = {
   overflowWrap: 'break-word',
 }
 
-function rendreBlocTexte(bloc: BlocTexteBiblique): ReactNode {
+function rendreBlocTexte(bloc: BlocTexteBiblique, nature?: NatureBloc): ReactNode {
   const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
+  // Une introduction s'écarte du fil : centrée, en italique, un cran plus
+  // petite, et largement margée. Elle PRÉPARE la lecture, elle n'en fait pas
+  // partie — et le lecteur doit le voir avant même de la lire.
+  const introductif = nature === 'introduction'
   const style: CSSProperties = {
     ...STYLE_CORPS,
     margin: discret ? '0.35rem 0 0' : '0 0 0.6rem',
@@ -62,6 +67,17 @@ function rendreBlocTexte(bloc: BlocTexteBiblique): ReactNode {
       ? { color: 'var(--cs-texte-second)', fontSize: '0.8125rem', textAlign: 'left' as const }
       : {}),
     ...(bloc.form === 'verse' ? { lineHeight: 1.6, textAlign: 'left' as const } : {}),
+    // ⚠️ En DERNIER : la composition de l’introduction doit l’emporter sur les
+    // réglages généraux, dont `fontStyle`, qui écraserait sinon l'italique.
+    ...(introductif
+      ? {
+        fontSize: '0.78125rem',
+        fontStyle: 'italic' as const,
+        textAlign: 'center' as const,
+        hyphens: 'none' as const,
+        margin: '0 0 0.5rem',
+      }
+      : {}),
   }
   return <p key={bloc.id} lang={bloc.language ?? undefined} style={style}>{bloc.text}</p>
 }
@@ -142,7 +158,7 @@ export function BlocEditorialBible({
           {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
         </p>
       ))}
-      {bloc.textBlocks.map(rendreBlocTexte)}
+      {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu.nature))}
       {rendreIllustrations(dansLeFlux)}
       {(bloc.internalNotes?.length ?? 0) > 0 && (
         <aside
@@ -152,7 +168,7 @@ export function BlocEditorialBible({
           <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
             {bloc.internalNotes?.map((note) => (
               <li key={note.id} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
-                {note.blocks.map(rendreBlocTexte)}
+                {note.blocks.map((texte) => rendreBlocTexte(texte))}
               </li>
             ))}
           </ol>
@@ -249,7 +265,7 @@ export function NotesBibleChapitre({
                 (illustrationsByNote?.get(note.id) ?? [])
                   .filter((illustration) => illustration.placement === 'before'),
               )}
-              {note.blocks.map(rendreBlocTexte)}
+              {note.blocks.map((texte) => rendreBlocTexte(texte))}
               {rendreIllustrations(
                 (illustrationsByNote?.get(note.id) ?? [])
                   .filter((illustration) => illustration.placement !== 'before'),

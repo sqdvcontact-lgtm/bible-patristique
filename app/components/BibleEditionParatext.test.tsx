@@ -156,3 +156,41 @@ describe('hiérarchie de rendu', () => {
     expect(renderToStaticMarkup(<BlocEditorialBible bloc={bloc('titre_livre')} />)).toBe('')
   })
 })
+
+describe('composition d’une introduction', () => {
+  const introduction = {
+    id: 'i1',
+    semanticStyleCode: 'introduction_livre',
+    heading: 'Introduction — 1° La personne de l’auteur',
+    placement: 'before' as const,
+    textBlocks: [{
+      id: 'i1:1', kind: 'commentary' as const, form: 'prose' as const,
+      text: 'Comme nous l’apprend le livre des Actes.',
+    }],
+  }
+
+  it('sépare le titre de son chapeau, sans les concaténer', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={introduction} />)
+    expect(html).toContain('>Introduction<span class="cs-bible-chapeau">1. La personne de l’auteur</span>')
+    expect(html).not.toContain('Introduction — 1°')
+  })
+
+  it('compose le développement en italique, centré et plus petit', () => {
+    // ⚠️ L'italique se posait AVANT le réglage général de `fontStyle`, qui
+    // l'écrasait : la règle doit venir en dernier.
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={introduction} />)
+    const paragraphe = html.slice(html.indexOf('Comme nous') - 320, html.indexOf('Comme nous'))
+    expect(paragraphe).toContain('font-style:italic')
+    expect(paragraphe).toContain('text-align:center')
+    expect(paragraphe).toContain('font-size:0.78125rem')
+  })
+
+  it('laisse un commentaire au fer et sans italique', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{ ...introduction, semanticStyleCode: 'commentaire_pericope' }} />,
+    )
+    const paragraphe = html.slice(html.indexOf('Comme nous') - 320, html.indexOf('Comme nous'))
+    expect(paragraphe).toContain('font-style:normal')
+    expect(paragraphe).not.toContain('text-align:center')
+  })
+})

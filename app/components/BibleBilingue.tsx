@@ -184,7 +184,13 @@ export default function BibleBilingue({
     ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', rowGap: '0.35rem' }
     : {
       display: 'grid',
-      gridTemplateColumns: `repeat(${colonnesOrdonnees.length}, minmax(0, 1fr))`,
+      // Colonnes de largeurs INÉGALES, comme en traductions parallèles : le texte
+      // original est plus dense que sa traduction et demande moins de place. La
+      // mesure totale est celle des œuvres, 52 rem, pour que les deux lectures en
+      // regard du site se ressemblent.
+      gridTemplateColumns: colonnesOrdonnees
+        .map((colonne) => (colonne.membre.memberRole === 'source_text' ? 'minmax(0, 0.88fr)' : 'minmax(0, 1.12fr)'))
+        .join(' '),
       alignItems: 'baseline',
       columnGap: '1.1rem',
       rowGap: '0.4rem',
