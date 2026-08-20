@@ -99,6 +99,10 @@ Le contrôle existant vérifie les empreintes et les dimensions. Il doit aussi r
 
 Chaque refus est signalé et laisse l'actif en revue. Aucun actif ne se publie sur un score : la validation reste humaine.
 
-## Ordre proposé
+## Quand faire ce travail
 
-Refaire **une seule** planche d'abord, la miniature du paralytique (`fillion-t07-p0207-i01`), qui est le pire cas, et la soumettre avant de reprendre les dix autres.
+⛔ **Ne pas interrompre le travail en cours pour lancer un essai tout de suite.** La reprise du traitement n'est pas une tâche à part, à mener avant tout le reste : elle s'intègre au fil de ce qui est déjà engagé.
+
+**Le banc d'essai est déjà là** : ce sont les onze planches ratées. Elles ont leur source, leur cadrage relevé, leur dérivé publié, et l'on connaît le défaut de chacune. Rien n'est à produire pour éprouver le nouveau traitement, il suffit de les repasser et de comparer aux mesures ci-dessus. La miniature du paralytique (`fillion-t07-p0207-i01`) est le pire cas, elle sert donc de premier témoin, mais elle ne demande aucune séance dédiée.
+
+**Puis l'intégration se fait progressivement**, au rythme du travail courant : chaque planche reprise entre dans le flux ordinaire, mesurée, classée dans sa famille et soumise avec le reste. On ne refait pas les onze d'un bloc, et l'on n'attend pas non plus qu'elles soient toutes refaites pour avancer sur le fond.
