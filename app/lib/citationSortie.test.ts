@@ -69,3 +69,49 @@ describe('conditions non remplies : la citation reste au fil du texte', () => {
     expect(detecterCitationSortie(`Il écrit : « ${longue()} « imbriquée » fin. »`)).toBeNull()
   })
 })
+
+// Le segment EST la citation : il ouvre sur le guillemet, et le deux-points qui
+// l'annonçait appartient au texte cité. Cas relevé par l'auteur le 2026-08-20 sur
+// les « Questions sur l'Heptateuque » (segment 2152), que le motif d'origine
+// laissait passer puisqu'il exige de la prose avant le guillemet ouvrant.
+describe('segment entièrement cité (option sansAnnonce)', () => {
+  it('ne sort rien sans l’option, l’annonce manquant', () => {
+    expect(detecterCitationSortie(`« ${longue()} »`)).toBeNull()
+  })
+
+  it('sort la citation entière quand l’option est ouverte, l’annonce restant vide', () => {
+    const r = detecterCitationSortie(`« ${longue()} »`, { sansAnnonce: true })
+    expect(r!.avant).toBe('')
+    expect(r!.citation).toBe(longue())
+  })
+
+  it('tolère un deux-points AU DEDANS de la citation', () => {
+    const r = detecterCitationSortie(`« Le Seigneur dit à Moïse : ${longue()} »`, { sansAnnonce: true })
+    expect(r!.avant).toBe('')
+    expect(r!.citation).toBe(`Le Seigneur dit à Moïse : ${longue()}`)
+  })
+
+  it('garde l’appel de note terminal', () => {
+    const r = detecterCitationSortie(`« ${longue()} » [[27]]`, { sansAnnonce: true })
+    expect(r!.citation).toBe(`${longue()}[[27]]`)
+  })
+
+  it('francise les guillemets internes comme dans le cas annoncé', () => {
+    const r = detecterCitationSortie(`« ${longue()} “ainsi soit-il”. »`, { sansAnnonce: true })
+    expect(r!.citation).toContain(`«${FINE}ainsi soit-il${FINE}»`)
+  })
+
+  it('refuse une citation trop courte', () => {
+    expect(detecterCitationSortie('« trois mots seulement. »', { sansAnnonce: true })).toBeNull()
+  })
+
+  it('refuse un segment qui reprend la prose après le guillemet fermant', () => {
+    expect(detecterCitationSortie(`« ${longue()} », puis il se tut.`, { sansAnnonce: true })).toBeNull()
+  })
+
+  it('laisse le cas annoncé se comporter comme avant, l’option fût-elle ouverte', () => {
+    const r = detecterCitationSortie(`Augustin écrit : « ${longue()} »`, { sansAnnonce: true })
+    expect(r!.avant).toBe('Augustin écrit :')
+    expect(r!.citation).toBe(longue())
+  })
+})

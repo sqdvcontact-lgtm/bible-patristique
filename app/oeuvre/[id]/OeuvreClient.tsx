@@ -128,6 +128,10 @@ function segmentAffichable(s: any) {
 
 const SEUIL_TITRE_COLOPHON = 86
 
+// Numéro de segment en exposant. Une seule définition : les deux modes de lecture
+// et l'apparat le composaient à l'identique, en quatre copies.
+const STYLE_NUMERO_SEGMENT: React.CSSProperties = { fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }
+
 // Appels de note (info-bulle, formes selon le contexte) et outils de titre :
 // voir ./appelNote — partagés avec la page de titre.
 
@@ -1355,12 +1359,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // suivants reprennent à la ligne, sans qu'aucun voisin soit coupé en deux.
   const rendreCorpsSegment = (s: SegData, estPremier: boolean): React.ReactNode => {
     const texte = composerCorps(preparerTexteSegment(s.texte))
+    // Le numéro de segment est rendu ICI, et non par l'appelant : quand le segment
+    // est la citation tout entière, il doit entrer DANS le bloc. Laissé dehors, il
+    // se retrouverait seul sur sa ligne, le bloc qui le suit rompant la ligne.
+    const numero = configNiveaux.afficherNumeros && !estPremier
+      ? <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>
+      : null
     // La lettrine garde la priorité : un premier segment orné ne se sort pas.
     if (estPremier && texte.length > 0) return rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {})
-    const sortie = detecterCitationSortie(texte)
-    if (!sortie) return rendreTexteAvecNotes(texte, s.notes ?? {})
+    // `sansAnnonce` : réservé à la prose. Une réplique de dialogue est elle aussi
+    // entre guillemets et n'est pas une citation d'auteur (Boèce).
+    const sortie = detecterCitationSortie(texte, { sansAnnonce: s.nature === 'texte' })
+    if (!sortie) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
+    // Segment entièrement cité : le numéro entre dans le bloc, il n'y a rien d'autre.
+    if (!sortie.avant) return <span className="citation-sortie">{numero}{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
     return (
       <>
+        {numero}
         {rendreTexteAvecNotes(sortie.avant, s.notes ?? {})}
         <span className="citation-sortie">{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
       </>
@@ -1448,8 +1463,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            isolée et terminale se détache de la prose. Retrait des deux côtés, corps
            légèrement réduit, ni guillemets ni filet — le retrait suffit à la dire.
            Même mesure que la citation d'un essai, pour une seule forme sur le site. */
-        .citation-sortie { display: block; margin: 0.62rem 8mm; font-size: 0.95em; text-align: justify; }
-        @media(max-width: 980px){ .citation-sortie { margin-left: 5mm; margin-right: 0; } }
+        /* Le retrait est porté par la marge MOINS le rembourrage, pour que le texte
+           cité reste à 8mm tout en laissant la surbrillance déborder autour de lui. */
+        .citation-sortie { display: block; margin: 0.5rem calc(8mm - 4px); padding: 0.12rem 4px; font-size: 0.95em; text-align: justify; border-radius: 4px; transition: background 0.12s; }
+        @media(max-width: 980px){ .citation-sortie { margin-left: calc(5mm - 4px); margin-right: -4px; } }
+        /* ⚠️ En mode paragraphes, le fond de .seg-inline ne peint QUE ses fragments
+           en ligne : un enfant en display:block sort de l'inline et resterait sans
+           surbrillance. Le survol et la sélection doivent donc l'atteindre à part,
+           sans quoi une citation sortie ne se désigne plus au survol comme les autres. */
+        .seg-inline:hover .citation-sortie { background: rgba(var(--cs-vert-rgb),0.09); }
+        .seg-inline--actif .citation-sortie { background: var(--cs-vert-pale); }
+        /* Un segment entièrement cité ne laisse devant son bloc qu'un fragment en
+           ligne VIDE. Son rembourrage y peignait au survol un trait vert d'un
+           demi-pixel, flottant seul dans la marge au-dessus de la citation. */
+        .seg-inline:has(> .citation-sortie:first-child) { padding: 0; }
         .texte-original { color: #575048; font-family: var(--font-source-serif), Georgia, serif; }
         .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
         @media(max-width: 980px){
@@ -2051,7 +2078,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                 onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                {configNiveaux.afficherNumeros && !estPremier && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                                 {rendreCorpsSegment(s, estPremier)}
                               </span>
                             </Fragment>
@@ -2083,7 +2109,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: estSignature ? '0.12rem' : '0.45rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                         <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
                           lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {configNiveaux.afficherNumeros && sid !== premierSegmentId && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
                           {rendreCorpsSegment(s, sid === premierSegmentId)}
                         </p>
                         <div className="seg-actions" style={mobile ? {
@@ -2166,7 +2191,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                    {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                                    {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
                                     {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
                                   </span>
                                 </Fragment>
@@ -2182,7 +2207,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
                               lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                              {configNiveaux.afficherNumeros && <sup style={{ fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }}>{s.numero}</sup>}
+                              {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
                               {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
                             </p>
                             {estAdmin && (

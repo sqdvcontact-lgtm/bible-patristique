@@ -29,8 +29,28 @@ const MOTIF = new RegExp(
   's',
 )
 
+// Le segment est la citation, tout entier : il OUVRE sur le guillemet, et le
+// deux-points qui l'annonçait, s'il y en a un, appartient au texte cité (« Le
+// Seigneur dit à Moïse : Prenez les encensoirs… »). Le motif ci-dessus ne pouvait
+// pas l'atteindre, puisqu'il exige de la prose avant le guillemet ouvrant. Ici la
+// condition d'isolement est remplie de la meilleure façon qui soit : rien à couper,
+// donc rien à orphelin. ⚠️ Réservé à la prose (`nature = 'texte'`, voir l'option
+// `sansAnnonce`) : la réplique d'un dialogue est elle aussi entre guillemets, et la
+// sortir en ferait à tort une citation d'auteur (constaté sur Boèce).
+const MOTIF_SANS_ANNONCE = new RegExp(
+  `^«${ESPACES}*([^«»]{${SEUIL_CITATION_SORTIE},}?)${ESPACES}*»${ESPACES}*(${APPEL_DE_NOTE})${ESPACES}*$`,
+  's',
+)
+
+export type OptionsCitationSortie = {
+  /** Autorise le cas où le segment est la citation entière, sans prose d'annonce.
+   *  À n'ouvrir que pour de la prose : voir `MOTIF_SANS_ANNONCE`. */
+  sansAnnonce?: boolean
+}
+
 export type CitationSortie = {
-  /** Ce qui annonce la citation, deux-points compris. Reste au fil du texte. */
+  /** Ce qui annonce la citation, deux-points compris. Reste au fil du texte.
+   *  VIDE quand le segment est la citation entière. */
   avant: string
   /** Le texte cité, sans ses guillemets encadrants, guillemets internes francisés. */
   citation: string
@@ -43,9 +63,14 @@ export function guillemetsInternesEnFrancais(texte: string): string {
 }
 
 /** Décrit la citation à sortir, ou `null` si le texte n'en porte pas. */
-export function detecterCitationSortie(texte: string): CitationSortie | null {
+export function detecterCitationSortie(texte: string, options: OptionsCitationSortie = {}): CitationSortie | null {
   const m = MOTIF.exec(texte)
-  if (!m) return null
+  if (!m) {
+    if (!options.sansAnnonce) return null
+    const seule = MOTIF_SANS_ANNONCE.exec(texte)
+    if (!seule) return null
+    return { avant: '', citation: guillemetsInternesEnFrancais(seule[1].trim()) + (seule[2] ?? '') }
+  }
   const avant = m[1].trim()
   // Une citation sortie sans rien pour l'annoncer perdrait son attache : on exige
   // que l'annonce porte du texte, pas seulement le deux-points.
