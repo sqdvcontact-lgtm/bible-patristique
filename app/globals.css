@@ -484,17 +484,23 @@ button:focus-visible,
   margin: 2rem 0 0.6rem;
 }
 
-/* Les rangs bas quittent le sérif : c'est le signal le plus net dont on dispose
-   encore, et celui que la page d'œuvre emploie déjà pour ses intertitres. */
+/* ⚠️ La coupure des polices n’est PAS entre rangs hauts et rangs bas : elle est
+   entre le LIVRE et son APPARAT. Les six rangs de titre appartiennent à la
+   structure du livre et restent en sérif ; le sans est réservé aux repères
+   éditoriaux — rubriques et marqueurs de commentaire. Mis en sans, un titre de
+   péricope se lisait comme une étiquette d’interface, non comme un titre.
+
+   Les rangs bas se distinguent alors par la POSITION — au fer, quand les hauts
+   sont centrés — et par la casse. */
 .cs-bible-title--t4,
 .cs-bible-title--t5,
 .cs-bible-title--t6 {
-  font-family: var(--font-source-sans), Arial, sans-serif;
   text-align: left;
+  font-variant-caps: small-caps;
 }
-.cs-bible-title--t4 { font-size: 0.9375rem; font-weight: 600; color: var(--cs-texte-fort); letter-spacing: 0; }
-.cs-bible-title--t5 { font-size: 0.875rem;  font-weight: 600; color: var(--cs-texte-fort); letter-spacing: 0.01em; }
-.cs-bible-title--t6 { font-size: 0.84375rem; font-weight: 600; color: var(--cs-texte); letter-spacing: 0.01em; }
+.cs-bible-title--t4 { font-size: 1rem;      font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
+.cs-bible-title--t5 { font-size: 0.9375rem; font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
+.cs-bible-title--t6 { font-size: 0.9375rem; font-weight: 500; color: var(--cs-texte-fort); letter-spacing: 0.03em; }
 
 /* Le jeton d'information ne crie pas : il se lit au retrait et à la mesure. Une
    information de large portée s'écarte du fil, une information de verset s'y
@@ -564,9 +570,12 @@ button:focus-visible,
   font-weight: 700;
   letter-spacing: 0.14em;
   font-variant-caps: small-caps;
-  color: var(--cs-texte-gris);
+  /* ⛔ Pas de gris sur les deux premiers rangs : une rubrique se distingue par
+     sa petitesse et sa chasse, non en s’effaçant. Le gris reste à l’apparat. */
+  color: var(--cs-encre);
   margin-bottom: 0.6rem;
 }
+.cs-bible-info--i3 > .cs-bible-info-label { color: var(--cs-texte-second); }
 
 /* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
 .cs-bible-bloc > .cs-bible-title--t1,
