@@ -166,34 +166,46 @@ type EtatFillion = {
   blocs: number
   notes: number
   illustrations: number
-  publies: number
+  visibles: number
 }
 
 async function chargerEtatFillion(): Promise<EtatFillion | null> {
-  const compter = async (table: string, filtre?: (q: ReturnType<typeof supabaseAdmin.from>) => unknown) => {
+  // ⚠️ Ces comptages passent par le service_role, qui CONTOURNE la RLS : lire une
+  // vue publique ici ne dit donc rien de ce que le lecteur voit. Ce que voit le
+  // lecteur se recalcule à la main, avec les mêmes conditions que les politiques :
+  // contenu public et validé, ET famille publiée. Sans cette dernière condition,
+  // la carte annoncerait une mise en ligne qui n'a pas eu lieu.
+  const compter = async (table: string, publicSeulement = false) => {
     const requete = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
-    const { count, error } = await (filtre ? (filtre(requete as never) as typeof requete) : requete)
+    const { count, error } = await (publicSeulement
+      ? requete.eq('is_public', true).eq('validation_status', 'validated')
+      : requete)
     if (error) throw error
     return count ?? 0
   }
   try {
-    const { data: familles, error } = await supabaseAdmin
+    const { data: famille, error } = await supabaseAdmin
       .from('bible_edition_families')
-      .select('family_code,status')
+      .select('status')
       .eq('family_code', 'fillion-bible')
       .maybeSingle()
     if (error) throw error
-    const [membres, composants, blocs, notes, illustrations, publies] = await Promise.all([
-      compter('bible_edition_members'),
-      compter('bible_edition_components'),
-      compter('bible_editorial_body_blocks'),
-      compter('bible_verse_notes'),
-      compter('bible_edition_assets'),
-      compter('v_bible_edition_catalog'),
-    ])
+    const [membres, composants, blocs, notes, illustrations, blocsPublics, notesPubliques, imagesPubliques] =
+      await Promise.all([
+        compter('bible_edition_members'),
+        compter('bible_edition_components'),
+        compter('bible_editorial_body_blocks'),
+        compter('bible_verse_notes'),
+        compter('bible_edition_assets'),
+        compter('bible_editorial_body_blocks', true),
+        compter('bible_verse_notes', true),
+        compter('bible_edition_assets', true),
+      ])
+    const statut = famille?.status ?? null
     return {
-      famille: familles?.status ?? null,
-      membres, composants, blocs, notes, illustrations, publies,
+      famille: statut,
+      membres, composants, blocs, notes, illustrations,
+      visibles: statut === 'published' ? blocsPublics + notesPubliques + imagesPubliques : 0,
     }
   } catch {
     // Déploiement antérieur à la migration : la carte se replie sur sa prose.
@@ -327,9 +339,9 @@ export default async function CentreControlePage() {
                 <Tuile valeur={String(fillion.notes)} label="Notes de verset" />
                 <Tuile valeur={String(fillion.illustrations)} label="Illustrations" />
                 <Tuile
-                  valeur={String(fillion.publies)}
-                  label="Lignes au catalogue public"
-                  ton={fillion.publies > 0 ? 'vert' : undefined}
+                  valeur={String(fillion.visibles)}
+                  label="Éléments visibles du lecteur"
+                  ton={fillion.visibles > 0 ? 'vert' : undefined}
                 />
               </div>
               <div className="cc-mention">
