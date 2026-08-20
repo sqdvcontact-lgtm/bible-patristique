@@ -156,13 +156,59 @@ async function chargerTableauBord() {
   }
 }
 
+// État réel du chantier Fillion, lu en service_role : les compteurs disent ce
+// qui est en base, et surtout ce qui est PUBLIC. Tant que rien n'est publié, la
+// carte doit le montrer plutôt que de laisser croire à une mise en ligne.
+type EtatFillion = {
+  famille: string | null
+  membres: number
+  composants: number
+  blocs: number
+  notes: number
+  illustrations: number
+  publies: number
+}
+
+async function chargerEtatFillion(): Promise<EtatFillion | null> {
+  const compter = async (table: string, filtre?: (q: ReturnType<typeof supabaseAdmin.from>) => unknown) => {
+    const requete = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
+    const { count, error } = await (filtre ? (filtre(requete as never) as typeof requete) : requete)
+    if (error) throw error
+    return count ?? 0
+  }
+  try {
+    const { data: familles, error } = await supabaseAdmin
+      .from('bible_edition_families')
+      .select('family_code,status')
+      .eq('family_code', 'fillion-bible')
+      .maybeSingle()
+    if (error) throw error
+    const [membres, composants, blocs, notes, illustrations, publies] = await Promise.all([
+      compter('bible_edition_members'),
+      compter('bible_edition_components'),
+      compter('bible_editorial_body_blocks'),
+      compter('bible_verse_notes'),
+      compter('bible_edition_assets'),
+      compter('v_bible_edition_catalog'),
+    ])
+    return {
+      famille: familles?.status ?? null,
+      membres, composants, blocs, notes, illustrations, publies,
+    }
+  } catch {
+    // Déploiement antérieur à la migration : la carte se replie sur sa prose.
+    return null
+  }
+}
+
 export default async function CentreControlePage() {
   if (!(await estAdmin())) return <EcranReserve />
 
-  const [{ data: tbRaw, error: tbErreur }, { data: sectionsRaw }, codesLisibles] = await Promise.all([
+  const [{ data: tbRaw, error: tbErreur }, { data: sectionsRaw }, codesLisibles, fillion] = await Promise.all([
     chargerTableauBord(),
     supabaseAdmin.from('controle_sections').select('*').order('ordre', { ascending: true }),
     codesTraductionsLecture(supabaseAdmin),
+    chargerEtatFillion(),
   ])
 
   const tb = tbRaw as Tb | null
@@ -265,6 +311,38 @@ export default async function CentreControlePage() {
           <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
             Corrections éditoriales transverses et par œuvre : typographie, notes, titres, segmentation, informations éditoriales des textes latins. Le code d’accueil est posé ; les corrections de données suivent (liste ci-dessous).
           </p>
+        </Carte>
+
+        {/* 8. Bible Fillion — l'édition commentée, de son socle à sa publication. */}
+        <Carte titre="Bible Fillion" note={sec('chantier_fillion').commentaire_ia} cle="chantier_fillion" todos={sec('chantier_fillion').todos} majLe={sec('chantier_fillion').maj_le}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 10px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            Intégration de la Bible de Fillion : français et Vulgate imprimée comme deux traductions distinctes, reliées par une famille éditoriale, avec commentaires dans le corps, notes de verset, illustrations et provenance par volume.
+          </p>
+          {fillion ? (
+            <>
+              <div className="cc-tuiles">
+                <Tuile valeur={fillion.membres ? String(fillion.membres) : '—'} label="Membres de la famille" />
+                <Tuile valeur={String(fillion.composants)} label="Volumes décrits" />
+                <Tuile valeur={String(fillion.blocs)} label="Blocs du corps" />
+                <Tuile valeur={String(fillion.notes)} label="Notes de verset" />
+                <Tuile valeur={String(fillion.illustrations)} label="Illustrations" />
+                <Tuile
+                  valeur={String(fillion.publies)}
+                  label="Lignes au catalogue public"
+                  ton={fillion.publies > 0 ? 'vert' : undefined}
+                />
+              </div>
+              <div className="cc-mention">
+                {fillion.famille === null
+                  ? 'La famille éditoriale n’est pas encore créée.'
+                  : fillion.famille === 'published'
+                    ? 'Famille publiée : le catalogue public expose l’édition.'
+                    : `Famille au statut « ${fillion.famille} » : rien n’est visible du lecteur tant qu’elle n’est pas publiée.`}
+              </div>
+            </>
+          ) : (
+            <div className="cc-mention">Modèle éditorial absent de cette base : compteurs indisponibles.</div>
+          )}
         </Carte>
       </div>
     </main>
