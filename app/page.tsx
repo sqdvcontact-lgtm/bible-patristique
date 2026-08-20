@@ -8,7 +8,7 @@ import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
-import { loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
+import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
 import { sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
@@ -38,7 +38,7 @@ export async function generateMetadata({
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string }>
+  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string; bilingue?: string }>
 }) {
   const params = await searchParams
   if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
@@ -214,6 +214,98 @@ export default async function Home({
     }
   }
 
+  // Lecture « Latin-français » : demandée par l'URL, et servie seulement si la
+  // famille éditoriale porte réellement deux membres pour ce chapitre. À défaut,
+  // la page rend la lecture ordinaire plutôt qu'un écran d'erreur.
+  const familyRows = editionMember
+    ? editionCatalog.filter((row) => row.family_id === editionMember.family_id)
+    : []
+  // Le mode n'est offert que si l'édition porte réellement un second membre :
+  // une famille à un seul texte se lit comme une traduction ordinaire.
+  const bilingueDisponible = new Set(familyRows.map((row) => row.member_id)).size >= 2
+
+  let lectureBilingue: ComponentProps<typeof BibleLayout>['lectureBilingue'] = null
+  if (editionMember && bilingueDisponible && params.bilingue === '1') {
+    const chargee = await chargerLectureBilingue(supabase, { familyRows, livre, chapitre })
+    if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
+      const payload = await loadBibleEditionChapter(supabase, {
+        familyId: editionMember.family_id,
+        bookCode: livre,
+        canonIds: chargee.axeCanonique,
+        includeBookFrontMatter: chapitre === 1,
+      })
+      lectureBilingue = {
+        membres: chargee.colonnes.map((colonne) => colonne.membre),
+        colonnes: chargee.colonnes,
+        axeCanonique: chargee.axeCanonique,
+        blocs: payload.bodyBlocks.map((block) => ({
+          id: block.id,
+          semanticStyleCode: block.semantic_style_code,
+          noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
+          heading: block.heading,
+          placement: block.placement,
+          canonIdStart: block.canon_id_start,
+          canonIdEnd: block.canon_id_end,
+          materialOrder: block.material_order,
+          appliesTo: block.applies_to,
+          appliesToMemberId: block.applies_to_member_id,
+          textBlocks: [{
+            id: `${block.id}:text`,
+            kind: 'commentary' as const,
+            form: 'prose' as const,
+            text: block.text_content,
+          }],
+          internalNotes: block.internal_notes.map((note) => ({
+            id: note.id,
+            displayNumber: note.display_number,
+            printedMarker: note.printed_marker,
+            blocks: note.blocks.map((noteBlock) => ({
+              id: noteBlock.block_id,
+              kind: noteBlock.kind,
+              form: noteBlock.form,
+              text: noteBlock.text,
+              language: noteBlock.language,
+            })),
+          })),
+        })),
+        notes: payload.notes.map((note) => ({
+          id: note.id,
+          displayNumber: note.display_number,
+          canonId: note.canon_id,
+          materialOrder: note.material_order,
+          appliesTo: note.applies_to,
+          appliesToMemberId: note.applies_to_member_id,
+          blocks: note.blocks.map((block) => ({
+            id: block.block_id,
+            kind: block.kind,
+            form: block.form,
+            text: block.text,
+            language: block.language,
+          })),
+        })),
+        illustrations: payload.assets.map((asset) => ({
+          id: asset.id,
+          assetKey: asset.asset_key,
+          assetKind: asset.asset_kind,
+          url: asset.public_uri,
+          width: asset.width_px,
+          height: asset.height_px,
+          altText: asset.alt_text,
+          caption: asset.editorial_caption ?? asset.printed_caption,
+          printedPage: asset.printed_page,
+          placement: asset.placement,
+          canonIdStart: asset.canon_id_start,
+          canonIdEnd: asset.canon_id_end,
+          bodyBlockId: asset.body_block_id,
+          noteId: asset.note_id,
+          materialOrder: asset.material_order,
+          appliesTo: asset.applies_to,
+          appliesToMemberId: asset.applies_to_member_id,
+        })),
+      }
+    }
+  }
+
   return (
     <Suspense fallback={null}>
       <BibleLayout
@@ -229,6 +321,8 @@ export default async function Home({
         couchesDisponibles={couchesBible}
         tradExplicite={!!params.trad}
         editionChapter={editionChapter}
+        lectureBilingue={lectureBilingue}
+        bilingueDisponible={bilingueDisponible}
       />
     </Suspense>
   )

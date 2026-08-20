@@ -61,6 +61,8 @@ type Props = {
   couche?: Couche899
   couchesDisponibles?: Couche899[]
   editionChapter?: BibleEditionChapterDisplay | null
+  /** La traduction lue appartient à une famille éditoriale à deux membres. */
+  bilingueDisponible?: boolean
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -391,7 +393,7 @@ export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, mobile = false,
-  couche, couchesDisponibles, editionChapter
+  couche, couchesDisponibles, editionChapter, bilingueDisponible = false
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const [estAdmin, setEstAdmin] = useState(false)
@@ -588,6 +590,23 @@ export default function TexteBible({
                     {t.label}
                   </button>
                 ))}
+                {/* Le bilingue n'est pas une traduction de plus : c'est une façon
+                    de lire les deux membres d'une même édition. Il se détache
+                    donc des traductions par un filet, comme en page d'œuvre. */}
+                {bilingueDisponible && (
+                  <button
+                    onClick={() => { setTradOuverte(false); router.push(`/?livre=${livreActif}&chapitre=${chapitreActif}&trad=${tradCode}&mode=verse&bilingue=1`) }}
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
+                      border: 'none', borderTop: '1px solid var(--cs-bord)',
+                      background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)',
+                      cursor: 'pointer', fontFamily: "var(--font-source-serif), Georgia, serif",
+                      letterSpacing: '0.01em', fontStyle: 'italic',
+                    }}
+                  >
+                    Latin-français
+                  </button>
+                )}
               </div>
             )}
           </div>

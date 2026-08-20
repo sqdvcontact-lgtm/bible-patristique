@@ -3,6 +3,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
+import { chargerVersetsEditoriaux } from './bibleEditorialServer'
 
 export type BibleEditionCatalogRow = {
   family_id: string
@@ -373,5 +374,109 @@ export async function loadBibleEditionChapter(
     bodyBlocks: await loadBodyBlockInternalNotes(client, bodyBlocks),
     notes,
     assets,
+  }
+}
+
+// --- Lecture bilingue -------------------------------------------------------
+//
+// Deux membres d'une même famille lus en regard. Chaque colonne est chargée par
+// le MÊME chemin que la lecture ordinaire — texte recomposé depuis les unités
+// matérielles, aligné sur le canon — si bien qu'aucune synchronisation
+// particulière n'a à être inventée : l'axe canonique fait le travail.
+
+export type ColonneBilingueChargee = {
+  membre: {
+    id: string
+    translationId: string
+    languageCode: string
+    label: string
+    memberRole: string
+    displayOrder: number
+    desktopPosition: 'left' | 'right' | 'auto'
+    mobileOrder: number
+  }
+  cellules: { canonId: string; texte: string; referenceNative: string | null }[]
+}
+
+export type LectureBilingueChargee = {
+  familyId: string
+  colonnes: ColonneBilingueChargee[]
+  axeCanonique: string[]
+}
+
+/**
+ * Compose les colonnes d'une famille pour un chapitre. Les sources de chaque
+ * membre viennent du catalogue de la famille : c'est l'édition qui dit quel
+ * volume porte quel texte, jamais une correspondance devinée par le code.
+ */
+export async function chargerLectureBilingue(
+  client: SupabaseClient,
+  options: {
+    familyRows: readonly BibleEditionCatalogRow[]
+    livre: string
+    chapitre: number
+  },
+): Promise<LectureBilingueChargee | null> {
+  const { familyRows, livre, chapitre } = options
+  if (familyRows.length === 0) return null
+
+  const sourcesParMembre = new Map<string, Set<string>>()
+  const membres = new Map<string, ColonneBilingueChargee['membre']>()
+  for (const row of familyRows) {
+    if (!membres.has(row.member_id)) {
+      membres.set(row.member_id, {
+        id: row.member_id,
+        translationId: row.trad_id,
+        languageCode: row.language_code,
+        label: row.member_label,
+        memberRole: row.member_role,
+        displayOrder: row.display_order,
+        desktopPosition: row.desktop_position,
+        mobileOrder: row.mobile_order,
+      })
+    }
+    const sources = sourcesParMembre.get(row.member_id) ?? new Set<string>()
+    sources.add(row.source_id)
+    sourcesParMembre.set(row.member_id, sources)
+  }
+  if (membres.size < 2) return null
+
+  const colonnes = await Promise.all([...membres.values()].map(async (membre) => {
+    const lignes = await chargerVersetsEditoriaux(client, {
+      sourceIds: [...(sourcesParMembre.get(membre.id) ?? [])],
+      translationId: membre.translationId,
+      livre,
+      chapitre,
+    })
+    const cellules = lignes.flatMap((ligne) => {
+      const texte = ligne[membre.translationId]
+      if (typeof texte !== 'string' || texte.length === 0) return []
+      const reference = ligne[`num_${membre.translationId}`]
+      return [{
+        canonId: ligne.id_verset,
+        texte,
+        referenceNative: typeof reference === 'string' && reference.length > 0 ? reference : null,
+      }]
+    })
+    return { membre, cellules, ordre: lignes }
+  }))
+
+  // L'axe canonique est celui du chapitre entier, dans l'ordre de `versets_canon` :
+  // il est commun aux deux colonnes par construction, chacune ayant été chargée
+  // sur les mêmes créneaux.
+  const axeCanonique: string[] = []
+  const vus = new Set<string>()
+  for (const colonne of colonnes) {
+    for (const ligne of colonne.ordre) {
+      if (vus.has(ligne.id_verset)) continue
+      vus.add(ligne.id_verset)
+      axeCanonique.push(ligne.id_verset)
+    }
+  }
+
+  return {
+    familyId: familyRows[0].family_id,
+    colonnes: colonnes.map(({ membre, cellules }) => ({ membre, cellules })),
+    axeCanonique,
   }
 }

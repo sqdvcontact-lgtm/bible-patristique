@@ -128,17 +128,28 @@ export function BlocEditorialBible({
   return <section {...props}>{contenu}</section>
 }
 
+/**
+ * En lecture bilingue, une note commune à l'édition est appelée depuis les deux
+ * colonnes : l'identifiant de l'ancre doit alors être distingué, sans quoi la
+ * page porte deux fois le même `id` et le retour de la note devient ambigu.
+ */
+export function ancreAppelNoteBible(noteId: string, memberId?: string): string {
+  return memberId ? `appel-note-bible-${noteId}-${memberId}` : `appel-note-bible-${noteId}`
+}
+
 export function AppelNoteBible({
   noteId,
   displayNumber,
+  memberId,
 }: {
   noteId: string
   displayNumber: number
+  memberId?: string
 }) {
   return (
     <sup style={{ fontSize: '0.6em', lineHeight: 0, marginLeft: '0.08em' }}>
       <a
-        id={`appel-note-bible-${noteId}`}
+        id={ancreAppelNoteBible(noteId, memberId)}
         href={`#note-bible-${noteId}`}
         aria-label={`Note ${displayNumber}`}
         style={{ color: 'var(--cs-encre)', textDecoration: 'none', fontFamily: 'inherit' }}
@@ -152,9 +163,12 @@ export function AppelNoteBible({
 export function NotesBibleChapitre({
   notes,
   illustrationsByNote,
+  ancresRetour,
 }: {
   notes: NoteBibliqueAffichable[]
   illustrationsByNote?: Map<string, IllustrationBibliqueAffichable[]>
+  /** Où revient la note quand son appel porte une ancre distinguée par colonne. */
+  ancresRetour?: Map<string, string>
 }) {
   if (notes.length === 0) return null
   const ordonnees = [...notes].sort((a, b) => a.displayNumber - b.displayNumber)
@@ -175,7 +189,7 @@ export function NotesBibleChapitre({
             style={{ display: 'grid', gridTemplateColumns: '2rem minmax(0, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}
           >
             <a
-              href={`#appel-note-bible-${note.id}`}
+              href={`#${ancresRetour?.get(note.id) ?? ancreAppelNoteBible(note.id)}`}
               aria-label={`Retour à l’appel de la note ${note.displayNumber}`}
               style={{ color: 'var(--cs-encre)', textDecoration: 'none', fontSize: '0.8125rem' }}
             >

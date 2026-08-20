@@ -14,6 +14,8 @@ import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { livresDisponibles899, TRAD_ID_BIBLE899, type Couche899 } from '@/app/lib/bible899'
 import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import LectureBilingueBible from './LectureBilingueBible'
+import type { LectureBilingueProps } from './BibleBilingue'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -43,6 +45,10 @@ type Props = {
   tradExplicite?: boolean
   /** Introductions, commentaires de plage, notes et illustrations de l’édition. */
   editionChapter?: BibleEditionChapterDisplay | null
+  /** Lecture « Latin-français » : deux membres d’une même famille en regard. */
+  lectureBilingue?: LectureBilingueProps | null
+  /** La famille de la traduction lue porte deux membres : le mode est offert. */
+  bilingueDisponible?: boolean
 }
 
 // Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
@@ -55,7 +61,7 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter, lectureBilingue, bilingueDisponible = false }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -279,6 +285,16 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           quand un autre onglet est actif sur mobile. `display: contents` en desktop
           pour que TexteBible reste enfant direct du flex (largeur `flex-1`). */}
       <div style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%' } : { display: 'contents' }}>
+        {lectureBilingue ? (
+          <LectureBilingueBible
+            {...lectureBilingue}
+            mobile={mobile}
+            livreActif={livreActif}
+            chapitreActif={chapitreActif}
+            nomLivre={nomLivre}
+            tradCode={traduction}
+          />
+        ) : (
         <TexteBible
           versets={versets}
           traduction={traduction}
@@ -293,8 +309,10 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           mobile={mobile}
           couche={couche}
           editionChapter={editionChapter}
+          bilingueDisponible={bilingueDisponible}
           couchesDisponibles={couchesDisponibles}
         />
+        )}
       </div>
       <PanneauPatristique
         verset={versetSelectionneCourant}
