@@ -461,12 +461,31 @@ button:focus-visible,
 .cs-bible-title--t2,
 .cs-bible-title--t3 { text-align: center; }
 
-.cs-bible-title--t1 { font-size: 1.25rem;    font-weight: 500; color: var(--cs-encre-fonce); letter-spacing: 0.01em; }
-.cs-bible-title--t2 { font-size: 1.125rem;   font-weight: 500; color: var(--cs-encre); letter-spacing: 0.01em; }
-.cs-bible-title--t3 { font-size: 1.0625rem;  font-weight: 500; color: var(--cs-texte-fort); }
-.cs-bible-title--t4 { font-size: 1rem;       font-weight: 400; color: var(--cs-texte-fort); font-style: italic; }
-.cs-bible-title--t5 { font-size: 0.9375rem;  font-weight: 600; color: var(--cs-texte); letter-spacing: 0.01em; }
-.cs-bible-title--t6 { font-size: 0.78125rem; font-weight: 600; color: var(--cs-texte); letter-spacing: 0.02em; text-transform: uppercase; }
+/* ⛔ AUCUN `text-transform`. Les capitales de « PREMIÈRE PARTIE » viennent de
+   l'édition elle-même ; celles que le rendu ajoutait à « 1° L'apparition… »
+   écrasaient une casse que Fillion n'avait pas voulue. Et surtout : quatre rangs
+   tous en capitales ne se distinguent plus — un signal employé partout ne dit
+   plus rien.
+
+   Chaque rang change donc sur DEUX axes au moins. Les trois hauts restent en
+   sérif et centrés, avec un vrai écart de corps ; les trois bas passent au
+   SANS et au fer à gauche, comme les intertitres de la page d'œuvre. Le
+   change de caractère fait le gros du travail, la taille achève. */
+.cs-bible-title--t1 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
+.cs-bible-title--t2 { font-size: 1.25rem;   font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; }
+.cs-bible-title--t3 { font-size: 1rem;      font-weight: 500; color: var(--cs-encre); letter-spacing: 0.08em; }
+
+/* Les rangs bas quittent le sérif : c'est le signal le plus net dont on dispose
+   encore, et celui que la page d'œuvre emploie déjà pour ses intertitres. */
+.cs-bible-title--t4,
+.cs-bible-title--t5,
+.cs-bible-title--t6 {
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  text-align: left;
+}
+.cs-bible-title--t4 { font-size: 0.9375rem; font-weight: 600; color: var(--cs-texte-fort); letter-spacing: 0; }
+.cs-bible-title--t5 { font-size: 0.875rem;  font-weight: 600; color: var(--cs-texte-fort); letter-spacing: 0.01em; }
+.cs-bible-title--t6 { font-size: 0.84375rem; font-weight: 600; color: var(--cs-texte); letter-spacing: 0.01em; }
 
 /* Le jeton d'information ne crie pas : il se lit au retrait et à la mesure. Une
    information de large portée s'écarte du fil, une information de verset s'y
@@ -511,29 +530,45 @@ button:focus-visible,
 /* Le repère d'un bloc d'information : ce n'est PAS un titre — ni balise de
    titre, ni place au plan. Les portées les plus larges le centrent, comme les
    titres hauts ; les plus étroites le laissent au fer. */
+/* Un repère de commentaire est le rang le plus bas : sans, petit, au fer, et
+   d’une encre discrète. Il annonce un développement, il ne le domine pas. */
 .cs-bible-info-label {
-  margin: 0 0 0.4rem;
-  font-size: 0.78125rem;
+  margin: 0 0 0.35rem;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--cs-texte);
+  letter-spacing: 0;
+  color: var(--cs-texte-gris);
 }
 .cs-bible-info--i1 > .cs-bible-info-label {
   text-align: center;
-  font-size: 1.0625rem;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--cs-encre);
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 1.125rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  /* Petites capitales VRAIES : la casse de la source est préservée, et le mot
+     garde sa forme au lieu d’être crié. */
+  font-variant-caps: small-caps;
+  color: var(--cs-encre-fonce);
 }
 .cs-bible-info--i2 > .cs-bible-info-label,
 .cs-bible-info--i3 > .cs-bible-info-label {
   text-align: center;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--cs-texte-fort);
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  font-variant-caps: small-caps;
+  color: var(--cs-encre);
 }
+
+/* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
+.cs-bible-bloc > .cs-bible-title--t1,
+.cs-bible-bloc > .cs-bible-title--t2,
+.cs-bible-bloc > .cs-bible-title--t3,
+.cs-bible-bloc > .cs-bible-title--t4,
+.cs-bible-bloc > .cs-bible-title--t5,
+.cs-bible-bloc > .cs-bible-title--t6 { margin-top: 0; }
 
 /* Le chapeau d'un titre : subordonné, donc sur sa propre ligne, en italique et
    plus clair — jamais accolé au titre par un tiret. */
