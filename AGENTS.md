@@ -768,6 +768,10 @@ Le socle est **générique**, pas « fait pour Fillion » : une **famille édito
 
 ## ⚠️ Une migration appliquée hors du journal n'existe pas pour `supabase db push`
 
-La migration `20260820093045_bible_fillion_editorial_model.sql` a été appliquée par la fonction serveur `exec_sql`, et **non** enregistrée dans `supabase_migrations.schema_migrations`. Le schéma est donc en place, mais le journal l'ignore. Comme elle enchaîne seize `create table` **sans `if not exists`**, un `supabase db push` la rejouerait et **échouerait** sur la première table déjà présente.
+La migration `20260820093045_bible_fillion_editorial_model.sql` avait été appliquée par la fonction serveur `exec_sql` sans être enregistrée dans `supabase_migrations.schema_migrations` : le schéma était en place, mais le journal l'ignorait. Comme elle enchaîne seize `create table` **sans `if not exists`**, un `supabase db push` l'aurait rejouée et **aurait échoué** sur la première table déjà présente. Le défaut ne se voit ni en lisant le dépôt, ni en interrogeant la base : il ne paraît qu'au moment où l'on pousse. Régularisé le 2026-08-20, journal et schéma concordent.
 
-**Règle** : une migration appliquée par `exec_sql` doit être inscrite dans le journal dans la foulée, avec sa version et son nom, sinon le dépôt et la base racontent deux histoires différentes.
+⚠️ **La cause était dans le script d'application**, `scripts/fillion/apply-editorial-foundation.mjs`, qui appelait `exec_sql` puis vérifiait le schéma sans jamais écrire au journal. **Passer désormais par `scripts/fillion/apply-migration.mjs`**, qui applique, inscrit la version et le nom tirés du **nom de fichier**, joue les contrôles, et refuse de rejouer une version déjà journalisée. L'essai transactionnel préalable est `scripts/fillion/dry-run-migration.mjs`, générique lui aussi.
+
+⚠️ Deux pièges d'`exec_sql`, rencontrés tous les deux : il passe par `EXECUTE`, qui **refuse `begin;` / `commit;`** (« EXECUTE of transaction commands is not implemented ») — les bornes se retirent, l'appel de fonction étant déjà une transaction ; et il **ne rend pas les lignes d'un `select`**, si bien qu'une garde doit lever elle-même côté base plutôt que d'espérer lire une réponse.
+
+**Règle** : une migration appliquée par `exec_sql` est inscrite au journal dans la foulée, sinon le dépôt et la base racontent deux histoires différentes.
