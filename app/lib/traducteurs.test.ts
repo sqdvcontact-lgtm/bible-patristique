@@ -75,6 +75,33 @@ describe('libelleTrad — mentions de responsabilité collective', () => {
   })
 })
 
+describe('libelleTrad — queues de liste (« et al. », « et collaborateurs »)', () => {
+  it('ne joint pas une queue par « et », sinon « et et al. »', () => {
+    // Forme réelle du catalogue (Grégoire le Grand, Sources chrétiennes).
+    expect(libelleTrad('Sœur Irène Binont ; Joël Courreau ; Vincent Desprez ; Jean-Baptiste de Salvert ; et al.'))
+      .toBe('Traduction : sœur Irène Binont, Joël Courreau, Vincent Desprez, Jean-Baptiste de Salvert et al.')
+    expect(mentionTraducteurs('Irène Binont ; Joël Courreau ; et al.'))
+      .toBe('trad. Irène Binont, Joël Courreau et al.')
+  })
+
+  it('sépare d’une virgule quand la queue est collée au dernier nom', () => {
+    // « … Pierre Monat et Jérémy Delmulle et collaborateurs » bégayait.
+    expect(libelleTrad('Christophe Carraud ; Christophe Calvia ; Pierre Monat ; Jérémy Delmulle et collaborateurs'))
+      .toBe('Traduction par Christophe Carraud, Christophe Calvia, Pierre Monat, Jérémy Delmulle et collaborateurs')
+  })
+
+  it('laisse tranquille un nom seul suivi de sa queue', () => {
+    expect(libelleTrad('Serge Lancel et collaborateurs')).toBe('Traduction par Serge Lancel et collaborateurs')
+    // Un nom qui finit par « et » quelque chose d’autre n’est pas une queue.
+    expect(libelleTrad('Robert Arnauld d’Andilly')).toBe('Traduction par Robert Arnauld d’Andilly')
+  })
+
+  it('ne touche pas à une formule de direction qui porte sa propre queue', () => {
+    const formule = 'Édition française sous la direction d’André Duval, Bernard Lauret, Hervé Legrand, Joseph Moingt et collaborateurs'
+    expect(libelleTrad(formule)).toBe(formule)
+  })
+})
+
 describe('libelleTrad — cas ordinaires inchangés', () => {
   it('nomme un traducteur unique', () => {
     expect(libelleTrad('Henri Barreau')).toBe('Traduction par Henri Barreau')

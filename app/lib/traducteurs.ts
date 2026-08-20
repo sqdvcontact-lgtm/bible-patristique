@@ -31,6 +31,27 @@ const TETE_COLLECTIVE_RE = /^(équipes?|equipes?|collectifs?|traducteurs?)\s+(?=
 // un vrai nom à côté : seuls, ils valent mieux que rien.
 const NON_NOM_RE = /^(traducteurs?\s+multiples?|traducteurs?\s+divers|collaborateurs?)\.?$/i
 
+// ── Queues de liste ──────────────────────────────────────────────────────────
+// « et al. », « et collaborateurs » ferment une liste sans nommer personne. Jointes
+// par « et » comme un nom, elles donnaient « …, Jean-Baptiste de Salvert et et al. »
+// dans les notices du catalogue. Deux formes : la queue SEULE (une entrée à elle,
+// « A ; B ; et al. ») et la queue COLLÉE au dernier nom (« A ; B et collaborateurs »),
+// qui appelle une virgule plutôt qu'un « et » de plus.
+const QUEUE_SEULE_RE = /^et\s+(al\.?|alii|autres|collaborateurs?|collab\.?)$/i
+const QUEUE_COLLEE_RE = /\set\s+(al\.|alii|autres|collaborateurs?|collab\.?)$/i
+
+/** Met les noms en énumération française, queue comprise. */
+function composerNoms(noms: string[]): string {
+  const dernier = noms[noms.length - 1] ?? ''
+  if (noms.length > 1 && QUEUE_SEULE_RE.test(dernier)) {
+    return `${noms.slice(0, -1).join(', ')} ${dernier}`
+  }
+  if (noms.length > 1 && QUEUE_COLLEE_RE.test(dernier)) {
+    return `${noms.slice(0, -1).join(', ')}, ${dernier}`
+  }
+  return enumererNoms(noms)
+}
+
 /** « A ; B » → « A et B » ; « A ; B ; C » → « A, B et C ».
  *  Le point-virgule est la façon dont le catalogue sépare les noms ; il n'a
  *  rien à faire dans une phrase affichée. */
@@ -79,6 +100,12 @@ export function nomsTraducteurs(trad: string | null | undefined): string[] {
  *  *Confessions*, trad. A et B, Paris, 1861 »), où « Traduction par… » ferait une
  *  phrase dans la phrase. Une mention de responsabilité collective se suffit à
  *  elle-même : elle entre sans « trad. ». */
+/** L'énumération seule, sans phrase autour : pour les écrans d'administration, qui
+ *  montrent la donnée plus qu'ils ne la rédigent. */
+export function enumererTraducteurs(trad: string | null | undefined): string {
+  return composerNoms(nomsTraducteurs(trad))
+}
+
 export function mentionTraducteurs(trad: string | null | undefined): string {
   const noms = nomsTraducteurs(trad)
   if (noms.length === 0) return ''
@@ -86,9 +113,9 @@ export function mentionTraducteurs(trad: string | null | undefined): string {
   if (direction) {
     const autres = noms.filter(n => n !== direction)
     const formule = minusculeInitiale(direction.replace(TETE_COLLECTIVE_RE, ''))
-    return autres.length ? `${formule} et ${enumererNoms(autres)}` : formule
+    return autres.length ? `${formule} et ${composerNoms(autres)}` : formule
   }
-  return `trad. ${enumererNoms(noms)}`
+  return `trad. ${composerNoms(noms)}`
 }
 
 export function libelleTrad(trad: string | null | undefined): string {
@@ -102,13 +129,13 @@ export function libelleTrad(trad: string | null | undefined): string {
   if (direction) {
     const autres = noms.filter(n => n !== direction)
     const formule = libelleDirection(direction)
-    return autres.length ? `${formule} et ${enumererNoms(autres)}` : formule
+    return autres.length ? `${formule} et ${composerNoms(autres)}` : formule
   }
 
   if (noms.length > 1) {
     // Uniformité : préfixe « : » dès qu'un titre (abbé, dom…) est en tête.
     const prefixe = TITRES_RE.test(noms[0]) ? 'Traduction : ' : 'Traduction par '
-    return `${prefixe}${enumererNoms(noms)}`
+    return `${prefixe}${composerNoms(noms)}`
   }
   const t = noms[0]
   if (t.toLowerCase() === 'anonyme') return 'Traduction anonyme'

@@ -16,7 +16,7 @@ import { revaliderBibliotheque } from '@/app/actions/revalider'
 import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { chargerAuteursDOeuvre, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
-import { enumererNoms, nomsTraducteurs } from '@/app/lib/traducteurs'
+import { enumererTraducteurs } from '@/app/lib/traducteurs'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -1825,7 +1825,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       <span style={{ fontSize: '0.875rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{surbrillance(oeuvre.titre)}</span>
                       {oeuvre.trad_auteur && (
                         <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '9.375rem', flexShrink: 0 }}>
-                          Trad. {enumererNoms(nomsTraducteurs(oeuvre.trad_auteur)) || oeuvre.trad_auteur}
+                          Trad. {enumererTraducteurs(oeuvre.trad_auteur) || oeuvre.trad_auteur}
                         </span>
                       )}
                       {/* Le commentaire sur l'édition ne paraît plus ici : il a rejoint le
