@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { styleSemantiqueBloc } from '@/app/lib/bibleEdition'
+import { stylesInconnus } from '@/app/lib/bibleHierarchieSemantique'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import TodosControle from './TodosControle'
 import ScellesBible899 from './ScellesBible899'
@@ -167,6 +169,8 @@ type EtatFillion = {
   notes: number
   illustrations: number
   visibles: number
+  /** Styles sémantiques absents du registre : refusés au rendu, à arbitrer. */
+  stylesRefuses: string[]
 }
 
 async function chargerEtatFillion(): Promise<EtatFillion | null> {
@@ -201,11 +205,24 @@ async function chargerEtatFillion(): Promise<EtatFillion | null> {
         compter('bible_verse_notes', true),
         compter('bible_edition_assets', true),
       ])
+    // Un style que le registre ignore n'est pas rendu : il doit donc se voir
+    // ici, sinon un bloc disparaîtrait de la page sans que personne le sache.
+    const { data: styles } = await supabaseAdmin
+      .from('bible_editorial_body_blocks')
+      .select('block_kind, scope_kind')
+    const stylesRefuses = stylesInconnus(
+      ((styles ?? []) as { block_kind: string; scope_kind: string }[])
+        .map((row) => styleSemantiqueBloc(
+          row.block_kind as Parameters<typeof styleSemantiqueBloc>[0],
+          row.scope_kind as Parameters<typeof styleSemantiqueBloc>[1],
+        )),
+    )
     const statut = famille?.status ?? null
     return {
       famille: statut,
       membres, composants, blocs, notes, illustrations,
       visibles: statut === 'published' ? blocsPublics + notesPubliques + imagesPubliques : 0,
+      stylesRefuses,
     }
   } catch {
     // Déploiement antérieur à la migration : la carte se replie sur sa prose.
@@ -344,6 +361,13 @@ export default async function CentreControlePage() {
                   ton={fillion.visibles > 0 ? 'vert' : undefined}
                 />
               </div>
+              {fillion.stylesRefuses.length > 0 && (
+                <div className="cc-mention" style={{ color: 'var(--cs-danger)' }}>
+                  Styles refusés au rendu, absents du registre : {fillion.stylesRefuses.join(', ')}.
+                  Les blocs concernés ne sont pas affichés ; les inscrire dans
+                  work/fillion/semantic_display_hierarchy.json, ou corriger leur classement.
+                </div>
+              )}
               <div className="cc-mention">
                 {fillion.famille === null
                   ? 'La famille éditoriale n’est pas encore créée.'

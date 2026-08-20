@@ -420,3 +420,74 @@ button:focus-visible,
   .etoile-favori { position: relative; }
   .etoile-favori::after { content: ''; position: absolute; inset: -7px -6px; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Page Bible — deux hiérarchies, T1 à T6 et I1 à I6
+
+   `T` dit la PROFONDEUR d'un titre structurel attesté, `I` dit l'ÉTENDUE qu'un
+   bloc d'information explique. Elles ne sont pas interchangeables : le titre
+   d'une péricope est T6, ce qui l'explique est I5.
+
+   Les douze jetons existent ici même si un volume n'en emploie qu'une partie :
+   un tome plus structuré doit s'accueillir sans retoucher le rendu. Les niveaux
+   sont calqués sur les rangs de la page d'œuvre.
+
+   ⛔ Deux niveaux voisins ne se distinguent JAMAIS par la seule couleur : le
+   corps, la graisse, l'italique ou le retrait portent la différence, faute de
+   quoi elle disparaît pour qui ne distingue pas les teintes, et à l'impression.
+   Le contrôle `scripts/fillion/validate_semantic_display_hierarchy.mjs` le
+   vérifie classe par classe.
+
+   ⛔ Le jeton commande la CLASSE, jamais la balise. La balise `h1`-`h6` se
+   calcule sur les parents réellement présents, pour que le plan reste continu
+   quand une édition n'a ni partie ni sous-section. */
+
+.cs-bible-title--t1,
+.cs-bible-title--t2,
+.cs-bible-title--t3,
+.cs-bible-title--t4,
+.cs-bible-title--t5,
+.cs-bible-title--t6 {
+  font-family: var(--font-source-serif), Georgia, serif;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.5rem;
+  white-space: pre-line;
+}
+
+.cs-bible-title--t1 { font-size: 1.25rem;    font-weight: 500; color: var(--cs-encre-fonce); letter-spacing: 0.01em; }
+.cs-bible-title--t2 { font-size: 1.125rem;   font-weight: 500; color: var(--cs-encre); letter-spacing: 0.01em; }
+.cs-bible-title--t3 { font-size: 1.0625rem;  font-weight: 500; color: var(--cs-texte-fort); }
+.cs-bible-title--t4 { font-size: 1rem;       font-weight: 400; color: var(--cs-texte-fort); font-style: italic; }
+.cs-bible-title--t5 { font-size: 0.9375rem;  font-weight: 600; color: var(--cs-texte); letter-spacing: 0.01em; }
+.cs-bible-title--t6 { font-size: 0.78125rem; font-weight: 600; color: var(--cs-texte); letter-spacing: 0.02em; text-transform: uppercase; }
+
+/* Le jeton d'information ne crie pas : il se lit au retrait et à la mesure. Une
+   information de large portée s'écarte du fil, une information de verset s'y
+   serre. Le fond reste celui de la page : un commentaire n'est pas une alerte. */
+.cs-bible-info--i1,
+.cs-bible-info--i2,
+.cs-bible-info--i3,
+.cs-bible-info--i4,
+.cs-bible-info--i5,
+.cs-bible-info--i6 {
+  font-family: var(--font-source-serif), Georgia, serif;
+  margin: 1.25rem 0 0.9rem;
+}
+
+.cs-bible-info--i1 { margin-top: 1.5rem; padding-left: 0; }
+.cs-bible-info--i2 { padding-left: 0.5rem; }
+.cs-bible-info--i3 { padding-left: 0.75rem; }
+.cs-bible-info--i4 { padding-left: 1rem; }
+.cs-bible-info--i5 { padding-left: 1.25rem; }
+.cs-bible-info--i6 { padding-left: 1.5rem; font-size: 0.8125rem; }
+
+/* La nature est un modificateur, non un niveau : elle se marque discrètement,
+   et se cumule avec le jeton sans le contredire. */
+.cs-bible-block--title { font-variant-numeric: oldstyle-nums; }
+.cs-bible-block--introduction { border-left: 1px solid transparent; }
+.cs-bible-block--commentary { border-left: 1px solid var(--cs-bord-clair); }
+.cs-bible-block--notice { border-left: 1px solid var(--cs-bord); font-size: 0.84375rem; }
+.cs-bible-block--summary { border-left: 1px dashed var(--cs-bord); }
+.cs-bible-block--excursus { border-left: 2px solid var(--cs-bord); }
+.cs-bible-block--conclusion { border-left: 1px solid var(--cs-bord-clair); font-style: italic; }
+.cs-bible-block--note { border-left: 0; font-size: 0.8125rem; }

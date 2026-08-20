@@ -91,6 +91,8 @@ export type BibleEditionDisplayTextBlock = {
 export type BibleEditionDisplayBodyBlock = {
   id: string
   semanticStyleCode: string
+  /** Balise de titre calculée sur les parents réellement présents (jamais le chiffre du jeton). */
+  niveauHtml?: 1 | 2 | 3 | 4 | 5 | 6
   noticeSubtype?: BibleEditorialNoticeSubtype | null
   heading?: string | null
   placement: BibleEditorialPlacement

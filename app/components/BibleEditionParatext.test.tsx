@@ -100,3 +100,59 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).toContain('Le poisson de Jonas (le requin).')
   })
 })
+
+describe('hiérarchie de rendu', () => {
+  const bloc = (semanticStyleCode: string, extra: Record<string, unknown> = {}) => ({
+    id: 'b1',
+    semanticStyleCode,
+    heading: 'Le précurseur fait son apparition',
+    placement: 'before' as const,
+    textBlocks: [{
+      id: 'b1:1', kind: 'commentary' as const, form: 'prose' as const,
+      text: 'Le développement.',
+    }],
+    ...extra,
+  })
+
+  it('fait du titre de péricope un vrai titre, distinct du développement', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={bloc('introduction_pericope', { niveauHtml: 3 })} />,
+    )
+    // Deux éléments, jamais un paragraphe qui concatène l'un et l'autre.
+    expect(html).toContain('<h3 class="cs-bible-title--t6"')
+    expect(html).toContain('Le précurseur fait son apparition</h3>')
+    expect(html).toContain('Le développement.')
+  })
+
+  it('laisse l’intitulé d’un commentaire hors des balises de titre', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={bloc('commentaire_pericope', { niveauHtml: 3 })} />,
+    )
+    // Un repère interne n'est pas un titre : il n'entre donc pas au plan
+    // d'accessibilité, et le sommaire ne peut pas le ramasser.
+    expect(html).not.toMatch(/<h[1-6]/)
+    expect(html).toContain('cs-bible-info-label')
+  })
+
+  it('porte le jeton de niveau ET le modificateur de nature', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={bloc('commentaire_pericope')} />)
+    expect(html).toContain('cs-bible-info--i5')
+    expect(html).toContain('cs-bible-block--commentary')
+    expect(html).toContain('data-niveau="I5"')
+  })
+
+  it('résout l’alias ancien vers son nom canonique', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={bloc('titre_section', { niveauHtml: 2 })} />)
+    expect(html).toContain('data-semantic-style="titre_section_livre"')
+    expect(html).toContain('cs-bible-title--t3')
+  })
+
+  it('refuse un style absent du registre plutôt que de l’aplatir', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={bloc('commentaire_zzz')} />)
+    expect(html).toBe('')
+  })
+
+  it('ne répète pas le titre du livre, que la page porte déjà', () => {
+    expect(renderToStaticMarkup(<BlocEditorialBible bloc={bloc('titre_livre')} />)).toBe('')
+  })
+})

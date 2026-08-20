@@ -10,6 +10,7 @@ import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliser
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
 import { sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -138,6 +139,12 @@ export default async function Home({
     versets = data || []
   }
 
+  // Les balises de titre se calculent d'un seul passage sur l'ordre matériel :
+  // elles dépendent des titres déjà ouverts, et le mode bilingue éclate ensuite
+  // les blocs en deux colonnes.
+  const baliserPayload = (blocs: readonly { id: string; semantic_style_code: string; heading: string | null }[]) =>
+    baliserBlocs(blocs.map((b) => ({ id: b.id, semanticStyle: b.semantic_style_code, intitule: b.heading })))
+
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
   let editionChapter: BibleEditionChapterDisplay | null = null
   if (editionMember) {
@@ -150,12 +157,14 @@ export default async function Home({
     const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
       row.applies_to === 'family' || row.applies_to_member_id === editionMember.member_id
     )
+    const balises = baliserPayload(payload.bodyBlocks)
     editionChapter = {
       familyId: editionMember.family_id,
       memberId: editionMember.member_id,
       bodyBlocks: payload.bodyBlocks.filter(appartientAuMembre).map((block) => ({
         id: block.id,
         semanticStyleCode: block.semantic_style_code,
+        niveauHtml: balises.get(block.id),
         noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
         heading: block.heading,
         placement: block.placement,
@@ -234,6 +243,7 @@ export default async function Home({
         canonIds: chargee.axeCanonique,
         includeBookFrontMatter: chapitre === 1,
       })
+      const balisesBilingue = baliserPayload(payload.bodyBlocks)
       lectureBilingue = {
         membres: chargee.colonnes.map((colonne) => colonne.membre),
         colonnes: chargee.colonnes,
@@ -241,6 +251,7 @@ export default async function Home({
         blocs: payload.bodyBlocks.map((block) => ({
           id: block.id,
           semanticStyleCode: block.semantic_style_code,
+          niveauHtml: balisesBilingue.get(block.id),
           noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
           heading: block.heading,
           placement: block.placement,

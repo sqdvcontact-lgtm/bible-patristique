@@ -7,13 +7,17 @@ import type {
   BibleEditionDisplayNote,
   BibleEditionDisplayTextBlock,
 } from '@/app/lib/bibleEdition'
-import { rangTitreBloc } from '@/app/lib/bibleEdition'
+import {
+  classeIntituleTitre,
+  classesDuStyle,
+  resoudreStyleSemantique,
+} from '@/app/lib/bibleHierarchieSemantique'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
-  'id' | 'semanticStyleCode' | 'noticeSubtype' | 'heading' | 'placement' | 'textBlocks'
+  'id' | 'semanticStyleCode' | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement' | 'textBlocks'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
 
 export type NoteBibliqueAffichable = Pick<
@@ -30,11 +34,15 @@ export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 // n'est pas une alerte, c'est du texte d'édition.
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
-/** Rangs de titre, calqués sur niv1 · niv2 · niv3 de la page d'œuvre. */
-const RANGS_TITRE: Record<1 | 2 | 3, CSSProperties> = {
-  1: { fontFamily: SERIF, fontSize: '1.125rem', fontWeight: 500, color: 'var(--cs-encre)', letterSpacing: '0.01em' },
-  2: { fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-texte-fort)' },
-  3: { fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)', letterSpacing: '0.02em' },
+// Repère interne d'un bloc d'information : ce n'est pas un titre, il ne porte
+// donc pas de balise de titre et n'entre pas au plan. La graisse et
+// l'espacement le signalent, non le corps de caractère.
+const STYLE_REPERE: CSSProperties = {
+  margin: '0 0 0.4rem',
+  fontSize: '0.78125rem',
+  fontWeight: 600,
+  letterSpacing: '0.02em',
+  color: 'var(--cs-texte)',
 }
 
 // Corps d'un paratexte : la composition d'un verset de la page Bible.
@@ -106,19 +114,32 @@ export function BlocEditorialBible({
   const avant = illustrations.filter((illustration) => illustration.placement === 'before')
   const dansLeFlux = illustrations.filter((illustration) => illustration.placement === 'inline')
   const apres = illustrations.filter((illustration) => illustration.placement === 'after')
-  const rang = rangTitreBloc(bloc.semanticStyleCode)
-  // Une notice et un excursus se tiennent à côté du fil : ils prennent le filet
-  // de gauche des intertitres d'œuvre. Le reste est du texte suivi.
-  const enMarge = bloc.semanticStyleCode.startsWith('notice_')
-    || bloc.semanticStyleCode.startsWith('excursus_')
+
+  // Le registre décide, et lui seul. Un style qu'il ignore n'est PAS aplati en
+  // paragraphe générique : il n'est pas rendu, et l'administration le signale.
+  const resolu = resoudreStyleSemantique(bloc.semanticStyleCode)
+  if (!resolu || !resolu.bodyBlock) return null
+
+  const intitule = bloc.heading?.trim() || null
+  // La balise vient des parents réellement présents, jamais du chiffre du jeton.
+  const Balise = `h${bloc.niveauHtml ?? 2}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+
   const contenu = (
     <>
       {rendreIllustrations(avant)}
-      {bloc.heading && (
-        <h3 style={{ ...RANGS_TITRE[rang], margin: '0 0 0.5rem', lineHeight: 1.3, whiteSpace: 'pre-line' }}>
-          {bloc.heading}
-        </h3>
-      )}
+      {intitule && (resolu.headingRole === 'title' && resolu.headingLevel ? (
+        // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
+        // du développement qui le suit. Les deux ne se concatènent jamais.
+        <Balise className={classeIntituleTitre(resolu.headingLevel)} style={{ marginTop: 0 }}>
+          {intitule}
+        </Balise>
+      ) : resolu.kind === 'title' ? (
+        <Balise className={classesDuStyle(resolu)[0]} style={{ marginTop: 0 }}>{intitule}</Balise>
+      ) : (
+        // Simple repère interne : jamais une balise de titre, sans quoi il
+        // entrerait dans le plan d'accessibilité par la bande.
+        <p className="cs-bible-info-label" style={STYLE_REPERE}>{intitule}</p>
+      ))}
       {bloc.textBlocks.map(rendreBlocTexte)}
       {rendreIllustrations(dansLeFlux)}
       {(bloc.internalNotes?.length ?? 0) > 0 && (
@@ -138,19 +159,19 @@ export function BlocEditorialBible({
       {rendreIllustrations(apres)}
     </>
   )
+  // Le jeton de niveau et le modificateur de nature : deux classes, deux axes.
   const props = {
-    className: `cs-bible-bloc cs-bible-${bloc.semanticStyleCode}`,
-    'data-semantic-style': bloc.semanticStyleCode,
+    className: ['cs-bible-bloc', ...classesDuStyle(resolu)].join(' '),
+    'data-semantic-style': resolu.canonique,
+    'data-niveau': resolu.level,
+    'data-nature': resolu.nature,
     'data-notice-subtype': bloc.noticeSubtype ?? undefined,
     'data-placement': bloc.placement,
-    style: {
-      margin: rang === 1 ? '1.5rem 0 1.25rem' : '1.25rem 0 0.9rem',
-      ...(enMarge
-        ? { paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)' }
-        : {}),
-    } as CSSProperties,
   }
-  if (enMarge) return <aside {...props}>{contenu}</aside>
+  // Une notice et un excursus se tiennent à côté du fil de lecture.
+  if (resolu.nature === 'notice' || resolu.nature === 'excursus') {
+    return <aside {...props}>{contenu}</aside>
+  }
   return <section {...props}>{contenu}</section>
 }
 
@@ -203,7 +224,7 @@ export function NotesBibleChapitre({
       aria-labelledby="notes-bible-chapitre"
       style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--cs-bord)' }}
     >
-      <h2 id="notes-bible-chapitre" style={{ ...RANGS_TITRE[3], margin: '0 0 0.75rem', lineHeight: 1.3 }}>
+      <h2 id="notes-bible-chapitre" style={{ ...STYLE_REPERE, margin: '0 0 0.75rem', lineHeight: 1.3 }}>
         Notes
       </h2>
       <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>

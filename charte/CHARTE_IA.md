@@ -1385,3 +1385,50 @@ Tout DOCX déclaré final, définitif ou validé dans le cadre de Corpus Scriptu
 Cette opération est une copie et jamais un déplacement : le fichier source demeure intact à son emplacement de production ou d’archive. Avant la copie, distinguer l’état final courant des candidats, brouillons, intermédiaires, rendus de contrôle, extractions d’archives et versions finales désormais remplacées. Lorsqu’un même document existe à plusieurs emplacements avec la même empreinte, une seule copie est conservée dans `CS - Docx`.
 
 Après la copie, vérifier l’égalité SHA-256 entre la source retenue et la copie. Le dossier `CS - Docx` constitue un accès pratique aux livrables Word finaux ; il ne remplace ni les archives de preuve, ni les sources autoritatives, ni les scripts de retour arrière.
+
+
+## 33. Éditions bibliques commentées — hiérarchies d’affichage
+
+### 33.1 Deux échelles, et elles ne sont pas interchangeables
+
+Une édition biblique commentée porte deux hiérarchies distinctes, qu’il ne faut ni confondre ni fondre en une seule.
+
+`T1` à `T6` disent la **profondeur d’un titre structurel attesté** : `T1` le livre biblique, `T2` la partie, `T3` la section, `T4` la sous-section, `T5` le chapitre, `T6` la péricope.
+
+`I1` à `I6` disent l’**étendue qu’un bloc d’information explique** : `I1` le livre, `I2` la partie, `I3` la section, `I4` le chapitre, `I5` la péricope, `I6` le verset.
+
+Le titre d’une péricope est donc `T6`, et ce qui l’explique est `I5`. La nature du bloc — introduction, commentaire, notice, sommaire, excursus, conclusion — est un **modificateur séparé du niveau** : `introduction_pericope` et `commentaire_pericope` sont tous deux `I5` et n’ont pourtant ni le même rôle ni le même rendu.
+
+⛔ **Un niveau ne se déduit jamais de la casse, du corps de caractère ou de la ponctuation du texte source.** Une édition compose ses titres comme elle l’entend ; la typographie est un indice de transcription, jamais une donnée de structure.
+
+Les niveaux absents ne s’inventent pas. Une édition sans partie ni sous-section n’en reçoit pas pour satisfaire l’interface — même règle qu’au § 6.2 pour les œuvres.
+
+### 33.2 Le registre fait foi
+
+Le registre machine est `work/fillion/semantic_display_hierarchy.json`. Il porte, pour chaque style sémantique : son échelle, son jeton, sa nature, sa présence au plan, son emplacement, le rôle de son intitulé, et ses alias anciens.
+
+⛔ **Un style absent du registre est REFUSÉ**, à l’import comme au rendu, et signalé dans le centre de contrôle. Il n’est jamais aplati en paragraphe générique : un bloc qui disparaîtrait en silence est pire qu’un bloc mal classé, parce que rien ne le signale.
+
+L’alias ancien `titre_section` se résout vers `titre_section_livre`. Le contrôle du registre et du thème est `scripts/fillion/validate_semantic_display_hierarchy.mjs`, à passer avant toute intégration.
+
+### 33.3 Rendu
+
+Le jeton commande la **classe** (`cs-bible-title--t*`, `cs-bible-info--i*`), le modificateur de nature commande la seconde classe (`cs-bible-block--*`). Les douze jetons existent dans le thème même si un volume n’en emploie qu’une partie : un tome plus structuré doit s’accueillir sans retoucher le rendu.
+
+⛔ **La balise `h1`-`h6` ne se recopie pas depuis le chiffre du jeton.** Elle se calcule sur le parent réellement présent, faute de quoi une édition sans partie ni sous-section passerait de `h1` à `h5` et sauterait trois rangs du plan d’accessibilité. La classe reste stable, la balise s’adapte.
+
+⛔ **Deux niveaux voisins se distinguent autrement que par la seule couleur** : le corps, la graisse, l’italique, le retrait. Une différence portée par la teinte seule disparaît pour qui ne la distingue pas, et à l’impression.
+
+Le titre du livre, `T1`, vient des métadonnées de page : un bloc de corps qui le répéterait n’est pas rendu.
+
+Une **note de verset** est `I6` et son emplacement est `footnote_only` : appel dans le verset, contenu au bas de l’unité de lecture. ⛔ Elle ne devient jamais un encadré du corps.
+
+**Cas mixtes.** Un bloc peut porter un intitulé et un développement ; ils restent **deux éléments distincts** et ne se concatènent jamais en un seul paragraphe.
+
+- `introduction_pericope` : l’intitulé **est** le titre de la péricope, `T6`, inscrit au plan ; le développement est l’information `I5` placée avant la péricope.
+- `commentaire_pericope` : l’intitulé n’est qu’un **repère interne**, exclu du plan et sans balise de titre. ⛔ Un commentaire de péricope ne paraît jamais au sommaire.
+- Introductions de livre ou de section, notices, sommaires et excursus : leur intitulé est un libellé d’information, non un niveau de structure supplémentaire, sauf donnée explicite contraire.
+
+Les premiers fichiers de revue emploient `heading`, les paratextes candidats `source_heading`. Les deux se normalisent vers une même propriété de rendu **sans perdre la forme source**.
+
+En lecture latin-français, un bloc commun à l’édition se rend sur toute la largeur, un bloc propre à un membre dans sa colonne, et **les niveaux sont identiques dans les deux modes**. Sur mobile, l’ordre reste titre, information, texte biblique : un bloc du corps ne devient jamais une note parce que l’écran est étroit.
