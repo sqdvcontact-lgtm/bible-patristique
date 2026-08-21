@@ -54,3 +54,32 @@ describe('page de titre du texte actif', () => {
     expect(html).not.toContain('1861')
   })
 })
+
+describe('titre original répété', () => {
+  const rendre = (oeuvre: Record<string, unknown>, estAdmin = false) => renderToStaticMarkup(
+    <PageTitre
+      auteur="Augustin d’Hippone"
+      titre="Les Confessions"
+      estAdmin={estAdmin}
+      onModifier={() => {}}
+      oeuvre={oeuvre as never}
+    />,
+  )
+
+  it('ne répète pas le titre original quand il redit le titre affiché', () => {
+    const html = rendre({ titre: 'Les Confessions', titre_affichage: 'Confessiones', titre_original: 'Confessiones' })
+    expect(html.match(/Confessiones/g)).toHaveLength(1)
+  })
+
+  it('garde le titre original quand il dit autre chose', () => {
+    const html = rendre({ titre: 'Les Confessions', titre_original: 'Confessiones' })
+    expect(html).toContain('Les Confessions')
+    expect(html).toContain('Confessiones')
+  })
+
+  it('le laisse sous les yeux de l’administrateur, qui doit pouvoir le corriger', () => {
+    const html = rendre({ titre: 'Les Confessions', titre_affichage: 'Confessiones', titre_original: 'Confessiones' }, true)
+    expect(html.match(/Confessiones/g)).toHaveLength(2)
+    expect(html).toContain('Modifier le titre original')
+  })
+})

@@ -5,7 +5,7 @@ import { indexEditeursNavigateur } from '@/app/lib/editeurs'
 import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { MarqueImprimeur } from './Ornements'
-import { sansPointFinal } from '@/app/lib/titres'
+import { memeIntitule, sansPointFinal } from '@/app/lib/titres'
 
 // Libellé du traducteur : logique pure dans `app/lib/traducteurs.ts` (testée),
 // ré-exportée ici pour les appelants historiques.
@@ -86,6 +86,15 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
   // il enrichit le texte exactement comme rendreTexteEnrichi et sait en plus
   // résoudre les appels [[n]].
   const rendreIntitule = (texte: string) => rendreTexteAvecNotes(texte, notes, 'frontispice')
+  // Le titre original ne paraît que s'il dit autre chose que le titre affiché.
+  // Quand l'œuvre est nommée par son intitulé d'origine (« Confessiones »), le
+  // répéter en italique juste dessous ne renseigne personne et fait bégayer le
+  // frontispice. L'administrateur, lui, le garde sous les yeux : c'est le champ
+  // qu'il doit pouvoir corriger.
+  const titreAffiche = oeuvre.titre_affichage || titre
+  const titreOriginal = oeuvre.titre_original ?? ''
+  const titreOriginalVisible = titreOriginal !== ''
+    && (!memeIntitule(titreOriginal, titreAffiche) || estAdmin)
   const traducteur = versionActive?.traducteur ?? oeuvre.trad_auteur
   const traducteurLabel = versionActive?.traducteurLabel ?? libelleTrad(traducteur)
   const commentaireTraduction = versionActive && !versionActive.isDefault
@@ -127,10 +136,10 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
           appartenir à autre chose. En em, chaque blanc suit le corps qu'il
           accompagne et la composition garde ses proportions à toute taille. */}
       <div style={{ position: 'relative', maxWidth: '35rem' }}>
-        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '0.2em' : oeuvre.titre_original ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '0.2em' : titreOriginalVisible ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
-          {rendreIntitule(sansPointFinal(oeuvre.titre_affichage || titre))}
+          {rendreIntitule(sansPointFinal(titreAffiche))}
         </h1>
         {estAdmin && (
           <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
@@ -141,7 +150,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: '#4a443c', margin: oeuvre.titre_original ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: '#4a443c', margin: titreOriginalVisible ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
@@ -152,13 +161,13 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       )}
 
       {/* Titre original */}
-      {(oeuvre.titre_original || estAdmin) && (
+      {(titreOriginalVisible || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
-            {oeuvre.titre_original ? rendreIntitule(oeuvre.titre_original) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
+            {titreOriginalVisible ? rendreIntitule(titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
-            <button onClick={() => onModifier('titre_original', oeuvre.titre_original ?? '')} title="Modifier le titre original"
+            <button onClick={() => onModifier('titre_original', titreOriginal)} title="Modifier le titre original"
               style={{ ...BTN, right: '-20px', top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>

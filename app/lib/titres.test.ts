@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cleTriTitre, sansPointFinal, normaliserTitreTechnique } from './titres'
+import { cleTriTitre, memeIntitule, sansPointFinal, normaliserTitreTechnique } from './titres'
 
 describe('cleTriTitre', () => {
   it('retire l’article défini de tête', () => {
@@ -67,5 +67,33 @@ describe('normaliserTitreTechnique', () => {
     expect(normaliserTitreTechnique(null)).toBe('')
     expect(normaliserTitreTechnique(undefined)).toBe('')
     expect(normaliserTitreTechnique('')).toBe('')
+  })
+})
+
+describe('memeIntitule', () => {
+  it('reconnaît le titre d’affichage répété en titre original', () => {
+    expect(memeIntitule('Confessiones', 'Confessiones')).toBe(true)
+    expect(memeIntitule('Commentarius in Ionam', 'Commentarius in Ionam')).toBe(true)
+  })
+  it('ignore ce que la composition ignore déjà', () => {
+    // Sauts de ligne éditoriaux du titre d’affichage, casse, apostrophe, point final.
+    expect(memeIntitule('Annotations\nsur le livre de Job', 'Annotations sur le livre de Job')).toBe(true)
+    expect(memeIntitule('DE CIVITATE DEI', 'De civitate Dei')).toBe(true)
+    expect(memeIntitule('L’Évangile', "L'Évangile")).toBe(true)
+    expect(memeIntitule('Confessiones.', 'Confessiones')).toBe(true)
+  })
+  it('ne voit pas le même intitulé sous un appel de note', () => {
+    expect(memeIntitule('Confessiones [[12]]', 'Confessiones')).toBe(true)
+  })
+  it('distingue deux intitulés différents', () => {
+    expect(memeIntitule('Les Confessions', 'Confessiones')).toBe(false)
+    expect(memeIntitule('Commentarius in Ionam', 'Commentarius in Ioel')).toBe(false)
+    // Les accents appartiennent au mot : ils restent distinctifs.
+    expect(memeIntitule('Hexaemeron', 'Hexaéméron')).toBe(false)
+  })
+  it('un intitulé vide n’est le même que rien', () => {
+    expect(memeIntitule('', '')).toBe(false)
+    expect(memeIntitule(null, undefined)).toBe(false)
+    expect(memeIntitule('   ', 'Confessiones')).toBe(false)
   })
 })

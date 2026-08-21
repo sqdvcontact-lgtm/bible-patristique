@@ -38,3 +38,24 @@ export function cleTriTitre(titre: string | null | undefined): string {
   const t = titre.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, "'")
   return t.replace(ARTICLE_TETE, '').trim()
 }
+
+// Deux intitulés sont « le même » quand ils ne diffèrent que par ce que la
+// composition ignore de toute façon : les blancs (le titre d'affichage porte des
+// sauts de ligne éditoriaux que le titre original n'a pas), la casse, la forme de
+// l'apostrophe, le point final proscrit et les appels de note. Les accents, eux,
+// restent distinctifs : ils appartiennent au mot.
+// Sert à ne pas répéter un intitulé sous lui-même sur la page de titre, quand
+// l'œuvre est nommée par son titre d'origine (« Confessiones »).
+const APPEL_NOTE_INTITULE = /[ \t]*\[\[[A-Z0-9]+\]\]/g
+function cleIntitule(titre: string | null | undefined): string {
+  if (!titre) return ''
+  return sansPointFinal(titre.replace(APPEL_NOTE_INTITULE, ''))
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[’']/g, "'")
+    .toLocaleLowerCase('fr-FR')
+}
+export function memeIntitule(a: string | null | undefined, b: string | null | undefined): boolean {
+  const cle = cleIntitule(a)
+  return cle !== '' && cle === cleIntitule(b)
+}
