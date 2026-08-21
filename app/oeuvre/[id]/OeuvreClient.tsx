@@ -1745,7 +1745,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <div key={i}>
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
                           style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                          {entry.niv1}
+                          {titreSansAppelsDeNote(entry.niv1)}
                         </a>
                       </div>
                     ))}

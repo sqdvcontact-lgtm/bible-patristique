@@ -17,7 +17,7 @@ function capitaliserInitiale(mot: string): string {
 // d'une leçon du corps : on compose ces seuls titres en casse française et l'on
 // conserve les chiffres romains. La liste fermée évite de dégrader un vrai titre
 // en capitales qui contiendrait un nom propre.
-const TITRE_STRUCTUREL_CAPITALES = /^(?:LIVRE|PARTIE|CHAPITRE|SECTION|PROLOGUE|ÉPILOGUE|INTRODUCTION|LIMINAIRES|PRÉFACE|AVERTISSEMENT|POÉSIE|POESIE|PROSE|CHANT)(?:\b|$)/u
+const TITRE_STRUCTUREL_CAPITALES = /^(?:(?:[IVXLCDM]+|\d+)[.)]?\s+)?(?:LIVRE|PARTIE|CHAPITRE|SECTION|PROLOGUE|ÉPILOGUE|INTRODUCTION|LIMINAIRES|PRÉFACE|AVERTISSEMENT|POÉSIE|POESIE|PROSE|CHANT)(?:\b|$)/u
 
 export function normaliserCapitalesTitreStructurel(titre: string | null | undefined): string {
   if (!titre) return ''
@@ -50,6 +50,13 @@ export function normaliserTitreTechnique(titre: string | null | undefined): stri
   if (m) return `${capitaliserInitiale(m[1])} ${parseInt(m[2], 10)}`
   if (/^[a-zà-ÿ]{4,}$/u.test(t)) return capitaliserInitiale(t)
   return titre
+}
+
+// Forme prête à afficher d'une clé de structure brute. Les clés restent intactes
+// en base (elles servent au regroupement et à l'alignement) ; les écrans publics
+// qui les rendent directement passent par cette composition.
+export function titreStructurelAffiche(titre: string | null | undefined): string {
+  return normaliserCapitalesTitreStructurel(normaliserTitreTechnique(sansPointFinal(titre)))
 }
 
 // Clé de tri d'un titre : sans article/déterminant de tête, sans accents, pour un

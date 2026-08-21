@@ -876,3 +876,9 @@ La table `editeurs` tient le nom complet de chaque maison et les formes sous les
 Toutes les versions rattachées au même `id_oeuvre` partagent le même menu « Traductions », quel que soit l'`id_texte` actif. `libelleVersionComplet` y donne une traduction sous la forme exacte « H. Barreau et M. Charpentier (dates de vie), édition de 1873 » : noms mis en forme, dates structurées lorsqu'elles sont connues, puis millésime de `oeuvre_textes.annee_edition`. Une version en langue originale garde son propre titre.
 
 Le choix de langue reste lui aussi commun aux traductions. L'original demeure visible mais grisé quand la portée affichée n'est pas encore alignée. Le mode « Traductions parallèles » reste retiré jusqu'à sa réactivation explicite.
+
+## Une anomalie de casse déclenche le contrôle de l'œuvre entière
+
+Le signalement d'une capitale fautive ne se traite jamais comme une occurrence isolée. Inventorier toutes les suites de capitales dans le corps, les titres, les chapeaux, les liminaires et les notes de **toutes les versions de l'œuvre** ; classer les chiffres romains, sigles, noms propres, grec, petites capitales et initiales ornées ; puis vérifier sur le fac-similé chaque résidu réellement suspect. ⛔ Aucune mise en minuscules mécanique : une forme surprenante reste la leçon de l'édition tant que la source ne prouve pas l'erreur.
+
+Les clés `ref_niv*` peuvent conserver la forme imprimée ou technique nécessaire au regroupement et à l'alignement. Leur casse publique dépend partout de `normaliserCapitalesTitreStructurel` (`app/lib/titres.ts`) ; une surface qui affiche directement la clé emploie `titreStructurelAffiche`, tandis que les titres avec appels de note passent par les préparateurs du lecteur. La règle couvre aussi une rubrique numérotée comme « II. PROSE. » → « II. Prose ».
