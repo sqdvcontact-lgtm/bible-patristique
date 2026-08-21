@@ -7,7 +7,7 @@ declare
 begin
   select valeur into strict v_charte from public.parametres where cle = 'charte_ia';
   if encode(digest(convert_to(v_charte, 'UTF8'), 'sha256'), 'hex')
-     <> '20eae71a735e0bc80b59b31be1adf4ffb1516ee0e582c3954109775b692e324e' then
+     <> 'fa9df429a8c4c98b94a9965b6e51e972e857c1ef3052606ab2f245299732dad3' then
     raise exception 'charte_ia a changé depuis l audit préparatoire';
   end if;
   if regexp_count(v_charte, 'Changer la version par défaut, publier, retirer ou remplacer une version est une opération explicite\.') <> 1 then
