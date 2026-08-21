@@ -207,3 +207,5 @@ for (const path of ['app/page.tsx','app/lib/bibleMultimodeServer.ts','app/compon
   if (s.includes(".from('versets_lecture')")) throw new Error(`${path}: lecture directe versets_lecture résiduelle`)
 }
 console.log('Bible classique basculée vers la spine AELF/TOL.')
+
+// Déclenchement explicite de la validation après installation du workflow.
