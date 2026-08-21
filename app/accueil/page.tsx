@@ -10,9 +10,10 @@ export const metadata = {
   description: "Lectures bibliques et patristiques.",
 };
 
-// Mentions éditoriales (assertions de l'auteur) — à ajuster librement ici.
-const POURCENT_VERIFIE = 98;
-const NB_CONTRIBUTEURS = 1;
+// Le bandeau de statistiques ne porte plus aucun chiffre écrit à la main. Les
+// « textes vérifiés » et les « contributeurs » étaient des constantes qu'il fallait
+// penser à corriger, et qui vieillissaient donc en silence. Tout vient désormais de
+// la base, par la fonction `statistiques_accueil()` : voir `BandeauStats` plus bas.
 
 // « Ajouts récents » : on affiche jusqu'à NB_AJOUTS œuvres. Les NB_DATES_REELLES
 // premières gardent leur vraie date de mise en ligne ; les suivantes reçoivent une
@@ -33,15 +34,23 @@ function dateJuilletPseudo(id: string): string {
   return new Date(Date.UTC(2026, 6, jour, 12)).toISOString();
 }
 
+// Chiffres du bandeau, tels que la base les rend. `pourcent_verifie` peut être nul
+// quand aucune œuvre n'a encore été contrôlée : la tuile se retire alors d'elle-même,
+// plutôt que d'annoncer « 0 % ».
+type StatistiquesAccueil = {
+  textes: number;
+  auteurs: number;
+  pourcent_verifie: number | null;
+  contributeurs: number;
+};
+
 export default async function AccueilPage() {
-  // Données réelles : ajouts récents + compteurs (le reste de la barre de stats
-  // est éditorial, cf. constantes ci-dessus).
   const supabase = await creerSupabaseServeur();
   // Une œuvre est publiée tant que sa `note` n'est pas le marqueur de dépublication
   // (null compris). On filtre, trie et limite EN BASE — plutôt que de rapatrier toute
-  // la table pour n'afficher que 5 ajouts récents et deux compteurs.
+  // la table pour n'afficher que quelques ajouts récents.
   const filtrePubliee = `note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`;
-  const [recentesRes, nbTextesRes, nbAuteursRes, codesTraductions] = await Promise.all([
+  const [recentesRes, statsRes, codesTraductions] = await Promise.all([
     supabase
       .from("oeuvres")
       .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
@@ -49,8 +58,12 @@ export default async function AccueilPage() {
       .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
       .order("id_oeuvre", { ascending: false })
       .limit(NB_AJOUTS),
-    supabase.from("oeuvres").select("id_oeuvre", { count: "exact", head: true }).or(filtrePubliee),
-    supabase.from("auteurs").select("id_auteur", { count: "exact", head: true }),
+    // Compteurs du bandeau, calculés en base et IDENTIQUES pour tout visiteur. Les
+    // compter ici reviendrait à les soumettre aux droits du lecteur : l'administrateur
+    // voyait 52 œuvres là où le visiteur en voyait 35, et le pourcentage de textes
+    // vérifiés ne se lisait pas du tout sans droits d'administration. Une annonce
+    // publique doit dire la même chose à tous.
+    supabase.rpc("statistiques_accueil").maybeSingle<StatistiquesAccueil>(),
     // « Traductions disponibles » : on ne compte QUE les traductions réellement lisibles
     // (enregistrées ET matérialisées dans `versets_lecture`), pas celles encore en cours
     // de transcription (ex. la Bible française du XIIIe siècle). Même source de vérité que
@@ -69,8 +82,11 @@ export default async function AccueilPage() {
   const recentes: OeuvreRecente[] = recentesBrut
     .map((o, i) => (i < NB_DATES_REELLES && o.date_mise_en_ligne) ? o : { ...o, date_mise_en_ligne: dateJuilletPseudo(o.id_oeuvre) })
     .sort((a, b) => (b.date_mise_en_ligne ?? "").localeCompare(a.date_mise_en_ligne ?? ""));
-  const nbTextes = nbTextesRes.count ?? 0;
-  const nbAuteurs = nbAuteursRes.count ?? 0;
+  const stats = statsRes.data;
+  const nbTextes = stats?.textes ?? 0;
+  const nbAuteurs = stats?.auteurs ?? 0;
+  const pourcentVerifie = stats?.pourcent_verifie ?? null;
+  const nbContributeurs = stats?.contributeurs ?? 0;
   const nbTraductions = codesTraductions.length;
 
   return (
@@ -266,7 +282,13 @@ export default async function AccueilPage() {
           <VoletUnMot />
           <VoletAjouts recentes={recentes} />
         </div>
-        <BandeauStats nbTextes={nbTextes} nbAuteurs={nbAuteurs ?? 0} nbTraductions={nbTraductions} />
+        <BandeauStats
+          nbTextes={nbTextes}
+          nbAuteurs={nbAuteurs}
+          nbTraductions={nbTraductions}
+          pourcentVerifie={pourcentVerifie}
+          nbContributeurs={nbContributeurs}
+        />
         </div>
       </main>
 
@@ -502,14 +524,23 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   )
 }
 
-function BandeauStats({ nbTextes, nbAuteurs, nbTraductions }: { nbTextes: number; nbAuteurs: number; nbTraductions: number }) {
+function BandeauStats({ nbTextes, nbAuteurs, nbTraductions, pourcentVerifie, nbContributeurs }: {
+  nbTextes: number;
+  nbAuteurs: number;
+  nbTraductions: number;
+  pourcentVerifie: number | null;
+  nbContributeurs: number;
+}) {
+  // Une tuile ne paraît que si son chiffre a un sens : mieux vaut quatre tuiles que
+  // cinq dont une annonce « 0 % ». Les filets étant posés par la règle
+  // `.accueil-stat + .accueil-stat`, la barre se recompose quel qu’en soit le nombre.
   const stats = [
     { icon: <IconeLivre />, valeur: nbTextes.toLocaleString("fr-FR"), label: "Textes disponibles" },
     { icon: <IconeTraductions />, valeur: nbTraductions.toLocaleString("fr-FR"), label: nbTraductions > 1 ? "Traductions bibliques" : "Traduction biblique" },
     { icon: <IconeAuteurs />, valeur: nbAuteurs.toLocaleString("fr-FR"), label: "Auteurs répertoriés" },
-    { icon: <IconeCheck />, valeur: `${POURCENT_VERIFIE} %`, label: "Textes vérifiés" },
-    { icon: <IconeContrib />, valeur: NB_CONTRIBUTEURS.toLocaleString("fr-FR"), label: NB_CONTRIBUTEURS > 1 ? "Contributeurs" : "Contributeur" },
-  ]
+    pourcentVerifie === null ? null : { icon: <IconeCheck />, valeur: `${pourcentVerifie} %`, label: "Textes vérifiés" },
+    nbContributeurs < 1 ? null : { icon: <IconeContrib />, valeur: nbContributeurs.toLocaleString("fr-FR"), label: nbContributeurs > 1 ? "Contributeurs" : "Contributeur" },
+  ].filter((s) => s !== null)
   return (
     <div className="accueil-carte accueil-stats">
       {stats.map((s, i) => (
