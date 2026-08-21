@@ -832,3 +832,21 @@ La migration `20260820093045_bible_fillion_editorial_model.sql` avait été appl
 ⚠️ Deux pièges d'`exec_sql`, rencontrés tous les deux : il passe par `EXECUTE`, qui **refuse `begin;` / `commit;`** (« EXECUTE of transaction commands is not implemented ») — les bornes se retirent, l'appel de fonction étant déjà une transaction ; et il **ne rend pas les lignes d'un `select`**, si bien qu'une garde doit lever elle-même côté base plutôt que d'espérer lire une réponse.
 
 **Règle** : une migration appliquée par `exec_sql` est inscrite au journal dans la foulée, sinon le dépôt et la base racontent deux histoires différentes.
+
+# Un chiffre public ne se compte pas avec les droits du lecteur (2026-08-21)
+
+⛔ **Un compteur affiché sur une page publique ne doit jamais passer par le client de session.** La RLS s'applique au comptage : `select count(*)` rend alors un nombre DIFFÉRENT selon qui regarde. Le bandeau d'accueil annonçait ainsi 52 œuvres à l'administrateur et 35 au visiteur, sans que rien ne le signale.
+
+Tous les chiffres du bandeau viennent désormais de **`statistiques_accueil()`** (SECURITY DEFINER, `search_path = public`, EXECUTE à `anon`/`authenticated`/`service_role`), qui ne rend que des agrégats : œuvres offertes, auteurs répertoriés, part de textes vérifiés, contributeurs. Aucune ligne, aucun nom n'en sort. Ajouter un chiffre au bandeau, c'est l'ajouter à cette fonction, pas rouvrir un comptage dans la page.
+
+- **« Textes vérifiés » n'est plus une constante.** C'est la part des œuvres offertes dont le contrôle qualité ne relève aucun segment critique, lue sur la vue matérialisée `oeuvres_controle_stats_mat` (la vue en direct coûte ~10 s, elle est hors de question sur une page publique). ⚠️ **Le chiffre ne bouge donc qu'au recalcul** depuis le centre de contrôle : après un import ou une correction, rafraîchir, sinon l'accueil reste en arrière. Les œuvres **sans segment** sont écartées du dénominateur : une importation à venir ferait sinon chuter le pourcentage sans qu'un seul texte publié se soit dégradé.
+- **« Contributeurs »** réunit les administrateurs et les auteurs d'un essai publié. ⚠️ `profils` ne se lit que « soi-même » : compter les administrateurs depuis une page est impossible sans passer par la fonction.
+- **Une tuile dont le chiffre n'a pas de sens se retire** au lieu d'annoncer « 0 % ». Les filets venant de `.accueil-stat + .accueil-stat`, la barre se recompose d'elle-même.
+
+## Deux verrous, pas un, pour retenir une œuvre
+
+Une œuvre retenue porte **le marqueur `[Corpus Scriptura:depublie]` dans `note`** ET **`acces_public = false`**. Les deux sont indépendants : le premier filtre les listes du site, le second est la RLS. Juger de la publication sur un seul, c'est se tromper une fois sur deux. Les 17 œuvres retenues au 2026-08-21 les portaient toutes deux, et ont été ouvertes sur demande explicite (retour en arrière : `sql/rollback_publication_totale_oeuvres_20260821.sql`).
+
+## `/api/chiffres` comptait sans aucun filtre
+
+⚠️ La page d'ouverture `/chantier` tire ses trois chiffres d'une route serveur qui interroge avec le **rôle de service** : elle ne voyait donc AUCUN des filtres du site. Elle annonçait toutes les œuvres, fermées comprises, et **onze traductions bibliques** — le `count(*)` brut de `traductions`, où cinq bibles voisinent avec des traductions d'œuvres patristiques et des bibles non matérialisées. Elle lit désormais `statistiques_accueil()` et `codesTraductionsLecture()`, comme l'accueil. Le rôle de service ne dispense pas des règles éditoriales : il les contourne, ce qui est précisément le danger.
