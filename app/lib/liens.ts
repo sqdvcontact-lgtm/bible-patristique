@@ -224,10 +224,20 @@ export async function referencesBibliquesAelfDeSegments(
   const tousLiens = [...liensParSegment.values()].flat()
   const entryIds = [...new Set(tousLiens.map(l => l.aelf_entry_id).filter((v): v is string => Boolean(v)))]
   const cellules = await cellulesLectureAelf(entryIds, client)
-  const textesParEntree = new Map<string, Record<string, string>>()
+  const fragmentsParEntree = new Map<string, Map<string, string[]>>()
   for (const c of cellules) {
-    if (!textesParEntree.has(c.aelf_entry_id)) textesParEntree.set(c.aelf_entry_id, {})
-    if (codesTraductions.includes(c.trad_id) && c.texte) textesParEntree.get(c.aelf_entry_id)![c.trad_id] = c.texte
+    if (!codesTraductions.includes(c.trad_id) || !c.texte) continue
+    if (!fragmentsParEntree.has(c.aelf_entry_id)) fragmentsParEntree.set(c.aelf_entry_id, new Map())
+    const parTrad = fragmentsParEntree.get(c.aelf_entry_id)!
+    if (!parTrad.has(c.trad_id)) parTrad.set(c.trad_id, [])
+    const fragments = parTrad.get(c.trad_id)!
+    if (!fragments.includes(c.texte)) fragments.push(c.texte)
+  }
+  const textesParEntree = new Map<string, Record<string, string>>()
+  for (const [entryId, parTrad] of fragmentsParEntree) {
+    textesParEntree.set(entryId, Object.fromEntries(
+      [...parTrad.entries()].map(([trad, fragments]) => [trad, fragments.join(' ')]),
+    ))
   }
 
   const legacyIds = [...new Set(tousLiens
@@ -249,8 +259,13 @@ export async function referencesBibliquesAelfDeSegments(
   for (const segmentId of segmentIds) {
     const refs = new Map<string, ReferenceBibliqueAelf>()
     for (const lien of liensParSegment.get(segmentId) ?? []) {
-      if (!lien.aelf_entry_id && !lien.historical_canon_id) continue
-      const cle = lien.aelf_entry_id ? `aelf:${lien.aelf_entry_id}` : `legacy:${lien.historical_canon_id}`
+      const chapitreSeul = lien.resolution_status === 'chapter_only' && Boolean(lien.livre) && lien.chapitre != null
+      if (!lien.aelf_entry_id && !lien.historical_canon_id && !chapitreSeul) continue
+      const cle = lien.aelf_entry_id
+        ? `aelf:${lien.aelf_entry_id}`
+        : lien.historical_canon_id
+          ? `legacy:${lien.historical_canon_id}`
+          : `chapter:${lien.livre}:${lien.chapitre}`
       let ref = refs.get(cle)
       if (!ref) {
         if (lien.aelf_entry_id) {
@@ -259,7 +274,7 @@ export async function referencesBibliquesAelfDeSegments(
           const verset = labelNumeriqueAelf(lien.aelf_verse_label)
           ref = {
             id: `AELF:${lien.aelf_entry_id}`,
-            label: verset ? `${livre} ${chapitre}, ${verset}` : `${livre} ${chapitre}`,
+            label: verset ? `${ABREV_FR[livre] ?? livre} ${chapitre}, ${verset}` : `${ABREV_FR[livre] ?? livre} ${chapitre}`,
             textes: { ...(textesParEntree.get(lien.aelf_entry_id) ?? {}) },
             livre, chapitre, verset,
             aelfVersionId: lien.aelf_version_id,
@@ -271,8 +286,8 @@ export async function referencesBibliquesAelfDeSegments(
             confidenceLevel: lien.confidence_level,
             linkIds: [], natures: [], ordreAelf: lien.aelf_sequence_no,
           }
-        } else {
-          const canon = lien.historical_canon_id as string
+        } else if (lien.historical_canon_id) {
+          const canon = lien.historical_canon_id
           const extra = extrasParCanon.get(canon)
           const livre = String(extra?.livre ?? lien.livre ?? '')
           const chapitre = String(extra?.chapitre_label ?? lien.chapitre ?? '')
@@ -284,6 +299,18 @@ export async function referencesBibliquesAelfDeSegments(
             textes, livre, chapitre, verset,
             aelfVersionId: null, aelfEntryId: null, aelfReference: null,
             historicalCanonId: canon, resolutionStatus: lien.resolution_status,
+            validationStatus: lien.validation_status, confidenceLevel: lien.confidence_level,
+            linkIds: [], natures: [], ordreAelf: null,
+          }
+        } else {
+          const livre = lien.livre ?? ''
+          const chapitre = lien.chapitre == null ? '' : String(lien.chapitre)
+          ref = {
+            id: `CHAPTER:${livre}:${chapitre}`,
+            label: `${ABREV_FR[livre] ?? livre} ${chapitre}`.trim(),
+            textes: {}, livre, chapitre, verset: '',
+            aelfVersionId: null, aelfEntryId: null, aelfReference: null,
+            historicalCanonId: null, resolutionStatus: 'chapter_only',
             validationStatus: lien.validation_status, confidenceLevel: lien.confidence_level,
             linkIds: [], natures: [], ordreAelf: null,
           }

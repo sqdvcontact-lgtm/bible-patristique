@@ -91,7 +91,7 @@ function regrouperVersetsConsecutifs<T extends { livre: string; chapitre: string
     const prec = dernierGroupe?.[dernierGroupe.length - 1]
     const nPrec = prec ? Number(prec.verset) : NaN
     const nCur = Number(v.verset)
-    if (prec && prec.livre === v.livre && prec.chapitre === v.chapitre
+    if (prec && prec.verset && v.verset && prec.livre === v.livre && prec.chapitre === v.chapitre
         && Number.isFinite(nPrec) && Number.isFinite(nCur) && nCur === nPrec + 1) {
       dernierGroupe.push(v)
     } else {
@@ -2345,6 +2345,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           const premier = groupe[0]
                           const dernier = groupe[groupe.length - 1]
                           const multiple = groupe.length > 1
+                          const chapitreSeul = premier.resolutionStatus === 'chapter_only'
                           // Versets réunis : label en fourchette (« Gn 1, 1-3 ») et corps mis à la suite.
                           const labelGroupe = multiple
                             ? `${premier.label.replace(/\d+\s*$/, '')}${premier.verset}-${dernier.verset}`
@@ -2371,7 +2372,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             <div key={key}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}${chapitreSeul ? '' : `&verset=${encodeURIComponent(premier.verset)}`}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
                                   {/* La nature du rapport, dite sans peser : le lecteur
                                       voit la référence d'abord, et peut savoir à quel
                                       titre elle est là s'il y prend garde. */}
@@ -2387,11 +2388,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     </button>
                                   )}
                                 </div>
-                                <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
-                                  <BoutonEnregistrerVerset verset={versetAction} trad={trad} userId={userId} />
-                                  <BoutonCopieVerset texte={corps} label={labelGroupe} />
-                                  <BoutonSignalerVerset versetId={premier.id} label={labelGroupe} texte={corps} segmentId={segActifData.id} />
-                                </div>
+                                {!chapitreSeul && (
+                                  <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
+                                    <BoutonEnregistrerVerset verset={versetAction} trad={trad} userId={userId} />
+                                    <BoutonCopieVerset texte={corps} label={labelGroupe} />
+                                    <BoutonSignalerVerset versetId={premier.id} label={labelGroupe} texte={corps} segmentId={segActifData.id} />
+                                  </div>
+                                )}
                               </div>
                               {note && (
                                 <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-etiquette)', margin: '0 0 3px', lineHeight: 1.3 }}>
@@ -2402,7 +2405,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                   citations patristiques du panneau Bible — justifié, wordSpacing serré,
                                   césure. Enrichissement (« <i> » de Sacy) rendu. */}
                               <p lang="fr" style={{ fontSize: '0.6875rem', lineHeight: '1.38', color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
-                                {corps ? rendreTexteEnrichi(corps) : '—'}
+                                {chapitreSeul
+                                  ? <em style={{ color: 'var(--cs-texte-doux)' }}>Lien au chapitre entier.</em>
+                                  : corps ? rendreTexteEnrichi(corps) : '—'}
                               </p>
                             </div>
                           )
