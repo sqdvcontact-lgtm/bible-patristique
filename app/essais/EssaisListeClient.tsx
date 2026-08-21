@@ -341,10 +341,10 @@ function OngletCommunaute({
 
            Sur l'OPACITÉ, qui revient six fois dans ce bloc et n'est pas un bricolage.
            La couverture n'a qu'une encre, celle que l'auteur a choisie, prise partout
-           par `currentColor`. Toute la hiérarchie se fait donc en INTENSITÉS de cette
+           par currentColor. Toute la hiérarchie se fait donc en INTENSITÉS de cette
            encre unique, et non en couleurs : nom 0.9, emblème 0.9, catégorie et titre
            0.76, date 0.66, filet du cadre 0.42. Écrire à la place des teintes fixes
-           obligerait à les décliner six fois, une par couverture, ce que `currentColor`
+           obligerait à les décliner six fois, une par couverture, ce que currentColor
            existe précisément pour éviter.
 
            L'emblème est passé de 0.82 à 0.9, au rang du nom de l'auteur : depuis qu'il
