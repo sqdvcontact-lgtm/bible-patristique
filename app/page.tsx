@@ -99,7 +99,7 @@ export default async function Home({
   }
 
   // Deux origines pour le mode « verset », même contrat de données pour BibleLayout :
-  //   - éditions historiques (TR0001–TR0005) : vue large `versets_lecture` ;
+  //   - éditions historiques (TR0001–TR0005) : projection large sur la spine AELF/TOL ;
   //   - segmentations éditoriales (Bible 899, Fillion, Vulgate Fillion…) : texte
   //     recomposé et aligné sur
   //     canon_id, ADAPTÉ au contrat ordinaire (aucune copie vers versets_v2). La
@@ -128,14 +128,15 @@ export default async function Home({
       chapitre,
     })
   } else {
-    const { data } = await supabase
-      // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
-      // historiques et n'est jamais utilisée pour simuler un mode source.
-      .from('versets_lecture')
+    const { data, error } = await supabase
+      // Axe de lecture actif : spine AELF/TOL. Les textes restent ceux de chaque
+      // traduction et leurs numérotations natives demeurent dans num_TRxxxx.
+      .from('v_aelf_bible_lecture')
       .select('*')
       .eq('livre', livre)
       .eq('chapitre', chapitre)
-      .order('verset')
+      .order('ordre')
+    if (error) throw new Error(`Lecture AELF indisponible : ${error.message}`)
     versets = data || []
   }
 

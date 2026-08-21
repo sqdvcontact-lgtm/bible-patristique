@@ -40,6 +40,9 @@ const VERSET_ACTION_BTN: React.CSSProperties = {
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
+  chapitre_label?: string | null; verset_label?: string | null
+  aelf_version_id?: string | null; aelf_entry_id?: string | null; aelf_reference?: string | null
+  historical_canon_id?: string | null
   chapitre_alternatif?: number | null; verset_alternatif?: number | null
   // Marqueurs des adaptateurs éditoriaux ; Bible 899 ajoute son statut de lacune.
   _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
@@ -95,12 +98,30 @@ function BoutonCopie({ texte }: { texte: string }) {
 
 // « GEN 1:1 » (référence canonique interne) → « Gn 1, 1 » (forme française attendue partout
 // sur le site : abréviation française, virgule entre chapitre et verset).
+function nettoyerLabelAelf(label: string | number | null | undefined): string {
+  const brut = String(label ?? '')
+  const nettoye = brut.replace(/^0+(?=\d)/, '')
+  return nettoye || brut
+}
+
+function etiquetteVerset(v: Verset): string {
+  const chapitre = nettoyerLabelAelf(v.chapitre_label ?? v.chapitre)
+  const verset = nettoyerLabelAelf(v.verset_label ?? v.verset)
+  return chapitre !== String(v.chapitre) ? `${chapitre},${verset}` : verset
+}
+
+function clePrelevement(v: Verset): string {
+  return v.aelf_entry_id ?? `legacy:${v.chapitre}:${v.verset}`
+}
+
 function refFrBible(ref: string): string {
   const p = ref.trim().split(' ')
   if (p.length < 2) return ref
   const cv = p[1].split(':')
   const abr = ABREV_FR[p[0]] ?? p[0]
-  return cv[1] ? `${abr} ${cv[0]}, ${cv[1]}` : `${abr} ${cv[0]}`
+  const chapitre = nettoyerLabelAelf(cv[0])
+  const verset = cv[1] ? nettoyerLabelAelf(cv[1]) : ''
+  return verset ? `${abr} ${chapitre}, ${verset}` : `${abr} ${chapitre}`
 }
 
 function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; versetRef?: string; texte?: string }) {
@@ -247,6 +268,8 @@ function BoutonEnregistrer({
       user_id: userId, type: 'biblique',
       ref_livre: nomLivre, ref_livre_abr: abr,
       ref_chapitre: chapitreActif, ref_verset: verset.verset,
+      aelf_version_id: verset.aelf_version_id ?? null,
+      aelf_entry_id: verset.aelf_entry_id ?? null,
       texte, traduction: traductionLabel,
     }).select('id').single()
     setLoading(false)
@@ -401,7 +424,7 @@ export default function TexteBible({
   const [estAdmin, setEstAdmin] = useState(false)
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
-  const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
+  const [sauvegardes, setSauvegardes] = useState<Map<string, string>>(new Map())
   const [tradOuverte, setTradOuverte] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -415,10 +438,9 @@ export default function TexteBible({
   useEffect(() => {
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
-    const num = parseInt(versetCible)
-    const v = versets.find(v => v.verset === num)
+    const v = versets.find(v => nettoyerLabelAelf(v.verset_label ?? v.verset) === nettoyerLabelAelf(versetCible))
     if (v) setVersetSelectionne(v)
-    const el = document.getElementById(`verset-${versetCible}`)
+    const el = v ? document.getElementById(`verset-${v.aelf_entry_id ?? v.id_verset}`) : null
     if (el) {
       setTimeout(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -449,22 +471,22 @@ export default function TexteBible({
     const abr = ABREV_FR[livreActif] || livreActif
     const { data } = await supabase
       .from('prelevements')
-      .select('id, ref_verset')
+      .select('id, ref_verset, aelf_entry_id')
       .eq('user_id', uid)
       .eq('type', 'biblique')
       .eq('ref_livre_abr', abr)
       .eq('ref_chapitre', chapitreActif)
-    const m = new Map<number, string>()
-    ;(data ?? []).forEach((r: any) => m.set(r.ref_verset, r.id))
+    const m = new Map<string, string>()
+    ;(data ?? []).forEach((r: any) => m.set(r.aelf_entry_id ?? `legacy:${chapitreActif}:${r.ref_verset}`, r.id))
     setSauvegardes(m)
   }
 
-  const marquerSauvegarde = (numVerset: number, id: string) => {
-    setSauvegardes(prev => new Map([...prev, [numVerset, id]]))
+  const marquerSauvegarde = (cle: string, id: string) => {
+    setSauvegardes(prev => new Map([...prev, [cle, id]]))
   }
 
-  const retirerSauvegarde = (numVerset: number) => {
-    setSauvegardes(prev => { const n = new Map(prev); n.delete(numVerset); return n })
+  const retirerSauvegarde = (cle: string) => {
+    setSauvegardes(prev => { const n = new Map(prev); n.delete(cle); return n })
   }
 
   const traductionActive = traductions[traductionIndex]
@@ -712,12 +734,15 @@ export default function TexteBible({
             <Fragment key={v.id_verset}>
             {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
             <div
-              id={`verset-${v.verset}`}
+              id={`verset-${v.aelf_entry_id ?? v.id_verset}`}
               onClick={() => {
-                const incrementer = () => fetch('/api/versets/incrementer-lecture', {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ id_verset: v.id_verset }),
-                }).catch(() => {})
+                const incrementer = () => {
+                  if (!v.historical_canon_id) return Promise.resolve()
+                  return fetch('/api/versets/incrementer-lecture', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_verset: v.historical_canon_id }),
+                  }).catch(() => {})
+                }
                 if (mobile) {
                   // Sur mobile, un tap sélectionne le verset ET fait apparaître
                   // immédiatement le pavé d'actions ; un second tap referme.
@@ -737,7 +762,7 @@ export default function TexteBible({
                 <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'4px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent' }}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
-                    {v.verset}
+                    {etiquetteVerset(v)}
                     {v.chapitre_alternatif != null && (
                       <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--cs-texte-faible)' }}>
                         {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
@@ -786,15 +811,15 @@ export default function TexteBible({
                           verset={v} nomLivre={nomLivre} livreActif={livreActif}
                           chapitreActif={chapitreActif} traduction={traduction} userId={userId}
                           traductionLabel={traductionLabel}
-                          dejaSauvegarde={sauvegardes.has(v.verset)}
-                          idPrelevement={sauvegardes.get(v.verset) ?? null}
-                          onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
-                          onSupprimer={() => retirerSauvegarde(v.verset)}
+                          dejaSauvegarde={sauvegardes.has(clePrelevement(v))}
+                          idPrelevement={sauvegardes.get(clePrelevement(v)) ?? null}
+                          onSauvegarde={(id) => marquerSauvegarde(clePrelevement(v), id)}
+                          onSupprimer={() => retirerSauvegarde(clePrelevement(v))}
                         />
                       )}
                       <BoutonCopie texte={citationBiblique(
                         String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
-                        `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
+                        `${ABREV_FR[livreActif] || nomLivre} ${nettoyerLabelAelf(v.chapitre_label ?? chapitreActif)}, ${nettoyerLabelAelf(v.verset_label ?? v.verset)}`,
                       )} />
                       <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
                       {estAdmin && !modeUtilisateurStandard && (
