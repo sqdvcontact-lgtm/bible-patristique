@@ -6,7 +6,13 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export const revalidate = 1800
+// ⚠️ Le rayon est une page RÉGÉNÉRÉE, pas une page calculée à chaque visite.
+// À 1800 s, un auteur qui venait de publier ne se voyait pas paraître pendant une
+// demi-heure, et pas davantage en rechargeant : Next.js sert d'abord la copie
+// périmée et ne régénère qu'ENSUITE, si bien qu'il fallait deux visites après
+// l'expiration pour voir la nouveauté. Une minute laisse le cache faire son office
+// sur les rafales de visites sans faire mentir la page à celui qui vient d'écrire.
+export const revalidate = 60
 
 export const metadata = {
   title: 'Publications',
