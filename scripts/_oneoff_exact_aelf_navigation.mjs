@@ -21,7 +21,7 @@ if (!s.includes("const chapitreCible = searchParams.get('chapitre')")) {
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
     // Le chapitre brut de l'URL conserve les suffixes AELF (9A/9B, etc.).
-    // `app/page.tsx` le ramène à sa base numérique pour charger le chapitre,
+    // La page serveur le ramène à sa base numérique pour charger le chapitre,
     // mais la sélection du verset doit rester exacte afin de ne jamais confondre
     // deux sous-chapitres qui portent le même numéro de verset.
     const v = versets.find(v => {
