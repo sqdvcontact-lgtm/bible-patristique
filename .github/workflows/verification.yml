@@ -1,6 +1,6 @@
 # Garde-fou du dépôt : à chaque poussée sur master, on vérifie que le code compile
 # et que les tests passent. Rien ne l'assurait jusqu'ici, et un test cassé a pu être
-# poussé en production sans que personne ne s'en aperçoive (19 août 2026).
+# poussé en production sans que personne s'en aperçoive (19 août 2026).
 #
 # Le linter tourne en dernier et NE BLOQUE PAS : il relève aujourd'hui 414 erreurs
 # héritées (`no-explicit-any`, `set-state-in-effect`, `no-unescaped-entities`…), et
