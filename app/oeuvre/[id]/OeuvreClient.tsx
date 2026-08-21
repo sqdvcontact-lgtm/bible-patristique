@@ -2641,7 +2641,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {oeuvreAffichee.commentaire_traduction?.trim() && (
                         <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid var(--cs-vert-pale)' }}>
                           <span style={{ ...cle, marginBottom: '2px' }}>Commentaire</span>
-                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px' }}>{sansPointFinal(oeuvreAffichee.commentaire_traduction)}</span>
+                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px', whiteSpace: 'pre-line' }}>{sansPointFinal(oeuvreAffichee.commentaire_traduction)}</span>
                         </div>
                       )}
                     </div>

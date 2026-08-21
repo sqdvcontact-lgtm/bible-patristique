@@ -186,9 +186,11 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
         </p>
       )}
 
-      {/* Commentaire sur la traduction (ex. attribution discutée) — note discrète. */}
+      {/* Commentaire sur la traduction (ex. attribution discutée) — note discrète.
+          Comme le titre, le sous-titre et le titre original, il respecte les sauts de
+          ligne saisis (`pre-line`) : une page de titre se compose ligne à ligne. */}
       {commentaireTraduction?.trim() && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', maxWidth: '30rem', lineHeight: 1.4, margin: '0 0 2px', whiteSpace: 'pre-line' }}>
           {sansPointFinal(commentaireTraduction)}
         </p>
       )}
