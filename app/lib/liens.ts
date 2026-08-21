@@ -83,6 +83,99 @@ async function liensParClient(client: { from: (t: string) => any }, segmentIds: 
   return parSegment
 }
 
+export type LienAelf = Lien & {
+  historical_canon_id: string | null
+  aelf_entry_id: string | null
+  aelf_external_reference: string | null
+  aelf_book_code: string | null
+  aelf_chapter_label: string | null
+  aelf_verse_label: string | null
+  aelf_sequence_no: number | null
+  resolution_status: 'resolved' | 'review' | 'legacy_only' | 'chapter_only' | 'unresolved'
+  relation_kind: string | null
+  validation_status: string | null
+  confidence_level: string | null
+}
+
+const COLS_AELF = `${COLS}, historical_canon_id, aelf_entry_id, aelf_external_reference, aelf_book_code, aelf_chapter_label, aelf_verse_label, aelf_sequence_no, resolution_status, relation_kind, validation_status, confidence_level`
+
+/** Projection AELF des liens d'un lot de segments. Filtrer par segment_id est indexé ;
+ *  le résolveur n'est appelé que pour les liens des segments demandés. */
+export async function liensAelfDeSegments(
+  segmentIds: number[],
+  client: { from: (t: string) => any } = supabase,
+): Promise<Map<number, LienAelf[]>> {
+  const parSegment = new Map<number, LienAelf[]>()
+  if (!segmentIds.length) return parSegment
+  const lots: number[][] = []
+  for (let i = 0; i < segmentIds.length; i += 500) lots.push(segmentIds.slice(i, i + 500))
+  const resultats = await Promise.all(lots.map(lot =>
+    client.from('v_aelf_biblical_links').select(COLS_AELF).in('segment_id', lot)))
+  for (const { data, error } of resultats) {
+    if (error) throw error
+    for (const l of (data ?? []) as LienAelf[]) {
+      if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
+      parSegment.get(l.segment_id)!.push(l)
+    }
+  }
+  for (const arr of parSegment.values()) arr.sort((a, b) => a.type - b.type || (a.aelf_sequence_no ?? Number.MAX_SAFE_INTEGER) - (b.aelf_sequence_no ?? Number.MAX_SAFE_INTEGER))
+  return parSegment
+}
+
+/** Recherche inverse depuis UNE entrée de la spine AELF. */
+export async function segmentsLiesAEntreeAelf(entryId: string): Promise<LienAelf[]> {
+  const { data, error } = await supabase.rpc('bible_links_for_aelf_entry', { p_entry_id: entryId })
+  if (error) throw error
+  return (data ?? []) as LienAelf[]
+}
+
+/** Apparat d'un chapitre AELF. La RPC conserve aussi les livres historiques sans
+ *  entrée autonome dans la spine (par ex. SUS/BEL) via leur référence ancienne. */
+export async function segmentsLiesAuChapitreAelf(livre: string, chapitre: number): Promise<LienAelf[]> {
+  const { data, error } = await supabase.rpc('bible_links_for_aelf_chapter', { p_book_code: livre, p_chapter_base: chapitre })
+  if (error) throw error
+  return (data ?? []) as LienAelf[]
+}
+
+export type CelluleLectureAelf = {
+  id: string
+  aelf_entry_id: string
+  aelf_external_reference: string
+  aelf_book_code: string
+  aelf_chapter_label: string
+  aelf_verse_label: string
+  aelf_sequence_no: number
+  historical_canon_id: string | null
+  trad_id: string
+  ch_orig: number
+  v_orig: number
+  v_orig_suffixe: string | null
+  texte: string | null
+  mapping_relation_kind: string
+  mapping_validation_status: string
+  mapping_confidence_level: string
+  mapping_source: string
+}
+
+/** Textes publics TR0001–TR0005 pour des cibles AELF précises. La RPC est conçue
+ *  pour les lots et ne peut jamais exposer TR0012. */
+export async function cellulesLectureAelf(
+  entryIds: string[],
+  client: { rpc: (fn: string, args: Record<string, unknown>) => any } = supabase,
+): Promise<CelluleLectureAelf[]> {
+  if (!entryIds.length) return []
+  const uniques = [...new Set(entryIds)]
+  const lots: string[][] = []
+  for (let i = 0; i < uniques.length; i += 200) lots.push(uniques.slice(i, i + 200))
+  const resultats = await Promise.all(lots.map(lot => client.rpc('bible_reading_cells_for_aelf_entries', { p_entry_ids: lot })))
+  const out: CelluleLectureAelf[] = []
+  for (const { data, error } of resultats) {
+    if (error) throw error
+    out.push(...((data ?? []) as CelluleLectureAelf[]))
+  }
+  return out
+}
+
 /** Recherche inverse : les segments qui renvoient à un verset donné.
  *
  *  Un lien peut viser trois choses — un créneau du canon, un verset surnuméraire
