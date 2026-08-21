@@ -723,10 +723,11 @@ export default function PolyglottePage() {
     (async () => {
       const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").order("ordre");
       const liste = tr ?? [];
-      // Un count par traduction pour savoir laquelle est migrée dans versets_v2 —
-      // mais TOUS EN PARALLÈLE (auparavant : un await par traduction, en cascade).
+      // Une traduction n'est proposée que si elle possède au moins une cellule projetée
+      // sur la spine AELF. On ne déduit plus sa lisibilité de la seule présence de lignes
+      // dans versets_v2 : une source non alignée ne doit pas paraître disponible.
       const comptes = await Promise.all(liste.map(t =>
-        supabase.from("versets_v2").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id)
+        supabase.from("v_aelf_polyglotte_cells").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id)
           .then(({ count }) => count ?? 0)
       ));
       const migres: Trad[] = [];
