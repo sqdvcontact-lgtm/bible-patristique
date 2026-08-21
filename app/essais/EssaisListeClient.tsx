@@ -337,8 +337,22 @@ function OngletCommunaute({
         /* L'emblème : la vignette gravée. Ses marges automatiques le centrent dans le
            blanc qui reste entre le sous-titre et la date. Sa largeur est passée de 42
            à 50cqw le jour où les losanges ont disparu : la place qu'ils occupaient
-           revient au dessin, qui est ce qu'on vient voir. */
-        .couverture-embleme { display: block; margin: auto 0; width: 50cqw; opacity: 0.82; }
+           revient au dessin, qui est ce qu'on vient voir.
+
+           Sur l'OPACITÉ, qui revient six fois dans ce bloc et n'est pas un bricolage.
+           La couverture n'a qu'une encre, celle que l'auteur a choisie, prise partout
+           par `currentColor`. Toute la hiérarchie se fait donc en INTENSITÉS de cette
+           encre unique, et non en couleurs : nom 0.9, emblème 0.9, catégorie et titre
+           0.76, date 0.66, filet du cadre 0.42. Écrire à la place des teintes fixes
+           obligerait à les décliner six fois, une par couverture, ce que `currentColor`
+           existe précisément pour éviter.
+
+           L'emblème est passé de 0.82 à 0.9, au rang du nom de l'auteur : depuis qu'il
+           occupe le centre de la face, les trois dessins les plus clairs (Philosophie,
+           Spiritualité, Théologie) s'effaçaient. Mesuré sur le vert d'encre, le gain
+           est de 9 % de contraste. Ne pas monter à 1 : le tronc d'Histoire, le plus
+           chargé des dix, se met alors à disputer le titre. */
+        .couverture-embleme { display: block; margin: auto 0; width: 50cqw; opacity: 0.9; }
         .couverture-embleme svg { display: block; width: 100%; height: auto; }
         /* Le pied garde son blanc au-dessus même quand l'emblème remplit tout : la
            date ne se colle jamais au dessin. */
