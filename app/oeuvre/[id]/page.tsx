@@ -6,6 +6,8 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { parseNotes } from '@/app/lib/notes'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
+import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
+import type { IndexEditeurs } from '@/app/lib/editeursNormalisation'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
@@ -97,9 +99,11 @@ type AlignementRow = {
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-function construireVersionTextuelle(t: TexteVersionRow): VersionTextuelle {
+function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEditeurs | null): VersionTextuelle {
   const titre = t.titre_version || t.id_texte
-  const edition = decomposerEdition(t.edition_label, t.annee_edition)
+  // L’index des éditeurs passe par ici pour que la mention d’édition nomme sa maison
+  // sous sa forme répertoriée dès le rendu serveur, sans paraître d’abord en brut.
+  const edition = decomposerEdition(t.edition_label, t.annee_edition, indexEditeurs)
   const base = {
     idTexte: t.id_texte,
     titre,
@@ -248,7 +252,7 @@ export default async function OeuvrePage({
 
   // L'œuvre reste l'identité canonique ; le texte actif est choisi séparément.
   // La RLS masque les versions non publiques aux lecteurs ordinaires.
-  const [estAdmin, oeuvreResult, textesResult, alignementsResult] = await Promise.all([
+  const [estAdmin, oeuvreResult, textesResult, alignementsResult, indexEditeurs] = await Promise.all([
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.from('oeuvre_textes')
@@ -259,6 +263,7 @@ export default async function OeuvrePage({
       .select('alignment_set_id,reference_text_id,aligned_text_id,status')
       .eq('id_oeuvre', id)
       .order('created_at', { ascending: true }),
+    chargerIndexEditeurs(supabase),
   ])
   const oeuvre = oeuvreResult.data
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
@@ -275,7 +280,7 @@ export default async function OeuvrePage({
     </div>
   )
   const idTexte = texteActif.id_texte as string
-  const versionsTextuelles = textesAccessibles.map(construireVersionTextuelle)
+  const versionsTextuelles = textesAccessibles.map((t) => construireVersionTextuelle(t, indexEditeurs))
   const versionParId = new Map(versionsTextuelles.map(version => [version.idTexte, version]))
   const alignementsDisponibles = ((alignementsResult.data ?? []) as AlignementRow[])
     .flatMap((alignement): AlignementDisponible[] => {

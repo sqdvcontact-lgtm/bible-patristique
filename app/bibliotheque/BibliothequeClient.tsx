@@ -379,7 +379,10 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     </span>
                   )}
                   {grp.versions.map(o => {
-                    const editionTexte = [o.editeur, o.ville].filter(Boolean).join(', ')
+                    // L'éditeur paraît sous son nom répertorié, comme sur la page de
+                    // titre : « L. Guérin & Cie » et « Louis Guérin » sont la même
+                    // maison, et l'étagère ne doit pas donner à croire le contraire.
+                    const editionTexte = [formaterEditeur(o.editeur), o.ville].filter(Boolean).join(', ')
                     const datePublication = o.date_publication_affichage_courte
                     const aEdition = !!(editionTexte || datePublication)
                     const edition = <>{editionTexte}{editionTexte && datePublication ? ', ' : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>

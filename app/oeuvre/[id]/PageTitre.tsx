@@ -1,7 +1,8 @@
 import type { Props, ChampOeuvre, VersionTextuelle, NoteAffichee } from './oeuvreTypes'
 import { rendreTexteAvecNotes } from './appelNote'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import { resoudreEditeur } from '@/app/lib/editeurs'
+import { indexEditeursNavigateur } from '@/app/lib/editeurs'
+import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { MarqueImprimeur } from './Ornements'
 import { sansPointFinal } from '@/app/lib/titres'
@@ -17,13 +18,9 @@ export { enumererNoms, libelleTrad } from '@/app/lib/traducteurs'
  *  COMPLET à la place de la forme rencontrée (« L. Guérin » → « Louis Guérin »). La donnée
  *  brute reste intacte ; tant qu'un éditeur n'est pas répertorié, on garde sa forme nettoyée. */
 export function formaterEditeur(editeur: string | null | undefined): string {
-  const brut = (editeur ?? '').trim()
-  if (!brut) return ''
-  return brut.split(/\s*[;/]\s*/).filter(Boolean)
-    .map(part => resoudreEditeur(part) ?? part)
-    // Barre oblique entre deux éditeurs distincts : une fine insécable (U+202F)
-    // de part et d'autre — espace légère, et la barre ne passe pas seule à la ligne.
-    .join(' / ')
+  // Le découpage des co-éditeurs et la jointure vivent dans editeursNormalisation,
+  // module partagé avec le serveur ; on ne fournit ici que le cache du navigateur.
+  return normaliserNomEditeur(editeur, indexEditeursNavigateur())
 }
 
 // Quelques maisons dont le nom court appelle l'article contracté « du » (« les Éditions

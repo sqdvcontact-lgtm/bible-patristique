@@ -1,4 +1,10 @@
 import type { VersionTextuelle } from './oeuvreTypes'
+import {
+  editeursDuSegment,
+  estVilleConnue,
+  normaliserNomEditeur,
+  type IndexEditeurs,
+} from '@/app/lib/editeursNormalisation'
 
 const EDITION_RE = /\b((?:premi(?:è|e)re|deuxi(?:è|e)me|troisi(?:è|e)me|quatri(?:è|e)me|cinqui(?:è|e)me|sixi(?:è|e)me|septi(?:è|e)me|huiti(?:è|e)me|neuvi(?:è|e)me|dixi(?:è|e)me)\s+édition[^,]*)/iu
 
@@ -54,9 +60,18 @@ export function libelleTraducteurVersion(
   return correspondance?.[1] ?? null
 }
 
+/** Décomposition d'une mention d'édition (`oeuvre_textes.edition_label`).
+ *
+ *  ⚠️ Le découpage se faisait PAR POSITION, la première virgule tenant lieu de ville
+ *  et le reste d'éditeur. Or les notices ne suivent pas toutes le même ordre :
+ *  « Lyon, Pélagaud, 1844 » commence par la ville, « L. Guérin & Cie, Bar-le-Duc,
+ *  1865 » par l'éditeur. Dix-neuf versions annonçaient ainsi « l'édition de
+ *  Bar-le-Duc, L. Guérin & Cie », ville et maison interverties, et « Pius Knöll,
+ *  CSEL 33, Vienne, 1896 » donnait Pius Knöll pour une ville. */
 export function decomposerEdition(
   editionLabel: string | null,
   anneeEdition: number | null,
+  index: IndexEditeurs | null = null,
 ) {
   const brut = editionLabel?.trim() ?? ''
   if (!brut) return {
@@ -76,11 +91,31 @@ export function decomposerEdition(
     .replace(/^\s*,|,\s*$/gu, '')
     .trim()
   const morceaux = nettoye.split(/\s*,\s*/u).filter(Boolean)
-  const anneeTrouvee = morceaux.at(-1)?.match(/^\d{4}$/u)?.[0] ?? null
+
+  // L'année est le dernier segment qui N'EST QU'un millésime : « 1865 », mais aussi
+  // « 1984 – 1986 », que l'ancien test d'égalité stricte prenait pour un éditeur.
+  const estAnnee = (m: string) => /^[0-9]{4}( *[–-] *[0-9]{4})?$/u.test(m)
+  const rangAnnee = morceaux.map((m, i) => (estAnnee(m) ? i : -1)).filter((i) => i >= 0).at(-1) ?? -1
+  const anneeTrouvee = rangAnnee >= 0 ? morceaux[rangAnnee] : null
   const annee = anneeTrouvee ?? (anneeEdition ? String(anneeEdition) : null)
-  if (anneeTrouvee) morceaux.pop()
-  const ville = morceaux.shift() ?? null
-  const editeur = morceaux.length ? morceaux.join(', ') : null
+  if (rangAnnee >= 0) morceaux.splice(rangAnnee, 1)
+
+  // Reconnaissance plutôt que comptage : l'éditeur est le segment répertorié dans
+  // `editeurs`, la ville celle qu'on connaît, et l'éditeur paraît sous son nom
+  // complet. Sans index, ou faute d'éditeur reconnu, on retombe sur l'ancien
+  // découpage par position : une notice approximative vaut mieux qu'une notice vide.
+  const rangEditeur = morceaux.findIndex((m) => editeursDuSegment(m, index) !== null)
+  let ville: string | null
+  let editeur: string | null
+  if (rangEditeur >= 0) {
+    editeur = editeursDuSegment(morceaux[rangEditeur], index)
+    morceaux.splice(rangEditeur, 1)
+    const rangVille = morceaux.findIndex((m) => estVilleConnue(m, index))
+    ville = rangVille >= 0 ? morceaux[rangVille] : null
+  } else {
+    ville = morceaux.shift() ?? null
+    editeur = morceaux.length ? (normaliserNomEditeur(morceaux.join(', '), index) || null) : null
+  }
   const publicationLabel = [ville, editeur, annee].filter(Boolean).join(', ')
 
   return {
