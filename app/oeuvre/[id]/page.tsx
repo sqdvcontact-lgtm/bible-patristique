@@ -14,6 +14,11 @@ import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './o
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 import { construireIndexOriginal, type GroupeOriginalRow, type IndexOriginalAligne, type MembreOriginalRow } from './alignementOriginal'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
+import {
+  projeterAppelsNotesStructurees,
+  type AncreNoteStructureeProjection,
+} from '@/app/lib/appelsNotesStructurees'
+import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
 // son client lisant la session du visiteur. Sans cela, la page s'exécutait en
@@ -411,24 +416,66 @@ export default async function OeuvrePage({
   }
 
   // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
-  async function chargerNotesStructurees(): Promise<Record<string, Record<string, NoteStructuree>>> {
-    const [notesResult, anchorsResult, blocksResult, relationsResult] = await Promise.all([
-      supabase.from('texte_notes').select('note_key,note_number').eq('id_texte', idTexte),
-      supabase.from('texte_note_ancres').select('note_key,marker,segment_key').eq('id_texte', idTexte),
-      supabase.from('texte_note_blocs')
-        .select('note_key,block_id,rank,kind,form,language,text,rendering,needs_review')
-        .eq('id_texte', idTexte).order('rank'),
-      supabase.from('texte_note_relations')
-        .select('note_key,relation_kind,source_block_id,target_block_id').eq('id_texte', idTexte),
-    ])
+  async function chargerNotesStructurees(): Promise<{
+    notesParSegment: Record<string, Record<string, NoteStructuree>>
+    ancresParSegment: Record<string, AncreNoteStructureeProjection[]>
+  }> {
+    type NoteRow = { note_key: string; note_number: number }
+    type AnchorRow = {
+      note_key: string
+      marker: string | null
+      segment_key: string | null
+      source_target: string | null
+      segment_offset_unicode: number | null
+    }
+    type BlockRow = {
+      note_key: string
+      block_id: string
+      rank: number
+      kind: string
+      form: string
+      language: string | null
+      text: string
+      rendering: string | null
+      needs_review: boolean
+    }
+    type RelationRow = {
+      note_key: string
+      relation_kind: string
+      source_block_id: string
+      target_block_id: string | null
+    }
+    let rows: [NoteRow[], AnchorRow[], BlockRow[], RelationRow[]]
+    try {
+      rows = await Promise.all([
+        chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase.from('texte_notes')
+          .select('note_key,note_number').eq('id_texte', idTexte)
+          .order('note_number').range(debut, fin)),
+        chargerToutesPagesSupabase<AnchorRow>((debut, fin) => supabase.from('texte_note_ancres')
+          .select('note_key,marker,segment_key,source_target,segment_offset_unicode')
+          .eq('id_texte', idTexte).order('note_key').order('segment_key')
+          .order('segment_offset_unicode').range(debut, fin)),
+        chargerToutesPagesSupabase<BlockRow>((debut, fin) => supabase.from('texte_note_blocs')
+          .select('note_key,block_id,rank,kind,form,language,text,rendering,needs_review')
+          .eq('id_texte', idTexte).order('note_key').order('rank').range(debut, fin)),
+        chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
+          .select('note_key,relation_kind,source_block_id,target_block_id')
+          .eq('id_texte', idTexte).order('note_key').order('source_block_id')
+          .order('relation_kind').range(debut, fin)),
+      ])
+    } catch (error) {
+      console.error(`Chargement des notes structurées impossible (${idTexte}) :`, error)
+      throw new Error(`Impossible de charger les notes structurées de ${idTexte}.`, { cause: error })
+    }
+    const [notesRows, anchorsRows, blocksRows, relationsRows] = rows
     const relations = new Map<string, Record<string, string | null>>()
-    const numeros = new Map((notesResult.data ?? []).map(note => [note.note_key, note.note_number]))
-    for (const relation of relationsResult.data ?? []) {
+    const numeros = new Map(notesRows.map(note => [note.note_key, note.note_number]))
+    for (const relation of relationsRows) {
       const key = `${relation.note_key}:${relation.source_block_id}`
       relations.set(key, { ...(relations.get(key) ?? {}), [relation.relation_kind]: relation.target_block_id })
     }
     const parNote = new Map<string, NoteStructuree>()
-    for (const block of blocksResult.data ?? []) {
+    for (const block of blocksRows) {
       const noteNumber = numeros.get(block.note_key)
       if (typeof noteNumber !== 'number') continue
       if (!parNote.has(block.note_key)) parNote.set(block.note_key, { noteKey: block.note_key, noteNumber, blocks: [] })
@@ -446,18 +493,33 @@ export default async function OeuvrePage({
         translationOf: relation.translation_of ?? null,
       })
     }
-    const result: Record<string, Record<string, NoteStructuree>> = {}
-    for (const anchor of anchorsResult.data ?? []) {
+    const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}
+    const ancresParSegment: Record<string, AncreNoteStructureeProjection[]> = {}
+    for (const anchor of anchorsRows) {
       const note = parNote.get(anchor.note_key)
       const marker = anchor.marker?.match(/^\[\[([A-Z0-9]+)\]\]$/)?.[1]
-      if (!note || !marker) continue
-      result[anchor.segment_key] ??= {}
-      result[anchor.segment_key][marker] = note
+      if (!note || !marker || !anchor.segment_key) {
+        throw new Error(`Ancre de note structurée incomplète : ${anchor.note_key}.`)
+      }
+      notesParSegment[anchor.segment_key] ??= {}
+      notesParSegment[anchor.segment_key][marker] = note
+      if (anchor.source_target === 'segment_texte') {
+        if (anchor.segment_offset_unicode === null || !Number.isInteger(anchor.segment_offset_unicode)) {
+          throw new Error(`Offset Unicode absent pour ${anchor.note_key}.`)
+        }
+        ancresParSegment[anchor.segment_key] ??= []
+        ancresParSegment[anchor.segment_key].push({
+          noteKey: anchor.note_key,
+          marker: `[[${marker}]]`,
+          segmentOffsetUnicode: anchor.segment_offset_unicode,
+          sourceTarget: anchor.source_target,
+        })
+      }
     }
-    return result
+    return { notesParSegment, ancresParSegment }
   }
 
-  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, notesStructurees, { count: nbSegmentsLiminaires }] = await Promise.all([
+  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, { count: nbSegmentsLiminaires }] = await Promise.all([
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id, p_id_texte: idTexte }),
     supabase.rpc('get_niv1_texte', { p_id_oeuvre: id, p_id_texte: idTexte }),
     Number.isFinite(segmentCibleId) && segmentCibleId > 0
@@ -470,6 +532,7 @@ export default async function OeuvrePage({
       .eq('id_oeuvre', id).eq('id_texte', idTexte)
       .is('ref_niv1', null).in('nature', NATURES_TEXTE),
   ])
+  const { notesParSegment: notesStructurees, ancresParSegment: ancresNotesStructurees } = donneesNotesStructurees
 
   if (rpcError) console.error('get_niv1_list error:', rpcError)
 
@@ -556,7 +619,11 @@ export default async function OeuvrePage({
     .map(s => ({
       id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
       numero: numLocaux.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
-      texte: s.segment_texte, versets: versetParSegment[s.id] || [],
+      texte: s.segment_texte,
+      texteAffichage: projeterAppelsNotesStructurees(
+        s.segment_texte,
+        s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
+      ), versets: versetParSegment[s.id] || [],
       notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
@@ -574,7 +641,11 @@ export default async function OeuvrePage({
     .map(s => ({
       id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
       numero: numLocauxApparat.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
-      texte: s.segment_texte, versets: [],
+      texte: s.segment_texte,
+      texteAffichage: projeterAppelsNotesStructurees(
+        s.segment_texte,
+        s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
+      ), versets: [],
       notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
@@ -620,6 +691,7 @@ export default async function OeuvrePage({
       alignementsDisponibles={alignementsDisponibles}
       originalAligneParSegment={originalAligneParSegment}
       notesStructurees={notesStructurees}
+      ancresNotesStructurees={ancresNotesStructurees}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}
       niveauxSommaire={oeuvre.niveaux_sommaire ?? oeuvre.profondeur_sommaire ?? 1}
