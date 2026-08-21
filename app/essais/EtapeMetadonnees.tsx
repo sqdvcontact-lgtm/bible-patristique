@@ -1,4 +1,4 @@
-export const CATEGORIES_ESSAIS = ['Exégèse', 'Fiction', 'Histoire', 'Méditation', 'Patristique', 'Philosophie', 'Poésie', 'Spiritualité', 'Théologie']
+export const CATEGORIES_ESSAIS = ['Exégèse', 'Fiction', 'Histoire', 'Méditation', 'Patristique', 'Philosophie', 'Poésie', 'Prière', 'Spiritualité', 'Théologie']
 export const RESUME_MIN = 50
 export const RESUME_MAX = 200
 
