@@ -19,7 +19,6 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
-import { titreStructurelAffiche } from '@/app/lib/titres'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -300,7 +299,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
   onSignaler: (s: Segment, titreOeuvre?: string) => void
   onSupprimeLien: (id: number) => void
 }) {
-  const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).map(titreStructurelAffiche).join(', ')
+  const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
   const LIBELLE_NATURE: Record<string, string> = {
     citation_directe: 'Citation directe', paraphrase: 'Paraphrase',
     commentaire: 'Commentaire', echo: 'Écho thématique',

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
-import { sansPointFinal, normaliserCapitalesTitreStructurel, normaliserTitreTechnique } from '@/app/lib/titres'
+import { sansPointFinal, normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
@@ -27,7 +27,7 @@ const FINE_TITRE_COLOPHON = ' '
 // un choix de composition, il ne se rattrape pas. Même précaution que dans
 // `titreSansAppelsDeNote` ci-dessous.
 export function preparerTitreColophon(texte: string) {
-  return normaliserCapitalesTitreStructurel(normaliserTitreTechnique(texte))
+  return normaliserTitreTechnique(texte)
     .trim()
     .replace(/[ \t  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
     .replace(/[ \t  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
@@ -41,7 +41,7 @@ export function preparerTitreColophon(texte: string) {
 // dans le titre développé du corps. L'espace qui précède part avec le marqueur,
 // sans quoi l'intitulé garderait un blanc double.
 export function titreSansAppelsDeNote(texte: string) {
-  return normaliserCapitalesTitreStructurel(normaliserTitreTechnique(texte.replace(/[ \t]*\[\[[A-Z0-9]+\]\]/g, '')))
+  return normaliserTitreTechnique(texte.replace(/[ \t]*\[\[[A-Z0-9]+\]\]/g, ''))
 }
 
 // ── Forme de l'appel selon l'endroit où il se trouve ──────────────────────────

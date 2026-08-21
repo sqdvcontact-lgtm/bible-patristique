@@ -43,11 +43,6 @@ describe('appels de note masqués au sommaire', () => {
   it('laisse intact un titre sans appel', () => {
     expect(titreSansAppelsDeNote('Livre premier')).toBe('Livre premier')
   })
-
-  it('compose les titres structurels importés en capitales', () => {
-    expect(preparerTitreColophon('LIVRE PREMIER')).toBe('Livre premier')
-    expect(titreSansAppelsDeNote('LIVRE DEUXIÈME')).toBe('Livre deuxième')
-  })
 })
 
 describe('banque de notes d’un titre', () => {

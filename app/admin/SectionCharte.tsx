@@ -56,7 +56,6 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 - **Passer systématiquement en bas de casse** tout titre, bout de phrase ou mot écrit entièrement en capitales dans la source si cette capitalisation n'est pas justifiée (nom propre, sigle, titre de dignité consacré). Règle : si ce n'est pas une majuscule de sens, c'est une majuscule de mise en page à supprimer.
 - Les titres de niveau (ref_niv1, ref_niv2…) doivent suivre la même règle : seule la première lettre du titre est en majuscule, plus les noms propres.
 - Exemple : « CHAPITRE PREMIER. LE SYMBOLE, RÈGLE DE FOI. » → ref_niv1 = « Chapitre premier », ref_niv1_texte = « Le symbole, règle de foi. »
-- Une anomalie de casse signalée déclenche un contrôle de toutes les suites de capitales dans le corps, les titres, les liminaires et les notes de toutes les versions de l’œuvre. Chiffres romains, sigles, noms propres, grec, petites capitales et initiales ornées sont classés avant toute correction ; chaque résidu suspect est vérifié sur le fac-similé. Aucune mise en minuscules mécanique.
 
 ### Orthotypographie française
 

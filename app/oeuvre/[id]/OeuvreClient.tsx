@@ -19,7 +19,6 @@ import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
 import { libelleVersionComplet } from './versionTextuelle'
-import { blocsSelonOriginal } from './alignementOriginal'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
@@ -232,7 +231,7 @@ const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, 
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, originalAligneParSegment = {}, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -288,8 +287,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // l'identique. La préférence est mémorisée ; elle n'a d'effet que si l'œuvre
   // porte la colonne `paragraphe` (sinon le mode paragraphes est indisponible).
   const [modeLecturePref, setModeLecturePref] = useState<'paragraphes' | 'segments'>('paragraphes')
-  const aTexteOriginal = [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim()))
-    || Object.keys(originalAligneParSegment).length > 0
+  const aTexteOriginal = useMemo(
+    () => [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
+    [segmentsInit, segmentsApparatInit],
+  )
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
   // « Traductions parallèles » est désactivé pour le moment (mode de lecture jugé
@@ -1268,7 +1269,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const labelBilingueMenu = origEstGrec ? 'Français & Grec' : 'Français & Latin'
   const editionFrRef = (!couranteEstOriginale && editionCourante) ? editionCourante : (editionsTraduction[0] ?? null)
   const editionOrigRef = (couranteEstOriginale && editionCourante) ? editionCourante : (editionsOriginal[0] ?? null)
-  const aOriginalQuelconque = Boolean(oeuvre.langue_originale) || aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale
+  const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale
   const allerAuMode = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la') => {
     if (cibleOeuvre === idOeuvre) basculerTexte(mt)
     else router.push(`/oeuvre/${cibleOeuvre}${mt === 'fr' ? '' : `?mt=${mt}`}`)
@@ -1280,27 +1281,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const origAutonome = !couranteEstOriginale && !!editionOrigRef && editionOrigRef.id_oeuvre !== editionFrRef?.id_oeuvre
   const cibleOrigOeuvre = couranteEstOriginale ? idOeuvre : origAutonome ? editionOrigRef!.id_oeuvre : (editionFrRef?.id_oeuvre ?? idOeuvre)
   const cibleOrigMt: 'fr' | 'la' = (couranteEstOriginale || origAutonome) ? 'fr' : 'la'
-  const segmentsDeLaVue = vue === 'apparat' ? segmentsApparat : segments
-  const originalDisponibleDansSection = segmentsDeLaVue.some(segment =>
-    Boolean(segment.texteOriginal?.trim())
-      || Boolean(segment.segmentKey && originalAligneParSegment[segment.segmentKey]?.texte),
-  )
-  const originalDisponiblePourLecture = couranteEstOriginale || origAutonome || originalDisponibleDansSection
-
-  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean; split: boolean; disabled?: boolean }
+  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean; split: boolean }
   const modesLecture: ModeLecture[] = []
   if (aOriginalQuelconque && editionFrRef) {
     const surFr = idOeuvre === editionFrRef.id_oeuvre && !couranteEstOriginale
     modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'fr',
       actif: surFr && modeTexte === 'fr', split: surFr && eligibleParagraphes })
     modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'bilingue',
-      actif: surFr && modeTexte === 'bilingue', split: false, disabled: !originalDisponiblePourLecture })
+      actif: surFr && modeTexte === 'bilingue', split: false })
   }
-  if (aOriginalQuelconque) {
+  if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
     const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexte === 'la'))
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
-      actif: surOrig, split: idOeuvre === cibleOrigOeuvre && couranteEstOriginale && cibleOrigMt === 'fr' && eligibleParagraphes,
-      disabled: !originalDisponiblePourLecture })
+      actif: surOrig, split: idOeuvre === cibleOrigOeuvre && couranteEstOriginale && cibleOrigMt === 'fr' && eligibleParagraphes })
   }
   // Menu 2 — éditions dans la LANGUE du mode courant (masqué si une seule).
   const langueCouranteEstOrig = couranteEstOriginale || (idOeuvre === editionFrRef?.id_oeuvre && modeTexte === 'la')
@@ -1445,21 +1438,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       return (ra != null && rb != null) ? ra - rb : 0
     })
     return chunks.map(c => ({ ids: c.ids }))
-  }
-
-  // Une traduction dépourvue de `texte_original` (Ceriziers) se compose selon
-  // les groupes sémantiques de l'alignement. Une édition qui porte déjà son latin
-  // (Mirandol) conserve son regroupement éditorial par paragraphes.
-  const blocsDeLecture = (itemIds: number[], source: Map<number, SegData> = segMap): { ids: number[] }[] => {
-    const aOriginalDirect = itemIds.some(sid => Boolean(source.get(sid)?.texteOriginal?.trim()))
-    const aOriginalAligne = itemIds.some(sid => {
-      const cle = source.get(sid)?.segmentKey
-      return Boolean(cle && originalAligneParSegment[cle]?.texte)
-    })
-    if ((affichageBilingue || afficherOriginalSeul) && !aOriginalDirect && aOriginalAligne) {
-      return blocsSelonOriginal(itemIds, source, originalAligneParSegment)
-    }
-    return paragraphesDe(itemIds, source)
   }
 
   // Cellule d'actions flottante d'un segment (mode paragraphes), ancrée sur le
@@ -1651,10 +1629,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
                   {modesLecture.map(m => {
                     if (!m.split) {
-                      return <button key={m.cle} disabled={m.disabled}
-                        title={m.disabled ? `${m.label} non disponible pour cette section : alignement en cours` : undefined}
-                        onClick={() => { if (!m.disabled) allerAuMode(m.cibleOeuvre, m.cibleMt) }}
-                        style={{ ...BTN_VOLET(m.actif), cursor: m.disabled ? 'not-allowed' : 'pointer', opacity: m.disabled ? 0.45 : 1 }}>{m.label}</button>
+                      return <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
                     }
                     return (
                       <div key={m.cle} className="lec-split">
@@ -1717,7 +1692,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             {/* Plusieurs versions d'une même œuvre (rare) : sélecteur conservé. */}
             {versionsTextuelles.length > 1 && (
               <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Traductions</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Éditions de ce texte</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {versionsTextuelles.map(version => {
                     const actif = version.idTexte === idTexte
@@ -1775,7 +1750,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <div key={i}>
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
                           style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                          {titreSansAppelsDeNote(entry.niv1)}
+                          {entry.niv1}
                         </a>
                       </div>
                     ))}
@@ -2120,19 +2095,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                     </p>
                   )}
-                  {modeLecture === 'paragraphes' ? blocsDeLecture(itemsReels).map((chunk) => {
+                  {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => {
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
-                    const originalAligne = chunk.ids
-                      .map(sid => segMap.get(sid)?.segmentKey)
-                      .find((cle): cle is string => Boolean(cle && originalAligneParSegment[cle]?.texte))
-                    const texteOriginal = original?.texteOriginal?.trim()
-                      ? original.texteOriginal
-                      : originalAligne ? originalAligneParSegment[originalAligne].texte : null
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && texteOriginal ? 'para-bilingue' : undefined}
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}
                       /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
@@ -2156,13 +2125,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           )
                         })}
                       </p>
-                      {(affichageBilingue || afficherOriginalSeul) && texteOriginal && (
+                      {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
                         // En « Latin/Grec seul », l'original occupe seul la colonne, au gabarit du
                         // français (mêmes taille et teinte). La langue de l'original commande la
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
                         <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(texteOriginal) : cesurerLatin(normaliserEspacesOriginal(texteOriginal)), original?.notes ?? {})}
+                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.texteOriginal) : cesurerLatin(normaliserEspacesOriginal(original.texteOriginal)), original.notes ?? {})}
                         </p>
                       )}
                     </div>

@@ -1,5 +1,4 @@
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
-import type { IndexOriginalAligne } from './alignementOriginal'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
@@ -102,7 +101,6 @@ export type Props = {
   estAdmin: boolean
   versionsTextuelles: VersionTextuelle[]
   alignementsDisponibles: AlignementDisponible[]
-  originalAligneParSegment?: IndexOriginalAligne
   notesStructurees?: Record<string, Record<string, NoteStructuree>>
   ancresNotesStructurees?: Record<string, AncreNoteStructureeProjection[]>
   niv1List: string[]

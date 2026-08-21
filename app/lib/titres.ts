@@ -12,29 +12,6 @@ function capitaliserInitiale(mot: string): string {
   return mot ? `${mot.charAt(0).toLocaleUpperCase('fr-FR')}${mot.slice(1)}` : mot
 }
 
-// Les imports anciens portent parfois les intitulés de structure en capitales
-// (`LIVRE PREMIER`, `CHAPITRE IV`). Il s'agit d'une convention d'affichage, pas
-// d'une leçon du corps : on compose ces seuls titres en casse française et l'on
-// conserve les chiffres romains. La liste fermée évite de dégrader un vrai titre
-// en capitales qui contiendrait un nom propre.
-const TITRE_STRUCTUREL_CAPITALES = /^(?:(?:[IVXLCDM]+|\d+)[.)]?\s+)?(?:LIVRE|PARTIE|CHAPITRE|SECTION|PROLOGUE|ÉPILOGUE|INTRODUCTION|LIMINAIRES|PRÉFACE|AVERTISSEMENT|POÉSIE|POESIE|PROSE|CHANT)(?:\b|$)/u
-
-export function normaliserCapitalesTitreStructurel(titre: string | null | undefined): string {
-  if (!titre) return ''
-  const t = titre.trim()
-  if (!TITRE_STRUCTUREL_CAPITALES.test(t) || /\p{Ll}/u.test(t) || !/\p{Lu}/u.test(t)) return titre
-
-  let premierMot = true
-  const minuscules = t.toLocaleLowerCase('fr-FR')
-  return minuscules.replace(/\p{L}+/gu, (mot, decalage) => {
-    const original = t.slice(decalage, decalage + mot.length)
-    if (/^[IVXLCDM]+$/u.test(original)) return original
-    if (!premierMot) return mot
-    premierMot = false
-    return capitaliserInitiale(mot)
-  })
-}
-
 // Titres « techniques » hérités d'un atelier d'import (clés de structure brutes) :
 // « caput_002 » → « Caput 2 », « quaestio_089 » → « Quaestio 89 » (séparateur et
 // zéros de tête normalisés). Et un mot latin isolé, tout en bas de casse
@@ -50,13 +27,6 @@ export function normaliserTitreTechnique(titre: string | null | undefined): stri
   if (m) return `${capitaliserInitiale(m[1])} ${parseInt(m[2], 10)}`
   if (/^[a-zà-ÿ]{4,}$/u.test(t)) return capitaliserInitiale(t)
   return titre
-}
-
-// Forme prête à afficher d'une clé de structure brute. Les clés restent intactes
-// en base (elles servent au regroupement et à l'alignement) ; les écrans publics
-// qui les rendent directement passent par cette composition.
-export function titreStructurelAffiche(titre: string | null | undefined): string {
-  return normaliserCapitalesTitreStructurel(normaliserTitreTechnique(sansPointFinal(titre)))
 }
 
 // Clé de tri d'un titre : sans article/déterminant de tête, sans accents, pour un

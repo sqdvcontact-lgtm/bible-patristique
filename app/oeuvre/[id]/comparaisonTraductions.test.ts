@@ -70,9 +70,9 @@ describe('lecteur comparé multiversion', () => {
     expect(sourceParallele).not.toContain("segment.id_texte === alignement.referenceTextId ?")
   })
 
-  it('retire provisoirement les traductions parallèles des modes de lecture', () => {
+  it('place les traductions parallèles parmi les modes de lecture', () => {
     expect(sourceLecteur).toContain('<span style={LABEL_VOLET}>Lecture</span>')
-    expect(sourceLecteur).toContain('const COMPARAISON_ACTIVE = false')
+    expect(sourceLecteur).toContain('Traductions parallèles')
     expect(sourceLecteur).not.toContain('>Comparaison</span>')
   })
 })

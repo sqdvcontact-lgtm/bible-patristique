@@ -7,7 +7,6 @@ import { supabase } from "@/app/lib/supabase";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
-import { titreStructurelAffiche } from '@/app/lib/titres'
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -580,7 +579,7 @@ export default function PrelevementsPage() {
                             {(p.ref_niv1 || p.ref_niv2) && (
                               <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                                 <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "#6a7b6e" }}>
-                                  {[p.ref_niv1, p.ref_niv2].filter(Boolean).map(titreStructurelAffiche).join(", ")}
+                                  {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
                                 </span>
                               </p>
                             )}
