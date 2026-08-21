@@ -235,9 +235,10 @@ function OngletCommunaute({
 
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
            CENTRÉE et EN EMPATTEMENT, comme une page de titre gravée. La face
-           s'ordonne en huit temps du haut vers le bas — auteur, losange, catégorie,
-           titre, sous-titre, emblème, losange, date — et c'est cette suite, non un
-           cadre, qui fait le livre ancien.
+           s'ordonne en six temps du haut vers le bas : auteur, catégorie, titre,
+           sous-titre, emblème, date. C'est cette suite, non un cadre, qui fait le
+           livre ancien. Deux losanges filetés séparaient jadis ces temps ; ils ont
+           été retirés, la gravure suffisant désormais à tenir le milieu de la page.
            Bloc volontairement bridé : elle n'a pas à occuper le tiers d'un écran
            large. Elle se cale au milieu de sa case, et toute sa typographie est
            donnée en cqw, pourcentage de SA largeur, de sorte qu'elle garde ses
@@ -273,7 +274,7 @@ function OngletCommunaute({
           pointer-events: none;
         }
 
-        /* ⛔ La TÊTE — le nom de l'auteur, son losange, l'étoile des favoris — et le
+        /* ⛔ La TÊTE, c'est-à-dire le nom de l'auteur et l'étoile des favoris, et le
            CADRE n'appartiennent à aucune des deux faces : ils sont posés sur le carton
            lui-même. C'est ce qui les rend IMMOBILES quand la couverture se retourne :
            un nom d'auteur qui saute de trois pixels au survol défait toute l'illusion
@@ -310,19 +311,6 @@ function OngletCommunaute({
           letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.9;
           padding-left: 0.24em; /* compense l'interlettrage, qui décentre à droite */
         }
-        /* Le losange entre deux filets : l'ornement qui sépare deux temps. Il sert
-           deux fois, sous l'auteur et sous l'emblème, ce qui pose la composition
-           entre deux bornes de même dessin. */
-        .couverture-losange {
-          display: flex; align-items: center; justify-content: center;
-          gap: 2.4cqw; width: 30cqw; line-height: 1;
-        }
-        .couverture-losange::before, .couverture-losange::after {
-          content: ""; height: 1px; flex: 1; opacity: 0.5;
-        }
-        .couverture-losange::before { background: linear-gradient(90deg, transparent, currentColor); }
-        .couverture-losange::after { background: linear-gradient(90deg, currentColor, transparent); }
-        .couverture-losange span { font-size: 2.9cqw; opacity: 0.6; }
 
         /* La catégorie, en capitales espacées : elle annonce le genre avant le titre,
            comme la mention de collection d'un éditeur. */
@@ -349,12 +337,14 @@ function OngletCommunaute({
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
         }
         /* L'emblème : la vignette gravée. Ses marges automatiques le centrent dans le
-           blanc qui reste entre le sous-titre et le losange du pied. */
-        .couverture-embleme { display: block; margin: auto 0; width: 42cqw; opacity: 0.82; }
+           blanc qui reste entre le sous-titre et la date. Sa largeur est passée de 42
+           à 50cqw le jour où les losanges ont disparu : la place qu'ils occupaient
+           revient au dessin, qui est ce qu'on vient voir. */
+        .couverture-embleme { display: block; margin: auto 0; width: 50cqw; opacity: 0.82; }
         .couverture-embleme svg { display: block; width: 100%; height: auto; }
-        /* Le losange du pied garde son blanc au-dessus meme quand l'emblème remplit
-           tout ; la date suit, dernier temps. */
-        .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; gap: 4cqw; }
+        /* Le pied garde son blanc au-dessus même quand l'emblème remplit tout : la
+           date ne se colle jamais au dessin. */
+        .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; }
         .couverture-date {
           font-size: 3.3cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.66;
           padding-left: 0.24em; font-variation-settings: "opsz" 9, "wght" 400;
@@ -472,7 +462,6 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
       <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
       <span className="couverture-tete">
         <span className="couverture-auteur">{e.auteur}</span>
-        <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
         <span className="couverture-etoile">
           <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />
         </span>
@@ -489,7 +478,6 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
             <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorieDessin)}</svg>
           </span>
           <span className="couverture-pied">
-            <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>
             {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
           </span>
         </span>
