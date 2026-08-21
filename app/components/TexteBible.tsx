@@ -678,22 +678,12 @@ export default function TexteBible({
           )}
 
           {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu
-              d'un mur de « [Lacune du manuscrit] ». La dimension savante est préservée —
-              on nomme le manuscrit et l'étendue exacte non conservée. */}
+              d'un mur de « [Lacune du manuscrit] ». Rien d'autre, ni ornement ni glose :
+              la mention se suffit à elle-même. */}
           {chapitreToutLacune && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
-              {/* Un filet interrompu en son milieu : figure typographique de la lacune,
-                  préférée à une suite de points. */}
-              <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.125rem', color: 'var(--cs-texte-faible)' }}>
-                <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
-                <span style={{ fontSize: '0.875rem', letterSpacing: '0.25em' }}>◦◦◦</span>
-                <span style={{ width: '2.75rem', height: '1px', background: 'currentColor', opacity: 0.6 }} />
-              </span>
               <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
                 Lacune du manuscrit
-              </p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', margin: '0.5rem 0 0', maxWidth: '22rem', lineHeight: 1.5 }}>
-                Ce chapitre — {nomLivre} {chapitreActif} — n’est pas conservé dans ce témoin.
               </p>
             </div>
           )}
