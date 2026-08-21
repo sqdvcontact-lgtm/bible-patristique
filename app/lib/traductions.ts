@@ -1,9 +1,9 @@
 // Codes de traduction (« TR0001 »…) réellement LISIBLES : ceux qui sont à la fois
-// enregistrés dans `traductions` ET présents comme colonnes de la vue matérialisée
-// `versets_lecture`.
+// enregistrés dans `traductions` ET réellement présents dans la lecture AELF
+// (spine ou matières historiques hors axe).
 //
 // Pourquoi ce filtre : une traduction peut être déclarée dans `traductions` sans être
-// encore matérialisée dans `versets_lecture` (transcription en cours, corpus non aligné…).
+// encore matérialisée dans `v_aelf_bible_books_by_translation` (transcription en cours, corpus non aligné…).
 // La nommer dans un `select('… , "TR0009"')` fait échouer TOUTE la requête PostgREST
 // (« column versets_lecture.TR0009 does not exist » → 400, `data` nul). C'est ce qui
 // vidait l'apparat biblique de toutes les œuvres : chaque renvoi retombait sur son
@@ -24,13 +24,15 @@ async function chargerCodesTraductionsLecture(client: SupabaseClient): Promise<s
     .map(t => t.trad_id)
     .filter(code => /^TR\d{4}$/.test(code))
 
-  // Sonde une ligne de la vue pour connaître ses colonnes réelles.
-  const { data: echantillon } = await client.from('versets_lecture').select('*').limit(1)
-  const ligne = (echantillon ?? [])[0]
-  if (!ligne) return demandes.length ? demandes : REPLI
-
-  const colonnes = new Set(Object.keys(ligne))
-  const filtres = demandes.filter((code: string) => colonnes.has(code))
+  // La disponibilité vient de la projection AELF + hors axe. La vue security_invoker
+  // respecte en outre la confidentialité : TR0012 n'apparaît qu'à un administrateur.
+  const { data: disponibilites, error } = await client
+    .from('v_aelf_bible_books_by_translation')
+    .select('trad_id')
+    .limit(1000)
+  if (error) throw error
+  const materialisees = new Set((disponibilites ?? []).map((r: { trad_id: string }) => r.trad_id))
+  const filtres = demandes.filter((code: string) => materialisees.has(code))
   return filtres.length ? filtres : REPLI
 }
 
