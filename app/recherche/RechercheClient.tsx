@@ -10,6 +10,7 @@ import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
+import { titreStructurelAffiche } from '@/app/lib/titres'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
@@ -1118,7 +1119,7 @@ export default function RechercheClient() {
                       <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
                         <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{s.auteur_nom}</span>
                         {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
-                        {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)' }}>{s.ref_niv1}</span>}
+                        {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)' }}>{titreStructurelAffiche(s.ref_niv1)}</span>}
                       </div>
                       {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
                           latin en italiques, grec en romain). Sinon, le texte français. */}
