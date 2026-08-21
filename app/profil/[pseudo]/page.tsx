@@ -16,7 +16,7 @@ type ProfilPublic = {
   contact_email?: string | null
   membre_depuis: string
   classement?: { score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number; nb_essais_publies: number }
-  bibliotheque?: { id: string; titre: string; auteur: string }[]
+  bibliotheque?: { id: string; mt?: 'la'; titre: string; auteur: string }[]
   essais?: { id: number; titre: string; sous_titre: string | null; categories: string[]; publie_at: string | null; nb_vues: number }[]
   oeuvre_favorite?: { titre: string; auteur: string; id: string; n: number } | null
   versets_favoris?: { ref_livre_abr: string | null; ref_chapitre: number | null; ref_verset: number | null; texte: string; traduction: string | null }[]
@@ -325,7 +325,7 @@ export default function ProfilPublicPage() {
             <Etiquette>Bibliothèque</Etiquette>
             <div>
               {profil.bibliotheque!.map((o) => (
-                <Link key={o.id} href={`/oeuvre/${o.id}`} className="profil-livre-link">
+                <Link key={o.id + (o.mt ?? '')} href={`/oeuvre/${o.id}${o.mt ? '?mt=la' : ''}`} className="profil-livre-link">
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>

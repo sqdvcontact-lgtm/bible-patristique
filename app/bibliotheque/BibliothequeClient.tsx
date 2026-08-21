@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { supabase } from '@/app/lib/supabase'
 import { useFavoris } from '@/app/lib/useFavoris'
+import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -403,12 +404,19 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     return (
                       <React.Fragment key={o.id_oeuvre}>
                       {aOriginal && (
-                        // Le texte original est placé EN TÊTE (avant la traduction). Sa cale à
-                        // gauche reproduit EXACTEMENT la colonne du favori (retrait 20px + étoile
-                        // de 16px de large) pour aligner « Texte… » sur « Traduction… ».
+                        // Le texte original est placé EN TÊTE (avant la traduction), et il a SON
+                        // étoile. On lit le latin d’une œuvre sans lire forcément sa traduction :
+                        // la cale vide qui occupait cette colonne obligeait à ranger la
+                        // traduction pour retrouver l’original. Le texte original n’ayant pas de
+                        // ligne d’œuvre à lui, sa référence prend le suffixe « #la »
+                        // (voir app/lib/refsFavoris.ts).
                         <div className="bib-ligne" style={{ marginTop: '5px', alignItems: 'center' }}>
-                          <div aria-hidden style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
-                            <span style={{ display: 'block', width: '16px', height: '12px' }} />
+                          <div className="bib-etoile" style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
+                            <EtoileFavori actif={favorisOeuvres.has(refFavoriOriginal(o.id_oeuvre))}
+                              onToggle={() => toggleFavoriOeuvre(refFavoriOriginal(o.id_oeuvre))} size={12}
+                              title={favorisOeuvres.has(refFavoriOriginal(o.id_oeuvre))
+                                ? `Retirer le texte ${langueOrig} des favoris`
+                                : `Ajouter le texte ${langueOrig} aux favoris`} />
                           </div>
                           <Link href={`/oeuvre/${o.id_oeuvre}?mt=la`}
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
@@ -1475,7 +1483,10 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
     const lignes: { oeuvre: Oeuvre; auteur: Auteur }[] = []
     for (const a of auteurs) {
       for (const o of a.oeuvres) {
-        if (favorisOeuvres.has(o.id_oeuvre)) lignes.push({ oeuvre: o, auteur: a })
+        // Le texte original mis en favori pour lui-même range l’œuvre dans l’onglet,
+        // même si sa traduction n’y est pas : c’est la carte de l’œuvre qui porte les
+        // deux lignes, chacune avec son étoile.
+        if (favorisOeuvres.has(o.id_oeuvre) || favorisOeuvres.has(refFavoriOriginal(o.id_oeuvre))) lignes.push({ oeuvre: o, auteur: a })
       }
     }
     return lignes.sort((a, b) => a.auteur.nom.localeCompare(b.auteur.nom, 'fr') || a.oeuvre.titre.localeCompare(b.oeuvre.titre, 'fr'))

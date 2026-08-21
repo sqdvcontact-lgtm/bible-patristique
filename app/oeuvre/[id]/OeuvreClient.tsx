@@ -27,6 +27,7 @@ import ApercuAuteur from '@/app/components/ApercuAuteur'
 import { FeuilleVigne } from './Ornements'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useFavoris } from '@/app/lib/useFavoris'
+import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -1268,6 +1269,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Menu 2 — éditions dans la LANGUE du mode courant (masqué si une seule).
   const langueCouranteEstOrig = couranteEstOriginale || (idOeuvre === editionFrRef?.id_oeuvre && modeTexte === 'la')
   const editionsMenu2 = langueCouranteEstOrig ? editionsOriginal : editionsTraduction
+  // L’étoile range CE QU’ON LIT. Sur une édition en langue originale autonome, c’est
+  // l’œuvre elle-même, qui a son identifiant. Sur une traduction lue en « texte
+  // original seul », c’est le texte original, qui n’en a pas : sa référence prend le
+  // suffixe « #la » (voir app/lib/refsFavoris.ts). Sans quoi le latin d’une œuvre ne
+  // pouvait se mettre en favori qu’en rangeant sa traduction à sa place.
+  const favoriEstOriginal = !couranteEstOriginale && modeTexte === 'la'
+  const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
+  const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
   const libelleEdition = (v: VersionTrad): string => {
     const edit = [formaterEditeur(v.editeur), v.ville, v.date_publication ? formaterDateHistorique(v.date_publication) : null].filter(Boolean).join(', ')
     if (estEditionOriginale(v)) {
@@ -1534,8 +1543,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   </button>
                 )}
                 {favorisPret && (
-                  <EtoileFavori actif={favorisOeuvres.has(idOeuvre)} onToggle={() => toggleFavoriOeuvre(idOeuvre)} size={13}
-                    title={favorisOeuvres.has(idOeuvre) ? 'Retirer des favoris' : 'Ajouter aux favoris'} />
+                  <EtoileFavori actif={favorisOeuvres.has(refFavori)} onToggle={() => toggleFavoriOeuvre(refFavori)} size={13}
+                    title={favorisOeuvres.has(refFavori)
+                      ? (nomFavori ? `Retirer ${nomFavori} des favoris` : 'Retirer des favoris')
+                      : (nomFavori ? `Ajouter ${nomFavori} aux favoris` : 'Ajouter aux favoris')} />
                 )}
                 <button onClick={() => setNavOuverte(false)} title="Réduire le sommaire"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { estRefOriginal, idOeuvreDeRef } from '@/app/lib/refsFavoris'
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,9 +74,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   if (profil.pub_favoris_oeuvre) {
     const favs = favsRes?.data ?? []
     if (favs.length) {
-      const ids = favs.map(f => f.ref_id)
+      // Un texte original mis en favori pour lui-même se réfère « <id>#la » : c’est
+      // l’œuvre porteuse qu’il faut aller chercher, sans quoi le favori disparaîtrait
+      // du profil public faute de correspondance.
+      const ids = [...new Set(favs.map(f => idOeuvreDeRef(f.ref_id)))]
       const { data: oeuvreRows } = await sb
-        .from('oeuvres').select('id_oeuvre, titre, id_auteur, note').in('id_oeuvre', ids)
+        .from('oeuvres').select('id_oeuvre, titre, id_auteur, note, langue_originale').in('id_oeuvre', ids)
 
       const oeuvresPubliees = ((oeuvreRows ?? []) as any[]).filter(estOeuvrePubliee)
       const auteurIds = [...new Set(oeuvresPubliees.map(o => o.id_auteur).filter(Boolean))]
@@ -85,14 +89,28 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
       const auteurMap: Record<string, string> = {}
       for (const a of auteurRows ?? []) auteurMap[a.id_auteur] = a.nom
 
-      const oeuvreMap: Record<string, { titre: string; auteur: string }> = {}
+      const oeuvreMap: Record<string, { titre: string; auteur: string; langueOriginale: string | null }> = {}
       for (const o of oeuvresPubliees) {
-        oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: auteurMap[o.id_auteur] ?? '' }
+        oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: auteurMap[o.id_auteur] ?? '', langueOriginale: o.langue_originale ?? null }
       }
 
       rep.bibliotheque = favs
-        .map(f => ({ id: f.ref_id, titre: oeuvreMap[f.ref_id]?.titre, auteur: oeuvreMap[f.ref_id]?.auteur }))
-        .filter(item => item.titre)
+        .map(f => {
+          const id = idOeuvreDeRef(f.ref_id)
+          const oeuvre = oeuvreMap[id]
+          if (!oeuvre) return null
+          // Le texte original se nomme par sa langue : deux favoris d’une même œuvre,
+          // la traduction et son latin, doivent se distinguer dans la liste.
+          const original = estRefOriginal(f.ref_id)
+          const langue = /grec/i.test(oeuvre.langueOriginale ?? '') ? 'grec' : 'latin'
+          return {
+            id,
+            mt: original ? ('la' as const) : undefined,
+            titre: original ? `${oeuvre.titre} — texte ${langue}` : oeuvre.titre,
+            auteur: oeuvre.auteur,
+          }
+        })
+        .filter(Boolean)
     } else {
       rep.bibliotheque = []
     }
