@@ -22,8 +22,8 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - name: Appliquer la migration des renvois d’œuvre AELF
-        run: node scripts/_oneoff_migrate_oeuvre_bible_refs_aelf.mjs
+      - name: Corriger les cas limites AELF
+        run: node scripts/_oneoff_fix_aelf_link_edgecases.mjs
       - name: Installer les dépendances
         run: npm ci
       - name: Types (bloquant)
@@ -32,16 +32,18 @@ jobs:
         run: npm test
       - name: Linter ciblé (informatif)
         continue-on-error: true
-        run: npx eslint app/lib/liens.ts app/oeuvre/[id]/page.tsx app/oeuvre/[id]/OeuvreClient.tsx app/oeuvre/[id]/oeuvreTypes.ts app/components/ModalLienBiblique.tsx app/oeuvre/[id]/AssocierVerset.tsx app/oeuvre/[id]/BoutonsVerset.tsx
+        run: npx eslint app/lib/liens.ts app/oeuvre/[id]/OeuvreClient.tsx
       - name: Enregistrer la passe validée
         run: |
-          FICHIERS="app/lib/liens.ts app/oeuvre/[id]/page.tsx app/oeuvre/[id]/OeuvreClient.tsx app/oeuvre/[id]/oeuvreTypes.ts app/components/ModalLienBiblique.tsx app/oeuvre/[id]/AssocierVerset.tsx app/oeuvre/[id]/BoutonsVerset.tsx"
+          FICHIERS="app/lib/liens.ts app/oeuvre/[id]/OeuvreClient.tsx"
           if git diff --quiet -- $FICHIERS; then
-            echo "Aucune modification AELF à enregistrer" >&2
+            echo "Aucune correction AELF à enregistrer" >&2
             exit 1
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- $FICHIERS
-          git commit -m "refactor: afficher et éditer les renvois d’œuvre via AELF"
+          git commit -m "fix: conserver chapitres et merges dans les renvois AELF"
+          git fetch origin agent/aelf-link-display-migration
+          git rebase origin/agent/aelf-link-display-migration
           git push origin HEAD:agent/aelf-link-display-migration
