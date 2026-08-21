@@ -120,7 +120,9 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
     timer.current = setTimeout(() => setOuvert(false), 160);
   };
   return (
-    <span style={{ position: "relative", display: "inline-flex" }} onMouseEnter={ouvrir} onMouseLeave={fermer}>
+    <span style={{ position: "relative", display: "inline-flex" }}
+      onMouseEnter={ouvrir} onMouseLeave={fermer}
+      onFocus={ouvrir} onBlur={fermer}>
       <Link href={href} className="cs-onglet" style={style}>{label}</Link>
       {ouvert && recentes.length > 0 && (
         <div onMouseEnter={ouvrir} onMouseLeave={fermer}
@@ -276,10 +278,11 @@ function IconAngeTrompette() {
 const DUREE_TOAST_MS = 3000;
 
 // ── Barre à l'étroit : une MESURE, jamais un seuil en pixels ─────────────────
-// Quand la barre déborde, ce sont les OUTILS qui cèdent — la recherche se replie en
-// loupe, « Soutenir le projet » se réduit à son cœur, le mot « Admin » s'efface,
-// « Aller plus loin » descend dans le menu de compte — jamais les mots des sections :
-// sur un site d'érudition, les intitulés font partie du ton.
+// Quand la barre déborde, ce sont les OUTILS qui cèdent d'abord — jamais les mots des
+// sections : sur un site d'érudition, les intitulés font partie du ton. Et ils cèdent
+// UN À UN (voir CRAN_MAX plus bas) : une barre qui perdrait cinq choses d'un coup au
+// premier pixel de trop laisserait un grand vide entre l'écran large et l'écran moyen,
+// où presque tout le monde lit.
 //
 // ⚠️ Pourquoi pas un seuil en pixels : la police racine GRANDIT avec la fenêtre
 // au-delà de 1440px (jusqu'à ×1,375, cf. AGENTS.md § Responsive). Le contenu de la
@@ -291,6 +294,17 @@ const DUREE_TOAST_MS = 3000;
 // la largeur exacte de bascule à chaque pixel de redimensionnement.
 const MARGE_BASCULE_PX = 32;
 
+// Crans de repli, du moins coûteux au plus coûteux. La barre ne se replie pas d'un
+// bloc : elle abandonne un cran à la fois, et n'en abandonne un second que si le
+// premier n'a pas suffi. Ce qui coûte le moins au lecteur cède le premier ; les mots
+// des sections cèdent en dernier, et jamais tous ensemble.
+//
+//   1 — « Soutenir le projet » se réduit à son cœur, le mot « Admin » s'efface
+//   2 — le pseudonyme s'efface, « Les Saintes Écritures » devient « La Bible »
+//   3 — « Aller plus loin » descend dans le menu de compte
+//   4 — la recherche se replie en loupe et se déploie sous la barre
+const CRAN_MAX = 4;
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -299,6 +313,9 @@ export default function Navbar() {
   const [estAdmin, setEstAdmin] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
+  // Les seize sections d'administration allongeaient le panneau mobile de trois écrans,
+  // au-dessus de la recherche et du compte : elles se déplient maintenant à la demande.
+  const [adminMobileOuvert, setAdminMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
   const [notifsOuvertes, setNotifsOuvertes] = useState(false);
   const [nbMessages, setNbMessages] = useState(0);
@@ -308,19 +325,28 @@ export default function Navbar() {
   // `id` distingue deux notifications de suite : il sert de `key` à la vignette, ce qui
   // relance l'animation de la jauge au lieu de la laisser courir depuis la précédente.
   const [toastNotification, setToastNotification] = useState<{ id: number; titre: string; message: string } | null>(null);
-  // `false` au rendu serveur et au premier rendu client : la barre paraît d'abord
-  // complète, se mesure, puis se replie si elle déborde — pas de désaccord d'hydratation.
-  const [etroit, setEtroit] = useState(false);
+  // `0` au rendu serveur et au premier rendu client : la barre paraît d'abord
+  // complète, se mesure, puis se replie cran par cran — pas de désaccord d'hydratation.
+  const [cran, setCran] = useState(0);
   const navRef = useRef<HTMLElement | null>(null);
-  const etroitRef = useRef(false);
-  // Largeur de fenêtre à partir de laquelle la barre complète tient de nouveau, déduite
-  // du débordement CONSTATÉ. Une fois repliée, la barre ne déborde plus : sans ce repère,
-  // on n'aurait plus aucun moyen de savoir quand la déplier.
-  const largeurRequiseRef = useRef(Number.POSITIVE_INFINITY);
+  const cranRef = useRef(0);
+  // `largeurRetourRef[n]` : largeur de fenêtre à partir de laquelle le cran n peut être
+  // abandonné. Déduite du débordement CONSTATÉ au moment où l'on a pris ce cran — une
+  // fois repliée la barre ne déborde plus, et sans ce repère on n'aurait aucun moyen de
+  // savoir quand la déplier. Un repère PAR CRAN : la remontée est aussi graduée que la
+  // descente, et chaque cran retrouve exactement la largeur où il avait cédé.
+  const largeurRetourRef = useRef<number[]>([]);
   const [rechercheDeployee, setRechercheDeployee] = useState(false);
+  // Ce que chaque cran retire. On nomme les conséquences plutôt que de comparer des
+  // nombres au fil du rendu : on lit ce que la barre perd, non à quel palier elle est.
+  const soutenirCompact = cran >= 1;
+  const pseudoMasque = cran >= 2;
+  const titreBibleCourt = cran >= 2;
+  const rechercheRepliee = cran >= 4;
   // « Aller plus loin » ne descend dans le menu de compte que si ce menu existe : sans
   // session, le bloc de droite se réduit à « Se connecter » et la rubrique disparaîtrait.
-  const allerPlusLoinDansCompte = etroit && !!user;
+  // Le cran est alors sans effet ; la mesure suivante constatera qu'il en faut un de plus.
+  const allerPlusLoinDansCompte = cran >= 3 && !!user;
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
@@ -506,6 +532,25 @@ export default function Navbar() {
     }
   }, [user?.id]);
 
+  // Échap referme, de la couche la plus superficielle à la plus profonde : on ferme
+  // UNE chose par pression, celle que l'on vient d'ouvrir, plutôt que tout d'un coup.
+  // La recherche gère sa propre touche Échap dans son champ (elle ne ferme que la liste
+  // de résultats) : on ne la double pas ici tant que ce champ a le focus.
+  useEffect(() => {
+    const surEchap = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const dansLeChamp = (e.target as HTMLElement | null)?.classList?.contains('recherche-rapide-input');
+      if (dansLeChamp) return;
+      if (mobileOuvert) { setMobileOuvert(false); return; }
+      if (menuOuvert) { setMenuOuvert(false); return; }
+      if (notifsOuvertes) { setNotifsOuvertes(false); return; }
+      if (rechercheDeployee) { setRechercheDeployee(false); return; }
+      if (rechercheOuverte) { setRechercheOuverte(false); }
+    };
+    window.addEventListener('keydown', surEchap);
+    return () => window.removeEventListener('keydown', surEchap);
+  }, [mobileOuvert, menuOuvert, notifsOuvertes, rechercheDeployee, rechercheOuverte]);
+
   // Retrait de la vignette au terme des trois secondes. Le compte à rebours est
   // rattaché à la vignette elle-même : une nouvelle notification repart de zéro, et
   // un clic (qui la ferme et ouvre le volet) annule le minuteur au lieu de le laisser
@@ -525,19 +570,27 @@ export default function Navbar() {
       // Sous 1024px la navigation desktop est masquée (`hidden lg:flex`) : rien à mesurer,
       // et une largeur nulle ferait conclure à tort à un débordement.
       if (!nav || nav.clientWidth === 0) return;
-      if (!etroitRef.current) {
-        const debord = nav.scrollWidth - nav.clientWidth;
-        if (debord > 0) {
-          largeurRequiseRef.current = window.innerWidth + debord + MARGE_BASCULE_PX;
-          etroitRef.current = true;
-          setEtroit(true);
+      const debord = nav.scrollWidth - nav.clientWidth;
+      if (debord > 0) {
+        // Un cran à la fois : on retient la largeur qu'il aurait fallu, puis on cède le
+        // cran suivant. L'effet se rejoue sur `cran`, donc la barre se remesure aussitôt
+        // et en reprend un autre si celui-ci n'a pas suffi. La descente s'arrête d'elle-même
+        // dès que la barre tient — ou au dernier cran, s'il n'y a plus rien à replier.
+        if (cranRef.current < CRAN_MAX) {
+          largeurRetourRef.current[cranRef.current] = window.innerWidth + debord + MARGE_BASCULE_PX;
+          cranRef.current += 1;
+          setCran(cranRef.current);
         }
-      } else if (window.innerWidth >= largeurRequiseRef.current) {
-        // On déplie, puis la mesure suivante tranche : si la barre déborde de nouveau
-        // (la police racine ayant grandi avec la fenêtre), elle se replie aussitôt en
-        // retenant une largeur requise plus grande. La suite converge.
-        etroitRef.current = false;
-        setEtroit(false);
+      } else if (cranRef.current > 0) {
+        // On ne rend un cran que si la fenêtre a retrouvé la largeur où IL avait cédé —
+        // pas celle d'un autre. On le rend seul : la mesure suivante tranchera pour le
+        // précédent, et si la barre déborde de nouveau (la police racine ayant grandi
+        // avec la fenêtre), elle le reprend aussitôt en retenant une largeur plus grande.
+        const largeurRetour = largeurRetourRef.current[cranRef.current - 1] ?? Number.POSITIVE_INFINITY;
+        if (window.innerWidth >= largeurRetour) {
+          cranRef.current -= 1;
+          setCran(cranRef.current);
+        }
       }
     };
     let image = 0;
@@ -545,7 +598,7 @@ export default function Navbar() {
     planifier();
     window.addEventListener('resize', planifier);
     return () => { cancelAnimationFrame(image); window.removeEventListener('resize', planifier); };
-  }, [etroit, user, pseudo, estAdmin, estAdminEmail, nbNotifications, nbMessages, pathname]);
+  }, [cran, user, pseudo, estAdmin, estAdminEmail, nbNotifications, nbMessages, pathname]);
 
   useEffect(() => {
     if (!user?.id) { setNbMessages(0); return }
@@ -616,9 +669,15 @@ export default function Navbar() {
     router.push("/accueil")
   };
 
-  const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
+  // L'état actif ne se disait qu'en couleur : `aria-current` le dit aussi à qui lit la
+  // page à l'oreille. Une seule règle, partagée par le style et par l'attribut.
+  const estCheminActif = (href: string, exact?: boolean) => {
     const chemin = href.split("?")[0] || "/";
-    const actif = exact ? pathname === chemin : pathname.startsWith(chemin);
+    return exact ? pathname === chemin : pathname.startsWith(chemin);
+  };
+
+  const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
+    const actif = estCheminActif(href, exact);
     // Le fond ne s'écrit PAS en ligne : un style en ligne l'emporte sur toute règle
     // de feuille, et `.cs-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
@@ -887,7 +946,7 @@ export default function Navbar() {
       </button>
       {/* À l'étroit, l'interrupteur parle seul : son infobulle et son `aria-label`
           portent le sens, le mot cède la place. */}
-      {(mobile || !etroit) && <span>Admin</span>}
+      {(mobile || !soutenirCompact) && <span>Admin</span>}
     </div>
   );
 
@@ -901,7 +960,7 @@ export default function Navbar() {
           {/* Le pseudonyme est le SEUL élément de la barre dont la largeur ne se connaît
               pas d'avance (jusqu'à 6rem). À l'étroit il s'efface : c'est ce qui rend la
               tenue de la barre calculable, et non dépendante de la longueur d'un nom. */}
-          {!etroit && <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>}
+          {!pseudoMasque && <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>}
           <span style={{ fontSize: "0.625rem", opacity: 0.6 }}>▼</span>
         </button>
       )}
@@ -970,6 +1029,7 @@ export default function Navbar() {
     const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
+        aria-current={actif ? "page" : undefined}
         // `display: block` OBLIGATOIRE : dans les groupes d'« Administration », les liens
         // sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans cela, les
         // <a> restent inline et se chevauchent (pastilles superposées, texte illisible).
@@ -1085,20 +1145,21 @@ export default function Navbar() {
           {/* ── Navigation desktop ──────────────────────────────────────────────
               Seuil du hamburger : `lg` (1024px), conservé. Mesuré sur la barre d'un
               admin connecté : version complète 94,9 rem (1519px à 16px), elle ne tient
-              donc qu'au-delà de ~1700px ; version repliée 52,5 rem (841px), qui tient
-              partout dès 1024px. Le palier desktop n'a pas besoin d'un plancher plus
-              haut : c'est le repli qui fait le travail. */}
-          <nav ref={navRef} className="cs-nav-principale hidden lg:flex flex-1 items-center gap-1 min-w-0">
+              donc qu'au-delà de ~1700px ; entièrement repliée 52,5 rem (841px), qui tient
+              partout dès 1024px. Entre les deux, la barre descend les crans un par un et
+              n'en prend jamais plus qu'il ne faut. Le palier desktop n'a pas besoin d'un
+              plancher plus haut : c'est le repli qui fait le travail. */}
+          <nav ref={navRef} aria-label="Navigation principale" className="cs-nav-principale hidden lg:flex flex-1 items-center gap-1 min-w-0">
             {/* Bouton « Bible » unique : au survol il se décompose en « Classique »
                 (lecture suivie) et « Polyglotte » (comparaison). Un clic direct sur la face
                 mène à la lecture classique — utile au tactile, où il n'y a pas de survol. */}
             <div className="cs-bible">
               <Link href="/?livre=GEN&chapitre=1" className="cs-bible-face">
-                {etroit ? "La Bible" : "Les Saintes Écritures"}
+                {titreBibleCourt ? "La Bible" : "Les Saintes Écritures"}
               </Link>
               <div className="cs-bible-split">
-                <Link href="/?livre=GEN&chapitre=1" className={`cs-bible-seg${pathname === "/" ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
-                <Link href="/polyglotte" className={`cs-bible-seg${pathname.startsWith("/polyglotte") ? " cs-bible-seg--actif" : ""}`}>Polyglotte</Link>
+                <Link href="/?livre=GEN&chapitre=1" aria-current={pathname === "/" ? "page" : undefined} className={`cs-bible-seg${pathname === "/" ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
+                <Link href="/polyglotte" aria-current={pathname.startsWith("/polyglotte") ? "page" : undefined} className={`cs-bible-seg${pathname.startsWith("/polyglotte") ? " cs-bible-seg--actif" : ""}`}>Polyglotte</Link>
               </div>
             </div>
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
@@ -1108,7 +1169,7 @@ export default function Navbar() {
                 // À l'étroit, « Aller plus loin » quitte la barre pour le menu de compte,
                 // à droite : c'est une rubrique de second rang, pas une section de lecture.
                 ? (allerPlusLoinDansCompte ? null : <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />)
-                : <Link key={href} href={href} className="cs-onglet" style={styleLien(href, exact, !discret)}>{label}</Link>
+                : <Link key={href} href={href} className="cs-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} />
@@ -1117,7 +1178,7 @@ export default function Navbar() {
               {/* Le champ de recherche est le plus large des outils (13,75rem) : c'est lui
                   qui cède le premier. À l'étroit il se replie en loupe et se déploie sous la
                   barre, sur toute sa largeur — la même vue que sur téléphone. */}
-              {etroit ? (
+              {rechercheRepliee ? (
                 <button type="button" onClick={() => setRechercheDeployee(v => !v)}
                   aria-label="Rechercher" aria-expanded={rechercheDeployee}
                   style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: rechercheDeployee ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", cursor: "pointer", padding: 0, flexShrink: 0, transition: "background 0.13s" }}>
@@ -1137,12 +1198,12 @@ export default function Navbar() {
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
             {/* À l'étroit, le cœur seul : l'intitulé revient en infobulle. */}
-            <Link href="/soutenir" style={etroit
+            <Link href="/soutenir" style={soutenirCompact
               ? { ...styleLienDiscret("/soutenir"), padding: "0.25rem 0.4375rem" }
               : styleLienDiscret("/soutenir")}
-              title={etroit ? "Soutenir le projet" : undefined}
-              aria-label={etroit ? "Soutenir le projet" : undefined}>
-              <IconCoeur />{!etroit && " Soutenir le projet"}
+              title={soutenirCompact ? "Soutenir le projet" : undefined}
+              aria-label={soutenirCompact ? "Soutenir le projet" : undefined}>
+              <IconCoeur />{!soutenirCompact && " Soutenir le projet"}
             </Link>
             {user && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
@@ -1193,7 +1254,7 @@ export default function Navbar() {
         </div>
 
         {/* ── Recherche dépliée sous la barre (palier étroit) ─────────────────── */}
-        {etroit && rechercheDeployee && (
+        {rechercheRepliee && rechercheDeployee && (
           <div className="hidden lg:block" style={{ background: "var(--cs-vert-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
             {blocRecherche(true)}
           </div>
@@ -1212,17 +1273,32 @@ export default function Navbar() {
 
               {(estAdmin || estAdminEmail) && (
                 <>
-                  <p style={styleSectionMobile}>Administration</p>
-                  {FAMILLES_ADMIN.map(fam => {
-                    const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
-                      .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
-                    return (
-                      <div key={fam.cle}>
-                        <p style={{ ...styleSectionMobile, color: fam.couleurMobile, fontSize: "0.5rem", marginTop: "9px" }}>{fam.label}</p>
-                        {liens.map(({ href, label }) => lienMobile(href, label))}
-                      </div>
-                    );
-                  })}
+                  {/* Repliée par défaut : sur un téléphone, l'administration est l'exception,
+                      la lecture la règle. Le chevron dit l'état ; le bouton porte la même
+                      graisse que les autres intertitres pour ne pas se donner d'importance. */}
+                  <button type="button" onClick={() => setAdminMobileOuvert(v => !v)}
+                    aria-expanded={adminMobileOuvert} aria-controls="cs-admin-mobile"
+                    style={{ ...styleSectionMobile, display: "flex", alignItems: "center", gap: "6px", width: "100%", background: "none", border: "none", cursor: "pointer", padding: "8px 10px 4px", textAlign: "left" }}>
+                    Administration
+                    <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"
+                      style={{ opacity: 0.7, transform: adminMobileOuvert ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+                      <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  {adminMobileOuvert && (
+                    <div id="cs-admin-mobile">
+                      {FAMILLES_ADMIN.map(fam => {
+                        const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
+                          .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
+                        return (
+                          <div key={fam.cle}>
+                            <p style={{ ...styleSectionMobile, color: fam.couleurMobile, fontSize: "0.5rem", marginTop: "9px" }}>{fam.label}</p>
+                            {liens.map(({ href, label }) => lienMobile(href, label))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </>
               )}
             </div>
