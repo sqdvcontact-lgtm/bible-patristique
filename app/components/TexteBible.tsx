@@ -43,6 +43,7 @@ type Verset = {
   chapitre_label?: string | null; verset_label?: string | null
   aelf_version_id?: string | null; aelf_entry_id?: string | null; aelf_reference?: string | null
   historical_canon_id?: string | null
+  hors_axe_aelf?: boolean
   chapitre_alternatif?: number | null; verset_alternatif?: number | null
   // Marqueurs des adaptateurs éditoriaux ; Bible 899 ajoute son statut de lacune.
   _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
@@ -110,8 +111,16 @@ function etiquetteVerset(v: Verset): string {
   return chapitre !== String(v.chapitre) ? `${chapitre},${verset}` : verset
 }
 
+function canonHistoriquePour(v: Verset, traduction: string): string | null {
+  const specifique = v[`canon_${traduction}`]
+  if (typeof specifique === 'string' && specifique) return specifique
+  return typeof v.historical_canon_id === 'string' && v.historical_canon_id
+    ? v.historical_canon_id
+    : null
+}
+
 function clePrelevement(v: Verset): string {
-  return v.aelf_entry_id ?? `legacy:${v.chapitre}:${v.verset}`
+  return v.aelf_entry_id ?? `legacy:${v.chapitre}:${v.verset}:${v.id_verset}`
 }
 
 function refFrBible(ref: string): string {
@@ -323,8 +332,8 @@ function versetHtmlVersMarkup(html: string): string {
 
 // ── Composant principal ───────────────────────────────────────────────────────
 // ── Modale d'édition d'un verset (admin réel, vérifié côté serveur) ──────────
-function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, valeurActuelle, onClose, onEnregistre }: {
-  verset: Verset; traduction: string; traductionLabel: string; refCourt: string; valeurActuelle: string
+function ModaleEditionVerset({ verset, canonId, traduction, traductionLabel, refCourt, valeurActuelle, onClose, onEnregistre }: {
+  verset: Verset; canonId: string; traduction: string; traductionLabel: string; refCourt: string; valeurActuelle: string
   onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
 }) {
   const [valeur, setValeur] = useState(valeurActuelle)
@@ -370,7 +379,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
     const res = await fetch('/api/admin/verset-modifier-canon', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id_verset: verset.id_verset, traduction, valeur }),
+      body: JSON.stringify({ id_verset: canonId, traduction, valeur }),
     })
     if (!res.ok) { setStatut('erreur'); return }
     onEnregistre(valeur)
@@ -719,11 +728,14 @@ export default function TexteBible({
           {/* On n'affiche QUE les versets réellement portés par cette traduction : une
               édition qui compte moins de versets qu'une autre (Job 25 s'arrête au v. 6
               chez Sacy) ne doit pas laisser des lignes vides à numéro. */}
-          {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction]).map(v => {
+          {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction]).map((v, index, lignesAffichees) => {
             const actif = versetSelectionne?.id_verset === v.id_verset
             const ligne899 = estLigne899(v)
             const ligneEditoriale = estLigneEditoriale(v)
-            const ligneSource = ligne899 || ligneEditoriale
+            const ligneHorsAxe = v.hors_axe_aelf === true
+            const premiereLigneHorsAxe = ligneHorsAxe && (index === 0 || lignesAffichees[index - 1]?.hors_axe_aelf !== true)
+            const ligneSource = ligne899 || ligneEditoriale || ligneHorsAxe
+            const canonHistorique = canonHistoriquePour(v, traduction)
             const lacune = estLacune899(v)
             const blocsAvant = indexBlocs.beforeByCanon.get(v.id_verset) ?? []
             const blocsApres = indexBlocs.afterByCanon.get(v.id_verset) ?? []
@@ -732,15 +744,22 @@ export default function TexteBible({
             const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
             return (
             <Fragment key={v.id_verset}>
+            {premiereLigneHorsAxe && (
+              <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '1.75rem auto 0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--cs-bord)' }}>
+                <p style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)' }}>
+                  Hors numérotation AELF — matière conservée dans la structure propre de cette traduction.
+                </p>
+              </div>
+            )}
             {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
             <div
               id={`verset-${v.aelf_entry_id ?? v.id_verset}`}
               onClick={() => {
                 const incrementer = () => {
-                  if (!v.historical_canon_id) return Promise.resolve()
+                  if (!canonHistorique) return Promise.resolve()
                   return fetch('/api/versets/incrementer-lecture', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_verset: v.historical_canon_id }),
+                    body: JSON.stringify({ id_verset: canonHistorique }),
                   }).catch(() => {})
                 }
                 if (mobile) {
@@ -821,8 +840,10 @@ export default function TexteBible({
                         String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
                         `${ABREV_FR[livreActif] || nomLivre} ${nettoyerLabelAelf(v.chapitre_label ?? chapitreActif)}, ${nettoyerLabelAelf(v.verset_label ?? v.verset)}`,
                       )} />
-                      <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
-                      {estAdmin && !modeUtilisateurStandard && (
+                      {canonHistorique && (
+                        <BoutonSignaler versetId={canonHistorique} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
+                      )}
+                      {estAdmin && !modeUtilisateurStandard && canonHistorique && (
                         <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
                           style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
                           <IconeCrayon size={12} />
@@ -844,12 +865,13 @@ export default function TexteBible({
           />
         </div>
       </div>
-      {editionCible && (
+      {editionCible && canonHistoriquePour(editionCible, traduction) && (
         <ModaleEditionVerset
           verset={editionCible}
+          canonId={canonHistoriquePour(editionCible, traduction)!}
           traduction={traduction}
           traductionLabel={traductionLabel}
-          refCourt={`${ABREV_FR[livreActif] || livreActif} ${chapitreActif}, ${editionCible.verset}`}
+          refCourt={`${ABREV_FR[livreActif] || livreActif} ${nettoyerLabelAelf(editionCible.chapitre_label ?? chapitreActif)}, ${nettoyerLabelAelf(editionCible.verset_label ?? editionCible.verset)}`}
           valeurActuelle={String(overrides[editionCible.id_verset]?.[traduction] ?? editionCible[traduction] ?? '')}
           onClose={() => setEditionCible(null)}
           onEnregistre={(nouvelleValeur) => {

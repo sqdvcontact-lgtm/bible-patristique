@@ -128,16 +128,27 @@ export default async function Home({
       chapitre,
     })
   } else {
-    const { data, error } = await supabase
-      // Axe de lecture actif : spine AELF/TOL. Les textes restent ceux de chaque
-      // traduction et leurs numérotations natives demeurent dans num_TRxxxx.
-      .from('v_aelf_bible_lecture')
-      .select('*')
-      .eq('livre', livre)
-      .eq('chapitre', chapitre)
-      .order('ordre')
-    if (error) throw new Error(`Lecture AELF indisponible : ${error.message}`)
-    versets = data || []
+    const [axe, horsAxe] = await Promise.all([
+      supabase
+        // Axe de lecture actif : une ligne = une entrée de la spine AELF/TOL.
+        .from('v_aelf_bible_lecture')
+        .select('*')
+        .eq('livre', livre)
+        .eq('chapitre', chapitre)
+        .order('ordre'),
+      supabase
+        // Matières natives sans cible AELF : elles restent lisibles séparément et
+        // ne reçoivent jamais d'aelf_entry_id artificiel.
+        .from('v_aelf_bible_lecture_extras')
+        .select('*')
+        .eq('livre', livre)
+        .eq('chapitre', chapitre)
+        .order('est_suscription', { ascending: false })
+        .order('verset'),
+    ])
+    if (axe.error) throw new Error(`Lecture AELF indisponible : ${axe.error.message}`)
+    if (horsAxe.error) throw new Error(`Matières hors axe AELF indisponibles : ${horsAxe.error.message}`)
+    versets = [...(axe.data || []), ...(horsAxe.data || [])]
   }
 
   // Les balises de titre se calculent d'un seul passage sur l'ordre matériel :
@@ -149,10 +160,19 @@ export default async function Home({
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
   let editionChapter: BibleEditionChapterDisplay | null = null
   if (editionMember) {
+    const canonIdsEdition = [...new Set(versets.flatMap((verset) => {
+      const historique = typeof verset.historical_canon_id === 'string' && verset.historical_canon_id
+        ? verset.historical_canon_id
+        : null
+      if (historique) return [historique]
+      return verset.id_verset.startsWith('AELF:') || verset.id_verset.startsWith('EXTRA:')
+        ? []
+        : [verset.id_verset]
+    }))]
     const payload = await loadBibleEditionChapter(supabase, {
       familyId: editionMember.family_id,
       bookCode: livre,
-      canonIds: versets.map((verset) => verset.id_verset),
+      canonIds: canonIdsEdition,
       includeBookFrontMatter: chapitre === 1,
     })
     const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
