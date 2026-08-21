@@ -10,10 +10,13 @@ export type VRef = {
   verset: string
   aelfVersionId?: string | null
   aelfEntryId?: string | null
+  aelfReference?: string | null
   historicalCanonId?: string | null
   resolutionStatus?: 'resolved' | 'review' | 'legacy_only' | 'chapter_only' | 'unresolved' | null
   validationStatus?: string | null
   confidenceLevel?: string | null
+  linkIds?: number[]
+  natures?: string[]
 }
 export type NoteBlocData = {
   blockId: string

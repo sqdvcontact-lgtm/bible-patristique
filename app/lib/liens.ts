@@ -11,6 +11,7 @@
 // étrangères et index. LES QUATRE TYPES SONT CONSERVÉS À L'IDENTIQUE (charte §9) —
 // c'est leur portage qui change, pas la distinction éditoriale.
 import { supabase } from '@/app/lib/supabase'
+import { ABREV_FR } from '@/app/lib/bible'
 
 export type TypeLien = 1 | 2 | 3 | 4
 
@@ -85,6 +86,7 @@ async function liensParClient(client: { from: (t: string) => any }, segmentIds: 
 
 export type LienAelf = Lien & {
   historical_canon_id: string | null
+  aelf_version_id: string | null
   aelf_entry_id: string | null
   aelf_external_reference: string | null
   aelf_book_code: string | null
@@ -97,7 +99,7 @@ export type LienAelf = Lien & {
   confidence_level: string | null
 }
 
-const COLS_AELF = `${COLS}, historical_canon_id, aelf_entry_id, aelf_external_reference, aelf_book_code, aelf_chapter_label, aelf_verse_label, aelf_sequence_no, resolution_status, relation_kind, validation_status, confidence_level`
+const COLS_AELF = `${COLS}, historical_canon_id, aelf_version_id, aelf_entry_id, aelf_external_reference, aelf_book_code, aelf_chapter_label, aelf_verse_label, aelf_sequence_no, resolution_status, relation_kind, validation_status, confidence_level`
 
 /** Projection AELF des liens d'un lot de segments. Filtrer par segment_id est indexé ;
  *  le résolveur n'est appelé que pour les liens des segments demandés. */
@@ -174,6 +176,129 @@ export async function cellulesLectureAelf(
     out.push(...((data ?? []) as CelluleLectureAelf[]))
   }
   return out
+}
+
+export type ReferenceBibliqueAelf = {
+  id: string
+  label: string
+  textes: Record<string, string>
+  livre: string
+  chapitre: string
+  verset: string
+  aelfVersionId: string | null
+  aelfEntryId: string | null
+  aelfReference: string | null
+  historicalCanonId: string | null
+  resolutionStatus: LienAelf['resolution_status']
+  validationStatus: string | null
+  confidenceLevel: string | null
+  linkIds: number[]
+  natures: string[]
+  ordreAelf: number | null
+}
+
+const NATURE_LIEN_AELF: Record<TypeLien, string> = {
+  1: 'citation',
+  2: 'reprise',
+  3: 'doctrine',
+  4: 'écho',
+}
+
+function labelNumeriqueAelf(value: string | null | undefined): string {
+  const v = String(value ?? '')
+  return /^0+\d+$/.test(v) ? String(Number(v)) : v
+}
+
+/** Construit les cartes de versets affichées dans les œuvres patristiques.
+ * L'axe normal est AELF ; les rares legacy_only sont lus dans la vue d'extras,
+ * jamais forcés sur une entrée AELF. */
+export async function referencesBibliquesAelfDeSegments(
+  segmentIds: number[],
+  codesTraductions: string[],
+  client: { from: (t: string) => any; rpc: (fn: string, args: Record<string, unknown>) => any } = supabase,
+): Promise<Map<number, ReferenceBibliqueAelf[]>> {
+  const sortie = new Map<number, ReferenceBibliqueAelf[]>()
+  if (!segmentIds.length) return sortie
+
+  const liensParSegment = await liensAelfDeSegments(segmentIds, client)
+  const tousLiens = [...liensParSegment.values()].flat()
+  const entryIds = [...new Set(tousLiens.map(l => l.aelf_entry_id).filter((v): v is string => Boolean(v)))]
+  const cellules = await cellulesLectureAelf(entryIds, client)
+  const textesParEntree = new Map<string, Record<string, string>>()
+  for (const c of cellules) {
+    if (!textesParEntree.has(c.aelf_entry_id)) textesParEntree.set(c.aelf_entry_id, {})
+    if (codesTraductions.includes(c.trad_id) && c.texte) textesParEntree.get(c.aelf_entry_id)![c.trad_id] = c.texte
+  }
+
+  const legacyIds = [...new Set(tousLiens
+    .filter(l => !l.aelf_entry_id && l.historical_canon_id)
+    .map(l => l.historical_canon_id as string))]
+  const extrasParCanon = new Map<string, Record<string, unknown>>()
+  const colonnesExtras = ['historical_canon_id', 'livre', 'chapitre_label', 'verset_label', 'ref', ...codesTraductions.map(c => `"${c}"`)].join(', ')
+  for (let i = 0; i < legacyIds.length; i += 200) {
+    const { data, error } = await client.from('v_aelf_bible_lecture_extras')
+      .select(colonnesExtras)
+      .in('historical_canon_id', legacyIds.slice(i, i + 200))
+    if (error) throw error
+    for (const row of (data ?? []) as Record<string, unknown>[]) {
+      const canon = typeof row.historical_canon_id === 'string' ? row.historical_canon_id : null
+      if (canon && !extrasParCanon.has(canon)) extrasParCanon.set(canon, row)
+    }
+  }
+
+  for (const segmentId of segmentIds) {
+    const refs = new Map<string, ReferenceBibliqueAelf>()
+    for (const lien of liensParSegment.get(segmentId) ?? []) {
+      if (!lien.aelf_entry_id && !lien.historical_canon_id) continue
+      const cle = lien.aelf_entry_id ? `aelf:${lien.aelf_entry_id}` : `legacy:${lien.historical_canon_id}`
+      let ref = refs.get(cle)
+      if (!ref) {
+        if (lien.aelf_entry_id) {
+          const livre = lien.aelf_book_code ?? lien.livre ?? ''
+          const chapitre = lien.aelf_chapter_label ?? (lien.chapitre == null ? '' : String(lien.chapitre))
+          const verset = labelNumeriqueAelf(lien.aelf_verse_label)
+          ref = {
+            id: `AELF:${lien.aelf_entry_id}`,
+            label: verset ? `${livre} ${chapitre}, ${verset}` : `${livre} ${chapitre}`,
+            textes: { ...(textesParEntree.get(lien.aelf_entry_id) ?? {}) },
+            livre, chapitre, verset,
+            aelfVersionId: lien.aelf_version_id,
+            aelfEntryId: lien.aelf_entry_id,
+            aelfReference: lien.aelf_external_reference,
+            historicalCanonId: lien.historical_canon_id,
+            resolutionStatus: lien.resolution_status,
+            validationStatus: lien.validation_status,
+            confidenceLevel: lien.confidence_level,
+            linkIds: [], natures: [], ordreAelf: lien.aelf_sequence_no,
+          }
+        } else {
+          const canon = lien.historical_canon_id as string
+          const extra = extrasParCanon.get(canon)
+          const livre = String(extra?.livre ?? lien.livre ?? '')
+          const chapitre = String(extra?.chapitre_label ?? lien.chapitre ?? '')
+          const verset = labelNumeriqueAelf(typeof extra?.verset_label === 'string' ? extra.verset_label : '')
+          const textes = Object.fromEntries(codesTraductions.map(code => [code, typeof extra?.[code] === 'string' ? String(extra[code]) : '']))
+          ref = {
+            id: `LEGACY:${canon}`,
+            label: verset ? `${ABREV_FR[livre] ?? livre} ${chapitre}, ${verset}` : `${ABREV_FR[livre] ?? livre} ${chapitre}`,
+            textes, livre, chapitre, verset,
+            aelfVersionId: null, aelfEntryId: null, aelfReference: null,
+            historicalCanonId: canon, resolutionStatus: lien.resolution_status,
+            validationStatus: lien.validation_status, confidenceLevel: lien.confidence_level,
+            linkIds: [], natures: [], ordreAelf: null,
+          }
+        }
+        refs.set(cle, ref)
+      }
+      if (!ref.linkIds.includes(lien.id)) ref.linkIds.push(lien.id)
+      const nature = NATURE_LIEN_AELF[lien.type]
+      if (!ref.natures.includes(nature)) ref.natures.push(nature)
+    }
+    sortie.set(segmentId, [...refs.values()].sort((a, b) =>
+      (a.ordreAelf ?? Number.MAX_SAFE_INTEGER) - (b.ordreAelf ?? Number.MAX_SAFE_INTEGER)
+      || a.label.localeCompare(b.label, 'fr')))
+  }
+  return sortie
 }
 
 /** Recherche inverse : les segments qui renvoient à un verset donné.

@@ -1,4 +1,4 @@
-import { hydraterLiensHerites } from '@/app/lib/liens'
+import { hydraterLiensHerites, referencesBibliquesAelfDeSegments } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
@@ -217,28 +217,8 @@ async function chargerCodesTraductions(supabase: Client) {
 }
 
 async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesTraductions: string[]) {
-  const tousIds = new Set<string>()
-  segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
-  const tousIdsArray = Array.from(tousIds)
-  if (tousIdsArray.length === 0) return {}
-  const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
-  const batchSize = 500
-  const batches = Array.from({ length: Math.ceil(tousIdsArray.length / batchSize) }, (_, i) =>
-    tousIdsArray.slice(i * batchSize, (i + 1) * batchSize))
-  const results = await Promise.all(batches.map(batch =>
-    supabase.from('versets_lecture').select(selectVersets).in('id_verset', batch)))
-  const versetsData = results.flatMap(r => r.data ?? []) as any[]
-
-  const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
-  versetsData.forEach(v => {
-    const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
-    const ref = detailsRefBiblique(v.ref)
-    versetMap[v.id_verset] = {
-      ...ref,
-      textes,
-    }
-  })
-  return versetMap
+  const refs = await referencesBibliquesAelfDeSegments(segments.map(s => s.id), codesTraductions, supabase)
+  return Object.fromEntries(segments.map(s => [s.id, refs.get(s.id) ?? []]))
 }
 
 export default async function OeuvrePage({
@@ -546,15 +526,8 @@ export default async function OeuvrePage({
   const segmentsTexte = segmentsTexteRaw as Segment[]
   const segmentsApparat = segmentsApparatRaw as Segment[]
 
-  // 4. Versets pour le premier livre seulement
-  const versetMap = await enrichirAvecVersets(supabase, segmentsTexte, codesTraductions)
-
-  const versetParSegment: Record<number, any[]> = {}
-  segmentsTexte.forEach(s => {
-    versetParSegment[s.id] = extraireVersetsAvecNature(s).map(({ id: vid, natures }) => ({
-      id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {} })
-    }))
-  })
+  // 4. Références bibliques : axe AELF, avec fallback explicite legacy_only.
+  const versetParSegment = await enrichirAvecVersets(supabase, segmentsTexte, codesTraductions)
 
   // Auteurs de l'œuvre, à égalité : `auteur` est leur libellé commun (il nomme
   // l'œuvre au frontispice, dans les citations, dans l'historique de lecture),

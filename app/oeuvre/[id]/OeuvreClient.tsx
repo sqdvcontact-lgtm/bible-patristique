@@ -1,6 +1,6 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
-import { hydraterLiensHerites } from '@/app/lib/liens'
+import { hydraterLiensHerites, referencesBibliquesAelfDeSegments } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 
@@ -869,34 +869,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // `liens_bibliques` et on les repose au format attendu par l'affichage.
     await hydraterLiensHerites(segs)
 
-    const tousIds = new Set<string>()
     const segsAffichables = segs.filter(segmentAffichable)
-
-    segsAffichables.forEach((s: any) => {
-      [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean).forEach((v: string) =>
-        v.split(';').map((x: string) => x.trim()).filter(Boolean).forEach((x: string) => tousIds.add(x)))
-    })
-    const idsArr = Array.from(tousIds)
-      const versetMap: Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}> = {}
-    if (idsArr.length > 0) {
-      const codesTraductions = await chargerCodesTraductions()
-      const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
-      const { data: vd } = await supabase.from('versets_lecture')
-        .select(selectVersets)
-        .in('id_verset', idsArr)
-      ;(vd ?? []).forEach((v: any) => {
-        const ref = detailsRefBiblique(v.ref)
-        const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
-        versetMap[v.id_verset] = { ...ref, textes }
-      })
-    }
+    const codesTraductions = await chargerCodesTraductions()
+    const versetsParSegment = await referencesBibliquesAelfDeSegments(
+      segsAffichables.map((s: any) => s.id),
+      codesTraductions,
+    )
 
     let c = 0
     const newSegs: SegData[] = segsAffichables.map((s: any) => {
       const estIntro = s.nature === 'introduction'
       if (!estIntro) c++
-      const versets = extraireVersetsAvecNature(s)
-        .map(({ id: vid, natures }) => ({ id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
+      const versets = versetsParSegment.get(s.id) ?? []
       return {
         id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
         numero: estIntro ? s.segment_numero : c, numeroSource: s.segment_numero,
@@ -1348,15 +1332,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // plusieurs versets) : une seule confirmation, une seule requête, une seule
   // mise à jour d'état — au lieu d'une boucle qui rouvrait un confirm() natif et
   // lançait une écriture par verset.
-  const supprimerLiensBibliques = async (segId: number, versetIds: string[]) => {
-    if (!estAdmin || !versetIds.length) return
-    const multiple = versetIds.length > 1
-    if (!confirm(multiple ? `Supprimer ces ${versetIds.length} liens bibliques ?` : 'Supprimer ce lien biblique ?')) return
+  const supprimerLiensBibliques = async (segId: number, linkIds: number[]) => {
+    const ids = [...new Set(linkIds)]
+    if (!estAdmin || !ids.length) return
+    const multiple = ids.length > 1
+    if (!confirm(multiple ? `Supprimer ces ${ids.length} liens bibliques ?` : 'Supprimer ce lien biblique ?')) return
     const { error } = await supabase.from('liens_bibliques')
-      .delete().eq('segment_id', segId).in('canon_id', versetIds)
+      .delete().eq('segment_id', segId).in('id', ids)
     if (error) { alert('Suppression impossible : ' + error.message); return }
-    const aRetirer = new Set(versetIds)
-    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => !aRetirer.has(v.id)) } : s))
+    const aRetirer = new Set(ids)
+    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => !(v.linkIds ?? []).some(id => aRetirer.has(id))) } : s))
   }
 
   // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
@@ -2396,7 +2381,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     </span>
                                   )}
                                   {estAdmin && (
-                                    <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
+                                    <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.flatMap(v => v.linkIds ?? []))} title="Supprimer ce lien biblique"
                                       style={{ fontSize: '0.59375rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>
