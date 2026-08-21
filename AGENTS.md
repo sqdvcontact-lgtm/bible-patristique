@@ -850,3 +850,18 @@ Une œuvre retenue porte **le marqueur `[Corpus Scriptura:depublie]` dans `note`
 ## `/api/chiffres` comptait sans aucun filtre
 
 ⚠️ La page d'ouverture `/chantier` tire ses trois chiffres d'une route serveur qui interroge avec le **rôle de service** : elle ne voyait donc AUCUN des filtres du site. Elle annonçait toutes les œuvres, fermées comprises, et **onze traductions bibliques** — le `count(*)` brut de `traductions`, où cinq bibles voisinent avec des traductions d'œuvres patristiques et des bibles non matérialisées. Elle lit désormais `statistiques_accueil()` et `codesTraductionsLecture()`, comme l'accueil. Le rôle de service ne dispense pas des règles éditoriales : il les contourne, ce qui est précisément le danger.
+
+# L'éditeur se RECONNAÎT, il ne se compte pas (2026-08-21)
+
+La table `editeurs` tient le nom complet de chaque maison et les formes sous lesquelles le corpus la rencontre. Toute surface qui nomme un éditeur passe par elle : `normaliserNomEditeur` (module pur `app/lib/editeursNormalisation.ts`), alimenté côté serveur par `chargerIndexEditeurs` et côté navigateur par le cache d'`app/lib/editeurs.ts`. La donnée brute n'est jamais réécrite, et une maison non répertoriée garde sa forme.
+
+⛔ **Ne jamais découper une mention d'édition PAR POSITION.** `decomposerEdition` prenait la première virgule pour la ville et le reste pour l'éditeur. Or les notices ne suivent pas toutes le même ordre : « Lyon, Pélagaud, 1844 » commence par la ville, « L. Guérin & Cie, Bar-le-Duc, 1865 » par l'éditeur. **Dix-neuf versions** annonçaient « l'édition de Bar-le-Duc, L. Guérin & Cie », ville et maison interverties, et « Pius Knöll, CSEL 33, Vienne, 1896 » donnait Pius Knöll pour une ville. On reconnaît maintenant les parties : le segment répertorié est l'éditeur, celui qui figure parmi les villes connues est la ville. Faute d'éditeur reconnu, l'ancien découpage sert encore, une notice approximative valant mieux qu'une notice vide.
+
+- **Les villes viennent des DONNÉES**, jamais d'une liste écrite dans le code : celles des fiches d'éditeur, plus celles employées par les œuvres.
+- ⚠️ **Un segment n'est un segment d'éditeur que si TOUTES ses parties le sont.** « J. Angé ; A. Cherest » est une co-édition ; « volume 1, Paris, J. Angé » est une bribe de notice où il s'en trouve un. Sans cette exigence, la moindre phrase contenant un nom de maison serait prise pour l'éditeur.
+- **Trois notices restent hors d'atteinte**, et c'est une affaire de DONNÉES, non de règle : elles noient la maison dans une phrase bibliographique (« … Paris, Librairie de Louis Vivès ; texte latin et notes de l'édition des Bénédictins. », « … accurante J.-P. Migne, Paris, 1845. »), ou nomment une maison absente de la table (F. Tempsky, pour le CSEL). Les corriger demande de nettoyer `oeuvre_textes.edition_label` ou de compléter `editeurs`, pas d'élargir l'heuristique.
+- **Une fourchette d'années est une année** : « 1984 – 1986 » partait dans l'éditeur, le test d'égalité stricte ne reconnaissant que quatre chiffres.
+
+## Une version se donne comme une traduction, pas comme un nom
+
+Dans le menu « Éditions de ce texte », une version en langue originale s'annonce « Texte latin » ; en face, la traduction française se donnait sous le seul nom de son traducteur, liste du catalogue et point-virgule compris : « H. Barreau ; M. Charpentier ». `libelleVersionComplet` emploie désormais `libelleTrad`, la formule du frontispice : « Traduction par H. Barreau et M. Charpentier, 1873 ». La mention « édition de » a disparu, la rubrique du menu annonçant déjà des éditions.
