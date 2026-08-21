@@ -16,6 +16,11 @@ import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
+  projeterAppelsNotesStructurees,
+  type AncreNoteStructureeProjection,
+} from '@/app/lib/appelsNotesStructurees'
+import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import {
   groupesSelonFiltre,
   membresOrdonnesParGroupe,
   type FiltreAlignement,
@@ -55,6 +60,7 @@ type SegmentComparaison = {
   segment_metadata: Record<string, unknown> | null
 }
 type NotesParSegment = Record<string, NoteStructuree[]>
+type AncresParSegment = Record<string, AncreNoteStructureeProjection[]>
 
 function lots<T>(items: T[], taille = 180) {
   const resultat: T[][] = []
@@ -62,8 +68,8 @@ function lots<T>(items: T[], taille = 180) {
   return resultat
 }
 
-// Appel de note en infobulle, repris de la lecture : exposant brun souligné de
-// pointillés, clic pour déplier le contenu structuré de la note.
+// Appel de note en infobulle, repris de la lecture : exposant brun sans
+// soulignement, clic pour déplier le contenu structuré de la note.
 function AppelNote({ note }: { note: NoteStructuree }) {
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
@@ -168,10 +174,11 @@ type BlocLecture = { type: 'prose' | 'vers' | 'rubrique'; segs: SegmentComparais
 // de `.seg-inline` vient du bloc <style> parent (OeuvreClient).
 const POLICE_ORIGINALE = 'var(--font-source-sans), Arial, sans-serif'
 
-function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, onQuitter, onClic, mobile, langue }: {
+function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSurvol, onQuitter, onClic, mobile, langue }: {
   membres: MembreComparable[]
   segments: Map<string, SegmentComparaison>
   notes: NotesParSegment
+  ancres: AncresParSegment
   vide: string
   segActif: number | null
   onSurvol: (el: HTMLElement, id: number) => void
@@ -212,7 +219,10 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
         onClick={e => onClic(e.currentTarget, segment.id, actif)}
         onMouseEnter={mobile ? undefined : e => onSurvol(e.currentTarget, segment.id)}
         onMouseLeave={mobile ? undefined : () => onQuitter(segment.id)}>
-        {renderSegmentTexte(composer(segment.segment_texte), notes[segment.segment_key] ?? [])}
+        {renderSegmentTexte(
+          composer(projeterAppelsNotesStructurees(segment.segment_texte, ancres[segment.segment_key])),
+          notes[segment.segment_key] ?? [],
+        )}
       </span>
     )
   }
@@ -261,34 +271,71 @@ function ColonneLecture({ membres, segments, notes, vide, segActif, onSurvol, on
   )
 }
 
-async function chargerNotes(segmentKeys: string[]): Promise<NotesParSegment> {
-  if (segmentKeys.length === 0) return {}
-  const resultatsAncres = await Promise.all(lots(segmentKeys).map(batch =>
-    supabase.from('texte_note_ancres').select('id_texte,note_key,segment_key').in('segment_key', batch)
-  ))
-  for (const resultat of resultatsAncres) if (resultat.error) throw resultat.error
-  const ancres = resultatsAncres.flatMap(resultat => resultat.data ?? []) as { id_texte: string; note_key: string; segment_key: string }[]
-  if (ancres.length === 0) return {}
-  const noteKeys = Array.from(new Set(ancres.map(ancre => ancre.note_key)))
-  const [notesResult, blocksResult, relationsResult] = await Promise.all([
-    supabase.from('texte_notes').select('id_texte,note_key,note_number').in('note_key', noteKeys),
-    supabase.from('texte_note_blocs').select('id_texte,note_key,block_id,rank,kind,form,language,text,rendering,needs_review').in('note_key', noteKeys).order('rank'),
-    supabase.from('texte_note_relations').select('id_texte,note_key,relation_kind,source_block_id,target_block_id').in('note_key', noteKeys),
+async function chargerNotes(segmentKeys: string[]): Promise<{
+  notes: NotesParSegment
+  ancres: AncresParSegment
+}> {
+  if (segmentKeys.length === 0) return { notes: {}, ancres: {} }
+  type AncreRow = {
+    id_texte: string
+    note_key: string
+    segment_key: string
+    marker: string | null
+    source_target: string | null
+    segment_offset_unicode: number | null
+  }
+  type NoteRow = { id_texte: string; note_key: string; note_number: number | null }
+  type BlocRow = {
+    id_texte: string
+    note_key: string
+    block_id: string
+    rank: number
+    kind: string
+    form: string
+    language: string | null
+    text: string
+    rendering: string | null
+    needs_review: boolean
+  }
+  type RelationRow = {
+    id_texte: string
+    note_key: string
+    relation_kind: string
+    source_block_id: string
+    target_block_id: string | null
+  }
+  const ancresBrutes = (await Promise.all(lots(segmentKeys).map(batch =>
+    chargerToutesPagesSupabase<AncreRow>((debut, fin) => supabase.from('texte_note_ancres')
+      .select('id_texte,note_key,segment_key,marker,source_target,segment_offset_unicode')
+      .in('segment_key', batch).order('note_key').order('segment_key')
+      .order('segment_offset_unicode').range(debut, fin))
+  ))).flat()
+  if (ancresBrutes.length === 0) return { notes: {}, ancres: {} }
+  const noteKeys = Array.from(new Set(ancresBrutes.map(ancre => ancre.note_key)))
+  const lotsNotes = lots(noteKeys)
+  const [notesRows, blocksRows, relationsRows] = await Promise.all([
+    Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase
+      .from('texte_notes').select('id_texte,note_key,note_number').in('note_key', batch)
+      .order('note_key').range(debut, fin)))).then(pages => pages.flat()),
+    Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<BlocRow>((debut, fin) => supabase
+      .from('texte_note_blocs').select('id_texte,note_key,block_id,rank,kind,form,language,text,rendering,needs_review')
+      .in('note_key', batch).order('note_key').order('rank').range(debut, fin)))).then(pages => pages.flat()),
+    Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase
+      .from('texte_note_relations').select('id_texte,note_key,relation_kind,source_block_id,target_block_id')
+      .in('note_key', batch).order('note_key').order('source_block_id')
+      .order('relation_kind').range(debut, fin)))).then(pages => pages.flat()),
   ])
-  if (notesResult.error) throw notesResult.error
-  if (blocksResult.error) throw blocksResult.error
-  if (relationsResult.error) throw relationsResult.error
 
-  const relations = new Map<string, Record<string, string>>()
-  for (const relation of relationsResult.data ?? []) {
+  const relations = new Map<string, Record<string, string | null>>()
+  for (const relation of relationsRows) {
     const key = `${relation.id_texte}|${relation.note_key}|${relation.source_block_id}`
     relations.set(key, { ...(relations.get(key) ?? {}), [relation.relation_kind]: relation.target_block_id })
   }
   const notes = new Map<string, NoteStructuree>()
-  for (const row of notesResult.data ?? []) {
+  for (const row of notesRows) {
     if (typeof row.note_number === 'number') notes.set(`${row.id_texte}|${row.note_key}`, { noteKey: row.note_key, noteNumber: row.note_number, blocks: [] })
   }
-  for (const block of blocksResult.data ?? []) {
+  for (const block of blocksRows) {
     const note = notes.get(`${block.id_texte}|${block.note_key}`)
     if (!note) continue
     const relation = relations.get(`${block.id_texte}|${block.note_key}|${block.block_id}`) ?? {}
@@ -306,13 +353,26 @@ async function chargerNotes(segmentKeys: string[]): Promise<NotesParSegment> {
     })
   }
   const resultat: NotesParSegment = {}
-  for (const ancre of ancres) {
+  const ancres: AncresParSegment = {}
+  for (const ancre of ancresBrutes) {
     const note = notes.get(`${ancre.id_texte}|${ancre.note_key}`)
-    if (!note) continue
+    if (!note) throw new Error(`Note structurée introuvable : ${ancre.note_key}.`)
     resultat[ancre.segment_key] ??= []
     if (!resultat[ancre.segment_key].some(existante => existante.noteKey === note.noteKey)) resultat[ancre.segment_key].push(note)
+    if (ancre.source_target === 'segment_texte') {
+      if (!ancre.marker?.match(/^\[\[[A-Z0-9]+\]\]$/u) || !Number.isInteger(ancre.segment_offset_unicode)) {
+        throw new Error(`Ancre de note structurée incomplète : ${ancre.note_key}.`)
+      }
+      ancres[ancre.segment_key] ??= []
+      ancres[ancre.segment_key].push({
+        noteKey: ancre.note_key,
+        marker: ancre.marker,
+        segmentOffsetUnicode: ancre.segment_offset_unicode as number,
+        sourceTarget: ancre.source_target,
+      })
+    }
   }
-  return resultat
+  return { notes: resultat, ancres }
 }
 
 export default function ComparaisonTraductions({ alignement, estAdmin, book, division, userId, auteur }: {
@@ -329,6 +389,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
   const [membres, setMembres] = useState<Membre[]>([])
   const [segments, setSegments] = useState<Map<string, SegmentComparaison>>(new Map())
   const [notes, setNotes] = useState<NotesParSegment>({})
+  const [ancresNotes, setAncresNotes] = useState<AncresParSegment>({})
   const [oeuvresMeta, setOeuvresMeta] = useState<Map<string, OeuvreMeta>>(new Map())
   const [sauvegardes, setSauvegardes] = useState<Set<number>>(new Set())
   const [segActif, setSegActif] = useState<number | null>(null)
@@ -375,6 +436,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       const metaResult = idsOeuvres.length
         ? await supabase.from('oeuvres').select('id_oeuvre,titre,sous_titre,trad_auteur,editeur,collection,ville,date_publication').in('id_oeuvre', idsOeuvres)
         : { data: [], error: null }
+      if (metaResult.error) throw metaResult.error
       const metaMap = new Map<string, OeuvreMeta>()
       for (const row of (metaResult.data ?? []) as Record<string, string | null>[]) {
         if (row.id_oeuvre) metaMap.set(row.id_oeuvre, { titre: row.titre ?? '', sous_titre: row.sous_titre, trad_auteur: row.trad_auteur, editeur: row.editeur, collection: row.collection, ville: row.ville, date_publication: row.date_publication })
@@ -383,17 +445,22 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       if (userId && segmentIds.length) {
         const resultatsSaves = await Promise.all(lots(segmentIds).map(batch =>
           supabase.from('prelevements').select('segment_id').eq('user_id', userId).in('segment_id', batch)))
-        for (const resultat of resultatsSaves) for (const row of (resultat.data ?? []) as { segment_id: number | null }[]) if (row.segment_id != null) sauvegardeSet.add(row.segment_id)
+        for (const resultat of resultatsSaves) {
+          if (resultat.error) throw resultat.error
+          for (const row of (resultat.data ?? []) as { segment_id: number | null }[]) if (row.segment_id != null) sauvegardeSet.add(row.segment_id)
+        }
       }
       if (!actif) return
       setGroupes(groupesCharges)
       setMembres(membresCharges)
       setSegments(new Map(segmentsCharges.map(segment => [segment.segment_key, segment])))
-      setNotes(notesChargees)
+      setNotes(notesChargees.notes)
+      setAncresNotes(notesChargees.ancres)
       setOeuvresMeta(metaMap)
       setSauvegardes(sauvegardeSet)
       setChargement(false)
-    })().catch(() => {
+    })().catch(error => {
+      console.error('Chargement de la comparaison et de ses notes impossible :', error)
       if (!actif) return
       setErreur('La comparaison ne peut pas être chargée pour cette division.')
       setChargement(false)
@@ -463,7 +530,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
     ] as const).map(colonne => (
       <div key={colonne.label} style={{ minWidth: 0 }}>
         {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
-        <ColonneLecture membres={colonne.members} segments={segments} notes={notes} vide={colonne.empty} langue={colonne.langue}
+        <ColonneLecture membres={colonne.members} segments={segments} notes={notes} ancres={ancresNotes} vide={colonne.empty} langue={colonne.langue}
           segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment} mobile={mobile} />
       </div>
     ))

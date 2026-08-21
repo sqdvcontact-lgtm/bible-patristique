@@ -2,6 +2,7 @@
 import { ABREV_FR } from '@/app/lib/bible'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
+import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
@@ -230,7 +231,7 @@ const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, 
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -845,13 +846,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       premierReq = n1 === NIV1_LIMINAIRES ? premierReq.is('ref_niv1', null) : premierReq.eq('ref_niv1', n1)
     }
     const premier = await premierReq
+    if (premier.error) {
+      console.error(`Chargement des segments impossible (${idTexte}/${n1}) :`, premier.error)
+      throw premier.error
+    }
     const segs: any[] = [...((premier.data as any[]) ?? [])]
     const total = premier.count ?? segs.length
     if (total > 1000) {
       const restes = await Promise.all(
         Array.from({ length: Math.ceil(total / 1000) - 1 }, (_, i) => lotNiv1((i + 1) * 1000))
       )
-      for (const r of restes) segs.push(...((r.data as any[]) ?? []))
+      for (const r of restes) {
+        if (r.error) {
+          console.error(`Chargement d'un lot de segments impossible (${idTexte}/${n1}) :`, r.error)
+          throw r.error
+        }
+        segs.push(...((r.data as any[]) ?? []))
+      }
     }
 
     // Les liens ne sont plus portés par le segment : on les rapporte de
@@ -889,7 +900,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       return {
         id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
         numero: estIntro ? s.segment_numero : c, numeroSource: s.segment_numero,
-        texte: s.segment_texte, versets,
+        texte: s.segment_texte,
+        texteAffichage: projeterAppelsNotesStructurees(
+          s.segment_texte,
+          s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
+        ), versets,
         notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
@@ -927,13 +942,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // après une modification ou une suppression admin, puisque l'apparat n'est
   // sinon chargé qu'une seule fois au rendu serveur de la page.
   const chargerApparatData = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('segments')
       .select('id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before')
       .eq('id_oeuvre', idOeuvre)
       .eq('id_texte', idTexte)
       .eq('nature', 'apparat_critique')
       .order('segment_numero')
+    if (error) {
+      console.error(`Chargement de l'apparat impossible (${idTexte}) :`, error)
+      throw error
+    }
     const segs = ((data ?? []) as any[]).filter(segmentAffichable)
 
     let c = 0, n1c = ''
@@ -943,7 +962,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       c++
       return {
         id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
-        numero: c, numeroSource: s.segment_numero, texte: s.segment_texte, versets: [],
+        numero: c, numeroSource: s.segment_numero, texte: s.segment_texte,
+        texteAffichage: projeterAppelsNotesStructurees(
+          s.segment_texte,
+          s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
+        ), versets: [],
         notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
@@ -1003,7 +1026,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         cacheNiv1Ref.current.set(n1, donnees)
         setGroupes(donnees.groupes)
         setSegments(donnees.segments)
-      } catch {
+      } catch (error) {
+        console.error(`Chargement du niveau ${n1} impossible :`, error)
         setNiv1Erreur(n1)
       } finally {
         setNiv1Loading(false)
@@ -1014,7 +1038,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const idx = niv1List.indexOf(n1)
     ;[niv1List[idx - 1], niv1List[idx + 1]].forEach(voisin => {
       if (voisin && !cacheNiv1Ref.current.has(voisin)) {
-        chargerNiv1Data(voisin).then(d => cacheNiv1Ref.current.set(voisin, d)).catch(() => {})
+        chargerNiv1Data(voisin).then(d => cacheNiv1Ref.current.set(voisin, d)).catch(error => {
+          console.error(`Préchargement du niveau ${voisin} impossible :`, error)
+        })
       }
     })
   }
@@ -1037,7 +1063,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           setGroupes(donnees.groupes)
           setSegments(donnees.segments)
         }
-      } catch { /* la tranche initiale reste affichée */ }
+      } catch (error) {
+        // La tranche initiale reste affichée, mais l'échec n'est pas silencieux.
+        console.error(`Complétion du niveau ${n1} impossible :`, error)
+      }
     })()
     return () => { annule = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1367,7 +1396,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // par construction (`detecterCitationSortie`), le bloc ferme le segment et les
   // suivants reprennent à la ligne, sans qu'aucun voisin soit coupé en deux.
   const rendreCorpsSegment = (s: SegData, estPremier: boolean): React.ReactNode => {
-    const texte = composerCorps(preparerTexteSegment(s.texte))
+    const texteAffichage = s.texteAffichage ?? s.texte
+    const texte = composerCorps(preparerTexteSegment(texteAffichage))
     // Le numéro de segment est rendu ICI, et non par l'appelant : quand le segment
     // est la citation tout entière, il doit entrer DANS le bloc. Laissé dehors, il
     // se retrouverait seul sur sa ligne, le bloc qui le suit rompant la ligne.
@@ -1375,7 +1405,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       ? <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>
       : null
     // La lettrine garde la priorité : un premier segment orné ne se sort pas.
-    if (estPremier && texte.length > 0) return rendreAvecLettrine(composerCorps(s.texte), s.notes ?? {})
+    if (estPremier && texte.length > 0) return rendreAvecLettrine(composerCorps(texteAffichage), s.notes ?? {})
     // `sansAnnonce` : réservé à la prose. Une réplique de dialogue est elle aussi
     // entre guillemets et n'est pas une citation d'auteur (Boèce).
     const sortie = detecterCitationSortie(texte, { sansAnnonce: s.nature === 'texte' })
@@ -1983,7 +2013,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
                   <div lang={langueCorps} onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
                     style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', margin: 0, background: segActif === s.id ? 'var(--cs-vert-pale)' : 'transparent' } as React.CSSProperties}>
-                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
+                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
                   </div>
                   <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
                     {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
@@ -2203,7 +2233,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
-                                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
+                                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
                                   </span>
                                 </Fragment>
                               )
@@ -2219,7 +2249,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
                               lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                               {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
-                              {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texte)), s.notes ?? {})}
+                              {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
                             </p>
                             {estAdmin && (
                               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"

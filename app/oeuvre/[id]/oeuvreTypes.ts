@@ -1,4 +1,5 @@
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -21,6 +22,9 @@ export type SegData = {
   segmentKey?: string | null
   numero: number
   numeroSource: number
+  // Projection d'affichage (appels structurés matérialisés) ; `texte` demeure la
+  // donnée canonique utilisée par l'édition, la copie et le signalement.
+  texteAffichage?: string
   texte: string
   versets: VRef[]
   notes?: Record<string, NoteAffichee>
@@ -98,6 +102,7 @@ export type Props = {
   versionsTextuelles: VersionTextuelle[]
   alignementsDisponibles: AlignementDisponible[]
   notesStructurees?: Record<string, Record<string, NoteStructuree>>
+  ancresNotesStructurees?: Record<string, AncreNoteStructureeProjection[]>
   niv1List: string[]
   niv1TexteMap?: Record<string, string>
   niveauxSommaire?: number
