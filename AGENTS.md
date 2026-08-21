@@ -408,6 +408,14 @@ Config `vitest.config.mts` : la suite ne ramasse que `app/**` et `scripts/**` (`
 - Imports **relatifs** dans les tests (`./referencesBibliques`), pas l'alias `@/` (pas de plugin tsconfig-paths).
 - Premières suites sur la logique pure critique : `app/lib/referencesBibliques.test.ts` (formatage des références, utilisé partout) et `app/lib/classement.test.ts` (score/rangs). **Étendre en priorité** aux invariants sensibles : liens bibliques (`scripts/_liens-commun.mjs::verifierLienMecanique`), alignement `versets_v2`, dates historiques.
 
+# Favoris — `ref_id` n’est PAS toujours un `id_oeuvre` (2026-08-21)
+
+⚠️ `favoris.ref_id` est du **texte libre**, sans clé étrangère vers `oeuvres`. Une œuvre s’y range par son identifiant ; **le TEXTE ORIGINAL lu seul s’y range par `<id_oeuvre>#la`**. Toute lecture de la table doit passer par **`app/lib/refsFavoris.ts`** (`refFavoriOriginal`, `estRefOriginal`, `idOeuvreDeRef`, module pur testé, sans « use client » pour servir aussi le rendu serveur). Un `.in('id_oeuvre', refs)` posé sur les références brutes **laisse tomber en silence** tous les favoris de texte original.
+
+- **Pourquoi un suffixe.** Dix œuvres portent leur latin ou leur grec dans la colonne `segments.texte_original` de la traduction : ce texte n’a **aucune ligne d’`oeuvres` à lui**, donc aucun identifiant à mettre en favori. Une édition en langue originale **autonome** (`langue_trad` vide, `langue_originale` renseignée — les *Confessions* en ont une, Tempsky 1896) garde au contraire son propre identifiant et n’emploie jamais le suffixe.
+- **Trois surfaces à garder d’accord** : la ligne « Texte original latin » de la bibliothèque (`BibliothequeClient`), l’étoile du volet de lecture (`OeuvreClient`, qui range **ce qu’on lit** : le texte original si `modeTexte === 'la'` sur une traduction, l’œuvre sinon), et l’onglet Favoris, qui montre l’œuvre dès que **l’un des deux** est rangé.
+- ⚠️ **`app/compte/page.tsx` interroge une relation `favoris_oeuvres` qui N’EXISTE PAS** en base (relevé le 2026-08-21) : la carte « Bibliothèque » du compte reste donc toujours vide et le point de progression « Mettre une œuvre en favori » ne se coche jamais. À reprendre sur `favoris` (`type='oeuvre'`), en deux requêtes — l’absence de clé étrangère interdit l’embed PostgREST.
+
 # Compte requis pour interagir (commenter, signaler, prélever…)
 
 Toute action d'ÉCRITURE de lecteur exige un compte PERSONNEL. Un visiteur sans compte personnel (compte de démonstration partagé, ou anonyme après l'ouverture) qui clique sur commenter, signaler, prélever, proposer un lien, apprécier ou mettre en favori voit une modale d'invitation à créer un compte, au lieu de l'action.
