@@ -1,9 +1,12 @@
 # Garde-fou du dépôt : à chaque poussée sur master, on vérifie que le code compile
 # et que les tests passent. Rien ne l'assurait jusqu'ici, et un test cassé a pu être
-# poussé en production sans que personne s'en aperçoive (19 août 2026).
+# poussé en production sans que personne ne s'en aperçoive (19 août 2026).
 #
-# TEMPORAIRE SUR LA BRANCHE AELF : la CI applique le dernier nettoyage déterministe
-# du Polyglotte, le valide, puis l'enregistre. Ce bloc sera retiré avant fusion.
+# Le linter tourne en dernier et NE BLOQUE PAS : il relève aujourd'hui 414 erreurs
+# héritées (`no-explicit-any`, `set-state-in-effect`, `no-unescaped-entities`…), et
+# faire échouer la vérification sur cette dette rendrait le garde-fou inutilisable
+# dès le premier jour. Son compte figure dans le résumé de l'exécution : quand il
+# sera retombé à zéro, retirer `continue-on-error` et il deviendra bloquant.
 
 name: Vérification
 
@@ -13,9 +16,6 @@ on:
   pull_request:
   workflow_dispatch: {}
 
-permissions:
-  contents: write
-
 jobs:
   verifier:
     runs-on: ubuntu-latest
@@ -23,17 +23,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: agent/aelf-polyglotte-migration
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
-
-      - name: Retirer la dernière lecture directe legacy du Polyglotte
-        run: node scripts/_oneoff_finalize_aelf_polyglotte.mjs
 
       - name: Installer les dépendances
         run: npm ci
@@ -43,18 +37,6 @@ jobs:
 
       - name: Tests (bloquant)
         run: npm test
-
-      - name: Enregistrer le nettoyage validé
-        run: |
-          if git diff --quiet -- app/polyglotte/page.tsx; then
-            echo "Aucune modification AELF à enregistrer" >&2
-            exit 1
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- app/polyglotte/page.tsx
-          git commit -m "refactor: lire les traductions du Polyglotte via AELF"
-          git push origin HEAD:agent/aelf-polyglotte-migration
 
       - name: Linter (informatif)
         id: linter
