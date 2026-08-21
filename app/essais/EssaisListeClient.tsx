@@ -267,12 +267,6 @@ function OngletCommunaute({
         }
         .couverture:hover { transform: translateY(-5px); box-shadow: 0 2px 6px rgba(40,30,15,0.22), 0 22px 38px -14px rgba(40,30,15,0.48); }
 
-        /* Le dos de reliure : une bande sombre au bord gauche, discrète. */
-        .couverture::before {
-          content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; z-index: 6;
-          background: linear-gradient(90deg, rgba(0,0,0,0.24), rgba(0,0,0,0.03) 78%, rgba(255,255,255,0.07));
-          pointer-events: none;
-        }
 
         /* ⛔ La TÊTE, c'est-à-dire le nom de l'auteur et l'étoile des favoris, et le
            CADRE n'appartiennent à aucune des deux faces : ils sont posés sur le carton
@@ -283,7 +277,7 @@ function OngletCommunaute({
         .couverture-tete {
           position: relative; z-index: 3;
           display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: 10cqw 8cqw 0 8.8cqw;
+          padding: 10cqw 8cqw 0;
         }
         /* Le corps occupe tout ce qui reste sous la tête, et les deux faces s'y
            superposent : elles reçoivent donc exactement la même boîte, sans qu'aucune
@@ -296,13 +290,17 @@ function OngletCommunaute({
         .couverture-face {
           position: absolute; inset: 0;
           display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: 0 8cqw 7.5cqw 8.8cqw;
+          padding: 0 8cqw 7.5cqw;
           transition: opacity 0.22s ease;
         }
         /* Cadre doublé, comme un cartonnage d'éditeur : un filet net au bord, un
            second en retrait. Le retrait vaut la moitié du blanc de tête, ce qui
-           assied le cadre sur la composition au lieu de la cerner de trop près. */
-        .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw 4.6cqw; border: 1px solid; pointer-events: none; z-index: 4; }
+           assied le cadre sur la composition au lieu de la cerner de trop près.
+           ⚠️ Son inset est SYMÉTRIQUE depuis que le dos de reliure a disparu : la
+           bande sombre du bord gauche mangeait cinq pixels, et le cadre comme les
+           deux paddings les compensaient. Sans elle, ces compensations décentraient
+           la composition vers la droite. */
+        .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw; border: 1px solid; pointer-events: none; z-index: 4; }
         .couverture-cadre::before { content: ""; position: absolute; inset: 1.7cqw; border: 1px solid currentColor; opacity: 0.42; }
 
         .couverture-auteur {
