@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { calculerRang, couleurRang } from "@/app/lib/classement";
+import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
+import { estRefOriginal, idOeuvreDeRef } from "@/app/lib/refsFavoris";
 import IconeCrayon from "@/app/components/IconeCrayon";
 import Image from "next/image";
 import { ENCRE_TITRE, ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -241,19 +243,57 @@ function SectionPublications({ userId }: { userId: string }) {
 }
 
 // ── Favoris ──────────────────────────────────────────────────────────────────
-type FavoriOeuvre = { id_oeuvre: string; titre: string; auteur_nom: string }
+// ⚠️ Cette carte interrogeait `favoris_oeuvres`, une relation qui N'EXISTE PAS en
+// base : elle est donc restée vide depuis toujours, et l'échec ne se voyait pas,
+// faute de lire `error`. Les favoris vivent dans `favoris` (type='oeuvre'), dont
+// `ref_id` ne porte AUCUNE clé étrangère vers `oeuvres` — pas d'embed PostgREST
+// possible, d'où les deux requêtes. Une référence suffixée « #la » désigne le texte
+// original lu seul (app/lib/refsFavoris.ts) : elle se résout sur l'œuvre porteuse et
+// se nomme par sa langue, sans quoi elle disparaîtrait faute de correspondance.
+type FavoriOeuvre = { cle: string; href: string; titre: string; auteur_nom: string }
 
 function SectionFavoris({ userId }: { userId: string }) {
   const [favoris, setFavoris] = useState<FavoriOeuvre[]>([]);
   const [charge, setCharge] = useState(true);
 
   useEffect(() => {
-    supabase.from("favoris_oeuvres").select("id_oeuvre, oeuvres(titre, auteurs!oeuvres_id_auteur_fkey(nom))")
-      .eq("user_id", userId).limit(12)
-      .then(({ data }) => {
-        setFavoris((data ?? []).map((f: any) => ({ id_oeuvre: f.id_oeuvre, titre: f.oeuvres?.titre ?? "—", auteur_nom: f.oeuvres?.auteurs?.nom ?? "" })));
-        setCharge(false);
-      });
+    let annule = false;
+    (async () => {
+      const { data: refs, error } = await supabase
+        .from("favoris").select("ref_id, created_at")
+        .eq("user_id", userId).eq("type", "oeuvre")
+        .order("created_at", { ascending: false }).limit(12);
+      if (annule) return;
+      if (error) { console.error("Bibliothèque personnelle : chargement des favoris impossible.", error); setCharge(false); return; }
+
+      const lignes = refs ?? [];
+      if (!lignes.length) { setCharge(false); return; }
+
+      const { data: oeuvres, error: erreurOeuvres } = await supabase
+        .from("oeuvres").select("id_oeuvre, titre, note, langue_originale, auteurs!oeuvres_id_auteur_fkey(nom)")
+        .in("id_oeuvre", [...new Set(lignes.map(f => idOeuvreDeRef(f.ref_id)))]);
+      if (annule) return;
+      if (erreurOeuvres) { console.error("Bibliothèque personnelle : chargement des œuvres impossible.", erreurOeuvres); setCharge(false); return; }
+
+      const parId = new Map<string, any>();
+      for (const o of (oeuvres ?? []) as any[]) if (estOeuvrePubliee(o)) parId.set(o.id_oeuvre, o);
+
+      setFavoris(lignes.flatMap(f => {
+        const id = idOeuvreDeRef(f.ref_id);
+        const oeuvre = parId.get(id);
+        if (!oeuvre) return [];
+        const original = estRefOriginal(f.ref_id);
+        const langue = /grec/i.test(oeuvre.langue_originale ?? "") ? "grec" : "latin";
+        return [{
+          cle: f.ref_id,
+          href: `/oeuvre/${encodeURIComponent(id)}${original ? "?mt=la" : ""}`,
+          titre: original ? `${oeuvre.titre} — texte ${langue}` : oeuvre.titre,
+          auteur_nom: oeuvre.auteurs?.nom ?? "",
+        }];
+      }));
+      setCharge(false);
+    })();
+    return () => { annule = true };
   }, [userId]);
 
   if (charge || favoris.length === 0) return null;
@@ -263,7 +303,7 @@ function SectionFavoris({ userId }: { userId: string }) {
       <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cs-or)", margin: "0 0 14px", textAlign: "center" }}>Bibliothèque</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "8px" }}>
         {favoris.map(f => (
-          <a key={f.id_oeuvre} href={`/oeuvre/${encodeURIComponent(f.id_oeuvre)}`}
+          <a key={f.cle} href={f.href}
             style={{ display: "block", padding: "12px 14px", background: "var(--cs-fond-clair)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", textDecoration: "none", borderLeft: "3px solid var(--cs-bord)", transition: "border-color 0.15s" }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "var(--cs-vert)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderLeftColor = "var(--cs-bord)"; }}>
@@ -468,7 +508,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     Promise.all([
       supabase.from("essais").select("id", { count: "exact", head: true }).eq("auteur_id", user.id).eq("statut", "publie"),
       supabase.from("prelevements").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("favoris_oeuvres").select("id_oeuvre", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("favoris").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "oeuvre"),
     ]).then(([{ count: ce }, { count: cp }, { count: cf }]) => {
       setChecklistDB({ essai: (ce ?? 0) > 0, passage: (cp ?? 0) > 0, favoriOeuvre: (cf ?? 0) > 0, nbCommentaires: 0 });
     });
