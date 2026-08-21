@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, couverture, verset_en_tete').eq('id', id).single()
+  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, couverture, embleme, verset_en_tete').eq('id', id).single()
   if (!essai) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

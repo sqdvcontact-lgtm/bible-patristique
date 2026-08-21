@@ -91,9 +91,36 @@ const FLEURON: ReactNode = <>
   <path {...T} d="M8 32h10M46 32h10" />
 </>
 
-/** Le dessin de la couverture, d'après la première catégorie de la publication. */
+/** Le dessin de la couverture, d'après un registre. */
 export function emblemeDe(categorie: string | null | undefined): ReactNode {
   return EMBLEMES[(categorie ?? '').trim()] ?? FLEURON
+}
+
+/** Le registre dont l'emblème paraît sur la couverture.
+ *
+ *  Une publication porte souvent plusieurs registres, et son auteur choisit lequel
+ *  l'illustre (`essais.embleme`). La lecture est TOLÉRANTE, et elle doit le rester :
+ *  un choix qui ne figure plus parmi les registres cochés, ou dont le registre a
+ *  perdu son dessin, ne doit pas laisser la couverture nue. On retombe alors sur le
+ *  premier registre qui a un emblème, puis sur le premier registre tout court, dont
+ *  le fleuron fera l'affaire.
+ *
+ *  ⚠️ La donnée stocke un REGISTRE, jamais un nom de dessin : le lien registre →
+ *  dessin vit ici et doit pouvoir changer sans migration. */
+export function categorieEmblemeDe(
+  categories: readonly string[] | null | undefined,
+  choix?: string | null,
+): string | null {
+  const liste = (categories ?? []).map(c => (c ?? '').trim()).filter(Boolean)
+  const voulu = (choix ?? '').trim()
+  if (voulu && liste.includes(voulu) && aUnEmbleme(voulu)) return voulu
+  return liste.find(aUnEmbleme) ?? liste[0] ?? null
+}
+
+/** Les registres entre lesquels l'auteur peut choisir : ceux qu'il a cochés et qui
+ *  ont un dessin. Sous deux, le choix ne se pose pas et l'éditeur n'en montre rien. */
+export function emblemesAuChoix(categories: readonly string[] | null | undefined): string[] {
+  return (categories ?? []).map(c => (c ?? '').trim()).filter(c => c && aUnEmbleme(c))
 }
 
 /** Vrai si la catégorie a son propre dessin. Sert aux tests, et à repérer une

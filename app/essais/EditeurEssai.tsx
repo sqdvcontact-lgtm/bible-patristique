@@ -13,6 +13,7 @@ import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
 import { COUVERTURES, COUVERTURE_PAR_DEFAUT, couvertureDe } from '@/app/lib/couverturesEssai'
+import { categorieEmblemeDe, emblemeDe, emblemesAuChoix } from '@/app/lib/emblemesCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 const MAX_CARACTERES = 8000
@@ -23,7 +24,7 @@ const ROUGE_COMPTE = '#a8564d'
 const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
-  essaiExistant?: { couverture?: string | null; id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
+  essaiExistant?: { couverture?: string | null; embleme?: string | null; id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
   modeAdmin?: boolean
   metadonneesInitiales?: Metadonnees | null
   versetEnTeteInitial?: { ref: string; texte: string } | null
@@ -47,6 +48,11 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   // TIRÉE de l'identifiant de la publication, ce qui met de la variété au rayon.
   // Poser une couleur d'office ferait naître toutes les publications de la même.
   const [couverture, setCouverture] = useState<string>(essaiExistant?.couverture ?? '')
+
+  // L'emblème de la couverture. Une publication porte souvent plusieurs registres :
+  // l'auteur dit lequel l'illustre. Vide = le premier registre qui a un dessin, ce
+  // qui était le seul comportement possible avant ce choix.
+  const [embleme, setEmbleme] = useState<string>(essaiExistant?.embleme ?? '')
   const [userId, setUserId] = useState<string | null>(null)
   const [profil, setProfil] = useState<{ pseudo: string | null; nom: string | null; prenom: string | null } | null>(null)
   const [afficherNomReel, setAfficherNomReel] = useState(essaiExistant?.afficher_nom_reel ?? false)
@@ -123,6 +129,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       titre, sous_titre: meta.sousTitre.trim() || null, resume: meta.resume.trim(),
       categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel,
       couverture: couverture || null,
+      embleme: embleme || null,
       verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
       updated_at: new Date().toISOString(),
     }
@@ -436,12 +443,16 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const carSousMin = nbCar > 0 && nbCar < MIN_CARACTERES_PUBLICATION && !(modeAdmin && essaiExistant?.statut === 'publie')
   const carHorsLimite = carSousMin || nbCar > MAX_CARACTERES
   const toggleCategorie = (categorie: string) => {
-    setMeta(prev => ({
-      ...prev,
-      categories: prev.categories.includes(categorie)
+    setMeta(prev => {
+      const categories = prev.categories.includes(categorie)
         ? prev.categories.filter(c => c !== categorie)
-        : [...prev.categories, categorie],
-    }))
+        : [...prev.categories, categorie]
+      // ⚠️ Décocher le registre qui portait l'emblème laisserait un choix orphelin,
+      // que la lecture rattraperait en silence. On le remet à vide tout de suite,
+      // pour que ce que montre le formulaire soit ce qui part en base.
+      if (embleme && !categories.includes(embleme)) setEmbleme('')
+      return { ...prev, categories }
+    })
   }
 
   const validerAvantSoumission = () => {
@@ -689,6 +700,39 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       )
                     })}
                   </div>
+
+                  {/* L'EMBLÈME. Il ne paraît qu'à partir de deux registres illustrés :
+                      sous deux, il n'y a rien à choisir, et une rangée d'un seul bouton
+                      ferait croire à une décision qui n'existe pas. */}
+                  {emblemesAuChoix(meta.categories).length > 1 && (
+                    <div style={{ marginTop: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
+                        <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Emblème de la couverture</label>
+                        <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>
+                          {categorieEmblemeDe(meta.categories, embleme) ?? '—'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {emblemesAuChoix(meta.categories).map(categorie => {
+                          const actif = categorieEmblemeDe(meta.categories, embleme) === categorie
+                          return (
+                            <button key={categorie} type="button"
+                              onClick={() => setEmbleme(categorie)}
+                              title={categorie} aria-label={`Emblème ${categorie}`} aria-pressed={actif}
+                              style={{
+                                width: '2.5rem', height: '2.5rem', borderRadius: '4px', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px',
+                                background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)',
+                                border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
+                                boxShadow: actif ? '0 0 0 2px rgba(61,107,79,0.18)' : 'none',
+                              }}>
+                              <svg viewBox="0 0 64 64" width="100%" height="100%" role="presentation">{emblemeDe(categorie)}</svg>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

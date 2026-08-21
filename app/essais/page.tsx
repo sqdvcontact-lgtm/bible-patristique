@@ -16,7 +16,7 @@ export const metadata = {
 export default async function EssaisPage() {
   const { data: essaisRaw } = await supabaseAdmin
     .from('essais')
-    .select('id, titre, sous_titre, resume, categories, nb_vues, created_at, publie_at, user_id, afficher_nom_reel, couverture')
+    .select('id, titre, sous_titre, resume, categories, nb_vues, created_at, publie_at, user_id, afficher_nom_reel, couverture, embleme')
     .eq('statut', 'publie')
     .order('publie_at', { ascending: false })
 

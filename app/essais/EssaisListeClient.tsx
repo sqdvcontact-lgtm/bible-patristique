@@ -8,7 +8,7 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
-import { emblemeDe } from '@/app/lib/emblemesCouverture'
+import { categorieEmblemeDe, emblemeDe } from '@/app/lib/emblemesCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -23,6 +23,8 @@ type EssaiResume = {
   user_id?: string | null
   /** Clé de la couleur de couverture choisie par l'auteur (voir couverturesEssai.ts). */
   couverture?: string | null
+  /** Registre dont l'emblème illustre la couverture, quand il y en a plusieurs. */
+  embleme?: string | null
 }
 
 type EssaiPerso = {
@@ -448,10 +450,12 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   // Sans choix de l'auteur, la couleur est TIRÉE de l'identifiant : variée d'une
   // publication à l'autre, mais stable pour chacune.
   const c = couvertureDe(e.couverture, e.id)
-  // La categorie annonce le genre sous le nom de l’auteur, et commande
-  // l’emblème. Une publication peut en porter plusieurs : la première est la
-  // principale, les autres servent au filtrage et n’ont pas leur place ici.
+  // Le premier registre annonce le genre sous le nom de l’auteur ; les autres
+  // servent au filtrage et n’ont pas leur place ici.
   const categorie = e.categories?.[0] ?? null
+  // L’EMBLÈME, lui, ne suit pas forcément ce premier registre : l’auteur choisit
+  // lequel de ses registres illustre sa couverture (`essais.embleme`).
+  const categorieDessin = categorieEmblemeDe(e.categories, e.embleme)
   // Titre, sous-titre et résumé sont tapés par l’auteur dans un formulaire : ils
   // arrivent avec l’apostrophe droite et la ponctuation collée du clavier. La norme
   // s’applique AU RENDU (charte §3.2), jamais dans la donnée.
@@ -482,7 +486,7 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           {/* L'emblème est un ornement, pas une information : il double la catégorie,
               déjà écrite au-dessus, et n'a donc rien à annoncer. */}
           <span className="couverture-embleme" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorie)}</svg>
+            <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorieDessin)}</svg>
           </span>
           <span className="couverture-pied">
             <span className="couverture-losange" aria-hidden="true"><span>◆</span></span>

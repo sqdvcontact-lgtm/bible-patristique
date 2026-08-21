@@ -44,6 +44,7 @@ export default async function ModifierEssaiPage({ params }: { params: Promise<{ 
         afficher_nom_reel: essai.afficher_nom_reel ?? false, publie_at: essai.publie_at,
         verset_en_tete: essai.verset_en_tete ?? null,
         couverture: essai.couverture ?? null,
+        embleme: essai.embleme ?? null,
       }}
     />
   )
