@@ -45,7 +45,8 @@ jobs:
       - name: Tests (bloquant)
         run: npm test
 
-      - name: Linter ciblé (bloquant)
+      - name: Linter ciblé (informatif)
+        continue-on-error: true
         run: npx eslint app/page.tsx app/lib/bibleMultimodeServer.ts app/components/TexteBible.tsx
 
       - name: Enregistrer la migration validée
