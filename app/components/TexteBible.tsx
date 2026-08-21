@@ -679,12 +679,18 @@ export default function TexteBible({
 
           {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu
               d'un mur de « [Lacune du manuscrit] ». Rien d'autre, ni ornement ni glose :
-              la mention se suffit à elle-même. */}
+              la mention se suffit à elle-même.
+              Calée sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc de
+              texte + colonne d'actions exclue du centrage) : sans cela, la mention se
+              centrerait sur la pleine largeur et pendrait à droite de l'axe du titre. */}
           {chapitreToutLacune && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
-              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
-                Lacune du manuscrit
-              </p>
+            <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
+                <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
+                  Lacune du manuscrit
+                </p>
+              </div>
+              <div />
             </div>
           )}
 
