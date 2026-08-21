@@ -871,6 +871,8 @@ La table `editeurs` tient le nom complet de chaque maison et les formes sous les
 - **Trois notices restent hors d'atteinte**, et c'est une affaire de DONNÉES, non de règle : elles noient la maison dans une phrase bibliographique (« … Paris, Librairie de Louis Vivès ; texte latin et notes de l'édition des Bénédictins. », « … accurante J.-P. Migne, Paris, 1845. »), ou nomment une maison absente de la table (F. Tempsky, pour le CSEL). Les corriger demande de nettoyer `oeuvre_textes.edition_label` ou de compléter `editeurs`, pas d'élargir l'heuristique.
 - **Une fourchette d'années est une année** : « 1984 – 1986 » partait dans l'éditeur, le test d'égalité stricte ne reconnaissant que quatre chiffres.
 
-## Une version se donne comme une traduction, pas comme un nom
+## Une traduction se donne par un nom, des dates et une édition
 
-Dans le menu « Éditions de ce texte », une version en langue originale s'annonce « Texte latin » ; en face, la traduction française se donnait sous le seul nom de son traducteur, liste du catalogue et point-virgule compris : « H. Barreau ; M. Charpentier ». `libelleVersionComplet` emploie désormais `libelleTrad`, la formule du frontispice : « Traduction par H. Barreau et M. Charpentier, 1873 ». La mention « édition de » a disparu, la rubrique du menu annonçant déjà des éditions.
+Toutes les versions rattachées au même `id_oeuvre` partagent le même menu « Traductions », quel que soit l'`id_texte` actif. `libelleVersionComplet` y donne une traduction sous la forme exacte « H. Barreau et M. Charpentier (dates de vie), édition de 1873 » : noms mis en forme, dates structurées lorsqu'elles sont connues, puis millésime de `oeuvre_textes.annee_edition`. Une version en langue originale garde son propre titre.
+
+Le choix de langue reste lui aussi commun aux traductions. L'original demeure visible mais grisé quand la portée affichée n'est pas encore alignée. Le mode « Traductions parallèles » reste retiré jusqu'à sa réactivation explicite.

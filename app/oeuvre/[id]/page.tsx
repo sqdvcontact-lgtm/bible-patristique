@@ -12,6 +12,7 @@ import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructu
 import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { construireIndexOriginal, type GroupeOriginalRow, type IndexOriginalAligne, type MembreOriginalRow } from './alignementOriginal'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
@@ -95,6 +96,35 @@ type AlignementRow = {
   reference_text_id: string
   aligned_text_id: string
   status: string | null
+}
+
+async function chargerIndexOriginalAligne(
+  supabase: Client,
+  idTexte: string,
+  alignements: AlignementDisponible[],
+): Promise<IndexOriginalAligne> {
+  const candidats = alignements.filter(alignement =>
+    alignement.referenceTextId === idTexte || alignement.alignedTextId === idTexte)
+
+  for (const alignement of candidats) {
+    const [groupesResult, membresResult] = await Promise.all([
+      supabase.from('texte_alignements')
+        .select('alignment_id,metadata')
+        .eq('alignment_set_id', alignement.alignmentSetId),
+      supabase.from('texte_alignement_membres')
+        .select('alignment_id,segment_key,member_order')
+        .eq('alignment_set_id', alignement.alignmentSetId)
+        .eq('id_texte', idTexte)
+        .order('member_order', { ascending: true }),
+    ])
+    if (groupesResult.error || membresResult.error) continue
+    const index = construireIndexOriginal(
+      (groupesResult.data ?? []) as GroupeOriginalRow[],
+      (membresResult.data ?? []) as MembreOriginalRow[],
+    )
+    if (Object.keys(index).length > 0) return index
+  }
+  return {}
 }
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
@@ -302,6 +332,9 @@ export default async function OeuvrePage({
     ? alignementsDisponibles.find(alignement => alignement.alignmentSetId === sp.compare)
     : null
   const versionActive = versionParId.get(idTexte)!
+  // Le latin de Ceriziers n'est pas recopié dans les segments : il est projeté
+  // depuis l'alignement sémantique normatif, groupe 1:n compris.
+  const originalAligneParSegment = await chargerIndexOriginalAligne(supabase, idTexte, alignementsDisponibles)
 
   // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
@@ -585,6 +618,7 @@ export default async function OeuvrePage({
       estAdmin={estAdmin}
       versionsTextuelles={versionsTextuelles}
       alignementsDisponibles={alignementsDisponibles}
+      originalAligneParSegment={originalAligneParSegment}
       notesStructurees={notesStructurees}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}

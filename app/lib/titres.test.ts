@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cleTriTitre, sansPointFinal, normaliserTitreTechnique } from './titres'
+import { cleTriTitre, sansPointFinal, normaliserCapitalesTitreStructurel, normaliserTitreTechnique } from './titres'
 
 describe('cleTriTitre', () => {
   it('retire l’article défini de tête', () => {
@@ -67,5 +67,19 @@ describe('normaliserTitreTechnique', () => {
     expect(normaliserTitreTechnique(null)).toBe('')
     expect(normaliserTitreTechnique(undefined)).toBe('')
     expect(normaliserTitreTechnique('')).toBe('')
+  })
+})
+
+describe('normaliserCapitalesTitreStructurel', () => {
+  it('compose les livres en casse française et conserve les chiffres romains', () => {
+    expect(normaliserCapitalesTitreStructurel('LIVRE PREMIER')).toBe('Livre premier')
+    expect(normaliserCapitalesTitreStructurel('CHAPITRE IV')).toBe('Chapitre IV')
+    expect(normaliserCapitalesTitreStructurel('LIMINAIRES')).toBe('Liminaires')
+  })
+
+  it('ne touche ni au corps ni aux titres qui peuvent contenir des noms propres', () => {
+    expect(normaliserCapitalesTitreStructurel('MOY dont les premiers Vers')).toBe('MOY dont les premiers Vers')
+    expect(normaliserCapitalesTitreStructurel('AU ROY CHARLES')).toBe('AU ROY CHARLES')
+    expect(normaliserCapitalesTitreStructurel('Livre premier')).toBe('Livre premier')
   })
 })

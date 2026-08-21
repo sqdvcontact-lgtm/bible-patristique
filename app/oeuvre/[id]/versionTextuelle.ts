@@ -1,5 +1,5 @@
 import type { VersionTextuelle } from './oeuvreTypes'
-import { libelleTrad } from '@/app/lib/traducteurs'
+import { enumererTraducteurs } from '@/app/lib/traducteurs'
 import {
   editeursDuSegment,
   estVilleConnue,
@@ -37,28 +37,18 @@ function datesTraducteur(metadata: Record<string, unknown> | null | undefined): 
   return null
 }
 
-/** Libellé d'une version dans le sélecteur « Éditions de ce texte » : la formule de
- *  traduction du site, les dates du traducteur si on les connaît, puis le millésime.
- *
- *  ⚠️ Il rendait `traducteur` BRUT, c'est-à-dire la liste du catalogue avec son
- *  point-virgule : « H. Barreau ; M. Charpentier, édition de 1873 ». Un point-virgule
- *  affiché signale toujours un endroit qui imprime `trad_auteur` sans le mettre en
- *  forme. Et un nom propre posé seul en regard d'un « Texte latin » ne dit pas ce
- *  qu'on choisit : c'est une traduction, et la ligne doit le dire.
- *
- *  Une version en langue originale n'a pas de traducteur à nommer : c'est son titre
- *  de version qui la désigne, « Texte latin ». */
+/** Libellé d'une version dans le sélecteur « Traductions » : nom du traducteur,
+ *  dates de vie si elles sont connues, puis « édition de AAAA ». Une version en
+ *  langue originale n'a pas de traducteur : son titre la désigne. */
 export function libelleVersionComplet(
   version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition' | 'metadata'>,
 ): string {
   const dates = datesTraducteur(version.metadata)
-  const formule = libelleTrad(version.traducteur)
-  const tete = formule
-    ? (dates ? `${formule} (${dates})` : formule)
+  const noms = enumererTraducteurs(version.traducteur)
+  const tete = noms
+    ? (dates ? `${noms} (${dates})` : noms)
     : (version.titre?.trim() || 'Édition')
-  // Le millésime seul : la rubrique du menu annonce déjà des éditions, et « édition
-  // de 1646 » sous « Éditions de ce texte » redisait le mot pour rien.
-  const annee = version.anneeEdition ? String(version.anneeEdition) : null
+  const annee = version.anneeEdition ? `édition de ${version.anneeEdition}` : null
   return [tete, annee].filter(Boolean).join(', ')
 }
 
