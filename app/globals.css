@@ -1,0 +1,618 @@
+/* Sources de Tailwind bornées à `app/`, la seule arborescence que Next compile.
+   ⚠️ Ne pas revenir à la détection automatique (`@import "tailwindcss";` seul) :
+   elle balaie tout le dépôt, or `work/bible899` est une JONCTION NTFS vers
+   `D:\Corpus Scriptura\…`. Turbopack refuse alors une dépendance hors racine
+   (« Cannot depend on path … outside of root directory ») et TOUTES les pages
+   tombent en 500, avec une trace qui accuse `globals.css` sans dire pourquoi.
+   Le `.gitignore` ne peut pas servir de garde-fou ici : les lots Bible 899 sont
+   versionnés. Le balayage y gagne au passage, `work/` pesant 14 Go. */
+@import "tailwindcss" source(none);
+@source "../app";
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+:root {
+  /* ── Sol et encre du document ──
+     Ces deux noms viennent du gabarit Next d'origine ; ils ne portent plus de
+     valeur en propre. Ils sont DÉRIVÉS des tokens du site, si bien que le sol
+     du document suit désormais le thème comme tout le reste. Ils étaient jusqu'ici
+     les deux SEULES variables qu'aucun thème ne redéfinissait : le Sépia et le
+     Cuir les auraient trahies, et un poste réglé en thème sombre recevait déjà
+     un sol noir (`#0a0a0a`) sous des pages crème — cf. le bloc
+     `@media (prefers-color-scheme: dark)` retiré ici, que la charte proscrivait
+     explicitement tant que le site n'est pas prêt pour un mode sombre. */
+  --background: var(--cs-fond);
+  --foreground: var(--cs-texte);
+
+  /* ── Mesure de lecture (responsive) ──
+     Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
+     la police racine fluide (voir la règle `html` plus bas) : la colonne de
+     texte conserve ainsi ses proportions (même nombre de caractères par ligne)
+     quand tout grossit sur un grand écran. Valeurs = px d'origine / 16. */
+  --mesure-texte: 30rem;     /* 480px  piste de texte            */
+  --mesure-bloc:  31.25rem;  /* 500px  bloc de sélection         */
+  --mesure-ligne: 33.625rem; /* 538px  largeur de ligne          */
+  --mesure-page:  38.75rem;  /* 620px  conteneur de lecture      */
+
+  /* ── Couleur d'accent : le vert du site ──
+     Source unique de la teinte verte, jusqu'ici répétée en dur (~470 fois pour
+     l'aplat, ~150 pour ses variantes translucides). Changer la teinte du site =
+     modifier ces trois lignes. `--cs-vert-rgb` porte les composantes RGB pour
+     composer les variantes translucides via `rgba(var(--cs-vert-rgb), α)`.
+     N.B. les attributs SVG `fill=`/`stroke=` gardent la valeur littérale : une
+     custom property n'y est pas résolue par tous les navigateurs. */
+  --cs-vert: #3d6b4f;         /* aplat d'accent (liens, boutons, actifs) */
+  --cs-vert-rgb: 61, 107, 79; /* mêmes composantes, pour les rgba(...) */
+  --cs-vert-fonce: #2e5440;   /* survol / état pressé */
+
+  /* ── Palette harmonisée : tokens sémantiques ──
+     Source unique des neutres, encres, danger et or, jusqu'ici éclatés en
+     ~776 valeurs distinctes (des dizaines de quasi-doublons indiscernables).
+     Chaque token est ANCRÉ sur la valeur déjà dominante de sa famille : le
+     rendu perçu ne bouge pas, seuls les doublons disparaissent. Comme pour le
+     vert, les attributs SVG `fill=`/`stroke=` gardent la valeur littérale
+     (une custom property n'y est pas résolue). Le site est en thème clair ;
+     un éventuel mode sombre se dérivera de ces mêmes tokens. */
+  /* Fonds (papiers crème) */
+  --cs-fond: #f7f4ef;
+  --cs-fond-clair: #faf8f4;
+  --cs-fond-doux: #ede9e2;
+  /* Bordures & filets */
+  --cs-bord: #d6d0c4;
+  --cs-bord-rgb: 214, 208, 196;
+  --cs-bord-clair: #e4dfd8;
+  /* Texte — échelle de gris chauds, du plus ténu au corps */
+  --cs-texte-faible: #b0a89e;
+  --cs-texte-doux: #9a958d;
+  /* Le barreau qui manquait à l'échelle. Il était écrit en dur 80 fois dans 40 fichiers,
+     à 46 du token le plus proche : ce n'était pas un doublon, c'était un rang que le code
+     avait créé tout seul, par usage, pour la prose explicative. On le nomme plutôt que de
+     le rabattre : un token de plus vaut mieux qu'une teinte déplacée dans quarante fichiers. */
+  --cs-texte-gris: #8a8278;
+  --cs-texte-second: #6b6560;
+  --cs-texte: #3a3530;
+  --cs-texte-fort: #2a2520;
+  /* Encre — verts des titres (deux valeurs, cf. §AGENTS) */
+  --cs-encre: #2a3d30;
+  --cs-encre-fonce: #1e2e24;
+  /* Vert d'accent : teinte pâle pour encarts (l'aplat est au-dessus) */
+  --cs-vert-pale: #dfe8e0;
+  /* Danger & alerte (rouges-orangés d'action destructive) */
+  --cs-danger: #c0562a;
+  --cs-danger-rgb: 192, 86, 42;
+  --cs-danger-fonce: #9a2a2a;
+  --cs-danger-fond: #fdf2ee;
+  --cs-danger-bord: #e4c4b8;
+  /* Attente — « à normaliser », « brouillon », « en cours ». Un état de FILE, pas une
+     alerte : le danger est destructif, l'or est un accent d'apparat, et l'ocre de lacune
+     dit l'absence d'un témoin. Aucun ne convenait, d'où ce terre de Sienne dédié. */
+  --cs-attente: #9a5a2a;
+  /* Or — accent doré (références, fleurons, favoris) */
+  --cs-or: #9a7a38;
+  --cs-or-doux: #c8b89e;
+  /* Familles de la navbar. « Corpus » prend le vert, « Communauté » l'or ; « Système &
+     doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
+     donc intransposable en Sépia et en Cuir. Il l'est maintenant. */
+  --cs-systeme: #5f6b86;
+  /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
+     profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
+     sur les fonds clairs, tout en se lisant comme une annotation d'éditeur, non comme du
+     texte fané. Distinct du gris des lectures incertaines (présent mais douteux). */
+  --cs-lacune: #8a6a2c;
+
+  /* Surface « papier » : cartes, menus, champs. Blanc en thème clair (identique à
+     l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token
+     qui permet aux fonds — jadis `#fff` en dur — de suivre le thème. */
+  --cs-surface: #fff;
+  /* Libellé chaud en petites capitales (« RÉCIT », « Chapitre 3 ») : un tan discret
+     qui n'existait dans aucune famille — d'où son token dédié (valeur claire =
+     l'actuelle, pour que le Clair ne bouge pas). */
+  --cs-etiquette: #9e8e6a;
+
+  /* ── Teintes posées sur le panneau mobile, qui est vert sombre EN TOUTES CIRCONSTANCES ──
+     Elles n'ont donc pas de surcouche de thème : leur fond ne change pas. Ce sont les
+     variantes claires des trois familles, lisibles sur ce vert. */
+  --cs-vert-clair: #a7d3b6;
+  --cs-or-clair: #d8bd7e;
+  --cs-systeme-clair: #aab3cf;
+
+  /* ── Élévations ──
+     Le site comptait 63 formules d'ombre distinctes, dont des paires que rien ne
+     séparait à l'œil (mêmes décalages, 0,16 contre 0,18). Trois élévations suffisent,
+     plus deux variantes vers le HAUT pour les barres et tiroirs du bas, dont l'ombre
+     se porte dans l'autre sens. Ancrées sur les formes déjà dominantes. */
+  --cs-ombre-posee: 0 1px 4px rgba(45, 35, 25, 0.06);
+  /* Petit objet qui FLOTTE (bouton bascule, infobulle, cellule d actions) : le flou
+     reste court, mais l ombre doit être franche, sinon l objet retombe sur la page. */
+  --cs-ombre-nette: 0 2px 8px rgba(45, 35, 25, 0.20);
+  --cs-ombre-posee-haut: 0 -1px 4px rgba(45, 35, 25, 0.06);
+  --cs-ombre-flottante: 0 4px 16px rgba(45, 35, 25, 0.16);
+  --cs-ombre-modale: 0 12px 40px rgba(0, 0, 0, 0.18);
+  --cs-ombre-modale-haut: 0 -10px 28px rgba(45, 35, 25, 0.22);
+}
+
+/* ══ Confort de lecture — thèmes alternatifs (surcouches de tokens) ══
+   Sélection MANUELLE via l'attribut data-theme sur <html> (aucun basculement
+   automatique : le clair reste le défaut). Mêmes rôles, teintes transposées dans
+   la même famille (crème/brun · vert · or), jamais de blanc ni de noir purs. */
+
+/* ── Sépia : parchemin chaud, moins de bleu ── */
+:root[data-theme="sepia"] {
+  --cs-fond: #f3ead7;
+  --cs-fond-clair: #f8f1e0;
+  --cs-fond-doux: #ece0c9;
+  --cs-surface: #f8f1e0;
+  --cs-bord: #d0bf9d;
+  --cs-bord-rgb: 208, 191, 157;
+  --cs-bord-clair: #ddceb0;
+  --cs-texte-faible: #b4a482;
+  --cs-texte-doux: #9c8a6c;
+  --cs-texte-gris: #867457;
+  --cs-texte-second: #6f5f45;
+  --cs-texte: #443723;
+  --cs-texte-fort: #332818;
+  --cs-encre: #40442a;
+  --cs-encre-fonce: #33371f;
+  --cs-vert: #556b3c;
+  --cs-vert-rgb: 85, 107, 60;
+  --cs-vert-fonce: #41542d;
+  --cs-vert-pale: #e2e2c4;
+  --cs-danger: #b0552a;
+  --cs-danger-rgb: 176, 85, 42;
+  --cs-danger-fonce: #8e2a1e;
+  --cs-danger-fond: #f6e6d6;
+  --cs-danger-bord: #dcc0a0;
+  --cs-attente: #8f5526;
+  --cs-or: #8f6f2c;
+  --cs-or-doux: #c4ab7e;
+  --cs-systeme: #6a6a72;
+  --cs-etiquette: #8a744a;
+}
+
+/* ── Cuir : brun chaud « vieux livre », texte crème, vert en accent (variante B) ── */
+:root[data-theme="sombre"] {
+  --cs-fond: #1c1813;
+  --cs-fond-clair: #241f18;
+  --cs-fond-doux: #2b251c;
+  --cs-surface: #241f18;
+  --cs-bord: #3a3227;
+  --cs-bord-rgb: 58, 50, 39;
+  --cs-bord-clair: #463c2e;
+  /* L'échelle de texte s'inverse (clair sur fond sombre) : « faible » = le plus
+     discret (sombre), « fort » = le plus lumineux. */
+  --cs-texte-faible: #756956;
+  --cs-texte-doux: #988a70;
+  --cs-texte-gris: #a79b83;
+  --cs-texte-second: #b6ac96;
+  --cs-texte: #e6ded0;
+  --cs-texte-fort: #f2ebda;
+  --cs-encre: #9fc6a4;
+  --cs-encre-fonce: #8bb798;
+  --cs-vert: #7bb98e;
+  --cs-vert-rgb: 123, 185, 142;
+  --cs-vert-fonce: #6aa87d;
+  --cs-vert-pale: #26332a;
+  --cs-danger: #d9714a;
+  --cs-danger-rgb: 217, 113, 74;
+  --cs-danger-fonce: #c25738;
+  --cs-danger-fond: #2f211b;
+  --cs-danger-bord: #4a3a30;
+  --cs-attente: #c98452;
+  --cs-or: #b89a5e;
+  --cs-or-doux: #8f7a52;
+  --cs-systeme: #98a3c2;
+  --cs-ombre-posee: 0 1px 4px rgba(0, 0, 0, 0.30);
+  --cs-ombre-nette: 0 2px 8px rgba(0, 0, 0, 0.50);
+  --cs-ombre-posee-haut: 0 -1px 4px rgba(0, 0, 0, 0.30);
+  --cs-ombre-flottante: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --cs-ombre-modale: 0 12px 40px rgba(0, 0, 0, 0.60);
+  --cs-ombre-modale-haut: 0 -10px 28px rgba(0, 0, 0, 0.55);
+  --cs-etiquette: #b09a72;
+}
+
+/* ── Agrandissement fluide sur grands écrans ──
+   Le site est dessiné en unités px/rem calibrées pour un portable. Cette police
+   racine fluide reste à 16px jusqu'à 1440px de large (aucun changement visuel
+   sur les écrans habituels), puis grandit linéairement jusqu'à 22px à 2400px
+   (×1,375 — plafond, pensé pour le confort des yeux sur grand moniteur). Points
+   de repère : 1920px → 19px, 2400px et au-delà → 22px. Tout ce qui est exprimé
+   en rem (texte de lecture, mesures ci-dessus) grossit proportionnellement. On
+   ne touche QUE la taille de police : les unités `vh` restent intactes, donc les
+   mises en page `calc(100vh - 3.5rem)` ne débordent jamais. */
+html {
+  font-size: clamp(16px, calc(7px + 0.625vw), 22px);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-source-serif);
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-source-sans), Arial, sans-serif;
+}
+
+/* Toute hiérarchie de titre appartient à la voix éditoriale du site. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-source-serif), Georgia, serif;
+}
+
+/* ── Page Traductions ── */
+.trad-article p,
+.trad-article p :not(sup) {
+  font-size: 0.84375rem !important;
+  color: var(--cs-texte-fort) !important;
+  line-height: 1.65 !important;
+  margin: 0 0 10px !important;
+  text-decoration: none !important;
+  text-align: justify !important;
+  hyphens: auto !important;
+}
+.trad-article sup {
+  font-size: 0.6em !important;
+}
+.trad-article h1 {
+  font-family: var(--font-source-serif), Georgia, serif !important;
+  font-size: 1.0625rem !important;
+  font-weight: normal !important;
+  color: var(--cs-encre-fonce) !important;
+  margin: 20px 0 8px !important;
+  text-decoration: none !important;
+}
+.trad-article h2 {
+  font-family: var(--font-source-serif), Georgia, serif !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: var(--cs-encre) !important;
+  margin: 18px 0 6px !important;
+  text-decoration: none !important;
+}
+.trad-article strong {
+  font-weight: 600 !important;
+  color: var(--cs-texte-fort) !important;
+  text-decoration: none !important;
+}
+.trad-article em {
+  font-style: italic !important;
+  color: var(--cs-texte) !important;
+  text-decoration: none !important;
+}
+.trad-article .sc {
+  font-variant: small-caps !important;
+}
+
+/* ── Accessibilité : focus clavier toujours visible ──
+   Beaucoup de champs neutralisent l'outline par défaut (`outline: none` en style
+   inline) sans le remplacer : la navigation au clavier devenait invisible. On
+   restaure un anneau de focus, UNIQUEMENT au clavier (`:focus-visible`) — l'aspect
+   au clic/tap souris ne change donc pas. Anneau à la couleur d'accent du site.
+   Le `!important` est nécessaire pour l'emporter sur les `outline: none` en ligne. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline: 2px solid var(--cs-vert) !important;
+  outline-offset: 1px;
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--cs-vert);
+  outline-offset: 2px;
+}
+/* Champs sur fond vert/sombre : l'anneau vert ne contrasterait pas → anneau clair. */
+.cs-focus-clair:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ── Chiffres romains de siècle ── */
+.num-romain {
+  font-variant: all-small-caps;
+}
+
+/* ── Titres d'œuvres cités dans une notice d'auteur ──
+   Un titre cité dans une notice DÉJÀ composée en italique revient au ROMAIN.
+   C'est la règle typographique, et ici elle n'est pas décorative : sans elle,
+   l'italique d'un titre serait rigoureusement invisible dans une notice qui
+   l'est tout entière, et l'enrichissement ne servirait à rien. */
+.cs-notice-italique em {
+  font-style: normal;
+}
+
+/* ── Bibliothèque (page « Patristique ») : photo d'auteur sur petit écran ──
+   En pleine largeur, la photo prenait une haute bande verticale à gauche de la
+   carte. Sur mobile/petit écran, on s'en passe entièrement : le texte gagne toute
+   la place. `!important` car la taille est posée en style inline. */
+@media (max-width: 700px) {
+  /* ── Fiche d’une traduction (/traductions) : ne pas justifier un ruban ──
+     Sous 700px, la colonne de texte de la fiche dépliée tombe autour de 220px. La
+     justification y creuse des rivières et multiplie les césures : sur une colonne
+     aussi étroite, le fer à gauche se lit mieux. Le !important répond à celui de la
+     règle .trad-article p plus haut, qui impose la justification sur grand écran. */
+  .trad-fiche-texte p,
+  .trad-article p { text-align: left !important; }
+  /* Et le portrait latéral s'efface : il perturbait la lecture, et il fait double
+     emploi avec le bandeau qui surmonte la fiche, où le même visage paraît déjà en
+     pleine largeur. Le texte prend toute la place, comme sur la carte d'auteur. */
+  .trad-fiche-portrait { display: none !important; }
+
+  /* ── Progression : la jauge passe AU-DESSUS du texte ──
+     La colonne de gauche est un disque de 132 px, plantée dans une grille 150px 1fr.
+     Sur un téléphone de 375 px, la carte dispose de 283 px : la jauge et sa gouttière
+     en prennent 172, et il ne reste que 111 px pour le texte. Empilé, chacun a toute
+     la largeur, et la jauge reste centrée. */
+  .prog-entete { grid-template-columns: 1fr !important; gap: 14px !important; }
+
+  .bib-photo { display: none !important; }
+  /* Sans la photo, la hauteur fixe de 200px (posée en inline pour uniformiser la
+     grille sur grand écran) laissait un grand blanc entre la notice et la ligne
+     « N œuvre(s) disponible(s) ». En une seule colonne, la carte épouse son contenu. */
+  .bib-carte-haut { height: auto !important; }
+
+  /* ── La liste des œuvres, resserrée ────────────────────────────────────────
+     Sur un téléphone, chaque œuvre tenait 81px pour deux lignes de texte. Le
+     coupable n'était pas l'interligne mais la LARGEUR volée : « Lire → » est
+     posé en flex-shrink: 0 et white-space: nowrap, donc il réserve sa place en
+     permanence, alors qu'il ne s'affiche qu'au survol. Sans curseur il est
+     invisible ET encombrant, et le libellé de l'édition s'enroulait sur la
+     ligne suivante pour lui laisser un couloir qui ne servait à personne. */
+  .bib-oeuvre { padding: 2px 0 3px !important; }
+  /* L'étoile des œuvres à PLUSIEURS éditions reste sur sa ligne, mais se cale
+     sur la PREMIÈRE ligne du libellé au lieu de se centrer sur un bloc enroulé :
+     c'est le même défaut que celle du titre, au même endroit.
+     ⚠️ align-SELF, et non align-items : la rangée parente porte alignItems: center en
+     style inline, et c'est elle qui place la puce. align-items sur la puce ne
+     gouvernerait que le bouton À L'INTÉRIEUR d'elle, sans la déplacer d'un pixel. */
+  .bib-etoile { align-self: flex-start !important; padding-top: 3px !important; }
+  /* ── Le blanc entre le titre et ses sous-données ───────────────────────────
+     Il venait de trois endroits, dont un invisible à la lecture du code : le
+     `gap: 7px` de la ligne d'édition est posé pour séparer le libellé de sa
+     mention d'édition SUR UNE MÊME LIGNE, mais un `gap` gouverne aussi les
+     RANGÉES. Dès que le texte s'enroule, ce qui est la règle sur un téléphone,
+     les mêmes 7px s'installaient donc entre les deux lignes, où personne ne les
+     avait voulus. On ne garde qu'un `row-gap` de 3px et l'interligne descend de
+     1,5 à 1,35 : ce sont des libellés courts, pas de la prose.
+     Mesuré : 3px de blanc sous le titre, 2px entre les sous-lignes. Le premier
+     reste au-dessus du second, sans quoi le titre cesserait de coiffer ce qui
+     le suit. */
+  .bib-ligne a > span { row-gap: 3px !important; line-height: 1.35 !important; }
+  .bib-ligne { margin-top: 1px !important; }
+
+  /* ── Rendre à la colonne la largeur que les marges lui prenaient ───────────
+     Le conteneur de page garde 32px de chaque côté, calibrés pour un écran
+     large. Sur un téléphone de 390px, ces 64px sont le sixième de l'écran, et
+     ils sont prélevés sur la seule chose qui compte, le texte. À 16px, la carte
+     passe de 326 à 358px sans jamais toucher le bord. */
+  .bib-page { padding-left: 16px !important; padding-right: 16px !important; }
+  /* L'alinéa des éditions se décomposait en 3px de filet, 20px de colonne
+     d'étoile, 16px d'étoile et 9px de lien, soit 48px : un huitième de l'écran
+     pour dire « ceci dépend du titre ci-dessus ». La colonne d'étoile descend à
+     10px et le lien à 6px, ce qui laisse 12px de décrochement sous le titre. Il
+     en faut peu : le titre est en italique à empattements, l'édition en sans, et
+     c'est le change de caractère qui porte la hiérarchie sur une colonne
+     étroite. La LARGEUR de la colonne d'étoile, elle, ne bouge pas : la cale des
+     lignes sans étoile doit rester exactement de la taille d'une étoile, sinon
+     « Texte original » cesse de s'aligner sur « Traduction ». */
+  .bib-ligne > div:first-child { padding-left: 10px !important; }
+  .bib-ligne a { padding: 2px 8px 2px 6px !important; }
+}
+
+@media (hover: none) {
+  /* Rien ne se survole sur un écran tactile : « Lire → » ne paraîtra jamais. On
+     ne le cache pas seulement, on lui retire sa place. La ligne entière est déjà
+     un lien, l'indice était un confort de bureau. */
+  .bib-lire { display: none !important; }
+  /* La cible de l'étoile, agrandie SANS toucher à la mise en page : un pseudo
+     élément déborde de la puce. À 12px de glyphe, on visait un carré de 16px. */
+  .etoile-favori { position: relative; }
+  .etoile-favori::after { content: ''; position: absolute; inset: -7px -6px; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Page Bible — deux hiérarchies, T1 à T6 et I1 à I6
+
+   `T` dit la PROFONDEUR d'un titre structurel attesté, `I` dit l'ÉTENDUE qu'un
+   bloc d'information explique. Elles ne sont pas interchangeables : le titre
+   d'une péricope est T6, ce qui l'explique est I5.
+
+   Les douze jetons existent ici même si un volume n'en emploie qu'une partie :
+   un tome plus structuré doit s'accueillir sans retoucher le rendu. Les niveaux
+   sont calqués sur les rangs de la page d'œuvre.
+
+   ⛔ Deux niveaux voisins ne se distinguent JAMAIS par la seule couleur : le
+   corps, la graisse, l'italique ou le retrait portent la différence, faute de
+   quoi elle disparaît pour qui ne distingue pas les teintes, et à l'impression.
+   Le contrôle `scripts/fillion/validate_semantic_display_hierarchy.mjs` le
+   vérifie classe par classe.
+
+   ⛔ Le jeton commande la CLASSE, jamais la balise. La balise `h1`-`h6` se
+   calcule sur les parents réellement présents, pour que le plan reste continu
+   quand une édition n'a ni partie ni sous-section. */
+
+.cs-bible-title--t1,
+.cs-bible-title--t2,
+.cs-bible-title--t3,
+.cs-bible-title--t4,
+.cs-bible-title--t5,
+.cs-bible-title--t6 {
+  font-family: var(--font-source-serif), Georgia, serif;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.5rem;
+  white-space: pre-line;
+}
+
+/* Les rangs hauts se CENTRENT, les rangs bas restent au fer : c'est ainsi que
+   la page d'œuvre distingue un titre de partie d'un intertitre, et c'est ce
+   qui rend la hiérarchie lisible d'un coup d'œil, sans comparer des tailles. */
+.cs-bible-title--t1,
+.cs-bible-title--t2,
+.cs-bible-title--t3 { text-align: center; }
+
+/* ⛔ AUCUN `text-transform`. Les capitales de « PREMIÈRE PARTIE » viennent de
+   l'édition elle-même ; celles que le rendu ajoutait à « 1° L'apparition… »
+   écrasaient une casse que Fillion n'avait pas voulue. Et surtout : quatre rangs
+   tous en capitales ne se distinguent plus — un signal employé partout ne dit
+   plus rien.
+
+   Chaque rang change donc sur DEUX axes au moins. Les trois hauts restent en
+   sérif et centrés, avec un vrai écart de corps ; les trois bas passent au
+   SANS et au fer à gauche, comme les intertitres de la page d'œuvre. Le
+   change de caractère fait le gros du travail, la taille achève. */
+.cs-bible-title--t1 { font-size: 1.625rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
+.cs-bible-title--t2 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; margin: 3rem 0 0.75rem; }
+/* La section descend d’un cran FRANC sous la partie — rapport 1,4, non 1,05 —
+   et prend les petites capitales : deux axes, pas un seul. */
+.cs-bible-title--t3 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--cs-encre);
+  letter-spacing: 0.04em;
+  font-variant-caps: small-caps;
+  margin: 2rem 0 0.6rem;
+}
+
+/* ⚠️ La coupure des polices n’est PAS entre rangs hauts et rangs bas : elle est
+   entre le LIVRE et son APPARAT. Les six rangs de titre appartiennent à la
+   structure du livre et restent en sérif ; le sans est réservé aux repères
+   éditoriaux — rubriques et marqueurs de commentaire. Mis en sans, un titre de
+   péricope se lisait comme une étiquette d’interface, non comme un titre.
+
+   Les rangs bas se distinguent alors par la POSITION — au fer, quand les hauts
+   sont centrés — et par la casse. */
+.cs-bible-title--t4,
+.cs-bible-title--t5,
+.cs-bible-title--t6 {
+  text-align: left;
+  font-variant-caps: small-caps;
+}
+.cs-bible-title--t4 { font-size: 1rem;      font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
+.cs-bible-title--t5 { font-size: 0.9375rem; font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
+/* Intertitre de péricope : au fer, en petites capitales sobres, avec de l’air
+   au-dessus et peu au-dessous — le texte qui suit lui appartient. */
+.cs-bible-title--t6 {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--cs-texte-fort);
+  letter-spacing: 0.03em;
+  margin: 1.75rem 0 0.35rem;
+}
+
+/* Le jeton d'information ne crie pas : il se lit au retrait et à la mesure. Une
+   information de large portée s'écarte du fil, une information de verset s'y
+   serre. Le fond reste celui de la page : un commentaire n'est pas une alerte. */
+.cs-bible-info--i1,
+.cs-bible-info--i2,
+.cs-bible-info--i3,
+.cs-bible-info--i4,
+.cs-bible-info--i5,
+.cs-bible-info--i6 {
+  font-family: var(--font-source-serif), Georgia, serif;
+  margin: 1.25rem 0 0.9rem;
+}
+
+.cs-bible-info--i1 { margin: 2rem 0 1.5rem; }
+.cs-bible-info--i2 { margin: 1.75rem 0 1.25rem; }
+.cs-bible-info--i3 { margin: 1.5rem 0 1.1rem; }
+.cs-bible-info--i4 { margin: 1.35rem 0 1rem; }
+.cs-bible-info--i5 { margin: 1.25rem 0 0.9rem; }
+.cs-bible-info--i6 { margin: 1rem 0 0.75rem; font-size: 0.8125rem; }
+
+/* La nature est un modificateur, non un niveau : elle se marque discrètement,
+   et se cumule avec le jeton sans le contredire. */
+.cs-bible-block--title { font-variant-numeric: oldstyle-nums; }
+/* Une introduction se tient À L'ÉCART du fil : marges larges des deux côtés et
+   blanc généreux au-dessus et au-dessous. C'est ce retrait qui dit qu'on n'est
+   pas encore dans le texte, mieux qu'un encadré ou qu'un filet. */
+.cs-bible-block--introduction {
+  margin-top: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+/* Seul le PRÉAMBULE — l’introduction du livre ou d’une partie — s’écarte du fil
+   par de larges marges. Celle d’une section ou d’une péricope accompagne un
+   passage précis : elle reste au fer, dans la mesure ordinaire. */
+.cs-bible-info--i1.cs-bible-block--introduction,
+.cs-bible-info--i2.cs-bible-block--introduction {
+  padding-left: 12%;
+  padding-right: 12%;
+  margin-top: 2.25rem;
+  margin-bottom: 2rem;
+}
+.cs-bible-block--commentary { font-style: normal; }
+.cs-bible-block--notice { font-size: 0.78125rem; }
+.cs-bible-block--summary { letter-spacing: 0.01em; }
+.cs-bible-block--excursus { font-size: 0.78125rem; }
+.cs-bible-block--conclusion { font-style: italic; }
+.cs-bible-block--note { font-size: 0.8125rem; }
+
+
+/* Le repère d'un bloc d'information : ce n'est PAS un titre — ni balise de
+   titre, ni place au plan. Les portées les plus larges le centrent, comme les
+   titres hauts ; les plus étroites le laissent au fer. */
+/* Un repère de commentaire est le rang le plus bas : sans, petit, au fer, et
+   d’une encre discrète. Il annonce un développement, il ne le domine pas. */
+.cs-bible-info-label {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--cs-texte-gris);
+}
+/* ⚠️ « Introduction » n’est PAS un titre de structure : c’est le nom d’un genre
+   éditorial. Le rendre comme une division le mettait en concurrence avec
+   « Première partie », et son corps intermédiaire lui prêtait un rang qu’il
+   n’a pas. Il prend donc la RUBRIQUE du site — très petite, largement chassée,
+   grise — celle qui coiffe déjà « TRADUCTION » ou « AU SOMMAIRE » ailleurs.
+   Petites capitales vraies : la casse de la source est préservée. */
+.cs-bible-info--i1 > .cs-bible-info-label,
+.cs-bible-info--i2 > .cs-bible-info-label,
+.cs-bible-info--i3 > .cs-bible-info-label {
+  text-align: center;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-variant-caps: small-caps;
+  /* ⛔ Pas de gris sur les deux premiers rangs : une rubrique se distingue par
+     sa petitesse et sa chasse, non en s’effaçant. Le gris reste à l’apparat. */
+  color: var(--cs-encre);
+  margin-bottom: 0.6rem;
+}
+.cs-bible-info--i3 > .cs-bible-info-label { color: var(--cs-texte-second); }
+
+/* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
+.cs-bible-bloc > .cs-bible-title--t1,
+.cs-bible-bloc > .cs-bible-title--t2,
+.cs-bible-bloc > .cs-bible-title--t3,
+.cs-bible-bloc > .cs-bible-title--t4,
+.cs-bible-bloc > .cs-bible-title--t5,
+.cs-bible-bloc > .cs-bible-title--t6 { margin-top: 0; }
+
+/* Le chapeau d'un titre : subordonné, donc sur sa propre ligne, en italique et
+   plus clair — jamais accolé au titre par un tiret. */
+.cs-bible-chapeau {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  /* ⚠️ Le chapeau n’hérite PAS des petites capitales de son titre : c’est un
+     sous-titre, il se lit en italique ordinaire. */
+  font-variant-caps: normal;
+  color: var(--cs-texte-second);
+}

@@ -1,0 +1,4 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+const R='tmp/somme-liens-audit-2026-07-29',raw=JSON.parse(readFileSync(`${R}/tp-q81-90-raw.json`,'utf8')),by=new Map();for(const l of raw.links){const a=by.get(l.segment_id)||[];a.push(`${l.id}:${l.canon_id||`${l.livre}.${l.chapitre}`}/T${l.type}`);by.set(l.segment_id,a)}
+writeFileSync(`${R}/tp-q81-90-review.tsv`,raw.segments.map(s=>`${s.segment_numero}\t${s.ref_niv2}\t${by.get(s.id)?.join(',')||'-'}\t${(s.segment_texte||'').replace(/\s+/g,' ')}`).join('\n')+'\n');
+console.log(JSON.stringify({segments:raw.segments.length,without_links:raw.segments.filter(s=>!by.has(s.id)).length,types:Object.fromEntries([1,2,3,4].map(t=>[t,raw.links.filter(l=>l.type===t).length])),chapter_targets:raw.links.filter(l=>l.livre||l.chapitre).map(l=>({id:l.id,segment_id:l.segment_id,livre:l.livre,chapitre:l.chapitre,type:l.type})),t4:raw.links.filter(l=>l.type===4).map(l=>l.id)},null,2));

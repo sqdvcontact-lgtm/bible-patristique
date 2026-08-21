@@ -1,0 +1,96 @@
+LOT_003_READY — RAPPORT D'EXTRACTION
+Date : 2026-08-03
+
+1. Périmètre
+
+Le lot couvre exactement 30 faces, du folio 17 recto au folio 31 verso,
+soit 60 images de colonnes nommées de f017r_a.png à f031v_b.png.
+
+Aucun OCR, aucune transcription et aucune intervention éditoriale n'ont été
+effectués. Le TEI actif, son manifeste et le lecteur n'ont pas été modifiés.
+
+2. Source et méthode
+
+Source : work/bible899/source/BnF_Fr_899.pdf
+Taille de la source : 114 119 025 octets
+SHA-256 de la source :
+0d8bc3825a548b1a71b3cd13ee397f9be0f68601d2dd42b91166538b29e729d1
+
+Chaque page utilisée contient une image matricielle grise intégrée au PDF.
+Les images ont été extraites à leur définition native, puis découpées par
+coordonnées entières. Le découpage conserve toute la hauteur native (1024 px),
+des marges latérales généreuses et un léger recouvrement au centre afin de ne
+pas perdre les éléments proches du pli ou de l'entrecolonnement.
+
+Aucun rééchantillonnage, filtre, renforcement de netteté, retouche, correction
+de couleur ou compression avec perte n'a été appliqué. Les PNG sont des
+découpes pixel pour pixel de l'image matricielle native correspondante.
+
+Largeur des pages sources : de 1423 à 1466 px.
+Hauteur des pages sources : 1024 px.
+Largeur des découpes : de 282 à 493 px.
+Hauteur des découpes : 1024 px.
+
+Les coordonnées exactes, dimensions et empreintes SHA-256 de chaque découpe
+figurent dans LOT_003_MANIFEST.csv.
+
+3. Correspondance avec les pages du PDF
+
+Page PDF 22 : face droite = f017r
+Page PDF 23 : face gauche = f017v ; face droite = f018r
+Page PDF 24 : face gauche = f018v ; face droite = f019r
+Page PDF 25 : face gauche = f019v ; face droite = f020r
+Page PDF 26 : face gauche = f020v ; face droite = f021r
+Page PDF 27 : face gauche = f021v ; face droite = f022r
+Page PDF 28 : face gauche = f022v ; face droite = f023r
+Page PDF 29 : face gauche = f023v ; face droite = f024r
+Page PDF 30 : face gauche = f024v ; face droite = f025r
+Page PDF 31 : face gauche = f025v ; face droite = f026r
+Page PDF 32 : face gauche = f026v ; face droite = f027r
+Page PDF 33 : face gauche = f027v ; face droite = f028r
+Page PDF 34 : face gauche = f028v ; face droite = f029r
+Page PDF 35 : face gauche = f029v ; face droite = f030r
+Page PDF 36 : face gauche = f030v ; face droite = f031r
+Page PDF 37 : face gauche = f031v
+
+La face gauche de la page PDF 22 appartient au lot précédent (f016v) et n'a
+pas été incluse. La face droite de la page PDF 37 appartient à la suite du
+manuscrit et n'a pas été incluse.
+
+4. Pages et colonnes atypiques
+
+- f030r_b : colonne volontairement partielle dans la source ; le texte visible
+  occupe seulement la partie inférieure de la colonne.
+- f030v_a : colonne volontairement partielle dans la source ; le texte visible
+  commence vers le milieu de la hauteur.
+- f027v : altération matérielle visible dans la marge inférieure extérieure.
+  La zone a été conservée dans les découpes.
+- Des initiales de grande taille, signes et éléments marginaux sont visibles sur
+  plusieurs faces. Ils ont été conservés par les marges de découpe.
+- Des bandes sombres liées au pli ou à la reliure restent visibles lorsque leur
+  conservation était nécessaire pour ne pas rogner les abords du texte.
+
+Aucune colonne entièrement vide, vue répétée, face déplacée ou image source
+incomplète n'a été constatée dans le périmètre. Aucune réclame distincte n'a pu
+être identifiée avec certitude dans les 30 faces retenues. La réclame visible
+au bas de la face gauche de la page PDF 22 appartient à f016v_b et reste hors
+du présent lot.
+
+5. Difficultés d'extraction
+
+La première et la dernière page PDF ne fournissent chacune qu'une face du
+périmètre. Les limites de colonnes ont donc été déterminées face par face, sans
+inventer de contenu ni supprimer les marges, réclames, signes, ajouts ou
+accidents matériels. Aucune difficulté technique n'a empêché l'extraction.
+
+6. Vérifications finales
+
+- 60 fichiers PNG attendus : conforme.
+- 60 fichiers PNG présents une seule fois : conforme.
+- Nomenclature f017r_a.png à f031v_b : conforme.
+- 60 lignes de données uniques dans le manifeste : conforme.
+- Dimensions des fichiers conformes au manifeste : conforme.
+- Empreintes SHA-256 conformes au manifeste : conforme.
+- Comparaison pixel par pixel avec les zones natives du PDF : 60 sur 60 conformes.
+- Réouverture du CSV en UTF-8 : conforme.
+

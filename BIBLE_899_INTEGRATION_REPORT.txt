@@ -1,0 +1,146 @@
+COMPTE RENDU D’INTÉGRATION — BIBLE 899 v0.4
+Corpus Scriptura — Étape 6
+Date : 2 août 2026
+
+
+1. RÉSULTAT
+
+Le lecteur du prototype Bible 899 v0.4 a été intégré dans le projet actif :
+
+C:\Corpus Scriptura\bible-patristique
+
+Route du lecteur :
+
+/manuscrits/bible-899
+
+Le lecteur est également accessible depuis le menu « Aller plus loin » de Corpus Scriptura, sur ordinateur et sur mobile.
+
+
+2. SOURCE TEXTUELLE
+
+Le lecteur est construit directement depuis le fichier TEI/XML pendant la compilation. Aucun JSON éditorial intermédiaire n’est utilisé dans Corpus Scriptura.
+
+Fichier TEI intégré :
+
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\Bible_899_master_v0.4.xml
+
+Cette copie de déploiement est strictement identique au TEI maître du prototype.
+
+Empreinte SHA-256 :
+
+90b0fb0ab81ef5f36f9d1ae20e0786202dd4df3183314e1ce48d11066f996a84
+
+Le parseur refuse de construire le lecteur si cette empreinte change sans mise à jour explicite. Il vérifie également les invariants éditoriaux avant de produire la page.
+
+
+3. FONCTIONNALITÉS INTÉGRÉES
+
+- Mode diplomatique avec conservation des abréviations du manuscrit.
+- Mode avec abréviations développées depuis les éléments expan du TEI.
+- Mode à graphie modernisée depuis les trois paragraphes modernized du TEI.
+- Affichage des trois colonnes avec leur fac-similé.
+- Affichage ligne par ligne ou en texte continu pour les modes diplomatique et développé.
+- Conservation de 120 lignes, réparties en trois colonnes de 40 lignes.
+- Respect des coupures internes aux mots encodées par break="no".
+- Signalement visible de toutes les lacunes et lectures incertaines.
+- Mise en page responsive pour ordinateur et mobile.
+
+
+4. GARANTIES ÉDITORIALES
+
+L’intégration vérifie automatiquement les contraintes suivantes :
+
+- exactement 120 lignes ;
+- exactement trois colonnes de 40 lignes ;
+- conservation des 58 éléments choice ;
+- présence simultanée de abbr et expan dans chaque choice ;
+- conservation des 8 éléments gap dans chacun des trois modes ;
+- conservation des 2 éléments unclear dans chacun des trois modes ;
+- conservation de l’ordre et du contenu exacts des lignes de référence ;
+- respect de break="no", notamment la réunion de « el pa » et « radis » en « el paradis » dans le texte continu.
+
+Aucune lecture paléographique n’a été corrigée ou résolue automatiquement. Aucune lacune n’a été supprimée ou restituée. Aucun synonyme moderne n’a été introduit.
+
+Le mode modernisé reste organisé selon les trois paragraphes présents dans le TEI. Aucun alignement artificiel de ce mode sur les 120 lignes diplomatiques n’a été inventé.
+
+
+5. FICHIERS MODIFIÉS
+
+C:\Corpus Scriptura\bible-patristique\app\components\Navbar.tsx
+C:\Corpus Scriptura\bible-patristique\package.json
+C:\Corpus Scriptura\bible-patristique\package-lock.json
+
+
+6. FICHIERS CRÉÉS
+
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\page.tsx
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\Bible899Reader.tsx
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\bible899.module.css
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\tei.ts
+C:\Corpus Scriptura\bible-patristique\app\manuscrits\bible-899\_lib\tei.test.ts
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\Bible_899_master_v0.4.xml
+C:\Corpus Scriptura\bible-patristique\data\manuscrits\bible-899\README.md
+C:\Corpus Scriptura\bible-patristique\public\manuscrits\bible-899\f1r_a.png
+C:\Corpus Scriptura\bible-patristique\public\manuscrits\bible-899\f1r_b.png
+C:\Corpus Scriptura\bible-patristique\public\manuscrits\bible-899\f1v_a.png
+C:\Corpus Scriptura\bible-patristique\BIBLE_899_INTEGRATION_REPORT.txt
+
+Les autres modifications qui étaient déjà présentes dans le dépôt ont été laissées intactes.
+
+
+7. COMMANDES D’INSTALLATION ET DE VÉRIFICATION
+
+Ouvrir PowerShell puis exécuter :
+
+Set-Location 'C:\Corpus Scriptura\bible-patristique'
+
+& 'C:\Program Files\nodejs\npm.cmd' install
+& 'C:\Program Files\nodejs\npm.cmd' test
+& 'C:\Program Files\nodejs\npm.cmd' run build
+& 'C:\Program Files\nodejs\npx.cmd' eslint 'app/manuscrits/bible-899/**/*.{ts,tsx}'
+& 'C:\Program Files\nodejs\npm.cmd' run dev
+
+Adresse locale du lecteur après démarrage :
+
+http://localhost:3000/manuscrits/bible-899
+
+
+8. RÉSULTATS DES VÉRIFICATIONS
+
+Tests Vitest : 6 tests réussis sur 6.
+
+Contrôle ESLint des nouveaux fichiers : réussi, aucune erreur.
+
+Compilation Next.js de production : réussie.
+
+Route /manuscrits/bible-899 : pré-rendue statiquement avec succès.
+
+Contrôle interactif sur ordinateur : réussi.
+
+Contrôle interactif à 390 pixels de largeur : réussi, sans débordement horizontal.
+
+Mode diplomatique : 120 lignes affichées et abréviations conservées.
+
+Mode développé : 120 lignes affichées et développements TEI utilisés.
+
+Mode modernisé : trois paragraphes affichés, case des retours à la ligne désactivée.
+
+Texte continu : « el paradis » correctement réuni, sans forme fautive « el pa radis ».
+
+Dans chacun des trois modes : 8 lacunes et 2 lectures incertaines présentes.
+
+Lien « Bible 899 » du menu mobile : présent et visible.
+
+
+9. RÉSERVES TECHNIQUES HORS PÉRIMÈTRE
+
+Le contrôle ESLint complet de Navbar.tsx signale cinq erreurs et deux avertissements qui existaient avant cette intégration. Ils concernent des effets React et un type any. Le lien ajouté pour Bible 899 n’introduit aucune de ces erreurs. Ces problèmes n’ont pas été corrigés afin de ne pas modifier du code sans rapport avec l’intégration.
+
+La commande npm install signale six vulnérabilités de niveau élevé dans l’arbre de dépendances. Aucun npm audit fix n’a été lancé, car une correction automatique pouvait modifier les dépendances du projet au-delà du périmètre demandé.
+
+
+10. QUESTIONS ÉDITORIALES NON RÉSOLUES
+
+Aucune question éditoriale nouvelle n’a été soulevée par l’intégration.
+
+Les deux lectures encodées comme unclear restent explicitement incertaines. Les huit lacunes encodées comme gap restent intégralement conservées. Aucune tentative de résolution automatique n’a été effectuée.

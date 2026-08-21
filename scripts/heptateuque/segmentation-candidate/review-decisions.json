@@ -1,0 +1,29 @@
+{
+  "candidate_generated_at": "2026-08-02T11:02:57.699Z",
+  "alerts_sha256": "b48bd6edc864b00b9f90129d2c4c2d7d1fee9595fc1e2c880e7939dcb26d5216",
+  "reviewed": 156,
+  "remaining": 0,
+  "decisions": {
+    "segment_long": {
+      "count": 145,
+      "status": "valide_ou_recoupe",
+      "rule": "Les périodes syntaxiquement indivisibles sont conservées; onze contextes énumératifs ont été recoupés aux seules articulations validées."
+    },
+    "phrase_longue_indivisible": {
+      "count": 1,
+      "status": "valide",
+      "rule": "Nombres XVI, paragraphe 3 : période argumentative indivisible."
+    },
+    "page_alignement_faible": {
+      "count": 10,
+      "status": "pages_confirmees",
+      "rule": "Les dix pages ont été vérifiées contre ws et, pour Genèse–Exode, contre le scan; aucune correction nécessaire."
+    }
+  },
+  "review_passes": [
+    "Genèse–Exode : 100 %",
+    "Lévitique–Nombres : 100 %",
+    "Deutéronome–Josué–Juges : 100 %",
+    "Pagination ciblée : 10/10 confirmées"
+  ]
+}

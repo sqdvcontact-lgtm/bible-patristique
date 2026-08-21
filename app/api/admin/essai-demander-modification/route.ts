@@ -1,0 +1,33 @@
+﻿import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
+import { createClient } from '@supabase/supabase-js'
+import { estAdmin } from '@/app/lib/verifAdmin'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function POST(request: Request) {
+  if (!(await estAdmin())) {
+    return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
+  }
+
+  const { id, note } = await request.json()
+  if (!id) {
+    return NextResponse.json({ error: 'Paramètre id manquant.' }, { status: 400 })
+  }
+  if (!String(note ?? '').trim()) {
+    return NextResponse.json({ error: 'Note administrateur requise.' }, { status: 400 })
+  }
+
+  const { error } = await supabaseAdmin
+    .from('essais')
+    .update({ statut: 'brouillon', note_admin: String(note).trim(), updated_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) {
+    return erreur500(error)
+  }
+  return NextResponse.json({ ok: true })
+}

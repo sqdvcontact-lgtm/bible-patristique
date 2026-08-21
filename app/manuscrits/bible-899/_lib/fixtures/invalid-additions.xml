@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Fixture technique pour ajouts invalides</title></titleStmt>
+      <editionStmt><edition n="test" status="fixture">fixture sans contenu éditorial</edition></editionStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text><body><div type="diplomatic">
+    <pb n="2v" facs="fixture.png" />
+    <cb n="a" />
+    <l xml:id="invalid_add_l1" n="1"><add>sans place</add></l>
+    <l xml:id="invalid_add_l2" n="2"><add place="margin" /></l>
+    <l xml:id="invalid_add_l3" n="3"><add place="inline">mauvaise place</add></l>
+  </div></body></text>
+</TEI>

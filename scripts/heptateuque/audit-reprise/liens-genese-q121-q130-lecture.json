@@ -1,0 +1,1236 @@
+{
+  "genere_le": "2026-08-02T14:14:29.331Z",
+  "oeuvre": "A0010O0023",
+  "lot": "Genèse CXXI-CXXX",
+  "cibles_candidates": [
+    "GEN.36.31",
+    "GEN.36.32",
+    "GEN.36.33",
+    "GEN.36.34",
+    "GEN.36.35",
+    "GEN.36.36",
+    "GEN.36.37",
+    "GEN.36.38",
+    "GEN.36.39",
+    "MAT.1.1",
+    "MAT.1.2",
+    "MAT.1.3",
+    "MAT.1.4",
+    "MAT.1.5",
+    "MAT.1.6",
+    "MAT.1.7",
+    "MAT.1.8",
+    "MAT.1.9",
+    "MAT.1.10",
+    "MAT.1.11",
+    "MAT.1.12",
+    "MAT.1.13",
+    "MAT.1.14",
+    "MAT.1.15",
+    "MAT.1.16",
+    "MAT.1.17",
+    "LUK.3.23",
+    "LUK.3.24",
+    "LUK.3.25",
+    "LUK.3.26",
+    "LUK.3.27",
+    "LUK.3.28",
+    "LUK.3.29",
+    "LUK.3.30",
+    "LUK.3.31",
+    "LUK.3.32",
+    "LUK.3.33",
+    "LUK.3.34",
+    "LUK.3.35",
+    "LUK.3.36",
+    "LUK.3.37",
+    "LUK.3.38",
+    "NUM.22.2",
+    "NUM.22.3",
+    "NUM.22.4",
+    "NUM.22.5",
+    "NUM.22.6",
+    "GEN.35.28",
+    "GEN.35.29",
+    "GEN.25.26",
+    "GEN.37.1",
+    "GEN.37.2",
+    "GEN.37.5",
+    "GEN.37.6",
+    "GEN.37.7",
+    "GEN.37.8",
+    "GEN.37.9",
+    "GEN.37.10",
+    "GEN.37.11",
+    "GEN.37.28",
+    "GEN.41.46",
+    "GEN.41.53",
+    "GEN.45.6",
+    "GEN.47.9",
+    "PHP.2.9",
+    "PHP.2.10",
+    "GEN.16.15",
+    "GEN.25.2",
+    "GEN.25.6",
+    "GEN.37.35",
+    "GEN.37.36",
+    "2KI.25.8",
+    "GEN.38.1",
+    "GEN.38.2",
+    "GEN.38.3",
+    "GEN.38.6",
+    "GEN.38.7",
+    "GEN.38.8",
+    "GEN.38.9",
+    "GEN.38.10",
+    "GEN.38.11",
+    "GEN.38.14",
+    "GEN.38.15",
+    "GEN.38.16",
+    "GEN.38.17",
+    "GEN.38.18",
+    "GEN.38.26",
+    "GEN.39.1"
+  ],
+  "temoins": [
+    {
+      "id_verset": "GEN.36.31",
+      "ref": "GEN 36:31",
+      "TR0001": "Les rois qui regnerent au païs d’Edom avant que les enfans d’Israël eussent un roi, furent ceux-ci :",
+      "TR0003": "Voici les rois qui ont régné dans le pays d’Edom, avant qu’un roi régnât sur les enfants d’Israël :",
+      "TR0004": "Reges autem qui regnaverunt in terra Edom antequam haberent regem filii Israël, fuerunt hi :"
+    },
+    {
+      "id_verset": "GEN.36.32",
+      "ref": "GEN 36:32",
+      "TR0001": "Bela fils de Beor ; & sa ville s’appelloit Denaba.",
+      "TR0003": "Béla, fils de Béor, régna en Edom, et le nom de sa ville était Denaba. —",
+      "TR0004": "Bela filius Beor, nomenque urbis ejus Denaba."
+    },
+    {
+      "id_verset": "GEN.36.33",
+      "ref": "GEN 36:33",
+      "TR0001": "Bela étant mort, Jobab fils de Zara de Bosra regna en sa place.",
+      "TR0003": "Béla mourut, et à sa place régna Jobab, fils de Zara, de Bosra. —",
+      "TR0004": "Mortuus est autem Bela, et regnavit pro eo Jobab filius Zaræ de Bosra."
+    },
+    {
+      "id_verset": "GEN.36.34",
+      "ref": "GEN 36:34",
+      "TR0001": "Après la mort de Jobab, Husam qui étoit du païs des Themanites lui succeda au royaume.",
+      "TR0003": "Jobab mourut, et à sa place régna Husam, du pays des Thémanites. —",
+      "TR0004": "Cumque mortuus esset Jobab, regnavit pro eo Husam de terra Themanorum."
+    },
+    {
+      "id_verset": "GEN.36.35",
+      "ref": "GEN 36:35",
+      "TR0001": "Celui-ci étant mort, Adad fils de Badad regna après lui. Ce fut lui qui défit les Madianites au païs de Moab. Sa ville s’appelloit Avith.",
+      "TR0003": "Husam mourut, et à sa place régna Adad, fils de Badad, qui défit Madian dans les champs de Moab ; le nom de sa ville était Avith. —",
+      "TR0004": "Hoc quoque mortuo, regnavit pro eo Adad filius Badad, qui percussit Madian in regione Moab : et nomen urbis ejus Avith."
+    },
+    {
+      "id_verset": "GEN.36.36",
+      "ref": "GEN 36:36",
+      "TR0001": "Adad étant mort, Semla qui étoit de Masreca lui succeda au royaume.",
+      "TR0003": "Hadad mourut, et à sa place régna Semla, de Masréca. —",
+      "TR0004": "Cumque mortuus esset Adad, regnavit pro eo Semla de Masreca."
+    },
+    {
+      "id_verset": "GEN.36.37",
+      "ref": "GEN 36:37",
+      "TR0001": "Après la mort de Semla, Saül qui étoit des environs du fleuve de Rohoboth, regna en sa place.",
+      "TR0003": "Semla mourut, et à sa place régna Saül, de Rohoboth sur le fleuve. —",
+      "TR0004": "Hoc quoque mortuo regnavit pro eo Saul de fluvio Rohoboth."
+    },
+    {
+      "id_verset": "GEN.36.38",
+      "ref": "GEN 36:38",
+      "TR0001": "Saül étant mort, Balanan fils d’Achobor lui succeda au royaume.",
+      "TR0003": "Saül mourut, et à sa place régna Balanan, fils d’Achor. —",
+      "TR0004": "Cumque et hic obiisset, successit in regnum Balanan filius Achobor."
+    },
+    {
+      "id_verset": "GEN.36.39",
+      "ref": "GEN 36:39",
+      "TR0001": "Après la mort de Balanan, Adar regna en sa place. Sa ville s’appelloit Phau, & sa femme se nommoit Meetabel, fille de Matred <i>qui étoit</i> fille de Mezaab.",
+      "TR0003": "Balanan, fils d’Achor, mourut, et à sa place régna Hadar ; le nom de sa ville était Phaü, et le nom de sa femme Méétabel, fille de Matred, fille de Mézaab.",
+      "TR0004": "Isto quoque mortuo regnavit pro eo Adar, nomenque urbis ejus Phau : et appellabatur uxor ejus Meetabel, filia Matred filiæ Mezaab."
+    },
+    {
+      "id_verset": "MAT.1.1",
+      "ref": "MAT 1:1",
+      "TR0001": "Livre de la genealogie de Jesus-Christ, fils de David, fils d’Abraham.",
+      "TR0003": "Généalogie de Jésus-Christ, fils de David, fils d’Abraham.",
+      "TR0004": "Liber generationis Jesu Christi filii David, filii Abraham."
+    },
+    {
+      "id_verset": "MAT.1.2",
+      "ref": "MAT 1:2",
+      "TR0001": "Abraham engendra Isaac. Isaac engendra Jacob. Jacob engendra Juda & ses freres.",
+      "TR0003": "Abraham engendra Isaac ; Isaac engendra Jacob ; Jacob engendra Juda et ses frères ;",
+      "TR0004": "Abraham genuit Isaac. Isaac autem genuit Jacob. Jacob autem genuit Judam, et fratres ejus."
+    },
+    {
+      "id_verset": "MAT.1.3",
+      "ref": "MAT 1:3",
+      "TR0001": "Juda engendra de Thamar Pharès & Zara. Pharès engendra Esron. Esron engendra Aram.",
+      "TR0003": "Juda, de Thamar, engendra Pharès et Zara ; Pharès engendra Esron ; Esron engendra Aram ;",
+      "TR0004": "Judas autem genuit Phares, et Zaram de Thamar. Phares autem genuit Esron. Esron autem genuit Aram."
+    },
+    {
+      "id_verset": "MAT.1.4",
+      "ref": "MAT 1:4",
+      "TR0001": "Aram engendra Aminadab. Aminadab engendra Naasson. Naasson engendra Salmon.",
+      "TR0003": "Aram engendra Aminadab ; Aminadab engendra Naasson ; Naasson engendra Salmon ;",
+      "TR0004": "Aram autem genuit Aminadab. Aminadab autem genuit Naasson. Naasson autem genuit Salmon."
+    },
+    {
+      "id_verset": "MAT.1.5",
+      "ref": "MAT 1:5",
+      "TR0001": "Salmon engendra Booz de Rahab. Booz engendra Obed de Ruth. Obed engendra Jessé. Et Jessé engendra David, <i>qui fut roi.</i>",
+      "TR0003": "Salmon, de Rahab, engendra Booz ; Booz, de Ruth, engendra Obed ; Obed engendra Jessé ; Jessé engendra le roi David.",
+      "TR0004": "Salmon autem genuit Booz de Rahab. Booz autem genuit Obed ex Ruth. Obed autem genuit Jesse. Jesse autem genuit David regem."
+    },
+    {
+      "id_verset": "MAT.1.6",
+      "ref": "MAT 1:6",
+      "TR0001": "Le roi David engendra Salomon de celle qui avoit été femme d’Urie.",
+      "TR0003": "David engendra Salomon, de celle qui fut la femme d’Urie ;",
+      "TR0004": "David autem rex genuit Salomonem ex ea quæ fuit Uriæ."
+    },
+    {
+      "id_verset": "MAT.1.7",
+      "ref": "MAT 1:7",
+      "TR0001": "Salomon engendra Roboam. Roboam engendra Abias. Abias engendra Asa.",
+      "TR0003": "Salomon engendra Roboam ; Roboam engendra Abias ; Abias engendra Asa ;",
+      "TR0004": "Salomon autem genuit Roboam. Roboam autem genuit Abiam. Abias autem genuit Asa."
+    },
+    {
+      "id_verset": "MAT.1.8",
+      "ref": "MAT 1:8",
+      "TR0001": "Asa engendra Josaphat. Josaphat engendra Joram. Joram engendra Ozias.",
+      "TR0003": "Asa engendra Josaphat ; Josaphat engendra Joram ; Joram engendra Ozias ;",
+      "TR0004": "Asa autem genuit Josophat. Josophat autem genuit Joram. Joram autem genuit Oziam."
+    },
+    {
+      "id_verset": "MAT.1.9",
+      "ref": "MAT 1:9",
+      "TR0001": "Ozias engendra Joatham. Joatham engendra Achaz. Achaz engendra Ezechias.",
+      "TR0003": "Ozias engendra Joathan ; Joathan engendra Achaz ; Achaz engendra Ezéchias ;",
+      "TR0004": "Ozias autem genuit Joatham. Joatham autem genuit Achaz. Achaz autem genuit Ezechiam."
+    },
+    {
+      "id_verset": "MAT.1.10",
+      "ref": "MAT 1:10",
+      "TR0001": "Ezechias engendra Manassé. Manassé engendra Amon. Amon engendra Josias.",
+      "TR0003": "Ezéchias engendra Manassé ; Manassé engendra Amon ; Amon engendra Josias ;",
+      "TR0004": "Ezechias autem genuit Manassen. Manasses autem genuit Amon. Amon autem genuit Josiam."
+    },
+    {
+      "id_verset": "MAT.1.11",
+      "ref": "MAT 1:11",
+      "TR0001": "Josias engendra Jechonias & ses freres, vers le tems que les Juifs furent transportés à Babylone.",
+      "TR0003": "Josias engendra Jéchonias et ses frères, au temps de la déportation à Babylone.",
+      "TR0004": "Josias autem genuit Jechoniam, et fratres ejus in transmigratione Babylonis."
+    },
+    {
+      "id_verset": "MAT.1.12",
+      "ref": "MAT 1:12",
+      "TR0001": "Et depuis qu’ils furent transportés à Babylone, Jechonias engendra Salathiel. Salathiel engendra Zorobabel.",
+      "TR0003": "Et après la déportation à Babylone, Jéchonias engendra Salathiel ; Salathiel engendra Zorobabel ;",
+      "TR0004": "Et post transmigrationem Babylonis : Jechonias genuit Salathiel. Salathiel autem genuit Zorobabel."
+    },
+    {
+      "id_verset": "MAT.1.13",
+      "ref": "MAT 1:13",
+      "TR0001": "Zorobabel engendra Abiud. Abiud engendra Eliacim. Eliacim engendra Azor.",
+      "TR0003": "Zorobabel engendra Abiud ; Abiud engendra Éliacim ; Éliacim engendra Azor ;",
+      "TR0004": "Zorobabel autem genuit Abiud. Abiud autem genuit Eliacim. Eliacim autem genuit Azor."
+    },
+    {
+      "id_verset": "MAT.1.14",
+      "ref": "MAT 1:14",
+      "TR0001": "Azor engendra Sadóc. Sadoc engendra Achim. Achim engendra Eliud.",
+      "TR0003": "Azor engendra Sadoc ; Sadoc engendra Achim ; Achim engendra Éliud ;",
+      "TR0004": "Azor autem genuit Sadoc. Sadoc autem genuit Achim. Achim autem genuit Eliud."
+    },
+    {
+      "id_verset": "MAT.1.15",
+      "ref": "MAT 1:15",
+      "TR0001": "Eliud engendra Eleazar. Eleazar engendra Mathan. Mathan engendra Jacob.",
+      "TR0003": "Éliud engendra Eléazar ; Eléazar engendra Mathan ; Mathan engendra Jacob ;",
+      "TR0004": "Eliud autem genuit Eleazar. Eleazar autem genuit Mathan. Mathan autem genuit Jacob."
+    },
+    {
+      "id_verset": "MAT.1.16",
+      "ref": "MAT 1:16",
+      "TR0001": "Et Jacob engendra Joseph l’époux de Marie, de laquelle est né Jesus, qui est appellé le Christ.",
+      "TR0003": "Et Jacob engendra Joseph, l’époux de Marie, de laquelle est né Jésus, qu’on appelle Christ.",
+      "TR0004": "Jacob autem genuit Joseph virum Mariæ, de qua natus est Jesus, qui vocatur Christus."
+    },
+    {
+      "id_verset": "MAT.1.17",
+      "ref": "MAT 1:17",
+      "TR0001": "Il y a donc en tout depuis Abraham jusqu’à David, quatorze generations : depuis David jusqu’à ce que les Juifs furent transportés à Babylone, quatorze generations ; & depuis qu’ils furent transportés à Babylon jusqu’à Jesus-Christ, quatorze generations.",
+      "TR0003": "Il y a donc en tout quatorze générations depuis Abraham jusqu’à David, quatorze générations depuis David jusqu’à la déportation à Babylone, quatorze générations depuis la déportation à Babylone jusqu’au Christ.",
+      "TR0004": "Omnes itaque generationes ab Abraham usque ad David, generationes quatuordecim : et a David usque ad transmigrationem Babylonis, generationes quatuordecim : et a transmigratione Babylonis usque ad Christum, generationes quatuordecim."
+    },
+    {
+      "id_verset": "LUK.3.23",
+      "ref": "LUK 3:23",
+      "TR0001": "Jesus avoit environ trente ans, lorsqu’il commença <i>à exercer son ministere</i>, étant comme l’on croyoit fils de Joseph, qui fut <i>fils</i> d’Heli, qui fut <i>fils</i> de Mathat,",
+      "TR0003": "Jésus avait environ trente ans lorsqu’il commença son ministère ; il était, comme on le croyait, fils de Joseph, fils d’Héli,",
+      "TR0004": "Et ipse Jesus erat incipiens quasi annorum triginta, ut putabatur, filius Joseph, qui fuit Heli, qui fuit Mathat,"
+    },
+    {
+      "id_verset": "LUK.3.24",
+      "ref": "LUK 3:24",
+      "TR0001": "qui fut <i>fils</i> de Levi, qui fut <i>fils</i> de Melchi, qui fut <i>fils</i> de Janna, qui fut <i>fils</i> de Joseph,",
+      "TR0003": "fils de Matthat, fils de Lévi, fils de Melchi, fils de Janné, fils de Joseph,",
+      "TR0004": "qui fuit Levi, qui fuit Melchi, qui fuit Janne, qui fuit Joseph,"
+    },
+    {
+      "id_verset": "LUK.3.25",
+      "ref": "LUK 3:25",
+      "TR0001": "qui fut <i>fils</i> de Mathathias, qui fut <i>fils</i> d’Amos, qui fut <i>fils</i> de Nahum, qui fut <i>fils</i> d’Hesli, qui fut <i>fils</i> de Naggé,",
+      "TR0003": "fils de Mattathias, fils d’Amos, fils de Nahum, fils d’Hesli, fils de Naggé,",
+      "TR0004": "qui fuit Mathathiæ, qui fuit Amos, qui fuit Nahum, qui fuit Hesli, qui fuit Nagge,"
+    },
+    {
+      "id_verset": "LUK.3.26",
+      "ref": "LUK 3:26",
+      "TR0001": "qui fut <i>fils</i> de Mahath, qui fut <i>fils</i> de Mathathias, qui fut <i>fils</i> de Semeï, qui fut <i>fils</i> de Joseph, qui fut <i>fils</i> de Juda,",
+      "TR0003": "fils de Maath, fils de Mattathias, fils de Séméï, fils de Josech, fils de Juda,",
+      "TR0004": "qui fuit Mahath, qui fuit Mathathiæ, qui fuit Semei, qui fuit Joseph, qui fuit Juda,"
+    },
+    {
+      "id_verset": "LUK.3.27",
+      "ref": "LUK 3:27",
+      "TR0001": "qui fut <i>fils</i> de Joanna, qui fut <i>fils</i> de Resa, qui fut <i>fils</i> de Zorobabel, qui fut <i>fils</i> de Salathiel, qui fut <i>fils</i> de Neri,",
+      "TR0003": "fils de Joanan, fils de Résa, fils de Zorobabel, fils de Salathiel, fils de Néri,",
+      "TR0004": "qui fuit Joanna, qui fuit Resa, qui fuit Zorobabel, qui fuit Salathiel, qui fuit Neri,"
+    },
+    {
+      "id_verset": "LUK.3.28",
+      "ref": "LUK 3:28",
+      "TR0001": "qui fut <i>fils</i> de Melchi, qui fut <i>fils</i> d’Addi, qui fut <i>fils</i> de Cosan, qui fut <i>fils</i> d’Elmadan, qui fut <i>fils</i> d’Her,",
+      "TR0003": "fils de Melchi, fils d’Addi, fils de Cosam, fils d’Elmadam, fils de Her,",
+      "TR0004": "qui fuit Melchi, qui fuit Addi, qui fuit Cosan, qui fuit Elmadan, qui fuit Her,"
+    },
+    {
+      "id_verset": "LUK.3.29",
+      "ref": "LUK 3:29",
+      "TR0001": "qui fut <i>fils</i> de Jesus, qui fut <i>fils</i> d’Eliezer, qui fut <i>fils</i> de Jorim, qui fut <i>fils</i> de Mathat, qui fut <i>fils</i> de Levi,",
+      "TR0003": "fils de Jésus, fils d’Eliézer, fils de Jorim, fils de Matthat, fils de Lévi,",
+      "TR0004": "qui fuit Jesu, qui fuit Eliezer, qui fuit Jorim, qui fuit Mathat, qui fuit Levi,"
+    },
+    {
+      "id_verset": "LUK.3.30",
+      "ref": "LUK 3:30",
+      "TR0001": "qui fut <i>fils</i> de Simeon, qui fut <i>fils</i> de Juda, qui fut <i>fils</i> de Joseph, qui fut <i>fils</i> de Jona, qui fut <i>fils</i> d’Eliakim,",
+      "TR0003": "fils de Siméon, fils de Juda, fils de Joseph, fils de Jonan, fils d’Eliakim,",
+      "TR0004": "qui fuit Simeon, qui fuit Juda, qui fuit Joseph, qui fuit Jona, qui fuit Eliakim,"
+    },
+    {
+      "id_verset": "LUK.3.31",
+      "ref": "LUK 3:31",
+      "TR0001": "qui fut <i>fils</i> de Melea, qui fut <i>fils</i> de Menna, qui fut <i>fils</i> de Mathatha, qui fut <i>fils</i> de Nathan, qui fut <i>fils</i> de David,",
+      "TR0003": "fils de Méléa, fils de Menna, fils de Mattatha, fils de Nathan, fils de David,",
+      "TR0004": "qui fuit Melea, qui fuit Menna, qui fuit Mathatha, qui fuit Natham, qui fuit David,"
+    },
+    {
+      "id_verset": "LUK.3.32",
+      "ref": "LUK 3:32",
+      "TR0001": "qui fut <i>fils</i> de Jessé, qui fut <i>fils</i> d’Obed, qui fut <i>fils</i> de Booz, qui fut <i>fils</i> de Salmon, qui fut <i>fils</i> de Naasson,",
+      "TR0003": "fils de Jessé, fils d’Obed, fils de Booz, fils de Salmon, fils de Naasson,",
+      "TR0004": "qui fuit Jesse, qui fuit Obed, qui fuit Booz, qui fuit Salmon, qui fuit Naasson,"
+    },
+    {
+      "id_verset": "LUK.3.33",
+      "ref": "LUK 3:33",
+      "TR0001": "qui fut <i>fils</i> d’Aminadab, qui fut <i>fils</i> d’Aram, qui fut <i>fils</i> d’Esron, qui fut <i>fils</i> de Pharès, qui fut <i>fils</i> de Juda,",
+      "TR0003": "fils d’Aminadab, fils d’Aram, fils d’Esron, fils de Pharès, fils de Judas,",
+      "TR0004": "qui fuit Aminadab, qui fuit Aram, qui fuit Esron, qui fuit Phares, qui fuit Judæ,"
+    },
+    {
+      "id_verset": "LUK.3.34",
+      "ref": "LUK 3:34",
+      "TR0001": "qui fut <i>fils</i> de Jacob, qui fut <i>fils</i> d’Isaac, qui fut <i>fils</i> d’Abraham, qui fut <i>fils</i> de Tharé, qui fut <i>fils</i> de Nachor,",
+      "TR0003": "fils de Jacob, fils d’Isaac, fils d’Abraham, fils de Tharé, fils de Nachor,",
+      "TR0004": "qui fuit Jacob, qui fuit Isaac, qui fuit Abrahæ, qui fuit Thare, qui fuit Nachor,"
+    },
+    {
+      "id_verset": "LUK.3.35",
+      "ref": "LUK 3:35",
+      "TR0001": "qui fut <i>fils</i> de Sarug, qui fut <i>fils</i> de Ragau, qui fut <i>fils</i> de Phaleg, qui fut <i>fils</i> d’Heber, qui fut <i>fils</i> de Salé,",
+      "TR0003": "fils de Sarug, fils de Réü, fils de Phaleg, fils d’Héber, fils de Salé,",
+      "TR0004": "qui fuit Sarug, qui fuit Ragau, qui fuit Phaleg, qui fuit Heber, qui fuit Sale,"
+    },
+    {
+      "id_verset": "LUK.3.36",
+      "ref": "LUK 3:36",
+      "TR0001": "qui fut <i>fils</i> de Caïnan, qui fut <i>fils</i> d’Arphaxad, qui fut <i>fils</i> de Sem, qui fut <i>fils</i> de Noé, qui fut <i>fils</i> de Lamech,",
+      "TR0003": "fils de Caïnan, fils d’Arphaxad, fils de Sem, fils de Noé, fils de Lamech,",
+      "TR0004": "qui fuit Cainan, qui fuit Arphaxad, qui fuit Sem, qui fuit Noë, qui fuit Lamech,"
+    },
+    {
+      "id_verset": "LUK.3.37",
+      "ref": "LUK 3:37",
+      "TR0001": "qui fut <i>fils</i> de Mathusalé, qui fut <i>fils</i> d’Enoch, qui fut <i>fils</i> de Jared, qui fut <i>fils</i> de Malaléel, qui fut <i>fils</i> de Caïnan,",
+      "TR0003": "fils de Mathusalé, fils d’Enoch, fils de Jared, fils de Malaléel, fils de Caïnan,",
+      "TR0004": "qui fuit Methusale, qui fuit Henoch, qui fuit Jared, qui fuit Malaleel, qui fuit Cainan,"
+    },
+    {
+      "id_verset": "LUK.3.38",
+      "ref": "LUK 3:38",
+      "TR0001": "qui fut <i>fils</i> d’Enos, qui fut <i>fils</i> de Seth, qui fut <i>fils</i> d’Adam, qui fut <i>creé</i> de Dieu.",
+      "TR0003": "fils d’Enos, fils de Seth, fils d’Adam, fils de Dieu.",
+      "TR0004": "qui fuit Henos, qui fuit Seth, qui fuit Adam, qui fuit Dei."
+    },
+    {
+      "id_verset": "NUM.22.2",
+      "ref": "NUM 22:2",
+      "TR0001": "Mais Balac fils de Séphor considerant tout ce qu’Israel avoit fait aux Amorrhéens,",
+      "TR0003": "Balac, fils de Séphor, vit tout ce qu’Israël avait fait aux Amorrhéens ;",
+      "TR0004": "Videns autem Balac filius Sephor omnia quæ fecerat Israël Amorrhæo,"
+    },
+    {
+      "id_verset": "NUM.22.3",
+      "ref": "NUM 22:3",
+      "TR0001": "& <i>voyant</i> que les Moabites en avoient une grande frayeur, & qu’ils n’en pourroient soutenir les attaques,",
+      "TR0003": "et Moab fut très effrayé en face du peuple, car celui-ci était nombreux ; il fut saisi d’épouvante en face des enfants d’Israël.",
+      "TR0004": "et quod pertimuissent eum Moabitæ, et impetum ejus ferre non possent,"
+    },
+    {
+      "id_verset": "NUM.22.4",
+      "ref": "NUM 22:4",
+      "TR0001": "il dit aux plus anciens de Madian : Ce peuple exterminera tous ceux qui demeurent autour de nous, comme le bœuf a accoutumé de brouter les herbes jusqu’à la racine. Balac en ce tems-là étoit roi de Moab.",
+      "TR0003": "Moab dit aux anciens de Madian : « Cette multitude va dévorer tout ce qui nous entoure, comme le bœuf dévore la verdure des champs. » — Balac, fils de Séphor était alors roi de Moab. —",
+      "TR0004": "dixit ad majores natu Madian : Ita delebit hic populus omnes, qui in nostris finibus commorantur, quomodo solet bos herbas usque ad radices carpere. Ipse erat eo tempore rex in Moab."
+    },
+    {
+      "id_verset": "NUM.22.5",
+      "ref": "NUM 22:5",
+      "TR0001": "Il envoya donc des ambassadeurs à Balaam fils de Béor, qui étoit un devin, & qui demeuroit près du fleuve du païs des enfans d’Ammon, afin qu’ils le fissent venir, & qu’ils lui dissent : Voilà un peuple sorti de l’Egypte, qui couvre toute la face de la terre, & qui s’est campé près de moi.",
+      "TR0003": "Il envoya des messagers à Balaam, fils de Béor, à Péthor, qui est sur le Fleuve, dans le pays des fils de son peuple, pour l’appeler et lui dire : « Voici, un peuple est sorti d’Égypte ; il couvre la face de la terre, et il habite vis-à-vis de moi.",
+      "TR0004": "Misit ergo nuntios ad Balaam filium Beor ariolum, qui habitabat super flumen terræ filiorum Ammon, ut vocarent eum, et dicerent : Ecce egressus est populus ex Ægypto, qui operuit superficiem terræ, sedens contra me."
+    },
+    {
+      "id_verset": "NUM.22.6",
+      "ref": "NUM 22:6",
+      "TR0001": "Venez donc pour maudire ce peuple, parcequ’il est plus fort que moi ; afin que je tente si je pourrai par quelque moyen le battre & le chasser de mes terres. Car je sai que celui que vous benirez, sera beni ; & que celui sur qui vous aurez jetté la malediction, sera maudit.",
+      "TR0003": "Viens donc, je te prie, maudis-moi ce peuple, car il est plus puissant que moi ; peut-être ainsi pourrai-je le battre et le jeter hors du pays ; car je sais que celui que tu bénis est béni, et que celui que tu maudis est maudit. »",
+      "TR0004": "Veni igitur, et maledic populo huic, quia fortior me est : si quomodo possim percutere et ejicere eum de terra mea. Novi enim quod benedictus sit cui benedixeris, et maledictus in quem maledicta congesseris."
+    },
+    {
+      "id_verset": "GEN.35.28",
+      "ref": "GEN 35:28",
+      "TR0001": "Isaac avoit alors cent quatre-vingts ans accomplis.",
+      "TR0003": "Les jours d’Isaac furent de cent quatre-vingts ans.",
+      "TR0004": "Et completi sunt dies Isaac centum octoginta annorum."
+    },
+    {
+      "id_verset": "GEN.35.29",
+      "ref": "GEN 35:29",
+      "TR0001": "& ses forces étant épuisées par son grand âge, il mourut. Ayant donc achevé sa carriere dans une extrême vieillesse, il fut réuni à son peuple : & ses enfans Esaü & Jacob l’ensevelirent.",
+      "TR0003": "Isaac expira et mourut, et il fut réuni à son peuple, vieux et rassasié de jours. Esaü et Jacob, ses fils, l’enterrèrent.",
+      "TR0004": "Consumptusque ætate mortuus est : et appositus est populo suo senex et plenus dierum : et sepelierunt eum Esau et Jacob filii sui."
+    },
+    {
+      "id_verset": "GEN.25.26",
+      "ref": "GEN 25:26",
+      "TR0001": "Isaac avoit soixante ans lorsque ces deux enfans lui nâquirent.",
+      "TR0003": "Isaac était âgé de soixante ans quand ils naquirent.",
+      "TR0004": "Sexagenarius erat Isaac quando nati sunt ei parvuli."
+    },
+    {
+      "id_verset": "GEN.37.1",
+      "ref": "GEN 37:1",
+      "TR0001": "Jacob demeura dans le païs de Chanaan, où son pere avoit été comme étranger.",
+      "TR0003": "Jacob s’établit dans le pays où son père avait séjourné dans le pays de Chanaan.",
+      "TR0004": "Habitavit autem Jacob in terra Chanaan, in qua pater suus peregrinatus est."
+    },
+    {
+      "id_verset": "GEN.37.2",
+      "ref": "GEN 37:2",
+      "TR0001": "Et voici ce qui regarde sa famille. Joseph âgé de seize ans, & n’étant encore qu’enfant, conduisoit le troupeau <i>de son pere</i> avec ses freres, & il étoit avec les enfans de Bala & de Zelpha, femmes de son pere. Il accusa alors ses freres devant son pere d’un crime énorme.",
+      "TR0003": "Voici l’histoire de Jacob. Joseph, âgé de dix-sept ans, faisait paître les brebis avec ses frères ; comme il était encore jeune, il se trouvait avec les fils de Bala et avec les fils de Zelpha, femmes de son père ; et Joseph rapporta à leur père de mauvais bruits qui couraient sur leur compte.",
+      "TR0004": "Et hæ sunt generationes ejus : Joseph cum sedecim esset annorum, pascebat gregem cum fratribus suis adhuc puer : et erat cum filiis Balæ et Zelphæ uxorum patris sui : accusavitque fratres suos apud patrem crimine pessimo."
+    },
+    {
+      "id_verset": "GEN.37.5",
+      "ref": "GEN 37:5",
+      "TR0001": "Il arriva aussi que Joseph rapporta à ses freres un songe qu’il avoit eu, qui fut <i>encore</i> la semence d’une plus grande haine.",
+      "TR0003": "Joseph eut un songe, et il le raconta à ses frères, qui le haïrent encore davantage.",
+      "TR0004": "Accidit quoque ut visum somnium referret fratribus suis : quæ causa majoris odii seminarium fuit."
+    },
+    {
+      "id_verset": "GEN.37.6",
+      "ref": "GEN 37:6",
+      "TR0001": "Car il leur dit : Ecoutez le songe que j’ai eu.",
+      "TR0003": "Il leur dit : « Écoutez, je vous prie, le songe que j’ai eu :",
+      "TR0004": "Dixitque ad eos : Audite somnium meum quod vidi :"
+    },
+    {
+      "id_verset": "GEN.37.7",
+      "ref": "GEN 37:7",
+      "TR0001": "Il me sembloit que je liois avec vous des gerbes dans le champ ; que ma gerbe se leva & se tint debout, & que les vôtres étant autour de la mienne, l’adoroient.",
+      "TR0003": "Nous étions à lier des gerbes au milieu des champs ; et voici, ma gerbe s’est levée et s’est tenue debout, et vos gerbes l’ont entourée et se sont prosternées devant elle. »",
+      "TR0004": "putabam nos ligare manipulos in agro : et quasi consurgere manipulum meum, et stare, vestrosque manipulos circumstantes adorare manipulum meum."
+    },
+    {
+      "id_verset": "GEN.37.8",
+      "ref": "GEN 37:8",
+      "TR0001": "Ses freres lui répondirent : Est-ce que vous serez notre roi, & que nous serons soumis à votre puissance ? Ces songes & ces entretiens allumerent donc encore davantage l’envie & la haine qu’ils avoient contre lui.",
+      "TR0003": "Ses frères lui dirent : « Est-ce que tu régneras sur nous ? est-ce que tu nous domineras ? » Et ils le haïrent encore davantage pour ses songes et pour ses paroles.",
+      "TR0004": "Responderunt fratres ejus : Numquid rex noster eris ? aut subjiciemur ditioni tuæ ? Hæc ergo causa somniorum atque sermonum, invidiæ et odii fomitem ministravit."
+    },
+    {
+      "id_verset": "GEN.37.9",
+      "ref": "GEN 37:9",
+      "TR0001": "Il eut encore un autre songe qu’il raconta à ses freres en leur disant : J’ai cru voir en songe que le soleil & la lune, & onze étoiles m’adoroient.",
+      "TR0003": "Il eut encore un autre songe, qu’il raconta à ses frères. Il dit : « J’ai eu encore un songe : le soleil, la lune et onze étoiles se prosternaient devant moi. »",
+      "TR0004": "Aliud quoque vidit somnium, quod narrans fratribus, ait : Vidi per somnium, quasi solem, et lunam, et stellas undecim adorare me."
+    },
+    {
+      "id_verset": "GEN.37.10",
+      "ref": "GEN 37:10",
+      "TR0001": "Lorsqu’il eut rapporté ce songe à son pere & à ses freres, son pere lui en fit reprimande, & lui dit : Que voudroit dire ce songe que vous avez eu ? Est-ce que votre mere, vos freres & moi nous vous adorerons sur la terre ?",
+      "TR0003": "Il le raconta à son père et à ses frères, et son père le réprimanda, en disant : « Que signifie ce songe que tu as eu ? Faudra-t-il que nous venions, moi, ta mère et tes frères, nous prosterner à terre devant toi ? »",
+      "TR0004": "Quod cum patri suo, et fratribus retulisset, increpavit eum pater suus, et dixit : Quid sibi vult hoc somnium quod vidisti ? num ego et mater tua, et fratres tui adorabimus te super terram ?"
+    },
+    {
+      "id_verset": "GEN.37.11",
+      "ref": "GEN 37:11",
+      "TR0001": "Ainsi ses freres étoient pleins d’envie contre lui : mais le pere consideroit tout ceci avec attention & dans le silence.",
+      "TR0003": "Et ses frères furent jaloux de lui, mais son père conservait la chose dans son cœur.",
+      "TR0004": "Invidebant ei igitur fratres sui : pater vero rem tacitus considerabat."
+    },
+    {
+      "id_verset": "GEN.37.28",
+      "ref": "GEN 37:28",
+      "TR0001": "L’ayant donc tiré de la citerne, & voyant ces marchands Madianites qui passoient, ils le vendirent vingt pieces d’argent aux Ismaëlites, qui le menerent en Egypte.",
+      "TR0003": "et, quand les marchands madianites passèrent, ils tirèrent Joseph et le firent remonter de la citerne ; et ils le vendirent pour vingt pièces d’argent aux Ismaélites, qui l’emmenèrent en Égypte.",
+      "TR0004": "Et prætereuntibus Madianitis negotiatoribus, extrahentes eum de cisterna, vendiderunt eum Ismaëlitis, viginti argenteis : qui duxerunt eum in Ægyptum."
+    },
+    {
+      "id_verset": "GEN.41.46",
+      "ref": "GEN 41:46",
+      "TR0001": "(Il avoit trente ans lorsqu’il parut devant le Roi Pharaon,) & il fit le tour de toutes les provinces d’Egypte.",
+      "TR0003": "Joseph était âgé de trente ans lorsqu’il se présenta devant Pharaon, roi d’Égypte ; et il quitta Pharaon pour parcourir tout le pays d’Égypte.",
+      "TR0004": "(triginta autem annorum erat quando stetit in conspectu regis Pharaonis), et circuivit omnes regiones Ægypti."
+    },
+    {
+      "id_verset": "GEN.41.53",
+      "ref": "GEN 41:53",
+      "TR0001": "Ces sept années de la fertilité d’Egypte étant donc passées,",
+      "TR0003": "Les sept années d’abondance qu’il y eut en Égypte étant achevées,",
+      "TR0004": "Igitur transactis septem ubertatis annis, qui fuerant in Ægypto,"
+    },
+    {
+      "id_verset": "GEN.45.6",
+      "ref": "GEN 45:6",
+      "TR0001": "Il y a dèja deux ans que la famine a commencé sur la terre, & il en reste encore cinq, cinq, pendant lesquels on ne pourra ni labourer ni recueillir.",
+      "TR0003": "Car voilà deux ans que la famine est dans ce pays, et pendant cinq années encore il n’y aura ni labour ni moisson.",
+      "TR0004": "Biennium est enim quod cœpit fames esse in terra : et adhuc quinque anni restant, quibus nec arari poterit, nec meti."
+    },
+    {
+      "id_verset": "GEN.47.9",
+      "ref": "GEN 47:9",
+      "TR0001": "il lui répondit : Il y a cent trente ans que je suis voyageur, & ce petit nombre d’années, qui n’est pas venu jusqu’à égaler celui des années de mes peres, a été traversé de beaucoup de maux.",
+      "TR0003": "Jacob répondit à Pharaon : « Les jours des années de mon pèlerinage sont de cent trente ans. Courts et mauvais ont été les jours des années de ma vie, et ils n’ont point atteint les jours des années de la vie de mes pères durant leur pèlerinage. »",
+      "TR0004": "respondit : Dies peregrinationis meæ centum triginta annorum sunt, parvi et mali, et non pervenerunt usque ad dies patrum meorum quibus peregrinati sunt."
+    },
+    {
+      "id_verset": "PHP.2.9",
+      "ref": "PHP 2:9",
+      "TR0001": "C’est-pourquoi Dieu l’a élevé <i>par-dessus toutes choses</i>, & lui a donné un nom qui est au-dessus de tout nom ;",
+      "TR0003": "C’est pourquoi aussi Dieu l’a souverainement élevé, et lui a donné le nom qui est au-dessus de tout nom,",
+      "TR0004": "Propter quod et Deus exaltavit illum, et donavit illi nomen, quod est super omne nomen :"
+    },
+    {
+      "id_verset": "PHP.2.10",
+      "ref": "PHP 2:10",
+      "TR0001": "afin qu’au nom de Jesus tout genou flechisse dans le ciel, dans la terre & dans les enfers ;",
+      "TR0003": "afin qu’au nom de Jésus tout genou fléchisse dans les cieux, sur la terre et dans les enfers,",
+      "TR0004": "ut in nomine Jesu omne genu flectatur cælestium, terrestrium et infernorum,"
+    },
+    {
+      "id_verset": "GEN.16.15",
+      "ref": "GEN 16:15",
+      "TR0001": "Agar enfanta ensuite un fils à Abram, qui le nomma Ismael.",
+      "TR0003": "Agar enfanta un fils à Abram, et Abram donna le nom d’Ismaël au fils qu’Agar avait mis au monde.",
+      "TR0004": "Peperitque Agar Abræ filium : qui vocavit nomen ejus Ismaël."
+    },
+    {
+      "id_verset": "GEN.25.2",
+      "ref": "GEN 25:2",
+      "TR0001": "qui lui enfanta Zamram, Jecsan, Madan, Madian, Jesboc, & Sué.",
+      "TR0003": "Et elle lui enfanta Zamran, Jecsan, Madan, Madian, Jesboc et Sué. —",
+      "TR0004": "quæ peperit ei Zamran et Jecsan, et Madan, et Madian, et Jesboc, et Sue."
+    },
+    {
+      "id_verset": "GEN.25.6",
+      "ref": "GEN 25:6",
+      "TR0001": "il fit des présens aux fils de ses autres femmes, & de son vivant il les sépara de son fils Isaac, <i>les faisant aller</i> dans le païs qui regarde l’orient.",
+      "TR0003": "Quant aux fils de ses concubines, il leur donna des présents, et il les envoya de son vivant loin de son fils Isaac, à l’orient, au pays d’Orient.",
+      "TR0004": "filiis autem concubinarum largitus est munera, et separavit eos ab Isaac filio suo, dum adhuc ipse viveret, ad plagam orientalem."
+    },
+    {
+      "id_verset": "GEN.37.35",
+      "ref": "GEN 37:35",
+      "TR0001": "Alors tous ses enfans s’assemblerent, pour tâcher de soulager leur pere dans sa douleur : mais il ne voulut point recevoir de consolation, & il leur dit : Je pleurerai toujours jusqu’à ce que je descende avec mon fils au fond de la terre. Ainsi il continua toujours de pleurer.",
+      "TR0003": "Tous ses fils et toutes ses filles vinrent pour le consoler ; mais il refusa d’être consolé ; il disait : « Je descendrai dans le deuil vers mon fils au séjour des morts. » Et son père le pleura.",
+      "TR0004": "Congregatis autem cunctis liberis ejus ut lenirent dolorem patris, noluit consolationem accipere, sed ait : Descendam ad filium meum lugens in infernum. Et illo perseverante in fletu,"
+    },
+    {
+      "id_verset": "GEN.37.36",
+      "ref": "GEN 37:36",
+      "TR0001": "Cependant les Madianites vendirent Joseph en Egypte à Putiphar Eunuque de Pharaon, & General de ses troupes.",
+      "TR0003": "Les Madianites le vendirent en Égypte à Putiphar, officier de Pharaon, chef des gardes.",
+      "TR0004": "Madianitæ vendiderunt Joseph in Ægypto Putiphari eunucho Pharaonis, magistro militum."
+    },
+    {
+      "id_verset": "2KI.25.8",
+      "ref": "2KI 25:8",
+      "TR0001": "La dix-neuviéme année de Nabuchodonosor roi de Babylone, le septiéme jour du cinquiéme mois, Nabuzardan serviteur du roi de Babylone & General de son armée vint à Jerusalem.",
+      "TR0003": "Le cinquième mois, le septième jour du mois, — c’était la dix-neuvième année du règne de Nabuchodonosor, roi de Babylone, — Nabuzardan, capitaine des gardes, serviteur du roi de Babylone, vint à Jérusalem.",
+      "TR0004": "Mense quinto, septima die mensis, ipse est annus nonusdecimus regis Babylonis, venit Nabuzardan princeps exercitus, servus regis Babylonis, in Jerusalem."
+    },
+    {
+      "id_verset": "GEN.38.1",
+      "ref": "GEN 38:1",
+      "TR0001": "En ce même-tems Juda quitta ses freres, & vint chez un homme d’Odolla, qui s’appelloit Hiras.",
+      "TR0003": "En ce temps-là Juda, s’éloignant de ses frères, descendit et arriva jusqu’auprès d’un homme d’Odollam, nommé Hira.",
+      "TR0004": "Eodem tempore, descendens Judas a fratribus suis, divertit ad virum Odollamitem, nomine Hiram."
+    },
+    {
+      "id_verset": "GEN.38.2",
+      "ref": "GEN 38:2",
+      "TR0001": "Et ayant vû en ce lieu la fille d’un homme Chananéen, nommé Sué, il l’épousa, & vécut avec elle.",
+      "TR0003": "Là, Juda vit la fille d’un Chananéen, nommé Sué, et il la prit pour femme et alla vers elle.",
+      "TR0004": "Viditque ibi filiam hominis Chananæi, vocabulo Sue : et accepta uxore, ingressus est ad eam."
+    },
+    {
+      "id_verset": "GEN.38.3",
+      "ref": "GEN 38:3",
+      "TR0001": "Elle conçut <i>ensuite</i>, & elle enfanta un fils qui se nomma Her.",
+      "TR0003": "Elle conçut et enfanta un fils, et il le nomma Her.",
+      "TR0004": "Quæ concepit, et peperit filium, et vocavit nomen ejus Her."
+    },
+    {
+      "id_verset": "GEN.38.6",
+      "ref": "GEN 38:6",
+      "TR0001": "Juda fit épouser à Her son fils aîné <i>une fille</i> nommée Thamar.",
+      "TR0003": "Juda prit pour Her, son premier-né, une femme nommée Thamar.",
+      "TR0004": "Dedit autem Judas uxorem primogenito suo Her, nomine Thamar."
+    },
+    {
+      "id_verset": "GEN.38.7",
+      "ref": "GEN 38:7",
+      "TR0001": "Ce Her fils aîné de Juda, fut un très-méchant homme ; & le Seigneur le frappa de mort.",
+      "TR0003": "Her, premier-né de Juda, fut méchant aux yeux de Yahweh et Yahweh le fit mourir.",
+      "TR0004": "Fuit quoque Her primogenitus Judæ nequam in conspectu Domini : et ab eo occisus est."
+    },
+    {
+      "id_verset": "GEN.38.8",
+      "ref": "GEN 38:8",
+      "TR0001": "Juda dit donc à Onan son second fils : Epousez la femme de votre frere, & vivez avec elle, afin que vous suscitiez des enfans à votre frere.",
+      "TR0003": "Alors Juda dit à Onan : « Va vers la femme de ton frère, remplis ton devoir de beau-frère et suscite une postérité à ton frère. »",
+      "TR0004": "Dixit ergo Judas ad Onan filium suum : Ingredere uxorem fratris tui, et sociare illi, ut suscites semen fratri tuo."
+    },
+    {
+      "id_verset": "GEN.38.9",
+      "ref": "GEN 38:9",
+      "TR0001": "Onan voyant la femme de son frere <i>aîné</i>, & sachant que les enfans qui naîtroient d’elle ne seroient pas à lui, empêchoit <i>par une action execrable</i> qu’elle ne devînt mere, de-peur que ces enfans ne portassent le nom de son frere.",
+      "TR0003": "Mais Onan savait que cette postérité ne serait pas à lui et, lorsqu’il allait vers la femme de son frère, il se souillait à terre afin de ne pas donner de postérité à son frère.",
+      "TR0004": "Ille sciens non sibi nasci filios, introiens ad uxorem fratris sui, semen fundebat in terram, ne liberi fratris nomine nascerentur."
+    },
+    {
+      "id_verset": "GEN.38.10",
+      "ref": "GEN 38:10",
+      "TR0001": "C’est-pourquoi le Seigneur le frappa <i>de mort</i>, parcequ’il faisoit une chose détestable.",
+      "TR0003": "Son action déplut au Seigneur, qui le fit aussi mourir.",
+      "TR0004": "Et idcirco percussit eum Dominus, quod rem detestabilem faceret."
+    },
+    {
+      "id_verset": "GEN.38.11",
+      "ref": "GEN 38:11",
+      "TR0001": "Juda dit donc à Thamar sa belle-fille : Demeurez veuve dans la maison de votre pere, jusqu’à ce que mon fils Sela devienne grand : car il avoit peur que Sela ne mourût aussi comme ses autres freres. Ainsi Thamar retourna demeurer dans la maison de son pere.",
+      "TR0003": "Et Juda dit à Thamar, sa belle-fille : « Demeure comme veuve dans la maison de ton père jusqu’à ce que Séla, mon fils, soit devenu grand. » Car il se disait : « Il ne faut pas que lui aussi meure comme ses frères. » Thamar s’en alla et demeura dans la maison de son père.",
+      "TR0004": "Quam ob rem dixit Judas Thamar nurui suæ : Esto vidua in domo patris tui, donec crescat Sela filius meus : timebat enim ne et ipse moreretur, sicut fratres ejus. Quæ abiit, et habitavit in domo patris sui."
+    },
+    {
+      "id_verset": "GEN.38.14",
+      "ref": "GEN 38:14",
+      "TR0001": "quitta ses habits de veuve, se couvrit d’un grand voile ; & s’étant déguisée, s’assit dans un carrefour sur le chemin de Thamnas ; parceque Sela étant en âge d’être marié, Juda ne le lui avoit point fait épouser.",
+      "TR0003": "Alors elle ôta ses vêtements de veuve, se couvrit d’un voile, et, ainsi enveloppée, elle s’assit à l’entrée d’Enaïm, sur le chemin de Thamna, car elle voyait que Séla était devenu grand et qu’elle ne lui était pas donnée pour femme.",
+      "TR0004": "Quæ, depositis viduitatis vestibus, assumpsit theristrum : et mutato habitu, sedit in bivio itineris, quod ducit Thamnam : eo quod crevisset Sela, et non eum accepisset maritum."
+    },
+    {
+      "id_verset": "GEN.38.15",
+      "ref": "GEN 38:15",
+      "TR0001": "Juda l’ayant vûe, s’imagina que c’étoit une femme de mauvaise vie, parcequ’elle s’étoit couvert le visage, de-peur d’être reconnue.",
+      "TR0003": "Juda, l’ayant vue, la prit pour une femme de mauvaise vie ; car elle avait couvert son visage.",
+      "TR0004": "Quam cum vidisset Judas, suspicatus est esse meretricem : operuerat enim vultum suum, ne agnosceretur."
+    },
+    {
+      "id_verset": "GEN.38.16",
+      "ref": "GEN 38:16",
+      "TR0001": "Et s’approchant d’elle, il lui parla pour la faire consentir au mauvais desir qu’il avoit ; car il ne savoit pas que ce fût sa belle-fille. Elle lui répondit : Que me donnerez-vous pour ce que vous me demandez ?",
+      "TR0003": "Il se dirigea de son côté, vers le chemin, et dit : « Laisse-moi aller vers toi. » Car il ignorait que ce fût sa belle-fille. Elle dit : « Que me donneras-tu pour venir vers moi ? »",
+      "TR0004": "Ingrediensque ad eam, ait : Dimitte me ut coëam tecum : nesciebat enim quod nurus sua esset. Qua respondente : Quid dabis mihi ut fruaris concubitu meo ?"
+    },
+    {
+      "id_verset": "GEN.38.17",
+      "ref": "GEN 38:17",
+      "TR0001": "Je vous envoyerai, dit-il, un chevreau de mon troupeau. Elle repartit : Je consentirai à ce que vous voulez, pourvû que vous me donniez un gage en attendant que vous m’envoyiez ce que vous me promettez.",
+      "TR0003": "Il répondit : « Je t’enverrai un chevreau du troupeau. » Elle dit : « À condition que tu me donnes un gage jusqu’à ce que tu l’envoies ».",
+      "TR0004": "dixit : Mittam tibi hædum de gregibus. Rursumque illa dicente : Patiar quod vis, si dederis mihi arrhabonem, donec mittas quod polliceris."
+    },
+    {
+      "id_verset": "GEN.38.18",
+      "ref": "GEN 38:18",
+      "TR0001": "Que voulez-vous que je vous donne pour gage, lui dit Juda ? Elle lui répondit : Donnez-moi votre anneau, votre brasselet, & le bâton que vous tenez à la main. Ainsi elle conçut de lui,",
+      "TR0003": "Il dit : « Quel gage dois-je te donner ? » Elle dit : « Ton anneau, ton cordon et ton bâton que tu tiens à la main. » Il les lui donna et alla vers elle, et elle devint enceinte de lui.",
+      "TR0004": "Ait Judas : Quid tibi vis pro arrhabone dari ? Respondit : Annulum tuum, et armillam, et baculum quem manu tenes. Ad unum igitur coitum mulier concepit,"
+    },
+    {
+      "id_verset": "GEN.38.26",
+      "ref": "GEN 38:26",
+      "TR0001": "Juda ayant reconnu ce qu’il lui avoit donné, dit : Elle a moins de tort que moi : parceque j’ai manqué en ne la faisant point épouser à Sela mon fils. Il ne la connut point neanmoins depuis.",
+      "TR0003": "Juda les reconnut et dit : « Elle est plus juste que moi, puisque je ne l’ai pas donnée à Séla, mon fils. » Et il ne la connut plus.",
+      "TR0004": "Qui, agnitis muneribus, ait : Justior me est : quia non tradidi eam Sela filio meo. Attamen ultra non cognovit eam."
+    },
+    {
+      "id_verset": "GEN.39.1",
+      "ref": "GEN 39:1",
+      "TR0001": "Joseph ayant donc été mené en Egypte, Putiphar Egyptien, Eunuque de Pharaon, & General de ses troupes, l’acheta des Ismaëlites qui l’y avoient emmené.",
+      "TR0003": "Joseph fut emmené en Égypte, et Putiphar, officier de Pharaon, chef des gardes, Égyptien, l’acheta des Ismaélites qui l’y avaient amené.",
+      "TR0004": "Igitur Joseph ductus est in Ægyptum, emitque eum Putiphar eunuchus Pharaonis, princeps exercitus, vir ægyptius, de manu Ismaëlitarum, a quibus perductus erat."
+    }
+  ],
+  "liens_existants": [],
+  "segments": [
+    {
+      "id": 548099,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 376,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": "Sur les rois d’Edom.\nGenèse 36, 31, 32",
+      "segment_texte": "Voici les rois qui régnèrent à Edom, avant « qu’un roi régnât en Israël. » Il ne faut pas entendre ce passage, comme s’il contenait le dénombrement de tous les rois d’Edom, jusqu’au temps où la royauté commença en Israël, dans la personne de Saül.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548100,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 377,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il y eut beaucoup de rois à Edom avant l’avènement de Saül, au temps des Juges, qui précédèrent la royauté ; mais parmi ces rois, Moïse n’a pu nommer que ceux qui ont vécu avant sa mort.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548101,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 378,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Et qu’on ne s’étonne pas de trouver, depuis Abraham jusqu’au dernier roi nommé par Moïse, en passant par Esaü, père du peuple d’Edom ; par Raguël, fils d’Esaü ; par Zara, fils de Raguël ; par Jacob, fils de Zara, et par Balac, son successur [<i>sic</i>], qui est donné comme le premier roi d’Edom, plus de générations qu’on n’en compte par Jacob depuis Abraham, jusqu’à Moïse.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548102,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 379,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Là effectivement se trouvent presque douze générations, et ici sept à peine jusqu’à Moïse. Il a pu se faire que là où on en compte le plus, il y ait eu plus de rois pour se succéder, parce que la mort les enlevait plus rapidement.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548103,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 380,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "C’est ainsi qu’en suivant un ordre différent, saint Mathieu compte deux générations, depuis Abraham jusqu’à Joseph[[67]] ; saint Luc, suivant un autre ordre et comptant les générations, non point par Salomon, comme lui, mais par Nathan, en énumère cinquante-cinq depuis Abraham jusqu’à Joseph[[68]].",
+      "texte_original": null,
+      "notes": "[[67]] Mat. I, 1-17\n[[68]] Luc. III, 23-38",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548104,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 381,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Dans la ligne où l’on compte le plus de générations, la mort a été plus prompte, que dans celle où on en compte le moins.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548105,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 382,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Et dans la crainte qu’on ne s’étonne de ce que Balac, fils de Béor, est mis au nombre des rois d’Edom, et qu’en raison de la ressemblance de nom, on ne s’imagine que c’était ce Balac qui résista à Moïse, le chef du peuple d’Israël, il faut savoir que celui-ci était Moabite et non Iduméen, et qu’il était de Séphor et non de Béor ; il y eut au temps de Moïse un fils de Béor, qui s’appelait Balaam et non point Balac, et c’est ce même Balac qui avait appelé Balaam pour maudire le peuple d’Israël[[69]].",
+      "texte_original": null,
+      "notes": "[[69]] Nom. XXII, 2-6",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548106,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 383,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": "Joseph avait-il dix-sept ans à la mort d’Israël ?\nGenèse 35, 29 ; 37, 2",
+      "segment_texte": "De quelque côté qu’on se tourne, il est difficile de trouver <i>comment à la mort d’Isaac, Joseph</i>, son petit-fils, <i>pouvait avoir dix-sept ans</i>, comme cela semble résulter de la marche du récit dans l’Écriture. Je ne veux pas dire qu’on ne puisse le prouver, car je puis ignorer ce qui n’échapperait pas à d’autres.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548107,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 384,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Si Joseph, après la mort d’Isaac son aïeul, avait dix-sept ans, quand ses frères le vendirent pour l’Égypte, il est hors de doute qu’à la même époque, Jacob son père en avait cent-vingt.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548108,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 385,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "En effet, selon l’Écriture[[70]], Isaac avait soixante ans, lorsqu’il eut Esaü et Jacob ; il vécut encore cent-vingt ans après, puisqu’il mourut âgé de cent quatre-vingts ans ; il laissa donc ses fils âgés de cent-vingt ans, et Joseph de dix-sept ans.",
+      "texte_original": null,
+      "notes": "[[70]] Gen. XXV, 26",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548109,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 386,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Comme Joseph avait trente ans, quand il parut à la cour de Pharaon, et qu’il y eut ensuite sept années d’abondance et deux de disette, jusqu’à l’arrivée de son père et de ses frères, Joseph avait par conséquent atteint sa trente-neuvième année, lorsque Jacob vint en Égypte.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548110,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 387,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Or à cette époque, Jacob était arrivé, comme il le dit lui-même à Pharaon : à sa cent-trentième année[[71]] ; et il avait cent-vingt ans, quand Joseph en avait dix-sept : il est impossible absolument que cela soit vrai.",
+      "texte_original": null,
+      "notes": "[[71]] Gen. XLVII, 9",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548111,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 388,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "En effet si Jacob avait cent-vingt ans, quand Joseph en avait dix-sept ; à l’époque ou celui-ci en avait trente-neuf, ce n’est pas cent-trente ans, mais cent-quarante-deux que devait compter Jacob.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548112,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 389,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Et si Joseph n’avait pas encore atteint sa dix-septième année à la mort d’Isaac, mais seulement quelque temps après, comme c’est à cet âge qu’il fut, au témoignage de l’Écriture, vendu pour l’Égypte par ses frères, il s’ensuit que son père devait même avoir plus de cent quarante-deux ans, lorsqu’il alla retrouver son fils en Égypte.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548113,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 390,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "En effet, après avoir dit qu’Isaac vécut cent quatre-vingts ans ; après avoir raconté sa mort et sa sépulture[[72]], l’Écriture rapporte comment Esaü quitta son frère et la terre de Chanaan pour se retirer sur le mont Séïr ; puis elle donne la nomenclature des rois est [<i>sic</i>] des princes de cette nation, au milieu de laquelle il s’établit ou dont il fut lui-même la souche.",
+      "texte_original": null,
+      "notes": "[[72]] Gen. XXXV, 28, 29",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548114,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 391,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Après cela, l’histoire de Joseph débute dans les termes suivants[[73]] : « Mais Jacob demeurait dans le pays de Chanaan. Or, voici ce qui regarde les enfants de Jacob. Joseph, âgé de dix-sept ans, faisait paître les troupeaux avec ses frères. »",
+      "texte_original": null,
+      "notes": "[[73]] Gen. XXXVI, 6-13",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548115,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 392,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il est dit ensuite comment, à cause de ses songes, il devint l’objet de la haine de ces mêmes frères, et fut vendu par eux[[74]]. Donc c’est à dix-sept ans ou à un âge un peu plus avancé, qu’il vint en Égypte : mais, quelle que soit l’hypothèse que l’on adopte, cela ne change rien à la question.",
+      "texte_original": null,
+      "notes": "[[74]] Id. XXXVII, 1-28",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548116,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 393,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Car s’il avait dix-sept ans à la mort de son aïeul, quand son père en avait cent-vingt, lorsqu’il en eut trente-neuf, et que son père vint en Égypte, celui-ci devait en avoir nécessairement cent-quarante-deux.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548117,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 394,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Or Jacob n’en avait alors que cent-trente : d’où il suit que Joseph ayant dix-sept ans quand il fut vendu pour l’Égypte, il se trouve qu’il fut vendu douze ans avant la mort de son aïeul. C’est nécessairement douze ans avant la mort d’Isaac, et quand Jacob, son père, avait cent-huit ans, que Joseph était âgé de dix-sept ans.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548118,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 395,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "En y ajoutant les vingt-deux années qu’il passa en Égypte avant l’arrivée de son père, on trouvera trente-neuf ans pour l’âge de Joseph, et cent-trente pour l’âge de Jacob et la question sera tranchée. Mais, comme l’Écriture fait le récit de ces évènements après la mort d’Isaac, en croit devoir en conclure que Joseph était âgé de dix-sept ans à la mort de son aïeul.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548119,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 396,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Comprenons donc que l’Écriture, une fois qu’elle a parlé de Jacob et de ses fils, garde le silence sur Isaac devenu un vieillard fort décrépi ; et que c’est néanmoins du vivant d’Isaac que Joseph avait atteint sa dix-septième année.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548120,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 397,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXIII",
+      "ref_niv2_texte": "Genèse 37, 10",
+      "segment_texte": "Songe de Joseph. - Jacob dit à Joseph : « Que signifie ce songe que tu as eu ? est-ce que nous viendrons, moi, ta mère et tes frères, nous prosterner jusqu’à terre devant toi ? » Comment, à moins d’admettre un sens mystérieux dans ces paroles, en faire l’application à la mère de Joseph, puisqu’elle était déjà morte ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548121,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 398,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il ne faut pas non plus se persuader que ce songe eut son accomplissement en Égypte, quand Joseph y fut élevé en honneur ; car son père ne l’adora point, lorsqu’il vint l’y retrouver ; et sa mère, morte depuis longtemps, ne put l’y adorer davantage.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548122,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 399,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "C’est donc en la personne du Christ que s’applique facilement ce passage, même relativement aux morts ; car, dit l’Apôtre, Dieu « lui a donné un nom qui est au-dessus de tout nom, afin qu’au nom de Jésus tout genou fléchisse au ciel, sur la terre et dans les enfers[[75]]. »",
+      "texte_original": null,
+      "notes": "[[75]] Phi. II, 9, 10",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548123,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 400,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXIV",
+      "ref_niv2_texte": "Les Madianites nommés Ismaélites.\nGenèse 37, 28",
+      "segment_texte": "On demande pourquoi l’Écriture donne aux Ismaélites, à qui Joseph fut vendu par ses frères, un autre nom, le nom de Madianites, puisque Ismaël descend d’Abraham par Agar, et les Madianites par Céthura ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548124,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 401,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXIV",
+      "ref_niv2_texte": null,
+      "segment_texte": "L’Écriture ayant dit qu’Abraham fit des présents aux fils de ses concubines, c’est-à-dire, d’Agar et de Céthura, et qu’il les éloigna de son fils Isaac pour les envoyer vers l’Orient[[76]], ne faut-il pas en conclure qu’ils ne formaient qu’une nation ?",
+      "texte_original": null,
+      "notes": "[[76]] Gen. XXV, 6",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548125,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 402,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXV",
+      "ref_niv2_texte": "Filles de Jacob.\nGenèse 37, 35",
+      "segment_texte": "Il est rapporté qu’au moment où Jacob pleurait Joseph, « tous ses fils et ses filles se réunirent, et vinrent le consoler. » Outre Dina, quelles filles eut Jacob ? En parlant de fils et de filles, ne compte-t-on pas les petits-fils et les petites-filles ? Car les fils aînés de Jacob pouvaient déjà avoir des enfants.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548126,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 403,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVI",
+      "ref_niv2_texte": "Quel est l’enfer dont parle Jacob ?\nGenèse 37, 35",
+      "segment_texte": "« Mais il ne voulut pas être consolé, et il disait : Ma tristesse me conduira aux enfers avec mon fils. » Que faut-il entendre ici par l’enfer ? sujet ordinaire d’une grande question. Est-ce exclusivement le séjour des méchants, ou le séjour commun aux bons et aux méchants après leur mort.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548127,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 404,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVI",
+      "ref_niv2_texte": null,
+      "segment_texte": "S’il n’est destiné qu’aux méchants, comment donc Jacob dit-il qu’il veut dans sa tristesse y descendre auprès de son fils ? Car il ne croit pas que son fils subisse les tourments de l’enfer. Serait-ce là les paroles d’un homme à qui son trouble et sa désolation font exagérer ses maux ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548128,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 405,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVII",
+      "ref_niv2_texte": "Qu’était-ce que Pétéphrès?\nGenèse 37, 36",
+      "segment_texte": "« Et ils vendirent Joseph pour l’Égypte à l’eunuque Pétéphrès, chef des cuisiniers. » Plusieurs interprètes rejettent le mot chef des cuisiniers, qui se rend en grec par <i>arkhimageiros</i>, et traduisent par : maître de la milice, celui à qui appartenait le droit de mettre à mort. Le même nom, en effet, était donné à cet envoyé de Nabuchodonosor, qui était plutôt un général.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548129,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 406,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": "Question chronologique.\nGenèse 38, 1-3",
+      "segment_texte": "« Or, en ce temps-là il arriva que Juda quitta ses frères et vint chez un homme d’Odolla, nommé Iras ; et ayant vu en ce lieu la fille d’un Chananéen, nommé Sara, Juda l’épousa, vécut avec elle, et elle conçut et elle enfanta un fils » et le reste. À quelle époque ont pu s’accomplir ces évènements ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548130,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 407,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Si c’est après la venue de Joseph en Égypte, comment, dans l’intervalle de vingt-deux ans à peine, (car il est constant que c’est dans cet intervalle que les frères de Joseph sont venus le rejoindre en Égypte avec leur père,) comment a-t-il pu se faire que les fils de Juda fussent tous arrivés en âge de se marier ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548131,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 408,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "En effet, après la mort de l’aîné de ses fils, il accorda à Thamar, sa belle-fille, son second fils ; celui-ci étant mort à son tour, il attendit que le troisième fut devenu grand ; et quand il fut en âge, il ne le donna point à sa belle-fille, dans la crainte qu’il ne vînt à mourir aussi : ce qui fut cause qu’elle, se livra à son propre beau-père.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548132,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 409,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Comment donc tout cela put-il se réaliser en si peu d’années ? Cette question est embarrassante, à moins peut-être qu’on n’admette que l’Écriture reprend ici sa narration de plus haut, selon son ordinaire ; alors il serait permis de penser que l’origine de ces évènements précéda la vente de Joseph : c’est en ce sens qu’il serait dit : « Or il arriva dans ce temps-là. »",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548133,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 410,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Néanmoins, si Joseph avait dix-sept ans quand il fut vendu, quel âge pouvait avoir Juda, le quatrième fils de Jacob, quand Ruben, l’aîné des fils, avait au plus cinq ou six ans de plus que son frère Joseph ? L’Écriture dit clairement que Joseph avait trente ans, quand il fut connu de Pharaon[[77]].",
+      "texte_original": null,
+      "notes": "[[77]] Gen. XLI, 46",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548134,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 411,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Puisqu’on croit qu’il avait dix-sept ans, quand il fut vendu, il passa donc treize années en Égypte sans être connu de Pharaon ; à ces treize années se joignirent les sept années d’abondance, ce qui porte le nombre à vingt ; à ces vingt années s’en ajoutent encore deux, car c’est la seconde année de la famine que Jacob entra en Égypte avec ses enfants.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548135,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 412,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "On trouve ainsi vingt-deux années, pendant lesquelles Joseph fut éloigné de son père et de ses frères. Comment, dans cet intervalle, ont pu s’accomplir toutes les particularités mentionnées par l’Écriture au sujet de l’épouse, des fils et de la belle-fille de Juda ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548136,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 413,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il serait difficile de le découvrir, à moins qu’on n’admette (et la chose a pu se faire) que Juda, à peine adolescent, fut épris, d’amour pour celle qu’il épousa, et que Joseph n’était pas encore à cette époque vendu pour l’Égypte.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548137,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 414,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXIX",
+      "ref_niv2_texte": "Sur les vêtements des veuves.\nGenèse 38, 14",
+      "segment_texte": "« Et ayant quitté ses habits de veuve. » Il semble résulter de ce passage, que, dès le temps des Patriarches, les veuves portaient des vêtements à part et à elles propres, qui différaient assurément de ceux des femmes mariées.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548138,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 415,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CXXX",
+      "ref_niv2_texte": "Transition.\nGenèse 39, 1",
+      "segment_texte": "Quand l’Écriture dit pour la seconde fois : « Joseph fut mené en Égypte et Pétéphrès, eunuque de Pharaon, fut son maître » elle reprend le fil de son récit, pour donner la suite des évènements qu’elle a rapportés plus haut.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    }
+  ]
+}

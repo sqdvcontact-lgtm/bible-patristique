@@ -1,0 +1,12 @@
+import { readFileSync, writeFileSync } from "node:fs";
+import { createClient } from "@supabase/supabase-js";
+const env = Object.fromEntries(readFileSync(".env.local", "utf8").split(/\r?\n/).map((line) => line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map((match) => [match[1], match[2].replace(/^["']|["']$/g, "")]));
+const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+const { data, error } = await db.from("parametres").select("cle,valeur").in("cle", ["charte_ia", "feedback_liens_protocole"]);
+if (error) throw error;
+const root = "tmp/somme-liens-audit-2026-07-29";
+for (const row of data) writeFileSync(`${root}/${row.cle}.md`, String(row.valeur ?? ""));
+const charte = String(data.find((row) => row.cle === "charte_ia")?.valeur ?? "");
+const feedback = String(data.find((row) => row.cle === "feedback_liens_protocole")?.valeur ?? "");
+const section9 = charte.match(/(^|\n)#{1,6}\s*9(?:\.0)?\b[\s\S]*?(?=\n#{1,6}\s*(?:10|9\.1)\b|$)/i)?.[0] ?? "section §9 non isolée";
+console.log(JSON.stringify({ charte_chars: charte.length, feedback_chars: feedback.length, section9: section9.slice(0, 12000) }, null, 2));

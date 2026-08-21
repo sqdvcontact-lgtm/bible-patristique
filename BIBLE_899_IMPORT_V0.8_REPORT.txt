@@ -1,0 +1,148 @@
+RAPPORT D'IMPORT BIBLE 899 - VERSION 0.8
+========================================
+
+Date d'execution : 2026-08-02 (Europe/Paris)
+Statut final : SUCCES
+
+1. SOURCE ET PREREQUIS
+----------------------
+
+Archive conservee :
+work/bible899/incoming/Bible_899_LOT_001_Six_Colonnes_v0.8.zip
+
+SHA-256 de l'archive :
+31c30d850526389a4e34bb3d26a72c31639642e0b4b851e686a7fa82db00acca
+
+Le TEI actif avant import etait bien en version editoriale 0.7.
+SHA-256 du TEI actif avant import :
+b40d1dca45955015ecfc20004a812177d0406f80b83008c2e042b721a9d7d914
+
+Le manifeste actif annoncait la version 0.7 et la meme empreinte. Les
+prerequis etaient donc concordants.
+
+Les 11 empreintes enumerees dans reports/SHA256SUMS.txt ont ete verifiees.
+Toutes correspondaient aux fichiers extraits.
+
+SHA-256 attendu et verifie du TEI candidat :
+24d87ba088219bea961f1576649f7ed14d0dc81d754b031017d6c6f1c1fc840e
+
+2. IMPORT
+---------
+
+Les six images suivantes ont ete copiees bit a bit, sans reechantillonnage :
+- public/manuscrits/bible-899/f003r_b.png
+- public/manuscrits/bible-899/f003v_a.png
+- public/manuscrits/bible-899/f003v_b.png
+- public/manuscrits/bible-899/f004r_a.png
+- public/manuscrits/bible-899/f004r_b.png
+- public/manuscrits/bible-899/f004v_a.png
+
+Leur empreinte apres copie est identique a celle declaree dans l'archive.
+
+Le TEI candidat a ete importe transactionnellement et sans transformation
+textuelle dans :
+data/manuscrits/bible-899/Bible_899_master.xml
+
+SHA-256 du TEI actif apres import :
+24d87ba088219bea961f1576649f7ed14d0dc81d754b031017d6c6f1c1fc840e
+
+Le TEI actif est identique au candidat octet par octet. Le manifeste a ete
+regenere en version 0.8 et porte la meme empreinte.
+
+3. COMPTAGES AVANT ET APRES
+---------------------------
+
+Element                  Avant v0.7    Apres v0.8    Attendu v0.8
+folios                    5             8             8
+colonnes                  9             15            15
+lignes                    360           600           600
+choice                    242           420           420
+gap                       8             8             8
+unclear                   3             5             5
+add place="margin"        1             1             1
+lb/break="no"             non consigne  144           144
+images actives            9             15            15
+
+Les folios sont, dans l'ordre TEI : 1r, 1v, 2r, 2v, 3r, 3v, 4r, 4v.
+Les 15 images actives existent et leurs SHA-256 correspondent au manifeste.
+
+4. CONTROLES EDITORIAUX ET LECTEUR
+----------------------------------
+
+Aucun contenu editorial n'a ete modifie par Codex.
+
+Controles litteraux confirmes dans le TEI actif :
+- f4v_a_l20 conserve l'unclear "uearres" ;
+- f4v_a_l22 conserve l'unclear "uerres" ;
+- f4v_a_l35 conserve "amatheus" ;
+- f4v_a_l39 conserve "ceus qui uisquaient qui erent" ;
+- les 8 gap, les 5 unclear totaux et l'ajout marginal anterieur sont conserves ;
+- les 144 coupures break="no" sont conservees ;
+- aucune coordonnee de zone n'a ete inventee.
+
+Verification des trois modes :
+- diplomatique : 8 marqueurs de lacune, 5 d'incertitude, 1 d'ajout marginal ;
+- abreviations developpees : memes comptages ;
+- graphie modernisee : memes comptages ;
+- les 15 colonnes possedent une couche modernisee fournie par le TEI ;
+- aucune unite modernisee orpheline n'a ete relevee.
+
+Les coordonnees detaillees demeurent absentes pour les 15 colonnes. Cette
+absence est explicitement signalee par les donnees de controle et n'empeche
+pas le lecteur de fonctionner avec les images completes de colonnes.
+
+5. TESTS, LINT ET BUILD
+-----------------------
+
+Tests : SUCCES
+Commande : npm test
+Resultat : 1 fichier de test passe ; 15 tests sur 15 passes.
+
+ESLint cible : SUCCES
+Commande : npx eslint "app/manuscrits/bible-899/**/*.{ts,tsx}" "scripts/bible899/**/*.ts"
+Resultat : 0 erreur, 0 avertissement.
+
+Build de production : SUCCES
+Commande : npm run build
+Resultat : compilation Next.js 16.2.9 reussie ; verification TypeScript reussie ;
+83 pages generees ; route /manuscrits/bible-899 produite.
+
+Incident technique sans effet editorial : le premier lancement de la commande
+d'import a ete interrompu par la limite de temps de la console pendant Vitest,
+causant un EPIPE. La transaction a restaure automatiquement le TEI et le
+manifeste v0.7. Apres verification de cette restauration, la meme commande a
+ete relancee avec une duree suffisante et a reussi integralement.
+
+6. FICHIERS MODIFIES OU CREES
+-----------------------------
+
+Modifies :
+- data/manuscrits/bible-899/Bible_899_master.xml
+- data/manuscrits/bible-899/manifest.json
+
+Crees :
+- work/bible899/incoming/Bible_899_LOT_001_Six_Colonnes_v0.8.zip
+- public/manuscrits/bible-899/f003r_b.png
+- public/manuscrits/bible-899/f003v_a.png
+- public/manuscrits/bible-899/f003v_b.png
+- public/manuscrits/bible-899/f004r_a.png
+- public/manuscrits/bible-899/f004r_b.png
+- public/manuscrits/bible-899/f004v_a.png
+- BIBLE_899_IMPORT_V0.8_REPORT.txt
+- CLEANUP_REPORT_V0.8.txt
+
+Aucun fichier de code, autre corpus ou autre partie du lecteur n'a ete modifie.
+
+7. NETTOYAGE
+------------
+
+Le nettoyage controle a reussi. Seul le dossier temporaire d'extraction a ete
+supprime. Douze fichiers non suivis par Git ont ete supprimes, liberant
+1 576 304 octets. Voir CLEANUP_REPORT_V0.8.txt.
+
+8. QUESTIONS OU ERREURS RESTANTES
+---------------------------------
+
+Aucune question editoriale n'a ete resolue automatiquement.
+Aucune erreur bloquante ne subsiste.
+

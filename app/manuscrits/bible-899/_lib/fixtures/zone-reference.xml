@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Fixture technique avec zone</title></titleStmt>
+      <editionStmt><edition n="test" status="fixture">fixture sans contenu éditorial</edition></editionStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <facsimile>
+    <surface xml:id="surface_test">
+      <graphic url="zone.png" />
+      <zone xml:id="zone_test" ulx="10" uly="20" lrx="110" lry="220" />
+    </surface>
+  </facsimile>
+  <text><body><div type="diplomatic">
+    <pb n="6r" />
+    <cb n="a" facs="#zone_test" />
+    <l xml:id="zone_l1" n="1">zone</l>
+  </div></body></text>
+</TEI>

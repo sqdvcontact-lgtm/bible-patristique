@@ -1,0 +1,8 @@
+Fichier d'exemple tenant lieu de fac-similé pour la démo en moteur « mock ».
+Dans un usage réel, on passe une vraie image (f001r.jpg, f001r.png…) :
+
+  gueule run chemin/vers/f001r.jpg --kind manuscrit --source bible-899 \
+    --feuillet 1 --face r --engine kraken --runner wsl --model modele.mlmodel
+
+Le moteur « mock » n'analyse pas ce fichier : il en calcule seulement l'empreinte
+(traçabilité §14.2) et simule un brouillon pour éprouver le pipeline et les contrôles.

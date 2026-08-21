@@ -1,0 +1,984 @@
+{
+  "genere_le": "2026-08-02T14:21:17.199Z",
+  "oeuvre": "A0010O0023",
+  "lot": "Genèse CLXI-CLXX",
+  "cibles_candidates": [
+    "GEN.47.29",
+    "GEN.24.2",
+    "GEN.24.49",
+    "PSA.24.10",
+    "PSA.25.10",
+    "NUM.19.11",
+    "NUM.19.12",
+    "NUM.19.13",
+    "SIR.34.25",
+    "SIR.34.26",
+    "SIR.34.30",
+    "SIR.34.31",
+    "PSA.31.1",
+    "PSA.32.1",
+    "LUK.3.23",
+    "GEN.47.31",
+    "GEN.48.4",
+    "GEN.48.5",
+    "GEN.48.6",
+    "GEN.48.7",
+    "GEN.35.19",
+    "MAT.2.1",
+    "GEN.48.14",
+    "GEN.48.19",
+    "GEN.25.23",
+    "GEN.48.22",
+    "GEN.33.19",
+    "GEN.34.25",
+    "GEN.49.6",
+    "GEN.35.2",
+    "GEN.35.3",
+    "GEN.35.4",
+    "GEN.49.33",
+    "HEB.12.22",
+    "SIR.11.28",
+    "SIR.11.30",
+    "GEN.50.3",
+    "EXO.34.28",
+    "1KI.19.8",
+    "MAT.4.2",
+    "JON.3.4",
+    "ACT.1.3",
+    "ACT.1.9",
+    "ROM.4.25",
+    "JHN.20.22",
+    "ACT.2.2",
+    "ACT.2.3",
+    "ACT.2.4",
+    "1CO.15.4",
+    "GEN.50.5"
+  ],
+  "temoins": [
+    {
+      "id_verset": "GEN.47.29",
+      "ref": "GEN 47:29",
+      "TR0001": "Comme il vit que le jour de sa mort approchoit, il appella son fils Joseph, & lui dit : Si j’ai trouvé grace devant vous, mettez votre main sous ma cuisse, & donnez-moi cette marque de la bonté que vous avez pour moi, de me promettre avec verité, que vous ne m’enterrerez point dans l’Egypte ;",
+      "TR0003": "Quand les jours d’Israël approchèrent de leur fin, il appela son fils Joseph et lui dit : « Si j’ai trouvé grâce à tes yeux, mets, je te prie, ta main sous ma cuisse, et use envers moi de bonté et de fidélité : ne m’enterre pas en Égypte.",
+      "TR0004": "Cumque appropinquare cerneret diem mortis suæ, vocavit filium suum Joseph, et dixit ad eum : Si inveni gratiam in conspectu tuo, pone manum tuam sub femore meo : et facies mihi misericordiam et veritatem, ut non sepelias me in Ægypto :"
+    },
+    {
+      "id_verset": "GEN.24.2",
+      "ref": "GEN 24:2",
+      "TR0001": "Il dit donc au plus ancien de ses domestiques, mestiques, qui avoit l’intendance sur toute sa maison : Mettez votre main sur ma cuisse,",
+      "TR0003": "Et Abraham dit à son serviteur, le plus ancien de sa maison, qui administrait tous ses biens : « Mets donc ta main sous ma cuisse,",
+      "TR0004": "Dixitque ad servum seniorem domus suæ, qui præerat omnibus quæ habebat : Pone manum tuam subter femur meum,"
+    },
+    {
+      "id_verset": "GEN.24.49",
+      "ref": "GEN 24:49",
+      "TR0001": "C’est-pourquoi si vous avez veritablement dessein d’obliger mon maître, dites-le moi. Que si vous avez resolu autre chose, faites-le moi savoir, afin que j’aille chercher <i>une fille</i> ailleurs.",
+      "TR0003": "Maintenant, si vous voulez user de bonté et de fidélité envers mon maître, déclarez-le-moi ; sinon, déclarez-le-moi encore, et je me tournerai à droite ou à gauche. »",
+      "TR0004": "Quam ob rem si facitis misericordiam et veritatem cum domino meo, indicate mihi : sin autem aliud placet, et hoc dicite mihi, ut vadam ad dextram, sive ad sinistram."
+    },
+    {
+      "id_verset": "PSA.24.10",
+      "ref": "PSA 24:10",
+      "TR0001": "Toutes les voies du Seigneur ne sont que misericorde & que verité, pour ceux qui recherchent son testament & ses preceptes.",
+      "TR0003": "Caph. Tous les sentiers de Yahweh sont miséricorde et fidélité, pour ceux qui gardent son alliance et ses commandements.",
+      "TR0004": "Universæ viæ Domini, misericordia et veritas, requirentibus testamentum ejus et testimonia ejus."
+    },
+    {
+      "id_verset": "PSA.25.10",
+      "ref": "PSA 25:10",
+      "TR0001": "de qui les mains sont toutes souillées d’iniquité, & dont la droite est remplie de présens.",
+      "TR0003": "qui ont le crime dans les mains, et dont la droite est pleine de présents.",
+      "TR0004": "in quorum manibus iniquitates sunt ; dextera eorum repleta est muneribus."
+    },
+    {
+      "id_verset": "NUM.19.11",
+      "ref": "NUM 19:11",
+      "TR0001": "Celui qui pour avoir touché le corps mort d’un homme, en demeurera impur durant sept jours,",
+      "TR0003": "Celui qui touchera un mort, un corps humain quelconque, sera impur pendant sept jours.",
+      "TR0004": "Qui tetigerit cadaver hominis, et propter hoc septem diebus fuerit immundus,"
+    },
+    {
+      "id_verset": "NUM.19.12",
+      "ref": "NUM 19:12",
+      "TR0001": "recevra l’aspersion de cette eau le troisiéme & le septiéme jour, & il sera ainsi purifié. Que s’il ne reçoit point cette aspersion le troisiéme jour, il ne pourra être purifié le septiéme.",
+      "TR0003": "Il se purifiera avec cette eau le troisième jour et le septième jour, et il sera pur ; mais s’il ne se purifie pas le troisième jour et le septième jour, il ne sera pas pur.",
+      "TR0004": "aspergetur ex hac aqua die tertio et septimo, et sic mundabitur. Si die tertio aspersus non fuerit, septimo non poterit emundari."
+    },
+    {
+      "id_verset": "NUM.19.13",
+      "ref": "NUM 19:13",
+      "TR0001": "Quiconque ayant touché le corps mort d’un homme, n’aura point reçû l’aspersion de cette eau ainsi mêlée, souillera le tabernacle du Seigneur, & il perira du milieu d’Israel : il sera impur, parcequ’il n’a point été purifié par l’eau d’expiation, & son impureté demeurera sur lui.",
+      "TR0003": "Celui qui touchera un mort, le corps d’un homme qui est mort, et qui ne se purifiera pas, souillera la Demeure de Yahweh ; cet homme sera retranché d’Israël. Parce que l’eau qui ôte la souillure n’a pas été répandue sur lui, il est impur, et sa souillure est encore sur lui.",
+      "TR0004": "Omnis qui tetigerit humanæ animæ morticinum, et aspersus hac commistione non fuerit, polluet tabernaculum Domini et peribit ex Israël : quia aqua expiationis non est aspersus, immundus erit, et manebit spurcitia ejus super eum."
+    },
+    {
+      "id_verset": "SIR.34.25",
+      "ref": "SIR 34:25",
+      "TR0001": "Un peu de pain est la vie des pauvres ; celui qui le leur ôte est un homme de sang.",
+      "TR0003": "Le pain des malheureux est la vie des pauvres ; celui qui les en prive est un meurtrier.",
+      "TR0004": "Panis egentium vita pauperum est : qui defraudat illum homo sanguinis est."
+    },
+    {
+      "id_verset": "SIR.34.26",
+      "ref": "SIR 34:26",
+      "TR0001": "Celui qui arrache à un homme le pain qu’il a gagné par son travail, est comme celui qui assassine son prochain.",
+      "TR0003": "Il donne la mort à son prochain, celui qui lui ôte sa subsistance ; il verse le sang, celui qui prive le mercenaire de son salaire.",
+      "TR0004": "Qui aufert in sudore panem, quasi qui occidit proximum suum."
+    },
+    {
+      "id_verset": "SIR.34.30",
+      "ref": "SIR 34:30",
+      "TR0001": "Si celui qui se lave après avoir touché un mort, le touche de nouveau, de quoi lui sert de s’être lavé ?",
+      "TR0003": "Celui qui se lave après le contact d’un mort et qui le touche encore, que gagne-t-il à s’être lavé ?",
+      "TR0004": "Qui baptizatur a mortuo, et iterum tangit eum, quid proficit lavatio illius ?"
+    },
+    {
+      "id_verset": "SIR.34.31",
+      "ref": "SIR 34:31",
+      "TR0001": "De même, si un homme jeûne après avoir commis des pechés, & les commet de nouveau, que gagne-t-il de s’être affligé & humilié ? Et qui exaucera sa priere ?",
+      "TR0003": "Ainsi en est-il de l’homme qui jeûne pour ses péchés, s’il va les commettre encore : qui entendra sa prière, et que lui servira son humiliation.",
+      "TR0004": "Sic homo qui jejunat in peccatis suis, et iterum eadem faciens : quid proficit humiliando se ? orationem illius quis exaudiet ?"
+    },
+    {
+      "id_verset": "PSA.31.1",
+      "ref": "PSA 31:1",
+      "TR0001": "Heureux sont ceux à qui les iniquités ont été remises, & dont les pechés sont couverts.",
+      "TR0003": "De David. — Pieuse méditation. Heureux celui dont la transgression a été remise, dont le péché est pardonné !",
+      "TR0004": "Beati quorum remissæ sunt iniquitates, et quorum tecta sunt peccata."
+    },
+    {
+      "id_verset": "PSA.32.1",
+      "ref": "PSA 32:1",
+      "TR0001": "Justes, loüez le Seigneur avec joie : c’est à ceux qui ont le cœur droit, qu’il appartient de lui donner des louanges.",
+      "TR0003": "Justes, réjouissez-vous en Yahweh ! Aux hommes droits sied la louange.",
+      "TR0004": "Exsultate, justi, in Domino ; rectos decet collaudatio."
+    },
+    {
+      "id_verset": "LUK.3.23",
+      "ref": "LUK 3:23",
+      "TR0001": "Jesus avoit environ trente ans, lorsqu’il commença <i>à exercer son ministere</i>, étant comme l’on croyoit fils de Joseph, qui fut <i>fils</i> d’Heli, qui fut <i>fils</i> de Mathat,",
+      "TR0003": "Jésus avait environ trente ans lorsqu’il commença son ministère ; il était, comme on le croyait, fils de Joseph, fils d’Héli,",
+      "TR0004": "Et ipse Jesus erat incipiens quasi annorum triginta, ut putabatur, filius Joseph, qui fuit Heli, qui fuit Mathat,"
+    },
+    {
+      "id_verset": "GEN.47.31",
+      "ref": "GEN 47:31",
+      "TR0001": "Jurez-le-moi donc, dit Jacob. Et pendant que Joseph juroit, Israel adora Dieu, se tournant vers le chevet de son lit.",
+      "TR0003": "Et Jacob dit : « Jure-le-moi. » Joseph le lui jura ; et Israël se prosterna sur le chevet du lit.",
+      "TR0004": "Et ille : Jura ergo, inquit, mihi. Quo jurante, adoravit Israël Deum, conversus ad lectuli caput."
+    },
+    {
+      "id_verset": "GEN.48.4",
+      "ref": "GEN 48:4",
+      "TR0001": "il m’a dit : Je ferai croître & multiplierai beaucoup votre race : je vous rendrai le chef d’une multitude de peuples : & je vous donnerai cette terre, & à votre race après vous, afin que vous la possediez pour jamais.",
+      "TR0003": "en disant : Je te rendrai fécond, je te multiplierai, et je te ferai devenir une assemblée de peuples ; je donnerai ce pays à ta postérité après toi, pour qu’elle le possède à jamais.",
+      "TR0004": "et ait : Ego te augebo et multiplicabo, et faciam te in turbas populorum : daboque tibi terram hanc, et semini tuo post te in possessionem sempiternam."
+    },
+    {
+      "id_verset": "GEN.48.5",
+      "ref": "GEN 48:5",
+      "TR0001": "C’est-pourquoi vos deux fils Ephraïm & Manassé que vous avez eus en Egypte avant que je vinsse ici avec vous, seront à moi, & ils seront mis au nombre de mes enfans, comme Ruben & Simeon.",
+      "TR0003": "Et maintenant, les deux fils qui te sont nés dans le pays d’Égypte, avant mon arrivée vers toi en Égypte, seront miens ; Éphraïm et Manassé seront miens, comme Ruben et Siméon.",
+      "TR0004": "Duo ergo filii tui, qui nati sunt tibi in terra Ægypti antequam huc venirem ad te, mei erunt : Ephraim et Manasses, sicut Ruben et Simeon reputabuntur mihi."
+    },
+    {
+      "id_verset": "GEN.48.6",
+      "ref": "GEN 48:6",
+      "TR0001": "Mais les autres que vous aurez après eux seront à vous, & ils porteront le nom de leurs freres dans les terres qu’ils possederont.",
+      "TR0003": "Mais les enfants que tu as engendrés après eux seront tiens ; ils seront appelés du nom de leurs frères quant à leur part d’héritage.",
+      "TR0004": "Reliquos autem quos genueris post eos, tui erunt, et nomine fratrum suorum vocabuntur in possessionibus suis."
+    },
+    {
+      "id_verset": "GEN.48.7",
+      "ref": "GEN 48:7",
+      "TR0001": "Car lorsque je revenois de Mesopotamie je perdis Rachel, qui mourut en chemin au païs de Chanaan : c’étoit au printems à l’entrée d’Ephrata, & je l’enterrai sur le chemin d’Ephrata, qui s’appelle aussi Bethléem.",
+      "TR0003": "Et moi, quand je revenais de Paddan, Rachel mourut en route auprès de moi, dans le pays de Chanaan, à une certaine distance d’Éphrata ; et c’est là que je l’ai enterrée sur le chemin d’Éphrata, qui est Bethléem. »",
+      "TR0004": "Mihi enim, quando veniebam de Mesopotamia, mortua est Rachel in terra Chanaan in ipso itinere, eratque vernum tempus : et ingrediebar Ephratam, et sepelivi eam juxta viam Ephratæ, quæ alio nomine appellatur Bethlehem."
+    },
+    {
+      "id_verset": "GEN.35.19",
+      "ref": "GEN 35:19",
+      "TR0001": "Rachel mourut donc ; & elle fut ensevelie dans le chemin qui conduit à la ville d’Ephrata, appellée <i>depuis</i> Bethléem.",
+      "TR0003": "Rachel mourut, et elle fut enterrée au chemin d’Éphrata, qui est Bethléem.",
+      "TR0004": "Mortua est ergo Rachel, et sepulta est in via quæ ducit Ephratam, hæc est Bethlehem."
+    },
+    {
+      "id_verset": "MAT.2.1",
+      "ref": "MAT 2:1",
+      "TR0001": "Jesus étant donc né dans Bethléem <i>ville de la tribu</i> de Juda, du tems du roi Herode, des Mages vinrent de l’orient en Jerusalem,",
+      "TR0003": "Jésus étant né à Bethléem de Judée, aux jours du roi Hérode, voici que des Mages arrivèrent d’Orient à Jérusalem,",
+      "TR0004": "Cum ergo natus esset Jesus in Bethlehem Juda in diebus Herodis regis, ecce magi ab oriente venerunt Jerosolymam,"
+    },
+    {
+      "id_verset": "GEN.48.14",
+      "ref": "GEN 48:14",
+      "TR0001": "lequel étendant sa main droite, la mit sur la tête d’Ephraïm qui étoit le plus jeune, & mit sa main gauche sur la tête de Manassé qui étoit l’aîné, changeant ainsi ses deux mains de place.",
+      "TR0003": "Israël étendit sa main droite et la posa sur la tête d’Éphraïm, qui était le plus jeune, et il posa sa main gauche sur la tête de Manassé ; c’est à dessein qu’il posa ainsi ses mains, car Manassé était l’aîné.",
+      "TR0004": "Qui extendens manum dexteram, posuit super caput Ephraim minoris fratris : sinistram autem super caput Manasse qui major natu erat, commutans manus."
+    },
+    {
+      "id_verset": "GEN.48.19",
+      "ref": "GEN 48:19",
+      "TR0001": "Mais refusant de le faire, il lui dit : Je le sai bien, mon fils, je le sai bien : celui-ci sera aussi chef des peuples, & sa race se multipliera ; mais son frere qui est plus jeune sera plus grand que lui, & sa posterité se multipliera dans les nations.",
+      "TR0003": "Mais son père refusa, en disant : « Je le sais, mon fils, je le sais ; lui aussi deviendra un peuple, lui aussi sera grand ; mais son frère cadet sera plus grand que lui, et sa postérité deviendra une multitude de nations. »",
+      "TR0004": "Qui renuens, ait : Scio, fili mi, scio : et iste quidem erit in populos, et multiplicabitur : sed frater ejus minor, major erit illo : et semen illius crescet in gentes."
+    },
+    {
+      "id_verset": "GEN.25.23",
+      "ref": "GEN 25:23",
+      "TR0001": "qui lui répondit : Deux nations sont dans vos entrailles, & deux peuples sortant de votre sein se diviseront l’un contre l’autre. L’un de ces peuples surmontera l’autre peuple, & l’aîné sera assujetti au plus jeune.",
+      "TR0003": "et Yahweh lui dit : « Deux nations sont dans ton sein ; deux peuples, au sortir de tes entrailles, se sépareront ; un peuple l’emportera sur l’autre, et le plus grand servira le plus petit. »",
+      "TR0004": "Qui respondens ait : Duæ gentes sunt in utero tuo, et duo populi ex ventre tuo dividentur, populusque populum superabit, et major serviet minori."
+    },
+    {
+      "id_verset": "GEN.48.22",
+      "ref": "GEN 48:22",
+      "TR0001": "Je vous donne de plus qu’à vos freres cette part de mon bien que j’ai gagnée sur les Amorrhéens avec mon épée & mon arc.",
+      "TR0003": "Je te donne, de plus qu’à tes frères, une portion que j’ai prise de la main des Amorrhéens avec mon épée et mon arc. »",
+      "TR0004": "Do tibi partem unam extra fratres tuos, quam tuli de manu Amorrhæi in gladio et arcu meo."
+    },
+    {
+      "id_verset": "GEN.33.19",
+      "ref": "GEN 33:19",
+      "TR0001": "Il acheta une partie du champ dans lequel il avoit dressé ses tentes, & en paya cent agneaux aux enfans d’Hemor pere de Sichem.",
+      "TR0003": "Il acheta des fils de Hémor, père de Sichem, pour cent késitas, la pièce de terre où il avait dressé sa tente ;",
+      "TR0004": "Emitque partem agri, in qua fixerat tabernacula, a filiis Hemor patris Sichem centum agnis."
+    },
+    {
+      "id_verset": "GEN.34.25",
+      "ref": "GEN 34:25",
+      "TR0001": "Mais le troisiéme jour d’après, lorsque la douleur des plaies <i>de la circoncision</i> est plus violente, deux des enfans de Jacob, Simeon & Levi qui étoient freres de Dina, entrerent hardiment dans la ville l’épée à la main, tuerent tous les mâles,",
+      "TR0003": "Le troisième jour, lorsqu’ils étaient souffrants, deux fils de Jacob, Siméon et Lévi, frères de Dina, prirent chacun leur épée, marchèrent sans crainte sur la ville et tuèrent tous les mâles.",
+      "TR0004": "Et ecce, die tertio, quando gravissimus vulnerum dolor est : arreptis duo filii Jacob, Simeon et Levi fratres Dinæ, gladiis, ingressi sunt urbem confidenter : interfectisque omnibus masculis,"
+    },
+    {
+      "id_verset": "GEN.49.6",
+      "ref": "GEN 49:6",
+      "TR0001": "A Dieu ne plaise que mon ame ait aucune part à leurs conseils, & que ma gloire soit ternie en me liant avec eux ; parcequ’ils ont signalé leur fureur en tuant des hommes, & leur volonté <i>criminelle</i> en renversant une ville.",
+      "TR0003": "Que mon âme n’entre point dans leur conseil ! Que mon âme ne s’unisse point à leur assemblée ! Car, dans leur colère, ils ont égorgé des hommes, et, dans leur emportement, ils ont coupé les jarrets des taureaux.",
+      "TR0004": "In consilium eorum non veniat anima mea, et in cœtu illorum non sit gloria mea : quia in furore suo occiderunt virum, et in voluntate sua suffoderunt murum."
+    },
+    {
+      "id_verset": "GEN.35.2",
+      "ref": "GEN 35:2",
+      "TR0001": "Alors Jacob ayant assemblé tous ceux de sa maison leur dit : Jettez loin de vous les dieux étrangers qui sont au milieu de vous ; purifiez-vous & changez de vêtemens.",
+      "TR0003": "Jacob dit à sa famille et à tous ceux qui étaient avec lui : « Ôtez les dieux étrangers qui sont au milieu de vous ; purifiez-vous et changez de vêtements.",
+      "TR0004": "Jacob vero convocata omni domo sua, ait : Abjicite deos alienos qui in medio vestri sunt, et mundamini, ac mutate vestimenta vestra."
+    },
+    {
+      "id_verset": "GEN.35.3",
+      "ref": "GEN 35:3",
+      "TR0001": "Venez, allons à Bethel pour y dresser un autel à Dieu qui m’a exaucé au jour de mon affliction ; & qui m’a accompagné pendant mon voyage.",
+      "TR0003": "Nous nous lèverons et nous monterons à Béthel, et là je dresserai un autel au Dieu qui m’a exaucé au jour de mon angoisse, et qui a été avec moi, dans le voyage que j’ai fait. »",
+      "TR0004": "Surgite, et ascendamus in Bethel, ut faciamus ibi altare Deo : qui exaudivit me in die tribulationis meæ, et socius fuit itineris mei."
+    },
+    {
+      "id_verset": "GEN.35.4",
+      "ref": "GEN 35:4",
+      "TR0001": "Ils lui donnerent donc tous les dieux étrangers qu’ils avoient, & les pendans-d’oreilles qui y étoient attachés : & Jacob les cacha dans la terre sous un terebinthe qui est derriere la ville de Sichem.",
+      "TR0003": "Et ils donnèrent à Jacob tous les dieux étrangers qui étaient entre leurs mains et les boucles qu’ils avaient aux oreilles, et Jacob les enfouit sous le térébinthe qui est à Sichem.",
+      "TR0004": "Dederunt ergo ei omnes deos alienos quos habebant, et inaures quæ erant in auribus eorum : at ille infodit ea subter terebinthum, quæ est post urbem Sichem."
+    },
+    {
+      "id_verset": "GEN.49.33",
+      "ref": "GEN 49:33",
+      "TR0001": "Après avoir achevé de donner ces ordres & ces instructions à ses enfans, il joignit ses piés sur son lit, & mourut ; & il fut réuni avec son peuple.",
+      "TR0003": "Lorsque Jacob eut achevé de donner ses ordres à ses fils, ayant retiré ses pieds dans le lit, il expira et fut réuni à ses pères.",
+      "TR0004": "Finitisque mandatis quibus filios instruebat, collegit pedes suos super lectulum, et obiit : appositusque est ad populum suum."
+    },
+    {
+      "id_verset": "HEB.12.22",
+      "ref": "HEB 12:22",
+      "TR0001": "Mais vous vous êtes approchés de la montagne de Sion ; de la ville du Dieu vivant ; de la Jerusalem celeste ; d’une troupe innombrable d’anges ;",
+      "TR0003": "Mais vous vous êtes approchés de la montagne de Sion, de la cité du Dieu vivant qui est la Jérusalem céleste, des myriades qui forment le chœur des anges,",
+      "TR0004": "Sed accessistis ad Sion montem, et civitatem Dei viventis, Jerusalem cælestem, et multorum millium angelorum frequentiam,"
+    },
+    {
+      "id_verset": "SIR.11.28",
+      "ref": "SIR 11:28",
+      "TR0001": "Ne louez aucun homme avant sa mort, car on connoît un homme par les enfans qu’il laisse après lui.",
+      "TR0003": "N’estime personne heureux avant sa mort : c’est dans ses enfants qu’on reconnaît un homme.",
+      "TR0004": "Ante mortem ne laudes hominem quemquam : quoniam in filiis suis agnoscitur vir."
+    },
+    {
+      "id_verset": "SIR.11.30",
+      "ref": "SIR 11:30",
+      "TR0001": "[Comme il sort une haleine corrompue de celui qui a l’estomac gâté,] comme la perdrix est conduite dans le filet, & le chevreuil dans le piege, ainsi est le cœur des superbes & de celui qui est attentif à regarder la chute de son prochain.",
+      "TR0003": "Comme la perdrix de chasse dans sa cage, ainsi est le cœur de l’orgueilleux ; et, comme l’espion, il guette la ruine.",
+      "TR0004": "Sicut enim eructant præcordia fœtentium, et sicut perdix inducitur in caveam, et ut caprea in laqueum : sic et cor superborum, et sicut prospector videns casum proximi sui."
+    },
+    {
+      "id_verset": "GEN.50.3",
+      "ref": "GEN 50:3",
+      "TR0001": "& ils executerent l’ordre qu’il leur avoit donné ; ce qui dura quarante jours, parceque c’étoit la coutume d’employer ce tems pour embaumer les corps morts. Et l’Egypte pleura Jacob soixante & dix jours.",
+      "TR0003": "Ils y employèrent quarante jours, car c’est le temps que l’on emploie à embaumer ; et les Égyptiens le pleurèrent soixante-dix jours.",
+      "TR0004": "Quibus jussa explentibus, transierunt quadraginta dies : iste quippe mos erat cadaverum conditorum : flevitque eum Ægyptus septuaginta diebus."
+    },
+    {
+      "id_verset": "EXO.34.28",
+      "ref": "EXO 34:28",
+      "TR0001": "Moïse demeura donc quarante jours & quarante nuits avec le Seigneur sur la montagne. Il ne mangea point de pain, & il ne but point d’eau <i>dans tout ce tems ; & le Seigneur</i> écrivit sur les tables les dix paroles de l’alliance.",
+      "TR0003": "Moïse fut là avec Yahweh quarante jours et quarante nuits, sans manger de pain et sans boire d’eau. Et Yahweh écrivit sur les tables les paroles de l’alliance, les dix paroles.",
+      "TR0004": "Fuit ergo ibi cum Domino quadraginta dies et quadraginta noctes : panem non comedit, et aquam non bibit, et scripsit in tabulis verba fœderis decem."
+    },
+    {
+      "id_verset": "1KI.19.8",
+      "ref": "1KI 19:8",
+      "TR0001": "S’étant levé, il mangea & but, & s’étant fortifié par cette nourriture, il marcha quarante jours & quarante nuits jusqu’à Horeb la montagne de Dieu.",
+      "TR0003": "Il se leva, mangea et but, et, avec la force que lui donna cette nourriture, il marcha quarante jours et quarante nuits jusqu’à la montagne de Dieu, à Horeb.",
+      "TR0004": "Qui cum surrexisset, comedit et bibit, et ambulavit in fortitudine cibi illius quadraginta diebus et quadraginta noctibus usque ad montem Dei Horeb."
+    },
+    {
+      "id_verset": "MAT.4.2",
+      "ref": "MAT 4:2",
+      "TR0001": "& ayant jeûné quarante jours & quarante nuits, il eut faim ensuite.",
+      "TR0003": "Après avoir jeûné pendant quarante jours et quarante nuits, il eut faim.",
+      "TR0004": "Et cum jejunasset quadraginta diebus, et quadraginta noctibus, postea esuriit."
+    },
+    {
+      "id_verset": "JON.3.4",
+      "ref": "JON 3:4",
+      "TR0001": "Et Jonas y étant entré y marcha pendant un jour ; & il cria en disant : Dans quarante jours Ninive sera détruite.",
+      "TR0003": "Jonas commença à pénétrer dans la ville la marche d’une journée ; et il prêcha et dit : « Encore quarante jours et Ninive sera détruite !… »",
+      "TR0004": "Et cœpit Jonas introire in civitatem itinere diei unius : et clamavit, et dixit : Adhuc quadraginta dies, et Ninive subvertetur."
+    },
+    {
+      "id_verset": "ACT.1.3",
+      "ref": "ACT 1:3",
+      "TR0001": "Il s’étoit aussi montré à eux depuis sa passion, & leur avoit fait voir par beaucoup de preuves qu’il étoit vivant, leur apparoissant durant quarante jours, & leur parlant du royaume de Dieu.",
+      "TR0003": "A eux aussi, après sa passion, il s’était montré plein de vie, leur en donnant des preuves nombreuses, leur apparaissant pendant quarante jours, et les entretenant du royaume de Dieu.",
+      "TR0004": "quibus et præbuit seipsum vivum post passionem suam in multis argumentis, per dies quadraginta apparens eis, et loquens de regno Dei."
+    },
+    {
+      "id_verset": "ACT.1.9",
+      "ref": "ACT 1:9",
+      "TR0001": "Après qu’il leur eut dit ces paroles, ils le virent s’élever en haut, & il entra dans une nuée qui le déroba à leurs yeux.",
+      "TR0003": "Après qu’il eut ainsi parlé, il fut élevé en leur présence, et une nuée le déroba à leurs yeux.",
+      "TR0004": "Et cum hæc dixisset, videntibus illis, elevatus est : et nubes suscepit eum ab oculis eorum."
+    },
+    {
+      "id_verset": "ROM.4.25",
+      "ref": "ROM 4:25",
+      "TR0001": "qui a été livré à la mort pour nos pechés, & qui est ressuscité pour notre justification.",
+      "TR0003": "lequel a été livré pour nos offenses, et est ressuscité pour notre justification.",
+      "TR0004": "qui traditus est propter delicta nostra, et resurrexit propter justificationem nostram."
+    },
+    {
+      "id_verset": "JHN.20.22",
+      "ref": "JHN 20:22",
+      "TR0001": "Ayant dit ces mots, il souffla sur eux, & leur dit : Recevez le Saint-Esprit ;",
+      "TR0003": "Après ces paroles, il souffla sur eux et leur dit : « Recevez l’Esprit-Saint.",
+      "TR0004": "Hæc cum dixisset, insufflavit, et dixit eis : Accipite Spiritum Sanctum :"
+    },
+    {
+      "id_verset": "ACT.2.2",
+      "ref": "ACT 2:2",
+      "TR0001": "on entendit tout-d’un-coup un grand bruit, comme d’un vent violent <i>&</i> impetueux, qui venoit du ciel, & qui remplit toute la maison où ils étoient assis.",
+      "TR0003": "Tout à coup il vint du ciel un bruit comme celui d’un vent qui souffle avec force et il remplit toute la maison où ils étaient assis.",
+      "TR0004": "et factus est repente de cælo sonus, tamquam advenientis spiritus vehementis, et replevit totam domum ubi erant sedentes."
+    },
+    {
+      "id_verset": "ACT.2.3",
+      "ref": "ACT 2:3",
+      "TR0001": "En même-tems ils virent paroître comme des langues de feu qui se partagerent, & s’arrêterent sur chacun d’eux.",
+      "TR0003": "Et ils virent paraître comme des langues de feu qui se partagèrent et se posèrent sur chacun d’eux.",
+      "TR0004": "Et apparuerunt illis dispertitæ linguæ tamquam ignis, seditque supra singulos eorum :"
+    },
+    {
+      "id_verset": "ACT.2.4",
+      "ref": "ACT 2:4",
+      "TR0001": "Aussi-tôt ils furent tous remplis du Saint-Esprit, & ils commencerent à parler diverses langues, selon que le Saint-Esprit leur mettoit les paroles en la bouche.",
+      "TR0003": "Ils furent tous remplis du Saint-Esprit, et ils se mirent à parler d’autres langues, selon que l’Esprit-Saint leur donnait de s’exprimer.",
+      "TR0004": "et repleti sunt omnes Spiritu Sancto, et cœperunt loqui variis linguis, prout Spiritus Sanctus dabat eloqui illis."
+    },
+    {
+      "id_verset": "1CO.15.4",
+      "ref": "1CO 15:4",
+      "TR0001": "qu’il a été enseveli, & qu’il est ressuscité le troisiéme jour, selon les <i>mêmes</i> Ecritures ;",
+      "TR0003": "qu’il a été enseveli et qu’il est ressuscité le troisième jour, conformément aux Écritures ;",
+      "TR0004": "et quia sepultus est, et quia resurrexit tertia die secundum Scripturas :"
+    },
+    {
+      "id_verset": "GEN.50.5",
+      "ref": "GEN 50:5",
+      "TR0001": "que mon pere m’a dit <i>en mourant</i> : Vous voyez que je me meurs ; promettez-moi avec serment que vous m’ensevelirez dans mon sepulcre que je me suis préparé au païs de Chanaan. J’irai donc <i>avec l’agrément du Roi</i> ensevelir mon pere, & je reviendrai aussi-tôt.",
+      "TR0003": "Mon père m’a fait jurer, en disant : Voici que je vais mourir ; tu m’enterreras dans le sépulcre que je me suis creusé au pays de Chanaan. Je voudrais donc y monter pour enterrer mon père ; et je reviendrai. »",
+      "TR0004": "eo quod pater meus adjuraverit me dicens : En morior : in sepulchro meo, quod fodi mihi in terra Chanaan, sepelies me. Ascendam igitur, et sepeliam patrem meum, ac revertar."
+    }
+  ],
+  "liens_existants": [],
+  "segments": [
+    {
+      "id": 548236,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 513,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": "Recommandation de Jacob relativement à sa sépulture.\nGenèse 47, 29",
+      "segment_texte": "Sur le point de mourir, Jacob dit à son fils Joseph : « Si j’ai trouvé grâce devant toi, mets ta main sous ma cuisse, et jure-moi que tu agiras selon la miséricorde et la vérité. » Jacob lie son fils du même serment dont Abraham lia son serviteur[[100]] ; celui-ci, en disant d’où il fallait ramener une épouse à son fils ; celui-là, en recommandant la sépulture de son corps.",
+      "texte_original": null,
+      "notes": "[[100]] Gen. XXIV, 2",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548237,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 514,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Dans ces deux circonstances se trouvent nommées en même temps deux choses qui méritent une attention et un intérêt particuliers, en quelqu’endroit des Écritures qu’on les retrouve ; tantôt elles se nomment la miséricorde et la justice, tantôt la miséricorde et la vérité ; il est écrit en effet quelque part : « Toutes les voies du Seigneur sont miséricorde et vérité[[101]]. »",
+      "texte_original": null,
+      "notes": "[[101]] Psa. XXIV, 10",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548238,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 515,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Ainsi ces deux choses si recommandables doivent être prises en grande considération. Or, le serviteur d’Abraham avait dit : « Si vous exercez envers mon maître la miséricorde et la justice[[102]] » et Jacob, à son tour, dit à son fils : « Afin que tu exerces envers moi la miséricorde et la vérité. »",
+      "texte_original": null,
+      "notes": "[[102]] Gen. XXIV, 49",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548239,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 516,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Mais d’où vient que ce grand homme recommande avec tant de sollicitude que son corps, au lieu d’être enterré en Égypte, soit déposé dans la terre de Chanaan auprès de ses pères ? Il y a là quelque chose de surprenant, et même, à juger ce fait d’après des idées tout humaines, cela paraît presque absurde et peu digne d’une âme à la fois si grande et si remplie de l’esprit prophétique.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548240,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 517,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Mais si l’on approfondit les mystères cachés dans toutes ces choses, plus grande sera la joie et l’admiration de celui qui les aura découverts. Or, dans la Loi, les cadavres des morts, cela ne fait point de doute, sont la figure du péché : car elle ordonne à ceux qui les ont touchés, ou qui ont eu avec eux quelque contact, de s’en purifier comme d’une souillure.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548241,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 518,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "De là ce commandement : « Si celui qui se lave après avoir touché un mort, le touche de nouveau de quoi lui sert de s’être lavé ? De même, que sert à un homme de jeûner après avoir péché, si en avançant il retombe de nouveau dans les mêmes fautes[[103]] ? »",
+      "texte_original": null,
+      "notes": "[[103]] Sir. XXXIV, 30, 31",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548242,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 519,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "La sépulture des morts signifie donc la rémission des péchés, et ici s’applique à propos ce mot des Psaumes : « Heureux ceux dont les iniquités sont remises et les péchés couverts[[104]]. » Puisque la sépulture des Patriarches figurait le pardon des péchés, où devait donc avoir lieu cette sépulture, sinon dans la terre où fut mis en croix.",
+      "texte_original": null,
+      "notes": "[[104]] Psa. XXXI, 1",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548243,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 520,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "Celui dont le sang nous a rachetés du péché ? Car la mort des Patriarches était la figure des péchés des hommes. Or, du lieu où fut crucifié le Seigneur, jusqu’à celui qui porte le nom d’Abraham, où sont enterrés les corps des Patriarches, il y a, dit-on, la distance de presque trente milles ; ce nombre lui-même signifie celui qui vint recevoir le baptême vers l’âge de trente ans.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548244,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 521,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXI",
+      "ref_niv2_texte": null,
+      "segment_texte": "On peut, sur ce sujet, découvrir encore d’autres mystères, ou analogues ou plus sublimes, en partant toutefois de ce principe, que des hommes de Dieu, d’un mérité si relevé, n’ont pas sans raison, donné tant de soin à la sépulture de leurs corps ; au reste, en quelque lieu que leurs corps soient enterrés, ou même quand dans sa rage un persécuteur les laisserait sans sépulture, on les déchirerait et les anéantirait au gré de sa passion, les fidèles sont et doivent être assurés que leur résurrection future n’en sera pour cela ni moins parfaite ni moins glorieuse.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548245,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 522,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": "Sur l’adoration de Jacob.\nGenèse 47, 21",
+      "segment_texte": "Les exemplaires latins portent : « Et il s’inclina sur le haut de la verge de lui (<i>ejus</i>) » mais plusieurs exemplaires plus châtiés disent : il s’inclina sur le haut de <i>sa verge</i> (<i>suae</i>), ou bien au haut de <i>sa verge ; à l’extrémité, ou sur l’extrémité</i>.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548246,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 523,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Ce qui est cause de cette confusion, c’est que le mot grec, par lequel on exprime <i>de lui</i>, ou <i>de son</i>, se compose des mêmes lettres ; mais les accents diffèrent, et ceux qui en connaissent la valeur, en tiennent grand compte dans les manuscrits, car ils aident beaucoup à discerner le sens.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548247,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 524,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Cependant s’il y avait <i>de son</i>, il pourrait se faire qu’il y eût une lettre de plus, <i>eautou</i>, au lieu de <i>autou</i>. Ce n’est donc pas sans raison qu’on demande quel est le sens de ce passage.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548248,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 525,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "On comprendrait facilement qu’un vieillard, portant une verge de la même manière qu’on porte à cet âge un bâton, lorsqu’il s’inclina pour adorer Dieu, le fit sur l’extrémité de sa verge, puisqu’il la portait de cette sorte qu’en inclinant la tête dessus, il pouvait adorer Dieu.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548249,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 526,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Que signifie donc : « Il s’inclina sur l’extrémité de la verge de lui » c’est-à-dire, de son fils Joseph ? Serait-ce par hasard que Jacob avait reçu le sceptre de son fils pendant que celui-ci jurait, et qu’après le serment de Joseph, tenant encore le sceptre entre ses mains, il adora Dieu immédiatement ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548250,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 527,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il n’avait pas à rougir, en effet, de porter un instant l’insigne du pouvoir de son fils, figure d’un grand évènement à venir. Mais le texte hébreu donne un moyen très facile de résoudre la question ; il dit en effet : « Et Israël adora tourné vers le chevet du lit » de celui évidemment sur lequel le vieillard était mis de manière à prier sans peine, quand il le voulait.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548251,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 528,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Toutefois il ne faut pas imaginer que l’interprétation des Septante est vide de sens ou ne présente qu’une signification peu importante.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548252,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 529,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIII",
+      "ref_niv2_texte": "En quel sens Dieu promet à Jacob qu’il sera le chef d’une multitude de nations.\nGenèse 48, 4",
+      "segment_texte": "Ici encore Jacob rappelant les promesses qui lui ont été faites de la part de Dieu, rapporte qu’il lui a été dit : « Je te ferai le chef d’une multitude de nations. » Ces paroles de Jacob signifient la vocation des fidèles plutôt que la propagation de ses descendants selon la chair.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548253,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 530,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIV",
+      "ref_niv2_texte": "Sur Manassès et Ephrem, fils de Jacob.\nGenèse 48, 5, 6",
+      "segment_texte": "Il est écrit que Jacob dit en parlant d’Ephrem et de Manassès : « Maintenant donc tes deux fils, qui sont nés dans la terre d’Égypte, avant que je vinsse en Égypte auprès de toi, sont à moi. Ephrem et Manassès comme Ruben et Siméon, seront à moi ; mais ceux que tu engendreras après eux, seront à toi ; ils seront appelés du nom de leurs frères dans leurs partages. »",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548254,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 531,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIV",
+      "ref_niv2_texte": null,
+      "segment_texte": "Le lecteur est parfois induit en erreur, parce qu’il interprète ce discours en ce sens que si Joseph avait d’autres enfants, Jacob voulait qu’ils fussent nommés comme leurs frères : ce qui n’est pas. Mais voici l’ordre et la suite du discours : « Maintenant donc tes deux fils, qui te sont nés dans la terre d’Egypte, avant que je vinsse en Égypte auprès de toi, sont à moi.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548255,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 532,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIV",
+      "ref_niv2_texte": null,
+      "segment_texte": "Ephrem et Manassès, comme Ruben et Siméon, seront à moi ; ils seront appelés du nom de leurs frères dans leurs partages » c’est-à-dire, qu’ils recevront leur part d’héritage avec leurs frères et seront nomme comme eux enfants d’Israël.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548256,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 533,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIV",
+      "ref_niv2_texte": null,
+      "segment_texte": "Telles sont les deux tribus, qui, jointes aux autres, et en laissant à part la tribu sacerdotale de Lévi, forment les douze qui devaient se partager la terre promise et fournir la dîme. Ce qui est dit des autres enfants que Josehp [<i>sic</i>] est ainsi comme une parenthèse.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548257,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 534,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXV",
+      "ref_niv2_texte": "Pourquoi Jacob indique à Joseph le lieu où il ensevelit Rachel sa mère.\nGenèse 48, 7",
+      "segment_texte": "Jacob indique à son fils Joseph, comme s’il l’ignorait, le lieu et le temps où fut ensevelie sa mère ; à cette époque cependant Joseph était encore avec ses frères ; mais s’il était trop jeune pour s’occuper de ce soin ou pour en garder le souvenir, quel motif a pu déterminer Jacob à lui rappeler ces circonstances ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548258,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 535,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXV",
+      "ref_niv2_texte": null,
+      "segment_texte": "N’est-ce pas parce qu’il était bon de remarquer que la mère de Joseph fut ensevelie dans le lieu où devait naître le Christ ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548259,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 536,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVI",
+      "ref_niv2_texte": "Jacob bénit le plus jeune des fils de Joseph, de préférence à l’aîné.\nGenèse 48, 14, 19",
+      "segment_texte": "Lorsque Israël bénit ses petits-fils, en mettant sa main droite sur le plus jeune, sa main gauche sur l’aîné, et quand il répond à Joseph, qui l’en reprend comme d’une erreur ou d’une inadvertance : « Je sais, mon fils, je sais : celui-ci sera aussi père d’un peuple et il sera grand ; mais son frère qui est plus jeune sera plus grand que lui, et sa postérité formera une multitude de nations » ce passage doit s’entendre du Christ, comme quand il a été dit de Jacob lui-même et de son frère : « Que l’aîné sera assujetti au plus jeune[[105]]. »",
+      "texte_original": null,
+      "notes": "[[105]] Gen. XXV, 23",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548260,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 537,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVI",
+      "ref_niv2_texte": null,
+      "segment_texte": "L’action d’Israël contenait donc un sens prophétique et signifiait que le second peuple, engendré spirituellement par le Christ, devait surpasser le premier, qui se glorifiait de ses ancêtres selon la chair.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548261,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 538,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVII",
+      "ref_niv2_texte": "Sur le don que fait Jacob à Joseph du pays de Sichem.\nGenèse 48, 22",
+      "segment_texte": "Lorsque Jacob dit à son fils Joseph qu’il lui donne Sichem à part, et ajoute qu’il s’en est emparé avec son glaive et son arc, on est en droit de demander comment cela peut être vrai à la lettre. Car il acheta cette terre au prix de cent agneaux[[106]] ; et ne s’en rendit pas maître par le droit de conquête.",
+      "texte_original": null,
+      "notes": "[[106]] Id. XXXIII, 19",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548262,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 539,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Serait-ce parce que ses fils prirent Salem, ville des Sichimites[[107]], qui lui appartint dès lors par le droit de la guerre, le sanglant outrage commis envers sa fille devant paraître un motif suffisant pour justifier cette entreprise ? Mais alors pourquoi Jacob n’accorde-t-il pas ce, pays à ceux qui vengèrent leur sœur, c’est-à-dire aux aînés ?",
+      "texte_original": null,
+      "notes": "[[107]] Id. XXXIV, 25",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548263,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 540,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Et s’il se tient honoré de cette victoire, maintenant qu’il en donne le prix à son fils Joseph, d’où vient le déplaisir qu’il éprouva quand ses fils accomplirent cet exploit ? Pourquoi enfin, au moment même où il les bénit, rappelle-t-il ces faits en les accompagnant d’une parole de blâme[[108]] ?",
+      "texte_original": null,
+      "notes": "[[108]] Id. XLIX, 6",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548264,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 541,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il est donc tout à fait hors de doute qu’il y a là une prophétie et quelque mystère caché : Joseph figure particulièrement le Christ ; et cette terre, où Jacob avait renversé et ruiné le culte des idoles, lui est donnée, pour nous faire entendre que les gentils doivent appartenir au Christ, et qu’ils renonceront aux dieux de leurs pères pour croire en lui.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548265,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 542,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVIII",
+      "ref_niv2_texte": "Genèse 49, 32",
+      "segment_texte": "<i>Que signifie : « Il fut réuni à son peuple ? »</i> Il faut voir en quel sens l’Écriture dit si fréquemment : « Et il fut réuni à ses pères » ou : « Il fut réuni à son peuple. » C’est le langage qu’elle tient au sujet de Jacob, aussitôt qu’il est mort, et avant même qu’il soit enterré ; mais à quel peuple fut-il réuni ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548266,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 543,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "c’est ce qui n’apparaît pas clairement. Car le premier peuple, qui s’appelle le peuple d’Israël, est issu de lui ; et le nombre des justes, reconnus comme tels, qui ont vécu avant lui, est si peu considérable, qu’on hésite à leur donner la dénomination de peuple.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548267,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 544,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Si l’on disait simplement : Il fut réuni à ses pères, il n’y aurait point de question à poser. Ce peuple se composerait-il donc à la fois des Saints et des Anges ? Serait-ce le peuple de cette cité dont il est parlé aux Hébreux : « Mais vous vous êtes approchés de la montagne de Sion, de Jérusalem, la cité de Dieu, et de milliers d’anges tressaillants d’allégresse[[109]] ? »",
+      "texte_original": null,
+      "notes": "[[109]] Heb. XII, 22",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548268,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 545,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXVIII",
+      "ref_niv2_texte": null,
+      "segment_texte": "Ceux-là sont réunis à ce peuple, qui, au terme de leur vie, sont trouvés agréables à Dieu. Ils lui sont réunis, quand les troubles des tentations et les dangers d’y succomber ont entièrement cessé pour eux. Aussi l’Écriture dit-elle : « Ne fais l’éloge d’aucun homme avant sa mort[[110]]. »",
+      "texte_original": null,
+      "notes": "[[110]] Sir. XI, 30",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548269,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 546,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": "Sur les quarante jours consacrés à la sépulture.\nGenèse 50, 3",
+      "segment_texte": "Les quarante jours consacrés à la sépulture, dont parle ta Genèse, signifient peut-être en quelque manière la pénitence qui est la sépulture des péchés. Car ce n’est pas en vain que le jeûne de Moïse[[111]], d’Élie[[112]], et de Notre-Seigneur lui-même[[113]], dura quarante jours et que l’Église donne le nom de Quadragésime au jeûne principal qu’elle observe.",
+      "texte_original": null,
+      "notes": "[[111]] Exo. XXXIV, 28\n[[112]] 1Ro. XIX, 8\n[[113]] Mat. IV, 2",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548270,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 547,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "On lit également dans le texte hébreu des prophéties de Jonas au sujet des Ninivites : « Encore quarante jours, et Ninive sera détruite[[114]] » ces paroles nous donnent à entendre que pendant tous ces jours, passés dans l’humiliation et la pénitence, ils se livrèrent au jeûne, versèrent des larmes de repentir sur leurs péchés et implorèrent la miséricorde divine.",
+      "texte_original": null,
+      "notes": "[[114]] Jon. III, 4",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548271,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 548,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il ne faut pas croire néanmoins que ce nombre n’a de rapport qu’avec le deuil et la pénitence : autrement le Seigneur n’aurait point passé quarante jours avec ses disciples après sa résurrection, allant et venant, mangeant et buvant avec eux : car ces jours furent assurément des jours de grande joie.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548272,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 549,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Il ne faut pas croire non plus que les Septante, dont la traduction fait autorité dans l’Église, aient commis une erreur, en disant, non point ; Encore quarante jours, mais : Encore trois jours, et Ninive sera détruite.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548273,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 550,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Revêtus en effet d’une autorité supérieure à celle des interprètes ordinaires, et doués de cet esprit de prophétie qui explique comment, par un vrai miracle, ils se sont trouvés parfaitement d’accord dans leurs interprétations, ils ont mis « trois jours » bien qu’ils sussent qu’on lisait dans l’hébreu « quarante jours » par là ils ont voulu nous faire comprendre que les péchés ont été remis et effacés dans la glorification de Notre-Seigneur Jésus-Christ ; car il est dit de lui : « Qu’il a été livré pour nos péchés, et qu’il est ressuscité pour notre justification[[115]]. »",
+      "texte_original": null,
+      "notes": "[[115]] Rom. IV, 25",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548274,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 551,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Or, la glorification du Seigneur se montre dans sa Résurrection et dans son Ascension au ciel. De là vient qu’il a donné le même et unique Esprit-Saint à ses disciples, bien que ceux-ci fussent nombreux : la première fois, après sa résurrection[[116]], la seconde fois, après son Ascension[[117]].",
+      "texte_original": null,
+      "notes": "[[116]] Jn. XX, 22\n[[117]] Act. II, 2-4",
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548275,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 552,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Et parce qu’il est ressuscité le troisième jour, et monté au ciel le quarantième, le dernier de ces évènements se trouve signifié par le nombre marqué dans les exemplaires hébreux ; quant à l’autre évènement, les Septante, ne s’en tenant point à une interprétation servile, mais parlant avec l’autorité des prophètes, ont voulu le marquer par les trois jours, qui, selon eux, furent consacrés au jeûne des Ninivites.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548276,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 553,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXIX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Ne disons pas que l’un des deux récits est fautif et ne prenons pas fait et cause pour une version contre une autre, puisque ceux qui ont interprété l’hébreu nous prouvent que leur interprétation est conforme au texte original et que d’ailleurs l’autorité dès Septante, si recommandable à nos yeux par le miracle prodigieux que Dieu fit en leur faveur, s’appuie dans son Église sur une si haute antiquité.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548277,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 554,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXX",
+      "ref_niv2_texte": "Sur le sépulcre de Jacob.\nGenèse 50, 5",
+      "segment_texte": "Lersque [<i>sic</i>] Joseph envoie les premiers de l’Égypte dire de sa part à Pharaon - « Mon père m’a fait jurer et m’a dit : Tu m’enseveliras dans le monument que je me suis creusé au pays de Chanaan » où est, dira-t-on peut-être, la vérité dans ces paroles, puisque nous ne lisons pas que Jacob les ait prononcées lorsqu’il dictait sa volonté relativement à sa sépulture ?",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548278,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 555,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Mais comme nous l’avons déjà observé plus haut, à propos des paroles et des récits qui sont des redites, il faut avant tout s’attacher au sens. Car énoncer la pensée et la faire connaître ; tel est l’usage auquel doit servir la parole. Or, que Jacob se soit creusé un sépulcre, nous ne le lisons nulle part dans les chapitres précédents.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    },
+    {
+      "id": 548279,
+      "id_oeuvre": "A0010O0023",
+      "segment_numero": 556,
+      "ref_niv1": "Livre premier",
+      "ref_niv2": "Question CLXX",
+      "ref_niv2_texte": null,
+      "segment_texte": "Mais l’Écriture ne le dirait pas, si réellement Jacob ne s’était préparé un sépulcre dans la terre de Chanaan.",
+      "texte_original": null,
+      "notes": null,
+      "liens_revus_le": null,
+      "liens_revus_par": null
+    }
+  ]
+}

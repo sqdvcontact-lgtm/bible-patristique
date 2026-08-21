@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Fixture technique avec réclame</title></titleStmt>
+      <editionStmt><edition n="test" status="fixture">fixture sans contenu éditorial</edition></editionStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div type="diplomatic">
+        <pb n="1r" facs="fixture.png" />
+        <cb n="a" />
+        <l xml:id="catchword_l1" n="1">ligne de corps</l>
+        <fw xml:id="catchword_test" type="catchword" place="bottom">
+          <unclear cert="low" reason="reading">les oeilles ua</unclear>
+        </fw>
+      </div>
+      <div type="modernized">
+        <p n="1r_a">Corps modernisé de test.</p>
+      </div>
+    </body>
+  </text>
+</TEI>

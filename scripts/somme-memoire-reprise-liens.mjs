@@ -1,0 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { createClient } from '@supabase/supabase-js';
+const env=Object.fromEntries(readFileSync('.env.local','utf8').split(/\r?\n/).filter(x=>x&&!x.startsWith('#')).map(x=>{const i=x.indexOf('=');return[x.slice(0,i),x.slice(i+1).replace(/^['"]|['"]$/g,'')]}));
+const sb=createClient(env.NEXT_PUBLIC_SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY),cle='feedback_liens_protocole',titre='#### Somme théologique — reprise après audit du 29 juillet 2026';
+const{data,error}=await sb.from('parametres').select('valeur').eq('cle',cle).single();if(error)throw error;let valeur=String(data.valeur??'');
+const ajout=`\n\n${titre}\n\n- Les marques \`liens_revus_le\` des questions 1 à 19 de la *Secunda Secundae*, et plus largement des 13 407 premiers segments de la Somme, ne valent pas validation : les sondages ont révélé des cibles fausses dans les quatre types, y compris sous la provenance \`lecture\`. Il faudra reprendre ce début progressivement, segment par segment.\n- Le 29 juillet, 6 484 liens \`editeur\` ou \`lecture\` ont été remis en arbitrage sans suppression ; sauvegarde exhaustive dans \`tmp/somme-liens-audit-2026-07-29/before.json\`.\n- Reprise fiable amorcée : fin de la question 19, puis questions 20 et 21 de la *Secunda Secundae*. Chaque segment a été lu, y compris ceux sans lien ; les cibles ont été confrontées aux témoins. Ép 4,15 a été corrigé en Ép 4,19.\n- Continuer à partir de la question 22, tout en gardant comme chantier distinct la correction rétrospective des questions 1 à 19.\n`;
+if(!valeur.includes(titre)){valeur+=ajout;const{error:e}=await sb.from('parametres').update({valeur,mis_a_jour:new Date().toISOString()}).eq('cle',cle);if(e)throw e;}
+console.log('Mémoire de reprise de la Somme enregistrée.');

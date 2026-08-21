@@ -1,0 +1,58 @@
+RAPPORT DE NETTOYAGE CONTRÔLÉ — BIBLE 899 v0.9
+================================================
+
+Date d’exécution : 2026-08-02 (Europe/Paris)
+Statut final : SUCCÈS
+
+CIBLE SUPPRIMÉE
+---------------
+
+C:\Corpus Scriptura\bible-patristique\tmp\bible899-import-lot-001-final-v0.9
+
+Le chemin absolu a été résolu et vérifié dans le sous-dossier tmp du projet.
+La commande git ls-files n’a trouvé aucun fichier suivi par Git dans la cible.
+
+CONTENU SUPPRIMÉ
+----------------
+
+18 fichiers temporaires, représentant 2 394 894 octets :
+- codex/CODEX_IMPORT_LOT_001_FINAL_v0.9.txt
+- codex/MESSAGE_A_CODEX.txt
+- data/Bible_899_LOT_001_FINAL_lignes_v0.9.csv
+- data/Bible_899_master_LOT_001_FINAL_v0.9.xml
+- images/f004v_b.png
+- images/f005r_a.png
+- images/f005r_b.png
+- images/f005v_a.png
+- images/f005v_b.png
+- images/f006r_a.png
+- images/f006r_b.png
+- images/f006v_a.png
+- images/f006v_b.png
+- reports/EXPECTED_COUNTS_v0.9.json
+- reports/LOT_001_FINAL_REPORT_v0.9.txt
+- reports/SHA256SUMS.txt
+- reports/SOURCE_LOT_001_MANIFEST.csv
+- reports/SOURCE_LOT_001_REPORT.txt
+
+ESPACE LIBÉRÉ
+-------------
+
+2 394 894 octets.
+
+ÉLÉMENTS EXPLICITEMENT CONSERVÉS
+--------------------------------
+
+- work/bible899/incoming/Bible_899_LOT_001_FINAL_v0.9.zip
+- work/bible899/incoming/Bible_899_LOT_001_Bloc_A_v0.6_corrected.zip
+- work/bible899/incoming/Bible_899_LOT_001_Bloc_B_v0.7.zip
+- work/bible899/incoming/Bible_899_LOT_001_Six_Colonnes_v0.8.zip
+- work/bible899/source/BnF_Fr_899.pdf
+- work/bible899/LOT_001_READY/
+- data/manuscrits/bible-899/Bible_899_master.xml
+- data/manuscrits/bible-899/manifest.json
+- les 24 images actives dans public/manuscrits/bible-899/
+- les schémas, les tests et les rapports du projet
+
+Aucun fichier ambigu ou suivi par Git n’a été supprimé.
+

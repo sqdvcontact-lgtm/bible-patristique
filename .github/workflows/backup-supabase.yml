@@ -1,0 +1,58 @@
+# Sauvegarde QUOTIDIENNE, au format custom (restaurable sélectivement avec pg_restore).
+# Complète la sauvegarde hebdomadaire en clair de sauvegarde-supabase.yml.
+#
+# ⚠️ Elle se connectait à db.<ref>.supabase.co, qui ne publie QU'UN enregistrement AAAA
+# (IPv6). Les exécuteurs GitHub sont en IPv4 seul : la connexion ne pouvait pas aboutir,
+# et la sauvegarde échouait chaque nuit en silence (constaté le 19 août 2026). Elle passe
+# désormais par l'URI du secret SUPABASE_DB_URL, celui qu'emploie déjà la sauvegarde
+# hebdomadaire, qui pointe le pooler joignable en IPv4.
+#
+# Contrairement à l'hebdomadaire, ce vidage CONSERVE les privilèges : sans les GRANT,
+# une base restaurée ne rendrait plus rien à PostgREST, les rôles anon et authenticated
+# n'ayant plus aucun droit.
+#
+# RESTAURATION : pg_restore --no-owner --dbname="URI_DE_CONNEXION" backup_*.dump
+
+name: Sauvegarde Supabase (quotidienne)
+
+on:
+  schedule:
+    # Tous les jours à 3h00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # Permet aussi de lancer manuellement depuis GitHub
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Installer pg_dump (PostgreSQL 17)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Dump de la base
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_dump --version
+          FILENAME="backup_$(date +'%Y-%m-%d_%H-%M').dump"
+          pg_dump "$DB_URL" \
+            --format=custom \
+            --no-owner \
+            --file="$FILENAME"
+          echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+          echo "Taille : $(du -sh $FILENAME | cut -f1)"
+
+      - name: Stocker l'artefact (conservé 90 jours)
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: ${{ env.FILENAME }}
+          retention-days: 90
+          compression-level: 9

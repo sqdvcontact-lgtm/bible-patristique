@@ -1,0 +1,90 @@
+'use client'
+
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { Carte, dateFormat } from './adminShared'
+import type { Essai } from './adminTypes'
+
+export default function SectionEssais({
+  essaisEnAttente: init, actionPublierEssai, actionRenvoyerBrouillonEssai,
+}: {
+  essaisEnAttente: Essai[]
+  actionPublierEssai: (id: number) => Promise<void>
+  actionRenvoyerBrouillonEssai: (id: number, note: string, refus?: boolean) => Promise<void>
+}) {
+  const [liste, setListe] = useState<Essai[]>(init)
+  const [action, setAction] = useState<Record<number, 'publie' | 'renvoye' | 'loading'>>({})
+
+  const publier = async (id: number) => {
+    setAction(p => ({ ...p, [id]: 'loading' }))
+    await actionPublierEssai(id)
+    setAction(p => ({ ...p, [id]: 'publie' }))
+    setTimeout(() => setListe(p => p.filter(e => e.id !== id)), 700)
+  }
+  const renvoyer = async (id: number, refus = false) => {
+    const note = window.prompt(refus
+      ? "Motif du refus transmis à l'auteur :"
+      : "Commentaire transmis à l'auteur pour améliorer ou reprendre l'essai :")
+    if (note === null) return
+    if (!note.trim()) {
+      window.alert('Merci d’indiquer un motif ou une consigne pour l’auteur.')
+      return
+    }
+    setAction(p => ({ ...p, [id]: 'loading' }))
+    await actionRenvoyerBrouillonEssai(id, note.trim(), refus)
+    setAction(p => ({ ...p, [id]: 'renvoye' }))
+    setTimeout(() => setListe(p => p.filter(e => e.id !== id)), 700)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {liste.length === 0 ? (
+        <Carte><p style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucun essai en attente de validation.</p></Carte>
+      ) : liste.map(e => {
+        const statut = action[e.id]
+        return (
+          <Carte key={e.id}>
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '6px' }}>
+              {e.categories.map(c => (
+                <span key={c} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '8px', fontWeight: 600 }}>{c}</span>
+              ))}
+            </div>
+            <Link href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer"
+              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
+              {e.titre} ↗
+            </Link>
+            {e.sous_titre && <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 6px' }}>{e.sous_titre}</p>}
+            {e.resume && <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: '0 0 8px' }}>{e.resume}</p>}
+
+            <div style={{ display: 'flex', gap: '14px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontWeight: 500 }}>{e.auteur_pseudo ?? 'Auteur inconnu'}</span>
+              <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', marginLeft: 'auto' }}>{dateFormat(e.created_at)}</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              {statut === 'loading' ? (
+                <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)' }}>…</span>
+              ) : statut === 'publie' ? (
+                <span style={{ fontSize: '0.8125rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Publié</span>
+              ) : statut === 'renvoye' ? (
+                <span style={{ fontSize: '0.8125rem', color: 'var(--cs-danger)' }}>Renvoyé en brouillon</span>
+              ) : (
+                <>
+                  <button onClick={() => renvoyer(e.id)} className="btn-gris" style={{ fontSize: '0.8125rem', padding: '5px 14px', borderRadius: '4px', cursor: 'pointer' }}>
+                    Renvoyer en brouillon
+                  </button>
+                  <button onClick={() => renvoyer(e.id, true)} className="btn-rouge" style={{ fontSize: '0.8125rem', padding: '5px 14px', borderRadius: '4px', cursor: 'pointer' }}>
+                    Refus
+                  </button>
+                  <button onClick={() => publier(e.id)} className="btn-vert" style={{ fontSize: '0.8125rem', padding: '5px 14px', borderRadius: '4px', cursor: 'pointer' }}>
+                    Publier ✓
+                  </button>
+                </>
+              )}
+            </div>
+          </Carte>
+        )
+      })}
+    </div>
+  )
+}

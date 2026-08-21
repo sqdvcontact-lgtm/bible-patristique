@@ -1,0 +1,110 @@
+LOT_002_READY — RAPPORT DE PRÉPARATION
+=======================================
+
+Date de préparation : 2026-08-02 (Europe/Paris)
+
+1. PÉRIMÈTRE
+------------
+
+Le LOT_002_READY couvre exactement les 40 colonnes demandées :
+f007r_a à f016v_b incluses, soit 20 faces et deux colonnes par face.
+
+Nombre d’images produites : 40.
+Format : PNG en niveaux de gris, conformément au raster source.
+
+Aucun OCR, aucune transcription, aucun développement d’abréviation, aucune
+modernisation et aucune restitution n’ont été effectués.
+
+2. SOURCE
+---------
+
+PDF source :
+C:\Corpus Scriptura\bible-patristique\work\bible899\source\BnF_Fr_899.pdf
+
+Taille : 114 119 025 octets.
+SHA-256 : 0d8bc3825a548b1a71b3cd13ee397f9be0f68601d2dd42b91166538b29e729d1
+
+Les images embarquées dans le PDF ont une hauteur native de 1024 pixels. Les
+pages utilisées ont une largeur native comprise entre 1423 et 1471 pixels.
+
+3. CORRESPONDANCE AVEC LES PAGES DU PDF
+---------------------------------------
+
+- page PDF 12, moitié droite : f007r ;
+- page PDF 13 : f007v à gauche et f008r à droite ;
+- page PDF 14 : f008v à gauche et f009r à droite ;
+- page PDF 15 : f009v à gauche et f010r à droite ;
+- page PDF 16 : f010v à gauche et f011r à droite ;
+- page PDF 17 : f011v à gauche et f012r à droite ;
+- page PDF 18 : f012v à gauche et f013r à droite ;
+- page PDF 19 : f013v à gauche et f014r à droite ;
+- page PDF 20 : f014v à gauche et f015r à droite ;
+- page PDF 21 : f015v à gauche et f016r à droite ;
+- page PDF 22, moitié gauche : f016v.
+
+La foliotation visible est cohérente avec cette séquence. Aucune vue répétée ou
+page déplacée n’a été observée dans ce périmètre.
+
+4. MÉTHODE D’EXTRACTION
+-----------------------
+
+Pour chaque page PDF, le raster embarqué d’origine a été décodé à sa définition
+native. Les colonnes ont ensuite été découpées directement dans cette grille de
+pixels, sur toute la hauteur de 1024 pixels.
+
+Aucun redimensionnement, rééchantillonnage, filtre, accentuation, correction de
+contraste, modification des couleurs ou retouche n’a été appliqué. La conversion
+en PNG est un enregistrement sans perte des pixels décodés. Les marges utiles,
+initiales, signes marginaux, traces matérielles et bords visibles ont été
+conservés dans les découpes.
+
+Les coordonnées exactes de chaque découpe et les dimensions de la source sont
+consignées dans LOT_002_MANIFEST.csv.
+
+5. PAGES ATYPIQUES ET DIFFICULTÉS
+---------------------------------
+
+- Page PDF 16, f011r : la colonne a contient le corps de texte visible ; aucun
+  corps de texte n’est visible dans l’espace correspondant à f011r_b. L’image
+  f011r_b a néanmoins été conservée, sans ajout ni interprétation.
+- Page PDF 17, f011v : aucun corps de texte n’est visible dans f011v_a.
+  f011v_b ne contient du texte que dans sa partie supérieure ; des traces pâles
+  sont visibles plus bas. Les deux colonnes ont été conservées telles quelles.
+- Page PDF 20, f014v_a : le texte commence plus bas après une indication de
+  chapitre ; la grande zone supérieure non écrite est conservée.
+- Page PDF 21, f015v : une altération ou ondulation matérielle est visible dans
+  la marge inférieure ; elle est conservée dans les images.
+- Page PDF 22, f016v : une marque sombre apparaît dans la marge supérieure et
+  des traces matérielles sont visibles dans la marge inférieure ; elles sont
+  conservées sans retouche.
+
+La reliure et des bandes sombres sont visibles au centre de plusieurs ouvertures.
+Elles ont été gardées lorsque leur présence se trouve dans la marge nécessaire à
+une colonne. Elles n’ont pas gêné l’identification des 40 colonnes.
+
+6. MANIFESTE ET VÉRIFICATIONS
+-----------------------------
+
+LOT_002_MANIFEST.csv est encodé en UTF-8. Il contient 40 lignes de données avec :
+- la page PDF ;
+- le folio ;
+- la face ;
+- la colonne ;
+- le chemin relatif du fichier ;
+- les dimensions de l’image et de sa source ;
+- les coordonnées exactes de découpe ;
+- l’empreinte SHA-256.
+
+Contrôles effectués :
+- 40 fichiers PNG présents ;
+- chaque nom attendu de f007r_a.png à f016v_b.png apparaît exactement une fois ;
+- aucun nom supplémentaire dans images_columns ;
+- dimensions des 40 fichiers conformes au manifeste ;
+- SHA-256 des 40 fichiers conformes au manifeste ;
+- pixels des 40 fichiers identiques aux zones correspondantes du raster source ;
+- hauteur native de 1024 pixels conservée pour toutes les images ;
+- CSV relu strictement en UTF-8.
+
+Le TEI actif, son manifeste, le lecteur et tous les fichiers antérieurs sont
+restés inchangés.
+

@@ -1,0 +1,6 @@
+# Données Bible 899 validées par empreinte SHA-256 (TEI maître, manifeste) : NE JAMAIS
+# convertir les fins de ligne. Avec core.autocrlf=true (défaut Windows), un checkout
+# convertissait le TEI en CRLF → son empreinte changeait → le chargeur échouait au
+# runtime (« empreinte SHA-256 différente du manifeste »). `-text` fige les octets.
+data/manuscrits/bible-899/** -text
+public/manuscrits/bible-899/** binary

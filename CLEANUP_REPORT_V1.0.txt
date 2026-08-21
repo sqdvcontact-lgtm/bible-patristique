@@ -1,0 +1,89 @@
+RAPPORT DE NETTOYAGE CONTRÔLÉ — BIBLE 899 v1.0
+================================================
+
+Date d’exécution : 2026-08-03 (Europe/Paris)
+Statut final : SUCCÈS
+
+CIBLE SUPPRIMÉE
+---------------
+
+C:\Corpus Scriptura\bible-patristique\tmp\bible899-import-lot-002-final-v1.0
+
+Le chemin absolu a été résolu et vérifié dans le sous-dossier tmp du projet.
+La commande git ls-files n’a trouvé aucun fichier suivi par Git dans la cible.
+
+CONTENU SUPPRIMÉ
+----------------
+
+50 fichiers temporaires, représentant 9 602 069 octets :
+- codex/CODEX_IMPORT_LOT_002_FINAL_v1.0.txt
+- codex/MESSAGE_A_CODEX.txt
+- data/Bible_899_LOT_002_lignes_v1.0.csv
+- data/Bible_899_master_LOT_002_FINAL_v1.0.xml
+- images/f007r_a.png
+- images/f007r_b.png
+- images/f007v_a.png
+- images/f007v_b.png
+- images/f008r_a.png
+- images/f008r_b.png
+- images/f008v_a.png
+- images/f008v_b.png
+- images/f009r_a.png
+- images/f009r_b.png
+- images/f009v_a.png
+- images/f009v_b.png
+- images/f010r_a.png
+- images/f010r_b.png
+- images/f010v_a.png
+- images/f010v_b.png
+- images/f011r_a.png
+- images/f011r_b.png
+- images/f011v_a.png
+- images/f011v_b.png
+- images/f012r_a.png
+- images/f012r_b.png
+- images/f012v_a.png
+- images/f012v_b.png
+- images/f013r_a.png
+- images/f013r_b.png
+- images/f013v_a.png
+- images/f013v_b.png
+- images/f014r_a.png
+- images/f014r_b.png
+- images/f014v_a.png
+- images/f014v_b.png
+- images/f015r_a.png
+- images/f015r_b.png
+- images/f015v_a.png
+- images/f015v_b.png
+- images/f016r_a.png
+- images/f016r_b.png
+- images/f016v_a.png
+- images/f016v_b.png
+- reports/EXPECTED_COUNTS_v1.0.json
+- reports/LECTURES_A_REVOIR_v1.0.txt
+- reports/LOT_002_FINAL_REPORT_v1.0.txt
+- reports/SHA256SUMS.txt
+- reports/SOURCE_LOT_002_MANIFEST.csv
+- reports/SOURCE_LOT_002_REPORT.txt
+
+ESPACE LIBÉRÉ
+-------------
+
+9 602 069 octets.
+
+ÉLÉMENTS EXPLICITEMENT CONSERVÉS
+--------------------------------
+
+- work/bible899/incoming/Bible_899_LOT_002_FINAL_v1.0.zip
+- toutes les archives antérieures présentes dans work/bible899/incoming/
+- work/bible899/source/BnF_Fr_899.pdf
+- work/bible899/LOT_001_READY/
+- work/bible899/LOT_002_READY/
+- data/manuscrits/bible-899/Bible_899_master.xml
+- data/manuscrits/bible-899/manifest.json
+- les 64 images actives dans public/manuscrits/bible-899/
+- les schémas, tests, fixtures et rapports du projet
+
+Aucun fichier ambigu ou suivi par Git n’a été supprimé.
+

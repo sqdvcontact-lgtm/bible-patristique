@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>Fixture technique avec identifiant dupliqué</title></titleStmt>
+      <editionStmt><edition n="test" status="fixture">fixture sans contenu éditorial</edition></editionStmt>
+      <publicationStmt><p>Test</p></publicationStmt>
+      <sourceDesc><p>Test</p></sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text><body><div type="diplomatic">
+    <pb n="4r" facs="fixture.png" />
+    <cb n="a" />
+    <l xml:id="duplicate_l1" n="1">un</l>
+    <l xml:id="duplicate_l1" n="2">deux</l>
+  </div></body></text>
+</TEI>
