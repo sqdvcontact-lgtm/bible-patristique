@@ -11,7 +11,6 @@ import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/t
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
 import {
-  projeterResultatsRechercheBibleAelf,
   urlResultatRechercheBible,
   type ResultatRechercheBibleAelf,
 } from '@/app/lib/rechercheBibleAelf'
@@ -89,7 +88,8 @@ const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001', label: 'Bible de Sacy', lang: 'fr' },
   { code: 'TR0002', label: 'Bible Segond', lang: 'fr' },
   { code: 'TR0003', label: 'Bible Crampon', lang: 'fr' },
-  { code: 'TR0004', label: 'Vulgate', lang: 'la' },
+  { code: 'TR0004', label: 'Vulgate clémentine', lang: 'la' },
+  { code: 'TR0005', label: 'Septante de Swete', lang: 'grc' },
 ]
 
 type VersetResult = ResultatRechercheBibleAelf & {
@@ -317,7 +317,7 @@ export default function RechercheClient() {
       const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
       if (profil?.traduction_defaut) { localStorage.setItem('traduction_defaut', profil.traduction_defaut); appliquer(profil.traduction_defaut) }
     })
-    supabase.from('traductions').select('trad_id, nom, langue').order('ordre', { ascending: true }).then(({ data }) => {
+    supabase.from('v_aelf_bible_search_translations').select('trad_id, nom, langue, ordre').order('ordre', { ascending: true }).then(({ data }) => {
       if (data?.length) {
         const trads = data.map((t: any) => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
         setTraductions(trads)
@@ -399,9 +399,6 @@ export default function RechercheClient() {
       const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
 
       const tradCodes = traductions.map(t => t.code)
-      // On récupère aussi les num_TRxxxx : les références d'ORIGINE de chaque édition,
-      // affichées en lettrine dans l'onglet Polyglotte, comme sur la page Polyglotte.
-      const selVersets = `id_verset, ref, livre, chapitre, verset, est_suscription, est_surnumeraire, ordre, ${tradCodes.join(', ')}, ${tradCodes.map(c => 'num_' + c).join(', ')}`
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
@@ -475,24 +472,14 @@ export default function RechercheClient() {
         })(),
 
         // ── Versets ───────────────────────────────────────────────────────────
-        // L'ancien chemin passait par `concordance_versets` — relique du modèle d'avant
-        // la bascule du 20/07 (30 lignes, identifiants périmés `B001714`) : elle renvoyait
-        // 0, d'où « aucun mot n'était trouvé ». Un mot seul passe désormais par la fonction
-        // `recherche_versets`, qui compare via `unaccent` — on trouve donc « vérité » même
-        // en tapant « verite ». Le filtre client affine ensuite en mot entier / début de mot.
-        (async (): Promise<any[]> => {
-          if (!fragments) {
-            return pagine((de, a) => supabase.rpc('recherche_versets', { p_terme: q, p_scope: chercheTout ? 'ALL' : scopeActif }).range(de, a), signal)
-          }
-          // Fragments (plusieurs mots, mode début de mot) : requête directe, chaque mot
-          // requis. Accent-sensible ici — cas plus rare, la recherche d'un mot prime.
-          const cols = chercheTout ? tradCodes : [scopeActif]
-          return pagine((de, a) => {
-            let r = supabase.from('versets_lecture').select(selVersets)
-            for (const t of termes) r = r.or(cols.map(c => `${c}.ilike.%${t}%`).join(','))
-            return r.range(de, a)
-          }, signal)
-        })(),
+        // La recherche biblique interroge directement l'index AELF/TOL : les scissions,
+        // fusions et décalages propres à chaque traduction sont donc résolus AVANT le hit.
+        // Le RPC inclut aussi les positions historiques hors axe ; le filtre client ne fait
+        // ensuite qu'affiner les frontières de mot (début de mot / mot exact).
+        pagine((de, a) => supabase.rpc('recherche_versets_aelf', {
+          p_termes: termes,
+          p_scope: chercheTout ? 'ALL' : scopeActif,
+        }).range(de, a), signal),
 
         // ── Essais ────────────────────────────────────────────────────────────
         reqE,
@@ -508,16 +495,17 @@ export default function RechercheClient() {
       if ((resE.data?.length ?? 0) >= limiteE) avertissements.push('Publications')
       if (avertissements.length) setTronque(avertissements)
 
-      // Filtre client versets : mot entier ou début de mot, INSENSIBLE AUX ACCENTS
-      // (contientTerme normalise les deux côtés). Colonnes : toutes les bibles si ALL,
-      // sinon la seule choisie. Ce filtre resserre le résultat de recherche_versets
-      // (qui, lui, fait une simple sous-chaîne) sur la frontière de mot voulue.
+      // Le RPC renvoie déjà des cellules de lecture AELF/TOL. On ne reprojette donc plus
+      // un canon historique après coup : cela perdrait les mappings translationnels split/
+      // merge. Le filtre client resserre seulement la sous-chaîne sur la frontière de mot.
       const versetsRaw = versetsArr as unknown as VersetResult[]
       const colsFiltre = chercheTout ? tradCodes : [scopeActif]
-      const hitsIndex = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
-      // versets_lecture reste ici un INDEX historique performant, jamais la référence
-      // de sortie : tous les hits sont résolus vers la spine AELF avant affichage.
-      const versets = await projeterResultatsRechercheBibleAelf(hitsIndex, signal)
+      const versets = versetsRaw
+        .filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
+        .map(v => ({
+          ...v,
+          hors_axe_aelf: !v.aelf_entry_id && v.id_verset.startsWith('EXTRA:'),
+        }))
       if (signal.aborted) return
       setVersetsRes(versets)
 
