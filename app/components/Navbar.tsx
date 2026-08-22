@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { LIVRES } from "@/app/lib/bible";
+import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { sansPointFinal } from "@/app/lib/titres";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
@@ -62,9 +63,13 @@ const FAMILLES_ADMIN = [
   { cle: "communaute", label: "Communauté",           couleur: "var(--cs-or)", couleurMobile: "var(--cs-or-clair)" },
   { cle: "systeme",    label: "Système & doctrine",   couleur: "var(--cs-systeme)", couleurMobile: "var(--cs-systeme-clair)" },
 ] as const;
-const LIENS_ADMIN: { href: string; label: string; famille: string }[] = [
-  { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus" },
-  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus" },
+// `principal` : les deux entrées par lesquelles on entre presque toujours dans
+// l'administration. Elles se distinguent par la GRAISSE, non par une place à part :
+// l'ordre des familles reste celui du travail, et l'œil trouve seul ses deux portes
+// dans une liste qui en compte dix-sept.
+const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: boolean }[] = [
+  { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus", principal: true },
+  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus", principal: true },
   { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres", famille: "corpus" },
   { href: "/admin?onglet=ouvrages", label: "Ouvrages", famille: "corpus" },
   { href: "/admin?onglet=validation-notices", label: "Validation notices", famille: "corpus" },
@@ -154,7 +159,7 @@ function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSS
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
-      <div className="cs-plus-menu">
+      <div className="cs-plus-menu cs-defilement-discret">
         {LIENS_ALLER_PLUS_LOIN.map(l => (
           <Link key={l.href} href={l.href} className="cs-plus-lien">{l.label}</Link>
         ))}
@@ -175,7 +180,7 @@ function OngletAdministration({ label, style }: { label: string; style: React.CS
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
-      <div className="cs-plus-menu">
+      <div className="cs-plus-menu cs-defilement-discret">
         {FAMILLES_ADMIN.map((fam, i) => {
           const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
             .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
@@ -184,7 +189,7 @@ function OngletAdministration({ label, style }: { label: string; style: React.CS
               {i > 0 && <div className="cs-plus-sep" />}
               <div className="cs-admin-fam" style={{ color: fam.couleur }}>{fam.label}</div>
               {liens.map(l => (
-                <Link key={l.href} href={l.href} className="cs-plus-lien cs-admin-lien" style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
+                <Link key={l.href} href={l.href} className={`cs-plus-lien cs-admin-lien${l.principal ? " cs-plus-lien--fort" : ""}`} style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
               ))}
             </div>
           );
@@ -301,8 +306,14 @@ const MARGE_BASCULE_PX = 32;
 //
 //   1 — « Soutenir le projet » se réduit à son cœur, le mot « Admin » s'efface
 //   2 — le pseudonyme s'efface, « Les Saintes Écritures » devient « La Bible »
-//   3 — « Aller plus loin » descend dans le menu de compte
-//   4 — la recherche se replie en loupe et se déploie sous la barre
+//   3 — la recherche se replie en loupe et se déploie sous la barre
+//   4 — le nom du site se réduit à son monogramme
+//
+// ⛔ « Aller plus loin » ne quitte JAMAIS la barre. Il descendait autrefois dans le
+// menu de compte, où une rubrique de lecture n'a rien à faire : personne ne va chercher
+// les traductions ou l'histoire de l'Église sous son propre nom d'utilisateur, et une
+// entrée qui change de place selon la largeur de la fenêtre ne s'apprend jamais. La
+// place qu'il fallait se prend désormais sur les outils, qui sont faits pour céder.
 const CRAN_MAX = 4;
 
 export default function Navbar() {
@@ -342,11 +353,11 @@ export default function Navbar() {
   const soutenirCompact = cran >= 1;
   const pseudoMasque = cran >= 2;
   const titreBibleCourt = cran >= 2;
-  const rechercheRepliee = cran >= 4;
-  // « Aller plus loin » ne descend dans le menu de compte que si ce menu existe : sans
-  // session, le bloc de droite se réduit à « Se connecter » et la rubrique disparaîtrait.
-  // Le cran est alors sans effet ; la mesure suivante constatera qu'il en faut un de plus.
-  const allerPlusLoinDansCompte = cran >= 3 && !!user;
+  const rechercheRepliee = cran >= 3;
+  // Dernier cran : le nom du site s'efface et le monogramme reste seul à porter le retour
+  // à l'accueil. C'est la marque qui cède, jamais une section de lecture, et le monogramme
+  // garde le lien entier sous une infobulle.
+  const nomSiteMasque = cran >= 4;
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
@@ -734,24 +745,40 @@ export default function Navbar() {
           }}
           placeholder="Rechercher…"
           className="recherche-rapide-input cs-focus-clair"
-          style={{ width: mobile ? "100%" : "13.75rem", height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-surface)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          /* La largeur se prend sur la FENÊTRE, non sur une valeur fixe. À 13,75rem le
+             champ était le plus large des outils, et le même à 1 024 px qu'à 2 400 : trop
+             gourmand en bas, où il précipitait le repli de la barre, trop court en haut, où
+             il restait un ruban étroit au milieu du vide. En `vw` il suit l'écran, de 154 px
+             à 1 024 à 360 px à 2 400. Les deux bornes restent en rem, donc accordées à la
+             police racine : le champ ne descend jamais sous une dizaine de caractères et ne
+             s'étale pas jusqu'à faire concurrence aux sections. */
+          style={{ width: mobile ? "100%" : "clamp(8.75rem, 15vw, 20rem)", height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-surface)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
             sans ?q, la navigation client ne rejouerait alors rien), on force un rechargement
-            propre pour vider les résultats précédents. Libellé court pour tenir dans la barre. */}
-        <Link href="/recherche" title="Ouvrir une recherche vierge"
+            propre pour vider les résultats précédents.
+
+            Le mot « Recherche » a disparu et le bouton est devenu carré, de la taille du
+            champ : il coûtait près de quatre rem à côté d'un champ qui porte déjà
+            « Rechercher… » en filigrane, et redisait donc ce qu'on venait de lire. La loupe
+            marquée d'une croix se lit d'un coup et dit ce que le mot ne disait pas — que
+            cette recherche-ci part de zéro. L'intitulé reste en infobulle et pour les
+            lecteurs d'écran. */}
+        <Link href="/recherche" title="Ouvrir une recherche vierge" aria-label="Nouvelle recherche"
           onClick={e => {
             fermerRechercheRapide();
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "4px", height: "1.875rem", boxSizing: "border-box", padding: "0 9px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78125rem", fontWeight: 500, letterSpacing: "0.01em", transition: "background 0.13s, color 0.13s" }}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", boxSizing: "border-box", padding: 0, borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s, color 0.13s" }}
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "var(--cs-surface)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-            <path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          {/* Une loupe marquée d'une croix : la recherche, et qu'elle recommence. */}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <circle cx="5.9" cy="5.9" r="4.1" stroke="currentColor" strokeWidth="1.25"/>
+            <path d="M5.9 4.1v3.6M4.1 5.9h3.6" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"/>
+            <path d="M9 9l3.3 3.3" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
           </svg>
-          Recherche
         </Link>
       </div>
 
@@ -971,21 +998,6 @@ export default function Navbar() {
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-encre)", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
           </div>
         )}
-        {/* Rubrique « Aller plus loin », recueillie ici quand la barre est trop étroite
-            pour la porter. Intertitre, puis ses entrées, puis un filet : elle reste un
-            groupe distinct des liens du compte, et non une liste qui s'y fondrait. */}
-        {!mobile && allerPlusLoinDansCompte && (
-          <div style={{ borderBottom: "1px solid var(--cs-bord-clair)" }}>
-            <p style={{ fontSize: "0.65625rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--cs-texte-doux)", margin: 0, padding: "9px 14px 3px" }}>Aller plus loin</p>
-            {LIENS_ALLER_PLUS_LOIN.map(l => (
-              <Link key={l.href} href={l.href} onClick={() => setMenuOuvert(false)}
-                style={{ display: "block", padding: "7px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none" }}>
-                {l.label}
-              </Link>
-            ))}
-            <div style={{ height: "4px" }} />
-          </div>
-        )}
         {[
           { href: "/compte", label: "Mon compte", badge: 0, icone: null },
           ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0, icone: null }] : []),
@@ -1087,34 +1099,65 @@ export default function Navbar() {
             transition-duration: 140ms;
           }
           /* Onglet « Bible » : au repos, un onglet plat comme les autres liens de la barre
-             — ni cadre ni fond qui le détachent, et sa largeur épouse son texte, sans
-             boîte fixe qui creuse un écart. C'est la face, en flux normal, qui dimensionne
-             le bloc ; au survol elle s'efface et laisse paraître SUR PLACE, à la même
-             largeur, « Classique » et « Polyglotte » — la barre ne bouge pas. */
+             — ni cadre ni fond qui le détachent. Au survol la face s'efface et laisse
+             paraître SUR PLACE « Classique » et « Polyglotte » — la barre ne bouge pas.
+
+             ⛔ La face ne dimensionne PLUS le bloc à elle seule. Elle le faisait, en flux
+             normal, pendant que les deux segments étaient en « position:absolute » : ils se
+             trouvaient donc bornés à SA largeur, et rognés par l'« overflow:hidden » dès qu'ils
+             la dépassaient. Le défaut restait invisible tant que la face disait « Les Saintes
+             Écritures », plus large que les deux segments réunis. Il paraissait au cran 2, où
+             elle se réduit à « La Bible », moitié moins large : « Polyglotte », qui vient en
+             second, se faisait couper. C'était donc un défaut de LARGEUR DE FENÊTRE, ce qui le
+             rendait intermittent, et proprement incompréhensible pour qui le rencontrait.
+
+             Les deux faces occupent maintenant LA MÊME cellule de grille. Elles se superposent
+             toujours, mais aucune ne sort du flux : le bloc prend la largeur de la PLUS LARGE
+             des deux, à tous les crans, et plus rien ne peut être rogné. Cette largeur ne
+             change pas au survol, donc la barre ne bouge toujours pas. */
           /* overflow:hidden — les surbrillances internes (survol des segments, segment
              actif) sont rognées par le rayon du conteneur : plus de coins carrés qui débordent
              sur les angles arrondis. */
-          .cs-bible { position: relative; display: inline-flex; border-radius: 4px; overflow: hidden; transition: background 220ms ease-in-out; }
+          .cs-bible { position: relative; display: inline-grid; grid-template-columns: auto; border-radius: 4px; overflow: hidden; transition: background 220ms ease-in-out; }
+          .cs-bible > * { grid-area: 1 / 1; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
-          .cs-bible-face { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
+          .cs-bible-face { display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
-          .cs-bible-split { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
+          .cs-bible-split { display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
           .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 0.375rem; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: var(--cs-surface); }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: var(--cs-surface); background: rgba(255,255,255,0.10); }
           /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
-             mort — le menu touche le déclencheur). */
+             mort — le menu touche le déclencheur).
+
+             ⛔ Le menu ne peut PAS déborder de l'écran, et « Administration » en compte dix-sept
+             entrées réparties en trois familles. Il était en overflow:hidden, donc ce qui
+             dépassait du bas de la fenêtre était simplement inatteignable : sur un écran bas, les
+             dernières familles n'existaient plus, sans que rien ne le dise. Le menu se borne
+             maintenant à la hauteur disponible sous la barre et défile. Le plafond se compose sur
+             HAUTEUR_NAVBAR, jamais sur un nombre recopié (cf. AGENTS.md, § Responsive), et le
+             dernier terme laisse respirer le bas de la fenêtre.
+
+             overscroll-behavior:contain — sans lui, la molette poursuivie au bas de la liste
+             emporte la PAGE, et le menu se ferme sous le curseur qui a bougé avec elle. */
           .cs-plus { position: relative; }
-          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
+          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem); z-index: 3000; padding: 3px; display: none; }
           .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
-          .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.8125rem; color: var(--cs-encre); text-decoration: none; border-radius: 4px; white-space: nowrap; }
+             /* Interlignage POSÉ, et non hérité : c'est lui qui gouverne la hauteur d'une
+             rangée, et sans lui le resserrement des rembourrages se serait fait manger par
+             un interlignage de confort dont la valeur ne se lisait nulle part. */
+          .cs-plus-lien { display: block; padding: 4px 11px; font-size: 0.8125rem; line-height: 1.32; color: var(--cs-encre); text-decoration: none; border-radius: 4px; white-space: nowrap; }
           .cs-plus-lien:hover { background: rgba(var(--cs-vert-rgb),0.08); }
-          .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 4px 6px; }
+             /* Les deux portes de l'administration. La graisse suffit à les lever d'une liste
+             de dix-sept : ni couleur, ni puce, ni place à part, qui déferaient l'ordre des
+             familles. */
+          .cs-plus-lien--fort { font-weight: 600; }
+          .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
           /* Familles d'administration : intertitre coloré + filet coloré à gauche de
              chaque entrée, pour différencier les catégories par domaine. */
-          .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 7px 12px 3px; opacity: 0.9; }
+          .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 6px 12px 2px; opacity: 0.9; }
           .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 4px 4px 0; }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
@@ -1127,6 +1170,8 @@ export default function Navbar() {
         <div className="w-full px-4 flex items-center gap-3" style={{ height: "3.5rem" }}>
 
           <Link href="/accueil" className="flex items-center gap-1.5 shrink-0"
+            title={nomSiteMasque ? "Corpus Scriptura" : undefined}
+            aria-label={nomSiteMasque ? "Corpus Scriptura, retour à l’accueil" : undefined}
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
             {/* Le monogramme du site remplace le fleuron ✦. En crème plutôt qu'en
                 encre, la barre étant verte, et en <img> : l'optimiseur de Next
@@ -1135,11 +1180,18 @@ export default function Navbar() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo/monogramme-creme.png" alt="" aria-hidden="true"
               style={{ height: "1.875rem", width: "auto", display: "block", opacity: 0.92 }} />
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
-            {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
-                ni capitales — un simple murmure de version. */}
-            <span title="Version bêta" aria-label="Version bêta"
-              style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
+            {/* Dernier cran de repli : le nom et sa mention de version s'effacent, et le
+                monogramme porte seul le retour à l'accueil. Le nom complet revient alors en
+                infobulle sur le lien, posée plus haut. */}
+            {!nomSiteMasque && (
+              <>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
+                {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
+                    ni capitales — un simple murmure de version. */}
+                <span title="Version bêta" aria-label="Version bêta"
+                  style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
+              </>
+            )}
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────────
@@ -1166,9 +1218,9 @@ export default function Navbar() {
               href === "/bibliotheque"
                 ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} />
                 : href === "/traductions"
-                // À l'étroit, « Aller plus loin » quitte la barre pour le menu de compte,
-                // à droite : c'est une rubrique de second rang, pas une section de lecture.
-                ? (allerPlusLoinDansCompte ? null : <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />)
+                // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
+                // lecture, et elle ne se range pas sous un nom de compte.
+                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />
                 : <Link key={href} href={href} className="cs-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (

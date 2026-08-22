@@ -12,7 +12,7 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { segmentsLiesAuVerset, segmentsLiesAEntreeAelf, segmentsLiesAuChapitreAelf, segmentsLiesAPlage, type TypeLien } from '@/app/lib/liens'
+import { segmentsLiesAuVerset, segmentsLiesAuChapitre, segmentsLiesAPlage, type TypeLien } from '@/app/lib/liens'
 import IconeSignet from '@/app/components/IconeSignet'
 import { HAUTEUR_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import ModalSignalement from '@/app/components/ModalSignalement'
@@ -20,7 +20,7 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 
-type Verset = { id_verset: string; ref: string; verset: number; chapitre: number; aelf_entry_id?: string | null; historical_canon_id?: string | null }
+type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
   id: number; id_oeuvre: string; segment_numero: number
   segment_texte: string; ref_niv1: string; ref_niv2: string
@@ -789,13 +789,12 @@ export default function PanneauPatristique({
   verset, livreActif, nomLivre, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
   voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
-  plage, refAffichee, historicalCanonId = null,
+  plage, refAffichee,
 }: {
   verset: Verset | null
   livreActif: string
   nomLivre: string
   chapitreActif: number
-  historicalCanonId?: string | null
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
   mobile?: boolean
@@ -910,11 +909,9 @@ export default function PanneauPatristique({
     ;(async () => {
       const liens = plage
         ? await segmentsLiesAPlage(plage.livre, plage.canonDebut, plage.canonFin)
-        : verset?.aelf_entry_id
-        ? await segmentsLiesAEntreeAelf(verset.aelf_entry_id)
-        : verset && historicalCanonId
-        ? await segmentsLiesAuVerset(historicalCanonId)
-        : await segmentsLiesAuChapitreAelf(livreActif, chapitreActif)
+        : verset
+        ? await segmentsLiesAuVerset(verset.id_verset)
+        : await segmentsLiesAuChapitre(livreActif, chapitreActif)
       if (annule) return
       // UN SEGMENT PEUT RELEVER DE PLUSIEURS RUBRIQUES À LA FOIS, et il le doit :
       // chez un commentateur, le même passage est cité (type 1) PUIS commenté
@@ -954,7 +951,7 @@ export default function PanneauPatristique({
       setLoading(false)
     })()
     return () => { annule = true }
-  }, [verset, historicalCanonId, livreActif, chapitreActif, plage?.livre, plage?.canonDebut, plage?.canonFin])
+  }, [verset, livreActif, chapitreActif, plage?.livre, plage?.canonDebut, plage?.canonFin])
 
   // Recherche auteur en direct
   useEffect(() => {

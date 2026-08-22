@@ -34,13 +34,13 @@ let bibleCatalogCache: { expiresAt: number; promise: Promise<BibleReadingCatalog
 async function fetchBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
   const [capabilitiesResult, sampleResult] = await Promise.all([
     client.from('v_bible_reading_capabilities').select('*').order('display_order'),
-    client.from('v_aelf_bible_lecture').select('*').limit(1),
+    client.from('versets_lecture').select('*').limit(1),
   ])
   if (capabilitiesResult.error && !isMissingReadingCapabilitiesRelation(capabilitiesResult.error)) {
     throw new Error(`Capacités de lecture illisibles: ${capabilitiesResult.error.message}`)
   }
   if (sampleResult.error) {
-    throw new Error(`Vue AELF de lecture illisible: ${sampleResult.error.message}`)
+    throw new Error(`Vue canonique illisible: ${sampleResult.error.message}`)
   }
   const rows = (capabilitiesResult.data ?? []) as ReadingCapabilityRow[]
   const canonicalIds = canonicalTranslationIdsFromSample(

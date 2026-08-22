@@ -1,23 +1,7 @@
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 
-export type VRef = {
-  id: string
-  label: string
-  textes: Record<string, string>
-  livre: string
-  chapitre: string
-  verset: string
-  aelfVersionId?: string | null
-  aelfEntryId?: string | null
-  aelfReference?: string | null
-  historicalCanonId?: string | null
-  resolutionStatus?: 'resolved' | 'review' | 'legacy_only' | 'chapter_only' | 'unresolved' | null
-  validationStatus?: string | null
-  confidenceLevel?: string | null
-  linkIds?: number[]
-  natures?: string[]
-}
+export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
   blockId: string
   rank: number
@@ -58,7 +42,14 @@ export type GroupeData = {
 }
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
 export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
-export type OeuvreResumee = { id_oeuvre: string; titre: string; note?: string | null }
+// Le titre seul ne suffit pas à nommer une œuvre : deux éditions d'un même texte le
+// partagent, normalisé, et « Du même auteur » en donnait alors deux lignes identiques.
+// Les champs d'édition suivent donc le titre partout où la liste doit départager.
+export type OeuvreResumee = {
+  id_oeuvre: string; titre: string; note?: string | null
+  trad_auteur?: string | null; editeur?: string | null; ville?: string | null
+  date_publication?: string | null; langue_originale?: string | null; langue_trad?: string | null
+}
 
 export type VersionTextuelle = {
   idTexte: string
@@ -136,7 +127,6 @@ export type Props = {
   segmentCibleId?: number | null
   niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
-  eligibleParagraphes?: boolean
   comparaisonInitiale?: boolean
   alignmentSetIdInitial?: string | null
   comparaisonLivreInitial?: number

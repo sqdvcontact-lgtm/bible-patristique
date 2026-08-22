@@ -1,6 +1,6 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
-import { hydraterLiensHerites, referencesBibliquesAelfDeSegments } from '@/app/lib/liens'
+import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 
@@ -91,7 +91,7 @@ function regrouperVersetsConsecutifs<T extends { livre: string; chapitre: string
     const prec = dernierGroupe?.[dernierGroupe.length - 1]
     const nPrec = prec ? Number(prec.verset) : NaN
     const nCur = Number(v.verset)
-    if (prec && prec.verset && v.verset && prec.livre === v.livre && prec.chapitre === v.chapitre
+    if (prec && prec.livre === v.livre && prec.chapitre === v.chapitre
         && Number.isFinite(nPrec) && Number.isFinite(nCur) && nCur === nPrec + 1) {
       dernierGroupe.push(v)
     } else {
@@ -130,8 +130,8 @@ function segmentAffichable(s: any) {
 
 const SEUIL_TITRE_COLOPHON = 86
 
-// Numéro de segment en exposant. Une seule définition : les deux modes de lecture
-// et l'apparat le composaient à l'identique, en quatre copies.
+// Numéro de segment en exposant. Une seule définition : le corps et l'apparat le
+// composaient à l'identique.
 const STYLE_NUMERO_SEGMENT: React.CSSProperties = { fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }
 
 // Appels de note (info-bulle, formes selon le contexte) et outils de titre :
@@ -231,7 +231,7 @@ const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, 
 const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', eligibleParagraphes = false, niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -273,20 +273,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }, [idOeuvre, oeuvre.titre, auteur])
   // Mobile : actions de segment masquées, révélées à l'appui long (comme les
   // versets de la page Bible).
-  const [actionsSegMobileId, setActionsSegMobileId] = useState<number | null>(null)
-  const appuiLongRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const appuiLongDeclenche = useRef(false)
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
   // Identifiant de l'auteur dont la fiche est ouverte (null = aucune). Une œuvre
   // pouvant être signée à deux, il ne suffit plus de savoir QU'une fiche est
   // ouverte : il faut savoir LAQUELLE.
   const [auteurModalId, setAuteurModalId] = useState<string | null>(null)
-  // Mode de lecture. « paragraphes » (nouveau, par défaut) : les segments d'un
-  // même paragraphe coulent en un seul bloc, leur délimitation n'apparaissant
-  // qu'au survol. « segments » (l'ancien) : un segment = un bloc, conservé à
-  // l'identique. La préférence est mémorisée ; elle n'a d'effet que si l'œuvre
-  // porte la colonne `paragraphe` (sinon le mode paragraphes est indisponible).
-  const [modeLecturePref, setModeLecturePref] = useState<'paragraphes' | 'segments'>('paragraphes')
+  // La lecture se fait EN PARAGRAPHES, et il n'y a plus d'autre façon : les segments
+  // d'un même paragraphe coulent en un seul bloc, leur délimitation n'apparaissant
+  // qu'au survol.
+  //
+  // ⛔ Le mode « segments » (un segment = un bloc, gouttière d'actions à droite) est
+  // retiré, avec le choix qui l'offrait. Les SEGMENTS, eux, restent entiers : ils sont
+  // l'unité de numérotation, d'ancre, de signet, de prélèvement et de renvoi. Ce qui
+  // disparaît est une MISE EN PAGE, non une structure.
+  //
+  // Une œuvre dont les segments n'ont pas de `paragraphe` se lit sans dommage : le
+  // garde-fou de `paragraphesDe` isole alors chaque segment dans son propre bloc, ce
+  // qui rend très exactement ce que faisait l'ancien mode. C'est pourquoi le drapeau
+  // `eligibleParagraphes` a pu partir avec lui : il ne gardait plus aucune porte.
   const aTexteOriginal = useMemo(
     () => [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
     [segmentsInit, segmentsApparatInit],
@@ -389,22 +393,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }, [comparaisonEstDisponible, alignementActif?.alignmentSetId, modeComparaison])
   useEffect(() => {
     try {
-      const v = localStorage.getItem('cs_mode_lecture_oeuvre')
-      if (v === 'segments' || v === 'paragraphes') setModeLecturePref(v)
-      // Un lien direct « ?mt=la » (texte original / bilingue) l'emporte sur la préférence
-      // enregistrée : il ouvre l'œuvre exactement dans le mode demandé. L'original étant
-      // aligné par paragraphe, les modes « la »/« bilingue » imposent la vue paragraphes.
+      // Un lien direct « ?mt=la » (texte original / bilingue) l'emporte sur la
+      // préférence enregistrée : il ouvre l'œuvre exactement dans le mode demandé.
       const urlMt = new URLSearchParams(window.location.search).get('mt')
       if (urlMt === 'fr' || urlMt === 'bilingue' || urlMt === 'la') {
         setModeTexte(urlMt)
-        if (urlMt !== 'fr' && eligibleParagraphes) setModeLecturePref('paragraphes')
         return
       }
       const mt = localStorage.getItem(`cs_modetexte_${idOeuvre}`)
       if (mt === 'fr' || mt === 'bilingue' || mt === 'la') setModeTexte(mt)
       else if (localStorage.getItem(`cs_bilingue_${idOeuvre}`) === '1') setModeTexte('bilingue')
     } catch {}
-  }, [idOeuvre, eligibleParagraphes])
+  }, [idOeuvre])
   const affichageBilingue = modeTexte === 'bilingue'
   const afficherOriginalSeul = modeTexte === 'la'
   // Libellés du choix de lecture selon la langue de l'original (grec ou, par défaut, latin).
@@ -414,21 +414,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const estGrec = /grec/i.test(oeuvre.langue_originale ?? '')
   const labelOriginal = estGrec ? 'Grec' : 'Latin'
   const labelBilingue = estGrec ? 'Français & Grec' : 'Français & Latin'
-  const modeLecture: 'paragraphes' | 'segments' = eligibleParagraphes ? modeLecturePref : 'segments'
-  const basculerMode = (m: 'paragraphes' | 'segments') => {
-    if (modeComparaisonActif) fermerComparaison()
-    setModeLecturePref(m)
-    try { localStorage.setItem('cs_mode_lecture_oeuvre', m) } catch {}
-  }
   const basculerTexte = (mode: 'fr' | 'bilingue' | 'la') => {
     if (modeComparaisonActif) fermerComparaison()
     setModeTexte(mode)
-    // L'original est aligné sur le paragraphe source (rang 1) : les vues qui le montrent
-    // (bilingue, latin seul) imposent donc le mode paragraphes.
-    if (mode !== 'fr' && eligibleParagraphes) setModeLecturePref('paragraphes')
     try {
       localStorage.setItem(`cs_modetexte_${idOeuvre}`, mode)
-      if (mode !== 'fr' && eligibleParagraphes) localStorage.setItem('cs_mode_lecture_oeuvre', 'paragraphes')
     } catch {}
   }
   // Compensation droite CONSTANTE pour centrer tous les titres (fleuron, niv1,
@@ -459,6 +449,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   })
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
+  // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
+  // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
+  // seul est refusé — session expirée, droits perdus — l'admin voyait « Enregistrement… »
+  // puis plus rien, et devait conclure que le réglage ne marchait pas. Un réglage qui
+  // échoue doit le dire, sans quoi on cherche le défaut dans l'affichage.
+  const [configErreur, setConfigErreur] = useState<string | null>(null)
   // Quels niveaux de titres existent réellement dans l'œuvre : on grise les niveaux
   // vides dans le sélecteur d'affichage. Calculé une fois, à l'ouverture du panneau
   // (admin seulement), par une simple sonde d'existence par niveau.
@@ -869,18 +865,34 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // `liens_bibliques` et on les repose au format attendu par l'affichage.
     await hydraterLiensHerites(segs)
 
+    const tousIds = new Set<string>()
     const segsAffichables = segs.filter(segmentAffichable)
-    const codesTraductions = await chargerCodesTraductions()
-    const versetsParSegment = await referencesBibliquesAelfDeSegments(
-      segsAffichables.map((s: any) => s.id),
-      codesTraductions,
-    )
+
+    segsAffichables.forEach((s: any) => {
+      [s.lien_1,s.lien_2,s.lien_3,s.lien_4].filter(Boolean).forEach((v: string) =>
+        v.split(';').map((x: string) => x.trim()).filter(Boolean).forEach((x: string) => tousIds.add(x)))
+    })
+    const idsArr = Array.from(tousIds)
+      const versetMap: Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}> = {}
+    if (idsArr.length > 0) {
+      const codesTraductions = await chargerCodesTraductions()
+      const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
+      const { data: vd } = await supabase.from('versets_lecture')
+        .select(selectVersets)
+        .in('id_verset', idsArr)
+      ;(vd ?? []).forEach((v: any) => {
+        const ref = detailsRefBiblique(v.ref)
+        const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
+        versetMap[v.id_verset] = { ...ref, textes }
+      })
+    }
 
     let c = 0
     const newSegs: SegData[] = segsAffichables.map((s: any) => {
       const estIntro = s.nature === 'introduction'
       if (!estIntro) c++
-      const versets = versetsParSegment.get(s.id) ?? []
+      const versets = extraireVersetsAvecNature(s)
+        .map(({ id: vid, natures }) => ({ id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
       return {
         id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
         numero: estIntro ? s.segment_numero : c, numeroSource: s.segment_numero,
@@ -980,7 +992,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const changerNiv1 = async (n1: string, opts?: { forceRefresh?: boolean; conserverPosition?: boolean }) => {
     setNiv1Actif(n1)
-    if (lectureTexteEntier && !opts?.forceRefresh) {
+    if (lectureTexteEntier) {
+      // ⛔ En texte entier, il n'y a PAS de niveau 1 à recharger : le serveur a envoyé
+      // l'œuvre d'un seul tenant. `chargerNiv1Data` ne sait rapporter qu'UNE section, et
+      // un rafraîchissement forcé la substituait donc à tout le reste — la lecture se
+      // repliait sans un mot sur la seule section courante, et le mode paraissait ne
+      // plus s'appliquer, jusqu'au prochain rechargement de la page. Le seul équivalent
+      // honnête d'un « forceRefresh » est ici de reprendre la page entière.
+      if (opts?.forceRefresh) { window.location.reload(); return }
       setSegActif(null)
       setNiv2Actif(null)
       setVue('texte')
@@ -1193,7 +1212,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   useEffect(() => {
     if (!auteurId) return
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, note')
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, note, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad')
     // Repli sur le premier auteur tant que les couples ne sont pas chargés (ou
     // s'ils n'ont pas pu l'être) : la liste reste peuplée, simplement sans les
     // co-signatures.
@@ -1265,19 +1284,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const origAutonome = !couranteEstOriginale && !!editionOrigRef && editionOrigRef.id_oeuvre !== editionFrRef?.id_oeuvre
   const cibleOrigOeuvre = couranteEstOriginale ? idOeuvre : origAutonome ? editionOrigRef!.id_oeuvre : (editionFrRef?.id_oeuvre ?? idOeuvre)
   const cibleOrigMt: 'fr' | 'la' = (couranteEstOriginale || origAutonome) ? 'fr' : 'la'
-  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean; split: boolean }
+  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean }
   const modesLecture: ModeLecture[] = []
   if (aOriginalQuelconque && editionFrRef) {
     const surFr = idOeuvre === editionFrRef.id_oeuvre && !couranteEstOriginale
     modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'fr',
-      actif: surFr && modeTexte === 'fr', split: surFr && eligibleParagraphes })
+      actif: surFr && modeTexte === 'fr' })
     modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'bilingue',
-      actif: surFr && modeTexte === 'bilingue', split: false })
+      actif: surFr && modeTexte === 'bilingue' })
   }
   if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
     const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexte === 'la'))
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
-      actif: surOrig, split: idOeuvre === cibleOrigOeuvre && couranteEstOriginale && cibleOrigMt === 'fr' && eligibleParagraphes })
+      actif: surOrig })
   }
   // Menu 2 — éditions dans la LANGUE du mode courant (masqué si une seule).
   const langueCouranteEstOrig = couranteEstOriginale || (idOeuvre === editionFrRef?.id_oeuvre && modeTexte === 'la')
@@ -1298,6 +1317,38 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     }
     const trad = v.trad_auteur ? libelleTrad(v.trad_auteur) : (v.langue_trad || 'Français')
     return [trad, edit && `édition ${edit}`].filter(Boolean).join(', ')
+  }
+
+  // « Du même auteur » : la ligne qui DÉPARTAGE deux entrées. Le titre y reste
+  // normalisé, comme partout ailleurs, et deux éditions d'un même texte y portaient
+  // donc rigoureusement le même intitulé : la liste proposait deux liens que rien ne
+  // distinguait, et le lecteur ne pouvait que tirer au sort.
+  //
+  // On ne reprend pas `libelleEdition` tel quel : il TAIT la langue des traductions,
+  // sous-entendue française dans le sélecteur d'édition, où l'on ne compare que des
+  // sœurs du même texte. Ici les entrées sont des œuvres différentes, et la langue est
+  // justement l'une des trois choses qui les séparent. Elle vient donc en tête, puis le
+  // traducteur, puis l'édition.
+  const libelleDistinction = (o: OeuvreResumee): string => {
+    // Un SEUL séparateur entre les trois rangs, et il est nommé. La première écriture en
+    // avait deux : un tiret après la langue d'une édition originale, une virgule après
+    // celle d'une traduction, parce que les deux branches composaient leur chaîne chacune
+    // de son côté. Rien n'imposait qu'elles s'accordent, et elles ne s'accordaient pas.
+    // Les trois rangs sont maintenant assemblés au même endroit, par la même constante.
+    //
+    // La virgule reste À L'INTÉRIEUR du rang « édition », où elle sépare l'éditeur, la
+    // ville et la date : ce sont les parties d'une même mention, non trois rangs.
+    const SEP = ' — '
+    const edition = [formaterEditeur(o.editeur ?? null), o.ville, o.date_publication ? formaterDateHistorique(o.date_publication) : null].filter(Boolean).join(', ')
+    const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+    const originale = estEditionOriginale({ langue_trad: o.langue_trad ?? null, langue_originale: o.langue_originale ?? null })
+    const langue = originale
+      ? (/grec/i.test(o.langue_originale || '') ? 'Grec' : 'Latin')
+      : majuscule((o.langue_trad || '').trim() || 'Français')
+    // Une édition en langue originale n'a pas de traducteur : si la donnée en porte un,
+    // c'est une scorie, et l'afficher ferait passer un texte original pour une traduction.
+    const trad = !originale && o.trad_auteur ? libelleTrad(o.trad_auteur) : null
+    return [langue, trad, edition].filter(Boolean).join(SEP)
   }
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
@@ -1332,19 +1383,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // plusieurs versets) : une seule confirmation, une seule requête, une seule
   // mise à jour d'état — au lieu d'une boucle qui rouvrait un confirm() natif et
   // lançait une écriture par verset.
-  const supprimerLiensBibliques = async (segId: number, linkIds: number[]) => {
-    const ids = [...new Set(linkIds)]
-    if (!estAdmin || !ids.length) return
-    const multiple = ids.length > 1
-    if (!confirm(multiple ? `Supprimer ces ${ids.length} liens bibliques ?` : 'Supprimer ce lien biblique ?')) return
+  const supprimerLiensBibliques = async (segId: number, versetIds: string[]) => {
+    if (!estAdmin || !versetIds.length) return
+    const multiple = versetIds.length > 1
+    if (!confirm(multiple ? `Supprimer ces ${versetIds.length} liens bibliques ?` : 'Supprimer ce lien biblique ?')) return
     const { error } = await supabase.from('liens_bibliques')
-      .delete().eq('segment_id', segId).in('id', ids)
+      .delete().eq('segment_id', segId).in('canon_id', versetIds)
     if (error) { alert('Suppression impossible : ' + error.message); return }
-    const aRetirer = new Set(ids)
-    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => !(v.linkIds ?? []).some(id => aRetirer.has(id))) } : s))
+    const aRetirer = new Set(versetIds)
+    setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => !aRetirer.has(v.id)) } : s))
   }
 
-  // Lettrine (drop cap) du tout premier segment, réutilisée par les deux modes.
+  // Lettrine (drop cap) du tout premier segment.
   const DROPCAP: React.CSSProperties = { float: 'left', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '3.4em', lineHeight: '0.78', paddingRight: '5px', paddingTop: '3px', color: 'var(--cs-encre)', fontWeight: 'normal', userSelect: 'none' }
   const preparerTexteSegment = (texte: string) => idTexte.endsWith('_LEGACY')
     ? nettoyerFin(normaliserEspaces(texte))
@@ -1375,11 +1425,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   // Corps d'un segment : lettrine et citation sortie comprises (charte §3.8,
-  // cinquième règle). UN SEUL rendu pour les deux modes de lecture. Le mode
-  // paragraphes le pose dans un <span> partagé avec ses voisins, le mode segments
-  // dans le <p> que le segment possède en propre : la citation étant TERMINALE
-  // par construction (`detecterCitationSortie`), le bloc ferme le segment et les
-  // suivants reprennent à la ligne, sans qu'aucun voisin soit coupé en deux.
+  // cinquième règle). Le segment est posé dans un <span> partagé avec ses voisins du
+  // même paragraphe ; la citation étant TERMINALE par construction
+  // (`detecterCitationSortie`), le bloc ferme le segment et les suivants reprennent à
+  // la ligne, sans qu'aucun voisin soit coupé en deux.
   const rendreCorpsSegment = (s: SegData, estPremier: boolean): React.ReactNode => {
     const texteAffichage = s.texteAffichage ?? s.texte
     const texte = composerCorps(preparerTexteSegment(texteAffichage))
@@ -1473,7 +1522,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .seg-wrapper:hover .seg-btn-action { opacity: 1 !important; }
         .seg-wrapper .seg-btn-action { opacity: 0; }
         .seg-wrapper--actif .seg-btn-action { opacity: 0.5; }
-        /* Mode paragraphes : segments coulant dans un même bloc, délimités au survol. */
+        /* Segments coulant dans un même bloc, délimités au survol. */
         .seg-inline { border-radius: 4px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: rgba(var(--cs-vert-rgb),0.09); }
         .seg-inline--actif { background: var(--cs-vert-pale); }
@@ -1585,74 +1634,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 En savoir plus sur cette édition
               </button>
             )}
-            {/* Lecture : trois lignes de texte (Français, Français & Latin, Latin). Le
-                choix « paragraphes / segments » n'existe que pour le français d'une œuvre
-                segmentée. Sur le modèle du bouton « Les Saintes Écritures » de la navbar
-                (et des trois cartes d'accueil), la ligne « Français » SE DIVISE EN DEUX au
-                survol : sa face s'efface et laisse paraître, sur place, « Paragraphes » et
-                « Segments », que l'on choisit d'un clic. */}
-            {/* ── Menu 1 : mode de lecture (langue) ──────────────────────────
-                Français (Paragraphes/Segments) / Français & [orig] / [orig].
-                Le mode dont la cible EST l'œuvre courante bascule sur place ; les
-                autres NAVIGUENT vers l'édition voulue (le latin autonome à ses
-                titres d'origine). Repli : œuvre sans original → Para/Segments seuls. */}
-            {modesLecture.length > 0 ? (
-              <div style={{ marginTop: '10px' }}>
-                <style>{`
-                  .lec-split { position: relative; border-radius: 4px; overflow: hidden; }
-                  .lec-split-face { transition: opacity 200ms ease; }
-                  .lec-split:hover .lec-split-face, .lec-split:focus-within .lec-split-face { opacity: 0; pointer-events: none; }
-                  .lec-split-menu { position: absolute; inset: 0; display: flex; opacity: 0; pointer-events: none; transition: opacity 200ms ease; border-radius: 4px; overflow: hidden; }
-                  .lec-split:hover .lec-split-menu, .lec-split:focus-within .lec-split-menu { opacity: 1; pointer-events: auto; }
-                  .lec-split-seg { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: inherit; font-size: 0.5625rem; color: var(--cs-texte-second); transition: background 140ms ease, color 140ms ease; }
-                  .lec-split-seg:hover { background: rgba(var(--cs-vert-rgb),0.12); color: var(--cs-encre); }
-                  .lec-split-seg + .lec-split-seg { box-shadow: inset 1px 0 0 rgba(var(--cs-vert-rgb),0.18); }
-                  .lec-split-seg--actif { color: var(--cs-encre); background: rgba(var(--cs-vert-rgb),0.10); font-weight: 600; }
-                  @media (prefers-reduced-motion: reduce) { .lec-split-face, .lec-split-menu { transition: none; } }
-                `}</style>
-                <span style={LABEL_VOLET}>Lecture</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                  {modesLecture.map(m => {
-                    if (!m.split) {
-                      return <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
-                    }
-                    return (
-                      <div key={m.cle} className="lec-split">
-                        <button className="lec-split-face" onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)}
-                          style={{ ...BTN_VOLET(m.actif), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                          <span>{m.label}</span>
-                          {m.actif && (
-                            <span aria-hidden="true" style={{ fontSize: '0.5rem', fontStyle: 'italic', letterSpacing: '0.02em', color: '#6f9a80' }}>
-                              {modeLecture === 'segments' ? 'segments' : 'paragraphes'}
-                            </span>
-                          )}
-                        </button>
-                        <div className="lec-split-menu" style={{ border: `1px solid ${m.actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: 'var(--cs-surface)' }}>
-                          {(['paragraphes', 'segments'] as const).map(seg => (
-                            <button key={seg} className={`lec-split-seg${m.actif && modeLecture === seg ? ' lec-split-seg--actif' : ''}`}
-                              onClick={() => { allerAuMode(m.cibleOeuvre, m.cibleMt); basculerMode(seg) }}>
-                              {seg === 'paragraphes' ? 'Paragraphes' : 'Segments'}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : eligibleParagraphes ? (
-              // Œuvre sans texte original : pas de choix de langue, seulement paragraphes/segments.
+            {/* ── Menu 1 : mode de lecture (LANGUE) ──────────────────────────
+                Français / Français & [orig] / [orig]. Le mode dont la cible EST l'œuvre
+                courante bascule sur place ; les autres NAVIGUENT vers l'édition voulue
+                (le latin autonome à ses titres d'origine).
+
+                Plus de sous-choix « Paragraphes / Segments ». La ligne « Français » se
+                divisait en deux au survol pour l'offrir, et un second bloc attendait plus
+                bas les œuvres sans texte original, qui n'avaient que ce choix-là à faire.
+                Les deux sont partis avec le mode segments, et le menu ne parle donc plus
+                que de LANGUE. */}
+            {modesLecture.length > 0 && (
               <div style={{ marginTop: '10px' }}>
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                  {(['paragraphes', 'segments'] as const).map(m => (
-                    <button key={m} onClick={() => basculerMode(m)} style={{ ...BTN_VOLET(modeLecture === m) }}>
-                      {m === 'paragraphes' ? 'Paragraphes' : 'Segments'}
-                    </button>
+                  {modesLecture.map(m => (
+                    <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
                   ))}
                 </div>
               </div>
-            ) : null}
+            )}
             {/* ── Menu 2 : édition, dans la LANGUE du mode courant ────────────
                 Masqué s'il n'y a qu'une édition dans cette langue. Chaque édition
                 est une œuvre sœur ; la choisir y navigue. */}
@@ -1706,14 +1707,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </button>
               {auteurOuvert && (
                 <div style={{ padding: '0 16px 12px' }}>
-                  {oeuvresAuteur.map(o => (
-                    <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                      style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte)', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
-                      {o.titre}
-                    </a>
-                  ))}
+                  {oeuvresAuteur.map(o => {
+                    const distinction = libelleDistinction(o)
+                    return (
+                      <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
+                        style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte)', textDecoration: 'none', padding: '4px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
+                        {o.titre}
+                        {/* La ligne de distinction ne prend PAS la couleur de survol : le lien
+                            est le titre, et cette ligne le renseigne. Elle garde donc sa teinte
+                            faible, ce qui la tient au second rang même sous le curseur. */}
+                        {distinction && (
+                          <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', lineHeight: 1.3, marginTop: '1px' }}>{distinction}</span>
+                        )}
+                      </a>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -2080,7 +2090,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                     </p>
                   )}
-                  {modeLecture === 'paragraphes' ? paragraphesDe(itemsReels).map((chunk) => {
+                  {paragraphesDe(itemsReels).map((chunk) => {
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
@@ -2121,38 +2131,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                     </div>
                     )
-                  }) : itemsReels.map(sid => {
-                    const s = segMap.get(sid)
-                    if (!s) return null
-                    const actif = segActif === sid
-                    // Bloc de signatures : fer à droite, interligne resserré, blocs rapprochés.
-                    const estSignature = s.nature === 'signature'
-                    return (
-                      <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`}
-                        onTouchStart={mobile ? () => { appuiLongDeclenche.current = false; appuiLongRef.current = setTimeout(() => { appuiLongDeclenche.current = true; setActionsSegMobileId(sid) }, 450) } : undefined}
-                        onTouchEnd={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
-                        onTouchMove={mobile ? () => { if (appuiLongRef.current) clearTimeout(appuiLongRef.current) } : undefined}
-                        style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: estSignature ? '0.12rem' : '0.45rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
-                        <p id={`s${s.numero}`} onClick={() => { if (appuiLongDeclenche.current) { appuiLongDeclenche.current = false; return } if (mobile) setActionsSegMobileId(null); setSegActif(actif ? null : sid) }} className="seg-p"
-                          lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: estSignature ? '1.32' : '1.52', textAlign: estSignature ? 'right' : 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreCorpsSegment(s, sid === premierSegmentId)}
-                        </p>
-                        <div className="seg-actions" style={mobile ? {
-                          position: 'absolute', top: '0.25rem', right: '0.25rem', zIndex: 6, opacity: 1, display: actionsSegMobileId === sid ? 'flex' : 'none', flexDirection: 'row', gap: '0.25rem', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
-                        } : { display: 'flex', flexDirection: 'row', gap: '2px', flexShrink: 0, width: '68px', paddingTop: '2px', justifyContent: 'flex-end', marginRight: '-8px' }}>
-                          {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
-                          <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} className="seg-btn-action" />
-                          <BoutonSignalerSegment segId={sid} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} className="seg-btn-action" />
-                          {estAdmin && (
-                            <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
-                              className="seg-btn-action"
-                              style={{ ...BTN_STYLE, color: 'var(--cs-bord)' }}>
-                              <IconeCrayon size={12} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )
                   })}
                 </div>
               )
@@ -2166,6 +2144,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           )}
 
           {/* Vue apparat critique */}
+          {/* ⛔ Les titres de l'apparat se centrent sur le CORPS DU TEXTE, comme ceux du
+              texte suivi, et non sur toute la largeur du bloc. Ils ne le faisaient pas : le
+              frontispice, le fleuron, les titres de niveau 1 et 2 du texte et les paragraphes
+              de l'apparat lui-même portent tous `paddingRight: gouttiereTitre`, qui retranche
+              la colonne des boutons d'action (~60px à droite) avant de centrer. Les deux
+              titres de l'apparat étaient les seuls à l'ignorer : ils se centraient donc sur un
+              axe décalé de trente pixels vers la droite par rapport à tout ce qui les
+              entourait, y compris la page de titre posée juste au-dessus d'eux.
+
+              ⛔ Ils s'écrivent aussi dans la même ENCRE, `--cs-encre`, qui tire sur le vert.
+              Ils portaient `--cs-texte-fort` au rang 1 et `--cs-texte` au rang 2, deux noirs
+              neutres : trois encres différentes se partageaient donc les titres d'une même
+              œuvre selon la vue où on les lisait, alors qu'un apparat critique n'est pas un
+              autre livre. Un titre de rang 1 doit se reconnaître comme tel des deux côtés. */}
           {vue === 'apparat' && (() => {
             let dniv1 = '', dniv2 = ''
             let isFirst = true
@@ -2183,14 +2175,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     [groupe.niv1, groupe.niv1_texte, groupe.niv2, groupe.niv2_texte],
                     segMapApparat.get(groupe.itemIds[0])?.notes,
                   )
-                  const marginTop = isFirst ? '0' : '2.5rem'
+                  // Même valeur qu'au niveau 1 du texte suivi : l'apparat prenait 2,5rem
+                  // quand le texte en prend 2,8, écart que rien ne justifiait.
+                  const marginTop = isFirst ? '0' : '2.8rem'
                   if (isFirst) isFirst = false
                   return (
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                       {showNiv1 && (
-                        <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
-                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
+                        // Mise en page reprise TELLE QUELLE du niveau 1 du texte suivi : le
+                        // centrage porté par le bloc et non par chaque ligne, un demi-rem de
+                        // respiration en tête, et surtout 1,5rem sous le titre au lieu de 0,5.
+                        // Ce demi-rem collait « Avis au lecteur » à son premier paragraphe,
+                        // alors que le même titre, dans le texte, en est détaché de trois fois
+                        // plus. Un titre a besoin d'un blanc au moins égal à son propre corps
+                        // pour cesser de faire partie de ce qui le suit.
+                        <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
+                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
@@ -2198,12 +2199,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         </div>
                       )}
                       {showNiv2 && (
-                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
-                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
-                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center', paddingRight: gouttiereTitre }}>
+                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
+                          {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
-                      {modeLecture === 'paragraphes' ? paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
+                      {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
                         <div key={`apparat-para-${chunk.ids[0]}`} style={{ paddingRight: gouttiereTitre }}>
                           <p lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                             {chunk.ids.map((sid, i) => {
@@ -2225,28 +2226,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             })}
                           </p>
                         </div>
-                      )) : groupe.itemIds.map(sid => {
-                        const s = segMapApparat.get(sid)
-                        if (!s) return null
-                        const actif = segActif === sid
-                        return (
-                          <div key={sid} id={`segment-${sid}`} className={`seg-wrapper${actif ? ' seg-wrapper--actif' : ''}`} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', marginBottom: '0.45rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
-                            <p id={`a${s.numero}`} onClick={() => { setSegActif(actif ? null : sid) }} className="seg-p"
-                              lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.52', textAlign: 'justify', textJustify: 'inter-word', cursor: 'pointer', borderRadius: '4px', padding: '1px 4px', paddingRight: estAdmin ? '72px' : '4px', margin: 0, flex: 1, background: actif ? 'var(--cs-vert-pale)' : 'transparent', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                              {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
-                              {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
-                            </p>
-                            {estAdmin && (
-                              <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)"
-                                aria-label="Modifier ce segment"
-                                className="seg-btn-action"
-                                style={{ position: 'absolute', right: '-10px', top: '1px', ...BTN_STYLE, color: 'var(--cs-bord)' }}>
-                                <IconeCrayon size={12} />
-                              </button>
-                            )}
-                          </div>
-                        )
-                      })}
+                      ))}
                     </div>
                   )
                 })}
@@ -2345,7 +2325,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           const premier = groupe[0]
                           const dernier = groupe[groupe.length - 1]
                           const multiple = groupe.length > 1
-                          const chapitreSeul = premier.resolutionStatus === 'chapter_only'
                           // Versets réunis : label en fourchette (« Gn 1, 1-3 ») et corps mis à la suite.
                           const labelGroupe = multiple
                             ? `${premier.label.replace(/\d+\s*$/, '')}${premier.verset}-${dernier.verset}`
@@ -2372,7 +2351,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             <div key={key}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}${chapitreSeul ? '' : `&verset=${encodeURIComponent(premier.verset)}`}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
                                   {/* La nature du rapport, dite sans peser : le lecteur
                                       voit la référence d'abord, et peut savoir à quel
                                       titre elle est là s'il y prend garde. */}
@@ -2382,19 +2361,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     </span>
                                   )}
                                   {estAdmin && (
-                                    <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.flatMap(v => v.linkIds ?? []))} title="Supprimer ce lien biblique"
+                                    <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
                                       style={{ fontSize: '0.59375rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>
                                   )}
                                 </div>
-                                {!chapitreSeul && (
-                                  <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
-                                    <BoutonEnregistrerVerset verset={versetAction} trad={trad} userId={userId} />
-                                    <BoutonCopieVerset texte={corps} label={labelGroupe} />
-                                    <BoutonSignalerVerset versetId={premier.id} label={labelGroupe} texte={corps} segmentId={segActifData.id} />
-                                  </div>
-                                )}
+                                <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
+                                  <BoutonEnregistrerVerset verset={versetAction} trad={trad} userId={userId} />
+                                  <BoutonCopieVerset texte={corps} label={labelGroupe} />
+                                  <BoutonSignalerVerset versetId={premier.id} label={labelGroupe} texte={corps} segmentId={segActifData.id} />
+                                </div>
                               </div>
                               {note && (
                                 <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-etiquette)', margin: '0 0 3px', lineHeight: 1.3 }}>
@@ -2405,9 +2382,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                   citations patristiques du panneau Bible — justifié, wordSpacing serré,
                                   césure. Enrichissement (« <i> » de Sacy) rendu. */}
                               <p lang="fr" style={{ fontSize: '0.6875rem', lineHeight: '1.38', color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
-                                {chapitreSeul
-                                  ? <em style={{ color: 'var(--cs-texte-doux)' }}>Lien au chapitre entier.</em>
-                                  : corps ? rendreTexteEnrichi(corps) : '—'}
+                                {corps ? rendreTexteEnrichi(corps) : '—'}
                               </p>
                             </div>
                           )
@@ -2573,7 +2548,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       </div>
 
       {/* Mode paragraphes : cellule d'actions flottante du segment survolé/sélectionné. */}
-      {segSurvol && modeLecture === 'paragraphes' && vue === 'texte' && typeof document !== 'undefined' && (() => {
+      {segSurvol && vue === 'texte' && typeof document !== 'undefined' && (() => {
         const s = segMap.get(segSurvol.id)
         if (!s) return null
         return createPortal(
@@ -2609,7 +2584,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       )}
 
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
+        /* ⛔ `top: 48` traînait ici, en pixels : la barre mesure 56px à la racine 16 mais
+            77 à la racine 22, si bien que sur un grand écran ce voile remontait de vingt et
+            un pixels DERRIÈRE elle (charte, § Responsive). Composé sur HAUTEUR_NAVBAR, il
+            la suit. */
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
@@ -2698,13 +2677,31 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       <ModaleAuteur id={auteurModalId} onClose={() => setAuteurModalId(null)} />
 
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        /* ⛔ Le voile part SOUS la barre de navigation, et sa mesure se compose sur
+            HAUTEUR_NAVBAR. Il partait de `inset: 0`, donc du bord haut de la fenêtre,
+            alors que la barre est `fixed` et porte un z-index de 3000 contre 1200 ici :
+            l'en-tête de la fenêtre passait donc DERRIÈRE elle, et « Niveaux d'affichage »
+            se lisait à moitié.
+
+            ⛔ Et la carte se BORNE en hauteur, faute de quoi elle dépassait de l'écran par
+            le bas sans que rien ne défile : sur une fenêtre courte, le pied — donc
+            « Enregistrer » — devenait hors de portée, et le réglage ne pouvait plus être
+            validé du tout. Trois étages désormais : en-tête et pied fixes, corps défilant
+            entre les deux. C'est le pied qui devait rester visible, non le haut du texte.
+
+            La largeur est en `min(25rem, 100%)` : elle suit la police racine, donc l'écran,
+            et ne peut jamais dépasser la place disponible. */
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
+            {/* `minHeight: 0` est ce qui autorise un enfant de flexbox à devenir plus court
+                que son contenu : sans lui, le corps refuse de rétrécir et la carte déborde
+                de nouveau, le plafond de hauteur n'y faisant rien. */}
+            <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 16px' }}>
               Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: 'var(--cs-texte-second)' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: 'var(--cs-texte-second)' }}>corps</strong> du texte.
             </p>
@@ -2774,10 +2771,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '12px', borderTop: '1px solid var(--cs-fond-doux)' }}>
+            </div>
+            {configErreur && (
+              <p role="alert" style={{ flexShrink: 0, margin: 0, padding: '10px 22px 0', fontSize: '0.65625rem', lineHeight: 1.45, color: 'var(--cs-danger-fonce)' }}>{configErreur}</p>
+            )}
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '12px 22px 20px', borderTop: '1px solid var(--cs-fond-doux)' }}>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
+                setConfigErreur(null)
                 const toStr = (b: boolean[]) => b.map(x => x ? '1' : '0').join(',')
                 const appels = [
                   { champ: 'niveaux_sommaire', valeur: configNiveaux.sommaire },
@@ -2790,7 +2792,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 const reponses = await Promise.all(appels.map(({ champ, valeur }) =>
                   fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_oeuvre: idOeuvre, champ, valeur }) })
                 ))
-                if (reponses.some(reponse => !reponse.ok)) {
+                const refusees = appels.filter((_, i) => !reponses[i].ok).map(a => a.champ)
+                if (refusees.length > 0) {
+                  setConfigErreur(`Enregistrement refusé pour : ${refusees.join(", ")}. Rien n’a été rechargé ; réessayez, ou reconnectez-vous si la session a expiré.`)
                   setConfigEnvoi(false)
                   return
                 }
@@ -2874,8 +2878,10 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
   const peutAvancer = pageActuelle < total - 1
   return (
     <div style={{ paddingRight: '8px', paddingTop: bas ? '2.5rem' : '0', paddingBottom: bas ? '0.5rem' : '1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--cs-bord))' }} />
+      {/* Plus de filets de part et d'autre. Ils tiraient un trait sur toute la largeur de
+          la colonne pour annoncer trois signes, et faisaient du simple passage à la page
+          suivante une fin de chapitre. Le groupe se centre maintenant de lui-même. */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
           <button
             onClick={() => peutReculer && setPageActuelle(pageActuelle - 1)}
@@ -2884,8 +2890,12 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ‹
           </button>
-          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
-            {pageActuelle + 1} / {total}
+          {/* « sur » plutôt qu'une barre oblique. La barre est un signe de fraction : on y
+              lit d'abord un quart de quelque chose, et il faut un temps pour comprendre
+              qu'il s'agit d'une page dans un tout. Le rapport se lit, il ne se calcule
+              pas. */}
+          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.02em', userSelect: 'none', minWidth: '5.5rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+            {pageActuelle + 1} sur {total}
           </span>
           <button
             onClick={() => peutAvancer && setPageActuelle(pageActuelle + 1)}
@@ -2895,7 +2905,6 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             ›
           </button>
         </div>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--cs-bord))' }} />
       </div>
     </div>
   )
