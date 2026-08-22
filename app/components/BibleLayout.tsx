@@ -17,7 +17,7 @@ import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import LectureBilingueBible from './LectureBilingueBible'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
-import { modesLectureAlternatifs, type CibleLectureAlternative } from '@/app/lib/bibleModesAlternatifs'
+import { modesLectureAlternatifs, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -49,8 +49,9 @@ type Props = {
   editionChapter?: BibleEditionChapterDisplay | null
   /** Lecture « Latin-français » : deux membres d’une même famille en regard. */
   lectureBilingue?: LectureBilingueProps | null
-  /** La famille de la traduction lue porte deux membres : le mode est offert. */
-  bilingueDisponible?: boolean
+  /** Membres de la famille éditoriale (langue et rôle), dans l'ordre du catalogue.
+   *  Deux membres ou plus ouvrent le menu « Lecture » du volet de gauche. */
+  membresFamille?: MembreFamilleLecture[]
   /** L’édition lue porte un appareil éditorial : on peut demander le texte nu. */
   paratexteDisponible?: boolean
   /** Lecture « Texte biblique seul » demandée : la page n’a pas passé l’appareil. */
@@ -67,7 +68,7 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter, lectureBilingue, bilingueDisponible = false, paratexteDisponible = false, texteSeul = false }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -257,22 +258,25 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const modesLecture = modesLectureAlternatifs({
     couchesDisponibles,
     coucheActive: couche,
-    bilingueDisponible,
+    membresFamille,
+    tradActive: traduction,
     bilingueActif: !!lectureBilingue,
     paratexteDisponible,
     texteSeulActif: texteSeul,
   })
-  // Une manière de lire voyage avec le chapitre : on recompose l'adresse entière, en
-  // reportant la graphie courante quand le choix ne la concerne pas.
+  // Un choix est une SURCHARGE de la lecture courante, non une adresse complète :
+  // ce qu'il ne nomme pas est repris tel quel. C'est ce qui rend les axes
+  // indépendants — passer au latin garde le réglage des commentaires, et régler les
+  // commentaires garde le texte qu'on lisait.
   const choisirModeLecture = (cible: CibleLectureAlternative) => {
     router.push(urlLectureBible({
       livre: livreActif,
       chapitre: chapitreActif,
-      trad: traduction,
+      trad: cible.trad ?? traduction,
       mode: 'verse',
       couche: cible.couche ?? couche,
-      bilingue: cible.bilingue,
-      texteSeul: cible.texteSeul,
+      bilingue: cible.bilingue ?? !!lectureBilingue,
+      texteSeul: cible.texteSeul ?? texteSeul,
     }))
   }
 

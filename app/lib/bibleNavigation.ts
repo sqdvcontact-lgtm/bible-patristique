@@ -50,8 +50,8 @@ export function urlLectureBible(cible: CibleLectureBible): string {
   // Une cible ponctuelle l'emporte sur la manière de lire : on ne reste pas en
   // regard pour montrer un verset qu'on ne saurait pas y désigner.
   if (cible.bilingue && cible.verset === undefined) parametres.set('bilingue', '1')
-  // Le texte nu est une manière de lire UNE colonne : en regard, les deux membres
-  // occupent déjà la place, et la lecture en regard l'emporte.
-  if (cible.texteSeul && !cible.bilingue) parametres.set('texte', 'seul')
+  // L'appareil éditorial est un axe INDÉPENDANT de ce qu'on lit : il s'écarte
+  // d'une colonne comme des deux en regard.
+  if (cible.texteSeul) parametres.set('texte', 'seul')
   return `/?${parametres.toString()}`
 }

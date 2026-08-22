@@ -10,6 +10,7 @@ import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliser
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
 import { sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import type { BibleEditionChapterPayload } from '@/app/lib/bibleEditionServer'
 import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
@@ -153,10 +154,10 @@ export default async function Home({
     baliserBlocs(blocs.map((b) => ({ id: b.id, semanticStyle: b.semantic_style_code, intitule: b.heading })))
 
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
-  // Lecture « Texte biblique seul » : on n'écarte pas l'appareil à l'affichage, on ne
-  // le CHARGE PAS. Le mode ne s'applique pas en regard, où les deux colonnes tiennent
-  // déjà toute la place.
-  const texteSeul = params.texte === 'seul' && params.bilingue !== '1'
+  // Lecture « Sans les commentaires » : on n'écarte pas l'appareil à l'affichage, on
+  // ne le CHARGE PAS. C'est un axe INDÉPENDANT de ce qu'on lit — il vaut pour une
+  // colonne comme pour les deux en regard.
+  const texteSeul = params.texte === 'seul'
   // L'édition porte un appareil éditorial : le choix se pose, chapitre commenté ou non.
   // On le tient de la FAMILLE, non du chapitre affiché — sans quoi le menu
   // disparaîtrait sur un chapitre sans commentaire, laissant le lecteur enfermé dans
@@ -245,20 +246,32 @@ export default async function Home({
   const familyRows = editionMember
     ? editionCatalog.filter((row) => row.family_id === editionMember.family_id)
     : []
-  // Le mode n'est offert que si l'édition porte réellement un second membre :
-  // une famille à un seul texte se lit comme une traduction ordinaire.
-  const bilingueDisponible = new Set(familyRows.map((row) => row.member_id)).size >= 2
+  // Les membres de la famille, dédoublonnés et dans l'ordre du catalogue : ils
+  // composent le menu « Lecture » du volet de gauche (Français · Latin-français ·
+  // Latin). Deux membres ou plus ouvrent la lecture en regard ; une famille à un
+  // seul texte se lit comme une traduction ordinaire.
+  const membresFamille = [...new Map(familyRows.map((row) => [row.member_id, {
+    tradId: row.trad_id,
+    langue: row.language_code,
+    role: row.member_role,
+  }])).values()]
+  const bilingueDisponible = membresFamille.length >= 2
 
   let lectureBilingue: ComponentProps<typeof BibleLayout>['lectureBilingue'] = null
   if (editionMember && bilingueDisponible && params.bilingue === '1') {
     const chargee = await chargerLectureBilingue(supabase, { familyRows, livre, chapitre })
     if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
-      const payload = await loadBibleEditionChapter(supabase, {
-        familyId: editionMember.family_id,
-        bookCode: livre,
-        canonIds: chargee.axeCanonique,
-        includeBookFrontMatter: chapitre === 1,
-      })
+      // Même règle qu'en une colonne : sans les commentaires, l'appareil n'est pas
+      // chargé du tout. Les trois listes vides suffisent, `BibleBilingue` ne rendant
+      // alors ni bloc, ni note, ni illustration.
+      const payload: BibleEditionChapterPayload = texteSeul
+        ? { bodyBlocks: [], notes: [], assets: [] }
+        : await loadBibleEditionChapter(supabase, {
+          familyId: editionMember.family_id,
+          bookCode: livre,
+          canonIds: chargee.axeCanonique,
+          includeBookFrontMatter: chapitre === 1,
+        })
       const balisesBilingue = baliserPayload(payload.bodyBlocks)
       lectureBilingue = {
         membres: chargee.colonnes.map((colonne) => colonne.membre),
@@ -349,7 +362,7 @@ export default async function Home({
         tradExplicite={!!params.trad}
         editionChapter={editionChapter}
         lectureBilingue={lectureBilingue}
-        bilingueDisponible={bilingueDisponible}
+        membresFamille={membresFamille}
         paratexteDisponible={paratexteDisponible}
         texteSeul={texteSeul}
       />

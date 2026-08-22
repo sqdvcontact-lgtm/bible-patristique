@@ -494,14 +494,21 @@ Deux gestes, deux endroits, et ils ne se mélangent jamais.
 
 | Groupe | Choix | Le fait qui l'ouvre |
 |---|---|---|
-| **Lecture** | Texte et commentaires · Texte biblique seul · Latin-français | l'édition appartient à une famille (`paratexteDisponible`) ; la famille porte un second membre (`bilingueDisponible`) |
+| **Lecture** | Français · Latin-français · Latin | la famille éditoriale porte au moins deux membres (`membresFamille`) |
+| **Commentaires** | Avec les commentaires · Sans les commentaires | l'édition appartient à une famille (`paratexteDisponible`) |
 | **Graphie** | Graphie modernisée · Abréviations développées · Diplomatique | les couches réellement exposées par `v_bible899_verse_recomposed` |
+
+⛔ **Les axes sont INDÉPENDANTS, jamais fondus en une liste exclusive** (décision de l'auteur, 2026-08-22). « Sans les commentaires » s'applique à ce qu'on lit, quel que soit ce qu'on lit : le latin seul, le français seul ou les deux en regard. Une liste unique obligerait à énumérer les combinaisons — six entrées pour deux choix — et le lecteur devrait la relire tout entière pour changer un seul réglage. Un choix est donc une **surcharge** (`CibleLectureAlternative`) appliquée à la lecture courante, non une adresse complète : ce qu'il ne nomme pas est repris tel quel. Deux exceptions explicites, et elles sont voulues — choisir un membre pose `bilingue: false` (on quitte les deux colonnes), et les entrées de commentaires ne nomment jamais le texte lu.
+
+⚠️ **Le menu « Lecture » nomme les LANGUES, pas les traductions**, et il les tire de `v_bible_edition_catalog` (`language_code`, `member_role`). L'entrée en regard s'appelle « Latin-français » parce que la langue d'ORIGINE ouvre et que la traduction suit — l'ordre vient du rôle des membres, non de celui des colonnes (le français est à gauche chez Fillion). Une future édition grecque se nommera « Grec-français » sans qu'on y touche.
+
+⚠️ **Il double en partie le menu central**, et c'est assumé : TR0010 et TR0011 y figurent aussi comme deux bibles. Le menu central les donne comme deux témoins ; le menu de gauche les donne comme les deux faces d'une même édition, et l'y atteindre garde le réglage des commentaires. La différence de comportement est voulue : passer par le menu CENTRAL repart d'une lecture neuve, passer par le volet conserve la manière.
 
 ⚠️ **Un groupe à un seul choix ne paraît pas.** C'est ce qui rend le menu occasionnel plutôt que permanent : tant que la couche modernisée n'existe pas et que `diplomatic` est seule en face d'`expanded`, la Bible 899 montre deux graphies ; une bible ordinaire ne montre aucun menu. Le jour où Codex publie `texte_modernized`, le choix paraît de lui-même, **sans qu'une ligne change ici**.
 
 ⚠️ **`paratexteDisponible` se juge sur la FAMILLE, jamais sur le chapitre affiché.** Un chapitre de Fillion sans commentaire ferait sinon disparaître le menu, et le lecteur passé en « texte seul » n'aurait plus aucun moyen d'en sortir.
 
-- **Mode « Texte biblique seul »** (`?texte=seul`) : l'appareil éditorial n'est pas masqué à l'affichage, il **n'est pas chargé** — `app/page.tsx` saute `loadBibleEditionChapter` et passe `editionChapter` à `null`. Introductions, commentaires de plage, notes et illustrations disparaissent ensemble, puisqu'ils viennent tous de là. Le mode ne s'applique pas en regard, où les deux colonnes tiennent déjà toute la place (`urlLectureBible` l'omet, et la page le neutralise).
+- **Mode « Sans les commentaires »** (`?texte=seul`) : l'appareil éditorial n'est pas masqué à l'affichage, il **n'est pas chargé** — `app/page.tsx` saute `loadBibleEditionChapter`, passe `editionChapter` à `null` en une colonne, et sert un `payload` à trois listes vides en regard. Introductions, commentaires de plage, notes et illustrations disparaissent ensemble, puisqu'ils viennent tous de là.
 - **La manière de lire voyage d'un bloc** : `ManiereDeLireBible` (`bibleNavigation.ts`) réunit graphie, lecture en regard et texte nu. `BibleLayout` la compose une fois et la passe à `NavLivres` et `TexteBible`, qui la reportent par `{ ...maniereDeLire }`. ⛔ Ne pas revenir à un report réglage par réglage : c'est ainsi qu'ils se perdaient un à un — les flèches de chapitre de `TexteBible` oubliaient déjà la graphie de la Bible 899.
 
 ⚠️ **`OeuvreClient.tsx` porte encore sa propre copie de `LABEL_VOLET`/`BTN_VOLET`** (le fichier avait un chantier en cours le 2026-08-22) : l'y remplacer par l'import de `stylesVoletLecture` dès que ce chantier est clos, faute de quoi les deux formes dériveront.
