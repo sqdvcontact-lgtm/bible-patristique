@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { LIVRES } from "@/app/lib/bible";
+import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { sansPointFinal } from "@/app/lib/titres";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
@@ -62,9 +63,13 @@ const FAMILLES_ADMIN = [
   { cle: "communaute", label: "Communauté",           couleur: "var(--cs-or)", couleurMobile: "var(--cs-or-clair)" },
   { cle: "systeme",    label: "Système & doctrine",   couleur: "var(--cs-systeme)", couleurMobile: "var(--cs-systeme-clair)" },
 ] as const;
-const LIENS_ADMIN: { href: string; label: string; famille: string }[] = [
-  { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus" },
-  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus" },
+// `principal` : les deux entrées par lesquelles on entre presque toujours dans
+// l'administration. Elles se distinguent par la GRAISSE, non par une place à part :
+// l'ordre des familles reste celui du travail, et l'œil trouve seul ses deux portes
+// dans une liste qui en compte dix-sept.
+const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: boolean }[] = [
+  { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus", principal: true },
+  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus", principal: true },
   { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres", famille: "corpus" },
   { href: "/admin?onglet=ouvrages", label: "Ouvrages", famille: "corpus" },
   { href: "/admin?onglet=validation-notices", label: "Validation notices", famille: "corpus" },
@@ -184,7 +189,7 @@ function OngletAdministration({ label, style }: { label: string; style: React.CS
               {i > 0 && <div className="cs-plus-sep" />}
               <div className="cs-admin-fam" style={{ color: fam.couleur }}>{fam.label}</div>
               {liens.map(l => (
-                <Link key={l.href} href={l.href} className="cs-plus-lien cs-admin-lien" style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
+                <Link key={l.href} href={l.href} className={`cs-plus-lien cs-admin-lien${l.principal ? " cs-plus-lien--fort" : ""}`} style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
               ))}
             </div>
           );
@@ -1125,16 +1130,34 @@ export default function Navbar() {
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: var(--cs-surface); background: rgba(255,255,255,0.10); }
           /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
-             mort — le menu touche le déclencheur). */
+             mort — le menu touche le déclencheur).
+
+             ⛔ Le menu ne peut PAS déborder de l'écran, et « Administration » en compte dix-sept
+             entrées réparties en trois familles. Il était en overflow:hidden, donc ce qui
+             dépassait du bas de la fenêtre était simplement inatteignable : sur un écran bas, les
+             dernières familles n'existaient plus, sans que rien ne le dise. Le menu se borne
+             maintenant à la hauteur disponible sous la barre et défile. Le plafond se compose sur
+             HAUTEUR_NAVBAR, jamais sur un nombre recopié (cf. AGENTS.md, § Responsive), et le
+             dernier terme laisse respirer le bas de la fenêtre.
+
+             overscroll-behavior:contain — sans lui, la molette poursuivie au bas de la liste
+             emporte la PAGE, et le menu se ferme sous le curseur qui a bougé avec elle. */
           .cs-plus { position: relative; }
-          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow: hidden; z-index: 3000; padding: 4px; display: none; }
+          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem); scrollbar-width: thin; scrollbar-color: var(--cs-bord) transparent; z-index: 3000; padding: 3px; display: none; }
           .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
-          .cs-plus-lien { display: block; padding: 7px 12px; font-size: 0.8125rem; color: var(--cs-encre); text-decoration: none; border-radius: 4px; white-space: nowrap; }
+             /* Interlignage POSÉ, et non hérité : c'est lui qui gouverne la hauteur d'une
+             rangée, et sans lui le resserrement des rembourrages se serait fait manger par
+             un interlignage de confort dont la valeur ne se lisait nulle part. */
+          .cs-plus-lien { display: block; padding: 4px 11px; font-size: 0.8125rem; line-height: 1.32; color: var(--cs-encre); text-decoration: none; border-radius: 4px; white-space: nowrap; }
           .cs-plus-lien:hover { background: rgba(var(--cs-vert-rgb),0.08); }
-          .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 4px 6px; }
+             /* Les deux portes de l'administration. La graisse suffit à les lever d'une liste
+             de dix-sept : ni couleur, ni puce, ni place à part, qui déferaient l'ordre des
+             familles. */
+          .cs-plus-lien--fort { font-weight: 600; }
+          .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
           /* Familles d'administration : intertitre coloré + filet coloré à gauche de
              chaque entrée, pour différencier les catégories par domaine. */
-          .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 7px 12px 3px; opacity: 0.9; }
+          .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 6px 12px 2px; opacity: 0.9; }
           .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 4px 4px 0; }
           @media (prefers-reduced-motion: reduce) {
             .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
