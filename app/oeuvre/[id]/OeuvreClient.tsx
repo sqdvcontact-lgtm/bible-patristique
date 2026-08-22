@@ -2571,7 +2571,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       )}
 
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', top: 48, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
+        /* ⛔ `top: 48` traînait ici, en pixels : la barre mesure 56px à la racine 16 mais
+            77 à la racine 22, si bien que sur un grand écran ce voile remontait de vingt et
+            un pixels DERRIÈRE elle (charte, § Responsive). Composé sur HAUTEUR_NAVBAR, il
+            la suit. */
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
           onClick={() => setInfoEditionOuverte(false)}>
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
@@ -2660,13 +2664,31 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       <ModaleAuteur id={auteurModalId} onClose={() => setAuteurModalId(null)} />
 
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        /* ⛔ Le voile part SOUS la barre de navigation, et sa mesure se compose sur
+            HAUTEUR_NAVBAR. Il partait de `inset: 0`, donc du bord haut de la fenêtre,
+            alors que la barre est `fixed` et porte un z-index de 3000 contre 1200 ici :
+            l'en-tête de la fenêtre passait donc DERRIÈRE elle, et « Niveaux d'affichage »
+            se lisait à moitié.
+
+            ⛔ Et la carte se BORNE en hauteur, faute de quoi elle dépassait de l'écran par
+            le bas sans que rien ne défile : sur une fenêtre courte, le pied — donc
+            « Enregistrer » — devenait hors de portée, et le réglage ne pouvait plus être
+            validé du tout. Trois étages désormais : en-tête et pied fixes, corps défilant
+            entre les deux. C'est le pied qui devait rester visible, non le haut du texte.
+
+            La largeur est en `min(25rem, 100%)` : elle suit la police racine, donc l'écran,
+            et ne peut jamais dépasser la place disponible. */
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '25rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
+            {/* `minHeight: 0` est ce qui autorise un enfant de flexbox à devenir plus court
+                que son contenu : sans lui, le corps refuse de rétrécir et la carte déborde
+                de nouveau, le plafond de hauteur n'y faisant rien. */}
+            <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 16px' }}>
               Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: 'var(--cs-texte-second)' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: 'var(--cs-texte-second)' }}>corps</strong> du texte.
             </p>
@@ -2736,7 +2758,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '12px', borderTop: '1px solid var(--cs-fond-doux)' }}>
+            </div>
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '12px 22px 20px', borderTop: '1px solid var(--cs-fond-doux)' }}>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
