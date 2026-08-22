@@ -64,9 +64,6 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
       user_id: userId, type: 'biblique',
       ref_livre: verset.label.split(' ')[0], ref_livre_abr: verset.label.split(' ')[0],
       ref_chapitre: parseInt(verset.chapitre), ref_verset: parseInt(verset.verset),
-      ref_chapitre_label: verset.chapitre || null, ref_verset_label: verset.verset || null,
-      aelf_version_id: verset.aelfVersionId ?? null, aelf_entry_id: verset.aelfEntryId ?? null,
-      aelf_reference: verset.aelfReference ?? null,
       texte, traduction: trad,
     }).select('id').single()
     setLoading(false)

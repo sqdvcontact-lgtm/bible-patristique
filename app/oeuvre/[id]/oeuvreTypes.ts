@@ -1,23 +1,7 @@
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 
-export type VRef = {
-  id: string
-  label: string
-  textes: Record<string, string>
-  livre: string
-  chapitre: string
-  verset: string
-  aelfVersionId?: string | null
-  aelfEntryId?: string | null
-  aelfReference?: string | null
-  historicalCanonId?: string | null
-  resolutionStatus?: 'resolved' | 'review' | 'legacy_only' | 'chapter_only' | 'unresolved' | null
-  validationStatus?: string | null
-  confidenceLevel?: string | null
-  linkIds?: number[]
-  natures?: string[]
-}
+export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
   blockId: string
   rank: number

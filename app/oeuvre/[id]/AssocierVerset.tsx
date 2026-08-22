@@ -17,33 +17,29 @@ export default function AssocierVerset({ segId, onAssocie }: {
     setEnregistrement(true)
     setErreur(null)
     try {
-      const typeParChamp: Record<ChampLienBiblique, 1 | 2 | 3 | 4> = { lien_1: 1, lien_2: 2, lien_3: 3, lien_4: 4 }
-      const entryIds = [...new Set(versets.map(v => v.aelfEntryId))]
-      const { data, error } = await supabase.rpc('add_biblical_links_aelf', {
-        p_segment_id: segId,
-        p_aelf_entry_ids: entryIds,
-        p_type: typeParChamp[champ],
-      })
+      const { data: segActuel, error: e0 } = await supabase.from('segments').select(champ).eq('id', segId).single()
+      if (e0) throw e0
+      const valeurActuelle = (segActuel as Partial<Record<ChampLienBiblique, string | null>> | null)?.[champ] ?? ''
+      const existants = valeurActuelle.split(';').map(s => s.trim()).filter(Boolean)
+      const nouveaux = versets.map(v => v.id).filter(id => !existants.includes(id))
+      if (nouveaux.length === 0) {
+        setErreur('Ces versets figurent déjà dans ce type de lien.')
+        setEnregistrement(false)
+        return
+      }
+      const nouvelleValeur = [...existants, ...nouveaux].join('; ')
+      const { error } = await supabase.from('segments').update({ [champ]: nouvelleValeur }).eq('id', segId)
       if (error) throw error
-      const parEntree = new Map(((data ?? []) as { link_id: number; aelf_entry_id: string; historical_canon_id: string | null }[])
-        .map(row => [row.aelf_entry_id, row] as const))
+
       versets.forEach(v => {
-        const row = parEntree.get(v.aelfEntryId)
-        if (!row) return
+        if (!nouveaux.includes(v.id)) return
         onAssocie(champ, {
-          id: `AELF:${v.aelfEntryId}`,
+          id: v.id,
           label: v.label,
           textes: { TR0001: v.texte },
           livre: v.livre,
           chapitre: v.chapitre,
           verset: v.verset,
-          aelfVersionId: v.aelfVersionId,
-          aelfEntryId: v.aelfEntryId,
-          aelfReference: v.aelfReference,
-          historicalCanonId: row.historical_canon_id,
-          resolutionStatus: 'resolved',
-          validationStatus: 'verified',
-          linkIds: [row.link_id],
         })
       })
       setOuvert(false)

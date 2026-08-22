@@ -27,8 +27,7 @@ import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 import { useCompte } from "@/app/lib/contexteCompte";
-import { aRevoir899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
-import { chargerAxeAelf, chargerBible899Aelf, chargerCellulesAelf, chargerExtrasAelf } from "@/app/lib/aelfPolyglotte";
+import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
@@ -61,15 +60,8 @@ function editionTrad(t: { source_edition?: string | null; publication_fin_annee?
   return annee;
 }
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
-type CanonRow = {
-  id: string; aelf_version_id: string; livre: string; ch_canon: number; v_canon: number; ch_label: string; v_label: string;
-  sequence_no: number; external_reference: string; entry_kind: string; est_suscription: boolean;
-};
-type V2Row = {
-  id: string; canon_id: string | null; historical_canon_id?: string | null; livre: string; trad_id: string;
-  ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null;
-  resolution_status?: "source_only" | "legacy_only" | "review"; mapping_validation_status?: string | null; estLacune899?: boolean;
-};
+type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
+type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
 
 // ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
 // Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
@@ -79,10 +71,12 @@ type V2Row = {
 // Ces passages nous sont parvenus en grec, non en hébreu ; les Bibles catholique et
 // orthodoxe les reçoivent, la Bible protestante et la Bible hébraïque non.
 const LIVRES_DEUTERO = new Set(["TOB", "JDT", "WIS", "SIR", "BAR", "1MA", "2MA", "ESG", "LJE", "SUS", "BEL", "S3Y"]);
-function deuterocanonique(livre: string, ch: number, v: number): boolean {
+function deuterocanonique(canonId: string): boolean {
+  const [livre, ch, v] = canonId.split(".");
   if (LIVRES_DEUTERO.has(livre)) return true;
-  // Daniel : le cantique des trois enfants, Suzanne et Bel.
-  if (livre === "DAN") return (ch === 3 && v >= 24 && v <= 90) || ch === 13 || ch === 14;
+  // Daniel : le cantique des trois enfants, Suzanne et Bel — que le canon range dans le
+  // livre lui-même, aux chapitres 3, 13 et 14.
+  if (livre === "DAN") return (+ch === 3 && +v >= 24 && +v <= 90) || +ch === 13 || +ch === 14;
   return false;
 }
 
@@ -305,9 +299,8 @@ function IconeSignet({ rempli }: { rempli?: boolean }) {
 
 // Bouton « citer » à bascule : ajoute le verset à « mes citations » s'il n'y est pas,
 // l'en retire s'il y est déjà (signet plein = enregistré). Réservé aux comptes connectés.
-function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, verset, chapitreLabel, versetLabel, aelfVersionId, aelfEntryId, aelfReference, texte, traductionLabel, onSaved, onRemoved }: {
+function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, verset, texte, traductionLabel, onSaved, onRemoved }: {
   userId: string | null; saved: string | null; cle: string; refLivre: string; refAbr: string; chapitre: number; verset: number;
-  chapitreLabel: string; versetLabel: string; aelfVersionId: string; aelfEntryId: string; aelfReference: string;
   texte: string; traductionLabel: string; onSaved: (cle: string, id: string) => void; onRemoved: (cle: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -325,8 +318,6 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
         user_id: userId, type: "biblique",
         ref_livre: refLivre, ref_livre_abr: refAbr,
         ref_chapitre: chapitre, ref_verset: verset,
-        ref_chapitre_label: chapitreLabel, ref_verset_label: versetLabel,
-        aelf_version_id: aelfVersionId, aelf_entry_id: aelfEntryId, aelf_reference: aelfReference,
         texte: texteSansEnrichissement(texte), traduction: traductionLabel,
       }).select("id").single();
       if (!error && data) onSaved(cle, data.id);
@@ -655,17 +646,17 @@ export default function PolyglottePage() {
     try { window.localStorage.setItem("polyglotte-notes-reduites", notesReduites ? "1" : "0"); } catch { /* stockage indisponible */ }
   }, [notesReduites]);
   const timersNotes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const majNote = useCallback((entryId: string, versionId: string, reference: string, texte: string) => {
-    setNotes(m => new Map(m).set(entryId, texte));
+  const majNote = useCallback((canonId: string, texte: string) => {
+    setNotes(m => new Map(m).set(canonId, texte));
     if (!userId) return;
     const timers = timersNotes.current;
-    const t0 = timers.get(entryId);
+    const t0 = timers.get(canonId);
     if (t0) clearTimeout(t0);
-    timers.set(entryId, setTimeout(() => {
-      timers.delete(entryId);
+    timers.set(canonId, setTimeout(() => {
+      timers.delete(canonId);
       supabase.from("polyglotte_notes").upsert(
-        { user_id: userId, canon_id: null, aelf_version_id: versionId, aelf_entry_id: entryId, aelf_reference: reference, texte, updated_at: new Date().toISOString() },
-        { onConflict: "user_id,aelf_version_id,aelf_entry_id" },
+        { user_id: userId, canon_id: canonId, texte, updated_at: new Date().toISOString() },
+        { onConflict: "user_id,canon_id" },
       ).then(() => {});
     }, 700));
   }, [userId]);
@@ -723,11 +714,10 @@ export default function PolyglottePage() {
     (async () => {
       const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").order("ordre");
       const liste = tr ?? [];
-      // Une traduction n'est proposée que si elle possède au moins une cellule projetée
-      // sur la spine AELF. On ne déduit plus sa lisibilité de la seule présence de lignes
-      // dans versets_v2 : une source non alignée ne doit pas paraître disponible.
+      // Un count par traduction pour savoir laquelle est migrée dans versets_v2 —
+      // mais TOUS EN PARALLÈLE (auparavant : un await par traduction, en cascade).
       const comptes = await Promise.all(liste.map(t =>
-        supabase.from("v_aelf_polyglotte_cells").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id)
+        supabase.from("versets_v2").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id)
           .then(({ count }) => count ?? 0)
       ));
       const migres: Trad[] = [];
@@ -806,93 +796,57 @@ export default function PolyglottePage() {
     [livresOnglet, livreChoisi, toutAfficher]
   );
 
-  // Chargement runtime : l'axe de lecture est désormais la spine AELF/TOL. Les
-  // traductions conservent leur structure native ; seules leurs projections sont lues ici.
+  // Chargement de tout l'onglet (canon + traductions migrées)
+  // On ne charge QUE les traductions réellement affichées. Auparavant la requête
+  // ramenait le texte de toutes les éditions en base pour n'en montrer trois ou
+  // quatre : sur les Psaumes, cela faisait deux fois plus de lignes que nécessaire,
+  // et autant de pages de 1 000 à parcourir. Changer une colonne relance le
+  // chargement, mais sur un volume bien moindre.
   const charger = useCallback(async () => {
     const tradIds = slots.filter(Boolean);
     if (!livresAffiches.length || !tradIds.length) return;
     const codes = livresAffiches.map(l => l.code);
+    // AFFICHAGE PLUS RAPIDE : dans la vue par défaut (un seul chapitre d'un seul livre), on ne
+    // charge QUE ce chapitre — quelques dizaines de lignes au lieu du livre entier. Les
+    // identifiants du canon ont la forme « LIVRE.chapitre.verset », d'où le filtre `like` sur
+    // `canon_id`. Les modes qui ont besoin de tout le livre (livre entier, tout afficher,
+    // lignes problématiques, surnuméraires) désactivent ce filtre. Les surnuméraires (sans
+    // créneau du canon) ne paraissent donc qu'en vue « Livre entier » — ce sont des cas rares.
     const monoLivre = livresAffiches.length === 1;
     const chScope = (!toutAfficher && !sensiblesOnly && !surnumOnly && monoLivre && chapitreChoisi != null) ? chapitreChoisi : null;
-    const tradIdsV2 = tradIds.filter(id => id !== TRAD_ID_BIBLE899);
-
-    const [axe, cellulesAelf, extrasAelf] = await Promise.all([
-      chargerAxeAelf(supabase, { livres: codes, chapitreBase: chScope }),
-      chargerCellulesAelf(supabase, { livres: codes, tradIds: tradIdsV2, chapitreBase: chScope }),
-      chScope == null
-        ? chargerExtrasAelf(supabase, { livres: codes, tradIds: tradIdsV2 })
-        : Promise.resolve([]),
+    const [c, vv] = await Promise.all([
+      fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription",
+        q => { const x = q.in("livre", codes); return chScope != null ? x.eq("ch_canon", chScope) : x; }),
+      fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
+        q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
     ]);
-
-    const c: CanonRow[] = axe.map(a => ({
-      id: a.entry_id,
-      aelf_version_id: a.version_id,
-      livre: a.book_code,
-      ch_canon: a.chapter_base ?? 0,
-      v_canon: a.verse_base ?? 0,
-      ch_label: a.chapter_label,
-      v_label: a.verse_label,
-      sequence_no: a.sequence_no,
-      external_reference: a.external_reference,
-      entry_kind: a.entry_kind,
-      est_suscription: a.entry_kind !== "verse",
-    }));
-
-    const vv: V2Row[] = cellulesAelf.map(x => ({
-      id: x.id,
-      canon_id: x.aelf_entry_id,
-      historical_canon_id: x.historical_canon_id,
-      livre: x.aelf_book_code,
-      trad_id: x.trad_id,
-      ch_orig: x.ch_orig,
-      v_orig: x.v_orig,
-      v_orig_suffixe: x.v_orig_suffixe,
-      texte: x.texte,
-      notes: x.notes,
-      mapping_validation_status: x.mapping_validation_status,
-    }));
-
-    // Seules les matières réellement propres à une source deviennent des lignes hors axe.
-    // legacy_only/review restent consultables dans les vues d'audit mais ne sont jamais
-    // injectés comme de faux versets de lecture.
-    const extras: V2Row[] = extrasAelf
-      .filter(x => x.resolution_status === "source_only")
-      .map(x => ({
-        id: x.id, canon_id: null, historical_canon_id: x.historical_canon_id, livre: x.livre, trad_id: x.trad_id,
-        ch_orig: x.ch_orig, v_orig: x.v_orig, v_orig_suffixe: x.v_orig_suffixe, texte: x.texte, notes: x.notes,
-        resolution_status: x.resolution_status,
-      }));
-
-    let toutesLignes: V2Row[] = [...vv, ...extras];
+    c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
+    // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
+    // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
+    // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon (MANUSCRIPT_EXTRA)
+    // n'ont pas de canon_id et sont naturellement écartées par `chargerVersets899`.
+    let toutesLignes = vv;
     if (tradIds.includes(TRAD_ID_BIBLE899)) {
-      const parLivre899 = await Promise.all(codes.map(code => chargerBible899Aelf(supabase, { livre: code, chapitreBase: chScope, couches: [couche899] })));
-      const rows899: V2Row[] = parLivre899.flat()
-        .filter(l => l.aelf_entry_id != null || l.manuscript_extra === true)
-        .map(l => {
-          const lacune = l.alignment_status === "CANONICAL_GAP";
-          return {
-            id: l.aelf_entry_id ? "899:" + l.alignment_order + ":" + l.aelf_entry_id : "899:extra:" + l.alignment_order,
-            canon_id: l.aelf_entry_id,
-            historical_canon_id: l.canon_id,
-            livre: l.aelf_book_code ?? l.livre ?? "",
-            trad_id: TRAD_ID_BIBLE899,
-            ch_orig: l.chapitre ?? 0,
-            v_orig: l.verset ?? 0,
-            v_orig_suffixe: null,
-            texte: lacune ? null : texteCouche899(l, couche899),
-            notes: aRevoir899(l) ? "Alignement à revoir" : null,
-            resolution_status: l.aelf_entry_id == null ? "source_only" : undefined,
-            mapping_validation_status: l.aelf_validation_status,
-            estLacune899: lacune,
-          };
-        });
-      toutesLignes = [...toutesLignes, ...rows899];
+      const parLivre899 = await Promise.all(codes.map(code => chargerVersets899(supabase, { livre: code, chapitre: chScope })));
+      const rows899: V2Row[] = parLivre899.flat().map(l => {
+        const lacune = rendu899(l) === "lacune";
+        return {
+          id: `899:${l.canon_id}`,
+          canon_id: l.canon_id,
+          livre: l.livre ?? "",
+          trad_id: TRAD_ID_BIBLE899,
+          ch_orig: l.chapitre ?? 0,
+          v_orig: l.verset ?? 0,
+          v_orig_suffixe: null,
+          texte: lacune ? null : texteCouche899(l, couche899),
+          notes: aRevoir899(l) ? "Alignement à revoir" : null,
+          estLacune899: lacune,
+        };
+      });
+      toutesLignes = [...vv, ...rows899];
     }
-
-    c.sort((a, b) => a.sequence_no - b.sequence_no);
-    setCanon(c);
-    setV2(toutesLignes);
-  }, [livresAffiches, slots, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
+    setCanon(c); setV2(toutesLignes);
+  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
   useEffect(() => { charger(); }, [charger]);
 
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
@@ -900,16 +854,12 @@ export default function PolyglottePage() {
   useEffect(() => {
     if (!userId || !livresAffiches.length) { setPrelevs(new Map()); return; }
     const abrs = livresAffiches.map(l => ABREV_FR[l.code] ?? l.code);
-    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset, ref_chapitre_label, ref_verset_label, traduction, aelf_entry_id")
+    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset, traduction")
       .eq("user_id", userId).eq("type", "biblique").in("ref_livre_abr", abrs)
       .then(({ data }) => {
         const m = new Map<string, string>();
         // Clé étendue au nom d'édition : chaque colonne (traduction) a son propre signet.
-        for (const p of data ?? []) {
-          const ch = p.ref_chapitre_label ?? String(p.ref_chapitre ?? "");
-          const v = p.ref_verset_label ?? String(p.ref_verset ?? "");
-          m.set(`${p.ref_livre_abr}|${ch}|${v}|${p.traduction}`, p.id);
-        }
+        for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}|${p.traduction}`, p.id);
         setPrelevs(m);
       });
   }, [userId, livresAffiches]);
@@ -918,10 +868,10 @@ export default function PolyglottePage() {
   // par canon_id, pour remplir la colonne « Notes » des versets déjà annotés.
   useEffect(() => {
     if (!userId) { setNotes(new Map()); return; }
-    supabase.from("polyglotte_notes").select("canon_id, aelf_entry_id, texte").eq("user_id", userId)
+    supabase.from("polyglotte_notes").select("canon_id, texte").eq("user_id", userId)
       .then(({ data }) => {
         const m = new Map<string, string>();
-        for (const n of data ?? []) { const cle = n.aelf_entry_id ?? n.canon_id; if (cle && n.texte) m.set(cle, n.texte); }
+        for (const n of data ?? []) if (n.texte) m.set(n.canon_id, n.texte);
         setNotes(m);
       });
   }, [userId]);
@@ -930,9 +880,9 @@ export default function PolyglottePage() {
   // et l'on efface le surlignage après un instant. Dépend de `canon` pour attendre le rendu.
   useEffect(() => {
     if (!versetCible || !livreChoisi) return;
-    const cible = `${livreChoisi}|${versetCible.ch}|${versetCible.v}`;
+    const id = `poly-${livreChoisi}-${versetCible.ch}-${versetCible.v}`;
     const t = setTimeout(() => {
-      document.querySelector<HTMLElement>(`[data-poly-base="${cible}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 120);
     const t2 = setTimeout(() => setVersetCible(null), 2600);
     return () => { clearTimeout(t); clearTimeout(t2); };
@@ -1496,13 +1446,13 @@ export default function PolyglottePage() {
                 // Référence canonique lisible, partagée par les actions de chaque cellule
                 // (chaque cellule cite et signale SA propre traduction).
                 const abr = ABREV_FR[l.code] ?? l.code;
-                const refLisible = `${abr} ${r.ch_label}, ${r.v_label}`;
+                const refLisible = `${abr} ${r.ch_canon}, ${r.v_canon}`;
                 return (
                   <Fragment key={r.id}>
-                    <div className="poly-row" id={`poly-${l.code}-${r.ch_label}-${r.v_label}`} data-poly-base={`${l.code}|${r.ch_canon}|${r.v_canon}`}
+                    <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
                       style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: `1px solid ${FILET_LIGNE}`, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
                       <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : `1px solid ${FILET_COL}` }}>
-                        <div style={{ whiteSpace: "nowrap" }}>{r.ch_label}, {r.v_label}{signaler ? " ⚠" : ""}</div>
+                        <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                       </div>
                       {slotCols.map((sc, i) => {
                         if (!sc.trad) return <div key={i} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
@@ -1515,7 +1465,7 @@ export default function PolyglottePage() {
                         // TR0009 : une lacune du manuscrit se rend « [lacune du manuscrit] », sans
                         // lettrine ni actions (rien à citer), et non par la case « absente » générique.
                         const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
-                        const cleCite = `${abr}|${r.ch_label}|${r.v_label}|${t.nom}`;
+                        const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? "#7a1d16" : "var(--cs-encre-fonce)" }}>
@@ -1553,12 +1503,12 @@ export default function PolyglottePage() {
                             {/* Citer / signaler cette traduction — au survol de la cellule. */}
                             {cs.length > 0 && !lacuneCell && (
                               <span className="poly-cellact" onClick={e => e.stopPropagation()}>
-                                <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} chapitreLabel={r.ch_label} versetLabel={r.v_label} aelfVersionId={r.aelf_version_id} aelfEntryId={r.id} aelfReference={r.external_reference} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
+                                <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
                                 <BoutonSignalerVerset refLisible={refLisible} texte={texteCell} />
                               </span>
                             )}
                             {cs.length === 0 ? (
-                              <CelluleAbsente deutero={deuterocanonique(l.code, r.ch_canon, r.v_canon)} />
+                              <CelluleAbsente deutero={deuterocanonique(r.id)} />
                             ) : lacuneCell ? (
                               // Même convention que la page Bible : « Lacune du manuscrit », en
                               // serif italique effacé, sans crochets. Fait du témoin, discret.
@@ -1577,7 +1527,7 @@ export default function PolyglottePage() {
                       {/* Colonne Notes : note personnelle du verset (enregistrée sur le compte). */}
                       <div style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
                         {notesReduites ? null : userId ? (
-                          <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, r.aelf_version_id, r.external_reference, t)} />
+                          <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
                         ) : (
                           <span style={{ fontSize: "0.59375rem", fontStyle: "italic", color: "var(--cs-texte-faible)", alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
                         )}
