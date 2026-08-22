@@ -38,9 +38,9 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
 import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
-import ModalSignalement from './ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { insererSignalement } from './signalements'
+import ModalLienBiblique, { libelleTypeLien, type ChampLienBiblique, type VersetLienBiblique } from '@/app/components/ModalLienBiblique'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { allerAAncre, allerAElement } from '@/app/lib/defilement'
@@ -56,19 +56,6 @@ import {
 } from './comparaisonTraductionsUtils'
 
 const CHARS_PAR_PAGE = 15000
-
-// Nature d'un signalement ouvert depuis l'onglet Problèmes. Le préfixe est lu par la
-// modération pour trier : référence à identifier, absence de référence, ou qualification
-// du lien (citation / paraphrase / commentaire doctrinal / écho).
-const NATURES_PROBLEME: Record<string, { titre: string; prefixe: string }> = {
-  suggestion:       { titre: 'Suggérer une référence', prefixe: 'Référence proposée' },
-  pas_de_reference: { titre: 'Pas de référence', prefixe: 'Aucune référence biblique' },
-  citation:         { titre: 'Citation', prefixe: 'Nature : citation' },
-  paraphrase:       { titre: 'Paraphrase', prefixe: 'Nature : paraphrase' },
-  commentaire:      { titre: 'Commentaire doctrinal', prefixe: 'Nature : commentaire doctrinal' },
-  echo:             { titre: 'Écho', prefixe: 'Nature : écho' },
-}
-function natureProbleme(nat?: string) { return NATURES_PROBLEME[nat ?? 'suggestion'] ?? NATURES_PROBLEME.suggestion }
 
 // Même table que celle utilisée côté serveur (page.tsx) pour l'affichage
 // des références bibliques en français — doit rester identique aux deux endroits.
@@ -169,57 +156,112 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 }
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
+// Le lecteur dispose des DEUX moyens, et non plus du seul texte libre : il choisit ses
+// versets dans l'outil de sélection — le même que celui de l'administrateur, à ceci près
+// qu'ici RIEN n'est écrit dans `segments` — et il écrit ce qu'il veut à côté, pour dire
+// d'où lui vient sa lecture. L'un ou l'autre suffit à envoyer ; les deux valent mieux.
+//
+// ⛔ La sélection ne s'enregistre pas : elle n'est qu'une façon commode d'ÉCRIRE une
+// référence sans se tromper de chiffre. Ce qui part est une proposition, que la
+// modération lira.
 function ProposerLienBiblique({ segId }: { segId: number }) {
   const [ouvert, setOuvert] = useState(false)
   const [texte, setTexte] = useState('')
+  const [choixOuvert, setChoixOuvert] = useState(false)
+  const [selection, setSelection] = useState<{ champ: ChampLienBiblique; versets: VersetLienBiblique[] } | null>(null)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'err'>('idle')
   const { exigerCompte } = useCompte()
 
+  const versets = selection?.versets ?? []
+  // Un texte SEUL reste recevable : on peut vouloir signaler un rapprochement sans savoir
+  // le référencer. Une sélection SEULE l'est aussi : la référence se suffit alors.
+  const peutEnvoyer = versets.length > 0 || texte.trim().length > 0
+
+  const reinitialiser = () => { setTexte(''); setSelection(null); setStatut('idle') }
+
   const envoyer = async () => {
-    if (!texte.trim()) return
+    if (!peutEnvoyer) return
     setStatut('envoi')
+    const morceaux: string[] = []
+    if (selection && versets.length > 0) {
+      morceaux.push(`${libelleTypeLien(selection.champ)} : ${versets.map(v => v.label).join(' ; ')}`)
+    }
+    if (texte.trim()) morceaux.push(texte.trim())
     try {
-      await insererSignalement({ id_segment: segId, message: `Proposition de lien biblique : ${texte.trim()}`, importance: 'important', url_source: window.location.href })
+      await insererSignalement({ id_segment: segId, message: `Proposition de lien biblique : ${morceaux.join(' — ')}`, importance: 'important', url_source: window.location.href })
       setStatut('ok')
-      setTimeout(() => { setOuvert(false); setStatut('idle'); setTexte('') }, 1800)
+      setTimeout(() => { setOuvert(false); reinitialiser() }, 1800)
     } catch { setStatut('err') }
   }
 
   return (
     <>
-      <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; setTexte(''); setStatut('idle'); setOuvert(true) }}
+      <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; reinitialiser(); setOuvert(true) }}
         style={{ fontSize: '0.6875rem', color: '#6b8270', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
         + Proposer un lien biblique
       </button>
+      {/* Sous la barre de navigation et bornée en hauteur, comme les autres fenêtres de
+          cette page : le pied porte le bouton d'envoi, il ne peut pas sortir de l'écran. */}
       {ouvert && (
-        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: '22.5rem', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
               <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
             </div>
-            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
-              Indiquez la référence biblique que vous souhaitez associer à ce passage (ex. : Jn 1, 1 ou Rm 8, 28-30).
-            </p>
+            <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
             {statut === 'ok' ? (
-              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Proposition envoyée, merci !</p>
+              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0 16px' }}>Proposition envoyée, merci !</p>
             ) : (
               <>
-                <textarea value={texte} onChange={e => setTexte(e.target.value)} rows={3} autoFocus
-                  placeholder="Référence biblique proposée…"
-                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
-                  {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d'envoi.</span>}
-                  <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                  <button onClick={envoyer} disabled={statut === 'envoi' || !texte.trim()}
-                    style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
-                    {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
-                  </button>
-                </div>
+                <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
+                  Choisissez les versets dans la Bible, ou écrivez la référence et ce qui vous la fait proposer. L’un ou l’autre suffit.
+                </p>
+
+                <button type="button" onClick={() => setChoixOuvert(true)}
+                  style={{ width: '100%', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', textAlign: 'left' }}>
+                  {versets.length > 0 ? 'Modifier les versets choisis…' : 'Choisir les versets dans la Bible…'}
+                </button>
+
+                {selection && versets.length > 0 && (
+                  <div style={{ marginTop: '8px', padding: '8px 10px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px' }}>
+                    <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
+                    {versets.map(v => (
+                      <p key={v.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-fort)', margin: '2px 0 0', lineHeight: 1.4 }}>{v.label}</p>
+                    ))}
+                    <button type="button" onClick={() => setSelection(null)}
+                      style={{ marginTop: '6px', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                      Retirer ce choix
+                    </button>
+                  </div>
+                )}
+
+                <textarea value={texte} onChange={e => setTexte(e.target.value)} rows={3}
+                  placeholder="Référence, ou ce qui vous la fait proposer…"
+                  style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', marginTop: '8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
               </>
+            )}
+            </div>
+            {statut !== 'ok' && (
+              <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', padding: '10px 22px 18px' }}>
+                {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
+                <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
+                <button onClick={envoyer} disabled={statut === 'envoi' || !peutEnvoyer}
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: peutEnvoyer ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                  {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
+                </button>
+              </div>
             )}
           </div>
         </div>
+      )}
+      {choixOuvert && (
+        <ModalLienBiblique
+          ouvert={choixOuvert}
+          titre="Choisir les versets à proposer"
+          onFermer={() => setChoixOuvert(false)}
+          onValider={(champ, versetsChoisis) => { setSelection({ champ, versets: versetsChoisis }); setChoixOuvert(false) }}
+        />
       )}
     </>
   )
@@ -242,7 +284,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const [tradIndex, setTradIndex] = useState(0)
   const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
   const [tradOuverte, setTradOuverte] = useState(false)
-  const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires' | 'problemes'>('refs')
+  // ⛔ Plus d'onglet « Problèmes ». Il listait les passages dont le lien biblique restait
+  // à constituer, et vivait de colonnes abolies : la fiabilité est portée AU LIEN depuis
+  // le 20 juillet 2026 (charte §24.3), `segments.fiabilite` est vidée et `lien_1` à
+  // `lien_4` n'existent plus. Il a été rebâti sur `liens_bibliques`, puis retiré : ce
+  // travail relève de l'atelier, non du volet de lecture d'un lecteur.
+  const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires'>('refs')
   const { exigerCompte } = useCompte()
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
@@ -479,15 +526,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     return () => { annule = true }
   }, [configOuverte, niveauxPresents, idOeuvre, idTexte])
   const resetVolets = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_oeuvre2') } catch {} }
-  const [problemes, setProblemes] = useState<{
-    id: number; segment_numero: number; segment_texte: string
-    reference_manuelle: string | null; ref_niv1: string | null
-    liens: { canon_id: string | null; fiabilite: string; motif: string | null }[]
-    aConstituer: boolean
-  }[]>([])
-  const [problemesCharges, setProblemesCharges] = useState(false)
-  const [versetsAltMap, setVersetsAltMap] = useState<Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }>>({})
-  const [apercuVerset, setApercuVerset] = useState<{ label: string; texte: string | null } | null>(null)
   const [nbCommentairesOeuvre, setNbCommentairesOeuvre] = useState<number | null>(null)
   useEffect(() => {
     if (segActif === null) { setNbCommentairesOeuvre(null); return }
@@ -495,64 +533,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       .eq('id_segment', segActif)
       .then(({ count }) => setNbCommentairesOeuvre(count ?? 0))
   }, [segActif])
-  const [suggestionSignalee, setSuggestionSignalee] = useState<{ id: number; segment_numero: number; segment_texte: string; nature?: string } | null>(null)
   const tradSelectRef = useRef<HTMLDivElement>(null)
-  // Onglet « Problèmes ». La fiabilité se porte AU LIEN depuis le 20 juillet 2026
-  // (charte §24.3) : `segments.fiabilite` est vidée et les colonnes `lien_1` à
-  // `lien_4` n'existent plus. Cet onglet interrogeait encore les deux, avec des
-  // valeurs abolies (« Lien à constituer ») — il ne pouvait donc rien afficher.
-  // On part désormais de `liens_bibliques`, et l'on remonte aux segments.
-  useEffect(() => {
-    if (ongletDroit !== 'problemes' || problemesCharges || !idOeuvre) return
-    ;(async () => {
-      const { data: segsOeuvre } = await supabase.from('segments')
-        .select('id, segment_numero, segment_texte, reference_manuelle, ref_niv1')
-        .eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte).order('segment_numero')
-      const parId = new Map((segsOeuvre ?? []).map(s => [s.id, s]))
-
-      // Deux familles, conformes au vocabulaire du §24.3 :
-      //   · « à constituer » — une source est visée, elle n'est pas résolue (sans cible) ;
-      //   · « à vérifier »  — tout ce qui attend une lecture (`arbitrage_requis`).
-      const liens: { segment_id: number; canon_id: string | null; fiabilite: string; motif: string | null }[] = []
-      const ids = [...parId.keys()]
-      for (let i = 0; i < ids.length; i += 500) {
-        const { data } = await supabase.from('liens_bibliques')
-          .select('segment_id, canon_id, fiabilite, motif, arbitrage_requis')
-          .in('segment_id', ids.slice(i, i + 500))
-          .or('fiabilite.eq.à constituer,arbitrage_requis.is.true')
-        liens.push(...((data ?? []) as any[]))
-      }
-      const parSegment = new Map<number, typeof liens>()
-      for (const l of liens) {
-        if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
-        parSegment.get(l.segment_id)!.push(l)
-      }
-      const lignes = [...parSegment.entries()]
-        .map(([sid, ls]) => {
-          const s = parId.get(sid)
-          if (!s) return null
-          return { ...s, liens: ls, aConstituer: ls.some(l => l.fiabilite === 'à constituer') }
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => a.segment_numero - b.segment_numero)
-      setProblemes(lignes as any)
-      setProblemesCharges(true)
-
-      const idsVersets = Array.from(new Set(liens.map(l => l.canon_id).filter(Boolean) as string[]))
-      if (idsVersets.length > 0) {
-        const { data: vs } = await supabase.from('versets_lecture')
-          .select('id_verset, ref, chapitre_alternatif, verset_alternatif, TR0001, TR0002, TR0003')
-          .in('id_verset', idsVersets)
-        const map: Record<string, { ref: string; chapAlt: number | null; verAlt: number | null; texte: string | null }> = {}
-        ;(vs ?? []).forEach((v: any) => {
-          // Texte de référence : Crampon, à défaut Segond, à défaut Sacy.
-          const texte = v.TR0003 || v.TR0002 || v.TR0001 || null
-          map[v.id_verset] = { ref: v.ref ?? v.id_verset, chapAlt: v.chapitre_alternatif ?? null, verAlt: v.verset_alternatif ?? null, texte }
-        })
-        setVersetsAltMap(map)
-      }
-    })()
-  }, [ongletDroit, idOeuvre, idTexte, problemesCharges])
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('cs_volets_oeuvre2') ?? 'null')
@@ -2272,8 +2253,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
             <div style={{ display: 'flex', flex: 1 }}>
-              {(['refs', 'commentaires', 'problemes'] as const).map((key, idx) => {
-                const labels = { refs: 'Bible', commentaires: 'Commentaires', problemes: 'Problèmes' }
+              {(['refs', 'commentaires'] as const).map((key, idx) => {
+                const labels = { refs: 'Bible', commentaires: 'Commentaires' }
                 const actif = ongletDroit === key
                 return (
                   <Fragment key={key}>
@@ -2410,126 +2391,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   </div>
                 )}
               </>
-            ) : ongletDroit === 'commentaires' ? (
+            ) : (
               <div style={{ flex: 1, minHeight: 0, paddingTop: '14px', display: 'flex', flexDirection: 'column' }}>
                 <OngletCommentaires segActif={segActif} estAdmin={estAdmin} />
-              </div>
-            ) : (
-              <div style={{ paddingTop: '14px' }}>
-                {!problemesCharges ? (
-                  <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)' }}>Chargement…</p>
-                ) : (() => {
-                  // Plus de division en sous-onglets : tous les passages sont réunis, les
-                  // « à constituer » d'abord, chacun portant une pastille qui indique son type.
-                  const filtres = [...problemes].sort((a, b) => Number(b.aConstituer) - Number(a.aConstituer))
-                  if (filtres.length === 0) return (
-                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)' }}>
-                      Aucun passage à relier pour cette œuvre.
-                    </p>
-                  )
-                  // Aller au passage : sélectionne le segment et l'amène AU NIVEAU DES YEUX
-                  // (tiers supérieur de l'écran). Le défilement est DIFFÉRÉ (après le rendu de
-                  // React) et retenté quelques fois, le temps que le segment soit peint.
-                  const allerAuPassage = (s: typeof filtres[number]) => {
-                    setSegActif(s.id)
-                    const id = `segment-${s.id}`
-                    let essais = 0
-                    const tenter = () => {
-                      if (scrollNiveauDesYeux(id)) return
-                      if (++essais < 12) { setTimeout(tenter, 110); return }
-                      // Segment jamais peint : autre niveau 1 → bascule + effet différé ;
-                      // sinon repli sur l'ancre du paragraphe.
-                      if (s.ref_niv1 && s.ref_niv1 !== niv1Actif) {
-                        pendingScrollSegRef.current = s.id
-                        changerNiv1(s.ref_niv1, { conserverPosition: true })
-                      } else {
-                        const ancreLocale = groupes.find(g => g.itemIds.includes(s.id))?.anchor
-                        if (ancreLocale) naviguerVersAncre(ancreLocale)
-                      }
-                    }
-                    setTimeout(tenter, 50)
-                  }
-                  const pilleAction: React.CSSProperties = { flexShrink: 0, whiteSpace: 'nowrap', fontSize: '0.59375rem', borderRadius: '999px', padding: '3px 9px', cursor: 'pointer', lineHeight: 1.3, background: 'none' }
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                      {filtres.map(s => {
-                        const liensIds = Array.from(new Set(
-                          s.liens.map(l => l.canon_id).filter(Boolean) as string[]
-                        ))
-                        const pill = s.aConstituer
-                          ? { color: 'var(--cs-attente)', background: 'var(--cs-danger-fond)', border: '1px solid #e8d3b6' }
-                          : { color: '#3d5a4f', background: 'var(--cs-fond)', border: '1px solid var(--cs-bord)' }
-                        return (
-                          <div key={s.id} style={{ paddingBottom: '14px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
-                            {/* En-tête : pastille de type, puis le titre de l'œuvre à côté, pour
-                                situer le passage d'un coup d'œil. */}
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                              <span style={{ flexShrink: 0, display: 'inline-block', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', padding: '2px 8px', borderRadius: '999px', ...pill }}>
-                                {s.aConstituer ? 'À constituer' : 'À vérifier'}
-                              </span>
-                              <span style={{ minWidth: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {rendreTexteEnrichi(titreAffiche)}
-                              </span>
-                            </div>
-                            <div lang="fr" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 8px', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                              {rendreTexteEnrichi(nettoyerFin(normaliserEspaces(s.segment_texte)))}
-                            </div>
-                            {s.reference_manuelle && (
-                              <p style={{ fontSize: '0.65625rem', color: 'var(--cs-attente)', fontStyle: 'italic', margin: '0 0 6px' }}>
-                                Référence proposée : {s.reference_manuelle}
-                              </p>
-                            )}
-                            {liensIds.length > 0 && (
-                              <div style={{ margin: '0 0 6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                {liensIds.map(idV => {
-                                  const vi = versetsAltMap[idV]
-                                  if (!vi) return null
-                                  const label = detailsRefBiblique(vi.ref).label
-                                  return (
-                                    <button key={idV} type="button"
-                                      onClick={() => setApercuVerset({ label, texte: vi.texte ? bornerGuillemets(vi.texte) : vi.texte })}
-                                      title="Voir le verset"
-                                      style={{ fontSize: '0.65625rem', color: '#3d5a4f', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: '2px', textDecorationColor: 'var(--cs-bord)' }}>
-                                      {label}
-                                      {vi.chapAlt != null && (
-                                        <span style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
-                                          {' '}({vi.chapAlt}{vi.verAlt != null ? `, ${vi.verAlt}` : ''})
-                                        </span>
-                                      )}
-                                    </button>
-                                  )
-                                })}
-                              </div>
-                            )}
-                            {/* Actions sur UNE même rangée alignée : « Aller au passage » puis les
-                                qualificatifs (proposer/écarter une référence, ou nature du lien). */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '9px' }}>
-                              <button onClick={() => allerAuPassage(s)} title="Aller au passage dans le texte"
-                                style={{ ...pilleAction, display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.07)', border: '1px solid #cbdccf' }}>
-                                Aller au passage
-                                <svg width="11" height="7" viewBox="0 0 12 8" fill="none" aria-hidden="true"><path d="M0.5 4h9M7 1l3 3-3 3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                              </button>
-                              <span style={{ width: '1px', height: '13px', background: 'var(--cs-bord-clair)', flexShrink: 0 }} />
-                              {s.aConstituer ? (
-                                <>
-                                  <button onClick={() => { if (exigerCompte('suggérer une référence')) setSuggestionSignalee({ ...s, nature: 'suggestion' }) }} title="Proposer une référence biblique pour ce passage"
-                                    style={{ ...pilleAction, color: 'var(--cs-attente)', border: '1px solid var(--cs-danger-bord)' }}>Suggérer une référence</button>
-                                  <button onClick={() => { if (exigerCompte('signaler ce passage')) setSuggestionSignalee({ ...s, nature: 'pas_de_reference' }) }} title="Signaler que ce passage ne renvoie à aucun verset"
-                                    style={{ ...pilleAction, color: 'var(--cs-texte-gris)', border: '1px solid var(--cs-bord)' }}>Pas de référence</button>
-                                </>
-                              ) : (
-                                ([['Citation','citation'],['Paraphrase','paraphrase'],['Commentaire','commentaire'],['Écho','echo']] as const).map(([label, nat]) => (
-                                  <button key={nat} onClick={() => { if (exigerCompte('signaler ce lien')) setSuggestionSignalee({ ...s, nature: nat }) }} title={`Signaler ce lien comme « ${label} »`}
-                                    style={{ ...pilleAction, color: '#3d5a4f', border: '1px solid var(--cs-bord)' }}>{label}</button>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })()}
               </div>
             )}
           </div>
@@ -2571,21 +2435,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         )
       })()}
 
-      {apercuVerset && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}
-          onClick={() => setApercuVerset(null)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-or-doux)', padding: '16px 18px', width: '23.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)' }}>{apercuVerset.label}</span>
-              <button onClick={() => setApercuVerset(null)} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#b0a08a', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 0 12px', lineHeight: 1 }}>×</button>
-            </div>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.6, color: 'var(--cs-texte-fort)', margin: 0, whiteSpace: 'pre-line' }}>
-              {apercuVerset.texte || <em style={{ color: '#b0a08a' }}>Texte du verset indisponible.</em>}
-            </p>
-          </div>
-        </div>,
-        document.body
-      )}
 
       {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
         /* ⛔ `top: 48` traînait ici, en pixels : la barre mesure 56px à la racine 16 mais
@@ -2850,21 +2699,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           }}>
           Rétablir les proportions
         </button>
-      )}
-      {suggestionSignalee && (
-        <ModalSignalement
-          titre={`${natureProbleme(suggestionSignalee.nature).titre} — passage n° ${suggestionSignalee.segment_numero}`}
-          avecNiveauImportance
-          onClose={() => setSuggestionSignalee(null)}
-          onEnvoyer={async (msg, importance) => {
-            await insererSignalement({
-              id_segment: suggestionSignalee.id,
-              message: `${natureProbleme(suggestionSignalee.nature).prefixe} : ${msg || suggestionSignalee.segment_texte.slice(0, 160)}`,
-              importance,
-              url_source: window.location.href,
-            })
-          }}
-        />
       )}
     </div>
   )
