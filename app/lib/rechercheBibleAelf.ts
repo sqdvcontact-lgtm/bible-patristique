@@ -1,3 +1,10 @@
+export const TRADUCTIONS_RECHERCHE_BIBLE_AELF = ['TR0001', 'TR0002', 'TR0003', 'TR0004', 'TR0005'] as const
+export type TraductionRechercheBibleAelf = typeof TRADUCTIONS_RECHERCHE_BIBLE_AELF[number]
+
+export function estTraductionRechercheBibleAelf(code: string | null | undefined): code is TraductionRechercheBibleAelf {
+  return !!code && TRADUCTIONS_RECHERCHE_BIBLE_AELF.includes(code as TraductionRechercheBibleAelf)
+}
+
 export type ResultatRechercheBibleAelf = {
   id_verset: string
   ref: string
