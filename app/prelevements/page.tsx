@@ -461,7 +461,7 @@ export default function PrelevementsPage() {
               Un tracé, donc, et non plus une vignette matricielle qui se crénelait. */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", maxWidth: "13rem", margin: "2px auto 12px", color: "var(--cs-or-doux)" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
-            <MarqueCitation taille={17} />
+            <MarqueCitation taille={22} />
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
           </div>
           <p style={{ fontSize: "0.65625rem", color: "var(--cs-or-doux)", margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: "0.04em" }}>

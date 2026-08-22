@@ -162,7 +162,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
             style={{ position: 'absolute', top: '12px', right: '14px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
           <div aria-hidden="true"
             style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--cs-surface)', border: `1px solid ${colorMix('var(--cs-or)', 38)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '11px', color: 'var(--cs-or)' }}>
-            <MarqueCitation taille={19} plein />
+            <MarqueCitation taille={21} plein />
           </div>
           <h2 id="cs-remplacer-titre"
             style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>

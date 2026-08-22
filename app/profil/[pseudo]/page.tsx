@@ -308,7 +308,7 @@ export default function ProfilPublicPage() {
             {/* La marque de la citation favorite, la même qu'à « Mes citations ».
                 L'étoile qui tenait cette place dit « favori » partout ailleurs sur
                 le site (œuvres, versets) : elle promettait ici une autre action. */}
-            <Filet couleur='#c8a858' symbole={<MarqueCitation taille={13} />} maxWidth='80px' />
+            <Filet couleur='#c8a858' symbole={<MarqueCitation taille={15} />} maxWidth='80px' />
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-fort)', lineHeight: 1.45, margin: '10px 0 8px' }}>
               «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
             </p>
