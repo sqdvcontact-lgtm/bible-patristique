@@ -34,7 +34,14 @@ export function urlResultatRechercheBible(v: ResultatRechercheBibleAelf, traduct
     : v.id_verset.startsWith('EXTRA:')
       ? `verset-${v.id_verset}`
       : null
-  return ancre
+
+  if (!ancre) return base
+
+  // Pour une entrée de la spine, `?verset=` permet à TexteBible de sélectionner la ligne.
+  // Pour un EXTRA, on s'en tient volontairement à l'ancre exacte : un même numéro natif
+  // peut coexister avec un verset AELF (p. ex. Si 6,31) et `?verset=31` ferait alors
+  // sélectionner l'entrée de l'axe au lieu de la matière hors axe visée.
+  return v.aelf_entry_id
     ? `${base}&verset=${encodeURIComponent(verset)}#${ancre}`
-    : base
+    : `${base}#${ancre}`
 }
