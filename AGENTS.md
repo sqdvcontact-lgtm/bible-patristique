@@ -237,7 +237,7 @@ Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.t
 
 ## Péricopes — pages catalogue & détail
 
-- **Catalogue** : `app/pericopes/page.tsx` (client), accessible depuis « Aller plus loin » (onglet « Péricopes » → `/pericopes`). Volet gauche : recherche par nom, filtre par Testament (AT/NT/Autres, déduit de `LIVRES`) et par **registre** (`categorie`, effectifs affichés). Liste **groupée par livre** en ordre canonique (`LIVRES`), chaque péricope reliée à sa page. Données via `chargerCataloguePericopes()` (fusion `pericopes` + occurrence `est_principale`, un livre représentatif par péricope ; 249 péricopes).
+- **Catalogue** : `app/pericopes/page.tsx` (client), accessible depuis « Aller plus loin » (onglet « Péricopes » → `/pericopes`). Volet gauche : recherche par nom, filtre par Testament (AT/NT/Autres, déduit de `LIVRES`) et par **registre** (`categorie`, effectifs affichés). Liste **groupée par livre** en ordre canonique (`LIVRES`), chaque péricope reliée à sa page. Données chargées **côté serveur** en ISR (`app/pericopes/page.tsx`, revalidation 30 min) puis fusionnées par `assemblerCatalogue()` (`pericopes` + occurrence `est_principale` + appellations visibles, un livre représentatif par péricope ; 249 péricopes). Mise en forme : voir « Catalogue des péricopes (liste) ».
 - **Détail** : `app/pericopes/[id]/page.tsx` affiche notice, contexte, **le texte biblique visé** (étendue de l'occurrence principale) dans une **traduction changeable** (sélecteur `TRADUCTIONS_BIBLE` : Sacy/Segond/Crampon/Vulgate/Septante ; défaut Sacy `TR0001`), plus occurrences et variantes visibles.
 - **Texte biblique** : `chargerTextePericope(livre, canonDebut, canonFin, tradCode)` lit la vue large `versets_lecture` (colonnes `TR000x` = texte, `num_TR000x` = numéro affiché, tri par `ordre`). Récupère la plage par `livre` + `chapitre` bornés puis affine les versets aux bornes exactes. Colonne de traduction choisie dynamiquement (jamais de saisie libre → `select` typé Supabase casté via `unknown`). Septante = AT seulement → « Texte indisponible dans cette traduction » géré.
 
@@ -330,20 +330,43 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 - **Bible 899 ne vit plus que sous Administration** (retiré d'« Aller plus loin »).
 - **Mobile** : le panneau déplié reconstruit ces groupes (helper `lienMobile`, intertitres `styleSectionMobile`) : lecture + Patristique/Publications, puis « Aller plus loin » déplié, puis, pour un admin, « Administration » (sections + Bible 899).
 
-# Catalogue des péricopes (liste) — mise en forme arrêtée
+# Catalogue des péricopes (liste) — refonte du 2026-08-22
 
-`app/pericopes/page.tsx`. Partis pris fixés après itérations (ne pas revenir dessus sans raison) :
+`app/pericopes/PericopesCatalogueClient.tsx`, `app/lib/pericopesRecherche.ts` (logique pure, testée). La page est un **INDEX ANNOTÉ**, sur le modèle d'un index de fin d'ouvrage. Elle remplace la mise en forme « arrêtée » précédente, dont l'audit d'ergonomie a montré qu'elle rendait le catalogue illisible sur son point capital : **l'ordre canonique**.
 
-- **En-tête de livre AU FER À GAUCHE** (jamais centré) : nom en serif, filet dégradé qui s'estompe vers la droite, compte discret au bout (`.peri-livre-tete`).
-- **Deux colonnes par livre** (une seule en mobile). Bloc compact À L'INTÉRIEUR mais **blocs espacés** entre eux (`rowGap: 9px`).
-- **Entrée** : intitulé en **serif** à gauche, **référence dorée à droite** (comme la table d'un livre) ; ligne 2 = registre en petit gris + un **chevron doré** (`IconeChevron`, dir=right, `.peri-fleche`) révélé au survol du bloc, glissé d'un cran vers la droite, qui mène à la page de la péricope. Toujours visible au tactile (`@media (hover:none)`). L'intitulé ne disparaît plus au survol.
-- **Pas de couleurs de registre** : trop de catégories, le code couleur n'aide pas. Registre en gris uni ; `REGISTRE_COUL`/`coulRegistre` supprimés, pas de pastille dans le filtre. Seul accent conservé : le doré de la référence.
-- **Pas de dépli de notice en place** (décision révisée le 2026-08-18) : l'ancien lien « notice » qui dépliait une notice brève sous le bloc a été retiré (état `notices`/`ouvertes`/`basculerNotice` supprimé). La notice complète se lit sur la page de détail, où le chevron conduit ; le survol ne propose plus qu'un affordance de navigation.
-- **Recherche élargie aux appellations** (`pericope_noms`, chargées par `chargerCataloguePericopes` dans `item.appellations`) ; mention « trouvé via « … » » quand le match ne vient pas du titre.
-- **Index « Aller à un livre »** dans le volet : abréviations `ABREV_FR` en **sans**, alignées en grille de 4 colonnes, **séparées Ancien / Nouveau Testament** (+ Autres). Clic → `scrollIntoView` vers l'ancre `#livre-<code>`. Pas de cadres.
-- **Volet gauche** : sur-titre « Catalogue » (plus « Aller plus loin »), chapeau définissant la péricope sous le titre, ligne d'étendue « De la Genèse à l'Apocalypse » (pas de compteur total ; « N péricopes » retiré).
-- **Enrichissements** (`rendreTexteEnrichi`) appliqués aux intitulés (et aux notices sur la page détail).
-- **Badge « ensemble »** (italique muet) sur les péricopes `est_collection`.
+⛔ **Ce qui est révisé, et pourquoi. Ne pas y revenir sans reprendre les mesures.**
+
+- **Les DEUX COLONNES par livre sont supprimées.** La grille CSS se remplissait **par ligne** : Matthieu se lisait donc en serpentin (1,1 · 2,1 · 2,13 · 2,16 · 3,1 · 3,13), pendant que l'œil lisait les colonnes de haut en bas et y voyait **deux suites croissantes parallèles** — l'illusion parfaite de deux listes indépendantes. On ne pouvait pas suivre l'évangile. Indice que le défaut était une régression : `.peri-bloc` portait encore `break-inside: avoid`, propriété morte sur une grille et qui n'a de sens qu'en multi-colonnes.
+- **L'EN-TÊTE DE LIVRE EN BANDEAU est remplacé par un nom EN MARGE, collant** (`.peri-groupe`, grille `8.5rem 1fr` ; `.peri-marge-in` en `position: sticky`). Chaque livre coûtait un en-tête, un filet traversant et un compte perdu à 600 px du titre ; or **29 livres sur 48 n'ont que trois péricopes ou moins, et 19 n'en ont qu'une**. Quatre livres à une entrée (Joël, Jonas, Habacuc, Malachie) faisaient 380 px d'escalier avec la moitié droite vide. En marge, le nom accompagne ses entrées au lieu de les annoncer, et il reste en vue pendant les 52 péricopes de Matthieu. Le compte ne paraît **qu'au-delà d'une** péricope. En **mobile**, la marge n'a plus lieu d'être : le nom coiffe ses entrées au fer à gauche, prolongé du filet dégradé (`.peri-groupe--mobile`).
+- **L'ÉTIQUETTE DE REGISTRE SOUS CHAQUE TITRE est supprimée.** « Récit » se répétait sous **107 titres sur 249** et formait une trame parasite qui doublait la hauteur de chaque entrée. Le registre ne paraît plus que **lorsqu'il distingue** (tout ce qui n'est pas `recit`, cf. `REGISTRE_ORDINAIRE`), en **glose italique muette contre le titre**, au même traitement que « ensemble » — les deux se cumulent en une seule glose.
+- **La NOTICE revient, en avant-goût.** La décision du 2026-08-18 (« pas de dépli de notice en place ») tenait au **dépli**, pas à la notice : le lecteur n'avait plus qu'un titre et une référence, donc il cliquait à l'aveugle, alors que les 249 péricopes ont toutes une notice en base et que la description de la page en promettait la présence. La **première phrase** paraît sous le titre, bornée à deux lignes. ⚠️ Elle est taillée **CÔTÉ SERVEUR** par `premierePhraseNotice` (plafond 230 signes, coupe au dernier mot entier) : les notices font 660 signes en moyenne, soit **165 Ko** envoyés au navigateur si on les passait entières.
+- **Un COMPTEUR reparaît**, et il n'est pas décoratif : au repos l'étendue du catalogue (« 249 péricopes »), sous filtre le **résultat**, annoncé en `aria-live` — la page ne disait nulle part combien de péricopes répondaient. Précédé de la référence comprise quand il y en a une (« Matthieu 5 · 2 péricopes »).
+
+**Ce qui est CONSERVÉ de la mise en forme précédente** : la référence dorée au fer à droite, en chiffres tabulaires, comme la table d'un livre ; le chevron doré (`IconeChevron`) révélé au survol et toujours visible au tactile ; l'absence de couleurs de registre ; l'index « Aller à un livre » en abréviations `ABREV_FR`, séparées par Testament ; les enrichissements (`rendreTexteEnrichi`) sur les intitulés **et désormais sur les notices** ; le sur-titre « Catalogue » et le chapeau du volet.
+
+**Ce qui s'ajoute :**
+
+- **Une rubrique de TESTAMENT** dans la liste, seul rang au-dessus du livre : la descente de 48 livres n'avait aucune articulation.
+- **Le volet sépare NAVIGUER de FILTRER** (composant `Rubrique`). Les deux portaient le même gris, la même graisse et la même taille : rien ne permettait de prédire ce qu'un clic ferait. Un lien de livre prend le vert et se souligne au survol ; une case de filtre porte un **marqueur carré** qui se remplit. Cibles portées à **24-26 px** (elles faisaient 11 et 20 px).
+- **Le registre se replie au-delà de huit valeurs** (`REGISTRES_VISIBLES`) : il en compte quinze, dont trois à un seul élément, et la liste dépassait le volet. ⚠️ Un registre **retenu reste toujours visible**, replié ou non : on ne cache pas un filtre qui agit.
+- **La liste est AU FER avec le volet**, mesure `52rem`. Elle était centrée dans l'espace résiduel à `39rem`, ce qui laissait **252 px de vide de chaque côté** sur un écran de 1440 pendant que les titres se serraient en deux colonnes.
+
+## La recherche comprend les RÉFÉRENCES — `app/lib/pericopesRecherche.ts`
+
+Elle ne regardait que le titre et les appellations : « Mt 5 », « Matthieu », « psaume 22 » ne donnaient rien, alors que c'est ainsi qu'on cherche un passage biblique.
+
+⚠️ **Module PUR, séparé de `app/lib/pericopes.ts`, et c'est nécessaire** : ce dernier ouvre un client navigateur Supabase dès son import, ce qui interdit d'y tester quoi que ce soit sous Vitest (environnement `node`, sans variables publiques). 26 tests dans `pericopesRecherche.test.ts`.
+
+- **Trois cas, et ils ne se traitent pas pareil.** Une **référence chiffrée** (« Mt 5 », « Jn 3, 16 ») ne rend QUE le passage visé. Un **nom de livre seul** (« Jonas ») réunit le livre ET les titres qui portent ce mot — Jonas est aussi bien un livre qu'un personnage de récit. Le reste est du texte libre.
+- ⚠️ **Sur un préfixe ambigu, `trouverLivre` retient le nom le plus COURT, et non `null`** : sans cela « psaume » ne désignerait rien, puisqu'il ouvre aussi « Psaume 151 » et « Psaumes de Salomon ». Préfixe accepté à partir de trois lettres ; l'abréviation `ABREV_FR` est reconnue à toute longueur (« Mt », « 1 S »).
+- **Les cases restreignent toujours, jamais l'inverse** : la recherche s'applique d'abord (c'est elle qui peut désigner un livre), les cases ensuite. Une note « trouvé via … » posée sur un item qu'une case écarte est retirée.
+
+## Conformité reprise au passage
+
+- **Cinq couleurs étaient écrites en dur**, contre la règle de la charte (§ Palette) : `#b08f48` pour la référence dorée — c'est-à-dire `--cs-or` recopié à la main —, plus la croix d'effacement, le sur-titre, le bouton mobile et la **loupe SVG**, cette dernière tokenisée par `style={{ stroke: … }}` comme l'exige l'exception SVG. Latent tant que seul le thème Clair est servi, bloquant le jour où le Cuir s'allume : sur son fond `#1c1813`, la loupe et le bouton devenaient invisibles.
+- **`scrollIntoView` doux et nu remplacé par `allerAAncre`** (§ Défilement doux) : le saut à un livre est une navigation fonctionnelle, elle ne peut pas dépendre d'une animation qui ne s'exécute pas sur certains postes.
+- **`cs-defilement-discret`** sur le volet, qui servait la barre système ; `prefers-reduced-motion` sur les transitions ; `scrollMarginTop` et hauteurs de volet composés sur `HAUTEUR_NAVBAR` au lieu de `3.5rem` recopié.
+- **Deux fonctions mortes retirées de `app/lib/pericopes.ts`** : `chargerCataloguePericopes` (le catalogue passe par le rendu ISR depuis longtemps) et `chargerNoticePericope`, documentée pour « le survol du catalogue » alors qu'elle n'avait plus aucun appelant.
 
 # Palette harmonisée — tokens sémantiques (`app/globals.css`, `:root`)
 
@@ -791,7 +814,7 @@ Une traduction ponctue par-dessus les versets. Sorti de son contexte — dans le
 
 ⚠️ **Le même piège était déjà connu ailleurs, sous une autre cause.** `scrollNiveauDesYeux` (page œuvre) commente : « Défilement INSTANTANÉ (et non “smooth”) : un défilement animé était annulé dès la première frame par le re-rendu déclenché par la sélection du segment. » Deux raisons distinctes, une même conclusion — le doux ne tient pas ses promesses.
 
-**Reste à convertir** (2026-08-22) : huit appels doux subsistent hors de la page œuvre, et ils sont morts sur les mêmes machines — `components/TexteBible.tsx` (navigation de verset), `messagerie/[pseudo]/page.tsx` et `components/ModaleMessagerie.tsx` (descente en bas de conversation), `polyglotte/page.tsx`, `traductions/AllerPlusLoinClient.tsx`, `pericopes/PericopesCatalogueClient.tsx`, `essais/[id]/EssaiClient.tsx`, `chantier/page.tsx`. Repérage : `grep -rn "behavior: 'smooth'" app` ne doit plus renvoyer que ce qui est purement décoratif.
+**Reste à convertir** (2026-08-22) : sept appels doux subsistent hors de la page œuvre, et ils sont morts sur les mêmes machines — `components/TexteBible.tsx` (navigation de verset), `messagerie/[pseudo]/page.tsx` et `components/ModaleMessagerie.tsx` (descente en bas de conversation), `polyglotte/page.tsx`, `traductions/AllerPlusLoinClient.tsx`, `essais/[id]/EssaiClient.tsx`, `chantier/page.tsx`. Repérage : `grep -rn "behavior: 'smooth'" app` ne doit plus renvoyer que ce qui est purement décoratif.
 
 # Navbar à l'étroit — mesurer, jamais poser un seuil en pixels
 

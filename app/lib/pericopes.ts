@@ -8,6 +8,7 @@
 import { supabase } from './supabase'
 import { formaterPlageCanonique, parsePointCanonique } from './referencesBibliques'
 import { estOeuvrePubliee } from './oeuvresPublication'
+import { premierePhraseNotice } from './pericopesRecherche'
 
 export type PericopeUsageRecherche =
   | 'principal'
@@ -96,14 +97,18 @@ export type PericopeCatalogueItem = {
   canon_debut: string
   canon_fin: string | null
   appellations: string[]
+  /** Première phrase de la notice — l'avant-goût affiché sous le titre. Elle est
+   *  taillée CÔTÉ SERVEUR (`premierePhraseNotice`) : les notices font 660 signes en
+   *  moyenne, soit 165 Ko pour 249 péricopes si on les envoyait entières au client. */
+  notice_debut: string
 }
 
-type LignePericopeCat = { id: string; nom: string; categorie: string; est_collection: boolean }
+type LignePericopeCat = { id: string; nom: string; categorie: string; est_collection: boolean; notice?: string | null }
 type LigneOccurrenceCat = { pericope_id: string; livre: string; canon_id_debut: string; canon_id_fin: string | null }
 type LigneNomCat = { pericope_id: string; nom: string }
 
 /** Fusion PURE des lignes brutes (péricopes + occurrence principale + noms) en items
- *  de catalogue. Partagée par le chargement client et le chargement serveur (ISR). */
+ *  de catalogue, notice réduite à sa première phrase. Appelée par le rendu ISR. */
 export function assemblerCatalogue(pRows: LignePericopeCat[], oRows: LigneOccurrenceCat[], nRows: LigneNomCat[]): PericopeCatalogueItem[] {
   const occParId = new Map<string, { livre: string; debut: string; fin: string | null }>()
   for (const o of oRows) if (!occParId.has(o.pericope_id)) occParId.set(o.pericope_id, { livre: o.livre, debut: o.canon_id_debut, fin: o.canon_id_fin })
@@ -113,40 +118,9 @@ export function assemblerCatalogue(pRows: LignePericopeCat[], oRows: LigneOccurr
   for (const p of pRows) {
     const occ = occParId.get(p.id)
     if (!occ) continue
-    items.push({ id: p.id, nom: p.nom, categorie: p.categorie, est_collection: p.est_collection, livre: occ.livre, canon_debut: occ.debut, canon_fin: occ.fin, appellations: (nomsParId.get(p.id) ?? []).filter(n => n && n !== p.nom) })
+    items.push({ id: p.id, nom: p.nom, categorie: p.categorie, est_collection: p.est_collection, livre: occ.livre, canon_debut: occ.debut, canon_fin: occ.fin, appellations: (nomsParId.get(p.id) ?? []).filter(n => n && n !== p.nom), notice_debut: premierePhraseNotice(p.notice) })
   }
   return items
-}
-
-/** Charge le catalogue complet CÔTÉ CLIENT (session du visiteur). Le rendu ISR passe,
- *  lui, par un fetch serveur + `assemblerCatalogue` (voir app/pericopes/page.tsx). */
-export async function chargerCataloguePericopes(signal?: AbortSignal): Promise<PericopeCatalogueItem[]> {
-  const reqP = supabase.from('pericopes').select('id, nom, categorie, est_collection')
-  const reqO = supabase.from('pericope_occurrences')
-    .select('pericope_id, livre, canon_id_debut, canon_id_fin')
-    .eq('est_principale', true)
-  const reqN = supabase.from('pericope_noms').select('pericope_id, nom')
-  const [rp, ro, rn] = await Promise.all([
-    signal ? reqP.abortSignal(signal) : reqP,
-    signal ? reqO.abortSignal(signal) : reqO,
-    signal ? reqN.abortSignal(signal) : reqN,
-  ])
-  if (rp.error) throw rp.error
-  if (ro.error) throw ro.error
-  if (rn.error) throw rn.error
-  return assemblerCatalogue((rp.data ?? []) as LignePericopeCat[], (ro.data ?? []) as LigneOccurrenceCat[], (rn.data ?? []) as LigneNomCat[])
-}
-
-/** Notice d'une péricope, chargée à la demande (survol « Développer la notice » du
- *  catalogue). Le catalogue ne la charge pas d'emblée pour rester léger. */
-export async function chargerNoticePericope(
-  id: string,
-  signal?: AbortSignal,
-): Promise<{ notice: string | null; contexte: string | null }> {
-  const filtre = supabase.from('pericopes').select('notice, notice_contexte').eq('id', id)
-  const { data, error } = await (signal ? filtre.abortSignal(signal) : filtre).maybeSingle()
-  if (error) throw error
-  return { notice: data?.notice ?? null, contexte: data?.notice_contexte ?? null }
 }
 
 // ── Texte biblique visé par une péricope, dans UNE traduction ─────────────────

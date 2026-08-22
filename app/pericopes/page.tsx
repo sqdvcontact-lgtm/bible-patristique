@@ -15,7 +15,10 @@ export const revalidate = 1800
 
 export default async function PericopesPage() {
   const [rp, ro, rn] = await Promise.all([
-    supabaseAdmin.from('pericopes').select('id, nom, categorie, est_collection'),
+    // `notice` est réduite à sa PREMIÈRE PHRASE par `assemblerCatalogue` : les notices
+    // font 660 signes en moyenne, soit 165 Ko envoyés au navigateur pour 249 péricopes
+    // si on les passait entières. Le catalogue n'en montre qu'un avant-goût.
+    supabaseAdmin.from('pericopes').select('id, nom, categorie, est_collection, notice'),
     supabaseAdmin.from('pericope_occurrences').select('pericope_id, livre, canon_id_debut, canon_id_fin').eq('est_principale', true),
     // On charge visible_public / usage_recherche pour ÉCARTER les appellations
     // masquées ou marquées « populaire_inexact » : la charte proscrit de surfacer
@@ -27,7 +30,7 @@ export default async function PericopesPage() {
     .filter(n => n.visible_public === true && n.usage_recherche !== 'populaire_inexact')
     .map(n => ({ pericope_id: n.pericope_id, nom: n.nom }))
   const items = assemblerCatalogue(
-    (rp.data ?? []) as { id: string; nom: string; categorie: string; est_collection: boolean }[],
+    (rp.data ?? []) as { id: string; nom: string; categorie: string; est_collection: boolean; notice: string | null }[],
     (ro.data ?? []) as { pericope_id: string; livre: string; canon_id_debut: string; canon_id_fin: string | null }[],
     nomsVisibles,
   )
