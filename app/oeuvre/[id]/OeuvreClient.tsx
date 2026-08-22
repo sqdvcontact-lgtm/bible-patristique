@@ -43,6 +43,7 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import { insererSignalement } from './signalements'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { allerAAncre, allerAElement } from '@/app/lib/defilement'
 import ComparaisonTraductions from './ComparaisonTraductions'
 import {
   choisirAlignement,
@@ -343,7 +344,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     params.set('division', String(division))
     router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
     if (mobile) setNavOuverte(false)
-    if (typeof document !== 'undefined') document.getElementById('barre-nav-division')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    allerAAncre('barre-nav-division')
   }
   // Charge la liste ordonnée des divisions alignées à l'entrée en comparaison, avec
   // le TITRE EXACT de chaque division tiré de la traduction de référence (niv1/niv2),
@@ -592,7 +593,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   useEffect(() => {
     if (!ancreEnAttente || vue !== 'apparat') return
     const el = document.getElementById(ancreEnAttente)
-    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); setAncreEnAttente(null) }
+    if (allerAElement(el)) setAncreEnAttente(null)
   }, [vue, ancreEnAttente])
 
   // Navigation lazy par niv1
@@ -726,7 +727,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // « Aller au passage » : on pose le passage au niveau des yeux (tiers supérieur) ;
     // à défaut du segment précis, on se rabat sur le paragraphe qui le contient.
     setTimeout(() => {
-      if (!scrollNiveauDesYeux(`segment-${segId}`)) document.getElementById(g.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (!scrollNiveauDesYeux(`segment-${segId}`)) allerAAncre(g.anchor)
     }, 80)
   }, [groupes, pages, pageActuelle, scrollNiveauDesYeux])
 
@@ -784,9 +785,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const pageIdx = pages.findIndex(p => p.some(g => g.anchor === ancre))
     if (pageIdx >= 0 && pageIdx !== pageActuelle) {
       setPageActuelle(pageIdx)
-      setTimeout(() => document.getElementById(ancre)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+      // L'ancre n'existe pas encore : elle est sur une page qu'on vient seulement de
+      // demander. On laisse le rendu se faire avant de viser.
+      setTimeout(() => allerAAncre(ancre), 60)
     } else {
-      document.getElementById(ancre)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      allerAAncre(ancre)
     }
   }, [pages, pageActuelle])
 
@@ -804,8 +807,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const tryScroll = (attempt = 0) => {
       if (stopped) return
       const el = document.getElementById(`segment-${segmentCibleId}`)
-      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
-      else if (attempt < 15) window.setTimeout(() => tryScroll(attempt + 1), 200)
+      // `allerAElement` rend false tant que le segment n'est pas dans la page : on
+      // réessaie alors, comme avant, jusqu'à quinze fois.
+      if (!allerAElement(el) && attempt < 15) window.setTimeout(() => tryScroll(attempt + 1), 200)
     }
     const timer = window.setTimeout(() => tryScroll(), 100)
     return () => { stopped = true; window.clearTimeout(timer) }
