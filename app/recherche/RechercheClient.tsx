@@ -10,6 +10,11 @@ import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
+import {
+  projeterResultatsRechercheBibleAelf,
+  urlResultatRechercheBible,
+  type ResultatRechercheBibleAelf,
+} from '@/app/lib/rechercheBibleAelf'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
@@ -36,11 +41,23 @@ function nombreFr(n: number): string {
 function abrevFr(code: string): string {
   return (ABREV_FR[code] || code).replace(/^([1-3])(\p{L})/u, '$1 $2')
 }
+function nettoyerLabelAelfRecherche(value: string | number | null | undefined): string {
+  const brut = String(value ?? '')
+  const nettoye = brut.replace(/^0+(?=\d)/, '')
+  return nettoye || brut
+}
 function refFr(ref: string): string {
   const p = ref.trim().split(' ')
   if (p.length < 2) return ref
   const cv = p[1].split(':')
-  return cv[1] ? `${abrevFr(p[0])} ${cv[0]}, ${cv[1]}` : `${abrevFr(p[0])} ${cv[0]}`
+  const chapitre = nettoyerLabelAelfRecherche(cv[0])
+  const verset = cv[1] ? nettoyerLabelAelfRecherche(cv[1]) : ''
+  return verset ? `${abrevFr(p[0])} ${chapitre}, ${verset}` : `${abrevFr(p[0])} ${chapitre}`
+}
+function refResultatBible(v: VersetResult): string {
+  const chapitre = nettoyerLabelAelfRecherche(v.chapitre_label ?? v.chapitre)
+  const verset = nettoyerLabelAelfRecherche(v.verset_label ?? v.verset)
+  return verset ? `${abrevFr(v.livre)} ${chapitre}, ${verset}` : `${abrevFr(v.livre)} ${chapitre}`
 }
 
 // Noms des livres DÉRIVÉS de `LIVRES` (app/lib/bible.ts), comme le fait déjà `app/page.tsx`.
@@ -53,8 +70,19 @@ const NOMS_LIVRES: Record<string, string> = Object.fromEntries(LIVRES.map(l => [
 // le tableau est le rang du livre. Sert à trier les résultats de recherche biblique.
 const ORDRE_LIVRE: Record<string, number> = Object.fromEntries(LIVRES.map((l, i) => [l.code, i]))
 function comparerVersets(a: VersetResult, b: VersetResult): number {
-  return (ORDRE_LIVRE[a.livre] ?? 9999) - (ORDRE_LIVRE[b.livre] ?? 9999)
-    || a.chapitre - b.chapitre || a.verset - b.verset
+  const rangLivre = (ORDRE_LIVRE[a.livre] ?? 9999) - (ORDRE_LIVRE[b.livre] ?? 9999)
+  if (rangLivre) return rangLivre
+  if (a.hors_axe_aelf !== true && b.hors_axe_aelf !== true
+      && typeof a.ordre === 'number' && typeof b.ordre === 'number') {
+    return a.ordre - b.ordre
+  }
+  const chapitre = a.chapitre - b.chapitre
+  if (chapitre) return chapitre
+  const chapitreLabel = String(a.chapitre_label ?? a.chapitre)
+    .localeCompare(String(b.chapitre_label ?? b.chapitre), 'fr', { numeric: true })
+  if (chapitreLabel) return chapitreLabel
+  return a.verset - b.verset
+    || String(a.verset_label ?? a.verset).localeCompare(String(b.verset_label ?? b.verset), 'fr', { numeric: true })
 }
 
 const TRADUCTIONS_FALLBACK = [
@@ -64,8 +92,7 @@ const TRADUCTIONS_FALLBACK = [
   { code: 'TR0004', label: 'Vulgate', lang: 'la' },
 ]
 
-type VersetResult = {
-  id_verset: string; ref: string; livre: string; chapitre: number; verset: number
+type VersetResult = ResultatRechercheBibleAelf & {
   [key: string]: any
 }
 type SegmentResult = {
@@ -374,7 +401,7 @@ export default function RechercheClient() {
       const tradCodes = traductions.map(t => t.code)
       // On récupère aussi les num_TRxxxx : les références d'ORIGINE de chaque édition,
       // affichées en lettrine dans l'onglet Polyglotte, comme sur la page Polyglotte.
-      const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}, ${tradCodes.map(c => 'num_' + c).join(', ')}`
+      const selVersets = `id_verset, ref, livre, chapitre, verset, est_suscription, est_surnumeraire, ordre, ${tradCodes.join(', ')}, ${tradCodes.map(c => 'num_' + c).join(', ')}`
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
@@ -487,7 +514,11 @@ export default function RechercheClient() {
       // (qui, lui, fait une simple sous-chaîne) sur la frontière de mot voulue.
       const versetsRaw = versetsArr as unknown as VersetResult[]
       const colsFiltre = chercheTout ? tradCodes : [scopeActif]
-      const versets = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
+      const hitsIndex = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
+      // versets_lecture reste ici un INDEX historique performant, jamais la référence
+      // de sortie : tous les hits sont résolus vers la spine AELF avant affichage.
+      const versets = await projeterResultatsRechercheBibleAelf(hitsIndex, signal)
+      if (signal.aborted) return
       setVersetsRes(versets)
 
       // Essais
@@ -1075,13 +1106,14 @@ export default function RechercheClient() {
                         <a key={v.id_verset}
                           // Lien vers la page Bible : livre, chapitre, verset ET la traduction
                           // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
-                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                          href={urlResultatRechercheBible(v, tradBible)}
                           target="_blank" rel="noopener noreferrer"
                           className={`res-card${!displayLeMot && contientDans.length ? ' res-card--absent' : ''}`}>
                           {/* Référence (couleur neutre, pas verte), traduction affichée (barrée si
                               le mot y est absent) puis TOUTES les traductions qui contiennent le mot. */}
                           <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                            <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
+                            <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refResultatBible(v)}</span>
+                            {v.hors_axe_aelf && <span style={{ fontSize:'0.5625rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>hors axe AELF</span>}
                             {/* Tous les noms de bibles : même couleur, même espacement (le gap
                                 du conteneur), chacun dans son propre span. La traduction affichée
                                 est barrée quand le mot n'y figure pas — seule distinction retenue. */}
@@ -1192,10 +1224,10 @@ export default function RechercheClient() {
                                 </div>
                               )}
                               <a className="poly-row" style={{ gridTemplateColumns:polyTmpl, background:fond }}
-                                href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                                href={urlResultatRechercheBible(v, tradBible)}
                                 target="_blank" rel="noopener noreferrer">
                                 {/* Colonne canonique */}
-                                <div className="poly-num">{v.chapitre}, {v.verset}</div>
+                                <div className="poly-num">{nettoyerLabelAelfRecherche(v.chapitre_label ?? v.chapitre)}, {nettoyerLabelAelfRecherche(v.verset_label ?? v.verset)}</div>
                                 {/* Une colonne par traduction */}
                                 {colTrads.map((code, i) => {
                                   const lang = traductions.find(t => t.code === code)?.lang ?? 'fr'
