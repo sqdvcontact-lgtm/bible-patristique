@@ -59,3 +59,28 @@ export function memeIntitule(a: string | null | undefined, b: string | null | un
   const cle = cleIntitule(a)
   return cle !== '' && cle === cleIntitule(b)
 }
+
+/** Comment COMPOSER un intitulé de sommaire. Deux réglages, et ils ne se gênent pas.
+ *
+ *  `white-space: pre-line` fait voir le saut de ligne SAISI par l'éditeur. Un chapeau
+ *  comme « Comment Caïn a-t-il pu bâtir une ville ?⏎Genèse 4, 17 » porte sa référence sur
+ *  une ligne à part parce qu'on l'a voulu ainsi ; sans ce réglage, le saut se rendait
+ *  comme une simple espace et la référence venait se coller à la question.
+ *
+ *  `text-wrap: balance` égalise les lignes qu'un intitulé long produit dans une colonne
+ *  étroite. Sans lui, la coupure tombe où elle peut et rejette volontiers deux syllabes
+ *  seules à la fin : « … un commerce / impur ? ».
+ *
+ *  ⛔ On avait craint que le second ne défasse le premier, et prévu de l'interdire dès
+ *  qu'un saut manuel était présent. MESURÉ, ce n'est pas le cas : un saut forcé est une
+ *  frontière que l'équilibrage ne franchit pas, et chaque tronçon s'équilibre seul. Sur
+ *  « Comment les Anges … impur ?⏎Genèse 6, 4 », « Genèse 6, 4 » reste sur sa ligne à
+ *  toutes les largeurs, et l'écart entre les lignes de la QUESTION tombe de 13 caractères
+ *  à 3 sur une colonne de 130 px, de 18 à 10 sur 150, de 6 à 2 sur 170.
+ *
+ *  L'interdiction aurait donc coûté sans rien protéger : elle aurait laissé sans remède
+ *  les intitulés qui portent une référence en seconde ligne, c'est-à-dire précisément
+ *  ceux qui sont longs. L'éditeur garde ses coupures ; l'équilibrage ne travaille que sur
+ *  celles que personne n'a choisies.
+ */
+export const COMPOSITION_INTITULE = { whiteSpace: 'pre-line', textWrap: 'balance' } as const
