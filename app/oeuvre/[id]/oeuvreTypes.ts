@@ -127,7 +127,6 @@ export type Props = {
   segmentCibleId?: number | null
   niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
-  eligibleParagraphes?: boolean
   comparaisonInitiale?: boolean
   alignmentSetIdInitial?: string | null
   comparaisonLivreInitial?: number
