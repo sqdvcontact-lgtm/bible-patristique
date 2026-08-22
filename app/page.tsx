@@ -121,21 +121,20 @@ export default async function Home({
   // sait ce qu'il demande. Le menu ne paraît qu'à partir de deux couches.
   const couchesBible = bible899 ? await couchesDisponibles899(supabase) : []
   const couche = normaliserCouche899(params.couche, couchesBible)
-  let versets: ComponentProps<typeof BibleLayout>['versets']
-  if (bible899) {
-    const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
-    versets = adapterVersets899(lignes, trad, livre, chapitre, couche)
-  } else if (editorial) {
-    const sourceIds = catalog.rows
-      .filter((row) => row.trad_id === trad && row.mode_code === 'verse' && row.is_available)
-      .map((row) => row.source_id)
-    versets = await chargerVersetsEditoriaux(supabase, {
-      sourceIds,
-      translationId: trad,
-      livre,
-      chapitre,
-    })
-  } else {
+  // ⚠️ Une FONCTION, non un chargement immédiat : la lecture en regard rend ses deux
+  // colonnes par son propre chemin et n'a que faire de celui-ci. Chargé d'office, il
+  // coûtait quatre allers-retours pour rien sur la Fillion en regard.
+  const chargerVersetsDuChapitre = async (): Promise<ComponentProps<typeof BibleLayout>['versets']> => {
+    if (bible899) {
+      const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
+      return adapterVersets899(lignes, trad, livre, chapitre, couche)
+    }
+    if (editorial) {
+      const sourceIds = catalog.rows
+        .filter((row) => row.trad_id === trad && row.mode_code === 'verse' && row.is_available)
+        .map((row) => row.source_id)
+      return chargerVersetsEditoriaux(supabase, { sourceIds, translationId: trad, livre, chapitre })
+    }
     const { data } = await supabase
       // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
       // historiques et n'est jamais utilisée pour simuler un mode source.
@@ -144,7 +143,7 @@ export default async function Home({
       .eq('livre', livre)
       .eq('chapitre', chapitre)
       .order('verset')
-    versets = data || []
+    return data || []
   }
 
   // Les balises de titre se calculent d'un seul passage sur l'ordre matériel :
@@ -163,21 +162,26 @@ export default async function Home({
   // disparaîtrait sur un chapitre sans commentaire, laissant le lecteur enfermé dans
   // le texte nu sans moyen d'en sortir.
   const paratexteDisponible = !!editionMember
-  let editionChapter: BibleEditionChapterDisplay | null = null
-  if (editionMember && !texteSeul) {
+  // Même raison que ci-dessus : en regard, cet appareil n'est jamais rendu (c'est
+  // `lectureBilingue` qui porte le sien), et le charger d'office coûtait cinq
+  // allers-retours pour rien.
+  const chargerAppareilDuChapitre = async (
+    membre: NonNullable<typeof editionMember>,
+    canonIds: string[],
+  ): Promise<BibleEditionChapterDisplay> => {
     const payload = await loadBibleEditionChapter(supabase, {
-      familyId: editionMember.family_id,
+      familyId: membre.family_id,
       bookCode: livre,
-      canonIds: versets.map((verset) => verset.id_verset),
+      canonIds,
       includeBookFrontMatter: chapitre === 1,
     })
     const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
-      row.applies_to === 'family' || row.applies_to_member_id === editionMember.member_id
+      row.applies_to === 'family' || row.applies_to_member_id === membre.member_id
     )
     const balises = baliserPayload(payload.bodyBlocks)
-    editionChapter = {
-      familyId: editionMember.family_id,
-      memberId: editionMember.member_id,
+    return {
+      familyId: membre.family_id,
+      memberId: membre.member_id,
       bodyBlocks: payload.bodyBlocks.filter(appartientAuMembre).map((block) => ({
         id: block.id,
         semanticStyleCode: block.semantic_style_code,
@@ -345,6 +349,17 @@ export default async function Home({
       }
     }
   }
+
+  // ── Et SEULEMENT MAINTENANT la lecture ordinaire ─────────────────────────────
+  // L'ordre compte : la lecture en regard décide la première, parce qu'elle peut ne
+  // pas être servable (chapitre hors du lot aligné) et laisser la lecture ordinaire
+  // prendre le relais. La charger d'avance, comme on le faisait, revenait à payer
+  // NEUF allers-retours dont neuf inutiles dès que les deux colonnes s'affichaient.
+  const versets = lectureBilingue ? [] : await chargerVersetsDuChapitre()
+  const editionChapter: BibleEditionChapterDisplay | null =
+    (lectureBilingue || !editionMember || texteSeul)
+      ? null
+      : await chargerAppareilDuChapitre(editionMember, versets.map((verset) => verset.id_verset))
 
   return (
     <Suspense fallback={null}>

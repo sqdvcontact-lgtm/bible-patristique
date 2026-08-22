@@ -125,6 +125,18 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // Cache des livres vides par traduction : { TR0001: Set<'GEN'|'SIR'|...>, ... }
   const [livresVidesCache, setLivresVidesCache] = useState<Record<string, Set<string>>>({})
 
+  // L'index se RECALE sur la traduction que le serveur vient de rendre, pendant le
+  // rendu et non dans un effet (patron documenté dans AGENTS.md). Sans lui, l'index
+  // ne bougeait que par l'échange optimiste du menu : une arrivée par URL sur une
+  // autre traduction, ou un échange refusé parce qu'il fallait recharger, laissait
+  // l'intitulé du menu et la colonne lue sur la traduction PRÉCÉDENTE.
+  const [tradRendue, setTradRendue] = useState(tradInitiale)
+  if (tradRendue !== tradInitiale) {
+    setTradRendue(tradInitiale)
+    const rang = listeTraductions.findIndex(t => t.code === tradInitiale)
+    if (rang >= 0 && rang !== traductionIndex) setTraductionIndex(rang)
+  }
+
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
 
   // Ce que le chapitre affiché nous apprend du LIVRE — et rien de plus.
@@ -237,15 +249,22 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   }, [livreActif, chapitreActif, traductionIndex, listeTraductions, nomLivre])
 
   const handleSetTraductionIndex = (idx: number) => {
-    setTraductionIndex(idx)
     const code = listeTraductions[idx]?.code
-    if (code) {
-      localStorage.setItem('cs_trad_bible_active', code)
-      const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
-      const saved = localStorage.getItem(`cs_bible_mode:${code}`)
-      const mode = modes.find((item) => item.value === saved)?.value ?? modes[0]?.value ?? 'verse'
-      router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: code, mode }))
+    if (!code) return
+    localStorage.setItem('cs_trad_bible_active', code)
+    const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
+    const saved = localStorage.getItem(`cs_bible_mode:${code}`)
+    const mode = modes.find((item) => item.value === saved)?.value ?? modes[0]?.value ?? 'verse'
+    // ⚠️ L'échange EN MÉMOIRE n'est possible qu'entre colonnes DÉJÀ chargées. Les
+    // versets d'une segmentation éditoriale (Bible 899, Fillion, Vulgate Fillion) ne
+    // portent pas les colonnes canoniques, et réciproquement : basculer l'index vers
+    // ou depuis l'une d'elles montrait « cette traduction ne comporte pas ce livre »,
+    // ruines fumantes comprises, le temps que le serveur réponde. La règle était déjà
+    // écrite pour la préférence enregistrée ; elle vaut aussi pour le menu.
+    if (!estVerseEditorial(readingCapabilities[code]) && !estVerseEditorial(readingCapabilities[traduction])) {
+      setTraductionIndex(idx)
     }
+    router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: code, mode }))
   }
 
   // Ce qui décrit la MANIÈRE de lire, d'un bloc : reporté tel quel par le volet des

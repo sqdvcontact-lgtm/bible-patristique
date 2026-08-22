@@ -513,6 +513,34 @@ Deux gestes, deux endroits, et ils ne se mélangent jamais.
 
 ⚠️ **`OeuvreClient.tsx` porte encore sa propre copie de `LABEL_VOLET`/`BTN_VOLET`** (le fichier avait un chantier en cours le 2026-08-22) : l'y remplacer par l'import de `stylesVoletLecture` dès que ce chantier est clos, faute de quoi les deux formes dériveront.
 
+# Bible classique — le coût, c'est le NOMBRE d'allers-retours (audit du 2026-08-22)
+
+Mesuré depuis le poste de travail : **un aller-retour vers Supabase coûte ~65 ms, quoi qu'il transporte** (`select` d'une ligne : 60 ms min, 74 méd). Le chapitre le plus lourd de `versets_lecture` en coûte 70. Aucune requête de la page n'est lente : c'est leur mise en CASCADE qui se voit.
+
+| Lecture | Vagues avant | Vagues après | Local |
+|---|---|---|---|
+| Sacy / Segond / Crampon / Vulgate / Septante | 2 | 2 | ~150 ms |
+| Bible 899 | 3 | 3 | ~220 ms |
+| Fillion, une colonne, avec commentaires | 10 | **8** | ~790 ms |
+| Fillion, une colonne, sans commentaires | — | **5** | ~430 ms |
+| Fillion en regard | 19 | **8** | ~1,2 s (2,1 s avant) |
+
+**Trois corrections, dans l'ordre de leur poids.**
+
+1. ⛔ **La lecture en regard ne charge plus la lecture ordinaire.** `app/page.tsx` chargeait d'office les versets d'une colonne PUIS leur appareil, avant même de savoir si les deux colonnes prendraient la place : neuf allers-retours dont aucun n'était rendu. La lecture ordinaire est passée en **fonctions** (`chargerVersetsDuChapitre`, `chargerAppareilDuChapitre`), appelées **après** la décision du bilingue. ⚠️ L'ordre est obligatoire dans ce sens : la lecture en regard peut n'être pas servable (chapitre hors du lot aligné) et doit laisser la lecture ordinaire prendre le relais — c'est pourquoi on ne peut pas simplement mettre un `if` en tête.
+2. **`loadBibleEditionChapter` passe de cinq vagues à trois** (~460 → ~314 ms, médiane sur sept). Les bornes canoniques ne conditionnent AUCUNE des trois requêtes de catalogue — elles ne servent qu'à filtrer leurs résultats — elles partent donc avec elles ; et les notes internes ne dépendent que de l'IDENTITÉ des blocs, connue dès le premier tour, elles n'ont donc pas à attendre leur texte.
+3. ⛔ **Le menu ne bascule plus l'index en mémoire vers une traduction dont les colonnes ne sont pas chargées.** Les versets d'une segmentation éditoriale ne portent pas les colonnes canoniques, et réciproquement : choisir la Fillion depuis la Sacy affichait « cette traduction ne comporte pas ce livre », ruines fumantes comprises, le temps que le serveur réponde. La règle était écrite pour la préférence enregistrée, pas pour le menu. Corollaire nécessaire : `traductionIndex` se **recale sur `tradInitiale` pendant le rendu** (patron des états qui recopient une propriété), sans quoi refuser l'échange laisserait le menu sur la traduction précédente — et une arrivée par URL sur une autre traduction le faisait déjà.
+
+## Ce qui reste, et qu'on ne corrige pas ici
+
+⚠️ **`v_bible899_verse_recomposed` ne sait pas pousser le filtre livre/chapitre.** Son `livre` et son `chapitre` sont des `COALESCE` de `split_part(canon_id, '.', n)` et de champs `metadata` : aucun index ne s'y applique. `EXPLAIN` sur Genèse 1 : **19 497 lignes écartées par le filtre pour 31 rendues**, 60 279 tampons touchés, 83 ms d'exécution. C'est tenable aujourd'hui, mais le coût croît avec le corpus, alors même qu'on ne demande qu'un chapitre. Le remède est côté base (colonnes matérialisées `livre`/`chapitre`, ou index d'expression), donc hors de ce dépôt.
+
+⚠️ **`versets_lecture.select('*')` reste VOLONTAIRE** (30 Ko pour Genèse 1, cinq traductions au lieu d'une). C'est le prix de l'échange de traduction instantané entre éditions canoniques, et le restreindre est un faux positif d'audit déjà consigné plus haut. Ne pas y revenir.
+
+⚠️ **Il n'y a pas de `app/loading.tsx` à la racine, et c'est un choix à faire, pas un oubli.** La page étant dynamique, le routeur garde l'écran précédent jusqu'à ce que tout soit prêt : rien ne répond au clic. Un `loading.tsx` donnerait une réponse immédiate mais remplacerait TOUTE la page, volets compris, à chaque changement de chapitre — un clignotement pire que l'attente. La bonne réponse serait un état d'attente LOCAL sur les flèches et le menu (`useTransition`), pas un squelette de page.
+
+⚠️ **En développement, la compilation à la demande domine tout le reste** et ne dit rien de la production. Mesurer sur le site en ligne avant de conclure : `/api/chiffres` (deux requêtes) y rend en 345 à 560 ms.
+
 # Page Œuvre — gouttière d'actions et alignement de la colonne de lecture
 
 La colonne de lecture est un conteneur `maxWidth: 35rem` centré. À droite, une gouttière d'environ **60px** est réservée à la colonne de boutons d'action (prélever, copier, signaler, éditer). Le CORPS DU TEXTE est donc `35rem − 60px`, et **tout doit s'y aligner** : page de titre (`PageTitre`, padding droit asymétrique `…110px…48px`), titres niv1/niv2 et fleuron (`paddingRight: gouttiereTitre = '60px'` en desktop, `undefined` en mobile), ET le texte lui-même.

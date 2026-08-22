@@ -276,27 +276,29 @@ async function loadBodyBlockTexts(
   })
 }
 
-async function loadBodyBlockInternalNotes(
+// ⚠️ Elle prend des IDENTIFIANTS, non des blocs déjà pourvus de leur texte : les
+// notes internes ne dépendent que de l'identité des blocs, connue dès le premier
+// tour de requêtes. Les faire attendre le texte ajoutait un aller-retour à une page
+// qui en compte déjà beaucoup, sans qu'aucune donnée ne l'exige.
+async function chargerNotesInternesParBloc(
   client: SupabaseClient,
-  blocks: BibleEditionBodyBlockPayload[],
-): Promise<BibleEditionBodyBlockPayload[]> {
-  if (blocks.length === 0) return blocks
-  const blockIds = blocks.map((block) => block.id)
+  blockIds: readonly string[],
+): Promise<Map<string, BibleEditionBodyBlockInternalNoteRow[]>> {
+  const parBloc = new Map<string, BibleEditionBodyBlockInternalNoteRow[]>()
+  if (blockIds.length === 0) return parBloc
   const { data, error } = await client
     .from('v_bible_editorial_body_block_notes')
     .select('*')
-    .in('body_block_id', blockIds)
+    .in('body_block_id', [...blockIds])
     .order('display_number')
-  if (isMissingBibleEditionRelation(error)) return blocks
+  if (isMissingBibleEditionRelation(error)) return parBloc
   if (error) throw new Error(`Apparat des blocs bibliques illisible : ${error.message}`)
-  const notes = (data ?? []) as BibleEditionBodyBlockInternalNoteRow[]
-  const notesByBlock = new Map<string, BibleEditionBodyBlockInternalNoteRow[]>()
-  for (const note of notes) {
-    const group = notesByBlock.get(note.body_block_id) ?? []
-    group.push(note)
-    notesByBlock.set(note.body_block_id, group)
+  for (const note of (data ?? []) as BibleEditionBodyBlockInternalNoteRow[]) {
+    const groupe = parBloc.get(note.body_block_id) ?? []
+    groupe.push(note)
+    parBloc.set(note.body_block_id, groupe)
   }
-  return blocks.map((block) => ({ ...block, internal_notes: notesByBlock.get(block.id) ?? [] }))
+  return parBloc
 }
 
 export async function loadBibleEditionChapter(
@@ -312,17 +314,14 @@ export async function loadBibleEditionChapter(
   const canonIds = [...new Set(options.canonIds)]
   if (canonIds.length === 0) return { bodyBlocks: [], notes: [], assets: [] }
 
-  const { data: canonData, error: canonError } = await client
-    .from('versets_canon')
-    .select('id,ordre')
-    .in('id', canonIds)
-  if (canonError) throw new Error(`Bornes canoniques illisibles : ${canonError.message}`)
-  const orders = ((canonData ?? []) as CanonOrderRow[]).map((row) => row.ordre)
-  if (orders.length === 0) return { bodyBlocks: [], notes: [], assets: [] }
-  const firstOrder = Math.min(...orders)
-  const lastOrder = Math.max(...orders)
-
-  const [bodyResult, notesResult, assetsResult] = await Promise.all([
+  // Les bornes canoniques ne conditionnent aucune des trois requêtes qui suivent :
+  // elles ne servent qu'à FILTRER leurs résultats. Elles partent donc avec elles,
+  // et non avant, ce qui retirait un aller-retour à chaque chapitre commenté.
+  const [canonResult, bodyResult, notesResult, assetsResult] = await Promise.all([
+    client
+      .from('versets_canon')
+      .select('id,ordre')
+      .in('id', canonIds),
     client
       .from('v_bible_editorial_body_blocks')
       .select('*')
@@ -342,6 +341,12 @@ export async function loadBibleEditionChapter(
       .eq('scope_book_code', options.bookCode)
       .order('material_order'),
   ])
+
+  if (canonResult.error) throw new Error(`Bornes canoniques illisibles : ${canonResult.error.message}`)
+  const orders = ((canonResult.data ?? []) as CanonOrderRow[]).map((row) => row.ordre)
+  if (orders.length === 0) return { bodyBlocks: [], notes: [], assets: [] }
+  const firstOrder = Math.min(...orders)
+  const lastOrder = Math.max(...orders)
 
   const missingError = [bodyResult.error, notesResult.error, assetsResult.error]
     .find((error) => isMissingBibleEditionRelation(error))
@@ -369,9 +374,12 @@ export async function loadBibleEditionChapter(
         || (asset.placement === 'after' && options.includeBookBackMatter === true)))
   ))
 
-  const bodyBlocks = await loadBodyBlockTexts(client, bodyRows)
+  const [bodyBlocks, notesInternes] = await Promise.all([
+    loadBodyBlockTexts(client, bodyRows),
+    chargerNotesInternesParBloc(client, bodyRows.map((row) => row.id)),
+  ])
   return {
-    bodyBlocks: await loadBodyBlockInternalNotes(client, bodyBlocks),
+    bodyBlocks: bodyBlocks.map((bloc) => ({ ...bloc, internal_notes: notesInternes.get(bloc.id) ?? [] })),
     notes,
     assets,
   }
