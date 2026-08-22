@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
@@ -35,6 +35,40 @@ export default function AdminClient({
   const [nbVerif, setNbVerif] = useState(nbVerifications)
   const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
+
+  // ── La roulette fait circuler la barre d'onglets ──────────────────────────
+  // La barre défile horizontalement, mais une roulette de souris n'émet que du deltaY :
+  // sans cela, il faudrait attraper le pouce, ou connaître Maj+roulette. On traduit donc
+  // le mouvement vertical en déplacement horizontal tant que le curseur survole la barre.
+  //
+  // ⛔ Le listener est posé À LA MAIN, en `passive: false`. React attache `wheel` sur la
+  // racine en PASSIF : un `onWheel={...}` en JSX ne pourrait pas appeler preventDefault,
+  // et la page défilerait sous la barre en même temps qu'elle. Le défaut serait discret
+  // et permanent — deux mouvements pour un seul geste.
+  //
+  // Deux gardes, et chacune rend la main au navigateur plutôt que de la prendre :
+  // quand la barre tient tout entière, rien à faire circuler, donc la page défile comme
+  // toujours ; et quand le geste porte DÉJÀ de l'horizontal (pavé tactile, roulette
+  // inclinable), on ne s'en mêle pas, le navigateur le fait mieux et plus doucement.
+  const refOnglets = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const barre = refOnglets.current
+    if (!barre) return
+    const surRoulette = (e: WheelEvent) => {
+      if (barre.scrollWidth <= barre.clientWidth) return
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
+      e.preventDefault()
+      // ⚠️ deltaY n'est PAS toujours en pixels : `deltaMode` vaut 1 pour des LIGNES
+      // (cas courant de Firefox sous Windows, où une crantée vaut 3) et 2 pour des
+      // PAGES. Pris tel quel, un cran de roulette ferait alors glisser la barre de trois
+      // pixels et l'on croirait le geste inopérant. Le rapport de comparaison avec deltaX
+      // reste juste, lui : les deux axes partagent la même unité.
+      const pas = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? barre.clientWidth : 1
+      barre.scrollLeft += e.deltaY * pas
+    }
+    barre.addEventListener('wheel', surRoulette, { passive: false })
+    return () => barre.removeEventListener('wheel', surRoulette)
+  }, [mobile])
 
   // Arrivée via ?onglet=<clé> : le menu Administration de la navbar renvoie à chaque
   // section. Toute clé d'onglet valide est acceptée (pas seulement « controle-oeuvres »).
@@ -125,9 +159,33 @@ export default function AdminClient({
       )}
 
       {/* Navigation des sections. Sticky sous la navbar. Sur mobile, la barre d'onglets
-          (14 entrées) s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace
-          par un menu déroulant groupé par famille (compact, natif). Sur desktop, la barre
-          d'outils inchangée : onglets clairs, grands, actif souligné de vert. */}
+          (15 entrées) s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace
+          par un menu déroulant groupé par famille (compact, natif).
+
+          Sur desktop, elle tient sur UNE SEULE LIGNE. Elle était en flex-wrap et se
+          repliait sur deux ou trois rangées, ce qui coûtait deux fois : la hauteur, prise
+          à un bandeau collant qui suit tout le défilement, et surtout la lecture, car une
+          barre d'onglets sur trois rangées n'est plus une barre mais une grille, où l'œil
+          ne sait plus si l'ordre se lit en lignes ou en colonnes. Le repliement est donc
+          refusé (nowrap) et le trop-plein défile horizontalement. C'est le même parti que
+          le menu « Administration » de la navbar : borner et faire défiler, jamais rogner
+          ni replier.
+
+          overflow-y reste HIDDEN, sans quoi le conteneur de défilement horizontal se
+          donnerait aussi une barre verticale pour trois pixels de soulignement.
+
+          MESURÉ sur les quinze onglets, à racine 16 : 2 042 px avant, 1 399 après, soit
+          un tiers rendu. La barre tient donc d'une pièce dès 1 440 px, la largeur où la
+          police racine commence à croître ; au-delà, les deux grandissent ensemble et
+          l'écart ne se referme jamais (1 676 px de barre pour 1 920 d'écran, 1 940 pour
+          2 400). En dessous de 1 440 elle défile, ce qui vaut mieux que de se replier.
+          Le tiers vient de trois postes : le corps passe de 1rem à 0,8125 (le rang de
+          l'échelle qui tient sans être illisible ; 0,75 aurait gagné 80 px de plus pour
+          un intitulé de douze pixels, marché refusé), les rembourrages de 12/14 à 9/8,
+          et la pastille de famille disparaît.
+
+          Rembourrage vertical ramené à 6px après coup : la barre rendait 42,5px de haut
+          et l'on ne demandait pas de la remplir, seulement de la traverser. */}
       {mobile ? (
         <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', padding: '8px 12px', boxShadow: 'var(--cs-ombre-posee)' }}>
           <label style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
@@ -143,19 +201,24 @@ export default function AdminClient({
           </select>
         </div>
       ) : (
-        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
+        <div ref={refOnglets} className="cs-defilement-discret" style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', overscrollBehaviorX: 'contain', padding: '2px 14px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
           {ONGLETS.map((o) => {
             const actif = onglet === o.key
             const coul = COUL_FAMILLE[o.famille]
             return (
               <React.Fragment key={o.key}>
                 {o.separateur && (
-                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: 'var(--cs-vert-pale)' }} />
+                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '16px', margin: '0 5px 9px', background: 'var(--cs-vert-pale)', flexShrink: 0 }} />
                 )}
+                {/* `flexShrink: 0` : en nowrap, un onglet se laisserait comprimer et son
+                    intitulé serait coupé par le `whiteSpace: nowrap` sans que rien ne le
+                    dise. Les onglets gardent donc leur largeur et c'est la barre qui défile.
+                    Plus de pastille de famille devant l'intitulé : sept pixels et leur
+                    gouttière sur quinze onglets, pour une couleur que l'onglet actif porte
+                    déjà dans son texte et son soulignement, et que les filets de séparation
+                    disent pour les autres. */}
                 <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                  style={{ padding: '12px 14px', fontSize: '1rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
-                  {/* Pastille de famille : division par couleur. */}
-                  <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', background: coul, flexShrink: 0, opacity: actif ? 1 : 0.55 }} />
+                  style={{ padding: '6px 8px', fontSize: '0.8125rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
                   {o.label}
                   {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
                 </button>
