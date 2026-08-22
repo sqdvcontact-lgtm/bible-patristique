@@ -159,7 +159,7 @@ function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSS
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
-      <div className="cs-plus-menu">
+      <div className="cs-plus-menu cs-defilement-discret">
         {LIENS_ALLER_PLUS_LOIN.map(l => (
           <Link key={l.href} href={l.href} className="cs-plus-lien">{l.label}</Link>
         ))}
@@ -180,7 +180,7 @@ function OngletAdministration({ label, style }: { label: string; style: React.CS
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
-      <div className="cs-plus-menu">
+      <div className="cs-plus-menu cs-defilement-discret">
         {FAMILLES_ADMIN.map((fam, i) => {
           const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
             .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
@@ -1143,7 +1143,7 @@ export default function Navbar() {
              overscroll-behavior:contain — sans lui, la molette poursuivie au bas de la liste
              emporte la PAGE, et le menu se ferme sous le curseur qui a bougé avec elle. */
           .cs-plus { position: relative; }
-          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem); scrollbar-width: thin; scrollbar-color: var(--cs-bord) transparent; z-index: 3000; padding: 3px; display: none; }
+          .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem); z-index: 3000; padding: 3px; display: none; }
           .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
              /* Interlignage POSÉ, et non hérité : c'est lui qui gouverne la hauteur d'une
              rangée, et sans lui le resserrement des rembourrages se serait fait manger par

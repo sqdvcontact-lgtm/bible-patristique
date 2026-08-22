@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
@@ -35,6 +35,40 @@ export default function AdminClient({
   const [nbVerif, setNbVerif] = useState(nbVerifications)
   const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
+
+  // ── La roulette fait circuler la barre d'onglets ──────────────────────────
+  // La barre défile horizontalement, mais une roulette de souris n'émet que du deltaY :
+  // sans cela, il faudrait attraper le pouce, ou connaître Maj+roulette. On traduit donc
+  // le mouvement vertical en déplacement horizontal tant que le curseur survole la barre.
+  //
+  // ⛔ Le listener est posé À LA MAIN, en `passive: false`. React attache `wheel` sur la
+  // racine en PASSIF : un `onWheel={...}` en JSX ne pourrait pas appeler preventDefault,
+  // et la page défilerait sous la barre en même temps qu'elle. Le défaut serait discret
+  // et permanent — deux mouvements pour un seul geste.
+  //
+  // Deux gardes, et chacune rend la main au navigateur plutôt que de la prendre :
+  // quand la barre tient tout entière, rien à faire circuler, donc la page défile comme
+  // toujours ; et quand le geste porte DÉJÀ de l'horizontal (pavé tactile, roulette
+  // inclinable), on ne s'en mêle pas, le navigateur le fait mieux et plus doucement.
+  const refOnglets = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const barre = refOnglets.current
+    if (!barre) return
+    const surRoulette = (e: WheelEvent) => {
+      if (barre.scrollWidth <= barre.clientWidth) return
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
+      e.preventDefault()
+      // ⚠️ deltaY n'est PAS toujours en pixels : `deltaMode` vaut 1 pour des LIGNES
+      // (cas courant de Firefox sous Windows, où une crantée vaut 3) et 2 pour des
+      // PAGES. Pris tel quel, un cran de roulette ferait alors glisser la barre de trois
+      // pixels et l'on croirait le geste inopérant. Le rapport de comparaison avec deltaX
+      // reste juste, lui : les deux axes partagent la même unité.
+      const pas = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? barre.clientWidth : 1
+      barre.scrollLeft += e.deltaY * pas
+    }
+    barre.addEventListener('wheel', surRoulette, { passive: false })
+    return () => barre.removeEventListener('wheel', surRoulette)
+  }, [mobile])
 
   // Arrivée via ?onglet=<clé> : le menu Administration de la navbar renvoie à chaque
   // section. Toute clé d'onglet valide est acceptée (pas seulement « controle-oeuvres »).
@@ -164,7 +198,7 @@ export default function AdminClient({
           </select>
         </div>
       ) : (
-        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', overscrollBehaviorX: 'contain', scrollbarWidth: 'thin', padding: '2px 14px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
+        <div ref={refOnglets} className="cs-defilement-discret" style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', overscrollBehaviorX: 'contain', padding: '2px 14px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
           {ONGLETS.map((o) => {
             const actif = onglet === o.key
             const coul = COUL_FAMILLE[o.famille]
