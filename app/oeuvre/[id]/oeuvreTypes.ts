@@ -42,7 +42,14 @@ export type GroupeData = {
 }
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
 export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }
-export type OeuvreResumee = { id_oeuvre: string; titre: string; note?: string | null }
+// Le titre seul ne suffit pas à nommer une œuvre : deux éditions d'un même texte le
+// partagent, normalisé, et « Du même auteur » en donnait alors deux lignes identiques.
+// Les champs d'édition suivent donc le titre partout où la liste doit départager.
+export type OeuvreResumee = {
+  id_oeuvre: string; titre: string; note?: string | null
+  trad_auteur?: string | null; editeur?: string | null; ville?: string | null
+  date_publication?: string | null; langue_originale?: string | null; langue_trad?: string | null
+}
 
 export type VersionTextuelle = {
   idTexte: string

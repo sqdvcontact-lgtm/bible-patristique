@@ -619,50 +619,57 @@ button:focus-visible,
 
 /* ── Barre de défilement discrète ───────────────────────────────────────────
    Une seule écriture pour tout ce qui défile dans le CHROME du site : la barre
-   d'onglets de l'administration, le menu déroulant de la navbar. Les zones de
+   d'onglets de l'administration, les menus déroulants de la navbar. Les zones de
    lecture gardent la barre du système, qui est celle que le lecteur connaît.
 
-   DEUX ÉCRITURES, ET UNE SEULE S'APPLIQUE À LA FOIS. `scrollbar-width` et
-   `scrollbar-color` sont la voie standard ; les pseudo-éléments `::-webkit-scrollbar`
-   sont l'ancienne. Elles ne se cumulent pas et ne se départagent pas par la
-   spécificité : dès qu'un navigateur comprend `scrollbar-color`, il prend la voie
-   standard et IGNORE les pseudo-éléments en bloc. Mesuré dans Chrome : la gouttière
-   rend 10px, la valeur de `thin`, et non les 8px déclarés plus bas. Les seconds ne
-   servent donc qu'aux navigateurs trop anciens pour la première, et c'est bien ainsi.
+   Deux paliers de couleur, parce qu'une barre de défilement doit se faire oublier
+   tant qu'on ne la cherche pas : à peine visible au repos, franche quand le curseur
+   entre dans la zone, nette quand il vient sur le pouce lui-même.
 
-   ⛔ Corollaire : les deux écritures doivent dire LA MÊME COULEUR. Rien ne signalera
+   ⛔ DEUX ÉCRITURES EXISTENT, ET UNE SEULE S'APPLIQUE À LA FOIS. `scrollbar-width`
+   et `scrollbar-color` sont la voie standard ; `::-webkit-scrollbar` est l'ancienne.
+   Elles ne se cumulent pas et ne se départagent pas par la spécificité : dès qu'un
+   navigateur comprend la première, il l'applique et IGNORE les pseudo-éléments en bloc.
+
+   ⛔ Conséquence, mesurée dans Chrome sur une même boîte : pseudo-éléments seuls, la
+   gouttière rend les 6px demandés ; qu'on ajoute `scrollbar-width: thin` et elle
+   remonte à 10, la valeur de `thin`, que rien ne permet d'affiner — le mot-clé n'a que
+   trois valeurs et aucune n'est un nombre. La voie standard est donc CONFINÉE aux
+   navigateurs dépourvus de pseudo-éléments, c'est-à-dire Firefox, faute de quoi Chrome
+   la préférerait et la barre reprendrait ses 10px.
+
+   ⚠️ Corollaire : les deux écritures doivent dire LA MÊME COULEUR. Rien ne signalera
    jamais qu'elles ont divergé, puisqu'un même navigateur n'en voit qu'une.
 
-   Dans la voie ancienne, le pouce est creusé dans sa gouttière par une bordure
-   transparente et un `background-clip: padding-box` : la gouttière garde ses 8px,
-   qu'il faut pour l'attraper à la souris, mais le trait n'en fait que 4.
+   Dans la voie WebKit, le pouce est creusé dans sa gouttière par une bordure
+   transparente et un `background-clip: padding-box` : la gouttière garde ses 6px, qu'il
+   faut pour l'attraper à la souris, mais le trait n'en fait que 4.
 
    ⚠️ Ses états se déclarent alors en `background-color`, jamais en `background` : la
    forme courte remet `background-clip` à `border-box`, et le pouce reprendrait toute la
    gouttière au premier survol — le trait épaissirait sous le curseur, ce qui est
-   exactement l'inverse de l'effet cherché.
-
-   Deux paliers, parce qu'une barre de défilement doit se faire oublier tant qu'on ne
-   la cherche pas : à peine visible au repos, franche quand le curseur entre dans la
-   zone, nette quand il vient sur le pouce lui-même. */
-.cs-defilement-discret {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--cs-vert-rgb), 0.22) transparent;
-}
-.cs-defilement-discret:hover,
-.cs-defilement-discret:focus-within { scrollbar-color: rgba(var(--cs-vert-rgb), 0.42) transparent; }
-.cs-defilement-discret::-webkit-scrollbar { width: 8px; height: 8px; }
+   exactement l'inverse de l'effet cherché. */
+.cs-defilement-discret::-webkit-scrollbar { width: 6px; height: 6px; }
 .cs-defilement-discret::-webkit-scrollbar-track { background-color: transparent; }
 .cs-defilement-discret::-webkit-scrollbar-corner { background-color: transparent; }
 .cs-defilement-discret::-webkit-scrollbar-thumb {
   background-color: rgba(var(--cs-vert-rgb), 0.22);
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   background-clip: padding-box;
   border-radius: 999px;
   transition: background-color 160ms ease;
 }
 .cs-defilement-discret:hover::-webkit-scrollbar-thumb { background-color: rgba(var(--cs-vert-rgb), 0.42); }
 .cs-defilement-discret::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--cs-vert-rgb), 0.6); }
+
+/* Firefox, et lui seul : la garde `not selector(::-webkit-scrollbar)` est ce qui tient
+   Chrome à l'écart de cette règle. */
+@supports (not selector(::-webkit-scrollbar)) {
+  .cs-defilement-discret { scrollbar-width: thin; scrollbar-color: rgba(var(--cs-vert-rgb), 0.22) transparent; }
+  .cs-defilement-discret:hover,
+  .cs-defilement-discret:focus-within { scrollbar-color: rgba(var(--cs-vert-rgb), 0.42) transparent; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cs-defilement-discret::-webkit-scrollbar-thumb { transition: none; }
 }

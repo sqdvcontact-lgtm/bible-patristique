@@ -182,7 +182,10 @@ export default function AdminClient({
           Le tiers vient de trois postes : le corps passe de 1rem à 0,8125 (le rang de
           l'échelle qui tient sans être illisible ; 0,75 aurait gagné 80 px de plus pour
           un intitulé de douze pixels, marché refusé), les rembourrages de 12/14 à 9/8,
-          et la pastille de famille disparaît. */}
+          et la pastille de famille disparaît.
+
+          Rembourrage vertical ramené à 6px après coup : la barre rendait 42,5px de haut
+          et l'on ne demandait pas de la remplir, seulement de la traverser. */}
       {mobile ? (
         <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', padding: '8px 12px', boxShadow: 'var(--cs-ombre-posee)' }}>
           <label style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
@@ -215,7 +218,7 @@ export default function AdminClient({
                     déjà dans son texte et son soulignement, et que les filets de séparation
                     disent pour les autres. */}
                 <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                  style={{ padding: '9px 8px', fontSize: '0.8125rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
+                  style={{ padding: '6px 8px', fontSize: '0.8125rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
                   {o.label}
                   {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
                 </button>

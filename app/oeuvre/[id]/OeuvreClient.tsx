@@ -1209,7 +1209,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   useEffect(() => {
     if (!auteurId) return
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, note')
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, note, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad')
     // Repli sur le premier auteur tant que les couples ne sont pas chargés (ou
     // s'ils n'ont pas pu l'être) : la liste reste peuplée, simplement sans les
     // co-signatures.
@@ -1314,6 +1314,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     }
     const trad = v.trad_auteur ? libelleTrad(v.trad_auteur) : (v.langue_trad || 'Français')
     return [trad, edit && `édition ${edit}`].filter(Boolean).join(', ')
+  }
+
+  // « Du même auteur » : la ligne qui DÉPARTAGE deux entrées. Le titre y reste
+  // normalisé, comme partout ailleurs, et deux éditions d'un même texte y portaient
+  // donc rigoureusement le même intitulé : la liste proposait deux liens que rien ne
+  // distinguait, et le lecteur ne pouvait que tirer au sort.
+  //
+  // On ne reprend pas `libelleEdition` tel quel : il TAIT la langue des traductions,
+  // sous-entendue française dans le sélecteur d'édition, où l'on ne compare que des
+  // sœurs du même texte. Ici les entrées sont des œuvres différentes, et la langue est
+  // justement l'une des trois choses qui les séparent. Elle vient donc en tête, puis le
+  // traducteur, puis l'édition.
+  const libelleDistinction = (o: OeuvreResumee): string => {
+    const edition = [formaterEditeur(o.editeur ?? null), o.ville, o.date_publication ? formaterDateHistorique(o.date_publication) : null].filter(Boolean).join(', ')
+    const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+    if (estEditionOriginale({ langue_trad: o.langue_trad ?? null, langue_originale: o.langue_originale ?? null })) {
+      const langue = /grec/i.test(o.langue_originale || '') ? 'Grec' : 'Latin'
+      return [langue, edition].filter(Boolean).join(' — ')
+    }
+    const langue = majuscule((o.langue_trad || '').trim() || 'Français')
+    const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : null
+    return [[langue, trad].filter(Boolean).join(', '), edition].filter(Boolean).join(' — ')
   }
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
@@ -1721,14 +1743,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </button>
               {auteurOuvert && (
                 <div style={{ padding: '0 16px 12px' }}>
-                  {oeuvresAuteur.map(o => (
-                    <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                      style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte)', textDecoration: 'none', padding: '3px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
-                      {o.titre}
-                    </a>
-                  ))}
+                  {oeuvresAuteur.map(o => {
+                    const distinction = libelleDistinction(o)
+                    return (
+                      <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
+                        style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte)', textDecoration: 'none', padding: '4px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
+                        {o.titre}
+                        {/* La ligne de distinction ne prend PAS la couleur de survol : le lien
+                            est le titre, et cette ligne le renseigne. Elle garde donc sa teinte
+                            faible, ce qui la tient au second rang même sous le curseur. */}
+                        {distinction && (
+                          <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', lineHeight: 1.3, marginTop: '1px' }}>{distinction}</span>
+                        )}
+                      </a>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -2884,8 +2915,10 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
   const peutAvancer = pageActuelle < total - 1
   return (
     <div style={{ paddingRight: '8px', paddingTop: bas ? '2.5rem' : '0', paddingBottom: bas ? '0.5rem' : '1.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, transparent, var(--cs-bord))' }} />
+      {/* Plus de filets de part et d'autre. Ils tiraient un trait sur toute la largeur de
+          la colonne pour annoncer trois signes, et faisaient du simple passage à la page
+          suivante une fin de chapitre. Le groupe se centre maintenant de lui-même. */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
           <button
             onClick={() => peutReculer && setPageActuelle(pageActuelle - 1)}
@@ -2894,8 +2927,12 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ‹
           </button>
-          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.02em', userSelect: 'none', minWidth: '80px', textAlign: 'center' }}>
-            {pageActuelle + 1} / {total}
+          {/* « sur » plutôt qu'une barre oblique. La barre est un signe de fraction : on y
+              lit d'abord un quart de quelque chose, et il faut un temps pour comprendre
+              qu'il s'agit d'une page dans un tout. Le rapport se lit, il ne se calcule
+              pas. */}
+          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.02em', userSelect: 'none', minWidth: '5.5rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+            {pageActuelle + 1} sur {total}
           </span>
           <button
             onClick={() => peutAvancer && setPageActuelle(pageActuelle + 1)}
@@ -2905,7 +2942,6 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             ›
           </button>
         </div>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to left, transparent, var(--cs-bord))' }} />
       </div>
     </div>
   )
