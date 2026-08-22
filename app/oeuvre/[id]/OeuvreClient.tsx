@@ -1327,15 +1327,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // justement l'une des trois choses qui les séparent. Elle vient donc en tête, puis le
   // traducteur, puis l'édition.
   const libelleDistinction = (o: OeuvreResumee): string => {
+    // Un SEUL séparateur entre les trois rangs, et il est nommé. La première écriture en
+    // avait deux : un tiret après la langue d'une édition originale, une virgule après
+    // celle d'une traduction, parce que les deux branches composaient leur chaîne chacune
+    // de son côté. Rien n'imposait qu'elles s'accordent, et elles ne s'accordaient pas.
+    // Les trois rangs sont maintenant assemblés au même endroit, par la même constante.
+    //
+    // La virgule reste À L'INTÉRIEUR du rang « édition », où elle sépare l'éditeur, la
+    // ville et la date : ce sont les parties d'une même mention, non trois rangs.
+    const SEP = ' — '
     const edition = [formaterEditeur(o.editeur ?? null), o.ville, o.date_publication ? formaterDateHistorique(o.date_publication) : null].filter(Boolean).join(', ')
     const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
-    if (estEditionOriginale({ langue_trad: o.langue_trad ?? null, langue_originale: o.langue_originale ?? null })) {
-      const langue = /grec/i.test(o.langue_originale || '') ? 'Grec' : 'Latin'
-      return [langue, edition].filter(Boolean).join(' — ')
-    }
-    const langue = majuscule((o.langue_trad || '').trim() || 'Français')
-    const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : null
-    return [[langue, trad].filter(Boolean).join(', '), edition].filter(Boolean).join(' — ')
+    const originale = estEditionOriginale({ langue_trad: o.langue_trad ?? null, langue_originale: o.langue_originale ?? null })
+    const langue = originale
+      ? (/grec/i.test(o.langue_originale || '') ? 'Grec' : 'Latin')
+      : majuscule((o.langue_trad || '').trim() || 'Français')
+    // Une édition en langue originale n'a pas de traducteur : si la donnée en porte un,
+    // c'est une scorie, et l'afficher ferait passer un texte original pour une traduction.
+    const trad = !originale && o.trad_auteur ? libelleTrad(o.trad_auteur) : null
+    return [langue, trad, edition].filter(Boolean).join(SEP)
   }
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
