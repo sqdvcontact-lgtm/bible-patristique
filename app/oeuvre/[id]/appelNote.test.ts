@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon, lireSuiteAppels, detacherDernierMot, separateurAppels } from './appelNote'
+import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon, lireSuiteAppels, detacherDernierMot, separateurAppels, rendreTexteAvecNotes } from './appelNote'
 
 // Écrite en toutes lettres : dans un fichier de test, une espace insécable
 // littérale ne se distingue pas d'une espace ordinaire à la lecture, et une
@@ -110,5 +110,50 @@ describe('deux notes qui se suivent', () => {
 
   it('n’avale pas un appel qu’une phrase entière sépare', () => {
     expect(lireSuiteAppels('mot[[2]]. Autre phrase[[3]]', 3).marqueurs).toEqual(['2'])
+  })
+})
+
+// ── Un appel ne part jamais seul à la ligne ──────────────────────────────────
+// Le mécanisme : l'appel voyage dans un `nowrap` avec le mot qui le précède. Ces tests
+// gardent le cas qui l’avait mis en défaut — un appel posé après une ITALIQUE, où le
+// nœud précédent est un ÉLÉMENT et non du texte, si bien qu’aucun mot n’était emmené.
+//
+// ⚠️ Mesuré avant de les écrire : sur 341 largeurs de colonne, l’appel après une italique
+// partait seul 126 fois. Une liaison de mots (U+2060) n’y changeait RIEN ; seul un
+// `nowrap` COMMUN aux deux y parvient — 0 fois sur 341.
+describe('l’appel emmène toujours ce qui le précède', () => {
+  const notes = { A1: 'une note' }
+  const texteDe = (n: any): string => {
+    if (n == null || typeof n === 'boolean') return ''
+    if (typeof n === 'string' || typeof n === 'number') return String(n)
+    if (Array.isArray(n)) return n.map(texteDe).join('')
+    return texteDe(n.props?.children)
+  }
+  const noeuds = (texte: string): any[] => {
+    const rendu = rendreTexteAvecNotes(texte, notes as any) as any
+    const enfants = rendu?.props?.children ?? rendu
+    return Array.isArray(enfants) ? enfants : [enfants]
+  }
+  const nowrap = (texte: string) => noeuds(texte).filter(n => n?.props?.style?.whiteSpace === 'nowrap').pop()
+
+  it('emmène le dernier mot quand il est du texte brut', () => {
+    expect(texteDe(nowrap('la gloire de Dieu[[A1]].'))).toContain('Dieu')
+  })
+
+  it('emmène le dernier mot d’une ITALIQUE avec l’appel', () => {
+    const bloc = nowrap('la <i>gloire de Dieu</i>[[A1]].')
+    expect(bloc).toBeTruthy()
+    expect(texteDe(bloc)).toContain('Dieu')
+  })
+
+  // ⛔ Sans quoi une italique d’une phrase entière deviendrait insécable.
+  it('laisse le DÉBUT de l’italique dehors, donc coupable', () => {
+    const dehors = noeuds('la <i>gloire de Dieu</i>[[A1]].').filter(n => n?.props?.style?.whiteSpace !== 'nowrap')
+    expect(dehors.map(texteDe).join('')).toContain('gloire de ')
+    expect(dehors.map(texteDe).join('')).not.toContain('Dieu')
+  })
+
+  it('emmène l’italique entière quand elle n’a qu’un mot', () => {
+    expect(texteDe(nowrap('la <i>gloire</i>[[A1]].'))).toContain('gloire')
   })
 })

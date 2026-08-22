@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Children, cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { sansPointFinal, normaliserTitreTechnique } from '@/app/lib/titres'
@@ -86,11 +86,25 @@ export function styleSeparateurAppels(variante: VarianteAppelNote = 'corps'): Re
 }
 
 // ── Ce qui voyage avec l’appel ───────────────────────────────────────────────
-// ⛔ Un appel ne se sépare JAMAIS du point qui le suit. L’appel est un
-// `inline-block` : le navigateur y voit une occasion de couper la ligne, en aval
-// comme en amont, et l’on a vu le point final tomber seul en tête de la ligne
-// suivante. Règle d’auteur : c’est interdit. L’appel voyage donc dans un
+// ⛔ Un appel ne se sépare JAMAIS du mot qui le précède ni du point qui le suit.
+// L’appel est un `inline-block` : le navigateur y voit une occasion de couper la
+// ligne, en aval comme en amont, et l’on a vu le point final tomber seul en tête de
+// la ligne suivante. Règle d’auteur : c’est interdit. L’appel voyage donc dans un
 // `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit.
+//
+// ⛔ Le mot à emmener n’est pas toujours du texte brut. Quand l’appel suit une
+// ITALIQUE, une emphase ou un lien, le nœud précédent est un ÉLÉMENT : on ne pouvait
+// lui prendre aucun mot, le `nowrap` ne contenait alors que l’appel, et celui-ci
+// repartait seul à la ligne. On coupe donc l’élément en deux — son début reste dehors,
+// son dernier mot entre dans le `nowrap`, dans un clone de lui-même. Deux `<em>` de
+// suite se lisent exactement comme un seul.
+//
+// ⚠️ Mesuré le 2026-08-22, et c’est ce qui a écarté la solution évidente : une LIAISON
+// DE MOTS (U+2060) glissée entre l’élément et l’appel ne change RIEN. Sur 341 largeurs
+// de colonne, l’appel part seul 47 fois, avec la liaison comme sans elle, et qu’il soit
+// `inline` ou `inline-block`. Un caractère ne supprime pas l’occasion de couper que
+// crée une frontière d’élément ; seul un `nowrap` COMMUN aux deux la supprime — 0 fois
+// sur 341 dans ce cas.
 //
 // Deux notes qui se suivent s’écrivent « 2 & 3 », esperluette entre les numéros
 // (deux exposants collés se liraient « vingt-trois ») ; au delà de deux,
@@ -332,11 +346,32 @@ export function rendreTexteAvecNotes(
       // rien de tout cela ne puisse se retrouver seul à la ligne.
       const { marqueurs, ponctuation, fin } = lireSuiteAppels(texteRendu, m.index)
       regex.lastIndex = fin
-      let attache = ''
+      let attache: React.ReactNode = ''
       const precedent = noeuds[noeuds.length - 1]
       if (typeof precedent === 'string') {
         const [avant, mot] = detacherDernierMot(precedent)
         if (mot) { noeuds[noeuds.length - 1] = avant; attache = mot }
+      } else if (isValidElement(precedent)) {
+        // Un élément : on lui prend son DERNIER MOT dans un clone, pour ne pas rendre
+        // toute l’emphase insécable — une italique peut courir sur une phrase entière.
+        //
+        // ⚠️ Ses enfants ne sont PAS une chaîne : le rendu est récursif, et une italique
+        // reçoit la LISTE de nœuds que lui rend le moteur. On regarde donc le dernier
+        // de ces enfants, et on ne coupe que s’il est du texte.
+        const enfants = Children.toArray((precedent.props as { children?: React.ReactNode }).children)
+        const queue = enfants[enfants.length - 1]
+        const [avant, mot] = typeof queue === 'string' ? detacherDernierMot(queue) : ['', '']
+        const debut = [...enfants.slice(0, -1), avant]
+        const debutHabite = debut.some(x => (typeof x === 'string' ? x.trim() !== '' : x != null))
+        if (mot && debutHabite) {
+          noeuds[noeuds.length - 1] = cloneElement(precedent, { key: k++ }, debut)
+          attache = cloneElement(precedent, { key: k++ }, mot)
+        } else {
+          // Un seul mot, ou une queue qui n’est pas du texte : l’élément entier entre
+          // dans le nowrap. Il est alors court par construction, ou insécable de nature.
+          noeuds.pop()
+          attache = precedent
+        }
       }
       const appels: React.ReactNode[] = []
       marqueurs.forEach((marqueur, rang) => {
