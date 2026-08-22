@@ -696,6 +696,14 @@ Trois workflows, et une leçon.
 
 **Vérification sans redimensionner la fenêtre** (Chrome maximisé refuse `resize_window`, les popups sont bloquées, `X-Frame-Options: DENY` interdit l'iframe) : rétrécir la RANGÉE de la barre (`rangee.style.width`) puis émettre un `resize` déclenche exactement la mesure et le repli. ⚠️ Dans un onglet en arrière-plan, `requestAnimationFrame` est gelé : la mesure ne s'exécute pas. Pour tester, remplacer temporairement `window.requestAnimationFrame` par un appel immédiat. En usage réel, l'image en attente se déclenche au retour sur l'onglet.
 
+**Recette complète, sans session** (2026-08-22, panneau navigateur). Hors session tout redirige vers `/chantier`, où la barre EXISTE dans le document mais est masquée par `body:has(.cs-ouverture) [data-cs-navbar] { display: none !important }`. Trois écueils, dans l'ordre où on les rencontre :
+
+1. **La démasquer demande plus de spécificité, pas seulement un `!important`.** Entre deux déclarations `!important`, c'est la plus spécifique qui l'emporte : `[data-cs-navbar]{display:block!important}` (0,1,0) perd contre (0,2,1). Il faut `html body:has(.cs-ouverture) [data-cs-navbar]`.
+2. **Poser la règle dans une feuille, jamais en style inline.** Un `element.style.display` est effacé au premier rendu de React, et le rendu suivant arrive précisément parce qu'on vient de déclencher une mesure.
+3. **Un événement `resize` = un cran, à condition de rendre `requestAnimationFrame` immédiat, puis de le RENDRE au natif.** L'effet se rejoue sur `cran` et reprogramme une mesure : tant que le rAF est immédiat, le repli cascade jusqu'au dernier cran. Pour s'arrêter au cran N : patcher le rAF, émettre N `resize`, restaurer le rAF natif (gelé dans un onglet d'arrière-plan, donc la cascade s'interrompt). Et **lire l'état dans un appel SÉPARÉ** : React n'a pas encore rendu au retour de la fonction qui a émis les événements.
+
+⚠️ **Une capture d'écran exige que le panneau soit AFFICHÉ** : replié, la page ne compose aucune image et la demande expire au bout de cinq secondes. Les mesures par `getBoundingClientRect`, elles, restent exactes — c'est la voie sûre. Pour prouver un rognage, mesurer la part visible d'un segment : `min(seg.right, bloc.right) - seg.left`, comparée à `seg.width`.
+
 # Portraits d'auteurs — format et emplacement
 
 Le portrait d'un auteur vit dans le bucket Supabase **`auteurs`**, sous le nom **`<id_auteur>.jpg`** (ex. `A0047.jpg` pour Grégoire de Nazianze). C'est la seule source lue par le site : `ModaleAuteur`, `ApercuAuteur`, `BibliothequeClient` et l'admin composent tous l'URL `…/storage/v1/object/public/auteurs/<id>.jpg`. Le dossier `public/auteurs/` du dépôt est un reliquat d'un ancien lot, il n'est plus servi.
