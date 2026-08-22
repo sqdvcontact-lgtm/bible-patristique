@@ -26,6 +26,8 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
+import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
+import { citationBiblique } from "@/app/lib/citation";
 import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
@@ -1388,6 +1390,8 @@ export default function PolyglottePage() {
                           on signale donc sur sa numérotation d'origine. */}
                       {r && sc.trad && (
                         <span className="poly-cellact" onClick={e => e.stopPropagation()}>
+                          <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"
+                            texte={citationBiblique(r.texte ?? "", `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`)} />
                           <BoutonSignalerVerset refLisible={`${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`} texte={r.texte ?? undefined} />
                         </span>
                       )}
@@ -1530,6 +1534,8 @@ export default function PolyglottePage() {
                             {cs.length > 0 && !lacuneCell && (
                               <span className="poly-cellact" onClick={e => e.stopPropagation()}>
                                 <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
+                                <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"
+                                  texte={citationBiblique(texteCell ?? "", refLisible)} />
                                 <BoutonSignalerVerset refLisible={refLisible} texte={texteCell} />
                               </span>
                             )}
