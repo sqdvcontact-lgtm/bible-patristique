@@ -7,6 +7,12 @@ import { supabase } from "@/app/lib/supabase";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import {
+  chargerTextesPrelevementsAelf,
+  chapitreLabelPrelevement,
+  versetLabelPrelevement,
+  TRADUCTIONS_PRELEVEMENTS_AELF,
+} from '@/app/lib/prelevementsBibleAelf'
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -17,6 +23,8 @@ type Prelevement = {
   id: string; type: TypePrelevement;
   ref_livre?: string; ref_livre_abr?: string;
   ref_chapitre?: number; ref_verset?: number;
+  ref_chapitre_label?: string | null; ref_verset_label?: string | null;
+  aelf_version_id?: string | null; aelf_entry_id?: string | null; aelf_reference?: string | null;
   texte: string; traduction?: string;
   auteur?: string; titre_oeuvre?: string;
   ref_niv1?: string; ref_niv2?: string;
@@ -33,8 +41,9 @@ type OeuvreInfo = {
 };
 
 type GroupeBiblique = {
-  ids: string[]; ref_livre: string; ref_livre_abr: string;
-  ref_chapitre: number; verset_debut: number; verset_fin: number;
+  ids: string[]; entryIds: string[]; ref_livre: string; ref_livre_abr: string;
+  chapitreLabel: string; versetDebutLabel: string; versetFinLabel: string;
+  versetDebutNum: number | null; versetFinNum: number | null;
   textes: string[]; traduction?: string;
 };
 
@@ -82,13 +91,18 @@ const CODE_PAR_ABREV: Record<string, string> = {
   "1Jn":"1JN","2Jn":"2JN","3Jn":"3JN",Jude:"JUD",Ap:"REV",
 };
 
+function entierLabel(label: string): number | null {
+  return /^\d+$/.test(label) ? Number.parseInt(label, 10) : null;
+}
+
 function trierBibliques(list: Prelevement[]): Prelevement[] {
   return [...list].sort((a, b) => {
     const oa = ABREV_ORDRE[a.ref_livre_abr ?? ""] ?? 99;
     const ob = ABREV_ORDRE[b.ref_livre_abr ?? ""] ?? 99;
     if (oa !== ob) return oa - ob;
-    if ((a.ref_chapitre ?? 0) !== (b.ref_chapitre ?? 0)) return (a.ref_chapitre ?? 0) - (b.ref_chapitre ?? 0);
-    return (a.ref_verset ?? 0) - (b.ref_verset ?? 0);
+    const ch = chapitreLabelPrelevement(a).localeCompare(chapitreLabelPrelevement(b), "fr", { numeric: true });
+    if (ch) return ch;
+    return versetLabelPrelevement(a).localeCompare(versetLabelPrelevement(b), "fr", { numeric: true });
   });
 }
 
@@ -106,24 +120,51 @@ function agglomererBibliques(sorted: Prelevement[]): GroupeBiblique[] {
   const groupes: GroupeBiblique[] = [];
   for (const p of sorted) {
     const abr = p.ref_livre_abr ?? "";
-    const ch = p.ref_chapitre ?? 0;
-    const v = p.ref_verset ?? 0;
+    const ch = chapitreLabelPrelevement(p);
+    const v = versetLabelPrelevement(p);
+    const vNum = entierLabel(v);
     const last = groupes[groupes.length - 1];
-    if (last && last.ref_livre_abr === abr && last.ref_chapitre === ch && last.verset_fin + 1 === v) {
-      last.ids.push(p.id); last.verset_fin = v; last.textes.push(p.texte);
+    if (
+      last
+      && last.ref_livre_abr === abr
+      && last.chapitreLabel === ch
+      && last.versetFinNum != null
+      && vNum != null
+      && last.versetFinNum + 1 === vNum
+    ) {
+      last.ids.push(p.id);
+      if (p.aelf_entry_id) last.entryIds.push(p.aelf_entry_id);
+      last.versetFinLabel = v;
+      last.versetFinNum = vNum;
+      last.textes.push(p.texte);
     } else {
-      groupes.push({ ids: [p.id], ref_livre: p.ref_livre ?? "", ref_livre_abr: abr, ref_chapitre: ch, verset_debut: v, verset_fin: v, textes: [p.texte], traduction: p.traduction });
+      groupes.push({
+        ids: [p.id], entryIds: p.aelf_entry_id ? [p.aelf_entry_id] : [],
+        ref_livre: p.ref_livre ?? "", ref_livre_abr: abr,
+        chapitreLabel: ch, versetDebutLabel: v, versetFinLabel: v,
+        versetDebutNum: vNum, versetFinNum: vNum,
+        textes: [p.texte], traduction: p.traduction,
+      });
     }
   }
   return groupes;
 }
 
 function refBiblique(g: GroupeBiblique): string {
-  const base = `${g.ref_livre_abr} ${g.ref_chapitre}, ${g.verset_debut}`;
-  return g.verset_debut === g.verset_fin ? base : `${base}–${g.verset_fin}`;
+  const base = `${g.ref_livre_abr} ${g.chapitreLabel}, ${g.versetDebutLabel}`;
+  return g.versetDebutLabel === g.versetFinLabel ? base : `${base}–${g.versetFinLabel}`;
 }
 
 function texteGroupe(g: GroupeBiblique): string { return g.textes.join(" "); }
+
+function urlGroupeBiblique(g: GroupeBiblique, traduction: string): string {
+  const livre = CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr;
+  const base = `/?livre=${encodeURIComponent(livre)}&chapitre=${encodeURIComponent(g.chapitreLabel)}&trad=${encodeURIComponent(traduction)}`;
+  const entryId = g.entryIds[0];
+  return entryId
+    ? `${base}&verset=${encodeURIComponent(g.versetDebutLabel)}#verset-${entryId}`
+    : `${base}&verset=${encodeURIComponent(g.versetDebutLabel)}`;
+}
 
 function grouper<T>(list: T[], key: (item: T) => string): { label: string; items: T[] }[] {
   const map = new Map<string, T[]>();
@@ -294,19 +335,22 @@ export default function PrelevementsPage() {
       setUserId(uid);
       const [{ data: rows }, { data: trads }, { data: profil }] = await Promise.all([
         supabase
-          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
+          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, ref_chapitre_label, ref_verset_label, aelf_version_id, aelf_entry_id, aelf_reference, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
-        supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true }),
+        supabase.from("v_aelf_bible_search_translations").select("trad_id, nom, ordre").order("ordre", { ascending: true }),
         supabase.from("profils").select("traduction_defaut, citation_preferee").eq("id", uid).maybeSingle(),
       ]);
       // La base fait foi (visible sur le profil public) ; le localStorage n'est qu'un repli.
       if (profil?.citation_preferee) setCitationPreferee(profil.citation_preferee as CitationPreferee);
-      const prelevsData = rows ?? [];
+      const prelevsData = (rows ?? []) as Prelevement[];
       setPrelevements(prelevsData);
       const listeTraductions = (trads ?? []).map(t => ({ code: t.trad_id, label: t.nom }));
       setTraductions(listeTraductions);
-      const defaut = profil?.traduction_defaut || (typeof window !== "undefined" ? localStorage.getItem("traduction_defaut") : null) || listeTraductions[0]?.code || "TR0001";
+      const souhaitee = profil?.traduction_defaut || (typeof window !== "undefined" ? localStorage.getItem("traduction_defaut") : null);
+      const defaut = souhaitee && TRADUCTIONS_PRELEVEMENTS_AELF.includes(souhaitee as typeof TRADUCTIONS_PRELEVEMENTS_AELF[number])
+        ? souhaitee
+        : listeTraductions[0]?.code || "TR0001";
       setTraductionActive(defaut);
       setChargement(false);
 
@@ -325,31 +369,27 @@ export default function PrelevementsPage() {
 
   useEffect(() => {
     const chargerTextes = async () => {
-      const bibliquesActuels = prelevements.filter(p => p.type === "biblique");
+      const bibliquesActuels = prelevements.filter(p => p.type === "biblique" && p.aelf_entry_id);
       if (bibliquesActuels.length === 0) { setTextesTraduits({}); return; }
-      const clauses = bibliquesActuels
-        .map(p => {
-          const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""] ?? "";
-          if (!livre || !p.ref_chapitre || !p.ref_verset) return "";
-          return `and(livre.eq.${livre},chapitre.eq.${p.ref_chapitre},verset.eq.${p.ref_verset})`;
-        })
-        .filter(Boolean);
-      if (clauses.length === 0) { setTextesTraduits({}); return; }
       const colonne = traductions.some(t => t.code === traductionActive) ? traductionActive : "TR0001";
-      const batches: string[][] = [];
-      for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80));
-      const results = await Promise.all(
-        batches.map(batch => supabase.from("versets_lecture").select(`livre, chapitre, verset, "${colonne}"`).or(batch.join(",")))
-      );
-      const map: Record<string, string> = {};
-      results.forEach(({ data }) => {
-        (data ?? []).forEach((v: any) => {
-          map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
-        });
-      });
-      setTextesTraduits(map);
+      try {
+        const textesParEntree = await chargerTextesPrelevementsAelf(
+          bibliquesActuels.map(p => p.aelf_entry_id as string),
+        );
+        const map: Record<string, string> = {};
+        for (const p of bibliquesActuels) {
+          const entryId = p.aelf_entry_id as string;
+          const texte = textesParEntree.get(entryId)?.[colonne];
+          if (texte) map[entryId] = texte;
+        }
+        setTextesTraduits(map);
+      } catch {
+        // Une citation ancienne ou momentanément non résolue conserve son texte enregistré :
+        // on ne retombe jamais silencieusement sur les coordonnées du canon historique.
+        setTextesTraduits({});
+      }
     };
-    chargerTextes();
+    void chargerTextes();
   }, [prelevements, traductionActive, traductions]);
 
   const supprimerIds = async (ids: string[]) => {
@@ -363,8 +403,7 @@ export default function PrelevementsPage() {
   };
 
   const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
-    const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""];
-    const texteTraduit = livre ? textesTraduits[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
+    const texteTraduit = p.aelf_entry_id ? textesTraduits[p.aelf_entry_id] : null;
     return texteTraduit ? { ...p, texte: texteTraduit } : p;
   }));
   const patristiques = trierPatristiques(prelevements.filter(p => p.type === "patristique"));
@@ -528,7 +567,7 @@ export default function PrelevementsPage() {
                           <div className="prel-actions">
                             <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
                             <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
-                            <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
+                            <BoutonLien href={urlGroupeBiblique(g, traductionActive)} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
                           </div>
                         </div>
