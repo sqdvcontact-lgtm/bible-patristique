@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
-import type { CitationPreferee } from '@/app/prelevements/page'
+import { MarqueCitation, type CitationPreferee } from '@/app/components/CitationPreferee'
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import ModalSignalement from '@/app/components/ModalSignalement'
 
@@ -27,11 +27,11 @@ type ProfilPublic = {
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
 
 // ── Filet ornemental ─────────────────────────────────────────────────────────
-function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: string; maxWidth?: string }) {
+function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: React.ReactNode; maxWidth?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth, margin: '0 auto' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${couleur})` }} />
-      <span style={{ fontSize: '0.5625rem', color: couleur, letterSpacing: '0.18em' }}>{symbole}</span>
+      <span style={{ fontSize: '0.5625rem', color: couleur, letterSpacing: '0.18em', display: 'inline-flex', alignItems: 'center' }}>{symbole}</span>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to left, transparent, ${couleur})` }} />
     </div>
   )
@@ -305,7 +305,10 @@ export default function ProfilPublicPage() {
         {/* ── CITATION PRÉFÉRÉE ─────────────────────────────────────────────── */}
         {citationPreferee && (
           <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
-            <Filet couleur='#c8a858' symbole='★' maxWidth='80px' />
+            {/* La marque de la citation favorite, la même qu'à « Mes citations ».
+                L'étoile qui tenait cette place dit « favori » partout ailleurs sur
+                le site (œuvres, versets) : elle promettait ici une autre action. */}
+            <Filet couleur='#c8a858' symbole={<MarqueCitation taille={13} />} maxWidth='80px' />
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-fort)', lineHeight: 1.45, margin: '10px 0 8px' }}>
               «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
             </p>

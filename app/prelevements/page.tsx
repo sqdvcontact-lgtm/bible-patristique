@@ -7,6 +7,13 @@ import { supabase } from "@/app/lib/supabase";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { colorMix } from "@/app/lib/couleurs";
+import { codesTraductionsLecture } from "@/app/lib/traductions";
+import { useSansSurvol } from "@/app/lib/useEstMobile";
+import {
+  BoutonCitationPreferee, MarqueCitation, ModaleRemplacerCitation,
+  type CitationPreferee,
+} from "@/app/components/CitationPreferee";
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -38,10 +45,10 @@ type GroupeBiblique = {
   textes: string[]; traduction?: string;
 };
 
-export type CitationPreferee = {
-  id: string; texte: string; type: "biblique" | "patristique";
-  ref?: string; auteur?: string; titre_oeuvre?: string;
-}
+// Le type vit désormais dans `app/components/CitationPreferee.tsx`, avec la marque
+// et la fenêtre de remplacement. Réexporté ici : le profil public l'importait de
+// cette page, et une page n'a pas à servir de module de types.
+export type { CitationPreferee }
 
 const ABREV_ORDRE: Record<string, number> = {
   Gn:1,Ex:2,Lv:3,Nb:4,Dt:5,Jos:6,Jg:7,Rt:8,"1S":9,"2S":10,"1R":11,"2R":12,
@@ -178,30 +185,6 @@ function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
   );
 }
 
-function BoutonCoeur({ active, onClick }: { active: boolean; onClick: (e: React.MouseEvent) => void }) {
-  const c = active ? "var(--cs-or)" : "var(--cs-or-doux)";
-  const cf = active ? "var(--cs-or)" : "none";
-  return (
-    <button onClick={onClick} className={`prel-action prel-coeur${active ? " prel-coeur-active" : ""}`}
-      title={active ? "Retirer comme citation préférée" : "Marquer comme citation préférée"}
-      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <svg width="13" height="15" viewBox="0 0 12 15" fill="none" aria-hidden="true" style={{ display: "block" }}>
-        {/* Croix */}
-        <line x1="6" y1="0.3" x2="6" y2="2.6" stroke={c} strokeWidth="1" strokeLinecap="round"/>
-        <line x1="4.7" y1="1.5" x2="7.3" y2="1.5" stroke={c} strokeWidth="1" strokeLinecap="round"/>
-        {/* Flamme */}
-        <path d="M6 2.8C6 2.8 4.8 4 4.8 5C4.8 5.7 5.3 6.1 6 6.1C6.7 6.1 7.2 5.7 7.2 5C7.2 4 6 2.8 6 2.8z" fill={c} opacity={active ? "0.85" : "0.45"}/>
-        {/* Couronne d'épines */}
-        <path d="M2.5 8.8Q3 7.8 3.5 8.7Q4 7.5 4.5 8.5Q5 7.8 5.5 8.5Q6 7.8 6.5 8.5Q7 7.5 7.5 8.7Q8 7.8 8.5 8.8Q9 7.6 9.5 8.8" stroke={c} strokeWidth="0.7" fill="none" strokeLinecap="round"/>
-        {/* Cœur */}
-        <path d="M6 14.5C6 14.5 0.5 10.5 0.5 7.2A2.8 2.8 0 0 1 6 5.7A2.8 2.8 0 0 1 11.5 7.2C11.5 10.5 6 14.5 6 14.5z"
-          fill={cf} opacity={active ? "0.88" : "1"}
-          stroke={c} strokeWidth="1" strokeLinejoin="round"/>
-      </svg>
-    </button>
-  );
-}
-
 function BoutonLien({ href }: { href: string }) {
   return (
     <Link href={href} className="prel-action" title="Accéder au passage" style={{ textDecoration: "none" }}>
@@ -219,7 +202,7 @@ function GroupeRepliable({ label, count, ouvert, onToggle, children }: {
 }) {
   return (
     <div style={{ borderTop: "2px solid var(--cs-or-doux)" }}>
-      <button onClick={onToggle}
+      <button onClick={onToggle} aria-expanded={ouvert}
         style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(var(--cs-vert-rgb),0.05)", border: "none", cursor: "pointer", padding: "11px 10px 10px", width: "100%", textAlign: "left" }}>
         <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {label}
@@ -248,7 +231,13 @@ export default function PrelevementsPage() {
   const [traductionActive, setTraductionActive] = useState("TR0001");
   const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
   const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null);
+  // Citation qu'on vient de désigner alors qu'une autre était déjà portée : elle
+  // attend la réponse à « Voulez-vous remplacer votre citation favorite ? ».
+  const [remplacementPropose, setRemplacementPropose] = useState<CitationPreferee | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  // ⚠️ Le critère est la capacité du pointeur, pas la largeur de l'écran : la
+  // gouttière d'actions ne paraissait qu'au survol, donc jamais au doigt.
+  const sansSurvol = useSansSurvol();
 
   // Résoudre un code de traduction (TR0003) ou un nom brut en nom lisible
   const nomTraduction = (val?: string | null): string | null => {
@@ -274,17 +263,21 @@ export default function PrelevementsPage() {
     } catch {}
   }, []);
 
-  const marquerPreferee = (pref: CitationPreferee) => {
-    if (citationPreferee?.id === pref.id) {
-      localStorage.removeItem("cs_citation_preferee");
-      setCitationPreferee(null);
-      if (userId) supabase.from("profils").update({ citation_preferee: null }).eq("id", userId);
-    } else {
-      localStorage.setItem("cs_citation_preferee", JSON.stringify(pref));
-      setCitationPreferee(pref);
-      // Persistée en base pour être visible sur le profil public.
-      if (userId) supabase.from("profils").update({ citation_preferee: pref }).eq("id", userId);
-    }
+  // L'écriture, sans question : localStorage (repli hors ligne) + base (profil public).
+  const inscrirePreferee = (pref: CitationPreferee | null) => {
+    if (pref) localStorage.setItem("cs_citation_preferee", JSON.stringify(pref));
+    else localStorage.removeItem("cs_citation_preferee");
+    setCitationPreferee(pref);
+    if (userId) supabase.from("profils").update({ citation_preferee: pref }).eq("id", userId);
+  };
+
+  // Le geste, avec ses trois cas. Reprendre la citation déjà portée la retire ;
+  // en désigner une autre quand une place est occupée demande d'abord confirmation,
+  // parce que le remplacement défait un choix qui paraît sur le profil public.
+  const choisirPreferee = (pref: CitationPreferee) => {
+    if (citationPreferee?.id === pref.id) { inscrirePreferee(null); return; }
+    if (citationPreferee) { setRemplacementPropose(pref); return; }
+    inscrirePreferee(pref);
   };
 
   useEffect(() => {
@@ -292,21 +285,31 @@ export default function PrelevementsPage() {
       if (!data.session) { router.push("/chantier"); return; }
       const uid = data.session.user.id;
       setUserId(uid);
-      const [{ data: rows }, { data: trads }, { data: profil }] = await Promise.all([
+      const [{ data: rows }, { data: trads }, { data: profil }, lisibles] = await Promise.all([
         supabase
           .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
         supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true }),
         supabase.from("profils").select("traduction_defaut, citation_preferee").eq("id", uid).maybeSingle(),
+        codesTraductionsLecture(supabase),
       ]);
       // La base fait foi (visible sur le profil public) ; le localStorage n'est qu'un repli.
       if (profil?.citation_preferee) setCitationPreferee(profil.citation_preferee as CitationPreferee);
       const prelevsData = rows ?? [];
       setPrelevements(prelevsData);
-      const listeTraductions = (trads ?? []).map(t => ({ code: t.trad_id, label: t.nom }));
+      // ⚠️ Le menu ne peut proposer que des traductions RÉELLEMENT présentes comme
+      // colonnes de `versets_lecture`. En nommer une autre (TR0009, dont le texte
+      // est recomposé ailleurs) fait échouer TOUTE la requête PostgREST : le texte
+      // de chaque verset prélevé retombait alors en silence sur celui d'origine.
+      // Charte, § Traductions lisibles vs colonnes de `versets_lecture`.
+      const codesLisibles = new Set(lisibles);
+      const listeTraductions = (trads ?? [])
+        .map(t => ({ code: t.trad_id, label: t.nom }))
+        .filter(t => codesLisibles.has(t.code));
       setTraductions(listeTraductions);
-      const defaut = profil?.traduction_defaut || (typeof window !== "undefined" ? localStorage.getItem("traduction_defaut") : null) || listeTraductions[0]?.code || "TR0001";
+      const souhaitee = profil?.traduction_defaut || (typeof window !== "undefined" ? localStorage.getItem("traduction_defaut") : null);
+      const defaut = (souhaitee && codesLisibles.has(souhaitee) ? souhaitee : null) || listeTraductions[0]?.code || "TR0001";
       setTraductionActive(defaut);
       setChargement(false);
 
@@ -355,11 +358,8 @@ export default function PrelevementsPage() {
   const supprimerIds = async (ids: string[]) => {
     await supabase.from("prelevements").delete().in("id", ids);
     setPrelevements(prev => prev.filter(p => !ids.includes(p.id)));
-    if (citationPreferee && ids.includes(citationPreferee.id)) {
-      localStorage.removeItem("cs_citation_preferee");
-      setCitationPreferee(null);
-      if (userId) supabase.from("profils").update({ citation_preferee: null }).eq("id", userId);
-    }
+    if (citationPreferee && ids.includes(citationPreferee.id)) inscrirePreferee(null);
+    if (remplacementPropose && ids.includes(remplacementPropose.id)) setRemplacementPropose(null);
   };
 
   const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
@@ -409,26 +409,37 @@ export default function PrelevementsPage() {
         .prel-item:last-child { border-bottom: none; }
         .prel-item:hover { background: rgba(var(--cs-vert-rgb),0.03); }
 
-        /* Citation préférée — encadrement doré complet */
+        /* Citation favorite — encadrement doré complet.
+           ⚠️ L'or passe par le TOKEN, plus par ses composantes en dur : la teinte
+           suit désormais le thème (Sépia, Cuir) comme le reste de la page. */
         .prel-pref {
-          background: rgba(154,122,56,0.07) !important;
+          background: ${colorMix('var(--cs-or)', 8)} !important;
           border-left: none !important;
-          box-shadow: inset 0 0 0 1.5px rgba(184,160,80,0.55) !important;
+          box-shadow: inset 0 0 0 1.5px ${colorMix('var(--cs-or)', 50)} !important;
           border-radius: 4px;
           margin: 2px 0;
         }
         .prel-pref .prel-actions { opacity: 1 !important; }
 
+        /* La gouttière d'actions ne paraissait qu'au survol : hors d'atteinte au
+           doigt, et invisible au clavier. Elle vient donc aussi au focus, et
+           reste posée en permanence sur un écran tactile (.prel-tactile). */
         .prel-actions { display: flex; gap: 0; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
-        .prel-item:hover .prel-actions { opacity: 1; }
+        .prel-item:hover .prel-actions,
+        .prel-item:focus-within .prel-actions { opacity: 1; }
+        .prel-tactile .prel-actions { opacity: 1; }
         .prel-action { background: none; border: none; cursor: pointer; color: var(--cs-texte-faible); padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
         .prel-action:hover { color: var(--cs-vert); }
-        .prel-coeur-active { color: var(--cs-or) !important; opacity: 1 !important; }
+        /* La marque de la citation favorite est d'or, jamais du vert des actions :
+           elle ne fait pas la même chose qu'elles. */
+        .prel-marque { color: var(--cs-or-doux); }
+        .prel-marque:hover { color: var(--cs-or); }
+        .prel-marque-active { color: var(--cs-or) !important; opacity: 1 !important; }
         .prel-confirm { font-size:0.65625rem; color: var(--cs-texte-doux); display: flex; align-items: center; white-space: nowrap; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
           font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
-          color: #5a4e3a; background: transparent; border: none;
+          color: var(--cs-texte-second); background: transparent; border: none;
           border-bottom: 1px solid var(--cs-or-doux); padding: 3px 20px 3px 0;
           cursor: pointer; outline: none; text-align: center;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%239a8a72'/%3E%3C/svg%3E");
@@ -445,12 +456,15 @@ export default function PrelevementsPage() {
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: "0 0 10px", letterSpacing: "0.015em" }}>
             Mes citations
           </h1>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", maxWidth: "13rem", margin: "2px auto 12px" }}>
+          {/* Filet à quadrilobe. C'est la MÊME marque que le bouton de choix dans
+              la liste : l'emblème de la page enseigne le geste, sans mode d'emploi.
+              Un tracé, donc, et non plus une vignette matricielle qui se crénelait. */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", maxWidth: "13rem", margin: "2px auto 12px", color: "var(--cs-or-doux)" }}>
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
-            <img src="/icons/sacre-coeur.png" alt="" aria-hidden="true" style={{ height: "26px", width: "auto", display: "block" }} />
+            <MarqueCitation taille={17} />
             <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
           </div>
-          <p style={{ fontSize: "0.65625rem", color: "#b8a888", margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: "0.04em" }}>
+          <p style={{ fontSize: "0.65625rem", color: "var(--cs-or-doux)", margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: "0.04em" }}>
             {prelevements.length} citation{prelevements.length > 1 ? "s" : ""} enregistrée{prelevements.length > 1 ? "s" : ""}
           </p>
         </div>
@@ -510,7 +524,7 @@ export default function PrelevementsPage() {
                       const estPref = citationPreferee?.id === g.ids[0];
                       const nomTrad = nomTraduction(g.traduction);
                       return (
-                        <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}`}>
+                        <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texte)))}&#8201;»
@@ -526,7 +540,7 @@ export default function PrelevementsPage() {
                             </p>
                           </div>
                           <div className="prel-actions">
-                            <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
                             <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
                             <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
@@ -571,7 +585,7 @@ export default function PrelevementsPage() {
                     {items.map(p => {
                       const estPref = citationPreferee?.id === p.id;
                       return (
-                        <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}`}>
+                        <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(p.texte)))}&#8201;»
@@ -585,7 +599,7 @@ export default function PrelevementsPage() {
                             )}
                           </div>
                           <div className="prel-actions">
-                            <BoutonCoeur active={estPref} onClick={e => { e.stopPropagation(); marquerPreferee({ id: p.id, texte: p.texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, texte: p.texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
                             <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(p.texte), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
                             {p.id_oeuvre && (
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
@@ -603,6 +617,17 @@ export default function PrelevementsPage() {
         )}
 
       </div>
+
+      {/* « Voulez-vous remplacer votre citation favorite ? » — seulement quand une
+          place est déjà occupée : désigner la première ne demande rien. */}
+      {remplacementPropose && citationPreferee && (
+        <ModaleRemplacerCitation
+          actuelle={citationPreferee}
+          nouvelle={remplacementPropose}
+          onConfirmer={() => { inscrirePreferee(remplacementPropose); setRemplacementPropose(null); }}
+          onAnnuler={() => setRemplacementPropose(null)}
+        />
+      )}
     </main>
   );
 }
