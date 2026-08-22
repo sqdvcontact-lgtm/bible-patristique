@@ -32,21 +32,19 @@ type ProjectionAelf = {
   verset: number | null
   chapitre_label: string | null
   verset_label: string | null
-  ref: string | null
   ordre: number | null
   relation_kind: string | null
   validation_status: string | null
   confidence_level: string | null
-  TR0001: string | null
-  TR0002: string | null
-  TR0003: string | null
-  TR0004: string | null
-  TR0005: string | null
-  num_TR0001: string | null
-  num_TR0002: string | null
-  num_TR0003: string | null
-  num_TR0004: string | null
-  num_TR0005: string | null
+}
+
+type CelluleAelf = {
+  aelf_entry_id: string
+  trad_id: string
+  ch_orig: number
+  v_orig: number
+  v_orig_suffixe: string | null
+  texte: string | null
 }
 
 type ExtraAelf = {
@@ -87,8 +85,8 @@ function cleCoordonnee(v: {
 }
 
 async function chargerProjections(ids: string[], signal: AbortSignal): Promise<ProjectionAelf[]> {
-  const reponses = await Promise.all(lots([...new Set(ids)], 400).map(lot =>
-    supabase.rpc('bible_search_project_aelf', { p_canon_ids: lot }).abortSignal(signal),
+  const reponses = await Promise.all(lots([...new Set(ids)], 1000).map(lot =>
+    supabase.rpc('bible_search_resolve_aelf', { p_canon_ids: lot }).abortSignal(signal),
   ))
   const out: ProjectionAelf[] = []
   for (const { data, error } of reponses) {
@@ -96,6 +94,37 @@ async function chargerProjections(ids: string[], signal: AbortSignal): Promise<P
     out.push(...((data ?? []) as ProjectionAelf[]))
   }
   return out
+}
+
+async function chargerTextesAelf(entryIds: string[], signal: AbortSignal): Promise<Map<string, Record<string, string>>> {
+  const uniques = [...new Set(entryIds)]
+  const reponses = await Promise.all(lots(uniques, 1000).map(lot =>
+    supabase.rpc('bible_reading_cells_for_aelf_entries', { p_entry_ids: lot }).abortSignal(signal),
+  ))
+  const cellules: CelluleAelf[] = []
+  for (const { data, error } of reponses) {
+    if (error) throw error
+    cellules.push(...((data ?? []) as CelluleAelf[]))
+  }
+
+  // Une traduction peut avoir plusieurs unités natives sur une entrée AELF : on les
+  // recompose dans leur ordre natif, sans modifier leur segmentation en base.
+  cellules.sort((a, b) => a.aelf_entry_id.localeCompare(b.aelf_entry_id)
+    || a.trad_id.localeCompare(b.trad_id)
+    || a.ch_orig - b.ch_orig
+    || a.v_orig - b.v_orig
+    || String(a.v_orig_suffixe ?? '').localeCompare(String(b.v_orig_suffixe ?? ''), 'fr', { numeric: true }))
+
+  const map = new Map<string, Record<string, string>>()
+  for (const cellule of cellules) {
+    if (!cellule.texte || !TRADS.includes(cellule.trad_id as typeof TRADS[number])) continue
+    if (!map.has(cellule.aelf_entry_id)) map.set(cellule.aelf_entry_id, {})
+    const textes = map.get(cellule.aelf_entry_id)!
+    textes[cellule.trad_id] = textes[cellule.trad_id]
+      ? `${textes[cellule.trad_id]} ${cellule.texte}`
+      : cellule.texte
+  }
+  return map
 }
 
 async function chargerExtras(livres: string[], signal: AbortSignal): Promise<ExtraAelf[]> {
@@ -122,10 +151,12 @@ async function chargerExtras(livres: string[], signal: AbortSignal): Promise<Ext
   return out
 }
 
-function depuisProjection(p: ProjectionAelf): ResultatRechercheBibleAelf {
+function depuisProjection(p: ProjectionAelf, textes: Record<string, string>): ResultatRechercheBibleAelf {
   return {
     id_verset: `AELF:${p.aelf_entry_id}`,
-    ref: p.ref ?? '',
+    ref: p.aelf_reference
+      ? p.aelf_reference.replace(/^AELF:/, '').replace(':', ' ').replace(':', ':')
+      : `${p.livre ?? ''} ${p.chapitre_label ?? p.chapitre ?? ''}:${p.verset_label ?? p.verset ?? ''}`,
     livre: p.livre ?? '',
     chapitre: p.chapitre ?? 0,
     verset: p.verset ?? 0,
@@ -140,16 +171,7 @@ function depuisProjection(p: ProjectionAelf): ResultatRechercheBibleAelf {
     relation_kind: p.relation_kind,
     validation_status: p.validation_status,
     confidence_level: p.confidence_level,
-    TR0001: p.TR0001,
-    TR0002: p.TR0002,
-    TR0003: p.TR0003,
-    TR0004: p.TR0004,
-    TR0005: p.TR0005,
-    num_TR0001: p.num_TR0001,
-    num_TR0002: p.num_TR0002,
-    num_TR0003: p.num_TR0003,
-    num_TR0004: p.num_TR0004,
-    num_TR0005: p.num_TR0005,
+    ...textes,
   }
 }
 
@@ -201,6 +223,10 @@ export async function projeterResultatsRechercheBibleAelf(
     parSource.get(p.source_canon_id)!.push(p)
   }
 
+  const entryIds = projections.flatMap(p => p.aelf_entry_id ? [p.aelf_entry_id] : [])
+  const textesParEntree = await chargerTextesAelf(entryIds, signal)
+  if (signal.aborted) return []
+
   const resolus: ResultatRechercheBibleAelf[] = []
   const sansCible: Array<{ ligne: ResultatRechercheBibleAelf; statut?: ProjectionAelf }> = []
   const entreesVues = new Set<string>()
@@ -218,7 +244,7 @@ export async function projeterResultatsRechercheBibleAelf(
       // résultat de lecture doit paraître.
       if (entreesVues.has(entryId)) continue
       entreesVues.add(entryId)
-      resolus.push(depuisProjection(cible))
+      resolus.push(depuisProjection(cible, textesParEntree.get(entryId) ?? {}))
     }
   }
 
