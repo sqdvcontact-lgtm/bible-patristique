@@ -563,12 +563,6 @@ export default async function OeuvrePage({
   const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as any)?.nom || ''
   const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
 
-  // Éligibilité au mode Paragraphes : l'œuvre doit porter la colonne `paragraphe`
-  // (charte §6.1). On l'estime sur le premier niv1 chargé, représentatif — la
-  // colonne est peuplée uniformément par œuvre. Les œuvres sans `paragraphe` ne
-  // proposent pas le mode (bouton grisé côté client).
-  const eligibleParagraphes = segmentsTexte.some(s => s.paragraphe != null)
-
   const groupes = grouper(segmentsTexte)
   const groupesApparat = grouper(segmentsApparat)
   const numLocaux = numerotationLocale(segmentsTexte)
@@ -672,7 +666,6 @@ export default async function OeuvrePage({
       segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}
       vueInitiale={vueInitiale}
-      eligibleParagraphes={eligibleParagraphes}
       niv1InitialPartiel={niv1InitialPartiel}
       comparaisonInitiale={Boolean(alignementDemande)}
       alignmentSetIdInitial={alignementDemande?.alignmentSetId ?? null}

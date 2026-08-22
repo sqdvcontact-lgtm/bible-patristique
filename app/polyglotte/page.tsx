@@ -1261,9 +1261,35 @@ export default function PolyglottePage() {
             <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(56rem, 94%)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
               {/* Tour de Babel (gravure) : image de la Polyglotte — la confusion des langues,
                   que la lecture en regard rassemble. PNG détouré (fond blanc rendu transparent) :
-                  la gravure se pose sur le crème, sans rectangle clair ni mix-blend-mode. */}
+                  la gravure se pose sur le crème, sans rectangle clair ni mix-blend-mode.
+
+                  ⛔ Sa largeur était posée en PIXELS (816), donc absolue : elle ne suivait ni
+                  la colonne ni la police racine. Sur un grand écran, où la racine passe de 16
+                  à 22 (§ Responsive), tout grandissait autour d'elle d'un tiers pendant qu'elle
+                  gardait ses 816 px — la gravure rapetissait donc à mesure que l'écran
+                  s'agrandissait, et flottait au milieu d'une colonne devenue trop vaste. En rem
+                  (51rem = les mêmes 816 px à la racine 16), elle grandit avec le reste, jusqu'à
+                  1 122 px à la racine 22, et les 96 % la gardent dans sa colonne quand le volet
+                  des livres est ouvert.
+
+                  Le PLAFOND DE HAUTEUR est l'autre moitié du réglage, et il vaut pour les écrans
+                  BAS, non pour les petits : la gravure est large de 1436 sur 870, donc presque
+                  deux fois plus large que haute. Le groupe est centré par translate(-50%, -50%)
+                  dans un bloc qui ne mesure que la hauteur restante ; dès que l'image dépasse,
+                  elle déborde des DEUX côtés à la fois et sa tête passe sous l'en-tête collant.
+                  À 816 px de large elle en fait 494 de haut, ce qui ne tient plus sous une
+                  fenêtre de moins de 700 px. Le plafond réserve la légende et les marges, puis
+                  laisse la hauteur commander.
+
+                  ⚠️ Les deux bornes sont des MAXIMA, et width reste auto : c'est la seule
+                  écriture qui garde les proportions. Avec une largeur POSÉE plus un plafond de
+                  hauteur, la largeur est définitive et le plafond écrase l'image sans la
+                  recalculer — mesuré sous une fenêtre de 600 px : 816 sur 400, soit un rapport
+                  de 2,04 au lieu de 1,651, une tour de Babel étirée en travers. Quand les deux
+                  dimensions sont automatiques et bornées, le navigateur applique les maxima l'un
+                  après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
               <img src="/ornements/tour-babel-detoure.png" alt="" aria-hidden="true"
-                style={{ width: "min(816px, 96%)", height: "auto", opacity: 0.92, marginBottom: "16px" }} />
+                style={{ maxWidth: "min(51rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 9rem)", opacity: 0.92, marginBottom: "16px" }} />
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
           </div>

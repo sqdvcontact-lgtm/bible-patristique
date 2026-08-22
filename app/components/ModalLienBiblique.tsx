@@ -25,7 +25,10 @@ type LigneVerset = {
   TR0001: string | null
 }
 
-const TYPES_LIEN: { champ: ChampLienBiblique; label: string; aide: string }[] = [
+// Exporté : le libellé d'un type de lien se lit AUSSI hors de cette fenêtre — la
+// proposition d'un lecteur le reprend dans son message. Deux tables de libellés
+// finiraient par diverger sans que rien ne le signale.
+export const TYPES_LIEN: { champ: ChampLienBiblique; label: string; aide: string }[] = [
   { champ: 'lien_1', label: 'Citation directe', aide: 'Le passage cite explicitement ce verset.' },
   { champ: 'lien_2', label: 'Citation libre', aide: 'Le passage reprend le verset sans le citer mot à mot.' },
   { champ: 'lien_3', label: 'Commentaire doctrinal', aide: 'Le passage éclaire le sens doctrinal du verset.' },
@@ -49,6 +52,12 @@ function normaliserLigne(v: LigneVerset): VersetLienBiblique {
 
 function echapperRecherche(q: string) {
   return q.replace(/[%_]/g, '').replace(/,/g, ' ').trim()
+}
+
+
+/** Le libellé lisible d'un type de lien (« Citation directe »…). */
+export function libelleTypeLien(champ: ChampLienBiblique): string {
+  return TYPES_LIEN.find(t => t.champ === champ)?.label ?? champ
 }
 
 export default function ModalLienBiblique({
