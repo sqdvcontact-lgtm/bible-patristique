@@ -13,6 +13,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
+import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
@@ -2314,14 +2315,22 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           const labelGroupe = multiple
                             ? `${premier.label.replace(/\d+\s*$/, '')}${premier.verset}-${dernier.verset}`
                             : premier.label
-                          // Le verset est montré SEUL, hors de son contexte : une citation
-                          // qui court sur plusieurs versets y laisserait un guillemet orphelin.
-                          // On la borne des deux côtés (voir app/lib/guillemets.ts). Le bornage
-                          // se fait APRÈS la fusion du groupe, qui peut s'équilibrer de lui-même.
-                          const corps = bornerGuillemets(groupe
+                          // Le verset est montré SEUL, hors de son contexte, et hérite donc d'une
+                          // ponctuation qui désigne un texte absent. Deux remèdes, de sens opposé.
+                          //
+                          // Le guillemet orphelin s'AJOUTE : une citation qui court sur plusieurs
+                          // versets se borne des deux côtés (app/lib/guillemets.ts), car on sait de
+                          // quel côté manque le signe. Le tiret d'incise, lui, se RETRANCHE quand il
+                          // touche un bord (app/lib/tirets.ts) : il sépare l'extrait de ce qu'on ne
+                          // montre pas, et on ne va pas inventer le segment auquel il renvoie.
+                          //
+                          // Les deux se font APRÈS la fusion du groupe, qui peut s'équilibrer de
+                          // lui-même ; et les tirets d'abord, sans quoi le bornage viendrait poser
+                          // son guillemet derrière un tiret qui doit partir.
+                          const corps = bornerGuillemets(effacerTiretsDeBordure(groupe
                             .map(v => extraireNoteVerset(v.textes[trad] || v.textes['TR0001'] || '').corps)
                             .filter(Boolean)
-                            .join(' '))
+                            .join(' ')))
                           // La note éditoriale n'est portée que par un verset seul (sinon on fond
                           // simplement les corps).
                           const note = multiple ? null : extraireNoteVerset(premier.textes[trad] || premier.textes['TR0001'] || '').note

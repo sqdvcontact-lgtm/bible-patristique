@@ -676,6 +676,21 @@ Trois workflows, et une leçon.
 
 **Cas de contexte (2026-08-12)** : dans l'admin Bibliothèque, les filtres « Œuvres candidates », « non candidates », « critiques » et « non publiées » restaient vides (« Aucun auteur trouvé »), alors que la base contenait 349 notices candidates réparties sur 56 auteurs et que le filtre, rejoué hors interface, en retenait bien 55. Trompeur : « Publiées » et « Tout afficher » semblaient marcher, parce que ce sont précisément les deux seuls modes qui **n'ont pas besoin du catalogue** — « Tout afficher » liste tous les auteurs quoi qu'il arrive. Correctif dans `app/admin/SectionBibliotheque.tsx` : statut HTTP et réponse non-JSON remontés dans un encart rouge avec bouton « Réessayer », plus `console.error`.
 
+# Un verset affiché SEUL hérite d’une ponctuation qui désigne un texte absent
+
+Une traduction ponctue par-dessus les versets. Sorti de son contexte — dans le volet biblique d’une œuvre, dans un prélèvement, dans un sélecteur — un verset porte donc des signes qui renvoient à ce qu’on ne montre pas. Deux remèdes, et ils sont **de sens opposé** :
+
+- **Le guillemet orphelin s’AJOUTE** (`app/lib/guillemets.ts`). Crampon ouvre au verset 1 et ferme au verset 3 ; chaque verset pris seul est déséquilibré. On le borne des deux côtés, car on sait de quel côté le signe manque. Relevé du 2026-08-17 : sur 7 221 versets de Crampon portant des guillemets, **3 468 sont déséquilibrés**, près d’un sur deux.
+- **Le tiret d’incise se RETRANCHE** (`app/lib/tirets.ts`, 2026-08-22). Il ne peut pas être complété : on ne va pas inventer le segment auquel il renvoie.
+
+⛔ **La règle du tiret est POSITIONNELLE, non arithmétique.** Crampon emploie le cadratin comme SÉPARATEUR de segments, non comme parenthèse — Gn 25 le montre : le verset 2 finit par « … Jesboc et Sué. — », le 3 par « … et les Laomim. — », et le 4 porte « … et Eldaa. — Ce sont là tous les fils de Cétura. » Donc : **un tiret au BORD de l’extrait sépare celui-ci de quelque chose qu’on ne montre pas, il ne sépare rien et il s’efface ; un tiret À L’INTÉRIEUR sépare deux segments tous deux présents, il fait son office et il reste.** « Gn 25, 1-2 » perd son tiret final, « Gn 25, 4 » garde le sien.
+
+**Mesure** (2026-08-22, 35 588 versets de Crampon) : 1 293 portent un tiret — 497 en fin, 67 en tête, 27 aux deux bords, et **702 seulement à l’intérieur, qui ne bougent pas**. La règle touche 591 versets sur 1 293, et jamais les deux tiers qui ponctuent réellement quelque chose de visible.
+
+⚠️ Le **trait d’union** est exclu : il appartient aux mots, non à la phrase. Seuls le cadratin (U+2014) et le demi-cadratin (U+2013) sont visés. Le `\s` de JavaScript couvrant la fine insécable (U+202F) et l’insécable (U+00A0), les espaces que la composition française pose autour du tiret partent avec lui.
+
+**Où c’est appliqué** : pour l’instant au seul volet biblique de la page œuvre (`OeuvreClient.tsx`), là où un verset ou un groupe de versets est montré hors contexte, et **jamais sur la page Bible**, où le verset est dans son contexte et où le tiret ponctue ce qu’on lit. Les tirets passent AVANT le bornage des guillemets, sans quoi celui-ci poserait son guillemet derrière un tiret qui doit partir.
+
 # Défilement doux — une politesse, jamais le seul moyen d’arriver
 
 ⛔ **`scrollIntoView({ behavior: 'smooth' })` peut ne RIEN faire du tout** — ni animer, ni même arriver. Constaté le 2026-08-22 sur le site EN LIGNE, dans Chrome 151 sous Windows : la même ancre, au même instant, ne bougeait pas d’un pixel en `'smooth'` et défilait de **2 486 px** en `'auto'`. Ni `prefers-reduced-motion` (inactif) ni une règle `scroll-behavior` (les deux à `auto`) n’y étaient pour quelque chose : c’est le défilement doux lui-même qui ne s’exécute pas, selon les réglages d’animation du système.
