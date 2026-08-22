@@ -14,13 +14,23 @@ export type VersetLienBiblique = {
   verset: string
   texte: string
   label: string
+  aelfVersionId: string
+  aelfEntryId: string
+  aelfReference: string
+  historicalCanonId: string | null
 }
 
 type LigneVerset = {
   id_verset: string
+  aelf_version_id: string
+  aelf_entry_id: string
+  historical_canon_id: string | null
+  aelf_reference: string
   livre: string
   chapitre: number | string
   verset: number | string
+  chapitre_label: string
+  verset_label: string
   ref: string | null
   TR0001: string | null
 }
@@ -35,18 +45,36 @@ export const TYPES_LIEN: { champ: ChampLienBiblique; label: string; aide: string
   { champ: 'lien_4', label: 'Écho thématique', aide: 'Le lien est plus large, mais réellement pertinent.' },
 ]
 
+function nettoyerLabel(value: string | number) {
+  const s = String(value)
+  return /^0+\d+$/.test(s) ? String(Number(s)) : s
+}
+
+function comparerLabels(a: string, b: string) {
+  const ma = /^(\d+)(.*)$/.exec(a), mb = /^(\d+)(.*)$/.exec(b)
+  const na = ma ? Number(ma[1]) : Number.MAX_SAFE_INTEGER
+  const nb = mb ? Number(mb[1]) : Number.MAX_SAFE_INTEGER
+  return na - nb || (ma?.[2] ?? a).localeCompare(mb?.[2] ?? b, 'fr')
+}
+
 function labelVerset(v: LigneVerset | VersetLienBiblique) {
-  return `${ABREV_FR[v.livre] ?? v.livre} ${v.chapitre}, ${v.verset}`
+  const chapitre = 'chapitre_label' in v ? v.chapitre_label : v.chapitre
+  const verset = 'verset_label' in v ? nettoyerLabel(v.verset_label) : v.verset
+  return `${ABREV_FR[v.livre] ?? v.livre} ${chapitre}, ${verset}`
 }
 
 function normaliserLigne(v: LigneVerset): VersetLienBiblique {
   return {
-    id: v.id_verset,
+    id: `AELF:${v.aelf_entry_id}`,
     livre: v.livre,
-    chapitre: String(v.chapitre),
-    verset: String(v.verset),
+    chapitre: v.chapitre_label,
+    verset: nettoyerLabel(v.verset_label),
     texte: v.TR0001 ?? '',
     label: labelVerset(v),
+    aelfVersionId: v.aelf_version_id,
+    aelfEntryId: v.aelf_entry_id,
+    aelfReference: v.aelf_reference,
+    historicalCanonId: v.historical_canon_id,
   }
 }
 
@@ -89,17 +117,17 @@ export default function ModalLienBiblique({
   const typeActif = TYPES_LIEN.find(t => t.champ === champ) ?? TYPES_LIEN[0]
 
   const livresParTestament = useMemo(() => ({
-    AT: LIVRES.filter(l => l.testament === 'AT'),
+    AT: LIVRES.filter(l => l.testament === 'AT' && !['SUS', 'BEL'].includes(l.code)),
     NT: LIVRES.filter(l => l.testament === 'NT'),
   }), [])
 
   const chapitres = useMemo(() => {
     const valeurs = [...new Set(versetsLivre.map(v => v.chapitre))]
-    return valeurs.sort((a, b) => Number(a) - Number(b))
+    return valeurs.sort(comparerLabels)
   }, [versetsLivre])
 
   const versetsChapitre = useMemo(
-    () => versetsLivre.filter(v => v.chapitre === chapitre).sort((a, b) => Number(a.verset) - Number(b.verset)),
+    () => versetsLivre.filter(v => v.chapitre === chapitre).sort((a, b) => comparerLabels(a.verset, b.verset)),
     [versetsLivre, chapitre]
   )
 
@@ -116,8 +144,8 @@ export default function ModalLienBiblique({
     if (!ouvert) return
     let annule = false
     supabase
-      .from('versets_lecture')
-      .select('id_verset, livre, chapitre, verset, ref, TR0001')
+      .from('v_aelf_bible_lecture')
+      .select('id_verset, aelf_version_id, aelf_entry_id, historical_canon_id, aelf_reference, livre, chapitre, verset, chapitre_label, verset_label, ref, TR0001')
       .eq('livre', livre)
       .order('chapitre', { ascending: true })
       .order('verset', { ascending: true })
@@ -140,8 +168,8 @@ export default function ModalLienBiblique({
     }
     const t = window.setTimeout(() => {
       supabase
-        .from('versets_lecture')
-        .select('id_verset, livre, chapitre, verset, ref, TR0001')
+        .from('v_aelf_bible_lecture')
+        .select('id_verset, aelf_version_id, aelf_entry_id, historical_canon_id, aelf_reference, livre, chapitre, verset, chapitre_label, verset_label, ref, TR0001')
         .or(`ref.ilike.%${q}%,TR0001.ilike.%${q}%`)
         .order('livre', { ascending: true })
         .order('chapitre', { ascending: true })

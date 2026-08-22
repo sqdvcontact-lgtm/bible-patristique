@@ -318,6 +318,13 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       </div>
       <PanneauPatristique
         verset={versetSelectionneCourant}
+        historicalCanonId={versetSelectionneCourant
+          ? (typeof versetSelectionneCourant[`canon_${traduction}`] === 'string'
+            ? String(versetSelectionneCourant[`canon_${traduction}`])
+            : typeof versetSelectionneCourant.historical_canon_id === 'string'
+              ? versetSelectionneCourant.historical_canon_id
+              : null)
+          : null}
         livreActif={livreActif}
         nomLivre={nomLivre}
         chapitreActif={chapitreActif}
