@@ -14,6 +14,14 @@ describe('adresse de lecture de la page Bible', () => {
       .toBe('/?livre=GEN&chapitre=1&trad=TR0009&mode=verse&couche=modernized')
   })
 
+  it('emporte le texte nu, sauf en regard où il n’a pas de sens', () => {
+    expect(urlLectureBible({ livre: 'MRK', chapitre: 1, trad: 'TR0010', texteSeul: true }))
+      .toBe('/?livre=MRK&chapitre=1&trad=TR0010&texte=seul')
+    // Les deux colonnes tiennent déjà toute la place : la lecture en regard l'emporte.
+    expect(urlLectureBible({ livre: 'MRK', chapitre: 1, trad: 'TR0010', texteSeul: true, bilingue: true }))
+      .toBe('/?livre=MRK&chapitre=1&trad=TR0010&bilingue=1')
+  })
+
   it('n’emporte pas la lecture en regard quand on vise un verset', () => {
     // Viser un verset suppose de pouvoir le désigner, ce que les deux colonnes
     // ne font pas : la cible ponctuelle l'emporte sur la manière de lire.

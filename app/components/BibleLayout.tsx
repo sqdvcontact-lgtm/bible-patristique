@@ -16,7 +16,8 @@ import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import LectureBilingueBible from './LectureBilingueBible'
 import type { LectureBilingueProps } from './BibleBilingue'
-import { urlLectureBible } from '@/app/lib/bibleNavigation'
+import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
+import { modesLectureAlternatifs, type CibleLectureAlternative } from '@/app/lib/bibleModesAlternatifs'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -39,8 +40,8 @@ type Props = {
   tradInitiale: string
   readingCapabilities: Record<string, TranslationReadingCapabilities>
   couche?: Couche899
-  /** Couches réellement disponibles pour la page Bible (TR0009). Pilote l'affichage du
-   *  contrôle « Graphie » : présent seulement si « modernized » y figure. */
+  /** Couches réellement exposées par les données (TR0009). Pilote le menu « Graphie »
+   *  du volet de gauche : il ne paraît qu'à partir de deux couches. */
   couchesDisponibles?: Couche899[]
   /** L'URL a explicitement fixé `?trad=` : on l'honore, sans lui substituer la préférence. */
   tradExplicite?: boolean
@@ -50,6 +51,10 @@ type Props = {
   lectureBilingue?: LectureBilingueProps | null
   /** La famille de la traduction lue porte deux membres : le mode est offert. */
   bilingueDisponible?: boolean
+  /** L’édition lue porte un appareil éditorial : on peut demander le texte nu. */
+  paratexteDisponible?: boolean
+  /** Lecture « Texte biblique seul » demandée : la page n’a pas passé l’appareil. */
+  texteSeul?: boolean
 }
 
 // Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
@@ -62,7 +67,7 @@ const TRADUCTIONS_DEFAUT = [
 ]
 
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter, lectureBilingue, bilingueDisponible = false }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter, lectureBilingue, bilingueDisponible = false, paratexteDisponible = false, texteSeul = false }: Props) {
   const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -242,6 +247,35 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     }
   }
 
+  // Ce qui décrit la MANIÈRE de lire, d'un bloc : reporté tel quel par le volet des
+  // livres et par les flèches de chapitre, plutôt qu'énuméré réglage par réglage.
+  const maniereDeLire: ManiereDeLireBible = { couche, bilingue: !!lectureBilingue, texteSeul }
+
+  // Le menu « occasionnel » du volet de gauche : composé des seuls FAITS lus dans les
+  // données, jamais d'un identifiant de traduction. Il reste vide — donc invisible —
+  // pour une bible ordinaire.
+  const modesLecture = modesLectureAlternatifs({
+    couchesDisponibles,
+    coucheActive: couche,
+    bilingueDisponible,
+    bilingueActif: !!lectureBilingue,
+    paratexteDisponible,
+    texteSeulActif: texteSeul,
+  })
+  // Une manière de lire voyage avec le chapitre : on recompose l'adresse entière, en
+  // reportant la graphie courante quand le choix ne la concerne pas.
+  const choisirModeLecture = (cible: CibleLectureAlternative) => {
+    router.push(urlLectureBible({
+      livre: livreActif,
+      chapitre: chapitreActif,
+      trad: traduction,
+      mode: 'verse',
+      couche: cible.couche ?? couche,
+      bilingue: cible.bilingue,
+      texteSeul: cible.texteSeul,
+    }))
+  }
+
   return (
     // `h-screen` valait 100vh, mais ce bloc est déjà décalé de la hauteur de la
     // navbar par le layout : la page dépassait donc l'écran d'autant et défilait,
@@ -281,7 +315,9 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         setVoletMobile={setVoletMobile}
         barreMobile={false}
         presentation="inline"
-        bilingue={!!lectureBilingue}
+        maniereDeLire={maniereDeLire}
+        modesLecture={modesLecture}
+        onChoisirModeLecture={choisirModeLecture}
       />
       {/* Onglet « Texte » : masqué (et non démonté, pour préserver le défilement)
           quand un autre onglet est actif sur mobile. `display: contents` en desktop
@@ -295,6 +331,9 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
             chapitreActif={chapitreActif}
             nomLivre={nomLivre}
             tradCode={traduction}
+            traductions={listeTraductions}
+            traductionIndex={traductionIndex}
+            setTraductionIndex={handleSetTraductionIndex}
           />
         ) : (
         <TexteBible
@@ -309,10 +348,8 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           versetSelectionne={versetSelectionneCourant}
           setVersetSelectionne={setVersetSelectionne}
           mobile={mobile}
-          couche={couche}
           editionChapter={editionChapter}
-          bilingueDisponible={bilingueDisponible}
-          couchesDisponibles={couchesDisponibles}
+          maniereDeLire={maniereDeLire}
         />
         )}
       </div>
@@ -334,14 +371,14 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
       {mobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
-          <button onClick={() => chapitreActif > 1 && router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif - 1, trad: traduction, bilingue: !!lectureBilingue }))}
+          <button onClick={() => chapitreActif > 1 && router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif - 1, trad: traduction }))}
             aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? 'var(--cs-texte-gris)' : 'var(--cs-bord)', padding: '0 8px' }}>‹</button>
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: '#5a7260' }}>{chapitreActif}</span>
           </span>
-          <button onClick={() => router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif + 1, trad: traduction, bilingue: !!lectureBilingue }))}
+          <button onClick={() => router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif + 1, trad: traduction }))}
             aria-label="Chapitre suivant" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.375rem', lineHeight: 1, color: 'var(--cs-texte-gris)', padding: '0 8px' }}>›</button>
         </div>
       )}

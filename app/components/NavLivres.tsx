@@ -10,7 +10,9 @@ import { rendreSiecles } from '@/app/lib/siecles'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import { estUrl, type RangChrono } from '@/app/lib/frise'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
-import { urlLectureBible } from '@/app/lib/bibleNavigation'
+import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
+import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
+import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -341,8 +343,13 @@ type Props = {
   presentation?: 'drawer' | 'inline'        // mobile : tiroir superposé, ou page pleine (onglets)
   sansReduire?: boolean                     // masque la flèche « Réduire » (Polyglotte gère le repli du volet entier)
   // Le volet navigue par URL : sans ce report, changer de chapitre ferait sortir
-  // le lecteur de la lecture « Latin-français » sans qu'il l'ait demandé.
-  bilingue?: boolean
+  // le lecteur de la manière dont il lisait (lecture en regard, graphie, texte nu)
+  // sans qu'il l'ait demandé. On reporte le bloc entier, jamais réglage par réglage.
+  maniereDeLire?: ManiereDeLireBible
+  // Menu OCCASIONNEL des manières de lire (graphie, texte nu, lecture en regard),
+  // composé par le parent à partir des DONNÉES. Vide, il ne paraît pas.
+  modesLecture?: GroupeLectureBible[]
+  onChoisirModeLecture?: (cible: CibleLectureAlternative) => void
 }
 
 /**
@@ -377,7 +384,8 @@ export default function NavLivres({
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
-  sansReduire = false, bilingue = false,
+  sansReduire = false, maniereDeLire,
+  modesLecture = [], onChoisirModeLecture,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -437,7 +445,7 @@ export default function NavLivres({
       setLivreOuvert(null)
     } else {
       setLivreOuvert(code)
-      router.push(urlLectureBible({ livre: code, chapitre: 1, trad: tradCode, bilingue }))
+      router.push(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: 1, trad: tradCode }))
     }
     requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = pos
@@ -452,7 +460,7 @@ export default function NavLivres({
     if (mobile) setOuvert(false)
     // Polyglotte : on reste sur place et l'on demande le chapitre au parent.
     if (onChoisirChapitre) { onChoisirChapitre(code, ch); return }
-    router.push(urlLectureBible({ livre: code, chapitre: ch, trad: tradCode, bilingue }))
+    router.push(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: ch, trad: tradCode }))
   }
 
   // Navigation vers ref parsée :
@@ -467,10 +475,10 @@ export default function NavLivres({
     setRecherche('')
     // Polyglotte : cibler le verset sur place, sans changer de page.
     if (onChoisirVerset) { onChoisirVerset(refParsee.code, refParsee.chapitre, refParsee.verset); return }
-    // Volontairement SANS report du bilingue : viser un verset précis suppose de
-    // pouvoir le désigner, ce que la lecture en regard ne fait pas. Le lecteur
-    // retrouve donc la colonne unique, qui sait mettre le verset en évidence.
-    router.push(urlLectureBible({ livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode, verset: refParsee.verset, bilingue }))
+    // La lecture en regard tombe d'elle-même (`urlLectureBible`) : viser un verset
+    // précis suppose de pouvoir le désigner, ce que les deux colonnes ne font pas. Le
+    // lecteur retrouve donc la colonne unique, qui sait mettre le verset en évidence.
+    router.push(urlLectureBible({ ...maniereDeLire, livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode, verset: refParsee.verset }))
   }
 
   const renderLivre = (livre: Livre) => {
@@ -633,6 +641,37 @@ export default function NavLivres({
       )}
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
       {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && <EncartTraduction trad={traductions[traductionIndex]} />}
+
+      {/* Menu OCCASIONNEL des manières de lire — entre la fiche de la traduction et la
+          recherche des livres. Il ne paraît que lorsque le témoin qu'on lit offre
+          vraiment un choix : plusieurs graphies, un appareil éditorial qu'on peut
+          écarter, un second membre à mettre en regard. Une bible ordinaire n'en a
+          aucun, et le volet reste alors ce qu'il était.
+
+          Même forme que les menus de la page Œuvre (`stylesVoletLecture`) : c'est le
+          même geste — choisir comment on lit ce qu'on a sous les yeux — et il ne doit
+          pas se présenter de deux façons selon la page. Il vaut aussi sur mobile, où
+          il est la seule voie pour sortir d'une lecture en regard : c'est une
+          navigation, non un ornement. */}
+      {modesLecture.length > 0 && (
+        <div style={{ flexShrink: 0, padding: '9px 10px 10px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
+          {modesLecture.map((groupe, rang) => (
+            <div key={groupe.cle} style={rang > 0 ? { marginTop: '7px' } : undefined}>
+              <span style={LABEL_VOLET}>{groupe.titre}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                {groupe.choix.map(choix => (
+                  <button key={choix.cle} type="button" title={choix.description}
+                    aria-pressed={choix.actif}
+                    onClick={() => { if (!choix.actif) onChoisirModeLecture?.(choix.cible) }}
+                    style={{ ...BTN_VOLET(choix.actif), cursor: choix.actif ? 'default' : 'pointer' }}>
+                    {choix.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
           et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}

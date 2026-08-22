@@ -10,12 +10,17 @@ import { useRouter } from 'next/navigation'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { urlLectureBible } from '@/app/lib/bibleNavigation'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
+import SelecteurTraductionBible from './SelecteurTraductionBible'
 
 export type LectureBilingueBibleProps = LectureBilingueProps & {
   livreActif: string
   chapitreActif: number
   nomLivre: string
   tradCode: string
+  /** Toutes les bibles lisibles, pour que le menu central reste entier ici aussi. */
+  traductions: readonly { code: string; label: string }[]
+  traductionIndex: number
+  setTraductionIndex: (index: number) => void
 }
 
 export default function LectureBilingueBible({
@@ -23,15 +28,15 @@ export default function LectureBilingueBible({
   chapitreActif,
   nomLivre,
   tradCode,
+  traductions,
+  traductionIndex,
+  setTraductionIndex,
   mobile = false,
   ...contenu
 }: LectureBilingueBibleProps) {
   const router = useRouter()
   const allerAuChapitre = (chapitre: number) => {
     router.push(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
-  }
-  const quitterLeBilingue = () => {
-    router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: tradCode, mode: 'verse' }))
   }
   const fleche = {
     color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none',
@@ -62,18 +67,18 @@ export default function LectureBilingueBible({
           </h1>
           <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={fleche} title="Chapitre suivant">›</button>
         </div>
-        <p style={{ margin: '0.5rem 0 0', textAlign: 'center' }}>
-          <button
-            onClick={quitterLeBilingue}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-              color: 'var(--cs-texte-gris)', fontSize: '0.6875rem',
-              letterSpacing: '0.09em', textTransform: 'uppercase',
-            }}
-          >
-            Revenir à une seule colonne
-          </button>
-        </p>
+        {/* Le MÊME menu central qu'en lecture ordinaire : on doit pouvoir changer de
+            bible sans quitter d'abord la lecture en regard. Choisir une autre bible en
+            sort d'elle-même, la famille éditoriale n'étant pas la même. Pour revenir à
+            une seule colonne sans changer de bible, le menu « Lecture » du volet de
+            gauche. */}
+        <div style={{ margin: '0.5rem auto 0', maxWidth: '32rem' }}>
+          <SelecteurTraductionBible
+            traductions={traductions}
+            traductionIndex={traductionIndex}
+            setTraductionIndex={setTraductionIndex}
+          />
+        </div>
       </div>
 
       <div

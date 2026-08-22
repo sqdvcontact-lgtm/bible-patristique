@@ -16,11 +16,11 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { type Couche899 } from '@/app/lib/bible899'
 import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre } from '@/app/components/BibleEditionParatext'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
-import { urlLectureBible } from '@/app/lib/bibleNavigation'
+import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import {
   indexerBlocsDeCorps,
   indexerIllustrations,
@@ -60,11 +60,11 @@ type Props = {
   versetSelectionne: Verset | null
   setVersetSelectionne: (v: Verset | null) => void
   mobile?: boolean
-  couche?: Couche899
-  couchesDisponibles?: Couche899[]
+  /** Appareil de l’édition : introductions, commentaires, notes, illustrations.
+   *  Nul en lecture « Texte biblique seul » — la page ne le charge alors pas. */
   editionChapter?: BibleEditionChapterDisplay | null
-  /** La traduction lue appartient à une famille éditoriale à deux membres. */
-  bilingueDisponible?: boolean
+  /** La manière de lire courante, reportée sur les flèches de chapitre. */
+  maniereDeLire?: ManiereDeLireBible
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -395,14 +395,13 @@ export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, mobile = false,
-  couche, couchesDisponibles, editionChapter, bilingueDisponible = false
+  editionChapter, maniereDeLire,
 }: Props) {
   const [userId, setUserId] = useState<string | null>(null)
   const [estAdmin, setEstAdmin] = useState(false)
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
-  const [tradOuverte, setTradOuverte] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -474,13 +473,12 @@ export default function TexteBible({
   // Changement de chapitre en navigation douce : on ne recharge pas toute la page,
   // le composant reçoit simplement les nouveaux versets et les volets latéraux (état
   // client : largeurs, verset sélectionné) restent en place.
-  const allerAuChapitre = (n: number) => router.push(urlLectureBible({ livre: livreActif, chapitre: n, trad: tradCode }))
+  const allerAuChapitre = (n: number) => router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: tradCode }))
 
-  // TR0009 (Bible 899) : une ligne « 899 » est marquée par l'adaptateur (`_est899`). Le
-  // contrôle « Graphie » n'apparaît QUE si la couche « modernized » est disponible
-  // (piloté par les données) ; le changement se fait par rechargement serveur.
-  const coucheActive: Couche899 = couche ?? 'expanded'
-  const graphieModerniseeDispo = (couchesDisponibles ?? []).includes('modernized')
+  // TR0009 (Bible 899) et éditions à segmentation éditoriale : l'adaptateur marque ses
+  // lignes (`_est899`, `_estEditorial`). La GRAPHIE, la lecture en regard et le texte nu
+  // se choisissent dans le menu « Lecture » du volet de gauche, jamais dans le corps du
+  // texte : ce sont des manières de lire, non des propriétés du chapitre affiché.
   const estLigne899 = (v: Verset) => v._est899 === true
   const estLigneEditoriale = (v: Verset) => v._estEditorial === true
   const estLacune899 = (v: Verset) => v._estLacune === true
@@ -522,7 +520,6 @@ export default function TexteBible({
   // mention de chapitre. On ne le fait qu'en contexte 899 (toutes les lignes en sont) et
   // seulement si au moins une ligne existe.
   const chapitreToutLacune = versets.length > 0 && versets.every(v => estLigne899(v) && estLacune899(v))
-  const changerGraphie = (c: Couche899) => router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: tradCode, mode: 'verse', couche: c }))
 
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
@@ -558,89 +555,13 @@ export default function TexteBible({
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0.5rem auto 0', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '22.5rem', margin: '0 auto' }}>
-          {/* Double filet à gauche : deux traits fins superposés, bien visibles, comme autrefois.
-              Le trait est coloré dès le tiers extérieur (et non seulement au ras du menu) pour
-              rester perceptible même sur une faible largeur. */}
-          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--cs-or-doux) 38%, var(--cs-texte-doux) 100%)' }} />
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setTradOuverte(!tradOuverte)} style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '0', border: 'none', background: 'transparent',
-              fontSize: '0.71875rem', color: '#6b8270', cursor: 'pointer',
-              fontFamily: "var(--font-source-serif), Georgia, serif",
-              fontStyle: 'italic', letterSpacing: '0.01em',
-              transition: 'color 0.15s',
-            }}>
-              <span>{traductionLabel}</span>
-              <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{tradOuverte ? '▲' : '▼'}</span>
-            </button>
-            {tradOuverte && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', minWidth: '230px', overflow: 'hidden' }}>
-                {traductions.map((t, i) => (
-                  <button key={t.code} onClick={() => { setTraductionIndex(i); setTradOuverte(false) }} style={{
-                    width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
-                    border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none',
-                    background: traductionIndex === i ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
-                    color: traductionIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
-                    fontWeight: traductionIndex === i ? 600 : 400, cursor: 'pointer',
-                    fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
-                    transition: 'background 0.12s',
-                  }}
-                    onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(var(--cs-vert-rgb),0.04)' }}
-                    onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'var(--cs-surface)' }}>
-                    {t.label}
-                  </button>
-                ))}
-                {/* Le bilingue n'est pas une traduction de plus : c'est une façon
-                    de lire les deux membres d'une même édition. Il se détache
-                    donc des traductions par un filet, comme en page d'œuvre. */}
-                {bilingueDisponible && (
-                  <button
-                    onClick={() => { setTradOuverte(false); router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: tradCode, mode: 'verse', bilingue: true })) }}
-                    style={{
-                      width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
-                      border: 'none', borderTop: '1px solid var(--cs-bord)',
-                      background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)',
-                      cursor: 'pointer', fontFamily: "var(--font-source-serif), Georgia, serif",
-                      letterSpacing: '0.01em', fontStyle: 'italic',
-                    }}
-                  >
-                    Latin-français
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          {/* Double filet à droite, symétrique. */}
-          <div style={{ flex: 1, minWidth: '46px', height: '1px', background: 'linear-gradient(to left, transparent 0%, var(--cs-or-doux) 38%, var(--cs-texte-doux) 100%)' }} />
-        </div>
+          <SelecteurTraductionBible
+            traductions={traductions}
+            traductionIndex={traductionIndex}
+            setTraductionIndex={setTraductionIndex}
+          />
           <div />
         </div>
-
-        {/* Seule particularité visuelle de TR0009 : le choix de graphie. Il n'apparaît
-            QUE lorsque la couche modernisée est disponible (piloté par les données).
-            Tant qu'elle n'existe pas, aucun contrôle : la graphie du manuscrit s'affiche
-            directement et TR0009 se lit comme une traduction ordinaire. */}
-        {graphieModerniseeDispo && (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.625rem', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Graphie</span>
-            <div role="group" aria-label="Graphie" style={{ display: 'flex', gap: '0.375rem' }}>
-              {([['modernized', 'Modernisée'], ['expanded', 'Manuscrit']] as [Couche899, string][]).map(([val, lab]) => (
-                <button key={val} type="button" aria-pressed={coucheActive === val} onClick={() => changerGraphie(val)}
-                  title={val === 'modernized' ? 'Graphie modernisée' : 'Graphie du manuscrit (abréviations développées)'}
-                  style={{
-                    border: '1px solid var(--cs-bord)', borderRadius: '999px',
-                    background: coucheActive === val ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)',
-                    color: coucheActive === val ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
-                    cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.6875rem', padding: '0.25rem 0.625rem',
-                  }}>
-                  {lab}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
       </div>
 

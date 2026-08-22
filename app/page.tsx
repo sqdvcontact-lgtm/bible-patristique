@@ -39,7 +39,7 @@ export async function generateMetadata({
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string; bilingue?: string }>
+  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string; bilingue?: string; texte?: string }>
 }) {
   const params = await searchParams
   if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
@@ -106,12 +106,11 @@ export default async function Home({
   //     mécanique (offsets, unités-source, folios…) reste derrière l'adaptateur.
   const editorial = estVerseEditorial(catalog.capabilities[trad])
   const bible899 = trad === TRAD_ID_BIBLE899
-  // Couches réellement disponibles pour la page Bible, lues sur les DONNÉES. La graphie
-  // « diplomatique » n'est pas destinée à la page Bible (charte) : on l'écarte, ne
-  // laissant que « Manuscrit » (expanded) et, quand elle existera, « Modernisée ».
-  const couchesBible = bible899
-    ? (await couchesDisponibles899(supabase)).filter((c) => c !== 'diplomatic')
-    : []
+  // Couches réellement disponibles, lues sur les DONNÉES : elles alimentent le menu
+  // « Graphie » du volet de gauche. Aucune n'est écartée ici — la transcription
+  // diplomatique est un état du texte comme les autres, et le lecteur qui la demande
+  // sait ce qu'il demande. Le menu ne paraît qu'à partir de deux couches.
+  const couchesBible = bible899 ? await couchesDisponibles899(supabase) : []
   const couche = normaliserCouche899(params.couche, couchesBible)
   let versets: ComponentProps<typeof BibleLayout>['versets']
   if (bible899) {
@@ -146,8 +145,17 @@ export default async function Home({
     baliserBlocs(blocs.map((b) => ({ id: b.id, semanticStyle: b.semantic_style_code, intitule: b.heading })))
 
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
+  // Lecture « Texte biblique seul » : on n'écarte pas l'appareil à l'affichage, on ne
+  // le CHARGE PAS. Le mode ne s'applique pas en regard, où les deux colonnes tiennent
+  // déjà toute la place.
+  const texteSeul = params.texte === 'seul' && params.bilingue !== '1'
+  // L'édition porte un appareil éditorial : le choix se pose, chapitre commenté ou non.
+  // On le tient de la FAMILLE, non du chapitre affiché — sans quoi le menu
+  // disparaîtrait sur un chapitre sans commentaire, laissant le lecteur enfermé dans
+  // le texte nu sans moyen d'en sortir.
+  const paratexteDisponible = !!editionMember
   let editionChapter: BibleEditionChapterDisplay | null = null
-  if (editionMember) {
+  if (editionMember && !texteSeul) {
     const payload = await loadBibleEditionChapter(supabase, {
       familyId: editionMember.family_id,
       bookCode: livre,
@@ -334,6 +342,8 @@ export default async function Home({
         editionChapter={editionChapter}
         lectureBilingue={lectureBilingue}
         bilingueDisponible={bilingueDisponible}
+        paratexteDisponible={paratexteDisponible}
+        texteSeul={texteSeul}
       />
     </Suspense>
   )

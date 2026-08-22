@@ -26,7 +26,18 @@ export type CibleLectureBible = {
   verset?: number
   /** Lecture « Latin-français » de l'édition. */
   bilingue?: boolean
+  /** Lecture « Texte biblique seul » : l'appareil éditorial de l'édition est écarté. */
+  texteSeul?: boolean
 }
+
+/**
+ * Ce qui décrit la MANIÈRE de lire, et voyage donc d'un chapitre à l'autre : la
+ * graphie, la lecture en regard, le texte nu. Les surfaces qui composent une
+ * adresse (volet des livres, flèches de chapitre) le reçoivent d'un bloc et le
+ * reportent tel quel, plutôt que d'énumérer les réglages à ne pas oublier — c'est
+ * ainsi qu'ils se perdaient un à un.
+ */
+export type ManiereDeLireBible = Pick<CibleLectureBible, 'couche' | 'bilingue' | 'texteSeul'>
 
 export function urlLectureBible(cible: CibleLectureBible): string {
   const parametres = new URLSearchParams()
@@ -39,5 +50,8 @@ export function urlLectureBible(cible: CibleLectureBible): string {
   // Une cible ponctuelle l'emporte sur la manière de lire : on ne reste pas en
   // regard pour montrer un verset qu'on ne saurait pas y désigner.
   if (cible.bilingue && cible.verset === undefined) parametres.set('bilingue', '1')
+  // Le texte nu est une manière de lire UNE colonne : en regard, les deux membres
+  // occupent déjà la place, et la lecture en regard l'emporte.
+  if (cible.texteSeul && !cible.bilingue) parametres.set('texte', 'seul')
   return `/?${parametres.toString()}`
 }
