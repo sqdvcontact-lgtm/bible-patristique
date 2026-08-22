@@ -1462,11 +1462,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   // Cellule d'actions flottante d'un segment (mode paragraphes), ancrée sur le
   // segment survolé ou sélectionné.
+  // ⛔ La cellule se pose À DROITE du segment, et AU-DESSUS de lui quand la place manque
+  // à droite. Elle se contentait de brider sa position à `largeurEcran - 132`, ce qui ne
+  // fait pas de place : cela la ramène simplement PAR-DESSUS la fin du segment, dont les
+  // derniers mots disparaissent sous elle au moment même où on les survole. Une cellule
+  // d'actions ne doit jamais couvrir ce sur quoi elle agit — c'est le parti déjà pris par
+  // le pavé mobile de la page Bible, qui se pose au-dessus du verset « et non sur lui ».
+  const LARGEUR_TOOLBAR = 132
+  const HAUTEUR_TOOLBAR = 30
+  const MARGE_TOOLBAR = 6
   const positionnerToolbar = (el: HTMLElement, sid: number) => {
     if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current)
     const r = el.getBoundingClientRect()
     const largeurEcran = typeof window !== 'undefined' ? window.innerWidth : 1200
-    setSegSurvol({ id: sid, top: Math.max(r.top - 4, 56), left: Math.min(r.right + 6, largeurEcran - 132) })
+    const tientADroite = r.right + MARGE_TOOLBAR + LARGEUR_TOOLBAR <= largeurEcran
+    setSegSurvol(tientADroite
+      ? { id: sid, top: Math.max(r.top - 4, 56), left: r.right + MARGE_TOOLBAR }
+      // Au-dessus, alignée sur la fin du segment : le regard la trouve où il était.
+      : { id: sid, top: Math.max(r.top - HAUTEUR_TOOLBAR - MARGE_TOOLBAR, 56),
+          left: Math.max(Math.min(r.right, largeurEcran - MARGE_TOOLBAR) - LARGEUR_TOOLBAR, MARGE_TOOLBAR) })
   }
   const masquerToolbar = (sid: number) => {
     timerSurvolRef.current = setTimeout(() => setSegSurvol(prev => (prev && prev.id === sid ? null : prev)), 200)
