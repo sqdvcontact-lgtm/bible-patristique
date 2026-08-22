@@ -125,9 +125,30 @@ export default function AdminClient({
       )}
 
       {/* Navigation des sections. Sticky sous la navbar. Sur mobile, la barre d'onglets
-          (14 entrées) s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace
-          par un menu déroulant groupé par famille (compact, natif). Sur desktop, la barre
-          d'outils inchangée : onglets clairs, grands, actif souligné de vert. */}
+          (15 entrées) s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace
+          par un menu déroulant groupé par famille (compact, natif).
+
+          Sur desktop, elle tient sur UNE SEULE LIGNE. Elle était en flex-wrap et se
+          repliait sur deux ou trois rangées, ce qui coûtait deux fois : la hauteur, prise
+          à un bandeau collant qui suit tout le défilement, et surtout la lecture, car une
+          barre d'onglets sur trois rangées n'est plus une barre mais une grille, où l'œil
+          ne sait plus si l'ordre se lit en lignes ou en colonnes. Le repliement est donc
+          refusé (nowrap) et le trop-plein défile horizontalement. C'est le même parti que
+          le menu « Administration » de la navbar : borner et faire défiler, jamais rogner
+          ni replier.
+
+          overflow-y reste HIDDEN, sans quoi le conteneur de défilement horizontal se
+          donnerait aussi une barre verticale pour trois pixels de soulignement.
+
+          MESURÉ sur les quinze onglets, à racine 16 : 2 042 px avant, 1 399 après, soit
+          un tiers rendu. La barre tient donc d'une pièce dès 1 440 px, la largeur où la
+          police racine commence à croître ; au-delà, les deux grandissent ensemble et
+          l'écart ne se referme jamais (1 676 px de barre pour 1 920 d'écran, 1 940 pour
+          2 400). En dessous de 1 440 elle défile, ce qui vaut mieux que de se replier.
+          Le tiers vient de trois postes : le corps passe de 1rem à 0,8125 (le rang de
+          l'échelle qui tient sans être illisible ; 0,75 aurait gagné 80 px de plus pour
+          un intitulé de douze pixels, marché refusé), les rembourrages de 12/14 à 9/8,
+          et la pastille de famille disparaît. */}
       {mobile ? (
         <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', padding: '8px 12px', boxShadow: 'var(--cs-ombre-posee)' }}>
           <label style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
@@ -143,19 +164,24 @@ export default function AdminClient({
           </select>
         </div>
       ) : (
-        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', padding: '2px 20px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
+        <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', overscrollBehaviorX: 'contain', scrollbarWidth: 'thin', padding: '2px 14px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
           {ONGLETS.map((o) => {
             const actif = onglet === o.key
             const coul = COUL_FAMILLE[o.famille]
             return (
               <React.Fragment key={o.key}>
                 {o.separateur && (
-                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '18px', margin: '0 8px 10px', background: 'var(--cs-vert-pale)' }} />
+                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '16px', margin: '0 5px 9px', background: 'var(--cs-vert-pale)', flexShrink: 0 }} />
                 )}
+                {/* `flexShrink: 0` : en nowrap, un onglet se laisserait comprimer et son
+                    intitulé serait coupé par le `whiteSpace: nowrap` sans que rien ne le
+                    dise. Les onglets gardent donc leur largeur et c'est la barre qui défile.
+                    Plus de pastille de famille devant l'intitulé : sept pixels et leur
+                    gouttière sur quinze onglets, pour une couleur que l'onglet actif porte
+                    déjà dans son texte et son soulignement, et que les filets de séparation
+                    disent pour les autres. */}
                 <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                  style={{ padding: '12px 14px', fontSize: '1rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', transition: 'color 0.12s, background 0.12s' }}>
-                  {/* Pastille de famille : division par couleur. */}
-                  <span aria-hidden style={{ width: '7px', height: '7px', borderRadius: '50%', background: coul, flexShrink: 0, opacity: actif ? 1 : 0.55 }} />
+                  style={{ padding: '9px 8px', fontSize: '0.8125rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
                   {o.label}
                   {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
                 </button>
