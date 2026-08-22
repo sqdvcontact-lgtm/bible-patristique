@@ -279,6 +279,9 @@ function BoutonEnregistrer({
       ref_chapitre: chapitreActif, ref_verset: verset.verset,
       aelf_version_id: verset.aelf_version_id ?? null,
       aelf_entry_id: verset.aelf_entry_id ?? null,
+      aelf_reference: verset.aelf_reference ?? null,
+      ref_chapitre_label: verset.chapitre_label ?? String(chapitreActif),
+      ref_verset_label: verset.verset_label ?? String(verset.verset),
       texte, traduction: traductionLabel,
     }).select('id').single()
     setLoading(false)
@@ -445,9 +448,19 @@ export default function TexteBible({
   const [actionsMobileId, setActionsMobileId] = useState<string | null>(null)
 
   useEffect(() => {
+    const chapitreCible = searchParams.get('chapitre')
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
-    const v = versets.find(v => nettoyerLabelAelf(v.verset_label ?? v.verset) === nettoyerLabelAelf(versetCible))
+    // Le chapitre brut de l'URL conserve les suffixes AELF (9A/9B, etc.).
+    // La page serveur le ramène à sa base numérique pour charger le chapitre,
+    // mais la sélection du verset doit rester exacte afin de ne jamais confondre
+    // deux sous-chapitres qui portent le même numéro de verset.
+    const v = versets.find(v => {
+      const memeVerset = nettoyerLabelAelf(v.verset_label ?? v.verset) === nettoyerLabelAelf(versetCible)
+      if (!memeVerset) return false
+      if (!chapitreCible) return true
+      return nettoyerLabelAelf(v.chapitre_label ?? v.chapitre) === nettoyerLabelAelf(chapitreCible)
+    })
     if (v) setVersetSelectionne(v)
     const el = v ? document.getElementById(`verset-${v.aelf_entry_id ?? v.id_verset}`) : null
     if (el) {
