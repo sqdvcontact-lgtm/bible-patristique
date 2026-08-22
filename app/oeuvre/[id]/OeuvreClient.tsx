@@ -449,6 +449,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   })
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
+  // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
+  // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
+  // seul est refusé — session expirée, droits perdus — l'admin voyait « Enregistrement… »
+  // puis plus rien, et devait conclure que le réglage ne marchait pas. Un réglage qui
+  // échoue doit le dire, sans quoi on cherche le défaut dans l'affichage.
+  const [configErreur, setConfigErreur] = useState<string | null>(null)
   // Quels niveaux de titres existent réellement dans l'œuvre : on grise les niveaux
   // vides dans le sélecteur d'affichage. Calculé une fois, à l'ouverture du panneau
   // (admin seulement), par une simple sonde d'existence par niveau.
@@ -986,7 +992,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const changerNiv1 = async (n1: string, opts?: { forceRefresh?: boolean; conserverPosition?: boolean }) => {
     setNiv1Actif(n1)
-    if (lectureTexteEntier && !opts?.forceRefresh) {
+    if (lectureTexteEntier) {
+      // ⛔ En texte entier, il n'y a PAS de niveau 1 à recharger : le serveur a envoyé
+      // l'œuvre d'un seul tenant. `chargerNiv1Data` ne sait rapporter qu'UNE section, et
+      // un rafraîchissement forcé la substituait donc à tout le reste — la lecture se
+      // repliait sans un mot sur la seule section courante, et le mode paraissait ne
+      // plus s'appliquer, jusqu'au prochain rechargement de la page. Le seul équivalent
+      // honnête d'un « forceRefresh » est ici de reprendre la page entière.
+      if (opts?.forceRefresh) { window.location.reload(); return }
       setSegActif(null)
       setNiv2Actif(null)
       setVue('texte')
@@ -2759,10 +2772,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </button>
             </div>
             </div>
+            {configErreur && (
+              <p role="alert" style={{ flexShrink: 0, margin: 0, padding: '10px 22px 0', fontSize: '0.65625rem', lineHeight: 1.45, color: 'var(--cs-danger-fonce)' }}>{configErreur}</p>
+            )}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '12px 22px 20px', borderTop: '1px solid var(--cs-fond-doux)' }}>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
+                setConfigErreur(null)
                 const toStr = (b: boolean[]) => b.map(x => x ? '1' : '0').join(',')
                 const appels = [
                   { champ: 'niveaux_sommaire', valeur: configNiveaux.sommaire },
@@ -2775,7 +2792,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 const reponses = await Promise.all(appels.map(({ champ, valeur }) =>
                   fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_oeuvre: idOeuvre, champ, valeur }) })
                 ))
-                if (reponses.some(reponse => !reponse.ok)) {
+                const refusees = appels.filter((_, i) => !reponses[i].ok).map(a => a.champ)
+                if (refusees.length > 0) {
+                  setConfigErreur(`Enregistrement refusé pour : ${refusees.join(", ")}. Rien n’a été rechargé ; réessayez, ou reconnectez-vous si la session a expiré.`)
                   setConfigEnvoi(false)
                   return
                 }
