@@ -2131,6 +2131,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           )}
 
           {/* Vue apparat critique */}
+          {/* ⛔ Les titres de l'apparat se centrent sur le CORPS DU TEXTE, comme ceux du
+              texte suivi, et non sur toute la largeur du bloc. Ils ne le faisaient pas : le
+              frontispice, le fleuron, les titres de niveau 1 et 2 du texte et les paragraphes
+              de l'apparat lui-même portent tous `paddingRight: gouttiereTitre`, qui retranche
+              la colonne des boutons d'action (~60px à droite) avant de centrer. Les deux
+              titres de l'apparat étaient les seuls à l'ignorer : ils se centraient donc sur un
+              axe décalé de trente pixels vers la droite par rapport à tout ce qui les
+              entourait, y compris la page de titre posée juste au-dessus d'eux. */}
           {vue === 'apparat' && (() => {
             let dniv1 = '', dniv2 = ''
             let isFirst = true
@@ -2148,14 +2156,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     [groupe.niv1, groupe.niv1_texte, groupe.niv2, groupe.niv2_texte],
                     segMapApparat.get(groupe.itemIds[0])?.notes,
                   )
-                  const marginTop = isFirst ? '0' : '2.5rem'
+                  // Même valeur qu'au niveau 1 du texte suivi : l'apparat prenait 2,5rem
+                  // quand le texte en prend 2,8, écart que rien ne justifiait.
+                  const marginTop = isFirst ? '0' : '2.8rem'
                   if (isFirst) isFirst = false
                   return (
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                       {showNiv1 && (
-                        <div style={{ position: 'relative', marginTop: marginTop, marginBottom: '0.5rem' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-texte-fort)', textAlign: 'center', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
-                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.4, margin: '4px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
+                        // Mise en page reprise TELLE QUELLE du niveau 1 du texte suivi : le
+                        // centrage porté par le bloc et non par chaque ligne, un demi-rem de
+                        // respiration en tête, et surtout 1,5rem sous le titre au lieu de 0,5.
+                        // Ce demi-rem collait « Avis au lecteur » à son premier paragraphe,
+                        // alors que le même titre, dans le texte, en est détaché de trois fois
+                        // plus. Un titre a besoin d'un blanc au moins égal à son propre corps
+                        // pour cesser de faire partie de ce qui le suit.
+                        <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-texte-fort)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
+                          {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
@@ -2163,7 +2180,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         </div>
                       )}
                       {showNiv2 && (
-                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
+                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center', paddingRight: gouttiereTitre }}>
                           <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
                           {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.35, margin: '3px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
