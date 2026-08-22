@@ -10,6 +10,10 @@ import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
+import {
+  urlResultatRechercheBible,
+  type ResultatRechercheBibleAelf,
+} from '@/app/lib/rechercheBibleAelf'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
@@ -36,11 +40,23 @@ function nombreFr(n: number): string {
 function abrevFr(code: string): string {
   return (ABREV_FR[code] || code).replace(/^([1-3])(\p{L})/u, '$1 $2')
 }
+function nettoyerLabelAelfRecherche(value: string | number | null | undefined): string {
+  const brut = String(value ?? '')
+  const nettoye = brut.replace(/^0+(?=\d)/, '')
+  return nettoye || brut
+}
 function refFr(ref: string): string {
   const p = ref.trim().split(' ')
   if (p.length < 2) return ref
   const cv = p[1].split(':')
-  return cv[1] ? `${abrevFr(p[0])} ${cv[0]}, ${cv[1]}` : `${abrevFr(p[0])} ${cv[0]}`
+  const chapitre = nettoyerLabelAelfRecherche(cv[0])
+  const verset = cv[1] ? nettoyerLabelAelfRecherche(cv[1]) : ''
+  return verset ? `${abrevFr(p[0])} ${chapitre}, ${verset}` : `${abrevFr(p[0])} ${chapitre}`
+}
+function refResultatBible(v: VersetResult): string {
+  const chapitre = nettoyerLabelAelfRecherche(v.chapitre_label ?? v.chapitre)
+  const verset = nettoyerLabelAelfRecherche(v.verset_label ?? v.verset)
+  return verset ? `${abrevFr(v.livre)} ${chapitre}, ${verset}` : `${abrevFr(v.livre)} ${chapitre}`
 }
 
 // Noms des livres DÉRIVÉS de `LIVRES` (app/lib/bible.ts), comme le fait déjà `app/page.tsx`.
@@ -53,19 +69,30 @@ const NOMS_LIVRES: Record<string, string> = Object.fromEntries(LIVRES.map(l => [
 // le tableau est le rang du livre. Sert à trier les résultats de recherche biblique.
 const ORDRE_LIVRE: Record<string, number> = Object.fromEntries(LIVRES.map((l, i) => [l.code, i]))
 function comparerVersets(a: VersetResult, b: VersetResult): number {
-  return (ORDRE_LIVRE[a.livre] ?? 9999) - (ORDRE_LIVRE[b.livre] ?? 9999)
-    || a.chapitre - b.chapitre || a.verset - b.verset
+  const rangLivre = (ORDRE_LIVRE[a.livre] ?? 9999) - (ORDRE_LIVRE[b.livre] ?? 9999)
+  if (rangLivre) return rangLivre
+  if (a.hors_axe_aelf !== true && b.hors_axe_aelf !== true
+      && typeof a.ordre === 'number' && typeof b.ordre === 'number') {
+    return a.ordre - b.ordre
+  }
+  const chapitre = a.chapitre - b.chapitre
+  if (chapitre) return chapitre
+  const chapitreLabel = String(a.chapitre_label ?? a.chapitre)
+    .localeCompare(String(b.chapitre_label ?? b.chapitre), 'fr', { numeric: true })
+  if (chapitreLabel) return chapitreLabel
+  return a.verset - b.verset
+    || String(a.verset_label ?? a.verset).localeCompare(String(b.verset_label ?? b.verset), 'fr', { numeric: true })
 }
 
 const TRADUCTIONS_FALLBACK = [
   { code: 'TR0001', label: 'Bible de Sacy', lang: 'fr' },
   { code: 'TR0002', label: 'Bible Segond', lang: 'fr' },
   { code: 'TR0003', label: 'Bible Crampon', lang: 'fr' },
-  { code: 'TR0004', label: 'Vulgate', lang: 'la' },
+  { code: 'TR0004', label: 'Vulgate clémentine', lang: 'la' },
+  { code: 'TR0005', label: 'Septante de Swete', lang: 'grc' },
 ]
 
-type VersetResult = {
-  id_verset: string; ref: string; livre: string; chapitre: number; verset: number
+type VersetResult = ResultatRechercheBibleAelf & {
   [key: string]: any
 }
 type SegmentResult = {
@@ -290,7 +317,7 @@ export default function RechercheClient() {
       const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
       if (profil?.traduction_defaut) { localStorage.setItem('traduction_defaut', profil.traduction_defaut); appliquer(profil.traduction_defaut) }
     })
-    supabase.from('traductions').select('trad_id, nom, langue').order('ordre', { ascending: true }).then(({ data }) => {
+    supabase.from('v_aelf_bible_search_translations').select('trad_id, nom, langue, ordre').order('ordre', { ascending: true }).then(({ data }) => {
       if (data?.length) {
         const trads = data.map((t: any) => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
         setTraductions(trads)
@@ -372,9 +399,6 @@ export default function RechercheClient() {
       const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
 
       const tradCodes = traductions.map(t => t.code)
-      // On récupère aussi les num_TRxxxx : les références d'ORIGINE de chaque édition,
-      // affichées en lettrine dans l'onglet Polyglotte, comme sur la page Polyglotte.
-      const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}, ${tradCodes.map(c => 'num_' + c).join(', ')}`
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
@@ -448,24 +472,14 @@ export default function RechercheClient() {
         })(),
 
         // ── Versets ───────────────────────────────────────────────────────────
-        // L'ancien chemin passait par `concordance_versets` — relique du modèle d'avant
-        // la bascule du 20/07 (30 lignes, identifiants périmés `B001714`) : elle renvoyait
-        // 0, d'où « aucun mot n'était trouvé ». Un mot seul passe désormais par la fonction
-        // `recherche_versets`, qui compare via `unaccent` — on trouve donc « vérité » même
-        // en tapant « verite ». Le filtre client affine ensuite en mot entier / début de mot.
-        (async (): Promise<any[]> => {
-          if (!fragments) {
-            return pagine((de, a) => supabase.rpc('recherche_versets', { p_terme: q, p_scope: chercheTout ? 'ALL' : scopeActif }).range(de, a), signal)
-          }
-          // Fragments (plusieurs mots, mode début de mot) : requête directe, chaque mot
-          // requis. Accent-sensible ici — cas plus rare, la recherche d'un mot prime.
-          const cols = chercheTout ? tradCodes : [scopeActif]
-          return pagine((de, a) => {
-            let r = supabase.from('versets_lecture').select(selVersets)
-            for (const t of termes) r = r.or(cols.map(c => `${c}.ilike.%${t}%`).join(','))
-            return r.range(de, a)
-          }, signal)
-        })(),
+        // La recherche biblique interroge directement l'index AELF/TOL : les scissions,
+        // fusions et décalages propres à chaque traduction sont donc résolus AVANT le hit.
+        // Le RPC inclut aussi les positions historiques hors axe ; le filtre client ne fait
+        // ensuite qu'affiner les frontières de mot (début de mot / mot exact).
+        pagine((de, a) => supabase.rpc('recherche_versets_aelf', {
+          p_termes: termes,
+          p_scope: chercheTout ? 'ALL' : scopeActif,
+        }).range(de, a), signal),
 
         // ── Essais ────────────────────────────────────────────────────────────
         reqE,
@@ -481,13 +495,18 @@ export default function RechercheClient() {
       if ((resE.data?.length ?? 0) >= limiteE) avertissements.push('Publications')
       if (avertissements.length) setTronque(avertissements)
 
-      // Filtre client versets : mot entier ou début de mot, INSENSIBLE AUX ACCENTS
-      // (contientTerme normalise les deux côtés). Colonnes : toutes les bibles si ALL,
-      // sinon la seule choisie. Ce filtre resserre le résultat de recherche_versets
-      // (qui, lui, fait une simple sous-chaîne) sur la frontière de mot voulue.
+      // Le RPC renvoie déjà des cellules de lecture AELF/TOL. On ne reprojette donc plus
+      // un canon historique après coup : cela perdrait les mappings translationnels split/
+      // merge. Le filtre client resserre seulement la sous-chaîne sur la frontière de mot.
       const versetsRaw = versetsArr as unknown as VersetResult[]
       const colsFiltre = chercheTout ? tradCodes : [scopeActif]
-      const versets = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
+      const versets = versetsRaw
+        .filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
+        .map(v => ({
+          ...v,
+          hors_axe_aelf: !v.aelf_entry_id && v.id_verset.startsWith('EXTRA:'),
+        }))
+      if (signal.aborted) return
       setVersetsRes(versets)
 
       // Essais
@@ -1075,13 +1094,14 @@ export default function RechercheClient() {
                         <a key={v.id_verset}
                           // Lien vers la page Bible : livre, chapitre, verset ET la traduction
                           // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
-                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                          href={urlResultatRechercheBible(v, tradBible)}
                           target="_blank" rel="noopener noreferrer"
                           className={`res-card${!displayLeMot && contientDans.length ? ' res-card--absent' : ''}`}>
                           {/* Référence (couleur neutre, pas verte), traduction affichée (barrée si
                               le mot y est absent) puis TOUTES les traductions qui contiennent le mot. */}
                           <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                            <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
+                            <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refResultatBible(v)}</span>
+                            {v.hors_axe_aelf && <span style={{ fontSize:'0.5625rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>hors axe AELF</span>}
                             {/* Tous les noms de bibles : même couleur, même espacement (le gap
                                 du conteneur), chacun dans son propre span. La traduction affichée
                                 est barrée quand le mot n'y figure pas — seule distinction retenue. */}
@@ -1192,10 +1212,10 @@ export default function RechercheClient() {
                                 </div>
                               )}
                               <a className="poly-row" style={{ gridTemplateColumns:polyTmpl, background:fond }}
-                                href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                                href={urlResultatRechercheBible(v, tradBible)}
                                 target="_blank" rel="noopener noreferrer">
                                 {/* Colonne canonique */}
-                                <div className="poly-num">{v.chapitre}, {v.verset}</div>
+                                <div className="poly-num">{nettoyerLabelAelfRecherche(v.chapitre_label ?? v.chapitre)}, {nettoyerLabelAelfRecherche(v.verset_label ?? v.verset)}</div>
                                 {/* Une colonne par traduction */}
                                 {colTrads.map((code, i) => {
                                   const lang = traductions.find(t => t.code === code)?.lang ?? 'fr'
