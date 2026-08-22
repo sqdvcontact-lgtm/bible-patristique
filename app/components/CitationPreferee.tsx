@@ -87,7 +87,7 @@ export function BoutonCitationPreferee({ actif, onClick, className = 'prel-actio
   )
 }
 
-const extrait = (c: CitationPreferee, max = 150): string => {
+const extrait = (c: CitationPreferee, max = 110): string => {
   const t = texteSansEnrichissement(c.texte).trim()
   return t.length > max ? `${t.slice(0, max).trimEnd()}…` : t
 }
@@ -98,18 +98,15 @@ const source = (c: CitationPreferee): string =>
 /** Une des deux citations mises en regard dans la fenêtre. `vive` = la nouvelle. */
 function CitationEnRegard({ c, etat, vive }: { c: CitationPreferee; etat: string; vive: boolean }) {
   return (
-    <div style={{
-      borderLeft: `2px solid ${colorMix('var(--cs-or)', vive ? 70 : 26)}`,
-      padding: '2px 0 2px 11px', margin: '0 0 12px',
-    }}>
-      <p style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--cs-texte-gris)', margin: '0 0 5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
+    <div style={{ borderLeft: `2px solid ${colorMix('var(--cs-or)', vive ? 70 : 26)}`, padding: '1px 0 1px 10px' }}>
+      <p style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--cs-texte-gris)', margin: '0 0 4px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
         {etat}
       </p>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.45, margin: 0 }}>
+      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.4, margin: 0 }}>
         «&#8201;{extrait(c)}&#8201;»
       </p>
       {source(c) && (
-        <p style={{ fontSize: '0.625rem', color: 'var(--cs-or)', margin: '5px 0 0', letterSpacing: '0.08em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+        <p style={{ fontSize: '0.5625rem', color: 'var(--cs-or)', margin: '4px 0 0', letterSpacing: '0.08em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           {source(c)}
         </p>
       )}
@@ -125,6 +122,20 @@ function CitationEnRegard({ c, etat, vive }: { c: CitationPreferee; etat: string
  *
  * ⚠️ Gabarit imposé par la charte (§ Fenêtres contextuelles) : le calque part de
  * `HAUTEUR_NAVBAR` et ne défile pas, c'est la boîte qui défile en dedans.
+ *
+ * ⛔ **Elle se compose EN LARGEUR, jamais en hauteur** (repris le 2026-08-22, la
+ * fenêtre ne s'ouvrait pas entière). Deux citations empilées sous un médaillon,
+ * un titre et un paragraphe de deux lignes faisaient une colonne de près de
+ * 500 px : sur un portable, une fois la navbar déduite, la boîte se coupait et
+ * les boutons partaient sous le pli — c'est-à-dire précisément ce qu'on demande
+ * de lire avant de trancher. Les deux citations passent donc CÔTE À CÔTE, ce que
+ * leur mise en regard appelait de toute façon, le médaillon vient sur la ligne du
+ * titre au lieu de le surmonter, et le paragraphe tient en une phrase. La boîte
+ * s'élargit d'autant (26rem → 34rem) et perd la moitié de sa hauteur.
+ *
+ * ⚠️ La grille repasse à une colonne sous **640px**, le seuil de la charte pour
+ * « les champs qui passent l'un sous l'autre ». Elle demande donc une règle CSS,
+ * qu'un style en ligne ne sait pas porter : d'où le bloc `<style>` embarqué.
  */
 export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnnuler }: {
   actuelle: CitationPreferee; nouvelle: CitationPreferee
@@ -152,41 +163,48 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-remplacer-titre"
         style={{
           background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)',
-          width: '100%', maxWidth: '26rem', maxHeight: '100%', overflowY: 'auto',
+          width: '100%', maxWidth: '34rem', maxHeight: '100%', overflowY: 'auto',
           boxShadow: 'var(--cs-ombre-modale)',
         }}>
+        <style>{`
+          .cs-remplacer-regard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+          @media (max-width: 640px) { .cs-remplacer-regard { grid-template-columns: 1fr; gap: 13px; } }
+        `}</style>
 
-        {/* Bandeau. La marque de la page y paraît en grand : on reconnaît le geste qu'on vient de faire. */}
-        <div style={{ position: 'relative', padding: '22px 24px 17px', background: `linear-gradient(180deg, ${colorMix('var(--cs-or)', 11)} 0%, var(--cs-fond-clair) 100%)`, borderBottom: '1px solid var(--cs-bord-clair)' }}>
-          <button onClick={onAnnuler} aria-label="Fermer"
-            style={{ position: 'absolute', top: '12px', right: '14px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+        {/* Bandeau. La marque de la page vient SUR la ligne du titre, non au-dessus :
+            posée en médaillon isolé, elle coûtait quarante pixels de hauteur pour
+            un signe qu'on vient justement de cliquer. */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '12px', padding: '15px 46px 14px 22px', background: `linear-gradient(180deg, ${colorMix('var(--cs-or)', 11)} 0%, var(--cs-fond-clair) 100%)`, borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <div aria-hidden="true"
-            style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--cs-surface)', border: `1px solid ${colorMix('var(--cs-or)', 38)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '11px', color: 'var(--cs-or)' }}>
-            <MarqueCitation taille={21} plein />
+            style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', background: 'var(--cs-surface)', border: `1px solid ${colorMix('var(--cs-or)', 38)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cs-or)' }}>
+            <MarqueCitation taille={18} plein />
           </div>
           <h2 id="cs-remplacer-titre"
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
+            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
             Voulez-vous remplacer votre citation favorite ?
           </h2>
+          <button onClick={onAnnuler} aria-label="Fermer"
+            style={{ position: 'absolute', top: '11px', right: '13px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
 
-        <div style={{ padding: '17px 24px 22px' }}>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.6, margin: '0 0 15px' }}>
+        <div style={{ padding: '14px 22px 18px' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: '0 0 13px' }}>
             Vous n’en portez qu’une à la fois, et c’est elle qui paraît sur votre profil public.
-            Celle que vous gardiez jusqu’ici redeviendra une citation ordinaire.
           </p>
 
-          <CitationEnRegard c={actuelle} etat="Citation actuelle" vive={false} />
-          <CitationEnRegard c={nouvelle} etat="Nouvelle citation" vive />
+          <div className="cs-remplacer-regard">
+            <CitationEnRegard c={actuelle} etat="Citation actuelle" vive={false} />
+            <CitationEnRegard c={nouvelle} etat="Nouvelle citation" vive />
+          </div>
 
-          <div style={{ display: 'flex', gap: '9px', marginTop: '18px' }}>
-            <button ref={boutonRef} type="button" onClick={onConfirmer}
-              style={{ flex: 1, fontSize: '0.8125rem', fontWeight: 600, padding: '10px 16px', borderRadius: '8px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
-              Remplacer
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '9px', marginTop: '16px' }}>
             <button type="button" onClick={onAnnuler}
-              style={{ flex: 1, fontSize: '0.75rem', padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ fontSize: '0.75rem', padding: '9px 16px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontFamily: 'inherit' }}>
               Garder l’actuelle
+            </button>
+            <button ref={boutonRef} type="button" onClick={onConfirmer}
+              style={{ fontSize: '0.75rem', fontWeight: 600, padding: '9px 20px', borderRadius: '8px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              Remplacer
             </button>
           </div>
         </div>
