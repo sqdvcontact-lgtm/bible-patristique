@@ -54,14 +54,22 @@ export default async function Home({
     // l'édition présentée (ville, éditeur, date), toutes deux pour l'encart Traduction.
     supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').order('ordre', { ascending: true }),
   ])
-  const translations = (rawTranslations || [])
+  const toutesTraductions = (rawTranslations || [])
     .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, editionRef: t.source_edition ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))
-    .filter((translation) => selectableReadingModes(catalog.capabilities[translation.code] ?? { translationId: translation.code, modes: [] }).length > 0)
+  const estLisible = (code: string) => selectableReadingModes(
+    catalog.capabilities[code] ?? { translationId: code, modes: [] },
+  ).length > 0
   const requestedTranslation = params.trad
   const trad = requestedTranslation && catalog.capabilities[requestedTranslation]
     ? requestedTranslation
-    : translations[0]?.code
+    : toutesTraductions.find((t) => estLisible(t.code))?.code
   if (!trad) redirect('/accueil')
+  // Le menu ne liste que des bibles lisibles, MAIS il liste toujours celle qu'on lit.
+  // Sans cette seconde condition, une traduction que le catalogue n'annonce pas encore
+  // laisse le menu montrer le nom d'une AUTRE bible au-dessus du chapitre lu, puisque
+  // l'index tombe alors sur la première de la liste. L'ordre de `traductions` est
+  // conservé : la bible lue reste à sa place, elle n'est pas poussée en tête.
+  const translations = toutesTraductions.filter((t) => estLisible(t.code) || t.code === trad)
 
   const modes = selectableReadingModes(catalog.capabilities[trad])
   const requestedMode = params.mode as BibleReadingMode | undefined

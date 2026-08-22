@@ -42,6 +42,34 @@ describe('adaptateur multimode biblique', () => {
       .toEqual(['native', 'diplomatic', 'expanded'])
   })
 
+  it('ne laisse pas une source indisponible retirer la lecture canonique', () => {
+    // Cas RÉEL, relevé le 2026-08-22 : la vue déclare « verse · indisponible » pour la
+    // source numérisée de Sacy, Segond, Crampon, de la Vulgate clémentine et de la
+    // Septante. Cette ligne écrasait leur capacité canonique, et les CINQ éditions
+    // historiques disparaissaient du menu de la page Bible.
+    const catalog = readingCapabilitiesByTranslation([
+      row('TR0001', 'verse', false),
+      row('TR0001', 'diplomatic', false),
+      row('TR0001', 'native', false),
+    ], ['TR0001'])
+    expect(selectableReadingModes(catalog.TR0001).map((mode) => mode.value)).toEqual(['verse'])
+    // La capacité conservée reste bien la canonique, non une segmentation éditoriale.
+    expect(catalog.TR0001.modes.find((m) => m.mode === 'verse')?.source).toBe('canonical-verses')
+  })
+
+  it('laisse la source qui offre le mode l’emporter, quel que soit l’ordre', () => {
+    const disponibleEnSecond = readingCapabilitiesByTranslation([
+      { ...row('WITNESS', 'expanded', false), display_order: 1 },
+      { ...row('WITNESS', 'expanded', true), display_order: 2, source_id: 'autre' },
+    ], [])
+    const disponibleEnPremier = readingCapabilitiesByTranslation([
+      { ...row('WITNESS', 'expanded', true), display_order: 1 },
+      { ...row('WITNESS', 'expanded', false), display_order: 2, source_id: 'autre' },
+    ], [])
+    expect(selectableReadingModes(disponibleEnSecond.WITNESS).map((m) => m.value)).toEqual(['expanded'])
+    expect(selectableReadingModes(disponibleEnPremier.WITNESS).map((m) => m.value)).toEqual(['expanded'])
+  })
+
   it('ignore un mode inconnu au lieu de fabriquer une capacité', () => {
     const catalog = readingCapabilitiesByTranslation([row('WITNESS', 'future-mode', true)], [])
     expect(catalog.WITNESS).toBeUndefined()

@@ -452,7 +452,17 @@ Règles de mise en forme arrêtées par l'auteur, centralisées dans `app/lib/ci
 
 **Règle** : ne jamais construire un `select` de `versets_lecture` à partir des `trad_id` bruts de `traductions`. Passer par `codesTraductionsLecture(client)` (`app/lib/traductions.ts`), qui **sonde une ligne de la vue** (`select('*').limit(1)`) et n'garde que les codes réellement présents comme colonnes. Auto-correcteur : dès qu'une traduction est matérialisée, elle est reprise ; tant qu'elle ne l'est pas, elle est écartée. Utilisé par `app/oeuvre/[id]/page.tsx` (SSR) et `OeuvreClient.tsx` (client).
 
-**Reste à surveiller** : les sélecteurs de lecture (dropdown de la page Bible `app/page.tsx`, `SelecteurCitation`) listent encore TOUTES les traductions ; choisir TR0009 y affiche du vide (Bible, via `select('*')`) ou échoue (sélecteur à colonne unique). À filtrer aussi si l'on veut masquer une traduction non matérialisée côté lecture.
+**Reste à surveiller** : `SelecteurCitation` liste encore TOUTES les traductions ; y choisir une traduction non matérialisée échoue (sélecteur à colonne unique). Le menu de la page Bible, lui, filtre depuis le catalogue des capacités — voir le piège ci-dessous.
+
+## ⛔ Une SOURCE indisponible ne retire pas la lecture CANONIQUE (2026-08-22)
+
+`readingCapabilitiesByTranslation` (`bibleMultimode.ts`) sème d'abord les capacités canoniques — les colonnes réellement observées dans `versets_lecture` —, puis parcourt les lignes de `v_bible_reading_capabilities`. Chaque ligne REMPLAÇAIT la capacité du même mode, disponible ou non.
+
+Or la vue déclare `verse · is_available = false` pour la source numérisée de Sacy, Segond, Crampon, de la Vulgate clémentine et de la Septante : elle dit qu'aucune SEGMENTATION ÉDITORIALE ne sert ces éditions, ce qui est vrai et n'a rien à voir avec leur colonne canonique. La ligne écrasait pourtant le repli, `selectableReadingModes` rendait une liste vide, et le filtre d'`app/page.tsx` **retirait les CINQ éditions historiques du menu de la page Bible**. Il n'y restait que la Bible 899, la Fillion et sa Vulgate. Pire, `BibleLayout` ne retrouvant pas la traduction lue dans la liste retombait sur l'index 0 : demander Sacy par l'URL affichait « Bible française du XIIIᵉ siècle » au-dessus d'un chapitre vide.
+
+**Règle** : la vue décrit ce que chaque SOURCE propose, le repli canonique ce que la COLONNE propose. Ce sont deux faits distincts, et une absence n'efface jamais une présence. Une ligne indisponible ne peut donc que remplir un mode que rien d'autre ne déclare disponible — vaut aussi entre deux sources d'une même traduction, celle qui offre le mode l'emportant quel que soit l'ordre d'affichage.
+
+⚠️ **Second garde-fou, dans `app/page.tsx`** : le menu ne liste que des bibles lisibles, **mais il liste toujours celle qu'on lit** (`estLisible(code) || code === trad`). Un catalogue en retard sur les données ne doit jamais faire mentir l'intitulé du menu.
 
 # TR0009 « Bible française du XIIIᵉ siècle » (Bible 899) — lecture par versets recomposés
 

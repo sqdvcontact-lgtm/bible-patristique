@@ -97,11 +97,22 @@ export function readingCapabilitiesByTranslation(
     if (!READING_MODES.has(row.mode_code as BibleReadingMode)) continue
     const mode = row.mode_code as BibleReadingMode
     const current = result[row.trad_id] ?? { translationId: row.trad_id, modes: [] }
+    const disponible = row.is_available && row.availability_status === 'available'
+    // ⛔ Une source qui n'offre PAS un mode ne retire jamais ce mode à la traduction.
+    //
+    // La vue décrit ce que chaque SOURCE propose ; le repli canonique décrit ce que la
+    // colonne de `versets_lecture` propose. Ce sont deux faits distincts, et le second
+    // ne dépend pas du premier. Or la ligne « verse · indisponible » de la source
+    // numérisée de Sacy, Segond, Crampon, de la Vulgate clémentine et de la Septante
+    // écrasait leur capacité canonique : les cinq éditions historiques disparaissaient
+    // du menu de la page Bible, et le lecteur qui en demandait une par l'URL recevait
+    // le nom d'une autre au-dessus d'un chapitre vide. Même raison pour deux sources
+    // d'une même traduction : celle qui offre le mode l'emporte, quel que soit l'ordre.
+    const existant = current.modes.find((item) => item.mode === mode)
+    if (!disponible && existant?.availability === 'available') continue
     const capability: BibleReadingModeCapability = {
       mode,
-      availability: row.is_available && row.availability_status === 'available'
-        ? 'available'
-        : 'unavailable',
+      availability: disponible ? 'available' : 'unavailable',
       source: sourceForMode(mode),
       ...(mode === 'modernized'
         ? { validation: row.is_available ? 'validated' as const : 'legacy-unverified' as const }
