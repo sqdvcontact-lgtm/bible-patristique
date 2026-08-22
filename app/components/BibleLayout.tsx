@@ -153,11 +153,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
       chargerLivres.then(marquerVides).catch(() => {})
       return () => { annule = true }
     }
-    // Les éditions historiques prennent leur disponibilité dans la projection AELF,
-    // augmentée des matières hors axe. Un livre historique comme SUS ou BEL reste donc
-    // accessible même lorsqu'il n'est pas un livre autonome de la spine AELF.
+    // On demande la LISTE DES LIVRES, pas tous les versets pour en déduire la liste : l'API
+    // plafonne à 1 000 lignes, si bien que la version précédente ne voyait jamais que les deux
+    // premiers livres de la Bible et grisait tous les autres.
     supabase
-      .from('v_aelf_bible_books_by_translation')
+      .from('livres_par_traduction')
       .select('livre')
       .eq('trad_id', trad)
       .then(({ data }) => {

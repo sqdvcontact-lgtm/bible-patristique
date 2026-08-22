@@ -99,7 +99,7 @@ export default async function Home({
   }
 
   // Deux origines pour le mode « verset », même contrat de données pour BibleLayout :
-  //   - éditions historiques (TR0001–TR0005) : projection large sur la spine AELF/TOL ;
+  //   - éditions historiques (TR0001–TR0005) : vue large `versets_lecture` ;
   //   - segmentations éditoriales (Bible 899, Fillion, Vulgate Fillion…) : texte
   //     recomposé et aligné sur
   //     canon_id, ADAPTÉ au contrat ordinaire (aucune copie vers versets_v2). La
@@ -128,27 +128,15 @@ export default async function Home({
       chapitre,
     })
   } else {
-    const [axe, horsAxe] = await Promise.all([
-      supabase
-        // Axe de lecture actif : une ligne = une entrée de la spine AELF/TOL.
-        .from('v_aelf_bible_lecture')
-        .select('*')
-        .eq('livre', livre)
-        .eq('chapitre', chapitre)
-        .order('ordre'),
-      supabase
-        // Matières natives sans cible AELF : elles restent lisibles séparément et
-        // ne reçoivent jamais d'aelf_entry_id artificiel.
-        .from('v_aelf_bible_lecture_extras')
-        .select('*')
-        .eq('livre', livre)
-        .eq('chapitre', chapitre)
-        .order('est_suscription', { ascending: false })
-        .order('verset'),
-    ])
-    if (axe.error) throw new Error(`Lecture AELF indisponible : ${axe.error.message}`)
-    if (horsAxe.error) throw new Error(`Matières hors axe AELF indisponibles : ${horsAxe.error.message}`)
-    versets = [...(axe.data || []), ...(horsAxe.data || [])]
+    const { data } = await supabase
+      // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
+      // historiques et n'est jamais utilisée pour simuler un mode source.
+      .from('versets_lecture')
+      .select('*')
+      .eq('livre', livre)
+      .eq('chapitre', chapitre)
+      .order('verset')
+    versets = data || []
   }
 
   // Les balises de titre se calculent d'un seul passage sur l'ordre matériel :
@@ -160,19 +148,10 @@ export default async function Home({
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
   let editionChapter: BibleEditionChapterDisplay | null = null
   if (editionMember) {
-    const canonIdsEdition = [...new Set(versets.flatMap((verset) => {
-      const historique = typeof verset.historical_canon_id === 'string' && verset.historical_canon_id
-        ? verset.historical_canon_id
-        : null
-      if (historique) return [historique]
-      return verset.id_verset.startsWith('AELF:') || verset.id_verset.startsWith('EXTRA:')
-        ? []
-        : [verset.id_verset]
-    }))]
     const payload = await loadBibleEditionChapter(supabase, {
       familyId: editionMember.family_id,
       bookCode: livre,
-      canonIds: canonIdsEdition,
+      canonIds: versets.map((verset) => verset.id_verset),
       includeBookFrontMatter: chapitre === 1,
     })
     const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
