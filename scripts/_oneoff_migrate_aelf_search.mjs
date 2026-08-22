@@ -94,7 +94,7 @@ s = replaceOnce(s,
 `      const versetsRaw = versetsArr as unknown as VersetResult[]
       const colsFiltre = chercheTout ? tradCodes : [scopeActif]
       const hitsIndex = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
-      // `versets_lecture` reste ici un INDEX historique performant, jamais la référence
+      // versets_lecture reste ici un INDEX historique performant, jamais la référence
       // de sortie : tous les hits sont résolus vers la spine AELF avant affichage.
       const versets = await projeterResultatsRechercheBibleAelf(hitsIndex, signal)
       if (signal.aborted) return
