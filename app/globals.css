@@ -26,6 +26,20 @@
   --background: var(--cs-fond);
   --foreground: var(--cs-texte);
 
+  /* ⛔ CE QUE LE NAVIGATEUR PEINT LUI-MÊME. `color-scheme` ne colore rien dans la
+     page : il dit au navigateur dans quel registre rendre SES propres surfaces —
+     barres de défilement natives, cases à cocher, menus déroulants de `<select>`,
+     sélecteurs de date. Sans lui, elles restent CLAIRES quoi qu'on fasse, et une
+     barre blanche courait le long d'une page brune. Aucune feuille de style ne les
+     atteint : `::-webkit-scrollbar` ne touche que les zones auxquelles on a posé
+     une classe, jamais celle du document.
+     ⚠️ À ne pas confondre avec `@media (prefers-color-scheme: dark)`, que la charte
+     proscrit : celle-ci LIT le réglage du système et déciderait à la place du
+     lecteur ; `color-scheme` ne fait que DÉCLARER ce que la page sert déjà.
+     Le déclarer aussi en clair n'est pas une symétrie de forme : sans cela, un poste
+     réglé en sombre reçoit des contrôles sombres sur les pages crème. */
+  color-scheme: light;
+
   /* ── Mesure de lecture (responsive) ──
      Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
      la police racine fluide (voir la règle `html` plus bas) : la colonne de
@@ -190,6 +204,7 @@
 
 /* ── Sépia : parchemin chaud, moins de bleu ── */
 :root[data-theme="sepia"] {
+  color-scheme: light;
   --cs-fond: #f3ead7;
   --cs-fond-clair: #f8f1e0;
   --cs-fond-doux: #ece0c9;
@@ -265,6 +280,7 @@
    bouton destructif continue de se signaler sans qu'il faille lire son libellé.
    Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.  */
 :root[data-theme="sombre"] {
+  color-scheme: dark;
   --cs-fond: #1c1813;
   --cs-fond-clair: #241f18;
   --cs-fond-doux: #2b251c;
