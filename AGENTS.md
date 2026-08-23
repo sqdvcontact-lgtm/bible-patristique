@@ -441,6 +441,24 @@ Une maquette a composé chaque surface du site avec les jetons réels. Trois ens
 - **`--cs-surnum-*`** (quatre rangs) : les versets propres à la Septante, hors de l'ossature canonique, dans la Polyglotte. C'est la seule famille du site qui **ne se rabatte sur rien** : mesuré, son violet est à **ΔE 36,7** de `--cs-systeme`, le jeton le plus proche. Ce n'était pas un doublon, c'était un rôle sans nom. Sept violets écrits en dur rabattus sur quatre rangs, déplacement maximal ΔE 18,4. Les rouges de signalement de la même page, eux, se rabattent bien sur la famille du danger (ΔE 16,2 et 10,8), et le jaune du verset visé devient `--cs-vise-fond`. **La Polyglotte ne porte plus une seule couleur en dur.**
 - **`--cs-original`** : l'encre du texte en langue originale composé en regard du français. Elle vaut **65 % du contraste du corps**, et les trois thèmes gardent ce rapport. Elle était écrite en dur dans trois fichiers, et **testée** (`BibleBilingue.test.tsx` vérifie que la colonne latine la porte et que la française ne la porte pas — le test vise maintenant le nom du jeton).
 
+## ⛔ Le Cuir est MONOCHROME (décision de l'auteur, 2026-08-23)
+
+Cuir et beiges, une seule famille chaude. La première version transposait chaque famille dans SA teinte : le vert d'encre restait vert, l'or restait or, le bleu « Système » restait bleu, le violet du surnuméraire restait violet. **Sur un papier crème ces quatre teintes se tiennent, parce que le blanc les éloigne ; sur un fond brun elles se rapprochent toutes et la page devient bariolée.**
+
+⚠️ **Ce que la couleur faisait, il faut le refaire autrement.** Le thème clair sépare ses RÔLES par la TEINTE. En monochrome cette séparation n'existe plus, et elle se refait sur deux axes qui se mesurent :
+- la **CHROMA** : le corps du texte est un gris chaud presque neutre (8), une encre de titre est nettement plus saturée (20), un accent davantage encore (31). C'est la saturation qui dit « ceci appelle » ;
+- la **LUMINANCE** : les quatre tans de l'apparat (lacune, attente, or, étiquette) s'échelonnent en clarté, la lacune en tête puisqu'elle porte les appels de note à 0,60 em.
+
+Toute la palette tient dans une bande de **26° de teinte**, chaque séparation qui porte du sens vaut au moins **ΔE 9,9**. ⛔ Avant de retoucher une valeur du bloc Cuir, refaire tourner la mesure : ces écarts ne se jugent pas à l'œil.
+
+⛔ **Une seule exception, et elle est fonctionnelle** : l'AVERTISSEMENT garde une terre de Sienne brûlée, à 42° quand tout le reste est entre 67° et 93°. Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.
+
+⚠️ **La barre et le panneau mobile cessent d'être verts en Cuir.** Ils seraient sinon la seule tache de couleur d'une page qui n'en a plus. Corollaire : les trois familles du panneau (`--cs-*-clair`), que la charte déclarait hors thème parce que son fond ne changeait jamais, reçoivent une surcouche — son fond change maintenant.
+
+⚠️ **Un vert écrit à la main ne se repère pas au grep, il se repère au COLORIMÈTRE.** Le contrôle final a relevé toute teinte hors de la bande du cuir (30°-105°) et de chroma > 12 : quatre-vingt-huit valeurs. ⛔ **Toutes ne se rabattent pas** : la frise de l'histoire et les catégories de modération encodent des CATÉGORIES par la couleur, et les rabattre effacerait l'information — dans le thème clair aussi, qu'il n'était pas question de changer. Seules les teintes dont le jeton le plus proche appartient à la famille du vert ou du danger ont été reprises. Restent 42 valeurs hors bande, délibérément : leur sort en Cuir est une décision éditoriale, pas un balayage.
+
+⚠️ **Un vert très DÉSATURÉ n'appartient pas à la famille du vert.** Le nom de la traduction sous l'intitulé de chapitre était un `#6b8270` : son jeton le plus proche est `--cs-texte-gris`, non `--cs-vert`, parce que c'est un marqueur discret et non un accent. La garde par famille l'avait donc laissé passer, et c'était la dernière tache de la page Bible.
+
 ## L'audit au navigateur (2026-08-23) — six défauts qu'aucune mesure locale ne voyait
 
 Le site étant fermé, il a fallu le parcourir SOUS SESSION dans le navigateur de l'auteur, sur la version EN LIGNE. Six défauts, dont un introduit par la passe de la veille. Aucun n'apparaissait dans le dépôt : ils ne se voient qu'en page composée.
