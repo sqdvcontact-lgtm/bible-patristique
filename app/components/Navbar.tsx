@@ -35,8 +35,11 @@ function planifierTacheSecondaire(tache: () => void, delai: number) {
 // l'autre à comparer. Elles vont donc ensemble, accolées en un seul bloc, plutôt
 // que dispersées de part et d'autre de la barre — et la Polyglotte cesse d'être un
 // lien discret, puisqu'elle pèse autant que la lecture suivie.
+// La lecture suivie s'ouvre sur Genèse 1 : un chapitre, non une page vide. Une seule
+// écriture de cette adresse, reprise par l'onglet des bibles comme par le panneau mobile.
+const HREF_BIBLE_CLASSIQUE = "/?livre=GEN&chapitre=1";
 const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
-  { href: "/?livre=GEN&chapitre=1", label: "Bible", exact: true },
+  { href: HREF_BIBLE_CLASSIQUE, label: "Bible", exact: true },
   { href: "/polyglotte", label: "Polyglotte" },
 ];
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
@@ -200,6 +203,84 @@ function OngletAdministration({ label, style }: { label: string; style: React.CS
   );
 }
 
+// ── Onglet des bibles : quatre états, un par palier de place ─────────────────
+// La lecture suivie et la Polyglotte sont deux entrées dans le même texte : l'une le
+// donne à lire, l'autre à comparer. Elles tiennent donc ensemble, et se resserrent en
+// QUATRE temps à mesure que la barre manque de place (voir CRAN_MAX) :
+//
+//   « deux »  — chacune son onglet, en toutes lettres : rien à survoler pour les voir
+//   « fendu » — « Les Saintes Écritures », qui se fend SUR PLACE au survol
+//   « long »  — « La Bible », et le choix dans un menu déroulant
+//   « court » — « Bible », et le même menu
+//
+// ⛔ La fente SUR PLACE ne vaut QUE pour « fendu », et c'est ce qui commande le passage
+// au menu. Les deux faces occupent la même cellule de grille (cf. la feuille de styles,
+// § .cs-bible) : le bloc prend donc la largeur de la PLUS LARGE des deux. Tant que
+// l'intitulé dit « Les Saintes Écritures », c'est lui qui mesure l'onglet et le repli
+// gagne quelque chose ; sous « La Bible », deux fois plus courte que
+// « Classique | Polyglotte », ce sont les segments qui mesurent l'onglet et raccourcir
+// l'intitulé ne rend plus un pixel. Le menu déroulant, lui, sort du flux : l'onglet ne
+// pèse plus alors que son propre mot.
+type EtatBible = 'deux' | 'fendu' | 'long' | 'court';
+
+function OngletBibles({ etat, pathname, styleLien }: {
+  etat: EtatBible;
+  pathname: string;
+  styleLien: (href: string, exact: boolean | undefined, primaire: boolean) => React.CSSProperties;
+}) {
+  const surClassique = pathname === "/";
+  const surPolyglotte = pathname.startsWith("/polyglotte");
+
+  // Très large : les deux bibles s'annoncent chacune par son nom entier. C'est l'état le
+  // plus clair du site — on lit ce qu'il offre sans avoir à survoler quoi que ce soit.
+  if (etat === 'deux') {
+    return (
+      <>
+        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-onglet" aria-current={surClassique ? "page" : undefined}
+          style={styleLien("/", true, true)}>Bible classique</Link>
+        <Link href="/polyglotte" className="cs-onglet" aria-current={surPolyglotte ? "page" : undefined}
+          style={styleLien("/polyglotte", undefined, true)}>Bible polyglotte</Link>
+      </>
+    );
+  }
+
+  // Large : un seul onglet, qui se fend au survol sans que la barre bouge d'un pixel.
+  if (etat === 'fendu') {
+    return (
+      <div className="cs-bible">
+        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-bible-face">Les Saintes Écritures</Link>
+        <div className="cs-bible-split">
+          <Link href={HREF_BIBLE_CLASSIQUE} aria-current={surClassique ? "page" : undefined} className={`cs-bible-seg${surClassique ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
+          <Link href="/polyglotte" aria-current={surPolyglotte ? "page" : undefined} className={`cs-bible-seg${surPolyglotte ? " cs-bible-seg--actif" : ""}`}>Polyglotte</Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Moyen et petit : l'intitulé seul, et le choix dans un menu déroulant. Le clic sur
+  // l'intitulé mène à la lecture classique, utile au tactile où il n'y a pas de survol.
+  // L'onglet se marque actif sur l'une comme sur l'autre : à ces paliers il les porte
+  // toutes deux, et rien d'autre ne dirait au lecteur qu'il est dans une bible.
+  const styleFace = surPolyglotte ? styleLien("/polyglotte", undefined, true) : styleLien("/", true, true);
+  return (
+    <span className="cs-plus" style={{ display: "inline-flex" }}>
+      <Link href={HREF_BIBLE_CLASSIQUE} className="cs-onglet" aria-current={surClassique ? "page" : undefined}
+        style={{ ...styleFace, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+        {etat === 'long' ? "La Bible" : "Bible"}
+        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+      {/* Deux entrées seulement : le menu se borne à sa mesure, au lieu des 13rem
+          qu'appellent « Aller plus loin » et « Administration ». */}
+      <div className="cs-plus-menu" style={{ minWidth: "9.5rem" }}>
+        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-plus-lien" aria-current={surClassique ? "page" : undefined}>Bible classique</Link>
+        <Link href="/polyglotte" className="cs-plus-lien" aria-current={surPolyglotte ? "page" : undefined}>Bible polyglotte</Link>
+      </div>
+    </span>
+  );
+}
+
 function normaliserExtrait(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
@@ -302,12 +383,22 @@ const MARGE_BASCULE_PX = 32;
 
 // Crans de repli, du moins coûteux au plus coûteux. La barre ne se replie pas d'un
 // bloc : elle abandonne un cran à la fois, et n'en abandonne un second que si le
-// premier n'a pas suffi. Ce qui coûte le moins au lecteur cède le premier ; les mots
-// des sections cèdent en dernier, et jamais tous ensemble.
+// premier n'a pas suffi.
 //
-//   1 — « Soutenir le projet » se réduit à son cœur, le mot « Admin » s'efface
-//   2 — le pseudonyme s'efface, « Les Saintes Écritures » devient « La Bible »
-//   3 — la recherche se replie en loupe et se déploie sous la barre
+// Deux pièces se resserrent PAR PALIERS au lieu de céder d'un coup, parce qu'elles sont
+// les plus larges de la barre et que les faire disparaître d'un bloc laisserait un grand
+// vide entre l'écran très large et l'écran moyen : l'onglet des bibles (voir
+// OngletBibles) et le champ de recherche (voir largeurRecherche). Les autres sections
+// gardent leurs mots à toute largeur — sur un site d'érudition, les intitulés font
+// partie du ton.
+//
+//   0 — « Bible classique » et « Bible polyglotte », chacune son onglet ; champ large
+//   1 — les deux bibles se rangent sous « Les Saintes Écritures », qui se fend au
+//       survol ; le champ se resserre ; « Soutenir le projet » se réduit à son cœur et
+//       le mot « Admin » s'efface
+//   2 — « La Bible », le choix passant dans un menu déroulant ; le champ se resserre
+//       encore ; le pseudonyme s'efface
+//   3 — « Bible » ; la recherche se replie en loupe et se déploie sous la barre
 //   4 — le nom du site se réduit à son monogramme
 //
 // ⛔ « Aller plus loin » ne quitte JAMAIS la barre. Il descendait autrefois dans le
@@ -358,7 +449,15 @@ export default function Navbar() {
   // nombres au fil du rendu : on lit ce que la barre perd, non à quel palier elle est.
   const soutenirCompact = cran >= 1;
   const pseudoMasque = cran >= 2;
-  const titreBibleCourt = cran >= 2;
+  // L'onglet des bibles a son état propre à chaque palier, du plus disert au plus court.
+  const etatBible: EtatBible = cran === 0 ? 'deux' : cran === 1 ? 'fendu' : cran === 2 ? 'long' : 'court';
+  // Le champ de recherche se resserre d'un palier à l'autre avant de se replier en loupe.
+  // Les bornes restent en rem, donc accordées à la police racine ; la valeur préférée est
+  // en vw, donc accordée à l'écran : dans chaque palier le champ suit encore la fenêtre,
+  // au lieu de rester le même ruban de 1 024 px à 2 400.
+  const largeurRecherche = cran === 0 ? "clamp(11rem, 17vw, 22rem)"
+    : cran === 1 ? "clamp(9.5rem, 13vw, 16rem)"
+    : "clamp(7.5rem, 9vw, 11rem)";
   const rechercheRepliee = cran >= 3;
   // Dernier cran : le nom du site s'efface et le monogramme reste seul à porter le retour
   // à l'accueil. C'est la marque qui cède, jamais une section de lecture, et le monogramme
@@ -762,14 +861,13 @@ export default function Navbar() {
           }}
           placeholder="Rechercher…"
           className="recherche-rapide-input cs-focus-clair"
-          /* La largeur se prend sur la FENÊTRE, non sur une valeur fixe. À 13,75rem le
-             champ était le plus large des outils, et le même à 1 024 px qu'à 2 400 : trop
-             gourmand en bas, où il précipitait le repli de la barre, trop court en haut, où
-             il restait un ruban étroit au milieu du vide. En `vw` il suit l'écran, de 154 px
-             à 1 024 à 360 px à 2 400. Les deux bornes restent en rem, donc accordées à la
-             police racine : le champ ne descend jamais sous une dizaine de caractères et ne
-             s'étale pas jusqu'à faire concurrence aux sections. */
-          style={{ width: mobile ? "100%" : "clamp(8.75rem, 15vw, 20rem)", height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-sur-aplat)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          /* La largeur se prend sur la FENÊTRE et sur le PALIER, jamais sur une valeur
+             fixe. À 13,75rem le champ était le plus large des outils, et le même à 1 024 px
+             qu'à 2 400 : trop gourmand en bas, où il précipitait le repli de la barre, trop
+             court en haut, où il restait un ruban étroit au milieu du vide. Le palier donne
+             le `clamp` (cf. largeurRecherche) et le `vw` le fait suivre l'écran à
+             l'intérieur du palier. */
+          style={{ width: mobile ? "100%" : largeurRecherche, height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-sur-aplat)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
@@ -1147,23 +1245,29 @@ export default function Navbar() {
             color: var(--cs-sur-aplat);
             transition-duration: 140ms;
           }
-          /* Onglet « Bible » : au repos, un onglet plat comme les autres liens de la barre
-             — ni cadre ni fond qui le détachent. Au survol la face s'efface et laisse
+          /* Onglet « Bible » fendu — le SEUL palier « fendu » (cran 1), où l'intitulé dit
+             « Les Saintes Écritures ». Au repos, un onglet plat comme les autres liens de la
+             barre : ni cadre ni fond qui le détachent. Au survol la face s'efface et laisse
              paraître SUR PLACE « Classique » et « Polyglotte » — la barre ne bouge pas.
 
-             ⛔ La face ne dimensionne PLUS le bloc à elle seule. Elle le faisait, en flux
+             ⛔ La face ne dimensionne PAS le bloc à elle seule. Elle le faisait, en flux
              normal, pendant que les deux segments étaient en « position:absolute » : ils se
              trouvaient donc bornés à SA largeur, et rognés par l'« overflow:hidden » dès qu'ils
              la dépassaient. Le défaut restait invisible tant que la face disait « Les Saintes
-             Écritures », plus large que les deux segments réunis. Il paraissait au cran 2, où
-             elle se réduit à « La Bible », moitié moins large : « Polyglotte », qui vient en
-             second, se faisait couper. C'était donc un défaut de LARGEUR DE FENÊTRE, ce qui le
-             rendait intermittent, et proprement incompréhensible pour qui le rencontrait.
+             Écritures », plus large que les deux segments réunis. Il paraissait sous « La
+             Bible », moitié moins large : « Polyglotte », qui vient en second, se faisait
+             couper. C'était donc un défaut de LARGEUR DE FENÊTRE, ce qui le rendait
+             intermittent, et proprement incompréhensible pour qui le rencontrait.
 
              Les deux faces occupent maintenant LA MÊME cellule de grille. Elles se superposent
              toujours, mais aucune ne sort du flux : le bloc prend la largeur de la PLUS LARGE
-             des deux, à tous les crans, et plus rien ne peut être rogné. Cette largeur ne
-             change pas au survol, donc la barre ne bouge toujours pas. */
+             des deux et plus rien ne peut être rogné. Cette largeur ne change pas au survol,
+             donc la barre ne bouge toujours pas.
+
+             ⚠️ C'est la même mesure qui interdit d'aller plus bas AVEC la fente : sous un
+             intitulé court, ce sont les segments qui mesurent l'onglet, et le raccourcir ne
+             rend plus un pixel. Les paliers suivants passent donc au menu déroulant, qui sort
+             du flux (cf. OngletBibles). */
           /* overflow:hidden — les surbrillances internes (survol des segments, segment
              actif) sont rognées par le rayon du conteneur : plus de coins carrés qui débordent
              sur les angles arrondis. */
@@ -1244,25 +1348,19 @@ export default function Navbar() {
           </Link>
 
           {/* ── Navigation desktop ──────────────────────────────────────────────
-              Seuil du hamburger : `lg` (1024px), conservé. Mesuré sur la barre d'un
-              admin connecté : version complète 94,9 rem (1519px à 16px), elle ne tient
-              donc qu'au-delà de ~1700px ; entièrement repliée 52,5 rem (841px), qui tient
-              partout dès 1024px. Entre les deux, la barre descend les crans un par un et
-              n'en prend jamais plus qu'il ne faut. Le palier desktop n'a pas besoin d'un
-              plancher plus haut : c'est le repli qui fait le travail. */}
+              Seuil du hamburger : `lg` (1024px), conservé. Entièrement repliée, la barre
+              d'un admin connecté mesurait 52,5 rem (841px) : elle tient partout dès 1024px,
+              et le palier desktop n'a donc pas besoin d'un plancher plus haut — c'est le
+              repli qui fait le travail. Le cran 0 est en revanche plus large qu'avant (les
+              deux bibles en toutes lettres, le champ de recherche à son maximum) : c'est
+              voulu, il est l'état des très grands écrans, et la barre descend d'elle-même
+              les crans un par un partout ailleurs, sans jamais en prendre plus qu'il ne
+              faut. ⚠️ Les chiffres ci-dessus datent de la composition précédente : les
+              remesurer avant de s'en servir pour décider quoi que ce soit. */}
           <nav ref={navRef} aria-label="Navigation principale" className="cs-nav-principale hidden lg:flex flex-1 items-center gap-1 min-w-0">
-            {/* Bouton « Bible » unique : au survol il se décompose en « Classique »
-                (lecture suivie) et « Polyglotte » (comparaison). Un clic direct sur la face
-                mène à la lecture classique — utile au tactile, où il n'y a pas de survol. */}
-            <div className="cs-bible">
-              <Link href="/?livre=GEN&chapitre=1" className="cs-bible-face">
-                {titreBibleCourt ? "La Bible" : "Les Saintes Écritures"}
-              </Link>
-              <div className="cs-bible-split">
-                <Link href="/?livre=GEN&chapitre=1" aria-current={pathname === "/" ? "page" : undefined} className={`cs-bible-seg${pathname === "/" ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
-                <Link href="/polyglotte" aria-current={pathname.startsWith("/polyglotte") ? "page" : undefined} className={`cs-bible-seg${pathname.startsWith("/polyglotte") ? " cs-bible-seg--actif" : ""}`}>Polyglotte</Link>
-              </div>
-            </div>
+            {/* Les deux bibles, en quatre états selon la place : deux onglets, un onglet
+                qui se fend au survol, puis « La Bible » et « Bible » avec menu déroulant. */}
+            <OngletBibles etat={etatBible} pathname={pathname} styleLien={styleLien} />
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
               href === "/bibliotheque"
                 ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} />
