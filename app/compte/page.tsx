@@ -168,7 +168,7 @@ function SectionRang({ score }: { score: number }) {
 
   const RANGS = ["Catéchumène", "Disciple", "Docteur"];
 
-  const barreColor = rang === 'Catéchumène' ? '#8ec98e' : rang === 'Disciple' ? '#3d7a3d' : '#9a4a1f';
+  const barreColor = rang === 'Catéchumène' ? 'var(--cs-vert-clair)' : rang === 'Disciple' ? '#3d7a3d' : '#9a4a1f';
 
   const barreWidth =
     rang === "Catéchumène" ? `${largeur / 3}%`
@@ -756,7 +756,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {etapesChecklist.map(({ fait, label, pts, lien }) => (
                   <div key={label} className="cs-check-item">
-                    <span className="cs-check-circle" style={{ background: fait ? "var(--cs-fond)" : "var(--cs-fond)", border: `1.5px solid ${fait ? "#7aaa8e" : "var(--cs-bord)"}`, color: fait ? "var(--cs-vert)" : "transparent" }}>
+                    <span className="cs-check-circle" style={{ background: fait ? "var(--cs-fond)" : "var(--cs-fond)", border: `1.5px solid ${fait ? "var(--cs-vert-clair)" : "var(--cs-bord)"}`, color: fait ? "var(--cs-vert)" : "transparent" }}>
                       {fait ? "✓" : ""}
                     </span>
                     <span style={{ flex: 1 }}>

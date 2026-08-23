@@ -666,7 +666,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
           <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
             <button onClick={() => setEtape('csv')} disabled={importing} style={{ fontSize: '0.875rem', padding: '7px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>← Retour</button>
             <button onClick={confirmerImport} disabled={importing}
-              style={{ fontSize: '0.875rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: importing ? '#8aaa96' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '0.875rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: importing ? 'var(--cs-vert-clair)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
               {importing ? 'Import en cours…' : `Confirmer (${segments.length} segments)`}
             </button>
           </div>

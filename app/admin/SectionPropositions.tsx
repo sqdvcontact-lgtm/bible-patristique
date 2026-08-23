@@ -109,8 +109,8 @@ export default function SectionPropositions() {
         {([['a_traiter', 'En attente', compteATraiter], ['acceptee', 'Acceptées', comptes.acceptee], ['refusee', 'Refusées', comptes.refusee]] as [string, string, number][]).map(([key, label, count]) => (
           <button key={key} onClick={() => setFiltreStatut(key)} style={{
             padding: '7px 14px', fontSize: '0.78125rem', background: 'none', border: 'none',
-            borderBottom: filtreStatut === key ? '2px solid #7aaa8e' : '2px solid transparent',
-            color: filtreStatut === key ? 'var(--cs-vert-clair)' : '#6a9080', cursor: 'pointer',
+            borderBottom: filtreStatut === key ? '2px solid var(--cs-vert-clair)' : '2px solid transparent',
+            color: filtreStatut === key ? 'var(--cs-vert-clair)' : 'var(--cs-vert)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', marginBottom: '-1px',
           }}>
             {label}
@@ -184,7 +184,7 @@ export default function SectionPropositions() {
                             Texte · {p.texte.length.toLocaleString('fr-FR')} caractères
                           </span>
                           <button onClick={() => navigator.clipboard.writeText(p.texte!)}
-                            style={{ fontSize: '0.71875rem', color: '#6a9080', background: 'none', border: '1px solid var(--cs-vert)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer' }}>
+                            style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', background: 'none', border: '1px solid var(--cs-vert)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer' }}>
                             Copier
                           </button>
                         </div>

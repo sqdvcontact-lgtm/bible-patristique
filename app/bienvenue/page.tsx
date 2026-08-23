@@ -29,7 +29,7 @@ export default function BienvenuePage() {
       <div style={{ width: '100%', maxWidth: '30rem', textAlign: 'center' }}>
 
         {/* En-tête */}
-        <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7aaa8e', margin: '0 0 18px' }}>
+        <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert-clair)', margin: '0 0 18px' }}>
           Corpus Scriptura
         </p>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: 1.3 }}>
@@ -59,7 +59,7 @@ export default function BienvenuePage() {
             },
           ].map(({ href, titre, desc }) => (
             <a key={href} href={href} style={{ display: 'block', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '20px 24px', textAlign: 'left', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#a8c4b4'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(var(--cs-vert-rgb),0.08)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-vert-clair)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(var(--cs-vert-rgb),0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-bord)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 4px' }}>{titre}</p>
               <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: 0, lineHeight: 1.6 }}>{desc}</p>

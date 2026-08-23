@@ -124,7 +124,7 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
         `}</style>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
+            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
             <h1 style={{ fontFamily: SERIF, fontSize: TITRE_VOLET, color: ENCRE_TITRE, margin: 0, fontWeight: GRAISSE_TITRE_VOLET, lineHeight: 1.25 }}>{i.nom || nomFallback}</h1>
             {intitule && <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', margin: '2px 0 0' }}>{rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}</p>}
           </div>

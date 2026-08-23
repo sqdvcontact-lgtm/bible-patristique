@@ -542,7 +542,7 @@ export default function TexteBible({
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
             <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
-            <span style={{ fontSize: '1.0625rem', color: '#5a7260', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
+            <span style={{ fontSize: '1.0625rem', color: 'var(--cs-vert)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
           <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>

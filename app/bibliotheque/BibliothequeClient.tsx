@@ -498,7 +498,7 @@ type ChipTheme = { bg: string; border: string; color: string; bgActif: string; b
 const THEMES: Record<string, ChipTheme> = {
   periode: { bg: 'rgba(139,107,60,0.07)',  border: 'rgba(139,107,60,0.22)', color: '#7a6a50', bgActif: '#7a6040', borderActif: '#7a6040' },
   langue:  { bg: 'rgba(61,90,107,0.07)',   border: 'rgba(61,90,107,0.22)', color: '#4a6070', bgActif: '#3d5a6b', borderActif: '#3d5a6b' },
-  genre:   { bg: 'rgba(var(--cs-vert-rgb),0.07)',   border: 'rgba(var(--cs-vert-rgb),0.22)', color: '#3d6040', bgActif: 'var(--cs-vert)', borderActif: 'var(--cs-vert)' },
+  genre:   { bg: 'rgba(var(--cs-vert-rgb),0.07)',   border: 'rgba(var(--cs-vert-rgb),0.22)', color: 'var(--cs-vert)', bgActif: 'var(--cs-vert)', borderActif: 'var(--cs-vert)' },
 }
 
 function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; onClick: () => void; children: React.ReactNode; theme?: string }) {
@@ -1329,7 +1329,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
           Fournissez de préférence un texte propre, déjà structuré. L’équipe éditoriale vous contactera si nécessaire.
         </p>
         {quotaRestant !== null && (
-          <p style={{ fontSize: '0.6875rem', color: quotaRestant === 0 ? 'var(--cs-danger)' : '#6a8c78', margin: '10px 0 0', borderTop: '1px solid rgba(var(--cs-vert-rgb),0.15)', paddingTop: '10px' }}>
+          <p style={{ fontSize: '0.6875rem', color: quotaRestant === 0 ? 'var(--cs-danger)' : 'var(--cs-vert)', margin: '10px 0 0', borderTop: '1px solid rgba(var(--cs-vert-rgb),0.15)', paddingTop: '10px' }}>
             {quotaRestant === 0
               ? 'Vous avez atteint votre limite de propositions pour aujourd\'hui.'
               : `${quotaRestant} proposition${quotaRestant > 1 ? 's' : ''} restante${quotaRestant > 1 ? 's' : ''} aujourd'hui.`}

@@ -30,7 +30,7 @@ const LIBRAIRIES: Librairie[] = [
     description: 'La grande collection bilingue des textes patristiques, en édition critique.',
     url: 'https://sourceschretiennes.org/',
     logo: '/icons/librairies/sources-chretiennes-chrisme.png',
-    couleur: '#8b1720',
+    couleur: 'var(--cs-danger-fonce)',
     sep: 'rgba(151,30,37,0.36)',
   },
   {
@@ -38,7 +38,7 @@ const LIBRAIRIES: Librairie[] = [
     description: 'Les éditions critiques de référence des auteurs chrétiens, de l’Antiquité au Moyen Âge (Brepols).',
     url: 'https://www.brepols.net/series/CC',
     monogramme: 'CC',
-    couleur: '#1f5a5a',
+    couleur: 'var(--cs-vert-fonce)',
     sep: 'rgba(31,90,90,0.34)',
   },
   {

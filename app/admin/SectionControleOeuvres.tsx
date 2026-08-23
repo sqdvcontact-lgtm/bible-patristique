@@ -878,7 +878,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .encart-rouge{background:var(--cs-danger-fond);border:1px solid var(--cs-danger-bord);}
         .encart-rouge h4{color:var(--cs-danger-fonce);}
         .encart-rouge li{color:#6f2a19;}
-        .encart-vert{background:var(--cs-vert-pale);border:1px solid #b9d4c3;}
+        .encart-vert{background:var(--cs-vert-pale);border:1px solid var(--cs-vert-clair);}
         .encart-vert h4{color:var(--cs-vert-fonce);}
         .encart-vert li{color:var(--cs-vert-fonce);}
         .badge-manuel{display:inline-block;background:var(--cs-fond-doux);border:1px solid #c3aed6;color:#5b3a7a;border-radius:999px;padding:2px 8px;font-size:0.53125rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}

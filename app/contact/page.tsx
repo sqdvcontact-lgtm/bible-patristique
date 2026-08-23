@@ -94,7 +94,7 @@ export default function ContactPage() {
             </div>
             <button type="submit" disabled={etat === "envoi"}
               style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "8px", border: "none",
-                background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem",
+                background: etat === "envoi" ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem",
                 fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer" }}>
               {etat === "envoi" ? "Envoi…" : "Envoyer"}
             </button>

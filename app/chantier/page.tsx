@@ -348,7 +348,7 @@ function Prevenir() {
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -441,7 +441,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                     border-radius: 50%; transition: color 0.2s ease;
                     animation: cs-suite-bob 2.4s ease-in-out infinite; }
         .cs-suite:hover { color: var(--cs-lacune); }
-        .cs-suite:focus-visible { outline: 2px solid #a9c3b1; outline-offset: 0.125rem; }
+        .cs-suite:focus-visible { outline: 2px solid var(--cs-vert-clair); outline-offset: 0.125rem; }
         @keyframes cs-suite-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(0.25rem); } }
         @media (prefers-reduced-motion: reduce) { .cs-suite { animation: none; } }
         /* Grille des six encarts. grid-auto-rows:1fr donne à toutes les rangées
@@ -465,7 +465,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            charte (le vert des reliures, le brun doré des filets) se répondent. */
         .cs-encart--mordore .cs-encart-ico { color: var(--cs-lacune); background: var(--cs-fond-doux); border-color: var(--cs-or-doux); }
         .cs-encart--mordore .cs-encart-titre { color: var(--cs-texte); }
-        .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
+        .cs-encart--vert .cs-encart-titre::after { background: var(--cs-vert-clair); }
         .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                            font-size: 1.0625rem; color: var(--cs-encre); margin: 0 0 0.625rem; padding-bottom: 0.625rem;
                            position: relative; }
@@ -669,7 +669,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "#8aaa96" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>

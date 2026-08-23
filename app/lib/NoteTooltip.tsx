@@ -245,7 +245,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
                 position: 'absolute',
                 bottom: 0, left: 0,
                 height: '2px',
-                background: 'linear-gradient(90deg, var(--cs-vert-aplat) 0%, #8abf9e 100%)',
+                background: 'linear-gradient(90deg, var(--cs-vert-aplat) 0%, var(--cs-vert-clair) 100%)',
                 animation: `essai-note-progress ${DUREE_FIXATION}ms linear forwards`,
 
               }} />

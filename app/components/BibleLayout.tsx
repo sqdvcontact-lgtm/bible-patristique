@@ -399,7 +399,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
-            <span style={{ fontStyle: 'italic', color: '#5a7260' }}>{chapitreActif}</span>
+            <span style={{ fontStyle: 'italic', color: 'var(--cs-vert)' }}>{chapitreActif}</span>
           </span>
           <button onClick={() => router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif + 1, trad: traduction }))}
             aria-label="Chapitre suivant" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.375rem', lineHeight: 1, color: 'var(--cs-texte-gris)', padding: '0 8px' }}>›</button>

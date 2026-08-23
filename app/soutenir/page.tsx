@@ -69,7 +69,7 @@ export default function SoutenirPage() {
         fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: "clamp(0.85rem, 0.6rem + 0.35vw, 1.08rem)",
         fontStyle: "italic",
-        color: "#4a5e50",
+        color: "var(--cs-vert-fonce)",
         lineHeight: 1.55,
         textAlign: "center",
         marginBottom: "clamp(22px, 3.4vh, 44px)",

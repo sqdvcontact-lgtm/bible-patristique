@@ -131,7 +131,7 @@ function surligneParts(texte: string, terme: string, mode: Mode, rouge: boolean,
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
   const style = rouge
     ? { background: '#f6cfca', color: '#8a1710', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
-    : { background: '#b2ddc2', color: '#12401f', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
+    : { background: 'var(--cs-vert-clair)', color: 'var(--cs-vert-fonce)', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
   try {
     const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
     const alt = termesN.map(echapperRegex).join('|')
@@ -706,12 +706,12 @@ export default function RechercheClient() {
         .brk-row--actif { background:rgba(var(--cs-vert-rgb),0.15); color:var(--cs-encre); font-weight:600; }
         .brk-row--actif:hover { background:rgba(var(--cs-vert-rgb),0.2); }
         .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-faible); }
-        .brk-row--actif .brk-count { color:#6a9a7a; }
+        .brk-row--actif .brk-count { color:var(--cs-vert); }
         .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:var(--cs-texte-gris); font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
         .ong-btn--actif { color:var(--cs-encre); font-weight:600; border-bottom-color:var(--cs-vert); }
-        .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:#c0d8c8; }
+        .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:var(--cs-vert-pale); }
         .ong-count { margin-left:5px; font-size:0.59375rem; color:var(--cs-texte-faible); font-weight:400; }
-        .ong-btn--actif .ong-count { color:#6a9a7a; }
+        .ong-btn--actif .ong-count { color:var(--cs-vert); }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
         .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
@@ -728,11 +728,11 @@ export default function RechercheClient() {
         .poly-hd-sel:hover { color:var(--cs-vert-clair); }
         .poly-hd-sel option { background:var(--cs-encre); color:var(--cs-vert-pale); font-weight:400; text-transform:none; font-size:0.75rem; }
         .poly-hd-sel option:disabled { color:#6a8474; }
-        .poly-hd-chevron { color:#6a8c76; pointer-events:none; flex-shrink:0; transition:color 0.12s; }
+        .poly-hd-chevron { color:var(--cs-vert); pointer-events:none; flex-shrink:0; transition:color 0.12s; }
         .poly-hd-col:hover .poly-hd-chevron { color:var(--cs-vert-clair); }
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
-        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:var(--cs-encre); background:var(--cs-vert-clair); border-top:1px solid #9fc2ac; border-bottom:1px solid #9fc2ac; text-align:center; }
+        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:var(--cs-encre); background:var(--cs-vert-clair); border-top:1px solid var(--cs-vert-clair); border-bottom:1px solid var(--cs-vert-clair); text-align:center; }
         .poly-row { display:grid; border-top:1px solid var(--cs-vert-pale); font-size:0.8125rem; text-decoration:none; }
         .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:var(--cs-vert); border-right:1px solid var(--cs-vert-pale); white-space:nowrap; }
         .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid var(--cs-vert-pale); text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:var(--cs-encre-fonce); }
@@ -941,7 +941,7 @@ export default function RechercheClient() {
                     <button onClick={()=>setOnglet(o.k)}
                       style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert-aplat)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'var(--cs-encre)':'var(--cs-texte-second)', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
                       <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
-                      <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'#6a9a7a':'var(--cs-texte-faible)', fontWeight:400 }}>{o.n}</span>
+                      <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'var(--cs-vert)':'var(--cs-texte-faible)', fontWeight:400 }}>{o.n}</span>
                     </button>
                     {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
                         œuvres (Pères), publications (communauté), avec le nombre d'occurrences.

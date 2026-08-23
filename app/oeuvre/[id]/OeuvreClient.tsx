@@ -1610,11 +1610,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </button>
               </div>
             </div>
-            {/* Pas de `pre-line` ici : la mise en lignes d'un titre est une affaire de
-                frontispice, et le sommaire est une navigation. Un saut de ligne resté
-                dans le titre de catalogue s'y rend donc comme une simple espace, au
-                lieu de couper l'intitulé en deux au milieu du volet. */}
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0 }}>
+            {/* Le sommaire respecte la composition manuelle du titre de catalogue. */}
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
               {/* Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de titre.
                   Partout ailleurs, ici comme dans la bibliothèque ou le fil d'Ariane,
                   c'est le titre de catalogue qui nomme l'œuvre. */}
@@ -2461,7 +2458,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: '#6f9268', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
+                <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
                 {/* Auteur ET titre sur la même ligne ; chaque auteur ouvre sa fiche. */}
                 <p style={{ margin: 0, lineHeight: 1.28 }}>
                   {auteursCliquables.length > 0 ? (
@@ -2490,8 +2487,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue_originale || (oeuvreLocale.genres && oeuvreLocale.genres.length))
               const aEdition = !!(oeuvreAffichee.trad_auteur || oeuvreAffichee.trad_date || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.commentaire_traduction?.trim() || versionActive?.editionDescription || versionActive?.sourceUrl)
               if (!aOriginal && !aEdition) return null
-              const carte: React.CSSProperties = { background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-vert-pale)', borderLeft: '2.5px solid #a7c4a0', borderRadius: '8px', padding: '11px 13px' }
-              const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: '#6f9268', margin: '0 0 8px', textTransform: 'uppercase' }
+              const carte: React.CSSProperties = { background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-vert-pale)', borderLeft: '2.5px solid var(--cs-vert-clair)', borderRadius: '8px', padding: '11px 13px' }
+              const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-vert)', margin: '0 0 8px', textTransform: 'uppercase' }
               const cle: React.CSSProperties = { fontSize: '0.53125rem', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '-3px', lineHeight: 0.95 }
               const val: React.CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.15 }
               return (

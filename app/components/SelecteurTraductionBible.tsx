@@ -41,7 +41,7 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
           transition: 'color 0.15s',
         }}>
           <span>{label}</span>
-          <span style={{ color: '#a0b8a8', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{ouvert ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--cs-vert-clair)', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{ouvert ? '▲' : '▼'}</span>
         </button>
         {ouvert && (
           <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', minWidth: '230px', overflow: 'hidden' }}>

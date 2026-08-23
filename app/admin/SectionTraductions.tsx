@@ -436,7 +436,7 @@ function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onV
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); ajouter() } if (e.key === 'Escape') onAnnuler() }}
           placeholder="Ajouter une valeur…" style={{ ...styleInput, flex: 1 }} />
         <button onClick={ajouter} style={styleMini}>Ajouter</button>
-        <button onClick={() => onValider(tags)} style={{ ...styleMini, color: 'var(--cs-vert)', borderColor: '#bcd3c0', fontWeight: 600 }}>Enregistrer</button>
+        <button onClick={() => onValider(tags)} style={{ ...styleMini, color: 'var(--cs-vert)', borderColor: 'var(--cs-vert-clair)', fontWeight: 600 }}>Enregistrer</button>
         <button onClick={onAnnuler} style={{ ...styleMini, color: 'var(--cs-texte-doux)' }}>Annuler</button>
       </div>
     </div>

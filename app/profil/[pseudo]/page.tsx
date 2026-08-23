@@ -106,7 +106,7 @@ export default function ProfilPublicPage() {
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
-        <Link href="/" style={{ fontSize: '0.75rem', color: '#3a5030', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
+        <Link href="/" style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
     </main>
   )
@@ -222,7 +222,7 @@ export default function ProfilPublicPage() {
                 />
               </div>
             ) : (
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, #3a5030, var(--cs-encre))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid #b8c8b0', boxShadow: 'var(--cs-ombre-flottante)' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, var(--cs-vert-fonce), var(--cs-encre))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid var(--cs-vert-clair)', boxShadow: 'var(--cs-ombre-flottante)' }}>
                 <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: 'var(--cs-vert-pale)', fontWeight: 'normal', lineHeight: 1 }}>
                   {profil.pseudo.charAt(0).toUpperCase()}
                 </span>
@@ -347,7 +347,7 @@ export default function ProfilPublicPage() {
             <Etiquette>Versets</Etiquette>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {profil.versets_favoris!.map((v, i) => (
-                <div key={i} style={{ paddingLeft: '10px', borderLeft: '2px solid #c8d8b8' }}>
+                <div key={i} style={{ paddingLeft: '10px', borderLeft: '2px solid var(--cs-vert-clair)' }}>
                   <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
                     «&#8201;{v.texte.length > 160 ? v.texte.slice(0, 160) + '…' : v.texte}&#8201;»
                   </p>

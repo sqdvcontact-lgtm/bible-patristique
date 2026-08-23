@@ -46,7 +46,7 @@ const COULEUR_LIEU: Record<Lieu, { fond: string; texte: string }> = {
   Bible:        { fond: 'var(--cs-fond)', texte: 'var(--cs-vert)' },
   Patristique:  { fond: 'var(--cs-fond-doux)', texte: 'var(--cs-lacune)' },
   Publications: { fond: 'var(--cs-fond)', texte: '#3d5a6b' },
-  Profil:       { fond: 'var(--cs-fond-doux)', texte: '#45633b' },
+  Profil:       { fond: 'var(--cs-fond-doux)', texte: 'var(--cs-vert)' },
 }
 
 function localiserCommentaire(c: Commentaire, segMap: Record<number, SegInfo>, versetMap: Record<string, string>, versetTexteMap: Record<string, string>, oeuvreTitreMap: Record<string, string>) {

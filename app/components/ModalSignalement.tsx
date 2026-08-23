@@ -11,8 +11,8 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 const NIVEAUX = [
   { val: 'mineur',    label: 'Mineur',    bg: 'var(--cs-danger-fond)', bgOn: '#f0a0a0', color: '#a06060', colorOn: '#5a1010' },
-  { val: 'important', label: 'Important', bg: '#fbd8d8', bgOn: '#c53030', color: 'var(--cs-danger-fonce)', colorOn: 'var(--cs-surface)' },
-  { val: 'bloquant',  label: 'Bloquant',  bg: '#f5b8b8', bgOn: '#7b0000', color: '#6b1010', colorOn: 'var(--cs-surface)' },
+  { val: 'important', label: 'Important', bg: 'var(--cs-danger-bord)', bgOn: '#c53030', color: 'var(--cs-danger-fonce)', colorOn: 'var(--cs-surface)' },
+  { val: 'bloquant',  label: 'Bloquant',  bg: 'var(--cs-danger-bord)', bgOn: '#7b0000', color: '#6b1010', colorOn: 'var(--cs-surface)' },
 ] as const
 
 type Niveau = 'mineur' | 'important' | 'bloquant'

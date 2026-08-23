@@ -234,7 +234,7 @@ export default function ModalLienBiblique({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                   {resultats.map(v => (
                     <button key={v.id} onClick={() => basculerVerset(v)}
-                      style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? '#7ea185' : 'var(--cs-bord-clair)'}`, background: selection[v.id] ? 'var(--cs-fond)' : 'var(--cs-surface)', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer' }}>
+                      style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? 'var(--cs-vert-clair)' : 'var(--cs-bord-clair)'}`, background: selection[v.id] ? 'var(--cs-fond)' : 'var(--cs-surface)', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer' }}>
                       <strong style={{ display: 'block', color: 'var(--cs-vert-fonce)', fontSize: '0.75rem', marginBottom: '3px' }}>{v.label}</strong>
                       <span style={{ display: 'block', color: 'var(--cs-texte)', fontSize: '0.75rem', lineHeight: 1.45 }}>{rendreTexteEnrichi(v.texte)}</span>
                     </button>
@@ -257,7 +257,7 @@ export default function ModalLienBiblique({
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '7px' }}>
                     {versetsChapitre.map(v => (
                       <button key={v.id} onClick={() => basculerVerset(v)}
-                        style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? '#7ea185' : 'var(--cs-bord-clair)'}`, background: selection[v.id] ? 'var(--cs-fond)' : 'var(--cs-surface)', borderRadius: '8px', padding: '8px 9px', cursor: 'pointer' }}>
+                        style={{ textAlign: 'left', border: `1px solid ${selection[v.id] ? 'var(--cs-vert-clair)' : 'var(--cs-bord-clair)'}`, background: selection[v.id] ? 'var(--cs-fond)' : 'var(--cs-surface)', borderRadius: '8px', padding: '8px 9px', cursor: 'pointer' }}>
                         <strong style={{ color: 'var(--cs-vert-fonce)', fontSize: '0.71875rem' }}>{v.label}</strong>
                         <span style={{ display: 'block', marginTop: '3px', color: 'var(--cs-texte)', fontSize: '0.71875rem', lineHeight: 1.42 }}>{rendreTexteEnrichi(v.texte)}</span>
                       </button>

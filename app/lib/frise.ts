@@ -84,7 +84,7 @@ export function fusionnerDatesFrise(rangs: RangFrise[], dates: RangFriseDates[])
 
 // ── Familles : teintes sobres, légèrement désaturées ───────────────────────
 export const COUL_FAMILLE: Record<string, string> = {
-  'Vie des auteurs': '#4f7f78',
+  'Vie des auteurs': 'var(--cs-vert)',
   'Textes et doctrine': '#6d7d43',
   'Église et vie religieuse': '#c79a3a',
   'Pouvoirs, conflits et ruptures': '#b54d3f',

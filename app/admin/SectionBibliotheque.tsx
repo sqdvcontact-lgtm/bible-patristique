@@ -507,7 +507,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                 </span>
                 <span style={{
                   fontSize: '0.6875rem', fontWeight: 600, padding: '3px 8px', borderRadius: '4px',
-                  border: `1px solid ${n.verifie ? '#c1dbcb' : 'var(--cs-bord-clair)'}`,
+                  border: `1px solid ${n.verifie ? 'var(--cs-vert-pale)' : 'var(--cs-bord-clair)'}`,
                   background: n.verifie ? 'var(--cs-fond)' : 'var(--cs-danger-fond)',
                   color: n.verifie ? 'var(--cs-vert)' : '#b06a54',
                   whiteSpace: 'nowrap',

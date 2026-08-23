@@ -59,7 +59,7 @@ function labelDecision(d: string | null): string {
 
 function couleurDecision(d: string | null): { color: string; bg: string; border: string } {
   if (!d) return { color: 'var(--cs-danger)', bg: 'var(--cs-danger-fond)', border: '#e8b1a4' }
-  if (d.startsWith('Candidat')) return { color: 'var(--cs-vert-fonce)', bg: 'var(--cs-fond)', border: '#b8d4c4' }
+  if (d.startsWith('Candidat')) return { color: 'var(--cs-vert-fonce)', bg: 'var(--cs-fond)', border: 'var(--cs-vert-clair)' }
   if (d.startsWith('Bibliographie')) return { color: '#8a5a00', bg: 'var(--cs-danger-fond)', border: 'var(--cs-danger-bord)' }
   if (d.startsWith('Repérage') || d.startsWith('Reperage')) return { color: 'var(--cs-danger)', bg: 'var(--cs-danger-fond)', border: '#e8b1a4' }
   if (d.startsWith('Écarter') || d.startsWith('Ecarter')) return { color: 'var(--cs-danger)', bg: 'var(--cs-danger-fond)', border: '#e8b1a4' }
@@ -123,7 +123,7 @@ function ChampNotice({ label, valeur, accent = false, transform }: {
   return (
     <div style={{
       minWidth: 0,
-      border: `1px solid ${critique ? '#e5a99b' : accent ? '#b8d4c4' : 'var(--cs-bord-clair)'}`,
+      border: `1px solid ${critique ? '#e5a99b' : accent ? 'var(--cs-vert-clair)' : 'var(--cs-bord-clair)'}`,
       background: critique ? 'var(--cs-danger-fond)' : accent ? 'var(--cs-fond)' : 'var(--cs-surface)',
       borderRadius: '8px',
       padding: '7px 9px',
@@ -296,8 +296,8 @@ export default function SectionVerificationCatalogue() {
         {FILTRES_STATUT.map(([key, label]) => (
           <button key={key} onClick={() => { setFiltre(key); setPage(0) }} style={{
             padding: '7px 14px', fontSize: '0.78125rem', background: 'none', border: 'none',
-            borderBottom: filtre === key ? '2px solid #7aaa8e' : '2px solid transparent',
-            color: filtre === key ? 'var(--cs-vert-clair)' : '#6a9080', cursor: 'pointer', marginBottom: '-1px',
+            borderBottom: filtre === key ? '2px solid var(--cs-vert-clair)' : '2px solid transparent',
+            color: filtre === key ? 'var(--cs-vert-clair)' : 'var(--cs-vert)', cursor: 'pointer', marginBottom: '-1px',
           }}>
             {label}
           </button>
@@ -305,14 +305,14 @@ export default function SectionVerificationCatalogue() {
       </div>
 
       {chargement ? (
-        <p style={{ fontSize: '0.875rem', color: '#6a9080', fontStyle: 'italic' }}>Chargement...</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-vert)', fontStyle: 'italic' }}>Chargement...</p>
       ) : erreur ? (
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <span style={{ fontSize: '0.875rem', color: 'var(--cs-danger)' }}>{erreur}</span>
-          <button onClick={charger} style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-vert)', background: 'transparent', color: '#7aaa8e', cursor: 'pointer' }}>Réessayer</button>
+          <button onClick={charger} style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-vert)', background: 'transparent', color: 'var(--cs-vert-clair)', cursor: 'pointer' }}>Réessayer</button>
         </div>
       ) : notices.length === 0 ? (
-        <p style={{ fontSize: '0.875rem', color: '#6a9080', fontStyle: 'italic' }}>Aucune notice dans cette catégorie.</p>
+        <p style={{ fontSize: '0.875rem', color: 'var(--cs-vert)', fontStyle: 'italic' }}>Aucune notice dans cette catégorie.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {regrouperNotices(notices).map(groupe => (
@@ -381,7 +381,7 @@ export default function SectionVerificationCatalogue() {
                 </div>
 
                 {ouv && (
-                  <div style={{ borderTop: `1px solid ${n.verifie ? '#b8d4c4' : 'var(--cs-fond-doux)'}`, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px', background: n.verifie ? 'var(--cs-fond-doux)' : 'var(--cs-fond-clair)' }}>
+                  <div style={{ borderTop: `1px solid ${n.verifie ? 'var(--cs-vert-clair)' : 'var(--cs-fond-doux)'}`, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px', background: n.verifie ? 'var(--cs-fond-doux)' : 'var(--cs-fond-clair)' }}>
                     <DetailNotice n={n} />
 
                     {n.url_source && (
@@ -391,7 +391,7 @@ export default function SectionVerificationCatalogue() {
                     )}
 
                     {n.verifie ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '6px', borderTop: '1px solid #b8d4c4' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '6px', borderTop: '1px solid var(--cs-vert-clair)' }}>
                         <span style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', fontStyle: 'italic' }}>Notice validée - verrouillée définitivement</span>
                       </div>
                     ) : (
@@ -416,12 +416,12 @@ export default function SectionVerificationCatalogue() {
           {total > 100 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', paddingTop: '16px', alignItems: 'center' }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: page === 0 ? 'var(--cs-vert)' : '#7aaa8e', cursor: page === 0 ? 'default' : 'pointer' }}>
+                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: page === 0 ? 'var(--cs-vert)' : 'var(--cs-vert-clair)', cursor: page === 0 ? 'default' : 'pointer' }}>
                 Précédent
               </button>
-              <span style={{ fontSize: '0.78125rem', color: '#6a9080' }}>Page {page + 1} / {Math.ceil(total / 100)}</span>
+              <span style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)' }}>Page {page + 1} / {Math.ceil(total / 100)}</span>
               <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * 100 >= total}
-                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: (page + 1) * 100 >= total ? 'var(--cs-vert)' : '#7aaa8e', cursor: (page + 1) * 100 >= total ? 'default' : 'pointer' }}>
+                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: (page + 1) * 100 >= total ? 'var(--cs-vert)' : 'var(--cs-vert-clair)', cursor: (page + 1) * 100 >= total ? 'default' : 'pointer' }}>
                 Suivant
               </button>
             </div>

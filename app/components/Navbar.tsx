@@ -981,7 +981,7 @@ export default function Navbar() {
         aria-label="Affichage administrateur"
         title="Affichage seulement — vos droits réels ne changent pas"
         style={{
-          width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid #7fb08e" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
+          width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid var(--cs-vert-clair)" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
           background: modeUtilisateurStandard ? "var(--cs-vert-aplat)" : "var(--cs-fond)",
           boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(var(--cs-vert-rgb),0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
           position: "relative", transition: "background 0.15s, border-color 0.15s",
@@ -1060,7 +1060,7 @@ export default function Navbar() {
         </label>
         <button onClick={seDeconnecter}
           style={mobile
-            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.9375rem", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
+            ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.9375rem", color: "var(--cs-danger-bord)", background: "none", border: "none", cursor: "pointer" }
             : { width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-danger-fonce)", background: "none", border: "none", cursor: "pointer" }}>
           Se déconnecter
         </button>
