@@ -10,7 +10,7 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
-import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee } from './oeuvreTypes'
+import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
@@ -1244,9 +1244,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // elle existe (titres d'origine), sinon le texte_original de la traduction (mt=la).
   const estEditionOriginale = (v: { langue_trad: string | null; langue_originale: string | null }) =>
     !(v?.langue_trad && v.langue_trad.trim()) && !!(v?.langue_originale && v.langue_originale.trim())
+  // Le latin d'une œuvre n'a plus besoin d'être une ŒUVRE à part pour se lire à ses
+  // titres d'origine : il peut être un TEXTE de l'œuvre, à côté de la traduction
+  // (Les Confessions, 2026-08-23 : Knöll CSEL 33 sous A0010O0001, avec son apparat).
+  // La règle de reconnaissance est la même qu'entre œuvres sœurs — pas de traducteur,
+  // et la langue de l'œuvre —, pour qu'il n'y en ait qu'une à retenir.
+  const nomLangue = (s: string | null | undefined) =>
+    (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+  const memeLangue = (a: string | null | undefined, b: string | null | undefined) =>
+    !!a && !!b && nomLangue(a) === nomLangue(b)
+  const estVersionOriginale = (v: VersionTextuelle) =>
+    !v.traducteur?.trim() && memeLangue(v.langue, oeuvre.langue_originale)
+  const versionOriginale = versionsTextuelles.find(estVersionOriginale) ?? null
+  const versionTraduite = versionsTextuelles.find(v => !estVersionOriginale(v)) ?? null
+  const surTexteOriginal = !!versionActive && estVersionOriginale(versionActive)
   const editionCourante = versions.find(v => v.id_oeuvre === idOeuvre) ?? null
-  const couranteEstOriginale = editionCourante ? estEditionOriginale(editionCourante)
-    : (!!oeuvre.langue_originale && !aTexteOriginal)
+  const couranteEstOriginale = surTexteOriginal || (editionCourante ? estEditionOriginale(editionCourante)
+    : (!!oeuvre.langue_originale && !aTexteOriginal))
   // Une œuvre en langue originale lue POUR ELLE-MÊME (le latin autonome, à ses titres
   // d'origine) a son CORPS en latin ou en grec : il se compose alors comme la colonne
   // originale du bilingue. Sans quoi le corps se déclarait « fr » et « hyphens: auto »
@@ -1263,10 +1277,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const labelBilingueMenu = origEstGrec ? 'Français & Grec' : 'Français & Latin'
   const editionFrRef = (!couranteEstOriginale && editionCourante) ? editionCourante : (editionsTraduction[0] ?? null)
   const editionOrigRef = (couranteEstOriginale && editionCourante) ? editionCourante : (editionsOriginal[0] ?? null)
-  const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale
-  const allerAuMode = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la') => {
-    if (cibleOeuvre === idOeuvre) basculerTexte(mt)
-    else router.push(`/oeuvre/${cibleOeuvre}${mt === 'fr' ? '' : `?mt=${mt}`}`)
+  const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale || !!versionOriginale
+  // Deux textes d'une même œuvre se rejoignent par `?texte=`, deux œuvres sœurs par
+  // leur identifiant. On ne bascule le mode sur place que si la cible est bien le
+  // texte qu'on lit déjà : sans cette seconde condition, passer du latin au français
+  // sous la même œuvre ne faisait que retourner le mode et laissait le latin à l'écran.
+  const allerAuMode = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la', cibleTexte?: string | null) => {
+    if (cibleOeuvre === idOeuvre && (!cibleTexte || cibleTexte === idTexte)) { basculerTexte(mt); return }
+    const params = new URLSearchParams()
+    if (cibleTexte) params.set('texte', cibleTexte)
+    if (mt !== 'fr') params.set('mt', mt)
+    const requete = params.toString()
+    router.push(`/oeuvre/${cibleOeuvre}${requete ? `?${requete}` : ''}`)
   }
   // Cible du mode « original » :
   //  - si l'œuvre courante EST l'original, on la lit elle-même (mt=fr = son texte) ;
@@ -1275,16 +1297,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const origAutonome = !couranteEstOriginale && !!editionOrigRef && editionOrigRef.id_oeuvre !== editionFrRef?.id_oeuvre
   const cibleOrigOeuvre = couranteEstOriginale ? idOeuvre : origAutonome ? editionOrigRef!.id_oeuvre : (editionFrRef?.id_oeuvre ?? idOeuvre)
   const cibleOrigMt: 'fr' | 'la' = (couranteEstOriginale || origAutonome) ? 'fr' : 'la'
-  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean }
+  type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleTexte?: string | null; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean }
   const modesLecture: ModeLecture[] = []
-  if (aOriginalQuelconque && editionFrRef) {
-    const surFr = idOeuvre === editionFrRef.id_oeuvre && !couranteEstOriginale
-    modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'fr',
+  // Le texte en langue originale de CETTE œuvre passe avant l'œuvre sœur : il porte
+  // ses titres d'origine ET son apparat, là où `texte_original` n'est que la colonne
+  // du bilingue, sans sommaire propre ni notes.
+  const cibleFrTexte = versionOriginale ? (versionTraduite?.idTexte ?? null) : null
+  if (aOriginalQuelconque && (editionFrRef || versionTraduite)) {
+    const surFr = !couranteEstOriginale && (versionOriginale ? true : idOeuvre === editionFrRef?.id_oeuvre)
+    const cibleFrOeuvre = versionOriginale ? idOeuvre : editionFrRef!.id_oeuvre
+    modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
       actif: surFr && modeTexte === 'fr' })
-    modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: editionFrRef.id_oeuvre, cibleMt: 'bilingue',
+    modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'bilingue',
       actif: surFr && modeTexte === 'bilingue' })
   }
-  if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
+  if (versionOriginale) {
+    modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: idOeuvre, cibleTexte: versionOriginale.idTexte,
+      cibleMt: 'fr', actif: surTexteOriginal })
+  } else if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
     const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexte === 'la'))
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
       actif: surOrig })
@@ -1292,6 +1322,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Menu 2 — éditions dans la LANGUE du mode courant (masqué si une seule).
   const langueCouranteEstOrig = couranteEstOriginale || (idOeuvre === editionFrRef?.id_oeuvre && modeTexte === 'la')
   const editionsMenu2 = langueCouranteEstOrig ? editionsOriginal : editionsTraduction
+  // « Éditions de ce texte » compare des éditions d'une MÊME langue : le latin et sa
+  // traduction relèvent du menu des modes de lecture, pas de celui-ci. Sans ce tri,
+  // une œuvre à deux textes offrait deux fois le même choix, sous deux intitulés.
+  const versionsMemeLangue = versionsTextuelles.filter(v => estVersionOriginale(v) === surTexteOriginal)
   // L’étoile range CE QU’ON LIT. Sur une édition en langue originale autonome, c’est
   // l’œuvre elle-même, qui a son identifiant. Sur une traduction lue en « texte
   // original seul », c’est le texte original, qui n’en a pas : sa référence prend le
@@ -1650,7 +1684,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
                   {modesLecture.map(m => (
-                    <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
+                    <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt, m.cibleTexte)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
                   ))}
                 </div>
               </div>
@@ -1677,11 +1711,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
             )}
             {/* Plusieurs versions d'une même œuvre (rare) : sélecteur conservé. */}
-            {versionsTextuelles.length > 1 && (
+            {versionsMemeLangue.length > 1 && (
               <div style={{ marginTop: '7px' }}>
                 <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Éditions de ce texte</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {versionsTextuelles.map(version => {
+                  {versionsMemeLangue.map(version => {
                     const actif = version.idTexte === idTexte
                     const indisponible = !actif && version.metadata?.indisponible === true
                     return (
