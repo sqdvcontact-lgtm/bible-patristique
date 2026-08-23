@@ -411,7 +411,7 @@ export default function PrelevementsPage() {
 
         /* Citation favorite — encadrement doré complet.
            ⚠️ L'or passe par le TOKEN, plus par ses composantes en dur : la teinte
-           suit désormais le thème (Sépia, Cuir) comme le reste de la page. */
+           suit désormais le thème (le Cuir) comme le reste de la page. */
         .prel-pref {
           background: ${colorMix('var(--cs-or)', 8)} !important;
           border-left: none !important;

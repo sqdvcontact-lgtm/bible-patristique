@@ -18,8 +18,8 @@
      Ces deux noms viennent du gabarit Next d'origine ; ils ne portent plus de
      valeur en propre. Ils sont DÉRIVÉS des tokens du site, si bien que le sol
      du document suit désormais le thème comme tout le reste. Ils étaient jusqu'ici
-     les deux SEULES variables qu'aucun thème ne redéfinissait : le Sépia et le
-     Cuir les auraient trahies, et un poste réglé en thème sombre recevait déjà
+     les deux SEULES variables qu'aucun thème ne redéfinissait : le Cuir
+     les aurait trahies, et un poste réglé en thème sombre recevait déjà
      un sol noir (`#0a0a0a`) sous des pages crème — cf. le bloc
      `@media (prefers-color-scheme: dark)` retiré ici, que la charte proscrivait
      explicitement tant que le site n'est pas prêt pour un mode sombre. */
@@ -120,7 +120,7 @@
   --cs-danger-rgb: 192, 86, 42;
   --cs-danger-fonce: #9a2a2a;
   /* L aplat du danger : la pastille de notifications, qui porte du blanc. Au Clair
-     et en Sépia il vaut exactement --cs-danger, donc rien n y bouge ; en Cuir il
+     il vaut exactement --cs-danger, donc rien n y bouge ; en Cuir il
      descend quand l encre monte. */
   --cs-danger-aplat: #c0562a;
   --cs-danger-fond: #fdf2ee;
@@ -139,7 +139,7 @@
   --cs-or-doux: #c8b89e;
   /* Familles de la navbar. « Corpus » prend le vert, « Communauté » l'or ; « Système &
      doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
-     donc intransposable en Sépia et en Cuir. Il l'est maintenant. */
+     donc intransposable en Cuir. Il l'est maintenant. */
   --cs-systeme: #5f6b86;
   /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
      profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
@@ -162,7 +162,7 @@
   --cs-vise-fond: #fff3c4;
 
   /* Surface « papier » : cartes, menus, champs. Blanc en thème clair (identique à
-     l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token
+     l'existant) ; devient brun sombre en Cuir. C'est ce token
      qui permet aux fonds — jadis `#fff` en dur — de suivre le thème. */
   --cs-surface: #fff;
   /* Libellé chaud en petites capitales (« RÉCIT », « Chapitre 3 ») : un tan discret
@@ -197,61 +197,18 @@
   --cs-ombre-modale-haut: 0 -10px 28px rgba(45, 35, 25, 0.22);
 }
 
-/* ══ Confort de lecture — thèmes alternatifs (surcouches de tokens) ══
+/* ══ Confort de lecture — le seul thème alternatif (surcouche de tokens) ══
    Sélection MANUELLE via l'attribut data-theme sur <html> (aucun basculement
    automatique : le clair reste le défaut). Mêmes rôles, teintes transposées dans
-   la même famille (crème/brun · vert · or), jamais de blanc ni de noir purs. */
+   la même famille (crème/brun · vert · or), jamais de blanc ni de noir purs.
 
-/* ── Sépia : parchemin chaud, moins de bleu ── */
-:root[data-theme="sepia"] {
-  color-scheme: light;
-  --cs-fond: #f3ead7;
-  --cs-fond-clair: #f8f1e0;
-  --cs-fond-doux: #ece0c9;
-  --cs-surface: #f8f1e0;
-  --cs-bord: #d0bf9d;
-  --cs-bord-rgb: 208, 191, 157;
-  --cs-bord-clair: #ddceb0;
-  --cs-texte-faible: #b4a482;
-  --cs-texte-doux: #9c8a6c;
-  --cs-texte-gris: #867457;
-  --cs-texte-second: #6f5f45;
-  --cs-texte: #443723;
-  --cs-texte-fort: #332818;
-  --cs-encre: #40442a;
-  --cs-encre-fonce: #33371f;
-  --cs-vert: #556b3c;
-  --cs-vert-rgb: 85, 107, 60;
-  --cs-vert-fonce: #41542d;
-  --cs-vert-pale: #e2e2c4;
-  --cs-vert-aplat: #556b3c;
-  --cs-vert-aplat-fonce: #41542d;
-  --cs-vert-aplat-profond: #354624;
-  --cs-sur-aplat: #f8f1e0;
-  --cs-danger: #b0552a;
-  --cs-danger-rgb: 176, 85, 42;
-  --cs-danger-fonce: #8e2a1e;
-  --cs-danger-aplat: #b0552a;
-  --cs-danger-fond: #f6e6d6;
-  --cs-danger-bord: #dcc0a0;
-  --cs-attente: #8f5526;
-  --cs-or: #8f6f2c;
-  --cs-or-rgb: 143, 111, 44;
-  --cs-or-doux: #c4ab7e;
-  /* Descendu de #6a6a72, qui ne rendait que 4,48 sur le parchemin quand le Clair en
-     rendait 4,87 : le rôle perdait pied en changeant de sol. */
-  --cs-systeme: #5f5f68;
-  --cs-etiquette: #8a744a;
-  /* Le Sépia laissait --cs-lacune à sa valeur claire, d'où 4,20 au lieu des 4,58 du
-     Clair. Ce jeton porte TOUS les appels de note du corps : il ne peut pas hériter. */
-  --cs-lacune: #7d5f26;
-  --cs-surnum-fort: #3f3a63;
-  --cs-surnum: #544a86;
-  --cs-surnum-doux: #8a80ab;
-  --cs-surnum-bord: #d5cee0;
-  --cs-vise-fond: #f6e6b8;
-  --cs-original: #5c4e39;
-}
+   ⛔ Le SÉPIA est retiré (décision de l'auteur, 2026-08-23) : le Cuir suffit.
+   Il n'avait plus d'entrée dans l'interface depuis que le menu de compte ne
+   propose qu'un interrupteur « Mode sombre », il n'avait jamais été éprouvé, et
+   il lui manquait NEUF des cinquante et un jetons — les six ombres et les trois
+   variantes claires, qui retombaient sur les valeurs du Clair. Un thème qu'on ne
+   regarde pas est un thème qu'on ne tient pas. Ceux qui l'avaient choisi du temps
+   du sélecteur reviennent au Clair, et `theme.ts` efface leur préférence. */
 
 /* ── Cuir : brun chaud « vieux livre », UNE SEULE FAMILLE ──────────────────────
 

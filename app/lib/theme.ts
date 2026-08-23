@@ -23,15 +23,26 @@
 export const CLE_THEME = 'cs-theme'
 
 /** Les valeurs que l'attribut peut porter. Le clair n'en porte aucune. */
-export type Theme = 'clair' | 'sepia' | 'sombre'
+export type Theme = 'clair' | 'sombre'
 
 /**
- * Le Sépia n'a plus d'entrée dans l'interface : le menu de compte ne propose
- * qu'un interrupteur « Mode sombre ». Ses tokens restent définis et le thème
- * reste servi à qui l'a choisi du temps du sélecteur, sans quoi une préférence
- * enregistrée deviendrait un thème fantôme, appliqué et introuvable.
+ * ⛔ Le SÉPIA est retiré, décision de l'auteur du 2026-08-23 : le Cuir suffit.
+ *
+ * Il survivait en thème FANTÔME — plus aucune entrée dans l'interface depuis que
+ * le menu de compte ne propose qu'un interrupteur « Mode sombre », mais toujours
+ * servi à qui l'avait choisi du temps du sélecteur. On l'avait gardé pour qu'une
+ * préférence enregistrée ne devienne pas un thème appliqué et introuvable ; le
+ * raisonnement était juste, et il ne tenait que tant qu'on comptait l'éprouver.
+ * On ne l'a jamais fait : le Cuir a eu ses neuf planches, le Sépia zéro, et son
+ * bloc ne redéfinissait que 42 des 51 jetons — les six ombres et les trois
+ * variantes claires retombaient sur celles du Clair, sans que personne ait
+ * décidé qu'elles le devaient.
+ *
+ * Ceux qui l'avaient choisi reviennent donc au Clair, et leur préférence est
+ * EFFACÉE au premier chargement (voir `SCRIPT_THEME`) : sans quoi la clé
+ * resterait dans leur navigateur à désigner un thème qui n'existe plus.
  */
-export const THEMES_RECONNUS: readonly Theme[] = ['clair', 'sepia', 'sombre']
+export const THEMES_RECONNUS: readonly Theme[] = ['clair', 'sombre']
 
 /** La valeur écrite par le SERVEUR sur <html>. Le script la remplace quand une
  *  préférence est mémorisée. */
@@ -46,16 +57,20 @@ export const THEME_DEFAUT: Theme = 'clair'
  *  clignoter avant de virer au brun, à chaque navigation.
  *
  *  Il est écrit en ES5 et enveloppé d'un try : un stockage local refusé (mode
- *  privé strict, réglage de navigateur) ne doit pas casser le rendu de la page. */
+ *  privé strict, réglage de navigateur) ne doit pas casser le rendu de la page.
+ *
+ *  ⚠️ Il EFFACE toute valeur qui n'est pas `sombre` — c'est-à-dire le `sepia` des
+ *  lecteurs qui l'avaient choisi avant son retrait. La clé partie, ils sont au
+ *  Clair comme n'importe qui, et rien ne subsiste qui désigne un thème absent. */
 export const SCRIPT_THEME =
   `(function(){try{var t=localStorage.getItem('${CLE_THEME}');` +
-  `if(t==='sepia'||t==='sombre'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`
+  `if(t==='sombre'){document.documentElement.setAttribute('data-theme',t);}` +
+  `else if(t){localStorage.removeItem('${CLE_THEME}');}}catch(e){}})();`
 
 /** Le thème mémorisé, ou le clair à défaut. À n'appeler que côté navigateur. */
 export function lireTheme(): Theme {
   try {
-    const t = window.localStorage.getItem(CLE_THEME)
-    if (t === 'sepia' || t === 'sombre') return t
+    if (window.localStorage.getItem(CLE_THEME) === 'sombre') return 'sombre'
   } catch { /* stockage indisponible : on lit le clair */ }
   return 'clair'
 }
