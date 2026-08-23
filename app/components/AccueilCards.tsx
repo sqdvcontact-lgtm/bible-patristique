@@ -276,15 +276,36 @@ export default function AccueilCards() {
           transform: scale(0.99);
         }
         /* Trois tons terreux SOBRES et coordonnés (assourdis) : vert sombre,
-           bronze doux, olive — distincts mais sans éclat. */
+           bronze doux, olive — distincts mais sans éclat.
+
+           ⛔ Ces trois cartons sont des APLATS, et leurs valeurs sont LITTÉRALES,
+           comme le jeu de couvertures des publications et pour la même raison : c'est
+           une gamme dessinée, dont le contraste est arrêté, non une teinte d'interface
+           qui se rabat sur un rôle. Ils portaient jusqu'ici des jetons d'ENCRE
+           (--cs-encre, --cs-texte, --cs-texte-fort), lesquels s'éclaircissent sur
+           un sol sombre : mesuré en Cuir, la carte « Publications » rendait un carton
+           presque blanc sous un texte crème, et les trois avaient inversé leurs valeurs.
+
+           Le Cuir reçoit donc ses propres cartons, un cran PLUS CLAIRS que le sol au lieu
+           d'être plus sombres que lui : sur un fond brun, un carton se détache en montant.
+           Blanc mesuré dessus : 6,7 à 10,9. */
         .ac-bible {
-          background: linear-gradient(160deg, var(--cs-encre) 0%, var(--cs-encre-fonce) 100%);
+          background: linear-gradient(160deg, #2a3d30 0%, #1e2e24 100%);
         }
         .ac-patristique {
-          background: linear-gradient(160deg, #52472c 0%, var(--cs-texte) 100%);
+          background: linear-gradient(160deg, #52472c 0%, #3a3530 100%);
         }
         .ac-publications {
-          background: linear-gradient(160deg, var(--cs-texte) 0%, var(--cs-texte-fort) 100%);
+          background: linear-gradient(160deg, #3a3530 0%, #2a2520 100%);
+        }
+        :root[data-theme="sombre"] .ac-bible {
+          background: linear-gradient(160deg, #33513f 0%, #27402f 100%);
+        }
+        :root[data-theme="sombre"] .ac-patristique {
+          background: linear-gradient(160deg, #5c5033 0%, #453e34 100%);
+        }
+        :root[data-theme="sombre"] .ac-publications {
+          background: linear-gradient(160deg, #484036 0%, #37302a 100%);
         }
         .ac-title {
           font-family: var(--font-source-serif), Georgia, serif;

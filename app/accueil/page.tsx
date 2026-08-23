@@ -94,12 +94,15 @@ export default async function AccueilPage() {
       <style>{`
         html { scroll-behavior: smooth; }
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
-        .colophon-ornement { font-size: 1.125rem; color: #7a6a52; letter-spacing: 0.25em; }
+        .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
         /* Le monogramme se mesure en HAUTEUR : il est plus haut que large, et
            c'est sa hauteur qui doit s'accorder à celle du titre. En rem, pour
            suivre la police racine fluide comme tout le reste du frontispice. */
         .hero-monogramme { height: 4.5rem; width: auto; display: block; margin: 0 auto 20px; }
+        .hero-monogramme--sombre { display: none; }
+        :root[data-theme="sombre"] .hero-monogramme--clair { display: none; }
+        :root[data-theme="sombre"] .hero-monogramme--sombre { display: block; }
         /* La gravure ferme le titre au lieu de l'annoncer. Son intensité suit sa
            place : 0,72, comme toute gravure qui porte encore le propos, et non
            les 0,42 à 0,5 d'un cul-de-lampe qui n'orne qu'un vide. */
@@ -226,9 +229,19 @@ export default async function AccueilPage() {
             elle le fait EN PIED, où sa place est (charte, « Une gravure se pose
             en pied »). La marque prend la tête, seule : c'est elle l'enseigne. */}
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
+          {/* ⚠️ DEUX planches, et c'est la seule façon d'avoir la marque sur les deux
+              sols. Le détourage ne sert que l'ALPHA, la couleur se repose ensuite
+              (charte, « Le monogramme CS ») : `monogramme-encre.png` est le vert
+              d'encre, invisible sur le brun du Cuir, `monogramme-creme.png` porte le
+              même tracé en crème. On les superpose et le thème n'en montre qu'une,
+              plutôt que d'en choisir une en JavaScript, ce qui la ferait paraître
+              après la peinture. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo/monogramme-encre.png" alt="" aria-hidden="true"
-            className="hero-monogramme" />
+            className="hero-monogramme hero-monogramme--clair" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo/monogramme-creme.png" alt="" aria-hidden="true"
+            className="hero-monogramme hero-monogramme--sombre" />
 
           {/* Titre principal */}
           <h1 style={{
@@ -345,7 +358,7 @@ export default async function AccueilPage() {
           {/* Un seul séparateur : celui qui clôt la section « Soutenir » ci-dessus
               suffit (on a retiré le second, qui faisait doublon). */}
           <div style={{ marginTop: "44px" }}>
-            <div style={{ fontSize: "0.8125rem", lineHeight: "2.1", color: "#4a4a30", letterSpacing: "0.01em" }}>
+            <div style={{ fontSize: "0.8125rem", lineHeight: "2.1", color: "var(--cs-texte-second)", letterSpacing: "0.01em" }}>
               <div className="colophon-pyr-desktop">
                 <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Publié pour navigateur et mobile par les soins</p>
                 <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>

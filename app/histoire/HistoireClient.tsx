@@ -293,7 +293,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
               style={{
                 flex: 1, fontSize: '0.6875rem', padding: '5px 4px', border: 'none',
                 borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: vue === cle ? VERT : 'var(--cs-surface)', color: vue === cle ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
+                background: vue === cle ? VERT : 'var(--cs-surface)', color: vue === cle ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
                 fontFamily: 'inherit', fontWeight: vue === cle ? 600 : 400, whiteSpace: 'nowrap',
               }}>
               {label}
@@ -309,7 +309,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
               style={{
                 flex: 1, fontSize: '0.6875rem', padding: '5px 4px', border: 'none',
                 borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: densite === d.cle ? VERT : 'var(--cs-surface)', color: densite === d.cle ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
+                background: densite === d.cle ? VERT : 'var(--cs-surface)', color: densite === d.cle ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
                 fontFamily: 'inherit', fontWeight: densite === d.cle ? 600 : 400, whiteSpace: 'nowrap',
               }}>
               {d.label}

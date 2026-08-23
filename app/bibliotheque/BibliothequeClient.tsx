@@ -508,7 +508,7 @@ function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; o
       padding: '2px 9px', borderRadius: '4px', fontSize: '0.6875rem',
       border: `1px solid ${actif ? t.borderActif : t.border}`,
       background: actif ? t.bgActif : t.bg,
-      color: actif ? 'var(--cs-surface)' : t.color,
+      color: actif ? 'var(--cs-sur-aplat)' : t.color,
       cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
       transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
     }}>
@@ -1701,7 +1701,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 </svg>
               </div>
               <button onClick={() => setFiltresOuverts(o => !o)} aria-expanded={filtresOuverts}
-                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-aplat)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : 'var(--cs-surface)', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, borderRadius: '8px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
+                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : 'var(--cs-surface)', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, borderRadius: '8px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
                 <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 3h11M3.5 7h7M5.5 11h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                 Filtres
                 {nbFiltres > 0 && (

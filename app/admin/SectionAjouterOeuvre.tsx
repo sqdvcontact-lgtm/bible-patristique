@@ -493,7 +493,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <ComboboxAuteur auteurs={auteursCourants} value={meta.id_auteur} onChange={id => setMeta(m => ({ ...m, id_auteur: id }))} />
                 <button onClick={() => setAjoutAuteur(!ajoutAuteur)}
-                  style={{ fontSize: '0.78125rem', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: ajoutAuteur ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: ajoutAuteur ? 'var(--cs-surface)' : 'var(--cs-vert-aplat)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  style={{ fontSize: '0.78125rem', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: ajoutAuteur ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: ajoutAuteur ? 'var(--cs-sur-aplat)' : 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   + Nouvel auteur
                 </button>
               </div>

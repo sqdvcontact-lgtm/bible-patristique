@@ -116,7 +116,7 @@ export default function SectionAuteurs() {
       {/* Bouton nouvel auteur */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
         <button onClick={() => { setAjout(!ajout); setMsgAjout(null) }}
-          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: ajout ? 'var(--cs-vert-fonce)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: ajout ? 'var(--cs-vert-aplat-fonce)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
           {ajout ? 'Annuler' : '+ Nouvel auteur'}
         </button>
       </div>

@@ -128,7 +128,7 @@ export default function AdminClient({
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <style>{`
         .btn-vert { background: var(--cs-vert-aplat) !important; color: var(--cs-sur-aplat) !important; border: none !important; }
-        .btn-vert:hover { background: var(--cs-vert-fonce) !important; }
+        .btn-vert:hover { background: var(--cs-vert-aplat-fonce) !important; }
         .btn-rouge { background: var(--cs-surface) !important; color: var(--cs-danger) !important; border: 1px solid var(--cs-danger-bord) !important; }
         .btn-rouge:hover { background: var(--cs-danger-fond) !important; }
         /* Bouton secondaire neutre — réaccordé à la mise en page claire (l'ancienne

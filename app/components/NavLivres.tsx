@@ -520,7 +520,7 @@ export default function NavLivres({
                 width: '100%', fontSize: '0.75rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
                 background: entierSel ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-doux)',
-                color: entierSel ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
+                color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
                 fontWeight: entierSel ? 600 : 400, lineHeight: 1,
               }}>
               Livre entier
@@ -551,7 +551,7 @@ export default function NavLivres({
                      chapitre courant et de la suggestion de recherche). */
                   background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert-aplat)'
                     : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : 'var(--cs-fond-doux)',
-                  color: (actif && chapitreActifLocal === ch) ? 'var(--cs-surface)'
+                  color: (actif && chapitreActifLocal === ch) ? 'var(--cs-sur-aplat)'
                     : estChapSuggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
                   fontWeight: estChapSuggere ? 700 : 400,
                   lineHeight: 1, textAlign: 'center',

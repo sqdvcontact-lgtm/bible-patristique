@@ -171,7 +171,7 @@ export default function SectionModeration(props: Props) {
         .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--cs-bord);background:var(--cs-surface);color:var(--cs-texte);transition:background .12s,border-color .12s;}
         .mod-btn:hover{background:var(--cs-fond);}
         .mod-btn.vert{background:var(--cs-vert-aplat);color:var(--cs-sur-aplat);border-color:var(--cs-vert-aplat);}
-        .mod-btn.vert:hover{background:var(--cs-vert-fonce);}
+        .mod-btn.vert:hover{background:var(--cs-vert-aplat-fonce);}
         .mod-btn.rouge{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:var(--cs-fond-clair);}
         .mod-btn.violet{background:#6b4fa0;color:var(--cs-sur-aplat);border-color:#6b4fa0;}
         .mod-btn.violet:hover{background:#573f86;}

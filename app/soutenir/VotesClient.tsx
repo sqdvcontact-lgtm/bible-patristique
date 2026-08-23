@@ -190,7 +190,7 @@ export default function VotesClient() {
                       width: '36px', height: '36px', borderRadius: '50%',
                       border: `1px solid ${vote ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
                       background: vote ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
-                      color: vote ? 'var(--cs-surface)' : 'var(--cs-texte-gris)',
+                      color: vote ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)',
                       cursor: 'pointer', fontSize: '0.9375rem',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'background 0.15s, border-color 0.15s, color 0.15s',

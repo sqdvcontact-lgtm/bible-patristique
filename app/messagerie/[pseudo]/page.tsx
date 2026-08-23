@@ -92,7 +92,7 @@ export default function ConversationPage() {
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }
         .msg-send:disabled { opacity: 0.4; cursor: not-allowed; }
-        .msg-send:not(:disabled):hover { background: var(--cs-vert-fonce) !important; }
+        .msg-send:not(:disabled):hover { background: var(--cs-vert-aplat-fonce) !important; }
       `}</style>
 
       {/* En-tête */}

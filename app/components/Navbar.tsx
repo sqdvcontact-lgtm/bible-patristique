@@ -713,7 +713,7 @@ export default function Navbar() {
       display: "inline-block", padding: "0.25rem 0.5rem", borderRadius: "4px",
       fontSize: "0.9375rem", letterSpacing: "0.01em", textDecoration: "none", whiteSpace: "nowrap",
       fontWeight: primaire ? 600 : 400,
-      color: actif ? "var(--cs-surface)" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
+      color: actif ? "var(--cs-sur-aplat)" : primaire ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.60)",
       "--fond": actif ? "rgba(255,255,255,0.14)" : "transparent",
       "--fond-survol": actif ? "rgba(255,255,255,0.19)" : "rgba(255,255,255,0.085)",
     } as React.CSSProperties;
@@ -1347,14 +1347,14 @@ export default function Navbar() {
 
         {/* ── Recherche dépliée sous la barre (palier étroit) ─────────────────── */}
         {rechercheRepliee && rechercheDeployee && (
-          <div className="hidden lg:block" style={{ background: "var(--cs-vert-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
+          <div className="hidden lg:block" style={{ background: "var(--cs-vert-aplat-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
             {blocRecherche(true)}
           </div>
         )}
 
         {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
         {mobileOuvert && (
-          <div className="lg:hidden" style={{ background: "var(--cs-vert-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="lg:hidden" style={{ background: "var(--cs-vert-aplat-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}

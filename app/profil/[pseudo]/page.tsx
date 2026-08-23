@@ -190,7 +190,7 @@ export default function ProfilPublicPage() {
         <div style={{
           textAlign: 'center', marginBottom: '10px', border: '1px solid rgba(198,169,100,.42)',
           borderRadius: '8px', padding: '30px 28px 24px', position: 'relative', overflow: 'hidden',
-          backgroundColor: 'var(--cs-vert-fonce)',
+          backgroundColor: 'var(--cs-vert-aplat-fonce)',
           backgroundImage: [
             'radial-gradient(circle at 8% 18%, rgba(222,190,111,.34) 0 1px, transparent 1.7px)',
             'radial-gradient(circle at 18% 74%, rgba(222,190,111,.18) 0 1px, transparent 1.6px)',

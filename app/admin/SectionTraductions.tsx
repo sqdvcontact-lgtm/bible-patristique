@@ -541,7 +541,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
   }
   const e = local
   const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.6875rem', fontWeight: 600, padding: '5px 13px', borderRadius: '8px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer' })
-  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.71875rem', padding: '4px 12px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: 'var(--cs-surface)', color: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
+  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.71875rem', padding: '4px 12px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
 
   return (
     <div style={{ padding: '16px 18px 20px', borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)' }}>

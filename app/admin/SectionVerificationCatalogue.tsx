@@ -373,7 +373,7 @@ export default function SectionVerificationCatalogue() {
                     )}
                     <button
                       onClick={e => { e.stopPropagation(); setOuverte(ouv ? null : n.id) }}
-                      style={{ fontSize: '0.6875rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: ouv ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: ouv ? 'var(--cs-surface)' : 'var(--cs-vert-aplat)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}
+                      style={{ fontSize: '0.6875rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: ouv ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: ouv ? 'var(--cs-sur-aplat)' : 'var(--cs-vert)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}
                     >
                       {ouv ? 'Replier' : 'Déployer'}
                     </button>
@@ -416,12 +416,12 @@ export default function SectionVerificationCatalogue() {
           {total > 100 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', paddingTop: '16px', alignItems: 'center' }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: page === 0 ? 'var(--cs-vert-aplat)' : '#7aaa8e', cursor: page === 0 ? 'default' : 'pointer' }}>
+                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: page === 0 ? 'var(--cs-vert)' : '#7aaa8e', cursor: page === 0 ? 'default' : 'pointer' }}>
                 Précédent
               </button>
               <span style={{ fontSize: '0.78125rem', color: '#6a9080' }}>Page {page + 1} / {Math.ceil(total / 100)}</span>
               <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * 100 >= total}
-                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: (page + 1) * 100 >= total ? 'var(--cs-vert-aplat)' : '#7aaa8e', cursor: (page + 1) * 100 >= total ? 'default' : 'pointer' }}>
+                style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-vert-fonce)', background: 'transparent', color: (page + 1) * 100 >= total ? 'var(--cs-vert)' : '#7aaa8e', cursor: (page + 1) * 100 >= total ? 'default' : 'pointer' }}>
                 Suivant
               </button>
             </div>

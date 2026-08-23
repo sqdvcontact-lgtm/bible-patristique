@@ -208,7 +208,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['bible', 'patristique'] as const).map(s => (
               <button key={s} onClick={() => setSource(s)}
-                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: source === s ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontWeight: source === s ? 600 : 400 }}>
+                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: source === s ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)', fontWeight: source === s ? 600 : 400 }}>
                 {s === 'bible' ? 'Bible' : 'Patristique'}
               </button>
             ))}
@@ -503,7 +503,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
           <button type="button" disabled={!segsSelectionnes.length} onClick={() => insererSelection()}
-            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: segsSelectionnes.length ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
+            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: segsSelectionnes.length ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
         </span>
       </div>
     </div>

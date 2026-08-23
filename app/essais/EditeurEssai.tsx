@@ -555,7 +555,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
         {essaiExistant && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-            <button onClick={() => setComparaisonOuverte(v => !v)} style={{ fontSize: '0.6875rem', color: comparaisonOuverte ? 'var(--cs-surface)' : 'var(--cs-vert)', background: comparaisonOuverte ? 'var(--cs-vert-aplat)' : 'none', border: comparaisonOuverte ? 'none' : '1px solid var(--cs-vert)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button onClick={() => setComparaisonOuverte(v => !v)} style={{ fontSize: '0.6875rem', color: comparaisonOuverte ? 'var(--cs-sur-aplat)' : 'var(--cs-vert)', background: comparaisonOuverte ? 'var(--cs-vert-aplat)' : 'none', border: comparaisonOuverte ? 'none' : '1px solid var(--cs-vert)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {comparaisonOuverte ? 'Revenir à la rédaction' : 'Comparer avec la version d\u2019origine'}
             </button>
           </div>
@@ -752,10 +752,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('« ', ' »')} style={BTN} title="Guillemets français « … »">« »</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('“', '”')} style={BTN} title="Guillemets anglais “ … ” (citation de second niveau)">“ ”</button>
                 <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '4px 0' }} />
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'h2' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Titre 1</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'h3' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Titre 2</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'blockquote' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Citation</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'p' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Paragraphe</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'h2' ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-fort)' }}>Titre 1</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'h3' ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-fort)' }}>Titre 2</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'blockquote' ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-fort)' }}>Citation</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'p' ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-fort)' }}>Paragraphe</button>
                 <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '4px 0' }} />
                 <button onMouseDown={e => e.preventDefault()} onClick={ouvrirCreationNote} style={BTN}>+ Note</button>
                 <button onMouseDown={e => { e.preventDefault(); memoriserSelection() }} onClick={() => setSelecteurOuvert(true)} style={BTN}>Citer depuis le site</button>

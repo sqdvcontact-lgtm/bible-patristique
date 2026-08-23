@@ -53,11 +53,14 @@
      l'aplat doit rester profond. Mesuré avant la correction : blanc sur la barre en
      Cuir, 2,29. Ne JAMAIS employer --cs-vert comme fond sous du blanc. */
   --cs-vert-aplat: #3d6b4f;
-  /* ⛔ L ENCRE POSÉE SUR UN APLAT (le libellé d un bouton plein, le texte de la barre).
-     Elle ne suit PAS le thème, comme les trois -clair du panneau mobile : un knockout
-     n est pas « la couleur du papier », c est un blanc qui doit rester blanc quand le
-     papier devient brun. Le code employait --cs-surface, qui vire au brun sombre en
-     Cuir : cent un libellés de bouton y disparaissaient. */
+  /* L'état PRESSÉ de cet aplat. `--cs-vert-fonce` ne peut pas le servir : c'est le
+     survol de l'ENCRE, et il s'éclaircit avec elle sur un sol sombre. */
+  --cs-vert-aplat-fonce: #2e5440;
+  /* ⛔ L'ENCRE POSÉE SUR UN APLAT (le libellé d'un bouton plein, le texte de la barre).
+     Elle ne suit PAS le thème, comme les trois `-clair` du panneau mobile : un knockout
+     n'est pas « la couleur du papier », c'est un blanc qui doit rester blanc quand le
+     papier devient brun. Le code employait `--cs-surface`, qui vire au brun sombre en
+     Cuir : cent trente-huit libellés de bouton y disparaissaient. */
   --cs-sur-aplat: #fff;
 
   /* ── Palette harmonisée : tokens sémantiques ──
@@ -197,6 +200,7 @@
   --cs-vert-fonce: #41542d;
   --cs-vert-pale: #e2e2c4;
   --cs-vert-aplat: #556b3c;
+  --cs-vert-aplat-fonce: #41542d;
   --cs-sur-aplat: #f8f1e0;
   --cs-danger: #b0552a;
   --cs-danger-rgb: 176, 85, 42;
@@ -247,6 +251,7 @@
   --cs-vert-pale: #26332a;
   /* Reste PROFOND, quand --cs-vert passe au vert clair : blanc à 7,18. */
   --cs-vert-aplat: #35604a;
+  --cs-vert-aplat-fonce: #294a39;
   /* Répété ici bien qu'IDENTIQUE au clair, et volontairement : ce chantier a commencé
      par un jeton qu'un thème oubliait de redéfinir, et l'oubli ne se voyait pas. Un
      rôle qui ne bouge pas se DIT, il ne se laisse pas deviner à une absence. */

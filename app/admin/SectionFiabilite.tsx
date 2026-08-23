@@ -40,7 +40,7 @@ function Score({ v, on }: { v: number | null; on: (n: number | null) => void }) 
   const cell = (actif: boolean, couleur: string, bordDroit: boolean): React.CSSProperties => ({
     width: '23px', height: '24px', border: 'none', borderRight: bordDroit ? '1px solid var(--cs-bord)' : 'none',
     cursor: 'pointer', fontFamily: SANS, fontSize: '0.71875rem', fontWeight: 700,
-    background: actif ? couleur : 'var(--cs-surface)', color: actif ? 'var(--cs-surface)' : 'var(--cs-texte-faible)', transition: 'background 0.1s',
+    background: actif ? couleur : 'var(--cs-surface)', color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-faible)', transition: 'background 0.1s',
   })
   return (
     <div style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
@@ -152,7 +152,7 @@ export default function SectionFiabilite() {
                 <button
                   onClick={() => a.reserve ? majAuteur(a.id, { reserve: false }) : setReserveEnCours(enSaisie ? null : { id: a.id, motif: a.motif ?? '' })}
                   title="Écarter ses références (protection d'un public fragile) ; motif obligatoire"
-                  style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '999px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? 'var(--cs-surface)' : 'var(--cs-texte-faible)' }}>
+                  style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer', padding: '3px 9px', borderRadius: '999px', whiteSpace: 'nowrap', border: `1px solid ${a.reserve ? 'transparent' : 'var(--cs-bord)'}`, background: a.reserve ? 'var(--cs-danger-fonce)' : 'transparent', color: a.reserve ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-faible)' }}>
                   Réserve
                 </button>
               </div>
