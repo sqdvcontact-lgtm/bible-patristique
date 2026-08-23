@@ -918,6 +918,10 @@ Une capitale ornée **pousse vers la droite** les premières lignes du poème, e
 
 Vu sur le fac-similé de **Ceriziers 1646, page 19** (Livre premier, Poésie I) : un grand M gravé occupe quatre lignes, et les quatre premiers vers commencent à sa droite. Leurs mesures valent **0,73 quand le reste du poème vaut 0,02** — soit, rabattu, le rang le plus profond de l'échelle, pour des vers que l'édition compose au fer. `ombreDeLettrine` leur rend leur rang, à **deux conditions cumulées** : elles partagent toutes le même rang, et le poème revient ensuite **plus à gauche**. Sans la seconde, on confondrait l'ombre d'une lettrine avec un poème entièrement rentré.
 
+⚠️ **Ce n'est pas un cas isolé : les 39 poèmes de Ceriziers ouvrent TOUS sur une capitale ornée**, déportant leur première ligne de **0,379 pouce en moyenne**. Sans cette correction, chaque poème du livre commencerait par un vers rentré de trois em que l'édition n'a jamais composé ainsi. La hauteur de l'ornement varie : le M de la page 19 couvre quatre vers, le H de la page 22 n'en couvre qu'un — d'où une règle qui lit la MESURE au lieu de compter les lignes.
+
+⚠️ **Et la mesure a raison contre l'œil.** À la page 22, le second vers (« Qui brilloit au fond de nostre Ame: ») paraît rentré sous le H ; mesuré, il vaut 0,389 contre 0,386 pour le reste du poème. L'ornement est assez étroit pour que la ligne le franchisse presque au fer. Zoomer avant de conclure.
+
 ⛔ **Un VERS ne prend pas de lettrine.** Le drop cap est un **flottant** : posé dans la boîte d'une ligne, il déborde sur les suivantes, qui sont des boîtes sœurs. La capitale ornée d'un poème appartient au POÈME, pas à son premier vers, et la rendre demande de faire flotter l'ornement sur le bloc entier, les lignes coulant à sa droite comme dans l'imprimé. Chantier à part, pas un réglage.
 
 ## ⛔ Une strophe se sépare par un BLANC, jamais par un filet
@@ -943,7 +947,8 @@ wsl.exe -d Ubuntu-24.04 -- bash -c 'cd "/mnt/c/…" && pdftoppm -png -r 150 -f 1
 ## Ce que le fac-similé a tranché
 
 - ⛔ **Mirandol RENTRE ses vers courts.** Page 13, mètre V : « Soudain mes yeux, rendus à leur vigueur première, » au fer, « Se rouvrirent à la lumière. » nettement rentrée, et ainsi de suite. La règle de parité qu'on a retirée avait donc raison **sur ce poème-là** — et tort sur les 954 autres vers. Ce n'est pas une règle qu'il faut, c'est la mesure.
-- ⛔ **Trois marques de strophe étaient fausses** chez Ceriziers, page 19 : le quatrain d'ouverture ne porte aucun blanc. Corrigées en base, `stanza_before_source = 'corrige_facsimile_p19'`. Les 76 autres, corroborées par un changement d'alinéa mesuré, sont justes.
+- ✅ **Les strophes de Ceriziers : question CLOSE.** Sur 81 ouvertures, 76 sont corroborées par un changement d'alinéa mesuré ; les 2 que l'écart ne confirmait pas ont été vérifiées à l'œil et sont **justes** (page 36, « Grand Gouuerneur de la Nature, » ; page 79, « Par fois il partageoit sa gloire » — blanc et retrait présents). Seules **3 étaient fausses**, au mètre I du Livre premier : le quatrain d'ouverture ne porte aucun blanc page 19. Corrigées en base, `stanza_before_source = 'corrige_facsimile_p19'`.
+- ⚠️ **Un écart d'alinéa faible ne dément pas une strophe.** Les deux marques suspectes l'étaient parce que leur retrait passait sous le seuil de 0,08 pouce — mais le BLANC, lui, était bien là. Les deux signaux sont indépendants : l'un peut manquer sans que l'autre mente.
 - ✅ **Ceriziers rentre la PREMIÈRE ligne de chaque strophe** (page 22, sizains de la Poésie II), et le site le rend fidèlement : c'est ce que dit `indent_inches`, et les deux signaux concordent.
 - ✅ **Le retrait de SUITE est la convention imprimée** : chez Ceriziers, un vers trop long pour la mesure repart en retrait (« que de ioye, », « douleur, », « malheur ; »). C'est ce qui distingue un vers d'un simple retour à la ligne.
 
