@@ -947,7 +947,26 @@ Une traduction ponctue par-dessus les versets. Sorti de son contexte — dans le
 
 **Mécanisme en place** (`app/components/Navbar.tsx`) : la barre compare `nav.scrollWidth` à `nav.clientWidth` au montage, au redimensionnement (une mesure par image via `requestAnimationFrame`) et à chaque changement qui l'allonge (session, pseudo, droits, pastilles). Quand elle déborde, elle retient la largeur de fenêtre à partir de laquelle la version complète tiendrait de nouveau — `innerWidth + débordement + 32px de marge` — car une fois repliée elle ne déborde plus et l'on n'aurait plus aucun repère pour la déplier. La marge évite l'oscillation au pixel près.
 
-**Ordre de sacrifice (révisé le 2026-08-22) : les OUTILS cèdent, puis la MARQUE, jamais une section.** Quatre crans, du moins coûteux au plus coûteux : **1** « Soutenir le projet » → cœur seul et le mot « Admin » effacé ; **2** pseudonyme du bouton de compte effacé (c'est le seul élément dont la largeur ne se connaît pas d'avance, jusqu'à 6rem, donc celui qui rendait la tenue incalculable) et « Les Saintes Écritures » → « La Bible » ; **3** recherche → loupe, qui déploie un bandeau sous la barre, la même vue que sur téléphone ; **4** le nom « Corpus Scriptura » et sa mention de version s'effacent, le monogramme porte seul le retour à l'accueil, le nom revenant en infobulle.
+**Ordre de sacrifice (révisé le 2026-08-23) : les OUTILS cèdent, puis la MARQUE, jamais une section.** Quatre crans, du moins coûteux au plus coûteux : **1** « Soutenir le projet » → cœur seul et le mot « Admin » effacé ; **2** pseudonyme du bouton de compte effacé (c'est le seul élément dont la largeur ne se connaît pas d'avance, jusqu'à 6rem, donc celui qui rendait la tenue incalculable) ; **3** recherche → loupe, qui déploie un bandeau sous la barre, la même vue que sur téléphone ; **4** le nom « Corpus Scriptura » et sa mention de version s'effacent, le monogramme porte seul le retour à l'accueil, le nom revenant en infobulle.
+
+**Deux pièces se resserrent PAR PALIERS au lieu de céder d'un coup (2026-08-23)** : ce sont les deux plus larges de la barre, et les faire disparaître d'un bloc laissait un grand vide entre l'écran très large et l'écran moyen.
+
+*L'onglet des bibles* (`OngletBibles`) a un état par cran :
+
+| cran | onglet | comment on choisit |
+|---|---|---|
+| 0 | « Bible classique » et « Bible polyglotte », chacune le sien | rien à survoler |
+| 1 | « Les Saintes Écritures » | se fend SUR PLACE au survol |
+| 2 | « La Bible » | menu déroulant |
+| 3 | « Bible » | menu déroulant |
+
+⛔ **Le passage au menu déroulant n'est pas cosmétique, il est imposé par la mesure.** Les deux faces de l'onglet fendu occupent la même cellule de grille (voir plus bas), donc le bloc prend la largeur de la PLUS LARGE. Tant que l'intitulé dit « Les Saintes Écritures », c'est lui qui mesure l'onglet et le raccourcir gagne quelque chose ; sous « La Bible », moitié moins large que « Classique | Polyglotte », ce sont les segments qui mesurent l'onglet et **raccourcir l'intitulé ne rend plus un pixel**. Le menu, lui, sort du flux : l'onglet ne pèse plus que son propre mot. Mesuré à 1 060 px, anonyme : 152 px en fendu, 79 px en menu.
+
+*Le champ de recherche* suit les mêmes paliers avant de se replier en loupe au cran 3 : `clamp(11rem, 17vw, 22rem)`, puis `clamp(9.5rem, 13vw, 16rem)`, puis `clamp(7.5rem, 9vw, 11rem)`. Bornes en rem (accordées à la police racine), valeur préférée en vw (accordée à l'écran) : dans chaque palier le champ suit encore la fenêtre.
+
+**Relevé sur `/contact`, visiteur anonyme** (page libre sans session, donc contrôlable) : 1920 px → cran 0, champ 326 px ; 1200 → cran 1, champ 156 px ; 1060 → cran 2, champ 120 px ; 1024 → cran 3, loupe.
+
+⚠️ **Contrôler la barre demande un onglet qui RENDE DES IMAGES.** La mesure passe par `requestAnimationFrame` : dans un onglet caché (`document.visibilityState === 'hidden'`, le cas du panneau navigateur non affiché) elle **ne s'exécute jamais** et la barre reste au cran 0, débordante, quelle que soit la largeur. Rien n'est cassé pour autant — le pli reprend dès que l'onglet paraît. Pour contrôler sans fenêtre visible, rendre `requestAnimationFrame` synchrone puis émettre un `resize`, et lire l'état au TOUR SUIVANT (React rend en différé). ⚠️ Une capture `chrome --headless --virtual-time-budget` photographie parfois l'état d'AVANT le pli sous ~1 050 px : le défaut se reproduit à l'identique sur la version précédente du fichier, c'est donc un artefact de capture et non une régression.
 
 ⛔ **Aucune section ne descend dans le menu de compte, à aucune largeur.** « Aller plus loin » y descendait au cran 3, en groupe distinct sous son intertitre. Deux raisons de l'avoir défait. La première tient au sens : une rubrique de lecture rangée sous un nom d'utilisateur devient introuvable, car personne ne cherche les traductions ou l'histoire de l'Église dans son propre compte. La seconde tient à l'apprentissage : une entrée qui change de place selon la largeur de la fenêtre ne s'apprend jamais, et le lecteur qui redimensionne la voit disparaître sans comprendre où elle est passée. Une barre se replie en montrant moins, pas en déplaçant ce qu'elle montre. La place gagnée se prend désormais sur le champ de recherche, devenu fluide, et sur le bouton de recherche neuve, devenu carré.
 
