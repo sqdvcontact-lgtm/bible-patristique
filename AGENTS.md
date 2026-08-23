@@ -475,6 +475,8 @@ Le passage du Cuir au monochrome a rendu les encres CLAIRES. Tout endroit qui en
 
 ⚠️ **Un dégradé de médaillon est un aplat**, lui aussi : les initiales de profil et de compte prenaient `--cs-vert-fonce → --cs-encre`.
 
+⛔ **Un voile blanc à forte opacité ne dit pas « blanc », il dit PAPIER.** `rgba(255,255,255,0.72)` sur le crème du site passe pour la surface et ne se remarque pas ; sur le cuir il devient un galet d'ARGENT, chroma 1 au milieu d'une page entièrement chaude — c'est ce qu'était le champ de recherche des Publications. ⚠️ **La borne est à 0,5, et elle a un sens** : au-dessus le voile remplace le papier et prend `--cs-surface` ; au-dessous il éclaircit un aplat déjà sombre (compteur d'onglet actif, rail des notes, cartons de l'accueil, toute la barre de navigation) et il est alors juste, ces fonds ne changeant pas avec le thème.
+
 ## ⛔ Les ORNEMENTS se retournent, ils ne se remplacent pas
 
 Les gravures de `public/ornements/` sont détourées : l'alpha porte le trait, la couleur est une encre sombre — mesurée à **71 de luminance** sur la tour de Babel. Sur le papier crème elles se lisent ; sur le cuir elles rendent **1,88**, c'est-à-dire presque rien.
