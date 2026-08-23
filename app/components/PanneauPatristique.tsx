@@ -9,6 +9,7 @@ import NoteTooltip from '@/app/lib/NoteTooltip'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
+import { anneeChronologique, comparerChronologie } from '@/app/lib/chronologiePatristique'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
@@ -30,6 +31,10 @@ type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
   trad_auteur: string | null; editeur: string | null
   collection?: string; ville: string | null; date_publication: string | null
+  // ⛔ `date_publication` est la date de l'ÉDITION MODERNE, et elle sert la CITATION.
+  // `date_composition` est celle de l'œuvre, et elle sert le CLASSEMENT. Ne pas les
+  // confondre : les Confessions valent 1649 pour l'une, « Vers 397-401 » pour l'autre.
+  date_composition: string | null
   genre?: string | null
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
@@ -853,7 +858,7 @@ export default function PanneauPatristique({
   const [filtreGenres, setFiltreGenres] = useState<Set<string>>(new Set())
   const [rechercheAuteur, setRechercheAuteur] = useState('')
   const [resultatsAuteur, setResultatsAuteur] = useState<{ id_auteur: string; nom: string }[]>([])
-  const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null }>>({})
+  const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null; date_mort: string | null }>>({})
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) =>
@@ -864,15 +869,15 @@ export default function PanneauPatristique({
   // Charger les infos des oeuvres une seule fois
   useEffect(() => {
     supabase.from('oeuvres')
-      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, genre, note')
+      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, date_composition, genre, note')
       .then(async ({ data: od }) => {
         if (!od) return
-        const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle')
+        const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle, date_mort')
         const am: Record<string, string> = {}
-        const meta: Record<string, { traditions: string[]; siecle: number | null }> = {}
+        const meta: Record<string, { traditions: string[]; siecle: number | null; date_mort: string | null }> = {}
         ad?.forEach((a: any) => {
           am[a.id_auteur] = a.nom
-          meta[a.id_auteur] = { traditions: a.traditions ?? [], siecle: a.siecle ?? null }
+          meta[a.id_auteur] = { traditions: a.traditions ?? [], siecle: a.siecle ?? null, date_mort: a.date_mort ?? null }
         })
         setAuteurMeta(meta)
         const map: Record<string, OeuvreInfo> = {}
@@ -887,6 +892,7 @@ export default function PanneauPatristique({
             collection: o.collection || undefined,
             ville: o.ville || null,
             date_publication: o.date_publication || null,
+            date_composition: o.date_composition || null,
             genre: o.genre || null,
           }
         })
@@ -984,10 +990,34 @@ export default function PanneauPatristique({
   // Regroupements pour les sous-onglets : « Citations » réunit citation directe et paraphrase.
   const estCitation = (cats: Categorie[]) => cats.includes('citation_directe') || cats.includes('paraphrase')
 
+  // La clé de classement d'un extrait : la date de l'ŒUVRE, à défaut celle de son auteur,
+  // puis l'auteur, l'œuvre, et le rang du segment dans l'œuvre.
+  const clefChrono = (it: ItemAffiche) => {
+    const info = oeuvres[it.seg.id_oeuvre]
+    const meta = info?.id_auteur ? auteurMeta[info.id_auteur] : null
+    return {
+      annee: anneeChronologique({
+        dateComposition: info?.date_composition ?? null,
+        auteurDateMort: meta?.date_mort ?? null,
+        auteurSiecle: meta?.siecle != null ? String(meta.siecle) : null,
+      }),
+      auteur: info?.auteur_nom || it.seg.id_oeuvre,
+      oeuvre: info?.titre || it.seg.id_oeuvre,
+      numero: it.seg.segment_numero,
+    }
+  }
+
   // UN SEGMENT NE PARAÎT QU'UNE FOIS. Le même passage est souvent cité puis
   // commenté : il relevait alors de deux rubriques et se lisait deux fois de
   // suite, à l'identique. On le donne une seule fois, en portant toutes les
   // natures du rapport qu'il entretient avec le verset.
+  //
+  // ⛔ ET IL EST CLASSÉ. L'apparat n'avait aucun ordre : les segments arrivaient dans
+  // celui que Postgres voulait bien rendre (le `.in('id', …)` ne porte pas de `order`),
+  // et la concaténation citations → doctrine → échos faisait remonter en tête du
+  // sous-onglet « Commentaires » tous les passages qui sont AUSSI des citations. Deux
+  // accidents pour un seul ordre apparent. Il se lit désormais dans le temps : Didachè,
+  // Tertullien, Cyprien, Basile, Chrysostome, Augustin, Jérôme, Boèce, Thomas d'Aquin.
   const itemsTous: ItemAffiche[] = (() => {
     const parSegment = new Map<number, ItemAffiche>()
     for (const it of brut) {
@@ -995,7 +1025,7 @@ export default function PanneauPatristique({
       if (deja) { if (!deja.categories.includes(it.categorie)) deja.categories.push(it.categorie) }
       else parSegment.set(it.seg.id, { ...it, categories: [it.categorie] })
     }
-    return [...parSegment.values()]
+    return [...parSegment.values()].sort((a, b) => comparerChronologie(clefChrono(a), clefChrono(b)))
   })()
 
   // Les sous-onglets restent des filtres : un segment cité ET commenté se trouve

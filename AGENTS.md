@@ -246,6 +246,32 @@ Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.t
 - **Toutes les occurrences** sont affichées avec leur texte complet, chacune dans une carte distincte (référence en tête, badge « principale », puis le texte verset par verset). `app/pericopes/[id]/page.tsx` charge le texte de chaque occurrence en parallèle (`chargerTextePericope`) et le recharge au changement de traduction.
 - **Colonne de droite = doublon du volet de la page Bible** : on embarque directement `PanneauPatristique` (collant, hauteur `100dvh - navbar` sur desktop ; empilé `presentation="inline"` en mobile). Nouveau prop **`plage={{ livre, canonDebut, canonFin }}`** (+ `refAffichee`) : le volet charge l'apparat de la PLAGE canonique exacte via `segmentsLiesAPlage` (`app/lib/liens.ts`) au lieu d'un verset/chapitre. Additif : la page Bible ne passe pas `plage`, son comportement est inchangé.
 
+# Apparat patristique — l'ordre est CHRONOLOGIQUE (2026-08-23)
+
+Le volet de droite de la page Bible (et de la page d'une péricope) est `PanneauPatristique.tsx`. Ses extraits se rangent désormais par **date de l'œuvre, puis auteur, puis œuvre, puis apparition dans l'œuvre** (`segment_numero`). Toute la clé vit dans `app/lib/chronologiePatristique.ts`, module PUR testé sur les valeurs réelles du corpus (22 tests).
+
+⛔ **Il n'y avait AUCUN ordre auparavant, et l'ordre apparent était fait de deux accidents.** Les segments sont tirés par `.in('id', ids)` **sans `order`** : Postgres les rendait dans l'ordre qui lui convenait, en pratique l'ordre d'import. Et la liste brute concatène citations → doctrine → échos, le dédoublonnage gardant la PREMIÈRE position : dans le sous-onglet « Commentaires », tous les passages qui sont AUSSI des citations remontaient donc en tête, en bloc. Personne n'avait décidé cela.
+
+⛔ **La date de l'œuvre est `oeuvres.date_composition`, JAMAIS `date_publication`.** Cette dernière porte la date de l'ÉDITION MODERNE — Confessions 1649, Somme théologique 1984-1986, Histoire ecclésiastique 21 octobre 1532 — et sert la CITATION. Trier là-dessus ne range pas les Pères, il range les réimpressions françaises, Thomas d'Aquin en dernier et Eusèbe en premier. Les deux colonnes sont pleines sur les 52 œuvres : rien ne signale l'erreur, le classement est simplement faux.
+
+**Repli, et il sert vraiment** : à défaut d'une date d'œuvre lisible, `auteurs.date_mort`, puis `auteurs.siecle`, puis rien — et l'extrait ferme la marche. Toutes les œuvres portent une `date_composition`, mais plusieurs sont illisibles pour un classement : « Antiquité tardive », « Date non établie », « Vendredi saint, année non établie ».
+
+⚠️ **Le module ne réutilise pas `parserDateHistorique` (`datesHistoriques.ts`), et c'est motivé.** Celui-ci décrit une période pour l'AFFICHAGE et rend la borne HAUTE (`extraireAnneeDateHistorique`), quand un classement demande la borne BASSE — une œuvre écrite « 413-426 » se range à 413. Et il renonce dès que la valeur est de la prose, ce qui est ici le cas ORDINAIRE. Sur les valeurs bien formées, les deux s'accordent.
+
+**Ce que le lecteur de dates doit savoir faire**, tiré des trente-deux dates de composition distinctes du corpus :
+
+- ⛔ **ôter le QUANTIÈME avant de chercher l'année** — sans quoi « 25 décembre 380 » se range au Ier siècle et « 1er janvier 379 » à l'an 1 ;
+- prendre la **première** année nommée (« Vers 300-325 (Eusèbe) ; vers 402 » → 300) ;
+- traverser la prose : « Carême 387 », « Entre 392 et 430, date précise inconnue », « c. 371-398 » ;
+- à défaut de chiffres, lire le **premier siècle d'un empan** et le placer en son MILIEU, décalé d'un quart par le qualificatif : « Fin du IVe siècle » → 375, « Seconde moitié du Ier siècle-… » → 75. Un siècle placé à son premier jour passerait devant toute œuvre datée 310 ou 320.
+- ⛔ **jamais de drapeau insensible à la casse sur le chiffre romain** : `[ivxlcdm]` attraperait le « c » de « ce siècle » et rendrait un centième siècle.
+
+**Auteur et œuvre ne sont pas des ornements du tri** : ils gardent CONTIGUS les extraits d'une même œuvre quand deux œuvres partagent une année, faute de quoi ils s'entrelacent et la fusion des segments qui se suivent (voir `itemsGroupes`) ne trouve plus ses paires.
+
+**Relevé sur Jean 1, 1** (19 extraits, 8 auteurs) : Tertullien 197 · Cyprien 248 · Eusèbe 300 · Grégoire de Nazianze et Jean Chrysostome 350 · Grégoire 380 · Augustin et Jérôme 396-397 · Jérôme 406 · Thomas d'Aquin 1265.
+
+⚠️ **Trouvaille au passage, à traiter à part** : `A0047O0012` (« Discours 38-41 ») et `A0047O0034` (« Discours 38. Sur la Théophanie ») sont le MÊME texte importé deux fois — 84 segments et 29 556 signes de part et d'autre, mêmes numéros de segment. L'apparat de Jean 1, 1 montre donc les mêmes passages de Grégoire deux fois. C'est une correction de données, pas d'affichage.
+
 # Page « Communauté » (ex-« Publications ») — couvertures de petit livre (2026-08-17)
 
 ⚠️ **Renommée « Communauté » le 2026-08-23. La route reste `/essais`.** Le nouveau libellé porte partout où la page est NOMMÉE : navbar (`LIENS_PRIMAIRES`, desktop et panneau mobile), carton d’accueil (`AccueilCards`), `h1` et `metadata.title` de `/essais`, fil d’Ariane de `/essais/[id]`, badge de lieu de la modération (`SectionModeration`), modèle de charte de l’admin. Le mot « publications » demeure là où il désigne les ÉCRITS et non la page : rubrique du profil, rubrique et réglage de visibilité du compte, onglets et catégories de la recherche. Le reste de cette section décrit la composition des couvertures, inchangée.
