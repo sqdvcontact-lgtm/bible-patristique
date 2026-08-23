@@ -530,7 +530,7 @@ export default function PrelevementsPage() {
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texte)))}&#8201;»
                             </p>
                             <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                              <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "#6a7b6e" }}>{ref}</span>
+                              <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "var(--cs-texte-gris)" }}>{ref}</span>
                               {nomTrad && (
                                 <>
                                   <span style={{ opacity: 0.4 }}>·</span>
@@ -592,7 +592,7 @@ export default function PrelevementsPage() {
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
                               <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
-                                <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "#6a7b6e" }}>
+                                <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "var(--cs-texte-gris)" }}>
                                   {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
                                 </span>
                               </p>

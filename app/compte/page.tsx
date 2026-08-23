@@ -37,7 +37,7 @@ type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: nu
 type CitationPreferee = { id: string; texte: string; type: "biblique" | "patristique"; ref?: string; auteur?: string; titre_oeuvre?: string };
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "8px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
-const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#6a7b6e", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
+const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "var(--cs-texte-gris)", letterSpacing: "0.06em", display: "block", marginBottom: "5px" };
 
 function urlCompte(): string {
   if (typeof window !== "undefined") return `${window.location.origin}/compte`;
@@ -168,7 +168,7 @@ function SectionRang({ score }: { score: number }) {
 
   const RANGS = ["Catéchumène", "Disciple", "Docteur"];
 
-  const barreColor = rang === 'Catéchumène' ? 'var(--cs-vert-clair)' : rang === 'Disciple' ? '#3d7a3d' : '#9a4a1f';
+  const barreColor = rang === 'Catéchumène' ? 'var(--cs-vert-clair)' : rang === 'Disciple' ? '#3d7a3d' : 'var(--cs-attente)';
 
   const barreWidth =
     rang === "Catéchumène" ? `${largeur / 3}%`
@@ -373,12 +373,12 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
         </div>
         <p style={{ fontSize: "0.625rem", color: "var(--cs-texte-doux)", textAlign: "center", margin: "0 0 16px", fontStyle: "italic" }}>Faites glisser pour repositionner</p>
         <div style={{ marginBottom: "12px" }}>
-          <label style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>ZOOM</label>
+          <label style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.08em", color: "var(--cs-texte-gris)", display: "block", marginBottom: "6px" }}>ZOOM</label>
           <input type="range" min="1" max="1.8" step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))}
             style={{ width: "100%", accentColor: "var(--cs-vert)" }} />
         </div>
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.08em", color: "#6a7b6e", display: "block", marginBottom: "6px" }}>POSITION HORIZONTALE</label>
+          <label style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.08em", color: "var(--cs-texte-gris)", display: "block", marginBottom: "6px" }}>POSITION HORIZONTALE</label>
           <input type="range" min="0" max="100" step="1" value={posX} onChange={e => setPosX(Number(e.target.value))}
             style={{ width: "100%", accentColor: "var(--cs-vert)" }} />
         </div>
@@ -388,7 +388,7 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
             Appliquer
           </button>
           <button onClick={onChanger}
-            style={{ padding: "7px 16px", borderRadius: "8px", border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "#6a7b6e", fontSize: "0.75rem", cursor: "pointer" }}>
+            style={{ padding: "7px 16px", borderRadius: "8px", border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-gris)", fontSize: "0.75rem", cursor: "pointer" }}>
             Changer de photo
           </button>
         </div>
@@ -704,7 +704,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             <button
               onClick={() => photoProfil ? setModaleRecadrageOuverte(true) : setModalePhotoOuverte(true)}
               title={photoProfil ? "Recadrer la photo" : "Choisir une illustration"}
-              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid var(--cs-bord)", background: "var(--cs-surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#6a7b6e" }}>
+              style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "22px", height: "22px", borderRadius: "50%", border: "1.5px solid var(--cs-bord)", background: "var(--cs-surface)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-texte-gris)" }}>
               <IconeCrayon size={11} />
             </button>
           </div>

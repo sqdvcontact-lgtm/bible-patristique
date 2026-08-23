@@ -219,7 +219,7 @@ function OngletCommunaute({
         }
         .publications-sommaire-tete span {
           font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.24em;
-          text-transform: uppercase; color: #7a6030;
+          text-transform: uppercase; color: var(--cs-lacune);
         }
 
         /* Trois couvertures par rang, comme une table d'étalage. */
