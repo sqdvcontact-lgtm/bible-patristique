@@ -421,7 +421,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           <Link href={`/oeuvre/${o.id_oeuvre}?mt=la`}
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                             <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 400 }}>Texte original {langueOrig}</span>
+                              <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>Texte original {langueOrig}</span>
                               {o.titre_original && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.titre_original}</span>}
                             </span>
                             <span className="bib-lire">
@@ -450,7 +450,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.71875rem', color: '#4a4038', fontWeight: 400 }}>{libelle}</span>
+                            <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>{libelle}</span>
                             {(trad || langueSeule) && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
                             {!trad && !langueSeule && !aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>

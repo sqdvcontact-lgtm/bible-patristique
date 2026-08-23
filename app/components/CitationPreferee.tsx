@@ -156,7 +156,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
     <div onClick={onAnnuler}
       style={{
         position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0,
-        background: colorMix('var(--cs-texte-fort)', 52), zIndex: 2600,
+        background: 'rgba(0, 0, 0, 0.52)', zIndex: 2600,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px', overflow: 'hidden',
       }}>

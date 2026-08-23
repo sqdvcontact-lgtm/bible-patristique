@@ -56,6 +56,12 @@
   /* L'état PRESSÉ de cet aplat. `--cs-vert-fonce` ne peut pas le servir : c'est le
      survol de l'ENCRE, et il s'éclaircit avec elle sur un sol sombre. */
   --cs-vert-aplat-fonce: #2e5440;
+  /* Le TROISIÈME rang d aplat : le bandeau le plus profond de la Polyglotte, celui
+     qui touche au texte. Trois bandeaux s y empilent — navbar, traductions, livre —
+     et il leur faut trois aplats, faute de quoi le dernier retombait sur --cs-encre,
+     qui est une ENCRE : en Cuir elle est claire, et le bandeau servait du blanc sur
+     du beige. Les trois rangs s écartent de 1,2 à 1,4, comme au Clair. */
+  --cs-vert-aplat-profond: #24422f;
   /* ⛔ L'ENCRE POSÉE SUR UN APLAT (le libellé d'un bouton plein, le texte de la barre).
      Elle ne suit PAS le thème, comme les trois `-clair` du panneau mobile : un knockout
      n'est pas « la couleur du papier », c'est un blanc qui doit rester blanc quand le
@@ -205,6 +211,7 @@
   --cs-vert-pale: #e2e2c4;
   --cs-vert-aplat: #556b3c;
   --cs-vert-aplat-fonce: #41542d;
+  --cs-vert-aplat-profond: #354624;
   --cs-sur-aplat: #f8f1e0;
   --cs-danger: #b0552a;
   --cs-danger-rgb: 176, 85, 42;
@@ -291,6 +298,7 @@
      de couleur d'une page qui n'en a plus. Blanc mesuré dessus : 10,6 et 13,1. */
   --cs-vert-aplat: #4a3c2c;
   --cs-vert-aplat-fonce: #3a2f22;
+  --cs-vert-aplat-profond: #2e251b;
   --cs-sur-aplat: #fff;
   /* Apparat : un doré plus SOURD que l'accent, pour ne pas lui disputer l'œil. */
   --cs-or: #c0a065;
@@ -440,6 +448,25 @@ button:focus-visible,
   outline: 2px solid var(--cs-vert);
   outline-offset: 2px;
 }
+/* ── Ornements : une ENCRE, et le sol change sous elle ─────────────────────────
+   Les gravures de `public/ornements/` sont détourées : leur alpha porte le trait,
+   leur couleur est une encre sombre — mesurée à 71 de luminance sur la tour de
+   Babel. Sur le papier crème elles se lisent ; sur le cuir elles rendent **1,88**,
+   c'est-à-dire presque rien.
+
+   ⚠️ La charte dit déjà comment faire, à propos du monogramme : « le détourage ne
+   sert que l'ALPHA : la couleur, on la repose ». C'est ce que fait ce filtre. Il
+   retourne l'encre sans toucher à la couche alpha, puis la réchauffe pour qu'elle
+   reste dans la gamme. Mesuré : le trait passe de rgb(71,70,69) à rgb(166,159,147),
+   soit de 1,88 à **6,74**. Une gravure claire sur du cuir, ce qui est d'ailleurs le
+   caractère juste d'une reliure estampée.
+
+   ⛔ Ne pas remplacer par `opacity` ni par un `mix-blend-mode` : l'opacité crée un
+   contexte d'empilement qui annule le mélange — piège consigné dans AGENTS.md. */
+:root[data-theme="sombre"] .cs-ornement {
+  filter: invert(0.88) sepia(0.5) saturate(0.6);
+}
+
 /* Champs sur fond vert/sombre : l'anneau vert ne contrasterait pas → anneau clair. */
 .cs-focus-clair:focus-visible {
   outline-color: rgba(255, 255, 255, 0.9) !important;

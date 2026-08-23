@@ -2397,7 +2397,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         fond blanc du dessin dans le papier. Le PNG porte un blanc interne en bas :
                         on remonte le texte (marge négative) pour qu'il se pose sous le DESSIN, non
                         sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
-                    <img src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
+                    <img className="cs-ornement" src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
                       style={{ width: '82%', maxWidth: '11.875rem', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
                     <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>

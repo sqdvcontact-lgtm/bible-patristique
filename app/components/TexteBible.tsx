@@ -586,7 +586,7 @@ export default function TexteBible({
                   chapitre », là où il faut dire « il n'y a rien ici ». Taille mesurée,
                   discrète — c'est un ornement, pas une illustration. `multiply` fait
                   disparaître le fond blanc du dessin sur le papier de la page. */}
-              <Image src="/ornements/ruines-fumantes.png" alt="" aria-hidden="true"
+              <Image className="cs-ornement" src="/ornements/ruines-fumantes.png" alt="" aria-hidden="true"
                 width={1242} height={1242} priority={false}
                 style={{ width: 'min(190px, 55%)', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
               {/* Le texte remonte sous l'image par une marge négative : la gravure est

@@ -222,7 +222,7 @@ export default function ProfilPublicPage() {
                 />
               </div>
             ) : (
-              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, var(--cs-vert-fonce), var(--cs-encre))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid var(--cs-vert-clair)', boxShadow: 'var(--cs-ombre-flottante)' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, var(--cs-vert-aplat), var(--cs-vert-aplat-profond))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid var(--cs-vert-clair)', boxShadow: 'var(--cs-ombre-flottante)' }}>
                 <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: 'var(--cs-vert-pale)', fontWeight: 'normal', lineHeight: 1 }}>
                   {profil.pseudo.charAt(0).toUpperCase()}
                 </span>

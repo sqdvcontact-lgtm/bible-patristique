@@ -97,7 +97,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
         <span style={{
           position: 'absolute',
           ...posStyle(position),
-          background: 'var(--cs-encre)',
+          background: 'var(--cs-vert-aplat-profond)',
           color: 'var(--cs-fond-doux)',
           fontSize: '0.6875rem',
           lineHeight: 1.45,

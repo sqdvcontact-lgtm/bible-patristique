@@ -119,6 +119,7 @@ function Ornement({ nom, largeur, opacite = 1, alt = "" }: { nom: keyof typeof O
     // intermittent, fonction de la largeur d'écran. Ces fichiers sont déjà
     // détourés, dimensionnés et légers ; les servir tels quels est plus sûr.
     <Image src={o.src} alt={alt} aria-hidden={alt ? undefined : true} width={o.w} height={o.h}
+      className="cs-ornement"
       unoptimized
       style={{ ...POSE, width: largeur, maxWidth: "100%", opacity: opacite }} />
   );

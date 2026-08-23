@@ -41,7 +41,7 @@ export default function SoutenirPage() {
       {/* Le semeur : une main qui confie un grain au sillon — l'image du don qui germe.
           `multiply` fond le blanc du dessin dans le papier ; l'invite se pose au ras du
           sillon (marge négative). Taille fluide, plus généreuse sur grand écran. */}
-      <img src="/ornements/semeur.png" alt="" aria-hidden="true"
+      <img className="cs-ornement" src="/ornements/semeur.png" alt="" aria-hidden="true"
         style={{ width: "clamp(150px, 8vw + 8vh, 250px)", height: "auto", opacity: 0.92, mixBlendMode: "multiply", marginBottom: "clamp(-14px, -1vh, -8px)", flexShrink: 0 }} />
 
       {/* Titre */}

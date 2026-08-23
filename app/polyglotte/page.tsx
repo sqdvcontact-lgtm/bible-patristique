@@ -120,8 +120,12 @@ const VERT = "var(--cs-vert)";
 // Trois niveaux d'en-tête NETTEMENT distincts (charte de refonte §7), du plus clair au
 // plus sombre à mesure qu'on approche du texte : navbar du site (--cs-vert var(--cs-vert)) →
 // bandeau des traductions → bandeau du livre (le plus profond, l'ancre de lecture).
-const VERT_ENTETE = "var(--cs-encre)";       // bandeau du livre — le plus sombre
-const VERT_ENTETE_BAS = "var(--cs-vert-fonce)";   // la ligne des traductions, un cran plus clair
+// ⛔ Ces deux bandeaux portent du BLANC : ce sont des APLATS, pas des encres. Ils
+// prenaient `--cs-encre` et `--cs-vert-fonce`, qui s'éclaircissent sur un sol sombre —
+// en Cuir l'en-tête servait donc du blanc sur du beige. Voir globals.css, la note sur
+// `--cs-vert-aplat`.
+const VERT_ENTETE = "var(--cs-vert-aplat-profond)";   // bandeau du livre — le plus profond
+const VERT_ENTETE_BAS = "var(--cs-vert-aplat-fonce)"; // la ligne des traductions, un cran au-dessus
 const ROUGE = 'var(--cs-danger-fonce)';
 const ROUGE_FOND = "var(--cs-danger-fond)";
 // Rose : les cas qui RÉSISTENT (statut « resiste » dans points_sensibles). Examinés,
@@ -1115,7 +1119,7 @@ export default function PolyglottePage() {
             réapparaîtrait (voir la note des ornements dans app/chantier/page.tsx). Ici la
             luminance du crème est passée en canal alpha, et l'encre décomposée de ce même
             crème, si bien que le trait garde son anti-crénelage sans bord lavé. */}
-        <img src="/ornements/ordinateur-pentecote.png" alt="" aria-hidden="true"
+        <img className="cs-ornement" src="/ornements/ordinateur-pentecote.png" alt="" aria-hidden="true"
           style={{ display: "block", width: "min(18rem, 82%)", height: "auto", margin: "34px auto 0", opacity: 0.72 }} />
       </div>
 
@@ -1240,7 +1244,7 @@ export default function PolyglottePage() {
                   de 2,04 au lieu de 1,651, une tour de Babel étirée en travers. Quand les deux
                   dimensions sont automatiques et bornées, le navigateur applique les maxima l'un
                   après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
-              <img src="/ornements/tour-babel-detoure.png" alt="" aria-hidden="true"
+              <img className="cs-ornement" src="/ornements/tour-babel-detoure.png" alt="" aria-hidden="true"
                 style={{ maxWidth: "min(51rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 9rem)", opacity: 0.92, marginBottom: "16px" }} />
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>

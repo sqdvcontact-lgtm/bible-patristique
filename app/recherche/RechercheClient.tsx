@@ -721,7 +721,7 @@ export default function RechercheClient() {
         .mode-btn--inactif:hover { background:var(--cs-fond-doux); }
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
         .poly-outer { border-radius:0 0 8px 8px; border:1px solid var(--cs-bord); border-top:none; box-shadow:var(--cs-ombre-flottante); overflow:hidden; }
-        .poly-hd { background:var(--cs-encre); display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
+        .poly-hd { background:var(--cs-vert-aplat-profond); display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
         .poly-hd-col { display:flex; align-items:center; gap:6px; padding:0 12px; height:38px; border-right:1px solid rgba(255,255,255,0.14); }
         .poly-hd-col:last-child { border-right:none; }
         .poly-hd-sel { font-size:0.625rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; text-align-last:center; color:rgba(255,255,255,0.9); background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 16px; flex:1; transition:color 0.12s; }
@@ -1044,7 +1044,7 @@ export default function RechercheClient() {
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginTop:'70px' }}>
                 {/* Cul-de-lampe (cristaux enflammés) au-dessus de l'invite. `multiply` fond
                     le fond blanc du dessin dans le papier de la page. */}
-                <img src="/ornements/cul-de-lampe-cristaux.png" alt="" aria-hidden="true"
+                <img className="cs-ornement" src="/ornements/cul-de-lampe-cristaux.png" alt="" aria-hidden="true"
                   style={{ width:'min(300px, 56%)', height:'auto', opacity:0.5, mixBlendMode:'multiply', marginBottom:'22px' }} />
                 <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
               </div>

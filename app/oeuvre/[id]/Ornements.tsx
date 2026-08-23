@@ -16,7 +16,7 @@ const FEUILLE = 'var(--cs-texte-second)' // gris chaud, légèrement plus clair 
 export function MarqueImprimeur({ size = 150 }: { size?: number }) {
   return (
     <img
-      src="/ornements/marque-imprimeur.png"
+      className="cs-ornement" src="/ornements/marque-imprimeur.png"
       alt=""
       aria-hidden="true"
       style={{

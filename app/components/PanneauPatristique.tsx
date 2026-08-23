@@ -711,7 +711,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
             {/* Cul-de-lampe d'état vide (carapace de tortue). `multiply` fond le fond
                 blanc du dessin dans le papier du panneau. */}
-            <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
+            <img className="cs-ornement" src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
               style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
             <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-faible)', fontStyle:'italic', margin:0 }}>Aucun commentaire.</p>
           </div>
@@ -1460,7 +1460,7 @@ export default function PanneauPatristique({
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
                   <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', marginTop:'26px', marginBottom:'14px' }}>
                     {/* Même cul-de-lampe d'état vide que l'onglet Commentaires (carapace). */}
-                    <img src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
+                    <img className="cs-ornement" src="/ornements/carapace-vide.png" alt="" aria-hidden="true"
                       style={{ width:'min(168px, 58%)', height:'auto', opacity:0.46, mixBlendMode:'multiply', marginBottom:'14px' }} />
                     <p style={{ fontSize:'0.78125rem', color:'var(--cs-texte-doux)', fontStyle:'italic', margin:0 }}>Aucune occurrence.</p>
                   </div>
