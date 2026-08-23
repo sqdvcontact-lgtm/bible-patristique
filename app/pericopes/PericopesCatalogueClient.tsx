@@ -361,7 +361,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-groupe--mobile .peri-marge .rule { flex: 1; height: 1px; align-self: center; background: linear-gradient(to right, var(--cs-bord), transparent); }
         /* La colonne des références se resserre sur un écran étroit : à sa largeur de
            bureau elle y prendrait le quart de la mesure. */
-        .peri-groupe--mobile .peri-entree { grid-template-columns: 4.5rem 1fr; column-gap: 0.75rem; }
+        .peri-groupe--mobile .peri-entree { grid-template-columns: 4.5rem minmax(0, 1fr); column-gap: 0.75rem; }
 
         /* Rubrique de Testament : le seul rang au-dessus du livre. Sans elle, la
            descente de 48 livres n'avait aucune articulation. */
@@ -377,8 +377,10 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
            tous les autres. Glose italique contre le titre, première phrase de la notice
            dessous, et un chevron doré qui paraît au survol et mène à la péricope. */
         .peri-entrees { display: flex; flex-direction: column; gap: 11px; }
+        /* La case du corps ne doit jamais imposer sa largeur intrinsèque à la piste :
+           minmax(0, 1fr) et min-width: 0 la font replier son texte. */
         .peri-entree {
-          display: grid; grid-template-columns: 4.75rem 1fr; column-gap: 1.125rem; align-items: baseline;
+          display: grid; grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 1.125rem; align-items: baseline;
           text-decoration: none; color: inherit;
           padding: 3px 4px; border-radius: 4px; transition: background 0.14s ease;
         }
