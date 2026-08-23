@@ -35,7 +35,7 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
         <button onClick={() => setOuvert(!ouvert)} style={{
           display: 'flex', alignItems: 'center', gap: '5px',
           padding: '0', border: 'none', background: 'transparent',
-          fontSize: '0.71875rem', color: '#6b8270', cursor: 'pointer',
+          fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', cursor: 'pointer',
           fontFamily: "var(--font-source-serif), Georgia, serif",
           fontStyle: 'italic', letterSpacing: '0.01em',
           transition: 'color 0.15s',

@@ -199,7 +199,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   return (
     <>
       <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; reinitialiser(); setOuvert(true) }}
-        style={{ fontSize: '0.6875rem', color: '#6b8270', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
+        style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed var(--cs-bord)', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
         + Proposer un lien biblique
       </button>
       {/* Sous la barre de navigation et bornée en hauteur, comme les autres fenêtres de
@@ -221,7 +221,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
                 </p>
 
                 <button type="button" onClick={() => setChoixOuvert(true)}
-                  style={{ width: '100%', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', textAlign: 'left' }}>
+                  style={{ width: '100%', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed var(--cs-bord)', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', textAlign: 'left' }}>
                   {versets.length > 0 ? 'Modifier les versets choisis…' : 'Choisir les versets dans la Bible…'}
                 </button>
 
