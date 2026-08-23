@@ -417,7 +417,7 @@ Familles :
 
 **Bascule** : script `scratchpad/sweep-palette.mjs` (table de rabat curée, exceptions SVG protégées), migration sur 89 fichiers / ~2082 usages, en plus des 681 usages du vert. `globals.css` est exclu du balayage (c'est là que les tokens sont **définis**). Référence visuelle de la palette : maquette « Palette d'harmonie » (voir charte §18).
 
-**Mode sombre** : voir la section « Mode sombre — le Cuir » plus bas. Les tokens portent trois jeux de valeurs (Clair, Sépia, Cuir) ; le Clair est le défaut et le Cuir se demande depuis le menu de compte. ⛔ Ne jamais activer un `@media (prefers-color-scheme: dark)` : le réglage du système ne décide pas de la lecture, et un bloc de ce genre a déjà servi un sol noir sous des pages crème.
+**Mode sombre** : voir la section « Mode sombre — le Cuir » plus bas. Les tokens portent DEUX jeux de valeurs (Clair, Cuir) : le Clair est le défaut et le Cuir se demande depuis le menu de compte. Le Sépia est retiré depuis le 2026-08-23. ⛔ Ne jamais activer un `@media (prefers-color-scheme: dark)` : le réglage du système ne décide pas de la lecture, et un bloc de ce genre a déjà servi un sol noir sous des pages crème.
 
 ## Seconde passe (2026-08-19) — ce que la première avait laissé
 
@@ -428,7 +428,7 @@ Audit d'harmonie, dix constats. Les corrections, dans l'ordre de leur importance
 **Six tokens de plus**, chacun pour un rôle que la palette n'avait pas :
 - `--cs-texte-gris` (`#8a8278`) : le barreau qui manquait entre `--cs-texte-doux` et `--cs-texte-second`. Il était écrit en dur **80 fois dans 40 fichiers**, à 46 du token le plus proche. Ce n'était pas un doublon, c'était un rang que le code avait créé tout seul. On nomme, on ne rabat pas.
 - `--cs-attente` (`#9a5a2a`) : « à normaliser », « brouillon », « en cours ». Un état de FILE, ni le danger (destructif), ni l'or (apparat), ni l'ocre de lacune (absence d'un témoin).
-- `--cs-systeme` (`#5f6b86`) : la famille « Système & doctrine » de la navbar, seule teinte froide du site, jusqu'ici en dur et donc intransposable en Sépia et en Cuir. Les deux autres familles prennent `--cs-vert` et `--cs-or`.
+- `--cs-systeme` (`#5f6b86`) : la famille « Système & doctrine » de la navbar, seule teinte froide du site, jusqu'ici en dur et donc intransposable en Cuir. Les deux autres familles prennent `--cs-vert` et `--cs-or`.
 - `--cs-vert-clair`, `--cs-or-clair`, `--cs-systeme-clair` : les variantes des trois familles sur le panneau mobile, qui est vert sombre **en toutes circonstances**. Pas de surcouche de thème : leur fond ne change pas.
 
 **Bascule** : 1 033 couleurs rabattues sur un token, dans 87 fichiers, au seuil ΔE ≤ 30 (indiscernable ou presque). Le résidu est de 273 valeurs pour 440 occurrences, chacune employée moins de huit fois et à plus de 30 de tout token : les rabattre serait un changement de dessin, pas une harmonisation.
@@ -447,7 +447,11 @@ Audit d'harmonie, dix constats. Les corrections, dans l'ordre de leur importance
 
 # Mode sombre — le Cuir (2026-08-23)
 
-Le chantier « confort de lecture », ouvert le 4 août et mis en pause le lendemain, est repris et **servi**. Le thème sombre s'appelle **Cuir** dans le code (`data-theme="sombre"`), le Sépia reste défini mais n'a plus d'entrée dans l'interface.
+Le chantier « confort de lecture », ouvert le 4 août et mis en pause le lendemain, est repris et **servi**. Le thème sombre s'appelle **Cuir** dans le code (`data-theme="sombre"`), et c'est désormais le SEUL thème alternatif.
+
+⛔ **Le SÉPIA est retiré (décision de l'auteur, 2026-08-23) : le Cuir suffit.** Il survivait en thème **fantôme** — plus aucune entrée dans l'interface depuis que le menu de compte ne propose qu'un interrupteur « Mode sombre », mais toujours servi à qui l'avait choisi du temps du sélecteur. On l'avait gardé pour qu'une préférence enregistrée ne devienne pas un thème appliqué et introuvable ; le raisonnement était juste, et **il ne tenait que tant qu'on comptait l'éprouver**. On ne l'a jamais fait : le Cuir a eu ses neuf planches, le Sépia zéro, et son bloc ne redéfinissait que **42 des 51 jetons** — les six ombres et les trois variantes claires retombaient sur celles du Clair, sans que personne ait décidé qu'elles le devaient.
+
+⚠️ **Une préférence retirée s'EFFACE, elle ne se contente pas d'être ignorée.** `SCRIPT_THEME` supprime toute valeur qui n'est pas `sombre` : sans quoi la clé `cs-theme` resterait dans le navigateur des anciens lecteurs du Sépia à désigner un thème qui n'existe plus, et le prochain qui lirait `localStorage` y trouverait un nom sans référent. *Corollaire général : un thème sans épreuve n'est pas un thème, c'est un bloc de valeurs que personne n'a regardées.*
 
 - **Un interrupteur, dans le MENU DE COMPTE** (`Navbar.tsx`, `blocCompte`), entre les liens et « Se déconnecter », en desktop comme dans le panneau mobile. Le bouton flottant en bas à droite (`ConfortLecture.tsx`) est supprimé. ⛔ Ne pas remettre le réglage dans la barre : elle est déjà la plus disputée du site et se replie en quatre crans, un élément de plus la rendrait incalculable.
 - **Tout le mécanisme vit dans `app/lib/theme.ts`** (module pur, sans « use client », pour servir le gabarit serveur ET la Navbar) : la clé `cs-theme`, `lireTheme`, `appliquerTheme`, et `SCRIPT_THEME`, le script d'application **avant peinture** injecté en tête de `<body>`. Ne pas recomposer ce script ailleurs, et ne pas le déplacer dans un effet : la page crème clignoterait avant de virer au brun à chaque navigation.
