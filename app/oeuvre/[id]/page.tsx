@@ -20,6 +20,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { redirect } from 'next/navigation'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
 // son client lisant la session du visiteur. Sans cela, la page s'exécutait en
@@ -253,7 +254,7 @@ export default async function OeuvrePage({
   searchParams,
 }:{
   params:Promise<{id:string}>
-  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string}>
+  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string;mt?:string}>
 }) {
   const {id}=await params
   const sp = searchParams ? await searchParams : {}
@@ -291,6 +292,21 @@ export default async function OeuvrePage({
       <p style={{color:'var(--cs-texte-gris)'}}>Aucun texte accessible pour cette œuvre.</p>
     </div>
   )
+  // « ?mt=la » désigne le texte original de l'œuvre. Quand ce texte existe pour
+  // lui-même dans `oeuvre_textes` (le latin de Knöll sous Les Confessions), on l'y
+  // envoie : il a ses titres d'origine, ses sommaires et son apparat, là où
+  // `segments.texte_original` n'est que la colonne du bilingue. Une seule porte à
+  // tenir plutôt que quatre : la bibliothèque, le compte, le profil public et les
+  // favoris pointent tous sur « ?mt=la ».
+  const langueOriginaleOeuvre = (oeuvre.langue_originale ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+  const texteEnLangueOriginale = langueOriginaleOeuvre
+    ? textesAccessibles.find(t => !t.traducteur?.trim()
+        && (t.langue ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() === langueOriginaleOeuvre)
+    : undefined
+  if (sp.mt === 'la' && !sp.texte && texteEnLangueOriginale) {
+    redirect(`/oeuvre/${encodeURIComponent(id)}?texte=${encodeURIComponent(texteEnLangueOriginale.id_texte)}`)
+  }
+
   const idTexte = texteActif.id_texte as string
   const versionsTextuelles = textesAccessibles.map((t) => construireVersionTextuelle(t, indexEditeurs))
   const versionParId = new Map(versionsTextuelles.map(version => [version.idTexte, version]))

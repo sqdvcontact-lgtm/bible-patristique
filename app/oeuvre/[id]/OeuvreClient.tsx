@@ -1331,7 +1331,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // original seul », c’est le texte original, qui n’en a pas : sa référence prend le
   // suffixe « #la » (voir app/lib/refsFavoris.ts). Sans quoi le latin d’une œuvre ne
   // pouvait se mettre en favori qu’en rangeant sa traduction à sa place.
-  const favoriEstOriginal = !couranteEstOriginale && modeTexte === 'la'
+  // Le texte en langue originale d’une œuvre à plusieurs textes relève du même
+  // suffixe : il a bien un `id_texte`, mais `favoris.ref_id` désigne des ŒUVRES, et
+  // sans lui l’étoile posée sur le latin rangeait de nouveau la traduction.
+  const favoriEstOriginal = surTexteOriginal || (!couranteEstOriginale && modeTexte === 'la')
   const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
   const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
   const libelleEdition = (v: VersionTrad): string => {
