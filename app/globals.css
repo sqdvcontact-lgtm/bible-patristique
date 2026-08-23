@@ -247,6 +247,10 @@
   --cs-vert-pale: #26332a;
   /* Reste PROFOND, quand --cs-vert passe au vert clair : blanc à 7,18. */
   --cs-vert-aplat: #35604a;
+  /* Répété ici bien qu'IDENTIQUE au clair, et volontairement : ce chantier a commencé
+     par un jeton qu'un thème oubliait de redéfinir, et l'oubli ne se voyait pas. Un
+     rôle qui ne bouge pas se DIT, il ne se laisse pas deviner à une absence. */
+  --cs-sur-aplat: #fff;
   --cs-danger: #d9714a;
   --cs-danger-rgb: 217, 113, 74;
   /* ⚠️ Cette valeur était #c25738, c'est-à-dire PLUS SOMBRE que --cs-danger : la
