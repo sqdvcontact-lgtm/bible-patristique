@@ -88,6 +88,43 @@ export function niveauxAlinea(mesures: readonly (number | null | undefined)[]): 
   })
 }
 
+/**
+ * L'OMBRE DE LA LETTRINE — une mesure qui n'est pas un alinéa.
+ *
+ * ⛔ Une capitale ornée POUSSE vers la droite les premières lignes du poème, et
+ * l'océrisation mesure ce déplacement comme n'importe quel autre. Ce n'en est pas un :
+ * ces lignes ne sont pas rentrées, elles sont bornées par un ornement.
+ *
+ * Vérifié sur le fac-similé de Ceriziers 1646, page 19 (Livre premier, Poésie I) : un
+ * grand M gravé occupe quatre lignes, et les quatre premiers vers commencent à sa
+ * droite. Leurs mesures valent 0,73 quand le reste du poème vaut 0,02 — soit, rabattu,
+ * le rang le plus profond de l'échelle, pour des vers que l'édition compose au fer.
+ *
+ * On rend donc leur rang aux lignes de tête, à DEUX conditions cumulées : elles
+ * partagent toutes le même rang, et le poème revient ensuite PLUS À GAUCHE. Sans la
+ * seconde, on confondrait l'ombre d'une lettrine avec un poème entièrement rentré.
+ */
+export function ombreDeLettrine(rangs: readonly number[]): number[] {
+  if (rangs.length === 0 || rangs[0] === 0) return [...rangs]
+  const tete = rangs[0]
+  let i = 0
+  while (i < rangs.length && rangs[i] === tete) i++
+  if (i >= rangs.length || rangs[i] >= tete) return [...rangs]
+  return rangs.map((r, j) => (j < i ? 0 : r))
+}
+
+/**
+ * Découpe un texte en langue originale dont chaque ligne est un VERS.
+ *
+ * ⚠️ Le latin d'une strophe entière vit sur le segment de `rang = 1`, séparé par des
+ * sauts de ligne (charte, § Textes originaux parallèles). Rendu dans un paragraphe de
+ * prose, il se justifiait et se coupait à la césure pendant que le français d'en face
+ * était composé en vers : les deux colonnes ne disaient plus la même chose.
+ */
+export function lignesDeVers(texte: string): string[] {
+  return texte.split('\n').map(l => l.trim()).filter(l => l !== '')
+}
+
 /** Le retrait total d'un vers, en `em`, base comprise. */
 export function retraitVers(rang: number): number {
   return RETRAIT_BASE + Math.max(0, Math.min(rang, RANG_MAX)) * PAS_ALINEA

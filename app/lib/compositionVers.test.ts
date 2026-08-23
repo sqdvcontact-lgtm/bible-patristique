@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   RETRAIT_BASE, PAS_ALINEA, RANG_MAX,
   niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs,
+  ombreDeLettrine, lignesDeVers,
 } from './compositionVers'
 
 describe('alinéa de base', () => {
@@ -81,6 +82,55 @@ describe('ouverture de strophe', () => {
 
   it('ne saute pas quand ni l’un ni l’autre ne renseigne', () => {
     expect(ouvreStrophe({ paragraphe: null }, { paragraphe: null })).toBe(false)
+  })
+})
+
+describe('ombre de la lettrine', () => {
+  it('rend leur rang aux vers que la capitale ornée a poussés', () => {
+    // Mesures réelles de Ceriziers 1646, page 19 : le M gravé couvre quatre vers.
+    const rangs = niveauxAlinea([
+      0.728, 0.744, 0.742, 0.722,
+      0.017, 0.019, 0.025, 0.031, 0.017, 0.011, 0.028,
+      0.439, 0.431, 0.431,
+    ])
+    expect(rangs.slice(0, 4)).toEqual([2, 2, 2, 2])
+    const corrige = ombreDeLettrine(rangs)
+    expect(corrige.slice(0, 4)).toEqual([0, 0, 0, 0])
+    expect(corrige.slice(4, 11)).toEqual([0, 0, 0, 0, 0, 0, 0])
+    expect(corrige.slice(11)).toEqual([1, 1, 1])
+  })
+
+  it('ne touche pas un poème qui commence au fer', () => {
+    expect(ombreDeLettrine([0, 0, 1, 1])).toEqual([0, 0, 1, 1])
+  })
+
+  it('⛔ ne touche pas un poème ENTIÈREMENT rentré', () => {
+    // Sans cette garde, on confondrait l'ombre d'une lettrine avec un poème
+    // que l'édition compose tout entier en retrait.
+    expect(ombreDeLettrine([2, 2, 2, 2])).toEqual([2, 2, 2, 2])
+  })
+
+  it('n’agit que si le poème revient PLUS À GAUCHE ensuite', () => {
+    expect(ombreDeLettrine([1, 1, 2, 2])).toEqual([1, 1, 2, 2])
+    expect(ombreDeLettrine([2, 2, 1, 1])).toEqual([0, 0, 1, 1])
+  })
+
+  it('supporte le vide', () => {
+    expect(ombreDeLettrine([])).toEqual([])
+  })
+})
+
+describe('découpe du texte original en vers', () => {
+  it('rend une ligne par vers', () => {
+    expect(lignesDeVers('Carmina qui quondam\nFlebilis, heu!\n')).toEqual(['Carmina qui quondam', 'Flebilis, heu!'])
+  })
+
+  it('écarte les lignes vides et les blancs de bord', () => {
+    expect(lignesDeVers('  A  \n\n\n  B ')).toEqual(['A', 'B'])
+  })
+
+  it('rend une seule ligne quand il n’y a pas de saut', () => {
+    expect(lignesDeVers('Un seul vers')).toEqual(['Un seul vers'])
   })
 })
 

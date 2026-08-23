@@ -912,9 +912,44 @@ Corollaire direct de ce qui précède, et il touche le RENDU. La lecture ordinai
 
 ⚠️ **Les deux dernières entrées ne sont pas des colonnes mais des CHAMPS de `segment_metadata`**, tirés par leur nom (`alinea:segment_metadata->>indent_inches`). On ne prend pas la colonne `jsonb` entière : elle porte une trentaine de clés par segment pour une page qui en charge jusqu'à mille d'un coup. Corollaire : PostgREST les rend en **TEXTE**, quel que soit leur type en base — d'où `mesureAlinea` et `marqueStrophe`, qui les relisent.
 
+## ⛔ L'OMBRE DE LA LETTRINE — une mesure qui n'est pas un alinéa (2026-08-23)
+
+Une capitale ornée **pousse vers la droite** les premières lignes du poème, et l'océrisation mesure ce déplacement comme n'importe quel autre. Ce n'en est pas un : ces lignes ne sont pas rentrées, elles sont bornées par un ornement.
+
+Vu sur le fac-similé de **Ceriziers 1646, page 19** (Livre premier, Poésie I) : un grand M gravé occupe quatre lignes, et les quatre premiers vers commencent à sa droite. Leurs mesures valent **0,73 quand le reste du poème vaut 0,02** — soit, rabattu, le rang le plus profond de l'échelle, pour des vers que l'édition compose au fer. `ombreDeLettrine` leur rend leur rang, à **deux conditions cumulées** : elles partagent toutes le même rang, et le poème revient ensuite **plus à gauche**. Sans la seconde, on confondrait l'ombre d'une lettrine avec un poème entièrement rentré.
+
+⛔ **Un VERS ne prend pas de lettrine.** Le drop cap est un **flottant** : posé dans la boîte d'une ligne, il déborde sur les suivantes, qui sont des boîtes sœurs. La capitale ornée d'un poème appartient au POÈME, pas à son premier vers, et la rendre demande de faire flotter l'ornement sur le bloc entier, les lignes coulant à sa droite comme dans l'imprimé. Chantier à part, pas un réglage.
+
+## ⛔ Une strophe se sépare par un BLANC, jamais par un filet
+
+Décision de l'auteur, 2026-08-23. Le filet de `.para-bilingue` marque l'appariement empan par empan de la **prose**. Or le latin d'une strophe vit sur son vers de rang 1 : **chaque strophe est donc un empan**, et le filet tirait un trait à chaque respiration du poème. `.para-bilingue--vers` le retire et donne un blanc, comme la page imprimée.
+
+⚠️ **On ne fond les strophes que si l'original n'est PAS montré.** Fondre le poème en lecture bilingue ne garderait qu'un seul `texte_original` (le premier trouvé) et jetterait celui des autres strophes.
+
+## ⛔ L'original d'un poème se compose EN VERS, lui aussi
+
+Le latin d'une strophe entière vit sur le vers de rang 1, ses lignes séparées par des sauts. Rendu dans un paragraphe de prose, il se justifiait et se coupait à la césure pendant que le français d'en face était composé en vers : les deux colonnes ne disaient plus la même chose. `lignesDeVers` le découpe, et chaque ligne prend l'alinéa de base et le retrait de suite. ⚠️ **Aucun rang d'alinéa sur l'original** : la source ne mesure l'indentation que du texte TRADUIT.
+
+## ⚠️ Regarder un fac-similé — la recette
+
+`pdftoppm` **n'existe pas côté Windows**, mais **poppler-utils est dans WSL Ubuntu-24.04** (celui de Kraken). C'est la voie :
+
+```
+wsl.exe -d Ubuntu-24.04 -- bash -c 'cd "/mnt/c/…" && pdftoppm -png -r 150 -f 19 -l 19 fichier.pdf sortie'
+```
+
+⚠️ **Un chemin ACCENTUÉ passe mal** à travers WSL depuis ce shell : copier le PDF sous un chemin ASCII (`tmp/` du dépôt, ignoré par git) avant de rendre. ⚠️ Et **la page imprimée n'est pas la page du PDF** : le décalage se trouve en sondant deux ou trois pages. Il vaut **0 chez Ceriziers 1646** et **86 chez Mirandol 1861**, dont l'introduction est paginée en chiffres romains.
+
+## Ce que le fac-similé a tranché
+
+- ⛔ **Mirandol RENTRE ses vers courts.** Page 13, mètre V : « Soudain mes yeux, rendus à leur vigueur première, » au fer, « Se rouvrirent à la lumière. » nettement rentrée, et ainsi de suite. La règle de parité qu'on a retirée avait donc raison **sur ce poème-là** — et tort sur les 954 autres vers. Ce n'est pas une règle qu'il faut, c'est la mesure.
+- ⛔ **Trois marques de strophe étaient fausses** chez Ceriziers, page 19 : le quatrain d'ouverture ne porte aucun blanc. Corrigées en base, `stanza_before_source = 'corrige_facsimile_p19'`. Les 76 autres, corroborées par un changement d'alinéa mesuré, sont justes.
+- ✅ **Ceriziers rentre la PREMIÈRE ligne de chaque strophe** (page 22, sizains de la Poésie II), et le site le rend fidèlement : c'est ce que dit `indent_inches`, et les deux signaux concordent.
+- ✅ **Le retrait de SUITE est la convention imprimée** : chez Ceriziers, un vers trop long pour la mesure repart en retrait (« que de ioye, », « douleur, », « malheur ; »). C'est ce qui distingue un vers d'un simple retour à la ligne.
+
 ## Ce qui reste
 
-⚠️ **Mirandol n'a aucune mesure d'alinéa.** Son import ne portait pas `indent_inches`, si bien que l'édition par défaut reçoit l'alinéa de base et rien d'autre — ce qui est juste pour ses 954 vers de mètre uniforme, et faux pour les 123 qui alternent. Le remède est une correction de DONNÉES (relever les alinéas à la source), pas d'affichage.
+⚠️ **Mirandol n'a aucune mesure d'alinéa.** Son import ne portait pas `indent_inches`, si bien que l'édition par défaut reçoit l'alinéa de base et rien d'autre. Le fac-similé prouve que **c'est faux pour ses 123 vers de mètre alterné**, et juste pour les 954 de mètre uniforme. Le remède est une correction de DONNÉES — relever les alinéas à la source —, pas d'affichage.
 
 # Césures du texte latin — aucun navigateur ne sait les faire
 

@@ -16,7 +16,7 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
-import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -1524,6 +1524,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .seg-inline--actif { background: var(--cs-vert-pale); }
         .para-bilingue { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); gap: 1.6rem; align-items: start; border-bottom: 1px solid rgba(var(--cs-bord-rgb),0.55); margin-bottom: 0.85rem; }
         .para-bilingue > p { margin-bottom: 0.85rem !important; }
+        /* ⛔ Une STROPHE ne se sépare pas par un filet, mais par un BLANC (décision de
+           l'auteur, 2026-08-23). Le filet de para-bilingue marque l'appariement empan
+           par empan de la PROSE ; posé entre deux strophes — et le latin d'une strophe
+           vivant sur son vers de rang 1, chaque strophe EST un empan — il tirait un
+           trait à chaque respiration du poème. Un blanc dit la même chose sans rien
+           dessiner, et c'est ce que fait la page imprimée.
+           ⚠️ Aucun accent grave dans ce bloc : il vit dans un littéral de gabarit. */
+        .para-bilingue--vers { border-bottom: none; margin-bottom: 1.15rem; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
            différence de police distingue les deux colonnes d'un coup d'œil, mieux
@@ -2088,14 +2096,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       Ceriziers laisse `paragraphe` à 1 sur ses 1 213 vers, Mirandol y
                       range une strophe de douze. Sans fusion, la même œuvre se
                       composait en un bloc par poème d'un côté et un bloc par strophe
-                      de l'autre. Un bloc qui porte un texte ORIGINAL n'est jamais
-                      fondu : la grille bilingue apparie un original par bloc. */}
+                      de l'autre.
+                      ⚠️ On ne fond QUE si l'original n'est pas montré. Le latin d'une
+                      strophe vit sur son vers de rang 1 (charte, § Textes originaux
+                      parallèles) : fondre le poème en regard n'en garderait qu'un seul
+                      et jetterait les autres. En français seul, rien ne s'apparie et
+                      le poème se refait. */}
                   {fusionnerBlocs(
                     paragraphesDe(itemsReels),
-                    ids => ids.every(sid => {
-                      const s = segMap.get(sid)
-                      return s?.nature === 'vers' && !s?.texteOriginal?.trim()
-                    }),
+                    ids => !affichageBilingue && !afficherOriginalSeul
+                      && ids.every(sid => segMap.get(sid)?.nature === 'vers'),
                   ).map((chunk) => {
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
@@ -2106,7 +2116,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // parallèles emploient aussi — une seule composition, deux surfaces.
                     const toutVers = chunk.ids.every(sid => segMap.get(sid)?.nature === 'vers')
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${toutVers ? ' para-bilingue--vers' : ''}` : undefined}
                       /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
@@ -2120,12 +2130,22 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                            Ni justification ni césure : on ne coupe pas un alexandrin. */
                         <div lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0 }}>
                           {(() => {
-                            const rangs = niveauxAlinea(chunk.ids.map(sid => segMap.get(sid)?.alinea))
+                            // ⛔ L'ombre de la LETTRINE se retire avant de composer : une
+                            // capitale ornée pousse les premiers vers vers la droite, et
+                            // l'océrisation mesure ce déplacement comme un alinéa. Vérifié
+                            // sur le fac-similé de Ceriziers 1646, page 19.
+                            const rangs = ombreDeLettrine(niveauxAlinea(chunk.ids.map(sid => segMap.get(sid)?.alinea)))
                             return chunk.ids.map((sid, i) => {
                               const s = segMap.get(sid)
                               if (!s) return null
                               const actif = segActif === sid
-                              const estPremier = sid === premierSegmentId
+                              // ⛔ Un VERS ne prend pas de lettrine. Le drop cap est un
+                              // flottant : posé dans la boîte d'une ligne, il déborde sur
+                              // les suivantes, qui sont des boîtes sœurs. La capitale ornée
+                              // d'un poème appartient au POÈME, pas à son premier vers, et
+                              // la rendre demande de faire flotter l'ornement sur le bloc
+                              // entier — chantier à part, pas un réglage.
+                              const estPremier = false
                               const strophe = ouvreStrophe(
                                 { strophe_avant: s.stropheAvant, paragraphe: s.paragraphe },
                                 i > 0 ? segMap.get(chunk.ids[i - 1]) : undefined,
@@ -2165,6 +2185,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       </p>
                       )}
                       {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
+                        toutVers ? (
+                          /* ⛔ L'ORIGINAL d'un poème se compose en vers, lui aussi. Le latin
+                             d'une strophe entière vit sur le vers de rang 1, ses lignes
+                             séparées par des sauts. Rendu dans un paragraphe de prose, il se
+                             justifiait et se coupait à la césure pendant que le français
+                             d'en face était composé en vers : les deux colonnes ne disaient
+                             plus la même chose (relevé par l'auteur, 2026-08-23).
+                             ⚠️ Pas de rang d'alinéa ici : la source ne mesure l'indentation
+                             que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
+                             le retrait de suite, qui appartiennent à la composition. */
+                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0 }}>
+                            {lignesDeVers(original.texteOriginal).map((ligne, i) => (
+                              <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
+                                {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes ?? {})}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
                         // En « Latin/Grec seul », l'original occupe seul la colonne, au gabarit du
                         // français (mêmes taille et teinte). La langue de l'original commande la
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
@@ -2172,6 +2210,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                           {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.texteOriginal) : cesurerLatin(normaliserEspacesOriginal(original.texteOriginal)), original.notes ?? {})}
                         </p>
+                        )
                       )}
                     </div>
                     )
