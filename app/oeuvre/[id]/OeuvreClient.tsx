@@ -1312,10 +1312,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Le texte en langue originale de CETTE œuvre passe avant l'œuvre sœur : il porte
   // ses titres d'origine ET son apparat, là où `texte_original` n'est que la colonne
   // du bilingue, sans sommaire propre ni notes.
+  //
+  // ⚠️ LA GARDE PORTE SUR LA CIBLE, et non sur ce qui permet de la calculer. Les
+  // œuvres sœurs (`versions`) sont chargées par un effet : elles sont VIDES au premier
+  // rendu, qui est celui du serveur, si bien que `editionFrRef` y vaut TOUJOURS null.
+  // La garde « editionFrRef || versionTraduite » laissait donc passer toute œuvre
+  // traduite jusqu'à `editionFrRef!.id_oeuvre`, et la page tombait en 500 avant d'avoir
+  // rien affiché — toutes les œuvres traduites, la Doctrine des Apôtres en témoin.
+  const cibleFrOeuvre = versionOriginale ? (versionTraduite ? idOeuvre : null) : (editionFrRef?.id_oeuvre ?? null)
   const cibleFrTexte = versionOriginale ? (versionTraduite?.idTexte ?? null) : null
-  if (aOriginalQuelconque && (editionFrRef || versionTraduite)) {
+  if (aOriginalQuelconque && cibleFrOeuvre) {
     const surFr = !couranteEstOriginale && (versionOriginale ? true : idOeuvre === editionFrRef?.id_oeuvre)
-    const cibleFrOeuvre = versionOriginale ? idOeuvre : editionFrRef!.id_oeuvre
     modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
       actif: surFr && modeTexte === 'fr' })
     modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'bilingue',
