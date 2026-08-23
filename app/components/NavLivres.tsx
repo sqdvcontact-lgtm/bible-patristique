@@ -754,7 +754,7 @@ export default function NavLivres({
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: '7px 6px 2px', textAlign: 'left',
             }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: '#7a6f5e', textTransform: 'uppercase' }}>Écrits non canoniques</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase' }}>Écrits non canoniques</span>
               <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{autresOuvert ? '▲' : '▼'}</span>
             </button>
             {autresOuvert && AUTRES.map(renderLivre)}

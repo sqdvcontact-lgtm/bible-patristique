@@ -1038,13 +1038,22 @@ export default function Navbar() {
         {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est
             là que le lecteur vient chercher ce qui le concerne lui, et non le corpus.
             Il n'a donc pas d'entrée dans la barre : celle-ci est déjà la plus disputée
-            du site, et un cran de repli de plus la rendrait incalculable. */}
-        <label
+            du site, et un cran de repli de plus la rendrait incalculable.
+
+            ⚠️ La rangée est un `div` et non un `label`. Un `<button>` n'est PAS un
+            élément étiquetable : enveloppé dans un `<label>`, il en recevait le
+            curseur de pointeur sans en recevoir le clic, si bien que le mot « Mode
+            sombre » avait l'air cliquable et ne l'était pas. On porte donc le clic
+            sur la rangée elle-même, et le bouton arrête sa propagation pour ne pas
+            basculer deux fois. */}
+        <div
+          onClick={basculerThemeSombre}
           style={mobile
             ? { display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", fontSize: "0.9375rem", color: "rgba(255,255,255,0.85)", cursor: "pointer", userSelect: "none" }
             : { display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", cursor: "pointer", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
           <span style={{ flex: 1 }}>Mode sombre</span>
-          <button type="button" role="switch" aria-checked={themeSombre} onClick={basculerThemeSombre}
+          <button type="button" role="switch" aria-checked={themeSombre}
+            onClick={e => { e.stopPropagation(); basculerThemeSombre() }}
             aria-label="Mode sombre"
             style={{
               width: "32px", height: "18px", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
@@ -1057,7 +1066,7 @@ export default function Navbar() {
                 disparaîtrait sur le vert. */}
             <span style={{ position: "absolute", top: "3px", left: themeSombre ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
           </button>
-        </label>
+        </div>
         <button onClick={seDeconnecter}
           style={mobile
             ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.9375rem", color: "var(--cs-danger-bord)", background: "none", border: "none", cursor: "pointer" }
