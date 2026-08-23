@@ -463,6 +463,28 @@ Toute la palette tient dans une bande de **26° de teinte**, chaque séparation 
 
 ⚠️ **Un vert très DÉSATURÉ n'appartient pas à la famille du vert.** Le nom de la traduction sous l'intitulé de chapitre était un `#6b8270` : son jeton le plus proche est `--cs-texte-gris`, non `--cs-vert`, parce que c'est un marqueur discret et non un accent. La garde par famille l'avait donc laissé passer, et c'était la dernière tache de la page Bible.
 
+## ⛔ Encre contre aplat — le partage qui a manqué QUATRE fois
+
+Le passage du Cuir au monochrome a rendu les encres CLAIRES. Tout endroit qui en employait une comme FOND s'est donc retourné, et le défaut est revenu quatre fois de suite sous des formes différentes. À vérifier avant toute retouche de palette.
+
+⚠️ **Un balayage sur `background:` ne voit pas les CONSTANTES.** La Polyglotte compose ses bandeaux avec `const VERT_ENTETE = "var(--cs-encre)"`, puis `background: VERT_ENTETE`. Aucune recherche textuelle sur `background:` ne l'atteint, et c'est ainsi que son en-tête a servi du blanc sur du beige. **Repérage complémentaire** : `grep -rE "^const [A-Z_]+ *= *[\"']var\(--cs-(encre|texte|vert)" app`.
+
+⚠️ **Il faut TROIS rangs d'aplat, pas deux.** La Polyglotte empile navbar, bandeau des traductions et bandeau du livre. Le troisième retombait sur `--cs-encre` faute d'un jeton. D'où `--cs-vert-aplat-profond` ; les trois rangs s'écartent de 1,2 à 1,4, comme au Clair.
+
+⛔ **Un CALQUE de fenêtre est une OMBRE, pas une couleur.** `ModaleRemplacerCitation` posait `colorMix('var(--cs-texte-fort)', 52)` : en Cuir ce jeton est presque blanc, et le voile d'une modale devenait un **rideau blanc** tiré sur la page. Un calque se pose en noir translucide, jamais sur un jeton de texte.
+
+⚠️ **Un dégradé de médaillon est un aplat**, lui aussi : les initiales de profil et de compte prenaient `--cs-vert-fonce → --cs-encre`.
+
+## ⛔ Les ORNEMENTS se retournent, ils ne se remplacent pas
+
+Les gravures de `public/ornements/` sont détourées : l'alpha porte le trait, la couleur est une encre sombre — mesurée à **71 de luminance** sur la tour de Babel. Sur le papier crème elles se lisent ; sur le cuir elles rendent **1,88**, c'est-à-dire presque rien.
+
+La charte disait déjà comment faire, à propos du monogramme : « le détourage ne sert que l'ALPHA : la couleur, on la repose ». Un filtre le fait sans nouveau fichier : `:root[data-theme="sombre"] .cs-ornement { filter: invert(0.88) sepia(0.5) saturate(0.6) }`. Mesuré, le trait passe de `rgb(71,70,69)` à `rgb(166,159,147)`, soit de 1,88 à **6,74** — une gravure claire sur du cuir, qui est le caractère juste d'une reliure estampée.
+
+⚠️ **Poser la classe `cs-ornement` sur toute nouvelle gravure.** Un sélecteur d'attribut sur `src` ne suffirait pas : deux poses passent par `<Image>`, dont Next réécrit le `src`.
+
+⛔ Ne pas remplacer ce filtre par `opacity` ni par un `mix-blend-mode` : l'opacité crée un contexte d'empilement qui annule le mélange, piège déjà consigné plus haut.
+
 ## ⛔ Le seuil de contraste DÉPEND DU CORPS (contrôle du 2026-08-23)
 
 ⛔ **3,0 est le seuil du GRAND texte, pas le seuil.** WCAG demande **4,5** sous 24px, ou sous 18,66px en gras. Or les rangs ténus du site servent à **9 et 10px** : le contrôle qui mesure contre 3,0 est donc le plus indulgent là où il faudrait l'être le moins. Deux passes d'audit sont passées à côté pour cette raison, et c'est l'auteur qui l'a vu à l'œil avant que la mesure ne le dise.
