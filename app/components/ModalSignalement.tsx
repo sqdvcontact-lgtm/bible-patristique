@@ -53,7 +53,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
         {/* En-tête — teinte chaude (ocre/rouge), liseré d'accent à gauche du titre. */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'linear-gradient(180deg, var(--cs-danger-fond) 0%, var(--cs-danger-fond) 100%)', flexShrink: 0 }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '9px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#7a2f18', margin: 0 }}>
-            <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '4px', background: 'var(--cs-danger)' }} />
+            <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '4px', background: 'var(--cs-danger-aplat)' }} />
             {titreFenetre}
           </p>
           <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#c09a86', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
@@ -99,7 +99,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
               {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
               <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
               </button>
             </div>

@@ -935,7 +935,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 Annuler
               </button>
               <button onClick={supprimerCompte} disabled={suppressionEnCours || !consentSuppression}
-                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "8px", border: "none", background: consentSuppression ? "var(--cs-danger)" : "var(--cs-danger-bord)", color: "var(--cs-sur-aplat)", fontWeight: 500, cursor: consentSuppression ? "pointer" : "default", transition: "background 0.15s" }}>
+                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "8px", border: "none", background: consentSuppression ? "var(--cs-danger-aplat)" : "var(--cs-danger-bord)", color: "var(--cs-sur-aplat)", fontWeight: 500, cursor: consentSuppression ? "pointer" : "default", transition: "background 0.15s" }}>
                 {suppressionEnCours ? "Suppression…" : "Supprimer définitivement"}
               </button>
             </div>

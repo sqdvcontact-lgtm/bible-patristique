@@ -137,7 +137,7 @@ export default function MesEcritsPage() {
               <button onClick={() => setSupprConfirm(null)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Annuler
               </button>
-              <button onClick={() => supprimer(supprConfirm)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={() => supprimer(supprConfirm)} style={{ fontSize: '0.78125rem', padding: '8px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
                 Supprimer définitivement
               </button>
             </div>

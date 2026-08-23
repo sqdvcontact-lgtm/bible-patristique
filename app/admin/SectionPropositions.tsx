@@ -115,7 +115,7 @@ export default function SectionPropositions() {
           }}>
             {label}
             {count > 0 && (
-              <span style={{ fontSize: '0.6875rem', background: key === 'a_traiter' ? 'var(--cs-danger)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 5px' }}>{count}</span>
+              <span style={{ fontSize: '0.6875rem', background: key === 'a_traiter' ? 'var(--cs-danger-aplat)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 5px' }}>{count}</span>
             )}
           </button>
         ))}

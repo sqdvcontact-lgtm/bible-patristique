@@ -1629,7 +1629,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             « Segments » ne disait pas ce qu'on y fait, ni ce qu'on y risque. */}
         <button onClick={() => setVueBibliotheque(v => v === 'segments' ? 'oeuvres' : 'segments')}
           title="Remplacer intégralement les segments d’une œuvre par un nouveau fichier"
-          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-danger)', background: vueBibliotheque === 'segments' ? 'var(--cs-danger)' : 'var(--cs-fond-clair)', color: vueBibliotheque === 'segments' ? 'var(--cs-sur-aplat)' : 'var(--cs-danger-fonce)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
+          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-danger)', background: vueBibliotheque === 'segments' ? 'var(--cs-danger-aplat)' : 'var(--cs-fond-clair)', color: vueBibliotheque === 'segments' ? 'var(--cs-sur-aplat)' : 'var(--cs-danger-fonce)', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
           ↺ Remplacer la base
         </button>
       </div>

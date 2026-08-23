@@ -99,6 +99,10 @@
   --cs-danger: #c0562a;
   --cs-danger-rgb: 192, 86, 42;
   --cs-danger-fonce: #9a2a2a;
+  /* L aplat du danger : la pastille de notifications, qui porte du blanc. Au Clair
+     et en Sépia il vaut exactement --cs-danger, donc rien n y bouge ; en Cuir il
+     descend quand l encre monte. */
+  --cs-danger-aplat: #c0562a;
   --cs-danger-fond: #fdf2ee;
   --cs-danger-bord: #e4c4b8;
   /* Attente — « à normaliser », « brouillon », « en cours ». Un état de FILE, pas une
@@ -205,6 +209,7 @@
   --cs-danger: #b0552a;
   --cs-danger-rgb: 176, 85, 42;
   --cs-danger-fonce: #8e2a1e;
+  --cs-danger-aplat: #b0552a;
   --cs-danger-fond: #f6e6d6;
   --cs-danger-bord: #dcc0a0;
   --cs-attente: #8f5526;
@@ -263,10 +268,10 @@
   /* L'échelle de texte s'inverse (clair sur fond sombre) : « faible » = le plus
      discret (sombre), « fort » = le plus lumineux. Chroma basse : c'est du corps
      de texte, il ne doit rien appeler. */
-  --cs-texte-faible: #756956;
-  --cs-texte-doux: #988a70;
-  --cs-texte-gris: #a79b83;
-  --cs-texte-second: #b6ac96;
+  --cs-texte-faible:#9a8d74;
+  --cs-texte-doux:#ab9e84;
+  --cs-texte-gris:#bcb098;
+  --cs-texte-second:#cdc2ab;
   --cs-texte: #e6ded0;
   --cs-texte-fort: #f2ebda;
   /* Encre des titres : un sépia franchement plus SATURÉ que le corps (20 contre 8),
@@ -290,14 +295,14 @@
   /* Apparat : un doré plus SOURD que l'accent, pour ne pas lui disputer l'œil. */
   --cs-or: #c0a065;
   --cs-or-rgb: 192, 160, 101;
-  --cs-or-doux: #8f7a52;
+  --cs-or-doux:#ab9569;
   /* Les quatre tans de l'apparat s'échelonnent en LUMINANCE, faute de pouvoir
      s'échelonner en teinte. Du plus lumineux au plus sourd : lacune (elle porte
      les appels de note à 0,60 em, c'est elle qui doit se voir le mieux), attente,
      or, étiquette, or-doux. */
   --cs-lacune: #dcbe7a;
-  --cs-attente: #c98a4e;
-  --cs-etiquette: #a8916a;
+  --cs-attente:#d29a63;
+  --cs-etiquette:#b8a179;
   /* « Système & doctrine » perd son bleu, seule teinte froide du site : un beige
      neutre, de chroma basse, qui le distingue des deux autres familles par sa
      retenue plutôt que par sa couleur. */
@@ -306,16 +311,17 @@
      beiges, séparés par la seule luminance. */
   --cs-surnum-fort: #e0d3b4;
   --cs-surnum: #c2b190;
-  --cs-surnum-doux: #8c7f66;
+  --cs-surnum-doux:#a89a7d;
   --cs-surnum-bord: #3f362a;
   --cs-original: #bdb3a0;
-  --cs-vise-fond: #3a3018;
+  --cs-vise-fond:#2e2614;
   /* ⛔ L'exception. Voir la note en tête du bloc. La famille du danger s'inverse
      comme celle du texte : le rang « foncé », qui dit le destructif CONFIRMÉ, est
      le plus lumineux des deux. */
-  --cs-danger: #bd6d54;
-  --cs-danger-rgb: 189, 109, 84;
+  --cs-danger:#d18b73;
+  --cs-danger-rgb:209, 139, 115;
   --cs-danger-fonce: #cf8570;
+  --cs-danger-aplat: #8a3d29;
   --cs-danger-fond: #2f211b;
   --cs-danger-bord: #4a3a30;
   /* ⚠️ Les trois familles du panneau mobile CESSENT d'être hors thème en Cuir.

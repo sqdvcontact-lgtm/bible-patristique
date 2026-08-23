@@ -277,7 +277,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         setLoading(false)
         onSupprime()
       }} disabled={loading}
-        style={{ fontSize:'0.625rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
+        style={{ fontSize:'0.625rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
         {loading ? '…' : 'Oui'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}

@@ -802,7 +802,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
                 Continuer l’édition
               </button>
               <button onClick={onClose}
-                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
                 Fermer sans enregistrer
               </button>
             </div>

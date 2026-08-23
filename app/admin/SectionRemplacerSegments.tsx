@@ -170,7 +170,7 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
 
       {confirme && preview && (
         <button onClick={remplacer} disabled={statut === 'loading'}
-          style={{ fontSize: '0.9375rem', padding: '8px 20px', borderRadius: '8px', border: 'none', background: statut === 'loading' ? '#a0b8aa' : 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', cursor: statut === 'loading' ? 'default' : 'pointer', fontWeight: 600 }}>
+          style={{ fontSize: '0.9375rem', padding: '8px 20px', borderRadius: '8px', border: 'none', background: statut === 'loading' ? '#a0b8aa' : 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', cursor: statut === 'loading' ? 'default' : 'pointer', fontWeight: 600 }}>
           {statut === 'loading' ? 'Remplacement en cours…' : '↺ Remplacer la table segments'}
         </button>
       )}

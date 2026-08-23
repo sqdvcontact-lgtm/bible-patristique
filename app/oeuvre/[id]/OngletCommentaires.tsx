@@ -60,7 +60,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
               {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d’envoi.</span>}
               <button onClick={onClose} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
               </button>
             </div>

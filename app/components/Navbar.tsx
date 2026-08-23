@@ -1031,7 +1031,7 @@ export default function Navbar() {
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
             <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
             {item.badge > 0 && (
-              <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
+              <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
           </Link>
         ))}
@@ -1229,7 +1229,7 @@ export default function Navbar() {
                 {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                     ni capitales — un simple murmure de version. */}
                 <span title="Version bêta" aria-label="Version bêta"
-                  style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.5)", position: "relative", top: "1.5px" }}>bêta</span>
+                  style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.72)", position: "relative", top: "1.5px" }}>bêta</span>
               </>
             )}
           </Link>
@@ -1306,7 +1306,7 @@ export default function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconParchemin />
                 {nbMessages > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbMessages > 99 ? '99+' : nbMessages}
                   </span>
                 )}
@@ -1319,7 +1319,7 @@ export default function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.background = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconAngeTrompette />
                 {nbNotifications > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbNotifications > 99 ? '99+' : nbNotifications}
                   </span>
                 )}

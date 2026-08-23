@@ -282,7 +282,7 @@ export default async function AccueilPage() {
             fontWeight: 600,
             letterSpacing: "0.20em",
             textTransform: "uppercase",
-            color: "#8a7848",
+            color: "var(--cs-etiquette)",
           }}>
             Somme collaborative
           </p>
@@ -470,7 +470,7 @@ const boutonSoutenir: React.CSSProperties = {
   justifyContent: "center",
   fontFamily: "var(--font-source-serif), Georgia, serif",
   fontSize: "0.78125rem",
-  color: "#8a7440",
+  color: "var(--cs-or)",
   textDecoration: "none",
   letterSpacing: "0.03em",
   padding: "6px 18px",
@@ -490,7 +490,7 @@ function VoletUnMot() {
       {/* Signature rapprochée du texte : « Merci. » juste au-dessus de SQDV. */}
       <div style={{ marginTop: "12px" }}>
         <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte)", margin: "0 0 2px" }}>Merci.</p>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "#8a7440", letterSpacing: "0.14em", margin: 0 }}>SQDV</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-or)", letterSpacing: "0.14em", margin: 0 }}>SQDV</p>
       </div>
       {/* Bouton ancré au bas de la carte, quelle que soit la hauteur du volet voisin. */}
       <div style={{ marginTop: "auto", paddingTop: "18px" }}>

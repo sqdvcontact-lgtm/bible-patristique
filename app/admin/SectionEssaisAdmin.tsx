@@ -30,7 +30,7 @@ export default function SectionEssaisAdmin({
           <button key={o.key} onClick={() => setSous(o.key)}
             style={{ padding: '9px 14px', fontSize: '0.875rem', fontWeight: sous === o.key ? 600 : 400, color: sous === o.key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', borderBottom: sous === o.key ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
             {o.label}
-            {o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600 }}>{o.badge}</span>}
+            {o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600 }}>{o.badge}</span>}
           </button>
         ))}
       </div>
