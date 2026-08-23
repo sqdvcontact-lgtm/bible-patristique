@@ -861,7 +861,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .segment-controle:hover{box-shadow:inset 0 0 0 1px rgba(var(--cs-vert-rgb),.12);}
         .segment-controle.is-active{box-shadow:inset 0 0 0 1px rgba(var(--cs-vert-rgb),.28);}
         /* Le crayon vit DANS le bloc de texte : on corrige là où l'on lit. */
-        .segment-crayon{position:absolute;top:1px;right:1px;opacity:0;border:1px solid var(--cs-vert-pale);background:rgba(255,255,255,.94);border-radius:4px;padding:1px 6px 2px;font-size:0.75rem;line-height:1.3;cursor:pointer;color:var(--cs-vert);transition:opacity .13s;z-index:2;}
+        .segment-crayon{position:absolute;top:1px;right:1px;opacity:0;border:1px solid var(--cs-vert-pale);background:var(--cs-surface);border-radius:4px;padding:1px 6px 2px;font-size:0.75rem;line-height:1.3;cursor:pointer;color:var(--cs-vert);transition:opacity .13s;z-index:2;}
         .segment-controle:hover .segment-crayon,.segment-controle.is-active .segment-crayon{opacity:1;}
         .segment-crayon:hover{background:var(--cs-vert-pale);border-color:#8aa185;}
         .segment-edition{width:100%;box-sizing:border-box;min-height:130px;border:1px solid #8aa185;border-radius:4px;background:var(--cs-surface);color:var(--cs-texte-fort);font-family:var(--font-source-sans), Arial, sans-serif;font-size:0.8125rem;line-height:1.52;padding:8px 10px;resize:vertical;outline:none;}

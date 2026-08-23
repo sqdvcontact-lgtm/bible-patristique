@@ -146,7 +146,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
                 { key: 'suggestion' as const, label: 'Commenter un verset' },
               ]).map(s => (
                 <button key={s.key} onClick={() => setSousEcrire(s.key)}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'rgba(255,255,255,0.6)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
                   {s.label}
                 </button>
               ))}
@@ -198,7 +198,7 @@ function OngletCommunaute({
         <div style={{ position: 'relative', width: '13.75rem', flexShrink: 0 }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"
-            style={{ width: '100%', fontSize: '0.6875rem', padding: '5px 12px 5px 28px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'rgba(255,255,255,0.72)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', fontSize: '0.6875rem', padding: '5px 12px 5px 28px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="11" height="11" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.32 }}>
             <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
             <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>

@@ -404,7 +404,7 @@ function CelluleNote({ valeur, refLisible, onChange }: {
       ref={el => { if (el && demarrer.current) { el.focus(); demarrer.current = false; } }}
       onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
       style={{ width: "100%", resize: "none", minHeight: "1.9rem", boxSizing: "border-box", border: "1px solid var(--cs-bord-clair)", borderRadius: 4,
-        background: "rgba(255,255,255,0.8)", padding: "3px 6px", fontFamily: "var(--font-source-sans), Arial, sans-serif",
+        background: "var(--cs-surface)", padding: "3px 6px", fontFamily: "var(--font-source-sans), Arial, sans-serif",
         fontSize: "0.71875rem", lineHeight: 1.35, color: "var(--cs-texte-fort)", outline: "none" }} />
   );
 }
@@ -1005,7 +1005,7 @@ export default function PolyglottePage() {
            bouge : la classe poly-curseur-actif est retirée après une seconde d'immobilité
            (JS), ce qui efface les actions pour ne pas gêner la lecture. */
         .poly-curseur-actif .poly-texte-cell:hover .poly-cellact {
-          background: rgba(255,255,255,0.88); box-shadow: var(--cs-ombre-nette);
+          background: var(--cs-surface); box-shadow: var(--cs-ombre-nette);
         }
         .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
         .poly-curseur-actif .poly-texte-cell:hover .poly-act { opacity: .9; }

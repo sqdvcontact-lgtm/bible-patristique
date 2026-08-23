@@ -1388,7 +1388,7 @@ export default function PanneauPatristique({
                               style={{
                                 fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
                                 border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
-                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'var(--cs-surface)' : 'transparent',
                                 color: sel ? 'var(--cs-vert-fonce)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
@@ -1410,7 +1410,7 @@ export default function PanneauPatristique({
                               style={{
                                 fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
                                 border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
-                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'var(--cs-surface)' : 'transparent',
                                 color: sel ? 'var(--cs-vert-fonce)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{g}</span>
@@ -1433,7 +1433,7 @@ export default function PanneauPatristique({
                               style={{
                                 fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
                                 border: `1px solid ${sel ? 'var(--cs-or)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
-                                background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'var(--cs-surface)' : 'transparent',
                                 color: sel ? 'var(--cs-or)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{rendreSiecle(lbl)}</span>
