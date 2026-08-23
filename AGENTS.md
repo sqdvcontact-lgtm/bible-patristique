@@ -853,6 +853,51 @@ Doctrine : charte `parametres.charte_ia` **§3.8**, cinquième règle. Une citat
   - Le lemme se détache par sa **fonction** (il ouvre le paragraphe qu'il commente), non par sa taille : ce serait une règle structurelle, pas un seuil. **Décision de l'auteur, 2026-08-20 : ne rien changer.** Le seuil reste à 400 et les lemmes se lisent au fil du texte.
 - ⚠️ La francisation des guillemets internes est **l'inverse** de `convertirGuillemetsInternes` (`app/lib/citation.ts`), qui bascule les internes en anglais parce que le copier-coller ajoute un encadrement français. Symétriques, opposées : ne pas les confondre.
 
+# Composition des VERS — l'alinéa de base, et les alinéas qui se lisent (2026-08-23)
+
+Toute la règle vit dans **`app/lib/compositionVers.ts`** (module pur, 15 tests sur les mesures RÉELLES de Boèce). `OeuvreClient` et `ComparaisonTraductions` s'y rapportent tous les deux : une seule composition, deux surfaces.
+
+⛔ **La lecture ordinaire rendait les poèmes en PROSE, et personne ne l'avait vu.** Les traductions parallèles traitaient les vers depuis longtemps ; la lecture — celle où tout le monde lit — les envoyait dans un `<p>` justifié, avec `hyphens: auto`. Les 1 092 vers de Boèce chez Mirandol et les 1 213 chez Ceriziers passaient par là. *Corollaire de méthode : une nature de segment traitée sur UNE surface ne l'est nulle part.*
+
+## L'ALINÉA DE BASE
+
+Tout vers est rentré de **1,5 em** par rapport à la prose qui l'entoure (`RETRAIT_BASE`). C'est ce retrait, et non la longueur des lignes, qui dit au lecteur qu'il change de régime avant qu'il ait lu un mot. Il ne dépend d'aucune donnée et ne se discute pas.
+
+S'y ajoutent, pour toute ligne de vers : **pas de justification, pas de césure** (on ne coupe pas un alexandrin), interligne **1,4** au lieu du 1,62 de la prose, et un **retrait de suite** de 1,15 em qui distingue une ligne trop longue du vers d'après.
+
+⛔ **Une ligne de vers est une BOÎTE, jamais un fragment en ligne.** Un seul `<p>` ne peut pas rentrer chaque ligne : `text-indent` ne s'applique qu'à la **première** ligne d'un bloc, et jamais après un saut forcé — donc jamais après un `\n` en `white-space: pre-line`. D'où une boîte par vers.
+
+## ⛔ Les alinéas POÉTIQUES ne se devinent pas, ils se LISENT dans la source
+
+La règle précédente les déduisait de la **parité du rang** : le second vers du distique est rentré. Mesuré sur Boèce, elle est juste pour un dixième des vers et fausse pour le reste.
+
+| Édition | Strophes à mètre **uniforme** | Strophes **alternées** |
+|---|---:|---:|
+| Mirandol 1861 (par défaut) | 61 — **954 vers** | 10 — 123 vers |
+| Ceriziers 1646 | 15 — **1 123 vers** | 4 — 90 vers |
+
+Le mètre VI du Livre quatrième est en octosyllabes d'un bout à l'autre : la parité y faisait zigzaguer une strophe parfaitement régulière.
+
+**L'océrisation, elle, les avait bien conservés.** `segment_metadata.indent_inches` porte la position du bord gauche de chaque ligne sur la page imprimée. ⚠️ C'est une **MESURE, non un rang** — 206 valeurs distinctes de 0,003 à 0,864 pouce pour le seul Ceriziers. Mais elle est **propre** : au mètre I du Livre premier, trois niveaux nets — 0,73 · 0,02 · 0,44, à ±0,02 près. Les 206 valeurs viennent de poèmes posés différemment sur la page, pas du bruit.
+
+Elle se rabat donc, **comme les 112 tailles de texte sur 32 rangs et les rayons d'angle sur cinq**, par `niveauxAlinea`. ⚠️ **Poème par poème, jamais sur tout l'ouvrage** : deux poèmes n'ont pas la même origine, et ce qui compte est l'écart de chaque ligne au bord gauche de SON poème. Tolérance de 0,08 pouce, posée entre le bruit mesuré (±0,02) et le plus petit écart voulu qu'on ait vu (0,25).
+
+## ⚠️ La strophe se lit de DEUX façons, et il faut les deux
+
+`ComparaisonTraductions` ne lisait que `segment_metadata.stanza_before`. Ceriziers le porte sur ses 1 213 vers (81 à `true`) ; **Mirandol, l'édition PAR DÉFAUT, sur aucun** — sa structure de strophe vit dans `paragraphe`, qui y vaut une strophe de douze vers. La colonne Mirandol coulait donc d'un seul bloc, sans une respiration, dans la vue même dont l'objet est de la mettre en regard de Ceriziers.
+
+`ouvreStrophe` lit les deux, dans cet ordre : la métadonnée quand elle existe, le changement de `paragraphe` sinon. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le repli : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
+
+## Les colonnes de `segments` s'écrivent en UN seul endroit
+
+**`app/lib/oeuvreSelects.ts`** porte `SELECT_SEGMENT` et `NATURES_CORPS`. Les deux étaient recopiés à **trois** endroits chacun — rendu serveur, rechargement de division, chargement de l'apparat — sans qu'aucun mécanisme n'oblige les six listes à rester d'accord. C'est exactement la dérive qui avait tenu la section « Opuscules » invisible en ligne pendant que ses neuf tests passaient. ⛔ Lire les colonnes d'un segment ailleurs qu'ici, c'est la rouvrir.
+
+⚠️ **Les deux dernières entrées ne sont pas des colonnes mais des CHAMPS de `segment_metadata`**, tirés par leur nom (`alinea:segment_metadata->>indent_inches`). On ne prend pas la colonne `jsonb` entière : elle porte une trentaine de clés par segment pour une page qui en charge jusqu'à mille d'un coup. Corollaire : PostgREST les rend en **TEXTE**, quel que soit leur type en base — d'où `mesureAlinea` et `marqueStrophe`, qui les relisent.
+
+## Ce qui reste
+
+⚠️ **Mirandol n'a aucune mesure d'alinéa.** Son import ne portait pas `indent_inches`, si bien que l'édition par défaut reçoit l'alinéa de base et rien d'autre — ce qui est juste pour ses 954 vers de mètre uniforme, et faux pour les 123 qui alternent. Le remède est une correction de DONNÉES (relever les alinéas à la source), pas d'affichage.
+
 # Césures du texte latin — aucun navigateur ne sait les faire
 
 ⛔ **`hyphens: auto` ne fait RIEN sur un `lang="la"`.** Aucun moteur ne livre de dictionnaire de coupure pour le latin. Mesuré dans le navigateur intégré, sur une colonne de 170 px et un extrait des *Confessions* : **23 lignes** avec `hyphens: auto`, **23** sans césure du tout, et **23** encore en déclarant `lang="it"` pour emprunter le dictionnaire italien. La déclaration était donc inerte depuis toujours, et la justification creusait les blancs faute de pouvoir couper.
