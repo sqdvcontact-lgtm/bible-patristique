@@ -908,7 +908,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
         <div onClick={() => !suppressionEnCours && setModaleSuppressionOuverte(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: "12px", padding: "32px", width: "30rem", maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
-            <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "#1e1a14", margin: "0 0 16px" }}>Suppression du compte</h3>
+            <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "var(--cs-texte-fort)", margin: "0 0 16px" }}>Suppression du compte</h3>
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte)", lineHeight: 1.65, margin: "0 0 14px" }}>
               Cette action est <strong>irrémédiable</strong>. Elle entraînera la suppression immédiate et définitive de :
             </p>

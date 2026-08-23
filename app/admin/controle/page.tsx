@@ -412,7 +412,7 @@ const styles = `
   .cc-jauge-remplissage { height: 100%; border-radius: 4px; transition: none; }
   .cc-jauge-detail { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; }
 
-  .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert-aplat); border-radius: 0 6px 6px 0; padding: 0.625rem 0.75rem; }
+  .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert-aplat); border-radius: 0 8px 8px 0; padding: 0.625rem 0.75rem; }
   .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
   .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
 

@@ -561,7 +561,8 @@ Le compte de **642** couleurs en dur était trompeur : il additionnait des chose
 
 - **Ce sont EXACTEMENT les résidus que la passe d'harmonie avait laissés à dessein** : chacune employée moins de huit fois et à plus de ΔE 30 de tout jeton. Les rabattre serait un changement de dessin, pas une harmonisation. Il faut donc les **transposer une par une**, ce qui demande une décision par cas.
 - **Le chemin de LECTURE, lui, est sain** : plus aucune teinte illisible dans `TexteBible`, `NavLivres`, `PanneauPatristique`, `PageTitre`, `BibleBilingue`, la page Bible, la page d'œuvre, la péricope ni la Polyglotte. Le reste vit dans l'admin, les écrans d'exception et les pages de service.
-- ⚠️ **Une occurrence subsiste sur le chemin de lecture** : `#575048` dans `app/oeuvre/[id]/OeuvreClient.tsx`, laissée parce que le fichier portait un chantier en cours au 2026-08-23. La remplacer par `var(--cs-original)` dès que ce chantier est clos, comme la copie de `LABEL_VOLET`/`BTN_VOLET` signalée plus haut.
+- ✅ **Réglé le 2026-08-23** : le `#575048` d'`OeuvreClient.tsx` a disparu du dépôt, et la copie de `LABEL_VOLET`/`BTN_VOLET` est réunie dans `app/lib/stylesVoletLecture.ts`. Le chemin de lecture ne porte plus aucune teinte en dur illisible au Cuir — vérifié par relevé, contraste calculé contre les deux sols.
+- ⛔ **Le résidu ne se rabat toujours pas, mais il est désormais GELÉ** : `app/lib/couleursEnDurInventaire.ts` en porte l'état (353 teintes, 68 fichiers, au 2026-08-23) et `couleursEnDur.test.ts` refuse tout ajout. La liste ne peut plus que décroître — voir la section « La garde chromatique » plus bas.
 - **Hors périmètre pour toujours** : `EssaiPDF.tsx` (PDFKit ne résout aucune custom property) et `couverturesEssai.ts` (contraste testé). **Hors périmètre par décision** : `app/quiz/`, chantier Holy Guessr, dont les SVG sont une illustration à palette propre et non du chrome.
 
 # Perf du chemin de lecture (audit, point 2)
@@ -584,6 +585,66 @@ Config `vitest.config.mts` : la suite ne ramasse que `app/**` et `scripts/**` (`
 - Lancer : `npm test` (= `vitest run`). Environnement `node` par défaut ; pour un test qui a besoin du DOM, poser `// @vitest-environment jsdom` en tête de fichier.
 - Imports **relatifs** dans les tests (`./referencesBibliques`), pas l'alias `@/` (pas de plugin tsconfig-paths).
 - Premières suites sur la logique pure critique : `app/lib/referencesBibliques.test.ts` (formatage des références, utilisé partout) et `app/lib/classement.test.ts` (score/rangs). **Étendre en priorité** aux invariants sensibles : liens bibliques (`scripts/_liens-commun.mjs::verifierLienMecanique`), alignement `versets_v2`, dates historiques.
+
+# Les gardes du dessin — un axe sans garde DÉRIVE (audit code & esthétique, 2026-08-23)
+
+C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site tient son dessin par des **tests qui balaient `app/` à chaque `npm test`**. Là où une garde existe, l'ordre règne ; là où il n'y en a pas, le désordre s'installe — et l'on croit à tort que c'est affaire de discipline.
+
+| Axe | Garde | État au 2026-08-23 |
+|---|---|---|
+| Corps de texte | `echelleTypographique.test.ts` | 32 rangs tenus, 1 772 tailles en dur toutes sur la grille |
+| Rayons d'angle | `formes.test.ts` | 5 rangs tenus |
+| Titres de page | `titresPages.test.ts` | tenu |
+| **Couleur** | `couleursEnDur.test.ts` (**neuf**) | 353 teintes gelées, la liste ne peut que décroître |
+| **Empilement** | **aucune** | 147 déclarations de `z-index`, **40 valeurs distinctes**, de 0 à 9999 |
+
+⚠️ **Les 1 772 `fontSize` écrites en dur ne sont PAS de la dette**, et un audit qui les signale produit un faux positif : elles sont sur la grille, et un test le vérifie à chaque exécution. Ce qui compte n'est pas qu'une valeur soit littérale, c'est qu'elle soit sous garde.
+
+⛔ **L'empilement n'a jamais eu sa passe**, et c'est le dernier axe qui manque. Quarante valeurs pour un besoin qui en demande quatre ou cinq (page, flottant, volet, modale, alerte) : trait pour trait le désordre des 112 tailles et celui des rayons de 2 à 20. Il a déjà une conséquence consignée — la règle « fenêtres contextuelles, jamais sous la nav » est exactement le symptôme d'un empilement sans échelle.
+
+## La garde chromatique — on GÈLE, on ne rabat pas
+
+`app/lib/couleursEnDurInventaire.ts` porte l'état du 2026-08-23 ; `couleursEnDur.test.ts` refuse toute teinte **nouvelle** et exige qu'une teinte transposée soit **retirée** du registre. La dette devient donc visible dans chaque diff, et ne peut que décroître.
+
+- ⛔ **Aucun script ne regénère l'inventaire, et c'est délibéré.** Une regénération automatique permettrait de re-geler la dette d'un geste, ce qui viderait la garde de son sens. On retire une ligne quand on a transposé la couleur, à la main, en le sachant.
+- **Hors registre par NATURE** : un noir ou un blanc **translucide** (`rgba(0,0,0,0.4)`) est une ombre ou un calque — la forme que la charte prescrit, et elle rend la même chose sous les deux thèmes. Un noir ou un blanc **opaque** reste au registre : c'est une encre, et une encre se transpose.
+- **La forme tokenisée n'entre jamais au registre** : `rgba(var(--cs-vert-rgb), 0.07)` commence par `var`, le motif ne retient que les fonctions dont le premier argument est un chiffre.
+- **Les commentaires sont retirés avant la mesure** : un commentaire qui CITE une teinte n'en pose aucune, et la charte du dépôt en cite beaucoup.
+
+## Une couleur posée sur une PHOTO s'écrit en littéral
+
+⛔ Corollaire de « une marque en image ne se transpose pas ». `app/traductions/AllerPlusLoinClient.tsx` choisissait l'encre du titre selon la luminance mesurée de la photo, et écrivait `var(--cs-fond)` sur les photos sombres : le crème du site au Clair, mais **`#1c1813` en Cuir, du brun très sombre sur une photo sombre**. Le jeton s'est retourné avec le thème, la photo non. Le sol est une image, elle ne suit aucun thème : l'encre qu'on y pose n'a donc pas de jeton. Les deux lignes voisines (`couleurMeta`, `couleurChevron`) le faisaient déjà correctement en littéral — c'est la seule des trois qui prenait un jeton.
+
+## Une suite de tests ne modifie JAMAIS l'arbre de travail
+
+`app/lib/_gen.test.ts` n'était pas un test mais un générateur : il écrivait `latin-cesure.txt` **à la racine du dépôt** à chaque `npm test`. Exclu **nommément** dans `vitest.config.mts`.
+
+⛔ **Ne pas l'exclure par un motif `**/_*.test.*`.** Le souligné en tête est bien la convention du dépôt pour ce qu'on écarte, mais dans `scripts/` il marque un module d'ATELIER, dont les tests sont de vrais tests : le motif général emportait `_liens-commun.test.mjs`, c'est-à-dire précisément l'invariant des liens bibliques que la charte demande de garder sous garde. Deux fichiers de test avaient disparu de la suite sans que rien ne le signale, le compte passant de 65 à 62. **Une exclusion se vérifie au COMPTE de fichiers, pas à la couleur du résultat.**
+
+## Deux gardes voisines doivent s'accorder sur le même chantier
+
+`titresPages.test.ts` exemptait `/quiz` (route neutralisée en production, chantier Holy Guessr non versionné) ; `echelleTypographique.test.ts` ne l'exemptait pas, et tenait donc **tout `npm test` en échec** sur un chantier qui n'est pas en ligne. Une suite durablement rouge cesse d'être un signal. Les trois gardes portent désormais la même exemption. La lever le jour où le quiz rejoindra le site, sa palette et son échelle avec.
+
+## Une garde doit lire les DEUX formes d'écriture
+
+⛔ `formes.test.ts` ne cherchait les rayons qu'à la forme JSX (`borderRadius: '4px'`, avec guillemets obligatoires) : tout ce qui s'écrit dans les **43 blocs `<style>`** du site lui échappait, c'est-à-dire la moitié du dessin. Sa sœur `echelleTypographique.test.ts` portait le doublet depuis l'origine (`TAILLE_EN_LIGNE` et `TAILLE_CSS`). Le motif CSS ajouté le 2026-08-23 a trouvé **trois échappées** que personne ne voyait :
+
+- `.cc-note` du centre de contrôle, `0 6px 6px 0` — un encart, donc 8px ;
+- `.ac-hover-choice` de l'accueil, `8px 10px 0 0` et `0 0 10px 10px` — deux coins hauts **inégaux dans la même déclaration**, sous une carte à 8px.
+
+Les trois sont rabattues. Reste **une exception nommée** dans `RAYONS_DESSINES` : le `2px` du coin de cartonnage d'une couverture de publication, où le rayon appartient au dessin de l'objet comme sa gamme de couleurs. À trancher : le rabattre sur 4px, ou l'inscrire dans la charte comme valeur dessinée. ⚠️ Une exception qu'on VOIT vaut mieux qu'un angle mort qui n'en signale aucune.
+
+## `npm run lint` ne rendait jamais la main, et la CI le CONTOURNAIT
+
+`eslint.config.mjs` n'ignorait que `.next`, `out`, `build` et `next-env.d.ts`. `npm run lint` appelle `eslint` sans argument : il partait donc à l'assaut de l'arbre entier — `public/` (1,8 Gio de fac-similés), `work/`, `tmp/`, `audit/` (106 Mo), et les `node_modules` imbriqués sous `scripts/heptateuque/` et `outils/`. **Arrêté au bout de dix minutes sans une ligne de sortie.**
+
+⚠️ **La CI ne voyait rien**, et c'est ce qui a fait durer le défaut : ces dossiers sont ignorés par git, donc absents d'un `checkout`, et `verification.yml` appelle de surcroît `npx eslint app` directement. Le contournement existait, la config est restée cassée — et c'est le **poste de travail**, là où l'on écrit le code, qui perdait son linter. Même remède que la suite de tests au point 4 : on borne. `npm run lint` répond maintenant en **69 secondes** : 364 erreurs, 171 avertissements.
+
+⚠️ **Corollaire de méthode, et il vaut pour tout l'outillage** : la CI et le poste de travail ne voient pas le même arbre. La CI ignore les chantiers non versionnés et les dossiers d'atelier ; le poste les porte. Un outil vert en CI peut être inutilisable là où l'on travaille — les trois défauts ci-dessus (lint, garde typographique rouge, types cassés par `pixi.js`) sont tous de cette famille, et tous invisibles depuis GitHub.
+
+## `pixi.js` n'est déclaré nulle part
+
+Les 5 erreurs de `tsc --noEmit` viennent toutes d'`app/quiz/holyGuessrMoteur.ts` : la dépendance n'est ni dans `package.json`, ni installée. Sans conséquence en ligne aujourd'hui — les quatre fichiers Holy Guessr ne sont pas versionnés, donc absents de `master` — mais `npm run build` échoue en local, et il **échouera au déploiement** le jour où ces fichiers seront commités sans que `pixi.js` entre d'abord dans `package.json`. La vérification de `master` étant bloquante sur les types, la poussée serait refusée.
 
 # Favoris — `ref_id` n’est PAS toujours un `id_oeuvre` (2026-08-21)
 
@@ -706,7 +767,7 @@ Deux gestes, deux endroits, et ils ne se mélangent jamais.
 - **Mode « Sans les commentaires »** (`?texte=seul`) : l'appareil éditorial n'est pas masqué à l'affichage, il **n'est pas chargé** — `app/page.tsx` saute `loadBibleEditionChapter`, passe `editionChapter` à `null` en une colonne, et sert un `payload` à trois listes vides en regard. Introductions, commentaires de plage, notes et illustrations disparaissent ensemble, puisqu'ils viennent tous de là.
 - **La manière de lire voyage d'un bloc** : `ManiereDeLireBible` (`bibleNavigation.ts`) réunit graphie, lecture en regard et texte nu. `BibleLayout` la compose une fois et la passe à `NavLivres` et `TexteBible`, qui la reportent par `{ ...maniereDeLire }`. ⛔ Ne pas revenir à un report réglage par réglage : c'est ainsi qu'ils se perdaient un à un — les flèches de chapitre de `TexteBible` oubliaient déjà la graphie de la Bible 899.
 
-⚠️ **`OeuvreClient.tsx` porte encore sa propre copie de `LABEL_VOLET`/`BTN_VOLET`** (le fichier avait un chantier en cours le 2026-08-22) : l'y remplacer par l'import de `stylesVoletLecture` dès que ce chantier est clos, faute de quoi les deux formes dériveront.
+✅ **Réuni le 2026-08-23.** `OeuvreClient.tsx` a porté une copie de `LABEL_VOLET`/`BTN_VOLET` du 2026-08-22 au 2026-08-23, le temps d'un chantier ; elle importe désormais `stylesVoletLecture`, **avant d'avoir dérivé** — les deux formes étaient encore mot pour mot identiques. ⛔ Il n'y a plus qu'une définition et il ne doit pas y en avoir d'autre : une forme recopiée à deux endroits ne reste identique que par accident. ⚠️ À savoir : `comparaisonTraductions.test.ts` vérifie la présence de la chaîne `<span style={LABEL_VOLET}>Lecture</span>` **dans le texte source**, il passe donc quelle que soit la copie employée — il ne protège pas de la dérive.
 
 # Bible classique — le coût, c'est le NOMBRE d'allers-retours (audit du 2026-08-22)
 
@@ -916,7 +977,7 @@ Tout ce qui vit dans `public` est servi par l’API REST. `anon` n’y a aucun d
 
 Trois workflows, et une leçon.
 
-- `verification.yml` — à chaque poussée sur `master` : `tsc` et `vitest` BLOQUENT, le linter est informatif tant que ses 414 erreurs héritées n’ont pas été résorbées. Retirer `continue-on-error` le jour où le compte tombe à zéro.
+- `verification.yml` — à chaque poussée sur `master` : `tsc` et `vitest` BLOQUENT, le linter est informatif tant que ses 414 erreurs héritées n’ont pas été résorbées. Retirer `continue-on-error` le jour où le compte tombe à zéro. ⚠️ Il y appelle `npx eslint app`, ce qui **contournait** une config cassée au lieu de la corriger : voir « `npm run lint` ne rendait jamais la main » plus haut.
 - `backup-supabase.yml` — quotidienne, format `custom`, privilèges CONSERVÉS.
 - `sauvegarde-supabase.yml` — hebdomadaire (dimanche), format texte gzippé, `--no-owner --no-privileges`. ⚠️ Sans les GRANT, une base restaurée depuis CE vidage ne rendrait rien à PostgREST : les rôles `anon` et `authenticated` n’auraient plus aucun droit. C’est la raison d’être de la quotidienne.
 

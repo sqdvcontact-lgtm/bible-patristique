@@ -14,6 +14,14 @@ const RACINE = join(import.meta.dirname, '..')
 // l'échelle de l'écran ne s'y applique pas (voir l'en-tête d'EssaiPDF.tsx).
 const EXEMPTS = [join('essais', '[id]', 'EssaiPDF.tsx')]
 
+// /quiz est neutralisée en production (elle renvoie un 404) et sa version vivante
+// évolue sur le chantier Holy Guessr, dont les fichiers ne sont pas versionnés.
+// Même exemption, et pour la même raison, que `titresPages.test.ts`. Sans elle,
+// la garde tenait tout `npm test` en échec sur un chantier qui n'est pas en ligne :
+// une suite durablement rouge cesse d'être un signal. La lever le jour où le quiz
+// rejoindra le site, sa palette et son échelle avec.
+const DOSSIERS_EXEMPTS = ['quiz']
+
 const TAILLE_EN_LIGNE = /fontSize: *(['"])([0-9]*\.?[0-9]+)rem\1/g
 const TAILLE_CSS = /font-size: *([0-9]*\.?[0-9]+)rem/g
 
@@ -47,6 +55,7 @@ describe('échelle typographique', () => {
     for (const chemin of fichiersDeStyle(RACINE)) {
       const relatif = relative(RACINE, chemin)
       if (EXEMPTS.some(e => relatif.endsWith(e) || relatif.split(sep).join(sep) === e)) continue
+      if (DOSSIERS_EXEMPTS.includes(relatif.split(sep)[0])) continue
       const source = readFileSync(chemin, 'utf8')
       for (const m of source.matchAll(TAILLE_EN_LIGNE)) {
         if (!estSurLEchelle(parseFloat(m[2]))) fautives.push(`${relatif} · fontSize ${m[2]}rem`)

@@ -59,7 +59,16 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
   const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
 
   const fondSombre = estSombre !== false
-  const couleurTexte = t.photo ? (fondSombre ? 'var(--cs-fond)' : '#18130f') : 'var(--cs-encre-fonce)'
+  // ⛔ Sur une PHOTO, l'encre s'écrit en valeur LITTÉRALE, jamais en jeton de thème.
+  // Le sol de ces trois lignes est une image, et une image ne se transpose pas : le
+  // jeton, lui, se retourne. `var(--cs-fond)` valait le crème du site au Clair et
+  // devenait `#1c1813` en Cuir, c'est-à-dire du brun très sombre écrit sur une photo
+  // sombre — le titre de la traduction disparaissait (relevé le 2026-08-23). Le crème
+  // est donc posé en dur, comme le faisaient déjà les deux lignes suivantes, et comme
+  // la charte l'exige des cartons de l'accueil et du jeu de couvertures : une couleur
+  // qui n'a pas de fond thématique n'a pas de jeton. `#f7f4ef` EST la valeur claire
+  // de `--cs-fond` : le rendu au Clair ne bouge pas d'un pixel.
+  const couleurTexte = t.photo ? (fondSombre ? '#f7f4ef' : '#18130f') : 'var(--cs-encre-fonce)'
   const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : 'var(--cs-texte-second)'
   const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : 'var(--cs-bord)'
 

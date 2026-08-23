@@ -15,6 +15,7 @@ import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normali
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
+import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
@@ -270,10 +271,12 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
-// Styles partagés des contrôles du volet gauche (Lecture / Texte / Traduction) :
-// listes verticales pleine largeur, de même gabarit, pour un alignement parfait.
-const LABEL_VOLET: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block' }
-const BTN_VOLET = (actif: boolean): React.CSSProperties => ({ width: '100%', textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' })
+// Les styles des contrôles du volet gauche (Lecture / Texte / Traduction) vivent
+// dans `app/lib/stylesVoletLecture.ts`, d'où la page Bible les prend aussi : le même
+// geste — choisir comment on lit ce qu'on a sous les yeux — se présente de la même
+// façon des deux côtés du site. Ce fichier en portait une COPIE depuis le 2026-08-22,
+// le temps d'un chantier ; elle est réunie ici, les deux formes étant encore mot pour
+// mot identiques. ⛔ Ne pas en redéclarer une troisième.
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {

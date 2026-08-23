@@ -9,9 +9,10 @@ import type { CSSProperties } from 'react'
  * geste — choisir comment on lit ce qu'on a sous les yeux — se présente de la même
  * façon des deux côtés du site.
  *
- * ⚠️ `app/oeuvre/[id]/OeuvreClient.tsx` porte encore sa propre copie de ces deux
- * constantes (le fichier a un chantier en cours au 2026-08-22) : l'y remplacer par
- * cet import dès que ce chantier est clos, faute de quoi les deux formes dériveront.
+ * ⛔ Il n'y a plus qu'une seule définition, et il ne doit pas y en avoir d'autre.
+ * `app/oeuvre/[id]/OeuvreClient.tsx` en a porté une copie du 2026-08-22 au 2026-08-23,
+ * le temps d'un chantier ; elle a été réunie ici avant d'avoir dérivé. Une forme
+ * recopiée à deux endroits ne reste identique que par accident.
  */
 export const LABEL_VOLET: CSSProperties = {
   fontSize: '0.5rem',

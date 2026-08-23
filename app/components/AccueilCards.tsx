@@ -354,10 +354,10 @@ export default function AccueilCards() {
         }
         .ac-hover-choice:first-child {
           border-bottom: 1px solid rgba(255,255,255,0.22);
-          border-radius: 8px 10px 0 0;
+          border-radius: 8px 8px 0 0;
         }
         .ac-hover-choice:last-child {
-          border-radius: 0 0 10px 10px;
+          border-radius: 0 0 8px 8px;
         }
         .ac-hover-choice:hover,
         .ac-hover-choice:focus-visible {

@@ -476,7 +476,7 @@ export default function PrelevementsPage() {
               style={{
                 padding: "9px 22px", fontSize: "0.75rem", fontFamily: "var(--font-source-sans), Arial, sans-serif",
                 fontWeight: onglet === t ? 600 : 400,
-                color: onglet === t ? "#1e1a14" : "var(--cs-texte-doux)",
+                color: onglet === t ? "var(--cs-texte-fort)" : "var(--cs-texte-doux)",
                 background: "transparent", border: "none",
                 borderBottom: onglet === t ? "1.5px solid var(--cs-vert)" : "1.5px solid transparent",
                 cursor: "pointer", letterSpacing: "0.01em", transition: "color 0.12s",
@@ -526,7 +526,7 @@ export default function PrelevementsPage() {
                       return (
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
+                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.45, margin: "0 0 3px" }}>
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texte)))}&#8201;»
                             </p>
                             <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
@@ -587,7 +587,7 @@ export default function PrelevementsPage() {
                       return (
                         <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "#1e1a14", lineHeight: 1.45, margin: "0 0 3px" }}>
+                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.45, margin: "0 0 3px" }}>
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(p.texte)))}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
