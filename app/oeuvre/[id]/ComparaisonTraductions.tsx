@@ -14,6 +14,7 @@ import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } f
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   projeterAppelsNotesStructurees,
@@ -240,15 +241,19 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
         }
         if (bloc.type === 'vers') {
           // Strophe : lignes serrées (une ligne = une balise bloc, sans marge entre
-          // elles). Alinéa poétique : les vers de rang pair (le second, plus court, du
-          // distique) sont rentrés ; toute ligne qui déborde reçoit un retrait de suite.
+          // elles), alinéa de base sur toutes, alinéas poétiques LUS DANS LA SOURCE,
+          // et retrait de suite pour la ligne qui déborde. Toute la règle vit dans
+          // `app/lib/compositionVers.ts`, que la lecture ordinaire emploie aussi.
+          const rangs = niveauxAlinea(bloc.segs.map(s => mesureAlinea((s.segment_metadata ?? {}).indent_inches)))
           return (
             <div key={blocIndex} lang={codeLangue} style={{ marginTop, fontFamily: police, fontSize: STYLE_TEXTE_PARALLELE.fontSize, color: STYLE_TEXTE_PARALLELE.color, wordSpacing: STYLE_TEXTE_PARALLELE.wordSpacing }}>
-              {bloc.segs.map(segment => {
-                const stanza = Boolean((segment.segment_metadata ?? {}).stanza_before)
-                const pair = (segment.rang ?? 0) % 2 === 0
+              {bloc.segs.map((segment, i) => {
+                const strophe = ouvreStrophe(
+                  { strophe_avant: marqueStrophe((segment.segment_metadata ?? {}).stanza_before), paragraphe: segment.paragraphe },
+                  bloc.segs[i - 1],
+                )
                 return (
-                  <span key={segment.segment_key} style={{ display: 'block', lineHeight: 1.4, marginTop: stanza ? '0.6rem' : 0, marginLeft: pair ? '1.5em' : 0, paddingLeft: '1.15em', textIndent: '-1.15em', hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
+                  <span key={segment.segment_key} style={{ display: 'block', lineHeight: 1.4, marginTop: strophe ? '0.6rem' : 0, marginLeft: `${retraitVers(rangs[i])}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
                     {rendreSegment(segment)}
                   </span>
                 )

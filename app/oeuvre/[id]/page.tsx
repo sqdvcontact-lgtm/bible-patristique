@@ -1,3 +1,5 @@
+import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
+import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
@@ -78,6 +80,11 @@ type Segment = {
   nature: string|null
   paragraphe: number|null; rang: number|null; texte_original: string|null
   espace_textuel: string|null; join_before: string|null
+  // ⚠️ Ces deux-là ne sont pas des colonnes mais des champs de `segment_metadata`,
+  // tirés par leur nom dans `SELECT_SEGMENT` et renommés au passage. PostgREST les
+  // rend donc en TEXTE, quel que soit leur type en base : `mesureAlinea` et
+  // `marqueStrophe` les relisent.
+  alinea: string|null; strophe_avant: string|null
 }
 
 type TexteVersionRow = {
@@ -312,27 +319,25 @@ export default async function OeuvrePage({
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
   // bp_admin_session, qui n'est plus jamais posé depuis la suppression de la
   // page de connexion par mot de passe.
-  const SELECT_SEG = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
   // ⛔ `apparat_auteur` DOIT figurer ici : c'est l'apparat de l'auteur lui-même
   // (prologue, avertissement, dédicace), qui appartient au corps du texte et se lit
   // à sa place dans la lecture — à ne jamais confondre avec `apparat_critique`
   // (l'apparat de l'éditeur, qui a sa propre vue). Son absence de cette liste l'a
   // fait disparaître du rendu (régression du 18 août : le « Prologue de Rufin aux
   // livres X et XI » n'apparaissait plus entre le titre du Livre X et « Chapitre I »).
-  const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature', 'apparat_auteur']
 
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
-        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
+        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_CORPS)
         else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
       return q
     }
     const lot = (from: number) =>
-      appliquer(supabase.from('segments').select(SELECT_SEG).eq('id_oeuvre', id).eq('id_texte', idTexte))
+      appliquer(supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', id).eq('id_texte', idTexte))
         .order('segment_numero', { ascending: true }).range(from, from + 999)
 
     // 1er lot AVEC le total exact (une seule requête) : les grosses divisions
@@ -340,7 +345,7 @@ export default async function OeuvrePage({
     // par allers-retours SÉQUENTIELS de 1000. On récupère le total tout de suite,
     // puis on tire les lots restants EN PARALLÈLE.
     const premier = await appliquer(
-      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
+      supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, 999)
 
     const acc: any[] = [...((premier.data as any[]) ?? [])]
@@ -367,14 +372,14 @@ export default async function OeuvrePage({
   async function chargerTrancheTexte(filtre: Record<string, string>): Promise<{ segments: Segment[]; partiel: boolean }> {
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
-        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_TEXTE)
+        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_CORPS)
         else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
       return q
     }
     const premier = await appliquer(
-      supabase.from('segments').select(SELECT_SEG, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
+      supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, PLAFOND_TRANCHE - 1)
     const acc: any[] = [...((premier.data as any[]) ?? [])]
     const total = premier.count ?? acc.length
@@ -497,7 +502,7 @@ export default async function OeuvrePage({
     chargerNotesStructurees(),
     supabase.from('segments').select('id', { count: 'exact', head: true })
       .eq('id_oeuvre', id).eq('id_texte', idTexte)
-      .is('ref_niv1', null).in('nature', NATURES_TEXTE),
+      .is('ref_niv1', null).in('nature', NATURES_CORPS),
   ])
   const { notesParSegment: notesStructurees, ancresParSegment: ancresNotesStructurees } = donneesNotesStructurees
 
@@ -588,6 +593,7 @@ export default async function OeuvrePage({
       notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
+        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
     }))
 
   const groupesData = groupes.map((g, gi) => ({
@@ -610,6 +616,7 @@ export default async function OeuvrePage({
       notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
+        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
     }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({

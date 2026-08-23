@@ -15,6 +15,8 @@ import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normali
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
+import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
+import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -518,12 +520,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
     // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
     // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature', 'apparat_auteur']
     const cols = ['ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5'] as const
     ;(async () => {
       const reponses = await Promise.all(cols.map(col =>
         supabase.from('segments').select('id').eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
-          .in('nature', NATURES_TEXTE).not(col, 'is', null).neq(col, '').limit(1)
+          .in('nature', NATURES_CORPS).not(col, 'is', null).neq(col, '').limit(1)
       ))
       if (annule) return
       setNiveauxPresents(cols.map((_, i) => ((reponses[i].data as unknown[])?.length ?? 0) > 0))
@@ -810,24 +811,22 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
-    const SELECT = 'id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before'
     // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
     // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
     // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
-    const NATURES_TEXTE = ['texte', 'introduction', 'citation', 'dialogue', 'texte absent', 'vers', 'rubrique', 'signature', 'apparat_auteur']
     // Chargement par lots de 1000 mais EN PARALLÈLE (les grosses divisions, ex.
     // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
     // récupère le total avec le 1er lot, puis on tire le reste d'un coup.
     const lotNiv1 = (from: number) => {
-      let q = supabase.from('segments').select(SELECT).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
-        .in('nature', NATURES_TEXTE).order('segment_numero').range(from, from + 999)
+      let q = supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
+        .in('nature', NATURES_CORPS).order('segment_numero').range(from, from + 999)
       if (!lectureTexteEntier && !texteSansNiveaux && n1) {
         q = n1 === NIV1_LIMINAIRES ? q.is('ref_niv1', null) : q.eq('ref_niv1', n1)
       }
       return q
     }
-    let premierReq = supabase.from('segments').select(SELECT, { count: 'exact' }).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
-      .in('nature', NATURES_TEXTE).order('segment_numero').range(0, 999)
+    let premierReq = supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
+      .in('nature', NATURES_CORPS).order('segment_numero').range(0, 999)
     if (!lectureTexteEntier && !texteSansNiveaux && n1) {
       premierReq = n1 === NIV1_LIMINAIRES ? premierReq.is('ref_niv1', null) : premierReq.eq('ref_niv1', n1)
     }
@@ -894,6 +893,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
+        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
       }
     })
 
@@ -930,7 +930,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const chargerApparatData = async () => {
     const { data, error } = await supabase
       .from('segments')
-      .select('id,id_texte,segment_key,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv5,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,nature,notes,paragraphe,rang,texte_original,espace_textuel,join_before')
+      .select(SELECT_SEGMENT)
       .eq('id_oeuvre', idOeuvre)
       .eq('id_texte', idTexte)
       .eq('nature', 'apparat_critique')
@@ -956,6 +956,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
+        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
       }
     })
 
@@ -2087,12 +2088,49 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
+                    // Strophe : un poème ne se compose pas comme de la prose. Toute la
+                    // règle vit dans `app/lib/compositionVers.ts`, que les traductions
+                    // parallèles emploient aussi — une seule composition, deux surfaces.
+                    const toutVers = chunk.ids.every(sid => segMap.get(sid)?.nature === 'vers')
                     return (
                     <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? 'para-bilingue' : undefined}
                       /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
                       style={{ paddingRight: gouttiereTitre }}>
+                      {toutVers ? (
+                        /* ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne.
+                           Un seul `<p>` ne peut pas rentrer chaque ligne : `text-indent`
+                           ne s'applique qu'à la PREMIÈRE ligne d'un bloc, et jamais après
+                           un saut forcé. D'où une boîte par vers — et le retrait de suite
+                           qui distingue une ligne trop longue du vers d'après.
+                           Ni justification ni césure : on ne coupe pas un alexandrin. */
+                        <div lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0 }}>
+                          {(() => {
+                            const rangs = niveauxAlinea(chunk.ids.map(sid => segMap.get(sid)?.alinea))
+                            return chunk.ids.map((sid, i) => {
+                              const s = segMap.get(sid)
+                              if (!s) return null
+                              const actif = segActif === sid
+                              const estPremier = sid === premierSegmentId
+                              const strophe = ouvreStrophe(
+                                { strophe_avant: s.stropheAvant, paragraphe: s.paragraphe },
+                                i > 0 ? segMap.get(chunk.ids[i - 1]) : undefined,
+                              )
+                              return (
+                                <span key={sid} style={{ display: 'block', lineHeight: 1.4, marginTop: strophe ? '0.6rem' : 0, marginLeft: `${retraitVers(rangs[i])}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
+                                  <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
+                                    onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                    onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                                    onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                                    {rendreCorpsSegment(s, estPremier)}
+                                  </span>
+                                </span>
+                              )
+                            })
+                          })()}
+                        </div>
+                      ) : (
                       <p lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                         {chunk.ids.map((sid, i) => {
                           const s = segMap.get(sid)
@@ -2112,6 +2150,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           )
                         })}
                       </p>
+                      )}
                       {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
                         // En « Latin/Grec seul », l'original occupe seul la colonne, au gabarit du
                         // français (mêmes taille et teinte). La langue de l'original commande la

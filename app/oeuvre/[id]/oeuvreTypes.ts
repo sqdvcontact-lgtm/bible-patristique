@@ -34,6 +34,14 @@ export type SegData = {
   nature?: string | null
   espaceTextuel?: string | null
   joinBefore?: string | null
+  /** La position du bord gauche de la ligne sur la page imprimée, relevée à
+   *  l'océrisation (`segment_metadata.indent_inches`). C'est d'elle que se déduisent
+   *  les alinéas poétiques — voir `app/lib/compositionVers.ts`. */
+  alinea?: number | null
+  /** La ligne ouvre-t-elle une strophe (`segment_metadata.stanza_before`) ?
+   *  ⚠️ `null` veut dire « l'édition n'a rien dit », et non « non » : c'est cette
+   *  distinction qui commande le repli sur `paragraphe`. */
+  stropheAvant?: boolean | null
 }
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
