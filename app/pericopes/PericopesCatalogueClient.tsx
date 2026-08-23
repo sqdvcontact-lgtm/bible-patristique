@@ -2,8 +2,8 @@
 
 // Catalogue de toutes les péricopes — un INDEX ANNOTÉ, sur le modèle d'un index de fin
 // d'ouvrage : le nom du livre se tient dans la marge (et y reste tant qu'on parcourt ce
-// livre), les péricopes se suivent à droite en une seule colonne, chacune avec sa
-// référence dorée et la première phrase de sa notice.
+// livre), les références dorées descendent en colonne au même fer, et les péricopes se
+// suivent à droite, chacune avec la première phrase de sa notice.
 //
 // Les données arrivent PRÉ-CHARGÉES du serveur (rendu ISR, voir app/pericopes/page.tsx) ;
 // ce composant ne gère que l'interactivité : recherche, cases de filtre, saut à un livre.
@@ -27,6 +27,13 @@
 //    les noms de livres : voir app/lib/pericopesRecherche.ts, pur et testé.
 // 5. LE VOLET SÉPARE NAVIGUER DE FILTRER, du même gris et de la même graisse jusqu'ici,
 //    si bien que rien ne permettait de prédire ce qu'un clic ferait.
+//
+// Reprise du 2026-08-23 : LA RÉFÉRENCE PREND SA COLONNE, entre le nom du livre et le
+// titre, au lieu de flotter au fer à droite de celui-ci. Les chapitres se rangeaient sur
+// un bord ragué, loin des entrées qu'ils situent ; au même fer, ils forment la colonne de
+// numéros qu'on descend du regard pour retrouver un passage, comme on consulte un index.
+// Le compte de péricopes quitte la marge : la liste le montre déjà, et il faisait
+// concurrence au nom du livre.
 
 import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -345,15 +352,16 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           font-family: ${SERIF}; font-size: 1rem; font-weight: 500; color: var(--cs-encre);
           margin: 0; line-height: 1.2; letter-spacing: 0.01em;
         }
-        .peri-marge .n { display: block; margin-top: 2px; font-family: ${SANS}; font-size: 0.59375rem; color: var(--cs-texte-second); }
 
         /* En mobile, la marge n'a plus lieu d'être : le nom coiffe ses entrées, au fer
            à gauche, prolongé d'un filet qui s'estompe. */
         .peri-groupe--mobile { display: block; margin-bottom: 1.625rem; }
         .peri-groupe--mobile .peri-marge { display: flex; align-items: baseline; gap: 11px; text-align: left; margin-bottom: 7px; }
-        .peri-groupe--mobile .peri-marge-in { position: static; display: flex; align-items: baseline; gap: 9px; }
-        .peri-groupe--mobile .peri-marge .n { display: inline; margin-top: 0; }
+        .peri-groupe--mobile .peri-marge-in { position: static; }
         .peri-groupe--mobile .peri-marge .rule { flex: 1; height: 1px; align-self: center; background: linear-gradient(to right, var(--cs-bord), transparent); }
+        /* La colonne des références se resserre sur un écran étroit : à sa largeur de
+           bureau elle y prendrait le quart de la mesure. */
+        .peri-groupe--mobile .peri-entree { grid-template-columns: 4.5rem 1fr; column-gap: 0.75rem; }
 
         /* Rubrique de Testament : le seul rang au-dessus du livre. Sans elle, la
            descente de 48 livres n'avait aucune articulation. */
@@ -363,20 +371,23 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-testament .rule { flex: 1; height: 1px; background: var(--cs-bord); }
 
         /* ── Une entrée ─────────────────────────────────────────────────────── */
-        /* Titre en serif à gauche, glose italique contre lui, référence dorée au fer à
-           droite (comme la table d'un livre) ; sous le titre, la première phrase de la
-           notice ; un chevron doré paraît au survol et mène à la péricope. */
+        /* Deux cases : la référence dorée dans sa colonne, puis la péricope. Les
+           références partent toutes du même fer, chiffres à chasse fixe, et se lisent
+           comme la colonne de numéros d'un index ; le titre commence là où commencent
+           tous les autres. Glose italique contre le titre, première phrase de la notice
+           dessous, et un chevron doré qui paraît au survol et mène à la péricope. */
         .peri-entrees { display: flex; flex-direction: column; gap: 11px; }
         .peri-entree {
-          display: block; text-decoration: none; color: inherit;
-          padding: 3px 4px 3px 0; border-radius: 4px; transition: background 0.14s ease;
+          display: grid; grid-template-columns: 4.75rem 1fr; column-gap: 1.125rem; align-items: baseline;
+          text-decoration: none; color: inherit;
+          padding: 3px 4px; border-radius: 4px; transition: background 0.14s ease;
         }
         .peri-entree:hover, .peri-entree:focus-visible { background: rgba(var(--cs-vert-rgb), 0.055); }
-        .peri-l1 { display: flex; align-items: baseline; gap: 10px; }
-        .peri-titre { flex: 1; min-width: 0; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; transition: color 0.14s ease; }
+        .peri-ref { font-family: ${SERIF}; font-size: 0.71875rem; color: var(--cs-or); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .peri-corps { min-width: 0; }
+        .peri-titre { display: block; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; transition: color 0.14s ease; }
         .peri-entree:hover .peri-titre, .peri-entree:focus-visible .peri-titre { color: ${VERT}; }
         .peri-glose { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; font-weight: 400; color: var(--cs-texte-faible); }
-        .peri-ref { flex-shrink: 0; font-family: ${SERIF}; font-size: 0.71875rem; color: var(--cs-or); font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 2px; }
         /* La notice est bornée à deux lignes : la première phrase fait 118 signes en
            moyenne et tient donc sur une, mais quelques-unes débordent. */
@@ -476,9 +487,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                         <div className="peri-marge">
                           <div className="peri-marge-in">
                             <h2>{NOM_LIVRE[g.livre] ?? g.livre}</h2>
-                            {/* Un « 1 » sous un livre qui n'a qu'une péricope ne dit rien que la
-                                liste ne montre : 19 livres sur 48 sont dans ce cas. */}
-                            {g.list.length > 1 && <span className="n">{g.list.length}</span>}
                           </div>
                           {mobile && <span className="rule" aria-hidden="true" />}
                         </div>
@@ -488,22 +496,22 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                             const glose = gloseEntree(it)
                             return (
                               <Link key={it.id} href={`/pericopes/${it.id}`} className="peri-entree">
-                                <div className="peri-l1">
+                                <span className="peri-ref">{refDansLivre(it.canon_debut, it.canon_fin)}</span>
+                                <div className="peri-corps">
                                   <span className="peri-titre">
                                     {rendreTexteEnrichi(it.nom)}
                                     {glose && <span className="peri-glose">{glose}</span>}
                                   </span>
-                                  <span className="peri-ref">{refDansLivre(it.canon_debut, it.canon_fin)}</span>
+                                  {/* La rangée existe même sans notice : c'est elle qui porte
+                                      le chevron, seule affordance de navigation de l'entrée. */}
+                                  <div className="peri-l2">
+                                    <span className="peri-notice">{it.notice_debut ? rendreTexteEnrichi(it.notice_debut) : ''}</span>
+                                    <span className="peri-fleche" aria-hidden="true">
+                                      <IconeChevron dir="right" size={13} strokeWidth={1.5} />
+                                    </span>
+                                  </div>
+                                  {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}
                                 </div>
-                                {/* La rangée existe même sans notice : c'est elle qui porte
-                                    le chevron, seule affordance de navigation de l'entrée. */}
-                                <div className="peri-l2">
-                                  <span className="peri-notice">{it.notice_debut ? rendreTexteEnrichi(it.notice_debut) : ''}</span>
-                                  <span className="peri-fleche" aria-hidden="true">
-                                    <IconeChevron dir="right" size={13} strokeWidth={1.5} />
-                                  </span>
-                                </div>
-                                {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}
                               </Link>
                             )
                           })}
