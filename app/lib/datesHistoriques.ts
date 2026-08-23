@@ -10,6 +10,36 @@ export type PeriodeHistorique = {
   fin?: BorneDateHistorique | null
 }
 
+/* ── Le séparateur d'un intervalle de dates ───────────────────────────────────
+ *
+ *  Un simple TRAIT D'UNION, une espace de chaque côté : « 354 - 430 », « Vers 480
+ *  - 524 », « Début du IXe siècle - Après 868 ». Le demi-cadratin employé jusqu'ici
+ *  se posait sans espaces sur les dates lues telles quelles en base, et les deux
+ *  bornes se touchaient.
+ *
+ *  Les deux espaces sont INSÉCABLES à l'affichage : un trait d'union autorise le
+ *  retour à la ligne juste après lui, et l'on verrait des dates coupées en deux
+ *  (« 354 - » d'un côté, « 430 » de l'autre). La forme CANONIQUE, celle qu'on écrit
+ *  en base, garde des espaces ordinaires : rien n'y réclame une insécable, et un
+ *  caractère invisible s'oublie dans une colonne de texte.
+ */
+export const SEPARATEUR_INTERVALLE = ' - '
+export const SEPARATEUR_INTERVALLE_AFFICHE = ' - '
+
+// Le tiret qui sépare DEUX BORNES, et lui seul. On le reconnaît à ce qui le
+// précède : un chiffre (« 354-430 »), le mot « siècle » (« IVe siècle-Ve siècle »)
+// ou l'ordinal d'un romain (« IIIe-IVe siècle »). Sans cette condition, le trait
+// d'union de « av. J.-C. », de « Bar-le-Duc » ou de « Jacques-Paul » serait espacé
+// lui aussi.
+const SEPARATEUR_BORNES = /(\d|siècles?|\bs\.|[IVXLCDM]+(?:er|ère|ere|ème|eme|ième|ieme|e))\s*[-‐-―−]\s*(?=[\p{L}\d])/giu
+
+/** Harmonise l'espacement d'un intervalle déjà rédigé — en base ou par le
+ *  formateur — sans rien recalculer de ses bornes : « 354-430 », « 354 – 430 » et
+ *  « 354 - 430 » se rendent tous « 354 - 430 », espaces insécables comprises. */
+export function espacerIntervallesHistoriques(valeur: string): string {
+  return valeur.trim().replace(SEPARATEUR_BORNES, (_, borne: string) => `${borne}${SEPARATEUR_INTERVALLE_AFFICHE}`)
+}
+
 const TIRETS_LONGS = /[\u2010-\u2015\u2212]/g
 const ESPACES = /\s+/g
 const PREFIXE_VERS = /^(?:v\.?|vers)(?=\s|\d|$)\s*/i
@@ -88,7 +118,7 @@ export function parserDateHistorique(valeur: unknown): PeriodeHistorique | null 
 
 export function formaterPeriodeHistorique(periode: PeriodeHistorique | null | undefined) {
   if (!periode?.debut && !periode?.fin) return ''
-  if (periode.debut && periode.fin) return `${formaterBorne(periode.debut)} – ${formaterBorne(periode.fin)}`
+  if (periode.debut && periode.fin) return `${formaterBorne(periode.debut)}${SEPARATEUR_INTERVALLE}${formaterBorne(periode.fin)}`
   return formaterBorne((periode.debut ?? periode.fin)!)
 }
 
@@ -108,7 +138,7 @@ export function formaterPeriodeHistoriqueDepuisBornes(debut: unknown, fin: unkno
   const d = normaliserDateHistoriqueTexte(debut)
   const f = normaliserDateHistoriqueTexte(fin)
   if (!d && !f) return null
-  if (d && f) return `${d} – ${f}`
+  if (d && f) return `${d}${SEPARATEUR_INTERVALLE}${f}`
   return d ?? f
 }
 

@@ -516,7 +516,6 @@ button:focus-visible,
      reste au-dessus du second, sans quoi le titre cesserait de coiffer ce qui
      le suit. */
   .bib-ligne a > span { row-gap: 3px !important; line-height: 1.35 !important; }
-  .bib-ligne { margin-top: 1px !important; }
 
   /* ── Rendre à la colonne la largeur que les marges lui prenaient ───────────
      Le conteneur de page garde 32px de chaque côté, calibrés pour un écran

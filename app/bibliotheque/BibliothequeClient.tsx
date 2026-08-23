@@ -24,6 +24,9 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { libelleLangue, libelleTexteOriginal } from '@/app/lib/langues'
+import { FAMILLES_TRADITION, famillesDesTraditions } from '@/app/lib/traditions'
 
 type Oeuvre = {
   id_oeuvre: string; id_auteur: string; titre: string; sous_titre: string | null
@@ -150,6 +153,19 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
     </div>
   )
 }
+
+// Le blanc qui sépare deux lignes dans la liste des œuvres — texte original,
+// traduction, autre édition : le MÊME pour toutes. Il valait 1px entre un texte
+// original et sa traduction, 5px partout ailleurs, si bien que l'écart changeait
+// de taille d'une ligne à l'autre au gré de ce que chaque œuvre porte : « Texte
+// original latin — Jacques-Paul Migne, Paris, 1845 » se trouvait écarté de la
+// ligne suivante deux fois plus que de la précédente. Ce qui sépare les ŒUVRES
+// entre elles, c'est le filet et le retrait du groupe, pas l'écart des lignes.
+// (Le même chiffre vaut sur téléphone : voir `.bib-ligne` dans globals.css.)
+const MARGE_LIGNE_OEUVRE = '1px'
+
+// Nombre d'auteurs par page de bibliothèque.
+const AUTEURS_PAR_PAGE = 10
 
 // Nombre de lignes de notice avant la première mesure. Ce n'est qu'un point de
 // départ : la valeur réelle se calcule sur la hauteur que la carte laisse, avant
@@ -392,15 +408,21 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     // renseignée) n'a pas de traducteur à nommer : c'est sa langue qui la
                     // désigne, comme dans les menus de lecture de la page d'œuvre. Sans
                     // cela, l'œuvre latine autonome ne se donnait que par son éditeur, et
-                    // rien ne disait qu'on allait lire du latin.
+                    // rien ne disait qu'on allait lire du latin. Le libellé est CELUI de la
+                    // sous-ligne de texte original ci-dessous : les deux se suivent dans la
+                    // même liste et mènent à la même sorte de lecture ; ils s'appelaient
+                    // « Texte latin » d'un côté, « Texte original latin » de l'autre.
                     const langueSeule = !(o.langue_trad && o.langue_trad.trim()) && !!(o.langue_originale && o.langue_originale.trim())
-                      ? (/grec/i.test(o.langue_originale ?? '') ? 'Texte grec' : 'Texte latin')
+                      ? libelleTexteOriginal(o.langue_originale)
                       : ''
                     const libelle = trad || langueSeule || (aEdition ? edition : 'Édition')
                     // Texte original parallèle (latin/grec) disponible pour cette édition :
                     // on propose une sous-ligne menant à l'œuvre en mode « texte original ».
                     const aOriginal = !!originaux?.has(o.id_oeuvre)
-                    const langueOrig = o.langue_originale === 'Grec' ? 'grec' : 'latin'
+                    // La langue telle qu'elle est en base (« Latin », « Grec »…), en bas de
+                    // casse pour tenir dans une phrase. L'ancien test ne connaissait que le
+                    // grec et rangeait tout le reste — syriaque compris — sous « latin ».
+                    const langueOrig = (o.langue_originale ?? '').trim().toLocaleLowerCase('fr-FR') || 'original'
                     return (
                       <React.Fragment key={o.id_oeuvre}>
                       {aOriginal && (
@@ -410,7 +432,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         // traduction pour retrouver l’original. Le texte original n’ayant pas de
                         // ligne d’œuvre à lui, sa référence prend le suffixe « #la »
                         // (voir app/lib/refsFavoris.ts).
-                        <div className="bib-ligne" style={{ marginTop: '5px', alignItems: 'center' }}>
+                        <div className="bib-ligne" style={{ marginTop: MARGE_LIGNE_OEUVRE, alignItems: 'center' }}>
                           <div className="bib-etoile" style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
                             <EtoileFavori actif={favorisOeuvres.has(refFavoriOriginal(o.id_oeuvre))}
                               onToggle={() => toggleFavoriOeuvre(refFavoriOriginal(o.id_oeuvre))} size={12}
@@ -421,7 +443,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           <Link href={`/oeuvre/${o.id_oeuvre}?mt=la`}
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
                             <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>Texte original {langueOrig}</span>
+                              <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>{libelleTexteOriginal(o.langue_originale)}</span>
                               {o.titre_original && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.titre_original}</span>}
                             </span>
                             <span className="bib-lire">
@@ -431,10 +453,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </Link>
                         </div>
                       )}
-                      {/* Écart intra-paire resserré : la traduction se colle à son texte
-                          original (1px), tandis que la marge de 5px au-dessus de la ligne
-                          originale continue de séparer les œuvres entre elles. */}
-                      <div className="bib-ligne" style={{ marginTop: '1px', alignItems: 'center' }}>
+                      {/* Même écart qu'au-dessus : toutes les lignes de la liste — texte
+                          original, traduction, édition — se suivent au même pas. */}
+                      <div className="bib-ligne" style={{ marginTop: MARGE_LIGNE_OEUVRE, alignItems: 'center' }}>
                         {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction.
                             Montée au titre, l'étoile laisse ici la même cale que la ligne de texte
                             original, pour que les libellés restent alignés entre eux. */}
@@ -523,6 +544,49 @@ function LigneFiltres({ label, children }: { label: string; children: React.Reac
       <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.2em', textIndent: '0.2em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', textAlign: 'center' }}>{label}</span>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', justifyContent: 'center' }}>{children}</div>
     </div>
+  )
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+// Deux listes d'auteurs sur cette page — la bibliothèque et le catalogue — et une
+// seule façon d'en tourner les pages : des flèches fixées aux bords de l'écran,
+// toujours sous la main, doublées d'un pied « Page 1 sur 3 » qui dit où l'on en est.
+function Pagination({ page, nbPages, onChanger }: {
+  page: number; nbPages: number; onChanger: (delta: number) => void
+}) {
+  if (nbPages <= 1) return null
+  const auDebut = page === 0
+  const aLaFin = page >= nbPages - 1
+  const flecheFixe = (cote: 'gauche' | 'droite', inactive: boolean): React.CSSProperties => ({
+    position: 'fixed', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
+    left: cote === 'gauche' ? '18px' : undefined, right: cote === 'droite' ? '18px' : undefined,
+    width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
+    background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)',
+    cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 0.35 : 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48',
+  })
+  const flechePied = (inactive: boolean): React.CSSProperties => ({
+    width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
+    background: 'var(--cs-surface)', cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 0.3 : 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0,
+  })
+  const chevron = (cote: 'gauche' | 'droite', taille: number) => (
+    <svg width={taille} height={taille} viewBox="0 0 16 16" fill="none">
+      <path d={cote === 'gauche' ? 'M10 3l-5 5 5 5' : 'M6 3l5 5-5 5'} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+  return (
+    <>
+      <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flecheFixe('gauche', auDebut)}>{chevron('gauche', 14)}</button>
+      <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flecheFixe('droite', aLaFin)}>{chevron('droite', 14)}</button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
+        <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flechePied(auDebut)}>{chevron('gauche', 12)}</button>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+          Page {page + 1} sur {nbPages}
+        </span>
+        <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flechePied(aLaFin)}>{chevron('droite', 12)}</button>
+      </div>
+    </>
   )
 }
 
@@ -997,42 +1061,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
             ))}
           </div>
 
-          {nbPages > 1 && (
-            <>
-              {/* Flèches fixes, toujours visibles à l'écran */}
-              <button onClick={() => changerPage(-1)} disabled={pageActive === 0}
-                aria-label="Page précédente"
-                style={{ position: 'fixed', left: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
-                  width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-                  background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)', cursor: pageActive === 0 ? 'default' : 'pointer',
-                  opacity: pageActive === 0 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </button>
-              <button onClick={() => changerPage(1)} disabled={pageActive >= nbPages - 1}
-                aria-label="Page suivante"
-                style={{ position: 'fixed', right: '18px', top: '50%', transform: 'translateY(-50%)', zIndex: 40,
-                  width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-                  background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer',
-                  opacity: pageActive >= nbPages - 1 ? 0.35 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48' }}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </button>
-
-              {/* Pagination en pied : flèches ‹ › encadrant l'indicateur de page. */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
-                <button onClick={() => changerPage(-1)} disabled={pageActive === 0} aria-label="Page précédente"
-                  style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: pageActive === 0 ? 'default' : 'pointer', opacity: pageActive === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
-                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                  Page {pageActive + 1} sur {nbPages}
-                </span>
-                <button onClick={() => changerPage(1)} disabled={pageActive >= nbPages - 1} aria-label="Page suivante"
-                  style={{ width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: pageActive >= nbPages - 1 ? 'default' : 'pointer', opacity: pageActive >= nbPages - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0 }}>
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
-              </div>
-            </>
-          )}
+          <Pagination page={pageActive} nbPages={nbPages} onChanger={changerPage} />
         </>
       )}
 
@@ -1613,7 +1642,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const [filtresOuverts, setFiltresOuverts] = useState(false)
   const [periodesActives, setPeriodesActives] = useState<Set<number>>(new Set())
   const [languesActives, setLanguesActives] = useState<Set<string>>(new Set())
-  const [traditionsActives, setTraditionsActives] = useState<Set<string>>(new Set())
+  const [famillesActives, setFamillesActives] = useState<Set<string>>(new Set())
   const basculer = <T,>(setter: React.Dispatch<React.SetStateAction<Set<T>>>, v: T) =>
     setter(prev => { const s = new Set(prev); s.has(v) ? s.delete(v) : s.add(v); return s })
 
@@ -1621,10 +1650,14 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const languesDispo = useMemo(
     () => Array.from(new Set(auteurs.map(a => a.langue_principale).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b, 'fr')),
     [auteurs])
-  const traditionsDispo = useMemo(
-    () => Array.from(new Set(auteurs.flatMap(a => a.traditions ?? []))).sort((a, b) => a.localeCompare(b, 'fr')),
-    [auteurs])
-  const nbFiltres = periodesActives.size + languesActives.size + traditionsActives.size
+  // Les traditions ne paraissent plus une à une : seize auteurs en alignaient
+  // soixante-dix, et le panneau était illisible. Elles se rangent par familles
+  // (voir app/lib/traditions.ts) ; la fiche de l'auteur garde le détail.
+  const famillesDispo = useMemo(() => {
+    const présentes = new Set(auteurs.flatMap(a => famillesDesTraditions(a.traditions)))
+    return FAMILLES_TRADITION.filter(f => présentes.has(f.cle))
+  }, [auteurs])
+  const nbFiltres = periodesActives.size + languesActives.size + famillesActives.size
 
   const qNorm = sansAccents(recherche.trim())
 
@@ -1636,11 +1669,37 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
         if (n == null || ![...periodesActives].some(i => n >= PERIODES[i].min && n <= PERIODES[i].max)) return false
       }
       if (languesActives.size && !(a.langue_principale && languesActives.has(a.langue_principale))) return false
-      if (traditionsActives.size && !(a.traditions ?? []).some(t => traditionsActives.has(t))) return false
+      if (famillesActives.size && !famillesDesTraditions(a.traditions).some(c => famillesActives.has(c))) return false
       return true
     })
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
-  [auteurs, qNorm, periodesActives, languesActives, traditionsActives])
+  [auteurs, qNorm, periodesActives, languesActives, famillesActives])
+
+  // La liste se tourne par pages de DIX auteurs. Chaque fiche fait deux cents
+  // pixels, et sa liste d'œuvres dépliée bien davantage : au-delà de dix, on ne
+  // parcourt plus une bibliothèque, on fait défiler.
+  const [pageAuteurs, setPageAuteurs] = useState(0)
+  const nbPagesAuteurs = Math.max(1, Math.ceil(auteursFiltres.length / AUTEURS_PAR_PAGE))
+  const pageAuteursActive = Math.min(pageAuteurs, nbPagesAuteurs - 1)
+  const auteursPage = auteursFiltres.slice(pageAuteursActive * AUTEURS_PAR_PAGE, (pageAuteursActive + 1) * AUTEURS_PAR_PAGE)
+
+  // Toute recherche et tout filtre ramènent à la première page. Ajusté PENDANT le
+  // rendu et non dans un effet : sinon l'on verrait un instant la cinquième page
+  // d'une liste qui n'en a plus qu'une (même patron que le catalogue).
+  const critereListe = [qNorm, [...periodesActives].sort().join('+'), [...languesActives].sort().join('+'), [...famillesActives].sort().join('+')].join('|')
+  const [critereRecu, setCritereRecu] = useState(critereListe)
+  if (critereRecu !== critereListe) { setCritereRecu(critereListe); setPageAuteurs(0) }
+
+  // On revient en tête de liste : dix fiches font plusieurs écrans, et rester à la
+  // même hauteur ferait tomber au milieu de la page suivante. Le décalage sous la
+  // barre fixe est posé par `scrollMarginTop`, que le navigateur respecte — la
+  // hauteur de barre est en rem et grandit avec la police racine, elle ne peut pas
+  // s'écrire en pixels ici.
+  const listeAuteursRef = useRef<HTMLDivElement>(null)
+  const changerPageAuteurs = (delta: number) => {
+    setPageAuteurs(p => Math.max(0, Math.min(nbPagesAuteurs - 1, p + delta)))
+    requestAnimationFrame(() => listeAuteursRef.current?.scrollIntoView({ block: 'start' }))
+  }
 
   return (
     <main style={{
@@ -1721,20 +1780,22 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 {languesDispo.length > 0 && (
                   <LigneFiltres label="Langue">
                     {languesDispo.map(l => (
-                      <Chip key={l} theme="langue" actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{l}</Chip>
+                      // La valeur reste celle de la base (« latin »), la pastille porte
+                      // l'étiquette (« Latin ») : voir app/lib/langues.ts.
+                      <Chip key={l} theme="langue" actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
                     ))}
                   </LigneFiltres>
                 )}
-                {traditionsDispo.length > 0 && (
+                {famillesDispo.length > 0 && (
                   <LigneFiltres label="Tradition">
-                    {traditionsDispo.map(t => (
-                      <Chip key={t} theme="genre" actif={traditionsActives.has(t)} onClick={() => basculer(setTraditionsActives, t)}>{t}</Chip>
+                    {famillesDispo.map(famille => (
+                      <Chip key={famille.cle} theme="genre" actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
                     ))}
                   </LigneFiltres>
                 )}
                 {nbFiltres > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '2px' }}>
-                    <button onClick={() => { setPeriodesActives(new Set()); setLanguesActives(new Set()); setTraditionsActives(new Set()) }}
+                    <button onClick={() => { setPeriodesActives(new Set()); setLanguesActives(new Set()); setFamillesActives(new Set()) }}
                       style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       Effacer les filtres
                     </button>
@@ -1748,11 +1809,14 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 Aucun auteur ne correspond à ces critères.
               </p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {auteursFiltres.map(auteur => (
-                  <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux} />
-                ))}
-              </div>
+              <>
+                <div ref={listeAuteursRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
+                  {auteursPage.map(auteur => (
+                    <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux} />
+                  ))}
+                </div>
+                <Pagination page={pageAuteursActive} nbPages={nbPagesAuteurs} onChanger={changerPageAuteurs} />
+              </>
             )}
           </>
         )}

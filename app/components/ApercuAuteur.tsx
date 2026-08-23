@@ -12,7 +12,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
-import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { libelleLangue } from '@/app/lib/langues'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { equilibrerEnrichissements, rendreEnrichi } from '@/app/lib/enrichissements'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -113,7 +114,7 @@ export default function ApercuAuteur({
   }, [])
 
   const meta = auteur
-    ? rendreSiecles([formaterDateHistorique(auteur.dates), auteur.langue_principale, ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
+    ? rendreSiecles([espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates)), libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
     : null
   const photoUrl = auteur ? `${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg` : ''
   const initiales = auteur ? auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('') : ''

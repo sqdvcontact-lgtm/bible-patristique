@@ -13,7 +13,8 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
@@ -180,9 +181,11 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
   const [photoOk, setPhotoOk] = useState(true)
   const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`
   const photoPos = parsePhotoPos(auteur.photo_position)
-  const datesAuteur = formaterDateHistorique(auteur.dates)
+  const datesAuteur = espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates))
   const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
-  const meta = rendreSiecles([datesAuteur, auteur.langue_principale, ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
+  // Dates, langue et traditions sur une même ligne d'étiquettes : la langue y prend
+  // donc la capitale, comme le siècle et la tradition qui l'encadrent.
+  const meta = rendreSiecles([datesAuteur, libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
 
   // Affichage : la date courte de composition établie par la vue canonique.
   const dateCompo = (o: OeuvreResumee) => o.date_composition_affichage_courte || ''

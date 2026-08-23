@@ -1,4 +1,5 @@
 import React from 'react'
+import { SEPARATEUR_INTERVALLE_AFFICHE } from './datesHistoriques'
 
 /* ── Les siècles, en un seul endroit ──────────────────────────────────────────
  *
@@ -154,13 +155,17 @@ export function Siecle({ n }: { n: number }) {
   )
 }
 
-/** Empan de deux siècles : « Ier–IIe siècle ». Employé par les filtres. */
+/** Empan de deux siècles : « Ier - IIe siècle ». Employé par les filtres.
+ *
+ *  Le séparateur est celui de toutes les dates du site : un trait d'union entre
+ *  deux espaces insécables. Le demi-cadratin serré qu'on employait ici collait les
+ *  deux siècles l'un à l'autre. */
 export function EmpanSiecles({ de, a }: { de: number; a: number }) {
   return (
     <span>
       <span style={STYLE_ROMAIN}>{enChiffresRomains(de)}</span>
       <sup style={STYLE_ORDINAL}>{de === 1 ? 'er' : 'e'}</sup>
-      –
+      {SEPARATEUR_INTERVALLE_AFFICHE}
       <span style={STYLE_ROMAIN}>{enChiffresRomains(a)}</span>
       <sup style={STYLE_ORDINAL}>{a === 1 ? 'er' : 'e'}</sup>
       {' siècle'}

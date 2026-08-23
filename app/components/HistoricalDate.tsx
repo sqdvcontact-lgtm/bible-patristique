@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { decouperSiecles } from '../lib/siecles'
+import { espacerIntervallesHistoriques } from '../lib/datesHistoriques'
 
 export type HistoricalDateVariant = 'long' | 'short'
 
@@ -7,8 +8,6 @@ type HistoricalDateProps = {
   value: string | null | undefined
   variant: HistoricalDateVariant
 }
-
-const ESPACE_INSECABLE = '\u00a0'
 
 export const STYLE_DATE_ROMAIN: CSSProperties = {
   fontVariantCaps: 'all-small-caps',
@@ -25,10 +24,11 @@ export const STYLE_DATE_ORDINAL: CSSProperties = {
   top: '-0.5em',
 }
 
-/** Harmonise seulement l'espacement typographique d'une chaîne établie en base. */
-export function espacerIntervallesHistoriques(value: string): string {
-  return value.trim().replace(/\s*–\s*/g, `${ESPACE_INSECABLE}–${ESPACE_INSECABLE}`)
-}
+// L'espacement d'un intervalle vit désormais dans `datesHistoriques`, auprès du
+// formateur qui l'écrit : une seule règle pour la date qu'on compose et pour celle
+// qu'on lit telle quelle en base. Réexporté ici, où les appelants l'ont toujours
+// trouvé.
+export { espacerIntervallesHistoriques }
 
 function rendreFragments(value: string, keyPrefix: string): ReactNode[] {
   return decouperSiecles(value).map((fragment, index) => {
