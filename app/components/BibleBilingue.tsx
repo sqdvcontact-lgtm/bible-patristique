@@ -76,7 +76,7 @@ const STYLE_VERSET_ORIGINAL = {
   ...STYLE_VERSET,
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: '0.8125rem',
-  color: '#575048',
+  color: 'var(--cs-original)',
   wordSpacing: '-0.025em',
 }
 

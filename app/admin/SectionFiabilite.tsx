@@ -164,7 +164,7 @@ export default function SectionFiabilite() {
                     placeholder="Motif de la réserve (obligatoire)…"
                     style={{ flex: 1, fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '5px 9px' }} />
                   <button onClick={confirmerReserve} disabled={!reserveEnCours.motif.trim()}
-                    style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 700, cursor: reserveEnCours.motif.trim() ? 'pointer' : 'not-allowed', padding: '5px 12px', borderRadius: '8px', border: 'none', background: reserveEnCours.motif.trim() ? 'var(--cs-danger-fonce)' : 'var(--cs-bord)', color: 'var(--cs-surface)', opacity: reserveEnCours.motif.trim() ? 1 : 0.7 }}>
+                    style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 700, cursor: reserveEnCours.motif.trim() ? 'pointer' : 'not-allowed', padding: '5px 12px', borderRadius: '8px', border: 'none', background: reserveEnCours.motif.trim() ? 'var(--cs-danger-fonce)' : 'var(--cs-bord)', color: 'var(--cs-sur-aplat)', opacity: reserveEnCours.motif.trim() ? 1 : 0.7 }}>
                     Mettre en réserve
                   </button>
                   <button onClick={() => setReserveEnCours(null)}

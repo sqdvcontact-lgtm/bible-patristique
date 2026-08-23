@@ -13,7 +13,7 @@ export default function InvitationCompteInline({ action = 'participer' }: { acti
         La création de compte est libre et gratuite. Elle vous permet de {action}, de prélever des passages et de retrouver vos contributions.
       </p>
       <button onClick={() => exigerCompte(action)}
-        style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>
+        style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer' }}>
         Créer un compte
       </button>
     </div>

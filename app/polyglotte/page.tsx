@@ -122,7 +122,7 @@ const VERT = "var(--cs-vert)";
 // bandeau des traductions → bandeau du livre (le plus profond, l'ancre de lecture).
 const VERT_ENTETE = "var(--cs-encre)";       // bandeau du livre — le plus sombre
 const VERT_ENTETE_BAS = "var(--cs-vert-fonce)";   // la ligne des traductions, un cran plus clair
-const ROUGE = "#b3261e";
+const ROUGE = 'var(--cs-danger-fonce)';
 const ROUGE_FOND = "var(--cs-danger-fond)";
 // Rose : les cas qui RÉSISTENT (statut « resiste » dans points_sensibles). Examinés,
 // correction tentée ou pesée, non résolue — souvent parce que le contrôle de contenu
@@ -140,9 +140,9 @@ const VERT_ZEBRE_CLAIR = "var(--cs-fond-clair)";
 // séparation ENTRE TRADUCTIONS reste lisible (elle sépare deux textes distincts) ; la
 // séparation ENTRE VERSETS s'efface presque (elle ne fait que rythmer). Deux poids,
 // jamais un maillage uniforme.
-const FILET_COL = "rgba(61,107,79,0.16)";
-const FILET_LIGNE = "rgba(61,107,79,0.07)";
-const SURNUM = "#5a4b9c";       // versets propres à la Septante (hors ossature canonique)
+const FILET_COL = "rgba(var(--cs-vert-rgb),0.16)";
+const FILET_LIGNE = "rgba(var(--cs-vert-rgb),0.07)";
+const SURNUM = 'var(--cs-surnum)';       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "var(--cs-fond)";
 const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'écran)
 const CLE_SLOTS = "polyglotte-slots2";  // choix des traductions, mémorisé (v2 : colonnes adaptatives)
@@ -276,7 +276,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE, marginRight: "auto" }}>échec de l’enregistrement</span>}
           <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-gris)", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
-            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "var(--cs-surface)", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "var(--cs-sur-aplat)", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
             {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
           </button>
         </div>
@@ -500,7 +500,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
                         <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-encre-fonce)", lineHeight: 1.25 }}>{t.nom}</span>
                         <span style={{ display: "block", fontSize: "0.625rem", color: "var(--cs-texte-doux)", marginTop: 1 }}>
                           {t.edition ?? ""}
-                          {ailleurs && courante && <span style={{ color: "#b07d1e" }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
+                          {ailleurs && courante && <span style={{ color: 'var(--cs-attente)' }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
                         </span>
                       </span>
                     </button>
@@ -1005,7 +1005,7 @@ export default function PolyglottePage() {
         }
         .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
         .poly-curseur-actif .poly-texte-cell:hover .poly-act { opacity: .9; }
-        .poly-act:hover { opacity: 1 !important; color: #8a6a52; }
+        .poly-act:hover { opacity: 1 !important; color: var(--cs-texte-second); }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
         .poly-notes-head .lbl-notes { transition: opacity .15s ease; }
@@ -1014,7 +1014,7 @@ export default function PolyglottePage() {
         .poly-notes-head:hover .lbl-fermer { opacity: 1; }
         /* Rail réduit : le crayon s'éclaire au survol. */
         .poly-notes-rail { transition: background .14s ease, color .14s ease; }
-        .poly-notes-rail:hover { background: rgba(255,255,255,0.14) !important; color: var(--cs-surface) !important; }
+        .poly-notes-rail:hover { background: rgba(255,255,255,0.14) !important; color: var(--cs-sur-aplat) !important; }
         /* Surbrillance très légère de la ligne survolée. Elle passe par un filtre
            (et non par le background) pour agir par-dessus les fonds inline — zébrage,
            signalétique, surnuméraires — sans les remplacer. */
@@ -1071,7 +1071,7 @@ export default function PolyglottePage() {
           font-family: var(--font-source-sans), Arial, sans-serif;
           font-weight: 400; letter-spacing: 0.03em;
           font-variant-numeric: tabular-nums;
-          color: #6f8f7b; text-align: right;
+          color: var(--cs-texte-doux); text-align: right;
         }
         /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.26em,
            l'interligne de la cellule) : le flottant ne repousse donc qu'une seule ligne,
@@ -1079,7 +1079,7 @@ export default function PolyglottePage() {
         .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 0.75rem; line-height: 1; }
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
-        .poly-lettrine-ch { font-weight: 400; color: #a9bcb0; }
+        .poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-faible); }
         .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 1.36em; }
         /* Le crayon SE POSE SUR le numéro de référence d'origine : au survol de la cellule,
            il recouvre le numéro (fond opaque = celui de la ligne, passé en style inline, donc
@@ -1094,7 +1094,7 @@ export default function PolyglottePage() {
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
       `}</style>
 
-      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: "#5b544c" }}>
+      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: 'var(--cs-texte-second)' }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
@@ -1270,7 +1270,7 @@ export default function PolyglottePage() {
                   hors de son compte. Les réglages de relecture sont posés en `absolute` sur la
                   barre entière, DEHORS de la grille : ils ne pèsent d'aucun poids dans ce
                   centrage — le titre reste au même endroit qu'on soit admin ou non. */}
-              <div style={{ position: "relative", background: VERT_ENTETE, color: "var(--cs-surface)", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
+              <div style={{ position: "relative", background: VERT_ENTETE, color: "var(--cs-sur-aplat)", borderBottom: "1px solid rgba(255,255,255,0.18)" }}>
                 <div style={{ display: "grid", gridTemplateColumns: tmpl, alignItems: "center", minHeight: HAUT_TITRE }}>
                   <div />
                   <div style={{ gridColumn: "2 / -2", padding: "3px 12px", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', letterSpacing: "0.01em" }}>
@@ -1281,8 +1281,8 @@ export default function PolyglottePage() {
                 </div>
                   {estAdmin && (
                     <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 5 }}>
-                      {([["sensibles", sensiblesOnly, "#e0908a", "Lignes problématiques", true],
-                         ["surnum", surnumOnly, "#b3a6e8", "Surnuméraires", true]] as const)
+                      {([["sensibles", sensiblesOnly, 'var(--cs-danger-bord)', "Lignes problématiques", true],
+                         ["surnum", surnumOnly, 'var(--cs-surnum-doux)', "Surnuméraires", true]] as const)
                         .filter(([, , , , visible]) => visible)
                         .map(([cle, actif, teinte, libelle]) => (
                         <button key={cle}
@@ -1302,7 +1302,7 @@ export default function PolyglottePage() {
                     </span>
                   )}
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "var(--cs-surface)", fontSize: '0.75rem', minHeight: HAUT_ENTETE }}>
+              <div style={{ display: "grid", gridTemplateColumns: tmpl, background: VERT_ENTETE_BAS, color: "var(--cs-sur-aplat)", fontSize: '0.75rem', minHeight: HAUT_ENTETE }}>
                 <div />
                 {/* Un en-tête par colonne de traduction, exactement : la numérotation
                     d'origine ayant rejoint le texte en lettrine, il n'y a plus de seconde
@@ -1365,7 +1365,7 @@ export default function PolyglottePage() {
               ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
               : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
-              <div key={cle} className="poly-surnum-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid #e3e0f2", fontSize: '0.875rem' }}>
+              <div key={cle} className="poly-surnum-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid var(--cs-surnum-bord)", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
                     est faux et un peu comptable. L'étoile marque un verset qui existe hors de
                     l'ossature, sans porter de jugement sur sa légitimité. */}
@@ -1374,14 +1374,14 @@ export default function PolyglottePage() {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
                     <div key={i} className="poly-texte-cell" lang={sc.trad?.lang}
-                      style={{ borderLeft: "1px solid #e3e0f2", color: r ? "#3a3566" : "#cdc9e0" }}>
+                      style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)' }}>
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
                           la référence d'origine est ici la seule qui existe. */}
                       {r && (
                         <span className="poly-lettrine" style={{ color: SURNUM, borderRightColor: "rgba(90,75,156,0.22)" }}>
                           <span className="poly-lettrine-item">
                             <span className="poly-lettrine-ref">
-                              <span className="poly-lettrine-ch" style={{ color: "#9d93c4" }}>{r.ch_orig},</span> {r.v_orig}
+                              <span className="poly-lettrine-ch" style={{ color: 'var(--cs-surnum-doux)' }}>{r.ch_orig},</span> {r.v_orig}
                             </span>
                           </span>
                         </span>
@@ -1400,7 +1400,7 @@ export default function PolyglottePage() {
                   );
                 })}
                 {/* Colonne Notes : pas de note sur un surnuméraire (hors ossature du canon). */}
-                <div style={{ borderLeft: "1px solid #e3e0f2" }} />
+                <div style={{ borderLeft: "1px solid var(--cs-surnum-bord)" }} />
               </div>
             );
           };
@@ -1480,8 +1480,8 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? "#fff3c4" : fond, borderTop: `1px solid ${FILET_LIGNE}`, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
-                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? "#aeb4ae" : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : `1px solid ${FILET_COL}` }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? 'var(--cs-vise-fond)' : fond, borderTop: `1px solid ${FILET_LIGNE}`, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
+                      <div title={signaler ? desc : undefined} style={{ padding: "5px 4px", textAlign: "center", fontWeight: 700, fontSize: '0.78125rem', lineHeight: 1.15, color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : `1px solid ${FILET_COL}` }}>
                         <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                       </div>
                       {slotCols.map((sc, i) => {
@@ -1498,7 +1498,7 @@ export default function PolyglottePage() {
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
-                            style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? "#7a1d16" : "var(--cs-encre-fonce)" }}>
+                            style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un
                                 créneau du canon — leurs numéros s'écrivent alors l'un sous l'autre,
@@ -1515,14 +1515,14 @@ export default function PolyglottePage() {
                                       {/* Une intervention d'alignement laisse toujours sa trace dans
                                           `notes` : le lecteur voit QU'il y a eu intervention, et le
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
-                                      {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: "#7a6fae", cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
+                                      {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: 'var(--cs-surnum)', cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
                                     </span>
                                     {estAdmin && t.trad_id !== TRAD_ID_BIBLE899 && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
                                         onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
-                                        style={{ border: "none", cursor: "pointer", color: "#7a8f80", fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
+                                        style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
                                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = VERT; }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "#7a8f80"; }}>
+                                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--cs-texte-second)'; }}>
                                         <IconeCrayon size={11} />
                                       </button>
                                     )}

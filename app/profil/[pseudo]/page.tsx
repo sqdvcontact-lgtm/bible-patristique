@@ -304,7 +304,7 @@ export default function ProfilPublicPage() {
 
         {/* ── CITATION PRÉFÉRÉE ─────────────────────────────────────────────── */}
         {citationPreferee && (
-          <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(154,122,56,0.06)', border: '1px solid rgba(154,122,56,0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
+          <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(var(--cs-or-rgb),0.06)', border: '1px solid rgba(var(--cs-or-rgb),0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
             {/* La marque de la citation favorite, la même qu'à « Mes citations ».
                 L'étoile qui tenait cette place dit « favori » partout ailleurs sur
                 le site (œuvres, versets) : elle promettait ici une autre action. */}

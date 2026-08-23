@@ -203,7 +203,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
               Garder l’actuelle
             </button>
             <button ref={boutonRef} type="button" onClick={onConfirmer}
-              style={{ fontSize: '0.75rem', fontWeight: 600, padding: '9px 20px', borderRadius: '8px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ fontSize: '0.75rem', fontWeight: 600, padding: '9px 20px', borderRadius: '8px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
               Remplacer
             </button>
           </div>

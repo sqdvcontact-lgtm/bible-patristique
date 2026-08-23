@@ -52,7 +52,7 @@ function TagsGenres({ tags, onChange }: { tags: string[]; onChange: (t: string[]
             <input value={saisie} onChange={e => setSaisie(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') ajouterCustom(); if (e.key === 'Escape') { setNouveau(false); setSaisie('') } }}
               autoFocus style={{ ...inp, width: '11.25rem', fontSize: '0.78125rem', padding: '4px 8px' }} />
-            <button onClick={ajouterCustom} style={{ fontSize: '0.75rem', padding: '3px 10px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>Ajouter</button>
+            <button onClick={ajouterCustom} style={{ fontSize: '0.75rem', padding: '3px 10px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer' }}>Ajouter</button>
             <button onClick={() => { setNouveau(false); setSaisie('') }} style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', cursor: 'pointer' }}>Annuler</button>
           </>
         ) : (
@@ -493,7 +493,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <ComboboxAuteur auteurs={auteursCourants} value={meta.id_auteur} onChange={id => setMeta(m => ({ ...m, id_auteur: id }))} />
                 <button onClick={() => setAjoutAuteur(!ajoutAuteur)}
-                  style={{ fontSize: '0.78125rem', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: ajoutAuteur ? 'var(--cs-vert)' : 'var(--cs-surface)', color: ajoutAuteur ? 'var(--cs-surface)' : 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  style={{ fontSize: '0.78125rem', padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: ajoutAuteur ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: ajoutAuteur ? 'var(--cs-surface)' : 'var(--cs-vert-aplat)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   + Nouvel auteur
                 </button>
               </div>
@@ -515,7 +515,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
                 {auteurMsg && <p style={{ fontSize: '0.78125rem', color: 'var(--cs-danger)', margin: '0 0 6px' }}>{auteurMsg}</p>}
                 <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
                   <button onClick={() => { setAjoutAuteur(false); setAuteurMsg(null) }} style={{ fontSize: '0.78125rem', padding: '5px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                  <button onClick={creerAuteur} style={{ fontSize: '0.78125rem', padding: '5px 10px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
+                  <button onClick={creerAuteur} style={{ fontSize: '0.78125rem', padding: '5px 10px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
                 </div>
               </div>
             )}
@@ -586,7 +586,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
               ← Sélection
             </button>
             <button onClick={() => { if (!meta.id_auteur || !meta.titre.trim()) { alert('Titre et auteur sont requis.'); return } setEtape('csv') }}
-              style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
               Suivant : import CSV →
             </button>
           </div>
@@ -626,7 +626,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
           {segments.length > 0 && etape === 'csv' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', gap: '8px' }}>
               <button onClick={() => setEtape('meta')} style={{ fontSize: '0.875rem', padding: '7px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>← Retour</button>
-              <button onClick={() => setEtape('preview')} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Prévisualiser →</button>
+              <button onClick={() => setEtape('preview')} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>Prévisualiser →</button>
             </div>
           )}
         </div>
@@ -666,7 +666,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
           <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
             <button onClick={() => setEtape('csv')} disabled={importing} style={{ fontSize: '0.875rem', padding: '7px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>← Retour</button>
             <button onClick={confirmerImport} disabled={importing}
-              style={{ fontSize: '0.875rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: importing ? '#8aaa96' : 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '0.875rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: importing ? '#8aaa96' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
               {importing ? 'Import en cours…' : `Confirmer (${segments.length} segments)`}
             </button>
           </div>
@@ -692,7 +692,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
                 Lire l’œuvre ↗
               </a>
             )}
-            <button onClick={reset} style={{ fontSize: '0.875rem', padding: '7px 16px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>
+            <button onClick={reset} style={{ fontSize: '0.875rem', padding: '7px 16px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
               Ajouter une autre œuvre
             </button>
           </div>

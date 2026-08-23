@@ -206,7 +206,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={onClose} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={() => setEtape('confirmation')} disabled={!valeur.trim()}
-                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: 'var(--cs-surface)', fontWeight: 500 }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: valeur.trim() ? 'pointer' : 'default', background: valeur.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: 'var(--cs-sur-aplat)', fontWeight: 500 }}>
                 Modifier
               </button>
             </div>
@@ -223,7 +223,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Retour</button>
-            <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontWeight: 500 }}>
+            <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontWeight: 500 }}>
               {statut === 'envoi' ? 'Envoi…' : 'Confirmer'}
             </button>
           </div>
@@ -234,7 +234,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button onClick={() => setEtape('edition')} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Retour</button>
-            <button onClick={supprimerSegment} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: 'var(--cs-danger)', color: 'var(--cs-surface)', fontWeight: 500 }}>
+            <button onClick={supprimerSegment} disabled={statut === 'envoi'} style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', fontWeight: 500 }}>
               {statut === 'envoi' ? 'Suppression…' : 'Supprimer définitivement'}
             </button>
           </div>

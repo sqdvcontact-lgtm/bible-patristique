@@ -136,7 +136,7 @@ function EcranReserve() {
         <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, marginBottom: '22px' }}>
           Cette page est réservée au compte administrateur. Connectez-vous avec ce compte pour y accéder.
         </p>
-        <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.9375rem', fontWeight: 500, background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', textDecoration: 'none' }}>Se connecter</a>
+        <a href="/chantier" style={{ display: 'inline-block', padding: '9px 20px', fontSize: '0.9375rem', fontWeight: 500, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', textDecoration: 'none' }}>Se connecter</a>
       </div>
     </main>
   )
@@ -412,7 +412,7 @@ const styles = `
   .cc-jauge-remplissage { height: 100%; border-radius: 4px; transition: none; }
   .cc-jauge-detail { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; }
 
-  .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert); border-radius: 0 6px 6px 0; padding: 0.625rem 0.75rem; }
+  .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert-aplat); border-radius: 0 6px 6px 0; padding: 0.625rem 0.75rem; }
   .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
   .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
 
@@ -422,7 +422,7 @@ const styles = `
   .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
   .cc-todo { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.4; }
   .cc-todo-case { flex-shrink: 0; width: 1rem; height: 1rem; border: 1px solid var(--cs-bord); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--cs-vert); margin-top: 0.0625rem; }
-  .cc-todo-fait .cc-todo-case { background: var(--cs-vert); border-color: var(--cs-vert); color: var(--cs-surface); }
+  .cc-todo-fait .cc-todo-case { background: var(--cs-vert-aplat); border-color: var(--cs-vert-aplat); color: var(--cs-sur-aplat); }
   .cc-todo-fait .cc-todo-txt { color: var(--cs-texte-doux); text-decoration: line-through; }
 
   /* — Édition discrète des todos — */

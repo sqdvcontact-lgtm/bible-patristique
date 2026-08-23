@@ -252,10 +252,10 @@ describe('lecture bilingue de la page Bible', () => {
     const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} />)
     const latin = html.slice(html.indexOf('lang="la"'))
     expect(latin).toContain('font-source-sans')
-    expect(latin).toContain('#575048')
+    expect(latin).toContain('var(--cs-original)')
     const francais = html.slice(html.indexOf('lang="fr"'), html.indexOf('lang="la"'))
     expect(francais).toContain('font-source-serif')
-    expect(francais).not.toContain('#575048')
+    expect(francais).not.toContain('var(--cs-original)')
   })
 
   it('ouvre la note dans une fenêtre, sur le modèle du site', () => {

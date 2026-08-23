@@ -555,7 +555,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
         {essaiExistant && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-            <button onClick={() => setComparaisonOuverte(v => !v)} style={{ fontSize: '0.6875rem', color: comparaisonOuverte ? 'var(--cs-surface)' : 'var(--cs-vert)', background: comparaisonOuverte ? 'var(--cs-vert)' : 'none', border: comparaisonOuverte ? 'none' : '1px solid var(--cs-vert)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button onClick={() => setComparaisonOuverte(v => !v)} style={{ fontSize: '0.6875rem', color: comparaisonOuverte ? 'var(--cs-surface)' : 'var(--cs-vert)', background: comparaisonOuverte ? 'var(--cs-vert-aplat)' : 'none', border: comparaisonOuverte ? 'none' : '1px solid var(--cs-vert)', borderRadius: '4px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {comparaisonOuverte ? 'Revenir à la rédaction' : 'Comparer avec la version d\u2019origine'}
             </button>
           </div>
@@ -667,7 +667,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                         width: '1.5rem', height: '2.25rem', borderRadius: '4px', cursor: 'pointer', padding: 0,
                         background: 'repeating-linear-gradient(135deg, var(--cs-fond-doux) 0 4px, var(--cs-bord-clair) 4px 8px)',
                         border: !couverture ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
-                        boxShadow: !couverture ? '0 0 0 2px rgba(61,107,79,0.18)' : 'none',
+                        boxShadow: !couverture ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
                       }} />
                     {COUVERTURES.map(c => {
                       const actif = c.cle === couverture
@@ -678,7 +678,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                             width: '1.5rem', height: '2.25rem', borderRadius: '4px', cursor: 'pointer',
                             background: c.fond, padding: 0,
                             border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
-                            boxShadow: actif ? '0 0 0 2px rgba(61,107,79,0.18)' : 'none',
+                            boxShadow: actif ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
                           }} />
                       )
                     })}
@@ -724,7 +724,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px',
                                 background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)',
                                 border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
-                                boxShadow: actif ? '0 0 0 2px rgba(61,107,79,0.18)' : 'none',
+                                boxShadow: actif ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
                               }}>
                               <svg viewBox="0 0 64 64" width="100%" height="100%" role="presentation">{emblemeDe(categorie)}</svg>
                             </button>
@@ -752,10 +752,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('« ', ' »')} style={BTN} title="Guillemets français « … »">« »</button>
                 <button onMouseDown={e => e.preventDefault()} onClick={() => entourerGuillemets('“', '”')} style={BTN} title="Guillemets anglais “ … ” (citation de second niveau)">“ ”</button>
                 <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '4px 0' }} />
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert)' : 'var(--cs-surface)', color: blocActif === 'h2' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Titre 1</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert)' : 'var(--cs-surface)', color: blocActif === 'h3' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Titre 2</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert)' : 'var(--cs-surface)', color: blocActif === 'blockquote' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Citation</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert)' : 'var(--cs-surface)', color: blocActif === 'p' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Paragraphe</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H2')} style={{ ...BTN, background: blocActif === 'h2' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'h2' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Titre 1</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('H3')} style={{ ...BTN, background: blocActif === 'h3' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'h3' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Titre 2</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => appliquerBloc('BLOCKQUOTE')} style={{ ...BTN, background: blocActif === 'blockquote' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'blockquote' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Citation</button>
+                <button onMouseDown={e => e.preventDefault()} onClick={appliquerParagraphe} style={{ ...BTN, background: blocActif === 'p' ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: blocActif === 'p' ? 'var(--cs-surface)' : 'var(--cs-texte-fort)' }}>Paragraphe</button>
                 <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '4px 0' }} />
                 <button onMouseDown={e => e.preventDefault()} onClick={ouvrirCreationNote} style={BTN}>+ Note</button>
                 <button onMouseDown={e => { e.preventDefault(); memoriserSelection() }} onClick={() => setSelecteurOuvert(true)} style={BTN}>Citer depuis le site</button>
@@ -841,7 +841,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             )}
             <button
               onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : ouvrirConfirmationPublication}
-              style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 600 }}>
+              style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
               {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Soumettre la publication'}
             </button>
           </div>
@@ -889,7 +889,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   setConfirmPublier(false)
                   await publier()
                 }}
-                style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 600 }}>
+                style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
                 Confirmer
               </button>
             </div>

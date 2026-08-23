@@ -888,9 +888,9 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
         .controle-droit{position:sticky;top:142px;max-height:calc(100vh - 160px);overflow-y:auto;background:var(--cs-surface);border:1px solid var(--cs-vert-pale);border-radius:8px;padding:15px 16px;box-shadow:var(--cs-ombre-modale);}
         .pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:0.5625rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
         .stat-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:3px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);}
-        .stat-btn.active{background:var(--cs-vert-fonce);color:var(--cs-surface);border-color:var(--cs-vert-fonce);}
+        .stat-btn.active{background:var(--cs-vert-fonce);color:var(--cs-sur-aplat);border-color:var(--cs-vert-fonce);}
         .mode-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:3px 9px;font-size:0.625rem;color:var(--cs-texte);cursor:pointer;}
-        .mode-btn.active{background:var(--cs-vert-pale);border-color:var(--cs-vert);color:var(--cs-vert-fonce);font-weight:700;}
+        .mode-btn.active{background:var(--cs-vert-pale);border-color:var(--cs-vert-aplat);color:var(--cs-vert-fonce);font-weight:700;}
         .niveau-btn{border:1px solid var(--cs-bord);background:var(--cs-surface);border-radius:999px;padding:4px 8px;font-size:0.625rem;cursor:pointer;color:var(--cs-texte);transition:background .12s,border-color .12s,color .12s;}
         .niveau-btn.active{font-weight:700;}
         .controle-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--cs-bord);}

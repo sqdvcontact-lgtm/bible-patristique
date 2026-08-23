@@ -246,7 +246,7 @@ export default function ModalLienBiblique({
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '13px' }}>
                   {chapitres.map(ch => (
                     <button key={ch} onClick={() => setChapitre(ch)}
-                      style={{ minWidth: '30px', border: '1px solid var(--cs-bord)', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert)' : 'var(--cs-surface)', color: chapitre === ch ? 'var(--cs-surface)' : 'var(--cs-texte)', fontSize: '0.6875rem' }}>
+                      style={{ minWidth: '30px', border: '1px solid var(--cs-bord)', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: chapitre === ch ? 'var(--cs-surface)' : 'var(--cs-texte)', fontSize: '0.6875rem' }}>
                       {ch}
                     </button>
                   ))}
@@ -303,7 +303,7 @@ export default function ModalLienBiblique({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={onFermer} style={{ border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', borderRadius: '999px', padding: '7px 14px', cursor: 'pointer', fontSize: '0.75rem' }}>Fermer</button>
             <button onClick={valider} disabled={selectionListe.length === 0 || enregistrement}
-              style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? 'var(--cs-bord-clair)' : 'var(--cs-vert)', color: selectionListe.length === 0 || enregistrement ? 'var(--cs-texte-doux)' : 'var(--cs-surface)', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+              style={{ border: '1px solid var(--cs-vert)', background: selectionListe.length === 0 || enregistrement ? 'var(--cs-bord-clair)' : 'var(--cs-vert-aplat)', color: selectionListe.length === 0 || enregistrement ? 'var(--cs-texte-doux)' : 'var(--cs-surface)', borderRadius: '999px', padding: '7px 15px', cursor: selectionListe.length === 0 || enregistrement ? 'default' : 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
               {enregistrement ? 'Enregistrement...' : 'Créer le lien biblique'}
             </button>
           </div>

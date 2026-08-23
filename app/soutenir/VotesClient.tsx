@@ -157,7 +157,7 @@ export default function VotesClient() {
                   top: 0,
                   bottom: 0,
                   width: vote ? '3px' : '1px',
-                  background: vote ? 'var(--cs-vert)' : 'var(--cs-bord)',
+                  background: vote ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)',
                   opacity: vote ? 0.72 : 0.9,
                 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -189,7 +189,7 @@ export default function VotesClient() {
                     style={{
                       width: '36px', height: '36px', borderRadius: '50%',
                       border: `1px solid ${vote ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
-                      background: vote ? 'var(--cs-vert)' : 'var(--cs-surface)',
+                      background: vote ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
                       color: vote ? 'var(--cs-surface)' : 'var(--cs-texte-gris)',
                       cursor: 'pointer', fontSize: '0.9375rem',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',

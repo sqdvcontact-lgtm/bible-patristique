@@ -55,7 +55,7 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
             <Link href={ROUTE_INSCRIPTION} onClick={onClose}
-              style={{ display: 'block', textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600, padding: '10px 16px', borderRadius: '8px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', textDecoration: 'none' }}>
+              style={{ display: 'block', textAlign: 'center', fontSize: '0.8125rem', fontWeight: 600, padding: '10px 16px', borderRadius: '8px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', textDecoration: 'none' }}>
               Créer un compte
             </Link>
             <Link href={ROUTE_CONNEXION} onClick={onClose}

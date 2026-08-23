@@ -89,7 +89,7 @@ const admissible = (l: Lien): boolean => {
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const grilleComplete = (g: Grille | null) => !!g && CASES.every(c => g[c.champ] === true)
 
-const btnV: React.CSSProperties = { fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }
+const btnV: React.CSSProperties = { fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer' }
 const btnG: React.CSSProperties = { fontFamily: SANS, fontSize: '0.75rem', padding: '5px 11px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }
 
 function Puce({ txt, coul }: { txt: string; coul: string }) {

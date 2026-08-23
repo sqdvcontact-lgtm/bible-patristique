@@ -10,6 +10,7 @@ import { LIVRES } from "@/app/lib/bible";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { sansPointFinal } from "@/app/lib/titres";
+import { appliquerTheme, lireTheme } from "@/app/lib/theme";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
@@ -212,7 +213,7 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
   return (
     <>
       {texte.slice(0, idx)}
-      <strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
+      <strong style={{ color: 'var(--cs-vert)', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
       {texte.slice(idx + query.length)}
     </>
   )
@@ -232,7 +233,7 @@ function extraireEtSurligner(texte: string, q: string, longueur = 110): React.Re
   if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
   return (
     <>
-      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: '#1f5c33', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
+      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: 'var(--cs-vert)', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
     </>
   )
 }
@@ -324,6 +325,11 @@ export default function Navbar() {
   const [estAdmin, setEstAdmin] = useState(false);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
+  // Faux au rendu SERVEUR et au premier rendu client, comme `useEstMobile` : le thème
+  // réel est déjà posé sur <html> par le script du gabarit, on ne lit ici que de quoi
+  // dessiner l'interrupteur. Partir de la valeur mémorisée ferait diverger les deux
+  // rendus et React reprocherait l'hydratation.
+  const [themeSombre, setThemeSombre] = useState(false);
   // Les seize sections d'administration allongeaient le panneau mobile de trois écrans,
   // au-dessus de la recherche et du compte : elles se déplient maintenant à la demande.
   const [adminMobileOuvert, setAdminMobileOuvert] = useState(false);
@@ -385,6 +391,17 @@ export default function Navbar() {
   const [pericopesFait, setPericopesFait] = useState(false);
   const [pericopesErreur, setPericopesErreur] = useState(false);
   const [actifIndex, setActifIndex] = useState(-1);
+
+  // Le thème est DÉJÀ posé sur <html> par le script du gabarit ; cet effet ne fait que
+  // rattraper l'interrupteur au montage. Lire un système extérieur dans un effet est
+  // ici le bon outil, et non un `set-state-in-effect` à corriger.
+  useEffect(() => { setThemeSombre(lireTheme() === 'sombre') }, []);
+
+  const basculerThemeSombre = () => {
+    const sombre = !themeSombre;
+    setThemeSombre(sombre);
+    appliquerTheme(sombre ? 'sombre' : 'clair');
+  };
 
   useEffect(() => {
     setActifIndex(-1);
@@ -752,7 +769,7 @@ export default function Navbar() {
              à 1 024 à 360 px à 2 400. Les deux bornes restent en rem, donc accordées à la
              police racine : le champ ne descend jamais sous une dizaine de caractères et ne
              s'étale pas jusqu'à faire concurrence aux sections. */
-          style={{ width: mobile ? "100%" : "clamp(8.75rem, 15vw, 20rem)", height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-surface)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
+          style={{ width: mobile ? "100%" : "clamp(8.75rem, 15vw, 20rem)", height: "1.875rem", fontSize: "0.84375rem", padding: "0 10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "var(--cs-sur-aplat)", outline: "none", boxSizing: "border-box", flex: mobile ? 1 : undefined }}
         />
         {/* Bouton « Nouvelle recherche » : conduit à la page de recherche VIERGE (pas de
             ?q), pour repartir de zéro. Si l'on y est DÉJÀ (l'URL peut être « /recherche »
@@ -795,20 +812,20 @@ export default function Navbar() {
                   : <>{nbTotalResultats + pericopes.length} <span style={{ color: "var(--cs-texte-doux)", fontWeight: 400 }}>résultat{(nbTotalResultats + pericopes.length) > 1 ? 's' : ''}</span></>}
             </span>
             {(rechercheRapideLoading || pericopesLoading) ? (
-              <svg className="spinner-search" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-label="Chargement">
-                <circle cx="7" cy="7" r="5.5" stroke="#d6d0c4" strokeWidth="1.6" fill="none"/>
-                <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#3d6b4f" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+              <svg className="spinner-search" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-label="Chargement" style={{ color: 'var(--cs-vert)' }}>
+                <circle cx="7" cy="7" r="5.5" stroke="var(--cs-bord)" strokeWidth="1.6" fill="none"/>
+                <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
               </svg>
             ) : rechercheTerminee ? (
               /* Smiley au trait, épuré comme les autres symboles du site. Son cercle
                  extérieur reprend EXACTEMENT celui du spinner (r 5.5, centre 7,7, même
                  trait) : quand le chargement s'achève, l'anneau devient visage sans que
                  le contour bouge. */
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" role="img" aria-label="Recherche terminée">
-                <circle cx="7" cy="7" r="5.5" stroke="#3d6b4f" strokeWidth="1.6" fill="none"/>
-                <circle cx="5" cy="5.8" r="0.65" fill="#3d6b4f"/>
-                <circle cx="9" cy="5.8" r="0.65" fill="#3d6b4f"/>
-                <path d="M4.6 8.6a2.6 2.6 0 0 0 4.8 0" stroke="#3d6b4f" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" role="img" aria-label="Recherche terminée" style={{ color: 'var(--cs-vert)' }}>
+                <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.6" fill="none"/>
+                <circle cx="5" cy="5.8" r="0.65" fill="currentColor"/>
+                <circle cx="9" cy="5.8" r="0.65" fill="currentColor"/>
+                <path d="M4.6 8.6a2.6 2.6 0 0 0 4.8 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
               </svg>
             ) : null}
           </div>
@@ -965,11 +982,11 @@ export default function Navbar() {
         title="Affichage seulement — vos droits réels ne changent pas"
         style={{
           width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid #7fb08e" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
-          background: modeUtilisateurStandard ? "var(--cs-vert)" : "var(--cs-fond)",
+          background: modeUtilisateurStandard ? "var(--cs-vert-aplat)" : "var(--cs-fond)",
           boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(var(--cs-vert-rgb),0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
           position: "relative", transition: "background 0.15s, border-color 0.15s",
         }}>
-        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "var(--cs-surface)" : "var(--cs-vert)", transition: "left 0.15s, background 0.15s" }} />
+        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "var(--cs-surface)" : "var(--cs-vert-aplat)", transition: "left 0.15s, background 0.15s" }} />
       </button>
       {/* À l'étroit, l'interrupteur parle seul : son infobulle et son `aria-label`
           portent le sens, le mot cède la place. */}
@@ -1014,10 +1031,33 @@ export default function Navbar() {
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
             <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
             {item.badge > 0 && (
-              <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
+              <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
           </Link>
         ))}
+        {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est
+            là que le lecteur vient chercher ce qui le concerne lui, et non le corpus.
+            Il n'a donc pas d'entrée dans la barre : celle-ci est déjà la plus disputée
+            du site, et un cran de repli de plus la rendrait incalculable. */}
+        <label
+          style={mobile
+            ? { display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", fontSize: "0.9375rem", color: "rgba(255,255,255,0.85)", cursor: "pointer", userSelect: "none" }
+            : { display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", cursor: "pointer", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+          <span style={{ flex: 1 }}>Mode sombre</span>
+          <button type="button" role="switch" aria-checked={themeSombre} onClick={basculerThemeSombre}
+            aria-label="Mode sombre"
+            style={{
+              width: "32px", height: "18px", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
+              border: mobile ? "1px solid rgba(255,255,255,0.35)" : "none",
+              background: themeSombre ? "var(--cs-vert-aplat)" : (mobile ? "rgba(255,255,255,0.22)" : "var(--cs-bord)"),
+              transition: "background 0.15s",
+            }}>
+            {/* Le panneau mobile est vert sombre EN TOUTES CIRCONSTANCES : son pion ne
+                peut pas prendre --cs-surface, qui virerait au brun en Cuir et
+                disparaîtrait sur le vert. */}
+            <span style={{ position: "absolute", top: "3px", left: themeSombre ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
+          </button>
+        </label>
         <button onClick={seDeconnecter}
           style={mobile
             ? { display: "block", width: "100%", textAlign: "left", padding: "10px 12px", fontSize: "0.9375rem", color: "#e8a0a0", background: "none", border: "none", cursor: "pointer" }
@@ -1029,7 +1069,7 @@ export default function Navbar() {
     </div>
   ) : (
     <Link href="/chantier" onClick={() => setMobileOuvert(false)} style={mobile
-      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "8px", fontSize: "0.9375rem", color: "var(--cs-surface)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
+      ? { display: "block", textAlign: "center", padding: "9px 12px", borderRadius: "8px", fontSize: "0.9375rem", color: "var(--cs-sur-aplat)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.25)" }
       : { display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.6875rem", borderRadius: "4px", fontSize: "0.875rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
     </Link>
@@ -1045,7 +1085,7 @@ export default function Navbar() {
         // `display: block` OBLIGATOIRE : dans les groupes d'« Administration », les liens
         // sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans cela, les
         // <a> restent inline et se chevauchent (pastilles superposées, texte illisible).
-        style={{ display: "block", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-surface)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        style={{ display: "block", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
         {label}
       </Link>
     );
@@ -1057,7 +1097,7 @@ export default function Navbar() {
       {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
           barre de navigation : rien à naviguer tant que le site est fermé. */}
       <header data-cs-navbar className="fixed top-0 left-0 right-0 border-b"
-        style={{ background: "var(--cs-vert)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
+        style={{ background: "var(--cs-vert-aplat)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <style>{`
           /* Jauge de la vignette de notification : elle se vide de la droite vers la
              gauche pendant la durée d'affichage. On anime la transformation, pas la largeur :
@@ -1095,7 +1135,7 @@ export default function Navbar() {
           }
           .cs-onglet:hover {
             background: var(--fond-survol, rgba(255,255,255,0.085));
-            color: var(--cs-surface);
+            color: var(--cs-sur-aplat);
             transition-duration: 140ms;
           }
           /* Onglet « Bible » : au repos, un onglet plat comme les autres liens de la barre
@@ -1126,9 +1166,9 @@ export default function Navbar() {
           .cs-bible-split { display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
           .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 0.375rem; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
-          .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: var(--cs-surface); }
+          .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: var(--cs-sur-aplat); }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
-          .cs-bible-seg--actif { color: var(--cs-surface); background: rgba(255,255,255,0.10); }
+          .cs-bible-seg--actif { color: var(--cs-sur-aplat); background: rgba(255,255,255,0.10); }
           /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
              mort — le menu touche le déclencheur).
 
@@ -1266,7 +1306,7 @@ export default function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconParchemin />
                 {nbMessages > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbMessages > 99 ? '99+' : nbMessages}
                   </span>
                 )}
@@ -1279,7 +1319,7 @@ export default function Navbar() {
                 onMouseLeave={e => { e.currentTarget.style.background = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
                 <IconAngeTrompette />
                 {nbNotifications > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
+                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbNotifications > 99 ? '99+' : nbNotifications}
                   </span>
                 )}
@@ -1293,7 +1333,7 @@ export default function Navbar() {
 
           {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
           <button onClick={() => setMobileOuvert(!mobileOuvert)} className="lg:hidden"
-            style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--cs-surface)", padding: "6px", cursor: "pointer" }}
+            style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--cs-sur-aplat)", padding: "6px", cursor: "pointer" }}
             aria-label="Menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               {mobileOuvert ? (
@@ -1356,7 +1396,7 @@ export default function Navbar() {
             </div>
             {blocRecherche(true)}
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-surface)", textDecoration: "none" }}>
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none" }}>
               <IconCoeur /> Soutenir le projet
             </Link>
             {toggleAdmin(true)}
@@ -1365,14 +1405,14 @@ export default function Navbar() {
         )}
         {toastNotification && (
           <div key={toastNotification.id} role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
+            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert-aplat)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
             <p style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
             {/* Jauge du temps restant : elle court sur toute la largeur, en pied de
                 vignette, et se retire vers la gauche pendant les trois secondes. */}
             <div aria-hidden style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "2px", background: "rgba(var(--cs-vert-rgb),0.14)" }}>
-              <div className="cs-toast-jauge" style={{ height: "100%", background: "var(--cs-vert)", animationDuration: `${DUREE_TOAST_MS}ms` }} />
+              <div className="cs-toast-jauge" style={{ height: "100%", background: "var(--cs-vert-aplat)", animationDuration: `${DUREE_TOAST_MS}ms` }} />
             </div>
           </div>
         )}

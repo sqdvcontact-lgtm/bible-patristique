@@ -122,8 +122,8 @@
 
 .modeActive {
   border-color: var(--cs-vert);
-  background: var(--cs-vert);
-  color: var(--cs-surface);
+  background: var(--cs-vert-aplat);
+  color: var(--cs-sur-aplat);
 }
 
 .mode:focus-visible,
@@ -214,8 +214,8 @@
 
 .columnNavigationActive {
   border-color: var(--cs-vert) !important;
-  background: var(--cs-vert) !important;
-  color: var(--cs-surface) !important;
+  background: var(--cs-vert-aplat) !important;
+  color: var(--cs-sur-aplat) !important;
 }
 
 .column {

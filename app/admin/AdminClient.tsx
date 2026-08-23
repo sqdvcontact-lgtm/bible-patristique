@@ -127,7 +127,7 @@ export default function AdminClient({
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <style>{`
-        .btn-vert { background: var(--cs-vert) !important; color: var(--cs-surface) !important; border: none !important; }
+        .btn-vert { background: var(--cs-vert-aplat) !important; color: var(--cs-sur-aplat) !important; border: none !important; }
         .btn-vert:hover { background: var(--cs-vert-fonce) !important; }
         .btn-rouge { background: var(--cs-surface) !important; color: var(--cs-danger) !important; border: 1px solid var(--cs-danger-bord) !important; }
         .btn-rouge:hover { background: var(--cs-danger-fond) !important; }
@@ -220,7 +220,7 @@ export default function AdminClient({
                 <button onClick={() => setOnglet(o.key)} className="adm-onglet"
                   style={{ padding: '6px 8px', fontSize: '0.8125rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
                   {o.label}
-                  {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
+                  {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
                 </button>
               </React.Fragment>
             )

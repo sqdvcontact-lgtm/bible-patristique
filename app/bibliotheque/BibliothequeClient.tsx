@@ -235,9 +235,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                 style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
             )}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
-              <svg width="36" height="44" viewBox="0 0 40 48" fill="none" opacity={imgErreur ? 0.2 : 0}>
-                <circle cx="20" cy="14" r="9" stroke="#2a3d30" strokeWidth="1.5" fill="none"/>
-                <path d="M2 46 Q4 28 20 24 Q36 28 38 46" stroke="#2a3d30" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              <svg width="36" height="44" viewBox="0 0 40 48" fill="none" opacity={imgErreur ? 0.2 : 0} style={{ color: 'var(--cs-encre)' }}>
+                <circle cx="20" cy="14" r="9" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                <path d="M2 46 Q4 28 20 24 Q36 28 38 46" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
               </svg>
             </div>
           </div>
@@ -802,7 +802,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
                 Continuer l’édition
               </button>
               <button onClick={onClose}
-                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>
+                style={{ fontSize: '0.75rem', padding: '7px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-danger)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
                 Fermer sans enregistrer
               </button>
             </div>
@@ -967,9 +967,9 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Rechercher un auteur ou une œuvre"
             style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-            <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
-            <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+            <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+            <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
           </svg>
         </div>
       </div>
@@ -1283,15 +1283,15 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
 
   if (!connecte) return (
     <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
-      <svg width="38" height="38" viewBox="0 0 40 40" fill="none" style={{ marginBottom: '16px', opacity: 0.35 }}>
-        <circle cx="20" cy="14" r="7" stroke="#2a3d30" strokeWidth="1.4" fill="none"/>
-        <path d="M4 38 Q6 24 20 20 Q34 24 36 38" stroke="#2a3d30" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
+      <svg width="38" height="38" viewBox="0 0 40 40" fill="none" style={{ color: 'var(--cs-encre)', marginBottom: '16px', opacity: 0.35 }}>
+        <circle cx="20" cy="14" r="7" stroke="currentColor" strokeWidth="1.4" fill="none"/>
+        <path d="M4 38 Q6 24 20 20 Q34 24 36 38" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
       </svg>
       <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-vert-fonce)', marginBottom: '6px' }}>Connexion requise</p>
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '22px' }}>
         Seuls les membres de Corpus Scriptura peuvent proposer un texte.<br/>Connectez-vous pour contribuer à la bibliothèque.
       </p>
-      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: 500 }}>
+      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: 500 }}>
         Se connecter
       </a>
     </div>
@@ -1309,7 +1309,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
   if (statut === 'ok') return (
     <div style={{ maxWidth: '32.5rem', margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
       <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(var(--cs-vert-rgb),0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l5 5 7-8" stroke="#3d6b4f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ color: 'var(--cs-vert)' }}><path d="M4 10l5 5 7-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </div>
       <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', marginBottom: '8px' }}>Proposition envoyée</p>
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '24px' }}>
@@ -1457,7 +1457,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             const pret = !!form.auteur_nom.trim() && !!form.titre.trim() && !!form.texte.trim() && droitsGarantis
             return (
               <button onClick={envoyer} disabled={statut === 'envoi' || !pret}
-                style={{ padding: '10px 28px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+                style={{ padding: '10px 28px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
                 {statut === 'envoi' ? 'Envoi…' : 'Envoyer la proposition'}
               </button>
             )
@@ -1675,7 +1675,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
               <button onClick={() => setOnglet(key)} style={{
                 flex: 1, padding: '8px 8px', fontSize: '0.75rem', fontFamily: 'var(--font-source-serif), Georgia, serif',
                 textAlign: 'center',
-                background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid var(--cs-vert)' : '2px solid transparent',
+                background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent',
                 color: onglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
                 fontWeight: onglet === key ? 600 : 400, marginBottom: '-1px',
                 transition: 'color 0.15s',
@@ -1695,17 +1695,17 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                   placeholder="Rechercher un auteur ou une œuvre"
                   style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-                  <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2"/>
-                  <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round"/>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+                  <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
+                  <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                 </svg>
               </div>
               <button onClick={() => setFiltresOuverts(o => !o)} aria-expanded={filtresOuverts}
-                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : 'var(--cs-surface)', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, borderRadius: '8px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
+                style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-aplat)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : 'var(--cs-surface)', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, borderRadius: '8px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
                 <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 3h11M3.5 7h7M5.5 11h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                 Filtres
                 {nbFiltres > 0 && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '15px', height: '15px', padding: '0 4px', borderRadius: '999px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontSize: '0.5625rem', fontWeight: 700, lineHeight: 1 }}>{nbFiltres}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '15px', height: '15px', padding: '0 4px', borderRadius: '999px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.5625rem', fontWeight: 700, lineHeight: 1 }}>{nbFiltres}</span>
                 )}
               </button>
             </div>

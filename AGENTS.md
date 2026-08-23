@@ -385,7 +385,7 @@ Familles :
 
 **Bascule** : script `scratchpad/sweep-palette.mjs` (table de rabat curée, exceptions SVG protégées), migration sur 89 fichiers / ~2082 usages, en plus des 681 usages du vert. `globals.css` est exclu du balayage (c'est là que les tokens sont **définis**). Référence visuelle de la palette : maquette « Palette d'harmonie » (voir charte §18).
 
-**Mode sombre** : le site est en thème **clair** ; les tokens portent trois jeux de valeurs (Clair, Sépia, Cuir), mais seul le Clair est servi tant que le sélecteur de confort de lecture est en pause. Ne pas activer un `@media (prefers-color-scheme: dark)` partiel : le reste du site n'est pas prêt.
+**Mode sombre** : voir la section « Mode sombre — le Cuir » plus bas. Les tokens portent trois jeux de valeurs (Clair, Sépia, Cuir) ; le Clair est le défaut et le Cuir se demande depuis le menu de compte. ⛔ Ne jamais activer un `@media (prefers-color-scheme: dark)` : le réglage du système ne décide pas de la lecture, et un bloc de ce genre a déjà servi un sol noir sous des pages crème.
 
 ## Seconde passe (2026-08-19) — ce que la première avait laissé
 
@@ -412,6 +412,43 @@ Audit d'harmonie, dix constats. Les corrections, dans l'ordre de leur importance
 **Rayons** : tous les entiers de 2 à 20 servaient. Quatre valeurs désormais, à pas doublé : **4px** (puce, champ, bouton), **8px** (carte, encart), **12px** (modale, panneau), **999px** (pilule), plus `50%` pour le rond. Contrôlé par `app/lib/formes.test.ts`.
 
 **Fonds de page** : cinq sols coexistaient pour un seul « fond du site » — `var(--cs-fond)`, `#f4f0eb` (Histoire, catalogue des péricopes), `#f6f2e8` (Polyglotte, dont la constante était pourtant annotée « fond commun aux autres pages du site »), `#f3efe2` (Profil), `#e8eceb` (Administration, un gris-bleu franchement hors de la famille chaude, alors que `/admin/controle` employait déjà le token). Tous ramenés à `var(--cs-fond)`.
+
+# Mode sombre — le Cuir (2026-08-23)
+
+Le chantier « confort de lecture », ouvert le 4 août et mis en pause le lendemain, est repris et **servi**. Le thème sombre s'appelle **Cuir** dans le code (`data-theme="sombre"`), le Sépia reste défini mais n'a plus d'entrée dans l'interface.
+
+- **Un interrupteur, dans le MENU DE COMPTE** (`Navbar.tsx`, `blocCompte`), entre les liens et « Se déconnecter », en desktop comme dans le panneau mobile. Le bouton flottant en bas à droite (`ConfortLecture.tsx`) est supprimé. ⛔ Ne pas remettre le réglage dans la barre : elle est déjà la plus disputée du site et se replie en quatre crans, un élément de plus la rendrait incalculable.
+- **Tout le mécanisme vit dans `app/lib/theme.ts`** (module pur, sans « use client », pour servir le gabarit serveur ET la Navbar) : la clé `cs-theme`, `lireTheme`, `appliquerTheme`, et `SCRIPT_THEME`, le script d'application **avant peinture** injecté en tête de `<body>`. Ne pas recomposer ce script ailleurs, et ne pas le déplacer dans un effet : la page crème clignoterait avant de virer au brun à chaque navigation.
+- **Le clair ne porte AUCUN attribut** et n'écrit rien dans le stockage. Une page servie sans script reste donc celle qu'on connaît, ce qui vaut pour les moteurs comme pour un poste où le stockage local est refusé.
+- **L'interrupteur part de `false` au rendu serveur** et se rattrape au montage, comme `useEstMobile` : le thème réel est déjà posé sur `<html>` par le script, l'effet ne dessine que le bouton. Partir de la valeur mémorisée ferait diverger les deux rendus.
+
+## Ce que l'épreuve du Cuir a trouvé, et qui ne se voyait pas
+
+Une maquette a composé chaque surface du site avec les jetons réels. Trois enseignements, dont deux étaient invisibles au compte des couleurs en dur.
+
+⛔ **Un seuil de contraste ABSOLU ne dit rien sur un thème.** Mesuré contre 4,5, le Clair en service échoue **sept fois** : les barreaux ténus de l'échelle de gris, l'or des fleurons et le tan des étiquettes sont faits pour s'effacer. Ce qui se mesure est l'**écart au Clair**, rôle par rôle : une transposition réussie garde à chaque rôle le poids qu'il avait. Deux rôles le perdaient.
+
+⛔ **`--cs-lacune` était le seul jeton que le Cuir ne redéfinissait pas, et il porte les appels de note.** Le compte des jetons manquants disait « quatre », dont trois voulus (les `-clair` du panneau mobile, qui n'ont pas de surcouche). Le quatrième portait `appelNote.tsx` (TOUS les appels du corps), la mention « Lacune du manuscrit » de la page Bible, les marqueurs de la Bible 899 et la famille Publications de la navbar. Resté à sa valeur claire, il rendait **3,51** sur le sol du Cuir, pour un appel composé à 0,60 em. Transposé, 7,11.
+
+⛔ **`--cs-danger-fonce` était transposé À L'ENVERS.** Il valait `#c25738`, c'est-à-dire **plus sombre** que `--cs-danger` : la logique du thème clair recopiée sur un sol où elle s'inverse. Le rôle « danger confirmé » y devenait l'encre la plus faible du jeu, **3,96 contre 6,99** au Clair, la plus forte perte du nuancier. Comme l'échelle de texte, la famille du danger s'inverse : le rang fort est le plus lumineux. **Règle générale : une famille transposée se relit dans son nouveau sol, elle ne se recopie pas.**
+
+⛔ **L'exception SVG de la charte a été écrite POUR LE CLAIR, et elle est un trou dans le Cuir.** Les attributs `stroke=`/`fill=` gardent la valeur littérale, à juste titre, une custom property n'y étant pas résolue. Mais un vert d'encre `#2a3d30` posé sur un sol `#1c1813` ne se voit plus : la silhouette d'auteur et la loupe de la bibliothèque **disparaissaient**. Le remède était déjà écrit, il n'était simplement jamais appliqué : **poser `color` sur le `<svg>` et prendre `currentColor` sur les traits**. Fait sur la bibliothèque, les publications, l'histoire, l'admin et les deux marques de la navbar. ⛔ **Tout SVG d'interface se tokenise désormais par `currentColor`** ; la valeur littérale n'est tolérée que dans une illustration, qui porte sa propre palette (le quiz).
+
+⚠️ **Un jeton recopié EN COMPOSANTES est un jeton en dur.** `rgba(61,107,79,α)` EST `--cs-vert`, et il ne suit aucun thème. La palette porte `--cs-vert-rgb`, `--cs-bord-rgb`, `--cs-danger-rgb` pour cela, et désormais **`--cs-or-rgb`**, qui manquait : cinq encadrements dorés recopiaient donc la teinte à la main, faute d'un nom où se ranger.
+
+## Deux familles nouvelles, nées du même examen
+
+- **`--cs-surnum-*`** (quatre rangs) : les versets propres à la Septante, hors de l'ossature canonique, dans la Polyglotte. C'est la seule famille du site qui **ne se rabatte sur rien** : mesuré, son violet est à **ΔE 36,7** de `--cs-systeme`, le jeton le plus proche. Ce n'était pas un doublon, c'était un rôle sans nom. Sept violets écrits en dur rabattus sur quatre rangs, déplacement maximal ΔE 18,4. Les rouges de signalement de la même page, eux, se rabattent bien sur la famille du danger (ΔE 16,2 et 10,8), et le jaune du verset visé devient `--cs-vise-fond`. **La Polyglotte ne porte plus une seule couleur en dur.**
+- **`--cs-original`** : l'encre du texte en langue originale composé en regard du français. Elle vaut **65 % du contraste du corps**, et les trois thèmes gardent ce rapport. Elle était écrite en dur dans trois fichiers, et **testée** (`BibleBilingue.test.tsx` vérifie que la colonne latine la porte et que la française ne la porte pas — le test vise maintenant le nom du jeton).
+
+## Ce qui reste, et pourquoi on ne l'a pas fait
+
+Le compte de **642** couleurs en dur était trompeur : il additionnait des choses qui ne se corrigent pas de la même façon. Après cette passe il en reste 352 hors quiz et hors périmètre exclu, dont **90 illisibles sur le sol du Cuir** (rapport < 3), réparties sur une trentaine de fichiers à raison d'une à six chacune.
+
+- **Ce sont EXACTEMENT les résidus que la passe d'harmonie avait laissés à dessein** : chacune employée moins de huit fois et à plus de ΔE 30 de tout jeton. Les rabattre serait un changement de dessin, pas une harmonisation. Il faut donc les **transposer une par une**, ce qui demande une décision par cas.
+- **Le chemin de LECTURE, lui, est sain** : plus aucune teinte illisible dans `TexteBible`, `NavLivres`, `PanneauPatristique`, `PageTitre`, `BibleBilingue`, la page Bible, la page d'œuvre, la péricope ni la Polyglotte. Le reste vit dans l'admin, les écrans d'exception et les pages de service.
+- ⚠️ **Une occurrence subsiste sur le chemin de lecture** : `#575048` dans `app/oeuvre/[id]/OeuvreClient.tsx`, laissée parce que le fichier portait un chantier en cours au 2026-08-23. La remplacer par `var(--cs-original)` dès que ce chantier est clos, comme la copie de `LABEL_VOLET`/`BTN_VOLET` signalée plus haut.
+- **Hors périmètre pour toujours** : `EssaiPDF.tsx` (PDFKit ne résout aucune custom property) et `couverturesEssai.ts` (contraste testé). **Hors périmètre par décision** : `app/quiz/`, chantier Holy Guessr, dont les SVG sont une illustration à palette propre et non du chrome.
 
 # Perf du chemin de lecture (audit, point 2)
 

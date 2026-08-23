@@ -153,7 +153,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
     // au lieu de <sup> (vertical-align:super) qui gonfle la boîte de ligne.
     <span style={{ marginLeft: 0, display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline', lineHeight: 0, fontSize: '0.68em' }}>
       <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-        style={{ color: fixe ? 'var(--cs-encre-fonce)' : 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
+        style={{ color: fixe ? 'var(--cs-encre-fonce)' : 'var(--cs-vert-aplat)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, fontSize: 'inherit', fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'normal', lineHeight: 1 }}>
         {lettre}
       </button>
     </span>
@@ -245,7 +245,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
                 position: 'absolute',
                 bottom: 0, left: 0,
                 height: '2px',
-                background: 'linear-gradient(90deg, var(--cs-vert) 0%, #8abf9e 100%)',
+                background: 'linear-gradient(90deg, var(--cs-vert-aplat) 0%, #8abf9e 100%)',
                 animation: `essai-note-progress ${DUREE_FIXATION}ms linear forwards`,
 
               }} />

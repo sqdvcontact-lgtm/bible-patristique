@@ -150,7 +150,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: '#4a443c', margin: titreOriginalVisible ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: 'var(--cs-texte)', margin: titreOriginalVisible ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (

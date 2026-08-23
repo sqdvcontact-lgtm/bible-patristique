@@ -316,7 +316,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
             const actif = voletMobile === o.cle
             return (
               <button key={o.label} onClick={() => changerOnglet(o.cle)}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
               </button>
             )

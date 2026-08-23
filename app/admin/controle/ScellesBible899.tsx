@@ -50,7 +50,7 @@ export default function ScellesBible899() {
 
       <button onClick={lancer} disabled={encours}
         style={{ fontSize: '0.8125rem', padding: '6px 14px', borderRadius: '4px',
-                 border: '1px solid var(--cs-vert)', background: encours ? 'var(--cs-fond-doux)' : 'var(--cs-vert)',
+                 border: '1px solid var(--cs-vert)', background: encours ? 'var(--cs-fond-doux)' : 'var(--cs-vert-aplat)',
                  color: encours ? 'var(--cs-texte-doux)' : 'var(--cs-surface)', cursor: encours ? 'default' : 'pointer' }}>
         {encours ? 'Contrôle en cours…' : 'Contrôler les scellés'}
       </button>

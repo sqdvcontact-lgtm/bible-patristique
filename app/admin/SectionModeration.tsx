@@ -151,7 +151,7 @@ export default function SectionModeration(props: Props) {
         .mod-tabs{display:flex;justify-content:center;gap:8px;margin:0 0 22px;}
         .mod-tab{font-family:var(--font-source-serif), Georgia, serif;font-size:0.875rem;color:var(--cs-texte-gris);background:transparent;border:0;border-radius:999px;padding:7px 20px;cursor:pointer;transition:background .14s,color .14s;display:inline-flex;align-items:center;gap:8px;}
         .mod-tab:hover{color:var(--cs-vert);}
-        .mod-tab.active{background:var(--cs-vert);color:var(--cs-surface);}
+        .mod-tab.active{background:var(--cs-vert-aplat);color:var(--cs-sur-aplat);}
         .mod-tab .n{font-size:0.625rem;font-family:var(--font-source-sans), Arial, sans-serif;border-radius:999px;padding:1px 7px;background:rgba(0,0,0,.06);}
         .mod-tab.active .n{background:rgba(255,255,255,.25);}
         .mod-liste{display:flex;flex-direction:column;gap:10px;max-width:680px;margin:0 auto;}
@@ -170,10 +170,10 @@ export default function SectionModeration(props: Props) {
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
         .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--cs-bord);background:var(--cs-surface);color:var(--cs-texte);transition:background .12s,border-color .12s;}
         .mod-btn:hover{background:var(--cs-fond);}
-        .mod-btn.vert{background:var(--cs-vert);color:var(--cs-surface);border-color:var(--cs-vert);}
+        .mod-btn.vert{background:var(--cs-vert-aplat);color:var(--cs-sur-aplat);border-color:var(--cs-vert-aplat);}
         .mod-btn.vert:hover{background:var(--cs-vert-fonce);}
         .mod-btn.rouge{color:var(--cs-danger-fonce);border-color:#e2b9aa;background:var(--cs-fond-clair);}
-        .mod-btn.violet{background:#6b4fa0;color:var(--cs-surface);border-color:#6b4fa0;}
+        .mod-btn.violet{background:#6b4fa0;color:var(--cs-sur-aplat);border-color:#6b4fa0;}
         .mod-btn.violet:hover{background:#573f86;}
         .mod-btn:disabled{opacity:.5;cursor:default;}
         .mod-badge{font-size:0.59375rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:999px;white-space:nowrap;}

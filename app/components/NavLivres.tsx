@@ -116,9 +116,9 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
     <div onClick={onFermer} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}>
       <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 26px 22px', width: '40rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
         <style>{`
-          .trad-notice h2 { font-family: ${SERIF}; font-size: 0.9375rem; font-weight: 600; color: #3a4a34; margin: 13px 0 3px; }
+          .trad-notice h2 { font-family: ${SERIF}; font-size: 0.9375rem; font-weight: 600; color: var(--cs-encre); margin: 13px 0 3px; }
           .trad-notice h2:first-child { margin-top: 0; }
-          .trad-notice p { font-size: 0.8125rem; line-height: 1.4; color: #4a4038; margin: 0 0 8px; text-align: justify; }
+          .trad-notice p { font-size: 0.8125rem; line-height: 1.4; color: var(--cs-texte); margin: 0 0 8px; text-align: justify; }
           .trad-tech > summary { list-style: none; cursor: pointer; }
           .trad-tech > summary::-webkit-details-marker { display: none; }
         `}</style>
@@ -190,7 +190,7 @@ function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFa
             {/* 6. Frise chronologique — le composant même des pages d'auteur. */}
             {chrono.length > 0 && (
               <div style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '14px' }}>
-                <h2 style={{ fontFamily: SERIF, fontSize: '0.9375rem', fontWeight: 600, color: '#3a4a34', margin: '0 0 12px' }}>Chronologie</h2>
+                <h2 style={{ fontFamily: SERIF, fontSize: '0.9375rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 12px' }}>Chronologie</h2>
                 <FriseAuteur evenements={chrono} sansLegende />
               </div>
             )}
@@ -502,7 +502,7 @@ export default function NavLivres({
           padding: '2px 6px', borderRadius: '4px', fontSize: '0.84375rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(var(--cs-vert-rgb),0.12)' : actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
-          color: vide ? '#b3bdb0' : actif || suggere ? 'var(--cs-encre)' : '#4f5f52',
+          color: vide ? 'var(--cs-texte-faible)' : actif || suggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
           fontWeight: actif || suggere ? 600 : 400,
           border: suggere ? '1px solid rgba(var(--cs-vert-rgb),0.30)' : '1px solid transparent',
           cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
@@ -519,7 +519,7 @@ export default function NavLivres({
               style={{
                 width: '100%', fontSize: '0.75rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
                 border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
-                background: entierSel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)',
+                background: entierSel ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-doux)',
                 color: entierSel ? 'var(--cs-surface)' : 'var(--cs-texte-second)',
                 fontWeight: entierSel ? 600 : 400, lineHeight: 1,
               }}>
@@ -549,7 +549,7 @@ export default function NavLivres({
                   cursor: 'pointer', padding: 0,
                   /* Cases plus petites, gris léger au repos (le vert reste l'accent du
                      chapitre courant et de la suggestion de recherche). */
-                  background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert)'
+                  background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert-aplat)'
                     : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : 'var(--cs-fond-doux)',
                   color: (actif && chapitreActifLocal === ch) ? 'var(--cs-surface)'
                     : estChapSuggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',

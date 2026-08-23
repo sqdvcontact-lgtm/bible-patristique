@@ -272,7 +272,7 @@ function Pagination({ page, nbPages, onPage, bas = false }: {
 function flecheBtn(disabled: boolean): React.CSSProperties {
   return {
     width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-    background: 'var(--cs-surface)', color: disabled ? 'var(--cs-bord)' : 'var(--cs-vert)', cursor: disabled ? 'default' : 'pointer',
+    background: 'var(--cs-surface)', color: disabled ? 'var(--cs-bord)' : 'var(--cs-vert-aplat)', cursor: disabled ? 'default' : 'pointer',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: disabled ? 'none' : '0 1px 5px rgba(60,50,30,0.06)', transition: 'color 0.12s, box-shadow 0.12s',
   }

@@ -171,7 +171,7 @@ export default function SectionConstituerLiens() {
                         onKeyDown={e => { if (e.key === 'Enter') constituer(lien) }} placeholder="Référence — ex. Mt 10,40"
                         style={{ flex: '1 1 12rem', minWidth: '10rem', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '6px 9px' }} />
                       <button onClick={() => constituer(lien)} disabled={st?.etat === 'loading'}
-                        style={{ fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>Rattacher le verset</button>
+                        style={{ fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer' }}>Rattacher le verset</button>
                       <button onClick={() => ouvrirNote(lien)} disabled={st?.etat === 'loading'}
                         style={{ fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, padding: '6px 12px', borderRadius: '8px', border: `1px solid ${noteOuverte === lien.id ? 'var(--cs-vert)' : '#d8b48f'}`, background: noteOuverte === lien.id ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-danger-fond)', color: '#9a6a3e', cursor: 'pointer' }}>Ajouter une note</button>
                       <button onClick={() => ecarter(lien)} disabled={st?.etat === 'loading'}
@@ -186,7 +186,7 @@ export default function SectionConstituerLiens() {
                           <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>L’appel de note sera placé en fin de segment ; le lien biblique est retiré.</span>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button onClick={() => setNoteOuverte(null)} style={{ fontFamily: SANS, fontSize: '0.75rem', padding: '5px 11px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                            <button onClick={() => ajouterNote(lien)} disabled={st?.etat === 'loading'} style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '5px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer' }}>Enregistrer la note</button>
+                            <button onClick={() => ajouterNote(lien)} disabled={st?.etat === 'loading'} style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '5px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer' }}>Enregistrer la note</button>
                           </div>
                         </div>
                       </div>

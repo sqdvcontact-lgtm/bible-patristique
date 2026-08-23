@@ -91,7 +91,7 @@ export default function MessageriePage() {
                         {c.partenaire_pseudo}
                       </span>
                       {c.nb_non_lus > 0 && (
-                        <span style={{ background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontSize: '0.59375rem', fontWeight: 700, borderRadius: '8px', padding: '1px 7px', letterSpacing: '0.04em' }}>
+                        <span style={{ background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.59375rem', fontWeight: 700, borderRadius: '8px', padding: '1px 7px', letterSpacing: '0.04em' }}>
                           {c.nb_non_lus}
                         </span>
                       )}

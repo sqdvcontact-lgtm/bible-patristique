@@ -171,7 +171,7 @@ const petitChoixStyle: CSSProperties = {
 // centrée verticalement.
 const boutonCiterStyle: CSSProperties = {
   flexShrink: 0, alignSelf: 'center', fontSize: '0.625rem', fontWeight: 600, padding: '4px 12px',
-  borderRadius: '999px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer',
+  borderRadius: '999px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer',
   whiteSpace: 'nowrap', letterSpacing: '0.02em', transition: 'background 0.15s',
 }
 
@@ -208,7 +208,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
           <div style={{ display: 'flex', gap: '6px' }}>
             {(['bible', 'patristique'] as const).map(s => (
               <button key={s} onClick={() => setSource(s)}
-                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: source === s ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontWeight: source === s ? 600 : 400 }}>
+                style={{ fontSize: '0.75rem', padding: '6px 14px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: source === s ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: source === s ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontWeight: source === s ? 600 : 400 }}>
                 {s === 'bible' ? 'Bible' : 'Patristique'}
               </button>
             ))}
@@ -487,7 +487,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
               return (
                 <button key={s.id} type="button" onClick={() => toggle(s.id)}
                   style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '4px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)'}`, background: sel ? 'rgba(var(--cs-vert-rgb),0.07)' : 'var(--cs-surface)', cursor: 'pointer', alignItems: 'flex-start' }}>
-                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '4px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sel ? 'var(--cs-vert)' : 'var(--cs-surface)', color: 'var(--cs-surface)', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
+                  <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '4px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sel ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: 'var(--cs-sur-aplat)', fontSize: '0.625rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
                   <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', flexShrink: 0 }}>§{s.segment_numero}</span>
                   <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
                 </button>
@@ -503,7 +503,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
           <button type="button" disabled={!segsSelectionnes.length} onClick={() => insererSelection()}
-            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: segsSelectionnes.length ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
+            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: segsSelectionnes.length ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
         </span>
       </div>
     </div>

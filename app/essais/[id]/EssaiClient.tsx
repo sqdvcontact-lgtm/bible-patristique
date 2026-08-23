@@ -51,7 +51,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
   }
   return (
     <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: flash ? 'var(--cs-fond)' : 'var(--cs-surface)', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: flash ? 'var(--cs-fond)' : 'var(--cs-surface)', color: flash ? 'var(--cs-vert-aplat)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
       {children}
     </button>
   )
@@ -349,7 +349,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 Cette publication a été lue {nbVues} fois
               </p>
               <button onClick={toggleApprecier} disabled={!userId}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? 'var(--cs-vert-aplat)' : 'var(--cs-texte-faible)', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
                   <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
                 </svg>

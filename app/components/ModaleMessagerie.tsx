@@ -159,7 +159,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {messages.map(m => (
                     <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.de_moi ? 'flex-end' : 'flex-start' }}>
-                      <div style={{ maxWidth: '78%', background: m.de_moi ? 'var(--cs-vert)' : 'var(--cs-surface)', color: m.de_moi ? 'var(--cs-fond)' : 'var(--cs-encre-fonce)', border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      <div style={{ maxWidth: '78%', background: m.de_moi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: m.de_moi ? 'var(--cs-fond)' : 'var(--cs-encre-fonce)', border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {m.contenu}
                       </div>
                       <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', margin: '2px 4px 0' }}>
@@ -178,7 +178,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
                 style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
               <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
-                style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert)', color: 'var(--cs-surface)', border: 'none', borderRadius: '8px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
+                style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', borderRadius: '8px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
                 {envoi ? '…' : 'Envoyer'}
               </button>
             </div>
@@ -220,11 +220,11 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {convsFiltrees.map(c => (
                     <button key={c.partenaire_pseudo} onClick={() => ouvrirConversation(c.partenaire_pseudo)}
-                      style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? 'var(--cs-fond-clair)' : 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
+                      style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? 'var(--cs-fond-clair)' : 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
                       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>{c.partenaire_pseudo}</span>
-                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '8px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
+                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '8px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
                         </span>
                         <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', flexShrink: 0 }}>{dateRelative(c.dernier_at)}</span>
                       </span>

@@ -159,7 +159,7 @@ export default function SectionEditeurs() {
             {statut === 'err' && <p style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreur}</p>}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
               {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
-              <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.78125rem', padding: '5px 15px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.78125rem', padding: '5px 15px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
                 {statut === 'envoi' ? 'Enregistrement…' : brouillon.id ? 'Enregistrer' : 'Ajouter'}
               </button>
             </div>

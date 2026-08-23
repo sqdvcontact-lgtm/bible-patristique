@@ -106,7 +106,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1,
   }
   const badgeStyle: React.CSSProperties = {
-    position: 'absolute', zIndex: 3, background: 'var(--cs-vert)', color: 'var(--cs-surface)',
+    position: 'absolute', zIndex: 3, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)',
     fontSize: '0.5625rem', fontWeight: 700, padding: '2px 7px', borderRadius: '4px',
     letterSpacing: '0.07em', textTransform: 'uppercase', pointerEvents: 'none',
   }
@@ -229,7 +229,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
         {/* ── Actions ── */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '14px', borderTop: '1px solid var(--cs-bord-clair)', paddingTop: '14px' }}>
           <button onClick={onClose} style={{ fontSize: '0.875rem', padding: '7px 16px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
+          <button onClick={sauvegarder} disabled={saving} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: saving ? '#a0b8aa' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: saving ? 'default' : 'pointer', fontWeight: 500 }}>
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>
@@ -541,7 +541,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
   }
   const e = local
   const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.6875rem', fontWeight: 600, padding: '5px 13px', borderRadius: '8px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer' })
-  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.71875rem', padding: '4px 12px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
+  const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.71875rem', padding: '4px 12px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: 'var(--cs-surface)', color: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
 
   return (
     <div style={{ padding: '16px 18px 20px', borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)' }}>
@@ -929,7 +929,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
       {/* Bouton ajouter */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
         <button onClick={() => { setAjout(!ajout); setImportStatut('idle'); setImportMsg('') }}
-          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
           + Ajouter une traduction
         </button>
       </div>
@@ -990,7 +990,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               Annuler
             </button>
             <button onClick={importer} disabled={importStatut === 'loading'}
-              style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: importStatut === 'loading' ?'#a0b8aa' : 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: importStatut === 'loading' ?'default' : 'pointer', fontWeight: 500 }}>
+              style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: importStatut === 'loading' ?'#a0b8aa' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: importStatut === 'loading' ?'default' : 'pointer', fontWeight: 500 }}>
               {importStatut === 'loading' ? 'Import en cours…' : 'Créer et importer'}
             </button>
           </div>
@@ -1121,7 +1121,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                   <span style={{ fontSize: '0.8125rem', color: statut?.ok ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>{statut?.ok ? '✓' : '✗'} {statut?.msg}</span>
                 )}
                 <button onClick={fermer} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                <button onClick={sauvegarder} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                <button onClick={sauvegarder} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
               </div>
             </div>
           )}
@@ -1174,7 +1174,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 <button
                   onClick={confirmerRemplacement}
                   disabled={replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok'}
-                  style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok' ? '#a0b8aa' : 'var(--cs-or)', color: 'var(--cs-surface)', cursor: replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok' ? 'default' : 'pointer', fontWeight: 500 }}>
+                  style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok' ? '#a0b8aa' : 'var(--cs-or)', color: 'var(--cs-sur-aplat)', cursor: replaceLignes.length === 0 || replaceStatut === 'loading' || replaceStatut === 'ok' ? 'default' : 'pointer', fontWeight: 500 }}>
                   {replaceStatut === 'loading' ? 'Mise à jour…' : `Écraser ${replaceLignes.length > 0 ? replaceLignes.length + ' versets' : '…'}`}
                 </button>
               </div>

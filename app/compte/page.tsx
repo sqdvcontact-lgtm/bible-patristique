@@ -142,7 +142,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
         {erreur && <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", marginBottom: "12px" }}>{erreur}</p>}
         <form onSubmit={valider} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme" style={inputStyle} />
-          <button type="submit" disabled={envoi} style={{ padding: "10px", borderRadius: "8px", border: "none", background: "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.84375rem", fontWeight: 500, cursor: "pointer" }}>
+          <button type="submit" disabled={envoi} style={{ padding: "10px", borderRadius: "8px", border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: "pointer" }}>
             {envoi ? "Enregistrement…" : "Valider"}
           </button>
         </form>
@@ -384,7 +384,7 @@ function ModaleRecadrage({ photo, onSauvegarder, onChanger, onClose }: {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <button onClick={() => onSauvegarder(posX, posY, zoom)}
-            style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
+            style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
             Appliquer
           </button>
           <button onClick={onChanger}
@@ -695,7 +695,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 />
               </div>
             ) : (
-              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,var(--cs-vert),var(--cs-encre))", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
+              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg,var(--cs-vert-aplat),var(--cs-encre))", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "2px solid #c8d8cc" }}>
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.75rem", color: "var(--cs-fond-doux)", fontWeight: "normal" }}>
                   {profilInit.pseudo.charAt(0).toUpperCase()}
                 </span>
@@ -756,7 +756,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {etapesChecklist.map(({ fait, label, pts, lien }) => (
                   <div key={label} className="cs-check-item">
-                    <span className="cs-check-circle" style={{ background: fait ? "var(--cs-fond)" : "var(--cs-fond)", border: `1.5px solid ${fait ? "#7aaa8e" : "var(--cs-bord)"}`, color: fait ? "var(--cs-vert)" : "transparent" }}>
+                    <span className="cs-check-circle" style={{ background: fait ? "var(--cs-fond)" : "var(--cs-fond)", border: `1.5px solid ${fait ? "#7aaa8e" : "var(--cs-bord)"}`, color: fait ? "var(--cs-vert-aplat)" : "transparent" }}>
                       {fait ? "✓" : ""}
                     </span>
                     <span style={{ flex: 1 }}>
@@ -804,7 +804,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <button onClick={enregistrer} disabled={enregistrement}
-                style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
+                style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
                 {enregistrement ? "Enregistrement…" : "Enregistrer"}
               </button>
               {statut && <span style={{ fontSize: "0.78125rem", color: statut.ok ? "var(--cs-vert)" : "var(--cs-danger-fonce)" }}>{statut.ok ? "✓" : "✗"} {statut.msg}</span>}
@@ -834,7 +834,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               ] as const).map(({ key, label, value, set }) => (
                 <label key={key} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", userSelect: "none" }}>
                   <button type="button" role="switch" aria-checked={value} onClick={() => set(!value)}
-                    style={{ width: "32px", height: "18px", borderRadius: "999px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, background: value ? "var(--cs-vert)" : "var(--cs-bord)", position: "relative", transition: "background 0.15s" }}>
+                    style={{ width: "32px", height: "18px", borderRadius: "999px", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, background: value ? "var(--cs-vert-aplat)" : "var(--cs-bord)", position: "relative", transition: "background 0.15s" }}>
                     <span style={{ position: "absolute", top: "3px", left: value ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: "var(--cs-surface)", transition: "left 0.15s" }} />
                   </button>
                   <span style={{ fontSize: "0.78125rem", color: "var(--cs-texte)" }}>{label}</span>
@@ -843,7 +843,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <button onClick={enregistrerPage} disabled={enregistrementPage}
-                style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
+                style={{ padding: "8px 18px", borderRadius: "8px", border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: "pointer" }}>
                 {enregistrementPage ? "Enregistrement…" : "Enregistrer"}
               </button>
               {statutPage && <span style={{ fontSize: "0.78125rem", color: statutPage.ok ? "var(--cs-vert)" : "var(--cs-danger-fonce)" }}>{statutPage.ok ? "✓" : "✗"} {statutPage.msg}</span>}
@@ -935,7 +935,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
                 Annuler
               </button>
               <button onClick={supprimerCompte} disabled={suppressionEnCours || !consentSuppression}
-                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "8px", border: "none", background: consentSuppression ? "var(--cs-danger)" : "var(--cs-danger-bord)", color: "var(--cs-surface)", fontWeight: 500, cursor: consentSuppression ? "pointer" : "default", transition: "background 0.15s" }}>
+                style={{ fontSize: "0.78125rem", padding: "7px 16px", borderRadius: "8px", border: "none", background: consentSuppression ? "var(--cs-danger)" : "var(--cs-danger-bord)", color: "var(--cs-sur-aplat)", fontWeight: 500, cursor: consentSuppression ? "pointer" : "default", transition: "background 0.15s" }}>
                 {suppressionEnCours ? "Suppression…" : "Supprimer définitivement"}
               </button>
             </div>

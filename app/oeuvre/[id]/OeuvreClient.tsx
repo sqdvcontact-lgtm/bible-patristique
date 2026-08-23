@@ -249,7 +249,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
                 {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
                 <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={envoyer} disabled={statut === 'envoi' || !peutEnvoyer}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert)' : 'var(--cs-bord-clair)', color: peutEnvoyer ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: peutEnvoyer ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                   {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
                 </button>
               </div>
@@ -1771,7 +1771,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   return (
                     <div key={bk} style={{ marginBottom: '6px' }}>
                       <button onClick={() => divisionsDuLivre[0] && naviguerComparaison(bk, divisionsDuLivre[0].division)}
-                        style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35 }}>
+                        style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert-aplat)' : 'var(--cs-texte)', lineHeight: 1.35 }}>
                         {titreSansAppelsDeNote(titreLivre)}
                       </button>
                       {estActif && divisionsDuLivre.map(d => {
@@ -1804,7 +1804,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div key={n1} style={{ marginBottom: profondeurSommaire >= 2 ? '6px' : '0' }}>
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, ...COMPOSITION_INTITULE }}>
+                    style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert-aplat)' : 'var(--cs-texte)', lineHeight: 1.35, ...COMPOSITION_INTITULE }}>
                     {titreSansAppelsDeNote(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'Liminaires') : n1)}
                     {n1 !== NIV1_LIMINAIRES && niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
                       <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
@@ -2269,7 +2269,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <span style={{ width: '1px', background: 'var(--cs-bord-clair)', alignSelf: 'center', height: '16px', flexShrink: 0 }} />
                     )}
                     <button onClick={() => setOngletDroit(key)} className="onglet-btn"
-                      style={{ flex: 1, padding: '11px 4px 10px', background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+                      style={{ flex: 1, padding: '11px 4px 10px', background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
                       <span style={{ fontSize: '0.78125rem', fontWeight: actif ? 600 : 400, color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>{labels[key]}</span>
                     </button>
                   </Fragment>
@@ -2298,7 +2298,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' }}>
                       {traductionsBible.map((t, i) => (
                         <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? 'var(--cs-fond)' : 'var(--cs-surface)', color: tradIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
+                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? 'var(--cs-fond)' : 'var(--cs-surface)', color: tradIndex === i ? 'var(--cs-vert-aplat)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
                           {t.label}
                         </button>
                       ))}
@@ -2581,7 +2581,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   { valeur: true, libelle: 'Texte entier paginé' },
                 ].map(option => (
                   <button key={option.libelle} onClick={() => setConfigNiveaux(prev => ({ ...prev, texteEntier: option.valeur }))}
-                    style={{ flex: 1, minHeight: '34px', padding: '5px 8px', borderRadius: '4px', border: `1px solid ${configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-surface)', color: configNiveaux.texteEntier === option.valeur ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: configNiveaux.texteEntier === option.valeur ? 700 : 400 }}>
+                    style={{ flex: 1, minHeight: '34px', padding: '5px 8px', borderRadius: '4px', border: `1px solid ${configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: configNiveaux.texteEntier === option.valeur ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: configNiveaux.texteEntier === option.valeur ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontSize: '0.6875rem', cursor: 'pointer', fontWeight: configNiveaux.texteEntier === option.valeur ? 700 : 400 }}>
                     {option.libelle}
                   </button>
                 ))}
@@ -2604,7 +2604,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       return (
                         <button key={n} disabled={vide} onClick={() => { if (!vide) setConfigNiveaux(prev => ({ ...prev, [key]: n })) }}
                           title={vide ? `Le niveau ${n} n’existe pas dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}
-                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-surface)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
                           {n}
                         </button>
                       )
@@ -2623,7 +2623,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           return { ...prev, [txtKey]: arr }
                         })}
                           title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
-                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert)' : 'var(--cs-surface)', color: actif ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: actif ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
                           N{n}
                         </button>
                       )
@@ -2635,7 +2635,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-faible)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
-                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-surface)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
@@ -2671,7 +2671,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 setConfigOuverte(false)
                 if (modeModifie) window.location.reload()
               }}
-                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', fontWeight: 500, cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontWeight: 500, cursor: 'pointer' }}>
                 {configEnvoi ? 'Enregistrement…' : 'Enregistrer'}
               </button>
             </div>

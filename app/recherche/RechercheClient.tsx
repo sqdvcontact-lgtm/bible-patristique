@@ -713,10 +713,10 @@ export default function RechercheClient() {
         .ong-count { margin-left:5px; font-size:0.59375rem; color:var(--cs-texte-faible); font-weight:400; }
         .ong-btn--actif .ong-count { color:#6a9a7a; }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .pag-btn:hover:not(:disabled) { background:var(--cs-vert); color:var(--cs-surface); border-color:var(--cs-vert); }
+        .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
         .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
         .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .mode-btn--actif { background:var(--cs-vert); color:var(--cs-surface); font-weight:500; }
+        .mode-btn--actif { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); font-weight:500; }
         .mode-btn--inactif { background:var(--cs-surface); color:var(--cs-texte-second); }
         .mode-btn--inactif:hover { background:var(--cs-fond-doux); }
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
@@ -939,7 +939,7 @@ export default function RechercheClient() {
                 return (
                   <Fragment key={o.k}>
                     <button onClick={()=>setOnglet(o.k)}
-                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'var(--cs-encre)':'var(--cs-texte-second)', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
+                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert-aplat)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'var(--cs-encre)':'var(--cs-texte-second)', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
                       <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
                       <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'#6a9a7a':'var(--cs-texte-faible)', fontWeight:400 }}>{o.n}</span>
                     </button>
@@ -1271,7 +1271,7 @@ export default function RechercheClient() {
               <button onClick={() => setConfirmEcrasement(false)}
                 style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'8px', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'var(--cs-vert)', color:'var(--cs-surface)', fontWeight:600, cursor:'pointer' }}>Écraser</button>
+                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', fontWeight:600, cursor:'pointer' }}>Écraser</button>
             </div>
           </div>
         </div>

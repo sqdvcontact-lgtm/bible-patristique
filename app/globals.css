@@ -46,6 +46,19 @@
   --cs-vert: #3d6b4f;         /* aplat d'accent (liens, boutons, actifs) */
   --cs-vert-rgb: 61, 107, 79; /* mêmes composantes, pour les rgba(...) */
   --cs-vert-fonce: #2e5440;   /* survol / état pressé */
+  /* ⛔ L'APLAT vert, celui qui porte du BLANC : la barre de navigation, les boutons
+     pleins, les états actifs. Distinct de --cs-vert, qui est l'ENCRE. La distinction
+     ne se voyait pas tant qu'un seul thème était servi, les deux valant la même chose ;
+     elle est nécessaire dès que le sol s'assombrit, l'encre s'éclaircissant alors que
+     l'aplat doit rester profond. Mesuré avant la correction : blanc sur la barre en
+     Cuir, 2,29. Ne JAMAIS employer --cs-vert comme fond sous du blanc. */
+  --cs-vert-aplat: #3d6b4f;
+  /* ⛔ L ENCRE POSÉE SUR UN APLAT (le libellé d un bouton plein, le texte de la barre).
+     Elle ne suit PAS le thème, comme les trois -clair du panneau mobile : un knockout
+     n est pas « la couleur du papier », c est un blanc qui doit rester blanc quand le
+     papier devient brun. Le code employait --cs-surface, qui vire au brun sombre en
+     Cuir : cent un libellés de bouton y disparaissaient. */
+  --cs-sur-aplat: #fff;
 
   /* ── Palette harmonisée : tokens sémantiques ──
      Source unique des neutres, encres, danger et or, jusqu'ici éclatés en
@@ -91,6 +104,11 @@
   --cs-attente: #9a5a2a;
   /* Or — accent doré (références, fleurons, favoris) */
   --cs-or: #9a7a38;
+  /* Composantes de l'or, pour ses variantes translucides : `rgba(var(--cs-or-rgb), α)`.
+     Elles manquaient, si bien que cinq encadrements dorés recopiaient la teinte à la
+     main et restaient donc en dur — le même défaut que la page des prélèvements avait
+     déjà corrigé de son côté, faute d'un nom où se ranger. */
+  --cs-or-rgb: 154, 122, 56;
   --cs-or-doux: #c8b89e;
   /* Familles de la navbar. « Corpus » prend le vert, « Communauté » l'or ; « Système &
      doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
@@ -102,6 +120,20 @@
      texte fané. Distinct du gris des lectures incertaines (présent mais douteux). */
   --cs-lacune: #8a6a2c;
 
+  /* ── Surnuméraire : les versets propres à la Septante, hors de l'ossature canonique
+     (Polyglotte). Seule famille FROIDE du corpus après --cs-systeme, et la seule qui
+     ne se rabatte sur rien : mesuré, le violet est à ΔE 36,7 de --cs-systeme, le jeton
+     le plus proche. Ce n'était donc pas un doublon, c'était un rôle sans nom. Quatre
+     rangs, chacun ancré sur la valeur dominante du sien : sept violets écrits en dur
+     rabattus au seuil habituel (le plus grand déplacement vaut ΔE 18,4, indiscernable).
+     Les valeurs CLAIRES sont celles d'aujourd'hui : le thème servi ne bouge pas. */
+  --cs-surnum-fort: #3a3566;   /* l'encre du texte surnuméraire */
+  --cs-surnum: #5a4b9c;        /* l'encre de la famille : pastille de filtre, icônes */
+  --cs-surnum-doux: #9d93c4;   /* lettrine de chapitre, marques atténuées */
+  --cs-surnum-bord: #e3e0f2;   /* filets et cellules vides d'une rangée surnuméraire */
+  /* Le verset VISÉ par un lien profond, surligné le temps qu'on le retrouve. */
+  --cs-vise-fond: #fff3c4;
+
   /* Surface « papier » : cartes, menus, champs. Blanc en thème clair (identique à
      l'existant) ; devient crème chaud en Sépia, brun sombre en Cuir. C'est ce token
      qui permet aux fonds — jadis `#fff` en dur — de suivre le thème. */
@@ -110,6 +142,11 @@
      qui n'existait dans aucune famille — d'où son token dédié (valeur claire =
      l'actuelle, pour que le Clair ne bouge pas). */
   --cs-etiquette: #9e8e6a;
+  /* Encre du texte en LANGUE ORIGINALE composé en regard du français (Bible bilingue,
+     colonne latine d'une œuvre). Une teinte à part, plus effacée que le corps sans être
+     un gris de service : elle vaut 65 % du contraste du corps, et les trois thèmes
+     gardent ce rapport. Elle était écrite en dur dans trois fichiers, et TESTÉE. */
+  --cs-original: #575048;
 
   /* ── Teintes posées sur le panneau mobile, qui est vert sombre EN TOUTES CIRCONSTANCES ──
      Elles n'ont donc pas de surcouche de thème : leur fond ne change pas. Ce sont les
@@ -159,6 +196,8 @@
   --cs-vert-rgb: 85, 107, 60;
   --cs-vert-fonce: #41542d;
   --cs-vert-pale: #e2e2c4;
+  --cs-vert-aplat: #556b3c;
+  --cs-sur-aplat: #f8f1e0;
   --cs-danger: #b0552a;
   --cs-danger-rgb: 176, 85, 42;
   --cs-danger-fonce: #8e2a1e;
@@ -166,9 +205,21 @@
   --cs-danger-bord: #dcc0a0;
   --cs-attente: #8f5526;
   --cs-or: #8f6f2c;
+  --cs-or-rgb: 143, 111, 44;
   --cs-or-doux: #c4ab7e;
-  --cs-systeme: #6a6a72;
+  /* Descendu de #6a6a72, qui ne rendait que 4,48 sur le parchemin quand le Clair en
+     rendait 4,87 : le rôle perdait pied en changeant de sol. */
+  --cs-systeme: #5f5f68;
   --cs-etiquette: #8a744a;
+  /* Le Sépia laissait --cs-lacune à sa valeur claire, d'où 4,20 au lieu des 4,58 du
+     Clair. Ce jeton porte TOUS les appels de note du corps : il ne peut pas hériter. */
+  --cs-lacune: #7d5f26;
+  --cs-surnum-fort: #3f3a63;
+  --cs-surnum: #544a86;
+  --cs-surnum-doux: #8a80ab;
+  --cs-surnum-bord: #d5cee0;
+  --cs-vise-fond: #f6e6b8;
+  --cs-original: #5c4e39;
 }
 
 /* ── Cuir : brun chaud « vieux livre », texte crème, vert en accent (variante B) ── */
@@ -194,13 +245,22 @@
   --cs-vert-rgb: 123, 185, 142;
   --cs-vert-fonce: #6aa87d;
   --cs-vert-pale: #26332a;
+  /* Reste PROFOND, quand --cs-vert passe au vert clair : blanc à 7,18. */
+  --cs-vert-aplat: #35604a;
   --cs-danger: #d9714a;
   --cs-danger-rgb: 217, 113, 74;
-  --cs-danger-fonce: #c25738;
+  /* ⚠️ Cette valeur était #c25738, c'est-à-dire PLUS SOMBRE que --cs-danger : la
+     logique du thème clair, transposée telle quelle sur un sol sombre, où elle
+     s'inverse. Le rôle « danger confirmé » y devenait donc l'encre la plus faible
+     du jeu, à 3,96 contre 6,99 au Clair, soit la plus forte perte du nuancier.
+     Comme l'échelle de texte juste au-dessus, la famille du danger s'inverse : le
+     rang FORT est le plus lumineux. Mesuré à 6,94, le rang du Clair. */
+  --cs-danger-fonce: #e08c85;
   --cs-danger-fond: #2f211b;
   --cs-danger-bord: #4a3a30;
   --cs-attente: #c98452;
   --cs-or: #b89a5e;
+  --cs-or-rgb: 184, 154, 94;
   --cs-or-doux: #8f7a52;
   --cs-systeme: #98a3c2;
   --cs-ombre-posee: 0 1px 4px rgba(0, 0, 0, 0.30);
@@ -210,6 +270,22 @@
   --cs-ombre-modale: 0 12px 40px rgba(0, 0, 0, 0.60);
   --cs-ombre-modale-haut: 0 -10px 28px rgba(0, 0, 0, 0.55);
   --cs-etiquette: #b09a72;
+  /* ⚠️ Le SEUL jeton que le Cuir ne redéfinissait pas, et le plus lourdement employé
+     des absents : il porte tous les appels de note du corps (appelNote.tsx), la mention
+     « Lacune du manuscrit » de la page Bible, les marqueurs de la Bible 899 et la
+     famille Publications de la navbar. Resté à sa valeur claire, il rendait 3,51 sur
+     ce sol, pour un appel composé à 0,60 em : illisible. Transposé de la même main que
+     l'or et l'étiquette, il rend 7,11. */
+  --cs-lacune: #c0a065;
+  /* L'échelle du surnuméraire s'inverse comme celle du texte : « fort » est le plus
+     lumineux. Le rang fort rend 10,18 sur ce sol, exactement ce que le Clair rend sur
+     le sien. */
+  --cs-surnum-fort: #c9bef0;
+  --cs-surnum: #a99bdc;
+  --cs-surnum-doux: #7d719f;
+  --cs-surnum-bord: #332c47;
+  --cs-vise-fond: #3a3018;
+  --cs-original: #bdb3a0;
 }
 
 /* ── Agrandissement fluide sur grands écrans ──

@@ -115,7 +115,7 @@ export default function SectionPropositions() {
           }}>
             {label}
             {count > 0 && (
-              <span style={{ fontSize: '0.6875rem', background: key === 'a_traiter' ? 'var(--cs-danger)' : 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', padding: '1px 5px' }}>{count}</span>
+              <span style={{ fontSize: '0.6875rem', background: key === 'a_traiter' ? 'var(--cs-danger)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 5px' }}>{count}</span>
             )}
           </button>
         ))}
@@ -151,8 +151,8 @@ export default function SectionPropositions() {
                   <span style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px', background: s.bg, color: s.couleur, whiteSpace: 'nowrap' }}>
                     {s.label}
                   </span>
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, opacity: 0.4, transform: estOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
-                    <path d="M2 3.5l3 3 3-3" stroke="#2a3d30" strokeWidth="1.3" strokeLinecap="round"/>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ color: 'var(--cs-encre)', flexShrink: 0, opacity: 0.4, transform: estOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+                    <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                   </svg>
                 </div>
 

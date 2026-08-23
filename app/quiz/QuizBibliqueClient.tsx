@@ -941,7 +941,7 @@ function BlocJeu({ titre, children }: { titre: string; children: React.ReactNode
 }
 
 /* ── Styles partagés ─────────────────────────────────────────────────────── */
-const btnPrincipal = { fontSize: '0.75rem', padding: '8px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
+const btnPrincipal = { fontSize: '0.75rem', padding: '8px 13px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' } as const
 const btnSecondaire = { fontSize: '0.75rem', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 800 } as const
 const inputStyle = { minWidth: 0, fontSize: '0.75rem', padding: '8px 10px', border: '1px solid #bdd2bf', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', outline: 'none', boxSizing: 'border-box' } as const
 const tagStyle = { fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '999px', padding: '4px 8px', fontWeight: 700 } as const

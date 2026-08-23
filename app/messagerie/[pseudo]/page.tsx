@@ -134,7 +134,7 @@ export default function ConversationPage() {
                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.de_moi ? 'flex-end' : 'flex-start', marginTop: (!memeExp || !sameMinute) ? '6px' : '0' }}>
                   <div className="msg-bubble" style={{
                     maxWidth: '72%',
-                    background: m.de_moi ? 'var(--cs-vert)' : 'var(--cs-surface)',
+                    background: m.de_moi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
                     color: m.de_moi ? 'var(--cs-fond)' : 'var(--cs-encre-fonce)',
                     border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)',
                     borderRadius: m.de_moi ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
@@ -195,8 +195,8 @@ export default function ConversationPage() {
               onClick={envoyer}
               disabled={!texte.trim() || envoi}
               style={{
-                background: 'var(--cs-vert)',
-                color: 'var(--cs-surface)',
+                background: 'var(--cs-vert-aplat)',
+                color: 'var(--cs-sur-aplat)',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '10px 18px',

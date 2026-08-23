@@ -269,9 +269,9 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
         <input value={recherche} onChange={e => setRecherche(e.target.value)} type="text"
           placeholder="Rechercher un événement…" aria-label="Rechercher dans la frise"
           style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 10px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
-        <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-          <circle cx="5.5" cy="5.5" r="4.5" stroke="#2a2520" strokeWidth="1.2" />
-          <line x1="9" y1="9" x2="12" y2="12" stroke="#2a2520" strokeWidth="1.2" strokeLinecap="round" />
+        <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+          <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2" />
+          <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
         {recherche && (
           <button onClick={() => setRecherche('')} aria-label="Effacer la recherche"

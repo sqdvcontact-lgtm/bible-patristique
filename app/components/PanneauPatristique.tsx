@@ -277,7 +277,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         setLoading(false)
         onSupprime()
       }} disabled={loading}
-        style={{ fontSize:'0.625rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger)', color:'var(--cs-surface)', cursor:'pointer' }}>
+        style={{ fontSize:'0.625rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
         {loading ? '…' : 'Oui'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}
@@ -574,7 +574,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         <div key={c.id} style={{ marginLeft: estReponse ? '16px' : 0, marginBottom:'8px' }}>
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
             style={{ width:'100%', display:'block', position:'relative', overflow:'hidden', background:'rgba(176,58,42,0.06)', border:'1px solid rgba(176,58,42,0.20)', borderRadius:'8px', cursor:'pointer', padding:'7px 10px', textAlign:'left' }}>
-            <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'0.71875rem', color:'#b0392b', fontWeight:600 }}>
+            <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'0.71875rem', color:'var(--cs-danger-fonce)', fontWeight:600 }}>
               Commentaire en attente de contrôle.
             </span>
           </button>
@@ -589,7 +589,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     const bordureCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : 'var(--cs-bord-clair)'
     const accentCarte = estReponse ? 'var(--cs-bord)' : estCertifie ? 'var(--cs-vert)' : estRevision ? 'var(--cs-danger)' : 'var(--cs-bord)'
     const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
-    const couleurTexte = estRevision ? '#6f3d35' : 'var(--cs-texte-fort)'
+    const couleurTexte = estRevision ? 'var(--cs-texte-second)' : 'var(--cs-texte-fort)'
     return (
       <div className="commentaire-carte" key={c.id} style={{ marginLeft: estReponse ? '14px' : 0, marginBottom:'7px', padding:'7px 9px', background: fondCarte, border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'8px', viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
@@ -608,7 +608,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               </span>
             )}
             {estCertifie && <span style={{ fontSize:'0.5625rem', fontWeight:700, color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.14)', padding:'1px 6px', borderRadius:'4px', letterSpacing:'0.04em' }}>CERTIFIÉ</span>}
-            {estRevision && <span style={{ fontSize:'0.5625rem', fontWeight:700, color:'#b0392b', background:'rgba(176,58,42,0.10)', padding:'1px 6px', borderRadius:'4px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
+            {estRevision && <span style={{ fontSize:'0.5625rem', fontWeight:700, color:'var(--cs-danger-fonce)', background:'rgba(var(--cs-danger-rgb),0.10)', padding:'1px 6px', borderRadius:'4px', letterSpacing:'0.04em' }}>EN RÉVISION</span>}
           </div>
           <span style={{ marginLeft:'auto', textAlign:'right', fontSize:'0.625rem', color:'var(--cs-texte-faible)', flexShrink:0 }}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
@@ -619,7 +619,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           {/* J'aime EN PREMIER, puis Je n'aime pas ; les deux boutons resserrés. */}
           <div style={{ display:'flex', alignItems:'center', gap:'1px', flexShrink:0 }}>
             <button onClick={() => basculerVote(c, 1)} title="J'aime"
-              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'2px', color: c.monVote === 1 ? 'var(--cs-vert-aplat)' : 'var(--cs-texte-faible)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
@@ -753,7 +753,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
         </label>
         <button onClick={envoyer} disabled={envoi}
-          style={{ alignSelf:'flex-end', fontSize:'0.71875rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert)', color:'var(--cs-surface)', cursor:'pointer', fontWeight:500 }}>
+          style={{ alignSelf:'flex-end', fontSize:'0.71875rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer', fontWeight:500 }}>
           {envoi ? '…' : 'Envoyer'}
         </button>
         </>}
@@ -1318,7 +1318,7 @@ export default function PanneauPatristique({
                     Filtres
                     {/* Badge en ABSOLU : « Filtres » reste centré, la barre ne s'élargit pas. */}
                     {nombreFiltresActifs > 0 && (
-                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'var(--cs-vert)', color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.5625rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.5625rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
                         {nombreFiltresActifs}
                       </span>
                     )}
@@ -1389,7 +1389,7 @@ export default function PanneauPatristique({
                                 fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
                                 border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
                                 background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                color: sel ? 'var(--cs-vert-fonce)' : dispo ? '#6b5f4a' : 'var(--cs-or-doux)',
+                                color: sel ? 'var(--cs-vert-fonce)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
                             </button>
@@ -1411,7 +1411,7 @@ export default function PanneauPatristique({
                                 fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
                                 border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
                                 background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                color: sel ? 'var(--cs-vert-fonce)' : dispo ? '#6b5f4a' : 'var(--cs-or-doux)',
+                                color: sel ? 'var(--cs-vert-fonce)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{g}</span>
                             </button>
@@ -1434,7 +1434,7 @@ export default function PanneauPatristique({
                                 fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
                                 border: `1px solid ${sel ? 'var(--cs-or)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
                                 background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'rgba(255,255,255,0.6)' : 'transparent',
-                                color: sel ? '#7a5e1a' : dispo ? '#6b5f4a' : 'var(--cs-or-doux)',
+                                color: sel ? 'var(--cs-or)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
                               }}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{rendreSiecle(lbl)}</span>
                             </button>

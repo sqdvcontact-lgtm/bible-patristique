@@ -91,7 +91,7 @@ export default function Consentement() {
               style={{
                 fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
                 padding: '9px 18px', borderRadius: '8px',
-                border: '1px solid var(--cs-vert)', background: 'var(--cs-vert)', color: 'var(--cs-surface)',
+                border: '1px solid var(--cs-vert)', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)',
               }}
             >
               Accepter

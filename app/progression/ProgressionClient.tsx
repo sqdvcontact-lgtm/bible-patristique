@@ -131,7 +131,7 @@ function CarteLivre({ livre, lu, onToggle }: { livre: LivreBible; lu: boolean; o
       <span style={{
         width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0,
         border: `1.5px solid ${lu ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
-        background: lu ? 'var(--cs-vert)' : 'transparent',
+        background: lu ? 'var(--cs-vert-aplat)' : 'transparent',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s, border-color 0.2s',
       }}>
@@ -281,7 +281,7 @@ export default function ProgressionClient() {
           <div className="prog-entete" style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '22px', alignItems: 'center' }}>
             <div style={{
               width: '8.25rem', height: '132px', borderRadius: '50%',
-              background: `conic-gradient(var(--cs-vert) ${pourcentTotalAnime}%, var(--cs-fond-doux) 0)`,
+              background: `conic-gradient(var(--cs-vert-aplat) ${pourcentTotalAnime}%, var(--cs-fond-doux) 0)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto',
             }}>
               <div style={{ width: '6.625rem', height: '106px', borderRadius: '50%', background: 'var(--cs-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>

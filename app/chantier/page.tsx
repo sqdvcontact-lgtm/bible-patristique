@@ -18,10 +18,10 @@ type Mode = "connexion" | "inscription";
 const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQXL";
 
 // Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
-const MORDORE = "#7d5f28";
+const MORDORE = "var(--cs-lacune)";
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "8px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
-const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em", display: "block", marginBottom: "0.3125rem" };
+const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "var(--cs-texte-second)", letterSpacing: "0.06em", display: "block", marginBottom: "0.3125rem" };
 
 /** Où revenir après avoir confirmé son adresse par courriel. */
 function urlCompte(): string {
@@ -348,7 +348,7 @@ function Prevenir() {
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "#8aaa96" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -440,7 +440,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                     border: none; background: none; color: var(--cs-texte-faible); cursor: pointer;
                     border-radius: 50%; transition: color 0.2s ease;
                     animation: cs-suite-bob 2.4s ease-in-out infinite; }
-        .cs-suite:hover { color: #7d5f28; }
+        .cs-suite:hover { color: var(--cs-lacune); }
         .cs-suite:focus-visible { outline: 2px solid #a9c3b1; outline-offset: 0.125rem; }
         @keyframes cs-suite-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(0.25rem); } }
         @media (prefers-reduced-motion: reduce) { .cs-suite { animation: none; } }
@@ -463,8 +463,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         /* Vert et mordoré mêlés : une teinte par encart, en alternance. Sur deux colonnes,
            cela pose le vert d'un côté et le mordoré de l'autre — les deux couleurs de la
            charte (le vert des reliures, le brun doré des filets) se répondent. */
-        .cs-encart--mordore .cs-encart-ico { color: #7d5f28; background: var(--cs-fond-doux); border-color: #e6d8ba; }
-        .cs-encart--mordore .cs-encart-titre { color: #4a3d24; }
+        .cs-encart--mordore .cs-encart-ico { color: var(--cs-lacune); background: var(--cs-fond-doux); border-color: var(--cs-or-doux); }
+        .cs-encart--mordore .cs-encart-titre { color: var(--cs-texte); }
         .cs-encart--vert .cs-encart-titre::after { background: #a9c3b1; }
         .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                            font-size: 1.0625rem; color: var(--cs-encre); margin: 0 0 0.625rem; padding-bottom: 0.625rem;
@@ -511,7 +511,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
                          font-size: 0.6875rem; color: #bca877; }
         .cs-phase--fait .cs-route-puce { color: var(--cs-vert); }
         .cs-phase--apres .cs-route-puce { color: var(--cs-or-doux); }
-        .cs-route-titre { font-size: 0.84375rem; line-height: 1.45; color: #4a463f; }
+        .cs-route-titre { font-size: 0.84375rem; line-height: 1.45; color: var(--cs-original); }
         .cs-chiffres { display: flex; justify-content: center; gap: 3.375rem; flex-wrap: wrap; margin: 0.375rem 0 2.125rem; }
 
         /* ── Cartes en écran étroit ───────────────────────────────────────────
@@ -627,7 +627,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
                   stroke="currentColor" strokeWidth="2.5" fill="rgba(255,255,255,0.15)" strokeLinejoin="round" />
@@ -669,7 +669,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "#8aaa96" : "var(--cs-vert)", color: "var(--cs-surface)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "#8aaa96" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>
@@ -717,12 +717,12 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* ── Démarchage ── */}
         <aside style={{ marginTop: "2.125rem", border: "1px solid var(--cs-bord)", background: "var(--cs-fond-clair)", borderRadius: "8px", padding: "1.375rem 1.625rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: "normal", fontSize: "0.9375rem", color: "#9a4a3a", margin: "0 0 0.5rem" }}>
+          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: "normal", fontSize: "0.9375rem", color: "var(--cs-danger-fonce)", margin: "0 0 0.5rem" }}>
             Aucun démarchage
           </h2>
           <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.7, margin: 0 }}>
             Toute sollicitation commerciale relative à ce site est
-            <strong style={{ color: "#8a3a2a" }}> refusée par avance</strong>, qu’elle soit
+            <strong style={{ color: "var(--cs-danger-fonce)" }}> refusée par avance</strong>, qu’elle soit
             envoyée par une personne ou par un automate. Cela vaut pour le référencement,
             la refonte, l’audit, la publicité, l’intelligence artificielle ou la prestation
             de développement. Les adresses figurant sur ce site ne valent pas consentement

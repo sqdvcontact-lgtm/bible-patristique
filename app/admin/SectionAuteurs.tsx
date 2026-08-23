@@ -116,7 +116,7 @@ export default function SectionAuteurs() {
       {/* Bouton nouvel auteur */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
         <button onClick={() => { setAjout(!ajout); setMsgAjout(null) }}
-          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: ajout ? 'var(--cs-vert-fonce)' : 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>
+          style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: ajout ? 'var(--cs-vert-fonce)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>
           {ajout ? 'Annuler' : '+ Nouvel auteur'}
         </button>
       </div>
@@ -139,7 +139,7 @@ export default function SectionAuteurs() {
           {msgAjout && <p style={{ fontSize: '0.8125rem', color: 'var(--cs-danger)', marginBottom: '8px' }}>{msgAjout}</p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button onClick={() => { setAjout(false); setMsgAjout(null) }} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-            <button onClick={creer} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
+            <button onClick={creer} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>Créer</button>
           </div>
         </div>
       )}
@@ -203,7 +203,7 @@ export default function SectionAuteurs() {
                           </span>
                         )}
                         <button onClick={fermer} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-                        <button onClick={sauvegarder} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert)', color: 'var(--cs-surface)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
+                        <button onClick={sauvegarder} style={{ fontSize: '0.875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500 }}>Enregistrer</button>
                       </div>
                     </div>
                   )}
