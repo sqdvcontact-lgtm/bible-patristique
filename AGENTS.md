@@ -441,6 +441,24 @@ Une maquette a composé chaque surface du site avec les jetons réels. Trois ens
 - **`--cs-surnum-*`** (quatre rangs) : les versets propres à la Septante, hors de l'ossature canonique, dans la Polyglotte. C'est la seule famille du site qui **ne se rabatte sur rien** : mesuré, son violet est à **ΔE 36,7** de `--cs-systeme`, le jeton le plus proche. Ce n'était pas un doublon, c'était un rôle sans nom. Sept violets écrits en dur rabattus sur quatre rangs, déplacement maximal ΔE 18,4. Les rouges de signalement de la même page, eux, se rabattent bien sur la famille du danger (ΔE 16,2 et 10,8), et le jaune du verset visé devient `--cs-vise-fond`. **La Polyglotte ne porte plus une seule couleur en dur.**
 - **`--cs-original`** : l'encre du texte en langue originale composé en regard du français. Elle vaut **65 % du contraste du corps**, et les trois thèmes gardent ce rapport. Elle était écrite en dur dans trois fichiers, et **testée** (`BibleBilingue.test.tsx` vérifie que la colonne latine la porte et que la française ne la porte pas — le test vise maintenant le nom du jeton).
 
+## L'audit au navigateur (2026-08-23) — six défauts qu'aucune mesure locale ne voyait
+
+Le site étant fermé, il a fallu le parcourir SOUS SESSION dans le navigateur de l'auteur, sur la version EN LIGNE. Six défauts, dont un introduit par la passe de la veille. Aucun n'apparaissait dans le dépôt : ils ne se voient qu'en page composée.
+
+⛔ **Un balayage se borne à l'EXPRESSION d'une propriété, jamais à la LIGNE.** Le passage des fonds verts en ternaire remplaçait toutes les occurrences de la ligne dès qu'elle portait un `background:`, y compris celles d'un `color:` voisin. **Vingt et une encres vertes sont devenues des aplats**, donc sombres sur un sol sombre : « Livre premier » du sommaire d'une œuvre rendait 2,46. Le repérage se fait maintenant en bornant au premier `,` de haut niveau (voir la fonction `borne` des scripts d'atelier). *Corollaire de méthode : un correctif de masse se vérifie à l'écran, pas au compte de remplacements.*
+
+⛔ **Un dégradé de CARTE composé avec des jetons d'ENCRE inverse ses valeurs.** Les trois cartons de l'accueil (`AccueilCards.tsx`) prenaient `--cs-encre`, `--cs-texte` et `--cs-texte-fort` : transposés, ils devenaient clairs, et « Publications » était un carton presque blanc sous un texte crème. Ils portent désormais des valeurs **littérales**, comme le jeu de couvertures des publications et pour la même raison — c'est une gamme dessinée, non une teinte d'interface — avec un jeu propre au Cuir. ⚠️ **Sur un sol sombre, un carton se détache en MONTANT** : ses valeurs sont plus claires que le sol, non plus sombres.
+
+⚠️ **L'état PRESSÉ d'un aplat a besoin de son propre jeton.** `--cs-vert-fonce` est le survol de l'ENCRE et s'éclaircit avec elle : d'où `--cs-vert-aplat-fonce`.
+
+⚠️ **Trente-sept knockouts se cachaient dans des ternaires**, invisibles au premier balayage, dont la pastille du chapitre actif de la page Bible.
+
+⚠️ **Une MARQUE en image ne se transpose pas : elle se double.** Le monogramme de l'accueil est le vert d'encre, invisible sur le brun. Les deux planches existaient déjà (`monogramme-encre.png`, `monogramme-creme.png`) : on les superpose et le thème n'en montre qu'une, en CSS. ⛔ Ne pas choisir la planche en JavaScript : elle paraîtrait après la peinture.
+
+⚠️ **Toutes les faiblesses de contraste ne sont pas des régressions.** La flèche de chapitre désactivée rend **1,40 au Clair comme au Cuir** : c'est un état désactivé, et la transposition est fidèle. Comparer les deux thèmes avant de corriger.
+
+⛔ **Les GRAVURES restent à traiter, et c'est une décision d'auteur.** Mesurée au navigateur, l'encre de la tour de Babel vaut **52 de luminance sur un sol à 24**, soit un contraste de 1,5 : ce ne sont pas des négatifs, ce sont des encres devenues plus claires que leur papier. Le remède est celui du monogramme, que la charte énonce déjà (« le détourage ne sert que l'ALPHA : la couleur, on la repose »), mais il demande **une planche crème par ornement**, fabriquée depuis le même alpha par le patron de `scripts/logo-fabriquer.mjs`. Une autre voie serait de poser le PNG en `mask-image` et de peindre la forme au jeton, ce qui rendrait tout ornement thématique d'un coup ; elle n'a pas été retenue sans décision.
+
 ## Ce qui reste, et pourquoi on ne l'a pas fait
 
 Le compte de **642** couleurs en dur était trompeur : il additionnait des choses qui ne se corrigent pas de la même façon. Après cette passe il en reste 352 hors quiz et hors périmètre exclu, dont **90 illisibles sur le sol du Cuir** (rapport < 3), réparties sur une trentaine de fichiers à raison d'une à six chacune.
