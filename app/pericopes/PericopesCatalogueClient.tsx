@@ -34,6 +34,14 @@
 // numéros qu'on descend du regard pour retrouver un passage, comme on consulte un index.
 // Le compte de péricopes quitte la marge : la liste le montre déjà, et il faisait
 // concurrence au nom du livre.
+//
+// Le même jour, LE PARTAGE PAR TESTAMENT PASSE EN ONGLETS, en haut de la liste et
+// collants sous la barre de navigation. C'est le premier tri qu'on fait dans un
+// catalogue biblique : il n'a pas sa place au fond d'un volet, en troisième case, parmi
+// quinze registres. Les cases « Testament » sont donc retirées du volet — un même choix
+// ne se prend pas à deux endroits, et deux cases cochées ne se traduiraient par aucun
+// onglet retenu — et la rubrique de Testament ne paraît plus dans la liste lorsqu'un
+// seul testament est à l'écran : l'onglet le nomme déjà.
 
 import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -58,6 +66,11 @@ const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
+/** Hauteur de la barre d'onglets. Elle sert DEUX fois de plus : le nom du livre vient
+ *  se garer dessous (marge collante) et le saut à un livre s'en écarte d'autant
+ *  (scrollMarginTop). Un nombre recopié dériverait de l'un ou de l'autre. */
+const HAUTEUR_ONGLETS = '2.75rem'
+
 const ORDRE_LIVRE: Record<string, number> = Object.fromEntries(LIVRES.map((l, i) => [l.code, i]))
 const NOM_LIVRE: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 
@@ -66,6 +79,9 @@ const TESTAMENTS: { code: 'AT' | 'NT' | 'AUTRES'; label: string }[] = [
   { code: 'NT', label: 'Nouveau Testament' },
   { code: 'AUTRES', label: 'Autres écrits' },
 ]
+
+/** Ce que retient la barre d'onglets : tout le corpus, ou un seul testament. */
+type ChoixTestament = 'TOUT' | 'AT' | 'NT' | 'AUTRES'
 
 // Le récit est le registre par DÉFAUT du corpus (107 péricopes sur 249) : le nommer sous
 // chaque titre n'apprend rien. On ne glose donc que ce qui distingue.
@@ -156,7 +172,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
 export default function PericopesCatalogueClient({ items }: { items: PericopeCatalogueItem[] }) {
   const mobile = useEstMobile(900)
   const [q, setQ] = useState('')
-  const [testaments, setTestaments] = useState<Set<string>>(new Set())
+  const [testament, setTestament] = useState<ChoixTestament>('TOUT')
   const [registres, setRegistres] = useState<Set<string>>(new Set())
   const [tousRegistres, setTousRegistres] = useState(false)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
@@ -175,8 +191,14 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
   // Toute la décision de filtrage vit dans le module pur `pericopesRecherche`.
   const { items: itemsFiltres, via: viaAppellation, reference } = useMemo(
-    () => filtrerCatalogue(items, q, testaments, registres),
-    [items, q, testaments, registres],
+    () => filtrerCatalogue(items, q, testament === 'TOUT' ? new Set() : new Set([testament]), registres),
+    [items, q, testament, registres],
+  )
+
+  // « Tout », puis les seuls testaments que le corpus peuple.
+  const onglets = useMemo(
+    () => [{ code: 'TOUT' as const, label: 'Tout' }, ...TESTAMENTS.filter(t => compteTestament[t.code] > 0)],
+    [compteTestament],
   )
 
   const groupes = useMemo(() => {
@@ -196,6 +218,8 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
   // telle variable d'un rendu à l'autre (règle `react-hooks/immutability`).
   const rubriqueDuLivre = useMemo(() => {
     const m = new Map<string, string>()
+    // Un seul testament à l'écran : l'onglet le nomme, la rubrique le répéterait.
+    if (new Set(groupes.map(g => TESTAMENT_LIVRE[g.livre] ?? 'AUTRES')).size < 2) return m
     let precedent: string | null = null
     for (const g of groupes) {
       const t = TESTAMENT_LIVRE[g.livre] ?? 'AUTRES'
@@ -212,8 +236,8 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
     if (s.has(val)) s.delete(val); else s.add(val)
     setter(s)
   }
-  const reinitialiser = () => { setQ(''); setTestaments(new Set()); setRegistres(new Set()) }
-  const filtresActifs = !!q || testaments.size > 0 || registres.size > 0
+  const reinitialiser = () => { setQ(''); setTestament('TOUT'); setRegistres(new Set()) }
+  const filtresActifs = !!q || testament !== 'TOUT' || registres.size > 0
 
   // Un registre retenu reste TOUJOURS visible, même replié : on ne cache pas un filtre
   // qui agit, sinon rien ne dit plus pourquoi la liste est courte.
@@ -290,14 +314,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
       <Rubrique>Filtrer</Rubrique>
 
-      <GroupeFiltre label="Testament">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {TESTAMENTS.filter(t => compteTestament[t.code] > 0).map(t => (
-            <LigneCompte key={t.code} actif={testaments.has(t.code)} onClick={() => toggle(testaments, t.code, setTestaments)} label={t.label} n={compteTestament[t.code]} />
-          ))}
-        </div>
-      </GroupeFiltre>
-
       {registresPresents.length > 0 && (
         <GroupeFiltre label="Registre">
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -347,7 +363,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
            annoncer une fois puis de disparaître. */
         .peri-groupe { display: grid; grid-template-columns: 8.5rem 1fr; column-gap: 1.75rem; margin-bottom: 1.625rem; }
         .peri-marge { text-align: right; }
-        .peri-marge-in { position: sticky; top: calc(${HAUTEUR_NAVBAR} + 14px); padding-top: 1px; }
+        .peri-marge-in { position: sticky; top: calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_ONGLETS} + 14px); padding-top: 1px; }
         .peri-marge h2 {
           font-family: ${SERIF}; font-size: 1rem; font-weight: 500; color: var(--cs-encre);
           margin: 0; line-height: 1.2; letter-spacing: 0.01em;
@@ -362,6 +378,35 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         /* La colonne des références se resserre sur un écran étroit : à sa largeur de
            bureau elle y prendrait le quart de la mesure. */
         .peri-groupe--mobile .peri-entree { grid-template-columns: 4.5rem minmax(0, 1fr); column-gap: 0.75rem; }
+
+        /* ── Les onglets ────────────────────────────────────────────────────── */
+        /* Le partage du corpus se prend en haut et y demeure : la barre est collante sous
+           la barre de navigation, comme le volet à sa gauche, et le nom des livres vient
+           se garer dessous. Même dessin qu'à la Bibliothèque — filet plein sur la mesure,
+           trait vert sous l'onglet retenu. La GRAISSE, elle, ne change pas : les onglets
+           sont ici à largeur libre, et un mot qui épaissit décalerait tous les suivants. */
+        .peri-onglets {
+          position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 3;
+          display: flex; align-items: stretch; height: ${HAUTEUR_ONGLETS};
+          box-sizing: border-box; padding-top: 0.5rem; margin-bottom: 1.125rem;
+          background: ${FOND}; border-bottom: 1px solid ${BORD};
+        }
+        .peri-onglets .sep { flex-shrink: 0; width: 1px; height: 14px; align-self: center; background: var(--cs-bord-clair); }
+        .peri-onglet {
+          display: flex; align-items: center; padding: 0 16px; margin-bottom: -1px;
+          font-family: ${SERIF}; font-size: 0.75rem; letter-spacing: 0.01em;
+          background: none; border: none; border-bottom: 2px solid transparent;
+          color: var(--cs-texte-gris); cursor: pointer; white-space: nowrap;
+          transition: color 0.15s ease, border-color 0.15s ease;
+        }
+        .peri-onglet:hover { color: ${VERT}; }
+        .peri-onglet[aria-pressed="true"] { color: ${VERT}; border-bottom-color: var(--cs-vert-aplat); }
+        /* En mobile, on resserre le blanc et le corps plutôt que d'abréger « Testament » :
+           les quatre libellés tiennent alors dans la mesure d'un téléphone courant. Plus
+           étroit encore (360 px et moins), la barre glisse : mieux vaut un onglet à
+           découvrir qu'un nom de testament rogné. */
+        .peri-onglets--mobile { overflow-x: auto; overscroll-behavior-x: contain; }
+        .peri-onglets--mobile .peri-onglet { padding: 0 8px; font-size: 0.6875rem; }
 
         /* Rubrique de Testament : le seul rang au-dessus du livre. Sans elle, la
            descente de 48 livres n'avait aucune articulation. */
@@ -461,6 +506,21 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '20px 2.5rem 64px' }}>
           <div style={{ maxWidth: '52rem' }}>
 
+            {/* Le partage du corpus, en tête et à demeure. Ce sont des FILTRES, non des
+                panneaux : d'où aria-pressed dans un groupe nommé, et non un tablist. */}
+            <div role="group" aria-label="Testament"
+              className={mobile ? 'peri-onglets peri-onglets--mobile cs-defilement-discret' : 'peri-onglets'}>
+              {onglets.map((o, i) => (
+                <Fragment key={o.code}>
+                  {i > 0 && <span aria-hidden="true" className="sep" />}
+                  <button type="button" className="peri-onglet" aria-pressed={testament === o.code}
+                    onClick={() => setTestament(o.code)}>
+                    {o.label}
+                  </button>
+                </Fragment>
+              ))}
+            </div>
+
             {groupes.length === 0 ? (
               <div style={{ paddingTop: '20px' }}>
                 <p style={{ fontFamily: SERIF, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
@@ -485,7 +545,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                       )}
                       <div id={`livre-${g.livre}`}
                         className={mobile ? 'peri-groupe--mobile' : 'peri-groupe'}
-                        style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
+                        style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_ONGLETS} + 12px)` }}>
                         <div className="peri-marge">
                           <div className="peri-marge-in">
                             <h2>{NOM_LIVRE[g.livre] ?? g.livre}</h2>
