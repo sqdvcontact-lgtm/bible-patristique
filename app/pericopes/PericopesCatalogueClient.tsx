@@ -382,9 +382,12 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         /* ── Les onglets ────────────────────────────────────────────────────── */
         /* Le partage du corpus se prend en haut et y demeure : la barre est collante sous
            la barre de navigation, comme le volet à sa gauche, et le nom des livres vient
-           se garer dessous. Même dessin qu'à la Bibliothèque — filet plein sur la mesure,
-           trait vert sous l'onglet retenu. La GRAISSE, elle, ne change pas : les onglets
-           sont ici à largeur libre, et un mot qui épaissit décalerait tous les suivants. */
+           se garer dessous. Dessin de la Bibliothèque, repris trait pour trait : les
+           onglets se partagent la mesure à parts ÉGALES, chaque libellé centré dans sa
+           case, filet plein dessous et trait vert sous l'onglet retenu. Les parts égales
+           ne sont pas un ornement : c'est ce qui permet à la graisse de passer à 600 sans
+           décaler personne. À largeur libre, la barre se rangeait au fer à gauche et
+           laissait le filet courir seul sur la moitié droite de la mesure. */
         .peri-onglets {
           position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 3;
           display: flex; align-items: stretch; height: ${HAUTEUR_ONGLETS};
@@ -393,20 +396,24 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         }
         .peri-onglets .sep { flex-shrink: 0; width: 1px; height: 14px; align-self: center; background: var(--cs-bord-clair); }
         .peri-onglet {
-          display: flex; align-items: center; padding: 0 16px; margin-bottom: -1px;
+          flex: 1; display: flex; align-items: center; justify-content: center;
+          padding: 0 8px; margin-bottom: -1px;
           font-family: ${SERIF}; font-size: 0.75rem; letter-spacing: 0.01em;
           background: none; border: none; border-bottom: 2px solid transparent;
           color: var(--cs-texte-gris); cursor: pointer; white-space: nowrap;
           transition: color 0.15s ease, border-color 0.15s ease;
         }
         .peri-onglet:hover { color: ${VERT}; }
-        .peri-onglet[aria-pressed="true"] { color: ${VERT}; border-bottom-color: var(--cs-vert-aplat); }
-        /* En mobile, on resserre le blanc et le corps plutôt que d'abréger « Testament » :
-           les quatre libellés tiennent alors dans la mesure d'un téléphone courant. Plus
-           étroit encore (360 px et moins), la barre glisse : mieux vaut un onglet à
-           découvrir qu'un nom de testament rogné. */
+        .peri-onglet[aria-pressed="true"] { color: ${VERT}; font-weight: 600; border-bottom-color: var(--cs-vert-aplat); }
+        /* En mobile, les parts égales seraient plus courtes que « Nouveau Testament » :
+           les onglets repartent donc de leur propre largeur (flex: 1 1 auto) et ne se
+           partagent que le jeu qui reste. On resserre le blanc et le corps plutôt que
+           d'abréger « Testament » ; plus étroit que 375 px, la barre glisse — mieux vaut
+           un onglet à découvrir qu'un nom de testament rogné. La graisse, elle, ne bouge
+           pas : sans jeu à distribuer, elle ferait glisser la barre de trois pixels. */
         .peri-onglets--mobile { overflow-x: auto; overscroll-behavior-x: contain; }
-        .peri-onglets--mobile .peri-onglet { padding: 0 8px; font-size: 0.6875rem; }
+        .peri-onglets--mobile .peri-onglet { flex: 1 1 auto; padding: 0 8px; font-size: 0.6875rem; }
+        .peri-onglets--mobile .peri-onglet[aria-pressed="true"] { font-weight: 400; }
 
         /* Rubrique de Testament : le seul rang au-dessus du livre. Sans elle, la
            descente de 48 livres n'avait aucune articulation. */
@@ -500,11 +507,13 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         </aside>
 
         {/* ── La liste ── */}
-        {/* Au fer avec le volet, et non centrée dans l'espace résiduel : la mesure
-            précédente (39rem centrées) laissait 252 px de vide de chaque côté sur un
-            écran de 1440, pendant que les titres se serraient en deux colonnes. */}
+        {/* La mesure se CENTRE dans la colonne (2026-08-23, sur décision de l'auteur).
+            Le fer à gauche tenait tant que la liste occupait seule la colonne ; sous une
+            barre d'onglets, il rendait la page bancale — tout le bloc collé au volet et
+            un tiers de l'écran vide à droite. Ce n'est pas un retour aux 39rem centrées
+            de l'audit : la mesure reste à 52rem, c'est elle qui rendait la page creuse. */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '20px 2.5rem 64px' }}>
-          <div style={{ maxWidth: '52rem' }}>
+          <div style={{ maxWidth: '52rem', margin: '0 auto' }}>
 
             {/* Le partage du corpus, en tête et à demeure. Ce sont des FILTRES, non des
                 panneaux : d'où aria-pressed dans un groupe nommé, et non un tablist. */}
