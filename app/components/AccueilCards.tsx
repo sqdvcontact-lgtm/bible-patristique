@@ -299,13 +299,13 @@ export default function AccueilCards() {
           background: linear-gradient(160deg, #3a3530 0%, #2a2520 100%);
         }
         :root[data-theme="sombre"] .ac-bible {
-          background: linear-gradient(160deg, #33513f 0%, #27402f 100%);
+          background: linear-gradient(160deg, #4a3d2d 0%, #3a3125 100%);
         }
         :root[data-theme="sombre"] .ac-patristique {
-          background: linear-gradient(160deg, #5c5033 0%, #453e34 100%);
+          background: linear-gradient(160deg, #5f5138 0%, #4a412f 100%);
         }
         :root[data-theme="sombre"] .ac-publications {
-          background: linear-gradient(160deg, #484036 0%, #37302a 100%);
+          background: linear-gradient(160deg, #736750 0%, #5b5140 100%);
         }
         .ac-title {
           font-family: var(--font-source-serif), Georgia, serif;

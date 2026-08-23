@@ -226,7 +226,32 @@
   --cs-original: #5c4e39;
 }
 
-/* ── Cuir : brun chaud « vieux livre », texte crème, vert en accent (variante B) ── */
+/* ── Cuir : brun chaud « vieux livre », UNE SEULE FAMILLE ──────────────────────
+
+   ⛔ Le Cuir est MONOCHROME, décision de l'auteur du 2026-08-23. Sa première
+   version transposait chaque famille dans sa propre teinte : le vert d'encre
+   restait vert, l'or restait or, le bleu « Système » restait bleu et le violet du
+   surnuméraire restait violet. Sur un fond crème ces quatre teintes se tiennent,
+   parce que le papier les éloigne ; sur un fond brun elles se rapprochent toutes
+   et la page devient bariolée. On renonce donc à la couleur : cuir et beiges.
+
+   ⚠️ Ce que la couleur faisait, il faut le refaire autrement. Le thème clair
+   sépare ses RÔLES par la TEINTE — vert pour l'action, or pour l'apparat, bleu
+   pour le système. En monochrome cette séparation n'existe plus, et on la refait
+   sur deux autres axes :
+     · la CHROMA — le corps du texte est un gris chaud presque neutre (chroma 8),
+       une encre de titre est nettement plus saturée (20), un accent davantage
+       encore (31). C'est la saturation qui dit « ceci appelle », non la teinte ;
+     · la LUMINANCE — les rangs d'une même famille s'échelonnent franchement.
+   Toutes les valeurs ci-dessous tiennent dans une bande de 26° de teinte, et
+   chaque séparation qui porte du sens vaut au moins ΔE 9,9. Mesuré, pas jugé :
+   avant de retoucher une valeur, refaire tourner la mesure.
+
+   ⛔ UNE SEULE EXCEPTION, et elle est fonctionnelle : l'AVERTISSEMENT. Une terre
+   de Sienne brûlée à 42° quand tout le reste est entre 67° et 93°. Elle appartient
+   encore à la famille chaude, elle ne se lit pas comme « une couleur », mais un
+   bouton destructif continue de se signaler sans qu'il faille lire son libellé.
+   Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.  */
 :root[data-theme="sombre"] {
   --cs-fond: #1c1813;
   --cs-fond-clair: #241f18;
@@ -236,65 +261,76 @@
   --cs-bord-rgb: 58, 50, 39;
   --cs-bord-clair: #463c2e;
   /* L'échelle de texte s'inverse (clair sur fond sombre) : « faible » = le plus
-     discret (sombre), « fort » = le plus lumineux. */
+     discret (sombre), « fort » = le plus lumineux. Chroma basse : c'est du corps
+     de texte, il ne doit rien appeler. */
   --cs-texte-faible: #756956;
   --cs-texte-doux: #988a70;
   --cs-texte-gris: #a79b83;
   --cs-texte-second: #b6ac96;
   --cs-texte: #e6ded0;
   --cs-texte-fort: #f2ebda;
-  --cs-encre: #9fc6a4;
-  --cs-encre-fonce: #8bb798;
-  --cs-vert: #7bb98e;
-  --cs-vert-rgb: 123, 185, 142;
-  --cs-vert-fonce: #6aa87d;
-  --cs-vert-pale: #26332a;
-  /* Reste PROFOND, quand --cs-vert passe au vert clair : blanc à 7,18. */
-  --cs-vert-aplat: #35604a;
-  --cs-vert-aplat-fonce: #294a39;
-  /* Répété ici bien qu'IDENTIQUE au clair, et volontairement : ce chantier a commencé
-     par un jeton qu'un thème oubliait de redéfinir, et l'oubli ne se voyait pas. Un
-     rôle qui ne bouge pas se DIT, il ne se laisse pas deviner à une absence. */
+  /* Encre des titres : un sépia franchement plus SATURÉ que le corps (20 contre 8),
+     et un peu plus sombre que lui. C'est ce double écart qui le fait lire comme une
+     encre, là où le Clair employait un vert. */
+  --cs-encre: #cdbb98;
+  --cs-encre-fonce: #ddc9a2;
+  /* Accent d'action (liens, états actifs, anneau de focus). Le plus doré du jeu,
+     chroma 31 : c'est lui qui appelle. ⚠️ Le NOM reste « vert », comme au Clair —
+     le renommer demanderait de toucher deux cents appels pour aucun gain. */
+  --cs-vert: #dcc08a;
+  --cs-vert-rgb: 220, 192, 138;
+  --cs-vert-fonce: #ead2a2;
+  --cs-vert-pale: #302619;
+  /* Les aplats deviennent du CUIR PROFOND : la barre de navigation et le panneau
+     mobile cessent d'être verts en Cuir, sans quoi ils resteraient la seule tache
+     de couleur d'une page qui n'en a plus. Blanc mesuré dessus : 10,6 et 13,1. */
+  --cs-vert-aplat: #4a3c2c;
+  --cs-vert-aplat-fonce: #3a2f22;
   --cs-sur-aplat: #fff;
-  --cs-danger: #d9714a;
-  --cs-danger-rgb: 217, 113, 74;
-  /* ⚠️ Cette valeur était #c25738, c'est-à-dire PLUS SOMBRE que --cs-danger : la
-     logique du thème clair, transposée telle quelle sur un sol sombre, où elle
-     s'inverse. Le rôle « danger confirmé » y devenait donc l'encre la plus faible
-     du jeu, à 3,96 contre 6,99 au Clair, soit la plus forte perte du nuancier.
-     Comme l'échelle de texte juste au-dessus, la famille du danger s'inverse : le
-     rang FORT est le plus lumineux. Mesuré à 6,94, le rang du Clair. */
-  --cs-danger-fonce: #e08c85;
+  /* Apparat : un doré plus SOURD que l'accent, pour ne pas lui disputer l'œil. */
+  --cs-or: #c0a065;
+  --cs-or-rgb: 192, 160, 101;
+  --cs-or-doux: #8f7a52;
+  /* Les quatre tans de l'apparat s'échelonnent en LUMINANCE, faute de pouvoir
+     s'échelonner en teinte. Du plus lumineux au plus sourd : lacune (elle porte
+     les appels de note à 0,60 em, c'est elle qui doit se voir le mieux), attente,
+     or, étiquette, or-doux. */
+  --cs-lacune: #dcbe7a;
+  --cs-attente: #c98a4e;
+  --cs-etiquette: #a8916a;
+  /* « Système & doctrine » perd son bleu, seule teinte froide du site : un beige
+     neutre, de chroma basse, qui le distingue des deux autres familles par sa
+     retenue plutôt que par sa couleur. */
+  --cs-systeme: #b3a68e;
+  /* Le surnuméraire septante perd son violet. Ses quatre rangs deviennent quatre
+     beiges, séparés par la seule luminance. */
+  --cs-surnum-fort: #e0d3b4;
+  --cs-surnum: #c2b190;
+  --cs-surnum-doux: #8c7f66;
+  --cs-surnum-bord: #3f362a;
+  --cs-original: #bdb3a0;
+  --cs-vise-fond: #3a3018;
+  /* ⛔ L'exception. Voir la note en tête du bloc. La famille du danger s'inverse
+     comme celle du texte : le rang « foncé », qui dit le destructif CONFIRMÉ, est
+     le plus lumineux des deux. */
+  --cs-danger: #bd6d54;
+  --cs-danger-rgb: 189, 109, 84;
+  --cs-danger-fonce: #cf8570;
   --cs-danger-fond: #2f211b;
   --cs-danger-bord: #4a3a30;
-  --cs-attente: #c98452;
-  --cs-or: #b89a5e;
-  --cs-or-rgb: 184, 154, 94;
-  --cs-or-doux: #8f7a52;
-  --cs-systeme: #98a3c2;
+  /* ⚠️ Les trois familles du panneau mobile CESSENT d'être hors thème en Cuir.
+     La charte les déclarait sans surcouche parce que ce panneau était vert sombre
+     en toutes circonstances — il devient cuir avec la barre, et ses libellés
+     doivent suivre. Mesurés sur son fond : 7,1 à 9,0. */
+  --cs-vert-clair: #e6d4b0;
+  --cs-or-clair: #d8bd7e;
+  --cs-systeme-clair: #cabfa8;
   --cs-ombre-posee: 0 1px 4px rgba(0, 0, 0, 0.30);
   --cs-ombre-nette: 0 2px 8px rgba(0, 0, 0, 0.50);
   --cs-ombre-posee-haut: 0 -1px 4px rgba(0, 0, 0, 0.30);
   --cs-ombre-flottante: 0 4px 16px rgba(0, 0, 0, 0.45);
   --cs-ombre-modale: 0 12px 40px rgba(0, 0, 0, 0.60);
   --cs-ombre-modale-haut: 0 -10px 28px rgba(0, 0, 0, 0.55);
-  --cs-etiquette: #b09a72;
-  /* ⚠️ Le SEUL jeton que le Cuir ne redéfinissait pas, et le plus lourdement employé
-     des absents : il porte tous les appels de note du corps (appelNote.tsx), la mention
-     « Lacune du manuscrit » de la page Bible, les marqueurs de la Bible 899 et la
-     famille Publications de la navbar. Resté à sa valeur claire, il rendait 3,51 sur
-     ce sol, pour un appel composé à 0,60 em : illisible. Transposé de la même main que
-     l'or et l'étiquette, il rend 7,11. */
-  --cs-lacune: #c0a065;
-  /* L'échelle du surnuméraire s'inverse comme celle du texte : « fort » est le plus
-     lumineux. Le rang fort rend 10,18 sur ce sol, exactement ce que le Clair rend sur
-     le sien. */
-  --cs-surnum-fort: #c9bef0;
-  --cs-surnum: #a99bdc;
-  --cs-surnum-doux: #7d719f;
-  --cs-surnum-bord: #332c47;
-  --cs-vise-fond: #3a3018;
-  --cs-original: #bdb3a0;
 }
 
 /* ── Agrandissement fluide sur grands écrans ──
