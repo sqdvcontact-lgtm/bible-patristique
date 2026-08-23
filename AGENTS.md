@@ -392,8 +392,8 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 
 **Ce qui s'ajoute :**
 
-- **Une rubrique de TESTAMENT** dans la liste, seul rang au-dessus du livre : la descente de 48 livres n'avait aucune articulation.
-- **Le volet sépare NAVIGUER de FILTRER** (composant `Rubrique`). Les deux portaient le même gris, la même graisse et la même taille : rien ne permettait de prédire ce qu'un clic ferait. Un lien de livre prend le vert et se souligne au survol ; une case de filtre porte un **marqueur carré** qui se remplit. Cibles portées à **24-26 px** (elles faisaient 11 et 20 px).
+- **Une rubrique de TESTAMENT** dans la liste, seul rang au-dessus du livre : la descente de 48 livres n'avait aucune articulation. (Depuis le 2026-08-23, elle ne paraît que si **deux testaments au moins** sont à l'écran : sous un onglet, l'onglet le nomme déjà.)
+- **Le volet sépare NAVIGUER de FILTRER** (composant `Rubrique`). ⚠️ Il ne porte plus les cases de **Testament** depuis le 2026-08-23 : elles sont devenues des onglets, ci-dessous. Les deux portaient le même gris, la même graisse et la même taille : rien ne permettait de prédire ce qu'un clic ferait. Un lien de livre prend le vert et se souligne au survol ; une case de filtre porte un **marqueur carré** qui se remplit. Cibles portées à **24-26 px** (elles faisaient 11 et 20 px).
 - **Le registre se replie au-delà de huit valeurs** (`REGISTRES_VISIBLES`) : il en compte quinze, dont trois à un seul élément, et la liste dépassait le volet. ⚠️ Un registre **retenu reste toujours visible**, replié ou non : on ne cache pas un filtre qui agit.
 - **La liste est AU FER avec le volet**, mesure `52rem`. Elle était centrée dans l'espace résiduel à `39rem`, ce qui laissait **252 px de vide de chaque côté** sur un écran de 1440 pendant que les titres se serraient en deux colonnes.
 
@@ -405,6 +405,16 @@ Deux règles fixées par l'auteur, et elles tiennent ensemble : **la page ne dit
 - ⚠️ **La mesure de la colonne est comptée, pas devinée.** Les deux plus longues références du corpus (« 52, 13 - 53, 12 » et « 18, 16 - 19, 29 ») font **67,2 px** en Source Serif à `0.71875rem` ; la colonne en fait 76 (72 en mobile), aucune ne déborde. À recompter si le corps de la référence change.
 - **Ligne de pied commune** : `align-items: baseline` sur la grille, sans quoi la référence flotte au-dessus de son titre.
 - **Le compte de péricopes quitte la marge** : la liste le montre déjà, et il faisait concurrence au nom du livre. Le compteur du **volet** demeure — au repos l'étendue du catalogue, sous filtre le résultat : lui seul dit ce qu'aucune liste ne montre.
+
+## Les ONGLETS de Testament (2026-08-23)
+
+Le partage du corpus est le **premier tri** qu'on fait dans un catalogue biblique. Il se prenait en troisième case d'un volet, sous la recherche, à côté de quinze registres. Il se prend maintenant dans une barre d'onglets, en tête de la liste : « Tout », puis les seuls testaments que le corpus peuple (aujourd'hui les trois).
+
+- ⛔ **Le choix ne se prend qu'à un endroit.** Les cases « Testament » du volet sont retirées : deux cases cochées ne se traduiraient par aucun onglet retenu, et l'état de la page cesserait d'être lisible. L'état passe donc d'un `Set` à un choix unique (`ChoixTestament`) ; `filtrerCatalogue` reçoit toujours un ensemble, à un élément ou vide.
+- **La barre est COLLANTE** sous la barre de navigation (`top: HAUTEUR_NAVBAR`), comme le volet à sa gauche. Sa hauteur vit dans `HAUTEUR_ONGLETS`, et **deux autres mesures s'y composent** : la marge collante du nom de livre (`top: calc(NAVBAR + ONGLETS + 14px)`) et le `scrollMarginTop` du saut à un livre. Un nombre recopié à l'un des trois endroits ferait passer les noms de livre **sous** la barre.
+- **Le dessin est celui de la Bibliothèque** (filet plein sur la mesure, trait `--cs-vert-aplat` sous l'onglet retenu, libellé en `--cs-vert`), **à la graisse près** : là-bas les onglets sont en `flex: 1` et le passage en 600 ne décale rien ; ici ils sont à largeur libre, et un mot qui épaissit pousserait tous les suivants. Couleur et trait suffisent.
+- ⚠️ **En mobile, les quatre libellés tiennent tout juste** : 347 px de barre pour 347 px de mesure à 375 px de large, blanc et corps resserrés (`0 8px`, `0.6875rem`). Plus étroit, la barre glisse (`overflow-x: auto`) plutôt que d'abréger « Testament ». Toute retouche de ces deux valeurs se remesure.
+- **Ce sont des FILTRES, non des panneaux** : `role="group"` nommé et `aria-pressed`, jamais un `tablist` — il n'y a pas de `tabpanel` derrière, seulement une liste qui se restreint.
 
 ## La recherche comprend les RÉFÉRENCES — `app/lib/pericopesRecherche.ts`
 
