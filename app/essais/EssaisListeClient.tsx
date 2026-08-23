@@ -300,6 +300,14 @@ function OngletCommunaute({
            bande sombre du bord gauche mangeait cinq pixels, et le cadre comme les
            deux paddings les compensaient. Sans elle, ces compensations décentraient
            la composition vers la droite. */
+        /* ⛔ En Cuir, la reliure change de peau. Le carton porte ses six valeurs en
+           propriétés personnalisées ; seule cette règle décide. */
+        :root[data-theme="sombre"] .couverture {
+          background: var(--couv-fond-s) !important;
+          color: var(--couv-encre-s) !important;
+        }
+        :root[data-theme="sombre"] .couverture-dos { background: var(--couv-fond-s) !important; }
+        :root[data-theme="sombre"] .couverture-cadre { border-color: var(--couv-filet-s) !important; }
         .couverture-cadre { position: absolute; inset: 3.4cqw 3.2cqw 3.2cqw; border: 1px solid; pointer-events: none; z-index: 4; }
         .couverture-cadre::before { content: ""; position: absolute; inset: 1.7cqw; border: 1px solid currentColor; opacity: 0.42; }
 
@@ -314,7 +322,7 @@ function OngletCommunaute({
            comme la mention de collection d'un éditeur. */
         .couverture-categorie {
           margin: 4.4cqw 0 4.6cqw;
-          font-size: 4cqw; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.76;
+          font-size: 4cqw; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.84;
           font-variation-settings: "opsz" 9, "wght" 400;
           padding-left: 0.28em;
         }
@@ -330,7 +338,7 @@ function OngletCommunaute({
            un plafond en em coupait le sous-titre trop court, sur un mot esseulé. */
         .couverture-soustitre {
           margin-top: 3.4cqw;
-          font-size: 4.4cqw; font-weight: 400; line-height: 1.42; opacity: 0.76; text-wrap: balance;
+          font-size: 4.4cqw; font-weight: 400; line-height: 1.42; opacity: 0.84; text-wrap: balance;
           font-variation-settings: "opsz" 14, "wght" 400;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
         }
@@ -358,7 +366,7 @@ function OngletCommunaute({
            date ne se colle jamais au dessin. */
         .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; }
         .couverture-date {
-          font-size: 3.3cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.66;
+          font-size: 3.3cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.78;
           padding-left: 0.24em; font-variation-settings: "opsz" 9, "wght" 400;
         }
 
@@ -466,12 +474,19 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   const resume = e.resume ? normaliserSaisie(e.resume) : null
   return (
     <Link href={`/essais/${e.id}`} className="couverture"
-      style={{ background: c.fond, color: c.encre }}
+      /* ⛔ Le carton porte ses SIX valeurs en propriétés personnalisées, et c'est le
+         CSS qui choisit selon le thème. Choisir en JavaScript ferait paraître la
+         couverture dans une teinte puis sauter dans l'autre après l'hydratation. */
+      style={{
+        '--couv-fond': c.fond, '--couv-encre': c.encre, '--couv-filet': c.filet,
+        '--couv-fond-s': c.fondSombre, '--couv-encre-s': c.encreSombre, '--couv-filet-s': c.filetSombre,
+        background: 'var(--couv-fond)', color: 'var(--couv-encre)',
+      } as React.CSSProperties}
       title={`${e.titre} — ${e.auteur}`}>
 
       {/* La tête et le cadre sont posés sur le CARTON, hors des deux faces : ils ne
           bougent pas d'un pixel quand la couverture se retourne. */}
-      <span className="couverture-cadre" style={{ borderColor: c.filet }} aria-hidden="true" />
+      <span className="couverture-cadre" style={{ borderColor: "var(--couv-filet)" }} aria-hidden="true" />
       <span className="couverture-tete">
         <span className="couverture-auteur">{e.auteur}</span>
         <span className="couverture-etoile">
@@ -497,7 +512,7 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
         {/* La quatrième de couverture. `aria-hidden` : le résumé est déjà porté par
             le titre du lien et par la page de la publication ; ce calque est un
             doublon visuel, il n'a pas à être annoncé deux fois. */}
-        <span className="couverture-dos" style={{ background: c.fond }} aria-hidden="true">
+        <span className="couverture-dos" style={{ background: "var(--couv-fond)" }} aria-hidden="true">
           {resume
             ? <span className="couverture-resume">{resume}</span>
             : <span className="couverture-resume" style={{ opacity: 0.7, fontStyle: 'italic' }}>{titre}</span>}

@@ -522,6 +522,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   return (
     <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingRight: '320px' }}>
       <style>{`
+        /* La pastille de choix montre la couverture TELLE QU'ELLE PARAÎTRA : en Cuir
+           le rayon est en reliures de cuir, et un nuancier vert y mentirait. */
+        :root[data-theme="sombre"] .couv-pastille { background: var(--pastille-s) !important; }
         .editeur-essai h2,
         .editeur-essai h3,
         .editeur-essai p,
@@ -674,12 +677,14 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       return (
                         <button key={c.cle} type="button" onClick={() => setCouverture(c.cle)}
                           title={c.libelle} aria-label={`Couverture ${c.libelle}`} aria-pressed={actif}
+                          className="couv-pastille"
                           style={{
                             width: '1.5rem', height: '2.25rem', borderRadius: '4px', cursor: 'pointer',
+                            '--pastille-s': c.fondSombre,
                             background: c.fond, padding: 0,
                             border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
                             boxShadow: actif ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
-                          }} />
+                          } as React.CSSProperties} />
                       )
                     })}
                   </div>
