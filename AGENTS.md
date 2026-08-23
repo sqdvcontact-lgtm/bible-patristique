@@ -882,11 +882,29 @@ Le mètre VI du Livre quatrième est en octosyllabes d'un bout à l'autre : la p
 
 Elle se rabat donc, **comme les 112 tailles de texte sur 32 rangs et les rayons d'angle sur cinq**, par `niveauxAlinea`. ⚠️ **Poème par poème, jamais sur tout l'ouvrage** : deux poèmes n'ont pas la même origine, et ce qui compte est l'écart de chaque ligne au bord gauche de SON poème. Tolérance de 0,08 pouce, posée entre le bruit mesuré (±0,02) et le plus petit écart voulu qu'on ait vu (0,25).
 
-## ⚠️ La strophe se lit de DEUX façons, et il faut les deux
+## ⛔ La strophe s'écrit dans `stanza_before`, et nulle part ailleurs
 
-`ComparaisonTraductions` ne lisait que `segment_metadata.stanza_before`. Ceriziers le porte sur ses 1 213 vers (81 à `true`) ; **Mirandol, l'édition PAR DÉFAUT, sur aucun** — sa structure de strophe vit dans `paragraphe`, qui y vaut une strophe de douze vers. La colonne Mirandol coulait donc d'un seul bloc, sans une respiration, dans la vue même dont l'objet est de la mettre en regard de Ceriziers.
+⚠️ **C'est une règle de DONNÉES, pas d'affichage.** Deux éditions de la même œuvre encodaient la strophe de deux façons irréconciliables : Ceriziers 1646 portait `segment_metadata.stanza_before` sur ses 1 213 vers (81 à `true`) et laissait `paragraphe` **à 1 partout** ; Mirandol 1861, l'édition PAR DÉFAUT, ne portait aucune métadonnée et rangeait ses strophes de douze vers dans `paragraphe`. Le même fait, dit de deux manières, dans le même ouvrage.
 
-`ouvreStrophe` lit les deux, dans cet ordre : la métadonnée quand elle existe, le changement de `paragraphe` sinon. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le repli : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
+**Uniformisé le 2026-08-23** : les 1 092 vers de Mirandol ont reçu `stanza_before` en booléen, dérivé du changement de `paragraphe` **à l'intérieur d'un même mètre** — 34 strophes ouvertes pour 41 blocs de vers, ce qui concorde avec les 72 strophes relevées à la mesure. Sauvegarde `internal.backup_vers_stanza_20260823` (2 305 lignes), reprise `sql/rollback_vers_stanza_20260823.sql`. Ceriziers n'a pas été touché, contrôlé ligne à ligne : zéro écart.
+
+⚠️ **`stanza_before_source` dit qu'une valeur est CALCULÉE.** Présent (`'derive_paragraphe'` chez Mirandol) : la strophe a été déduite d'une autre structure. Absent (Ceriziers) : elle vient de l'import, donc de la page. Sans cette marque, rien ne distinguerait plus dans six mois ce qu'on a lu de ce qu'on a inféré — la charte §14.2 l'exige.
+
+⛔ **Un nouvel import de vers renseigne `stanza_before` sur CHAQUE ligne**, `false` compris. Le laisser à `paragraphe` rouvre exactement la divergence qu'on vient de fermer.
+
+**Le repli reste, comme filet.** `ouvreStrophe` lit la métadonnée quand elle existe, le changement de `paragraphe` sinon. Il n'est plus exercé par le corpus ; il protège l'import qui oublierait la règle ci-dessus. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le filet : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
+
+## ⚠️ Le découpage par `paragraphe` est faux pour des vers — on refait le POÈME
+
+Corollaire direct de ce qui précède, et il touche le RENDU. La lecture ordinaire découpe le texte par `paragraphe` : juste pour de la prose, faux pour un poème, puisque les deux éditions n'y mettent pas la même chose. Sans correctif, la même œuvre se composait en **un bloc par poème** chez Ceriziers et **un bloc par strophe** chez Mirandol — donc deux blancs de strophe différents, 0,72 rem contre 0,6.
+
+`fusionnerBlocs` fond les blocs voisins entièrement composés de vers, et les strophes s'y marquent seules par `stanza_before`. ⛔ **La vraie raison est ailleurs** : `niveauxAlinea` se calcule sur le POÈME. Appliqué strophe par strophe, il prendrait pour origine la ligne la plus à gauche de CHAQUE strophe, et une strophe entièrement rentrée retomberait au fer à gauche.
+
+⚠️ **Un bloc qui porte un texte ORIGINAL n'est jamais fondu** : la grille bilingue apparie un original par bloc.
+
+## ⚠️ Dhuoda — un troisième modèle, qui est un DÉFAUT de segmentation
+
+`TXT_A0176O0001_1887_BONDURAND` (« Manuel pour mon fils ») compte 20 segments de nature `vers`, et **aucun n'est une ligne** : chacun porte plusieurs vers courus ensemble (« Deus summe, lucis conditor poli Syderumque ductor, rex æterne, … »). Il n'a donc pas été uniformisé : y écrire une marque de strophe reviendrait à encoder une fiction par-dessus un défaut. C'est une **re-segmentation** qu'il lui faut, pas une métadonnée.
 
 ## Les colonnes de `segments` s'écrivent en UN seul endroit
 

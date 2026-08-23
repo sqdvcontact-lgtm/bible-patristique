@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   RETRAIT_BASE, PAS_ALINEA, RANG_MAX,
-  niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe,
+  niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs,
 } from './compositionVers'
 
 describe('alinéa de base', () => {
@@ -81,6 +81,37 @@ describe('ouverture de strophe', () => {
 
   it('ne saute pas quand ni l’un ni l’autre ne renseigne', () => {
     expect(ouvreStrophe({ paragraphe: null }, { paragraphe: null })).toBe(false)
+  })
+})
+
+describe('fusion des blocs de vers', () => {
+  const vers = new Set([1, 2, 3, 4, 5, 6])
+  const estVers = (ids: readonly number[]) => ids.every(i => vers.has(i))
+
+  it('refait le poème à partir des strophes (Mirandol)', () => {
+    expect(fusionnerBlocs([{ ids: [1, 2, 3] }, { ids: [4, 5, 6] }], estVers))
+      .toEqual([{ ids: [1, 2, 3, 4, 5, 6] }])
+  })
+
+  it('laisse un poème d’un seul tenant tel quel (Ceriziers)', () => {
+    expect(fusionnerBlocs([{ ids: [1, 2, 3, 4, 5, 6] }], estVers))
+      .toEqual([{ ids: [1, 2, 3, 4, 5, 6] }])
+  })
+
+  it('ne fond jamais à travers de la prose', () => {
+    expect(fusionnerBlocs([{ ids: [1, 2] }, { ids: [90] }, { ids: [3, 4] }], estVers))
+      .toEqual([{ ids: [1, 2] }, { ids: [90] }, { ids: [3, 4] }])
+  })
+
+  it('laisse la prose intacte', () => {
+    expect(fusionnerBlocs([{ ids: [90] }, { ids: [91] }], estVers))
+      .toEqual([{ ids: [90] }, { ids: [91] }])
+  })
+
+  it('ne modifie pas les blocs qu’on lui donne', () => {
+    const entree = [{ ids: [1, 2] }, { ids: [3] }]
+    fusionnerBlocs(entree, estVers)
+    expect(entree).toEqual([{ ids: [1, 2] }, { ids: [3] }])
   })
 })
 

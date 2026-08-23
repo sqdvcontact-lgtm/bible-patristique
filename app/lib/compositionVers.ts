@@ -113,6 +113,37 @@ export function ouvreStrophe(
   return ligne.paragraphe != null && precedente.paragraphe != null && ligne.paragraphe !== precedente.paragraphe
 }
 
+/**
+ * Fond les blocs voisins que `fusionnable` reconnaît, et rend les autres tels quels.
+ *
+ * ⚠️ La lecture ordinaire découpe le texte par `paragraphe`, ce qui est juste pour de
+ * la prose et faux pour un poème : les deux éditions de Boèce n'y mettent pas la même
+ * chose. Ceriziers laisse `paragraphe` à 1 sur ses 1 213 vers et confie toute la
+ * structure à `stanza_before` ; Mirandol y range une strophe de douze vers. Sans
+ * fusion, le premier rendait un seul bloc par poème et le second un bloc par strophe —
+ * deux compositions différentes du même texte, et deux blancs de strophe différents
+ * (0,72 rem contre 0,6). On refait donc le POÈME, et les strophes s'y marquent seules.
+ *
+ * ⛔ Corollaire, et c'est la vraie raison : `niveauxAlinea` se calcule sur le poème.
+ * Appliqué strophe par strophe, il prendrait pour origine la ligne la plus à gauche de
+ * CHAQUE strophe, et une strophe entièrement rentrée retomberait au fer à gauche.
+ */
+export function fusionnerBlocs(
+  blocs: readonly { ids: number[] }[],
+  fusionnable: (ids: readonly number[]) => boolean,
+): { ids: number[] }[] {
+  const sortie: { ids: number[] }[] = []
+  let precedentFusionnable = false
+  for (const bloc of blocs) {
+    const ok = bloc.ids.length > 0 && fusionnable(bloc.ids)
+    const dernier = sortie[sortie.length - 1]
+    if (ok && precedentFusionnable && dernier) dernier.ids.push(...bloc.ids)
+    else sortie.push({ ids: [...bloc.ids] })
+    precedentFusionnable = ok
+  }
+  return sortie
+}
+
 /** Une valeur venue de `segment_metadata->>indent_inches` : du texte, ou rien. */
 export function mesureAlinea(brut: unknown): number | null {
   if (typeof brut === 'number') return Number.isFinite(brut) ? brut : null

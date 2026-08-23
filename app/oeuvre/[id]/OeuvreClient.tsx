@@ -16,7 +16,7 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
-import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -2083,7 +2083,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                     </p>
                   )}
-                  {paragraphesDe(itemsReels).map((chunk) => {
+                  {/* ⚠️ On refait le POÈME avant de composer. Le découpage par
+                      `paragraphe` est juste pour de la prose et faux pour des vers :
+                      Ceriziers laisse `paragraphe` à 1 sur ses 1 213 vers, Mirandol y
+                      range une strophe de douze. Sans fusion, la même œuvre se
+                      composait en un bloc par poème d'un côté et un bloc par strophe
+                      de l'autre. Un bloc qui porte un texte ORIGINAL n'est jamais
+                      fondu : la grille bilingue apparie un original par bloc. */}
+                  {fusionnerBlocs(
+                    paragraphesDe(itemsReels),
+                    ids => ids.every(sid => {
+                      const s = segMap.get(sid)
+                      return s?.nature === 'vers' && !s?.texteOriginal?.trim()
+                    }),
+                  ).map((chunk) => {
                     const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
