@@ -459,6 +459,20 @@ Toute la palette tient dans une bande de **26° de teinte**, chaque séparation 
 
 ⚠️ **Un vert très DÉSATURÉ n'appartient pas à la famille du vert.** Le nom de la traduction sous l'intitulé de chapitre était un `#6b8270` : son jeton le plus proche est `--cs-texte-gris`, non `--cs-vert`, parce que c'est un marqueur discret et non un accent. La garde par famille l'avait donc laissé passer, et c'était la dernière tache de la page Bible.
 
+## ⛔ Le seuil de contraste DÉPEND DU CORPS (contrôle du 2026-08-23)
+
+⛔ **3,0 est le seuil du GRAND texte, pas le seuil.** WCAG demande **4,5** sous 24px, ou sous 18,66px en gras. Or les rangs ténus du site servent à **9 et 10px** : le contrôle qui mesure contre 3,0 est donc le plus indulgent là où il faudrait l'être le moins. Deux passes d'audit sont passées à côté pour cette raison, et c'est l'auteur qui l'a vu à l'œil avant que la mesure ne le dise.
+
+⚠️ **Le fond se COMPOSE, il ne se cueille pas.** Remonter jusqu'à la première couche opaque ignore les voiles translucides posés en route ; un `rgba(...,0.08)` change le résultat. Composer les couches de la plus lointaine à la plus proche, et appliquer l'`opacity` de l'élément à son encre comme une transparence.
+
+⚠️ **Une correction d'échelle se RÉESPACE, elle ne se relève pas.** `--cs-texte-faible` rendait 3,29 à 9px ; le remonter seul l'aurait collé à son voisin. Sur un fond crème on descend très bas sans perdre le texte, sur un sol sombre la plage utile est plus étroite et six rangs n'y tiennent pas aux mêmes écarts. Les quatre rangs bas du Cuir sont donc réespacés : **5,4 · 6,7 · 8,2 · 10,0 · 13,2 · 14,9**, à écarts croissants.
+
+⚠️ **La MATRICE, pas le sol.** Une page ne pose pas ses textes sur le seul `--cs-fond` : une carte est sur `--cs-surface`, un encart sur `--cs-fond-doux`, un verset visé sur `--cs-vise-fond`. Mesurer chaque encre contre chaque fond que le thème peut lui donner — le script d'atelier le fait — sinon un jeton qui tient sur le sol lâche sur une carte sans qu'on le sache.
+
+⚠️ **Comparer les deux thèmes avant de conclure à une régression.** La page des Publications compte 72 textes sous leur seuil en Cuir, et **90 au Clair** : ce sont les dates à 7,7px posées sur les couvertures, qui ne suivent aucun thème par décision. Le défaut est ancien et vaut pour les deux ; le corriger demande de revoir la composition des couvertures, non la palette.
+
+⚠️ **Un `<button>` n'est PAS un élément étiquetable.** Enveloppé dans un `<label>`, il en reçoit le curseur de pointeur sans en recevoir le clic : la rangée « Mode sombre » avait l'air cliquable et ne l'était pas. Le défaut ne se lit pas dans le code, l'imbrication paraissant correcte ; il se voit au doigt.
+
 ## L'audit au navigateur (2026-08-23) — six défauts qu'aucune mesure locale ne voyait
 
 Le site étant fermé, il a fallu le parcourir SOUS SESSION dans le navigateur de l'auteur, sur la version EN LIGNE. Six défauts, dont un introduit par la passe de la veille. Aucun n'apparaissait dans le dépôt : ils ne se voient qu'en page composée.
