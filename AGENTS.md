@@ -481,6 +481,14 @@ Les gravures de `public/ornements/` sont détourées : l'alpha porte le trait, l
 
 La charte disait déjà comment faire, à propos du monogramme : « le détourage ne sert que l'ALPHA : la couleur, on la repose ». Un filtre le fait sans nouveau fichier : `:root[data-theme="sombre"] .cs-ornement { filter: invert(0.88) sepia(0.5) saturate(0.6) }`. Mesuré, le trait passe de `rgb(71,70,69)` à `rgb(166,159,147)`, soit de 1,88 à **6,74** — une gravure claire sur du cuir, qui est le caractère juste d'une reliure estampée.
 
+⛔ **ONZE PLANCHES SUR DIX-NEUF n'étaient pas détourées** (relevé du 2026-08-23), dont **sept sans la moindre couche alpha**. Le défaut est bien plus ancien que le mode sombre, et c'est lui qui le rendait invisible : sur le papier crème du site, un fond crème opaque ne se voit pas. Il a fallu un sol brun pour que chaque gravure s'encadre d'un rectangle. Les cinq qui sont posées sur le site sont détourées ; les six autres attendent d'être employées.
+
+⚠️ **Le script est versionné : `scripts/ornements-detourer.mjs`.** Sans `--ecrire` il MESURE et ne touche à rien — c'est ainsi qu'on relève une planche avant de la reprendre. Il suit la recette de la charte : le fond se mesure aux quatre coins, l'encre par sa MÉDIANE, puis on la décompose du fond. Les originaux sont copiés hors du dépôt avant toute écriture (`C:\Corpus Scriptura\ornements-originaux-20260823`).
+
+⚠️ **Deux profils, et il faut savoir les distinguer.** Une gravure au TRAIT rend ~85-94 % de transparents pour 3-13 % de partiels : les bords, et eux seuls. Un dessin en DEMI-TEINTES rend 60 % et plus de partiels, ce que la charte signale déjà comme suspect (« un plein n'a aucune raison d'être partiel »). Détourer le second par la luminance aplatit son modelé : `carapace-vide` et `cul-de-lampe-cristaux` sont dans ce cas, et l'ont été tout de même, un rectangle sur la page valant moins qu'un aplatissement.
+
+⚠️ **Un trait CLAIR sur fond sombre a moins de présence qu'un trait sombre sur crème, à intensité égale.** Mesuré sur le cul-de-lampe du buisson ardent : l'écart moyen au sol vaut 4,00 au Clair et 3,65 en Cuir, à la même opacité de 0,42 — donc l'ornement est bien à son intensité voulue, et c'est l'œil qui le trouve plus ténu. ⛔ Ne pas compenser par `brightness` : l'encre est déjà quasi blanche après l'inversion et le filtre sature aussitôt. La seule prise est l'opacité, qui est la valeur calibrée par l'auteur — la changer est sa décision, pas une correction.
+
 ⚠️ **Poser la classe `cs-ornement` sur toute nouvelle gravure.** Un sélecteur d'attribut sur `src` ne suffirait pas : deux poses passent par `<Image>`, dont Next réécrit le `src`.
 
 ⛔ Ne pas remplacer ce filtre par `opacity` ni par un `mix-blend-mode` : l'opacité crée un contexte d'empilement qui annule le mélange, piège déjà consigné plus haut.
