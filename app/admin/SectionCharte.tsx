@@ -21,7 +21,7 @@ Corpus Scriptura est une bibliothèque patristique numérique. Les utilisateurs 
 
 - / : Page Bible (lecture par livre/chapitre avec traductions)
 - /oeuvre/[id] : Page Œuvre (texte patristique paginé, volet gauche = Sommaire, volet droit = Commentaires & références)
-- /essais : Liste des publications de la communauté
+- /essais : Page « Communauté » (liste des publications des lecteurs)
 - /admin : Interface d'administration (accès restreint)
 - /profil/[id] : Profil utilisateur
 

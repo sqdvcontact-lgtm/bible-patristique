@@ -246,7 +246,9 @@ Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.t
 - **Toutes les occurrences** sont affichées avec leur texte complet, chacune dans une carte distincte (référence en tête, badge « principale », puis le texte verset par verset). `app/pericopes/[id]/page.tsx` charge le texte de chaque occurrence en parallèle (`chargerTextePericope`) et le recharge au changement de traduction.
 - **Colonne de droite = doublon du volet de la page Bible** : on embarque directement `PanneauPatristique` (collant, hauteur `100dvh - navbar` sur desktop ; empilé `presentation="inline"` en mobile). Nouveau prop **`plage={{ livre, canonDebut, canonFin }}`** (+ `refAffichee`) : le volet charge l'apparat de la PLAGE canonique exacte via `segmentsLiesAPlage` (`app/lib/liens.ts`) au lieu d'un verset/chapitre. Additif : la page Bible ne passe pas `plage`, son comportement est inchangé.
 
-# Page « Publications » — couvertures de petit livre (2026-08-17)
+# Page « Communauté » (ex-« Publications ») — couvertures de petit livre (2026-08-17)
+
+⚠️ **Renommée « Communauté » le 2026-08-23. La route reste `/essais`.** Le nouveau libellé porte partout où la page est NOMMÉE : navbar (`LIENS_PRIMAIRES`, desktop et panneau mobile), carton d’accueil (`AccueilCards`), `h1` et `metadata.title` de `/essais`, fil d’Ariane de `/essais/[id]`, badge de lieu de la modération (`SectionModeration`), modèle de charte de l’admin. Le mot « publications » demeure là où il désigne les ÉCRITS et non la page : rubrique du profil, rubrique et réglage de visibilité du compte, onglets et catégories de la recherche. Le reste de cette section décrit la composition des couvertures, inchangée.
 
 Refonte complète de `app/essais/EssaisListeClient.tsx`. **Remplace** l'ancienne « structure de l'Index » et sa refonte survol/doré, toutes deux supprimées : plus de sommaire en deux colonnes, plus de bloc « à la une », plus de créneau de dix minutes.
 

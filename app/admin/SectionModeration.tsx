@@ -41,11 +41,11 @@ type Props = {
 }
 
 // ── Localisation ──────────────────────────────────────────────────────────────
-type Lieu = 'Bible' | 'Patristique' | 'Publications' | 'Profil'
+type Lieu = 'Bible' | 'Patristique' | 'Communauté' | 'Profil'
 const COULEUR_LIEU: Record<Lieu, { fond: string; texte: string }> = {
   Bible:        { fond: 'var(--cs-fond)', texte: 'var(--cs-vert)' },
   Patristique:  { fond: 'var(--cs-fond-doux)', texte: 'var(--cs-lacune)' },
-  Publications: { fond: 'var(--cs-fond)', texte: '#3d5a6b' },
+  Communauté:   { fond: 'var(--cs-fond)', texte: '#3d5a6b' },
   Profil:       { fond: 'var(--cs-fond-doux)', texte: 'var(--cs-vert)' },
 }
 
@@ -197,7 +197,7 @@ export default function SectionModeration(props: Props) {
             const estCertif = item.kind === 'certif'
             const estPub = item.kind === 'publication'
             const loc = estPub
-              ? { lieu: 'Publications' as Lieu, ref: item.c.titre_essai, href: `/essais/${item.c.id_essai}` as string | null, cible: '' }
+              ? { lieu: 'Communauté' as Lieu, ref: item.c.titre_essai, href: `/essais/${item.c.id_essai}` as string | null, cible: '' }
               : localiserCommentaire(item.c, segMap, versetMap, versetTexteMap, oeuvreTitreMap)
             const mail = item.kind === 'comment' ? item.c.auteur_mail : null
             // Message parent (si ce commentaire est une réponse) : affiché en contexte.

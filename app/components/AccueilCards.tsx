@@ -188,7 +188,7 @@ export default function AccueilCards() {
           href="/essais"
           className="ac-publications"
           icon={<IconPublicationsImage />}
-          titre="Publications"
+          titre="Communauté"
           reprendreHref={publication ? `/essais/${publication.id}` : undefined}
           reprendreLabel={publication ? publication.titre : undefined}
         />

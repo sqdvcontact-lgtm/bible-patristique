@@ -41,7 +41,7 @@ const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
 ];
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
   { href: "/bibliotheque", label: "Patristique" },
-  { href: "/essais", label: "Publications" },
+  { href: "/essais", label: "Communauté" },
   { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
 // Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,

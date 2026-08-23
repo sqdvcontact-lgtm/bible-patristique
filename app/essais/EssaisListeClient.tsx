@@ -107,7 +107,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
 
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, letterSpacing: '0.02em' }}>
-            Publications
+            Communauté
           </h1>
           <div aria-hidden="true" style={{ color: 'var(--cs-or)', fontSize: '0.4375rem', letterSpacing: '0.4em', margin: '6px 0 8px' }}>◆</div>
 

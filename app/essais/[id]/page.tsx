@@ -62,7 +62,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
           })} />
           <JsonLd donnees={donneesFilAriane([
             { nom: 'Accueil', url: '/accueil' },
-            { nom: 'Publications', url: '/essais' },
+            { nom: 'Communauté', url: '/essais' },
             { nom: essai.titre, url: `/essais/${essai.id}` },
           ])} />
         </>
