@@ -31,6 +31,17 @@ export type SegData = {
   paragraphe?: number | null
   rang?: number | null
   texteOriginal?: string | null
+  /** Le segment du texte en langue originale dont `texteOriginal` est la copie
+   *  (`segment_metadata.original_segment_key`). C'est par lui qu'on retrouve les
+   *  notes de ce bloc latin : elles pendent au texte original, pas à la traduction. */
+  cleOriginal?: string | null
+  /** `texteOriginal` avec ses appels de note matérialisés, comme `texteAffichage`
+   *  pour le corps. ⛔ Jamais renvoyé dans un `update` Supabase. */
+  texteOriginalAffichage?: string
+  /** Les notes du bloc latin, séparées de `notes` qui sert la colonne française :
+   *  un même segment porte les deux, et les mêler ferait sortir l'apparat de Knöll
+   *  dans le texte d'Arnauld d'Andilly. */
+  notesOriginal?: Record<string, NoteAffichee>
   nature?: string | null
   espaceTextuel?: string | null
   joinBefore?: string | null
@@ -118,6 +129,11 @@ export type Props = {
   alignementsDisponibles: AlignementDisponible[]
   notesStructurees?: Record<string, Record<string, NoteStructuree>>
   ancresNotesStructurees?: Record<string, AncreNoteStructureeProjection[]>
+  /** Notes et ancres du TEXTE EN LANGUE ORIGINALE lu en regard, indexées par la
+   *  `segment_key` de ce texte. Elles servent la seconde colonne du bilingue, que la
+   *  traduction ne peut pas fournir : son `texte_original` n'est qu'une copie. */
+  notesOriginales?: Record<string, Record<string, NoteStructuree>>
+  ancresNotesOriginales?: Record<string, AncreNoteStructureeProjection[]>
   niv1List: string[]
   niv1TexteMap?: Record<string, string>
   niveauxSommaire?: number

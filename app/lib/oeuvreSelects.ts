@@ -34,6 +34,10 @@ export const COLONNES_SEGMENT = [
   'espace_textuel', 'join_before',
   'alinea:segment_metadata->>indent_inches',
   'strophe_avant:segment_metadata->>stanza_before',
+  // Provenance de la colonne latine : `texte_original` est la copie d'un segment du
+  // texte en langue originale de l'œuvre, et cette clé dit lequel. Sans elle, le
+  // bilingue ne peut pas rendre à ce bloc l'apparat critique qui pend à son segment.
+  'cle_original:segment_metadata->>original_segment_key',
 ] as const
 
 /** La liste telle que PostgREST l'attend. */

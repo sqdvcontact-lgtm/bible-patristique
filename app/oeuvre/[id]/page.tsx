@@ -86,6 +86,9 @@ type Segment = {
   // rend donc en TEXTE, quel que soit leur type en base : `mesureAlinea` et
   // `marqueStrophe` les relisent.
   alinea: string|null; strophe_avant: string|null
+  // Même remarque : champ de `segment_metadata`, rendu en texte. Il désigne le
+  // segment du texte en langue originale dont `texte_original` est la copie.
+  cle_original: string|null
 }
 
 type TexteVersionRow = {
@@ -404,10 +407,13 @@ export default async function OeuvrePage({
   }
 
   // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
-  async function chargerNotesStructurees(): Promise<{
+  // Le texte dont on charge les notes est passé en paramètre : la page en charge
+  // deux, celui qu'on lit et, en bilingue, le texte en langue originale d'en face.
+  async function chargerNotesStructurees(idTexte: string | null): Promise<{
     notesParSegment: Record<string, Record<string, NoteStructuree>>
     ancresParSegment: Record<string, AncreNoteStructureeProjection[]>
   }> {
+    if (!idTexte) return { notesParSegment: {}, ancresParSegment: {} }
     type NoteRow = { note_key: string; note_number: number }
     type AnchorRow = {
       note_key: string
@@ -507,7 +513,13 @@ export default async function OeuvrePage({
     return { notesParSegment, ancresParSegment }
   }
 
-  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, { count: nbSegmentsLiminaires }] = await Promise.all([
+  // Le texte latin ou grec lu EN REGARD, quand ce n'est pas celui qu'on lit : ses
+  // notes alimentent la seconde colonne du bilingue, où `texte_original` n'apporte
+  // que la lettre.
+  const idTexteEnRegard = texteEnLangueOriginale && texteEnLangueOriginale.id_texte !== idTexte
+    ? (texteEnLangueOriginale.id_texte as string) : null
+
+  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, donneesNotesEnRegard, { count: nbSegmentsLiminaires }] = await Promise.all([
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id, p_id_texte: idTexte }),
     supabase.rpc('get_niv1_texte', { p_id_oeuvre: id, p_id_texte: idTexte }),
     Number.isFinite(segmentCibleId) && segmentCibleId > 0
@@ -515,12 +527,14 @@ export default async function OeuvrePage({
       : Promise.resolve({ data: null }),
     chargerTousSegments({ nature: 'apparat_critique' }),
     chargerCodesTraductions(supabase),
-    chargerNotesStructurees(),
+    chargerNotesStructurees(idTexte),
+    chargerNotesStructurees(idTexteEnRegard),
     supabase.from('segments').select('id', { count: 'exact', head: true })
       .eq('id_oeuvre', id).eq('id_texte', idTexte)
       .is('ref_niv1', null).in('nature', NATURES_CORPS),
   ])
   const { notesParSegment: notesStructurees, ancresParSegment: ancresNotesStructurees } = donneesNotesStructurees
+  const { notesParSegment: notesOriginales, ancresParSegment: ancresNotesOriginales } = donneesNotesEnRegard
 
   if (rpcError) console.error('get_niv1_list error:', rpcError)
 
@@ -608,6 +622,11 @@ export default async function OeuvrePage({
       ), versets: versetParSegment[s.id] || [],
       notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+      cleOriginal: s.cle_original,
+      texteOriginalAffichage: s.texte_original
+        ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+        : undefined,
+      notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
     }))
@@ -631,6 +650,11 @@ export default async function OeuvrePage({
       ), versets: [],
       notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+      cleOriginal: s.cle_original,
+      texteOriginalAffichage: s.texte_original
+        ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+        : undefined,
+      notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
     }))
@@ -675,6 +699,8 @@ export default async function OeuvrePage({
       alignementsDisponibles={alignementsDisponibles}
       notesStructurees={notesStructurees}
       ancresNotesStructurees={ancresNotesStructurees}
+      notesOriginales={notesOriginales}
+      ancresNotesOriginales={ancresNotesOriginales}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}
       niveauxSommaire={oeuvre.niveaux_sommaire ?? oeuvre.profondeur_sommaire ?? 1}

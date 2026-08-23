@@ -281,7 +281,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 // mot identiques. ⛔ Ne pas en redéclarer une troisième.
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -892,6 +892,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         ), versets,
         notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+        cleOriginal: s.cle_original,
+        texteOriginalAffichage: s.texte_original
+          ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+          : undefined,
+        notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
       }
@@ -955,6 +960,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         ), versets: [],
         notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
+        cleOriginal: s.cle_original,
+        texteOriginalAffichage: s.texte_original
+          ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+          : undefined,
+        notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
       }
@@ -2233,9 +2243,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                              que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
                              le retrait de suite, qui appartiennent à la composition. */
                           <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0 }}>
-                            {lignesDeVers(original.texteOriginal).map((ligne, i) => (
+                            {lignesDeVers(original.texteOriginalAffichage ?? original.texteOriginal).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
-                                {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes ?? {})}
+                                {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notesOriginal ?? original.notes ?? {})}
                               </span>
                             ))}
                           </div>
@@ -2245,7 +2255,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
                         <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.texteOriginal) : cesurerLatin(normaliserEspacesOriginal(original.texteOriginal)), original.notes ?? {})}
+                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.texteOriginalAffichage ?? original.texteOriginal) : cesurerLatin(normaliserEspacesOriginal(original.texteOriginalAffichage ?? original.texteOriginal)), original.notesOriginal ?? original.notes ?? {})}
                         </p>
                         )
                       )}
