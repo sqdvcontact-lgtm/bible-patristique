@@ -9,7 +9,6 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { LIVRES } from "@/app/lib/bible";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
-import { sansPointFinal } from "@/app/lib/titres";
 import { appliquerTheme, lireTheme } from "@/app/lib/theme";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 
@@ -142,7 +141,7 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
               style={{ display: "block", padding: "6px 8px", borderRadius: "4px", textDecoration: "none" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.07)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-              <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.75rem", color: "var(--cs-texte-second)", lineHeight: 1.2 }}>{sansPointFinal(o.titre)}</span>
+              <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.75rem", color: "var(--cs-texte-second)", lineHeight: 1.2 }}>{o.titre}</span>
               {o.auteur && <span style={{ display: "block", fontSize: "0.5625rem", color: "var(--cs-texte-faible)", fontStyle: "italic", marginTop: "1px" }}>{o.auteur}</span>}
             </Link>
           ))}

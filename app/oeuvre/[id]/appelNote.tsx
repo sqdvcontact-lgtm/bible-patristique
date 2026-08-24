@@ -3,7 +3,7 @@
 import { Children, cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
-import { sansPointFinal, normaliserTitreTechnique } from '@/app/lib/titres'
+import { normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
@@ -408,14 +408,13 @@ export function rendreTexteAvecNotes(
 export function rendreTitreColophonAvecNotes(
   texte: string,
   notes: Record<string, NoteAffichee>,
-  estTitre = false,
   variante: VarianteAppelNote = 'corps',
 ): React.ReactNode {
   // Rendu simple : le titre s'enroule naturellement (centré par ses conteneurs).
   // On a renoncé à la composition « colophon » (pavé à lignes décroissantes).
-  // `estTitre` : retire le point final (règle éditoriale) ; pas pour les _texte,
-  // qui sont des chapeaux/phrases.
-  return rendreTexteAvecNotes(preparerTitreColophon(estTitre ? sansPointFinal(texte) : texte), notes, variante)
+  // ⛔ Le point final n'est PLUS retiré ici (décision de l'auteur, 2026-08-24) : la
+  // ponctuation d'un titre attesté se conserve, et seule la page de titre y déroge.
+  return rendreTexteAvecNotes(preparerTitreColophon(texte), notes, variante)
 }
 
 /** Banque de notes d'un texte d'affichage : ne retient que les marqueurs qui y

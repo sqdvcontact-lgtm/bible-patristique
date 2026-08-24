@@ -2151,7 +2151,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       return rendreTitreColophonAvecNotes(
                         intitule,
                         notesDuTitre([intitule], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes),
-                        true,
                         'titre',
                       )
                     })()}
@@ -2235,13 +2234,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                   {showNiv1 && (
                     <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
+                      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, 'titre')}</h2>
                       {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.125rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
+                      <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.125rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, 'titre')}</h3>
                       {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
@@ -2255,7 +2254,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   )}
                   {showNiv3 && (
                     <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
-                      <p style={{ fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre, true)}</p>
+                      <p style={{ fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre)}</p>
                       {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
@@ -2269,7 +2268,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   )}
                   {showNiv4 && (
                     <p style={{ fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-faible)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
-                      {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre, true)}
+                      {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre)}
                       {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTitreColophonAvecNotes(groupe.niv4_texte, notesTitre)}</span>}
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: 0, top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
@@ -2470,7 +2469,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // plus. Un titre a besoin d'un blanc au moins égal à son propre corps
                         // pour cesser de faire partie de ce qui le suit.
                         <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
-                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, true, 'titre')}</h2>
+                          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, 'titre')}</h2>
                           {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
@@ -2480,7 +2479,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                       {showNiv2 && (
                         <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center', paddingRight: gouttiereTitre }}>
-                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, true, 'titre')}</h3>
+                          <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, 'titre')}</h3>
                           {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}

@@ -17,7 +17,6 @@ import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rendreSiecles } from '@/app/lib/siecles'
-import { sansPointFinal } from '@/app/lib/titres'
 import { type RangChrono, coulType, LIB_TYPE } from '@/app/lib/frise'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -228,7 +227,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
             {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
             <span style={{ minWidth: 0, lineHeight: 1.38 }}>
               <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
-                style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.38 }}>{sansPointFinal(o.titre)}</Link>
+                style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.38 }}>{o.titre}</Link>
               {/* Œuvre écrite à plusieurs : la fiche dit avec qui, sinon l'auteur
                   paraîtrait la signer seul. */}
               <MentionCoAuteurs auteurs={o.auteurs} />
@@ -240,7 +239,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
             <span title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? 'var(--cs-or-doux)' : 'var(--cs-bord)', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
             {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
             <span className="auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ minWidth: 0, lineHeight: 1.38 }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{sansPointFinal(o.titre)}</span>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{o.titre}</span>
               <MentionCoAuteurs auteurs={o.auteurs} />
               <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>répertoriée</span>
             </span>

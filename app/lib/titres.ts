@@ -1,7 +1,13 @@
-// Règle éditoriale : jamais de point à la fin d'un TITRE (œuvre, sous-titre,
-// niveaux de titre du corps). On retire un point final unique à l'affichage, en
-// préservant les points de suspension (« … » ou « ... ») et les points internes.
-// À n'appliquer qu'aux titres — pas aux textes/chapeaux, qui sont des phrases.
+// ⛔ RÉSERVÉ À LA PAGE DE TITRE (décision de l'auteur, 2026-08-24). Le frontispice
+// est une composition, et son titre n'y porte pas de point final. Partout AILLEURS,
+// la charte fait foi : « La ponctuation d’un titre […] transcrit depuis une édition
+// source est conservée telle qu’elle est attestée. Un point final imprimé n’est donc
+// jamais supprimé par une règle générale. » Les titres de niveau du corps, la fiche
+// d'auteur et la recherche gardent donc leur ponctuation attestée.
+//
+// Retire un point final unique, en préservant les points de suspension (« … » ou
+// « ... ») et les points internes. Sert aussi aux commentaires publics, dont la charte
+// dit qu'ils « ne prennent pas de point final », et à la comparaison d'intitulés.
 export function sansPointFinal(titre: string | null | undefined): string {
   if (!titre) return ''
   return titre.replace(/([^.\s])\s*\.\s*$/, '$1')
