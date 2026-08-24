@@ -220,9 +220,9 @@ function CarteFileLiens({ snapshot }: { snapshot: Snapshot }) {
               <td>{proprietaire.missions.join(' ou ')}</td>
               <td className="cv-num">{nb(proprietaire.checks)}</td>
               <td className="cv-num">{nb(proprietaire.dependent_links)}</td>
-              <td>
+              <td className="cv-routage">
                 <span style={{ color: proprietaire.routing_status === 'routed' ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>
-                  {proprietaire.routing_status === 'routed' ? 'routé' : proprietaire.routing_status}
+                  {proprietaire.routing_status === 'routed' ? 'routé' : proprietaire.routing_status === 'ambiguous' ? 'ambigu' : proprietaire.routing_status}
                 </span>
               </td>
             </tr>
@@ -506,4 +506,7 @@ const CSS_V2 = `
   .cv-tableau th { text-align: left; font-weight: 600; color: var(--cs-texte-second); border-bottom: 1px solid var(--cs-bord-clair); padding: 0.25rem 0.375rem; }
   .cv-tableau td { color: var(--cs-texte); border-bottom: 1px solid var(--cs-bord-clair); padding: 0.375rem; vertical-align: top; overflow-wrap: anywhere; }
   .cv-tableau .cv-num { text-align: right; font-variant-numeric: tabular-nums; }
+  /* Le nom d'une mission peut se couper n'importe où, un verdict de routage non :
+     « ambigu » coupé en deux ne se lit plus. */
+  .cv-tableau .cv-routage { overflow-wrap: normal; white-space: nowrap; }
 `
