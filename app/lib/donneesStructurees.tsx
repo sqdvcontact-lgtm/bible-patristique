@@ -115,7 +115,8 @@ export function donneesArticle(e: {
 
 // ── Péricope : CreativeWork (nom + appellations + référence biblique). ──
 export function donneesPericope(p: {
-  id: string; nom: string; appellations?: string[]; description?: string | null; reference?: string | null
+  id: string; nom: string; appellations?: string[]; description?: string | null
+  reference?: string | null; auteurs?: readonly string[]
 }) {
   const alt = (p.appellations ?? []).filter(a => a && a !== p.nom)
   return {
@@ -126,9 +127,43 @@ export function donneesPericope(p: {
     ...(alt.length ? { alternateName: alt } : {}),
     ...(p.description ? { description: p.description } : {}),
     ...(p.reference ? { citation: p.reference } : {}),
+    ...mentionsAuteurs(p.auteurs),
     url: `${BASE}/pericopes/${p.id}`,
     inLanguage: 'fr-FR',
     isPartOf: { '@id': `${BASE}/#website` },
+  }
+}
+
+// ── Les Pères qui commentent un passage ──────────────────────────────────────
+// `mentions` est le seul endroit du document servi où leurs noms paraissent :
+// le volet patristique est rendu par le NAVIGATEUR, et une description ne peut
+// en nommer que trois ou quatre. ⛔ N'y mettre que des auteurs RÉELLEMENT liés
+// au passage — c'est une affirmation sur le contenu de la page.
+function mentionsAuteurs(auteurs?: readonly string[]) {
+  const noms = [...new Set((auteurs ?? []).filter(Boolean))]
+  return noms.length ? { mentions: noms.map(nom => ({ '@type': 'Person', name: nom })) } : {}
+}
+
+// ── Chapitre biblique : la page de lecture, et ce qu'elle porte. ──
+// La page Bible n'avait AUCUNE donnée structurée, alors qu'elle est la porte
+// d'entrée la plus cherchée du site. `about` dit le passage, `mentions` dit les
+// Pères qui le commentent.
+export function donneesChapitreBible(c: {
+  livre: string; chapitre: number; reference: string; nomLivre: string
+  description?: string | null; auteurs?: readonly string[]
+}) {
+  const url = `${BASE}/?livre=${c.livre}&chapitre=${c.chapitre}`
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${url}#chapitre`,
+    url,
+    name: c.reference,
+    ...(c.description ? { description: c.description } : {}),
+    inLanguage: 'fr-FR',
+    isPartOf: { '@id': `${BASE}/#website` },
+    about: { '@type': 'Book', name: c.nomLivre, about: { '@type': 'Thing', name: 'Bible' } },
+    ...mentionsAuteurs(c.auteurs),
   }
 }
 

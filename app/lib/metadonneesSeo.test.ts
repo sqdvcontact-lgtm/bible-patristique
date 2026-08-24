@@ -7,12 +7,14 @@ import {
   descriptionAuteur,
   descriptionChapitreBible,
   descriptionOeuvre,
+  descriptionPericope,
   enTetesPartage,
   languesOrdonnees,
   naturePatristique,
   titreAuteur,
   titreChapitreBible,
   titreOeuvre,
+  titrePericope,
 } from './metadonneesSeo'
 
 describe('nature d’un rapport patristique', () => {
@@ -89,6 +91,56 @@ describe('description d’un passage biblique', () => {
 
   it('ne nomme personne si la liste est vide, même annoncée commentée', () => {
     expect(descriptionChapitreBible('Jean 1', 'commentaire', [])).not.toMatch(/commentaires de\s*\./)
+  })
+})
+
+describe('titre et description d’une péricope', () => {
+  it('porte le nom ET la référence, puis ce que la page apporte', () => {
+    expect(titrePericope('Les noces de Cana', 'Jean 2, 1-11', 'commentaire'))
+      .toBe('Les noces de Cana — Jean 2, 1-11 et commentaires patristiques')
+    expect(titrePericope('Les talents', 'Matthieu 25, 14-30', 'citation'))
+      .toBe('Les talents — Matthieu 25, 14-30 et citations patristiques')
+  })
+
+  it('n’annonce aucun apparat à une péricope qui n’en a pas', () => {
+    const titre = titrePericope('Shema Israël', 'Deutéronome 6, 4-9', null)
+    expect(titre).toBe('Shema Israël — Deutéronome 6, 4-9')
+    expect(titre).not.toMatch(/patristique/)
+  })
+
+  it('laisse tomber l’appoint quand le nom et la référence remplissent déjà le titre', () => {
+    // Dix-sept titres passaient cent signes, quand un moteur en montre soixante.
+    const titre = titrePericope('Mon Dieu, mon Dieu, pourquoi m’as-tu abandonné ?', 'Psaume 21, 1-32', 'commentaire')
+    expect(titre).toBe('Mon Dieu, mon Dieu, pourquoi m’as-tu abandonné ? — Psaume 21, 1-32')
+    expect(titre).not.toMatch(/patristique/)
+    expect(`${titre} · Corpus Scriptura`.length).toBeLessThanOrEqual(100)
+  })
+
+  it('garde son nom seul quand aucune occurrence n’est résolue au canon', () => {
+    expect(titrePericope('Une péricope sans plage', null, null)).toBe('Une péricope sans plage')
+    expect(titrePericope('Une péricope sans plage', '', 'commentaire'))
+      .toBe('Une péricope sans plage — Commentaires des Pères de l’Église')
+  })
+
+  it('préfère la notice, qui est propre à cette péricope', () => {
+    expect(descriptionPericope('Les talents', {
+      reference: 'Matthieu 25, 14-30',
+      notice: 'Un homme partant en voyage confie ses biens à trois serviteurs, chacun selon sa capacité.',
+      nature: 'commentaire', auteurs: ['Origène'],
+    })).toBe('Un homme partant en voyage confie ses biens à trois serviteurs, chacun selon sa capacité.')
+  })
+
+  it('compose à partir des faits quand la notice manque', () => {
+    expect(descriptionPericope('Les noces de Cana', {
+      reference: 'Jean 2, 1-11', nature: 'commentaire', auteurs: ['Irénée de Lyon', 'Origène'],
+    })).toBe('Les noces de Cana (Jean 2, 1-11) : le texte biblique et les commentaires de Irénée de Lyon et Origène.')
+  })
+
+  it('ne promet aucune correspondance patristique là où il n’y en a pas', () => {
+    // La formule d'avant en promettait à TOUTES les péricopes, sans exception.
+    const description = descriptionPericope('Shema Israël', { reference: 'Deutéronome 6, 4-9' })
+    expect(description).toBe('Shema Israël (Deutéronome 6, 4-9) : le passage biblique et son dossier sur Corpus Scriptura.')
+    expect(description).not.toMatch(/patristique|commentaire/)
   })
 })
 

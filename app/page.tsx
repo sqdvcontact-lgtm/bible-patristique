@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
-import { type ComponentProps } from 'react'
+import { cache, type ComponentProps } from 'react'
 import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES } from '@/app/lib/bible'
@@ -21,6 +21,7 @@ import {
   avecNomDuSite, descriptionChapitreBible, enTetesPartage, naturePatristique, titreChapitreBible,
 } from '@/app/lib/metadonneesSeo'
 import { chargerPresencePatristique } from '@/app/lib/metadonneesSeoServeur'
+import { JsonLd, donneesChapitreBible, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -29,6 +30,15 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 // vide — texte et traductions introuvables.
 
 const NOMS_LIVRES = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
+
+// ⚠️ `cache` de React, et les DEUX appelants passent les mêmes arguments : le
+// titre de l'onglet et les données structurées de la page décrivent le même
+// chapitre, et le routeur exécute `generateMetadata` et la page dans la même
+// requête. Sans cela, l'apparat patristique serait interrogé deux fois par
+// visite. ⛔ Le client Supabase se crée DEDANS : passé en argument, il serait
+// une valeur neuve à chaque appel et le cache ne servirait jamais.
+const presenceDuChapitre = cache(async (livre: string, chapitre: number) =>
+  chargerPresencePatristique(await creerSupabaseServeur(), livre, chapitre))
 
 // Métadonnées du chapitre lu. Le titre dit DEUX choses, dans cet ordre : quel
 // passage on lit, puis ce que Corpus Scriptura y apporte de propre — les Pères
@@ -57,8 +67,7 @@ export async function generateMetadata({
   // qui est aussi celle sous laquelle on le cherche.
   const reference = `${nomLivreReference(livre)} ${chapitre}`
 
-  const supabase = await creerSupabaseServeur()
-  const { types, auteurs } = await chargerPresencePatristique(supabase, livre, chapitre)
+  const { types, auteurs } = await presenceDuChapitre(livre, chapitre)
   const nature = naturePatristique(types)
   const titre = titreChapitreBible(reference, nature)
   const description = descriptionChapitreBible(reference, nature, auteurs)
@@ -432,23 +441,48 @@ export default async function Home({
   // révélation ne reprenait pas : le document gardait DEUX exemplaires du chapitre,
   // 136 Ko et le tiers de ses nœuds pour rien, et le HTML du serveur était jeté au
   // profit d'un rendu refait par le navigateur (mesuré le 2026-08-24).
+  // Données structurées du chapitre. ⚠️ `presenceDuChapitre` est mis en cache par
+  // React : cet appel ne coûte rien, `generateMetadata` l'a déjà fait dans la même
+  // requête. Les noms des Pères n'existaient dans AUCUN document servi, le volet
+  // patristique étant rendu par le navigateur.
+  const { auteurs } = await presenceDuChapitre(livre, chapitre)
+  const reference = `${nomLivreReference(livre)} ${chapitre}`
+
   return (
-    <BibleLayout
-      livres={LIVRES}
-      versets={versets}
-      traductions={translations}
-      livreActif={livre}
-      chapitreActif={chapitre}
-      nomLivre={NOMS_LIVRES[livre] || livre}
-      tradInitiale={trad}
-      readingCapabilities={catalog.capabilities}
-      couche={bible899 ? couche : undefined}
-      couchesDisponibles={couchesBible}
-      editionChapter={editionChapter}
-      lectureBilingue={lectureBilingue}
-      membresFamille={membresFamille}
-      paratexteDisponible={paratexteDisponible}
-      texteSeul={texteSeul}
-    />
+    <>
+      <JsonLd
+        donnees={donneesChapitreBible({
+          livre, chapitre, reference, nomLivre: NOMS_LIVRES[livre] || livre, auteurs,
+        })}
+      />
+      {/* Le livre ne se lit qu'à un chapitre : son échelon du fil d'Ariane pointe
+          donc le premier, et disparaît quand c'est celui qu'on lit. */}
+      <JsonLd
+        donnees={donneesFilAriane([
+          { nom: 'Accueil', url: '/accueil' },
+          ...(chapitre > 1
+            ? [{ nom: NOMS_LIVRES[livre] || livre, url: `/?livre=${livre}&chapitre=1` }]
+            : []),
+          { nom: reference, url: `/?livre=${livre}&chapitre=${chapitre}` },
+        ])}
+      />
+      <BibleLayout
+        livres={LIVRES}
+        versets={versets}
+        traductions={translations}
+        livreActif={livre}
+        chapitreActif={chapitre}
+        nomLivre={NOMS_LIVRES[livre] || livre}
+        tradInitiale={trad}
+        readingCapabilities={catalog.capabilities}
+        couche={bible899 ? couche : undefined}
+        couchesDisponibles={couchesBible}
+        editionChapter={editionChapter}
+        lectureBilingue={lectureBilingue}
+        membresFamille={membresFamille}
+        paratexteDisponible={paratexteDisponible}
+        texteSeul={texteSeul}
+      />
+    </>
   )
 }

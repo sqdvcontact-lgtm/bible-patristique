@@ -1,5 +1,7 @@
+import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
+import { couperDescription, enTetesPartage } from '@/app/lib/metadonneesSeo'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { JsonLd, donneesArticle, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import EssaiClient from './EssaiClient'
@@ -11,13 +13,24 @@ const supabaseAdmin = createClient(
 
 // Titre d'onglet / SEO dynamique par publication. On n'expose le titre que pour une
 // publication publiée (ne pas divulguer le titre d'un brouillon dans les métadonnées).
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+//
+// ⚠️ Un brouillon n'a ni canonique ni en-têtes de partage : ce serait annoncer
+// une page que le lecteur ne verra pas.
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const { data } = await supabaseAdmin
     .from('essais').select('titre, sous_titre, resume, statut').eq('id', id).maybeSingle()
   if (!data?.titre || data.statut !== 'publie') return { title: 'Publication' }
-  const desc = (data.resume || data.sous_titre || '') as string
-  return { title: data.titre as string, description: desc ? desc.slice(0, 160) : undefined }
+  const titre = data.titre as string
+  // Coupe au mot, jamais au milieu : `slice(160)` tranchait la dernière syllabe.
+  const brut = (data.resume || data.sous_titre || '') as string
+  const description = brut ? couperDescription(brut) : ''
+  return {
+    title: titre,
+    ...(description ? { description } : {}),
+    alternates: { canonical: `/essais/${encodeURIComponent(id)}` },
+    ...enTetesPartage(titre, description || `${titre}, une publication de Corpus Scriptura.`),
+  }
 }
 
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {

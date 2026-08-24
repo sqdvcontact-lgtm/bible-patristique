@@ -90,7 +90,7 @@ Pour toute prose destinée au site (cartes, chapeaux, messages, mentions) : **ne
 
 # Métadonnées — on n'annonce QUE ce que la page porte (2026-08-24)
 
-Les modèles vivent dans **`app/lib/metadonneesSeo.ts`** (pur, 29 tests) et les lectures qui les alimentent dans **`app/lib/metadonneesSeoServeur.ts`**. Trois familles servies : passage biblique (`app/page.tsx`), auteur (`app/auteur/[id]/layout.tsx`), œuvre (`app/oeuvre/[id]/page.tsx`). ⛔ Ne pas recomposer un titre ni une description ailleurs.
+Les modèles vivent dans **`app/lib/metadonneesSeo.ts`** (pur, 38 tests) et les lectures qui les alimentent dans **`app/lib/metadonneesSeoServeur.ts`**. Quatre familles servies : passage biblique (`app/page.tsx`), auteur (`app/auteur/[id]/layout.tsx`), œuvre (`app/oeuvre/[id]/page.tsx`), péricope (`app/pericopes/[id]/layout.tsx`). ⛔ Ne pas recomposer un titre ni une description ailleurs : `app/lib/metadonneesPages.test.ts` parcourt les routes et le refuse.
 
 **Le titre dit deux choses, dans cet ordre : l'objet documentaire, puis ce que Corpus Scriptura y apporte.** « Jean 1 » seul ne distingue ce site d'aucun autre ; « Exégèse patristique johannique » ne se cherche pas. D'où « Jean 1 — Commentaires des Pères de l'Église ».
 
@@ -106,11 +106,17 @@ Les modèles vivent dans **`app/lib/metadonneesSeo.ts`** (pur, 29 tests) et les 
 
 **Canonique.** La page Bible désigne `/?livre=X&chapitre=N` : traduction, mode, graphie, texte en regard, appareil écarté et verset visé sont des habits d'un même chapitre, et neuf adresses pour une page se comptaient neuf fois. La page d'œuvre désigne `/oeuvre/<id>`, sauf version de texte explicitement demandée, qui change le contenu. ⚠️ Aucune URL n'est modifiée : on dit seulement laquelle fait foi.
 
-⛔ **Plus de `<meta name="keywords">`.** Google l'ignore depuis 2009 ; les variantes de nom passent par `alternateName` du JSON-LD, qui est lu. Retiré des trois pages qui en portaient (auteur, œuvre, péricope).
+⛔ **Plus de `<meta name="keywords">`.** Google l'ignore depuis 2009 ; les variantes de nom passent par `alternateName` du JSON-LD, qui est lu. ⚠️ Elles étaient QUATRE et non trois : c'est la garde qui a trouvé la quatrième, `app/traductions/page.tsx`, qu'une lecture à l'œil avait manquée.
+
+**Péricope** : le titre porte les DEUX façons de chercher un passage nommé, son nom et sa référence, puis l'appoint patristique. ⚠️ Le nom peut à lui seul être une phrase (« Mon Dieu, mon Dieu, pourquoi m'as-tu abandonné ? ») : dix-sept titres passaient cent signes quand un moteur en montre soixante. Au delà de 72 signes, **c'est l'APPOINT qui cède**, seul des trois à n'être ni le nom ni la référence. ⛔ Et la formule d'avant promettait « ses correspondances patristiques » à TOUTES les péricopes, y compris aux treize qui n'en ont aucune.
+
+**`mentions` du JSON-LD est une AFFIRMATION sur le contenu de la page.** Le volet patristique étant rendu par le NAVIGATEUR, les noms des Pères n'existaient dans AUCUN document servi, et une description n'en nomme que trois ou quatre. `donneesChapitreBible` et `donneesPericope` les portent donc en `mentions`, et **seulement ceux qui sont réellement liés au passage** (`app/lib/donneesStructurees.test.ts`). La page Bible n'avait par ailleurs aucune donnée structurée, alors qu'elle est la porte d'entrée la plus cherchée du site.
+
+⚠️ **`presenceDuChapitre` est mis en cache par React** (`cache()` de `app/page.tsx`) : `generateMetadata` et le corps de la page décrivent le même chapitre, et le routeur les exécute dans la MÊME requête. ⛔ Le client Supabase se crée DEDANS — passé en argument, il serait une valeur neuve à chaque appel et le cache ne servirait jamais. Même raison pour `cache()` sur les fiches d'auteur et de péricope, dont `generateMetadata` et le corps du layout demandent les mêmes faits.
 
 ⚠️ **Un point suivi d'une espace ne finit pas toujours une phrase.** `couperDescription` exigeait naguère trois lettres devant le point : sans quoi « traduit par M. Horiot » se coupait à « traduit par M. », qui se lit comme un nom de traducteur. Et une description d'œuvre trop longue **retire un complément entier** plutôt que de couper la phrase.
 
-**Contrôle.** Deux scripts d'atelier dans `tmp/` (non versionné) : `controle-metadonnees-seo.mts` (échantillon commenté) et `balayage-metadonnees-seo.mts` (1 108 chapitres, 50 œuvres, 536 auteurs — titres vides, doublons, `undefined`, séparateurs orphelins, doubles noms de site). ⚠️ Ils appellent les MÊMES fonctions que les pages, y compris les lectures PostgREST : une erreur d'embed s'y voit avant la production.
+**Contrôle.** Trois scripts d'atelier dans `tmp/` (non versionné) : `controle-metadonnees-seo.mts` (échantillon commenté), `balayage-metadonnees-seo.mts` (1 108 chapitres, 50 œuvres, 536 auteurs) et `balayage-pericopes-seo.mts` (249 péricopes, dont 236 avec apparat). Ils cherchent les titres vides, les doublons, les `undefined`, les séparateurs orphelins et les doubles noms de site. ⚠️ Ils appellent les MÊMES fonctions que les pages, y compris les lectures PostgREST : une erreur d'embed s'y voit avant la production.
 
 ⚠️ **Le HTML rendu ne se contrôle qu'en session.** Le verrou de bêta écarté, `anon` n'a de droit sur rien : la page Bible tombe en 500 sur `versets_lecture` et les pages d'auteur et d'œuvre rendent leur repli. Next émet toutefois les métadonnées MÊME sur une page en erreur, ce qui suffit à éprouver les balises : titre unique, canonique absolue avec sa chaîne de requête, jeu Open Graph complet, aucun doublon.
 

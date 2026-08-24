@@ -130,11 +130,23 @@ const TOURNURE: Record<NaturePatristique, { avant: string; suite: string }> = {
   echo: { avant: 'le texte biblique et ses échos chez', suite: 'et chez' },
 }
 
-/** « Jean 1 : le texte biblique et les commentaires de Jean Chrysostome,
- *  Augustin d’Hippone et Origène, et de six autres auteurs. »
+/** « … : le texte biblique et les commentaires de Jean Chrysostome, Augustin
+ *  d’Hippone et Origène, et de six autres auteurs. »
  *
- *  `auteurs` est la liste COMPLÈTE de ceux qui sont réellement liés au chapitre,
- *  déjà classée par l'appelant (les plus présents d'abord). */
+ *  `auteurs` est la liste COMPLÈTE de ceux qui sont réellement liés au passage,
+ *  déjà classée par l'appelant (les plus anciens d'abord). Servie au chapitre
+ *  comme à la péricope : le sujet change, la phrase est la même. */
+function phraseDeNature(sujet: string, nature: NaturePatristique, auteurs: readonly string[]): string {
+  const { avant, suite } = TOURNURE[nature]
+  const tousNommes = auteurs.length <= AUTEURS_NOMMES + 1
+  const nommes = tousNommes ? [...auteurs] : auteurs.slice(0, AUTEURS_NOMMES)
+  const reste = auteurs.length - nommes.length
+  const queue = reste > 0 ? `, ${suite} ${nombreEnLettres(reste)} autres auteurs` : ''
+  return couperDescription(`${sujet} : ${avant} ${enumererNoms(nommes)}${queue}.`)
+}
+
+/** « Jean 1 : le texte biblique et les commentaires de Jean Chrysostome,
+ *  Augustin d’Hippone et Origène, et de six autres auteurs. » */
 export function descriptionChapitreBible(
   reference: string,
   nature: NaturePatristique | null,
@@ -145,12 +157,65 @@ export function descriptionChapitreBible(
       `${reference} : le texte du chapitre dans les traductions éditées sur ${NOM_SITE}.`,
     )
   }
-  const { avant, suite } = TOURNURE[nature]
-  const tousNommes = auteurs.length <= AUTEURS_NOMMES + 1
-  const nommes = tousNommes ? [...auteurs] : auteurs.slice(0, AUTEURS_NOMMES)
-  const reste = auteurs.length - nommes.length
-  const queue = reste > 0 ? `, ${suite} ${nombreEnLettres(reste)} autres auteurs` : ''
-  return couperDescription(`${reference} : ${avant} ${enumererNoms(nommes)}${queue}.`)
+  return phraseDeNature(reference, nature, auteurs)
+}
+
+// ═══ Péricope ════════════════════════════════════════════════════════════════
+//
+// Une péricope se cherche sous son NOM (« les noces de Cana ») autant que sous
+// sa référence, et le titre porte donc les deux. L'appoint patristique se dit
+// plus court qu'ailleurs : la référence occupe déjà la place.
+
+const APPOINT_PERICOPE: Record<NaturePatristique, string> = {
+  commentaire: 'commentaires patristiques',
+  citation: 'citations patristiques',
+  echo: 'échos patristiques',
+}
+
+// ⚠️ Le nom d'une péricope peut à lui seul être une phrase : « Mon Dieu, mon
+// Dieu, pourquoi m'as-tu abandonné ? ». Avec sa référence, le gabarit du site et
+// l'appoint patristique, dix-sept titres passaient cent signes, quand un moteur
+// n'en montre qu'une soixantaine. C'est l'APPOINT qui cède, étant le seul des
+// trois à n'être ni le nom du passage ni sa référence : au delà de ce seuil, il
+// ne serait de toute façon pas lu, et il ferait du titre un catalogue.
+const LONGUEUR_TITRE_PERICOPE = 72
+
+/** « Les noces de Cana — Jean 2, 1-11 et commentaires patristiques ». Une
+ *  péricope dont aucune occurrence n'est résolue au canon garde son nom seul. */
+export function titrePericope(
+  nom: string,
+  reference: string | null | undefined,
+  nature: NaturePatristique | null,
+): string {
+  const ref = (reference ?? '').trim()
+  if (ref && nature) {
+    const entier = `${nom} — ${ref} et ${APPOINT_PERICOPE[nature]}`
+    return entier.length <= LONGUEUR_TITRE_PERICOPE ? entier : `${nom} — ${ref}`
+  }
+  if (ref) return `${nom} — ${ref}`
+  if (nature) return `${nom} — ${APPOINT_TITRE[nature]}`
+  return nom
+}
+
+/** La notice fait la meilleure description : elle est propre à cette péricope,
+ *  elle se lit comme une phrase, et le titre porte déjà nom et référence. Les
+ *  249 péricopes en ont une ; la composition ci-dessous est un filet. */
+export function descriptionPericope(
+  nom: string,
+  options: {
+    reference?: string | null
+    notice?: string | null
+    nature?: NaturePatristique | null
+    auteurs?: readonly string[]
+  } = {},
+): string {
+  const notice = (options.notice ?? '').trim()
+  if (notice) return couperDescription(notice)
+  const ref = (options.reference ?? '').trim()
+  const sujet = ref ? `${nom} (${ref})` : nom
+  const auteurs = options.auteurs ?? []
+  if (options.nature && auteurs.length) return phraseDeNature(sujet, options.nature, auteurs)
+  return couperDescription(`${sujet} : le passage biblique et son dossier sur ${NOM_SITE}.`)
 }
 
 // ═══ Auteur ══════════════════════════════════════════════════════════════════

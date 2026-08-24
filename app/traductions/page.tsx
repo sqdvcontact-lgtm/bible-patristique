@@ -3,14 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 import AllerPlusLoinClient from './AllerPlusLoinClient'
 import { JsonLd, donneesBibles } from '@/app/lib/donneesStructurees'
 
+// ⛔ Plus de `keywords` : Google les ignore depuis 2009. Les noms des bibles sont
+// déjà dans la description, dans les titres visibles de la page, et surtout dans
+// la liste structurée `donneesBibles` ci-dessous, qui, elle, est lue.
 export const metadata = {
   title: 'Les traductions',
   description:
     "Les traductions bibliques éditées sur Corpus Scriptura : Bible de Sacy, Bible Segond, Bible Crampon, Vulgate clémentine, Septante… avec leurs notices.",
-  keywords: [
-    'Bible de Sacy', 'Bible Segond', 'Bible Crampon', 'Vulgate clémentine', 'Septante',
-    'traduction de la Bible', 'Bible française',
-  ],
+  alternates: { canonical: '/traductions' },
 }
 
 // Données de référence publiques : on lit les noms des traductions côté serveur
