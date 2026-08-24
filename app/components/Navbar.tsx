@@ -579,11 +579,11 @@ export default function Navbar() {
   // et le surlignage se pose dans une autre : les œuvres ouvrent, leurs auteurs suivent.
   const itemsNavigables: { cle: string; href: string }[] = [];
   oeuvresTrouvees.slice(0, 3).forEach(o => itemsNavigables.push({ cle: `oe:${o.id_oeuvre}`, href: `/oeuvre/${o.id_oeuvre}` }));
+  livresTrouves.slice(0, 3).forEach(l => itemsNavigables.push({ cle: `li:${l.code}`, href: `/?livre=${l.code}&chapitre=1` }));
   auteursTrouves.slice(0, 3).forEach(a => itemsNavigables.push({ cle: `au:${a.id_auteur}`, href: `/auteur/${a.id_auteur}` }));
   pericopes.forEach(p => itemsNavigables.push({ cle: `p:${p.pericope_id}`, href: `/pericopes/${p.pericope_id}` }));
   evenementsTrouves.forEach(e => itemsNavigables.push({ cle: `ev:${e.id}`, href: `/histoire#${e.id}` }));
   essaisTrouves.slice(0, 3).forEach(e => itemsNavigables.push({ cle: `es:${e.id}`, href: `/essais/${e.id}` }));
-  livresTrouves.slice(0, 3).forEach(l => itemsNavigables.push({ cle: `li:${l.code}`, href: `/?livre=${l.code}&chapitre=1` }));
   traductionsTrouvees.slice(0, 3).forEach(t => itemsNavigables.push({ cle: `tr:${t.code}`, href: `/traductions#${t.code}` }));
   const cleActive = actifIndex >= 0 ? (itemsNavigables[actifIndex]?.cle ?? null) : null;
   useEffect(() => {
@@ -929,10 +929,15 @@ export default function Navbar() {
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
             <>
-              {/* ── Œuvres : EN TÊTE, et au premier plan. C'est ce qu'on vient chercher le
-                     plus souvent dans cette barre. Le titre prend donc le caractère des
-                     œuvres (le sérif du site), un corps supérieur au reste du menu, et
-                     l'auteur descend sur sa propre ligne au lieu de talonner le titre. ── */}
+              {/* ── EN TÊTE, et au premier plan : les TITRES, c'est-à-dire ce qu'on ouvre
+                     pour lire — une œuvre patristique, un livre de la Bible. C'est ce qu'on
+                     vient chercher le plus souvent dans cette barre, et cela passait après
+                     quatre rubriques. Ils prennent donc le caractère des titres du site (le
+                     sérif) et un corps supérieur au reste du menu ; sous une œuvre, l'auteur
+                     descend sur sa propre ligne au lieu de talonner le titre.
+                     ⚠️ Les deux domaines ne sont plus contigus (vert puis bleu, et leurs
+                     autres rubriques plus bas) : c'est le prix de la mise en tête, et le
+                     filet de gauche continue de dire le domaine de chacun. ── */}
               {oeuvresTrouvees.length > 0 && (
                 <div style={{ padding: "6px 0 5px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
                   <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 3px" }}>Œuvres patristiques</p>
@@ -947,8 +952,21 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
+              {livresTrouves.length > 0 && (
+                <div style={{ padding: "6px 0 5px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: oeuvresTrouvees.length > 0 ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 3px" }}>Livres bibliques</p>
+                  {livresTrouves.slice(0, 3).map(l => (
+                    <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
+                      style={{ display: "block", padding: "4px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)", textDecoration: "none" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      {surlignerMatch(l.nom, requeteRapide.trim())}
+                    </Link>
+                  ))}
+                </div>
+              )}
               {auteursTrouves.length > 0 && (
-                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: oeuvresTrouvees.length > 0 ? "1px solid rgba(var(--cs-vert-rgb),0.14)" : "none" }}>
+                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: (oeuvresTrouvees.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(var(--cs-vert-rgb),0.14)" : "none" }}>
                   <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
                   {auteursTrouves.slice(0, 3).map(a => (
                     <Link key={a.id_auteur} id={`nav-au:${a.id_auteur}`} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
@@ -962,7 +980,7 @@ export default function Navbar() {
               )}
               {/* ── Péricopes (RPC) : section distincte. Domaine biblique (bleu). ── */}
               {(pericopesLoading || pericopes.length > 0 || (pericopesFait && !pericopesErreur) || pericopesErreur) && (
-                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (oeuvresTrouvees.length > 0 || auteursTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (oeuvresTrouvees.length > 0 || livresTrouves.length > 0 || auteursTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
                   <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Péricopes</p>
                   {pericopes.length > 0 ? (
                     pericopes.map(p => {
@@ -1013,7 +1031,7 @@ export default function Navbar() {
                 </div>
               )}
               {essaisTrouves.length > 0 && (
-                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || pericopes.length > 0 || evenementsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
+                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || livresTrouves.length > 0 || segmentsTrouves.length > 0 || pericopes.length > 0 || evenementsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
                   <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Essais et méditations</p>
                   {essaisTrouves.slice(0, 3).map(e => (
                     <Link key={e.id} id={`nav-es:${e.id}`} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
@@ -1025,21 +1043,8 @@ export default function Navbar() {
                   ))}
                 </div>
               )}
-              {livresTrouves.length > 0 && (
-                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || segmentsTrouves.length > 0 || essaisTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Livres bibliques</p>
-                  {livresTrouves.slice(0, 3).map(l => (
-                    <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                      {surlignerMatch(l.nom, requeteRapide.trim())}
-                    </Link>
-                  ))}
-                </div>
-              )}
               {traductionsTrouvees.length > 0 && (
-                <div style={{ padding: "4px 0 6px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (auteursTrouves.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
+                <div style={{ padding: "4px 0 6px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: "1px solid rgba(58,90,140,0.16)" }}>
                   <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Traductions</p>
                   {traductionsTrouvees.slice(0, 3).map(t => (
                     <Link key={t.code} id={`nav-tr:${t.code}`} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
