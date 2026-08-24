@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
 import SectionVerifications from './SectionVerifications'
@@ -123,6 +124,18 @@ export default function AdminClient({
     { key: 'charte',              label: 'Charte IA',         famille: 'systeme', separateur: true },
     { key: 'charte-accentuation', label: 'Accentuation',      famille: 'systeme' },
   ]
+  // Pages d'administration AUTONOMES. Elles ne s'ouvrent pas dans cette page :
+  // elles la quittent. La planche des illustrations mesure des fichiers sur le
+  // disque au rendu serveur, elle ne peut donc pas vivre dans un onglet client.
+  //
+  // ⚠️ Elles figurent tout de même ICI, et c'est le fond de l'affaire : quand on
+  // est SUR l'administration, on cherche dans sa barre d'onglets, pas dans un
+  // menu déroulant de la barre du haut. Une page d'admin qui n'est nommée que
+  // par la navbar est une page qu'on ne trouve pas. Même patron que « Bible 899 »
+  // dans le menu de la navbar : rattachée à sa famille, après un filet.
+  const PAGES_ADMIN: { href: string; label: string; famille: 'corpus' | 'communaute' | 'systeme' }[] = [
+    { href: '/admin/illustrations', label: 'Illustrations', famille: 'systeme' },
+  ]
 
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
@@ -189,12 +202,21 @@ export default function AdminClient({
       {mobile ? (
         <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', padding: '8px 12px', boxShadow: 'var(--cs-ombre-posee)' }}>
           <label style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
-          <select value={onglet} onChange={e => setOnglet(e.target.value as Onglet)} aria-label="Section d’administration"
+          {/* Une valeur qui commence par une barre oblique est une PAGE, pas une
+              section : on la suit au lieu de basculer un onglet qui n'existe pas. */}
+          <select value={onglet} onChange={e => {
+            const choix = e.target.value
+            if (choix.startsWith('/')) { window.location.href = choix; return }
+            setOnglet(choix as Onglet)
+          }} aria-label="Section d’administration"
             style={{ width: '100%', font: 'inherit', fontSize: '0.9375rem', padding: '9px 10px', border: `1px solid ${COUL_FAMILLE[ONGLETS.find(o => o.key === onglet)?.famille ?? 'corpus']}`, borderRadius: '8px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)' }}>
             {(['corpus', 'communaute', 'systeme'] as const).map(fam => (
               <optgroup key={fam} label={LABEL_FAMILLE[fam]}>
                 {ONGLETS.filter(o => o.famille === fam).map(o => (
                   <option key={o.key} value={o.key}>{o.label}{o.badge ? ` (${o.badge})` : ''}</option>
+                ))}
+                {PAGES_ADMIN.filter(p => p.famille === fam).map(p => (
+                  <option key={p.href} value={p.href}>{p.label}</option>
                 ))}
               </optgroup>
             ))}
@@ -225,6 +247,20 @@ export default function AdminClient({
               </React.Fragment>
             )
           })}
+          {/* Les pages autonomes ferment la barre. Un lien, non un bouton : il
+              quitte la page, et le clavier comme le clic droit doivent le savoir.
+              Le dessin est celui d'un onglet au repos, à la flèche près, qui dit
+              qu'on s'en va. */}
+          {PAGES_ADMIN.map(p => (
+            <React.Fragment key={p.href}>
+              <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '16px', margin: '0 5px 9px', background: 'var(--cs-vert-pale)', flexShrink: 0 }} />
+              <Link href={p.href} className="adm-onglet"
+                style={{ padding: '6px 8px', fontSize: '0.8125rem', fontWeight: 500, color: '#6a8074', background: 'transparent', borderBottom: '3px solid transparent', borderRadius: '4px 4px 0 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
+                {p.label}
+                <span aria-hidden style={{ fontSize: '0.71875rem', opacity: 0.6 }}>→</span>
+              </Link>
+            </React.Fragment>
+          ))}
         </div>
       )}
 
