@@ -29,6 +29,7 @@ import {
   projeterAppelsNotesStructurees,
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
+import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 
 /** Un ensemble d'alignement, tel que la page le charge déjà pour la comparaison. */
 export type EnsembleAlignement = {
@@ -113,13 +114,16 @@ export function choisirEnsembleBilingue(
  * recompose ligne à ligne (`lignesDeVers`), et un poème joint par des espaces se
  * justifierait en prose pendant que le français d'en face resterait en vers. La prose,
  * elle, suit `join_before`, qui porte l'espace ou son absence voulue par l'édition.
+ *
+ * ⛔ `join_before` passe par `liantAvantSegment` : la colonne originale rendait sinon le
+ * jeton `space` en toutes lettres au milieu du latin de Zycha.
  */
 export function joindreSegmentsOriginaux(
   segments: readonly { texte: string; joinBefore: string | null; estVers: boolean }[],
 ): string {
   return segments.reduce((acc, s, i) => {
     if (i === 0) return s.texte
-    const liant = s.estVers ? '\n' : (s.joinBefore ?? ' ')
+    const liant = s.estVers ? '\n' : liantAvantSegment(s.joinBefore)
     return acc + liant + s.texte
   }, '')
 }

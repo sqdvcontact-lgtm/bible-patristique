@@ -21,6 +21,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import {
   groupesSelonFiltre,
   membresOrdonnesParGroupe,
@@ -265,7 +266,7 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
           <p key={blocIndex} lang={codeLangue} style={{ ...STYLE_TEXTE_PARALLELE, fontFamily: police, marginTop, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
             {bloc.segs.map((segment, index) => (
               <Fragment key={segment.segment_key}>
-                {index > 0 ? (segment.join_before ?? ' ') : null}
+                {index > 0 ? liantAvantSegment(segment.join_before) : null}
                 {rendreSegment(segment)}
               </Fragment>
             ))}

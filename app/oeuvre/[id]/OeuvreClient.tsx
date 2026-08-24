@@ -19,6 +19,7 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
+import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
@@ -2368,7 +2369,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           const estPremier = sid === premierSegmentId
                           return (
                             <Fragment key={sid}>
-                              {i > 0 ? (s.joinBefore ?? ' ') : null}
+                              {i > 0 ? liantAvantSegment(s.joinBefore) : null}
                               <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                 onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                 onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
@@ -2492,7 +2493,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               const actif = segActif === sid
                               return (
                                 <Fragment key={sid}>
-                                  {i > 0 ? (s.joinBefore ?? ' ') : null}
+                                  {i > 0 ? liantAvantSegment(s.joinBefore) : null}
                                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}

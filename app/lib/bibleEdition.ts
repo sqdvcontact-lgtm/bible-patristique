@@ -1,3 +1,5 @@
+import { liantSymbolique, type JonctionSymbolique } from './jonctionSegments'
+
 export const BIBLE_EDITORIAL_BLOCK_KINDS = [
   'title',
   'introduction',
@@ -77,7 +79,9 @@ export type BibleSourceFragment = {
   text: string
   startOffset: number | null
   endOffset: number | null
-  joinBefore: 'none' | 'space' | 'line_break' | 'paragraph_break'
+  /** Le vocabulaire vit dans `jonctionSegments.ts`, avec sa matérialisation et la
+   *  contrainte SQL `bible_editorial_segment_sources_join_before_check` qu'il reflète. */
+  joinBefore: JonctionSymbolique
 }
 
 export type BibleEditionDisplayTextBlock = {
@@ -398,12 +402,12 @@ export function couperPointsDeCode(
   return Array.from(text).slice(startOffset, endOffset ?? undefined).join('')
 }
 
+/** ⛔ La table des jetons n'est PAS recopiée ici : elle vit dans `liantSymbolique`,
+ *  partagée avec la recomposition des œuvres, pour qu'un jeton ne puisse jamais être
+ *  rendu tel quel d'un côté et matérialisé de l'autre. */
 export function recomposerFragmentsMateriels(fragments: readonly BibleSourceFragment[]): string {
   return fragments.map((fragment, index) => {
     const texte = couperPointsDeCode(fragment.text, fragment.startOffset, fragment.endOffset)
-    if (index === 0 || fragment.joinBefore === 'none') return texte
-    if (fragment.joinBefore === 'line_break') return `\n${texte}`
-    if (fragment.joinBefore === 'paragraph_break') return `\n\n${texte}`
-    return ` ${texte}`
+    return index === 0 ? texte : liantSymbolique(fragment.joinBefore) + texte
   }).join('')
 }

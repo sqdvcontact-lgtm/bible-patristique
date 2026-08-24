@@ -74,6 +74,19 @@ describe('jonction des segments originaux', () => {
   it('rend un segment seul tel quel', () => {
     expect(joindreSegmentsOriginaux([{ texte: 'seul', joinBefore: ', ', estVers: false }])).toBe('seul')
   })
+
+  // La colonne originale rendait le JETON `space` en toutes lettres au milieu du latin
+  // de Zycha (« gignerent?spacenon enim et Adam ipse »). `join_before` est une
+  // instruction, elle ne se concatène jamais telle quelle.
+  it('matérialise le jeton `space` au lieu de l’imprimer', () => {
+    const texte = joindreSegmentsOriginaux([
+      { texte: 'ut multos gignerent?', joinBefore: null, estVers: false },
+      { texte: 'non enim et Adam ipse…', joinBefore: 'space', estVers: false },
+    ])
+    expect(texte).toBe('ut multos gignerent? non enim et Adam ipse…')
+    expect(texte).not.toContain('gignerent?spacenon')
+    expect(texte).not.toContain('space')
+  })
 })
 
 describe('projection bilingue', () => {
