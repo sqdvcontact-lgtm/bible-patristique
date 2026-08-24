@@ -103,6 +103,27 @@ describe('inventaire des illustrations', () => {
     }
   })
 
+  // Un lien qui ouvre la bonne page sans dire où regarder ne vaut guère mieux
+  // qu'un lien faux : plusieurs de ces gravures ne paraissent qu'à une condition
+  // (un chapitre sans apparat, une traduction sans le livre, un volet où l'on n'a
+  // pas cliqué), et il faut le savoir en arrivant.
+  it('dit toujours où poser les yeux en arrivant', () => {
+    for (const i of ILLUSTRATIONS) {
+      if (i.lieu) expect(i.lieu.repere.trim().length, i.chemin).toBeGreaterThan(15)
+    }
+  })
+
+  // ⛔ `/quiz` renvoie un 404 en production (route neutralisée, chantier Holy
+  // Guessr). Y renvoyer serait promettre une page qui n'existe pas.
+  it('ne renvoie vers aucune route neutralisée', () => {
+    const neutralisees = ['/quiz']
+    for (const i of ILLUSTRATIONS) {
+      if (!i.lieu) continue
+      const route = i.lieu.href.split('?')[0].split('#')[0]
+      expect(neutralisees, `${i.chemin} renvoie vers ${route}`).not.toContain(route)
+    }
+  })
+
   it('ne prête un lieu qu’aux images effectivement servies', () => {
     for (const i of ILLUSTRATIONS) {
       if (i.fonction === 'reserve' || i.fonction === 'gabarit') {

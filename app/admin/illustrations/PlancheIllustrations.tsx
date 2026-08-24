@@ -355,7 +355,7 @@ function Vignette({
         </span>
         {illustration.note && <span className="ill-note">{illustration.note}</span>}
         {illustration.lieu
-          ? <a className="ill-lien" href={illustration.lieu.href} target="_blank" rel="noreferrer">Voir en place : {illustration.lieu.label} ↗</a>
+          ? <a className="ill-lien" href={illustration.lieu.href} target="_blank" rel="noreferrer" title={illustration.lieu.repere}>Voir en place : {illustration.lieu.label} ↗</a>
           : <span className="ill-lien ill-lien--muet">Ne paraît sur aucune page</span>}
       </figcaption>
     </figure>
@@ -434,10 +434,19 @@ function Agrandissement({
             <a className="ill-bouton" href={illustration.chemin} target="_blank" rel="noreferrer">Ouvrir le fichier ↗</a>
           </div>
 
-          {illustration.lieu && (
-            <a className="ill-lien ill-lien--fort" href={illustration.lieu.href} target="_blank" rel="noreferrer">
-              Voir en place : {illustration.lieu.label} ↗
-            </a>
+          {illustration.lieu ? (
+            <div className="ill-ou">
+              <p className="ill-ou-tete">Où la voir</p>
+              <p className="ill-ou-txt">{illustration.lieu.repere}</p>
+              <a className="ill-lien ill-lien--fort" href={illustration.lieu.href} target="_blank" rel="noreferrer">
+                Ouvrir {illustration.lieu.label} ↗
+              </a>
+            </div>
+          ) : (
+            <div className="ill-ou">
+              <p className="ill-ou-tete">Où la voir</p>
+              <p className="ill-ou-txt">Nulle part : aucune page du site n’appelle ce fichier.</p>
+            </div>
           )}
         </aside>
       </div>
@@ -528,6 +537,9 @@ const CSS = `
   .ill-fiche dd { color: var(--cs-texte); margin: 0; overflow-wrap: anywhere; }
   .ill-fiche code { font-family: ui-monospace, monospace; font-size: 0.6875rem; }
   .ill-modale-boutons { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+  .ill-ou { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-bord-clair); }
+  .ill-ou-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-faible); font-weight: 700; margin: 0 0 0.25rem; }
+  .ill-ou-txt { font-size: 0.8125rem; color: var(--cs-texte-second); line-height: 1.55; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
 
   @media (max-width: 900px) {
     .ill-modale-corps { flex-direction: column; max-height: 100%; }

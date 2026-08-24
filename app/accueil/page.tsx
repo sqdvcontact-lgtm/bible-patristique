@@ -288,7 +288,11 @@ export default async function AccueilPage() {
           </p>
         </header>
 
-        <AccueilCards />
+        {/* L'ancre sert la planche des illustrations, qui renvoie ici pour montrer
+            les trois icônes de carte en place. */}
+        <div id="cartes" style={{ scrollMarginTop: "3.5rem" }}>
+          <AccueilCards />
+        </div>
 
         {/* ── Trois volets : un mot · ajouts récents · statistiques ─────────── */}
         <div className="accueil-volets">
