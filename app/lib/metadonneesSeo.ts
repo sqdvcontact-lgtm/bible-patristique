@@ -328,6 +328,21 @@ export function descriptionOeuvre(titre: string, etat: EtatOeuvre): string {
 // et le nom du site — c'est le rôle de cette fonction.
 const IMAGE_PARTAGE = { url: '/og-image.png', width: 1200, height: 630, alt: NOM_SITE }
 
+// ═══ Pages qui ne s'indexent pas ═════════════════════════════════════════════
+//
+// Un espace PERSONNEL et une page de RÉSULTATS n'ont rien à faire dans un index.
+// Le premier ne regarde que son titulaire ; la seconde n'est pas un document mais
+// une vue sur d'autres documents, et une infinité de requêtes ferait une infinité
+// d'adresses aux contenus qui se recouvrent.
+//
+// ⚠️ `follow` reste implicite : on refuse l'indexation de la page, non le suivi
+// des liens qu'elle porte vers de vraies pages.
+//
+// ⛔ Ne PAS l'ajouter aux pages d'administration : `robots.txt` en interdit déjà
+// l'exploration, et une consigne qu'un robot ne peut pas lire ne sert à rien. Les
+// deux ensemble se contrarient plutôt qu'ils ne s'ajoutent.
+export const HORS_INDEX = { index: false } as const
+
 export function enTetesPartage(titre: string, description: string) {
   return {
     openGraph: {

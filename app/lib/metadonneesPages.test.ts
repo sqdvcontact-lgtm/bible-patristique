@@ -46,6 +46,27 @@ describe('métadonnées des pages', () => {
     expect(fautives).toEqual([])
   })
 
+  it('tient les espaces personnels et les résultats de recherche hors de l’index', () => {
+    // ⛔ Un espace personnel ne regarde que son titulaire, et une page de
+    // résultats n'est pas un document mais une vue sur d'autres documents.
+    // La consigne se pose une fois pour toutes AVANT l'ouverture : après, il
+    // serait trop tard, et rien n'aurait signalé l'oubli.
+    const HORS_INDEX_ATTENDU = [
+      'app/bienvenue/layout.tsx',
+      'app/compte/layout.tsx',
+      'app/essais/mes-ecrits/layout.tsx',
+      'app/messagerie/layout.tsx',
+      'app/prelevements/layout.tsx',
+      'app/progression/page.tsx',
+      'app/recherche/page.tsx',
+    ]
+    const manquants = HORS_INDEX_ATTENDU.filter(chemin => {
+      const fichier = SOURCES.find(s => s.chemin === chemin)
+      return !fichier || !/robots:\s*HORS_INDEX/.test(fichier.source)
+    })
+    expect(manquants).toEqual([])
+  })
+
   it('ne recompose pas un titre de passage, d’auteur ou d’œuvre hors du module', () => {
     // Les modèles vivent dans `app/lib/metadonneesSeo.ts`, et nulle part ailleurs :
     // c'est ainsi que les formules restent d'accord entre elles. Une page qui
