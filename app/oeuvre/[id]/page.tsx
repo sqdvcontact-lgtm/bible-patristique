@@ -13,6 +13,11 @@ import type { IndexEditeurs } from '@/app/lib/editeursNormalisation'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
+import {
+  chargerProjectionBilingue,
+  choisirEnsembleBilingue,
+  type BlocOriginal,
+} from './bilingueAlignement'
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import {
@@ -110,6 +115,7 @@ type AlignementRow = {
   alignment_set_id: string
   reference_text_id: string
   aligned_text_id: string
+  alignment_level: string | null
   status: string | null
 }
 
@@ -276,7 +282,7 @@ export default async function OeuvrePage({
       .eq('id_oeuvre', id)
       .order('annee_edition', { ascending: true, nullsFirst: true }),
     supabase.from('texte_alignement_ensembles')
-      .select('alignment_set_id,reference_text_id,aligned_text_id,status')
+      .select('alignment_set_id,reference_text_id,aligned_text_id,alignment_level,status')
       .eq('id_oeuvre', id)
       .order('created_at', { ascending: true }),
     chargerIndexEditeurs(supabase),
@@ -322,6 +328,7 @@ export default async function OeuvrePage({
         alignmentSetId: alignement.alignment_set_id,
         referenceTextId: alignement.reference_text_id,
         alignedTextId: alignement.aligned_text_id,
+        alignmentLevel: alignement.alignment_level,
         referenceLabel: reference.labelCourt,
         alignedLabel: aligned.labelCourt,
         referenceLangue: reference.langue,
@@ -584,6 +591,25 @@ export default async function OeuvrePage({
   // 4. Versets pour le premier livre seulement
   const versetMap = await enrichirAvecVersets(supabase, segmentsTexte, codesTraductions)
 
+  // Lecture bilingue : l'original en regard vient de SES PROPRES segments, retrouvés par
+  // l'alignement. Rien n'est recopié dans la traduction (voir `bilingueAlignement.ts`).
+  const ensembleBilingue = idTexteEnRegard
+    ? choisirEnsembleBilingue(alignementsDisponibles, idTexte, idTexteEnRegard)
+    : null
+  const projectionBilingue = ensembleBilingue && idTexteEnRegard
+    ? await chargerProjectionBilingue(supabase, {
+        alignmentSetId: ensembleBilingue.alignmentSetId,
+        idTexteTraduit: idTexte,
+        idTexteOriginal: idTexteEnRegard,
+        clesTraduites: [...segmentsTexte, ...segmentsApparat]
+          .map(s => s.segment_key)
+          .filter((cle): cle is string => Boolean(cle)),
+        notesOriginales,
+        ancresOriginales: ancresNotesOriginales,
+      })
+    : { groupeParCle: new Map<string, string>(), blocParGroupe: new Map<string, BlocOriginal>() }
+  const blocsOriginal = Object.fromEntries(projectionBilingue.blocParGroupe)
+
   const versetParSegment: Record<number, any[]> = {}
   segmentsTexte.forEach(s => {
     versetParSegment[s.id] = extraireVersetsAvecNature(s).map(({ id: vid, natures }) => ({
@@ -627,6 +653,7 @@ export default async function OeuvrePage({
         ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
         : undefined,
       notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
+      groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
     }))
@@ -655,6 +682,7 @@ export default async function OeuvrePage({
         ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
         : undefined,
       notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
+      groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
     }))
@@ -701,6 +729,7 @@ export default async function OeuvrePage({
       ancresNotesStructurees={ancresNotesStructurees}
       notesOriginales={notesOriginales}
       ancresNotesOriginales={ancresNotesOriginales}
+      blocsOriginal={blocsOriginal}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}
       niveauxSommaire={oeuvre.niveaux_sommaire ?? oeuvre.profondeur_sommaire ?? 1}

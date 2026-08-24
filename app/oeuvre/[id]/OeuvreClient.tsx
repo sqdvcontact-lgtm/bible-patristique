@@ -11,6 +11,9 @@ import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
+import type { BlocOriginal } from './bilingueAlignement'
+import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard } from './bilingueAlignement'
+
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
@@ -279,9 +282,18 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 // façon des deux côtés du site. Ce fichier en portait une COPIE depuis le 2026-08-22,
 // le temps d'un chantier ; elle est réunie ici, les deux formes étant encore mot pour
 // mot identiques. ⛔ Ne pas en redéclarer une troisième.
+/**
+ * Le défaut de `blocsOriginal`, en constante de MODULE.
+ *
+ * ⛔ Un `= {}` dans la destructuration fabriquerait un objet NEUF à chaque rendu.
+ * L'état qui recopie cette propriété se recale pendant le rendu (patron des états qui
+ * recopient une propriété) : il se recalerait donc à chaque rendu, indéfiniment.
+ */
+const AUCUN_BLOC: Record<string, BlocOriginal> = {}
+
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -346,9 +358,45 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // garde-fou de `paragraphesDe` isole alors chaque segment dans son propre bloc, ce
   // qui rend très exactement ce que faisait l'ancien mode. C'est pourquoi le drapeau
   // `eligibleParagraphes` a pu partir avec lui : il ne gardait plus aucune porte.
+  // L'original en regard vient de DEUX sources, et la seconde s'éteindra.
+  //
+  // `blocsOriginal` est la bonne : le texte est lu dans SES PROPRES segments, sous son
+  // propre `id_texte`, et l'alignement dit quel bloc répond à quel paragraphe. C'est le
+  // seul chemin pour une œuvre dont l'original est entré comme texte à part entière —
+  // la Doctrine des Apôtres n'a jamais eu de colonne `texte_original`, et sa lecture
+  // bilingue ne montrait donc que le français.
+  //
+  // ⚠️ `texteOriginal` est la seconde, celle qui recopie l'original dans la traduction.
+  // Elle sert encore les sept œuvres dont l'original n'a pas de texte propre (voir
+  // `bilingueAlignement.ts`) et tombera avec la colonne.
+  // Les blocs reçus du serveur ne couvrent que la division rendue : changer de division
+  // en apporte d'autres, qu'on ACCUMULE. D'où un état, recalé sur la propriété PENDANT
+  // le rendu (patron des états qui recopient une propriété, charte § linter) : dans un
+  // effet, la division précédente paraîtrait un instant en regard de la nouvelle.
+  const [blocsRecus, setBlocsRecus] = useState(blocsOriginal)
+  const [blocsOriginalEtat, setBlocsOriginalEtat] = useState(blocsOriginal)
+  if (blocsRecus !== blocsOriginal) { setBlocsRecus(blocsOriginal); setBlocsOriginalEtat(blocsOriginal) }
+
+  const blocsAlignes = useMemo(() => Object.keys(blocsOriginalEtat).length > 0, [blocsOriginalEtat])
   const aTexteOriginal = useMemo(
-    () => [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
-    [segmentsInit, segmentsApparatInit],
+    () => blocsAlignes || [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
+    [blocsAlignes, segmentsInit, segmentsApparatInit],
+  )
+
+  // Le texte en langue originale de CETTE œuvre, s'il en a un et si ce n'est pas celui
+  // qu'on lit : c'est lui que l'alignement met en regard. Même reconnaissance que le
+  // serveur (pas de traducteur, langue de `oeuvre.langue_originale`, accents ignorés).
+  const idTexteEnRegard = useMemo(() => {
+    const norme = (v: string | null | undefined) => (v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+    const langue = norme(oeuvre.langue_originale)
+    if (!langue) return null
+    const trouve = versionsTextuelles.find(v => !v.traducteur?.trim() && norme(v.langue) === langue)
+    return trouve && trouve.idTexte !== idTexte ? trouve.idTexte : null
+  }, [oeuvre.langue_originale, versionsTextuelles, idTexte])
+
+  const ensembleBilingue = useMemo(
+    () => idTexteEnRegard ? choisirEnsembleBilingue(alignementsDisponibles, idTexte, idTexteEnRegard) : null,
+    [alignementsDisponibles, idTexte, idTexteEnRegard],
   )
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
@@ -810,6 +858,38 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (ancre) naviguerVersAncre(ancre)
   }
 
+  /**
+   * Rattache à leur groupe d'alignement les segments qu'on vient de charger, et range
+   * l'original de ces groupes.
+   *
+   * ⚠️ Un échec ici ne fait pas tomber la lecture : la colonne de droite manquera pour
+   * la division rechargée, le texte restera lisible. Une division sans alignement n'est
+   * pas une anomalie — la Cité de Dieu en a.
+   */
+  const rattacherAlignement = async (segs: SegData[]): Promise<SegData[]> => {
+    if (!ensembleBilingue || !idTexteEnRegard) return segs
+    try {
+      const projection = await chargerProjectionBilingue(supabase, {
+        alignmentSetId: ensembleBilingue.alignmentSetId,
+        idTexteTraduit: idTexte,
+        idTexteOriginal: idTexteEnRegard,
+        clesTraduites: segs.map(s => s.segmentKey).filter((c): c is string => Boolean(c)),
+        notesOriginales,
+        ancresOriginales: ancresNotesOriginales,
+      })
+      if (projection.blocParGroupe.size > 0) {
+        setBlocsOriginalEtat(prev => ({ ...prev, ...Object.fromEntries(projection.blocParGroupe) }))
+      }
+      return segs.map(s => ({
+        ...s,
+        groupeOriginal: (s.segmentKey && projection.groupeParCle.get(s.segmentKey)) || null,
+      }))
+    } catch (error) {
+      console.error(`Alignement bilingue indisponible (${ensembleBilingue.alignmentSetId}) :`, error)
+      return segs
+    }
+  }
+
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
     // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
     // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
@@ -926,7 +1006,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (Object.keys(niv1TexteEntries).length > 0)
       setNiv1TexteMap(prev => ({ ...prev, ...niv1TexteEntries }))
 
-    return { groupes: newGroupes, segments: newSegs }
+    return { groupes: newGroupes, segments: await rattacherAlignement(newSegs) }
   }
 
   // Recharge tout l'apparat critique de l'œuvre depuis Supabase — nécessaire
@@ -988,7 +1068,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi}` })
 
     setGroupesApparat(newGroupes)
-    setSegmentsApparat(newSegs)
+    setSegmentsApparat(await rattacherAlignement(newSegs))
   }
 
   const changerNiv1 = async (n1: string, opts?: { forceRefresh?: boolean; conserverPosition?: boolean }) => {
@@ -1082,6 +1162,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
   const segMapApparat = new Map(segmentsApparat.map(s => [s.id, s]))
   const segMapActive = vue === 'texte' ? segMap : segMapApparat
+  // `segment_key` → groupe d'alignement, pour découper le bilingue. Bâtie sur les
+  // segments COURANTS (et non sur ceux du premier rendu) : changer de division en
+  // recharge d'autres, avec leurs propres groupes.
+  const groupeParCle = new Map<string, string>(
+    [...segments, ...segmentsApparat]
+      .flatMap(s => (s.segmentKey && s.groupeOriginal) ? [[s.segmentKey, s.groupeOriginal] as [string, string]] : []),
+  )
 
   // Une note appelée dans un TITRE n'est pas toujours définie sur le premier
   // segment de son groupe : dans les imports à notes structurées, son ancre tombe
@@ -1518,6 +1605,46 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     })
     return chunks.map(c => ({ ids: c.ids }))
   }
+
+  /**
+   * Découpe de la lecture bilingue : un bloc par GROUPE D'ALIGNEMENT.
+   *
+   * ⛔ Le groupe d'alignement est le paragraphe du bilingue, et `paragraphe` ne peut pas
+   * en tenir lieu : il ne vaut que dans UN texte à la fois. 28 des 57 groupes de la
+   * Didachè enjambent deux sections numérotées, et 4 des 1 036 groupes de la Cité de
+   * Dieu enjambent deux paragraphes. Découper au paragraphe remettrait les colonnes en
+   * désaccord — c'est-à-dire défaire ce que l'alignement établit.
+   *
+   * Les segments qu'aucun groupe ne couvre retombent sur `paragraphesDe`, leur
+   * composition de toujours. Hors bilingue, ou faute d'alignement, rien ne change.
+   */
+  const blocsDeLecture = (itemIds: number[]): { ids: number[]; groupe: string | null }[] => {
+    const enRegard = affichageBilingue || afficherOriginalSeul
+    // Hors lecture en regard, rien ne change : découpe par `paragraphe`, et le POÈME se
+    // refait par-dessus (⚠️ on ne fond QUE là — le latin d'une strophe vit sur son vers
+    // de rang 1, et fondre le poème en regard n'en garderait qu'un seul).
+    if (!enRegard) {
+      return fusionnerBlocs(
+        paragraphesDe(itemIds),
+        ids => ids.every(sid => segMap.get(sid)?.nature === 'vers'),
+      ).map(c => ({ ids: c.ids, groupe: null as string | null }))
+    }
+    if (!blocsAlignes) return paragraphesDe(itemIds).map(c => ({ ids: c.ids, groupe: null as string | null }))
+    return blocsBilingues(itemIds, sid => segMap.get(sid)?.segmentKey, groupeParCle)
+      .flatMap(bloc => bloc.groupe
+        ? [{ ids: bloc.ids, groupe: bloc.groupe }]
+        : paragraphesDe(bloc.ids).map(c => ({ ids: c.ids, groupe: null as string | null })))
+  }
+
+  /** L'original mis en regard d'un bloc. La règle vit dans `bilingueAlignement.ts`,
+   *  avec ses tests ; ici on ne fait que lui présenter les segments du bloc. */
+  const originalDuBloc = (chunk: { ids: number[]; groupe: string | null }) =>
+    originalEnRegard<Record<string, NoteAffichee>>({
+      groupe: chunk.groupe,
+      blocs: blocsOriginalEtat,
+      segmentsDuBloc: chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
+      notesVides: {},
+    })
 
   // Cellule d'actions flottante d'un segment (mode paragraphes), ancrée sur le
   // segment survolé ou sélectionné.
@@ -2156,12 +2283,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       parallèles) : fondre le poème en regard n'en garderait qu'un seul
                       et jetterait les autres. En français seul, rien ne s'apparie et
                       le poème se refait. */}
-                  {fusionnerBlocs(
-                    paragraphesDe(itemsReels),
-                    ids => !affichageBilingue && !afficherOriginalSeul
-                      && ids.every(sid => segMap.get(sid)?.nature === 'vers'),
-                  ).map((chunk) => {
-                    const original = chunk.ids.map(sid => segMap.get(sid)).find(s => Boolean(s?.texteOriginal?.trim()))
+                  {blocsDeLecture(itemsReels).map((chunk) => {
+                    const original = originalDuBloc(chunk)
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
@@ -2169,8 +2292,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // règle vit dans `app/lib/compositionVers.ts`, que les traductions
                     // parallèles emploient aussi — une seule composition, deux surfaces.
                     const toutVers = chunk.ids.every(sid => segMap.get(sid)?.nature === 'vers')
+                    // L'original a sa PROPRE nature : un original en vers se compose en
+                    // vers même si la traduction d'en face est en prose, et l'inverse.
+                    // Le repli n'en sait rien et suit la colonne française, comme avant.
+                    const originalEnVers = original?.toutVers ?? toutVers
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${toutVers ? ' para-bilingue--vers' : ''}` : undefined}
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}` : undefined}
                       /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */
@@ -2238,8 +2365,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         })}
                       </p>
                       )}
-                      {(affichageBilingue || afficherOriginalSeul) && original?.texteOriginal && (
-                        toutVers ? (
+                      {(affichageBilingue || afficherOriginalSeul) && original && (
+                        originalEnVers ? (
                           /* ⛔ L'ORIGINAL d'un poème se compose en vers, lui aussi. Le latin
                              d'une strophe entière vit sur le vers de rang 1, ses lignes
                              séparées par des sauts. Rendu dans un paragraphe de prose, il se
@@ -2250,9 +2377,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                              que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
                              le retrait de suite, qui appartiennent à la composition. */
                           <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0 }}>
-                            {lignesDeVers(original.texteOriginalAffichage ?? original.texteOriginal).map((ligne, i) => (
+                            {lignesDeVers(original.affichage).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
-                                {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notesOriginal ?? original.notes ?? {})}
+                                {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
                               </span>
                             ))}
                           </div>
@@ -2262,7 +2389,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
                         <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.texteOriginalAffichage ?? original.texteOriginal) : cesurerLatin(normaliserEspacesOriginal(original.texteOriginalAffichage ?? original.texteOriginal)), original.notesOriginal ?? original.notes ?? {})}
+                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
                         </p>
                         )
                       )}

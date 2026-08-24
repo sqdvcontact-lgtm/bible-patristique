@@ -1,5 +1,6 @@
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
+import type { BlocOriginal } from './bilingueAlignement'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -38,6 +39,11 @@ export type SegData = {
   /** `texteOriginal` avec ses appels de note matérialisés, comme `texteAffichage`
    *  pour le corps. ⛔ Jamais renvoyé dans un `update` Supabase. */
   texteOriginalAffichage?: string
+  /** Le GROUPE d'alignement auquel ce segment appartient — l'unité qui se recoupe d'une
+   *  colonne à l'autre en lecture bilingue, et qui y tient lieu de paragraphe. C'est par
+   *  lui qu'on trouve l'original en regard, dans `blocsOriginal`. `null` quand aucun
+   *  alignement ne couvre le segment : il retombe alors sur `paragraphe`. */
+  groupeOriginal?: string | null
   /** Les notes du bloc latin, séparées de `notes` qui sert la colonne française :
    *  un même segment porte les deux, et les mêler ferait sortir l'apparat de Knöll
    *  dans le texte d'Arnauld d'Andilly. */
@@ -103,6 +109,10 @@ export type AlignementDisponible = {
   // langue originale se compose alors en sans-serif, comme en lecture bilingue.
   referenceLangue: string | null
   alignedLangue: string | null
+  // `paragraph`, `segment` ou `division`. C'est lui qui désigne l'ensemble apte à porter
+  // la lecture bilingue : le paragraphe d'abord, le segment à défaut, la division en
+  // dernier recours (voir `bilingueAlignement.ts`).
+  alignmentLevel?: string | null
   status: string | null
 }
 
@@ -134,6 +144,12 @@ export type Props = {
    *  traduction ne peut pas fournir : son `texte_original` n'est qu'une copie. */
   notesOriginales?: Record<string, Record<string, NoteStructuree>>
   ancresNotesOriginales?: Record<string, AncreNoteStructureeProjection[]>
+  /** L'original mis en regard, groupe d'alignement par groupe d'alignement. C'est la
+   *  SEULE source de la colonne de droite quand l'œuvre est alignée : le texte y est
+   *  lu depuis ses propres segments, où il n'existe qu'une fois. Vide quand l'œuvre
+   *  n'a pas d'alignement — la colonne retombe alors sur `segments.texte_original`,
+   *  repli qui s'éteindra avec elle (voir `bilingueAlignement.ts`). */
+  blocsOriginal?: Record<string, BlocOriginal>
   niv1List: string[]
   niv1TexteMap?: Record<string, string>
   niveauxSommaire?: number

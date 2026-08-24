@@ -1513,3 +1513,25 @@ La table `editeurs` tient le nom complet de chaque maison et les formes sous les
 ## Une version se donne comme une traduction, pas comme un nom
 
 Dans le menu « Éditions de ce texte », une version en langue originale s'annonce « Texte latin » ; en face, la traduction française se donnait sous le seul nom de son traducteur, liste du catalogue et point-virgule compris : « H. Barreau ; M. Charpentier ». `libelleVersionComplet` emploie désormais `libelleTrad`, la formule du frontispice : « Traduction par H. Barreau et M. Charpentier, 1873 ». La mention « édition de » a disparu, la rubrique du menu annonçant déjà des éditions.
+
+## La lecture bilingue se compose depuis l'ALIGNEMENT (2026-08-24)
+
+⛔ **Un texte en langue originale n'existe qu'à UN SEUL endroit : dans ses propres `segments`, sous son propre `id_texte`.** Règle posée par l'auteur — « je veux une seule occurrence de chaque traduction ; il faut que chaque traduction latine soit considérée comme une œuvre, mais aussi qu'à partir d'un même texte on puisse aligner avec la traduction ». La correspondance vit dans `texte_alignement_ensembles` / `texte_alignements` / `texte_alignement_membres`, et le **groupe d'alignement est le paragraphe de la lecture bilingue** : c'est lui qui recoupe les deux colonnes.
+
+Toute la règle vit dans `app/oeuvre/[id]/bilingueAlignement.ts` (module pur, 24 tests), employé par le rendu serveur ET par le rechargement client — un seul chargeur, `chargerProjectionBilingue`, sinon les deux dérivent.
+
+- ⛔ **Le découpage suit le GROUPE, jamais `paragraphe`.** `paragraphe` ne vaut que dans UN texte à la fois : 28 des 57 groupes de la Didachè enjambent deux sections numérotées, et 4 des 1 036 groupes de la Cité de Dieu enjambent deux paragraphes. Découper au paragraphe remet les colonnes en désaccord, c'est-à-dire défait ce que l'alignement établit. Les segments qu'aucun groupe ne couvre retombent sur `paragraphesDe`, leur composition de toujours.
+- ⛔ **Aucun tri par `rang` à l'intérieur d'un groupe**, à la différence de `paragraphesDe`. `rang` repart à 1 à chaque paragraphe : trier dessus mêlerait les deux moitiés d'un groupe à cheval. L'ordre de lecture reçu fait foi ; côté original, c'est `member_order`.
+- ⚠️ **Les appels de note se matérialisent segment PAR segment, avant la jonction.** Les offsets d'ancre (`segment_offset_unicode`) se comptent depuis le début de LEUR segment : projetés sur le texte déjà joint, ils tombent d'autant plus loin que le groupe est long.
+- **Le niveau d'ensemble se choisit `paragraph` > `segment` > `division`**, et seulement entre le texte lu et le texte en langue originale : l'alignement de Boèce confronte deux traductions FRANÇAISES, le retenir verserait du français dans une colonne de latin.
+- **Un groupe de cardinalité `1:0`** (une addition du traducteur) détache son segment au lieu d'ouvrir une grille bilingue vide.
+
+### ⚠️ `texte_original` est un REPLI qui s'éteint
+
+La colonne recopie l'original dans chaque segment de la traduction. Elle sert encore **sept œuvres** dont l'original n'a pas de texte propre — Consolation de Mirandol, Ratramne, Hexaéméron, Discours 38, Jonas, Joël, Abdias — et tombera avec elles. **L'alignement l'emporte sans condition** quand les deux existent (les Confessions portent les deux) : le texte fait foi, jamais la copie, qui seule peut avoir dérivé.
+
+⛔ **Et la colonne ne porte pas QUE des originaux.** La Somme théologique y range 5 179 entrées qui ne contiennent pas un seul caractère grec et dont 3 997 commencent par les quarante mêmes caractères que le français : c'est la traduction avec ses références scripturaires restituées (« S. Paul dit **(2 Tm 3, 16 Vg)** : … »). Ne jamais la promouvoir en texte original ; c'est une correction de données à part.
+
+### ⚠️ Une œuvre alignée mais NON PUBLIÉE reste invisible au lecteur
+
+La RLS des trois tables d'alignement exige que **les deux** textes soient `is_public`. Le grec de la Didachè (`A0012O0002T0001`) est en `statut = 'review'`, `is_public = false` : la lecture bilingue lui revient pour l'administrateur, et pour lui seul, tant que le texte n'est pas publié.
