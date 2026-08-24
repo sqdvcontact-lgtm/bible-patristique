@@ -23,6 +23,29 @@ const ENTETES_SECURITE = [
 ];
 
 const nextConfig: NextConfig = {
+  // La planche des illustrations (/admin/illustrations) MESURE les fichiers de
+  // `public/` : elle y lit leur poids et l'en-tête qui porte leurs dimensions. Or
+  // `public/` est servi en statique, il n'est pas embarqué d'office dans la
+  // fonction qui rend une page. Sans cette inclusion, la planche s'afficherait en
+  // ligne sans un seul chiffre (elle ne tombe pas en panne pour autant, la mesure
+  // étant facultative).
+  // ⚠️ Les dossiers sont nommés UN À UN, et `manuscrits/` en est écarté : il pèse
+  // 1,8 Go de fac-similés, que la planche compte sans jamais les mesurer.
+  outputFileTracingIncludes: {
+    "/admin/illustrations": [
+      "./public/ornements/**",
+      "./public/icons/**",
+      "./public/logo/**",
+      "./public/holy-guessr/**",
+      "./public/auteurs/**",
+      "./public/*.png",
+      "./public/*.svg",
+      "./public/*.ico",
+      "./app/icon.png",
+      "./app/apple-icon.png",
+      "./app/favicon.ico",
+    ],
+  },
   async headers() {
     return [{ source: "/:chemin*", headers: ENTETES_SECURITE }];
   },

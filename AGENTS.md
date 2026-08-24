@@ -655,6 +655,7 @@ C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site 
 | Rayons d'angle | `formes.test.ts` | 5 rangs tenus |
 | Titres de page | `titresPages.test.ts` | tenu |
 | **Couleur** | `couleursEnDur.test.ts` (**neuf**) | 353 teintes gelées, la liste ne peut que décroître |
+| **Illustrations** | `admin/illustrations/inventaire.test.ts` (**neuf, 2026-08-24**) | 58 images recensées, aucune oubliée, aucun fantôme |
 | **Empilement** | **aucune** | 147 déclarations de `z-index`, **40 valeurs distinctes**, de 0 à 9999 |
 
 ⚠️ **Les 1 772 `fontSize` écrites en dur ne sont PAS de la dette**, et un audit qui les signale produit un faux positif : elles sont sur la grille, et un test le vérifie à chaque exécution. Ce qui compte n'est pas qu'une valeur soit littérale, c'est qu'elle soit sous garde.
@@ -1613,3 +1614,38 @@ Relevé en ligne le 2026-08-24, sur la Didachè même. Les sections se rendent s
 - le **dernier** porte le FILET. Celui-ci marque l’appariement empan par empan : tiré entre deux blocs d’un même groupe, il annonce une frontière que l’alignement ne reconnaît pas, et les deux moitiés d’un empan se lisent comme deux empans. `.para-bilingue--suite` l’ôte aux autres et resserre le blanc au lieu de l’ouvrir.
 
 ⚠️ **Le défaut ne se voyait ni aux types, ni aux tests, ni dans la donnée** : les 57 groupes sont complets et sans orphelin, et la projection est juste. Il naît de la rencontre entre l'alignement et le découpage en sections du RENDU, et il a fallu regarder la page.
+
+# La planche des illustrations — /admin/illustrations (2026-08-24)
+
+Toutes les images DESSINÉES du site sur une seule page, groupées par ce qu'elles font, montrées sur les fonds du site au choix, agrandissables, chacune avec un lien vers la page où elle paraît. Elle sert à juger l'harmonie du jeu, ce qu'aucune page du site ne permet : les gravures y sont dispersées sur douze écrans.
+
+⛔ **Le recensement est une SOURCE rédigée, pas un scan de dossier.** `inventaire.ts` dit pour chaque image ce qu'elle fait là et comment la page la traite. Un scan de `public/` rendrait des noms de fichiers, jamais une fonction. `inventaire.test.ts` confronte la liste au disque dans les deux sens : une image ajoutée sans entrée fait échouer le test, une entrée sans fichier aussi. C'est ce qui empêche la planche de mentir par omission.
+
+⚠️ **La planche montre l'image TELLE QU'ELLE EST SERVIE**, non telle qu'elle dort sur le disque : opacité, `mix-blend-mode`, filtre du Cuir, découpe en masque. Juger un fichier brut n'apprend rien sur ce que voit le lecteur — la moitié des ornements sont posés entre 0,42 et 0,5 d'opacité. Le bouton « Fichier brut » rend l'autre vue, et le fond « Damier » trahit ceux qui ont gardé un fond blanc au lieu d'être détourés.
+
+⚠️ **Les quatre fonds sont les seules couleurs en dur légitimes de la page**, inscrites au registre avec leur raison : un jeton rendrait toujours le thème COURANT, c'est-à-dire un seul des quatre fonds d'épreuve, et l'on ne pourrait plus regarder une gravure sur le sol où elle jure.
+
+**Les familles nombreuses se comptent, elles ne s'énumèrent pas** : fac-similés de la Bible 899, portraits d'auteurs, couvertures de traductions, gravures Fillion. Elles viennent de sources extérieures, leur harmonie ne se juge pas au regard. La planche en donne le volume et un échantillon pris AU LARGE (pas les dix premiers d'un dossier trié, qui ne sont que dix voisins).
+
+⚠️ **`public/` n'est PAS embarqué d'office dans la fonction qui rend une page.** La planche mesure les fichiers sur le disque : sans `outputFileTracingIncludes` (next.config.ts), elle s'afficherait en ligne sans un seul chiffre. `manuscrits/` en est écarté nommément, ses 1,8 Go de fac-similés n'ayant pas à voyager pour un compte.
+
+⚠️ **`public/holy-guessr/` n'est pas versionné**, donc absent d'un `checkout` d'intégration continue alors qu'il est là sur le poste de travail. Le test saute un dossier manquant au lieu de l'exiger : sans quoi il serait vert ici et rouge là-bas, le piège d'outillage le plus coûteux du dépôt.
+
+## ⛔ Le raccourci `background` mêlé aux propriétés détaillées — piège React
+
+Un style en ligne qui écrit `background` (raccourci) sur un état et `backgroundImage` sur l'autre PERD `background-size` et `background-position` au changement d'état. React met à jour le style en DIFF : il efface `background`, ce qui réinitialise du même coup toutes les propriétés que le raccourci englobe, puis ne repose que ce qui a changé — or la taille du motif, elle, n'a pas changé, donc elle n'est pas reposée.
+
+Constaté sur le damier de transparence : le motif rendait `background-size: auto, auto` au lieu de `18px 18px`, donc deux dégradés étirés à la place d'un damier. Le défaut ne paraît qu'au SECOND état, jamais au premier rendu.
+
+**Règle** : dans un style en ligne dont le fond change avec l'état, n'employer que les propriétés détaillées — `backgroundColor`, `backgroundImage`, `backgroundSize`, `backgroundPosition` — jamais le raccourci `background`. Vaut pour tout raccourci CSS (`font`, `border`, `grid`, `flex`) posé conditionnellement.
+
+## Ce que le recensement a trouvé, et qui reste à trancher
+
+Chiffres du 2026-08-24, tous lus sur le disque par la planche elle-même :
+
+- **20 images sur 58 ne paraissent nulle part**, et pèsent **13,4 Mo** — soit près de la moitié des 28,3 Mo d'images du dépôt. Ce sont des variantes écartées (quatre logos de librairie, un portrait d'auteur), trois livres en réserve à plus de 2 Mo pièce, trois palmes jamais employées, et les cinq SVG du gabarit `create-next-app`.
+- **12 images dépassent 500 ko**, dont la tour de Babel à **2,1 Mo pour un écran d'attente**. `livre-miroir-detoure.png` pèse 2,6 Mo, soit PLUS que la version non détourée : le détourage l'a alourdi au lieu de l'alléger.
+- **Deux portraits d'auteurs traînent dans `public/auteurs/`**, reste du temps où ils étaient servis depuis le dépôt. Le seau Supabase les porte déjà.
+- `livre_pol.png` est le seul fichier du dépôt nommé avec un souligné au lieu d'un trait.
+
+⛔ Rien de tout cela n'a été supprimé : ce sont des dessins de l'auteur, et la planche existe pour qu'il décide.

@@ -32,6 +32,14 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'accueil/page.tsx': ['#a99a78', '#b08f48', '#b0a088', 'rgba(160,140,88,0.09)', 'rgba(160,140,88,0.5)', 'rgba(176,143,72,0.15)'],
   'admin/AdminClient.tsx': ['#6a8074', '#a2564a'],
   'admin/controleQualite.ts': ['#8a541d', '#c7832f'],
+  // ⛔ Ces cinq valeurs NE PEUVENT PAS être des jetons, et c'est le principe même de
+  // la page : la planche des illustrations montre chaque gravure sur les fonds du site
+  // au CHOIX de l'administrateur, y compris le Cuir pendant qu'il regarde en Clair. Un
+  // jeton rendrait toujours le thème courant, c'est-à-dire un seul des quatre fonds
+  // d'épreuve, et l'on ne pourrait plus juger une gravure sur le sol où elle jure.
+  // Même cas que la gamme des couvertures : une valeur DESSINÉE, non une teinte
+  // d'interface. Elles recopient `globals.css` et se remesurent s'il change.
+  'admin/illustrations/PlancheIllustrations.tsx': ['#1c1813', '#2f2a22', '#e6ded0', '#f7f4ef', '#ffffff'],
   'admin/SectionAjouterOeuvre.tsx': ['#c8c3bc'],
   'admin/SectionBibliotheque.tsx': ['#4a4038', '#5a5650', '#5f5952', '#7a6a48', '#8a5a00', '#9a6a3e', '#a85a44', '#b06a54', '#b0a480', '#b14b38', '#b3261e', '#b44a34', '#b8ccc0', '#c07a4a', '#c0836a', '#c0a86a', '#c2bcb2', '#c6a08c', '#c8d8ce', '#cbe0d4', '#cfc8e6', '#cfe0d5', '#d8b48f', '#e5a99b', 'rgba(150,110,70,0.035)', 'rgba(30,26,22,0.55)'],
   'admin/SectionConstituerLiens.tsx': ['#9a6a3e', '#d8b48f'],

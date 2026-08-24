@@ -69,7 +69,7 @@ const FAMILLES_ADMIN = [
 // `principal` : les deux entrées par lesquelles on entre presque toujours dans
 // l'administration. Elles se distinguent par la GRAISSE, non par une place à part :
 // l'ordre des familles reste celui du travail, et l'œil trouve seul ses deux portes
-// dans une liste qui en compte dix-sept.
+// dans une liste qui en compte dix-huit.
 const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: boolean }[] = [
   { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus", principal: true },
   { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus", principal: true },
@@ -87,6 +87,7 @@ const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: b
   { href: "/admin?onglet=propositions", label: "Propositions", famille: "communaute" },
   { href: "/admin?onglet=charte", label: "Charte IA", famille: "systeme" },
   { href: "/admin?onglet=charte-accentuation", label: "Accentuation", famille: "systeme" },
+  { href: "/admin/illustrations", label: "Illustrations", famille: "systeme" },
 ];
 // Bible 899 : outil d'atelier, rattaché à la famille « Système ».
 const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899", famille: "systeme" };
