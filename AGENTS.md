@@ -1629,7 +1629,24 @@ Toutes les images DESSINÉES du site sur une seule page, groupées par ce qu'ell
 
 **Les familles nombreuses se comptent, elles ne s'énumèrent pas** : fac-similés de la Bible 899, portraits d'auteurs, couvertures de traductions, gravures Fillion. Elles viennent de sources extérieures, leur harmonie ne se juge pas au regard. La planche en donne le volume et un échantillon pris AU LARGE (pas les dix premiers d'un dossier trié, qui ne sont que dix voisins).
 
-⚠️ **`public/` n'est PAS embarqué d'office dans la fonction qui rend une page.** La planche mesure les fichiers sur le disque : sans `outputFileTracingIncludes` (next.config.ts), elle s'afficherait en ligne sans un seul chiffre. `manuscrits/` en est écarté nommément, ses 1,8 Go de fac-similés n'ayant pas à voyager pour un compte.
+⛔ **La pesée se fait dans le NAVIGATEUR, jamais sur le disque au rendu serveur — et une fonction de ce projet n'a que DIX mégaoctets de marge.**
+
+`public/` est servi en statique : il n'est pas embarqué dans la fonction qui rend une page, et `fs.stat` n'y trouve donc rien en production. La réponse évidente est `outputFileTracingIncludes` ; elle est fausse. Essayée le 2026-08-24 sur les seuls dossiers d'ornements et d'icônes (19 Mo), elle a porté la fonction `/admin/illustrations` à **259 Mo pour un plafond Vercel de 250** :
+
+```
+The Vercel Function "admin/illustrations" is 259.08mb uncompressed
+which exceeds the maximum uncompressed size limit of 250mb
+```
+
+⚠️ **Les fonctions de ce projet pèsent donc quelque 240 Mo À VIDE.** C'est le fait à retenir, bien au-delà de cette page : toute inclusion de fichiers dans une fonction se compte en unités de dix mégaoctets, et la prochaine fera sauter le build.
+
+⛔ **Et un déploiement qui échoue ne se voit NULLE PART depuis le dépôt.** Le commit est poussé, `master` est à jour, la suite de tests est verte, et le site continue de servir la version d'avant. Deux commits ont vécu ainsi une demi-heure, l'auteur cherchant dans l'administration une page qui n'y était jamais montée. Après une poussée qui touche `next.config.ts` ou la taille du bundle, **vérifier le STATUT du déploiement, pas seulement son existence** :
+
+```
+curl -s ".../deployments/<id>/statuses" | grep state
+```
+
+La pesée passe maintenant par une requête `HEAD` par fichier, faite au montage de la planche : elle rend l'en-tête sans le corps, donc le poids sans le téléchargement, en local comme en ligne. La définition, elle, se lit sur l'image que la vignette affiche déjà (`naturalWidth`), et l'état reste DANS la vignette : remonté à la planche, chaque image chargée redessinerait les cinquante-sept autres. ⚠️ Un fichier compressible (les cinq SVG du gabarit) rend un `content-length` compressé, donc minoré ; sans conséquence, ce sont des résidus à supprimer.
 
 ⚠️ **`public/holy-guessr/` n'est pas versionné**, donc absent d'un `checkout` d'intégration continue alors qu'il est là sur le poste de travail. Le test saute un dossier manquant au lieu de l'exiger : sans quoi il serait vert ici et rouge là-bas, le piège d'outillage le plus coûteux du dépôt.
 

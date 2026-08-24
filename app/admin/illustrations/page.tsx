@@ -1,6 +1,6 @@
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
-import { releverIllustrations } from './mesures'
+import { releverFamilles } from './mesures'
 import PlancheIllustrations from './PlancheIllustrations'
 
 export const metadata = { title: 'Illustrations' }
@@ -24,6 +24,5 @@ export default async function PageIllustrations() {
     )
   }
 
-  const { mesures, familles } = await releverIllustrations()
-  return <PlancheIllustrations mesures={mesures} familles={familles} />
+  return <PlancheIllustrations familles={await releverFamilles()} />
 }

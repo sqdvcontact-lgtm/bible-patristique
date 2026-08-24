@@ -23,29 +23,14 @@ const ENTETES_SECURITE = [
 ];
 
 const nextConfig: NextConfig = {
-  // La planche des illustrations (/admin/illustrations) MESURE les fichiers de
-  // `public/` : elle y lit leur poids et l'en-tête qui porte leurs dimensions. Or
-  // `public/` est servi en statique, il n'est pas embarqué d'office dans la
-  // fonction qui rend une page. Sans cette inclusion, la planche s'afficherait en
-  // ligne sans un seul chiffre (elle ne tombe pas en panne pour autant, la mesure
-  // étant facultative).
-  // ⚠️ Les dossiers sont nommés UN À UN, et `manuscrits/` en est écarté : il pèse
-  // 1,8 Go de fac-similés, que la planche compte sans jamais les mesurer.
-  outputFileTracingIncludes: {
-    "/admin/illustrations": [
-      "./public/ornements/**",
-      "./public/icons/**",
-      "./public/logo/**",
-      "./public/holy-guessr/**",
-      "./public/auteurs/**",
-      "./public/*.png",
-      "./public/*.svg",
-      "./public/*.ico",
-      "./app/icon.png",
-      "./app/apple-icon.png",
-      "./app/favicon.ico",
-    ],
-  },
+  // ⛔ NE PAS embarquer `public/` dans une fonction par `outputFileTracingIncludes`.
+  // Essayé le 2026-08-24 pour que la planche des illustrations mesure les fichiers
+  // sur le disque : la fonction `/admin/illustrations` est montée à 259 Mo pour un
+  // plafond Vercel de 250, et le déploiement a ÉCHOUÉ — donc le site est resté sur
+  // la version précédente, sans que rien ne le signale côté dépôt. Les fonctions de
+  // ce projet pèsent déjà quelque 240 Mo à vide : la marge est de dix mégaoctets,
+  // pas davantage. La planche mesure désormais dans le NAVIGATEUR, qui charge les
+  // images de toute façon.
   async headers() {
     return [{ source: "/:chemin*", headers: ENTETES_SECURITE }];
   },

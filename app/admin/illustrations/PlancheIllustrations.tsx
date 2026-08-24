@@ -4,7 +4,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { FONCTIONS, ICONES_ONGLET, ILLUSTRATIONS, type CleFonction, type Illustration } from './inventaire'
 
-export type Mesure = { octets: number; largeur: number | null; hauteur: number | null }
+/** Le poids de chaque fichier, par chemin public.
+ *
+ *  ⛔ Il se prend ICI, dans le navigateur, et non sur le disque au rendu serveur.
+ *  Mesurer côté serveur obligeait à embarquer `public/` dans la fonction, ce qui
+ *  l'a portée à 259 Mo pour un plafond Vercel de 250 : le déploiement du
+ *  2026-08-24 a échoué et le site est resté sur la version d'avant. Le navigateur,
+ *  lui, charge ces images de toute façon. */
+type Poids = Record<string, number>
 
 export type EchantillonFamille = {
   cle: string
@@ -71,18 +78,13 @@ const ORDRE_FONCTIONS = Object.keys(FONCTIONS) as CleFonction[]
  *  tuiles du jeu pèsent à elles seules neuf mégaoctets. */
 const REPLIES_AU_DEPART: CleFonction[] = ['jeu', 'gabarit']
 
-export default function PlancheIllustrations({
-  mesures,
-  familles,
-}: {
-  mesures: Record<string, Mesure>
-  familles: EchantillonFamille[]
-}) {
+export default function PlancheIllustrations({ familles }: { familles: EchantillonFamille[] }) {
   const [fond, setFond] = useState<CleFond>('papier')
   const [servi, setServi] = useState(true)
   const [taille, setTaille] = useState(2)
   const [replies, setReplies] = useState<CleFonction[]>(REPLIES_AU_DEPART)
   const [agrandie, setAgrandie] = useState<Illustration | null>(null)
+  const [poids, setPoids] = useState<Poids>({})
 
   const f = FONDS[fond]
   const cases = [7, 10, 15][taille]
@@ -93,16 +95,48 @@ export default function PlancheIllustrations({
     []
   )
 
+  // ── Pesée ──────────────────────────────────────────────────────────────────
+  // Une requête HEAD par fichier : elle rend l'en-tête sans le corps, donc le
+  // poids sans le téléchargement. Un seul dépôt d'état à la fin — cinquante-huit
+  // rendus successifs pour cinquante-huit chiffres n'apprendraient rien de plus.
+  useEffect(() => {
+    let vivant = true
+    const peser = async () => {
+      const releve: Poids = {}
+      const chemins = TOUTES.map(i => i.chemin)
+      // Par paquets de huit : le navigateur plafonne ses connexions, et une file
+      // de cinquante-huit requêtes lancées d'un coup ne va pas plus vite.
+      for (let i = 0; i < chemins.length; i += 8) {
+        await Promise.all(chemins.slice(i, i + 8).map(async chemin => {
+          try {
+            const r = await fetch(chemin, { method: 'HEAD' })
+            if (!r.ok) return
+            const taille = Number(r.headers.get('content-length'))
+            if (Number.isFinite(taille) && taille > 0) { releve[chemin] = taille; return }
+            // ⚠️ Une réponse sans longueur déclarée : c'est le cas de `/favicon.ico`,
+            // que Next sert par une route et non comme un fichier. On lit alors le
+            // corps pour le peser. Réservé à ce repli : un GET sur les cinquante-huit
+            // ferait descendre vingt-huit mégaoctets pour afficher des nombres.
+            const corps = await fetch(chemin).then(x => (x.ok ? x.blob() : null))
+            if (corps && corps.size > 0) releve[chemin] = corps.size
+          } catch { /* un fichier illisible reste sans chiffre, la planche le dit */ }
+        }))
+        if (!vivant) return
+      }
+      if (vivant) setPoids(releve)
+    }
+    peser()
+    return () => { vivant = false }
+  }, [])
+
   const bilan = useMemo(() => {
-    const connues = TOUTES.filter(i => mesures[i.chemin])
-    const total = connues.reduce((s, i) => s + mesures[i.chemin].octets, 0)
-    const servies = TOUTES.filter(i => i.fonction !== 'reserve' && i.fonction !== 'gabarit')
-    const poidsServies = servies.reduce((s, i) => s + (mesures[i.chemin]?.octets ?? 0), 0)
+    const pesees = TOUTES.filter(i => poids[i.chemin])
+    const total = pesees.reduce((s, i) => s + poids[i.chemin], 0)
     const dormant = TOUTES.filter(i => i.fonction === 'reserve' || i.fonction === 'gabarit')
-    const poidsDormant = dormant.reduce((s, i) => s + (mesures[i.chemin]?.octets ?? 0), 0)
-    const lourdes = connues.filter(i => mesures[i.chemin].octets > 500_000).length
-    return { nb: TOUTES.length, mesurees: connues.length, total, poidsServies, nbDormant: dormant.length, poidsDormant, lourdes }
-  }, [mesures])
+    const poidsDormant = dormant.reduce((s, i) => s + (poids[i.chemin] ?? 0), 0)
+    const lourdes = pesees.filter(i => poids[i.chemin] > 500_000).length
+    return { nb: TOUTES.length, pesees: pesees.length, total, nbDormant: dormant.length, poidsDormant, lourdes }
+  }, [poids])
 
   // Échappement : une modale qui ne se ferme qu'à la souris se referme mal.
   useEffect(() => {
@@ -128,9 +162,15 @@ export default function PlancheIllustrations({
         </div>
         <div className="ill-bilan">
           <span><strong>{bilan.nb}</strong> images recensées</span>
-          <span><strong>{poidsLisible(bilan.total)}</strong> au total</span>
-          <span className={bilan.lourdes ? 'ill-alerte' : ''}><strong>{bilan.lourdes}</strong> au-dessus de 500 ko</span>
-          <span><strong>{bilan.nbDormant}</strong> jamais servies, soit {poidsLisible(bilan.poidsDormant)}</span>
+          {bilan.pesees === 0 ? (
+            <span>pesée en cours…</span>
+          ) : (
+            <>
+              <span><strong>{poidsLisible(bilan.total)}</strong> au total</span>
+              <span className={bilan.lourdes ? 'ill-alerte' : ''}><strong>{bilan.lourdes}</strong> au-dessus de 500 ko</span>
+              <span><strong>{bilan.nbDormant}</strong> jamais servies, soit {poidsLisible(bilan.poidsDormant)}</span>
+            </>
+          )}
         </div>
       </header>
 
@@ -180,7 +220,7 @@ export default function PlancheIllustrations({
                     <Vignette
                       key={img.chemin}
                       illustration={img}
-                      mesure={mesures[img.chemin] ?? null}
+                      poids={poids[img.chemin] ?? null}
                       fond={fond}
                       servi={servi}
                       onAgrandir={() => setAgrandie(img)}
@@ -234,7 +274,7 @@ export default function PlancheIllustrations({
       {agrandie && (
         <Agrandissement
           illustration={agrandie}
-          mesure={mesures[agrandie.chemin] ?? null}
+          poids={poids[agrandie.chemin] ?? null}
           fond={fond}
           onFermer={() => setAgrandie(null)}
         />
@@ -256,16 +296,20 @@ function styleImage(img: Illustration, fond: CleFond, servi: boolean): React.CSS
 }
 
 function Vignette({
-  illustration, mesure, fond, servi, onAgrandir,
+  illustration, poids, fond, servi, onAgrandir,
 }: {
   illustration: Illustration
-  mesure: Mesure | null
+  poids: number | null
   fond: CleFond
   servi: boolean
   onAgrandir: () => void
 }) {
   const f = FONDS[fond]
   const t = illustration.traitement ?? {}
+  // La définition se lit sur l'image que la vignette affiche DÉJÀ, et l'état
+  // reste ici : remontée à la planche, chaque image chargée redessinerait les
+  // cinquante-sept autres. Une vignette pèse sa propre image, voilà tout.
+  const [dim, setDim] = useState<{ l: number; h: number } | null>(null)
   // Une silhouette de masque ne se REGARDE pas, elle se découpe : la montrer en
   // image donnerait un carré noir opaque, qui n'est jamais ce que la barre affiche.
   const enMasque = servi && t.masque
@@ -296,7 +340,8 @@ function Vignette({
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={illustration.chemin} alt="" loading="lazy" style={styleImage(illustration, fond, servi)} />
+          <img src={illustration.chemin} alt="" loading="lazy" style={styleImage(illustration, fond, servi)}
+            onLoad={e => setDim({ l: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} />
         )}
       </button>
 
@@ -304,12 +349,8 @@ function Vignette({
         <span className="ill-nom">{illustration.nom}</span>
         <span className="ill-emploi">{illustration.emploi}</span>
         <span className="ill-chiffres">
-          {mesure ? (
-            <>
-              <span className={`ill-poids ill-poids--${tonPoids(mesure.octets)}`}>{poidsLisible(mesure.octets)}</span>
-              {mesure.largeur && mesure.hauteur && <span className="ill-dim">{mesure.largeur} × {mesure.hauteur}</span>}
-            </>
-          ) : <span className="ill-dim">non mesurée</span>}
+          {poids !== null && <span className={`ill-poids ill-poids--${tonPoids(poids)}`}>{poidsLisible(poids)}</span>}
+          {dim && <span className="ill-dim">{dim.l} × {dim.h}</span>}
           {t.largeur && <span className="ill-dim">servie à {t.largeur}</span>}
         </span>
         {illustration.note && <span className="ill-note">{illustration.note}</span>}
@@ -324,10 +365,10 @@ function Vignette({
 // ── Agrandissement ───────────────────────────────────────────────────────────
 
 function Agrandissement({
-  illustration, mesure, fond, onFermer,
+  illustration, poids, fond, onFermer,
 }: {
   illustration: Illustration
-  mesure: Mesure | null
+  poids: number | null
   fond: CleFond
   onFermer: () => void
 }) {
@@ -336,6 +377,9 @@ function Agrandissement({
   // à qui veut vérifier ce que le lecteur voit.
   const [servi, setServi] = useState(false)
   const [reel, setReel] = useState(false)
+  // La définition se prend sur l'image agrandie elle-même. Un SVG n'en a pas de
+  // propre : son `naturalWidth` rend la boîte de dessin, ce que la fiche dit.
+  const [dim, setDim] = useState<{ l: number; h: number } | null>(null)
   const f = FONDS[fond]
   const t = illustration.traitement ?? {}
 
@@ -357,6 +401,7 @@ function Agrandissement({
             alt={illustration.nom}
             className={reel ? 'ill-modale-image ill-modale-image--reelle' : 'ill-modale-image'}
             style={styleImage(illustration, fond, servi)}
+            onLoad={e => setDim({ l: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
           />
         </div>
 
@@ -369,8 +414,8 @@ function Agrandissement({
 
           <dl className="ill-fiche">
             <dt>Fichier</dt><dd><code>{illustration.chemin}</code></dd>
-            {mesure && <><dt>Définition</dt><dd>{mesure.largeur && mesure.hauteur ? `${mesure.largeur} × ${mesure.hauteur} px` : 'vectorielle'}</dd></>}
-            {mesure && <><dt>Poids</dt><dd className={`ill-poids--${tonPoids(mesure.octets)}`}>{poidsLisible(mesure.octets)}</dd></>}
+            {dim && <><dt>Définition</dt><dd>{illustration.chemin.endsWith('.svg') ? `${dim.l} × ${dim.h}, vectorielle` : `${dim.l} × ${dim.h} px`}</dd></>}
+            {poids !== null && <><dt>Poids</dt><dd className={`ill-poids--${tonPoids(poids)}`}>{poidsLisible(poids)}</dd></>}
             {t.largeur && <><dt>Servie à</dt><dd>{t.largeur}</dd></>}
             {t.opacite !== undefined && <><dt>Opacité</dt><dd>{String(t.opacite).replace('.', ',')}</dd></>}
             {t.fusion && <><dt>Fusion</dt><dd>{t.fusion === 'multiply' ? 'multiply, le blanc se fond dans le papier' : 'screen, le noir se fond dans la carte'}</dd></>}

@@ -473,16 +473,18 @@ export const ICONES_ONGLET: { route: string; fichier: string; nom: string; emplo
 ]
 
 /** Familles trop nombreuses pour la planche : on les compte, on en montre un
- *  échantillon, et l'on renvoie à l'écran qui les emploie. `seau` désigne un
- *  seau Supabase, `dossier` un chemin sous `public/`. */
+ *  échantillon, et l'on renvoie à l'écran qui les emploie.
+ *
+ *  ⚠️ Toutes viennent d'un SEAU Supabase, jamais d'un dossier du dépôt, et ce
+ *  n'est pas un hasard : ce sont précisément les images assez nombreuses pour
+ *  qu'on ait cessé de les versionner. Les fac-similés de la Bible 899 pèsent
+ *  1,8 Go et leur dossier local est ignoré par git. */
 export type Famille = {
   cle: string
   nom: string
   emploi: string
-  source: { seau: string } | { dossier: string }
+  source: { seau: string }
   lieu?: { href: string; label: string }
-  /** Comment fabriquer l'URL publique d'un objet à partir de son nom. */
-  prefixePublic?: string
 }
 
 export const FAMILLES: Famille[] = [
@@ -509,8 +511,8 @@ export const FAMILLES: Famille[] = [
   {
     cle: 'manuscrits',
     nom: 'Fac-similés de la Bible 899',
-    emploi: 'Les colonnes photographiées du manuscrit, appelées en regard du texte dans l’atelier. Le dépôt en porte une copie locale, le seau la référence complète.',
-    source: { dossier: 'manuscrits/bible-899' },
+    emploi: 'Les colonnes photographiées du manuscrit, appelées en regard du texte dans l’atelier. Le dépôt n’en porte qu’une copie de travail, ignorée par git : le seau fait foi.',
+    source: { seau: 'manuscrits' },
     lieu: { href: '/manuscrits/bible-899', label: 'Bible 899' },
   },
 ]
