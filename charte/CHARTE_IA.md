@@ -1786,6 +1786,13 @@ L’affichage reste « Prénom Nom », comme avant ces rubriques. Quand un pseud
 ⛔ Un nom qui ne paraît que dans le texte libre d’une notice, sans fiche ni ligne de contributeur, est SIGNALÉ et non créé. Lui ouvrir une fiche sans note ferait retomber son ouvrage à « à vérifier », le calcul de la base déclassant tout ouvrage dont un auteur scientifique n’est pas évalué. Combler ces trous est un arbitrage éditorial, pas une reprise mécanique.
 
 
+**Un auteur ancien se désigne par un RENVOI, jamais par une chaîne.** La colonne `ouvrage_contributeurs_scientifiques.auteur_id` renvoie vers `auteurs`, comme `auteur_valeur_id` renvoie vers `auteurs_valeur` pour un chercheur. Les deux registres ne se confondent pas : un chercheur moderne est une AUTORITÉ notée, un Père est une SOURCE, et la base interdit déjà de noter le second. ⚠️ Un renvoi vers `auteurs` NOMME, il n’évalue pas : il n’entre pas dans le calcul de la valeur scientifique, et rattacher une ligne ne change donc aucun statut.
+
+Le besoin s’est vu à la mesure, le 2026-08-24 : sur les 28 auteurs anciens que nomment les notices, 23 existaient déjà dans `auteurs`, en texte libre et sans lien. La dérive avait commencé, trois d’entre eux paraissant sous deux appellations selon l’endroit où on les lit.
+
+**Les NOMS ALTERNATIFS résolvent un nom, ils ne l’affichent pas.** Ils se saisissent séparés par des virgules et se rangent en tableau, sur le modèle de `editeurs.variantes`, qui l’a fait le premier : `auteurs.variantes` pour une source, `auteurs_valeur.aliases` pour un chercheur. « Jérôme » et « Hieronymus » mènent à la fiche de Jérôme de Stridon, dont le nom continue seul de paraître. ⚠️ Rattacher une ligne dont le nom diffère de celui du registre inscrit ce nom parmi les variantes de la fiche : c’est exactement ce qu’est une variante, la forme sous laquelle on rencontre la personne.
+
+
 ## 30. Suivi de l'avancement — le centre de contrôle
 
 Avant d'entreprendre un travail sur le corpus, il faut toujours regarder où nous en sommes. Le centre de contrôle, page d'administration `/admin/controle`, réunit en un seul endroit l'état d'avancement de chaque domaine : corpus et traductions, qualité du texte, catalogue, péricopes, bibliographie, chronologie. Chaque domaine y porte ses chiffres réels, une barre d'avancement, une note de synthèse et la liste des tâches restantes.
