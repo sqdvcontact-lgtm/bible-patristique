@@ -88,6 +88,31 @@ Pour toute prose destinée au site (cartes, chapeaux, messages, mentions) : **ne
 - ⚠️ Onze pages écrivaient « — Corpus Scriptura » en plus du gabarit, d’où « Statistiques — Corpus Scriptura · Corpus Scriptura » dans l’onglet, dans les partages et dans les résultats de recherche (relevé le 2026-08-19). Le séparateur du site est le point médian `·`.
 - Le test `app/lib/titresPages.test.ts` parcourt les `page.tsx` et refuse tout titre qui nomme le site sans `absolute`. Seule `/quiz` en est exemptée (route neutralisée, version vivante sur la branche Holy Guessr).
 
+# Métadonnées — on n'annonce QUE ce que la page porte (2026-08-24)
+
+Les modèles vivent dans **`app/lib/metadonneesSeo.ts`** (pur, 29 tests) et les lectures qui les alimentent dans **`app/lib/metadonneesSeoServeur.ts`**. Trois familles servies : passage biblique (`app/page.tsx`), auteur (`app/auteur/[id]/layout.tsx`), œuvre (`app/oeuvre/[id]/page.tsx`). ⛔ Ne pas recomposer un titre ni une description ailleurs.
+
+**Le titre dit deux choses, dans cet ordre : l'objet documentaire, puis ce que Corpus Scriptura y apporte.** « Jean 1 » seul ne distingue ce site d'aucun autre ; « Exégèse patristique johannique » ne se cherche pas. D'où « Jean 1 — Commentaires des Pères de l'Église ».
+
+⛔ **Et jamais rien qu'on ne puisse montrer.** Un chapitre que personne ne commente s'annonce « Texte biblique et traductions » ; un chapitre seulement cité s'annonce « Citations », non « Commentaires » ; une œuvre dont aucun texte n'est public ne promet pas « le texte intégral » ; un auteur sans œuvre éditée ne promet pas d'œuvres. Les quatre replis sont éprouvés sur les données réelles.
+
+⚠️ **Une nature de rapport ne se devine pas au nombre de liens.** `naturePatristique` retient la plus FORTE des natures présentes (charte §9 : 3 doctrine > 1-2 citation > 4 écho), et le titre nomme celle-là. Au 2026-08-24 : 811 chapitres commentés, 279 seulement cités, 3 en écho seul.
+
+⛔ **L'ordre des auteurs est CHRONOLOGIQUE**, celui du volet patristique (voir « Apparat patristique »), et pour la même raison : un titre qui promet les Pères de l'Église ne peut pas ouvrir sa description sur Thomas d'Aquin. Classer par nombre de liens le mettait en tête de presque tous les chapitres, la Somme théologique étant l'œuvre la plus liée du corpus. `chargerPresencePatristique` réemploie `anneeChronologique`, et le nom départage deux contemporains — **à donnée égale, un titre doit être le même à chaque visite**.
+
+⚠️ **`order('id')` sur les deux requêtes de liens n'est pas un ornement** : PostgREST plafonne les lignes rendues, le chapitre le plus lié en compte 1 286, et sans ordre imposé une troncature laisserait Postgres choisir QUELS auteurs nommer.
+
+⛔ **`openGraph` et `twitter` ne se fusionnent PAS avec ceux du layout racine** : une page qui en déclare un le remplace ENTIÈREMENT (doc Next, « Merging »). D'où `enTetesPartage`, qui repose l'image, le type et le nom du site avec le titre. Une page qui n'en déclare aucun hérite du générique, ce qui est le cas de toutes les autres.
+
+**Canonique.** La page Bible désigne `/?livre=X&chapitre=N` : traduction, mode, graphie, texte en regard, appareil écarté et verset visé sont des habits d'un même chapitre, et neuf adresses pour une page se comptaient neuf fois. La page d'œuvre désigne `/oeuvre/<id>`, sauf version de texte explicitement demandée, qui change le contenu. ⚠️ Aucune URL n'est modifiée : on dit seulement laquelle fait foi.
+
+⛔ **Plus de `<meta name="keywords">`.** Google l'ignore depuis 2009 ; les variantes de nom passent par `alternateName` du JSON-LD, qui est lu. Retiré des trois pages qui en portaient (auteur, œuvre, péricope).
+
+⚠️ **Un point suivi d'une espace ne finit pas toujours une phrase.** `couperDescription` exigeait naguère trois lettres devant le point : sans quoi « traduit par M. Horiot » se coupait à « traduit par M. », qui se lit comme un nom de traducteur. Et une description d'œuvre trop longue **retire un complément entier** plutôt que de couper la phrase.
+
+**Contrôle.** Deux scripts d'atelier dans `tmp/` (non versionné) : `controle-metadonnees-seo.mts` (échantillon commenté) et `balayage-metadonnees-seo.mts` (1 108 chapitres, 50 œuvres, 536 auteurs — titres vides, doublons, `undefined`, séparateurs orphelins, doubles noms de site). ⚠️ Ils appellent les MÊMES fonctions que les pages, y compris les lectures PostgREST : une erreur d'embed s'y voit avant la production.
+
+⚠️ **Le HTML rendu ne se contrôle qu'en session.** Le verrou de bêta écarté, `anon` n'a de droit sur rien : la page Bible tombe en 500 sur `versets_lecture` et les pages d'auteur et d'œuvre rendent leur repli. Next émet toutefois les métadonnées MÊME sur une page en erreur, ce qui suffit à éprouver les balises : titre unique, canonique absolue avec sa chaîne de requête, jeu Open Graph complet, aucun doublon.
 
 # Responsive / mise à l'échelle (écrans desktop)
 

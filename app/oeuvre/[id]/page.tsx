@@ -11,6 +11,8 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
 import type { IndexEditeurs } from '@/app/lib/editeursNormalisation'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
+import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
+import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import {
@@ -20,6 +22,7 @@ import {
 } from './bilingueAlignement'
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
+import { enumererTraducteurs } from '@/app/lib/traducteurs'
 import {
   projeterAppelsNotesStructurees,
   type AncreNoteStructureeProjection,
@@ -32,6 +35,14 @@ import { redirect } from 'next/navigation'
 // `anon` et ne recevait plus ni segments ni versets.
 type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
 
+// Métadonnées de la page d'une œuvre. Le titre nomme l'œuvre, son auteur, et —
+// À LA SEULE CONDITION QU'ELLES EXISTENT — les deux langues du texte en regard :
+// « Les Confessions — Augustin d'Hippone : texte latin et français ». Une œuvre
+// qui n'est éditée qu'en français ne s'en vante pas.
+//
+// ⚠️ Les langues et le traducteur se lisent sur les textes RÉELLEMENT PUBLICS
+// (`is_public`), non sur ce que l'admin voit : sans quoi une page annoncerait au
+// visiteur un latin qu'il ne trouverait pas. Modèles : `app/lib/metadonneesSeo.ts`.
 export async function generateMetadata({ params, searchParams }: {
   params: Promise<{ id: string }>
   searchParams?: Promise<{ texte?: string }>
@@ -40,39 +51,57 @@ export async function generateMetadata({ params, searchParams }: {
   const sp = searchParams ? await searchParams : {}
   const supabase = await creerSupabaseServeur()
 
-  const [{ data }, { data: textes }, auteursOeuvre] = await Promise.all([
+  // Une seule vague : rien ici ne dépend du résultat d'autre chose. La sonde des
+  // liens bibliques part avec les autres et ne coûte donc pas un aller-retour.
+  const [{ data }, { data: textes }, auteursOeuvre, aLiensBibliques] = await Promise.all([
     supabase.from('oeuvres')
       .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
       .eq('id_oeuvre', id).maybeSingle(),
     supabase.from('oeuvre_textes')
-      .select('id_texte,traducteur,is_default,is_public')
+      .select('id_texte,langue,traducteur,is_default,is_public')
       .eq('id_oeuvre', id)
       .eq('is_public', true),
     chargerAuteursDOeuvre(supabase, id),
+    porteDesLiensBibliques(supabase, [id]),
   ])
   if (!data) return { title: { absolute: 'Corpus Scriptura' } }
   // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
   const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as any)?.nom
   const textesPublics = textes ?? []
-  const texteActif = textesPublics.find(texte => texte.id_texte === sp.texte)
+  const texteDemande = sp.texte ? textesPublics.find(texte => texte.id_texte === sp.texte) : undefined
+  const texteActif = texteDemande
     ?? textesPublics.find(texte => texte.is_default)
     ?? textesPublics[0]
-  const traducteur = texteActif?.traducteur ?? data.trad_auteur
-  // Mots-clés = toutes les formes sous lesquelles on cherche l'œuvre et l'auteur.
-  const motsCles = [data.titre, data.titre_original, ...auteursOeuvre.map(a => a.nom), auteur, (data.auteurs as any)?.nom_original]
-    .filter((v): v is string => !!v)
-  const description = [
-    auteur ? `${data.titre}, ${auteur}` : data.titre,
-    data.sous_titre || null,
-    traducteur ? `traduction de ${traducteur}` : null,
-  ].filter(Boolean).join('. ') + '. Texte et notice sur Corpus Scriptura.'
+  const etat = {
+    auteur,
+    langues: textesPublics.map(texte => texte.langue ?? '').filter(Boolean),
+    // Le catalogue sépare les traducteurs par un point-virgule ; une description
+    // est une phrase. « H. Barreau ; M. Charpentier » y devient « H. Barreau et
+    // M. Charpentier », comme partout ailleurs sur le site.
+    traducteur: enumererTraducteurs(texteActif?.traducteur ?? data.trad_auteur) || null,
+    aLiensBibliques,
+    // Une œuvre répertoriée dont aucun texte n'est public ne montre qu'un avis :
+    // sa description ne promet donc pas « le texte intégral ».
+    aTexte: textesPublics.length > 0,
+  }
+  const titre = titreOeuvre(data.titre, etat)
+  const description = descriptionOeuvre(data.titre, etat)
   return {
-    // `absolute` : le gabarit « %s · Corpus Scriptura » du layout racine s'ajouterait
-    // sinon à ce titre qui porte déjà le nom du site, d'où un « … · Corpus Scriptura ·
-    // Corpus Scriptura » dans l'onglet et dans les partages.
-    title: { absolute: auteur ? `${data.titre} — ${auteur} · Corpus Scriptura` : `${data.titre} · Corpus Scriptura` },
-    description: description.slice(0, 300),
-    keywords: motsCles,
+    // Pas de `absolute` : le gabarit « %s · Corpus Scriptura » du layout racine
+    // ajoute le nom du site. L'écrire ici en donnerait deux (voir AGENTS.md,
+    // « Titre d'onglet »).
+    title: titre,
+    description,
+    // Segment visé, texte comparé, retour de la bibliothèque : autant d'adresses
+    // pour une seule œuvre. Seule la version de texte EXPLICITEMENT demandée fait
+    // une page à part, parce qu'elle en change le contenu ; tout le reste renvoie
+    // à l'œuvre. Aucune URL existante n'est modifiée.
+    alternates: {
+      canonical: texteDemande && !texteDemande.is_default
+        ? `/oeuvre/${encodeURIComponent(id)}?texte=${encodeURIComponent(texteDemande.id_texte)}`
+        : `/oeuvre/${encodeURIComponent(id)}`,
+    },
+    ...enTetesPartage(titre, description),
   }
 }
 

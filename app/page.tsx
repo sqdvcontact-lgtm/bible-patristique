@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
+import type { Metadata } from 'next'
 import { type ComponentProps } from 'react'
 import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
@@ -15,6 +16,11 @@ import type { BibleEditionChapterPayload } from '@/app/lib/bibleEditionServer'
 import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
 import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
+import { nomLivreReference } from '@/app/lib/referencesBibliques'
+import {
+  avecNomDuSite, descriptionChapitreBible, enTetesPartage, naturePatristique, titreChapitreBible,
+} from '@/app/lib/metadonneesSeo'
+import { chargerPresencePatristique } from '@/app/lib/metadonneesSeoServeur'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -24,19 +30,52 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 const NOMS_LIVRES = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 
-// Titre unique par chapitre lu (« Genèse 1 · Corpus Scriptura ») plutôt que le titre
-// générique du site. Sans paramètre, la page redirige vers l'accueil : titre neutre.
+// Métadonnées du chapitre lu. Le titre dit DEUX choses, dans cet ordre : quel
+// passage on lit, puis ce que Corpus Scriptura y apporte de propre — les Pères
+// qui le commentent. « Jean 1 » seul ne distinguerait ce site d'aucun autre ;
+// « Exégèse patristique johannique » ne se cherche pas.
+//
+// ⛔ Et il ne promet que ce que la page porte : un chapitre que personne ne
+// commente s'annonce comme texte biblique, pas comme commentaire patristique.
+// Voir `app/lib/metadonneesSeo.ts` pour les modèles, et
+// `app/lib/metadonneesSeoServeur.ts` pour la lecture qui les alimente.
+//
+// Sans paramètre, la page redirige vers l'accueil : rien à décrire.
 export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<{ livre?: string; chapitre?: string }>
-}) {
+}): Promise<Metadata> {
   const p = await searchParams
   if (!p.livre && !p.chapitre) return {}
-  const nom = NOMS_LIVRES[p.livre || 'GEN'] || 'Bible'
-  // Le gabarit « %s · Corpus Scriptura » du layout racine ne s'applique pas à la page
-  // racine (même segment) : on compose donc le suffixe ici, pour rester cohérent.
-  return { title: { absolute: `${nom} ${normaliserChapitreBible(p.chapitre)} · Corpus Scriptura` } }
+  const livre = p.livre || 'GEN'
+  // Un livre que la Bible ne connaît pas ne désigne aucune page : elle rendra un
+  // 404, et un 404 ne se compose pas un titre de chapitre.
+  if (!NOMS_LIVRES[livre]) return {}
+  const chapitre = normaliserChapitreBible(p.chapitre)
+  // « Psaume 22 », non « Psaumes 22 » : la forme sous laquelle on CITE un livre,
+  // qui est aussi celle sous laquelle on le cherche.
+  const reference = `${nomLivreReference(livre)} ${chapitre}`
+
+  const supabase = await creerSupabaseServeur()
+  const { types, auteurs } = await chargerPresencePatristique(supabase, livre, chapitre)
+  const nature = naturePatristique(types)
+  const titre = titreChapitreBible(reference, nature)
+  const description = descriptionChapitreBible(reference, nature, auteurs)
+
+  return {
+    // Le gabarit « %s · Corpus Scriptura » du layout racine ne s'applique pas à la page
+    // racine (même segment) : on compose donc le suffixe ici, pour rester cohérent.
+    title: { absolute: avecNomDuSite(titre) },
+    description,
+    // Un même chapitre se lit sous bien des habits : traduction choisie, mode de
+    // lecture, graphie, texte en regard, appareil écarté, verset visé. Toutes ces
+    // adresses montrent LE MÊME passage ; on désigne celle qui fait foi, pour que
+    // les moteurs les rassemblent au lieu de les compter neuf fois.
+    // ⚠️ Aucune URL n'est touchée : celles qui existent continuent de fonctionner.
+    alternates: { canonical: `/?livre=${livre}&chapitre=${chapitre}` },
+    ...enTetesPartage(titre, description),
+  }
 }
 
 export default async function Home({

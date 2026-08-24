@@ -2,11 +2,19 @@ import type { Metadata } from "next";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { formaterPlageCanonique } from "@/app/lib/referencesBibliques";
 import { JsonLd, donneesPericope, donneesFilAriane } from "@/app/lib/donneesStructurees";
+import { couperDescription } from "@/app/lib/metadonneesSeo";
 
 // Métadonnées + données structurées d'une péricope. On expose le nom ET ses
 // APPELLATIONS (pericope_noms, visibles seulement) : ce sont les différentes
-// façons de nommer un passage, donc autant de mots-clés captés. La page est un
-// composant client ; tout passe par ce layout serveur.
+// façons de nommer un passage. Elles passent par le JSON-LD (`alternateName`),
+// qui est lu, et NON par `<meta name="keywords">`, que Google ignore depuis 2009
+// et qui n'a donc jamais rien capté. La page est un composant client ; tout passe
+// par ce layout serveur.
+//
+// ⚠️ Cette page attend encore sa passe de métadonnées : son titre n'annonce pas
+// ce que la péricope apporte (« Les noces de Cana — Jean 2, 1-11 et commentaires
+// patristiques »), et elle n'a ni canonique ni en-têtes de partage propres. Voir
+// les modèles de `app/lib/metadonneesSeo.ts`, prêts à la servir.
 async function chargerPericope(id: string) {
   const supabase = await creerSupabaseServeur();
   const [{ data: p }, { data: noms }, { data: occ }] = await Promise.all([
@@ -30,12 +38,12 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const { p, appellations, reference } = await chargerPericope(id);
+  const { p, reference } = await chargerPericope(id);
   if (!p?.nom) return { title: "Péricope" };
   const description = p.notice
-    ? p.notice.slice(0, 160)
+    ? couperDescription(p.notice)
     : `La péricope « ${p.nom} »${reference ? ` (${reference})` : ""} et ses correspondances patristiques.`;
-  return { title: p.nom, description, keywords: [p.nom, ...appellations] };
+  return { title: p.nom, description };
 }
 
 export default async function PericopeLayout({
