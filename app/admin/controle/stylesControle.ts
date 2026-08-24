@@ -30,7 +30,12 @@ export const CSS_CONTROLE = `
 
   .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert-aplat); border-radius: 0 8px 8px 0; padding: 0.625rem 0.75rem; }
   .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
-  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
+  /* ⚠️ « pre-line » : les notes de section sont RÉDIGÉES en paragraphes, et six des neuf en
+     contenaient déjà au 2026-08-24. Sans lui, le rendu les coule d'un seul tenant : la note
+     de la Chronologie ouvrait sur « [AUDIT_CHRONOLOGIE_2026-08-12] » collé à sa première
+     phrase, et l'on ne pouvait plus lire une note un peu longue. Il n'écrase que les suites
+     d'espaces, jamais les retours voulus. */
+  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; white-space: pre-line; }
 
   .cc-todos { margin-top: 0.75rem; }
   .cc-todos-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-second); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.375rem; }
