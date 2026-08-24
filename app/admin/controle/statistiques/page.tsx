@@ -382,6 +382,20 @@ export default async function StatistiquesControlePage() {
             <div className="cc-mention">Modèle éditorial absent de cette base : compteurs indisponibles.</div>
           )}
         </Carte>
+
+        {/* 9. Textes originaux — chaque original n'existe qu'à un seul endroit, et l'alignement
+            dit la correspondance. Carte SANS tuiles, comme le chantier éditorial : compter les
+            segments qui portent encore une copie coûte un balayage complet de `segments`
+            (7 983 lignes sur 91 350, 1,2 s, aucun index sur `texte_original`), pour un chiffre
+            que la note porte déjà et que les tâches détaillent œuvre par œuvre. */}
+        <Carte titre="Textes originaux — une seule occurrence" note={sec('textes_originaux').commentaire_ia} cle="textes_originaux" todos={sec('textes_originaux').todos} majLe={sec('textes_originaux').maj_le}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            Un texte en langue originale vit dans ses propres segments, sous son propre identifiant, et l’alignement
+            dit la correspondance avec la traduction. La lecture bilingue s’y compose déjà. Restent les œuvres dont
+            l’original est encore logé dans <code>segments.texte_original</code> : une par ligne ci-dessous, la
+            dernière ligne éteignant la colonne.
+          </p>
+        </Carte>
       </div>
     </main>
   )
