@@ -1769,6 +1769,23 @@ Le nombre de péricopes auxquelles un ouvrage est rattaché, le type d’ouvrage
 Quand aucune étude directe ou de motif satisfaisante n’est identifiée, cette absence est consignée dans la file de révision ; elle n’est jamais masquée par la multiplication de références générales.
 
 
+## 29.2 Le nom d’une personne — nom, prénom, pseudonyme
+
+Un nom appartient à quelqu’un, non à chacun de ses livres. Les trois rubriques vivent donc sur la fiche de la personne, dans `auteurs_valeur`, et jamais sur l’ouvrage : les corriger depuis un ouvrage les corrige partout où l’auteur est cité, et une seule fois.
+
+Les trois rubriques sont facultatives. `prenom` et `nom_famille` portent le nom civil d’une personne moderne. `pseudonyme` porte le nom d’usage, celui sous lequel la personne signe et sous lequel on la cite. Voltaire en est un pour François-Marie Arouet.
+
+Le pseudonyme vaut aussi pour tout auteur jusqu’à la fin du Moyen Âge. « Irénée de Lyon », « Augustin d’Hippone », « Césaire d’Arles » ne sont pas des patronymes mais des désignations, faites d’un prénom et d’un siège, d’un lieu ou d’un surnom. On ne leur cherche donc ni nom de famille ni prénom : leur nom entier est le pseudonyme. Les auteurs anciens et les collectifs n’ont pas de fiche dans `auteurs_valeur`, conformément au §29.1, et leur nom reste d’un seul tenant sur leur ligne de contributeur, où `nature_personne` dit déjà ce qu’il est.
+
+L’affichage reste « Prénom Nom », comme avant ces rubriques. Quand un pseudonyme est renseigné, c’est lui qui paraît, et le nom civil demeure pour l’index, le tri et la recherche : on dit Voltaire, on classe à Arouet. La forme de classement met le nom de famille devant, séparé du prénom par une virgule.
+
+⚠️ La colonne `auteurs_valeur.nom` n’est jamais réécrite depuis un écran d’administration. C’est par elle que les notices des ouvrages et les lignes de contributeurs retrouvent la personne, et la réécrire les détacherait. Les rubriques la doublent, et ce qui paraît passe par la composition, qui retombe sur elle tant que les rubriques sont vides.
+
+⛔ Le découpage automatique d’un nom est une PROPOSITION, jamais un verdict. Rien, dans « José Grosdidier de Matons », ne dit à une machine si le nom de famille est « de Matons » ou « Grosdidier de Matons ». Les cas de ce genre sont signalés pour relecture au lieu d’être tranchés en silence. La logique est pure et testée dans `app/lib/nomsPersonnes.ts`.
+
+⛔ Un nom qui ne paraît que dans le texte libre d’une notice, sans fiche ni ligne de contributeur, est SIGNALÉ et non créé. Lui ouvrir une fiche sans note ferait retomber son ouvrage à « à vérifier », le calcul de la base déclassant tout ouvrage dont un auteur scientifique n’est pas évalué. Combler ces trous est un arbitrage éditorial, pas une reprise mécanique.
+
+
 ## 30. Suivi de l'avancement — le centre de contrôle
 
 Avant d'entreprendre un travail sur le corpus, il faut toujours regarder où nous en sommes. Le centre de contrôle, page d'administration `/admin/controle`, réunit en un seul endroit l'état d'avancement de chaque domaine : corpus et traductions, qualité du texte, catalogue, péricopes, bibliographie, chronologie. Chaque domaine y porte ses chiffres réels, une barre d'avancement, une note de synthèse et la liste des tâches restantes.
