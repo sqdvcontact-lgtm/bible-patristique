@@ -7,6 +7,8 @@ import { calculerRang, couleurRang } from "@/app/lib/classement";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 import { estRefOriginal, idOeuvreDeRef } from "@/app/lib/refsFavoris";
 import { memoriserTraductionBible } from "@/app/lib/preferenceBible";
+import { useCompte } from "@/app/lib/contexteCompte";
+import { themeValide, type Theme } from "@/app/lib/theme";
 import IconeCrayon from "@/app/components/IconeCrayon";
 import Image from "next/image";
 import { ENCRE_TITRE, ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -24,6 +26,9 @@ type Profil = {
   nom: string | null;
   prenom: string | null;
   traduction_defaut: string;
+  // Thème de lecture retenu sur le compte : « clair », « sombre », ou null tant
+  // qu'aucune préférence n'a été enregistrée. Voir app/lib/theme.ts.
+  theme_lecture: string | null;
   bio: string | null;
   contact_email: string | null;
   pub_rang: boolean;
@@ -89,12 +94,12 @@ function MonCompte({ user, router }: { user: { id: string; email: string; email_
   const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
-    supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu, membre_depuis")
+    supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu, membre_depuis")
       .eq("id", user.id).maybeSingle()
       .then(({ data, error }) => {
         if (error) {
           // membre_depuis absent de la table : retenter sans ce champ
-          supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu")
+          supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu")
             .eq("id", user.id).maybeSingle()
             .then(({ data: d2 }) => {
               if (d2 && !d2.onboarding_vu) { router.replace("/bienvenue"); return; }
@@ -132,7 +137,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
     const json = await res.json();
     setEnvoi(false);
     if (!res.ok) { setErreur(json.error ?? "Erreur."); return; }
-    onCree({ id: userId, pseudo: pseudo.trim(), nom: null, prenom: null, traduction_defaut: "TR0001", bio: null, contact_email: null, pub_rang: true, pub_essais: true, pub_favoris_oeuvre: false, pub_favoris_versets: false });
+    onCree({ id: userId, pseudo: pseudo.trim(), nom: null, prenom: null, traduction_defaut: "TR0001", theme_lecture: null, bio: null, contact_email: null, pub_rang: true, pub_essais: true, pub_favoris_oeuvre: false, pub_favoris_versets: false });
   };
 
   return (
@@ -460,6 +465,11 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const [nom, setNom] = useState(profilInit.nom ?? "");
   const [prenom, setPrenom] = useState(profilInit.prenom ?? "");
   const [traduction, setTraduction] = useState(profilInit.traduction_defaut);
+  // Le thème est une préférence de lecture au même titre que la traduction : il se
+  // choisit ici, se nomme, et s'enregistre avec le reste. L'interrupteur du menu de
+  // compte reste, en raccourci ; il écrit la même préférence.
+  const { theme: themeCourant, changerTheme } = useCompte();
+  const [themeChoisi, setThemeChoisi] = useState<Theme>(themeValide(profilInit.theme_lecture) ?? themeCourant);
   const [bio, setBio] = useState(profilInit.bio ?? "");
   const [contactEmail, setContactEmail] = useState(profilInit.contact_email ?? "");
   const [pubRang, setPubRang] = useState(profilInit.pub_rang ?? true);
@@ -578,8 +588,13 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
   const enregistrer = async () => {
     setEnregistrement(true); setStatut(null);
     const { error } = await supabase.from("profils").update({ nom: nom.trim() || null, prenom: prenom.trim() || null, traduction_defaut: traduction }).eq("id", user.id);
+    // Le thème passe par le contexte, qui l'écrit à la fois sur l'écran, dans le
+    // miroir local et sur le compte. L'écrire ici en plus le poserait deux fois.
+    const erreurTheme = themeChoisi === themeCourant
+      ? null
+      : await changerTheme(themeChoisi).then(() => null).catch((e: unknown) => e);
     setEnregistrement(false);
-    if (error) { setStatut({ ok: false, msg: "Erreur lors de l’enregistrement." }); return; }
+    if (error || erreurTheme) { setStatut({ ok: false, msg: "Erreur lors de l’enregistrement." }); return; }
     localStorage.setItem("traduction_defaut", traduction);
     // La page Bible décide sa colonne sur le SERVEUR : sans ce cookie, elle
     // continuerait de servir la bible retenue jusqu'ici, et le nouveau choix ne
@@ -806,6 +821,17 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
               <select value={traduction} onChange={e => setTraduction(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
                 {traductionsCompte.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
               </select>
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={labelStyle}>THÈME DE LECTURE</label>
+              <select value={themeChoisi} onChange={e => setThemeChoisi(e.target.value as Theme)} style={{ ...inputStyle, cursor: "pointer" }}>
+                <option value="clair">Clair</option>
+                <option value="sombre">Sombre (cuir)</option>
+              </select>
+              <p style={{ fontSize: "0.71875rem", color: "var(--cs-texte-gris)", margin: "6px 0 0", lineHeight: 1.5 }}>
+                Le choix est retenu sur votre compte et vous suit d’un appareil à l’autre.
+                L’interrupteur du menu de compte règle la même préférence.
+              </p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <button onClick={enregistrer} disabled={enregistrement}

@@ -501,6 +501,18 @@ Le chantier « confort de lecture », ouvert le 4 août et mis en pause le lende
 - **Le clair ne porte AUCUN attribut** et n'écrit rien dans le stockage. Une page servie sans script reste donc celle qu'on connaît, ce qui vaut pour les moteurs comme pour un poste où le stockage local est refusé.
 - **L'interrupteur part de `false` au rendu serveur** et se rattrape au montage, comme `useEstMobile` : le thème réel est déjà posé sur `<html>` par le script, l'effet ne dessine que le bouton. Partir de la valeur mémorisée ferait diverger les deux rendus.
 
+## ⛔ Le thème est une PRÉFÉRENCE DE COMPTE, le stockage local n'en est que le miroir (2026-08-24)
+
+La préférence vit dans **`profils.theme_lecture`** (`clair`, `sombre`, ou `null` tant que rien n'a été choisi). Jusqu'ici elle ne vivait que dans `localStorage` : un interrupteur, et rien de retenu. Elle ne suivait donc pas le lecteur d'un poste à l'autre, et **« éteint » ne se distinguait pas de « jamais choisi »**, puisque revenir au clair EFFACE la clé.
+
+- **Le miroir local reste, et il est nécessaire** : lui seul sait poser le thème AVANT peinture. Une colonne en base n'arrivera jamais à temps, et lire un cookie dans le gabarit racine rendrait DYNAMIQUE la totalité du site, trente et une routes aujourd'hui prérendues comprises. Le script de `SCRIPT_THEME` ne bouge pas.
+- **Tout passe par `ProvisionCompte`** (`app/lib/contexteCompte.tsx`), qui expose `theme` et `changerTheme`. ⛔ Ne plus appeler `appliquerTheme` depuis un composant : l'écran, le miroir et le compte s'écrivent ensemble ou pas du tout.
+- **Le rapprochement se fait à l'arrivée du profil, une fois par session.** Le COMPTE l'emporte sur le navigateur ; et un navigateur qui porte un choix que le compte ignore encore le lui remonte, de sorte que les préférences d'avant ne sont pas perdues.
+- ⛔ **Ce rapprochement ne peut pas boucler, et c'est délibéré** : le profil est demandé sur `userId`, jamais sur le thème. La boucle de la traduction biblique du même jour venait précisément d'un effet qui avait dans ses dépendances la valeur qu'il posait.
+- **Le réglage se nomme dans la page du compte** (« Thème de lecture », à côté de la traduction par défaut), l'interrupteur du menu n'en étant que le raccourci. Un réglage qu'on ne peut qu'actionner, sans le voir écrit nulle part, ne se sait pas conservé.
+- ⚠️ **Colonne nullable et SANS contrainte `CHECK`**, comme `essais.couverture` : la liste des thèmes est éditoriale, le Sépia en est sorti. Une valeur devenue inconnue est relue par `themeValide` et retombe sur le Clair.
+- ⚠️ Ajouter la colonne au type `Profil` **et aux deux `select` de `app/compte/page.tsx`** : un champ présent dans le formulaire mais absent du `select` s'enregistre à vide.
+
 ## Ce que l'épreuve du Cuir a trouvé, et qui ne se voyait pas
 
 Une maquette a composé chaque surface du site avec les jetons réels. Trois enseignements, dont deux étaient invisibles au compte des couleurs en dur.

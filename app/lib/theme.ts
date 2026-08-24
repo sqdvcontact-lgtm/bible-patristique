@@ -67,7 +67,31 @@ export const SCRIPT_THEME =
   `if(t==='sombre'){document.documentElement.setAttribute('data-theme',t);}` +
   `else if(t){localStorage.removeItem('${CLE_THEME}');}}catch(e){}})();`
 
-/** Le thème mémorisé, ou le clair à défaut. À n'appeler que côté navigateur. */
+/**
+ * ── Où vit la préférence ──────────────────────────────────────────────────────
+ *
+ * Elle vit sur le COMPTE, dans `profils.theme_lecture`, et c'est elle qui fait foi.
+ * Le stockage local n'en est plus que le MIROIR : il sert à poser le thème avant
+ * peinture, ce qu'une colonne en base ne saura jamais faire à temps.
+ *
+ * Jusqu'au 2026-08-24 il n'y avait que le miroir. La préférence ne suivait donc pas
+ * le lecteur d'un poste à l'autre, et « éteint » ne se distinguait pas de « jamais
+ * choisi », puisque revenir au clair EFFACE la clé. Un interrupteur, et rien de
+ * retenu.
+ *
+ * ⚠️ Le rapprochement des deux se fait dans `ProvisionCompte` : à l'arrivée du
+ * profil, la valeur du compte l'emporte sur celle du navigateur, et un navigateur
+ * qui portait un choix que le compte ignore encore le lui remonte. C'est la seule
+ * réconciliation, et elle ne se redéclenche pas — le profil ne dépend pas du thème.
+ */
+
+/** Un thème reconnu, ou null. La valeur peut venir de la base ou du navigateur. */
+export function themeValide(valeur: string | null | undefined): Theme | null {
+  const propre = (valeur ?? '').trim()
+  return (THEMES_RECONNUS as readonly string[]).includes(propre) ? (propre as Theme) : null
+}
+
+/** Le thème mémorisé DANS CE NAVIGATEUR, ou le clair à défaut. Côté navigateur seulement. */
 export function lireTheme(): Theme {
   try {
     if (window.localStorage.getItem(CLE_THEME) === 'sombre') return 'sombre'

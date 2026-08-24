@@ -10,7 +10,6 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { LIVRES } from "@/app/lib/bible";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
-import { appliquerTheme, lireTheme } from "@/app/lib/theme";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
@@ -414,18 +413,18 @@ export default function Navbar() {
   // Session et profil viennent du contexte partagé, jamais d'une requête à soi : la
   // barre tenait son propre abonnement et sa propre lecture de `profils`, qui partait
   // en double (`getSession` puis l'événement de session initiale). Voir contexteCompte.
-  const { userId, email: emailCompte, pseudo, estAdmin } = useCompte();
+  const { userId, email: emailCompte, pseudo, estAdmin, theme, changerTheme } = useCompte();
   const user = useMemo(
     () => (userId ? { id: userId, email: emailCompte ?? '' } : null),
     [userId, emailCompte],
   );
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
-  // Faux au rendu SERVEUR et au premier rendu client, comme `useEstMobile` : le thème
+  // Clair au rendu SERVEUR et au premier rendu client, comme `useEstMobile` : le thème
   // réel est déjà posé sur <html> par le script du gabarit, on ne lit ici que de quoi
   // dessiner l'interrupteur. Partir de la valeur mémorisée ferait diverger les deux
   // rendus et React reprocherait l'hydratation.
-  const [themeSombre, setThemeSombre] = useState(false);
+  const themeSombre = theme === 'sombre';
   // Les seize sections d'administration allongeaient le panneau mobile de trois écrans,
   // au-dessus de la recherche et du compte : elles se déplient maintenant à la demande.
   const [adminMobileOuvert, setAdminMobileOuvert] = useState(false);
@@ -496,15 +495,16 @@ export default function Navbar() {
   const [pericopesErreur, setPericopesErreur] = useState(false);
   const [actifIndex, setActifIndex] = useState(-1);
 
-  // Le thème est DÉJÀ posé sur <html> par le script du gabarit ; cet effet ne fait que
-  // rattraper l'interrupteur au montage. Lire un système extérieur dans un effet est
-  // ici le bon outil, et non un `set-state-in-effect` à corriger.
-  useEffect(() => { setThemeSombre(lireTheme() === 'sombre') }, []);
-
+  // L'interrupteur ne retient plus rien de lui-même : le thème est une préférence de
+  // COMPTE, tenue par `ProvisionCompte`, qui l'écrit sur l'écran, dans le miroir local
+  // et dans `profils.theme_lecture`. Il ne restait sinon qu'un bouton, et rien de
+  // conservé d'un poste à l'autre.
+  // L'écran suit tout de suite ; seule l'écriture en base peut échouer, et elle se
+  // signale en console plutôt que d'interrompre une lecture. La page du compte, elle,
+  // en rend compte à l'écran.
   const basculerThemeSombre = () => {
-    const sombre = !themeSombre;
-    setThemeSombre(sombre);
-    appliquerTheme(sombre ? 'sombre' : 'clair');
+    changerTheme(themeSombre ? 'clair' : 'sombre')
+      .catch(e => console.error('Thème : la préférence n’a pas pu être enregistrée sur le compte.', e));
   };
 
   useEffect(() => {
