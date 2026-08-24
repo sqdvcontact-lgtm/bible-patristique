@@ -270,6 +270,14 @@ Modale alimentée par `v_traductions_page` (par `trad_id`) et `v_chronologie_tra
 - **Enrichissements de la chronologie.** `FriseAuteur` (partagée) rend intitulés ET notices via `rendreMarquesNote` (`app/lib/texteEnrichiEssai.tsx`) : **gras**, *italique*, ++petites capitales++, ^^exposant^^. Ne pas revenir à un rendu texte brut de la notice.
 - **Légende de la frise.** `FriseAuteur` accepte `sansLegende` (passé pour la chronologie d'une traduction) ; elle se masque aussi d'elle-même quand un seul brin est présent. Trouvaille : la vue `v_chronologie_traductions` renvoie des `type_affichage` **accentués** (« édition », « réception ») qui ne matchent pas les clés non accentuées de `COUL_TYPE`/`LIB_TYPE` — d'où l'ancien « Formation » seul dans la légende et des puces grises. La légende masquée contourne le symptôme ; si un jour on réaffiche la légende d'une traduction, normaliser d'abord les clés.
 
+# Recherche rapide — ce qu'on OUVRE POUR LIRE vient en tête (2026-08-24)
+
+Règle d'auteur. Les deux rubriques qui portent des TITRES, « Œuvres patristiques » et « Livres bibliques », ouvrent la liste déroulante, dans cet ordre, et rien ne passe devant. Suivent les auteurs, les péricopes, la chronologie, les essais et les traductions. Elles venaient auparavant en quatrième et sixième position, derrière les péricopes et la chronologie, c'est-à-dire que ce qu'on cherche le plus souvent était ce qu'on lisait en dernier.
+
+- **Un titre se compose comme un titre** : sérif du site (`--font-source-serif`) à **1rem**, graisse 600, quand le reste du menu est en sans à 0,84375rem. Sous une œuvre, l'auteur descend sur sa propre ligne, en italique et en `--cs-texte-second`, au lieu de talonner le titre en gris.
+- ⚠️ **Les deux domaines n'y sont plus contigus**, le vert précédant le bleu tandis que leurs autres rubriques restent plus bas. C'est le prix de la mise en tête, assumé : le filet de gauche et la couleur de la rubrique continuent de dire le domaine de chacune. ⛔ Ne pas « rétablir » le groupement par domaine en redescendant les titres.
+- ⛔ **`itemsNavigables` suit EXACTEMENT l'ordre du rendu**, sinon la flèche descend dans une liste et le surlignage se pose dans une autre. Corollaire : le rang actif d'une péricope se reconnaît désormais à sa CLÉ (`cleActive`), non plus à son indice dans la section, qui ne valait que tant que les péricopes ouvraient la liste.
+
 # Recherche de péricopes (RPC rechercher_pericopes)
 
 Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.tsx`), en SECTION distincte « Péricopes », menée en parallèle des autres catégories (effet dédié, non bloquant).
