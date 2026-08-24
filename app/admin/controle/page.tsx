@@ -10,9 +10,11 @@ import {
   decisionsConnues,
   estFrais,
   etatGeneral,
+  grouperAmbiguites,
   lireSnapshot,
   teinteEtat,
   teinteSeverite,
+  totauxAlignements,
   type Constat,
   type DiagnosticAlignement,
   type Severite,
@@ -233,32 +235,41 @@ function CarteFileLiens({ snapshot }: { snapshot: Snapshot }) {
 
 function CarteAmbiguites({ snapshot }: { snapshot: Snapshot }) {
   const ambiguites = snapshot.routing_ambiguities ?? []
+  const groupes = grouperAmbiguites(ambiguites)
   return (
     <Carte
       titre="Objets à propriétaire ambigu"
-      sous="Deux missions revendiquent le même objet. L’arbitrage revient à l’utilisateur, et aucune attribution ne doit être décidée ici."
+      sous="Plusieurs missions revendiquent le même objet. L’arbitrage revient à l’utilisateur, et aucune attribution ne doit être décidée ici."
     >
-      {ambiguites.length === 0 ? (
+      {groupes.length === 0 ? (
         <p className="cv-vide">Aucun objet ambigu.</p>
       ) : (
-        <ul className="cv-liste">
-          {ambiguites.map((ambiguite) => (
-            <li key={`${ambiguite.object_type}-${ambiguite.object_id}`} className="cv-ligne">
-              <span className="cv-puce" style={{ background: 'var(--cs-danger)' }} />
-              <div>
-                <div className="cv-ligne-titre">
-                  {ambiguite.object_type} {ambiguite.object_id}
-                  {ambiguite.segment_numero ? `, segment ${ambiguite.segment_numero}` : ''}
-                  {ambiguite.id_oeuvre ? ` de ${ambiguite.id_oeuvre}` : ''}
+        <>
+          <div className="cc-tuiles">
+            <Tuile valeur={nb(ambiguites.length)} label="Objets revendiqués" ton="danger" />
+            <Tuile valeur={nb(groupes.reduce((total, groupe) => total + groupe.liens, 0))} label="Liens dépendants" />
+            <Tuile valeur={nb(groupes.length)} label="Conflits de missions" />
+          </div>
+          <ul className="cv-liste">
+            {groupes.map((groupe) => (
+              <li key={groupe.missions.join('|')} className="cv-ligne">
+                <span className="cv-puce" style={{ background: 'var(--cs-danger)' }} />
+                <div>
+                  <div className="cv-ligne-titre">{groupe.missions.join(' ou ')}</div>
+                  <div className="cv-ligne-detail">
+                    {nb(groupe.objets)} objet{groupe.objets > 1 ? 's' : ''} revendiqué{groupe.objets > 1 ? 's' : ''},
+                    {' '}{nb(groupe.liens)} lien{groupe.liens > 1 ? 's' : ''} dépendant{groupe.liens > 1 ? 's' : ''},
+                    dernière modification le {dateHeureFr(groupe.dernier)}.
+                  </div>
+                  <div className="cv-ligne-detail">
+                    {groupe.exemples.map((exemple) => `${exemple.object_type} ${exemple.object_id}`).join(', ')}
+                    {groupe.objets > groupe.exemples.length ? `, et ${nb(groupe.objets - groupe.exemples.length)} autres.` : '.'}
+                  </div>
                 </div>
-                <div className="cv-ligne-detail">
-                  Missions candidates : {ambiguite.candidate_missions.join(' ou ')}.
-                  {' '}{nb(ambiguite.dependent_links)} lien{ambiguite.dependent_links > 1 ? 's' : ''} dépendant{ambiguite.dependent_links > 1 ? 's' : ''}, modifié le {dateHeureFr(ambiguite.last_changed_at)}.
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </Carte>
   )
@@ -331,17 +342,21 @@ function CarteAlignements({ snapshot }: { snapshot: Snapshot }) {
   const outils = snapshot.metrics.alignment_tools
   const diagnostics = snapshot.alignment_diagnostics ?? []
   const memoire = snapshot.alignment_review_memory
+  // Les totaux viennent des runs courants, calculés à l'appel, et non du cache
+  // de métriques : une heure après un rerun, le cache annonçait encore les
+  // dossiers de la veille sous des lignes qui se disaient à jour.
+  const totaux = totauxAlignements(diagnostics)
   return (
     <Carte
       titre="Outils alignements"
       sous={`Diagnostic seul, sans écriture sur le corpus. L’autorité reste la spine AELF ${snapshot.metrics.aelf_spine.version_code}.`}
     >
       <div className="cc-tuiles">
-        <Tuile valeur={nb(outils.cases_total)} label="Dossiers ouverts" />
-        <Tuile valeur={nb(outils.cases_high)} label="Haute priorité" ton={outils.cases_high > 0 ? 'danger' : 'vert'} />
-        <Tuile valeur={nb(outils.cases_medium)} label="Priorité moyenne" ton={outils.cases_medium > 0 ? 'or' : 'vert'} />
-        <Tuile valeur={nb(outils.cases_low)} label="Priorité basse" />
-        <Tuile valeur={`${nb(outils.current_runs - outils.stale_runs)} / ${nb(outils.current_runs)}`} label="Runs à jour" ton={outils.stale_runs > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(totaux.total)} label="Dossiers ouverts" />
+        <Tuile valeur={nb(totaux.high)} label="Haute priorité" ton={totaux.high > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(totaux.medium)} label="Priorité moyenne" ton={totaux.medium > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(totaux.low)} label="Priorité basse" />
+        <Tuile valeur={`${nb(totaux.frais)} / ${nb(totaux.runs)}`} label="Runs à jour" ton={totaux.perimes > 0 ? 'or' : 'vert'} />
         <Tuile valeur={nb(memoire?.cases_with_review_memory)} label="Dossiers avec mémoire humaine" />
       </div>
 

@@ -6,8 +6,12 @@ import {
   decisionsConnues,
   estFrais,
   etatGeneral,
+  grouperAmbiguites,
   lireSnapshot,
+  totauxAlignements,
+  type Ambiguite,
   type DiagnosticAlignement,
+  type MemoireRevues,
   type Snapshot,
 } from './snapshotV2'
 
@@ -136,7 +140,7 @@ describe('estFrais', () => {
 })
 
 describe('decisionsConnues', () => {
-  const memoire = {
+  const memoire: MemoireRevues = {
     total_cases: 180,
     carried_reviews: 10,
     cases_with_review_memory: 15,
@@ -154,6 +158,63 @@ describe('decisionsConnues', () => {
     expect(decisionsConnues(memoire, 'GEN')).toEqual([])
     expect(decisionsConnues(memoire, 'LUK')).toEqual([])
     expect(decisionsConnues(null, 'ACT')).toEqual([])
+  })
+})
+
+describe('totauxAlignements', () => {
+  it('additionne les runs courants au lieu de croire le cache', () => {
+    const totaux = totauxAlignements([
+      diagnostic({ book_code: 'ACT', cases: { total: 5, high: 0, medium: 0, low: 5 } }),
+      diagnostic({ book_code: 'JHN', cases: { total: 126, high: 10, medium: 62, low: 54 } }),
+    ])
+    expect(totaux).toEqual({ runs: 2, frais: 2, perimes: 0, total: 131, high: 10, medium: 62, low: 59 })
+  })
+
+  it('compte les périmés sans leur prêter la fraîcheur', () => {
+    const totaux = totauxAlignements([
+      diagnostic(),
+      diagnostic({ book_code: 'GEN', stale: true, captured_fingerprint: null }),
+    ])
+    expect(totaux.frais).toBe(1)
+    expect(totaux.perimes).toBe(1)
+  })
+
+  it('rend des zéros sans diagnostic', () => {
+    expect(totauxAlignements(null).total).toBe(0)
+  })
+})
+
+describe('grouperAmbiguites', () => {
+  const ambigu = (id: string, missions: string[], liens: number, date: string): Ambiguite => ({
+    object_type: 'segment', object_id: id, id_oeuvre: 'A0012O0002', segment_numero: id,
+    sections: null, dependent_links: liens, first_changed_at: date, last_changed_at: date,
+    candidate_missions: missions,
+  })
+
+  it('réunit les objets par jeu de missions revendiquantes', () => {
+    const groupes = grouperAmbiguites([
+      ambigu('1', ['A|edition', 'A|audit'], 2, '2026-08-24T08:00:00Z'),
+      ambigu('2', ['A|audit', 'A|edition'], 3, '2026-08-24T09:00:00Z'),
+      ambigu('3', ['B|x', 'B|y'], 1, '2026-08-24T07:00:00Z'),
+    ])
+    expect(groupes).toHaveLength(2)
+    expect(groupes[0].objets).toBe(2)
+    expect(groupes[0].liens).toBe(5)
+    expect(groupes[0].dernier).toBe('2026-08-24T09:00:00Z')
+    expect(groupes[0].missions).toEqual(['A|audit', 'A|edition'])
+  })
+
+  it('borne les exemples sans fausser le compte', () => {
+    const groupes = grouperAmbiguites(
+      Array.from({ length: 30 }, (_, i) => ambigu(String(i), ['A|x', 'A|y'], 1, '2026-08-24T08:00:00Z')),
+      4,
+    )
+    expect(groupes[0].objets).toBe(30)
+    expect(groupes[0].exemples).toHaveLength(4)
+  })
+
+  it('rend une liste vide sans ambiguïté', () => {
+    expect(grouperAmbiguites(null)).toEqual([])
   })
 })
 

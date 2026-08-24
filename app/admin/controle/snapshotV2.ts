@@ -241,7 +241,7 @@ export function estFrais(diagnostic: DiagnosticAlignement): boolean {
 
 /**
  * Les totaux d'« Outils alignements » se refont depuis les runs courants, que la
- * RPC calcule en direct, et non depuis , qui vient d'un
+ * RPC calcule en direct, et non depuis `metrics.alignment_tools`, qui vient d'un
  * cache : après un rerun, le cache annonce encore les dossiers de la veille.
  */
 export function totauxAlignements(diagnostics: DiagnosticAlignement[] | null) {
@@ -256,6 +256,35 @@ export function totauxAlignements(diagnostics: DiagnosticAlignement[] | null) {
     medium: somme((item) => item.cases?.medium ?? 0),
     low: somme((item) => item.cases?.low ?? 0),
   }
+}
+
+export type GroupeAmbiguite = {
+  missions: string[]
+  objets: number
+  liens: number
+  dernier: string | null
+  exemples: Ambiguite[]
+}
+
+/**
+ * Les ambiguïtés se comptent par centaines dès qu'une passe éditoriale traverse
+ * une œuvre : elles se lisent par jeu de missions revendiquantes, avec quelques
+ * objets nommés. Les lister toutes noierait la carte sans rien apprendre de plus,
+ * et le compte exact reste porté par le total.
+ */
+export function grouperAmbiguites(ambiguites: Ambiguite[] | null, exemplesParGroupe = 4): GroupeAmbiguite[] {
+  const groupes = new Map<string, GroupeAmbiguite>()
+  for (const ambiguite of ambiguites ?? []) {
+    const missions = [...(ambiguite.candidate_missions ?? [])].sort()
+    const cle = missions.join(' | ')
+    const groupe = groupes.get(cle) ?? { missions, objets: 0, liens: 0, dernier: null, exemples: [] }
+    groupe.objets += 1
+    groupe.liens += Number(ambiguite.dependent_links ?? 0)
+    if (!groupe.dernier || (ambiguite.last_changed_at ?? '') > groupe.dernier) groupe.dernier = ambiguite.last_changed_at
+    if (groupe.exemples.length < exemplesParGroupe) groupe.exemples.push(ambiguite)
+    groupes.set(cle, groupe)
+  }
+  return [...groupes.values()].sort((a, b) => b.objets - a.objets)
 }
 
 /** Décisions humaines déjà connues pour un livre, tous runs confondus. */
