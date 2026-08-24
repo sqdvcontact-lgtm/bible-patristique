@@ -1535,3 +1535,11 @@ La colonne recopie l'original dans chaque segment de la traduction. Elle sert en
 ### ⚠️ Une œuvre alignée mais NON PUBLIÉE reste invisible au lecteur
 
 La RLS des trois tables d'alignement exige que **les deux** textes soient `is_public`. Le grec de la Didachè (`A0012O0002T0001`) est en `statut = 'review'`, `is_public = false` : la lecture bilingue lui revient pour l'administrateur, et pour lui seul, tant que le texte n'est pas publié.
+
+### ⛔ Un groupe qui enjambe deux sections ne compose son original QU'UNE fois
+
+Relevé en ligne le 2026-08-24, sur la Didachè même. Les sections se rendent séparément, chacune sous son titre, et la découpe en blocs ne peut donc pas réunir deux paragraphes français que sépare un titre. Le groupe `PAR:003` couvre pourtant les deux : son grec se recomposait **dans chaque section traversée**, une fois en regard de « Et voici l'enseignement… », une fois en regard de « Abstiens-toi… ». Le lecteur voyait le même grec deux fois de suite.
+
+`premiersBlocsDeGroupe` retient le premier segment de chaque groupe dans l'ordre de lecture, et l'original ne paraît qu'en regard de celui-là. Les blocs suivants **gardent leur grille**, colonne de droite vide : le français ne doit pas reprendre toute la largeur au milieu d'un empan, sans quoi la mise en regard se défait à l'œil. Même règle que la lecture bilingue de la Bible, où un créneau qu'une édition ne porte pas reste vide.
+
+⚠️ **Le défaut ne se voyait ni aux types, ni aux tests, ni dans la donnée** : les 57 groupes sont complets et sans orphelin, et la projection est juste. Il naît de la rencontre entre l'alignement et le découpage en sections du RENDU, et il a fallu regarder la page.

@@ -199,6 +199,29 @@ export function projeterBilingue(params: {
   return { groupeParCle, blocParGroupe }
 }
 
+/**
+ * Le premier segment traduit de chaque groupe, dans l'ordre de lecture.
+ *
+ * ⛔ Un groupe d'alignement peut ENJAMBER deux sections — 28 des 57 groupes de la
+ * Didachè le font — et les sections se rendent séparément, chacune sous son titre. Sans
+ * cette table, l'original du groupe se recomposait dans CHAQUE section traversée : le
+ * grec de la troisième section de la Didachè paraissait deux fois de suite, une fois en
+ * regard de « Et voici l'enseignement… », une fois en regard de « Abstiens-toi… ».
+ *
+ * Il ne paraît donc qu'en regard du PREMIER bloc du groupe ; les blocs suivants gardent
+ * leur grille, colonne de droite vide, pour que le français ne reprenne pas toute la
+ * largeur au milieu d'un empan.
+ */
+export function premiersBlocsDeGroupe(
+  segments: readonly { id: number; groupeOriginal?: string | null }[],
+): Map<string, number> {
+  const premiers = new Map<string, number>()
+  for (const s of segments) {
+    if (s.groupeOriginal && !premiers.has(s.groupeOriginal)) premiers.set(s.groupeOriginal, s.id)
+  }
+  return premiers
+}
+
 /** Ce que la colonne de droite compose, d'où qu'il vienne. */
 export type OriginalEnRegard<N> = {
   texte: string

@@ -12,7 +12,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard } from './bilingueAlignement'
+import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard, premiersBlocsDeGroupe } from './bilingueAlignement'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
@@ -1169,6 +1169,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     [...segments, ...segmentsApparat]
       .flatMap(s => (s.segmentKey && s.groupeOriginal) ? [[s.segmentKey, s.groupeOriginal] as [string, string]] : []),
   )
+  // Un groupe qui enjambe deux sections ne compose son original qu'une fois : voir
+  // `premiersBlocsDeGroupe`. ⚠️ L'ordre de `segmentsFiltres` fait foi, et c'est bien
+  // l'ordre de lecture (`segment_numero`), qu'aucun filtre ne dérange.
+  const premierBlocDuGroupe = premiersBlocsDeGroupe(segmentsFiltres)
 
   // Une note appelée dans un TITRE n'est pas toujours définie sur le premier
   // segment de son groupe : dans les imports à notes structurées, son ancre tombe
@@ -2285,6 +2289,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       le poème se refait. */}
                   {blocsDeLecture(itemsReels).map((chunk) => {
                     const original = originalDuBloc(chunk)
+                    // Le bloc PORTE-t-il l'original, ou le prolonge-t-il ? Un groupe qui
+                    // enjambe deux sections ne le compose que dans la première.
+                    const porteOriginal = !chunk.groupe || premierBlocDuGroupe.get(chunk.groupe) === chunk.ids[0]
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
@@ -2365,7 +2372,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         })}
                       </p>
                       )}
-                      {(affichageBilingue || afficherOriginalSeul) && original && (
+                      {(affichageBilingue || afficherOriginalSeul) && original && porteOriginal && (
                         originalEnVers ? (
                           /* ⛔ L'ORIGINAL d'un poème se compose en vers, lui aussi. Le latin
                              d'une strophe entière vit sur le vers de rang 1, ses lignes

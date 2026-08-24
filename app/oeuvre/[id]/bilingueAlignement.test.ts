@@ -4,6 +4,7 @@ import {
   choisirEnsembleBilingue,
   joindreSegmentsOriginaux,
   originalEnRegard,
+  premiersBlocsDeGroupe,
   projeterBilingue,
   type MembreAlignement,
   type SegmentOriginal,
@@ -166,6 +167,32 @@ describe('projection bilingue', () => {
       notesOriginales: { 'el-1': { n1: note(1) }, 'el-2': { n2: note(2) } },
     })
     expect(Object.keys(projection.blocParGroupe.get('g1')?.notes ?? {})).toEqual(['n1', 'n2'])
+  })
+})
+
+describe('un groupe ne compose son original qu’une fois', () => {
+  // Cas relevé en ligne le 2026-08-24 sur la Didachè : le groupe PAR:003 couvre deux
+  // paragraphes français que sépare un titre de section, et les sections se rendent
+  // séparément — le grec paraissait donc deux fois de suite.
+  it('retient le premier segment de chaque groupe, dans l’ordre de lecture', () => {
+    const premiers = premiersBlocsDeGroupe([
+      { id: 10, groupeOriginal: 'g1' },
+      { id: 11, groupeOriginal: 'g1' },
+      { id: 12, groupeOriginal: 'g2' },
+      { id: 13, groupeOriginal: 'g1' },
+    ])
+    expect(premiers.get('g1')).toBe(10)
+    expect(premiers.get('g2')).toBe(12)
+  })
+
+  it('ignore les segments qu’aucun groupe ne couvre', () => {
+    const premiers = premiersBlocsDeGroupe([
+      { id: 10 },
+      { id: 11, groupeOriginal: null },
+      { id: 12, groupeOriginal: 'g1' },
+    ])
+    expect(premiers.size).toBe(1)
+    expect(premiers.get('g1')).toBe(12)
   })
 })
 
