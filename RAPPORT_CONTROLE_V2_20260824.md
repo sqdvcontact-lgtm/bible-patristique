@@ -14,6 +14,8 @@
 | `4e4ad85b` | Charte du dépôt : centre de contrôle v2, worktree du pipeline, pièges du contrat |
 | `8e97002e` | Les totaux d'alignement se comptent sur les runs courants ; les propriétaires ambigus se groupent par missions |
 | `b212a867` | Reprise sur dépassement du délai : le contrat frôle ses huit secondes |
+| `1bc128be` | Le verdict de routage se lit d'un mot ; rapport de séance |
+| `e1f9e5d3` | Refonte de la présentation : volet à gauche, colonne unique, trois rangs de tuiles |
 
 Tous poussés sur `master`. Le déploiement de production suit `master`.
 
@@ -119,3 +121,33 @@ Pour un `statement_timeout` de **8 s** sur `service_role`. La marge est de moins
 Ce que la mesure écarte : les quatre vues internes lues par la fonction ne sont pas le goulot, prises isolément. `v_controle_v2_mutations_routage_effectif` et `v_controle_v2_postchecks_ouverts` rendent 3 500 lignes chacune en **400 ms**, `v_controle_v2_alignment_state` et `v_controle_v2_dernier_run` sont instantanées, et compter `liens_bibliques` coûte 7 ms. Le coût vient donc de leur combinaison, et il a grossi avec la file : 226 objets ambigus contre 2 le matin même, 577 postcontrôles contre 349.
 
 Côté page, la reprise que l'ancien tableau de bord portait déjà est rétablie, deux essais espacés d'une seconde et demie, et sur le seul code 57014. C'est un pansement : il rattrape un dépassement transitoire, il ne rattrapera pas une fonction qui passe durablement les huit secondes. **La suite relève du backend** : matérialiser la part la plus lourde, comme l'a été `oeuvres_controle_stats_mat`, ou sortir les ambiguïtés du contrat compact vers un appel à la demande.
+
+---
+
+## 8. Le contrat a franchi son délai, et la cause est trouvée
+
+En fin de séance la page est devenue **inaccessible** : `controle_v2_admin_snapshot()` est passée à **8 696 ms** pour un `statement_timeout` de 8 s, et les trois essais de la page échouaient tous.
+
+**La cause.** À elle seule, `internal.v_controle_v2_mutations_routage_effectif` coûtait **3 106 ms**, et le contrat l'interrogeait **deux fois** : une fois pour `live_guard.ambiguous_owner_objects_with_links`, une fois pour `routing_ambiguities`. `internal.v_controle_v2_postchecks_ouverts` était de même lue deux fois, pour le décompte de la file puis pour sa répartition par mission.
+
+**Ce que dit le plan de la vue de routage**, et c'est le fond de l'affaire :
+
+```
+Nested Loop Left Join
+  Join Filter: (todo->>'texte') LIKE ('%' || id_oeuvre || '%')
+  Rows Removed by Join Filter: 133 827
+  ->  Seq Scan on controle_sections  (loops=3811)
+```
+
+Le routage d'une mutation vers sa mission propriétaire se décide **en cherchant l'identifiant de l'œuvre dans la prose des tâches du centre de contrôle**. Son coût est donc le produit des mutations ouvertes par les tâches actives, soit 3 811 × 37 comparaisons de chaînes.
+
+⚠️ **Et 37 est anormal.** La charte, section 30.1, prescrit une seule tâche active par section, soit neuf au plus. Il y en a **24 dans « Qualité du texte » et 13 dans « Corpus »**. La même cause explique la montée des ambiguïtés : trois tâches actives nomment `A0012O0002`, donc chacun de ses segments se retrouve avec trois missions candidates.
+
+**Ce qui a été fait**, faute de pouvoir laisser l'écran mort : les deux vues ne sont plus interrogées qu'une fois chacune, par deux CTE `as materialized`. Aucune règle n'a changé, et le résultat a été vérifié clé par clé contre l'ancienne fonction, sur un instantané des deux : les seize clés sont identiques hors `generated_at` et `cache_age_seconds`. La définition précédente est sauvegardée dans `internal.backup_controle_v2_admin_snapshot_20260824`.
+
+Mesures après correction : **6 354 ms** en exécution directe, et **5,8 s** par PostgREST, trois appels de suite, pour 263 Ko de réponse. La page est de nouveau servie.
+
+**Ce qui reste à décider, et qui revient au backend.** La marge est de deux secondes, et la file grossit d'heure en heure : le dépassement reviendra. Deux voies, qui se cumulent.
+
+1. **Clore les tâches actives surnuméraires** pour revenir à la règle d'une par section. Le facteur multiplicatif tomberait de 37 à 9, et le coût du routage avec lui. Ce sont des missions dont je ne suis pas propriétaire, rien n'a été touché.
+2. **Ne plus fonder le routage sur une recherche de sous-chaîne dans du texte rédigé.** Une mission devrait désigner ses objets par un identifiant, non par la mention de leur œuvre dans une phrase. C'est aussi ce qui fabrique les ambiguïtés : deux tâches qui parlent de la même œuvre revendiquent mécaniquement tous ses segments.

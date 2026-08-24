@@ -156,7 +156,7 @@ function Volet({ snapshot }: { snapshot: Snapshot }) {
   const sections = sectionsControle(snapshot)
   return (
     <aside className="cv-volet">
-      <div className="cv-volet-dedans">
+      <div className="cv-volet-dedans cs-defilement-discret">
         <div className="cv-verdict" style={{ borderLeftColor: teinteEtat(etat.code) }}>
           <div className="cv-verdict-titre" style={{ color: teinteEtat(etat.code) }}>{etat.libelle}</div>
           <p className="cv-verdict-phrase">{etat.phrase}</p>
