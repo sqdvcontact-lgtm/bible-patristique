@@ -1073,6 +1073,36 @@ La page lit tout en `supabaseAdmin`. Interroger une vue publique depuis l'admin 
 
 **Faux départs écartés lors du diagnostic** : la fonction existe bien et `EXECUTE` est accordé à `authenticated` et `service_role` ; le filtre `where controle='…'` sur `internal.v_dates_qualite_resume` **élague** correctement les branches de l'`UNION ALL` (38 / 33 / 757 ms au lieu des 3 s de la vue entière), donc les trois appels ne sont pas le goulot ; `qualite_overrides`, `couverture_patristique` et les comptes de `segments` sont tous sous 300 ms.
 
+## La vue principale dit le CONTRÔLE, les statistiques ont leur page (2026-08-24)
+
+`/admin/controle` lit **`public.controle_v2_admin_snapshot()`**, le contrat compact du backend v2. C'est un seul appel, et il porte tout ce qu'il faut pour savoir si l'on peut travailler : état général, sévérités du dernier run global, certifications d'invariants, file des postcontrôles de liens avec sa répartition par mission propriétaire, objets à propriétaire ambigu, spine AELF, liens bibliques, diagnostics d'alignement et leur fraîcheur, mémoire des revues humaines. ⛔ Ne pas reconstruire ces calculs côté frontend : le contrôle certifie, l'écran affiche.
+
+L'ancien tableau de bord, `controle_tableau_bord()`, vit désormais sur **`/admin/controle/statistiques`**, avec ses cartes, ses notes et ses listes de tâches. Il agrège tout le corpus en direct et coûte deux à six secondes : il n'a pas sa place sur l'écran qu'on ouvre pour savoir si une écriture est permise.
+
+⛔ **Dans le snapshot, `metrics` vient d'un CACHE, le reste est calculé en direct.** `live_guard`, `certifications`, `link_review_queue`, `postcheck_owners`, `routing_ambiguities` et `alignment_diagnostics` sont recalculés à l'appel ; `metrics.*` est servi par `internal.controle_v2_metrics_cache`, dont `cache_age_seconds` donne l'âge. Mesuré le 2026-08-24, une heure après le rerun des quatre livres : `alignment_diagnostics` disait quatre runs frais et 179 dossiers pendant que `metrics.alignment_tools` annonçait encore quatre runs périmés et 180 dossiers. Les deux venaient du même appel. **Les totaux d'« Outils alignements » se refont donc depuis `alignment_diagnostics`** (`totauxAlignements`), et ce qui reste tiré du cache porte la mention de son âge.
+
+⛔ **Un run de diagnostic sans empreinte CAPTURÉE est périmé, et on ne lui prête jamais l'empreinte courante.** `estFrais` exige `captured_fingerprint === current_fingerprint` : lui attribuer l'empreinte du corpus reviendrait à certifier un calcul qu'on n'a pas fait. Un run legacy (`stale_reason = 'legacy_no_fingerprint'`) ne redevient frais que par un vrai rerun ; deux triggers capturent alors son empreinte tout seuls.
+
+**Les décisions humaines sont un CONTEXTE, jamais un verdict.** La mémoire des revues est append-only et se retrouve par `segment_key` et type diagnostique, d'un run à l'autre. L'écran la nomme et dit qu'elle ne s'applique pas d'elle-même au nouveau résultat.
+
+⚠️ **Le backend n'écrit que les sévérités rencontrées** : `findings_by_severity` valait `{REVIEW: 3}`, sans les trois autres. Une sévérité absente vaut zéro constat et doit se lire comme telle, sinon la ligne BLOCKER disparaît le jour où elle vaut zéro et l'on ne sait plus si elle a été vérifiée.
+
+# Diagnostics d'alignement — le pipeline vit dans un WORKTREE, pas dans `master`
+
+⚠️ `scripts/bible-alignment-audit/` n'existe pas sur `master` : le chantier vit sur la branche `agent/bible-alignment-audit`, sortie dans le worktree **`C:\Corpus Scriptura\bible-alignment-audit`** (`git worktree list` les nomme tous). Chercher le pipeline dans le dépôt principal ne rend rien, alors que les runs en base citent bien leurs commits.
+
+Rejouer un livre, depuis ce worktree :
+
+```
+node scripts/bible-alignment-audit/run.mjs --book ACT --env "C:\Corpus Scriptura\bible-patristique\.env.local"
+```
+
+`--dry-run` calcule sans rien stocker. Le run inscrit le commit `HEAD` du worktree, suffixé `-dirty` si des fichiers suivis ont changé : rejouer sur un arbre propre est donc la condition d'un run reproductible.
+
+⚠️ **L'extraction dépasse parfois le `statement_timeout` de 8 s à froid.** `v_bible899_verse_recomposed` ne sait pas pousser le filtre livre : elle écarte les dix-neuf mille alignements du corpus pour en rendre mille, et la première page coûte une seconde cache chaud, davantage à froid. Une tentative qui échoue là ne laisse **aucune trace** : `stockerRapport` n'est appelé qu'après la détection complète, la reprise est donc sûre. Sur les quatre reruns du 2026-08-24, une seule reprise a été nécessaire, sur JHN.
+
+⛔ **Un diagnostic ne corrige rien.** L'autorité canonique est la spine AELF, et le système est en lecture seule sur le corpus : ses seules écritures sont son propre rapport et les revues humaines. Toute proposition philologique se signale, elle ne s'applique pas.
+
 # La Gueule — métadonnées de la page de titre par IA
 
 Outil local `outils/la-gueule` (hors site). Le bouton « IA titre » lit la page de titre par vision et remplit les champs `oeuvres` en **couche candidate** (charte §5.4 et §14 : jamais de donnée validée sans relecture). Détails et pièges complets dans la mémoire projet La Gueule. Points cardinaux :
