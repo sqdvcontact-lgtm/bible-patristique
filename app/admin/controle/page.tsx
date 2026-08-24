@@ -75,6 +75,7 @@ function detailConstat(constat: Constat): string {
 }
 
 function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; details?: string; hint?: string } | null }) {
+  const expire = erreur?.code === '57014'
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '3rem 1.5rem' }}>
       <div style={{ maxWidth: '46rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '1.5rem 1.75rem' }}>
@@ -82,8 +83,10 @@ function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; det
           Le contrôle v2 n’a pas répondu
         </h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: '0 0 1rem' }}>
-          La RPC controle_v2_admin_snapshot n’a rien renvoyé d’exploitable. Le détail technique est ci-dessous.
-          Les statistiques historiques restent accessibles sur leur propre page.
+          {expire
+            ? 'La requête a dépassé le délai autorisé, trois fois de suite. Le contrat recalcule la garde, la file des liens et les ambiguïtés à chaque appel, et il frôle les huit secondes : sous charge, il les franchit. Réessayez dans un instant, et signalez le cas si le dépassement dure.'
+            : 'La RPC controle_v2_admin_snapshot n’a rien renvoyé d’exploitable. Le détail technique est ci-dessous.'}
+          {' '}Les statistiques du corpus restent accessibles sur leur propre page.
         </p>
         <pre style={{ fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace', color: 'var(--cs-texte)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '0.75rem', margin: '0 0 1rem', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
           {erreur
@@ -401,10 +404,28 @@ function CarteGarde({ snapshot }: { snapshot: Snapshot }) {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+// Le contrat recalcule à l'appel la garde, la file des liens, les propriétaires
+// et les ambiguïtés. Mesuré le 24 août 2026, il coûtait 7,55 s pour un
+// `statement_timeout` de 8 s sur `service_role` : le dépassement (57014) est donc
+// à portée de main dès que la base est sous charge, et il est TRANSITOIRE. On
+// réessaie deux fois, et sur ce seul code : une vraie erreur, droits ou objet
+// manquant, doit remonter tout de suite.
+const CODE_DELAI_DEPASSE = '57014'
+
+async function chargerSnapshot() {
+  for (let essai = 0; ; essai++) {
+    const { data, error } = await supabaseAdmin.rpc('controle_v2_admin_snapshot')
+    if (!error) return { data, error: null }
+    console.error(`[controle] RPC controle_v2_admin_snapshot (essai ${essai + 1}) :`, error)
+    if (essai >= 2 || error.code !== CODE_DELAI_DEPASSE) return { data: null, error }
+    await new Promise((resoudre) => setTimeout(resoudre, 1500))
+  }
+}
+
 export default async function CentreControlePage() {
   if (!(await estAdmin())) return <EcranReserve />
 
-  const { data, error } = await supabaseAdmin.rpc('controle_v2_admin_snapshot')
+  const { data, error } = await chargerSnapshot()
   const snapshot = lireSnapshot(data)
   if (!snapshot) {
     if (error) console.error('[controle] RPC controle_v2_admin_snapshot :', error)
