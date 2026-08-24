@@ -12,7 +12,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard, premiersBlocsDeGroupe } from './bilingueAlignement'
+import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
@@ -1172,7 +1172,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Un groupe qui enjambe deux sections ne compose son original qu'une fois : voir
   // `premiersBlocsDeGroupe`. ⚠️ L'ordre de `segmentsFiltres` fait foi, et c'est bien
   // l'ordre de lecture (`segment_numero`), qu'aucun filtre ne dérange.
-  const premierBlocDuGroupe = premiersBlocsDeGroupe(segmentsFiltres)
+  const bornesGroupes = bornesDesGroupes(segmentsFiltres)
 
   // Une note appelée dans un TITRE n'est pas toujours définie sur le premier
   // segment de son groupe : dans les imports à notes structurées, son ancre tombe
@@ -1717,6 +1717,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            dessiner, et c'est ce que fait la page imprimée.
            ⚠️ Aucun accent grave dans ce bloc : il vit dans un littéral de gabarit. */
         .para-bilingue--vers { border-bottom: none; margin-bottom: 1.15rem; }
+        /* ⛔ La SUITE d'un empan : un groupe d'alignement qui enjambe deux sections se
+           rend en deux blocs, et le filet tiré entre eux annoncerait une frontière que
+           l'alignement ne reconnaît pas. Le blanc se resserre au lieu de s'ouvrir : les
+           deux moitiés appartiennent au même empan, dont le grec est resté au-dessus. */
+        .para-bilingue--suite { border-bottom: none; margin-bottom: 0.5rem; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
            différence de police distingue les deux colonnes d'un coup d'œil, mieux
@@ -2291,7 +2296,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const original = originalDuBloc(chunk)
                     // Le bloc PORTE-t-il l'original, ou le prolonge-t-il ? Un groupe qui
                     // enjambe deux sections ne le compose que dans la première.
-                    const porteOriginal = !chunk.groupe || premierBlocDuGroupe.get(chunk.groupe) === chunk.ids[0]
+                    const bornes = chunk.groupe ? bornesGroupes.get(chunk.groupe) : undefined
+                    const porteOriginal = !bornes || bornes.premier === chunk.ids[0]
+                    // Le filet marque l'appariement empan par empan : il ne se tire qu'au
+                    // BOUT du groupe, jamais entre deux blocs qu’un même empan réunit.
+                    const clotGroupe = !bornes || bornes.dernier === chunk.ids[chunk.ids.length - 1]
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
@@ -2304,7 +2313,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Le repli n'en sait rien et suit la colonne française, comme avant.
                     const originalEnVers = original?.toutVers ?? toutVers
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}` : undefined}
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotGroupe ? '' : ' para-bilingue--suite'}` : undefined}
                       /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
                          la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
                          la page de titre. */

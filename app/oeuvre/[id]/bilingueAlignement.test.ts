@@ -4,7 +4,7 @@ import {
   choisirEnsembleBilingue,
   joindreSegmentsOriginaux,
   originalEnRegard,
-  premiersBlocsDeGroupe,
+  bornesDesGroupes,
   projeterBilingue,
   type MembreAlignement,
   type SegmentOriginal,
@@ -170,29 +170,36 @@ describe('projection bilingue', () => {
   })
 })
 
-describe('un groupe ne compose son original qu’une fois', () => {
+describe('les bornes d’un groupe', () => {
   // Cas relevé en ligne le 2026-08-24 sur la Didachè : le groupe PAR:003 couvre deux
   // paragraphes français que sépare un titre de section, et les sections se rendent
   // séparément — le grec paraissait donc deux fois de suite.
-  it('retient le premier segment de chaque groupe, dans l’ordre de lecture', () => {
-    const premiers = premiersBlocsDeGroupe([
+  it('donne le premier et le dernier segment, dans l’ordre de lecture', () => {
+    const bornes = bornesDesGroupes([
       { id: 10, groupeOriginal: 'g1' },
       { id: 11, groupeOriginal: 'g1' },
       { id: 12, groupeOriginal: 'g2' },
       { id: 13, groupeOriginal: 'g1' },
     ])
-    expect(premiers.get('g1')).toBe(10)
-    expect(premiers.get('g2')).toBe(12)
+    expect(bornes.get('g1')).toEqual({ premier: 10, dernier: 13 })
+    expect(bornes.get('g2')).toEqual({ premier: 12, dernier: 12 })
   })
 
   it('ignore les segments qu’aucun groupe ne couvre', () => {
-    const premiers = premiersBlocsDeGroupe([
+    const bornes = bornesDesGroupes([
       { id: 10 },
       { id: 11, groupeOriginal: null },
       { id: 12, groupeOriginal: 'g1' },
     ])
-    expect(premiers.size).toBe(1)
-    expect(premiers.get('g1')).toBe(12)
+    expect(bornes.size).toBe(1)
+    expect(bornes.get('g1')).toEqual({ premier: 12, dernier: 12 })
+  })
+
+  // Un groupe interrompu puis repris garde sa PREMIÈRE et sa DERNIÈRE apparition : le
+  // grec reste en tête, et le filet ne se tire qu'au bout de l'empan.
+  it('embrasse un groupe interrompu par un autre', () => {
+    const bornes = bornesDesGroupes([{ id: 1, groupeOriginal: 'g1' }, { id: 2, groupeOriginal: 'g2' }, { id: 3, groupeOriginal: 'g1' }])
+    expect(bornes.get('g1')).toEqual({ premier: 1, dernier: 3 })
   })
 })
 

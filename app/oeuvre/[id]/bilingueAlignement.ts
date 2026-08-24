@@ -200,26 +200,33 @@ export function projeterBilingue(params: {
 }
 
 /**
- * Le premier segment traduit de chaque groupe, dans l'ordre de lecture.
+ * Le premier et le dernier segment traduit de chaque groupe, dans l'ordre de lecture.
  *
  * ⛔ Un groupe d'alignement peut ENJAMBER deux sections — 28 des 57 groupes de la
- * Didachè le font — et les sections se rendent séparément, chacune sous son titre. Sans
- * cette table, l'original du groupe se recomposait dans CHAQUE section traversée : le
- * grec de la troisième section de la Didachè paraissait deux fois de suite, une fois en
- * regard de « Et voici l'enseignement… », une fois en regard de « Abstiens-toi… ».
+ * Didachè le font — et les sections se rendent séparément, chacune sous son titre. La
+ * découpe en blocs ne peut donc pas les réunir, et il faut deux bornes pour rendre
+ * l'empan quand même :
  *
- * Il ne paraît donc qu'en regard du PREMIER bloc du groupe ; les blocs suivants gardent
- * leur grille, colonne de droite vide, pour que le français ne reprenne pas toute la
- * largeur au milieu d'un empan.
+ * - le PREMIER porte l'original. Sans cette borne, il se recomposait dans chaque section
+ *   traversée : le grec de la troisième section de la Didachè paraissait deux fois de
+ *   suite, en regard de « Et voici l'enseignement… » puis de « Abstiens-toi… ».
+ *   Les blocs suivants gardent leur grille, colonne de droite vide, pour que le français
+ *   ne reprenne pas toute la largeur au milieu d'un empan.
+ * - le DERNIER porte le filet. Celui-ci marque l'appariement empan par empan : tiré
+ *   entre deux blocs d'un MÊME groupe, il annonce une frontière que l'alignement ne
+ *   reconnaît pas, et les deux moitiés d'un empan se lisent comme deux empans.
  */
-export function premiersBlocsDeGroupe(
+export function bornesDesGroupes(
   segments: readonly { id: number; groupeOriginal?: string | null }[],
-): Map<string, number> {
-  const premiers = new Map<string, number>()
+): Map<string, { premier: number; dernier: number }> {
+  const bornes = new Map<string, { premier: number; dernier: number }>()
   for (const s of segments) {
-    if (s.groupeOriginal && !premiers.has(s.groupeOriginal)) premiers.set(s.groupeOriginal, s.id)
+    if (!s.groupeOriginal) continue
+    const borne = bornes.get(s.groupeOriginal)
+    if (borne) borne.dernier = s.id
+    else bornes.set(s.groupeOriginal, { premier: s.id, dernier: s.id })
   }
-  return premiers
+  return bornes
 }
 
 /** Ce que la colonne de droite compose, d'où qu'il vienne. */

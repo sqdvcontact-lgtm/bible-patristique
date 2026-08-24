@@ -1540,6 +1540,9 @@ La RLS des trois tables d'alignement exige que **les deux** textes soient `is_pu
 
 Relevé en ligne le 2026-08-24, sur la Didachè même. Les sections se rendent séparément, chacune sous son titre, et la découpe en blocs ne peut donc pas réunir deux paragraphes français que sépare un titre. Le groupe `PAR:003` couvre pourtant les deux : son grec se recomposait **dans chaque section traversée**, une fois en regard de « Et voici l'enseignement… », une fois en regard de « Abstiens-toi… ». Le lecteur voyait le même grec deux fois de suite.
 
-`premiersBlocsDeGroupe` retient le premier segment de chaque groupe dans l'ordre de lecture, et l'original ne paraît qu'en regard de celui-là. Les blocs suivants **gardent leur grille**, colonne de droite vide : le français ne doit pas reprendre toute la largeur au milieu d'un empan, sans quoi la mise en regard se défait à l'œil. Même règle que la lecture bilingue de la Bible, où un créneau qu'une édition ne porte pas reste vide.
+`bornesDesGroupes` donne le PREMIER et le DERNIER segment de chaque groupe dans l’ordre de lecture, et il en faut bien deux :
+
+- le **premier** porte l’original. Les blocs suivants gardent leur grille, colonne de droite vide : le français ne doit pas reprendre toute la largeur au milieu d’un empan, sans quoi la mise en regard se défait à l’œil. Même règle que la lecture bilingue de la Bible, où un créneau qu’une édition ne porte pas reste vide.
+- le **dernier** porte le FILET. Celui-ci marque l’appariement empan par empan : tiré entre deux blocs d’un même groupe, il annonce une frontière que l’alignement ne reconnaît pas, et les deux moitiés d’un empan se lisent comme deux empans. `.para-bilingue--suite` l’ôte aux autres et resserre le blanc au lieu de l’ouvrir.
 
 ⚠️ **Le défaut ne se voyait ni aux types, ni aux tests, ni dans la donnée** : les 57 groupes sont complets et sans orphelin, et la projection est juste. Il naît de la rencontre entre l'alignement et le découpage en sections du RENDU, et il a fallu regarder la page.
