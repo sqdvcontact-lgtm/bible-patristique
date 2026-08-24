@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   decouperNom, nomAncien, nomCollectif, composerNom, composerNomIndex, cleTriNom,
-  nomStructure, separerNoms, nettoyerNom,
+  nomStructure, separerNoms, nettoyerNom, listeDepuisVirgules,
 } from './nomsPersonnes'
 
 describe('decouperNom — personnes modernes', () => {
@@ -137,6 +137,26 @@ describe('separerNoms — la chaîne d’une notice', () => {
   it('ignore les segments vides', () => {
     expect(separerNoms('Alcuin;;')).toEqual(['Alcuin'])
     expect(separerNoms('')).toEqual([])
+  })
+})
+
+describe('listeDepuisVirgules — les noms alternatifs', () => {
+  it('découpe et nettoie, comme les variantes d’un éditeur', () => {
+    expect(listeDepuisVirgules(" Jérôme ,  Hieronymus,, ")).toEqual(['Jérôme', 'Hieronymus'])
+  })
+
+  it('normalise l’apostrophe, comme partout ailleurs', () => {
+    expect(listeDepuisVirgules("Augustin d'Hippone")).toEqual(['Augustin d’Hippone'])
+  })
+
+  // Deux fois la même variante ne résout pas mieux.
+  it('écarte les doublons', () => {
+    expect(listeDepuisVirgules('Jérôme, Jérôme')).toEqual(['Jérôme'])
+  })
+
+  it('rend une liste vide sur une saisie vide', () => {
+    expect(listeDepuisVirgules('  ,  ')).toEqual([])
+    expect(listeDepuisVirgules('')).toEqual([])
   })
 })
 

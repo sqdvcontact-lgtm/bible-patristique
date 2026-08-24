@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { statutUsagePourScore, messageErreurQualification } from './qualification'
-import { composerNom, type NomStructure } from '@/app/lib/nomsPersonnes'
+import { composerNom, listeDepuisVirgules, type NomStructure } from '@/app/lib/nomsPersonnes'
 
 type Editeur = { id: number; nom: string; score: number | null; note: string | null }
 // Le nom d'un chercheur se tient en trois rubriques : nom de famille, prénom, et le
@@ -29,6 +29,10 @@ type Editeur = { id: number; nom: string; score: number | null; note: string | n
 type Auteur = {
   id: number; nom: string; score: number | null; motif: string | null; reserve: boolean
   prenom: string | null; nom_famille: string | null; pseudonyme: string | null
+  // Les noms alternatifs, sur le modèle de `editeurs.variantes` : ils RÉSOLVENT le nom
+  // vers cette fiche, ils ne s'affichent jamais à sa place. La colonne s'appelle
+  // `aliases` en base, elle existait avant la règle.
+  aliases: string[]
 }
 const partiesDe = (a: Auteur): NomStructure => ({ prenom: a.prenom, nom: a.nom_famille, pseudonyme: a.pseudonyme })
 
@@ -71,16 +75,28 @@ function Score({ v, on }: { v: number | null; on: (n: number | null) => void }) 
 // L'état est LOCAL et l'écriture part au `blur` : lier les champs à la liste redessinerait
 // les 442 lignes à chaque frappe. Un auteur moderne prend nom et prénom ; un auteur
 // jusqu'à la fin du Moyen Âge n'a que le pseudonyme, son nom n'étant pas un patronyme.
-function RubriquesNom({ auteur, onEnregistrer }: { auteur: Auteur; onEnregistrer: (p: NomStructure) => Promise<boolean> }) {
-  const [p, setP] = useState<NomStructure>({ prenom: auteur.prenom, nom: auteur.nom_famille, pseudonyme: auteur.pseudonyme })
+function RubriquesNom({ auteur, onEnregistrer }: {
+  auteur: Auteur
+  onEnregistrer: (champs: { prenom: string | null; nom_famille: string | null; pseudonyme: string | null; aliases: string[] }) => Promise<boolean>
+}) {
+  const [p, setP] = useState({
+    prenom: auteur.prenom ?? '', nom_famille: auteur.nom_famille ?? '',
+    pseudonyme: auteur.pseudonyme ?? '', alternatifs: (auteur.aliases ?? []).join(', '),
+  })
   const [enregistre, setEnregistre] = useState(false)
-  const set = (k: keyof NomStructure, v: string) => { setP(prev => ({ ...prev, [k]: v || null })); setEnregistre(false) }
+  const set = (k: keyof typeof p, v: string) => { setP(prev => ({ ...prev, [k]: v })); setEnregistre(false) }
   const sauver = async () => {
-    const inchange = (p.prenom ?? '') === (auteur.prenom ?? '')
-      && (p.nom ?? '') === (auteur.nom_famille ?? '')
-      && (p.pseudonyme ?? '') === (auteur.pseudonyme ?? '')
+    const aliases = listeDepuisVirgules(p.alternatifs)
+    const champs = {
+      prenom: p.prenom.trim() || null, nom_famille: p.nom_famille.trim() || null,
+      pseudonyme: p.pseudonyme.trim() || null, aliases,
+    }
+    const inchange = (champs.prenom ?? '') === (auteur.prenom ?? '')
+      && (champs.nom_famille ?? '') === (auteur.nom_famille ?? '')
+      && (champs.pseudonyme ?? '') === (auteur.pseudonyme ?? '')
+      && aliases.join(' ') === (auteur.aliases ?? []).join(' ')
     if (inchange) return
-    if (await onEnregistrer(p)) setEnregistre(true)
+    if (await onEnregistrer(champs)) setEnregistre(true)
   }
   const champ: React.CSSProperties = { width: '100%', fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '5px 8px', boxSizing: 'border-box' }
   const etiquette: React.CSSProperties = { display: 'block', fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', marginBottom: '3px' }
@@ -88,20 +104,25 @@ function RubriquesNom({ auteur, onEnregistrer }: { auteur: Auteur; onEnregistrer
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(8.5rem, 1fr))', gap: '8px', alignItems: 'end', marginTop: '8px', padding: '9px 10px', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', background: 'var(--cs-fond-clair)' }}>
       <div>
         <label style={etiquette}>Nom</label>
-        <input value={p.nom ?? ''} onChange={e => set('nom', e.target.value)} onBlur={sauver} style={champ} />
+        <input value={p.nom_famille} onChange={e => set('nom_famille', e.target.value)} onBlur={sauver} style={champ} />
       </div>
       <div>
         <label style={etiquette}>Prénom</label>
-        <input value={p.prenom ?? ''} onChange={e => set('prenom', e.target.value)} onBlur={sauver} style={champ} />
+        <input value={p.prenom} onChange={e => set('prenom', e.target.value)} onBlur={sauver} style={champ} />
       </div>
       <div>
         <label style={etiquette}>Pseudonyme</label>
-        <input value={p.pseudonyme ?? ''} onChange={e => set('pseudonyme', e.target.value)} onBlur={sauver}
+        <input value={p.pseudonyme} onChange={e => set('pseudonyme', e.target.value)} onBlur={sauver}
           placeholder="Voltaire, Irénée de Lyon…" style={champ} />
       </div>
-      <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: enregistre ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-faible)', paddingBottom: '6px' }}>
-        {enregistre ? '✓ enregistré' : `notice : ${auteur.nom}`}
-      </span>
+      <div style={{ gridColumn: '1 / -1' }}>
+        <label style={etiquette}>Noms alternatifs (séparés par des virgules)</label>
+        <input value={p.alternatifs} onChange={e => set('alternatifs', e.target.value)} onBlur={sauver}
+          placeholder="J. Dupont, Jacques Dupont s.j." style={champ} />
+        <span style={{ display: 'block', fontFamily: SANS, fontSize: '0.65625rem', color: enregistre ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-faible)', marginTop: '5px' }}>
+          {enregistre ? '✓ enregistré' : `Ils résolvent le nom vers cette fiche, ils ne s’affichent jamais à sa place. La notice porte « ${auteur.nom} ».`}
+        </span>
+      </div>
     </div>
   )
 }
@@ -120,7 +141,7 @@ export default function SectionFiabilite() {
   useEffect(() => {
     Promise.all([
       supabase.from('editeurs_valeur').select('id, nom, score, note').order('score', { nullsFirst: false }).order('nom'),
-      supabase.from('auteurs_valeur').select('id, nom, score, motif, reserve, prenom, nom_famille, pseudonyme').order('score', { nullsFirst: false }).order('nom'),
+      supabase.from('auteurs_valeur').select('id, nom, score, motif, reserve, prenom, nom_famille, pseudonyme, aliases').order('score', { nullsFirst: false }).order('nom'),
     ]).then(([e, a]) => {
       setEditeurs((e.data ?? []) as Editeur[])
       setAuteurs((a.data ?? []) as Auteur[])
@@ -148,14 +169,13 @@ export default function SectionFiabilite() {
     return true
   }
 
-  // Écrit les trois rubriques. ⛔ Jamais `nom` : c'est par lui que les notices et les
-  // lignes de contributeurs retrouvent la personne, et le réécrire ici les détacherait.
-  const majNom = async (id: number, parties: NomStructure) => {
+  // Écrit les rubriques du nom et les noms alternatifs. ⛔ Jamais `nom` : c'est par lui
+  // que les notices et les lignes de contributeurs retrouvent la personne, et le
+  // réécrire ici les détacherait.
+  const majNom = async (id: number, champs: { prenom: string | null; nom_famille: string | null; pseudonyme: string | null; aliases: string[] }) => {
     const avant = auteurs
-    setAuteurs(prev => prev.map(x => x.id === id
-      ? { ...x, prenom: parties.prenom, nom_famille: parties.nom, pseudonyme: parties.pseudonyme } : x))
-    const { error } = await supabase.from('auteurs_valeur')
-      .update({ prenom: parties.prenom, nom_famille: parties.nom, pseudonyme: parties.pseudonyme }).eq('id', id)
+    setAuteurs(prev => prev.map(x => x.id === id ? { ...x, ...champs } : x))
+    const { error } = await supabase.from('auteurs_valeur').update(champs).eq('id', id)
     if (error) { setAuteurs(avant); setErreur(messageErreurQualification(error.message)); return false }
     setErreur('')
     return true
@@ -237,7 +257,7 @@ export default function SectionFiabilite() {
                   Réserve
                 </button>
               </div>
-              {nomOuvert === a.id && <RubriquesNom auteur={a} onEnregistrer={parties => majNom(a.id, parties)} />}
+              {nomOuvert === a.id && <RubriquesNom auteur={a} onEnregistrer={champs => majNom(a.id, champs)} />}
               {enSaisie && (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '7px', paddingLeft: '2px' }}>
                   <input autoFocus value={reserveEnCours.motif}

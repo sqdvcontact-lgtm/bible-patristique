@@ -151,6 +151,22 @@ export function nomStructure(n: Partial<NomStructure> | null | undefined): boole
 }
 
 /**
+ * Les NOMS ALTERNATIFS se saisissent séparés par des virgules et se rangent en tableau,
+ * sur le modèle de `editeurs.variantes`, qui l'a fait le premier. Ils RÉSOLVENT le nom
+ * vers sa fiche, ils ne s'affichent jamais à sa place.
+ *
+ * Les doublons sont écartés : deux fois la même variante ne résout pas mieux.
+ */
+export function listeDepuisVirgules(saisie: string): string[] {
+  const vus = new Set<string>()
+  for (const part of (saisie ?? '').split(',')) {
+    const propre = nettoyerNom(part)
+    if (propre) vus.add(propre)
+  }
+  return [...vus]
+}
+
+/**
  * Découpe la chaîne d'une notice (« André Caquot; Philippe de Robert ») en noms.
  * Les mentions de rôle collées au dernier nom (« (dir.) », « (éd.) ») sont retirées :
  * elles disent le rôle, que la notice porte déjà par ailleurs.
