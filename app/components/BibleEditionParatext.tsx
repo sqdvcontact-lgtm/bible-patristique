@@ -1,8 +1,9 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { Fragment, type CSSProperties, type ReactNode } from 'react'
 import Image from 'next/image'
 import type {
   BibleEditionDisplayAsset,
   BibleEditionDisplayBodyBlock,
+  BibleEditionDisplayInlineSpan,
   BibleEditionDisplayInternalNote,
   BibleEditionDisplayNote,
   BibleEditionDisplayTextBlock,
@@ -14,6 +15,7 @@ import {
   diviserIntitule,
   type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
@@ -52,15 +54,109 @@ const STYLE_CORPS: CSSProperties = {
   overflowWrap: 'break-word',
 }
 
-function rendreBlocTexte(bloc: BlocTexteBiblique, resolu?: StyleResolu): ReactNode {
+function positionAppelDansTexte(
+  text: string,
+  note: BibleEditionDisplayInternalNote,
+  bloc?: BlocTexteBiblique,
+): number | null {
+  if (note.anchorTarget === 'heading') {
+    if (!note.anchorText) return null
+    const index = text.indexOf(note.anchorText)
+    return index >= 0 ? index + note.anchorText.length : null
+  }
+  if (note.anchorTarget !== 'body') return null
+  if (note.anchorText) {
+    const index = text.indexOf(note.anchorText)
+    if (index >= 0) return index + note.anchorText.length
+  }
+  const sourceStart = bloc?.sourceStartOffsetUnicode
+  const sourceEnd = bloc?.sourceEndOffsetUnicode
+  const anchorEnd = note.anchorEndOffsetUnicode
+  if (sourceStart == null || sourceEnd == null || anchorEnd == null) return null
+  if (anchorEnd < sourceStart || anchorEnd > sourceEnd) return null
+  const relative = anchorEnd - sourceStart
+  return relative <= text.length ? relative : null
+}
+
+function envelopperSpan(
+  contenu: ReactNode,
+  span: BibleEditionDisplayInlineSpan | undefined,
+  key: string,
+): ReactNode {
+  if (!span) return <Fragment key={key}>{contenu}</Fragment>
+  const lang = span.language ?? undefined
+  if (span.rendering === 'quotation_italic') {
+    return <em key={key} lang={lang}>«&#8239;{contenu}&#8239;»</em>
+  }
+  if (span.rendering === 'italic' || ['quotation', 'foreign_expression', 'bibliographic_title', 'abbreviation'].includes(span.kind)) {
+    return <em key={key} lang={lang}>{contenu}</em>
+  }
+  if (span.rendering === 'small_caps' || span.kind === 'historical_author' || span.kind === 'modern_author') {
+    return <span key={key} lang={lang} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{contenu}</span>
+  }
+  return <span key={key} lang={lang}>{contenu}</span>
+}
+
+function rendreContenuAncre(
+  text: string,
+  spans: readonly BibleEditionDisplayInlineSpan[] = [],
+  notes: readonly BibleEditionDisplayInternalNote[] = [],
+  bloc?: BlocTexteBiblique,
+): ReactNode {
+  const appels = notes.flatMap((note) => {
+    const position = positionAppelDansTexte(text, note, bloc)
+    return position === null ? [] : [{ position, note }]
+  })
+  if (spans.length === 0 && appels.length === 0) return rendreTexteEnrichi(text)
+
+  const bornes = new Set<number>([0, text.length])
+  for (const span of spans) {
+    bornes.add(span.startOffsetUnicode)
+    bornes.add(span.endOffsetUnicode)
+  }
+  for (const appel of appels) bornes.add(appel.position)
+  const ordre = [...bornes].filter((position) => position >= 0 && position <= text.length).sort((a, b) => a - b)
+  const noeuds: ReactNode[] = []
+  for (let index = 0; index < ordre.length - 1; index += 1) {
+    const start = ordre[index]
+    const end = ordre[index + 1]
+    if (end > start) {
+      const span = spans.find((candidate) => candidate.startOffsetUnicode <= start && candidate.endOffsetUnicode >= end)
+      noeuds.push(envelopperSpan(rendreTexteEnrichi(text.slice(start, end)), span, `run:${start}:${end}`))
+    }
+    for (const appel of appels.filter((candidate) => candidate.position === end)) {
+      noeuds.push(<AppelNoteBible key={`appel:${appel.note.id}`} noteId={appel.note.id} displayNumber={appel.note.displayNumber} />)
+    }
+  }
+  return noeuds
+}
+
+function rendreBlocTexte(
+  bloc: BlocTexteBiblique,
+  resolu?: StyleResolu,
+  notes: readonly BibleEditionDisplayInternalNote[] = [],
+  niveauParent?: 1 | 2 | 3 | 4 | 5 | 6,
+): ReactNode {
+  if (bloc.kind === 'heading') {
+    const niveau = Math.min(6, (niveauParent ?? 2) + 1) as 1 | 2 | 3 | 4 | 5 | 6
+    const Balise = `h${niveau}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+    return (
+      <Balise
+        key={bloc.id}
+        className={bloc.headingLevel ? classeIntituleTitre(bloc.headingLevel) : 'cs-bible-info-label'}
+        data-source-start={bloc.sourceStartOffsetUnicode ?? undefined}
+        data-source-end={bloc.sourceEndOffsetUnicode ?? undefined}
+        style={{
+          textAlign: bloc.presentation?.textAlign,
+          fontStyle: bloc.presentation?.fontStyle,
+        }}
+      >
+        {rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc)}
+      </Balise>
+    )
+  }
+
   const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
-  // ⚠️ La composition d’une introduction dépend de sa PORTÉE, non de sa seule
-  // nature. Celle du LIVRE est un préambule : elle s’écarte du fil, centrée et
-  // en italique. Celle d’une PÉRICOPE appartient au fil : elle se lit au fer et
-  // en romain, sous son intertitre. Le même traitement pour les deux faisait
-  // flotter au milieu de la page un texte qui accompagne un passage précis.
-  const preambule = resolu?.nature === 'introduction'
-    && (resolu.level === 'I1' || resolu.level === 'I2')
   const style: CSSProperties = {
     ...STYLE_CORPS,
     margin: discret ? '0.35rem 0 0' : '0 0 0.6rem',
@@ -70,19 +166,23 @@ function rendreBlocTexte(bloc: BlocTexteBiblique, resolu?: StyleResolu): ReactNo
       ? { color: 'var(--cs-texte-second)', fontSize: '0.8125rem', textAlign: 'left' as const }
       : {}),
     ...(bloc.form === 'verse' ? { lineHeight: 1.6, textAlign: 'left' as const } : {}),
-    // ⚠️ En DERNIER : la composition de l’introduction doit l’emporter sur les
-    // réglages généraux, dont `fontStyle`, qui écraserait sinon l'italique.
-    ...(preambule
-      ? {
-        fontSize: '0.78125rem',
-        fontStyle: 'italic' as const,
-        textAlign: 'center' as const,
-        hyphens: 'none' as const,
-        margin: '0 0 0.5rem',
-      }
-      : {}),
+    // La portée ne décide jamais seule du centrage ou de l'italique. Le
+    // fac-similé de Fillion centre « INTRODUCTION », mais justifie son corps :
+    // seule la propriété de présentation reconstruite peut donc déroger ici.
+    ...(bloc.presentation?.textAlign ? { textAlign: bloc.presentation.textAlign } : {}),
+    ...(bloc.presentation?.fontStyle ? { fontStyle: bloc.presentation.fontStyle } : {}),
   }
-  return <p key={bloc.id} lang={bloc.language ?? undefined} style={style}>{bloc.text}</p>
+  return (
+    <p
+      key={bloc.id}
+      lang={bloc.language ?? undefined}
+      data-source-start={bloc.sourceStartOffsetUnicode ?? undefined}
+      data-source-end={bloc.sourceEndOffsetUnicode ?? undefined}
+      style={style}
+    >
+      {rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc)}
+    </p>
+  )
 }
 
 export function IllustrationBible({ illustration }: { illustration: IllustrationBibliqueAffichable }) {
@@ -135,6 +235,8 @@ export function BlocEditorialBible({
   if (!resolu || !resolu.bodyBlock) return null
 
   const intitule = diviserIntitule(bloc.heading ?? null)
+  const notesTitre = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'heading')
+  const notesCorps = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'body')
   // La balise vient des parents réellement présents, jamais du chiffre du jeton.
   const Balise = `h${bloc.niveauHtml ?? 2}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
@@ -145,23 +247,23 @@ export function BlocEditorialBible({
         // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
         // du développement qui le suit. Les deux ne se concatènent jamais.
         <Balise className={classeIntituleTitre(resolu.headingLevel)}>
-          {intitule.titre}
-          {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
+          {rendreContenuAncre(intitule.titre, [], notesTitre)}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
         </Balise>
       ) : resolu.kind === 'title' ? (
         <Balise className={classesDuStyle(resolu)[0]}>
-          {intitule.titre}
-          {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
+          {rendreContenuAncre(intitule.titre, [], notesTitre)}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
         </Balise>
       ) : (
         // Simple repère interne : jamais une balise de titre, sans quoi il
         // entrerait dans le plan d'accessibilité par la bande.
         <p className="cs-bible-info-label">
-          {intitule.titre}
-          {intitule.sousTitre && <span className="cs-bible-chapeau">{intitule.sousTitre}</span>}
+          {rendreContenuAncre(intitule.titre, [], notesTitre)}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
         </p>
       ))}
-      {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu))}
+      {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu, notesCorps, bloc.niveauHtml))}
       {rendreIllustrations(dansLeFlux)}
       {(bloc.internalNotes?.length ?? 0) > 0 && (
         <aside
@@ -170,8 +272,22 @@ export function BlocEditorialBible({
         >
           <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
             {bloc.internalNotes?.map((note) => (
-              <li key={note.id} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
+              <li
+                key={note.id}
+                id={note.anchorTarget ? `note-bible-${note.id}` : undefined}
+                value={note.displayNumber}
+                style={{ marginBottom: '0.5rem' }}
+              >
                 {note.blocks.map((texte) => rendreBlocTexte(texte))}
+                {note.anchorTarget && (
+                  <a
+                    href={`#${ancreAppelNoteBible(note.id)}`}
+                    aria-label={`Retour à l’appel de la note ${note.displayNumber}`}
+                    style={{ marginLeft: '0.35rem', color: 'var(--cs-texte-faible)', textDecoration: 'none' }}
+                  >
+                    ↩
+                  </a>
+                )}
               </li>
             ))}
           </ol>

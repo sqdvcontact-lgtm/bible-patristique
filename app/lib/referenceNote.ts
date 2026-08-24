@@ -135,19 +135,65 @@ function resoudreLivre(numTete: string | undefined, mot: string): string | null 
 // Un renvoi = [numéro de livre ?] [mot du livre] [chapitre] [, ou .] [verset(s)].
 // Le numéro de tête (1-4, ou I-IV) et le chapitre romain sont pris en charge. La
 // réécriture n'a lieu que si le livre est reconnu ; sinon la portion reste intacte.
-const RE_RENVOI = /(?<![\p{L}\d])((?:[1-4]|IV|III|II|I)\s*)?([A-Za-zÀ-ÿ]+)\.?\s*(\d{1,3}|[IVXLCDM]{1,6})\s*[.,]\s*(\d{1,3}(?:\s*[-–]\s*\d{1,3})?)\.?/gu
+// Un chiffre romain de tête doit être séparé du nom du livre : sans cette
+// borne, « Is. XI, 1 » était lu « I S. XI, 1 » (1 Samuel) au lieu d’Isaïe.
+// Les chiffres arabes restent volontairement acceptés avec ou sans espace
+// afin de reconnaître aussi bien « 1 Co » que « 1Co ».
+const RE_RENVOI = /(?<![\p{L}\d])((?:[1-4]\s*|(?:IV|III|II|I)\s+))?([A-Za-zÀ-ÿ]+)\.?\s*(\d{1,3}|[IVXLCDM]{1,6})\s*[.,]\s*(\d{1,3}(?:\s*[-–]\s*\d{1,3})?)\.?/gu
+
+export type ReferenceBibliqueNormalisee = {
+  source: string
+  normalized: string
+  startOffsetUnicode: number
+  endOffsetUnicode: number
+  bookCode: string
+}
+
+/**
+ * Relève les transformations certaines sans toucher au texte.
+ *
+ * Cette forme détaillée sert aux ateliers d'import : elle permet de conserver
+ * la leçon imprimée, de produire une couche de lecture distincte et de compter
+ * exactement les références réellement normalisées. Les offsets sont ceux de
+ * la chaîne JavaScript, donc des positions Unicode cohérentes avec les ancres
+ * éditoriales du projet.
+ */
+export function releverReferencesBibliquesNormalisables(texte: string): ReferenceBibliqueNormalisee[] {
+  if (!texte) return []
+  const resultats: ReferenceBibliqueNormalisee[] = []
+  for (const match of texte.matchAll(RE_RENVOI)) {
+    const [source, numTete, mot, chap, verset] = match
+    const bookCode = resoudreLivre(numTete, mot)
+    if (!bookCode || match.index == null) continue
+    const chapNum = /^\d+$/.test(chap) ? parseInt(chap, 10) : romainVersEntier(chap)
+    if (chapNum == null) continue
+    const v = verset.replace(/\s*[-–]\s*/g, '-')
+    const normalized = `${abrevEspacee(bookCode)} ${chapNum}, ${v}`
+    if (normalized === source) continue
+    resultats.push({
+      source,
+      normalized,
+      startOffsetUnicode: match.index,
+      endOffsetUnicode: match.index + source.length,
+      bookCode,
+    })
+  }
+  return resultats
+}
 
 // Réécrit toutes les références reconnues d'un texte, en laissant le reste intact.
 export function normaliserReferencesDansTexte(texte: string): string {
   if (!texte) return texte
-  return texte.replace(RE_RENVOI, (match, numTete: string | undefined, mot: string, chap: string, verset: string) => {
-    const code = resoudreLivre(numTete, mot)
-    if (!code) return match
-    const chapNum = /^\d+$/.test(chap) ? parseInt(chap, 10) : romainVersEntier(chap)
-    if (chapNum == null) return match
-    const v = verset.replace(/\s*[-–]\s*/g, '-')
-    return `${abrevEspacee(code)} ${chapNum}, ${v}`
-  })
+  const transformations = releverReferencesBibliquesNormalisables(texte)
+  if (transformations.length === 0) return texte
+  let resultat = ''
+  let curseur = 0
+  for (const transformation of transformations) {
+    resultat += texte.slice(curseur, transformation.startOffsetUnicode)
+    resultat += transformation.normalized
+    curseur = transformation.endOffsetUnicode
+  }
+  return resultat + texte.slice(curseur)
 }
 
 // Une note se termine par un point, sauf si elle porte déjà une ponctuation forte

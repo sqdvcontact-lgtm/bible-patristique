@@ -3,6 +3,7 @@ import {
   abrevEspacee,
   romainVersEntier,
   normaliserReferencesDansTexte,
+  releverReferencesBibliquesNormalisables,
   terminerNote,
 } from './referenceNote'
 
@@ -65,6 +66,22 @@ describe('normaliserReferencesDansTexte — divers', () => {
     expect(normaliserReferencesDansTexte('Reg. II, 3')).toBe('Reg. II, 3')
     expect(normaliserReferencesDansTexte('Eccl. 3, 1')).toBe('Eccl. 3, 1')
     expect(normaliserReferencesDansTexte('page 3, 4')).toBe('page 3, 4')
+  })
+
+  it('rend les transformations et leurs offsets sans modifier la source', () => {
+    const source = 'Voir Is. XI, 1 puis Cf. Luc. I, 26-38.'
+    const transformations = releverReferencesBibliquesNormalisables(source)
+    expect(transformations).toEqual([
+      {
+        source: 'Is. XI, 1', normalized: 'Is 11, 1', bookCode: 'ISA',
+        startOffsetUnicode: 5, endOffsetUnicode: 14,
+      },
+      {
+        source: 'Luc. I, 26-38.', normalized: 'Lc 1, 26-38', bookCode: 'LUK',
+        startOffsetUnicode: 24, endOffsetUnicode: 38,
+      },
+    ])
+    expect(source).toBe('Voir Is. XI, 1 puis Cf. Luc. I, 26-38.')
   })
 })
 

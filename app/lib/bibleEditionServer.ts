@@ -62,6 +62,7 @@ export type BibleEditionBodyBlockRow = {
 
 export type BibleEditionBodyBlockPayload = BibleEditionBodyBlockRow & {
   text_content: string
+  text_features: unknown
   internal_notes: BibleEditionBodyBlockInternalNoteRow[]
 }
 
@@ -187,6 +188,7 @@ type UnitTextRow = {
   unit_id: string
   layer_kind: string
   text_content: string
+  text_features: unknown
 }
 
 const LAYER_PRIORITY: Record<string, number> = {
@@ -236,11 +238,11 @@ async function loadBodyBlockTexts(
   if (segmentError) throw new Error(`Sources des blocs bibliques illisibles : ${segmentError.message}`)
   const segmentSources = (segmentData ?? []) as SegmentSourceRow[]
   const unitIds = [...new Set(segmentSources.map((row) => row.unit_id))]
-  if (unitIds.length === 0) return blocks.map((block) => ({ ...block, text_content: '', internal_notes: [] }))
+  if (unitIds.length === 0) return blocks.map((block) => ({ ...block, text_content: '', text_features: null, internal_notes: [] }))
 
   const { data: unitData, error: unitError } = await client
     .from('v_bible_source_unit_texts')
-    .select('source_id,unit_id,layer_kind,text_content')
+    .select('source_id,unit_id,layer_kind,text_content,text_features')
     .in('unit_id', unitIds)
   if (unitError) throw new Error(`Texte des blocs bibliques illisible : ${unitError.message}`)
   const unitTexts = (unitData ?? []) as UnitTextRow[]
@@ -261,8 +263,9 @@ async function loadBodyBlockTexts(
   }
 
   return blocks.map((block) => {
-    const fragments = (sourcesBySegment.get(block.segment_id) ?? [])
+    const sources = (sourcesBySegment.get(block.segment_id) ?? [])
       .sort((a, b) => a.unit_sequence - b.unit_sequence)
+    const fragments = sources
       .flatMap((source): BibleSourceFragment[] => {
         const text = bestText.get(`${source.source_id}:${source.unit_id}`)?.text_content
         return text === undefined ? [] : [{
@@ -272,7 +275,21 @@ async function loadBodyBlockTexts(
           joinBefore: source.join_before,
         }]
       })
-    return { ...block, text_content: recomposerFragmentsMateriels(fragments), internal_notes: [] }
+    // La structure éditoriale porte des offsets dans UNE unité source. Si un
+    // segment en compose plusieurs (ou n'en prend qu'un extrait), elle doit être
+    // reconstruite après recomposition ; on ne la projette jamais avec des
+    // positions devenues fausses.
+    const uniqueSource = sources.length === 1
+      && sources[0].start_offset === null
+      && sources[0].end_offset === null
+      ? bestText.get(`${sources[0].source_id}:${sources[0].unit_id}`)
+      : null
+    return {
+      ...block,
+      text_content: recomposerFragmentsMateriels(fragments),
+      text_features: uniqueSource?.text_features ?? null,
+      internal_notes: [],
+    }
   })
 }
 

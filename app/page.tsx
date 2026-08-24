@@ -11,7 +11,7 @@ import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleRe
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
-import { sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import { blocsTexteEditoriaux, sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import type { BibleEditionChapterPayload } from '@/app/lib/bibleEditionServer'
 import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
@@ -266,21 +266,22 @@ export default async function Home({
         canonIdStart: block.canon_id_start,
         canonIdEnd: block.canon_id_end,
         materialOrder: block.material_order,
-        textBlocks: [{
-          id: `${block.id}:text`,
-          kind: 'commentary',
-          form: 'prose',
-          text: block.text_content,
-        }],
+        textBlocks: blocsTexteEditoriaux(block.id, block.text_content, block.text_features),
         internalNotes: block.internal_notes.map((note) => ({
           id: note.id,
           displayNumber: note.display_number,
           printedMarker: note.printed_marker,
+          anchorStartOffsetUnicode: note.anchor_start_offset_unicode,
+          anchorEndOffsetUnicode: note.anchor_end_offset_unicode,
+          anchorText: note.anchor_text,
+          anchorTarget: note.anchor_text && note.anchor_start_offset_unicode === null
+            ? 'heading' as const
+            : 'body' as const,
           blocks: note.blocks.map((noteBlock) => ({
             id: noteBlock.block_id,
             kind: noteBlock.kind,
             form: noteBlock.form,
-            text: noteBlock.text,
+            text: noteBlock.rendering ?? noteBlock.text,
             language: noteBlock.language,
           })),
         })),
@@ -294,7 +295,7 @@ export default async function Home({
           id: block.block_id,
           kind: block.kind,
           form: block.form,
-          text: block.text,
+          text: block.rendering ?? block.text,
           language: block.language,
         })),
       })),
@@ -367,21 +368,22 @@ export default async function Home({
           materialOrder: block.material_order,
           appliesTo: block.applies_to,
           appliesToMemberId: block.applies_to_member_id,
-          textBlocks: [{
-            id: `${block.id}:text`,
-            kind: 'commentary' as const,
-            form: 'prose' as const,
-            text: block.text_content,
-          }],
+          textBlocks: blocsTexteEditoriaux(block.id, block.text_content, block.text_features),
           internalNotes: block.internal_notes.map((note) => ({
             id: note.id,
             displayNumber: note.display_number,
             printedMarker: note.printed_marker,
+            anchorStartOffsetUnicode: note.anchor_start_offset_unicode,
+            anchorEndOffsetUnicode: note.anchor_end_offset_unicode,
+            anchorText: note.anchor_text,
+            anchorTarget: note.anchor_text && note.anchor_start_offset_unicode === null
+              ? 'heading' as const
+              : 'body' as const,
             blocks: note.blocks.map((noteBlock) => ({
               id: noteBlock.block_id,
               kind: noteBlock.kind,
               form: noteBlock.form,
-              text: noteBlock.text,
+              text: noteBlock.rendering ?? noteBlock.text,
               language: noteBlock.language,
             })),
           })),
@@ -397,7 +399,7 @@ export default async function Home({
             id: block.block_id,
             kind: block.kind,
             form: block.form,
-            text: block.text,
+            text: block.rendering ?? block.text,
             language: block.language,
           })),
         })),

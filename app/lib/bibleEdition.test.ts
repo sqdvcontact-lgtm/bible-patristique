@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   appartientAuMembre,
+  blocsTexteEditoriaux,
   erreursApplicabilite,
   erreursSousTypeNotice,
   sousTypeNoticeValide,
@@ -161,5 +162,43 @@ describe('modèle éditorial biblique', () => {
       { text: 'erat Verbum', startOffset: null, endOffset: null, joinBefore: 'space' },
       { text: 'Et Verbum', startOffset: null, endOffset: null, joinBefore: 'paragraph_break' },
     ])).toBe('In principio erat Verbum\n\nEt Verbum')
+  })
+
+  it('projette une structure éditoriale sans altérer la transcription source', () => {
+    const source = '1° Le titre. — Corps source.\n\nSecond paragraphe.'
+    const blocs = blocsTexteEditoriaux('intro', source, {
+      editorial_normalization: {
+        blocks: [
+          {
+            id: 'intro:h1', kind: 'heading', form: 'prose', reading_text: '1° Le titre',
+            source_start_offset_unicode: 0, source_end_offset_unicode: 15,
+            heading_level: 'T4', presentation: { text_align: 'left', font_style: 'italic' },
+          },
+          {
+            id: 'intro:p1', kind: 'commentary', form: 'prose', reading_text: 'Corps normalisé.',
+            source_start_offset_unicode: 16, source_end_offset_unicode: 30,
+            presentation: { text_align: 'justify', font_style: 'normal' },
+            inline_spans: [{
+              start_offset_unicode: 0, end_offset_unicode: 5,
+              kind: 'foreign_expression', rendering: 'italic', language: 'la',
+            }],
+          },
+        ],
+      },
+    })
+    expect(blocs).toHaveLength(2)
+    expect(blocs[0]).toMatchObject({ kind: 'heading', headingLevel: 'T4', text: '1° Le titre' })
+    expect(blocs[1]).toMatchObject({
+      kind: 'commentary', text: 'Corps normalisé.',
+      inlineSpans: [{ kind: 'foreign_expression', rendering: 'italic', language: 'la' }],
+    })
+    expect(source).toBe('1° Le titre. — Corps source.\n\nSecond paragraphe.')
+  })
+
+  it('rend les paragraphes source séparément tant que la couche manque', () => {
+    const blocs = blocsTexteEditoriaux('intro', 'Premier.\n\nSecond.', null)
+    expect(blocs.map((bloc) => bloc.text)).toEqual(['Premier.', 'Second.'])
+    expect(blocs.map((bloc) => [bloc.sourceStartOffsetUnicode, bloc.sourceEndOffsetUnicode]))
+      .toEqual([[0, 8], [10, 17]])
   })
 })

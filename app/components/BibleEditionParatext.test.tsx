@@ -175,14 +175,27 @@ describe('composition d’une introduction', () => {
     expect(html).not.toContain('Introduction — 1°')
   })
 
-  it('compose le développement en italique, centré et plus petit', () => {
-    // ⚠️ L'italique se posait AVANT le réglage général de `fontStyle`, qui
-    // l'écrasait : la règle doit venir en dernier.
+  it('ne déduit pas l’apparence du développement de sa seule portée', () => {
+    // Le fac-similé de Matthieu porte une introduction de livre justifiée et
+    // romaine : « introduction_livre » ne signifie donc pas automatiquement
+    // « centré et italique ». L’apparence vient de la structure relevée.
     const html = renderToStaticMarkup(<BlocEditorialBible bloc={introduction} />)
+    const paragraphe = html.slice(html.indexOf('Comme nous') - 320, html.indexOf('Comme nous'))
+    expect(paragraphe).toContain('font-style:normal')
+    expect(paragraphe).toContain('text-align:justify')
+  })
+
+  it('respecte une apparence explicitement relevée dans la structure', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={{
+      ...introduction,
+      textBlocks: [{
+        ...introduction.textBlocks[0],
+        presentation: { fontStyle: 'italic' as const, textAlign: 'center' as const },
+      }],
+    }} />)
     const paragraphe = html.slice(html.indexOf('Comme nous') - 320, html.indexOf('Comme nous'))
     expect(paragraphe).toContain('font-style:italic')
     expect(paragraphe).toContain('text-align:center')
-    expect(paragraphe).toContain('font-size:0.78125rem')
   })
 
   it('laisse un commentaire au fer et sans italique', () => {

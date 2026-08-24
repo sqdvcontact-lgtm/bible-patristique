@@ -86,10 +86,159 @@ export type BibleSourceFragment = {
 
 export type BibleEditionDisplayTextBlock = {
   id: string
-  kind: 'lemma' | 'commentary' | 'quotation' | 'translation' | 'reference' | 'attribution'
+  kind: 'heading' | 'lemma' | 'commentary' | 'quotation' | 'translation' | 'reference' | 'attribution'
   form: 'prose' | 'verse'
   text: string
   language?: string | null
+  /** Empan conservatoire dans la transcription source du bloc parent. */
+  sourceStartOffsetUnicode?: number | null
+  sourceEndOffsetUnicode?: number | null
+  /** Rang sémantique d'un intertitre reconstruit, distinct de la balise HTML. */
+  headingLevel?: 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | null
+  presentation?: {
+    textAlign?: 'left' | 'center' | 'right' | 'justify'
+    fontStyle?: 'normal' | 'italic'
+  } | null
+  inlineSpans?: BibleEditionDisplayInlineSpan[]
+}
+
+export type BibleEditionDisplayInlineSpan = {
+  startOffsetUnicode: number
+  endOffsetUnicode: number
+  kind: 'quotation' | 'foreign_expression' | 'bibliographic_title' | 'historical_author' | 'modern_author' | 'biblical_reference' | 'abbreviation'
+  language?: string | null
+  rendering?: 'italic' | 'small_caps' | 'quotation_italic' | null
+}
+
+type EditorialNormalizationBlock = {
+  id?: unknown
+  kind?: unknown
+  form?: unknown
+  reading_text?: unknown
+  language?: unknown
+  source_start_offset_unicode?: unknown
+  source_end_offset_unicode?: unknown
+  heading_level?: unknown
+  presentation?: unknown
+  inline_spans?: unknown
+}
+
+const TEXT_BLOCK_KINDS = new Set<BibleEditionDisplayTextBlock['kind']>([
+  'heading', 'lemma', 'commentary', 'quotation', 'translation', 'reference', 'attribution',
+])
+const INLINE_SPAN_KINDS = new Set<BibleEditionDisplayInlineSpan['kind']>([
+  'quotation', 'foreign_expression', 'bibliographic_title', 'historical_author',
+  'modern_author', 'biblical_reference', 'abbreviation',
+])
+
+function objet(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null
+}
+
+function entierOuNull(value: unknown): number | null {
+  return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : null
+}
+
+function presentationSure(value: unknown): BibleEditionDisplayTextBlock['presentation'] {
+  const record = objet(value)
+  if (!record) return null
+  const textAlign = ['left', 'center', 'right', 'justify'].includes(String(record.text_align))
+    ? record.text_align as NonNullable<BibleEditionDisplayTextBlock['presentation']>['textAlign']
+    : undefined
+  const fontStyle = ['normal', 'italic'].includes(String(record.font_style))
+    ? record.font_style as NonNullable<BibleEditionDisplayTextBlock['presentation']>['fontStyle']
+    : undefined
+  return textAlign || fontStyle ? { textAlign, fontStyle } : null
+}
+
+function spansSurs(value: unknown, textLength: number): BibleEditionDisplayInlineSpan[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((candidate): BibleEditionDisplayInlineSpan[] => {
+    const record = objet(candidate)
+    const start = entierOuNull(record?.start_offset_unicode)
+    const end = entierOuNull(record?.end_offset_unicode)
+    const kind = String(record?.kind ?? '') as BibleEditionDisplayInlineSpan['kind']
+    if (start === null || end === null || end <= start || end > textLength || !INLINE_SPAN_KINDS.has(kind)) return []
+    const rendering = ['italic', 'small_caps', 'quotation_italic'].includes(String(record?.rendering))
+      ? record?.rendering as BibleEditionDisplayInlineSpan['rendering']
+      : null
+    return [{
+      startOffsetUnicode: start,
+      endOffsetUnicode: end,
+      kind,
+      language: typeof record?.language === 'string' ? record.language : null,
+      rendering,
+    }]
+  }).sort((a, b) => a.startOffsetUnicode - b.startOffsetUnicode || a.endOffsetUnicode - b.endOffsetUnicode)
+}
+
+/**
+ * Projette la couche de normalisation éditoriale sans jamais réécrire la
+ * transcription. Un lot qui ne la possède pas conserve ses paragraphes source ;
+ * une couche mal formée est ignorée au lieu d'injecter des métadonnées au rendu.
+ */
+export function blocsTexteEditoriaux(
+  blockId: string,
+  sourceText: string,
+  textFeatures: unknown,
+): BibleEditionDisplayTextBlock[] {
+  const features = objet(textFeatures)
+  const normalization = objet(features?.editorial_normalization)
+  const candidates = Array.isArray(normalization?.blocks)
+    ? normalization.blocks as EditorialNormalizationBlock[]
+    : []
+  const structured = candidates.flatMap((candidate, index): BibleEditionDisplayTextBlock[] => {
+    const text = typeof candidate.reading_text === 'string' ? candidate.reading_text : null
+    const kind = String(candidate.kind ?? '') as BibleEditionDisplayTextBlock['kind']
+    const form = candidate.form === 'verse' ? 'verse' : 'prose'
+    if (text === null || !TEXT_BLOCK_KINDS.has(kind)) return []
+    const headingLevel = ['T2', 'T3', 'T4', 'T5', 'T6'].includes(String(candidate.heading_level))
+      ? candidate.heading_level as BibleEditionDisplayTextBlock['headingLevel']
+      : null
+    return [{
+      id: typeof candidate.id === 'string' ? candidate.id : `${blockId}:normalized:${index + 1}`,
+      kind,
+      form,
+      text,
+      language: typeof candidate.language === 'string' ? candidate.language : null,
+      sourceStartOffsetUnicode: entierOuNull(candidate.source_start_offset_unicode),
+      sourceEndOffsetUnicode: entierOuNull(candidate.source_end_offset_unicode),
+      headingLevel,
+      presentation: presentationSure(candidate.presentation),
+      inlineSpans: spansSurs(candidate.inline_spans, text.length),
+    }]
+  })
+  if (structured.length > 0) return structured
+
+  // Les doubles retours présents dans la transcription portent déjà des limites
+  // de paragraphes. Ils sont rendus sémantiquement même avant toute normalisation.
+  const paragraphs: BibleEditionDisplayTextBlock[] = []
+  const regex = /\S[\s\S]*?(?=\n\s*\n|$)/g
+  for (const [index, match] of [...sourceText.matchAll(regex)].entries()) {
+    if (match.index == null) continue
+    const leading = match[0].match(/^\s*/)?.[0].length ?? 0
+    const trailing = match[0].match(/\s*$/)?.[0].length ?? 0
+    const start = match.index + leading
+    const end = match.index + match[0].length - trailing
+    if (end <= start) continue
+    paragraphs.push({
+      id: `${blockId}:source-paragraph:${index + 1}`,
+      kind: 'commentary',
+      form: 'prose',
+      text: sourceText.slice(start, end),
+      sourceStartOffsetUnicode: start,
+      sourceEndOffsetUnicode: end,
+      presentation: { textAlign: 'justify', fontStyle: 'normal' },
+      inlineSpans: [],
+    })
+  }
+  return paragraphs.length > 0 ? paragraphs : [{
+    id: `${blockId}:text`, kind: 'commentary', form: 'prose', text: sourceText,
+    sourceStartOffsetUnicode: 0, sourceEndOffsetUnicode: sourceText.length,
+    presentation: { textAlign: 'justify', fontStyle: 'normal' }, inlineSpans: [],
+  }]
 }
 
 export type BibleEditionDisplayBodyBlock = {
@@ -111,6 +260,10 @@ export type BibleEditionDisplayInternalNote = {
   id: string
   displayNumber: number
   printedMarker: string | null
+  anchorStartOffsetUnicode?: number | null
+  anchorEndOffsetUnicode?: number | null
+  anchorText?: string | null
+  anchorTarget?: 'body' | 'heading' | null
   blocks: BibleEditionDisplayTextBlock[]
 }
 
