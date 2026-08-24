@@ -110,12 +110,19 @@ export default function AdminClient({
   const ONGLETS: { key: Onglet; label: string; famille: 'corpus' | 'communaute' | 'systeme'; badge?: number; separateur?: boolean }[] = [
     { key: 'bibliotheque',        label: 'Bibliothèque',      famille: 'corpus' },
     { key: 'controle-oeuvres',    label: 'Contrôle œuvres',   famille: 'corpus' },
-    { key: 'ouvrages',            label: 'Ouvrages',          famille: 'corpus' },
     { key: 'validation-notices',  label: 'Validation notices', famille: 'corpus' },
     { key: 'traductions',         label: 'Traductions',       famille: 'corpus' },
+    { key: 'evenements',          label: 'Chronologie',       famille: 'corpus' },
+    // ── Bibliographie ────────────────────────────────────────────────────────
+    // Trois écrans d'un même travail : les ouvrages cités, les maisons d'édition
+    // répertoriées, et le rang académique des éditeurs et des chercheurs. Ils se
+    // tiennent CÔTE À CÔTE, après un filet, sans se fondre en un seul onglet : on passe
+    // de l'un à l'autre en corrigeant la même notice, mais chacun garde sa table, sa
+    // liste et son geste. Ils étaient jusqu'ici dispersés dans la famille « Corpus »,
+    // séparés par la validation des notices et par les traductions.
+    { key: 'ouvrages',            label: 'Ouvrages',          famille: 'corpus', separateur: true },
     { key: 'editeurs',            label: 'Éditeurs',          famille: 'corpus' },
     { key: 'fiabilite',           label: 'Valeur académique', famille: 'corpus' },
-    { key: 'evenements',          label: 'Chronologie',       famille: 'corpus' },
     { key: 'essais',              label: 'Essais',            famille: 'communaute', badge: nbEssais, separateur: true },
     { key: 'verifications',       label: 'Vérifications',     famille: 'communaute', badge: nbVerif },
     { key: 'constituer-liens',    label: 'Constituer liens',  famille: 'communaute' },

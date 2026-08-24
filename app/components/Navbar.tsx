@@ -74,12 +74,15 @@ const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: b
   { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus", principal: true },
   { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus", principal: true },
   { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres", famille: "corpus" },
-  { href: "/admin?onglet=ouvrages", label: "Ouvrages", famille: "corpus" },
   { href: "/admin?onglet=validation-notices", label: "Validation notices", famille: "corpus" },
   { href: "/admin?onglet=traductions", label: "Traductions", famille: "corpus" },
+  { href: "/admin?onglet=evenements", label: "Chronologie", famille: "corpus" },
+  // Les trois écrans de bibliographie se suivent, comme dans la barre d'onglets de
+  // l'administration : le menu et la barre doivent donner le même ordre, sinon l'un
+  // dément l'autre.
+  { href: "/admin?onglet=ouvrages", label: "Ouvrages", famille: "corpus" },
   { href: "/admin?onglet=editeurs", label: "Éditeurs", famille: "corpus" },
   { href: "/admin?onglet=fiabilite", label: "Valeur académique", famille: "corpus" },
-  { href: "/admin?onglet=evenements", label: "Chronologie", famille: "corpus" },
   { href: "/admin?onglet=essais", label: "Essais", famille: "communaute" },
   { href: "/admin?onglet=verifications", label: "Vérifications", famille: "communaute" },
   { href: "/admin?onglet=constituer-liens", label: "Constituer liens", famille: "communaute" },
