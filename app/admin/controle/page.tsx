@@ -1,12 +1,23 @@
 import type { ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
-import { styleSemantiqueBloc } from '@/app/lib/bibleEdition'
-import { stylesInconnus } from '@/app/lib/bibleHierarchieSemantique'
-import { codesTraductionsLecture } from '@/app/lib/traductions'
-import TodosControle from './TodosControle'
-import ScellesBible899 from './ScellesBible899'
+import { CSS_CONTROLE } from './stylesControle'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import {
+  SEVERITES,
+  ageLisible,
+  comptesParSeverite,
+  decisionsConnues,
+  estFrais,
+  etatGeneral,
+  lireSnapshot,
+  teinteEtat,
+  teinteSeverite,
+  type Constat,
+  type DiagnosticAlignement,
+  type Severite,
+  type Snapshot,
+} from './snapshotV2'
 
 export const metadata = { title: 'Centre de contrôle' }
 export const dynamic = 'force-dynamic'
@@ -16,41 +27,23 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// ── Types de la RPC controle_tableau_bord() ──────────────────────────────────
-type Tb = {
-  genere_le: string
-  qualite_calcule_le: string | null
-  corpus: { oeuvres_total: number; oeuvres_latin: number; oeuvres_grec: number; oeuvres_fr: number; auteurs: number; editeurs: number; traductions_total: number }
-  qualite: { seg_total: number; seg_bon: number; seg_moyen: number; seg_critique: number; seg_controle_humain: number; seg_controle_total: number }
-  catalogue: { notices_total: number; notices_refusees: number; notices_sur_site: number; notices_verifie_admin: number; auteurs_termine: number; auteurs_en_cours: number; auteurs_a_reprendre: number; auteurs_suivi_total: number }
-  pericopes: { total: number; notice_remplie: number; validees: number; validation_lignes: number; val_presentation: number; val_exegese: number; val_theologie: number; val_tradition: number; val_coherence: number; val_biblio: number }
-  bibliographie: { ouvrages: number; liens_pericopes: number; pericopes_avec_biblio: number }
-  chronologie: { evenements: number; publies: number; valides: number; a_classer: number }
-}
-type Todo = { texte: string; fait: boolean }
-type Section = { cle: string; titre: string; ordre: number; commentaire_ia: string | null; todos: Todo[]; maj_le: string }
+// ── Présentation ─────────────────────────────────────────────────────────────
+const nb = (n: number | null | undefined) => (n ?? 0).toLocaleString('fr-FR')
 
-// ── Utilitaires de présentation (purs) ───────────────────────────────────────
-const nb = (n: number) => (n ?? 0).toLocaleString('fr-FR')
-const part = (n: number, d: number) => (d > 0 ? (n / d) * 100 : 0)
-function fmtPct(p: number): string {
-  if (p > 0 && p < 1) return p.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %'
-  return Math.round(p).toLocaleString('fr-FR') + ' %'
+function dateFr(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
-function teinte(p: number): string {
-  if (p >= 80) return 'var(--cs-vert)'
-  if (p >= 40) return 'var(--cs-or)'
-  return 'var(--cs-danger)'
-}
-function dateFr(iso: string | null): string {
+
+function dateHeureFr(iso: string | null | undefined): string {
   if (!iso) return '—'
   const d = new Date(iso)
-  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
 }
 
-// ── Petits composants de rendu (serveur) ─────────────────────────────────────
-function Tuile({ valeur, label, ton }: { valeur: string; label: string; ton?: 'danger' | 'vert' }) {
-  const couleur = ton === 'danger' ? 'var(--cs-danger)' : ton === 'vert' ? 'var(--cs-vert)' : 'var(--cs-encre-fonce)'
+function Tuile({ valeur, label, ton }: { valeur: string; label: string; ton?: 'danger' | 'vert' | 'or' }) {
+  const couleur =
+    ton === 'danger' ? 'var(--cs-danger)' : ton === 'vert' ? 'var(--cs-vert)' : ton === 'or' ? 'var(--cs-or)' : 'var(--cs-encre-fonce)'
   return (
     <div className="cc-tuile">
       <div className="cc-tuile-val" style={{ color: couleur }}>{valeur}</div>
@@ -59,60 +52,38 @@ function Tuile({ valeur, label, ton }: { valeur: string; label: string; ton?: 'd
   )
 }
 
-function Jauge({ label, n, d, detail }: { label: string; n: number; d: number; detail?: string }) {
-  const p = part(n, d)
-  const c = teinte(p)
-  return (
-    <div className="cc-jauge">
-      <div className="cc-jauge-tete">
-        <span className="cc-jauge-lbl">{label}</span>
-        <span className="cc-jauge-pct" style={{ color: c }}>{fmtPct(p)}</span>
-      </div>
-      <div className="cc-jauge-piste"><div className="cc-jauge-remplissage" style={{ width: `${Math.max(p, p > 0 ? 1.5 : 0)}%`, background: c }} /></div>
-      <div className="cc-jauge-detail">{detail ?? `${nb(n)} / ${nb(d)}`}</div>
-    </div>
-  )
-}
-
-function Carte({ titre, children, note, cle, todos, majLe }: { titre: string; children: ReactNode; note: string | null; cle: string; todos: Todo[]; majLe: string }) {
+function Carte({ titre, sous, children }: { titre: string; sous?: string; children: ReactNode }) {
   return (
     <section className="cc-carte">
       <h2 className="cc-carte-titre">{titre}</h2>
+      {sous && <p className="cv-sous">{sous}</p>}
       <div className="cc-carte-corps">{children}</div>
-
-      {note && (
-        <div className="cc-note">
-          <div className="cc-note-tete">Où en est-on ?</div>
-          <p className="cc-note-txt">{note}</p>
-        </div>
-      )}
-
-      <TodosControle cle={cle} initial={todos} />
-
-      {/* Une carte sans note (celles qui ne portent qu'un outil) n'affiche pas un pied vide. */}
-      {majLe && <div className="cc-carte-pied">Note mise à jour le {dateFr(majLe)}</div>}
     </section>
   )
 }
 
-// Panne de chargement : on montre l'erreur RÉELLE renvoyée par PostgREST.
-// Un message générique rend la page indiagnosticable ; le cas le plus fréquent
-// est l'expiration du délai (`statement_timeout` de 8 s sur `service_role`),
-// que seul le code 57014 permet de reconnaître.
+/** Les détails d'un constat sont un objet libre : on le dit en clair, sans JSON. */
+function detailConstat(constat: Constat): string {
+  const details = constat.details ?? {}
+  const morceaux = Object.entries(details).map(([cle, valeur]) => {
+    const dit = Array.isArray(valeur) ? valeur.join(', ') : String(valeur)
+    return `${cle.replaceAll('_', ' ')} : ${dit}`
+  })
+  return morceaux.join(' ; ')
+}
+
 function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; details?: string; hint?: string } | null }) {
-  const expire = erreur?.code === '57014'
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '3rem 1.5rem' }}>
       <div style={{ maxWidth: '46rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '1.5rem 1.75rem' }}>
         <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: 'var(--cs-danger-fonce)', margin: '0 0 0.5rem' }}>
-          Les indicateurs n’ont pas pu être chargés
+          Le contrôle v2 n’a pas répondu
         </h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: '0 0 1rem' }}>
-          {expire
-            ? 'La requête a dépassé le délai autorisé. Le tableau de bord agrège tout le corpus en direct ; sous charge, il peut franchir la limite de huit secondes. Réessayez dans un instant.'
-            : 'La RPC controle_tableau_bord n’a rien renvoyé. Le détail technique est ci-dessous.'}
+          La RPC controle_v2_admin_snapshot n’a rien renvoyé d’exploitable. Le détail technique est ci-dessous.
+          Les statistiques historiques restent accessibles sur leur propre page.
         </p>
-        <pre style={{ fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace', color: 'var(--cs-texte)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '0.75rem', margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+        <pre style={{ fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace', color: 'var(--cs-texte)', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '0.75rem', margin: '0 0 1rem', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
           {erreur
             ? [
                 erreur.code ? `code    : ${erreur.code}` : null,
@@ -120,8 +91,9 @@ function EcranPanne({ erreur }: { erreur: { message?: string; code?: string; det
                 erreur.details ? `détails : ${erreur.details}` : null,
                 erreur.hint ? `piste   : ${erreur.hint}` : null,
               ].filter(Boolean).join('\n')
-            : 'Aucune erreur remontée : la RPC a répondu, mais sans contenu.'}
+            : 'Aucune erreur remontée : la RPC a répondu, mais sans contrat lisible.'}
         </pre>
+        <a href="/admin/controle/statistiques" style={{ fontSize: '0.875rem', color: 'var(--cs-vert)' }}>Statistiques du corpus →</a>
       </div>
     </main>
   )
@@ -142,319 +114,360 @@ function EcranReserve() {
   )
 }
 
-// Le tableau de bord agrège tout le corpus en direct : 2 à 6 s selon la charge,
-// pour un `statement_timeout` de 8 s sur `service_role`. Le dépassement (57014) est
-// donc TRANSITOIRE, et une seule reprise suffit à le rattraper. On ne réessaie que
-// sur ce code : une vraie erreur (droits, objet manquant) doit remonter tout de suite.
-const CODE_DELAI_DEPASSE = '57014'
+// ── Cartes du contrôle v2 ────────────────────────────────────────────────────
 
-async function chargerTableauBord() {
-  for (let essai = 0; ; essai++) {
-    const { data, error } = await supabaseAdmin.rpc('controle_tableau_bord')
-    if (!error) return { data, error: null }
-    console.error(`[controle] RPC controle_tableau_bord (essai ${essai + 1}) :`, error)
-    if (essai >= 1 || error.code !== CODE_DELAI_DEPASSE) return { data: null, error }
-    await new Promise((resoudre) => setTimeout(resoudre, 1200))
-  }
+function CarteDernierRun({ snapshot }: { snapshot: Snapshot }) {
+  const run = snapshot.last_run
+  const comptes = comptesParSeverite(run)
+  const constats = run?.findings ?? []
+  return (
+    <Carte titre="Dernier run global" sous={`Lancé le ${dateHeureFr(run?.started_at)}, backend v${snapshot.backend_version}.`}>
+      <div className="cc-tuiles">
+        {SEVERITES.map((severite) => (
+          <Tuile
+            key={severite}
+            valeur={nb(comptes[severite])}
+            label={severite}
+            ton={comptes[severite] > 0 ? (severite === 'REVIEW' ? 'or' : severite === 'INFO' ? undefined : 'danger') : undefined}
+          />
+        ))}
+      </div>
+      {constats.length > 0 ? (
+        <ul className="cv-liste">
+          {constats.map((constat, index) => (
+            <li key={`${constat.rule_code}-${index}`} className="cv-ligne">
+              <span className="cv-puce" style={{ background: teinteSeverite(constat.severity as Severite) }} />
+              <div>
+                <div className="cv-ligne-titre">{constat.rule_code}</div>
+                <div className="cv-ligne-detail">{detailConstat(constat) || 'Aucun détail transmis.'}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="cv-vide">Aucun constat ouvert.</p>
+      )}
+    </Carte>
+  )
 }
 
-// État réel du chantier Fillion, lu en service_role : les compteurs disent ce
-// qui est en base, et surtout ce qui est PUBLIC. Tant que rien n'est publié, la
-// carte doit le montrer plutôt que de laisser croire à une mise en ligne.
-type EtatFillion = {
-  famille: string | null
-  membres: number
-  composants: number
-  blocs: number
-  notes: number
-  illustrations: number
-  visibles: number
-  /** Styles sémantiques absents du registre : refusés au rendu, à arbitrer. */
-  stylesRefuses: string[]
+function CarteCertifications({ snapshot }: { snapshot: Snapshot }) {
+  const certifications = snapshot.certifications ?? []
+  const sales = certifications.filter((item) => item.dirty).length
+  return (
+    <Carte
+      titre="Certifications d’invariants"
+      sous={sales === 0
+        ? `Les ${certifications.length} certifications sont propres et aucune n’est marquée dirty.`
+        : `${sales} certification${sales > 1 ? 's' : ''} sur ${certifications.length} sont marquées dirty et doivent être rejouées.`}
+    >
+      <ul className="cv-liste">
+        {certifications.map((certification) => (
+          <li key={certification.code} className="cv-ligne">
+            <span className="cv-puce" style={{ background: certification.dirty || certification.status !== 'ok' ? 'var(--cs-danger)' : 'var(--cs-vert)' }} />
+            <div>
+              <div className="cv-ligne-titre">{certification.code}</div>
+              <div className="cv-ligne-detail">
+                {certification.status === 'ok' && !certification.dirty
+                  ? `Certifiée le ${dateFr(certification.certified_at)}, ${nb(certification.issue_count)} anomalie${certification.issue_count > 1 ? 's' : ''}.`
+                  : `État « ${certification.status} », ${nb(certification.issue_count)} anomalie${certification.issue_count > 1 ? 's' : ''}${certification.dirty_reason ? `, motif : ${certification.dirty_reason}` : ''}.`}
+              </div>
+            </div>
+          </li>
+        ))}
+        {certifications.length === 0 && <p className="cv-vide">Aucune certification enregistrée.</p>}
+      </ul>
+    </Carte>
+  )
 }
 
-async function chargerEtatFillion(): Promise<EtatFillion | null> {
-  // ⚠️ Ces comptages passent par le service_role, qui CONTOURNE la RLS : lire une
-  // vue publique ici ne dit donc rien de ce que le lecteur voit. Ce que voit le
-  // lecteur se recalcule à la main, avec les mêmes conditions que les politiques :
-  // contenu public et validé, ET famille publiée. Sans cette dernière condition,
-  // la carte annoncerait une mise en ligne qui n'a pas eu lieu.
-  const compter = async (table: string, publicSeulement = false) => {
-    const requete = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
-    const { count, error } = await (publicSeulement
-      ? requete.eq('is_public', true).eq('validation_status', 'validated')
-      : requete)
-    if (error) throw error
-    return count ?? 0
-  }
-  try {
-    const { data: famille, error } = await supabaseAdmin
-      .from('bible_edition_families')
-      .select('status')
-      .eq('family_code', 'fillion-bible')
-      .maybeSingle()
-    if (error) throw error
-    const [membres, composants, blocs, notes, illustrations, blocsPublics, notesPubliques, imagesPubliques] =
-      await Promise.all([
-        compter('bible_edition_members'),
-        compter('bible_edition_components'),
-        compter('bible_editorial_body_blocks'),
-        compter('bible_verse_notes'),
-        compter('bible_edition_assets'),
-        compter('bible_editorial_body_blocks', true),
-        compter('bible_verse_notes', true),
-        compter('bible_edition_assets', true),
-      ])
-    // Un style que le registre ignore n'est pas rendu : il doit donc se voir
-    // ici, sinon un bloc disparaîtrait de la page sans que personne le sache.
-    const { data: styles } = await supabaseAdmin
-      .from('bible_editorial_body_blocks')
-      .select('block_kind, scope_kind')
-    const stylesRefuses = stylesInconnus(
-      ((styles ?? []) as { block_kind: string; scope_kind: string }[])
-        .map((row) => styleSemantiqueBloc(
-          row.block_kind as Parameters<typeof styleSemantiqueBloc>[0],
-          row.scope_kind as Parameters<typeof styleSemantiqueBloc>[1],
-        )),
-    )
-    const statut = famille?.status ?? null
-    return {
-      famille: statut,
-      membres, composants, blocs, notes, illustrations,
-      visibles: statut === 'published' ? blocsPublics + notesPubliques + imagesPubliques : 0,
-      stylesRefuses,
-    }
-  } catch {
-    // Déploiement antérieur à la migration : la carte se replie sur sa prose.
-    return null
-  }
+function CarteFileLiens({ snapshot }: { snapshot: Snapshot }) {
+  const file = snapshot.link_review_queue
+  const proprietaires = snapshot.postcheck_owners ?? []
+  if (!file) return null
+  return (
+    <Carte
+      titre="File des postcontrôles de liens"
+      sous="Chaque modification suivie garde ses liens dépendants ouverts tant qu’une vérification humaine ne les a pas clos."
+    >
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(file.checks)} label="Postcontrôles ouverts" ton={file.checks > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(file.dependent_links)} label="Liens dépendants" />
+        <Tuile valeur={nb(file.bootstrap_checks)} label="Bootstrap" />
+        <Tuile valeur={nb(file.post_go_live_checks)} label="Après go-live" />
+        <Tuile valeur={nb(file.structural_invalid)} label="Structurellement invalides" ton={file.structural_invalid > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(file.ambiguous_owner)} label="Propriétaire ambigu" ton={file.ambiguous_owner > 0 ? 'danger' : 'vert'} />
+      </div>
+
+      <div className="cv-tete-tableau">Répartition par mission propriétaire</div>
+      <table className="cv-tableau">
+        <thead>
+          <tr>
+            <th>Mission</th>
+            <th className="cv-num">Contrôles</th>
+            <th className="cv-num">Liens</th>
+            <th>Routage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {proprietaires.map((proprietaire, index) => (
+            <tr key={`${proprietaire.routing_status}-${index}`}>
+              <td>{proprietaire.missions.join(' ou ')}</td>
+              <td className="cv-num">{nb(proprietaire.checks)}</td>
+              <td className="cv-num">{nb(proprietaire.dependent_links)}</td>
+              <td>
+                <span style={{ color: proprietaire.routing_status === 'routed' ? 'var(--cs-vert)' : 'var(--cs-danger)' }}>
+                  {proprietaire.routing_status === 'routed' ? 'routé' : proprietaire.routing_status}
+                </span>
+              </td>
+            </tr>
+          ))}
+          {proprietaires.length === 0 && (
+            <tr><td colSpan={4} className="cv-vide">Aucun postcontrôle ouvert.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </Carte>
+  )
 }
+
+function CarteAmbiguites({ snapshot }: { snapshot: Snapshot }) {
+  const ambiguites = snapshot.routing_ambiguities ?? []
+  return (
+    <Carte
+      titre="Objets à propriétaire ambigu"
+      sous="Deux missions revendiquent le même objet. L’arbitrage revient à l’utilisateur, et aucune attribution ne doit être décidée ici."
+    >
+      {ambiguites.length === 0 ? (
+        <p className="cv-vide">Aucun objet ambigu.</p>
+      ) : (
+        <ul className="cv-liste">
+          {ambiguites.map((ambiguite) => (
+            <li key={`${ambiguite.object_type}-${ambiguite.object_id}`} className="cv-ligne">
+              <span className="cv-puce" style={{ background: 'var(--cs-danger)' }} />
+              <div>
+                <div className="cv-ligne-titre">
+                  {ambiguite.object_type} {ambiguite.object_id}
+                  {ambiguite.segment_numero ? `, segment ${ambiguite.segment_numero}` : ''}
+                  {ambiguite.id_oeuvre ? ` de ${ambiguite.id_oeuvre}` : ''}
+                </div>
+                <div className="cv-ligne-detail">
+                  Missions candidates : {ambiguite.candidate_missions.join(' ou ')}.
+                  {' '}{nb(ambiguite.dependent_links)} lien{ambiguite.dependent_links > 1 ? 's' : ''} dépendant{ambiguite.dependent_links > 1 ? 's' : ''}, modifié le {dateHeureFr(ambiguite.last_changed_at)}.
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Carte>
+  )
+}
+
+function CarteSpine({ snapshot }: { snapshot: Snapshot }) {
+  const spine = snapshot.metrics.aelf_spine
+  const restant = spine.tr0001_tr0005_units - spine.tr0001_tr0005_units_verified
+  return (
+    <Carte titre="Spine AELF" sous={`Autorité canonique ${spine.version_code}, au statut « ${spine.version_status} ».`}>
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(spine.entries)} label="Entrées de la spine" />
+        <Tuile valeur={nb(spine.tr0001_tr0005_units_verified)} label="Unités TR0001–TR0005 vérifiées" ton={restant === 0 ? 'vert' : undefined} />
+        <Tuile valeur={nb(restant)} label="Unités restant à vérifier" ton={restant > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(spine.canonical_review)} label="Revues canoniques ouvertes" ton={spine.canonical_review > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(spine.translation_review)} label="Revues de traduction ouvertes" ton={spine.translation_review > 0 ? 'or' : 'vert'} />
+      </div>
+    </Carte>
+  )
+}
+
+function CarteLiensBibliques({ snapshot }: { snapshot: Snapshot }) {
+  const liens = snapshot.metrics.biblical_links
+  return (
+    <Carte titre="Liens bibliques" sous="Couverture canonique de l’ensemble des liens du corpus.">
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(liens.total)} label="Liens enregistrés" />
+        <Tuile valeur={nb(liens.with_canon)} label="Rattachés au canon" ton="vert" />
+        <Tuile valeur={nb(liens.without_canon)} label="Sans canon" ton={liens.without_canon > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(liens.arbitrage_required)} label="Arbitrage requis" ton={liens.arbitrage_required > 0 ? 'or' : 'vert'} />
+      </div>
+    </Carte>
+  )
+}
+
+function LigneDiagnostic({ diagnostic, snapshot }: { diagnostic: DiagnosticAlignement; snapshot: Snapshot }) {
+  const frais = estFrais(diagnostic)
+  const decisions = decisionsConnues(snapshot.alignment_review_memory, diagnostic.book_code)
+  return (
+    <li className="cv-ligne">
+      <span className="cv-puce" style={{ background: frais ? 'var(--cs-vert)' : 'var(--cs-or)' }} />
+      <div>
+        <div className="cv-ligne-titre">
+          {diagnostic.book_code}
+          <span className="cv-etiquette" style={{ color: frais ? 'var(--cs-vert)' : 'var(--cs-or)' }}>
+            {frais ? 'à jour' : 'périmé'}
+          </span>
+        </div>
+        <div className="cv-ligne-detail">
+          {nb(diagnostic.cases.total)} dossiers, dont {nb(diagnostic.cases.high)} haute priorité, {nb(diagnostic.cases.medium)} moyenne et {nb(diagnostic.cases.low)} basse.
+          {' '}Calculé le {dateHeureFr(diagnostic.created_at)} par {diagnostic.script_version ?? 'version inconnue'}.
+        </div>
+        <div className="cv-ligne-detail">
+          {frais
+            ? `Empreinte capturée ${diagnostic.captured_fingerprint?.slice(0, 12)}, identique à celle du corpus.`
+            : `Empreinte du corpus ${diagnostic.current_fingerprint?.slice(0, 12) ?? 'inconnue'}, aucune empreinte capturée${diagnostic.stale_reason ? ` (${diagnostic.stale_reason})` : ''}. Seul un vrai rerun peut le rendre frais.`}
+        </div>
+        {decisions.length > 0 && (
+          <div className="cv-ligne-detail">
+            Décisions humaines déjà connues : {decisions.map((decision) => `${decision.n} ${decision.code}`).join(', ')}.
+            Elles servent de contexte et ne s’appliquent jamais d’elles-mêmes au nouveau résultat.
+          </div>
+        )}
+      </div>
+    </li>
+  )
+}
+
+function CarteAlignements({ snapshot }: { snapshot: Snapshot }) {
+  const outils = snapshot.metrics.alignment_tools
+  const diagnostics = snapshot.alignment_diagnostics ?? []
+  const memoire = snapshot.alignment_review_memory
+  return (
+    <Carte
+      titre="Outils alignements"
+      sous={`Diagnostic seul, sans écriture sur le corpus. L’autorité reste la spine AELF ${snapshot.metrics.aelf_spine.version_code}.`}
+    >
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(outils.cases_total)} label="Dossiers ouverts" />
+        <Tuile valeur={nb(outils.cases_high)} label="Haute priorité" ton={outils.cases_high > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(outils.cases_medium)} label="Priorité moyenne" ton={outils.cases_medium > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(outils.cases_low)} label="Priorité basse" />
+        <Tuile valeur={`${nb(outils.current_runs - outils.stale_runs)} / ${nb(outils.current_runs)}`} label="Runs à jour" ton={outils.stale_runs > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(memoire?.cases_with_review_memory)} label="Dossiers avec mémoire humaine" />
+      </div>
+
+      <ul className="cv-liste">
+        {diagnostics.map((diagnostic) => (
+          <LigneDiagnostic key={diagnostic.run_id} diagnostic={diagnostic} snapshot={snapshot} />
+        ))}
+        {diagnostics.length === 0 && <p className="cv-vide">Aucun run courant.</p>}
+      </ul>
+
+      <div className="cc-mention">
+        Correspondances de spine mises à jour le {dateHeureFr(outils.last_spine_mapping_update)}.
+        Aucun diagnostic ne corrige un alignement, un texte, un statut philologique ni un lien.
+      </div>
+    </Carte>
+  )
+}
+
+function CarteGarde({ snapshot }: { snapshot: Snapshot }) {
+  const garde = snapshot.live_guard
+  const regles = snapshot.metrics.rules
+  const rpc = snapshot.rpc_security
+  return (
+    <Carte titre="Gardes et règles" sous={snapshot.go_live ? `Go-live du protocole v${snapshot.go_live.version} le ${dateFr(snapshot.go_live.activated_at)}.` : undefined}>
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(regles.total)} label="Règles actives" />
+        <Tuile valeur={nb(regles.blocking)} label="Règles bloquantes" />
+        <Tuile valeur={nb(regles.automatic)} label="Règles automatiques" />
+        <Tuile valeur={nb(rpc?.registered)} label="RPC contrôlées" ton={rpc?.secure ? 'vert' : 'danger'} />
+        <Tuile valeur={nb(garde.untracked_bible_text_events)} label="Écritures bibliques non suivies" ton={garde.untracked_bible_text_events > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(garde.untracked_segment_events_with_links)} label="Segments liés non suivis" ton={garde.untracked_segment_events_with_links > 0 ? 'danger' : 'vert'} />
+      </div>
+      <div className="cc-mention">
+        {garde.editorial_work_allowed
+          ? 'Le travail éditorial est autorisé sous protocole.'
+          : 'Le travail éditorial est suspendu par la garde vivante.'}
+        {rpc && !rpc.secure ? ' La sécurité des RPC signale une exposition à corriger.' : ''}
+      </div>
+    </Carte>
+  )
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CentreControlePage() {
   if (!(await estAdmin())) return <EcranReserve />
 
-  const [{ data: tbRaw, error: tbErreur }, { data: sectionsRaw }, codesLisibles, fillion] = await Promise.all([
-    chargerTableauBord(),
-    supabaseAdmin.from('controle_sections').select('*').order('ordre', { ascending: true }),
-    codesTraductionsLecture(supabaseAdmin),
-    chargerEtatFillion(),
-  ])
+  const { data, error } = await supabaseAdmin.rpc('controle_v2_admin_snapshot')
+  const snapshot = lireSnapshot(data)
+  if (!snapshot) {
+    if (error) console.error('[controle] RPC controle_v2_admin_snapshot :', error)
+    return <EcranPanne erreur={error} />
+  }
 
-  const tb = tbRaw as Tb | null
-  const sections = (sectionsRaw ?? []) as Section[]
-  const sec = (cle: string) => sections.find((s) => s.cle === cle) ?? { cle, titre: cle, ordre: 0, commentaire_ia: null, todos: [] as Todo[], maj_le: '' }
-  const bibleLisibles = codesLisibles.length
-
-  if (!tb) return <EcranPanne erreur={tbErreur} />
-
-  const c = tb.corpus, q = tb.qualite, cat = tb.catalogue, p = tb.pericopes, b = tb.bibliographie, ch = tb.chronologie
+  const etat = etatGeneral(snapshot)
 
   return (
     <main className="cc-page">
-      <style>{styles}</style>
+      <style>{CSS_CONTROLE + CSS_V2}</style>
 
       <header className="cc-entete">
         <div>
           <h1 className="cc-titre">Centre de contrôle</h1>
-          <p className="cc-sous-titre">Où en est le corpus, à chaque instant.</p>
+          <p className="cc-sous-titre">Ce que le système de contrôle v{snapshot.backend_version} affirme, à l’instant.</p>
         </div>
-        <div className="cc-horodatage">Généré le {dateFr(tb.genere_le)}</div>
+        <div className="cc-horodatage">
+          Snapshot du {dateHeureFr(snapshot.generated_at)}
+          <br />
+          Métriques calculées {ageLisible(snapshot.cache_age_seconds)}
+          <br />
+          <a href="/admin/controle/statistiques" className="cv-lien">Statistiques du corpus →</a>
+        </div>
       </header>
 
+      <section className="cv-etat" style={{ borderColor: teinteEtat(etat.code) }}>
+        <div className="cv-etat-pastille" style={{ background: teinteEtat(etat.code) }} />
+        <div className="cv-etat-corps">
+          <div className="cv-etat-titre" style={{ color: teinteEtat(etat.code) }}>{etat.libelle}</div>
+          <p className="cv-etat-phrase">{etat.phrase}</p>
+        </div>
+        <div className="cv-etat-chiffres">
+          <span><strong>{nb(snapshot.live_guard.open_postchecks)}</strong> postcontrôles ouverts</span>
+          <span><strong>{nb(snapshot.live_guard.ambiguous_owner_objects_with_links)}</strong> propriétaires ambigus</span>
+          <span><strong>{nb(snapshot.live_guard.stale_alignment_runs)}</strong> runs d’alignement périmés</span>
+        </div>
+      </section>
+
       <div className="cc-grille">
-        {/* 1. Corpus */}
-        <Carte titre={sec('corpus').titre} note={sec('corpus').commentaire_ia} cle="corpus" todos={sec('corpus').todos} majLe={sec('corpus').maj_le}>
-          <div className="cc-tuiles">
-            <Tuile valeur={nb(c.oeuvres_total)} label="Œuvres en ligne" />
-            <Tuile valeur={nb(c.oeuvres_latin)} label="Originaux latins" />
-            <Tuile valeur={nb(c.oeuvres_grec)} label="Originaux grecs" />
-            <Tuile valeur={nb(c.oeuvres_fr)} label="Traduites en français" />
-            <Tuile valeur={nb(c.auteurs)} label="Auteurs répertoriés" />
-            <Tuile valeur={nb(c.editeurs)} label="Éditeurs" />
-            <Tuile valeur={`${nb(bibleLisibles)} / ${nb(c.traductions_total)}`} label="Traductions bibliques (lisibles / enregistrées)" />
-          </div>
-        </Carte>
-
-        {/* 2. Qualité du texte */}
-        <Carte titre={sec('qualite').titre} note={sec('qualite').commentaire_ia} cle="qualite" todos={sec('qualite').todos} majLe={sec('qualite').maj_le}>
-          <Jauge label="Qualité automatique des segments" n={q.seg_bon} d={q.seg_total} detail={`${nb(q.seg_bon)} bons / ${nb(q.seg_total)} segments`} />
-          <Jauge label="Contrôle humain des segments" n={q.seg_controle_humain} d={q.seg_controle_total} detail={`${nb(q.seg_controle_humain)} vérifiés / ${nb(q.seg_controle_total)}`} />
-          <div className="cc-tuiles" style={{ marginTop: '10px' }}>
-            <Tuile valeur={nb(q.seg_bon)} label="Segments bons" ton="vert" />
-            <Tuile valeur={nb(q.seg_moyen)} label="Segments moyens" />
-            <Tuile valeur={nb(q.seg_critique)} label="Segments critiques" ton={q.seg_critique > 0 ? 'danger' : undefined} />
-          </div>
-          <div className="cc-mention">Qualité calculée le {dateFr(tb.qualite_calcule_le)} (recalcul sur demande).</div>
-        </Carte>
-
-        {/* 3. Catalogue */}
-        <Carte titre={sec('catalogue').titre} note={sec('catalogue').commentaire_ia} cle="catalogue" todos={sec('catalogue').todos} majLe={sec('catalogue').maj_le}>
-          <Jauge label="Audit du catalogue par auteur" n={cat.auteurs_termine} d={cat.auteurs_suivi_total} detail={`${nb(cat.auteurs_termine)} terminés / ${nb(cat.auteurs_suivi_total)} suivis`} />
-          <div className="cc-tuiles" style={{ marginTop: '10px' }}>
-            <Tuile valeur={nb(cat.notices_total)} label="Notices au catalogue" />
-            <Tuile valeur={nb(cat.notices_sur_site)} label="Déjà sur le site" />
-            <Tuile valeur={nb(cat.notices_refusees)} label="Refusées" />
-            <Tuile valeur={nb(cat.auteurs_en_cours)} label="Auteurs en cours" />
-            <Tuile valeur={nb(cat.auteurs_a_reprendre)} label="Auteurs à reprendre" />
-            <Tuile valeur={nb(cat.notices_verifie_admin)} label="Vérifiées en admin" />
-          </div>
-        </Carte>
-
-        {/* 4. Péricopes */}
-        <Carte titre={sec('pericopes').titre} note={sec('pericopes').commentaire_ia} cle="pericopes" todos={sec('pericopes').todos} majLe={sec('pericopes').maj_le}>
-          <Jauge label="Rédaction des notices (4 axes)" n={p.notice_remplie} d={p.total} detail={`${nb(p.notice_remplie)} rédigées / ${nb(p.total)}`} />
-          <Jauge label="Validation éditoriale" n={p.validees} d={p.total} detail={`${nb(p.validees)} validées / ${nb(p.total)}`} />
-          <div className="cc-tuiles" style={{ marginTop: '10px' }}>
-            <Tuile valeur={nb(p.total)} label="Péricopes" />
-            <Tuile valeur={nb(p.validation_lignes)} label="En relecture" />
-            <Tuile valeur={nb(p.validees)} label="Validées" ton={p.validees > 0 ? 'vert' : undefined} />
-          </div>
-        </Carte>
-
-        {/* 5. Bibliographie */}
-        <Carte titre={sec('bibliographie').titre} note={sec('bibliographie').commentaire_ia} cle="bibliographie" todos={sec('bibliographie').todos} majLe={sec('bibliographie').maj_le}>
-          <Jauge label="Couverture bibliographique des péricopes" n={b.pericopes_avec_biblio} d={p.total} detail={`${nb(b.pericopes_avec_biblio)} péricopes couvertes / ${nb(p.total)}`} />
-          <div className="cc-tuiles" style={{ marginTop: '10px' }}>
-            <Tuile valeur={nb(b.ouvrages)} label="Ouvrages bibliographiques" />
-            <Tuile valeur={nb(b.liens_pericopes)} label="Liens vers les péricopes" />
-          </div>
-        </Carte>
-
-        {/* 6. Chronologie */}
-        <Carte titre={sec('chronologie').titre} note={sec('chronologie').commentaire_ia} cle="chronologie" todos={sec('chronologie').todos} majLe={sec('chronologie').maj_le}>
-          <Jauge label="Publication des événements" n={ch.publies} d={ch.evenements} detail={`${nb(ch.publies)} publiés / ${nb(ch.evenements)}`} />
-          <Jauge label="Validation éditoriale" n={ch.valides} d={ch.evenements} detail={`${nb(ch.valides)} validés / ${nb(ch.evenements)}`} />
-          <div className="cc-tuiles" style={{ marginTop: '10px' }}>
-            <Tuile valeur={nb(ch.evenements)} label="Événements" />
-            <Tuile valeur={nb(ch.a_classer)} label="À classer" ton={ch.a_classer > 0 ? 'danger' : undefined} />
-          </div>
-        </Carte>
-
-        {/* 7. Fac-similé Bible 899 — les images vivent hors du dépôt, leurs scellés se contrôlent ici. */}
-        <Carte titre="Fac-similé Bible 899" note={sec('facsimile_bible899').commentaire_ia} cle="facsimile_bible899" todos={sec('facsimile_bible899').todos} majLe={sec('facsimile_bible899').maj_le}>
-          <ScellesBible899 />
-        </Carte>
-
-        {/* 7. Chantier éditorial (œuvres) — compte rendu transverse et par œuvre. */}
-        <Carte titre="Chantier éditorial (œuvres)" note={sec('chantier_oeuvres').commentaire_ia} cle="chantier_oeuvres" todos={sec('chantier_oeuvres').todos} majLe={sec('chantier_oeuvres').maj_le}>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-            Corrections éditoriales transverses et par œuvre : typographie, notes, titres, segmentation, informations éditoriales des textes latins. Le code d’accueil est posé ; les corrections de données suivent (liste ci-dessous).
-          </p>
-        </Carte>
-
-        {/* 8. Bible Fillion — l'édition commentée, de son socle à sa publication. */}
-        <Carte titre="Bible Fillion" note={sec('chantier_fillion').commentaire_ia} cle="chantier_fillion" todos={sec('chantier_fillion').todos} majLe={sec('chantier_fillion').maj_le}>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 10px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-            Intégration de la Bible de Fillion : français et Vulgate imprimée comme deux traductions distinctes, reliées par une famille éditoriale, avec commentaires dans le corps, notes de verset, illustrations et provenance par volume.
-          </p>
-          {fillion ? (
-            <>
-              <div className="cc-tuiles">
-                <Tuile valeur={fillion.membres ? String(fillion.membres) : '—'} label="Membres de la famille" />
-                <Tuile valeur={String(fillion.composants)} label="Volumes décrits" />
-                <Tuile valeur={String(fillion.blocs)} label="Blocs du corps" />
-                <Tuile valeur={String(fillion.notes)} label="Notes de verset" />
-                <Tuile valeur={String(fillion.illustrations)} label="Illustrations" />
-                <Tuile
-                  valeur={String(fillion.visibles)}
-                  label="Éléments visibles du lecteur"
-                  ton={fillion.visibles > 0 ? 'vert' : undefined}
-                />
-              </div>
-              {fillion.stylesRefuses.length > 0 && (
-                <div className="cc-mention" style={{ color: 'var(--cs-danger)' }}>
-                  Styles refusés au rendu, absents du registre : {fillion.stylesRefuses.join(', ')}.
-                  Les blocs concernés ne sont pas affichés ; les inscrire dans
-                  work/fillion/semantic_display_hierarchy.json, ou corriger leur classement.
-                </div>
-              )}
-              <div className="cc-mention">
-                {fillion.famille === null
-                  ? 'La famille éditoriale n’est pas encore créée.'
-                  : fillion.famille === 'published'
-                    ? 'Famille publiée : le catalogue public expose l’édition.'
-                    : `Famille au statut « ${fillion.famille} » : rien n’est visible du lecteur tant qu’elle n’est pas publiée.`}
-              </div>
-            </>
-          ) : (
-            <div className="cc-mention">Modèle éditorial absent de cette base : compteurs indisponibles.</div>
-          )}
-        </Carte>
+        <CarteDernierRun snapshot={snapshot} />
+        <CarteCertifications snapshot={snapshot} />
+        <CarteFileLiens snapshot={snapshot} />
+        <CarteAmbiguites snapshot={snapshot} />
+        <CarteAlignements snapshot={snapshot} />
+        <CarteSpine snapshot={snapshot} />
+        <CarteLiensBibliques snapshot={snapshot} />
+        <CarteGarde snapshot={snapshot} />
       </div>
     </main>
   )
 }
 
-const styles = `
-  .cc-page { min-height: calc(100vh - 3.5rem); background: var(--cs-fond); padding: 1.75rem 1.5rem 3rem; }
-  .cc-entete { max-width: 74rem; margin: 0 auto 1.25rem; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  .cc-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.75rem; font-weight: normal; color: var(--cs-encre-fonce); margin: 0; }
-  .cc-sous-titre { font-size: 0.875rem; color: var(--cs-texte-doux); margin: 2px 0 0; font-style: italic; font-family: var(--font-source-serif), Georgia, serif; }
-  .cc-horodatage { font-size: 0.75rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; }
+const CSS_V2 = `
+  .cv-lien { color: var(--cs-vert); text-decoration: none; }
+  .cv-lien:hover { text-decoration: underline; }
 
-  .cc-grille { max-width: 74rem; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr)); gap: 1.25rem; align-items: start; }
+  .cv-etat { max-width: 74rem; margin: 0 auto 1.25rem; background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-left-width: 4px; border-radius: 8px; padding: 0.875rem 1.125rem; display: flex; align-items: center; gap: 0.875rem; flex-wrap: wrap; }
+  .cv-etat-pastille { width: 0.625rem; height: 0.625rem; border-radius: 50%; flex-shrink: 0; }
+  .cv-etat-corps { flex: 1 1 18rem; }
+  .cv-etat-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.125rem; }
+  .cv-etat-phrase { font-size: 0.8125rem; color: var(--cs-texte-second); margin: 0.125rem 0 0; line-height: 1.5; font-family: var(--font-source-serif), Georgia, serif; }
+  .cv-etat-chiffres { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--cs-texte-second); font-family: var(--font-source-sans), Arial, sans-serif; }
+  .cv-etat-chiffres strong { font-family: var(--font-source-serif), Georgia, serif; font-size: 1rem; color: var(--cs-encre-fonce); font-weight: normal; }
 
-  .cc-carte { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 1.125rem 1.25rem 0.875rem; display: flex; flex-direction: column; }
-  .cc-carte-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.1875rem; font-weight: normal; color: var(--cs-encre-fonce); margin: 0 0 0.875rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--cs-bord-clair); }
-  .cc-carte-corps { display: flex; flex-direction: column; gap: 0.5rem; }
-  .cc-carte-pied { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-bord-clair); font-size: 0.6875rem; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; }
+  .cv-sous { font-size: 0.8125rem; color: var(--cs-texte-second); line-height: 1.5; margin: -0.5rem 0 0.75rem; font-family: var(--font-source-serif), Georgia, serif; }
 
-  .cc-tuiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 0.625rem; }
-  .cc-tuile { background: var(--cs-fond-clair); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 0.625rem 0.75rem; }
-  .cc-tuile-val { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.375rem; line-height: 1.1; }
-  .cc-tuile-lbl { font-size: 0.6875rem; color: var(--cs-texte-second); margin-top: 0.25rem; font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.3; }
+  .cv-liste { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cv-ligne { display: flex; align-items: flex-start; gap: 0.5rem; }
+  .cv-puce { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; margin-top: 0.3125rem; }
+  .cv-ligne-titre { font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; font-weight: 600; }
+  .cv-ligne-detail { font-size: 0.75rem; color: var(--cs-texte-second); line-height: 1.5; font-family: var(--font-source-sans), Arial, sans-serif; }
+  .cv-etiquette { font-size: 0.6875rem; font-weight: 500; margin-left: 0.5rem; letter-spacing: 0.02em; }
+  .cv-vide { font-size: 0.8125rem; color: var(--cs-texte-doux); font-style: italic; margin: 0.5rem 0 0; font-family: var(--font-source-serif), Georgia, serif; }
 
-  .cc-jauge { margin: 0.375rem 0; }
-  .cc-jauge-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
-  .cc-jauge-lbl { font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; }
-  .cc-jauge-pct { font-family: var(--font-source-serif), Georgia, serif; font-size: 1rem; font-weight: 600; }
-  .cc-jauge-piste { height: 7px; background: var(--cs-fond-doux); border-radius: 4px; overflow: hidden; margin: 0.3125rem 0 0.25rem; }
-  .cc-jauge-remplissage { height: 100%; border-radius: 4px; transition: none; }
-  .cc-jauge-detail { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; }
-
-  .cc-note { margin-top: 0.875rem; background: var(--cs-vert-pale); border-left: 3px solid var(--cs-vert-aplat); border-radius: 0 8px 8px 0; padding: 0.625rem 0.75rem; }
-  .cc-note-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
-  .cc-note-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.5; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
-
-  .cc-todos { margin-top: 0.75rem; }
-  .cc-todos-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-second); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.375rem; }
-  .cc-todos-compte { color: var(--cs-texte-doux); font-weight: 500; margin-left: 0.25rem; }
-  .cc-todos-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
-  .cc-todo { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.4; }
-  .cc-todo-case { flex-shrink: 0; width: 1rem; height: 1rem; border: 1px solid var(--cs-bord); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--cs-vert); margin-top: 0.0625rem; }
-  .cc-todo-fait .cc-todo-case { background: var(--cs-vert-aplat); border-color: var(--cs-vert-aplat); color: var(--cs-sur-aplat); }
-  .cc-todo-fait .cc-todo-txt { color: var(--cs-texte-doux); text-decoration: line-through; }
-
-  /* — Édition discrète des todos — */
-  .cc-todo { position: relative; padding-right: 3rem; }
-  .cc-todo-txt { flex: 1; }
-  button.cc-todo-case { cursor: pointer; padding: 0; background: transparent; transition: border-color .12s; }
-  button.cc-todo-case:hover { border-color: var(--cs-vert); }
-  button.cc-todo-case:disabled { cursor: default; }
-  .cc-todo-actions { position: absolute; right: 0; top: 0; display: inline-flex; gap: 0.125rem; opacity: 0; transition: opacity .12s; }
-  .cc-todo:hover .cc-todo-actions, .cc-todo:focus-within .cc-todo-actions { opacity: 1; }
-  .cc-todo-btn { border: none; background: transparent; cursor: pointer; font-size: 0.8125rem; line-height: 1; color: var(--cs-texte-faible); padding: 0.125rem 0.3125rem; border-radius: 4px; font-family: var(--font-source-sans), Arial, sans-serif; }
-  .cc-todo-btn:hover { color: var(--cs-texte); background: var(--cs-fond-doux); }
-  .cc-todo-btn-suppr { font-size: 1rem; }
-  .cc-todo-btn-suppr:hover { color: var(--cs-danger); background: var(--cs-danger-fond); }
-  .cc-todo-input { flex: 1; width: 100%; font-size: 0.8125rem; font-family: var(--font-source-sans), Arial, sans-serif; color: var(--cs-texte); line-height: 1.4; border: 1px solid var(--cs-bord); border-radius: 4px; padding: 0.1875rem 0.375rem; background: var(--cs-surface); resize: vertical; }
-  .cc-todo-input:focus { outline: none; border-color: var(--cs-vert); }
-  .cc-todo-ajout { margin-top: 0.375rem; }
-  .cc-todo-ajout-btn { border: none; background: transparent; cursor: pointer; font-size: 0.75rem; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; padding: 0.125rem 0; opacity: 0.55; transition: opacity .12s, color .12s; }
-  .cc-todos:hover .cc-todo-ajout-btn { opacity: 1; }
-  .cc-todo-ajout-btn:hover { color: var(--cs-vert); }
-  .cc-todo-erreur { font-size: 0.6875rem; color: var(--cs-danger); margin-top: 0.25rem; font-family: var(--font-source-sans), Arial, sans-serif; }
-  @media (hover: none) { .cc-todo-actions { opacity: 1; } .cc-todo-ajout-btn { opacity: 1; } }
-
-  .cc-mention { font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.5rem; font-style: italic; }
-
-  /* Mobile : les grilles sont déjà en auto-fill (une colonne sur téléphone) ; on
-     resserre seulement les gouttières et le titre pour gagner de la place. */
-  @media (max-width: 640px) {
-    .cc-page { padding: 1rem 0.75rem 2.5rem; }
-    .cc-entete { margin-bottom: 1rem; }
-    .cc-titre { font-size: 1.375rem; }
-    .cc-carte { padding: 1rem 0.875rem 0.75rem; }
-    .cc-carte-titre { font-size: 1.0625rem; }
-  }
+  .cv-tete-tableau { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-second); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin: 1rem 0 0.375rem; }
+  .cv-tableau { width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: var(--font-source-sans), Arial, sans-serif; }
+  .cv-tableau th { text-align: left; font-weight: 600; color: var(--cs-texte-second); border-bottom: 1px solid var(--cs-bord-clair); padding: 0.25rem 0.375rem; }
+  .cv-tableau td { color: var(--cs-texte); border-bottom: 1px solid var(--cs-bord-clair); padding: 0.375rem; vertical-align: top; overflow-wrap: anywhere; }
+  .cv-tableau .cv-num { text-align: right; font-variant-numeric: tabular-nums; }
 `
