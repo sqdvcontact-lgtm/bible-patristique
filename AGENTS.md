@@ -1045,6 +1045,38 @@ wsl.exe -d Ubuntu-24.04 -- bash -c 'cd "/mnt/c/…" && pdftoppm -png -r 150 -f 1
 
 ⚠️ **Mirandol n'a aucune mesure d'alinéa.** Son import ne portait pas `indent_inches`, si bien que l'édition par défaut reçoit l'alinéa de base et rien d'autre. Le fac-similé prouve que **c'est faux pour ses 123 vers de mètre alterné**, et juste pour les 954 de mètre uniforme. Le remède est une correction de DONNÉES — relever les alinéas à la source —, pas d'affichage.
 
+# `join_before` se MATÉRIALISE, il ne se concatène jamais (2026-08-24)
+
+Doctrine : charte `parametres.charte_ia`, **§ 6.1.1**. Toute la matérialisation vit dans **`app/lib/jonctionSegments.ts`** (module pur, 16 tests) : `liantAvantSegment` pour `segments`, `liantSymbolique` pour la couche Bible 899, `recomposerSegments` pour recomposer une suite. ⛔ Ne pas recopier la table des jetons ailleurs.
+
+⛔ **Le défaut se LISAIT à l'écran.** Le latin de Zycha des « Questions sur l'Heptateuque » (`TXT_A0010O0023_LA_1895_ZYCHA`) composait « ut multos gignerent?spacenon enim et Adam ipse » : le mot technique `space` s'imprimait au beau milieu d'Augustin, **neuf fois sur la seule première page**. Le rendu écrivait `{i > 0 ? (s.joinBefore ?? ' ') : null}`, c'est-à-dire qu'il tenait la valeur pour le séparateur lui-même. La donnée était juste, et `oeuvre_texte_unites.clean_text` portait la bonne recomposition.
+
+⚠️ **La colonne mêle DEUX conventions, et aucune contrainte SQL ne les départage** : `segments.join_before` est du `text` libre, à la différence de `bible_editorial_segment_sources.join_before`, qui porte un CHECK sur les quatre jetons. Relevé du 2026-08-24 :
+
+| Valeur | Lignes | Textes | Ce que c'est |
+|---|---:|---:|---|
+| `NULL` | 65 798 | 44 | rien de prescrit → espace simple |
+| `' '` | 19 673 | 29 | séparateur littéral |
+| `''` | 2 288 | 16 | soudure d'un mot coupé |
+| `'\n'` / `'\n\n'` | 2 243 / 1 347 | 6 / 6 | séparateur littéral |
+| `' — '` | 265 | 1 | Jeannin |
+| U+00A0 | 1 | 1 | insécable |
+| **`space`** | **1 913** | **2** | **JETON symbolique** |
+
+Les deux se distinguent par une propriété qui ne trompe pas : **un séparateur littéral ne porte ni lettre ni chiffre**. Un jeton hors vocabulaire retombe donc sur le liant par défaut, et jamais sur son propre nom.
+
+⚠️ **Les deux textes atteints l'étaient ENTIÈREMENT** : Zycha (1 525 jetons sur 2 178 segments) et la Dhuoda de Bondurand `TXT_A0176O0001_1887_BONDURAND` (388 sur 576). Dans les deux, `NULL` ne paraît qu'au premier segment de chaque unité et tout le reste porte `space`. Chercher le défaut sur une seule œuvre, c'est en laisser une seconde en ligne.
+
+⛔ **`NULL` vaut l'espace simple, et il ne peut pas valoir autre chose.** 65 798 segments répartis sur 44 versions n'ont jamais eu la colonne renseignée : leur rendre la chaîne vide souderait les mots de tout ce fonds.
+
+⛔ **Ne jamais poser de règle « on ne joint pas deux unités-source ».** Elle casse deux corpus, et c'est mesuré : Bondurand fait courir une phrase de l'unité `P0035` à `P0036` dans un même paragraphe (« …eripi possis, et in » puis « electorum consortio… », il FAUT l'espace), tandis que **475 premiers segments d'unité de Mirandol et 209 de Ceriziers** portent `''` pour recoller un mot coupé au passage (il FAUT la soudure). La règle juste est plus simple : **la jonction est celle du segment COURANT, rien ne s'hérite du précédent**, et le premier segment d'un bloc affiché ne reçoit aucun préfixe, quelle que soit sa valeur.
+
+**Les quatre chaînes de recomposition**, toutes recâblées : `OeuvreClient.tsx` (texte suivi et apparat critique), `bilingueAlignement.ts::joindreSegmentsOriginaux` (colonne originale de la lecture en regard), `ComparaisonTraductions.tsx::ColonneLecture`, et `bibleEdition.ts::recomposerFragmentsMateriels`, qui tenait déjà la bonne table et la DÉLÈGUE désormais.
+
+⚠️ **La copie et l'export ne sont pas concernés, vérifié** : `BoutonsSegment` cite UN segment, `join_before` n'y entre jamais ; `api/admin/export-segments` sort les colonnes brutes en CSV sans rien recomposer.
+
+**L'ordre compte** : recomposition logique d'abord, typographie ensuite et segment par segment. Dans le lecteur, le liant est un enfant React posé ENTRE les `<span>` des segments, hors de `composerCorps` : aucune métadonnée n'atteint `cesurerLatin` ni `normaliserEspacesOriginal`.
+
 # Césures du texte latin — aucun navigateur ne sait les faire
 
 ⛔ **`hyphens: auto` ne fait RIEN sur un `lang="la"`.** Aucun moteur ne livre de dictionnaire de coupure pour le latin. Mesuré dans le navigateur intégré, sur une colonne de 170 px et un extrait des *Confessions* : **23 lignes** avec `hyphens: auto`, **23** sans césure du tout, et **23** encore en déclarant `lang="it"` pour emprunter le dictionnaire italien. La déclaration était donc inerte depuis toujours, et la justification creusait les blancs faute de pouvoir couper.
