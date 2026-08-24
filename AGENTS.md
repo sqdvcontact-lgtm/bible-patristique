@@ -1087,6 +1087,33 @@ L'ancien tableau de bord, `controle_tableau_bord()`, vit désormais sur **`/admi
 
 ⚠️ **Le backend n'écrit que les sévérités rencontrées** : `findings_by_severity` valait `{REVIEW: 3}`, sans les trois autres. Une sévérité absente vaut zéro constat et doit se lire comme telle, sinon la ligne BLOCKER disparaît le jour où elle vaut zéro et l'on ne sait plus si elle a été vérifiée.
 
+## Le centre de contrôle se lit dans un VOLET, pas dans une grille (2026-08-24)
+
+Mesures prises sur la page servie en 1920, avant refonte : une valeur de tuile faisait **26,1 px**, un titre de carte **22,6**, et le mot qui porte le verdict **21,4**. Les trente-quatre chiffres formaient donc le deuxième rang de la page, au-dessus des huit titres qui les organisent, et le verdict était le plus petit des trois. ⛔ **Un chiffre ne passe jamais devant le titre qui l'organise** : les tuiles prennent trois rangs, `action`, `normal` et `contexte`, séparés par la taille ET par l'encre, sous un titre de section monté à 1,375 rem. Une seule différence de corps ne se voit pas dans une grille de trente tuiles.
+
+⛔ **Deux sections voisines n'ont aucune raison d'avoir la même hauteur.** La grille à deux colonnes laissait **886 px de creux sur 2 637**, soit un tiers de la page, dont un trou de 551 px à droite d'« Outils alignements » (878 px) qui faisait face à « Spine AELF » (327). La colonne unique le supprime entièrement, mesuré à zéro après refonte. La page s'allonge en revanche de 2,9 à 3,9 écrans, et c'est le prix assumé : on n'y navigue plus en défilant.
+
+**Le verdict vit dans un volet collant**, avec les quatre compteurs de sévérité et la liste des sections. Il ne survivait pas au défilement sur une page de trois écrans, alors que c'est la seule chose qu'on vient y chercher. Le volet est d'ailleurs la grammaire du site : la Bible, l'œuvre et le catalogue des péricopes en ont tous un, le centre de contrôle était le seul écran d'administration sans navigation.
+
+⚠️ **L'ordre des sections est FIXE**, du plus actionnable au plus informatif, groupé en « à traiter », « ce qui tient » et « contexte ». Un écran qui se réordonne selon l'état ne s'apprend jamais : c'est la pastille qui dit la gravité du jour, pas la place. `sectionsControle` est la source unique du volet ET de la colonne, sinon le volet finit par annoncer une section que la page a déplacée.
+
+⚠️ **Les liens du volet sont des ancres natives**, sans défilement doux, et les sections portent un `scroll-margin-top` composé sur `HAUTEUR_NAVBAR`. Le doux ne s'exécute pas sur certains postes, la charte l'a déjà consigné.
+
+## ⛔ Le routage d'une mutation se cherche dans la PROSE des tâches (2026-08-24)
+
+Le contrat compact a franchi son délai en pleine séance : **8 696 ms** pour un `statement_timeout` de 8 s, et la page est devenue inaccessible. La correction immédiate a été de n'interroger qu'une fois chacune des deux vues coûteuses, que le contrat lisait deux fois — `v_controle_v2_mutations_routage_effectif` pour la garde puis pour les ambiguïtés, `v_controle_v2_postchecks_ouverts` pour la file puis pour sa répartition. Deux CTE `as materialized`, résultat identique vérifié clé par clé, **6 354 ms** en direct et 5,8 s par PostgREST.
+
+⚠️ **Mais la cause de fond demeure, et elle est structurelle.** Le plan de la vue de routage dit ceci :
+
+```
+Join Filter: (todo->>'texte') LIKE ('%' || id_oeuvre || '%')
+Rows Removed by Join Filter: 133 827
+```
+
+Une mutation se rattache à sa mission propriétaire **en cherchant l'identifiant de l'œuvre dans le texte rédigé des tâches de `controle_sections`**. Le coût est donc le produit des mutations ouvertes par les tâches actives. Et c'est la même mécanique qui fabrique les ambiguïtés : deux tâches qui nomment la même œuvre revendiquent mécaniquement tous ses segments.
+
+⛔ **D'où une règle qui n'était qu'éditoriale et qui devient technique : une seule tâche active par section.** La charte le prescrit depuis l'origine (§30.1) ; au 24 août 2026 il y en avait **37**, dont 24 dans « Qualité du texte » et 13 dans « Corpus ». Chaque tâche active laissée ouverte alourdit tout le système de contrôle et multiplie les propriétaires ambigus.
+
 # Diagnostics d'alignement — le pipeline vit dans un WORKTREE, pas dans `master`
 
 ⚠️ `scripts/bible-alignment-audit/` n'existe pas sur `master` : le chantier vit sur la branche `agent/bible-alignment-audit`, sortie dans le worktree **`C:\Corpus Scriptura\bible-alignment-audit`** (`git worktree list` les nomme tous). Chercher le pipeline dans le dépôt principal ne rend rien, alors que les runs en base citent bien leurs commits.
