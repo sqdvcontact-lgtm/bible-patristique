@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { CSS_CONTROLE } from './stylesControle'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import {
+  INTITULES_GROUPES,
   SEVERITES,
   ageLisible,
   comptesParSeverite,
@@ -12,11 +14,14 @@ import {
   etatGeneral,
   grouperAmbiguites,
   lireSnapshot,
+  sectionsControle,
   teinteEtat,
+  teinteGravite,
   teinteSeverite,
   totauxAlignements,
   type Constat,
   type DiagnosticAlignement,
+  type GroupeSection,
   type Severite,
   type Snapshot,
 } from './snapshotV2'
@@ -43,20 +48,42 @@ function dateHeureFr(iso: string | null | undefined): string {
   return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
 }
 
-function Tuile({ valeur, label, ton }: { valeur: string; label: string; ton?: 'danger' | 'vert' | 'or' }) {
+/**
+ * Trois rangs, et un chiffre ne dépasse jamais le titre qui l'organise.
+ *
+ * `action` pour ce qui appelle un geste, `contexte` pour ce qui décrit, `normal`
+ * entre les deux. Les rangs se séparent sur DEUX axes, la taille et l'encre :
+ * une seule différence de corps ne se voit pas dans une grille de trente tuiles.
+ */
+type RangTuile = 'action' | 'normal' | 'contexte'
+
+function Tuile({
+  valeur,
+  label,
+  ton,
+  rang = 'normal',
+}: {
+  valeur: string
+  label: string
+  ton?: 'danger' | 'vert' | 'or'
+  rang?: RangTuile
+}) {
   const couleur =
-    ton === 'danger' ? 'var(--cs-danger)' : ton === 'vert' ? 'var(--cs-vert)' : ton === 'or' ? 'var(--cs-or)' : 'var(--cs-encre-fonce)'
+    ton === 'danger' ? 'var(--cs-danger)'
+      : ton === 'vert' ? 'var(--cs-vert)'
+        : ton === 'or' ? 'var(--cs-or)'
+          : rang === 'contexte' ? 'var(--cs-texte-second)' : 'var(--cs-encre-fonce)'
   return (
-    <div className="cc-tuile">
+    <div className={`cc-tuile cv-tuile--${rang}`}>
       <div className="cc-tuile-val" style={{ color: couleur }}>{valeur}</div>
       <div className="cc-tuile-lbl">{label}</div>
     </div>
   )
 }
 
-function Carte({ titre, sous, children }: { titre: string; sous?: string; children: ReactNode }) {
+function Carte({ id, titre, sous, children }: { id: string; titre: string; sous?: string; children: ReactNode }) {
   return (
-    <section className="cc-carte">
+    <section className="cc-carte cv-section" id={id}>
       <h2 className="cc-carte-titre">{titre}</h2>
       {sous && <p className="cv-sous">{sous}</p>}
       <div className="cc-carte-corps">{children}</div>
@@ -119,24 +146,71 @@ function EcranReserve() {
   )
 }
 
-// ── Cartes du contrôle v2 ────────────────────────────────────────────────────
+// ── Le volet ─────────────────────────────────────────────────────────────────
 
-function CarteDernierRun({ snapshot }: { snapshot: Snapshot }) {
+const GROUPES: GroupeSection[] = ['traiter', 'tient', 'contexte']
+
+function Volet({ snapshot }: { snapshot: Snapshot }) {
+  const etat = etatGeneral(snapshot)
+  const comptes = comptesParSeverite(snapshot.last_run)
+  const sections = sectionsControle(snapshot)
+  return (
+    <aside className="cv-volet">
+      <div className="cv-volet-dedans">
+        <div className="cv-verdict" style={{ borderLeftColor: teinteEtat(etat.code) }}>
+          <div className="cv-verdict-titre" style={{ color: teinteEtat(etat.code) }}>{etat.libelle}</div>
+          <p className="cv-verdict-phrase">{etat.phrase}</p>
+        </div>
+
+        <ul className="cv-severites">
+          {SEVERITES.map((severite) => (
+            <li key={severite}>
+              <span className="cv-sev-val" style={{ color: comptes[severite] > 0 ? teinteSeverite(severite) : 'var(--cs-texte-faible)' }}>
+                {nb(comptes[severite])}
+              </span>
+              <span className="cv-sev-lbl">{severite}</span>
+            </li>
+          ))}
+        </ul>
+
+        <nav className="cv-nav">
+          {GROUPES.map((groupe) => (
+            <div className="cv-nav-groupe" key={groupe}>
+              <div className="cv-nav-tete">{INTITULES_GROUPES[groupe]}</div>
+              <ul>
+                {sections.filter((section) => section.groupe === groupe).map((section) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`} className="cv-nav-lien">
+                      <span className="cv-puce" style={{ background: teinteGravite(section.gravite) }} />
+                      <span className="cv-nav-titre">{section.titre}</span>
+                      <span className="cv-nav-chiffre">{section.chiffre}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <div className="cv-volet-pied">
+          <div>Backend v{snapshot.backend_version}</div>
+          <div>Snapshot de {dateHeureFr(snapshot.generated_at).replace(/^.*à /, '')}</div>
+          <div>Métriques calculées {ageLisible(snapshot.cache_age_seconds)}</div>
+          <a href="/admin/controle/statistiques" className="cv-lien">Statistiques du corpus →</a>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+// ── Les sections ─────────────────────────────────────────────────────────────
+
+function SectionDernierRun({ snapshot }: { snapshot: Snapshot }) {
   const run = snapshot.last_run
   const comptes = comptesParSeverite(run)
   const constats = run?.findings ?? []
   return (
-    <Carte titre="Dernier run global" sous={`Lancé le ${dateHeureFr(run?.started_at)}, backend v${snapshot.backend_version}.`}>
-      <div className="cc-tuiles">
-        {SEVERITES.map((severite) => (
-          <Tuile
-            key={severite}
-            valeur={nb(comptes[severite])}
-            label={severite}
-            ton={comptes[severite] > 0 ? (severite === 'REVIEW' ? 'or' : severite === 'INFO' ? undefined : 'danger') : undefined}
-          />
-        ))}
-      </div>
+    <Carte id="dernier-run" titre="Dernier run global" sous={`Lancé le ${dateHeureFr(run?.started_at)}, backend v${snapshot.backend_version}.`}>
       {constats.length > 0 ? (
         <ul className="cv-liste">
           {constats.map((constat, index) => (
@@ -152,56 +226,29 @@ function CarteDernierRun({ snapshot }: { snapshot: Snapshot }) {
       ) : (
         <p className="cv-vide">Aucun constat ouvert.</p>
       )}
+      <div className="cc-mention">
+        {SEVERITES.map((severite) => `${nb(comptes[severite])} ${severite}`).join(' · ')}.
+      </div>
     </Carte>
   )
 }
 
-function CarteCertifications({ snapshot }: { snapshot: Snapshot }) {
-  const certifications = snapshot.certifications ?? []
-  const sales = certifications.filter((item) => item.dirty).length
-  return (
-    <Carte
-      titre="Certifications d’invariants"
-      sous={sales === 0
-        ? `Les ${certifications.length} certifications sont propres et aucune n’est marquée dirty.`
-        : `${sales} certification${sales > 1 ? 's' : ''} sur ${certifications.length} sont marquées dirty et doivent être rejouées.`}
-    >
-      <ul className="cv-liste">
-        {certifications.map((certification) => (
-          <li key={certification.code} className="cv-ligne">
-            <span className="cv-puce" style={{ background: certification.dirty || certification.status !== 'ok' ? 'var(--cs-danger)' : 'var(--cs-vert)' }} />
-            <div>
-              <div className="cv-ligne-titre">{certification.code}</div>
-              <div className="cv-ligne-detail">
-                {certification.status === 'ok' && !certification.dirty
-                  ? `Certifiée le ${dateFr(certification.certified_at)}, ${nb(certification.issue_count)} anomalie${certification.issue_count > 1 ? 's' : ''}.`
-                  : `État « ${certification.status} », ${nb(certification.issue_count)} anomalie${certification.issue_count > 1 ? 's' : ''}${certification.dirty_reason ? `, motif : ${certification.dirty_reason}` : ''}.`}
-              </div>
-            </div>
-          </li>
-        ))}
-        {certifications.length === 0 && <p className="cv-vide">Aucune certification enregistrée.</p>}
-      </ul>
-    </Carte>
-  )
-}
-
-function CarteFileLiens({ snapshot }: { snapshot: Snapshot }) {
+function SectionFileLiens({ snapshot }: { snapshot: Snapshot }) {
   const file = snapshot.link_review_queue
   const proprietaires = snapshot.postcheck_owners ?? []
   if (!file) return null
   return (
     <Carte
+      id="file-liens"
       titre="File des postcontrôles de liens"
       sous="Chaque modification suivie garde ses liens dépendants ouverts tant qu’une vérification humaine ne les a pas clos."
     >
       <div className="cc-tuiles">
-        <Tuile valeur={nb(file.checks)} label="Postcontrôles ouverts" ton={file.checks > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(file.checks)} label="Postcontrôles ouverts" rang="action" ton={file.checks > 0 ? 'or' : 'vert'} />
         <Tuile valeur={nb(file.dependent_links)} label="Liens dépendants" />
-        <Tuile valeur={nb(file.bootstrap_checks)} label="Bootstrap" />
-        <Tuile valeur={nb(file.post_go_live_checks)} label="Après go-live" />
-        <Tuile valeur={nb(file.structural_invalid)} label="Structurellement invalides" ton={file.structural_invalid > 0 ? 'danger' : 'vert'} />
-        <Tuile valeur={nb(file.ambiguous_owner)} label="Propriétaire ambigu" ton={file.ambiguous_owner > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(file.structural_invalid)} label="Structurellement invalides" rang={file.structural_invalid > 0 ? 'action' : 'contexte'} ton={file.structural_invalid > 0 ? 'danger' : undefined} />
+        <Tuile valeur={nb(file.bootstrap_checks)} label="Bootstrap" rang="contexte" />
+        <Tuile valeur={nb(file.post_go_live_checks)} label="Après go-live" rang="contexte" />
       </div>
 
       <div className="cv-tete-tableau">Répartition par mission propriétaire</div>
@@ -236,11 +283,12 @@ function CarteFileLiens({ snapshot }: { snapshot: Snapshot }) {
   )
 }
 
-function CarteAmbiguites({ snapshot }: { snapshot: Snapshot }) {
+function SectionAmbiguites({ snapshot }: { snapshot: Snapshot }) {
   const ambiguites = snapshot.routing_ambiguities ?? []
   const groupes = grouperAmbiguites(ambiguites)
   return (
     <Carte
+      id="ambigus"
       titre="Objets à propriétaire ambigu"
       sous="Plusieurs missions revendiquent le même objet. L’arbitrage revient à l’utilisateur, et aucune attribution ne doit être décidée ici."
     >
@@ -249,9 +297,9 @@ function CarteAmbiguites({ snapshot }: { snapshot: Snapshot }) {
       ) : (
         <>
           <div className="cc-tuiles">
-            <Tuile valeur={nb(ambiguites.length)} label="Objets revendiqués" ton="danger" />
+            <Tuile valeur={nb(ambiguites.length)} label="Objets revendiqués" rang="action" ton="danger" />
             <Tuile valeur={nb(groupes.reduce((total, groupe) => total + groupe.liens, 0))} label="Liens dépendants" />
-            <Tuile valeur={nb(groupes.length)} label="Conflits de missions" />
+            <Tuile valeur={nb(groupes.length)} label="Conflits de missions" rang="contexte" />
           </div>
           <ul className="cv-liste">
             {groupes.map((groupe) => (
@@ -274,36 +322,6 @@ function CarteAmbiguites({ snapshot }: { snapshot: Snapshot }) {
           </ul>
         </>
       )}
-    </Carte>
-  )
-}
-
-function CarteSpine({ snapshot }: { snapshot: Snapshot }) {
-  const spine = snapshot.metrics.aelf_spine
-  const restant = spine.tr0001_tr0005_units - spine.tr0001_tr0005_units_verified
-  return (
-    <Carte titre="Spine AELF" sous={`Autorité canonique ${spine.version_code}, au statut « ${spine.version_status} ».`}>
-      <div className="cc-tuiles">
-        <Tuile valeur={nb(spine.entries)} label="Entrées de la spine" />
-        <Tuile valeur={nb(spine.tr0001_tr0005_units_verified)} label="Unités TR0001–TR0005 vérifiées" ton={restant === 0 ? 'vert' : undefined} />
-        <Tuile valeur={nb(restant)} label="Unités restant à vérifier" ton={restant > 0 ? 'or' : 'vert'} />
-        <Tuile valeur={nb(spine.canonical_review)} label="Revues canoniques ouvertes" ton={spine.canonical_review > 0 ? 'or' : 'vert'} />
-        <Tuile valeur={nb(spine.translation_review)} label="Revues de traduction ouvertes" ton={spine.translation_review > 0 ? 'or' : 'vert'} />
-      </div>
-    </Carte>
-  )
-}
-
-function CarteLiensBibliques({ snapshot }: { snapshot: Snapshot }) {
-  const liens = snapshot.metrics.biblical_links
-  return (
-    <Carte titre="Liens bibliques" sous="Couverture canonique de l’ensemble des liens du corpus.">
-      <div className="cc-tuiles">
-        <Tuile valeur={nb(liens.total)} label="Liens enregistrés" />
-        <Tuile valeur={nb(liens.with_canon)} label="Rattachés au canon" ton="vert" />
-        <Tuile valeur={nb(liens.without_canon)} label="Sans canon" ton={liens.without_canon > 0 ? 'or' : 'vert'} />
-        <Tuile valeur={nb(liens.arbitrage_required)} label="Arbitrage requis" ton={liens.arbitrage_required > 0 ? 'or' : 'vert'} />
-      </div>
     </Carte>
   )
 }
@@ -341,7 +359,7 @@ function LigneDiagnostic({ diagnostic, snapshot }: { diagnostic: DiagnosticAlign
   )
 }
 
-function CarteAlignements({ snapshot }: { snapshot: Snapshot }) {
+function SectionAlignements({ snapshot }: { snapshot: Snapshot }) {
   const outils = snapshot.metrics.alignment_tools
   const diagnostics = snapshot.alignment_diagnostics ?? []
   const memoire = snapshot.alignment_review_memory
@@ -351,16 +369,17 @@ function CarteAlignements({ snapshot }: { snapshot: Snapshot }) {
   const totaux = totauxAlignements(diagnostics)
   return (
     <Carte
+      id="alignements"
       titre="Outils alignements"
       sous={`Diagnostic seul, sans écriture sur le corpus. L’autorité reste la spine AELF ${snapshot.metrics.aelf_spine.version_code}.`}
     >
       <div className="cc-tuiles">
+        <Tuile valeur={`${nb(totaux.frais)} / ${nb(totaux.runs)}`} label="Runs à jour" rang="action" ton={totaux.perimes > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(totaux.high)} label="Haute priorité" rang="action" ton={totaux.high > 0 ? 'danger' : 'vert'} />
         <Tuile valeur={nb(totaux.total)} label="Dossiers ouverts" />
-        <Tuile valeur={nb(totaux.high)} label="Haute priorité" ton={totaux.high > 0 ? 'danger' : 'vert'} />
-        <Tuile valeur={nb(totaux.medium)} label="Priorité moyenne" ton={totaux.medium > 0 ? 'or' : 'vert'} />
-        <Tuile valeur={nb(totaux.low)} label="Priorité basse" />
-        <Tuile valeur={`${nb(totaux.frais)} / ${nb(totaux.runs)}`} label="Runs à jour" ton={totaux.perimes > 0 ? 'or' : 'vert'} />
-        <Tuile valeur={nb(memoire?.cases_with_review_memory)} label="Dossiers avec mémoire humaine" />
+        <Tuile valeur={nb(totaux.medium)} label="Priorité moyenne" rang="contexte" />
+        <Tuile valeur={nb(totaux.low)} label="Priorité basse" rang="contexte" />
+        <Tuile valeur={nb(memoire?.cases_with_review_memory)} label="Dossiers avec mémoire humaine" rang="contexte" />
       </div>
 
       <ul className="cv-liste">
@@ -378,26 +397,90 @@ function CarteAlignements({ snapshot }: { snapshot: Snapshot }) {
   )
 }
 
-function CarteGarde({ snapshot }: { snapshot: Snapshot }) {
+function SectionCertifications({ snapshot }: { snapshot: Snapshot }) {
+  const certifications = snapshot.certifications ?? []
+  const sales = certifications.filter((item) => item.dirty).length
+  return (
+    <Carte
+      id="certifications"
+      titre="Certifications d’invariants"
+      sous={sales === 0
+        ? `Les ${certifications.length} certifications sont propres et aucune n’est marquée dirty.`
+        : `${sales} certification${sales > 1 ? 's' : ''} sur ${certifications.length} sont marquées dirty et doivent être rejouées.`}
+    >
+      <ul className="cv-liste cv-liste--serree">
+        {certifications.map((certification) => (
+          <li key={certification.code} className="cv-ligne">
+            <span className="cv-puce" style={{ background: certification.dirty || certification.status !== 'ok' ? 'var(--cs-danger)' : 'var(--cs-vert)' }} />
+            <div>
+              <div className="cv-ligne-titre">{certification.code}</div>
+              <div className="cv-ligne-detail">
+                {certification.status === 'ok' && !certification.dirty
+                  ? `Certifiée le ${dateFr(certification.certified_at)}, ${nb(certification.issue_count)} anomalie${certification.issue_count > 1 ? 's' : ''}.`
+                  : `État « ${certification.status} », ${nb(certification.issue_count)} anomalie${certification.issue_count > 1 ? 's' : ''}${certification.dirty_reason ? `, motif : ${certification.dirty_reason}` : ''}.`}
+              </div>
+            </div>
+          </li>
+        ))}
+        {certifications.length === 0 && <p className="cv-vide">Aucune certification enregistrée.</p>}
+      </ul>
+    </Carte>
+  )
+}
+
+function SectionGardes({ snapshot }: { snapshot: Snapshot }) {
   const garde = snapshot.live_guard
   const regles = snapshot.metrics.rules
   const rpc = snapshot.rpc_security
+  const nonSuivies = garde.untracked_bible_text_events + garde.untracked_segment_events_with_links
   return (
-    <Carte titre="Gardes et règles" sous={snapshot.go_live ? `Go-live du protocole v${snapshot.go_live.version} le ${dateFr(snapshot.go_live.activated_at)}.` : undefined}>
+    <Carte id="gardes" titre="Gardes et règles" sous={snapshot.go_live ? `Go-live du protocole v${snapshot.go_live.version} le ${dateFr(snapshot.go_live.activated_at)}.` : undefined}>
       <div className="cc-tuiles">
-        <Tuile valeur={nb(regles.total)} label="Règles actives" />
-        <Tuile valeur={nb(regles.blocking)} label="Règles bloquantes" />
-        <Tuile valeur={nb(regles.automatic)} label="Règles automatiques" />
-        <Tuile valeur={nb(rpc?.registered)} label="RPC contrôlées" ton={rpc?.secure ? 'vert' : 'danger'} />
-        <Tuile valeur={nb(garde.untracked_bible_text_events)} label="Écritures bibliques non suivies" ton={garde.untracked_bible_text_events > 0 ? 'danger' : 'vert'} />
-        <Tuile valeur={nb(garde.untracked_segment_events_with_links)} label="Segments liés non suivis" ton={garde.untracked_segment_events_with_links > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(nonSuivies)} label="Écritures non suivies" rang={nonSuivies > 0 ? 'action' : 'contexte'} ton={nonSuivies > 0 ? 'danger' : 'vert'} />
+        <Tuile valeur={nb(regles.total)} label="Règles actives" rang="contexte" />
+        <Tuile valeur={nb(regles.blocking)} label="Règles bloquantes" rang="contexte" />
+        <Tuile valeur={nb(regles.automatic)} label="Règles automatiques" rang="contexte" />
+        <Tuile valeur={nb(rpc?.registered)} label="RPC contrôlées" rang="contexte" ton={rpc?.secure ? 'vert' : 'danger'} />
       </div>
       <div className="cc-mention">
         {garde.editorial_work_allowed
           ? 'Le travail éditorial est autorisé sous protocole.'
           : 'Le travail éditorial est suspendu par la garde vivante.'}
         {rpc && !rpc.secure ? ' La sécurité des RPC signale une exposition à corriger.' : ''}
+        {' '}Ces chiffres viennent du cache de métriques, calculé {ageLisible(snapshot.cache_age_seconds)}.
       </div>
+    </Carte>
+  )
+}
+
+function SectionSpine({ snapshot }: { snapshot: Snapshot }) {
+  const spine = snapshot.metrics.aelf_spine
+  const restant = spine.tr0001_tr0005_units - spine.tr0001_tr0005_units_verified
+  return (
+    <Carte id="spine" titre="Spine AELF" sous={`Autorité canonique ${spine.version_code}, au statut « ${spine.version_status} ».`}>
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(restant)} label="Unités restant à vérifier" rang={restant > 0 ? 'action' : 'contexte'} ton={restant > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(spine.canonical_review)} label="Revues canoniques ouvertes" rang={spine.canonical_review > 0 ? 'normal' : 'contexte'} ton={spine.canonical_review > 0 ? 'or' : undefined} />
+        <Tuile valeur={nb(spine.translation_review)} label="Revues de traduction ouvertes" rang={spine.translation_review > 0 ? 'normal' : 'contexte'} ton={spine.translation_review > 0 ? 'or' : undefined} />
+        <Tuile valeur={nb(spine.entries)} label="Entrées de la spine" rang="contexte" />
+        <Tuile valeur={nb(spine.tr0001_tr0005_units_verified)} label="Unités TR0001–TR0005 vérifiées" rang="contexte" />
+      </div>
+      <div className="cc-mention">Chiffres du cache de métriques, calculé {ageLisible(snapshot.cache_age_seconds)}.</div>
+    </Carte>
+  )
+}
+
+function SectionLiensBibliques({ snapshot }: { snapshot: Snapshot }) {
+  const liens = snapshot.metrics.biblical_links
+  return (
+    <Carte id="liens-bibliques" titre="Liens bibliques" sous="Couverture canonique de l’ensemble des liens du corpus.">
+      <div className="cc-tuiles">
+        <Tuile valeur={nb(liens.arbitrage_required)} label="Arbitrage requis" rang={liens.arbitrage_required > 0 ? 'action' : 'contexte'} ton={liens.arbitrage_required > 0 ? 'or' : 'vert'} />
+        <Tuile valeur={nb(liens.without_canon)} label="Sans canon" rang={liens.without_canon > 0 ? 'normal' : 'contexte'} ton={liens.without_canon > 0 ? 'or' : undefined} />
+        <Tuile valeur={nb(liens.total)} label="Liens enregistrés" rang="contexte" />
+        <Tuile valeur={nb(liens.with_canon)} label="Rattachés au canon" rang="contexte" />
+      </div>
+      <div className="cc-mention">Chiffres du cache de métriques, calculé {ageLisible(snapshot.cache_age_seconds)}.</div>
     </Carte>
   )
 }
@@ -432,70 +515,95 @@ export default async function CentreControlePage() {
     return <EcranPanne erreur={error} />
   }
 
-  const etat = etatGeneral(snapshot)
-
   return (
-    <main className="cc-page">
+    <main className="cv-page">
       <style>{CSS_CONTROLE + CSS_V2}</style>
 
-      <header className="cc-entete">
-        <div>
+      <Volet snapshot={snapshot} />
+
+      <div className="cv-corps">
+        <header className="cv-entete">
           <h1 className="cc-titre">Centre de contrôle</h1>
           <p className="cc-sous-titre">Ce que le système de contrôle v{snapshot.backend_version} affirme, à l’instant.</p>
-        </div>
-        <div className="cc-horodatage">
-          Snapshot du {dateHeureFr(snapshot.generated_at)}
-          <br />
-          Métriques calculées {ageLisible(snapshot.cache_age_seconds)}
-          <br />
-          <a href="/admin/controle/statistiques" className="cv-lien">Statistiques du corpus →</a>
-        </div>
-      </header>
+        </header>
 
-      <section className="cv-etat" style={{ borderColor: teinteEtat(etat.code) }}>
-        <div className="cv-etat-pastille" style={{ background: teinteEtat(etat.code) }} />
-        <div className="cv-etat-corps">
-          <div className="cv-etat-titre" style={{ color: teinteEtat(etat.code) }}>{etat.libelle}</div>
-          <p className="cv-etat-phrase">{etat.phrase}</p>
-        </div>
-        <div className="cv-etat-chiffres">
-          <span><strong>{nb(snapshot.live_guard.open_postchecks)}</strong> postcontrôles ouverts</span>
-          <span><strong>{nb(snapshot.live_guard.ambiguous_owner_objects_with_links)}</strong> propriétaires ambigus</span>
-          <span><strong>{nb(snapshot.live_guard.stale_alignment_runs)}</strong> runs d’alignement périmés</span>
-        </div>
-      </section>
-
-      <div className="cc-grille">
-        <CarteDernierRun snapshot={snapshot} />
-        <CarteCertifications snapshot={snapshot} />
-        <CarteFileLiens snapshot={snapshot} />
-        <CarteAmbiguites snapshot={snapshot} />
-        <CarteAlignements snapshot={snapshot} />
-        <CarteSpine snapshot={snapshot} />
-        <CarteLiensBibliques snapshot={snapshot} />
-        <CarteGarde snapshot={snapshot} />
+        <SectionDernierRun snapshot={snapshot} />
+        <SectionFileLiens snapshot={snapshot} />
+        <SectionAmbiguites snapshot={snapshot} />
+        <SectionAlignements snapshot={snapshot} />
+        <SectionCertifications snapshot={snapshot} />
+        <SectionGardes snapshot={snapshot} />
+        <SectionSpine snapshot={snapshot} />
+        <SectionLiensBibliques snapshot={snapshot} />
       </div>
     </main>
   )
 }
 
 const CSS_V2 = `
+  /* Le volet porte le verdict et la navigation, la colonne porte la matière.
+     Une seule colonne de sections : la grille à deux colonnes laissait un tiers
+     de la page en creux, parce que deux sections voisines n'ont aucune raison
+     d'avoir la même hauteur. */
+  .cv-page { min-height: calc(100vh - ${HAUTEUR_NAVBAR}); background: var(--cs-fond); padding: 1.5rem 1.5rem 3rem;
+             display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 2rem;
+             max-width: 76rem; margin: 0 auto; align-items: start; }
+
+  .cv-volet { position: sticky; top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
+  .cv-volet-dedans { max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 3rem); overflow-y: auto; overscroll-behavior: contain;
+                     display: flex; flex-direction: column; gap: 1rem; padding-right: 0.25rem; }
+
+  .cv-verdict { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-left-width: 4px;
+                border-radius: 8px; padding: 0.75rem 0.875rem; }
+  .cv-verdict-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.375rem; line-height: 1.2; }
+  .cv-verdict-phrase { font-size: 0.8125rem; color: var(--cs-texte-second); margin: 0.25rem 0 0; line-height: 1.45;
+                       font-family: var(--font-source-serif), Georgia, serif; }
+
+  .cv-severites { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem; }
+  .cv-severites li { text-align: center; background: var(--cs-fond-clair); border: 1px solid var(--cs-bord-clair);
+                     border-radius: 4px; padding: 0.375rem 0.125rem; }
+  .cv-sev-val { display: block; font-family: var(--font-source-serif), Georgia, serif; font-size: 1.0625rem; line-height: 1.1; }
+  .cv-sev-lbl { display: block; font-size: 0.5625rem; letter-spacing: 0.03em; color: var(--cs-texte-doux);
+                font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.125rem; }
+
+  .cv-nav { display: flex; flex-direction: column; gap: 0.75rem; }
+  .cv-nav-groupe ul { list-style: none; margin: 0; padding: 0; }
+  .cv-nav-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-doux);
+                 font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
+  .cv-nav-lien { display: flex; align-items: baseline; gap: 0.4375rem; padding: 0.25rem 0.375rem; border-radius: 4px;
+                 text-decoration: none; font-family: var(--font-source-sans), Arial, sans-serif; }
+  .cv-nav-lien:hover { background: var(--cs-fond-doux); }
+  .cv-nav-titre { flex: 1; font-size: 0.8125rem; color: var(--cs-texte); }
+  .cv-nav-chiffre { font-size: 0.8125rem; color: var(--cs-texte-second); font-variant-numeric: tabular-nums; }
+  .cv-nav-lien:hover .cv-nav-titre { color: var(--cs-vert); }
+
+  .cv-volet-pied { border-top: 1px solid var(--cs-bord-clair); padding-top: 0.625rem; font-size: 0.6875rem;
+                   color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.6; }
   .cv-lien { color: var(--cs-vert); text-decoration: none; }
   .cv-lien:hover { text-decoration: underline; }
 
-  .cv-etat { max-width: 74rem; margin: 0 auto 1.25rem; background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-left-width: 4px; border-radius: 8px; padding: 0.875rem 1.125rem; display: flex; align-items: center; gap: 0.875rem; flex-wrap: wrap; }
-  .cv-etat-pastille { width: 0.625rem; height: 0.625rem; border-radius: 50%; flex-shrink: 0; }
-  .cv-etat-corps { flex: 1 1 18rem; }
-  .cv-etat-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.125rem; }
-  .cv-etat-phrase { font-size: 0.8125rem; color: var(--cs-texte-second); margin: 0.125rem 0 0; line-height: 1.5; font-family: var(--font-source-serif), Georgia, serif; }
-  .cv-etat-chiffres { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--cs-texte-second); font-family: var(--font-source-sans), Arial, sans-serif; }
-  .cv-etat-chiffres strong { font-family: var(--font-source-serif), Georgia, serif; font-size: 1rem; color: var(--cs-encre-fonce); font-weight: normal; }
+  .cv-corps { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+  .cv-entete { margin-bottom: -0.25rem; }
+  /* La cible d'une ancre ne se pose pas sous la barre de navigation. */
+  .cv-section { scroll-margin-top: calc(${HAUTEUR_NAVBAR} + 1rem); }
 
-  .cv-sous { font-size: 0.8125rem; color: var(--cs-texte-second); line-height: 1.5; margin: -0.5rem 0 0.75rem; font-family: var(--font-source-serif), Georgia, serif; }
+  /* Un titre de section passe AU-DESSUS des chiffres qu'il organise : il était
+     à 19px pour des valeurs de tuile à 22, si bien que trente-quatre chiffres
+     formaient le deuxième rang de la page. */
+  .cv-corps .cc-carte-titre { font-size: 1.375rem; }
+  .cv-sous { font-size: 0.8125rem; color: var(--cs-texte-second); line-height: 1.5; margin: -0.5rem 0 0.75rem;
+             font-family: var(--font-source-serif), Georgia, serif; }
+
+  .cv-tuile--action .cc-tuile-val { font-size: 1.25rem; }
+  .cv-tuile--normal .cc-tuile-val { font-size: 1.0625rem; }
+  .cv-tuile--contexte .cc-tuile-val { font-size: 0.9375rem; }
+  .cv-tuile--contexte .cc-tuile-lbl { color: var(--cs-texte-doux); }
 
   .cv-liste { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cv-liste--serree { gap: 0.3125rem; }
   .cv-ligne { display: flex; align-items: flex-start; gap: 0.5rem; }
   .cv-puce { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; margin-top: 0.3125rem; }
+  .cv-nav-lien .cv-puce { margin-top: 0; }
   .cv-ligne-titre { font-size: 0.8125rem; color: var(--cs-texte); font-family: var(--font-source-sans), Arial, sans-serif; font-weight: 600; }
   .cv-ligne-detail { font-size: 0.75rem; color: var(--cs-texte-second); line-height: 1.5; font-family: var(--font-source-sans), Arial, sans-serif; }
   .cv-etiquette { font-size: 0.6875rem; font-weight: 500; margin-left: 0.5rem; letter-spacing: 0.02em; }
@@ -509,4 +617,14 @@ const CSS_V2 = `
   /* Le nom d'une mission peut se couper n'importe où, un verdict de routage non :
      « ambigu » coupé en deux ne se lit plus. */
   .cv-tableau .cv-routage { overflow-wrap: normal; white-space: nowrap; }
+
+  /* Sous le seuil de la charte, le volet repasse en flux au-dessus de la matière :
+     un volet collant de quinze rem n'a pas de place sur un téléphone. */
+  @media (max-width: 900px) {
+    .cv-page { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; padding: 1rem 0.75rem 2.5rem; }
+    .cv-volet { position: static; }
+    .cv-volet-dedans { max-height: none; overflow: visible; }
+    .cv-nav { flex-direction: row; flex-wrap: wrap; gap: 0.75rem 1.5rem; }
+    .cv-nav-groupe { flex: 1 1 12rem; }
+  }
 `

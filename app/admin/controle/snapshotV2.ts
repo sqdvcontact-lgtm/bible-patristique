@@ -287,6 +287,116 @@ export function grouperAmbiguites(ambiguites: Ambiguite[] | null, exemplesParGro
   return [...groupes.values()].sort((a, b) => b.objets - a.objets)
 }
 
+export type Gravite = 'action' | 'attention' | 'ok'
+
+export type GroupeSection = 'traiter' | 'tient' | 'contexte'
+
+export type SectionControle = {
+  id: string
+  titre: string
+  groupe: GroupeSection
+  /** Le chiffre saillant de la section, déjà mis en français. */
+  chiffre: string | null
+  gravite: Gravite
+}
+
+const nombre = (n: number | null | undefined) => (n ?? 0).toLocaleString('fr-FR')
+
+/**
+ * L'ordre et la gravité des sections, pour le volet ET pour la colonne.
+ *
+ * Une seule source, sinon le volet finit par annoncer une section que la page a
+ * déplacée. L'ordre est FIXE, du plus actionnable au plus informatif : un écran
+ * qui réordonne ses sections selon l'état ne s'apprend jamais. C'est la pastille
+ * qui dit la gravité du jour, pas la place.
+ */
+export function sectionsControle(snapshot: Snapshot): SectionControle[] {
+  const comptes = comptesParSeverite(snapshot.last_run)
+  const constats = (snapshot.last_run?.findings ?? []).length
+  const file = snapshot.link_review_queue
+  const ambigus = (snapshot.routing_ambiguities ?? []).length
+  const totaux = totauxAlignements(snapshot.alignment_diagnostics)
+  const certifications = snapshot.certifications ?? []
+  const sales = certifications.filter((item) => item.dirty || item.status !== 'ok').length
+  const garde = snapshot.live_guard
+  const spine = snapshot.metrics?.aelf_spine
+  const liens = snapshot.metrics?.biblical_links
+
+  return [
+    {
+      id: 'dernier-run',
+      titre: 'Dernier run global',
+      groupe: 'traiter',
+      chiffre: nombre(constats),
+      gravite: comptes.BLOCKER + comptes.ERROR > 0 ? 'action' : comptes.REVIEW > 0 ? 'attention' : 'ok',
+    },
+    {
+      id: 'file-liens',
+      titre: 'File des postcontrôles',
+      groupe: 'traiter',
+      chiffre: nombre(file?.checks),
+      gravite: (file?.structural_invalid ?? 0) > 0 ? 'action' : (file?.checks ?? 0) > 0 ? 'attention' : 'ok',
+    },
+    {
+      id: 'ambigus',
+      titre: 'Propriétaires ambigus',
+      groupe: 'traiter',
+      chiffre: nombre(ambigus),
+      gravite: ambigus > 0 ? 'action' : 'ok',
+    },
+    {
+      id: 'alignements',
+      titre: 'Outils alignements',
+      groupe: 'traiter',
+      chiffre: nombre(totaux.total),
+      gravite: totaux.perimes > 0 ? 'action' : totaux.high > 0 ? 'attention' : 'ok',
+    },
+    {
+      id: 'certifications',
+      titre: 'Certifications',
+      groupe: 'tient',
+      chiffre: `${nombre(certifications.length - sales)} / ${nombre(certifications.length)}`,
+      gravite: sales > 0 ? 'action' : 'ok',
+    },
+    {
+      id: 'gardes',
+      titre: 'Gardes et règles',
+      groupe: 'tient',
+      chiffre: nombre(snapshot.metrics?.rules?.total),
+      gravite:
+        garde.untracked_bible_text_events + garde.untracked_segment_events_with_links > 0 || snapshot.rpc_security?.secure === false
+          ? 'action'
+          : 'ok',
+    },
+    {
+      id: 'spine',
+      titre: 'Spine AELF',
+      groupe: 'contexte',
+      chiffre: nombre(spine?.entries),
+      gravite: (spine?.canonical_review ?? 0) + (spine?.translation_review ?? 0) > 0 ? 'attention' : 'ok',
+    },
+    {
+      id: 'liens-bibliques',
+      titre: 'Liens bibliques',
+      groupe: 'contexte',
+      chiffre: nombre(liens?.total),
+      gravite: (liens?.arbitrage_required ?? 0) > 0 ? 'attention' : 'ok',
+    },
+  ]
+}
+
+export const INTITULES_GROUPES: Record<GroupeSection, string> = {
+  traiter: 'À traiter',
+  tient: 'Ce qui tient',
+  contexte: 'Contexte',
+}
+
+export function teinteGravite(gravite: Gravite): string {
+  if (gravite === 'action') return 'var(--cs-danger)'
+  if (gravite === 'attention') return 'var(--cs-or)'
+  return 'var(--cs-vert)'
+}
+
 /** Décisions humaines déjà connues pour un livre, tous runs confondus. */
 export function decisionsConnues(memoire: MemoireRevues | null, livre: string): { code: string; n: number }[] {
   const entree = memoire?.books?.find((item) => item.book_code === livre)

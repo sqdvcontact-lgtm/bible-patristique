@@ -8,6 +8,7 @@ import {
   etatGeneral,
   grouperAmbiguites,
   lireSnapshot,
+  sectionsControle,
   totauxAlignements,
   type Ambiguite,
   type DiagnosticAlignement,
@@ -228,5 +229,73 @@ describe('ageLisible', () => {
 
   it('reste lisible sans valeur', () => {
     expect(ageLisible(null)).toBe('âge inconnu')
+  })
+})
+
+describe('sectionsControle', () => {
+  const complet = (partiel: Partial<Snapshot> = {}) => snapshot({
+    metrics: {
+      rules: { total: 43, blocking: 21, automatic: 39 },
+      aelf_spine: { entries: 35480, version_code: 'TOL_WEB_20260821', version_status: 'review', canonical_review: 0, translation_review: 0, tr0001_tr0005_units: 10, tr0001_tr0005_units_verified: 10 },
+      biblical_links: { total: 44575, with_canon: 44049, without_canon: 526, arbitrage_required: 87 },
+      alignment_tools: {} as Snapshot['metrics']['alignment_tools'],
+      journal: {} as Snapshot['metrics']['journal'],
+      quality_calculated_at: null,
+    },
+    ...partiel,
+  })
+
+  it('garde un ordre fixe, du plus actionnable au plus informatif', () => {
+    expect(sectionsControle(complet()).map((s) => s.id)).toEqual([
+      'dernier-run', 'file-liens', 'ambigus', 'alignements', 'certifications', 'gardes', 'spine', 'liens-bibliques',
+    ])
+  })
+
+  it('range chaque section dans son groupe', () => {
+    const groupes = sectionsControle(complet()).map((s) => s.groupe)
+    expect(groupes.filter((g) => g === 'traiter')).toHaveLength(4)
+    expect(groupes.filter((g) => g === 'tient')).toHaveLength(2)
+    expect(groupes.filter((g) => g === 'contexte')).toHaveLength(2)
+  })
+
+  it('donne l’action aux ambiguïtés dès qu’il y en a une', () => {
+    const sansAmbiguite = sectionsControle(complet()).find((s) => s.id === 'ambigus')
+    expect(sansAmbiguite?.gravite).toBe('ok')
+    const avec = sectionsControle(complet({
+      routing_ambiguities: [{ object_type: 'segment', object_id: '1', id_oeuvre: null, segment_numero: null, sections: null, dependent_links: 1, first_changed_at: null, last_changed_at: null, candidate_missions: ['a', 'b'] }],
+    })).find((s) => s.id === 'ambigus')
+    expect(avec?.gravite).toBe('action')
+    expect(avec?.chiffre).toBe('1')
+  })
+
+  it('met les alignements en action tant qu’un run est périmé, en attention sur un high', () => {
+    const perime = sectionsControle(complet({ alignment_diagnostics: [diagnostic({ stale: true, captured_fingerprint: null })] })).find((s) => s.id === 'alignements')
+    expect(perime?.gravite).toBe('action')
+    const haut = sectionsControle(complet({ alignment_diagnostics: [diagnostic({ cases: { total: 39, high: 3, medium: 29, low: 7 } })] })).find((s) => s.id === 'alignements')
+    expect(haut?.gravite).toBe('attention')
+    const propre = sectionsControle(complet({ alignment_diagnostics: [diagnostic({ cases: { total: 5, high: 0, medium: 0, low: 5 } })] })).find((s) => s.id === 'alignements')
+    expect(propre?.gravite).toBe('ok')
+  })
+
+  it('compte les certifications propres sur leur total', () => {
+    const section = sectionsControle(complet({
+      certifications: [
+        { code: 'A', status: 'ok', dirty: false, dirty_at: null, dirty_reason: null, issue_count: 0, certified_at: null },
+        { code: 'B', status: 'ok', dirty: true, dirty_at: null, dirty_reason: null, issue_count: 2, certified_at: null },
+      ],
+    })).find((s) => s.id === 'certifications')
+    expect(section?.chiffre).toBe('1 / 2')
+    expect(section?.gravite).toBe('action')
+  })
+
+  it('met les gardes en action sur une écriture non suivie', () => {
+    const section = sectionsControle(complet({ live_guard: garde({ untracked_bible_text_events: 1 }) })).find((s) => s.id === 'gardes')
+    expect(section?.gravite).toBe('action')
+  })
+
+  it('écrit les chiffres en français', () => {
+    const section = sectionsControle(complet()).find((s) => s.id === 'liens-bibliques')
+    expect(section?.chiffre).toBe((44575).toLocaleString('fr-FR'))
+    expect(section?.gravite).toBe('attention')
   })
 })
