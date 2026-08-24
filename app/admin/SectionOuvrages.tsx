@@ -37,6 +37,7 @@ import { supabase } from '@/app/lib/supabase'
 import { messageErreurQualification } from './qualification'
 import { colorMix } from '@/app/lib/couleurs'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
+import { composerNom, separerNoms, type NomStructure } from '@/app/lib/nomsPersonnes'
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -86,6 +87,17 @@ type OuvrageDetail = {
   source_evaluation_scientifique: string | null; confiance_evaluation_scientifique: string | null
 }
 type Autorite = { id: number; nom: string; score: number | null; reserve?: boolean }
+// La fiche d'un chercheur, nom compris en trois rubriques.
+// ⚠️ `nom` reste la CLÉ de rapprochement avec les noms des notices et des lignes de
+// contributeurs : cet écran ne la réécrit jamais, il la double de ses parties. Ce qui
+// PARAÎT passe par `composerNom(parties, nom)`, qui retombe sur `nom` tant que les
+// rubriques sont vides.
+// ⚠️ La colonne s'appelle `nom_famille` et non `nom`, parce que `nom` était déjà pris par
+// la forme affichée. `partiesDe` fait le pont avec `NomStructure`, où `nom` EST le nom de
+// famille : les deux vocabulaires se rencontrent ici et nulle part ailleurs.
+type FicheAuteur = Autorite & { prenom: string | null; nom_famille: string | null; pseudonyme: string | null }
+const partiesDe = (f: FicheAuteur | null | undefined): NomStructure | null =>
+  f ? { prenom: f.prenom, nom: f.nom_famille, pseudonyme: f.pseudonyme } : null
 type LigneContrib = { id: number; ouvrage_id: number; auteur_valeur_id: number | null; nom_affiche: string; role_contributeur: string; nature_personne: string; ordre: number }
 type Tri = 'titre' | 'auteur' | 'annee' | 'editeur'
 type Drapeau = '' | 'override' | 'reserve' | 'sans_editeur' | 'sans_contrib'
@@ -126,7 +138,7 @@ function ChipSci({ code, actif, n, onClick }: { code: string; actif: boolean; n:
 
 const champStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '6px 9px', width: '100%', boxSizing: 'border-box' }
 const labelStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '3px' }
-const carteStyle: React.CSSProperties = { background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '10px', padding: '13px 15px' }
+const carteStyle: React.CSSProperties = { background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '13px 15px' }
 const legendeStyle: React.CSSProperties = { fontFamily: SANS, fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-gris)', margin: '0 0 10px' }
 const btnPrincipal: React.CSSProperties = { fontFamily: SANS, fontSize: '0.75rem', fontWeight: 600, padding: '6px 14px', borderRadius: '8px', cursor: 'pointer' }
 const btnDoux: React.CSSProperties = { fontFamily: SANS, fontSize: '0.75rem', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer' }
@@ -135,7 +147,7 @@ export default function SectionOuvrages() {
   const [lignes, setLignes] = useState<LigneQualite[]>([])
   const [editeursV, setEditeursV] = useState<Autorite[]>([])
   const [collectionsV, setCollectionsV] = useState<Autorite[]>([])
-  const [auteursV, setAuteursV] = useState<Autorite[]>([])
+  const [auteursV, setAuteursV] = useState<FicheAuteur[]>([])
   const [chargement, setChargement] = useState(true)
   const [q, setQ] = useState('')
   const [filtreSci, setFiltreSci] = useState('')          // '', retenu, secondaire, a_verifier, exclu
@@ -153,14 +165,14 @@ export default function SectionOuvrages() {
         supabase.from('v_ouvrages_bibliographiques_qualite').select(CHAMPS_VUE).order('titre'),
         supabase.from('editeurs_valeur').select('id, nom, score').order('nom'),
         supabase.from('collections_valeur').select('id, nom, score').order('nom'),
-        supabase.from('auteurs_valeur').select('id, nom, score, reserve').order('nom'),
+        supabase.from('auteurs_valeur').select('id, nom, score, reserve, prenom, nom_famille, pseudonyme').order('nom'),
       ])
       if (annule) return
       if (vue.error) setErreur(messageErreur(vue.error.message))
       setLignes((vue.data ?? []) as LigneQualite[])
       setEditeursV((ed.data ?? []) as Autorite[])
       setCollectionsV((co.data ?? []) as Autorite[])
-      setAuteursV((au.data ?? []) as Autorite[])
+      setAuteursV((au.data ?? []) as FicheAuteur[])
       setChargement(false)
     })()
     return () => { annule = true }
@@ -350,7 +362,8 @@ export default function SectionOuvrages() {
           {selection ? (
             <Fiche key={selection.id} ligne={selection} rang={rang} total={filtrees.length}
               editeursV={editeursV} collectionsV={collectionsV} auteursV={auteursV}
-              onAller={aller} onErreur={setErreur} onInfo={setInfo} onSauve={() => rechargerLigne(selection.id)} />
+              onAller={aller} onErreur={setErreur} onInfo={setInfo} onSauve={() => rechargerLigne(selection.id)}
+              onMajFiche={(fid, parties) => setAuteursV(prev => prev.map(a => a.id === fid ? { ...a, prenom: parties.prenom, nom_famille: parties.nom, pseudonyme: parties.pseudonyme } : a))} />
           ) : (
             <Sommaire total={lignes.length} comptes={comptes} nbValides={nbValides} />
           )}
@@ -376,7 +389,7 @@ function LigneFile({ l, actif, onClick }: { l: LigneQualite; actif: boolean; onC
       style={{ display: 'grid', gridTemplateColumns: '3px 1fr auto', gap: '9px', alignItems: 'stretch', width: '100%', textAlign: 'left', cursor: 'pointer', padding: '7px 9px 7px 0', borderRadius: '8px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? colorMix('var(--cs-vert)', 6) : 'var(--cs-surface)', overflow: 'hidden', transition: 'border-color 0.12s' }}>
       {/* Le liseré court sur TOUTE la hauteur de la ligne : les marges négatives
           reprennent le rembourrage vertical que la grille lui imposerait. */}
-      <span aria-hidden style={{ background: coul, margin: '-7px 0', borderRadius: '0 2px 2px 0' }} />
+      <span aria-hidden style={{ background: coul, margin: '-7px 0' }} />
       <span style={{ minWidth: 0, display: 'block' }}>
         <span style={{ display: 'block', fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.titre}</span>
         <span style={{ display: 'block', fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '1px' }}>
@@ -438,7 +451,7 @@ function Citation({ o }: { o: Partial<OuvrageDetail> }) {
       {gens && <span>{typo(gens)}, </span>}
       <em style={{ fontStyle: 'italic', color: 'var(--cs-encre)' }}>{typo(o.titre ?? '')}</em>
       {o.sous_titre && <span>. {typo(o.sous_titre)}</span>}
-      {o.collection && <span>, coll. «&#8239;{typo(o.collection)}&#8239;»{o.numero_collection ? `, ${o.numero_collection}` : ''}</span>}
+      {o.collection && <span>, coll. {'« '}{typo(o.collection)}{' »'}{o.numero_collection ? `, ${o.numero_collection}` : ''}</span>}
       {lieuEd && <span>, {typo(lieuEd)}</span>}
       {o.annee ? <span>, {o.annee}</span> : null}
       <span>.</span>
@@ -447,11 +460,12 @@ function Citation({ o }: { o: Partial<OuvrageDetail> }) {
 }
 
 // ── Fiche d'un ouvrage ──────────────────────────────────────────────────────
-function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, onAller, onErreur, onInfo, onSauve }: {
+function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, onAller, onErreur, onInfo, onSauve, onMajFiche }: {
   ligne: LigneQualite; rang: number; total: number
-  editeursV: Autorite[]; collectionsV: Autorite[]; auteursV: Autorite[]
+  editeursV: Autorite[]; collectionsV: Autorite[]; auteursV: FicheAuteur[]
   onAller: (pas: number) => void
   onErreur: (s: string) => void; onInfo: (s: string) => void; onSauve: () => void
+  onMajFiche: (id: number, parties: NomStructure) => void
 }) {
   const id = ligne.id
   const [detail, setDetail] = useState<OuvrageDetail | null>(null)
@@ -588,6 +602,9 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, onAller,
         </div>
       </div>
 
+      {/* ── Les auteurs, nom par nom ───────────────────────────────────────── */}
+      <AuteursRubriques detail={detail} fiches={auteursV} onMajFiche={onMajFiche} onErreur={onErreur} onInfo={onInfo} />
+
       {/* ── A · Valeur scientifique ────────────────────────────────────────── */}
       <section style={carteStyle}>
         <p style={legendeStyle}>Valeur scientifique</p>
@@ -711,6 +728,117 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, onAller,
   )
 }
 
+// ── Les auteurs de la notice, nom par nom, en trois rubriques ───────────────
+//
+// La notice porte ses auteurs en TEXTE (« André Caquot; Philippe de Robert ») : c'est la
+// liste fidèle, et elle le reste. Ce bloc la lit nom par nom et ouvre, pour chacun, les
+// trois rubriques de la personne.
+//
+// ⛔ Les rubriques s'écrivent sur la FICHE de la personne (`auteurs_valeur`), jamais sur
+// l'ouvrage : un nom appartient à quelqu'un, pas à chacun de ses livres. Corriger
+// « de Vogüé » ici le corrige donc partout où l'auteur est cité, et une seule fois.
+//
+// ⚠️ Un nom que ni les fiches ni les lignes de contributeurs ne connaissent est SIGNALÉ,
+// jamais créé : lui ouvrir une fiche non notée ferait retomber son ouvrage à
+// « à vérifier » (internal.calculer_statut_scientifique_ouvrage), ce qui est un arbitrage
+// éditorial et non une écriture d'écran. Ils sont recensés par
+// `scripts/noms-orphelins.mts`.
+function AuteursRubriques({ detail, fiches, onMajFiche, onErreur, onInfo }: {
+  detail: OuvrageDetail; fiches: FicheAuteur[]
+  onMajFiche: (id: number, parties: NomStructure) => void
+  onErreur: (s: string) => void; onInfo: (s: string) => void
+}) {
+  const ROLES = [
+    ['Auteur', detail.auteurs], ['Direction', detail.directeurs], ['Traduction', detail.traducteurs],
+  ] as const
+  const rangs = ROLES.flatMap(([role, brut]) => separerNoms(brut ?? '').map(nom => ({ role, nom })))
+
+  return (
+    <section style={carteStyle}>
+      <p style={legendeStyle}>Les auteurs, nom par nom</p>
+      {rangs.length === 0 ? (
+        <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>La notice ne nomme personne.</p>
+      ) : (
+        <div style={{ display: 'grid', gap: '7px' }}>
+          {rangs.map(({ role, nom }, i) => (
+            <LigneNom key={`${role}-${nom}-${i}`} role={role} nom={nom}
+              fiche={fiches.find(f => f.nom === nom) ?? null}
+              onMajFiche={onMajFiche} onErreur={onErreur} onInfo={onInfo} />
+          ))}
+        </div>
+      )}
+      <p style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', lineHeight: 1.55, margin: '11px 0 0' }}>
+        Les rubriques appartiennent à la personne : les corriger ici les corrige partout où elle est citée. Un auteur jusqu’à la fin du Moyen Âge n’a ni nom ni prénom, son nom entier est un pseudonyme. Le texte de la notice, lui, se modifie plus bas.
+      </p>
+    </section>
+  )
+}
+
+// Une ligne du bloc ci-dessus. L'état est LOCAL et l'écriture part au `blur` : lier les
+// champs à la liste du parent redessinerait les six cents lignes de la file à chaque
+// frappe. Le repli de l'affichage reste le nom de la notice, si bien qu'une fiche encore
+// vide se lit tout de même.
+function LigneNom({ role, nom, fiche, onMajFiche, onErreur, onInfo }: {
+  role: string; nom: string; fiche: FicheAuteur | null
+  onMajFiche: (id: number, parties: NomStructure) => void
+  onErreur: (s: string) => void; onInfo: (s: string) => void
+}) {
+  const [parties, setParties] = useState<NomStructure>({
+    prenom: fiche?.prenom ?? null, nom: fiche?.nom_famille ?? null, pseudonyme: fiche?.pseudonyme ?? null,
+  })
+  const [enregistre, setEnregistre] = useState(false)
+
+  const set = (k: keyof NomStructure, v: string) => { setParties(p => ({ ...p, [k]: v || null })); setEnregistre(false) }
+
+  const sauver = async () => {
+    if (!fiche) return
+    const inchange = (parties.prenom ?? '') === (fiche.prenom ?? '')
+      && (parties.nom ?? '') === (fiche.nom_famille ?? '')
+      && (parties.pseudonyme ?? '') === (fiche.pseudonyme ?? '')
+    if (inchange) return
+    onErreur(''); onInfo('')
+    const { error } = await supabase.from('auteurs_valeur')
+      .update({ prenom: parties.prenom, nom_famille: parties.nom, pseudonyme: parties.pseudonyme })
+      .eq('id', fiche.id)
+    if (error) { onErreur(messageErreur(error.message)); return }
+    onMajFiche(fiche.id, parties)
+    setEnregistre(true)
+  }
+
+  const affiche = composerNom(parties, nom)
+  return (
+    <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '8px 10px', background: fiche ? 'var(--cs-fond-clair)' : colorMix('var(--cs-attente)', 5) }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginBottom: fiche ? '7px' : 0 }}>
+        <span style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte)' }}>{affiche}</span>
+        <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{role}</span>
+        {affiche !== nom && <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)' }}>la notice porte « {nom} »</span>}
+        {enregistre && <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-vert-fonce)' }}>✓ enregistré</span>}
+      </div>
+      {fiche ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))', gap: '8px' }}>
+          <div>
+            <label style={labelStyle}>Nom</label>
+            <input value={parties.nom ?? ''} onChange={e => set('nom', e.target.value)} onBlur={sauver} style={champStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Prénom</label>
+            <input value={parties.prenom ?? ''} onChange={e => set('prenom', e.target.value)} onBlur={sauver} style={champStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Pseudonyme</label>
+            <input value={parties.pseudonyme ?? ''} onChange={e => set('pseudonyme', e.target.value)} onBlur={sauver}
+              placeholder="Voltaire, Irénée de Lyon…" style={champStyle} />
+          </div>
+        </div>
+      ) : (
+        <p style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-attente)', margin: '4px 0 0' }}>
+          Ce nom n’a pas de fiche : ses rubriques ne peuvent pas être saisies tant qu’il n’est pas rattaché.
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ── Un rattachement à une autorité, avec le rang qu'il apporte au calcul ────
 function Rattachement({ label, brut, canonique, statut, valeur, options, onChange }: {
   label: string; brut: string | null; canonique: string | null; statut: string | null
@@ -738,7 +866,7 @@ function Rattachement({ label, brut, canonique, statut, valeur, options, onChang
 // qui entre dans le calcul, et l'on ne comprend pas un statut sans voir ce qui le nourrit.
 function ContributeursFiche({ ouvrageId, contribs, setContribs, rangs, auteursV, onErreur, onInfo, onChange }: {
   ouvrageId: number; contribs: LigneContrib[]; setContribs: (c: LigneContrib[]) => void
-  rangs: Contributeur[]; auteursV: Autorite[]; onErreur: (s: string) => void; onInfo: (s: string) => void; onChange: () => void
+  rangs: Contributeur[]; auteursV: FicheAuteur[]; onErreur: (s: string) => void; onInfo: (s: string) => void; onChange: () => void
 }) {
   const [nature, setNature] = useState<'chercheur' | 'auteur_ancien' | 'collectif'>('chercheur')
   const [role, setRole] = useState('auteur_scientifique')
@@ -774,9 +902,12 @@ function ContributeursFiche({ ouvrageId, contribs, setContribs, rangs, auteursV,
       <div style={{ display: 'grid', gap: '5px', marginBottom: '11px' }}>
         {contribs.map(c => {
           const rang = rangs.find(r => r.nom === c.nom_affiche)
+          // Un chercheur paraît sous son nom composé, un ancien ou un collectif sous le
+          // nom que porte sa ligne : eux n'ont pas de fiche, par doctrine.
+          const fiche = c.auteur_valeur_id ? auteursV.find(a => a.id === c.auteur_valeur_id) : undefined
           return (
             <div key={c.id} style={{ display: 'flex', gap: '9px', alignItems: 'center', fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte)', padding: '5px 9px', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', background: 'var(--cs-fond-clair)' }}>
-              <span style={{ flex: 1, minWidth: 0, fontFamily: SERIF, fontSize: '0.84375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nom_affiche}</span>
+              <span style={{ flex: 1, minWidth: 0, fontFamily: SERIF, fontSize: '0.84375rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{composerNom(partiesDe(fiche), c.nom_affiche)}</span>
               {rang?.reserve && <span title="En réserve" style={{ color: 'var(--cs-danger-fonce)', fontSize: '0.75rem' }}>⚑</span>}
               {rang?.statut && <Puce txt={`${rang.score ?? '—'} · ${L_USAGE[rang.statut] ?? rang.statut}`} coul={C_USAGE[rang.statut] ?? 'var(--cs-systeme)'} />}
               <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap' }}>{L_ROLE[c.role_contributeur] ?? c.role_contributeur}</span>

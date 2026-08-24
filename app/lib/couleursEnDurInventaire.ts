@@ -49,7 +49,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'admin/SectionEvenements.tsx': ['#b7a06a', '#e7d3b8'],
   'admin/SectionFiabilite.tsx': ['#6f8a3e'],
   'admin/SectionModeration.tsx': ['#3d5a6b', '#573f86', '#6b4fa0', '#6b5fa0', '#7a746c', '#8a1f1f', '#9a6650', '#b0442a', '#b8ccbd', '#d8c9ec', '#db988c', '#e2b9aa', '#e6ab95', '#ece3f8'],
-  'admin/SectionOuvrages.tsx': ['#6f8a3e'],
   'admin/SectionPropositions.tsx': ['#5a6b9a'],
   'admin/SectionRemplacerSegments.tsx': ['#8a4a1a', '#9a6a3a', '#a0b8aa', '#e4c4a0'],
   'admin/SectionTraductions.tsx': ['#a0b8aa', 'rgba(242,239,232,0.72)'],
