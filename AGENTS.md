@@ -1522,6 +1522,8 @@ Dans le menu « Éditions de ce texte », une version en langue originale s'anno
 
 ## La lecture bilingue se compose depuis l'ALIGNEMENT (2026-08-24)
 
+Doctrine : charte `parametres.charte_ia`, **§ 12.1** (l'original embarqué est une forme héritée, en extinction) et **§ 12.2** (le groupe d'alignement est le paragraphe de la lecture bilingue). Corrigés le 2026-08-24 par `scripts/charte-corriger-bilingue-alignement-2026-08-24.mjs`, qui applique la même table de remplacements aux DEUX exemplaires de la charte et refuse d'écrire si l'un des motifs n'y figure pas exactement une fois.
+
 ⛔ **Un texte en langue originale n'existe qu'à UN SEUL endroit : dans ses propres `segments`, sous son propre `id_texte`.** Règle posée par l'auteur — « je veux une seule occurrence de chaque traduction ; il faut que chaque traduction latine soit considérée comme une œuvre, mais aussi qu'à partir d'un même texte on puisse aligner avec la traduction ». La correspondance vit dans `texte_alignement_ensembles` / `texte_alignements` / `texte_alignement_membres`, et le **groupe d'alignement est le paragraphe de la lecture bilingue** : c'est lui qui recoupe les deux colonnes.
 
 Toute la règle vit dans `app/oeuvre/[id]/bilingueAlignement.ts` (module pur, 24 tests), employé par le rendu serveur ET par le rechargement client — un seul chargeur, `chargerProjectionBilingue`, sinon les deux dérivent.
