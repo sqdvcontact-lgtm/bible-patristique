@@ -39,6 +39,21 @@ export type CibleLectureBible = {
  */
 export type ManiereDeLireBible = Pick<CibleLectureBible, 'couche' | 'bilingue' | 'texteSeul'>
 
+/**
+ * Le numéro de chapitre demandé par l'adresse, ramené à un ENTIER d'au moins 1.
+ *
+ * ⛔ `parseInt` rend `NaN` sur « abc », et un `NaN` ne se contente pas de mal
+ * s'afficher : il descend jusqu'au recalage en phase de rendu de `NavLivres`, dont
+ * la comparaison est un `!==`. Or NaN n'est jamais égal à lui-même, la condition
+ * est donc vraie à chaque rendu, l'état se repose sans fin, et React coupe la page
+ * entière (erreur 301, « Too many re-renders »). Une adresse tordue ne doit pas
+ * pouvoir sortir le lecteur du site : elle se borne ici, à l'entrée.
+ */
+export function normaliserChapitreBible(valeur: string | null | undefined): number {
+  const n = Number.parseInt((valeur ?? '').trim(), 10)
+  return Number.isFinite(n) && n >= 1 ? n : 1
+}
+
 export function urlLectureBible(cible: CibleLectureBible): string {
   const parametres = new URLSearchParams()
   parametres.set('livre', cible.livre)

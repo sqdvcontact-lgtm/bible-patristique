@@ -3,9 +3,10 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
+import { useCompte } from "@/app/lib/contexteCompte";
 import { LIVRES } from "@/app/lib/bible";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
@@ -410,9 +411,14 @@ const CRAN_MAX = 4;
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [pseudo, setPseudo] = useState<string | null>(null);
-  const [estAdmin, setEstAdmin] = useState(false);
+  // Session et profil viennent du contexte partagé, jamais d'une requête à soi : la
+  // barre tenait son propre abonnement et sa propre lecture de `profils`, qui partait
+  // en double (`getSession` puis l'événement de session initiale). Voir contexteCompte.
+  const { userId, email: emailCompte, pseudo, estAdmin } = useCompte();
+  const user = useMemo(
+    () => (userId ? { id: userId, email: emailCompte ?? '' } : null),
+    [userId, emailCompte],
+  );
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [mobileOuvert, setMobileOuvert] = useState(false);
   // Faux au rendu SERVEUR et au premier rendu client, comme `useEstMobile` : le thème
@@ -590,24 +596,8 @@ export default function Navbar() {
     fermerRechercheRapide();
   };
 
-  useEffect(() => {
-    const chargerProfil = (uid: string) =>
-      supabase.from('profils').select('pseudo, est_admin').eq('id', uid).maybeSingle().then(({ data }) => {
-        setPseudo(data?.pseudo ?? null);
-        setEstAdmin(data?.est_admin ?? false);
-      });
-    supabase.auth.getSession().then(({ data }) => {
-      const u = data.session?.user;
-      setUser(u ? { id: u.id, email: u.email ?? '' } : null);
-      if (u) chargerProfil(u.id);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null);
-      if (session?.user) chargerProfil(session.user.id);
-      else { setPseudo(null); setEstAdmin(false); setNbNotifications(0); setNbMessages(0); setNbActionsAdmin(0); }
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
+  // Rien à faire ici : session, pseudonyme et droits viennent du contexte, et les
+  // trois compteurs se remettent à zéro d'eux-mêmes dans les effets qui les chargent.
 
   useEffect(() => {
     if (!user?.id) { setNbNotifications(0); return }

@@ -1194,7 +1194,6 @@ export default function PolyglottePage() {
               livreActif={livreChoisi ?? ""}
               chapitreActif={chapitreChoisi ?? 0}
               traductionIndex={0}
-              setTraductionIndex={() => {}}
               traductions={[]}
               onChoisirLivre={choisirLivre}
               onChoisirChapitre={(code, ch) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible(null); }}

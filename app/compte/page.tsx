@@ -6,6 +6,7 @@ import { supabase } from "@/app/lib/supabase";
 import { calculerRang, couleurRang } from "@/app/lib/classement";
 import { estOeuvrePubliee } from "@/app/lib/oeuvresPublication";
 import { estRefOriginal, idOeuvreDeRef } from "@/app/lib/refsFavoris";
+import { memoriserTraductionBible } from "@/app/lib/preferenceBible";
 import IconeCrayon from "@/app/components/IconeCrayon";
 import Image from "next/image";
 import { ENCRE_TITRE, ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -580,6 +581,10 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     setEnregistrement(false);
     if (error) { setStatut({ ok: false, msg: "Erreur lors de l’enregistrement." }); return; }
     localStorage.setItem("traduction_defaut", traduction);
+    // La page Bible décide sa colonne sur le SERVEUR : sans ce cookie, elle
+    // continuerait de servir la bible retenue jusqu'ici, et le nouveau choix ne
+    // paraîtrait qu'après un passage par le menu.
+    memoriserTraductionBible(traduction);
     setStatut({ ok: true, msg: "Modifications enregistrées." });
     setTimeout(() => setStatut(null), 2500);
   };

@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation'
-import { Suspense, type ComponentProps } from 'react'
+import { notFound, redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { type ComponentProps } from 'react'
 import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES } from '@/app/lib/bible'
@@ -12,6 +13,8 @@ import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapte
 import { sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import type { BibleEditionChapterPayload } from '@/app/lib/bibleEditionServer'
 import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
+import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
+import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
@@ -31,10 +34,9 @@ export async function generateMetadata({
   const p = await searchParams
   if (!p.livre && !p.chapitre) return {}
   const nom = NOMS_LIVRES[p.livre || 'GEN'] || 'Bible'
-  const ch = parseInt(p.chapitre || '1')
   // Le gabarit « %s · Corpus Scriptura » du layout racine ne s'applique pas à la page
   // racine (même segment) : on compose donc le suffixe ici, pour rester cohérent.
-  return { title: { absolute: `${nom} ${Number.isFinite(ch) ? ch : 1} · Corpus Scriptura` } }
+  return { title: { absolute: `${nom} ${normaliserChapitreBible(p.chapitre)} · Corpus Scriptura` } }
 }
 
 export default async function Home({
@@ -45,24 +47,48 @@ export default async function Home({
   const params = await searchParams
   if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
 
+  // Une adresse qui nomme un livre que la Bible ne connaît pas ne désigne aucune
+  // page. On le dit, au lieu de recopier la chaîne reçue en guise de nom de livre :
+  // « INCONNU ❧ Chapitre 1 » se composait jusqu'ici comme un vrai chapitre.
   const livre = params.livre || 'GEN'
-  const chapitre = parseInt(params.chapitre || '1')
+  if (!NOMS_LIVRES[livre]) notFound()
+  const chapitre = normaliserChapitreBible(params.chapitre)
+
+  // ── Quelle bible rendre ─────────────────────────────────────────────────────
+  // La décision se prend ICI, avant le premier rendu, et dans cet ordre : l'adresse,
+  // puis le cookie de préférence, puis le profil. Elle se prenait autrefois APRÈS le
+  // rendu, dans un effet du navigateur qui se rappelait lui-même — voir la note de
+  // `app/lib/preferenceBible.ts`.
+  const cookieStore = await cookies()
+  const tradDemandee = codeTraductionValide(params.trad)
+    ?? codeTraductionValide(cookieStore.get(COOKIE_TRAD_BIBLE)?.value)
+
   const supabase = await creerSupabaseServeur()
-  const [catalog, editionCatalog, { data: rawTranslations }] = await Promise.all([
+  const [catalog, editionCatalog, { data: rawTranslations }, tradProfil] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `source_edition` = référence complète de
     // l'édition présentée (ville, éditeur, date), toutes deux pour l'encart Traduction.
     supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').order('ordre', { ascending: true }),
+    // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
+    // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
+    // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.
+    tradDemandee ? Promise.resolve(null) : (async () => {
+      const { data: session } = await supabase.auth.getUser()
+      const uid = session.user?.id
+      if (!uid) return null
+      const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
+      return codeTraductionValide(profil?.traduction_defaut)
+    })(),
   ])
   const toutesTraductions = (rawTranslations || [])
     .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, editionRef: t.source_edition ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0
-  const requestedTranslation = params.trad
-  const trad = requestedTranslation && catalog.capabilities[requestedTranslation]
-    ? requestedTranslation
+  const tradSouhaitee = tradDemandee ?? tradProfil
+  const trad = tradSouhaitee && catalog.capabilities[tradSouhaitee]
+    ? tradSouhaitee
     : toutesTraductions.find((t) => estLisible(t.code))?.code
   if (!trad) redirect('/accueil')
   // Le menu ne liste que des bibles lisibles, MAIS il liste toujours celle qu'on lit.
@@ -361,26 +387,29 @@ export default async function Home({
       ? null
       : await chargerAppareilDuChapitre(editionMember, versets.map((verset) => verset.id_verset))
 
+  // ⛔ Pas de frontière `Suspense` ici. Il n'y avait rien à y suspendre — tout ce
+  // qu'elle enveloppait est attendu ci-dessus — mais elle suffisait à faire diffuser
+  // le chapitre HORS FLUX, dans un `<div hidden id="S:0">` que le script de
+  // révélation ne reprenait pas : le document gardait DEUX exemplaires du chapitre,
+  // 136 Ko et le tiers de ses nœuds pour rien, et le HTML du serveur était jeté au
+  // profit d'un rendu refait par le navigateur (mesuré le 2026-08-24).
   return (
-    <Suspense fallback={null}>
-      <BibleLayout
-        livres={LIVRES}
-        versets={versets}
-        traductions={translations}
-        livreActif={livre}
-        chapitreActif={chapitre}
-        nomLivre={NOMS_LIVRES[livre] || livre}
-        tradInitiale={trad}
-        readingCapabilities={catalog.capabilities}
-        couche={bible899 ? couche : undefined}
-        couchesDisponibles={couchesBible}
-        tradExplicite={!!params.trad}
-        editionChapter={editionChapter}
-        lectureBilingue={lectureBilingue}
-        membresFamille={membresFamille}
-        paratexteDisponible={paratexteDisponible}
-        texteSeul={texteSeul}
-      />
-    </Suspense>
+    <BibleLayout
+      livres={LIVRES}
+      versets={versets}
+      traductions={translations}
+      livreActif={livre}
+      chapitreActif={chapitre}
+      nomLivre={NOMS_LIVRES[livre] || livre}
+      tradInitiale={trad}
+      readingCapabilities={catalog.capabilities}
+      couche={bible899 ? couche : undefined}
+      couchesDisponibles={couchesBible}
+      editionChapter={editionChapter}
+      lectureBilingue={lectureBilingue}
+      membresFamille={membresFamille}
+      paratexteDisponible={paratexteDisponible}
+      texteSeul={texteSeul}
+    />
   )
 }

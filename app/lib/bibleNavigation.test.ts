@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { urlLectureBible } from './bibleNavigation'
+import { normaliserChapitreBible, urlLectureBible } from './bibleNavigation'
 
 describe('adresse de lecture de la page Bible', () => {
   it('compose l’adresse ordinaire d’un chapitre', () => {
@@ -41,5 +41,38 @@ describe('adresse de lecture de la page Bible', () => {
   it('échappe ce qui doit l’être', () => {
     expect(urlLectureBible({ livre: '1SA', chapitre: 3, trad: 'TR0001', mode: 'native' }))
       .toBe('/?livre=1SA&chapitre=3&trad=TR0001&mode=native')
+  })
+})
+
+describe('numéro de chapitre reçu de l’adresse', () => {
+  it('garde un numéro bien formé', () => {
+    expect(normaliserChapitreBible('12')).toBe(12)
+    expect(normaliserChapitreBible(' 3 ')).toBe(3)
+    expect(normaliserChapitreBible('150')).toBe(150)
+  })
+
+  it('rend 1 quand l’adresse ne dit rien', () => {
+    expect(normaliserChapitreBible(undefined)).toBe(1)
+    expect(normaliserChapitreBible(null)).toBe(1)
+    expect(normaliserChapitreBible('')).toBe(1)
+  })
+
+  it('ne rend JAMAIS NaN : c’est ce qui faisait tomber la page', () => {
+    // `parseInt('abc')` vaut NaN, et NaN n'est égal à rien, pas même à lui-même :
+    // le recalage en phase de rendu de NavLivres reposait alors son état sans fin.
+    for (const tordu of ['abc', 'un', '?', '--', 'e5', 'Infinity']) {
+      expect(Number.isNaN(normaliserChapitreBible(tordu))).toBe(false)
+      expect(normaliserChapitreBible(tordu)).toBe(1)
+    }
+  })
+
+  it('refuse zéro et les nombres négatifs', () => {
+    expect(normaliserChapitreBible('0')).toBe(1)
+    expect(normaliserChapitreBible('-3')).toBe(1)
+  })
+
+  it('retient la partie entière de tête, comme le faisait parseInt', () => {
+    expect(normaliserChapitreBible('12abc')).toBe(12)
+    expect(normaliserChapitreBible('4.7')).toBe(4)
   })
 })

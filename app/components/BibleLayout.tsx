@@ -17,6 +17,7 @@ import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import LectureBilingueBible from './LectureBilingueBible'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
+import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import { modesLectureAlternatifs, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 
 type Livre = { code: string; nom: string; testament: string }
@@ -43,8 +44,6 @@ type Props = {
   /** Couches réellement exposées par les données (TR0009). Pilote le menu « Graphie »
    *  du volet de gauche : il ne paraît qu'à partir de deux couches. */
   couchesDisponibles?: Couche899[]
-  /** L'URL a explicitement fixé `?trad=` : on l'honore, sans lui substituer la préférence. */
-  tradExplicite?: boolean
   /** Introductions, commentaires de plage, notes et illustrations de l’édition. */
   editionChapter?: BibleEditionChapterDisplay | null
   /** Lecture « Latin-français » : deux membres d’une même famille en regard. */
@@ -58,18 +57,14 @@ type Props = {
   texteSeul?: boolean
 }
 
-// Les trois éditions du nouveau modèle, et elles seules. La Vulgate figurait ici en repli
-// alors qu'aucun texte n'a été repris pour elle : le menu proposait un choix qui n'affichait
-// rien.
-const TRADUCTIONS_DEFAUT = [
-  { code: 'TR0001', label: 'Bible de Sacy' },
-  { code: 'TR0002', label: 'Bible Segond' },
-  { code: 'TR0003', label: 'Bible Crampon' },
-]
+// ⛔ Pas de liste de bibles en repli ici. Trois intitulés y étaient recopiés à la
+// main pour le cas où `traductions` arriverait vide, cas qui ne se produit jamais :
+// `app/page.tsx` renvoie vers l'accueil s'il ne trouve aucune bible lisible, et la
+// liste qu'il passe contient toujours celle qu'on lit. Une liste de secours que
+// personne ne regarde finit par nommer des bibles qui ne sont plus les bonnes.
 
-
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, tradExplicite, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false }: Props) {
-  const listeTraductions = traductions.length > 0 ? traductions : TRADUCTIONS_DEFAUT
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false }: Props) {
+  const listeTraductions = traductions
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
   const [versetSelectionne, setVersetSelectionne] = useState<Verset | null>(null)
@@ -135,6 +130,10 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     setTradRendue(tradInitiale)
     const rang = listeTraductions.findIndex(t => t.code === tradInitiale)
     if (rang >= 0 && rang !== traductionIndex) setTraductionIndex(rang)
+    // Changer de bible efface le verset désigné. Il n'appartenait qu'au témoin qu'on
+    // lisait : gardé, il laissait le volet de droite commenter Genèse 1, 12 pendant
+    // que le texte annonçait que cette édition ne comporte pas le livre.
+    setVersetSelectionne(null)
   }
 
   const traduction = listeTraductions[traductionIndex]?.code ?? 'TR0001'
@@ -188,70 +187,56 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   const livresVides = new Set(livresVidesCache[traduction] ?? [])
   if (versets.some((verset) => verset[traduction])) livresVides.delete(livreActif)
 
-  // Persist widths
+  // Largeurs des volets : on RELIT d'abord, on enregistre ensuite.
+  //
+  // ⛔ La relecture ne passe plus par `requestAnimationFrame`. Les deux effets
+  // s'exécutent dans l'ordre où ils sont écrits, mais celui-ci ne PROGRAMMAIT qu'une
+  // lecture pour l'image suivante, quand celui d'en dessous, lui, écrivait tout de
+  // suite : l'enregistrement précédait donc toujours la relecture, et l'on relisait
+  // le `{nav: null, pann: null}` qu'on venait de poser. Les largeurs réglées à la
+  // main étaient perdues à CHAQUE chargement. Une image d'animation ne s'exécute par
+  // ailleurs jamais dans un onglet d'arrière-plan.
+  //
+  // ⚠️ Le stockage local n'existe pas au rendu serveur : lire ces largeurs dans
+  // l'initialiseur d'état ferait diverger le premier rendu client du HTML servi, le
+  // désaccord d'hydratation que la charte proscrit. La règle `set-state-in-effect`
+  // ne peut donc pas être satisfaite ici ; elle est levée pour ces deux lignes.
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      try {
-        const saved = JSON.parse(localStorage.getItem('cs_volets_bible2') ?? 'null')
-        if (saved?.nav) setNavWidth(saved.nav)
-        if (saved?.pann) setPannWidth(saved.pann)
-      } catch {}
-    })
-    return () => cancelAnimationFrame(frame)
+    try {
+      const saved = JSON.parse(localStorage.getItem('cs_volets_bible2') ?? 'null')
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved?.nav) setNavWidth(saved.nav)
+      if (saved?.pann) setPannWidth(saved.pann)
+    } catch {}
   }, [])
+  // Au montage il n'y a RIEN à enregistrer : les largeurs valent encore leur défaut,
+  // et les écrire reviendrait à effacer ce que l'effet ci-dessus vient de relire.
+  const largeursMontees = useRef(false)
   useEffect(() => {
+    if (!largeursMontees.current) { largeursMontees.current = true; return }
     localStorage.setItem('cs_volets_bible2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
   }, [navWidth, pannWidth])
 
-  useEffect(() => {
-    // L'URL fait foi quand elle nomme une traduction (lien profond, navigation par URL) :
-    // on n'y substitue pas la préférence enregistrée, qui écraserait le choix demandé.
-    if (tradExplicite) return
-    let cancelled = false
-    const estCanonique = (code?: string | null) => {
-      if (!code) return false
-      const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
-      return modes.some((mode) => mode.value === 'verse')
-    }
-    const appliquer = (code?: string | null) => {
-      if (!code || cancelled || !estCanonique(code)) return
-      // Une traduction à segmentation éditoriale (TR0009) n'a pas ses colonnes dans les
-      // versets déjà chargés : basculer VERS ou DEPUIS elle exige un rechargement serveur,
-      // pas un simple échange d'index en mémoire. On laisse donc ce cas au choix explicite
-      // (menu / URL, qui rechargent) ; sans ce garde, la préférence enregistrée écraserait
-      // le `trad` de l'URL et lirait une colonne absente → texte vide.
-      if (estVerseEditorial(readingCapabilities[code]) || estVerseEditorial(readingCapabilities[traduction])) return
-      const idx = listeTraductions.findIndex(t => t.code === code)
-      if (idx >= 0) setTraductionIndex(idx)
-    }
-    // Priorité : traduction choisie manuellement sur cette page
-    const active = localStorage.getItem('cs_trad_bible_active')
-    const preference = estCanonique(active) ? active : localStorage.getItem('traduction_defaut')
-    const frame = requestAnimationFrame(() => appliquer(preference))
-    supabase.auth.getSession().then(async ({ data }) => {
-      const uid = data.session?.user.id
-      if (!uid) return
-      const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
-      if (profil?.traduction_defaut) {
-        localStorage.setItem('traduction_defaut', profil.traduction_defaut)
-        appliquer(profil.traduction_defaut)
-      }
-    })
-    return () => {
-      cancelled = true
-      cancelAnimationFrame(frame)
-    }
-  }, [listeTraductions, readingCapabilities, tradExplicite, traduction])
+  // ⛔ Aucun effet ne substitue plus la bible après coup, et il ne faut pas en
+  // remettre. Celui qui s'en chargeait avait `traduction` dans ses dépendances et
+  // c'est cette valeur qu'il modifiait : il se rappelait donc lui-même, et les deux
+  // préférences qu'il consultait — l'enregistrée, posée à l'image suivante, et celle
+  // du profil, posée au retour du réseau — se sont écrasées l'une l'autre 280 fois
+  // en 23 secondes, une requête Supabase par bascule. Le choix se prend désormais
+  // AVANT le rendu, dans `app/page.tsx` : voir `app/lib/preferenceBible.ts`.
 
+  // Ce qu'on lit VRAIMENT, retenu pour la prochaine ouverture : la reprise de
+  // lecture de l'accueil (`localStorage`) et le rendu serveur de la page (cookie),
+  // qui n'aura donc plus à interroger le profil.
   useEffect(() => {
-    const trad = listeTraductions[traductionIndex]?.code ?? 'TR0001'
-    localStorage.setItem('cs_dernier_bible', JSON.stringify({ livre: livreActif, chapitre: chapitreActif, trad, nomLivre }))
-  }, [livreActif, chapitreActif, traductionIndex, listeTraductions, nomLivre])
+    localStorage.setItem('cs_dernier_bible', JSON.stringify({ livre: livreActif, chapitre: chapitreActif, trad: tradInitiale, nomLivre }))
+    memoriserTraductionBible(tradInitiale)
+  }, [livreActif, chapitreActif, tradInitiale, nomLivre])
 
   const handleSetTraductionIndex = (idx: number) => {
     const code = listeTraductions[idx]?.code
     if (!code) return
-    localStorage.setItem('cs_trad_bible_active', code)
+    memoriserTraductionBible(code)
     const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
     const saved = localStorage.getItem(`cs_bible_mode:${code}`)
     const mode = modes.find((item) => item.value === saved)?.value ?? modes[0]?.value ?? 'verse'
@@ -328,7 +313,6 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         livreActif={livreActif}
         chapitreActif={chapitreActif}
         traductionIndex={traductionIndex}
-        setTraductionIndex={handleSetTraductionIndex}
         traductions={listeTraductions}
         panelWidth={navWidth}
         onWidthChange={setNavWidth}

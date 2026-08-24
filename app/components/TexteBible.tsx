@@ -397,8 +397,11 @@ export default function TexteBible({
   versetSelectionne, setVersetSelectionne, mobile = false,
   editionChapter, maniereDeLire,
 }: Props) {
-  const [userId, setUserId] = useState<string | null>(null)
-  const [estAdmin, setEstAdmin] = useState(false)
+  // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
+  // composant tenait son propre abonnement d'authentification et sa propre lecture
+  // de `profils.est_admin`, l'une et l'autre en double, et les réinstallait à chaque
+  // changement de chapitre.
+  const { userId, estAdmin } = useCompte()
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
@@ -423,40 +426,30 @@ export default function TexteBible({
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 200)
     }
-  }, [searchParams, versets])
+  }, [searchParams, versets, setVersetSelectionne])
 
+  // Les prélèvements du chapitre, et eux seuls, dépendent du chapitre : ils sont
+  // désormais rechargés à part, au lieu d'entraîner avec eux la session et les droits.
   useEffect(() => {
-    const chargerProfil = (uid: string) => {
-      chargerSauvegardes(uid)
-      supabase.from('profils').select('est_admin').eq('id', uid).maybeSingle().then(({ data }) => setEstAdmin(data?.est_admin === true))
-    }
-    supabase.auth.getSession().then(({ data }) => {
-      const uid = data.session?.user.id ?? null
-      setUserId(uid)
-      if (uid) chargerProfil(uid)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-      const uid = session?.user.id ?? null
-      setUserId(uid)
-      if (uid) chargerProfil(uid)
-      else { setSauvegardes(new Map()); setEstAdmin(false) }
-    })
-    return () => listener.subscription.unsubscribe()
-  }, [livreActif, chapitreActif])
-
-  const chargerSauvegardes = async (uid: string) => {
+    // Rien à effacer sans session : les signets ne sont rendus que sous `userId`.
+    if (!userId) return
+    let vivant = true
     const abr = ABREV_FR[livreActif] || livreActif
-    const { data } = await supabase
+    supabase
       .from('prelevements')
       .select('id, ref_verset')
-      .eq('user_id', uid)
+      .eq('user_id', userId)
       .eq('type', 'biblique')
       .eq('ref_livre_abr', abr)
       .eq('ref_chapitre', chapitreActif)
-    const m = new Map<number, string>()
-    ;(data ?? []).forEach((r: any) => m.set(r.ref_verset, r.id))
-    setSauvegardes(m)
-  }
+      .then(({ data }) => {
+        if (!vivant) return
+        const m = new Map<number, string>()
+        ;(data ?? []).forEach((r: { ref_verset: number; id: string }) => m.set(r.ref_verset, r.id))
+        setSauvegardes(m)
+      })
+    return () => { vivant = false }
+  }, [userId, livreActif, chapitreActif])
 
   const marquerSauvegarde = (numVerset: number, id: string) => {
     setSauvegardes(prev => new Map([...prev, [numVerset, id]]))

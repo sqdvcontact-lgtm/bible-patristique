@@ -315,8 +315,9 @@ type Props = {
   livres: Livre[]
   livreActif: string
   chapitreActif: number
+  // Le volet MONTRE la bible qu'on lit (encart « Traduction ») ; il n'en change pas.
+  // Le choix se prend dans le menu central, seul endroit qui nomme les bibles.
   traductionIndex: number
-  setTraductionIndex: (i: number) => void
   traductions: Traduction[]
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
@@ -379,7 +380,7 @@ function parseRefBiblique(saisie: string): { code: string; chapitre: number; ver
 
 export default function NavLivres({
   livres, livreActif, chapitreActif,
-  traductionIndex, setTraductionIndex, traductions,
+  traductionIndex, traductions,
   panelWidth = null, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
@@ -395,8 +396,14 @@ export default function NavLivres({
   // la nouvelle. C'est le motif « ajuster l'état pendant le rendu » de la doc React.
   const [livreRecu, setLivreRecu] = useState(livreActif)
   if (livreRecu !== livreActif) { setLivreRecu(livreActif); setLivreActifLocal(livreActif) }
+  // ⛔ `Object.is` et non `!==` : un `NaN` n'est jamais égal à lui-même, si bien que
+  // la condition restait VRAIE à chaque rendu et que l'état se reposait sans fin.
+  // Une adresse du genre `?chapitre=abc` faisait ainsi tomber la page entière sur
+  // l'écran d'erreur de Next (React 301, « Too many re-renders »). Le numéro est
+  // désormais borné à l'entrée par `normaliserChapitreBible` ; cette garde reste,
+  // parce qu'un composant ne doit pas dépendre de la prudence de ses appelants.
   const [chapitreRecu, setChapitreRecu] = useState(chapitreActif)
-  if (chapitreRecu !== chapitreActif) { setChapitreRecu(chapitreActif); setChapitreActifLocal(chapitreActif) }
+  if (!Object.is(chapitreRecu, chapitreActif)) { setChapitreRecu(chapitreActif); setChapitreActifLocal(chapitreActif) }
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
   const polyMode = !!onChoisirChapitre
   const [atOuvert, setAtOuvert] = useState(true)
@@ -405,7 +412,12 @@ export default function NavLivres({
   // sans allonger la liste de ceux qui ne les consultent pas.
   const [autresOuvert, setAutresOuvert] = useState(false)
   const [ouvertLocal, setOuvertLocal] = useState(true)
+  // ⚠️ La largeur de la fenêtre n'est connue qu'au montage, et l'initialiser à
+  // l'état ferait diverger le rendu serveur du premier rendu client — le désaccord
+  // d'hydratation que la charte proscrit. La règle `set-state-in-effect` ne peut donc
+  // pas être satisfaite ici : elle est levée pour cette ligne, et pour elle seule.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvertLocal(false)
   }, [])
   // Sur mobile, l'ouverture est pilotée par le parent (accordéon : un seul volet
@@ -591,12 +603,16 @@ export default function NavLivres({
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>{titre ?? 'Livres de la Bible'}</span>
+        <span style={{ writingMode: 'vertical-rl' as const, transform: 'rotate(180deg)', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>{titre ?? 'Livres de la Bible'}</span>
       </button>
     )
   }
 
-  const handleDrag = onWidthChange ? (e: React.MouseEvent) => {
+  // La poignée existe dès que le parent sait recevoir une largeur. Le geste, lui,
+  // mesure le volet : cette mesure appartient au GESTIONNAIRE, jamais au rendu — une
+  // fonction qui lit une référence ne doit pas servir de condition d'affichage.
+  const handleDrag = (e: React.MouseEvent) => {
+    if (!onWidthChange) return
     e.preventDefault()
     const startW = panelWidth ?? refPanel.current?.getBoundingClientRect().width ?? 220
     const startX = e.clientX
@@ -604,7 +620,7 @@ export default function NavLivres({
     const onUp = () => document.removeEventListener('mousemove', onMove)
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp, { once: true })
-  } : undefined
+  }
 
   return (
     <>
@@ -626,7 +642,7 @@ export default function NavLivres({
       borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative',
     }}>
-      {!mobile && handleDrag && (
+      {!mobile && onWidthChange && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
           style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
           onMouseEnter={e => {

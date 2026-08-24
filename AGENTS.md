@@ -1468,13 +1468,51 @@ Le socle est **générique**, pas « fait pour Fillion » : une **famille édito
   - ⛔ **Ce qui appartient à une langue ne se perd pas faute de place dans la grille** (défaut corrigé le 2026-08-20). La première version n'accueillait un contenu propre à un membre que s'il était ancré sur un verset ET placé avant lui : une introduction propre au français, une conclusion latine placée après son verset, et **toutes** les illustrations propres à une langue tombaient dans le vide sans rien signaler — leur index était calculé puis jamais lu. Ce qui n'a pas d'ancre de verset ouvre ou ferme désormais SA colonne. L'indexation passe par `indexerBlocsDeCorps` et `indexerIllustrations`, déjà testées, plutôt que d'être refaite à la main.
   - ⚠️ **Une illustration matériellement attachée à un bloc ou à une note suit CE bloc ou CETTE note**, quel que soit le membre à qui elle appartient : la charte veut que l'image d'une note reste dans sa note. Les index par bloc et par note sont donc fusionnés entre le commun et les membres, à la différence des ancres de verset, qui restent par colonne.
 
-## ⚠️ Un comptage DOM sur la page Bible compte DOUBLE
+## ⚠️ Un comptage DOM sur la page Bible comptait DOUBLE — la cause n'était pas celle qu'on croyait
 
-La variante mobile est **rendue puis masquée** (`display: none`), et non démontée — c'est voulu, pour préserver le défilement au changement d'onglet. Un `querySelectorAll` compte donc deux fois chaque verset, chaque titre et chaque bloc : 62 versets pour Genèse 1, qui en a 31. Vérifié le 2026-08-20 sur la Bible de Sacy, sans aucun code Fillion en jeu.
+⛔ **Rectification du 2026-08-24. Ce paragraphe attribuait les 62 versets de Genèse 1 à « une variante mobile rendue puis masquée ». C'est faux, et il n'y a jamais eu de seconde variante** : `BibleLayout` ne rend qu'un seul `TexteBible`, la distinction mobile passant par une propriété. Mesuré dans la page servie : 31 versets dans `#cs-corps`, 31 dans un `<div hidden id="S:0">` enfant de `<body>`, et **zéro verset invisible ailleurs**.
 
-**Règle** : pour compter ce que le lecteur voit, filtrer sur la visibilité (`offsetParent`, ou une boîte de largeur non nulle), ou compter dans le HTML **serveur** plutôt que dans le DOM.
+Ce `S:0` était la charge que React diffuse HORS FLUX pour une frontière `Suspense`, et que le script de révélation ne reprenait pas : le document gardait un exemplaire complet du chapitre en pure perte — **136 458 signes et 849 nœuds sur 2 482**, soit un tiers de la page. Et le HTML du serveur était jeté au profit d'un rendu refait par le navigateur.
+
+**La frontière était `<Suspense fallback={null}>` dans `app/page.tsx`, et elle n'avait rien à suspendre** : tout ce qu'elle enveloppait était attendu avant le `return`. Elle est retirée. ⛔ Ne pas la remettre : `useSearchParams` n'exige une frontière que sur une page **prérendue** (doc `use-search-params.md`), et la page Bible ne l'est jamais, puisqu'elle attend `searchParams` et lit un cookie. Contrôle après build : `/` doit être absente de `.next/prerender-manifest.json`.
+
+⚠️ **Le même symptôme existait sur `/bibliotheque`** (50 Ko), pour la même raison, et jamais sur `/polyglotte` ni `/recherche`, dont la frontière n'enveloppe rien qui suspende.
+
+**Règle de mesure, qui reste vraie** : pour compter ce que le lecteur voit, filtrer sur la visibilité (`offsetParent`, ou une boîte de largeur non nulle), ou compter dans le HTML **serveur** plutôt que dans le DOM. Et vérifier d'où vient un doublon avant de l'expliquer : `[...document.querySelectorAll('[id^="verset-"]')].filter(e => !e.offsetParent)` dit s'il est masqué ou orphelin.
 
 ⚠️ Et compter un nom de classe par sous-chaîne trompe aussi : `cs-bible-block--commentary` contient `cs-bible-bloc`.
+
+## ⛔ La bible qu'on lit se décide sur le SERVEUR (2026-08-24)
+
+La préférence vivait dans `localStorage`, donc après le rendu : le serveur composait un chapitre dans une bible et un effet de `BibleLayout` en substituait une autre. Cet effet avait `traduction` dans ses dépendances et c'est cette valeur qu'il modifiait : **il se rappelait donc lui-même**, et les deux préférences qu'il consultait se sont écrasées l'une l'autre sans fin.
+
+Mesuré dans la page servie, sous session : **280 bascules entre Segond et Crampon en 23 secondes**, une toutes les 76 ms, avec **279 requêtes** `profils?select=traduction_defaut`. Aucune condition d'arrêt : le cycle n'était borné que par la latence du réseau. Trois circonstances l'éteignaient sans le corriger — un clic (qui met `?trad=` dans l'adresse), un onglet passé en arrière-plan (plus de `requestAnimationFrame`), ou une préférence désignant une bible à segmentation éditoriale, que le garde-fou refuse.
+
+**Le choix se prend maintenant dans `app/page.tsx`, avant le premier rendu, et dans cet ordre** : l'adresse (`?trad=`), le cookie `cs_trad_bible`, puis `profils.traduction_defaut`. Tout est dans `app/lib/preferenceBible.ts` (module pur, testé). Le cookie est reposé à chaque lecture par `BibleLayout` et par l'enregistrement du compte, si bien que le profil n'est interrogé qu'à la toute première visite d'un navigateur, dans la même vague que les trois autres requêtes de la page.
+
+⛔ **Ne jamais remettre une substitution côté client.** Ce qui décide de CE QU'ON REND doit être connu du rendu ; sinon il faut le défaire, et défaire un rendu se paie toujours deux fois — ici en HTML jeté, en requêtes, et en bibles qui défilent sous les yeux du lecteur.
+
+## ⛔ Ne plus interroger `profils` depuis un composant (2026-08-24)
+
+`ProvisionCompte` (`app/lib/contexteCompte.tsx`) lit la ligne UNE fois par session et expose `userId`, `email`, `pseudo`, `estAdmin`, `profilPret` et `rafraichirProfil`. La barre de navigation, le texte biblique, le volet patristique et la page Bible la demandaient chacun pour soi : **six requêtes par chargement pour deux informations**, dont trois pour le même `est_admin`, chacune en double parce que chaque composant enchaînait `getSession()` puis un abonnement `onAuthStateChange`, lequel émet aussitôt un événement de session initiale.
+
+⚠️ Le profil est gardé AVEC l'identifiant auquel il appartient (`{ pour, pseudo, estAdmin }`) : `pseudo`, `estAdmin` et `profilPret` s'en DÉRIVENT pendant le rendu, au lieu d'être reposés dans le corps d'un effet.
+
+⚠️ **Un effet qui ne dépend pas du chapitre ne se met pas dans ses dépendances.** `TexteBible` réinstallait son abonnement d'authentification et redemandait `est_admin` à chaque changement de chapitre, alors que seuls les prélèvements en dépendent.
+
+## ⛔ `NaN` ne s'attrape pas avec `!==` — un chapitre non numérique faisait tomber la page
+
+`parseInt('abc')` rend `NaN`, et un `NaN` n'est jamais égal à lui-même. Le recalage en phase de rendu de `NavLivres` s'écrivait `if (chapitreRecu !== chapitreActif)` : la condition restait donc VRAIE à chaque rendu, l'état se reposait sans fin, et React coupait la page entière (erreur 301, « Too many re-renders »). `/?livre=GEN&chapitre=abc` sortait ainsi le lecteur du site.
+
+Deux gardes, et il faut les deux : le numéro se borne à l'entrée (`normaliserChapitreBible`, `bibleNavigation.ts`, testé), et la comparaison passe par **`Object.is`**, parce qu'un composant ne doit pas dépendre de la prudence de ses appelants. Même vigilance partout où le motif « ajuster l'état pendant le rendu » porte sur un nombre.
+
+⚠️ **Corollaire** : le dépôt a désormais un `app/error.tsx` et un `app/not-found.tsx`, en français et avec la navigation. Il n'en avait aucun : toute panne de rendu servait l'écran par défaut de Next, en anglais et sans retour possible.
+
+## ⚠️ On RELIT avant d'enregistrer, sinon on relit ce qu'on vient d'effacer
+
+Les largeurs de volets de la page Bible étaient perdues à **chaque** chargement. Deux effets voisins : le premier ne PROGRAMMAIT la relecture de `localStorage` que pour l'image suivante (`requestAnimationFrame`), le second écrivait tout de suite. L'enregistrement précédait donc toujours la relecture, et l'on relisait le `{nav: null, pann: null}` qu'on venait de poser.
+
+**Règle** : un effet qui relit un stockage se pose AVANT celui qui l'enregistre, et sans différer sa lecture ; l'effet d'enregistrement, lui, saute son premier tour, où il n'y a rien à enregistrer. ⚠️ Et une image d'animation ne s'exécute jamais dans un onglet d'arrière-plan : différer une lecture par `requestAnimationFrame`, c'est accepter qu'elle n'ait parfois pas lieu.
 
 ## L'adresse de la page Bible s'écrit en UN seul endroit
 

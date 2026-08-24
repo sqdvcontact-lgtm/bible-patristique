@@ -115,14 +115,13 @@ const ACTION_BTN: React.CSSProperties = {
 
 // ── Détection admin fiable, via profils.est_admin du compte connecté ─────────
 // (le cookie bp_admin_session est HttpOnly, donc invisible et inutilisable
-// depuis un composant client — c'est pour ça que ça ne fonctionnait jamais).
-function useIsAdmin(userId: string | null) {
-  const [isAdmin, setIsAdmin] = useState(false)
-  useEffect(() => {
-    if (!userId) { setIsAdmin(false); return }
-    supabase.from('profils').select('est_admin').eq('id', userId).maybeSingle().then(({ data }) => setIsAdmin(data?.est_admin === true))
-  }, [userId])
-  return isAdmin
+// depuis un composant client — c'est pour ça que ça ne fonctionnait jamais.)
+//
+// La lecture de `profils` vit désormais dans `ProvisionCompte`, une seule fois pour
+// toute la page : ce volet la refaisait pour son compte, comme la barre et le texte
+// biblique, chacun sans savoir que les autres l'avaient déjà demandée.
+function useIsAdmin() {
+  return useCompte().estAdmin
 }
 
 
@@ -431,16 +430,12 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   const [demandeValidation, setDemandeValidation] = useState(false)
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
-  const [pseudoMoi, setPseudoMoi] = useState<string | null>(null)
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
   const [cibleReponse, setCibleReponse] = useState<Commentaire2 | null>(null)
   const [commentaireSignale, setCommentaireSignale] = useState<Commentaire2 | null>(null)
-  const { aUnCompte, exigerCompte } = useCompte()
-
-  useEffect(() => {
-    if (userId) supabase.from('profils').select('pseudo').eq('id', userId).maybeSingle().then(({ data }) => setPseudoMoi(data?.pseudo ?? null))
-    else setPseudoMoi(null)
-  }, [userId])
+  // Le pseudonyme vient du contexte : c'était la quatrième lecture de `profils` de
+  // la page, pour une colonne que la barre de navigation avait déjà demandée.
+  const { aUnCompte, exigerCompte, pseudo: pseudoMoi } = useCompte()
 
   const charger = () => {
     setLoading(true)
@@ -833,11 +828,10 @@ export default function PanneauPatristique({
   const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
   const [oeuvres, setOeuvres] = useState<Record<string, OeuvreInfo>>({})
   const [loading, setLoading] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
-  const isAdminReel = useIsAdmin(userId)
+  const isAdminReel = useIsAdmin()
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const isAdmin = isAdminReel && !modeUtilisateurStandard
-  const { exigerCompte } = useCompte()
+  const { userId, exigerCompte } = useCompte()
   const [segSignale, setSegSignale] = useState<{ seg: Segment; titreOeuvre?: string } | null>(null)
 
   // ── Compteurs onglets ────────────────────────────────────────────────────────
@@ -859,12 +853,6 @@ export default function PanneauPatristique({
   const [rechercheAuteur, setRechercheAuteur] = useState('')
   const [resultatsAuteur, setResultatsAuteur] = useState<{ id_auteur: string; nom: string }[]>([])
   const [auteurMeta, setAuteurMeta] = useState<Record<string, { traditions: string[]; siecle: number | null; date_mort: string | null }>>({})
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) =>
-      setUserId(data.session?.user.id ?? null)
-    )
-  }, [])
 
   // Charger les infos des oeuvres une seule fois
   useEffect(() => {
