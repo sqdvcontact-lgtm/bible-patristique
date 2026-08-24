@@ -1051,6 +1051,12 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 - **Notes et tâches** : table **`controle_sections`** (`cle` PK, `titre`, `ordre`, `commentaire_ia`, `todos` jsonb `[{texte, fait}]`, `maj_le`). RLS : lecture `authenticated` + `is_admin()` ; écriture par l'assistant (service_role). **Après une avancée notable, mettre à jour la note et cocher les tâches** de la section concernée, pour que la page reste fidèle à l'état réel.
 - **Nombre de traductions bibliques lisibles** : via `codesTraductionsLecture()` (mêmes règles que l'accueil), jamais le simple `count(*)` de `traductions` (qui compte aussi les non matérialisées comme TR0009).
 
+## ⚠️ Une note de section se RÉDIGE en paragraphes (2026-08-24)
+
+`controle_sections.commentaire_ia` est de la prose, et six des neuf notes portaient déjà des retours à la ligne. Le rendu les écrasait : `.cc-note-txt` est en `white-space: pre-line` depuis le 2026-08-24, sans quoi la note de la Chronologie ouvrait sur « [AUDIT_CHRONOLOGIE_2026-08-12] » collé à sa première phrase, et une note un peu longue devenait illisible.
+
+⛔ Et le commentaire de code qui accompagne une règle CSS vit DANS un gabarit de chaîne (`CSS_CONTROLE`) : y écrire un accent grave ferme la chaîne. Nommer les propriétés entre guillemets français, jamais entre accents graves.
+
 ## ⚠️ Une section nouvelle ne s'affiche pas toute seule (2026-08-20)
 
 Les cartes du centre sont **codées en dur** dans `app/admin/controle/page.tsx` (`<Carte titre="…" cle="…">`), et `sec(cle)` va chercher la ligne correspondante. Ajouter une ligne à `controle_sections` ne fait donc **rien paraître** : il faut la carte avec. Neuf cartes au 2026-08-20, la dernière étant « Bible Fillion ».
