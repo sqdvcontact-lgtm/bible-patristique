@@ -122,6 +122,30 @@ Les modèles vivent dans **`app/lib/metadonneesSeo.ts`** (pur, 38 tests) et les 
 
 ⚠️ **Le HTML rendu ne se contrôle qu'en session.** Le verrou de bêta écarté, `anon` n'a de droit sur rien : la page Bible tombe en 500 sur `versets_lecture` et les pages d'auteur et d'œuvre rendent leur repli. Next émet toutefois les métadonnées MÊME sur une page en erreur, ce qui suffit à éprouver les balises : titre unique, canonique absolue avec sa chaîne de requête, jeu Open Graph complet, aucun doublon.
 
+# ⛔ Référencement — la liste de l'OUVERTURE (audit du 2026-08-25)
+
+Ce qui suit a été **audité, chiffré, puis délibérément remis à l'ouverture du site** (décision de l'auteur, 2026-08-25). Rien n'en a été mis en œuvre. ⛔ Ne pas traiter ces points au fil de l'eau : ils se tiennent, et le premier commande tous les autres.
+
+**1. ⛔ PRÉALABLE — `anon` n'a de droit de lecture sur RIEN, et ce n'est pas une affaire de RLS.** Éprouvé depuis la position exacte d'un robot — `node --env-file=.env.local scripts/audit-lecture-anonyme.mjs`, onze tables refusées sur quatorze : `versets_v2`, `versets_lecture`, `oeuvres`, `oeuvre_textes`, `segments`, `liens_bibliques`, `pericopes`, `pericope_occurrences`, `auteurs` et `livres` rendent tous `permission denied for table` — le **GRANT** manque, en deçà de toute politique. ⚠️ La politique « Lecture publique des auteurs » existe pourtant et porte bien sur `{public}` : **elle ne sert à rien sans le droit sous-jacent**, et sa seule présence trompe la lecture. Seules `traductions`, `essais` et `versets_canon` répondent. Conséquence : à l'ouverture, chaque page de contenu se rendra VIDE pour un moteur, et les titres posés dessus (« Jean 1 — Commentaires des Pères de l'Église ») en feront des *soft 404*, sanctionnés plus durement qu'une page absente. **Décider la surface publique table par table, puis vérifier que chaque famille se rend ENTIÈRE sans session.**
+
+**2. L'adresse des chapitres.** `/?livre=JHN&chapitre=1` → `/bible/jean/1` : le mot cherché entre dans l'URL, la hiérarchie devient lisible, la racine se libère. ⚠️ **Rien n'étant indexé, la migration ne coûte rien — elle ne sera jamais moins chère.** Voie sûre : la nouvelle route rend la même page, l'ancienne forme redirige en 308, la canonique désigne la nouvelle.
+
+**3. La racine.** `/` redirige vers `/accueil` : l'adresse la plus forte du domaine est une redirection, et `sitemap.ts` pointe dessus. Même famille : `/populaires`, `/concordance` et `/notifications` sont des déplacements DÉFINITIFS servis en 307 temporaire — `permanentRedirect()` transmet les signaux, `redirect()` les retient.
+
+**4. Deux familles rendues par le NAVIGATEUR.** `app/auteur/[id]/page.tsx` et `app/pericopes/[id]/page.tsx` sont `'use client'` et chargent tout depuis le navigateur : même la base ouverte, le budget de rendu JavaScript de Google est limité et différé. Or **la péricope est le contenu le plus distinctif du site** — ses noms et ses notices sont une écriture originale, quand le texte biblique est sur mille autres sites. ⚠️ La fiche d'auteur n'a en outre aucun `<h1>` (la modale porte un `<h2>`).
+
+**5. Le maillage chapitre ↔ péricope n'existe PAS.** La vue `versets_pericopes` est en base et n'est utilisée nulle part. 270 chapitres recouvrent 249 péricopes (376 occurrences, 53 péricopes à occurrences multiples — les parallèles synoptiques). Un « Ce chapitre contient : *Les noces de Cana* » relierait les pages les plus cherchées aux pages les plus distinctives.
+
+**6. Le plan du site** ne compte que trois adresses. Le générateur est prêt (`SITE_OUVERT=1`) mais **ignore les chapitres**, qui sont la famille principale : 1 334 chapitres du canon, dont **1 093 portent de la matière patristique** (82 %), et **662 en portent dix liens ou plus**, 113 plus de cent. Prioriser sur cette dotation réelle.
+
+**7. Deux trous de métadonnées** : `/bibliotheque` n'a pas de description alors que c'est une page d'entrée ; une quinzaine de pages stables n'ont pas de canonique.
+
+**8. Une image de partage par page** (`opengraph-image`), au lieu du `/og-image.png` commun.
+
+**9. À mesurer après ouverture** : les Core Web Vitals. `PanneauPatristique` fait 1 583 lignes, `BibliothequeClient` 1 845, `Navbar` 1 537 ; le poids du JavaScript n'a jamais été mesuré.
+
+**10. La liste des robots d'IA ne distingue pas deux choses différentes.** Ceux qui **entraînent** (GPTBot, Google-Extended, Applebot-Extended) et ceux qui **citent en répondant** (OAI-SearchBot, PerplexityBot, ClaudeBot). Refuser les seconds rend le site invisible dans ChatGPT, Perplexity et Claude, c'est-à-dire auprès du lecteur qui cherche précisément un verset commenté par Augustin. ✅ Google Search n'est pas touché : bloquer `Google-Extended` n'affecte que l'entraînement, jamais le classement — c'est bien vu, et la même distinction pourrait valoir pour les autres. **Décision éditoriale, non technique** : elle touche à la réservation TDM (charte), donc elle revient à l'auteur.
+
 # Responsive / mise à l'échelle (écrans desktop)
 
 Le site est dessiné en pixels fixes calibrés pour un portable. Pour l'agrandir sur grand écran **sans le refondre**, on scale par une **police racine fluide** et une conversion **px → rem** progressive, page par page.
