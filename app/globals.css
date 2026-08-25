@@ -331,6 +331,14 @@
    mises en page `calc(100vh - 3.5rem)` ne débordent jamais. */
 html {
   font-size: clamp(16px, calc(7px + 0.625vw), 22px);
+  /* ⛔ La gouttière de défilement est RÉSERVÉE en permanence, qu'il y ait de
+     quoi défiler ou non. Presque toutes les pages du site sont un bloc centré
+     par `margin: 0 auto` : le jour où le contenu cesse de dépasser, la barre
+     disparaît, la largeur utile gagne quinze pixels et le bloc SAUTE de sept
+     vers la droite. Mesuré sur la Bibliothèque : passer à « Catalogue des
+     traductions », dont la liste est courte, déplaçait toute la page de 7 px.
+     Ce n'était pas les onglets, c'était la barre de défilement. */
+  scrollbar-gutter: stable;
 }
 
 @theme inline {
@@ -850,4 +858,90 @@ button:focus-visible,
 
 @media (prefers-reduced-motion: reduce) {
   .cs-defilement-discret::-webkit-scrollbar-thumb { transition: none; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE MODÈLE D'ONGLETS DE PAGE
+
+   Une seule définition pour toutes les barres d'onglets de PAGE — Bibliothèque,
+   Communauté, Péricopes. Elles étaient trois, et se distinguaient sur quatre
+   axes à la fois : deux polices, trois corps, deux gris d'inactif, avec ou sans
+   parts égales, avec ou sans séparateurs. Six barres du site donnaient six
+   combinaisons différentes, sans qu'aucune décision les sépare.
+
+   La STRUCTURE vient de la Bibliothèque : les onglets se partagent la mesure à
+   parts ÉGALES, chaque libellé centré dans sa case, un filet fin entre deux
+   cases, le filet plein dessous et le trait vert sous l'onglet retenu. ⛔ Les
+   parts égales ne sont pas un ornement : à largeur libre, la barre se range au
+   fer à gauche et le filet court seul sur la moitié droite de la mesure.
+
+   La POLICE vient de la Communauté : le SANS du site, jamais le sérif. Le sérif
+   est la police des textes d'œuvre (charte, § Interface de lecture) ; une barre
+   d'onglets est du CHROME, elle appartient à l'interface et non au corpus.
+
+   ⛔ Deux rangs ne se distinguent JAMAIS par la seule couleur : l'onglet retenu
+   change de graisse ET d'encre ET reçoit son trait. ⚠️ Son gris d'inactif est
+   le plus SOMBRE des deux qui coexistaient (`--cs-texte-gris`, non
+   `--cs-texte-doux`) : un onglet est un bouton, il se lit avant d'être cliqué.
+   Il rend 3,45 contre le fond, sous le seuil de 4,5 attendu à ce corps — dette
+   ancienne du site, commune à toute son encre discrète, et non un choix pris ici.
+   ───────────────────────────────────────────────────────────────────────────── */
+.cs-onglets {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--cs-bord);
+}
+.cs-onglets-sep {
+  flex: 0 0 1px;
+  align-self: center;
+  height: 14px;
+  background: var(--cs-bord-clair);
+}
+.cs-onglet {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  /* Le trait de l'onglet retenu se pose SUR le filet de la barre, il ne s'ajoute
+     pas dessous : sans cela la barre gagne deux pixels au premier clic. */
+  margin-bottom: -1px;
+  font-family: inherit;
+  font-size: 0.71875rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-align: center;
+  color: var(--cs-texte-gris);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.cs-onglet:hover { color: var(--cs-vert); }
+.cs-onglet[aria-selected='true'],
+.cs-onglet[aria-pressed='true'] {
+  color: var(--cs-vert);
+  font-weight: 600;
+  border-bottom-color: var(--cs-vert-aplat);
+}
+
+/* ⛔ La GRAISSE ne déplace rien, et cela ne peut pas reposer sur les parts
+   égales seules : dès qu'une barre n'a plus de jeu à distribuer — un volet
+   étroit, un téléphone —, passer un libellé à 600 l'élargit et pousse ses
+   voisins. Chaque libellé réserve donc d'avance sa largeur en 600, par un
+   double invisible et de hauteur nulle. C'est ce qui permet à la barre des
+   Péricopes de garder sa graisse en mobile, qu'elle avait dû abandonner. */
+.cs-onglet-libelle { display: inline-grid; }
+.cs-onglet-libelle::after {
+  content: attr(data-libelle);
+  font-weight: 600;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-onglet { transition: none; }
 }

@@ -10,6 +10,7 @@ import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import IconeChevron from '@/app/components/IconeChevron'
+import OngletsPage from '@/app/components/OngletsPage'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { partagerOpuscules } from '@/app/lib/opuscules'
@@ -1724,26 +1725,18 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
           </h1>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: '1px solid var(--cs-bord)', marginBottom: '14px' }}>
-          {([['bibliotheque', 'Bibliothèque'], ['favoris', 'Favoris'], ['catalogue', 'Catalogue des traductions']] as [Onglet, string][]).map(([key, label], idx) => (
-            <React.Fragment key={key}>
-              {idx > 0 && (
-                <span style={{ width: '1px', background: 'var(--cs-bord-clair)', alignSelf: 'center', height: '14px', flexShrink: 0 }} />
-              )}
-              <button onClick={() => setOnglet(key)} style={{
-                flex: 1, padding: '8px 8px', fontSize: '0.75rem', fontFamily: 'var(--font-source-serif), Georgia, serif',
-                textAlign: 'center',
-                background: 'none', border: 'none', borderBottom: onglet === key ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent',
-                color: onglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
-                fontWeight: onglet === key ? 600 : 400, marginBottom: '-1px',
-                transition: 'color 0.15s',
-              }}>
-                {label}
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
+        {/* Onglets — modèle commun du site, cf. `.cs-onglets` dans globals.css. */}
+        <OngletsPage
+          intitule="Sections de la bibliothèque"
+          actif={onglet}
+          choisir={setOnglet}
+          style={{ marginBottom: '14px' }}
+          onglets={[
+            { cle: 'bibliotheque' as Onglet, libelle: 'Bibliothèque' },
+            { cle: 'favoris' as Onglet, libelle: 'Favoris' },
+            { cle: 'catalogue' as Onglet, libelle: 'Catalogue des traductions' },
+          ]}
+        />
 
         {/* Contenu onglet Bibliothèque */}
         {onglet === 'bibliotheque' && (

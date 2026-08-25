@@ -2082,3 +2082,73 @@ Une citation latine ou grecque enchâssée dans une phrase française se compose
 Le grec écrit en caractères grecs ne prend pas l’italique : l’alphabet le distingue déjà.
 
 La ponctuation stockée fait foi et ne se déplace pas au rendu. Un point-virgule que l’édition place hors des guillemets y reste ; ⛔ le rendu ne le rentre pas dans la citation, et ne recompose pas davantage l’apostrophe typographique, qui demeure U+2019 sur toutes les surfaces éditoriales françaises.
+
+
+### Fillion — décisions de chantier et abréviations de renvoi (25 août 2026)
+
+- Toute décision éditoriale validée pendant la relecture Fillion doit être portée immédiatement dans `parametres.charte_ia`, dans la même passe que son application. Si la règle est rétroactive, contrôler et reprendre sans attendre les livres ou chapitres déjà traités. La couche source/diplomatique reste inchangée.
+- L’abréviation savante `h. l.` signifie *hoc loco* (« à cet endroit », « sur ce passage »). Dans la couche éditoriale, ne pas conserver `h. l.` : développer en français. Pour un renvoi de Fillion à son propre commentaire, écrire `à cet endroit`. Dans une référence patristique ou bibliographique, développer de façon intelligible (`à cet endroit` / `sur ce passage`) sans inventer de pagination. Conserver la forme imprimée `h. l.` dans la couche source.
+
+
+### Règle Fillion — désabréviation de *hoc loco*
+Dans toute la couche éditoriale Fillion, les formes autonomes `h. l.`, `H. L.` et variantes de casse équivalentes signifient *hoc loco* et sont systématiquement développées en « à cet endroit ». La forme abrégée demeure conservée dans le témoin source. Ne jamais confondre cette abréviation avec des séquences OCR accidentelles telles que `h l’époque` ou avec une rencontre fortuite de fin et début de mots (`Joseph. Le…`). Cette règle est rétroactive sur tout le chantier Fillion.
+
+
+### Chantier Fillion — récupération d’un bloc manquant et conservation des titres source (25 août 2026)
+
+- Lorsqu’un bloc Fillion manque réellement dans l’import, un OCR secondaire ne peut servir à le réintégrer que s’il provient exactement de la même édition et du même volume, et si sa position matérielle est établie par les blocs voisins, la pagination ou une autre provenance déterministe.
+- Une telle récupération reste obligatoirement en `review` et porte une provenance explicite ; `facsimile_visual_collation=false` (ou équivalent) doit rester vrai tant que les pixels du fac-similé n’ont pas été relus. Elle ne reçoit jamais un statut de collation visuelle par héritage des blocs voisins.
+- L’OCR secondaire ne doit jamais écraser un bloc déjà collationné visuellement ; il sert seulement à récupérer une lacune ou à préparer une vérification.
+- Lorsqu’un heading imprimé est normalisé pour l’affichage, conserver sa formulation source dans `metadata.facsimile_heading` si elle est attestée par le témoin source. Si la formulation n’est connue que par OCR secondaire, utiliser une provenance OCR explicite et ne pas la présenter comme une lecture fac-similé.
+- Ces règles sont rétroactives pour toute nouvelle récupération effectuée pendant le chantier Fillion.
+
+
+### Fillion — sections, translittérations et renvois internes (2026-08-25)
+- Titres de section : dans une formule imprimée du type « SECTION I. — APPARITION DU PRÉCURSEUR… III, 1 — IV, 11 », le marqueur « Section I » est le titre structurel (T3) et le libellé descriptif avec sa plage biblique est un sous-titre distinct attaché (`section_subtitle`). Ne jamais fusionner titre de section et sous-titre dans un seul heading. La règle vaut pour toutes les sections analogues.
+- Translittérations : toute translittération d’une langue ancienne écrite en alphabet latin (hébreu, araméen, etc.) se compose en italique dans la couche éditoriale, par ex. *p’râšîm*, *saddiq*, *Kêfâ’*. Le grec en caractères grecs reste en romain.
+- Renvois bibliques internes : un renvoi sans sigle de livre et avec chapitre en chiffres romains, par ex. « cf. xv, 2 », doit être modernisé en donnant explicitement le livre courant et le chapitre en chiffres arabes : « *cf.* Mt 15, 2 ». Ne pas effectuer de conversion romaine globale hors d’un contexte biblique explicitement identifié.
+
+
+### Fillion — séparation des blocs composites chapitre / péricope / commentaire
+- Si une unité source réunit matériellement un marqueur de chapitre (`CHAP. X.`), un titre analytique de péricope (`2° ...`) et un sous-commentaire numéroté (`1. ...`), ne jamais projeter ces trois fonctions dans un seul bloc.
+- Conserver trois objets distincts : 1) marqueur de chapitre matériel, conservé mais masqué dans le lecteur ; 2) titre de péricope autonome ; 3) commentaire numéroté autonome.
+- Le commentaire est rattaché sémantiquement au titre de péricope ; le titre de péricope est rattaché à la section ou sous-section analytique pertinente.
+- Le `canon_id_start` doit correspondre au chapitre réellement signalé par la source ; ne jamais conserver par inertie l’ancrage du bloc précédent lorsqu’un `CHAP.` marque explicitement un nouveau chapitre.
+- La formulation imprimée antérieure à la séparation doit rester conservée dans `facsimile_heading`, `source_markup` ou la provenance source.
+
+
+### Fillion — ponctuation des lemmes et reclassification des faux appels de note
+- Lorsqu’un lemme cité `« *…* »` est clos et qu’une nouvelle phrase explicative commence immédiatement après, mettre un point après le guillemet fermant, que le lemme soit en tête de paragraphe ou inséré dans une phrase : `« *Qui autem […]* ». C’est …`. Ne jamais laisser `« *…* » C’est …`, `: « *…* » Jésus …` ou une construction analogue sans ponctuation.
+- Contrôler ce motif systématiquement sur les blocs déjà traités, pas seulement au fil des nouveaux chapitres.
+- Typographie française : aucune ponctuation haute accolée au mot précédent. En particulier, normaliser systématiquement le point-virgule avec une espace fine insécable avant `;`.
+- `c.-à-d.` / `C.-à-d.` doivent toujours être développés en `c’est-à-dire` / `C’est-à-dire` dans la couche éditoriale, partout.
+- Une entrée `verse_note` dont le contenu est en réalité un `source_heading_plus_commentary` (titre numéroté de commentaire + commentaire continu de Fillion), sans véritable appel localisé dans le texte source, ne doit pas être publiée comme note de bas de page. La reclasser comme bloc de commentaire dans le flux ; conserver l’objet note source en base mais le retirer de l’exposition publique comme note, avec provenance explicite vers le bloc de remplacement.
+- Un appel de note ne doit jamais servir à compenser une erreur de classification structurelle. Si l’objet est un commentaire continu, supprimer l’appel publié plutôt que chercher à lui attribuer un offset artificiel.
+
+
+### Fillion — références bibliques impossibles ou corrompues
+- Après modernisation, contrôler la validité canonique de toute référence biblique : un chapitre/verset inexistant (par ex. `Mt 6,35`) ne doit jamais être accepté mécaniquement.
+- En cas de référence impossible, conserver la forme source dans la provenance, confronter le témoin imprimé/OCR et le contexte scripturaire, puis enregistrer explicitement la correction éditoriale et sa justification.
+- Ne jamais transformer silencieusement une conjecture en transcription diplomatique. Si l’identification du locus reste incertaine, maintenir le bloc en `review` et signaler l’incertitude.
+
+## 36. Le modèle d’onglets
+
+Une barre d’onglets de PAGE se compose partout de la même façon. Elles étaient trois — Bibliothèque, Communauté, catalogue des Péricopes — et se distinguaient sur quatre axes à la fois : deux polices, trois corps, deux gris d’inactif, avec ou sans parts égales, avec ou sans séparateurs. Six barres du site donnaient six combinaisons différentes, sans qu’aucune décision les sépare. C’est la dérive déjà rencontrée sur les tailles de texte, les rayons d’angle et la couleur, transposée à un composant.
+
+**La structure.** Les onglets se partagent la mesure à parts ÉGALES, chaque libellé centré dans sa case, un filet fin entre deux cases, le filet plein dessous et le trait de l’onglet retenu POSÉ sur ce filet, jamais ajouté dessous — sans quoi la barre gagne deux pixels au premier clic. ⛔ Les parts égales ne sont pas un ornement : à largeur libre, la barre se range au fer à gauche et le filet court seul sur la moitié droite de la mesure.
+
+**La police est celle du CHROME, c’est-à-dire le sans.** Le sérif appartient aux textes d’œuvre, corps comme titres (§ 18) ; une barre d’onglets n’est pas du corpus, c’est de l’interface. Deux des trois barres portaient pourtant le sérif.
+
+⛔ **L’onglet retenu change de graisse ET d’encre ET reçoit son trait.** Deux rangs ne se distinguent jamais par la seule couleur. ⚠️ Le gris de l’inactif est le plus SOMBRE de ceux qui coexistaient : un onglet est un bouton, il se lit avant qu’on le clique.
+
+⛔ **La graisse ne déplace RIEN, et cela ne peut pas reposer sur les parts égales seules.** Dès qu’une barre n’a plus de jeu à distribuer — un volet étroit, un téléphone —, passer un libellé en 600 l’élargit et pousse ses voisins. Mesuré sur « Nouveau Testament » : 113,67 px en 400 contre 116,14 px en 600, soit près de deux pixels et demi qui se propagent à toute la barre. Chaque libellé réserve donc d’avance sa largeur en 600, par un double invisible et de hauteur nulle. C’est ce qui rend le modèle vrai par construction plutôt que par coïncidence de mise en page, et ce qui a rendu au catalogue des péricopes la graisse qu’il avait dû abandonner en mobile.
+
+**Un onglet qui commande des PANNEAUX et un onglet qui FILTRE ne se déclarent pas pareil.** Le premier est un `tablist`, et il promet des panneaux derrière lui. Une barre qui ne fait que restreindre une même liste — le partage par testament du catalogue des péricopes — est un groupe de filtres nommé, avec `aria-pressed`. Le dessin est le même, l’annonce ne l’est pas.
+
+**Ce qui reste hors du modèle, et pourquoi.** Les barres de VOLET — les onglets du panneau de lecture d’une œuvre, ceux du volet des notifications — et la barre fixe des trois volets de la page Bible en mobile appartiennent à un autre registre : elles coiffent un panneau, non une page, et la dernière se compose en capitales espacées. Les unifier avec les onglets de page reviendrait à effacer une distinction qui porte du sens. La sous-barre de l’administration, elle, a ses propres règles, tenues par le nombre de ses entrées.
+
+### 36.1. La gouttière de défilement se réserve toujours
+
+Presque toutes les pages du site sont un bloc centré par une marge automatique. Le jour où le contenu cesse de dépasser, la barre de défilement disparaît, la largeur utile gagne une quinzaine de pixels et le bloc SAUTE de sept vers la droite. Le défaut se lit comme un défaut du composant qu’on vient d’actionner, alors qu’il n’en vient pas : mesuré sur la Bibliothèque, passer à « Catalogue des traductions », dont la liste est courte, déplaçait toute la page de sept pixels sans que les onglets aient bougé d’un cheveu.
+
+La gouttière est donc réservée en permanence sur le document, qu’il y ait de quoi défiler ou non. ⚠️ Le prix est une bande vide d’une quinzaine de pixels sur les pages qui ne défilent pas ; il est moindre qu’une page qui se déplace sous les yeux du lecteur au moindre changement d’onglet.

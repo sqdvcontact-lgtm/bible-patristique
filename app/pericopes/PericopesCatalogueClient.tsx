@@ -382,38 +382,31 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         /* ── Les onglets ────────────────────────────────────────────────────── */
         /* Le partage du corpus se prend en haut et y demeure : la barre est collante sous
            la barre de navigation, comme le volet à sa gauche, et le nom des livres vient
-           se garer dessous. Dessin de la Bibliothèque, repris trait pour trait : les
-           onglets se partagent la mesure à parts ÉGALES, chaque libellé centré dans sa
-           case, filet plein dessous et trait vert sous l'onglet retenu. Les parts égales
-           ne sont pas un ornement : c'est ce qui permet à la graisse de passer à 600 sans
-           décaler personne. À largeur libre, la barre se rangeait au fer à gauche et
-           laissait le filet courir seul sur la moitié droite de la mesure. */
+           se garer dessous. */
         .peri-onglets {
           position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 3;
-          display: flex; align-items: stretch; height: ${HAUTEUR_ONGLETS};
+          height: ${HAUTEUR_ONGLETS};
           box-sizing: border-box; padding-top: 0.5rem; margin-bottom: 1.125rem;
-          background: ${FOND}; border-bottom: 1px solid ${BORD};
+          background: ${FOND};
         }
+        /* ⚠️ Le DESSIN des onglets vient du modèle commun (« .cs-onglets » et
+           « .cs-onglet », dans globals.css) : police, corps, encres, filets et graisse.
+           Il n'en reste ici que ce qui est propre à CETTE barre — la barre
+           collante, sa hauteur, et son repli en mobile. La barre portait le
+           sérif et un corps à elle ; c'est du chrome, elle prend le sans. */
         .peri-onglets .sep { flex-shrink: 0; width: 1px; height: 14px; align-self: center; background: var(--cs-bord-clair); }
-        .peri-onglet {
-          flex: 1; display: flex; align-items: center; justify-content: center;
-          padding: 0 8px; margin-bottom: -1px;
-          font-family: ${SERIF}; font-size: 0.75rem; letter-spacing: 0.01em;
-          background: none; border: none; border-bottom: 2px solid transparent;
-          color: var(--cs-texte-gris); cursor: pointer; white-space: nowrap;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
-        .peri-onglet:hover { color: ${VERT}; }
-        .peri-onglet[aria-pressed="true"] { color: ${VERT}; font-weight: 600; border-bottom-color: var(--cs-vert-aplat); }
+        .peri-onglets .peri-onglet { padding: 0 8px; white-space: nowrap; }
         /* En mobile, les parts égales seraient plus courtes que « Nouveau Testament » :
            les onglets repartent donc de leur propre largeur (flex: 1 1 auto) et ne se
            partagent que le jeu qui reste. On resserre le blanc et le corps plutôt que
            d'abréger « Testament » ; plus étroit que 375 px, la barre glisse — mieux vaut
-           un onglet à découvrir qu'un nom de testament rogné. La graisse, elle, ne bouge
-           pas : sans jeu à distribuer, elle ferait glisser la barre de trois pixels. */
+           un onglet à découvrir qu'un nom de testament rogné.
+           ✅ La graisse, elle, ne bouge PLUS : elle avait dû être abandonnée ici faute
+           de jeu à distribuer, chaque libellé passé à 600 poussant ses voisins. Le
+           modèle réserve désormais la largeur en 600 d'avance, par un double
+           invisible, et la barre garde son signal d'onglet retenu sur un téléphone. */
         .peri-onglets--mobile { overflow-x: auto; overscroll-behavior-x: contain; }
-        .peri-onglets--mobile .peri-onglet { flex: 1 1 auto; padding: 0 8px; font-size: 0.6875rem; }
-        .peri-onglets--mobile .peri-onglet[aria-pressed="true"] { font-weight: 400; }
+        .peri-onglets--mobile .peri-onglet { flex: 1 1 auto; font-size: 0.6875rem; }
 
         /* Rubrique de Testament : le seul rang au-dessus du livre. Sans elle, la
            descente de 48 livres n'avait aucune articulation. */
@@ -518,13 +511,15 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
             {/* Le partage du corpus, en tête et à demeure. Ce sont des FILTRES, non des
                 panneaux : d'où aria-pressed dans un groupe nommé, et non un tablist. */}
             <div role="group" aria-label="Testament"
-              className={mobile ? 'peri-onglets peri-onglets--mobile cs-defilement-discret' : 'peri-onglets'}>
+              className={mobile
+                ? 'cs-onglets peri-onglets peri-onglets--mobile cs-defilement-discret'
+                : 'cs-onglets peri-onglets'}>
               {onglets.map((o, i) => (
                 <Fragment key={o.code}>
-                  {i > 0 && <span aria-hidden="true" className="sep" />}
-                  <button type="button" className="peri-onglet" aria-pressed={testament === o.code}
+                  {i > 0 && <span aria-hidden="true" className="cs-onglets-sep sep" />}
+                  <button type="button" className="cs-onglet peri-onglet" aria-pressed={testament === o.code}
                     onClick={() => setTestament(o.code)}>
-                    {o.label}
+                    <span className="cs-onglet-libelle" data-libelle={o.label}>{o.label}</span>
                   </button>
                 </Fragment>
               ))}

@@ -6,6 +6,7 @@ import { supabase } from '@/app/lib/supabase'
 import { CATEGORIES_ESSAIS } from './EtapeMetadonnees'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import OngletsPage from '@/app/components/OngletsPage'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { categorieEmblemeDe, emblemeDe } from '@/app/lib/emblemesCouverture'
@@ -112,19 +113,18 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
           <div aria-hidden="true" style={{ color: 'var(--cs-or)', fontSize: '0.4375rem', letterSpacing: '0.4em', margin: '6px 0 8px' }}>◆</div>
 
           {/* Onglets navigation — trois entrées : les écrits de la communauté, les siens,
-              et « Écrire » (qui se subdivise en deux sous-onglets). */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', borderBottom: '1px solid var(--cs-bord)' }}>
-            {([
-              { key: 'communaute' as const, label: 'Écrits de la communauté' },
-              { key: 'mes-ecrits' as const, label: 'Mes écrits' },
-              { key: 'ecrire' as const, label: 'Écrire' },
-            ]).map(o => (
-              <button key={o.key} onClick={() => setOnglet(o.key)}
-                style={{ padding: '6px 16px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
-                {o.label}
-              </button>
-            ))}
-          </div>
+              et « Écrire » (qui se subdivise en deux sous-onglets). Modèle commun du
+              site, cf. `.cs-onglets` dans globals.css. */}
+          <OngletsPage
+            intitule="Sections de la communauté"
+            actif={onglet}
+            choisir={setOnglet}
+            onglets={[
+              { cle: 'communaute' as Onglet, libelle: 'Écrits de la communauté' },
+              { cle: 'mes-ecrits' as Onglet, libelle: 'Mes écrits' },
+              { cle: 'ecrire' as Onglet, libelle: 'Écrire' },
+            ]}
+          />
         </div>
 
         {onglet === 'communaute' ? (
