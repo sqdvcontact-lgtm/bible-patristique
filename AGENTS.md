@@ -934,6 +934,22 @@ La colonne de lecture est un conteneur centré dont la largeur est nommée : `la
 
 ⚠️ Antériorité, à ne pas rejouer : le 2026-08-06, le correctif inverse avait été appliqué — les blocs de paragraphes (vue texte ET vue apparat) avaient reçu `paddingRight: gouttiereTitre` pour s'aligner sur des titres eux-mêmes compensés. C'était juste tant que la gouttière existait. Ne pas remettre de `paddingRight` sur ces blocs : la largeur se règle sur la colonne, en un seul endroit.
 
+# Page Œuvre — changer de TEXTE, c'est changer de PAGE (2026-08-25)
+
+Le menu « Lecture » mêle deux gestes qui se ressemblent et ne coûtent pas la même chose. « Français » et « Français & latin » ne basculent qu'un état client (`basculerTexte`) : instantanés. « Latin » vise un autre `id_texte`, donc une autre adresse, donc un **rendu serveur entier**. `urlDuModeOuNull` dit lequel est lequel, et c'est la seule chose à consulter avant d'ajouter une entrée au menu.
+
+**Ce que coûte ce rendu**, mesuré le 2026-08-25 sur les Questions sur l'Heptateuque (`A0010O0023`, texte latin `TXT_A0010O0023_LA_1895_ZYCHA`) : **cinq vagues dépendantes**, dix-huit requêtes, et **la division tout entière renvoyée** — 393 segments, 132 839 signes, **331 Ko de JSON** — quand le lecteur n'en voit que 15 000 signes (`CHARS_PAR_PAGE`). C'est la plus grosse première division latine du corpus : 132 839 signes contre 78 047 pour le premier livre de la Cité de Dieu et 33 292 pour celui des Confessions. Le coût suit la taille de l'œuvre, d'où « c'est lent surtout sur l'Heptateuque ».
+
+⛔ **Ce n'est PAS le latin qui est lourd.** Écartés par la mesure, pour n'y pas revenir : le syllabage `cesurerLatin` (1,3 ms pour une page affichée, 11 ms pour le livre entier), les notes structurées (le texte de Zycha n'en a aucune, le français en a 900), l'apparat critique (0 ligne côté latin), les liens bibliques et les versets (0 côté latin, 1 777 liens pour le seul premier livre français). Sur la base de données, **la page latine est deux à trois fois plus légère que la française**.
+
+**Les deux remèdes en place** (`OeuvreClient.tsx`, autour de `naviguer` / `precharger`) :
+- le clic est **acquitté** — `useTransition` tient l'attente, le bouton la montre. Sans cela rien ne bouge : seule la requête d'adresse change, le routeur garde donc la page courante et le `loading.tsx` de la route n'entre jamais en jeu ;
+- la page est **demandée au survol**. ⚠️ `router.prefetch(url, { kind: 'full' })` : un préchargement ordinaire s'arrête au `loading.tsx` et ne rapporte rien de ce qui coûte.
+
+⚠️ **Le témoin ne se rembobine pas dans un effet.** `cibleEnCours` se lit toujours avec `navigation`, qui retombe seul ; une remise à zéro en `useEffect` n'ajouterait qu'un rendu en cascade, et le lint (`react-hooks/set-state-in-effect`) le refuse.
+
+**Ce qui reste ouvert** : n'envoyer qu'une PAGE de lecture au lieu de la division entière. Le mécanisme existe (`chargerTrancheTexte`, `niv1InitialPartiel`, complété en tâche de fond par le client) mais son plafond est de mille segments ; le descendre diviserait la charge initiale par neuf sur l'Heptateuque, au prix d'un nombre de pages qui grandit sous les yeux du lecteur pendant que le fond se charge. Décision non prise. Accessoirement, la tranche lit 2 178 lignes pour en garder 393, faute d'index sur `(id_texte, ref_niv1, segment_numero)`.
+
 # Traductions parallèles — calquées sur la lecture latin-français (2026-08-13)
 
 Règle fixée : le mode « Traductions parallèles » (`ComparaisonTraductions.tsx`) doit **tout** reproduire de la lecture — jusqu'au frontispice. Ne JAMAIS revenir aux anciens `<select>` Livre/Division, ni à un titre héros / en-tête sobre à part.

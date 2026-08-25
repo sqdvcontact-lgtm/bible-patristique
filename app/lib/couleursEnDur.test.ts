@@ -22,7 +22,11 @@ const RACINE = join(import.meta.dirname, '..')
 const EXEMPTS = ['globals.css', 'EssaiPDF.tsx', 'couverturesEssai.ts', 'couleursEnDurInventaire.ts']
 const DOSSIERS_EXEMPTS = ['quiz']
 
-const HEX = /#[0-9a-fA-F]{3,8}\b/g
+// ⚠️ Le `#` ne doit PAS être précédé d'un `&` : `&#8239;`, l'espace fine insécable que
+// la charte pose autour des guillemets, se lisait sinon comme la couleur `#8239`. Vu le
+// 2026-08-25 dans `BibleEditionParatext.tsx`, où la garde chromatique tombait sur une
+// ESPACE et rendait toute la suite rouge.
+const HEX = /(?<!&)#[0-9a-fA-F]{3,8}\b/g
 // Une fonction de couleur dont le premier argument est un CHIFFRE porte une valeur
 // littérale. `rgba(var(--cs-vert-rgb), 0.07)` commence par `var` : c'est la forme
 // tokenisée, celle qu'on veut, et elle n'entre pas au registre.

@@ -303,7 +303,11 @@ export default async function OeuvrePage({
 
   // L'œuvre reste l'identité canonique ; le texte actif est choisi séparément.
   // La RLS masque les versions non publiques aux lecteurs ordinaires.
-  const [estAdmin, oeuvreResult, textesResult, alignementsResult, indexEditeurs] = await Promise.all([
+  // ⚠️ Les auteurs partent AVEC cette vague. Ils attendaient seuls, tout à la fin, un
+  // aller-retour entier après la projection bilingue, alors qu'ils ne dépendent que de
+  // l'identifiant de l'œuvre — connu dès la première ligne. Une vague de plus dans une
+  // chaîne qui en compte déjà cinq, pour rien.
+  const [estAdmin, oeuvreResult, textesResult, alignementsResult, indexEditeurs, auteursOeuvre] = await Promise.all([
     verifierEstAdmin(),
     supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
     supabase.from('oeuvre_textes')
@@ -315,6 +319,7 @@ export default async function OeuvrePage({
       .eq('id_oeuvre', id)
       .order('created_at', { ascending: true }),
     chargerIndexEditeurs(supabase),
+    chargerAuteursDOeuvre(supabase, id),
   ])
   const oeuvre = oeuvreResult.data
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
@@ -648,8 +653,8 @@ export default async function OeuvrePage({
 
   // Auteurs de l'œuvre, à égalité : `auteur` est leur libellé commun (il nomme
   // l'œuvre au frontispice, dans les citations, dans l'historique de lecture),
-  // `auteurId` reste le premier, pour les surfaces qui n'en visent qu'un.
-  const auteursOeuvre = await chargerAuteursDOeuvre(supabase, id)
+  // `auteurId` reste le premier, pour les surfaces qui n'en visent qu'un. Ils sont
+  // chargés avec la première vague, non ici : voir plus haut.
   const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as any)?.nom || ''
   const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
 

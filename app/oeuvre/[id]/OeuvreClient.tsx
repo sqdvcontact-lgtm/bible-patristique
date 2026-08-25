@@ -4,7 +4,7 @@ import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 
-import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
@@ -625,6 +625,57 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
     const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
   const router = useRouter()
+
+  // ⛔ CHANGER DE TEXTE, C'EST CHANGER DE PAGE — et cela ne se voyait nulle part.
+  // « Français » et « Français & latin » ne font que basculer un état, ils sont donc
+  // instantanés ; « Latin » vise un AUTRE `id_texte`, donc une autre adresse, donc un
+  // rendu serveur entier : cinq vagues de requêtes enchaînées, et la division tout
+  // entière renvoyée. Mesuré le 2026-08-25 sur les Questions sur l'Heptateuque, dont le
+  // premier livre latin est la plus grosse division du corpus (393 segments, 132 839
+  // signes, 331 Ko de JSON) : une seconde et davantage, PENDANT LAQUELLE RIEN NE BOUGE.
+  // Le `loading.tsx` de la route n'y paraît pas — seule la requête d'adresse change, le
+  // routeur garde donc la page courante —, et le bouton était un `<button>` nu.
+  //
+  // Deux remèdes, tous deux ici, et aucun ne touche à ce qui est chargé :
+  //  1. le clic est ACQUITTÉ : `useTransition` tient l'attente et le bouton la montre ;
+  //  2. la page est DEMANDÉE AU SURVOL, avant même le clic.
+  const [navigation, demarrerNavigation] = useTransition()
+  const [cibleEnCours, setCibleEnCours] = useState<string | null>(null)
+  const dejaPrechargees = useRef<Set<string>>(new Set())
+  // ⚠️ `cibleEnCours` ne se rembobine pas, et n'a pas à le faire : le témoin se lit
+  // TOUJOURS avec `navigation`, qui retombe seul. Une remise à zéro dans un effet ne
+  // ferait qu'ajouter un rendu en cascade pour un état que personne ne lit plus.
+
+  const urlDuTexte = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la', cibleTexte?: string | null) => {
+    const params = new URLSearchParams()
+    if (cibleTexte) params.set('texte', cibleTexte)
+    if (mt !== 'fr') params.set('mt', mt)
+    const requete = params.toString()
+    return `/oeuvre/${cibleOeuvre}${requete ? `?${requete}` : ''}`
+  }
+  const naviguer = (url: string) => {
+    setCibleEnCours(url)
+    demarrerNavigation(() => router.push(url))
+  }
+  /** Demande la page au survol, une fois par adresse.
+   *
+   *  ⚠️ `kind: 'full'` n'est pas un ornement : un préchargement ordinaire s'arrête au
+   *  `loading.tsx` de la route et ne rapporte donc RIEN de ce qui coûte ici. La valeur
+   *  est publique et stable ; l'énumération qui la nomme vit dans les entrailles de
+   *  Next, et on ne l'importe pas pour autant. */
+  const precharger = (url: string) => {
+    if (dejaPrechargees.current.has(url)) return
+    dejaPrechargees.current.add(url)
+    router.prefetch(url, { kind: 'full' } as Parameters<typeof router.prefetch>[1])
+  }
+  /** Le témoin d'attente d'un bouton, et de quoi le préparer au survol. */
+  const gestesDeNavigation = (url: string | null) => ({
+    onMouseEnter: url ? () => precharger(url) : undefined,
+    onFocus: url ? () => precharger(url) : undefined,
+    'aria-busy': (url !== null && navigation && cibleEnCours === url) || undefined,
+  })
+  const attendCette = (url: string | null) => url !== null && navigation && cibleEnCours === url
+
   // Traductions sœurs : œuvres du MÊME auteur au MÊME titre normalisé (comme le
   // regroupement de la Bibliothèque). Sert au sélecteur de traduction du volet gauche.
   type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; note: string | null; langue_originale: string | null; langue_trad: string | null }
@@ -1393,13 +1444,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // leur identifiant. On ne bascule le mode sur place que si la cible est bien le
   // texte qu'on lit déjà : sans cette seconde condition, passer du latin au français
   // sous la même œuvre ne faisait que retourner le mode et laissait le latin à l'écran.
+  // Un mode qui reste sur le même texte se bascule sur place ; les autres changent de
+  // page. `urlDuModeOuNull` dit lesquels, ce qui sert aussi à ne précharger que ceux-là.
+  const urlDuModeOuNull = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la', cibleTexte?: string | null) =>
+    cibleOeuvre === idOeuvre && (!cibleTexte || cibleTexte === idTexte)
+      ? null
+      : urlDuTexte(cibleOeuvre, mt, cibleTexte)
   const allerAuMode = (cibleOeuvre: string, mt: 'fr' | 'bilingue' | 'la', cibleTexte?: string | null) => {
-    if (cibleOeuvre === idOeuvre && (!cibleTexte || cibleTexte === idTexte)) { basculerTexte(mt); return }
-    const params = new URLSearchParams()
-    if (cibleTexte) params.set('texte', cibleTexte)
-    if (mt !== 'fr') params.set('mt', mt)
-    const requete = params.toString()
-    router.push(`/oeuvre/${cibleOeuvre}${requete ? `?${requete}` : ''}`)
+    const url = urlDuModeOuNull(cibleOeuvre, mt, cibleTexte)
+    if (url === null) { basculerTexte(mt); return }
+    naviguer(url)
   }
   // Cible du mode « original » :
   //  - si l'œuvre courante EST l'original, on la lit elle-même (mt=fr = son texte) ;
@@ -1848,9 +1902,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <div style={{ marginTop: '10px' }}>
                 <span style={LABEL_VOLET}>Lecture</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                  {modesLecture.map(m => (
-                    <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt, m.cibleTexte)} style={{ ...BTN_VOLET(m.actif) }}>{m.label}</button>
-                  ))}
+                  {modesLecture.map(m => {
+                    const url = urlDuModeOuNull(m.cibleOeuvre, m.cibleMt, m.cibleTexte)
+                    const attend = attendCette(url)
+                    return (
+                      <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt, m.cibleTexte)}
+                        {...gestesDeNavigation(url)}
+                        style={{ ...BTN_VOLET(m.actif), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', cursor: attend ? 'progress' : 'pointer' }}>
+                        <span>{m.label}</span>
+                        {/* Le témoin garde sa place vide : le libellé ne bouge pas quand il paraît. */}
+                        <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-faible)', opacity: attend ? 1 : 0, transition: 'opacity 0.12s' }}>…</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -1863,9 +1927,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {editionsMenu2.map(v => {
                     const actif = v.id_oeuvre === idOeuvre
+                    const url = actif ? null : `/oeuvre/${v.id_oeuvre}`
                     return (
                       <button key={v.id_oeuvre} disabled={actif}
-                        onClick={() => { if (!actif) router.push(`/oeuvre/${v.id_oeuvre}`) }}
+                        onClick={() => { if (url) naviguer(url) }}
+                        {...gestesDeNavigation(url)}
                         title={actif ? 'Édition affichée' : 'Afficher cette édition'}
                         style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
                         {libelleEdition(v)}
@@ -1883,9 +1949,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {versionsMemeLangue.map(version => {
                     const actif = version.idTexte === idTexte
                     const indisponible = !actif && version.metadata?.indisponible === true
+                    const url = actif || indisponible ? null : urlDuTexte(idOeuvre, 'fr', version.idTexte)
                     return (
                       <button key={version.idTexte} disabled={actif || indisponible}
-                        onClick={() => { if (!actif && !indisponible) router.push(`/oeuvre/${idOeuvre}?texte=${encodeURIComponent(version.idTexte)}`) }}
+                        onClick={() => { if (url) naviguer(url) }}
+                        {...gestesDeNavigation(url)}
                         title={actif ? 'Édition affichée' : indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette édition'}
                         style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : indisponible ? 'not-allowed' : 'pointer', opacity: indisponible ? 0.45 : 1 }}>
                         {libelleVersionComplet(version)}
