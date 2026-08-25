@@ -15,9 +15,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
-import { styleAppelNote } from '@/app/oeuvre/[id]/appelNote'
-import type { BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
-import { ancreAppelNoteBible } from './BibleEditionParatext'
+import { styleAppelNote, type VarianteAppelNote } from '@/app/oeuvre/[id]/appelNote'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
 
 /** Plus large et plus haute que l'infobulle des œuvres (340 × 340). */
 const LARGEUR = 460
@@ -41,7 +41,7 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
             hyphens: 'auto',
           }}
         >
-          {bloc.text}
+          {rendreTexteEnrichi(bloc.text)}
         </p>
       ))}
     </>
@@ -51,9 +51,13 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
 export default function AppelNoteBiblique({
   note,
   memberId,
+  variante = 'corps',
 }: {
   note: Pick<BibleEditionDisplayNote, 'id' | 'displayNumber' | 'blocks'>
   memberId?: string
+  /** L'appel prend la forme du texte qui l'accueille : un intitulé de paratexte
+   *  ne porte pas la teinte brune du corps, qui y ferait une tache. */
+  variante?: VarianteAppelNote
 }) {
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
@@ -106,7 +110,7 @@ export default function AppelNoteBiblique({
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
         aria-label={`Consulter la note ${note.displayNumber}`}
         aria-expanded={ouvert}
-        style={styleAppelNote()}
+        style={styleAppelNote(variante)}
       >
         {note.displayNumber}
       </sup>

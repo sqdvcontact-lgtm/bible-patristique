@@ -2,11 +2,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import {
-  AppelNoteBible,
   BlocEditorialBible,
   IllustrationBible,
   NotesBibleChapitre,
 } from './BibleEditionParatext'
+import AppelNoteBiblique from './NoteBibliqueFenetre'
 
 describe('paratexte des éditions bibliques', () => {
   it('rend une introduction de livre dans le corps avec son style sémantique', () => {
@@ -30,28 +30,88 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).toContain('Introduction à l’Évangile selon saint Marc')
   })
 
-  it('relie l’appel à la note et la note à son appel', () => {
+  it('relie la note de fin de chapitre à l’appel qui l’a posée', () => {
+    const note = {
+      id: 'note-1',
+      displayNumber: 1,
+      canonId: 'MRK.1.1',
+      blocks: [{
+        id: 'note-1-commentary',
+        kind: 'commentary' as const,
+        form: 'prose' as const,
+        text: 'Commentaire de ce verset.',
+        language: 'fr',
+      }],
+    }
     const html = renderToStaticMarkup(
       <>
-        <p>Initium evangelii<AppelNoteBible noteId="note-1" displayNumber={1} /></p>
-        <NotesBibleChapitre notes={[{
-          id: 'note-1',
-          displayNumber: 1,
-          canonId: 'MRK.1.1',
-          blocks: [{
-            id: 'note-1-commentary',
-            kind: 'commentary',
-            form: 'prose',
-            text: 'Commentaire de ce verset.',
-            language: 'fr',
-          }],
-        }]} />
+        <p>Initium evangelii<AppelNoteBiblique note={note} /></p>
+        <NotesBibleChapitre notes={[note]} />
       </>,
     )
-    expect(html).toContain('href="#note-bible-note-1"')
+    // L'appel n'est plus un lien : il ouvre la note au clic. Il garde en
+    // revanche l'ancre vers laquelle la liste du chapitre revient.
+    expect(html).toContain('id="appel-note-bible-note-1"')
     expect(html).toContain('id="note-bible-note-1"')
     expect(html).toContain('href="#appel-note-bible-note-1"')
     expect(html).toContain('data-canon-id="MRK.1.1"')
+  })
+
+  it('ouvre au clic la note qu’un appel désigne, au lieu de l’imprimer sous le bloc', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'intro-mat',
+        semanticStyleCode: 'introduction_livre',
+        placement: 'before',
+        textBlocks: [{
+          id: 'texte',
+          kind: 'commentary',
+          form: 'prose',
+          text: 'Il se nommait primitivement Lévi, comme nous l’apprend saint Marc.',
+        }],
+        internalNotes: [{
+          id: 'intro-note-1',
+          displayNumber: 1,
+          printedMarker: '1',
+          anchorTarget: 'body',
+          anchorText: 'saint Marc',
+          blocks: [{ id: 'reference', kind: 'reference', form: 'prose', text: 'Act. XII, 12.' }],
+        }],
+      }} />,
+    )
+    expect(html).toContain('aria-label="Consulter la note 1"')
+    // Le texte de la note ne se lit plus dans le corps, et la liste du bas
+    // disparaît avec lui.
+    expect(html).not.toContain('Act. XII, 12.')
+    expect(html).not.toContain('aria-label="Apparat propre à ce bloc"')
+  })
+
+  it('n’abandonne jamais l’appel en tête de ligne, ni le point qui le suit', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'intro-mat',
+        semanticStyleCode: 'introduction_livre',
+        placement: 'before',
+        textBlocks: [{
+          id: 'texte',
+          kind: 'commentary',
+          form: 'prose',
+          text: 'Il se nommait primitivement Lévi, comme nous l’apprend saint Marc.',
+        }],
+        internalNotes: [{
+          id: 'intro-note-1',
+          displayNumber: 1,
+          printedMarker: '1',
+          anchorTarget: 'body',
+          anchorText: 'saint Marc',
+          blocks: [{ id: 'reference', kind: 'reference', form: 'prose', text: 'Act. XII, 12.' }],
+        }],
+      }} />,
+    )
+    // Le dernier mot, l'appel et le point final voyagent ensemble.
+    const groupe = /<span style="white-space:nowrap">Marc.*?\.<\/span>/s.exec(html)
+    expect(groupe).not.toBeNull()
+    expect(groupe?.[0]).toContain('Consulter la note 1')
   })
 
   it("garde l'apparat d'une introduction distinct des notes de verset", () => {

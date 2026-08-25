@@ -1,21 +1,30 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
 import Image from 'next/image'
-import type {
-  BibleEditionDisplayAsset,
-  BibleEditionDisplayBodyBlock,
-  BibleEditionDisplayInlineSpan,
-  BibleEditionDisplayInternalNote,
-  BibleEditionDisplayNote,
-  BibleEditionDisplayTextBlock,
+import {
+  ancreAppelNoteBible,
+  type BibleEditionDisplayAsset,
+  type BibleEditionDisplayBodyBlock,
+  type BibleEditionDisplayInlineSpan,
+  type BibleEditionDisplayInternalNote,
+  type BibleEditionDisplayNote,
+  type BibleEditionDisplayTextBlock,
 } from '@/app/lib/bibleEdition'
 import {
   classeIntituleTitre,
   classesDuStyle,
   resoudreStyleSemantique,
   diviserIntitule,
+  type JetonTitre,
   type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import {
+  detacherDernierMot,
+  separateurAppels,
+  styleSeparateurAppels,
+  type VarianteAppelNote,
+} from '@/app/oeuvre/[id]/appelNote'
+import AppelNoteBiblique from './NoteBibliqueFenetre'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
@@ -97,11 +106,27 @@ function envelopperSpan(
   return <span key={key} lang={lang}>{contenu}</span>
 }
 
+// ⛔ Un appel de note ne part JAMAIS seul en tête de ligne, et le point qui le
+// suit ne l'y suit pas non plus : règle d'auteur, la même que sur la page
+// d'œuvre (voir le long commentaire d'`appelNote.tsx`). L'appel voyage donc dans
+// un `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit.
+const NOWRAP: CSSProperties = { whiteSpace: 'nowrap' }
+const PONCTUATION_ATTACHEE = /^[.,;:!?…»)\]]+/
+
+/** L'appel prend la forme du texte qui l'accueille. Les trois rangs hauts sont
+ *  composés large et centrés : la teinte brune du corps y ferait une tache, et
+ *  l'appel prend l'encre du titre. Les rangs bas, composés à la taille du texte,
+ *  gardent la forme du corps (même règle que sur la page d'œuvre). */
+function varianteAppel(headingLevel: JetonTitre | null | undefined): VarianteAppelNote {
+  return headingLevel === 'T1' || headingLevel === 'T2' || headingLevel === 'T3' ? 'titre' : 'corps'
+}
+
 function rendreContenuAncre(
   text: string,
   spans: readonly BibleEditionDisplayInlineSpan[] = [],
   notes: readonly BibleEditionDisplayInternalNote[] = [],
   bloc?: BlocTexteBiblique,
+  variante: VarianteAppelNote = 'corps',
 ): ReactNode {
   const appels = notes.flatMap((note) => {
     const position = positionAppelDansTexte(text, note, bloc)
@@ -117,16 +142,41 @@ function rendreContenuAncre(
   for (const appel of appels) bornes.add(appel.position)
   const ordre = [...bornes].filter((position) => position >= 0 && position <= text.length).sort((a, b) => a - b)
   const noeuds: ReactNode[] = []
+  // Curseur de lecture : la ponctuation emportée par un appel a déjà été rendue,
+  // le fragment suivant reprend après elle.
+  let rendu = 0
   for (let index = 0; index < ordre.length - 1; index += 1) {
     const start = ordre[index]
     const end = ordre[index + 1]
-    if (end > start) {
-      const span = spans.find((candidate) => candidate.startOffsetUnicode <= start && candidate.endOffsetUnicode >= end)
-      noeuds.push(envelopperSpan(rendreTexteEnrichi(text.slice(start, end)), span, `run:${start}:${end}`))
+    const span = spans.find((candidate) => candidate.startOffsetUnicode <= start && candidate.endOffsetUnicode >= end)
+    const appelsIci = appels.filter((candidate) => candidate.position === end)
+    const brut = text.slice(Math.max(start, rendu), end)
+    if (appelsIci.length === 0) {
+      if (brut) noeuds.push(envelopperSpan(rendreTexteEnrichi(brut), span, `run:${start}:${end}`))
+      continue
     }
-    for (const appel of appels.filter((candidate) => candidate.position === end)) {
-      noeuds.push(<AppelNoteBible key={`appel:${appel.note.id}`} noteId={appel.note.id} displayNumber={appel.note.displayNumber} />)
-    }
+    const [tete, dernierMot] = detacherDernierMot(brut)
+    if (tete) noeuds.push(envelopperSpan(rendreTexteEnrichi(tete), span, `run:${start}:${end}`))
+    // La ponctuation ne se prend qu'en texte nu : sous une italique ou une
+    // petite capitale, elle appartient à l'enveloppe et n'en sort pas.
+    const spanApres = spans.find((candidate) => candidate.startOffsetUnicode <= end && candidate.endOffsetUnicode > end)
+    const suite = text.slice(end, ordre[index + 2] ?? text.length)
+    const ponctuation = spanApres ? '' : (PONCTUATION_ATTACHEE.exec(suite)?.[0] ?? '')
+    rendu = end + ponctuation.length
+    noeuds.push(
+      <span key={`appels:${end}`} style={NOWRAP}>
+        {dernierMot ? envelopperSpan(rendreTexteEnrichi(dernierMot), span, `mot:${end}`) : null}
+        {appelsIci.map((appel, rang) => (
+          <Fragment key={`appel:${appel.note.id}`}>
+            {rang > 0 && (
+              <span style={styleSeparateurAppels(variante)}>{separateurAppels(rang, appelsIci.length)}</span>
+            )}
+            <AppelNoteBiblique note={appel.note} variante={variante} />
+          </Fragment>
+        ))}
+        {ponctuation}
+      </span>,
+    )
   }
   return noeuds
 }
@@ -151,7 +201,7 @@ function rendreBlocTexte(
           fontStyle: bloc.presentation?.fontStyle,
         }}
       >
-        {rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc)}
+        {rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc, varianteAppel(bloc.headingLevel))}
       </Balise>
     )
   }
@@ -239,6 +289,29 @@ export function BlocEditorialBible({
   const notesCorps = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'body')
   // La balise vient des parents réellement présents, jamais du chiffre du jeton.
   const Balise = `h${bloc.niveauHtml ?? 2}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  const varianteIntitule = varianteAppel(resolu.headingLevel)
+
+  // Une note dont le texte porte l'appel se lit DANS SA FENÊTRE, au clic sur
+  // l'exposant : elle n'a plus à s'imprimer au bas du développement. Restent
+  // celles que la transcription n'a pas su ancrer — les introductions de Marc,
+  // de Luc et de Jean n'ont encore aucun point d'appel relevé. Sans la liste,
+  // elles disparaîtraient du site : elle leur est réservée.
+  const appelees = new Set<string>()
+  const releverAppels = (
+    notes: readonly BibleEditionDisplayInternalNote[],
+    texte: string,
+    support?: BlocTexteBiblique,
+  ) => {
+    for (const note of notes) {
+      if (positionAppelDansTexte(texte, note, support) !== null) appelees.add(note.id)
+    }
+  }
+  if (intitule) {
+    releverAppels(notesTitre, intitule.titre)
+    if (intitule.sousTitre) releverAppels(notesTitre, intitule.sousTitre)
+  }
+  for (const texte of bloc.textBlocks) releverAppels(notesCorps, texte.text, texte)
+  const notesSansAppel = (bloc.internalNotes ?? []).filter((note) => !appelees.has(note.id))
 
   const contenu = (
     <>
@@ -247,13 +320,13 @@ export function BlocEditorialBible({
         // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
         // du développement qui le suit. Les deux ne se concatènent jamais.
         <Balise className={classeIntituleTitre(resolu.headingLevel)}>
-          {rendreContenuAncre(intitule.titre, [], notesTitre)}
-          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
+          {rendreContenuAncre(intitule.titre, [], notesTitre, undefined, varianteIntitule)}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre, undefined, varianteIntitule)}</span>}
         </Balise>
       ) : resolu.kind === 'title' ? (
         <Balise className={classesDuStyle(resolu)[0]}>
-          {rendreContenuAncre(intitule.titre, [], notesTitre)}
-          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
+          {rendreContenuAncre(intitule.titre, [], notesTitre, undefined, varianteIntitule)}
+          {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre, undefined, varianteIntitule)}</span>}
         </Balise>
       ) : (
         // Simple repère interne : jamais une balise de titre, sans quoi il
@@ -265,29 +338,15 @@ export function BlocEditorialBible({
       ))}
       {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu, notesCorps, bloc.niveauHtml))}
       {rendreIllustrations(dansLeFlux)}
-      {(bloc.internalNotes?.length ?? 0) > 0 && (
+      {notesSansAppel.length > 0 && (
         <aside
           aria-label="Apparat propre à ce bloc"
           style={{ borderTop: '1px solid var(--cs-bord)', marginTop: '0.75rem', paddingTop: '0.75rem' }}
         >
           <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
-            {bloc.internalNotes?.map((note) => (
-              <li
-                key={note.id}
-                id={note.anchorTarget ? `note-bible-${note.id}` : undefined}
-                value={note.displayNumber}
-                style={{ marginBottom: '0.5rem' }}
-              >
+            {notesSansAppel.map((note) => (
+              <li key={note.id} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
                 {note.blocks.map((texte) => rendreBlocTexte(texte))}
-                {note.anchorTarget && (
-                  <a
-                    href={`#${ancreAppelNoteBible(note.id)}`}
-                    aria-label={`Retour à l’appel de la note ${note.displayNumber}`}
-                    style={{ marginLeft: '0.35rem', color: 'var(--cs-texte-faible)', textDecoration: 'none' }}
-                  >
-                    ↩
-                  </a>
-                )}
               </li>
             ))}
           </ol>
@@ -310,38 +369,6 @@ export function BlocEditorialBible({
     return <aside {...props}>{contenu}</aside>
   }
   return <section {...props}>{contenu}</section>
-}
-
-/**
- * En lecture bilingue, une note commune à l'édition est appelée depuis les deux
- * colonnes : l'identifiant de l'ancre doit alors être distingué, sans quoi la
- * page porte deux fois le même `id` et le retour de la note devient ambigu.
- */
-export function ancreAppelNoteBible(noteId: string, memberId?: string): string {
-  return memberId ? `appel-note-bible-${noteId}-${memberId}` : `appel-note-bible-${noteId}`
-}
-
-export function AppelNoteBible({
-  noteId,
-  displayNumber,
-  memberId,
-}: {
-  noteId: string
-  displayNumber: number
-  memberId?: string
-}) {
-  return (
-    <sup style={{ fontSize: '0.6em', lineHeight: 0, marginLeft: '0.08em' }}>
-      <a
-        id={ancreAppelNoteBible(noteId, memberId)}
-        href={`#note-bible-${noteId}`}
-        aria-label={`Note ${displayNumber}`}
-        style={{ color: 'var(--cs-encre)', textDecoration: 'none', fontFamily: SERIF }}
-      >
-        {displayNumber}
-      </a>
-    </sup>
-  )
 }
 
 export function NotesBibleChapitre({

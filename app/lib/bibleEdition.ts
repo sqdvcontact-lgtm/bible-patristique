@@ -280,6 +280,20 @@ export type BibleEditionDisplayNote = {
   blocks: BibleEditionDisplayTextBlock[]
 }
 
+/**
+ * L'identifiant que porte l'appel d'une note biblique, et vers lequel revient la
+ * liste des notes du chapitre. En lecture bilingue, une note commune à l'édition
+ * est appelée depuis les deux colonnes : l'identifiant doit alors être distingué,
+ * sans quoi la page porte deux fois le même `id` et le retour devient ambigu.
+ *
+ * ⚠️ Elle vit ici, et non auprès de l'appel qui la pose : le paratexte et la
+ * fenêtre de note ont tous deux besoin d'elle, et un module « use client » ne
+ * prête pas ses fonctions au rendu serveur.
+ */
+export function ancreAppelNoteBible(noteId: string, memberId?: string): string {
+  return memberId ? `appel-note-bible-${noteId}-${memberId}` : `appel-note-bible-${noteId}`
+}
+
 export type BibleEditionDisplayAsset = {
   id: string
   assetKey: string

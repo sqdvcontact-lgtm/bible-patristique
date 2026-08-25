@@ -40,8 +40,8 @@ import {
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
+import { ancreAppelNoteBible } from '@/app/lib/bibleEdition'
 import {
-  ancreAppelNoteBible,
   BlocEditorialBible,
   IllustrationBible,
   NotesBibleChapitre,
