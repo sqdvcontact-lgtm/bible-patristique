@@ -289,8 +289,20 @@ export default async function AccueilPage() {
         </header>
 
         {/* L'ancre sert la planche des illustrations, qui renvoie ici pour montrer
-            les trois icônes de carte en place. */}
-        <div id="cartes" style={{ scrollMarginTop: "3.5rem" }}>
+            les trois icônes de carte en place.
+
+            ⛔ `width: 100%` N'EST PAS UN ORNEMENT : sans lui les trois cartes
+            disparaissent, et c'est cette ancre qui les a fait disparaître le
+            2026-08-24. Ce conteneur est un enfant de flex en colonne réglé sur
+            `align-items: center` : sa largeur se calcule donc sur son contenu. Or
+            tout ce qui garnit une carte est en `position: absolute`, si bien que la
+            grille ne réclame pour elle-même que ses bordures — trois cartes de 2 px,
+            invisibles à l'œil. Le `width: 100%` d'`.ac-root` se mesurait alors sur ce
+            presque-rien. Tant que `<AccueilCards />` était l'enfant direct du flex,
+            son 100 % portait sur la largeur de `<main>`, qui est définie ; l'ancre
+            glissée au milieu a rompu la chaîne. Toute enveloppe posée ici doit donc
+            porter une largeur. */}
+        <div id="cartes" style={{ width: "100%", scrollMarginTop: "3.5rem" }}>
           <AccueilCards />
         </div>
 
