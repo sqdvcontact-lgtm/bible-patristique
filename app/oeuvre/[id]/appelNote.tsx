@@ -10,6 +10,14 @@ import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
 import type { NoteAffichee } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import {
+  PONCTUATION_ATTACHEE,
+  detacherDernierMot,
+  separateurAppels,
+  styleAppelNote,
+  styleSeparateurAppels,
+  type VarianteAppelNote,
+} from '@/app/lib/appelsDeNote'
 
 // Appels de note de la page de lecture patristique. Extrait d'OeuvreClient pour
 // que la page de titre (PageTitre) y ait accès sans import circulaire : les notes
@@ -46,45 +54,17 @@ export function titreSansAppelsDeNote(texte: string) {
 }
 
 // ── Forme de l'appel selon l'endroit où il se trouve ──────────────────────────
-// L'appel prend le style du texte qui l'accueille : il hérite la police et
-// l'italique du contexte (un chapeau en italique porte un appel en italique, une
-// colonne en sans-serif un appel en sans-serif) et se règle en corps sur lui.
-// Dans la prose, il garde sa teinte brune. Dans un titre de haut rang, cette
-// teinte devient une tache : l'intitulé est court et composé large, l'appel y
-// prend donc l'encre du titre, plus discret et proportionnellement plus petit.
-// Les titres de rang bas (niveaux 3 et 4), composés à la taille du texte,
-// gardent la forme du corps.
-//
-// ⛔ JAMAIS de pointillé (ni de soulignement d'aucune sorte) sous un appel de
-// note : règle d'auteur, sans exception. L'exposant et la teinte suffisent à le
-// signaler. Ne pas le réintroduire au prétexte d'indiquer qu'il est cliquable.
-export type VarianteAppelNote = 'corps' | 'titre' | 'frontispice'
-
-const FORME_APPEL: Record<VarianteAppelNote, React.CSSProperties> = {
-  corps: { fontSize: '0.60em', color: 'var(--cs-lacune)' },
-  titre: { fontSize: '0.42em', color: 'currentColor', opacity: 0.55 },
-  frontispice: { fontSize: '0.30em', color: 'currentColor', opacity: 0.45 },
-}
-
-export function styleAppelNote(variante: VarianteAppelNote = 'corps'): React.CSSProperties {
-  return {
-    cursor: 'help',
-    fontFamily: 'inherit',
-    fontStyle: 'inherit',
-    userSelect: 'none',
-    letterSpacing: 0,
-    display: 'inline-block',
-    lineHeight: 1,
-    padding: '0 1px',
-    ...FORME_APPEL[variante],
-  }
-}
-
-// Le séparateur d’une suite d’appels prend exactement la forme de l’appel, mais
-// ne se clique pas : il n’ouvre aucune note.
-export function styleSeparateurAppels(variante: VarianteAppelNote = 'corps'): React.CSSProperties {
-  return { ...styleAppelNote(variante), cursor: 'inherit', padding: 0 }
-}
+// La forme et ce qui voyage avec l'appel vivent dans `app/lib/appelsDeNote.ts`,
+// module NEUTRE : le paratexte biblique s'en sert aussi, et il se rend côté
+// serveur, où un module « use client » ne prête pas ses fonctions. Ré-exportés
+// ici pour les nombreux appelants historiques de la page d'œuvre.
+export {
+  styleAppelNote,
+  styleSeparateurAppels,
+  detacherDernierMot,
+  separateurAppels,
+  type VarianteAppelNote,
+} from '@/app/lib/appelsDeNote'
 
 // ── Ce qui voyage avec l’appel ───────────────────────────────────────────────
 // ⛔ Un appel ne se sépare JAMAIS du mot qui le précède ni du point qui le suit.
@@ -107,12 +87,9 @@ export function styleSeparateurAppels(variante: VarianteAppelNote = 'corps'): Re
 // crée une frontière d’élément ; seul un `nowrap` COMMUN aux deux la supprime — 0 fois
 // sur 341 dans ce cas.
 //
-// Deux notes qui se suivent s’écrivent « 2 & 3 », esperluette entre les numéros
-// (deux exposants collés se liraient « vingt-trois ») ; au delà de deux,
-// « 2, 3 & 4 ». Les espaces du séparateur sont insécables : une espace ordinaire
-// en tête ou en queue d’un `inline-block` serait supprimée par le navigateur.
-const NBSP_APPELS = '\u00A0'
-const PONCTUATION_ATTACHEE = /^[.,;:!?…»)\]]+/
+// La règle des suites d’appels (« 2 & 3 ») et la ponctuation qui s’y attache
+// vivent dans `app/lib/appelsDeNote.ts`, avec la forme de l’appel : ne reste ici
+// que la syntaxe `[[XXX]]` du corpus patristique, qui n’a pas cours ailleurs.
 const APPEL_SUIVANT = /^[ \u00A0\u202F]*,?[ \u00A0\u202F]*\[\[([A-Z0-9]+)\]\]/
 
 /** Lit, à partir du crochet ouvrant en `debut`, la suite des appels collés et la
@@ -130,19 +107,6 @@ export function lireSuiteAppels(texte: string, debut: number) {
   }
   const ponctuation = PONCTUATION_ATTACHEE.exec(texte.slice(fin))?.[0] ?? ''
   return { marqueurs, ponctuation, fin: fin + ponctuation.length }
-}
-
-/** Détache le dernier mot d’un fragment, pour qu’il parte avec l’appel qui le
- *  suit. Rien à détacher si le fragment finit par une espace. */
-export function detacherDernierMot(texte: string): [string, string] {
-  const dernier = /\S+$/.exec(texte)
-  return dernier ? [texte.slice(0, dernier.index), dernier[0]] : [texte, '']
-}
-
-/** Le séparateur qui précède l’appel de rang `rang` dans une suite : esperluette
- *  avant le dernier, virgule avant les autres. */
-export function separateurAppels(rang: number, total: number) {
-  return rang === total - 1 ? `${NBSP_APPELS}&${NBSP_APPELS}` : `,${NBSP_APPELS}`
 }
 
 // ── Info-bulle de note ────────────────────────────────────────────────────────

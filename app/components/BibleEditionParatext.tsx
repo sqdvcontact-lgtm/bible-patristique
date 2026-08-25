@@ -19,11 +19,12 @@ import {
 } from '@/app/lib/bibleHierarchieSemantique'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import {
+  PONCTUATION_ATTACHEE,
   detacherDernierMot,
   separateurAppels,
   styleSeparateurAppels,
   type VarianteAppelNote,
-} from '@/app/oeuvre/[id]/appelNote'
+} from '@/app/lib/appelsDeNote'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
@@ -111,7 +112,6 @@ function envelopperSpan(
 // d'œuvre (voir le long commentaire d'`appelNote.tsx`). L'appel voyage donc dans
 // un `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit.
 const NOWRAP: CSSProperties = { whiteSpace: 'nowrap' }
-const PONCTUATION_ATTACHEE = /^[.,;:!?…»)\]]+/
 
 /** L'appel prend la forme du texte qui l'accueille. Les trois rangs hauts sont
  *  composés large et centrés : la teinte brune du corps y ferait une tache, et

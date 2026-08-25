@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
-import { styleAppelNote, type VarianteAppelNote } from '@/app/oeuvre/[id]/appelNote'
+import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
 
