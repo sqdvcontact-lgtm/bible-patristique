@@ -6,19 +6,27 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
-import { CLE_DIRECTIVES, ETATS, LOTS, lireDirectives, type Directives, type EtatArbitrage } from '@/app/admin/propositions-gpt/registre'
+import {
+  CLE_DIRECTIVES, ETATS, LOTS,
+  lireDirectives, lireInstructions,
+  type Directives, type EtatArbitrage, type Instruction,
+} from '@/app/admin/propositions-gpt/registre'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const PLAFOND_NOTE = 4000
-const PLAFOND_NOTE_GENERALE = 12000
-
 // ⛔ Seuls les identifiants du registre sont acceptés : une clé inventée par le
 // client n'entre pas dans le paramètre, qui deviendrait sinon un dépotoir.
 const IDS_CONNUS = new Set(LOTS.flatMap(l => l.propositions.map(p => p.id)))
+
+/** ⛔ La DATE est posée ici, jamais par le client : une consigne ne s'antidate pas.
+ *  Une instruction déjà datée garde sa date, sinon toute la liste se redaterait
+ *  à chaque ajout ou suppression. */
+function dater(instructions: Instruction[], quand: string): Instruction[] {
+  return instructions.map(i => ({ texte: i.texte, posee: i.posee ?? quand }))
+}
 
 export async function POST(request: Request) {
   if (!(await estAdminUtilisateur(request)) && !(await estAdmin())) {
@@ -39,16 +47,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: erreurLecture.message }, { status: 500 })
   }
   const courant = lireDirectives(existant?.valeur)
+  const maintenant = new Date().toISOString()
 
   const suivant: Directives = {
     version: 1,
-    majLe: new Date().toISOString(),
-    noteGenerale: courant.noteGenerale,
+    majLe: maintenant,
+    instructionsGenerales: courant.instructionsGenerales,
     parProposition: { ...courant.parProposition },
   }
 
-  if (typeof body.noteGenerale === 'string') {
-    suivant.noteGenerale = body.noteGenerale.slice(0, PLAFOND_NOTE_GENERALE)
+  if ('instructionsGenerales' in body) {
+    suivant.instructionsGenerales = dater(lireInstructions(body.instructionsGenerales), maintenant)
   }
 
   const id = typeof body.id === 'string' ? body.id : null
@@ -56,16 +65,26 @@ export async function POST(request: Request) {
     if (!IDS_CONNUS.has(id)) {
       return NextResponse.json({ error: `Proposition inconnue : ${id}` }, { status: 400 })
     }
-    const actuelle = courant.parProposition[id] ?? { etat: 'a_arbitrer' as EtatArbitrage, note: '' }
+    const actuelle = courant.parProposition[id] ?? { etat: 'a_arbitrer' as EtatArbitrage, instructions: [] }
     const etat = ETATS.some(e => e.cle === body.etat) ? (body.etat as EtatArbitrage) : actuelle.etat
-    const note = typeof body.note === 'string' ? body.note.slice(0, PLAFOND_NOTE) : actuelle.note
-    suivant.parProposition[id] = { etat, note }
+    const instructions = 'instructions' in body
+      ? dater(lireInstructions(body.instructions), maintenant)
+      : actuelle.instructions
+    suivant.parProposition[id] = { etat, instructions }
   }
 
   const { error } = await supabaseAdmin
     .from('parametres')
-    .upsert({ cle: CLE_DIRECTIVES, valeur: JSON.stringify(suivant), mis_a_jour: suivant.majLe }, { onConflict: 'cle' })
+    .upsert({ cle: CLE_DIRECTIVES, valeur: JSON.stringify(suivant), mis_a_jour: maintenant }, { onConflict: 'cle' })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true, majLe: suivant.majLe })
+
+  // On rend ce qui a été ÉCRIT : le client reprend les dates posées ici plutôt que
+  // d'en inventer, et deux onglets se recalent l'un sur l'autre.
+  return NextResponse.json({
+    ok: true,
+    majLe: maintenant,
+    instructionsGenerales: suivant.instructionsGenerales,
+    instructions: id ? suivant.parProposition[id].instructions : undefined,
+  })
 }

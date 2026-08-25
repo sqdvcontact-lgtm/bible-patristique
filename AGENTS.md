@@ -1644,6 +1644,22 @@ la méthode déjà consignée plus haut pour les questions de mise en page.
 commande la mise en œuvre. La page réunit les deux faces : ce que GPT demande, et la
 directive qui y répond.
 
+⛔ **RIEN NE S'ENREGISTRE TOUT SEUL, et le premier jet avait tort.** Il posait une zone
+de texte par proposition, enregistrée à la frappe : sans bouton, on ne sait jamais si
+l'on a écrit ou seulement pensé, et l'auteur l'a relevé le jour même. Une directive se
+pose désormais par un geste : on écrit, on clique « Ajouter l’instruction », et elle
+rejoint la liste. Ctrl + Entrée fait le même office.
+
+**Les instructions S'EMPILENT**, elles ne se remplacent pas : `Directive.instructions`
+est un tableau, chaque entrée datée PAR LA ROUTE et supprimable. C'est un journal, et
+l'on doit pouvoir relire comment une décision s'est formée. ⚠️ La date se pose côté
+serveur, jamais côté client : une consigne ne s'antidate pas, et une liste renvoyée
+entière à chaque ajout se redaterait tout entière.
+
+⚠️ **La suppression se fait en DEUX temps**, le bouton s’armant au premier clic. Une
+instruction est du texte que l'auteur a écrit ; et le bouton reste VISIBLE au repos,
+une action qui ne paraît qu'au survol étant hors d'atteinte au doigt.
+
 ⛔ **Les propositions sont une SOURCE RÉDIGÉE**, dans `app/admin/propositions-gpt/registre.ts`,
 comme l'inventaire des illustrations et pour la même raison : un relevé automatique rendrait
 des phrases, jamais un arbitrage. Chaque entrée porte le texte de GPT dans SES termes, un fait
@@ -1653,6 +1669,11 @@ MESURÉ sur le corpus, et, s’il y a lieu, la consigne antérieure que la propo
 
 ⛔ **Le registre ne DÉCIDE rien.** Un drapeau `dejaEnPlace` constate ce que le dépôt sert
 déjà ; ce n'est pas un arbitrage rendu, et la page ne coche aucun état d'elle-même.
+
+⚠️ **`lireDirectives` relit encore la forme du premier jet** (`note` et `noteGenerale`,
+une chaîne unique) et la reprend comme première instruction. Rien n'avait été écrit en
+base au moment du changement, mais une lecture qui perd en silence ce qu'elle ne
+reconnaît pas est une lecture dangereuse.
 
 **Les directives vivent dans `parametres.directives_propositions_gpt`**, en JSON dans la
 colonne `valeur`, qui est du TEXTE. C'est là qu'il faut aller les lire avant de mettre

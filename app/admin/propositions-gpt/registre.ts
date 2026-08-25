@@ -219,25 +219,59 @@ export const LOTS: Lot[] = [
     propositions: APPARAT,
   },
 ]
-
 // ── Directives de l'auteur ───────────────────────────────────────────────────
 
-export type Directive = { etat: EtatArbitrage; note: string }
+/** Une consigne, telle que l’auteur l’a écrite, avec le moment où elle a été posée.
+ *  Les instructions s'EMPILENT : une consigne nouvelle ne remplace pas la
+ *  précédente, elle vient après. C’est le journal des directives, pas un champ. */
+export type Instruction = { texte: string; posee: string | null }
+
+export type Directive = { etat: EtatArbitrage; instructions: Instruction[] }
+
 export type Directives = {
   version: 1
   majLe: string | null
-  noteGenerale: string
+  instructionsGenerales: Instruction[]
   parProposition: Record<string, Directive>
 }
 
 export const DIRECTIVES_VIDES: Directives = {
-  version: 1, majLe: null, noteGenerale: '', parProposition: {},
+  version: 1, majLe: null, instructionsGenerales: [], parProposition: {},
+}
+
+export const PLAFOND_INSTRUCTION = 4000
+export const PLAFOND_INSTRUCTIONS = 100
+
+/** Nettoie une liste d’instructions venue du client ou de la base. Écarte le vide,
+ *  borne la longueur et le nombre. ⛔ Ne stampe rien : c’est la route qui date, pour
+ *  qu’un client ne puisse pas antidater une consigne. */
+export function lireInstructions(v: unknown): Instruction[] {
+  if (typeof v === 'string') {
+    // Forme héritée : une note unique. On la garde comme première instruction plutôt
+    // que de la perdre au premier chargement.
+    const t = v.trim()
+    return t ? [{ texte: t.slice(0, PLAFOND_INSTRUCTION), posee: null }] : []
+  }
+  if (!Array.isArray(v)) return []
+  return v
+    .map(x => {
+      if (typeof x === 'string') return { texte: x.trim(), posee: null }
+      if (!x || typeof x !== 'object') return { texte: '', posee: null }
+      const o = x as Record<string, unknown>
+      return {
+        texte: typeof o.texte === 'string' ? o.texte.trim() : '',
+        posee: typeof o.posee === 'string' ? o.posee : null,
+      }
+    })
+    .filter(i => i.texte.length > 0)
+    .map(i => ({ ...i, texte: i.texte.slice(0, PLAFOND_INSTRUCTION) }))
+    .slice(0, PLAFOND_INSTRUCTIONS)
 }
 
 /** Relit ce que porte `parametres.valeur`, qui est du TEXTE. Tolérante : une valeur
  *  absente, illisible ou d'une autre forme rend un registre vierge plutôt que de
  *  faire tomber la page. Une directive orpheline (proposition renommée ou retirée)
- *  est conservée dans l'objet mais ne s'affiche plus. */
+ *  est conservée dans l’objet mais ne s’affiche plus. */
 export function lireDirectives(valeur: unknown): Directives {
   if (typeof valeur !== 'string' || !valeur.trim()) return DIRECTIVES_VIDES
   let brut: unknown
@@ -251,27 +285,30 @@ export function lireDirectives(valeur: unknown): Directives {
       if (!v || typeof v !== 'object' || Array.isArray(v)) continue
       const d = v as Record<string, unknown>
       const etat = ETATS.some(e => e.cle === d.etat) ? (d.etat as EtatArbitrage) : 'a_arbitrer'
-      parProposition[cle] = { etat, note: typeof d.note === 'string' ? d.note : '' }
+      // `note` est la forme héritée du premier jet, quand la directive était un champ unique.
+      parProposition[cle] = { etat, instructions: lireInstructions(d.instructions ?? d.note) }
     }
   }
   return {
     version: 1,
     majLe: typeof o.majLe === 'string' ? o.majLe : null,
-    noteGenerale: typeof o.noteGenerale === 'string' ? o.noteGenerale : '',
+    instructionsGenerales: lireInstructions(o.instructionsGenerales ?? o.noteGenerale),
     parProposition,
   }
 }
 
 export function directiveDe(directives: Directives, id: string): Directive {
-  return directives.parProposition[id] ?? { etat: 'a_arbitrer', note: '' }
+  return directives.parProposition[id] ?? { etat: 'a_arbitrer', instructions: [] }
 }
 
-/** Combien reste-t-il à arbitrer, et combien de notes ont été écrites. */
+/** Combien reste-t-il à arbitrer, et combien de propositions ont reçu une instruction. */
 export function avancement(directives: Directives) {
   const ids = LOTS.flatMap(l => l.propositions.map(p => p.id))
   const arbitrees = ids.filter(id => directiveDe(directives, id).etat !== 'a_arbitrer').length
-  const annotees = ids.filter(id => directiveDe(directives, id).note.trim().length > 0).length
-  return { total: ids.length, arbitrees, annotees, restantes: ids.length - arbitrees }
+  const annotees = ids.filter(id => directiveDe(directives, id).instructions.length > 0).length
+  const instructions = ids.reduce((n, id) => n + directiveDe(directives, id).instructions.length, 0)
+    + directives.instructionsGenerales.length
+  return { total: ids.length, arbitrees, annotees, instructions, restantes: ids.length - arbitrees }
 }
 
 /** Les propositions qui heurtent une consigne antérieure : ce sont elles qui
