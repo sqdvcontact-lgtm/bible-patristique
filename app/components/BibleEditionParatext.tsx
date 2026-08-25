@@ -34,8 +34,8 @@ export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
-  'id' | 'semanticStyleCode' | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement' | 'textBlocks'
-  | 'presentation'
+  'id' | 'blockKey' | 'semanticStyleCode' | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement'
+  | 'textBlocks' | 'presentation'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
 
 /**
@@ -372,6 +372,13 @@ export function BlocEditorialBible({
   // paragraphe générique : il n'est pas rendu, et l'administration le signale.
   const resolu = resoudreStyleSemantique(bloc.semanticStyleCode)
   if (!resolu || !resolu.bodyBlock) return null
+  // ⛔ « Chapitre I » redit ce que la page annonce déjà : la barre de navigation
+  // nomme le chapitre au-dessus du texte, et la mention imprimée s'y répétait
+  // sans rien apprendre. Elle reste dans la donnée, témoin matériel de
+  // l'édition, et ne paraît pas ici (charte §35.1). ⚠️ Elle continue en
+  // revanche de traverser l'axe analytique : c'est sa PLACE qui compte, non son
+  // intitulé, et sans elle le 2° remonterait sous le 1°.
+  if (resolu.redondantAvecNavigation) return null
 
   const intitule = diviserIntitule(bloc.heading ?? null)
   const notesTitre = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'heading')

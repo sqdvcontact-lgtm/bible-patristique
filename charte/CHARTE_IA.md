@@ -2061,7 +2061,11 @@ Un bloc sans corps ne rend aucun paragraphe. L’axe `title` impose un corps vid
 
 Fillion superpose l’analyse de l’auteur, partie, section, § I, § II, puis 1°, 2°, 3°, et la matière du livre imprimé, chapitre I, chapitre II. La seconde traverse la première : sous le § II, le 1° précède le chapitre II et le 2° le suit. Ce n’est pas une faute de la source, c’est sa manière, et l’ordre imprimé se préserve sans jamais réordonner les titres.
 
-Un titre dont la présentation déclare `hierarchy_axis = "material"` ne commande donc pas l’axe analytique : il ne devient le parent d’aucun titre qui le suit. Et le parent ne se déduit jamais du seul rang du jeton : quand la donnée nomme son parent par `semantic_parent_key`, c’est ce nom qui fait foi, et la profondeur reprend l’état où ce parent l’a laissée. Un sommaire distingue les deux axes ou, au minimum, ne laisse pas les chapitres casser la continuité des 1°, 2°, 3°.
+Un titre porté par l’axe matériel ne commande donc pas l’axe analytique : il ne devient le parent d’aucun titre qui le suit. ⚠️ La règle vaut même quand la mention n’est pas affichée, ce qui est le cas des chapitres au § 35.1 : c’est la PLACE matérielle qui traverse les subdivisions, non son intitulé. La masquer sans la retirer de l’axe laisserait le 2° remonter sous le 1°.
+
+⛔ L’axe vient du REGISTRE, qui le donne au style, et la présentation d’un bloc ne fait que le confirmer ou l’infléchir. Le tirer de la seule métadonnée aurait appliqué la règle à cinq titres de chapitre sur cent dix-sept, c’est-à-dire à un cinquième d’un livre : les cent douze autres auraient gardé leur mention à l’écran et adopté les subdivisions qui les suivent.
+
+Et le parent ne se déduit jamais du seul rang du jeton : quand la donnée nomme son parent par `semantic_parent_key`, c’est ce nom qui fait foi, et la profondeur reprend l’état où ce parent l’a laissée. ⛔ Ce qui ne se rend pas n’entre pas au plan : une entrée de sommaire pointant vers une mention masquée serait une ancre sans cible.
 
 ### 35.6. Une note bibliographique se compose en liste
 

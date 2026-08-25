@@ -326,6 +326,21 @@ describe('présentation déclarée par la donnée', () => {
     expect(html).not.toContain('cs-bible-sous-titre-partie')
   })
 
+  it('ne rend pas la mention de chapitre, que la navigation dit déjà', () => {
+    // Charte §35.1. Elle reste dans la donnée, témoin matériel de l'édition,
+    // mais la barre de navigation nomme déjà le chapitre au-dessus du texte.
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={{
+      id: 'mat-02-chapter-title',
+      blockKey: 'mat-02-chapter-title',
+      semanticStyleCode: 'titre_chapitre_livre',
+      heading: 'Chapitre II',
+      placement: 'before',
+      niveauHtml: 3,
+      textBlocks: [],
+    }} />)
+    expect(html).toBe('')
+  })
+
   const renvois = {
     id: 'mat-ocr-block-0002',
     semanticStyleCode: 'commentaire_pericope',

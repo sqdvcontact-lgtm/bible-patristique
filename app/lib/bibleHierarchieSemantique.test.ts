@@ -146,7 +146,10 @@ describe('hiérarchie sémantique de la page Bible', () => {
         { id: 'd', semanticStyle: 'titre_chapitre_livre', intitule: 'Chapitre' },
         { id: 'e', semanticStyle: 'introduction_pericope', intitule: 'Péricope' },
       ])
-      expect(plan.map((e) => e.niveauHtml)).toEqual([1, 2, 3, 4, 5])
+      // Le chapitre n'est pas un rang du plan : il n'est pas rendu, et le
+      // sommaire ne pointe pas vers une ancre sans cible.
+      expect(plan.map((e) => e.id)).toEqual(['a', 'b', 'c', 'e'])
+      expect(plan.map((e) => e.niveauHtml)).toEqual([1, 2, 3, 4])
     })
 
     it('ne dépasse jamais h6', () => {
@@ -165,9 +168,12 @@ describe('hiérarchie sémantique de la page Bible', () => {
         id: 'un', blockKey: 'pericope-01', semanticStyle: 'titre_pericope',
         intitule: '1° L’origine divine du Messie', semanticParentKey: 'sous-section-02',
       },
+      // ⚠️ Aucun `axeHierarchie` ici, et c'est le point : cinq titres de
+      // chapitre sur cent dix-sept portent la métadonnée, l'axe vient donc du
+      // registre et vaut pour les cent dix-sept.
       {
         id: 'chapitre', blockKey: 'chapitre-02', semanticStyle: 'titre_chapitre_livre',
-        intitule: 'Chapitre II', axeHierarchie: 'material' as const,
+        intitule: 'Chapitre II',
       },
       {
         id: 'deux', blockKey: 'pericope-02', semanticStyle: 'titre_pericope',
@@ -183,14 +189,26 @@ describe('hiérarchie sémantique de la page Bible', () => {
       expect(balises.get('deux')).toBe(3)
     })
 
-    it('laisse le titre matériel visible à sa place, à son propre rang', () => {
-      expect(baliserBlocs(fillion).get('chapitre')).toBe(3)
-      expect(construirePlan(fillion).map((e) => e.texte)).toContain('Chapitre II')
+    it('tient la mention de chapitre hors du plan', () => {
+      // Elle ne s'affiche pas (charte §35.1) : une entrée de sommaire pointerait
+      // vers une ancre sans cible.
+      expect(construirePlan(fillion).map((e) => e.texte)).not.toContain('Chapitre II')
+      expect(resoudreStyleSemantique('titre_chapitre_livre')?.redondantAvecNavigation).toBe(true)
     })
 
-    it('distingue les deux axes dans le plan', () => {
-      const plan = construirePlan(fillion)
-      expect(plan.map((e) => e.axe)).toEqual(['analytic', 'analytic', 'analytic', 'material', 'analytic'])
+    it('laisse l’axe du bloc infléchir celui du registre', () => {
+      // Le registre donne l'axe au style ; un bloc qui déclare le sien l'emporte.
+      const plan = construirePlan([
+        { id: 'partie', blockKey: 'partie', semanticStyle: 'titre_partie_livre', intitule: 'Première partie' },
+        {
+          id: 'section', blockKey: 'section', semanticStyle: 'titre_section_livre',
+          intitule: 'Section I', axeHierarchie: 'material' as const,
+        },
+        { id: 'sous', blockKey: 'sous', semanticStyle: 'titre_sous_section', intitule: '§ I' },
+      ])
+      expect(plan.map((e) => e.axe)).toEqual(['analytic', 'material', 'analytic'])
+      // La section matérielle n'a pas empilé : le § I reste sous la partie.
+      expect(plan.map((e) => e.niveauHtml)).toEqual([1, 2, 2])
     })
 
     it('reprend la pile là où le parent déclaré l’a laissée', () => {

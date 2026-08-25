@@ -20,6 +20,8 @@ export type JetonTitre = 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6'
 export type JetonInfo = 'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'I6'
 export type JetonNiveau = JetonTitre | JetonInfo
 
+export type AxeHierarchie = 'analytic' | 'material'
+
 export type NatureBloc =
   | 'title' | 'introduction' | 'commentary' | 'notice'
   | 'summary' | 'excursus' | 'conclusion' | 'note'
@@ -39,6 +41,10 @@ export type StyleResolu = {
   headingInOutline: boolean
   /** Faux quand le contenu ne se rend pas dans le corps. */
   bodyBlock: boolean
+  /** Axe du registre, que la présentation d'un bloc peut confirmer ou infléchir. */
+  hierarchyAxis: AxeHierarchie
+  /** Vrai quand la surface de lecture dit déjà ce que le bloc annonce. */
+  redondantAvecNavigation: boolean
 }
 
 type EntreeRegistre = {
@@ -51,6 +57,8 @@ type EntreeRegistre = {
   heading_level?: string
   heading_in_outline?: boolean
   body_block: boolean
+  hierarchy_axis?: string
+  redundant_with_reader_navigation?: boolean
   aliases: string[]
   note?: string
 }
@@ -85,6 +93,8 @@ export function resoudreStyleSemantique(semanticStyle: string): StyleResolu | nu
     headingLevel: (entree.heading_level as JetonTitre | undefined) ?? null,
     headingInOutline: entree.heading_in_outline === true,
     bodyBlock: entree.body_block,
+    hierarchyAxis: entree.hierarchy_axis === 'material' ? 'material' : 'analytic',
+    redondantAvecNavigation: entree.redundant_with_reader_navigation === true,
   }
 }
 
@@ -134,8 +144,6 @@ export function empilerTitre(pile: readonly JetonTitre[], jeton: JetonTitre): Je
   return [...pile.filter((ouvert) => rang(ouvert) < rang(jeton)), jeton]
 }
 
-export type AxeHierarchie = 'analytic' | 'material'
-
 export type EntreePlan = {
   id: string
   jeton: JetonTitre
@@ -154,7 +162,7 @@ export type BlocAPlan = {
   blockKey?: string | null
   /** Parent DÉCLARÉ sur l'axe analytique, quand la suite matérielle ne le donne pas. */
   semanticParentKey?: string | null
-  /** Axe déclaré du titre ; `material` par défaut ne vaut que s'il est écrit. */
+  /** Axe déclaré PAR LE BLOC ; à défaut, celui que le registre donne au style. */
   axeHierarchie?: AxeHierarchie | null
 }
 
@@ -163,13 +171,19 @@ export type BlocAPlan = {
  *
  * L'axe ANALYTIQUE est celui de l'auteur : partie, section, § I, § II, puis
  * 1°, 2°, 3°. L'axe MATÉRIEL est celui du livre imprimé : chapitre I, chapitre
- * II. Le second traverse le premier — sous le § II, le 1° précède « Chapitre II »
+ * II. Le second traverse le premier — sous le § II, le 1° précède le chapitre II
  * et le 2° le suit. Ce n'est pas une faute de la source, c'est sa manière.
  *
- * ⛔ Un titre matériel PARAÎT donc à sa place, mais ne devient jamais le parent
- * de ce qui le suit : « 2° L'adoration des Mages » relève du § II, non du
- * chapitre II. Sans cette règle, la numérotation cassait d'un rang au milieu de
- * la suite, et le plan d'accessibilité avec elle.
+ * ⛔ Un titre matériel ne devient JAMAIS le parent de ce qui le suit :
+ * « 2° L'adoration des Mages » relève du § II, non du chapitre II. Sans cette
+ * règle, la numérotation cassait d'un rang au milieu de la suite, et le plan
+ * d'accessibilité avec elle. La règle vaut même quand la mention n'est pas
+ * affichée : c'est la place matérielle qui traverse, non son intitulé.
+ *
+ * ⛔ L'axe vient du REGISTRE, qui le donne au style, et la présentation d'un
+ * bloc ne fait que le confirmer ou l'infléchir. Cinq titres de chapitre sur
+ * cent dix-sept portent la métadonnée : la tirer d'eux seuls aurait appliqué la
+ * règle à un cinquième d'un livre.
  *
  * ⛔ Et le parent ne se déduit JAMAIS du seul jeton : quand la donnée nomme son
  * parent, c'est ce nom qui fait foi, et la pile reprend l'état où ce parent l'a
@@ -177,6 +191,7 @@ export type BlocAPlan = {
  */
 function empilerSelonAxe(
   bloc: BlocAPlan,
+  resolu: StyleResolu,
   jeton: JetonTitre,
   pile: readonly JetonTitre[],
   pileApres: Map<string, JetonTitre[]>,
@@ -184,7 +199,7 @@ function empilerSelonAxe(
   const heritee = bloc.semanticParentKey ? pileApres.get(bloc.semanticParentKey) : undefined
   const depart = heritee ?? [...pile]
   const niveauHtml = baliseTitre(depart, jeton)
-  const axe: AxeHierarchie = bloc.axeHierarchie === 'material' ? 'material' : 'analytic'
+  const axe: AxeHierarchie = bloc.axeHierarchie ?? resolu.hierarchyAxis
   const suivante = axe === 'material' ? depart : empilerTitre(depart, jeton)
   if (bloc.blockKey) pileApres.set(bloc.blockKey, suivante)
   return { niveauHtml, pile: suivante, axe }
@@ -211,7 +226,7 @@ export function construirePlan(blocs: readonly BlocAPlan[]): EntreePlan[] {
       ? (resolu.level as JetonTitre)
       : (resolu.headingRole === 'title' && resolu.headingInOutline ? resolu.headingLevel : null)
     if (!jeton || !bloc.intitule) continue
-    const etape = empilerSelonAxe(bloc, jeton, pile, pileApres)
+    const etape = empilerSelonAxe(bloc, resolu, jeton, pile, pileApres)
     pile = etape.pile
     plan.push({ id: bloc.id, jeton, niveauHtml: etape.niveauHtml, texte: bloc.intitule, axe: etape.axe })
   }
@@ -235,7 +250,7 @@ export function baliserBlocs(blocs: readonly BlocAPlan[]): Map<string, 1 | 2 | 3
       ? (resolu.level as JetonTitre)
       : (resolu.headingRole === 'title' ? resolu.headingLevel : null)
     if (!jeton || !bloc.intitule) continue
-    const etape = empilerSelonAxe(bloc, jeton, pile, pileApres)
+    const etape = empilerSelonAxe(bloc, resolu, jeton, pile, pileApres)
     pile = etape.pile
     balises.set(bloc.id, etape.niveauHtml)
   }

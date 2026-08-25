@@ -27,6 +27,7 @@ const JETONS_INFO = registre.levels.info.map((n) => n.token)
 const NATURES = new Set(registre.natures)
 const PLACEMENTS = new Set(['editorial_anchor', 'footnote_only'])
 const ROLES = new Set(['title', 'label', 'none'])
+const AXES = new Set(['analytic', 'material'])
 
 if (JETONS_TITRE.join(',') !== 'T1,T2,T3,T4,T5,T6') refuser(`Échelle des titres inattendue : ${JETONS_TITRE}`)
 if (JETONS_INFO.join(',') !== 'I1,I2,I3,I4,I5,I6') refuser(`Échelle des informations inattendue : ${JETONS_INFO}`)
@@ -64,6 +65,24 @@ for (const [canonique, e] of Object.entries(registre.styles)) {
   // Seul un titre structurel entre au plan par lui-même.
   if (e.include_in_outline && e.kind !== 'title') {
     refuser(`${ou} entre au plan sans être un titre.`)
+  }
+
+  // L'axe est CLOS : un troisième nom passerait pour analytique en silence.
+  if (e.hierarchy_axis !== undefined && !AXES.has(e.hierarchy_axis)) {
+    refuser(`${ou} porte un axe de hiérarchie inconnu : ${e.hierarchy_axis}.`)
+  }
+  if (e.redundant_with_reader_navigation !== undefined && typeof e.redundant_with_reader_navigation !== 'boolean') {
+    refuser(`${ou} porte une redondance de navigation qui n'est pas un booléen.`)
+  }
+  // Une mention que la surface de lecture redit déjà ne se rend pas ; elle ne
+  // peut donc pas être une entrée de plan, qui serait une ancre sans cible.
+  if (e.redundant_with_reader_navigation === true && e.include_in_outline) {
+    refuser(`${ou} n'est pas affiché mais entre au plan : l'ancre n'aurait pas de cible.`)
+  }
+  // Un titre matériel qui commanderait l'axe analytique casserait la suite des
+  // subdivisions qu'il traverse.
+  if (e.redundant_with_reader_navigation === true && e.hierarchy_axis !== 'material') {
+    refuser(`${ou} est masqué comme témoin matériel sans porter l'axe matériel.`)
   }
 }
 

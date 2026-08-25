@@ -50,9 +50,12 @@
     },
     "titre_chapitre_livre": {
       "kind": "title", "level": "T5", "nature": "title",
-      "include_in_outline": true, "placement": "editorial_anchor",
+      "include_in_outline": false, "placement": "editorial_anchor",
       "heading_role": "none", "body_block": true,
-      "aliases": ["titre_chapitre"]
+      "hierarchy_axis": "material",
+      "redundant_with_reader_navigation": true,
+      "aliases": ["titre_chapitre"],
+      "note": "Charte §35.1. La mention imprimée « Chapitre I » est un témoin matériel de l’édition, conservé dans la donnée et non affiché là où la navigation dit déjà le chapitre. Elle n’est pas un niveau analytique du commentaire : elle ne commande donc pas l’axe des subdivisions et n’entre pas au plan."
     },
     "titre_pericope": {
       "kind": "title", "level": "T6", "nature": "title",
