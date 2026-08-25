@@ -125,7 +125,7 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ouvrir = () => {
     if (timer.current) clearTimeout(timer.current);
-    setRecentes(lireOeuvresRecentes(3));
+    setRecentes(lireOeuvresRecentes());
     setOuvert(true);
   };
   const fermer = () => {
@@ -138,8 +138,16 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
       onFocus={ouvrir} onBlur={fermer}>
       <Link href={href} className="cs-onglet" style={style}>{label}</Link>
       {ouvert && recentes.length > 0 && (
-        <div onMouseEnter={ouvrir} onMouseLeave={fermer}
-          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "7px", zIndex: 3000 }}>
+        <div onMouseEnter={ouvrir} onMouseLeave={fermer} className="cs-defilement-discret"
+          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "7px", zIndex: 3000,
+            // ⛔ Un menu déroulant se borne à la hauteur de la fenêtre et DÉFILE :
+            // ce qui dépasse du bas n'est pas seulement invisible, il est
+            // inatteignable. `overscroll-behavior` va avec, et n'est pas une
+            // politesse — le menu se referme dès que le curseur en sort, et la
+            // molette poursuivie au bas de la liste emporterait la page sous un
+            // curseur immobile, fermant le menu au moment où l'on cherche à en
+            // atteindre le bas.
+            maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem)`, overflowY: "auto", overscrollBehavior: "contain" }}>
           <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--cs-texte-faible)", margin: "2px 8px 6px" }}>{"Derni\u00e8res \u0153uvres consult\u00e9es"}</p>
           {recentes.map(o => (
             <Link key={o.id} href={`/oeuvre/${o.id}`} onClick={() => setOuvert(false)}
