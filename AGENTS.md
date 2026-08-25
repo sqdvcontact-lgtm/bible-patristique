@@ -1638,6 +1638,37 @@ pour 7 266 blocs.
 ⚠️ **Contrôle sans session** : le site étant fermé, la planche de contrôle se fabrique
 avec le composant RÉEL et des entrées réelles (`tmp/planche-apparat-critique.tsx`), selon
 la méthode déjà consignée plus haut pour les questions de mise en page.
+# Propositions de GPT — le registre d’arbitrage (2026-08-25)
+
+`/admin/propositions-gpt`. GPT propose, l’auteur arbitre, et ce que l’auteur écrit là
+commande la mise en œuvre. La page réunit les deux faces : ce que GPT demande, et la
+directive qui y répond.
+
+⛔ **Les propositions sont une SOURCE RÉDIGÉE**, dans `app/admin/propositions-gpt/registre.ts`,
+comme l'inventaire des illustrations et pour la même raison : un relevé automatique rendrait
+des phrases, jamais un arbitrage. Chaque entrée porte le texte de GPT dans SES termes, un fait
+MESURÉ sur le corpus, et, s’il y a lieu, la consigne antérieure que la proposition heurte,
+**citée des deux côtés**. `registre.test.ts` refuse un identifiant en double, un conflit
+à un seul côté, un exemple sans après, et tient la liste des conflits sous garde.
+
+⛔ **Le registre ne DÉCIDE rien.** Un drapeau `dejaEnPlace` constate ce que le dépôt sert
+déjà ; ce n'est pas un arbitrage rendu, et la page ne coche aucun état d'elle-même.
+
+**Les directives vivent dans `parametres.directives_propositions_gpt`**, en JSON dans la
+colonne `valeur`, qui est du TEXTE. C'est là qu'il faut aller les lire avant de mettre
+une proposition en œuvre. ⚠️ Aucune migration : `parametres` existe déjà, et une clé de
+plus ne coûte rien.
+
+⚠️ **Un identifiant de proposition est une clé de stockage** : le renommer orpheline la
+directive qui y pend. `lireDirectives` conserve l'orpheline sans la faire paraître, de
+sorte qu'un renommage ne détruit rien, mais il fait disparaître la décision de l'écran.
+
+⚠️ **La page ne s'ouvre pas si la lecture du paramètre échoue**, et c'est délibéré : un
+registre vierge servi sur une erreur de lecture ferait écrire l’auteur par-dessus ses
+propres décisions. Même famille que « un panneau discret journalise son erreur ».
+
+**Pour ajouter un lot** : une entrée de plus dans `LOTS`. La page, les filtres, les
+compteurs et la garde suivent sans qu'on y touche.
 # Une œuvre à plusieurs auteurs (2026-08-16)
 
 Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à égalité** ; l'œuvre paraît une fois sous le nom de chacun et porte les deux noms là où elle est nommée.
