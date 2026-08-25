@@ -8,6 +8,7 @@ import {
   type BibleEditionDisplayInternalNote,
   type BibleEditionDisplayNote,
   type BibleEditionDisplayTextBlock,
+  type StyleCompositionBloc,
 } from '@/app/lib/bibleEdition'
 import {
   classeIntituleTitre,
@@ -25,14 +26,27 @@ import {
   styleSeparateurAppels,
   type VarianteAppelNote,
 } from '@/app/lib/appelsDeNote'
+import { composerBibliographie } from '@/app/lib/bibleBibliographie'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
+import BibliographieBible from './BibleBibliographie'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
   'id' | 'semanticStyleCode' | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement' | 'textBlocks'
+  | 'presentation'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
+
+/**
+ * Comment un paragraphe se compose, quand la donnée le dit et non le rendu.
+ *
+ * Les trois valeurs viennent toutes d'une métadonnée : le style d'un bloc de
+ * note, le style imposé au premier paragraphe d'un bloc, le rôle d'affichage
+ * d'un bloc entier. ⛔ Aucune ne se devine à la forme du texte : sans la
+ * métadonnée, le paragraphe se compose comme les autres.
+ */
+type CompositionParagraphe = StyleCompositionBloc | 'sous-titre-partie'
 
 export type NoteBibliqueAffichable = Pick<
   BibleEditionDisplayNote,
@@ -95,8 +109,15 @@ function envelopperSpan(
 ): ReactNode {
   if (!span) return <Fragment key={key}>{contenu}</Fragment>
   const lang = span.language ?? undefined
+  // ⛔ Les guillemets français restent en ROMAIN : ils appartiennent au français
+  // qui cite, non au latin cité. « *Jesu Christi* », jamais *« Jesu Christi »* —
+  // l'italique s'arrête au bord du guillemet, et la langue avec elle.
   if (span.rendering === 'quotation_italic') {
-    return <em key={key} lang={lang}>«&#8239;{contenu}&#8239;»</em>
+    return (
+      <span key={key}>
+        «&#8239;<em lang={lang}>{contenu}</em>&#8239;»
+      </span>
+    )
   }
   if (span.rendering === 'italic' || ['quotation', 'foreign_expression', 'bibliographic_title', 'abbreviation'].includes(span.kind)) {
     return <em key={key} lang={lang}>{contenu}</em>
@@ -181,12 +202,52 @@ function rendreContenuAncre(
   return noeuds
 }
 
+/** Ce qu'un style de composition change à un paragraphe, et rien de plus.
+ *
+ *  ⛔ Aucune boîte, aucun fond, aucune bordure, aucun pictogramme, aucun tiret :
+ *  la donnée dit un genre de texte, pas un encart. */
+const COMPOSITIONS: Record<CompositionParagraphe, CSSProperties> = {
+  // Renvois bibliques posés SOUS un repère de commentaire : ils en prennent la
+  // famille — c'est le même appareil — d'un cran plus petit, d'une encre
+  // discrète, et se collent au repère au lieu de flotter entre lui et le texte.
+  'renvois-bible': {
+    fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+    fontSize: '0.75rem',
+    lineHeight: 1.45,
+    color: 'var(--cs-texte-second)',
+    textAlign: 'left',
+    hyphens: 'manual',
+    margin: '0.15em 0 0.45em',
+  },
+  // Le sous-titre d'une partie n'est pas un paragraphe d'introduction : c'est le
+  // chapeau de son titre, tombé dans un bloc voisin par l'ordre matériel. Il se
+  // compose donc comme les chapeaux du site — centré, italique, plus clair.
+  'sous-titre-partie': {
+    fontSize: '0.9375rem',
+    lineHeight: 1.35,
+    fontStyle: 'italic',
+    color: 'var(--cs-texte-second)',
+    textAlign: 'center',
+    hyphens: 'manual',
+    margin: 0,
+  },
+  // La bibliographie a sa propre matière : voir `BibliographieBible`.
+  bibliographie: {},
+}
+
 function rendreBlocTexte(
   bloc: BlocTexteBiblique,
   resolu?: StyleResolu,
   notes: readonly BibleEditionDisplayInternalNote[] = [],
   niveauParent?: 1 | 2 | 3 | 4 | 5 | 6,
+  composition?: CompositionParagraphe | null,
 ): ReactNode {
+  // Une liste bibliographique n'est pas un paragraphe : elle a sa matière. Une
+  // note déclarée bibliographique mais sans entrée retombe sur le paragraphe
+  // ordinaire, plutôt que de disparaître.
+  if (composition === 'bibliographie' && composerBibliographie(bloc.text).entrees.length > 0) {
+    return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+  }
   if (bloc.kind === 'heading') {
     const niveau = Math.min(6, (niveauParent ?? 2) + 1) as 1 | 2 | 3 | 4 | 5 | 6
     const Balise = `h${niveau}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
@@ -221,11 +282,15 @@ function rendreBlocTexte(
     // seule la propriété de présentation reconstruite peut donc déroger ici.
     ...(bloc.presentation?.textAlign ? { textAlign: bloc.presentation.textAlign } : {}),
     ...(bloc.presentation?.fontStyle ? { fontStyle: bloc.presentation.fontStyle } : {}),
+    // Le style de composition vient en DERNIER : c'est la déclaration la plus
+    // précise, celle qui vise ce paragraphe-ci et non le genre de son bloc.
+    ...(composition ? COMPOSITIONS[composition] : {}),
   }
   return (
     <p
       key={bloc.id}
       lang={bloc.language ?? undefined}
+      className={composition ? `cs-bible-${composition}` : undefined}
       data-source-start={bloc.sourceStartOffsetUnicode ?? undefined}
       data-source-end={bloc.sourceEndOffsetUnicode ?? undefined}
       style={style}
@@ -266,6 +331,30 @@ function rendreIllustrations(illustrations: readonly IllustrationBibliqueAfficha
   return illustrations.map((illustration) => (
     <IllustrationBible key={illustration.id} illustration={illustration} />
   ))
+}
+
+/**
+ * Comment ce paragraphe-ci se compose. Trois déclarations, de la plus précise à
+ * la plus large, et aucune inférence :
+ *
+ * 1. le style que le paragraphe porte lui-même (un bloc de note bibliographique) ;
+ * 2. le rôle d'affichage du bloc entier (un sous-titre de partie) ;
+ * 3. le style imposé au PREMIER paragraphe du bloc (les renvois bibliques).
+ *
+ * Le troisième ne vaut que pour le premier paragraphe : c'est lui qui touche au
+ * titre, et le collant du titre au commentaire. `leading_paragraph_attached_to_heading`
+ * est ce que matérialise sa marge haute très faible.
+ */
+function compositionDuParagraphe(
+  bloc: BlocEditorialBiblique,
+  texte: BlocTexteBiblique,
+  rang: number,
+): CompositionParagraphe | null {
+  if (texte.presentationStyle) return texte.presentationStyle
+  if (!bloc.presentation) return null
+  if (bloc.presentation.displayRole === 'part_subtitle') return 'sous-titre-partie'
+  if (rang === 0) return bloc.presentation.leadingParagraphStyle
+  return null
 }
 
 export function BlocEditorialBible({
@@ -336,7 +425,9 @@ export function BlocEditorialBible({
           {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
         </p>
       ))}
-      {bloc.textBlocks.map((texte) => rendreBlocTexte(texte, resolu, notesCorps, bloc.niveauHtml))}
+      {bloc.textBlocks.map((texte, rang) => rendreBlocTexte(
+        texte, resolu, notesCorps, bloc.niveauHtml, compositionDuParagraphe(bloc, texte, rang),
+      ))}
       {rendreIllustrations(dansLeFlux)}
       {notesSansAppel.length > 0 && (
         <aside
@@ -346,7 +437,9 @@ export function BlocEditorialBible({
           <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
             {notesSansAppel.map((note) => (
               <li key={note.id} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
-                {note.blocks.map((texte) => rendreBlocTexte(texte))}
+                {note.blocks.map((texte) => rendreBlocTexte(
+                  texte, undefined, [], undefined, texte.presentationStyle,
+                ))}
               </li>
             ))}
           </ol>
@@ -363,6 +456,10 @@ export function BlocEditorialBible({
     'data-nature': resolu.nature,
     'data-notice-subtype': bloc.noticeSubtype ?? undefined,
     'data-placement': bloc.placement,
+    // Le rôle d'affichage déclaré : c'est par lui, et non par une classe
+    // devinée du style sémantique, que le thème sait poser un sous-titre de
+    // partie sous son titre. Une œuvre qui n'en porte pas n'est pas touchée.
+    'data-display-role': bloc.presentation?.displayRole ?? undefined,
   }
   // Une notice et un excursus se tiennent à côté du fil de lecture.
   if (resolu.nature === 'notice' || resolu.nature === 'excursus') {
@@ -411,7 +508,9 @@ export function NotesBibleChapitre({
                 (illustrationsByNote?.get(note.id) ?? [])
                   .filter((illustration) => illustration.placement === 'before'),
               )}
-              {note.blocks.map((texte) => rendreBlocTexte(texte))}
+              {note.blocks.map((texte) => rendreBlocTexte(
+                texte, undefined, [], undefined, texte.presentationStyle,
+              ))}
               {rendreIllustrations(
                 (illustrationsByNote?.get(note.id) ?? [])
                   .filter((illustration) => illustration.placement !== 'before'),

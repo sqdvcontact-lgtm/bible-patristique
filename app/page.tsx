@@ -11,8 +11,13 @@ import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleRe
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
-import { blocsTexteEditoriaux, sousTypeNoticeValide, type BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
-import type { BibleEditionChapterPayload } from '@/app/lib/bibleEditionServer'
+import {
+  blocsTexteEditoriaux, presentationDeBloc, sousTypeNoticeValide, styleCompositionDeNote,
+  type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
+} from '@/app/lib/bibleEdition'
+import type {
+  BibleEditionBodyBlockRow, BibleEditionChapterPayload, BibleEditionNoteBlockRow,
+} from '@/app/lib/bibleEditionServer'
 import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
 import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
@@ -223,8 +228,30 @@ export default async function Home({
   // Les balises de titre se calculent d'un seul passage sur l'ordre matériel :
   // elles dépendent des titres déjà ouverts, et le mode bilingue éclate ensuite
   // les blocs en deux colonnes.
-  const baliserPayload = (blocs: readonly { id: string; semantic_style_code: string; heading: string | null }[]) =>
-    baliserBlocs(blocs.map((b) => ({ id: b.id, semanticStyle: b.semantic_style_code, intitule: b.heading })))
+  // ⚠️ La balise se calcule sur les DEUX axes : le chapitre paraît dans le fil
+  // sans commander l'axe analytique, et un titre qui nomme son parent le reprend
+  // au lieu de le déduire du jeton. Voir `bibleHierarchieSemantique.ts`.
+  const baliserPayload = (blocs: readonly BibleEditionBodyBlockRow[]) =>
+    baliserBlocs(blocs.map((b) => ({
+      id: b.id,
+      semanticStyle: b.semantic_style_code,
+      intitule: b.heading,
+      blockKey: b.block_key,
+      semanticParentKey: b.semantic_parent_key,
+      axeHierarchie: presentationDeBloc(b.presentation)?.hierarchyAxis ?? null,
+    })))
+
+  // Un bloc de note se compose partout de la même façon : la couche de RENDU
+  // quand elle existe — c'est elle qui porte `*italique*` et `++capitales++` —,
+  // la transcription sinon, et le style que la donnée déclare.
+  const blocDeNote = (bloc: BibleEditionNoteBlockRow): BibleEditionDisplayTextBlock => ({
+    id: bloc.block_id,
+    kind: bloc.kind,
+    form: bloc.form,
+    text: bloc.rendering ?? bloc.text,
+    language: bloc.language,
+    presentationStyle: styleCompositionDeNote(bloc.presentation),
+  })
 
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
   // Lecture « Sans les commentaires » : on n'écarte pas l'appareil à l'affichage, on
@@ -258,7 +285,10 @@ export default async function Home({
       memberId: membre.member_id,
       bodyBlocks: payload.bodyBlocks.filter(appartientAuMembre).map((block) => ({
         id: block.id,
+        blockKey: block.block_key,
         semanticStyleCode: block.semantic_style_code,
+        presentation: presentationDeBloc(block.presentation),
+        semanticParentKey: block.semantic_parent_key,
         niveauHtml: balises.get(block.id),
         noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
         heading: block.heading,
@@ -277,13 +307,7 @@ export default async function Home({
           anchorTarget: note.anchor_text && note.anchor_start_offset_unicode === null
             ? 'heading' as const
             : 'body' as const,
-          blocks: note.blocks.map((noteBlock) => ({
-            id: noteBlock.block_id,
-            kind: noteBlock.kind,
-            form: noteBlock.form,
-            text: noteBlock.rendering ?? noteBlock.text,
-            language: noteBlock.language,
-          })),
+          blocks: note.blocks.map(blocDeNote),
         })),
       })),
       notes: payload.notes.filter(appartientAuMembre).map((note) => ({
@@ -291,13 +315,7 @@ export default async function Home({
         displayNumber: note.display_number,
         canonId: note.canon_id,
         materialOrder: note.material_order,
-        blocks: note.blocks.map((block) => ({
-          id: block.block_id,
-          kind: block.kind,
-          form: block.form,
-          text: block.rendering ?? block.text,
-          language: block.language,
-        })),
+        blocks: note.blocks.map(blocDeNote),
       })),
       assets: payload.assets.filter(appartientAuMembre).map((asset) => ({
         id: asset.id,
@@ -358,7 +376,10 @@ export default async function Home({
         axeCanonique: chargee.axeCanonique,
         blocs: payload.bodyBlocks.map((block) => ({
           id: block.id,
+          blockKey: block.block_key,
           semanticStyleCode: block.semantic_style_code,
+          presentation: presentationDeBloc(block.presentation),
+          semanticParentKey: block.semantic_parent_key,
           niveauHtml: balisesBilingue.get(block.id),
           noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
           heading: block.heading,
@@ -379,13 +400,7 @@ export default async function Home({
             anchorTarget: note.anchor_text && note.anchor_start_offset_unicode === null
               ? 'heading' as const
               : 'body' as const,
-            blocks: note.blocks.map((noteBlock) => ({
-              id: noteBlock.block_id,
-              kind: noteBlock.kind,
-              form: noteBlock.form,
-              text: noteBlock.rendering ?? noteBlock.text,
-              language: noteBlock.language,
-            })),
+            blocks: note.blocks.map(blocDeNote),
           })),
         })),
         notes: payload.notes.map((note) => ({
@@ -395,13 +410,7 @@ export default async function Home({
           materialOrder: note.material_order,
           appliesTo: note.applies_to,
           appliesToMemberId: note.applies_to_member_id,
-          blocks: note.blocks.map((block) => ({
-            id: block.block_id,
-            kind: block.kind,
-            form: block.form,
-            text: block.rendering ?? block.text,
-            language: block.language,
-          })),
+          blocks: note.blocks.map(blocDeNote),
         })),
         illustrations: payload.assets.map((asset) => ({
           id: asset.id,

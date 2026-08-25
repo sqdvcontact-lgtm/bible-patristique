@@ -217,4 +217,12 @@ describe('modèle éditorial biblique', () => {
     expect(blocs.map((bloc) => [bloc.sourceStartOffsetUnicode, bloc.sourceEndOffsetUnicode]))
       .toEqual([[0, 8], [10, 17]])
   })
+
+  it('ne rend aucun paragraphe pour un bloc sans corps', () => {
+    // Un bloc de titre n'a pas de corps : le paragraphe vide qu'il produisait
+    // posait un blanc sous chaque titre, et séparait « Première partie » de son
+    // sous-titre.
+    expect(blocsTexteEditoriaux('titre', '', null)).toEqual([])
+    expect(blocsTexteEditoriaux('titre', '  \n\n ', null)).toEqual([])
+  })
 })

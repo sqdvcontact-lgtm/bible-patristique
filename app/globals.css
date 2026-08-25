@@ -719,6 +719,53 @@ button:focus-visible,
 }
 .cs-bible-info--i3 > .cs-bible-info-label { color: var(--cs-texte-second); }
 
+/* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
+   ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style
+   sémantique : une édition qui ne déclare pas le rôle n'est pas touchée, et
+   aucune œuvre ne change parce que Fillion a précisé la sienne. */
+
+/* Le sous-titre d'une partie n'est pas un préambule : c'est le CHAPEAU de son
+   titre, que l'ordre matériel a fait tomber dans un bloc voisin. Il perd donc
+   les larges marges de l'introduction, se centre sous « Première partie », et
+   ne laisse presque rien entre eux — le blanc reste pour la suite. */
+.cs-bible-bloc[data-display-role='part_subtitle'] {
+  padding-left: 0;
+  padding-right: 0;
+  margin-top: 0.2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Une bibliographie se compose en LISTE, et le marqueur de la donnée ne
+   s'imprime pas : ni puce, ni tiret. Le corps descend d'un cran sous celui qui
+   l'accueille — d'où des `em`, la note en fenêtre et le paratexte n'ayant pas
+   la même mesure. Le retrait de première ligne fait le reste. */
+.cs-bible-bibliographie {
+  font-size: 0.9em;
+  line-height: 1.45;
+  margin: 0 0 0.5rem;
+}
+.cs-bible-bibliographie > p {
+  /* ⚠️ Blanc très fin sous l'annonce : la liste lui appartient, elle ne s'en
+     détache pas. */
+  margin: 0 0 0.25em;
+  text-align: left;
+}
+.cs-bible-bibliographie > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cs-bible-bibliographie > ul > li {
+  margin: 0 0 0.3em;
+  padding: 0;
+  /* Au fer, non justifié : sur des lignes courtes, la justification creuse des
+     blancs que le retrait de première ligne rend criants. */
+  text-align: left;
+  text-indent: 0.7em;
+}
+.cs-bible-bibliographie > ul > li:last-child { margin-bottom: 0; }
+
 /* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
 .cs-bible-bloc > .cs-bible-title--t1,
 .cs-bible-bloc > .cs-bible-title--t2,

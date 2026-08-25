@@ -104,7 +104,20 @@ export type BibleEditionDisplayTextBlock = {
     textAlign?: 'left' | 'center' | 'right' | 'justify'
     fontStyle?: 'normal' | 'italic'
   } | null
+  /** Style de composition dicté par la donnée, et non deviné du texte : une
+   *  note bibliographique se compose en liste, non en paragraphe suivi. */
+  presentationStyle?: StyleCompositionBloc | null
   inlineSpans?: BibleEditionDisplayInlineSpan[]
+}
+
+/** Le vocabulaire est CLOS : un style inconnu est ignoré plutôt qu'appliqué. */
+export const STYLES_COMPOSITION_BLOC = ['bibliographie', 'renvois-bible'] as const
+export type StyleCompositionBloc = typeof STYLES_COMPOSITION_BLOC[number]
+
+export function styleCompositionSur(value: unknown): StyleCompositionBloc | null {
+  return (STYLES_COMPOSITION_BLOC as readonly string[]).includes(String(value))
+    ? value as StyleCompositionBloc
+    : null
 }
 
 export type BibleEditionDisplayInlineSpan = {
@@ -156,6 +169,51 @@ function presentationSure(value: unknown): BibleEditionDisplayTextBlock['present
     ? record.font_style as NonNullable<BibleEditionDisplayTextBlock['presentation']>['fontStyle']
     : undefined
   return textAlign || fontStyle ? { textAlign, fontStyle } : null
+}
+
+/**
+ * Présentation déclarée d'un BLOC — distincte de celle d'un paragraphe.
+ *
+ * Elle ne dit pas un goût de composition, elle dit ce que la page imprimée
+ * FAISAIT : un sous-titre de partie posé sous son titre, un chapitre qui coupe
+ * le fil matériel sans commander l'axe analytique, une liste de renvois collée
+ * au repère qui la précède.
+ *
+ * ⛔ Rien n'est lu au delà de ce vocabulaire. `text_alignment` en particulier
+ * n'est PAS repris tel quel : porté par des blocs dont le corps est de la prose
+ * justifiée, il centrerait des paragraphes entiers. Seul le rôle d'affichage
+ * décide, et lui seul emporte son alignement.
+ */
+export type BibleEditionDisplayBlockPresentation = {
+  displayRole: 'part_subtitle' | null
+  attachToBlockKey: string | null
+  hierarchyAxis: 'material' | 'analytic' | null
+  outlineRole: string | null
+  leadingParagraphStyle: StyleCompositionBloc | null
+  leadingParagraphAttachedToHeading: boolean
+}
+
+export function presentationDeBloc(value: unknown): BibleEditionDisplayBlockPresentation | null {
+  const record = objet(value)
+  if (!record) return null
+  const presentation: BibleEditionDisplayBlockPresentation = {
+    displayRole: record.display_role === 'part_subtitle' ? 'part_subtitle' : null,
+    attachToBlockKey: typeof record.attach_to_block_key === 'string' ? record.attach_to_block_key : null,
+    hierarchyAxis: record.hierarchy_axis === 'material' || record.hierarchy_axis === 'analytic'
+      ? record.hierarchy_axis
+      : null,
+    outlineRole: typeof record.outline_role === 'string' ? record.outline_role : null,
+    leadingParagraphStyle: styleCompositionSur(record.leading_paragraph_style),
+    leadingParagraphAttachedToHeading: record.leading_paragraph_attached_to_heading === true,
+  }
+  return Object.values(presentation).some((valeur) => valeur !== null && valeur !== false)
+    ? presentation
+    : null
+}
+
+/** Style déclaré par un bloc de NOTE : `metadata.presentation.style`. */
+export function styleCompositionDeNote(presentation: unknown): StyleCompositionBloc | null {
+  return styleCompositionSur(objet(presentation)?.style)
 }
 
 function spansSurs(value: unknown, textLength: number): BibleEditionDisplayInlineSpan[] {
@@ -239,7 +297,13 @@ export function blocsTexteEditoriaux(
       inlineSpans: [],
     })
   }
-  return paragraphs.length > 0 ? paragraphs : [{
+  if (paragraphs.length > 0) return paragraphs
+  // ⛔ Un bloc SANS corps ne rend pas un paragraphe vide. Les blocs de titre
+  // n'en ont pas — l'axe `title` impose un corps vide —, et le paragraphe fantôme
+  // qu'ils produisaient posait un blanc de 0,6 rem sous chaque titre : c'est lui
+  // qui écartait « Première partie » de son sous-titre.
+  if (sourceText.trim() === '') return []
+  return [{
     id: `${blockId}:text`, kind: 'commentary', form: 'prose', text: sourceText,
     sourceStartOffsetUnicode: 0, sourceEndOffsetUnicode: sourceText.length,
     presentation: { textAlign: 'justify', fontStyle: 'normal' }, inlineSpans: [],
@@ -248,7 +312,12 @@ export function blocsTexteEditoriaux(
 
 export type BibleEditionDisplayBodyBlock = {
   id: string
+  /** Clé éditoriale stable : c'est par elle qu'un bloc en désigne un autre. */
+  blockKey?: string | null
   semanticStyleCode: string
+  presentation?: BibleEditionDisplayBlockPresentation | null
+  /** Parent de l'axe ANALYTIQUE, quand la suite matérielle ne le donne pas. */
+  semanticParentKey?: string | null
   /** Balise de titre calculée sur les parents réellement présents (jamais le chiffre du jeton). */
   niveauHtml?: 1 | 2 | 3 | 4 | 5 | 6
   noticeSubtype?: BibleEditorialNoticeSubtype | null

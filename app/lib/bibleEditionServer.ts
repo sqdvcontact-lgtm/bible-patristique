@@ -63,6 +63,10 @@ export type BibleEditionBodyBlockRow = {
   canon_order_end: number | null
   material_order: number
   semantic_style_code: string
+  /** `metadata.presentation` du bloc, tel quel : il est validé au rendu, pas ici. */
+  presentation: unknown
+  /** Parent DÉCLARÉ sur l'axe analytique, quand la suite matérielle ne le donne pas. */
+  semantic_parent_key: string | null
 }
 
 export type BibleEditionBodyBlockPayload = BibleEditionBodyBlockRow & {
@@ -80,6 +84,8 @@ export type BibleEditionNoteBlockRow = {
   text: string
   rendering: string | null
   needs_review: boolean
+  /** `metadata.presentation` du bloc de note : c'est là que vit « bibliographie ». */
+  presentation?: unknown
 }
 
 export type BibleEditionBodyBlockInternalNoteRow = {

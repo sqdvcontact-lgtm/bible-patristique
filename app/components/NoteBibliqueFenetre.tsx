@@ -17,7 +17,9 @@ import { createPortal } from 'react-dom'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { composerBibliographie } from '@/app/lib/bibleBibliographie'
 import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
+import BibliographieBible from './BibleBibliographie'
 
 /** Plus large et plus haute que l'infobulle des œuvres (340 × 340). */
 const LARGEUR = 460
@@ -26,24 +28,31 @@ const HAUTEUR = 420
 export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNote, 'blocks'> }) {
   return (
     <>
-      {note.blocks.map((bloc) => (
-        <p
-          key={bloc.id}
-          lang={bloc.language ?? undefined}
-          style={{
-            margin: bloc.kind === 'reference' || bloc.kind === 'attribution' ? '0.35rem 0 0' : '0 0 0.5rem',
-            fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
-            color: bloc.kind === 'reference' || bloc.kind === 'attribution'
-              ? 'var(--cs-texte-second)'
-              : 'var(--cs-texte-fort)',
-            whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
-            textAlign: 'justify',
-            hyphens: 'auto',
-          }}
-        >
-          {rendreTexteEnrichi(bloc.text)}
-        </p>
-      ))}
+      {note.blocks.map((bloc) => {
+        // Une note que la donnée déclare bibliographique se compose en liste,
+        // ici comme dans le paratexte : c'est le même genre de texte, il ne
+        // change pas de forme selon la surface qui l'accueille.
+        if (bloc.presentationStyle === 'bibliographie' && composerBibliographie(bloc.text).entrees.length > 0) {
+          return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+        }
+        const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
+        return (
+          <p
+            key={bloc.id}
+            lang={bloc.language ?? undefined}
+            style={{
+              margin: discret ? '0.35rem 0 0' : '0 0 0.5rem',
+              fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
+              color: discret ? 'var(--cs-texte-second)' : 'var(--cs-texte-fort)',
+              whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
+              textAlign: 'justify',
+              hyphens: 'auto',
+            }}
+          >
+            {rendreTexteEnrichi(bloc.text)}
+          </p>
+        )
+      })}
     </>
   )
 }

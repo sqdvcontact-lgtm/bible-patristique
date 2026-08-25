@@ -143,7 +143,7 @@
     "introduction_partie": {
       "kind": "info", "level": "I2", "nature": "introduction",
       "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "heading_role": "label", "body_block": true, "aliases": ["introduction_partie_livre"]
     },
     "commentaire_partie": {
       "kind": "info", "level": "I2", "nature": "commentary",
@@ -175,6 +175,12 @@
       "kind": "info", "level": "I3", "nature": "introduction",
       "include_in_outline": false, "placement": "editorial_anchor",
       "heading_role": "label", "body_block": true, "aliases": []
+    },
+    "introduction_sous_section": {
+      "kind": "info", "level": "I3", "nature": "introduction",
+      "include_in_outline": false, "placement": "editorial_anchor",
+      "heading_role": "label", "body_block": true, "aliases": [],
+      "note": "Développement informationnel placé sous un titre T4. L’échelle d’information n’ayant pas de niveau distinct pour la sous-section, ce style reste au niveau I3."
     },
     "commentaire_section": {
       "kind": "info", "level": "I3", "nature": "commentary",
@@ -271,6 +277,14 @@
       "kind": "info", "level": "I5", "nature": "notice",
       "include_in_outline": false, "placement": "editorial_anchor",
       "heading_role": "label", "body_block": true, "aliases": []
+    },
+
+    "commentaire_verset": {
+      "kind": "info", "level": "I6", "nature": "commentary",
+      "include_in_outline": false, "placement": "editorial_anchor",
+      "heading_role": "label", "heading_in_outline": false,
+      "body_block": true, "aliases": [],
+      "note": "Commentaire suivi explicitement ancré sur un verset. Son numéro ou son lemme est un repère interne exclu du plan. Ne pas confondre avec note_verset, qui reste une note de bas de page hors corps."
     },
 
     "note_verset": {

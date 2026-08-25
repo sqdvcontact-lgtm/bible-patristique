@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   baliseTitre,
+  baliserBlocs,
   classesDuStyle,
   construirePlan,
   diviserIntitule,
@@ -150,6 +151,70 @@ describe('hiérarchie sémantique de la page Bible', () => {
 
     it('ne dépasse jamais h6', () => {
       expect(baliseTitre(['T1', 'T2', 'T3', 'T4', 'T5'], 'T6')).toBe(6)
+    })
+  })
+
+  // Fillion superpose l'analyse de l'auteur (§ I, § II, puis 1°, 2°, 3°) et la
+  // matière du livre (Chapitre I, Chapitre II). La seconde traverse la première :
+  // sous le § II, le 1° précède « Chapitre II » et le 2° le suit.
+  describe('axe analytique et axe matériel', () => {
+    const fillion = [
+      { id: 'partie', blockKey: 'partie', semanticStyle: 'titre_partie_livre', intitule: 'Première partie' },
+      { id: 'sII', blockKey: 'sous-section-02', semanticStyle: 'titre_sous_section', intitule: '§ II. Quelques récits' },
+      {
+        id: 'un', blockKey: 'pericope-01', semanticStyle: 'titre_pericope',
+        intitule: '1° L’origine divine du Messie', semanticParentKey: 'sous-section-02',
+      },
+      {
+        id: 'chapitre', blockKey: 'chapitre-02', semanticStyle: 'titre_chapitre_livre',
+        intitule: 'Chapitre II', axeHierarchie: 'material' as const,
+      },
+      {
+        id: 'deux', blockKey: 'pericope-02', semanticStyle: 'titre_pericope',
+        intitule: '2° L’adoration des Mages', semanticParentKey: 'sous-section-02',
+      },
+    ]
+
+    it('garde le 1° et le 2° au même rang de part et d’autre du chapitre', () => {
+      const balises = baliserBlocs(fillion)
+      expect(balises.get('un')).toBe(balises.get('deux'))
+      // ⛔ Le chapitre n'adopte pas ce qui le suit : sans cela, le 2° descendait
+      // d'un cran sous le 1°, et la suite 1°/2°/3° se cassait en plein milieu.
+      expect(balises.get('deux')).toBe(3)
+    })
+
+    it('laisse le titre matériel visible à sa place, à son propre rang', () => {
+      expect(baliserBlocs(fillion).get('chapitre')).toBe(3)
+      expect(construirePlan(fillion).map((e) => e.texte)).toContain('Chapitre II')
+    })
+
+    it('distingue les deux axes dans le plan', () => {
+      const plan = construirePlan(fillion)
+      expect(plan.map((e) => e.axe)).toEqual(['analytic', 'analytic', 'analytic', 'material', 'analytic'])
+    })
+
+    it('reprend la pile là où le parent déclaré l’a laissée', () => {
+      // Le parent est nommé, non déduit : même après un détour par un titre plus
+      // étroit, le 3° revient sous son § II.
+      const balises = baliserBlocs([
+        ...fillion,
+        {
+          id: 'trois', blockKey: 'pericope-03', semanticStyle: 'titre_pericope',
+          intitule: '3° La fuite en Égypte', semanticParentKey: 'sous-section-02',
+        },
+      ])
+      expect(balises.get('trois')).toBe(3)
+    })
+
+    it('ignore un parent déclaré que la section ne porte pas', () => {
+      const balises = baliserBlocs([
+        { id: 'partie', blockKey: 'partie', semanticStyle: 'titre_partie_livre', intitule: 'Première partie' },
+        {
+          id: 'orphelin', blockKey: 'p', semanticStyle: 'titre_pericope',
+          intitule: '1° Sans parent chargé', semanticParentKey: 'absent-de-la-section',
+        },
+      ])
+      expect(balises.get('orphelin')).toBe(2)
     })
   })
 })

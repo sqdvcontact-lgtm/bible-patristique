@@ -76,7 +76,7 @@ Pour toutes les éditions non médiévales, Corpus Scriptura applique une typogr
 
 Ces règles valent pour le français comme pour les langues originales des éditions non médiévales. Elles appartiennent à la couche éditoriale normalisée et doivent survivre au stockage, aux exports et au rendu. Le front ne doit ni les annuler ni appliquer une modernisation linguistique supplémentaire.
 
-**Où la règle s’applique : au RENDU, jamais par réécriture du corpus.** La donnée porte l’espacement de son édition source, et elle le porte de façon hétérogène : un relevé sur 20 000 segments donne, autour des guillemets, environ 14 600 insécables pleine chasse, 3 000 espaces ordinaires et 1 530 fines. Trois caractères pour une seule intention, résidus de lots d’import successifs. L’harmonisation se fait donc à l’affichage, par les fonctions pures `normaliserEspaces` (français) et `normaliserEspacesOriginal` (langue originale), appliquées à l’entrée de `rendreTexteEnrichi`, par où passe toute la lecture, et dans le module de citation, par où passe tout le copier-coller. Trois raisons de ne pas migrer la donnée : l’harmonisation couvre aussi les imports à venir, qu’une migration ponctuelle laisserait dériver ; la fidélité à l’édition source reste entière ; la règle se change en une ligne si la fine se révèle un jour trop étroite. Le corollaire est qu’aucune surface de lecture ne doit rendre du texte de corpus sans passer par ces fonctions.
+**Où la règle s’applique : au STOCKAGE, dès l’import et lors des reprises éditoriales.** Pour toutes les éditions non médiévales et non diplomatiques, les caractères typographiques normalisés font partie de la donnée canonique du corpus : `U+00A0` avant les deux-points ; `U+202F` avant le point-virgule, le point d’exclamation et le point d’interrogation ; `U+202F` après `«` et avant `»`. Les guillemets droits issus d’une transcription, d’un OCR, d’un TEI ou d’un import sont remplacés dans la donnée par les guillemets typographiques du niveau correspondant dès que leur fonction ouvrante ou fermante est certaine. Les fonctions de rendu (`normaliserEspaces`, `normaliserEspacesOriginal` et leurs équivalents) demeurent des garde-fous idempotents pour les données anciennes ou externes ; elles ne dispensent jamais de normaliser la donnée lors d’un import ou d’une reprise. La fidélité à l’édition source concerne les mots, l’ordre, la ponctuation signifiante et les particularités documentaires ; elle n’impose pas de conserver des espaces ordinaires ou des guillemets droits purement techniques lorsque la charte fixe leur équivalent typographique. Toute migration doit rester bornée à l’édition concernée, être vérifiable, préserver les unités et les ancres, et exclure les témoins médiévaux ou diplomatiques.
 
 Normaliser la typographie n’autorise jamais à moderniser l’orthographe, la morphologie, le vocabulaire ou la syntaxe. Une édition qui imprime `avoit` reste `avoit`, jamais `avait`.
 
@@ -215,7 +215,7 @@ Une anomalie de casse signalée déclenche le contrôle de l’œuvre entière. 
 
 ### 3.8 Ponctuation des citations
 
-Cinq règles gouvernent la ponctuation des passages entre guillemets. Elles valent pour les guillemets français comme pour les guillemets anglais, et s’appliquent **au rendu, sans réécrire la donnée**, selon la doctrine du § 3.1 : l’édition source garde sa ponctuation, le site en donne une composition uniforme, et un lot d’import futur est harmonisé du même coup.
+Cinq règles gouvernent la ponctuation des passages entre guillemets. Elles valent pour les guillemets français comme pour les guillemets anglais. Pour les éditions non médiévales et non diplomatiques, les corrections typographiques décidées par ces règles sont portées **dans la donnée canonique**, conformément au § 3.2 : une reprise éditoriale corrige donc le stockage lui-même lorsque l’analyse contextuelle établit sans ambiguïté la place de la ponctuation. Les cas ambigus restent inchangés jusqu’à arbitrage. Le rendu n’est qu’un garde-fou idempotent et ne constitue pas la couche d’autorité.
 
 **Première règle : une citation ne se ferme jamais sur une ponctuation faible.** Le point-virgule, la virgule et le deux-points placés juste avant le guillemet fermant sont supprimés, sans être remplacés. Le point, le point d’exclamation et le point d’interrogation sont conservés. Ainsi « Mes frères, je ne pense point avoir encore atteint où je tends ; » se compose « Mes frères, je ne pense point avoir encore atteint où je tends ». Relevé du 2026-08-17 : 2 502 citations du corpus se ferment ainsi, dont 1 286 sur une virgule, 785 sur un point-virgule et 431 sur un deux-points, contre 11 211 sur un point et 1 351 sur un point d’exclamation ou d’interrogation.
 
@@ -346,7 +346,7 @@ La numérotation des paragraphes suit la source lorsqu’elle existe. À défaut
 
 ⛔ La jonction est celle du segment COURANT, et rien ne s’hérite du segment précédent ni de son unité source. Le premier segment d’un bloc affiché ne reçoit aucun préfixe, quelle que soit sa valeur : c’est la surface qui sait où son bloc commence, non la donnée. Une frontière entre deux unités sources n’appelle donc aucune règle particulière, le segment qui ouvre l’unité disant seul ce qu’il faut y poser. ⚠️ Et l’on ne pose pas de règle qui interdirait de joindre deux unités : une phrase court parfois de l’une à l’autre dans un même paragraphe, et 684 premiers segments d’unité chez Mirandol et Ceriziers portent la chaîne vide précisément pour recoller un mot coupé au passage.
 
-La recomposition est LOGIQUE d’abord. Les transformations d’affichage viennent ensuite, et segment par segment : espace fine avant la haute ponctuation, césures conditionnelles, justification. ⛔ Aucune valeur de métadonnée n’entre dans la chaîne remise au moteur typographique.
+La recomposition est LOGIQUE d’abord. La typographie canonique du § 3 est déjà portée par les données de chaque segment avant recomposition ; le rendu n’a donc pas à fabriquer les espaces typographiques ni les guillemets. Après recomposition viennent seulement les transformations proprement visuelles, notamment les césures conditionnelles et la justification. ⛔ Aucune valeur de métadonnée n’entre dans la chaîne remise au moteur typographique.
 
 ### 6.2 Niveaux de titre
 
@@ -696,6 +696,8 @@ La forme de l’appel s’accorde au style où il se trouve, au lieu d’imposer
 ⛔ **L’appel ne se sépare jamais de la ponctuation qui le suit.** Un point rejeté seul en tête de la ligne suivante est interdit. L’appel est un exposant composé en `inline-block`, où le navigateur voit une occasion de couper la ligne, en aval comme en amont. Au rendu, il voyage donc dans un groupe insécable qui emporte le dernier mot qui le précède et la ponctuation qui le suit.
 
 **Deux notes qui se suivent s’écrivent « 2 & 3 »**, esperluette entre deux espaces insécables : deux exposants collés se liraient « vingt-trois ». Au delà de deux, la suite s’écrit « 2, 3 & 4 », virgules puis esperluette avant le dernier.
+
+Sur la page Bible, la note d’un développement éditorial (introduction, commentaire, notice) s’ouvre AU CLIC sur son appel, dans la même fenêtre que la note de verset. Elle ne s’imprime plus au bas du développement : une liste plantée au milieu du corps coupe la lecture de ce qu’elle commente. ⛔ La liste ne subsiste que pour les notes dont la transcription n’a relevé aucun point d’appel, faute de quoi elles disparaîtraient du site, et elles la quitteront une à une à mesure de leur ancrage.
 
 La note appelée dans un titre est cherchée dans **toute la section chargée**, et non sur le seul premier segment du groupe : dans les imports à notes structurées, l’ancre tombe couramment quelques segments plus loin, et s’en tenir au premier ouvrirait une note vide.
 
@@ -1104,7 +1106,7 @@ Le corpus est une base de données protégée : droit *sui generis* du producteu
 
 ## 18. Interface de lecture
 
-**Césures du texte latin.** Aucun navigateur ne sait couper le latin : il n’existe pas de dictionnaire de coupure pour cette langue, et la déclaration `hyphens: auto` y reste sans effet. Les points de coupe sont donc posés par le site, selon les règles classiques de syllabation, sous forme de césures conditionnelles invisibles tant que la ligne n’a pas besoin d’être coupée. Elles sont posées au rendu et ne touchent pas la donnée, comme l’espacement, et elles ne quittent jamais la page : un copier-coller les retire. Sans elles, la justification creusait les blancs faute de pouvoir couper les mots longs, et le latin paraissait plus lâche que le français en regard.
+**Césures du texte latin.** Aucun navigateur ne sait couper le latin : il n’existe pas de dictionnaire de coupure pour cette langue, et la déclaration `hyphens: auto` y reste sans effet. Les points de coupe sont donc posés par le site, selon les règles classiques de syllabation, sous forme de césures conditionnelles invisibles tant que la ligne n’a pas besoin d’être coupée. Elles sont posées au rendu et ne touchent pas la donnée ; contrairement à l’espacement typographique canonique du § 3.2, elles ne quittent jamais la page : un copier-coller les retire. Sans elles, la justification creusait les blancs faute de pouvoir couper les mots longs, et le latin paraissait plus lâche que le français en regard.
 
 **Police des textes d’œuvre.** Un texte d’œuvre se lit toujours en sérif, corps comme titres, en lecture comme en apparat critique et en traductions parallèles. Le texte en langue originale se lit en sérif lui aussi lorsqu’il paraît seul. Une seule exception : mis en regard du français, l’original passe en sans-serif, la différence de police séparant les deux colonnes d’un coup d’œil, mieux qu’un filet. Une colonne dont la langue n’est pas connue reste en sérif : mieux vaut une colonne en sérif de trop qu’un texte français composé comme un original.
 
@@ -2027,3 +2029,52 @@ Elle ne se confond avec aucune autre marque, et c’est le critère qui l’a ch
 Un seul tracé sert les deux emplois, l’emblème du filet en tête de page et le bouton de choix dans la liste. La marque du titre est le bouton que l’on ira chercher, et c’est ce qui enseigne le geste sans une ligne de mode d’emploi. Sa taille suit sa place : quinze pixels dans la gouttière, où la discrétion est de mise, vingt-deux dans le filet, où elle est l’enseigne. Sous vingt pixels les lobes s’aplatissent et la marque se lit en losange, ce qui convient à un bouton et non à un emblème. Deux géométries à lobes plus creusés ont été essayées puis écartées : elles gagnent un peu de netteté aux petites tailles, mais leurs entailles font virer la marque à la croix dès qu’elle grandit. L’ampleur des lobes vaut mieux que leur profondeur.
 
 Remplacer la citation favorite se demande. On n’en porte qu’une à la fois, et c’est elle qui paraît sur le profil public : un clic défaisait jusqu’ici un choix sans rien dire. Désigner la première citation ne demande donc rien, et reprendre celle que l’on porte la retire sans rien demander non plus. Mais en désigner une autre quand la place est occupée ouvre une fenêtre qui met les deux citations en regard, l’ancienne et la nouvelle, avant de trancher.
+
+
+## 35. Chantier Fillion — règles éditoriales du commentaire biblique (25 août 2026)
+
+### 35.1. Chapitres bibliques redondants
+
+Les mentions imprimées `Chapitre I`, `Chapitre II`, etc. sont conservées dans la couche source comme témoins matériels de l’édition Fillion, mais ne sont pas affichées dans le lecteur Corpus Scriptura lorsque le chapitre biblique est déjà indiqué par la navigation de la Bible. Elles ne constituent pas un niveau analytique du commentaire et ne doivent jamais devenir le parent des subdivisions `1°`, `2°`, `3°`, etc.
+
+### 35.2. Désabréviation de l’hébreu
+
+Dans la couche éditoriale normalisée de Fillion, `l’hébr.` devient `l’hébreu` et `Hébr.` devient `hébreu`. La transcription diplomatique demeure inchangée. Cette règle vaut pour le commentaire, les introductions et les notes.
+
+### 35.3. Double lemme latin / français
+
+Le commentaire de Fillion part très souvent d’un lemme latin de la Vulgate. Pour que le commentaire soit également intelligible depuis la traduction française Fillion, chaque lemme latin identifiable reçoit, lorsque la correspondance est certaine, un lemme français associé tiré exactement de la traduction française Fillion du même verset. On ne retraduit jamais le latin par la machine.
+
+Le lemme latin reste le témoin historique et se compose en italique, entre guillemets français romains lorsqu’il s’agit d’une citation. Le lemme français se compose en romain. Les deux lemmes sont stockés séparément dans les métadonnées du commentaire avec leur ancre biblique et leur statut de correspondance. Si la correspondance n’est pas certaine, on conserve seulement le lemme latin et on soumet l’ambiguïté à révision ; on ne fabrique pas de lemme français. Un commentaire général portant sur tout un verset ou un groupe de versets ne reçoit pas artificiellement de double lemme.
+
+### 35.4. La présentation vient de la donnée, jamais d’une forme reconnue au passage
+
+Un bloc éditorial et un bloc de note peuvent déclarer comment ils se composent, et le rendu lit cette déclaration sans en sortir : `display_role` pour le rôle d’affichage d’un bloc entier, `leading_paragraph_style` pour le style imposé à son premier paragraphe, `style` pour le genre d’un bloc de note. ⛔ Aucun de ces styles ne se devine à la forme du texte. Sans la métadonnée, le paragraphe se compose comme les autres, et une expression régulière ne supplée jamais une déclaration absente.
+
+Le vocabulaire est clos, et une valeur inconnue est ignorée au lieu d’être appliquée. `text_alignment` en particulier ne se reprend pas tel quel : porté par des blocs dont le corps est de la prose justifiée, il centrerait des paragraphes entiers. Seul le rôle d’affichage décide, et lui seul emporte son alignement.
+
+Deux rôles sont arrêtés. Le sous-titre d’une partie n’est pas un préambule mais le chapeau de son titre, tombé dans un bloc voisin par l’ordre matériel : il se centre sous lui, avec un blanc très faible avant et le blanc ordinaire après, et il n’ouvre aucun niveau au sommaire. Les renvois bibliques posés sous un repère de commentaire prennent la famille typographique de ce repère, un cran plus petit, d’une encre discrète, collés au repère et non flottant entre lui et le texte ; ⛔ ni boîte, ni fond, ni bordure, ni pictogramme, et les italiques internes sont conservées. Un renvoi ponctuel qui précise une phrase reste dans sa phrase, entre parenthèses, et ne devient jamais un bloc de renvois.
+
+Un bloc sans corps ne rend aucun paragraphe. L’axe `title` impose un corps vide, et le paragraphe fantôme que ces blocs produisaient posait un blanc sous chaque titre, qui séparait « Première partie » de son sous-titre.
+
+### 35.5. Deux axes de hiérarchie, et ils ne se confondent pas
+
+Fillion superpose l’analyse de l’auteur, partie, section, § I, § II, puis 1°, 2°, 3°, et la matière du livre imprimé, chapitre I, chapitre II. La seconde traverse la première : sous le § II, le 1° précède le chapitre II et le 2° le suit. Ce n’est pas une faute de la source, c’est sa manière, et l’ordre imprimé se préserve sans jamais réordonner les titres.
+
+Un titre dont la présentation déclare `hierarchy_axis = "material"` ne commande donc pas l’axe analytique : il ne devient le parent d’aucun titre qui le suit. Et le parent ne se déduit jamais du seul rang du jeton : quand la donnée nomme son parent par `semantic_parent_key`, c’est ce nom qui fait foi, et la profondeur reprend l’état où ce parent l’a laissée. Un sommaire distingue les deux axes ou, au minimum, ne laisse pas les chapitres casser la continuité des 1°, 2°, 3°.
+
+### 35.6. Une note bibliographique se compose en liste
+
+Une note que la donnée déclare bibliographique n’est pas un paragraphe suivi. Son annonce garde sa phrase, ses références prennent chacune leur ligne, un cran sous le corps qui les accueille, avec le retrait de première ligne des bibliographies imprimées, un blanc très fin entre l’annonce et la première entrée et un blanc léger entre deux entrées.
+
+Le tiret qui ouvre chaque ligne dans la donnée est un marqueur de la couche de rendu, au même titre que l’italique et les petites capitales : il dit « entrée de liste » et ne s’imprime pas. ⛔ Ni puce, ni tiret, ni boîte, ni fond, ni bordure, et aucune indentation qui doublerait celle de la liste.
+
+La forme d’autorité d’un nom et sa forme d’affichage sont deux choses. Le rendu ne touche jamais à la casse stockée : « van Steenkiste » demeure la forme d’autorité des données bibliographiques, et c’est la donnée qui porte « Van Steenkiste » là où l’item commence par ce nom.
+
+### 35.7. Les guillemets d’une citation en langue étrangère restent en romain
+
+Une citation latine ou grecque enchâssée dans une phrase française se compose en italique, mais les guillemets qui l’encadrent appartiennent au français qui cite et restent en romain. On écrit donc « *Jesu Christi* » et jamais *« Jesu Christi »*. ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.
+
+Le grec écrit en caractères grecs ne prend pas l’italique : l’alphabet le distingue déjà.
+
+La ponctuation stockée fait foi et ne se déplace pas au rendu. Un point-virgule que l’édition place hors des guillemets y reste ; ⛔ le rendu ne le rentre pas dans la citation, et ne recompose pas davantage l’apostrophe typographique, qui demeure U+2019 sur toutes les surfaces éditoriales françaises.

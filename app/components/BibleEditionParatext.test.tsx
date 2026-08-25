@@ -280,3 +280,136 @@ describe('composition d’une introduction', () => {
     expect(paragraphe).not.toContain('text-align:center')
   })
 })
+
+// Ce que la donnée DÉCLARE de sa présentation, et que le rendu suit sans rien
+// deviner : le rôle d'affichage d'un bloc, le style de son premier paragraphe,
+// le genre d'un bloc de note.
+describe('présentation déclarée par la donnée', () => {
+  const sousTitre = {
+    id: 'mat-struct-part-01-info',
+    blockKey: 'mat-struct-part-01-info',
+    semanticStyleCode: 'introduction_partie',
+    placement: 'before' as const,
+    presentation: {
+      displayRole: 'part_subtitle' as const,
+      attachToBlockKey: 'mat-struct-part-01',
+      hierarchyAxis: null,
+      outlineRole: null,
+      leadingParagraphStyle: null,
+      leadingParagraphAttachedToHeading: false,
+    },
+    textBlocks: [{
+      id: 'sous-titre',
+      kind: 'commentary' as const,
+      form: 'prose' as const,
+      text: 'L’enfance et la vie cachée de Jésus (1, 1 - 2, 23).',
+      language: 'fr',
+    }],
+  }
+
+  it('pose le sous-titre de partie centré, et non comme un paragraphe d’introduction', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={sousTitre} />)
+    expect(html).toContain('data-display-role="part_subtitle"')
+    expect(html).toContain('class="cs-bible-sous-titre-partie"')
+    const paragraphe = html.slice(0, html.indexOf('L’enfance'))
+    expect(paragraphe).toContain('text-align:center')
+    expect(paragraphe).toContain('font-style:italic')
+    // ⛔ Pas de justification : ce n'est pas un développement.
+    expect(paragraphe).not.toContain('text-align:justify')
+  })
+
+  it('ne pose aucun rôle d’affichage sur un bloc qui n’en déclare pas', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{ ...sousTitre, presentation: null }} />,
+    )
+    expect(html).not.toContain('data-display-role')
+    expect(html).not.toContain('cs-bible-sous-titre-partie')
+  })
+
+  const renvois = {
+    id: 'mat-ocr-block-0002',
+    semanticStyleCode: 'commentaire_pericope',
+    heading: '2-5. Les ancêtres de Notre-Seigneur',
+    placement: 'before' as const,
+    presentation: {
+      displayRole: null,
+      attachToBlockKey: null,
+      hierarchyAxis: null,
+      outlineRole: null,
+      leadingParagraphStyle: 'renvois-bible' as const,
+      leadingParagraphAttachedToHeading: true,
+    },
+    textBlocks: [
+      { id: 'p1', kind: 'commentary' as const, form: 'prose' as const, text: '*Cf.* Gn 21, 2 et *ss.* ; 25, 25.', language: 'fr' },
+      { id: 'p2', kind: 'commentary' as const, form: 'prose' as const, text: 'Les trois patriarches les plus illustres.', language: 'fr' },
+    ],
+  }
+
+  it('compose en renvois le PREMIER paragraphe seulement', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={renvois} />)
+    expect(html).toContain('class="cs-bible-renvois-bible"')
+    const premier = html.slice(0, html.indexOf('Gn 21'))
+    expect(premier).toContain('color:var(--cs-texte-second)')
+    // ⛔ Ni boîte, ni fond, ni bordure, ni tiret injecté.
+    expect(premier).not.toContain('border')
+    expect(premier).not.toContain('background')
+    const second = html.slice(html.indexOf('Gn 21'), html.indexOf('patriarches'))
+    expect(second).not.toContain('cs-bible-renvois-bible')
+    // L'italique interne du renvoi survit.
+    expect(html).toContain('<em>Cf.</em>')
+  })
+
+  it('garde le renvoi court dans la prose, faute de déclaration', () => {
+    // « … à son frère Pharès (cf. Gn 38, 27 et ss.). » est une référence
+    // ponctuelle, pas un groupe posé sous un titre : rien ne le distingue.
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{ ...renvois, presentation: null }} />,
+    )
+    expect(html).not.toContain('cs-bible-renvois-bible')
+  })
+
+  const bibliographie = [
+    'Signalons, comme œuvres spéciales :',
+    '- ++Jean Chrysostome++, *Homélies sur l’Évangile selon Matthieu*.',
+    '- ++Van Steenkiste++ Jean-Aloïs, *Commentarius*, Bruges, 1876.',
+  ].join('\n')
+
+  it('compose en liste la note que la donnée déclare bibliographique', () => {
+    const html = renderToStaticMarkup(<NotesBibleChapitre notes={[{
+      id: 'note-biblio',
+      displayNumber: 1,
+      canonId: 'MAT.1.1',
+      blocks: [{
+        id: 'note-biblio-1',
+        kind: 'commentary' as const,
+        form: 'prose' as const,
+        text: bibliographie,
+        language: 'fr',
+        presentationStyle: 'bibliographie' as const,
+      }],
+    }]} />)
+    expect(html).toContain('class="cs-bible-bibliographie"')
+    expect(html).toContain('<li>')
+    // ⛔ Le marqueur de la donnée ne s'imprime pas.
+    expect(html).not.toContain('- <span')
+    expect(html).not.toContain('>- ')
+    // La forme d'affichage garde sa capitale d'autorité.
+    expect(html).toContain('Van Steenkiste')
+  })
+
+  it('laisse en paragraphe suivi la même note sans sa déclaration', () => {
+    const html = renderToStaticMarkup(<NotesBibleChapitre notes={[{
+      id: 'note-suivie',
+      displayNumber: 1,
+      canonId: 'MAT.1.1',
+      blocks: [{
+        id: 'note-suivie-1',
+        kind: 'commentary' as const,
+        form: 'prose' as const,
+        text: bibliographie,
+        language: 'fr',
+      }],
+    }]} />)
+    expect(html).not.toContain('cs-bible-bibliographie')
+  })
+})
