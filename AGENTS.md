@@ -1565,6 +1565,69 @@ Doctrine : charte `parametres.charte_ia` **§13.7**. Tout le rendu des appels vi
 - `rendreTexteAvecNotes` reconnaît désormais les **`++petites capitales++`** comme `rendreTexteEnrichi` (ajoutées en FIN d'alternance pour ne pas renuméroter les groupes de capture) : la page de titre passe par ce moteur et y aurait perdu la petite capitale.
 - Logique pure testée : `app/oeuvre/[id]/appelNote.test.ts`.
 
+# Apparat critique — un rendu à part, et strictement neutre (2026-08-25)
+
+L'apparat d'une édition savante n'est pas une note de prose. Tout ce qui le
+concerne vit dans **`app/lib/apparatCritique.ts`** (module pur, 16 tests) et dans
+**`app/oeuvre/[id]/ApparatCritique.tsx`** (composant pur, 17 tests). Les deux sont
+écrits pour TOUTE édition critique du corpus : rien n'y connaît les Confessions ni
+Knöll.
+
+⛔ **La bifurcation tient à `metadata.editorial_role`, JAMAIS à `kind`.** `commentary`
+couvre aussi bien les 7 266 entrées de l'apparat de Knöll que la note de prose d'un
+traducteur du XIXe siècle, et c'est la seule valeur que prennent les six `kind` du
+schéma pour cet apparat. `estNoteApparatCritique` exige en outre que **TOUS** les blocs
+de la note en relèvent : une note mixte reste au rendu ordinaire, qui seul sait composer
+les blocs rattachés. Au 2026-08-25, un seul texte porte ce rôle (`A0010O0001T0001`), et
+les 33 autres textes à notes structurées ne le portent pas du tout.
+
+⛔ **Un bloc d'apparat ne passe NI par `normaliserTypographieLecture`, NI par
+`terminerNote`.** C'est la règle centrale, et elle se mesure : 3 596 entrées portent une
+haute ponctuation, à qui la première glissait une fine insécable (« B; est] » devenait
+« B ; est] ») ; **6 604 ne se terminent par aucune ponctuation forte**, et la seconde leur
+ajoutait un point que l'éditeur n'a pas écrit (« om. F » devenait « om. F. »). Une notation
+critique se rend telle quelle : aucune correction d'OCR, aucun astérisque retiré, aucune
+abréviation développée, aucun sigle normalisé, aucune ponctuation recomposée.
+
+⛔ **Le numéro de ligne imprimée quitte le texte lu, et lui seul.** La transcription a
+laissé en tête de 7 265 blocs sur 7 266 le numéro de ligne de Knöll, que
+`metadata.printed_line` porte déjà. `retirerLigneImprimee` ne l’ôte que si le texte
+s'ouvre EXACTEMENT sur l'écriture décimale de `printed_line`, suivie d'UN séparateur
+(espace, insécable ou fine), lui-même suivi d'autre chose qu'un blanc. « 13 uirtus » avec
+`printed_line = 3` reste intact : la ligne annoncée n’est pas celle qui est écrite, et un
+renderer n'a pas à trancher. ⚠️ Ne jamais élargir la règle à « un nombre en tête » : la
+souscription du livre II (note 776) ne s'ouvre pas sur sa ligne et doit rester entière.
+
+⚠️ **Le numéro de ligne ne PARAÎT nulle part dans la lecture** — pas de badge « l. 3 »,
+pas de préfixe. Il reste disponible en métadonnée du document (`data-printed-line`), avec
+l'état de collation (`data-needs-review`, `data-human-validated`, `data-controle-visuel`).
+⛔ Ces attributs sont un REPORT, jamais une décision : `needs_review` et `human_validated`
+sont lus et ne sont jamais écrits depuis le rendu.
+
+⚠️ **La RAISON du contrôle visuel n'est pas publiée**, seul le fait qu'un contrôle soit
+demandé l'est. Les 148 raisons sont des notes d'atelier (« lecture OCR “terminfls” à
+contrôler sur le fac-similé »), et le DOM public n’est pas un carnet de travail.
+
+⛔ **Le composant reste PUR : aucun contexte, aucun accès au compte.** Une première
+version affichait la mention d'administration en lisant `useCompte`, ce qui tirait le
+client Supabase du navigateur dans un composant jusque-là rendu par `renderToStaticMarkup` :
+le module levait à l'import, et toute la suite de tests des notes tombait avec lui. Un
+renderer de note ne prend pas de dépendance sur la session ; l'administration lit les
+attributs `data-`.
+
+**Ce que le lecteur voit qu'il n'a pas vu avant** : l'en-tête de l'infobulle dit « Apparat
+critique N » au lieu de « Note N » (`appelNote.tsx` et `ComparaisonTraductions.tsx`, la
+même règle des deux côtés). C'est le seul ajout, et il vit dans le CHROME de la bulle,
+jamais dans le texte de la note.
+
+**Chargement** : les deux chargeurs de notes prennent `metadata` dans leur `select` et le
+projettent aussitôt par `lireMetadonneesBlocNote` sur quatre scalaires. ⛔ Ne jamais
+passer le `jsonb` entier au client : il porte `pdf_page`, `apparatus_editor` et le reste,
+pour 7 266 blocs.
+
+⚠️ **Contrôle sans session** : le site étant fermé, la planche de contrôle se fabrique
+avec le composant RÉEL et des entrées réelles (`tmp/planche-apparat-critique.tsx`), selon
+la méthode déjà consignée plus haut pour les questions de mise en page.
 # Une œuvre à plusieurs auteurs (2026-08-16)
 
 Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à égalité** ; l'œuvre paraît une fois sous le nom de chacun et porte les deux noms là où elle est nommée.

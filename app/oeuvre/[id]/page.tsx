@@ -28,6 +28,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
 import { redirect } from 'next/navigation'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
@@ -473,6 +474,11 @@ export default async function OeuvrePage({
       text: string
       rendering: string | null
       needs_review: boolean
+      // Le jsonb entier est lu ici, mais N'EST PAS transmis au client : seuls les
+      // quatre scalaires de `lireMetadonneesBlocNote` passent dans les props, et le
+      // reste (pdf_page, apparatus_editor…) reste au serveur. Sur les 7 266 blocs de
+      // l'apparat de Knöll, la différence de charge n'est pas théorique.
+      metadata: Record<string, unknown> | null
     }
     type RelationRow = {
       note_key: string
@@ -491,7 +497,7 @@ export default async function OeuvrePage({
           .eq('id_texte', idTexte).order('note_key').order('segment_key')
           .order('segment_offset_unicode').range(debut, fin)),
         chargerToutesPagesSupabase<BlockRow>((debut, fin) => supabase.from('texte_note_blocs')
-          .select('note_key,block_id,rank,kind,form,language,text,rendering,needs_review')
+          .select('note_key,block_id,rank,kind,form,language,text,rendering,needs_review,metadata')
           .eq('id_texte', idTexte).order('note_key').order('rank').range(debut, fin)),
         chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
           .select('note_key,relation_kind,source_block_id,target_block_id')
@@ -515,6 +521,7 @@ export default async function OeuvrePage({
       if (typeof noteNumber !== 'number') continue
       if (!parNote.has(block.note_key)) parNote.set(block.note_key, { noteKey: block.note_key, noteNumber, blocks: [] })
       const relation = relations.get(`${block.note_key}:${block.block_id}`) ?? {}
+      const meta = lireMetadonneesBlocNote(block.metadata)
       parNote.get(block.note_key)!.blocks.push({
         blockId: block.block_id,
         rank: block.rank,
@@ -526,6 +533,10 @@ export default async function OeuvrePage({
         needsReview: block.needs_review,
         targetBlockId: relation.target_block ?? null,
         translationOf: relation.translation_of ?? null,
+        editorialRole: meta.editorialRole,
+        printedLine: meta.printedLine,
+        visualReviewReason: meta.visualReviewReason,
+        humanValidated: meta.humanValidated,
       })
     }
     const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}

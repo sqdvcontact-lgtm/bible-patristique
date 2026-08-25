@@ -21,6 +21,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import {
   groupesSelonFiltre,
@@ -73,6 +74,9 @@ function lots<T>(items: T[], taille = 180) {
 // Appel de note en infobulle, repris de la lecture : exposant brun sans
 // soulignement, clic pour déplier le contenu structuré de la note.
 function AppelNote({ note }: { note: NoteStructuree }) {
+  // Même règle que dans la lecture : l'apparat s'annonce dans l'en-tête.
+  const apparat = estNoteApparatCritique(note)
+  const libelle = apparat ? 'Apparat critique' : 'Note'
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
@@ -104,7 +108,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
     <>
       <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}
         onClick={basculer} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
-        aria-label={`Consulter la note ${note.noteNumber}`}
+        aria-label={`Consulter ${apparat ? "l'apparat critique" : 'la note'} ${note.noteNumber}`}
         style={styleAppelNote()}>
         {note.noteNumber}
       </sup>
@@ -112,7 +116,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
         <div data-appel-note="" onMouseDown={e => e.stopPropagation()}
           style={{ position: 'fixed', left: placement.left, top: placement.top, width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: placement.hauteurMax, overflowY: 'auto', background: 'var(--cs-fond)', border: '1px solid var(--cs-or-doux)', borderRadius: 4, boxShadow: 'var(--cs-ombre-flottante)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: 'var(--cs-texte-fort)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Note {note.noteNumber}</span>
+            <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>{libelle} {note.noteNumber}</span>
             <button onClick={() => setOuvert(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
           </div>
           <ContenuNoteStructuree note={note} />
@@ -302,6 +306,8 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
     text: string
     rendering: string | null
     needs_review: boolean
+    // Lu au serveur, projeté sur quatre scalaires avant d'entrer dans les blocs.
+    metadata: Record<string, unknown> | null
   }
   type RelationRow = {
     id_texte: string
@@ -324,7 +330,7 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
       .from('texte_notes').select('id_texte,note_key,note_number').in('note_key', batch)
       .order('note_key').range(debut, fin)))).then(pages => pages.flat()),
     Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<BlocRow>((debut, fin) => supabase
-      .from('texte_note_blocs').select('id_texte,note_key,block_id,rank,kind,form,language,text,rendering,needs_review')
+      .from('texte_note_blocs').select('id_texte,note_key,block_id,rank,kind,form,language,text,rendering,needs_review,metadata')
       .in('note_key', batch).order('note_key').order('rank').range(debut, fin)))).then(pages => pages.flat()),
     Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase
       .from('texte_note_relations').select('id_texte,note_key,relation_kind,source_block_id,target_block_id')
@@ -345,6 +351,7 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
     const note = notes.get(`${block.id_texte}|${block.note_key}`)
     if (!note) continue
     const relation = relations.get(`${block.id_texte}|${block.note_key}|${block.block_id}`) ?? {}
+    const meta = lireMetadonneesBlocNote(block.metadata)
     note.blocks.push({
       blockId: block.block_id,
       rank: block.rank,
@@ -356,6 +363,10 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
       needsReview: block.needs_review,
       targetBlockId: relation.target_block ?? null,
       translationOf: relation.translation_of ?? null,
+      editorialRole: meta.editorialRole,
+      printedLine: meta.printedLine,
+      visualReviewReason: meta.visualReviewReason,
+      humanValidated: meta.humanValidated,
     })
   }
   const resultat: NotesParSegment = {}

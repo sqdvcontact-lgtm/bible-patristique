@@ -2,6 +2,8 @@ import { Fragment } from 'react'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
+import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
+import { ContenuApparatCritique } from './ApparatCritique'
 
 // Le texte d'un bloc de RENVOI biblique (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
@@ -34,6 +36,15 @@ function estReferenceRattachee(block: NoteBlocData) {
  * paragraphe, suit sa cible en ligne, ou vient après un retour dans des vers.
  */
 export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
+  // L'APPARAT CRITIQUE se compose à part : ni typographie de lecture, ni point
+  // final ajouté, ni référence normalisée — la notation philologique se rend
+  // telle quelle (voir ApparatCritique.tsx). La bifurcation ne tient PAS au
+  // `kind` — `commentary` couvre aussi la note de prose ordinaire — mais à
+  // `metadata.editorial_role`, et elle exige que TOUS les blocs de la note en
+  // relèvent : toute note qui n'est pas intégralement un apparat continue de
+  // passer par le rendu ci-dessous, inchangé.
+  if (estNoteApparatCritique(note)) return <ContenuApparatCritique note={note} />
+
   const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
   const rattaches = new Map<string, NoteBlocData[]>()
 

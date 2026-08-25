@@ -7,6 +7,7 @@ import { normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
+import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
 import type { NoteAffichee } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 
@@ -150,6 +151,13 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   contenu: NoteAffichee
   variante?: VarianteAppelNote
 }) {
+  // Une entrée d'apparat critique s'annonce comme telle : le lecteur doit voir
+  // du premier coup d'œil qu'il lit une variante de manuscrits, non une phrase
+  // de commentaire. C'est l'EN-TÊTE de la bulle qui le dit — jamais le texte de
+  // la note, où l'on n'ajoute rien.
+  const estApparat = typeof contenu !== 'string' && estNoteApparatCritique(contenu)
+  const libelle = estApparat ? 'Apparat critique' : 'Note'
+
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
@@ -265,7 +273,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-          Note {numeroVisible}
+          {libelle} {numeroVisible}
         </span>
         {figee && (
           <button
@@ -293,7 +301,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
         role="button"
         tabIndex={0}
-        aria-label={`Consulter la note ${numeroVisible}`}
+        aria-label={`Consulter ${estApparat ? "l'apparat critique" : 'la note'} ${numeroVisible}`}
         style={styleAppelNote(variante)}
       >
         {numeroVisible}

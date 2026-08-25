@@ -14,6 +14,20 @@ export type NoteBlocData = {
   needsReview: boolean
   targetBlockId?: string | null
   translationOf?: string | null
+  /** `metadata.editorial_role`. C'est LUI, et non `kind`, qui désigne un bloc
+   *  d'apparat critique : `commentary` couvre aussi la note de prose ordinaire.
+   *  Voir `app/lib/apparatCritique.ts`. */
+  editorialRole?: string | null
+  /** `metadata.printed_line` — la ligne de l'édition imprimée. ⛔ Ne paraît
+   *  JAMAIS dans la lecture ordinaire : elle ne sert qu'à retirer le préfixe
+   *  redondant que la transcription a laissé en tête du texte, et à situer
+   *  l'entrée côté administration. */
+  printedLine?: number | null
+  /** `metadata.visual_review_reason` — contrôle sur fac-similé demandé. Signalé
+   *  aux seuls administrateurs ; aucun drapeau n'est jamais posé depuis ici. */
+  visualReviewReason?: string | null
+  /** `metadata.human_validated`. Lu, jamais écrit. */
+  humanValidated?: boolean | null
 }
 export type NoteStructuree = { noteKey: string; noteNumber: number; blocks: NoteBlocData[] }
 export type NoteAffichee = string | NoteStructuree
