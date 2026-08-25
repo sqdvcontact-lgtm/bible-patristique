@@ -40,6 +40,16 @@ describe('hiérarchie sémantique de la page Bible', () => {
     expect(classesDuStyle(commentaire!)).toEqual(['cs-bible-info--i5', 'cs-bible-block--commentary'])
   })
 
+  it('rend les notices liminaires aux trois portées supérieures', () => {
+    for (const style of ['notice_bible', 'notice_testament', 'notice_groupe_livres']) {
+      const notice = resoudreStyleSemantique(style)
+      expect(notice?.level).toBe('I1')
+      expect(notice?.nature).toBe('notice')
+      expect(notice?.bodyBlock).toBe(true)
+      expect(notice?.includeInOutline).toBe(false)
+    }
+  })
+
   it('résout l’alias ancien « titre_section »', () => {
     const resolu = resoudreStyleSemantique('titre_section')
     expect(resolu?.canonique).toBe('titre_section_livre')

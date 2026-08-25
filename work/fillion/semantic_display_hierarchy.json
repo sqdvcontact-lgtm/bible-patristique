@@ -82,6 +82,27 @@
       "aliases": [],
       "note": "Portée plus large que le livre ; voir introduction_bible."
     },
+    "notice_bible": {
+      "kind": "info", "level": "I1", "nature": "notice",
+      "include_in_outline": false, "placement": "editorial_anchor",
+      "heading_role": "label", "body_block": true,
+      "aliases": [],
+      "note": "Notice matérielle de portée biblique ; le sous-type précise séparément s'il s'agit d'apparat, de sigles, de bibliographie ou de matière éditoriale."
+    },
+    "notice_testament": {
+      "kind": "info", "level": "I1", "nature": "notice",
+      "include_in_outline": false, "placement": "editorial_anchor",
+      "heading_role": "label", "body_block": true,
+      "aliases": [],
+      "note": "Notice de portée testamentaire ; l'étendue réelle reste portée par scope_kind."
+    },
+    "notice_groupe_livres": {
+      "kind": "info", "level": "I1", "nature": "notice",
+      "include_in_outline": false, "placement": "editorial_anchor",
+      "heading_role": "label", "body_block": true,
+      "aliases": [],
+      "note": "Notice de portée groupe de livres ; l'étendue réelle reste portée par scope_kind."
+    },
 
     "introduction_livre": {
       "kind": "info", "level": "I1", "nature": "introduction",
