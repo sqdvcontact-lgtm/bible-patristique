@@ -462,6 +462,16 @@ Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant
 - ⚠️ **Elle était rendue en `<Image>` alors qu'elle porte une couche alpha** — exactement le défaut intermittent décrit plus haut. Passée en `<img>`, ce qui a rendu l'import `next/image` inutile dans le fichier.
 - **Écarts mesurés dans la page** (corps de titre 54 px) : monogramme 72 px, 20 px, titre, 12 px, gravure de 265 px, 14 px, sous-titre.
 
+## ⛔ Les trois cartes de l'accueil — toute enveloppe posée autour DOIT porter une largeur (2026-08-25)
+
+Les trois cartes ont disparu de l'accueil pendant une journée. Elles étaient bien rendues, larges de **deux pixels** : leurs seules bordures.
+
+`AccueilCards` était jusque-là l'enfant DIRECT du flex en colonne de la page, lequel centre ses enfants (`align-items: center`). Le `width: 100%` d'`.ac-root` portait donc sur la largeur de `<main>`, qui est définie, et la grille recevait ses 680 px. Une ancre `#cartes` sans largeur s'est glissée au milieu (commit `dc8be622`, pour que la planche des illustrations renvoie aux icônes) : or un enfant de flex centré se mesure sur son CONTENU, et tout ce qui garnit une carte — le lien principal et le volet de survol — est en `position: absolute`. La grille ne réclamait donc rien pour elle-même, sinon 3 × 2 px de bordures et 2 × 16 px d'écart : 38 px en tout.
+
+- ⛔ **Le remède est `width: 100%` sur l'enveloppe**, et il n'est pas décoratif : le retirer refait disparaître les cartes.
+- ⚠️ **Rien ne le signale.** Aucune erreur, aucun avertissement, le HTML porte les trois cartes et leur CSS est chargé — le composant paraît sain à la lecture. Seule une mesure au navigateur tranche : `getBoundingClientRect()` sur `.ac-card` doit rendre 216 px à 1280, et 320 px empilés à 375.
+- **La règle générale, valable partout ailleurs** : une grille dont TOUS les enfants sont en position absolue n'a aucune largeur intrinsèque. Posée sous un flex centré, elle dépend entièrement d'une chaîne ininterrompue de largeurs définies, et n'importe quelle enveloppe intercalée la rompt en silence.
+
 ## La couleur appartient à l'auteur
 
 - **Jeu de couvertures** : `app/lib/couverturesEssai.ts` (module pur, 12 tests). **Six nuances d'une seule gamme**, toutes prises ou dérivées des tokens de `globals.css`, dégradées du plus sombre au papier : vert d'encre (#2a3d30), vert (#3d6b4f), sauge (#5e7058), vieil or (#7d6224), ocre pâle (#c8b89e), crème (#ece5d8).
