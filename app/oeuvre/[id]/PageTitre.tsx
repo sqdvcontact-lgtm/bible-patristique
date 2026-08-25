@@ -65,7 +65,7 @@ const BTN: React.CSSProperties = {
 }
 
 // ── Page de titre ─────────────────────────────────────────────────────────────
-export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false, sansGouttiere = false, notes = {} }: {
+export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false, notes = {} }: {
   auteur: string
   oeuvre: Props['oeuvre']
   versionActive?: VersionTextuelle | null
@@ -73,9 +73,6 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
   estAdmin: boolean
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
   mobile?: boolean
-  // Sans la gouttière d'actions (mode comparaison) : padding symétrique pour centrer
-  // le frontispice sur toute la largeur, et non sur le corps décalé de la lecture.
-  sansGouttiere?: boolean
   // Notes appelées dans les intitulés de la page de titre : la page de titre les
   // porte comme le corps du texte, à ceci près que l'appel s'y fait minuscule (le
   // titre est composé très large). Vide tant qu'aucun intitulé n'appelle de note.
@@ -112,11 +109,12 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
     <div style={{
       minHeight: '60vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', fontFamily: SERIF,
-      // Desktop : padding droit plus grand pour recentrer le titre sur le CORPS DU
-      // TEXTE seul, en excluant la gouttière des boutons d'action (~62px à droite).
-      // Le centre visuel se décale ainsi d'environ 31px vers la gauche. Sur mobile,
-      // pas de colonne d'actions : padding symétrique et sobre.
-      padding: mobile ? '48px 22px 28px' : sansGouttiere ? '80px 48px 40px' : '80px 110px 40px 48px',
+      // ⛔ Rembourrage SYMÉTRIQUE. Il ne l'était pas : le côté droit valait 110px contre
+      // 48 à gauche, pour recentrer le frontispice sur le corps du texte seul en excluant
+      // la gouttière des boutons d'action. Cette gouttière est retirée (2026-08-25, voir
+      // `largeurLecture` dans OeuvreClient) : le titre se centre sur le bloc, comme tout
+      // le reste, et un rembourrage asymétrique ne ferait plus que le décaler.
+      padding: mobile ? '48px 22px 28px' : '80px 48px 40px',
       marginBottom: '8px', textAlign: 'center',
     }}>
       {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des

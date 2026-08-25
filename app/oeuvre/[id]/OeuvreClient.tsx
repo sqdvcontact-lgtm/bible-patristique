@@ -525,13 +525,22 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       localStorage.setItem(`cs_modetexte_${idOeuvre}`, mode)
     } catch {}
   }
-  // Compensation droite CONSTANTE pour centrer tous les titres (fleuron, niv1,
-  // niv2) sur le CORPS DU TEXTE, en excluant systématiquement la gouttière des
-  // boutons d'action (signaler, prélever, copier) — ~60px à droite. Le corps du
-  // texte se définit toujours ainsi, quel que soit le mode de lecture (segments,
-  // paragraphes, bilingue) : le centre visuel se décale d'environ 30px vers la
-  // gauche, comme la page de titre. Sur mobile, pas de gouttière : aucune compensation.
-  const gouttiereTitre = mobile ? undefined : '60px'
+  // ⛔ LA GOUTTIÈRE D'ACTIONS EST RETIRÉE (2026-08-25). Les boutons signaler, prélever et
+  // copier vivaient dans une colonne d'environ 60px réservée à droite du texte, et tout
+  // ce qui se centrait — page de titre, fleuron, titres de rang 1 et 2, barre de
+  // circulation, pagination — portait un `paddingRight` de 60px pour se recentrer sur le
+  // corps du texte seul. Le centre de la lecture tombait donc trente pixels à gauche du
+  // centre du bloc, et cela se voyait. La cellule d'actions FLOTTE désormais hors de la
+  // colonne (règle dans app/lib/celluleActions.ts) : la gouttière n'a plus d'objet, et sa
+  // compensation non plus.
+  //
+  // ⚠️ La JUSTIFICATION, elle, ne change pas : on retranche les 60px de la COLONNE au lieu
+  // de les retrancher de chacun de ses blocs. Le texte garde exactement sa largeur, et
+  // tout se centre enfin sur l'axe du bloc, entre les deux volets. En rem et non en
+  // pixels : la racine grandit avec l'écran, la gouttière ne le faisait pas — 35rem moins
+  // 3,75rem, soit les 60px de la racine 16. Sur mobile il n'y avait pas de gouttière : la
+  // largeur ne bouge pas.
+  const largeurLecture = modeComparaisonActif ? '52rem' : mobile ? '35rem' : '31.25rem'
 
   // Survol d'un segment en mode paragraphes : cellule d'actions flottante ancrée
   // sur le segment (via portail, pour n'être pas clippée par le corps).
@@ -1692,7 +1701,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     <div style={{ background: 'var(--cs-fond)', minHeight: '100vh' }}>
       <style>{`
         .seg-wrapper { position: relative; }
-        .seg-wrapper::after { content: ''; position: absolute; top: 0; right: -44px; width: 44px; height: 100%; pointer-events: none; }
         .seg-p { transition: background 0.12s; }
         .seg-p:hover { background: rgba(var(--cs-vert-rgb),0.05) !important; }
         .seg-actions { opacity: 0; transition: opacity 0.15s; position: relative; z-index: 2; pointer-events: auto; }
@@ -2073,12 +2081,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: modeComparaisonActif ? '52rem' : '35rem', margin: '0 auto', position: 'relative', overflow: 'visible' }}>
-          {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles). En
-              comparaison, `sansGouttiere` centre le titre sur toute la largeur (pas de
-              colonne d'actions à compenser). Les deux traductions comparées sont
-              nommées en tête de colonnes plus bas. */}
-          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile} sansGouttiere={modeComparaisonActif}
+        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+          {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles) : même
+              composant, même rembourrage symétrique, le titre centré sur toute la largeur
+              du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus
+              bas. */}
+          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
             notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.titre_original])}
             onModifier={(champ, va) => setEditionCible({
               type: 'titre_oeuvre', champ, texteActuel: va,
@@ -2094,9 +2102,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             })} />
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
-              à la place du long filet. En comparaison, pas de gouttière d'actions :
-              le fleuron se centre sur toute la largeur des deux colonnes. */}
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px', paddingRight: modeComparaisonActif ? undefined : gouttiereTitre }}>
+              à la place du long filet. Il se centre sur toute la largeur du bloc, en
+              lecture comme en comparaison. */}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px' }}>
             <FeuilleVigne />
           </div>
 
@@ -2131,7 +2139,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
-            <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', paddingRight: gouttiereTitre, borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
+            <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev, { conserverPosition: true })} disabled={!niv1Prev}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
@@ -2234,17 +2242,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               return (
                 <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                   {showNiv1 && (
-                    <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
+                    <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', position: 'relative' }}>
                       <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, 'titre')}</h2>
                       {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
-                    <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
+                    <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', position: 'relative' }}>
                       <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.125rem', fontWeight: 400, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, letterSpacing: '0.01em', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, 'titre')}</h3>
                       {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                       {estAdmin && (
-                        <div style={{ position: 'absolute', right: '52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2_texte ?? '', schemaTexte: true })}
@@ -2254,11 +2262,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     </div>
                   )}
                   {showNiv3 && (
-                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)', position: 'relative', paddingRight: estAdmin ? '44px' : 0 }}>
+                    <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)', position: 'relative' }}>
                       <p style={{ fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)', lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line', textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre)}</p>
                       {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
                       {estAdmin && (
-                        <div style={{ position: 'absolute', right: 0, top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
                             title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3_texte ?? '', schemaTexte: true })}
@@ -2268,11 +2276,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     </div>
                   )}
                   {showNiv4 && (
-                    <p style={{ fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-faible)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', paddingRight: estAdmin ? '44px' : 0, whiteSpace: 'pre-line' }}>
+                    <p style={{ fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-faible)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: '0.25rem', marginTop: '0.5rem', position: 'relative', whiteSpace: 'pre-line' }}>
                       {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre)}
                       {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: '6px', fontStyle: 'italic' }}>{rendreTitreColophonAvecNotes(groupe.niv4_texte, notesTitre)}</span>}
                       {estAdmin && (
-                        <span style={{ position: 'absolute', right: 0, top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
+                        <span style={{ position: 'absolute', right: '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
                             title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4_texte ?? '', schemaTexte: true })}
@@ -2313,11 +2321,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Le repli n'en sait rien et suit la colonne française, comme avant.
                     const originalEnVers = original?.toutVers ?? toutVers
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotGroupe ? '' : ' para-bilingue--suite'}` : undefined}
-                      /* Réserve la MÊME gouttière d'actions (~60px) que le mode segments, pour que
-                         la largeur du texte (et de la grille bilingue) s'aligne sur les titres et
-                         la page de titre. */
-                      style={{ paddingRight: gouttiereTitre }}>
+                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotGroupe ? '' : ' para-bilingue--suite'}` : undefined}>
                       {toutVers ? (
                         /* ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne.
                            Un seul `<p>` ne peut pas rentrer chaque ligne : `text-indent`
@@ -2424,14 +2428,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           )}
 
           {/* Vue apparat critique */}
-          {/* ⛔ Les titres de l'apparat se centrent sur le CORPS DU TEXTE, comme ceux du
-              texte suivi, et non sur toute la largeur du bloc. Ils ne le faisaient pas : le
-              frontispice, le fleuron, les titres de niveau 1 et 2 du texte et les paragraphes
-              de l'apparat lui-même portent tous `paddingRight: gouttiereTitre`, qui retranche
-              la colonne des boutons d'action (~60px à droite) avant de centrer. Les deux
-              titres de l'apparat étaient les seuls à l'ignorer : ils se centraient donc sur un
-              axe décalé de trente pixels vers la droite par rapport à tout ce qui les
-              entourait, y compris la page de titre posée juste au-dessus d'eux.
+          {/* ⛔ Les titres de l'apparat se centrent sur le MÊME axe que ceux du texte suivi.
+              Ils ne le faisaient pas : du temps de la gouttière d'actions, le frontispice, le
+              fleuron, les titres de rang 1 et 2 du texte et les paragraphes de l'apparat
+              lui-même retranchaient 60px à droite avant de centrer, et ces deux titres-là
+              étaient les seuls à l'ignorer. La gouttière est retirée (voir `largeurLecture`) :
+              l'axe est celui du bloc, et il n'y en a plus qu'un pour tout le monde. Ce qui
+              reste vrai, c'est qu'un titre d'apparat se centre comme le titre de même rang
+              posé au-dessus de lui, dans le texte.
 
               ⛔ Ils s'écrivent aussi dans la même ENCRE, `--cs-encre`, qui tire sur le vert.
               Ils portaient `--cs-texte-fort` au rang 1 et `--cs-texte` au rang 2, deux noirs
@@ -2469,7 +2473,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // alors que le même titre, dans le texte, en est détaché de trois fois
                         // plus. Un titre a besoin d'un blanc au moins égal à son propre corps
                         // pour cesser de faire partie de ce qui le suit.
-                        <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', paddingRight: gouttiereTitre, position: 'relative' }}>
+                        <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', position: 'relative' }}>
                           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, 'titre')}</h2>
                           {groupe.niv1_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
                           {estAdmin && (
@@ -2479,13 +2483,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         </div>
                       )}
                       {showNiv2 && (
-                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center', paddingRight: gouttiereTitre }}>
+                        <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
                           <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, 'titre')}</h3>
                           {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
                       {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
-                        <div key={`apparat-para-${chunk.ids[0]}`} style={{ paddingRight: gouttiereTitre }}>
+                        <div key={`apparat-para-${chunk.ids[0]}`}>
                           <p lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
@@ -3018,7 +3022,7 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
   const peutReculer = pageActuelle > 0
   const peutAvancer = pageActuelle < total - 1
   return (
-    <div style={{ paddingRight: '8px', paddingTop: bas ? '2.5rem' : '0', paddingBottom: bas ? '0.5rem' : '1.5rem' }}>
+    <div style={{ paddingTop: bas ? '2.5rem' : '0', paddingBottom: bas ? '0.5rem' : '1.5rem' }}>
       {/* Plus de filets de part et d'autre. Ils tiraient un trait sur toute la largeur de
           la colonne pour annoncer trois signes, et faisaient du simple passage à la page
           suivante une fin de chapitre. Le groupe se centre maintenant de lui-même. */}
