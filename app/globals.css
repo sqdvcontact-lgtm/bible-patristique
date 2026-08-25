@@ -741,8 +741,13 @@ button:focus-visible,
    l'accueille — d'où des `em`, la note en fenêtre et le paratexte n'ayant pas
    la même mesure. Le retrait de première ligne fait le reste. */
 .cs-bible-bibliographie {
-  font-size: 0.9em;
-  line-height: 1.45;
+  /* ⚠️ 0,96 EST le cran de l'échelle à cette taille : les rangs vont de 0,5 px
+     en 0,5 px sous 14 px, donc 12,5 → 12 et 13 → 12,5. La liste descend ainsi
+     d'exactement un cran sous le corps qui l'accueille, qu'elle paraisse dans
+     l'apparat d'un bloc ou dans la fenêtre d'une note, dont les corps
+     diffèrent — ce qu'aucune valeur absolue ne saurait faire. */
+  font-size: 0.96em;
+  line-height: 1.35;
   margin: 0 0 0.5rem;
 }
 .cs-bible-bibliographie > p {

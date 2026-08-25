@@ -70,8 +70,11 @@ const SERIF = 'var(--font-source-serif), Georgia, serif'
 // filet dans la marge — ⛔ aucun filet à gauche ni sous un bloc.
 const STYLE_CORPS: CSSProperties = {
   fontFamily: SERIF,
-  fontSize: '0.8125rem',
-  lineHeight: 1.4,
+  // Un cran de plus sous le texte biblique (13 → 12,5 px, rang de l'échelle),
+  // et l'interligne resserré avec lui : Fillion compose son commentaire dense,
+  // et un apparat qui respire comme le texte qu'il commente lui dispute la page.
+  fontSize: '0.78125rem',
+  lineHeight: 1.3,
   color: 'var(--cs-texte-second)',
   textAlign: 'justify',
   hyphens: 'auto',
@@ -274,7 +277,7 @@ function rendreBlocTexte(
     whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
     fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
     ...(discret
-      ? { color: 'var(--cs-texte-second)', fontSize: '0.8125rem', textAlign: 'left' as const }
+      ? { color: 'var(--cs-texte-second)', fontSize: '0.78125rem', textAlign: 'left' as const }
       : {}),
     ...(bloc.form === 'verse' ? { lineHeight: 1.6, textAlign: 'left' as const } : {}),
     // La portée ne décide jamais seule du centrage ou de l'italique. Le
@@ -318,8 +321,10 @@ export function IllustrationBible({ illustration }: { illustration: Illustration
         unoptimized
         style={{ display: 'block', width: '100%', height: 'auto', objectFit: 'contain' }}
       />
+      {/* La légende suit le corps du paratexte : plus grosse que le commentaire,
+          elle passerait devant le texte qu'elle accompagne. */}
       {illustration.caption && (
-        <figcaption style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: '0.8125rem', lineHeight: 1.4 }}>
+        <figcaption style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: '0.78125rem', lineHeight: 1.3 }}>
           {illustration.caption}
         </figcaption>
       )}
@@ -441,7 +446,11 @@ export function BlocEditorialBible({
           aria-label="Apparat propre à ce bloc"
           style={{ borderTop: '1px solid var(--cs-bord)', marginTop: '0.75rem', paddingTop: '0.75rem' }}
         >
-          <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem' }}>
+          {/* ⚠️ La taille du corps se pose ICI et non sur les paragraphes, qui
+              portent la leur : elle ne gouverne donc que ce qui se compose en
+              relatif — la liste bibliographique. Elle suit le corps du
+              paratexte, sans quoi une note passerait devant le commentaire. */}
+          <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.78125rem' }}>
             {notesSansAppel.map((note) => (
               <li key={note.id} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
                 {note.blocks.map((texte) => rendreBlocTexte(
