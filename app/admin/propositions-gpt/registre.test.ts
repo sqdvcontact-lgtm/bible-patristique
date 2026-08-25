@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { ROLE_APPARAT_CRITIQUE, texteApparatAffiche } from '@/app/lib/apparatCritique'
 import {
   DIRECTIVES_VIDES, ETATS, LOTS, PLAFOND_INSTRUCTION, PLAFOND_INSTRUCTIONS,
-  avancement, conflits, directiveDe, lireDirectives, lireInstructions,
+  avancement, conflits, directiveDe, lireDirectives, lireInstructions, roleExemple,
   type Directives,
 } from './registre'
 
@@ -43,11 +44,78 @@ describe('le registre est une source rédigée, et il tient', () => {
     ])
   })
 
-  it('donne un avant ET un après à chaque exemple', () => {
-    for (const p of toutes.filter(x => x.exemple)) {
-      expect(p.exemple!.avant.trim().length, p.id).toBeGreaterThan(0)
-      expect(p.exemple!.apres.length, p.id).toBeGreaterThan(0)
+  it('donne un avant-après à CHAQUE proposition, sans exception', () => {
+    for (const p of toutes) expect(p.exemple, p.id).toBeDefined()
+  })
+
+  it('appuie chaque exemple sur une entrée réelle, citée avec son numéro de note', () => {
+    for (const p of toutes) {
+      const src = p.exemple!.source
+      expect(src.note, p.id).toBeGreaterThan(0)
+      expect(src.texte.trim().length, p.id).toBeGreaterThan(10)
+      expect(src.ligne, p.id).toBeGreaterThanOrEqual(0)
     }
+  })
+
+  it('ouvre l’entrée d’apparat sur sa ligne imprimée, pour que « aujourd’hui » se calcule', () => {
+    for (const p of toutes) {
+      const src = p.exemple!.source
+      // `role: null` désigne une entrée qui n'est pas de cet apparat (autre œuvre).
+      if (src.role === null || src.ligne === 0) continue
+      expect(src.texte.startsWith(`${src.ligne} `), `${p.id} — ${src.texte.slice(0, 30)}`).toBe(true)
+    }
+  })
+
+  it('compose l’après de fragments non vides, aux rôles connus', () => {
+    const roles = new Set([undefined, 'latin', 'sigle', 'gloss'])
+    for (const p of toutes) {
+      const apres = p.exemple!.apres
+      expect(apres.length, p.id).toBeGreaterThan(0)
+      for (const ligne of apres) {
+        expect(ligne.length, p.id).toBeGreaterThan(0)
+        for (const f of ligne) {
+          expect(f.v.length, p.id).toBeGreaterThan(0)
+          expect(roles.has(f.r), `${p.id} — rôle ${f.r}`).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('nomme la provenance dès que l’entrée ne vient pas de l’apparat des Confessions', () => {
+    for (const p of toutes) {
+      const src = p.exemple!.source
+      if (src.role === undefined) continue
+      expect(src.provenance, p.id).toBeTruthy()
+    }
+  })
+
+  it('rend l’apparat par défaut, et le rôle déclaré sinon', () => {
+    const parseur = toutes.find(p => p.id === 'apparat-critique/parseur')!
+    expect(roleExemple(parseur.exemple!)).toBe(ROLE_APPARAT_CRITIQUE)
+    const autre = toutes.find(p => p.id === 'apparat-critique/renderer-reutilisable')!
+    expect(roleExemple(autre.exemple!)).toBeNull()
+  })
+})
+
+describe('l’état « aujourd’hui » d’un exemple est CALCULÉ, jamais recopié', () => {
+  it('retire la ligne imprimée sur une entrée d’apparat', () => {
+    const p = toutes.find(x => x.id === 'apparat-critique/crochet-masque')!
+    const rendu = texteApparatAffiche({
+      text: p.exemple!.source.texte,
+      printedLine: p.exemple!.source.ligne,
+      editorialRole: roleExemple(p.exemple!),
+    })
+    expect(rendu).toBe('uirtus (r ex s corr.) B; est] est et BPQ.')
+  })
+
+  it('ne touche pas une entrée qui n’est pas de cet apparat', () => {
+    const p = toutes.find(x => x.id === 'apparat-critique/renderer-reutilisable')!
+    const rendu = texteApparatAffiche({
+      text: p.exemple!.source.texte,
+      printedLine: p.exemple!.source.ligne,
+      editorialRole: roleExemple(p.exemple!),
+    })
+    expect(rendu).toBe(p.exemple!.source.texte)
   })
 })
 

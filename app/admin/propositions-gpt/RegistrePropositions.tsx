@@ -18,9 +18,11 @@
 import { useCallback, useMemo, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { texteApparatAffiche } from '@/app/lib/apparatCritique'
 import {
-  ETATS, LOTS, avancement, directiveDe,
-  type Directives, type EtatArbitrage, type Instruction, type Proposition,
+  ETATS, LOTS, avancement, directiveDe, roleExemple,
+  type Directives, type EtatArbitrage, type Exemple, type Fragment,
+  type Instruction, type Proposition,
 } from './registre'
 
 type Filtre = 'toutes' | 'a_arbitrer' | 'conflits' | 'annotees'
@@ -286,18 +288,7 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
 
                       <p className="pg-texte">{p.texte}</p>
 
-                      {p.exemple && (
-                        <div className="pg-exemple">
-                          <div className="pg-exemple-col">
-                            <span className="pg-exemple-tag">Forme source</span>
-                            <code>{p.exemple.avant}</code>
-                          </div>
-                          <div className="pg-exemple-col">
-                            <span className="pg-exemple-tag">Proposé</span>
-                            {p.exemple.apres.map((l, i) => <code key={i}>{l}</code>)}
-                          </div>
-                        </div>
-                      )}
+                      {p.exemple && <BlocExemple exemple={p.exemple} />}
 
                       {p.mesure && (
                         <p className="pg-mesure"><span className="pg-mesure-tag">Mesuré</span> {p.mesure}</p>
@@ -344,6 +335,60 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
         )
       })}
     </main>
+  )
+}
+
+const CLASSE_FRAGMENT: Record<string, string> = {
+  latin: 'pg-f-latin', sigle: 'pg-f-sigle', gloss: 'pg-f-gloss',
+}
+
+/**
+ * L'avant-après d'une consigne, sur une entrée RÉELLE, en trois états.
+ *
+ * ⛔ L'état « aujourd'hui » n'est pas recopié à la main : il est calculé par
+ * `texteApparatAffiche`, le renderer que le site emploie vraiment. Une planche
+ * de comparaison dont la colonne de gauche serait écrite de mémoire ne prouverait
+ * rien, et se démentirait au premier changement du rendu.
+ */
+function BlocExemple({ exemple }: { exemple: Exemple }) {
+  const { source } = exemple
+  const aujourdhui = texteApparatAffiche({
+    text: source.texte,
+    printedLine: source.ligne > 0 ? source.ligne : null,
+    editorialRole: roleExemple(exemple),
+  })
+
+  return (
+    <div className="pg-ex">
+      <p className="pg-ex-source">
+        Note {source.note}
+        {source.ligne > 0 && `, ligne imprimée ${source.ligne}`}
+        {source.provenance && ` · ${source.provenance}`}
+      </p>
+
+      <div className="pg-ex-rang">
+        <span className="pg-ex-tag">En base</span>
+        <code className="pg-ex-code">{source.texte}</code>
+      </div>
+      <div className="pg-ex-rang">
+        <span className="pg-ex-tag">Aujourd’hui</span>
+        <code className="pg-ex-code">{aujourdhui}</code>
+      </div>
+      <div className="pg-ex-rang pg-ex-rang--apres">
+        <span className="pg-ex-tag pg-ex-tag--apres">Avec la consigne</span>
+        <div className="pg-ex-apres">
+          {exemple.apres.map((ligne, i) => (
+            <p key={i} className="pg-ex-ligne">
+              {ligne.map((f: Fragment, k) => (
+                <span key={k} className={f.r ? CLASSE_FRAGMENT[f.r] : undefined}>{f.v}</span>
+              ))}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      {exemple.reserve && <p className="pg-ex-reserve">{exemple.reserve}</p>}
+    </div>
   )
 }
 
@@ -431,12 +476,27 @@ const CSS = `
 
 .pg-texte{font-size:0.8125rem;line-height:1.62;color:var(--cs-texte);margin:0 0 10px}
 
-.pg-exemple{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 10px;padding:10px 12px;
-  background:var(--cs-fond-doux);border-radius:4px}
-.pg-exemple-tag{display:block;font-size:0.5625rem;font-weight:700;letter-spacing:0.06em;
-  text-transform:uppercase;color:var(--cs-texte-doux);margin-bottom:4px}
-.pg-exemple-col code{display:block;font-family:ui-monospace,Consolas,monospace;font-size:0.71875rem;
-  line-height:1.6;color:var(--cs-texte-fort);white-space:pre-wrap;overflow-wrap:break-word}
+/* ── Avant-après ────────────────────────────────────────────────────────── */
+.pg-ex{margin:0 0 11px;padding:10px 12px;background:var(--cs-fond-doux);border-radius:4px}
+.pg-ex-source{font-size:0.5625rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--cs-texte-doux);margin:0 0 8px}
+.pg-ex-rang{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:10px;
+  align-items:baseline;padding:5px 0;border-top:1px solid var(--cs-bord-clair)}
+.pg-ex-tag{font-size:0.5625rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--cs-texte-doux)}
+.pg-ex-tag--apres{color:var(--cs-vert)}
+.pg-ex-code{font-family:ui-monospace,Consolas,monospace;font-size:0.71875rem;line-height:1.6;
+  color:var(--cs-texte-second);white-space:pre-wrap;overflow-wrap:break-word}
+.pg-ex-rang--apres .pg-ex-apres{min-width:0}
+.pg-ex-ligne{font-size:0.8125rem;line-height:1.6;color:var(--cs-texte-fort);margin:0 0 2px;
+  overflow-wrap:break-word}
+.pg-ex-ligne:last-child{margin-bottom:0}
+/* La typographie que GPT demande, montrée plutôt que décrite. */
+.pg-f-latin{font-style:italic}
+.pg-f-sigle{color:var(--cs-texte-second);font-variant-caps:normal}
+.pg-f-gloss{color:var(--cs-texte-gris)}
+.pg-ex-reserve{font-size:0.78125rem;line-height:1.6;color:var(--cs-texte-second);
+  margin:9px 0 0;padding-top:8px;border-top:1px solid var(--cs-bord-clair)}
 
 .pg-mesure{font-size:0.78125rem;line-height:1.6;color:var(--cs-texte-second);margin:0 0 10px}
 .pg-mesure-tag{font-size:0.5625rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
@@ -461,7 +521,7 @@ const CSS = `
 
 @media (max-width:640px){
   .pg{padding:20px 14px 48px}
-  .pg-exemple{grid-template-columns:1fr}
+  .pg-ex-rang{grid-template-columns:1fr;gap:3px}
   .pg-etat-envoi{margin-left:0;width:100%}
   .pg-instr-item{flex-wrap:wrap}
 }

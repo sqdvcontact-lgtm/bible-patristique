@@ -1660,6 +1660,21 @@ entière à chaque ajout se redaterait tout entière.
 instruction est du texte que l'auteur a écrit ; et le bouton reste VISIBLE au repos,
 une action qui ne paraît qu'au survol étant hors d'atteinte au doigt.
 
+⛔ **Chaque proposition porte son AVANT-APRÈS, sur une entrée RÉELLE**, en trois états :
+l’entrée telle qu’elle est en base, ce que le site en rend aujourd’hui, ce que la consigne
+produirait. ⚠️ **L’état « aujourd’hui » est CALCULÉ** par `texteApparatAffiche`, le renderer
+que le site emploie vraiment, jamais recopié à la main : une planche de comparaison dont la
+colonne de gauche serait écrite de mémoire ne prouverait rien et se démentirait au premier
+changement du rendu. L’état « avec la consigne » est une application LITTÉRALE, et `reserve`
+nomme là où la consigne bute au lieu de combler le trou. C’est ce qui a fait paraître, sans
+qu’on les cherche, que l’exemple phare de GPT emploie une forme qui ne paraît que trois fois
+sur 7 266, qu’il prettifie un sigle que la base écrit autrement, et qu’il tronque l’entrée
+qu’il cite.
+
+⚠️ **Le rendu proposé se compose de FRAGMENTS typés** (`latin`, `sigle`, `gloss`), pour que
+l’italique demandée se VOIE au lieu d’être décrite. Un exemple dont l’entrée ne vient pas de
+cet apparat déclare `role` et `provenance` ; `roleExemple` rend l’apparat par défaut.
+
 ⛔ **Les propositions sont une SOURCE RÉDIGÉE**, dans `app/admin/propositions-gpt/registre.ts`,
 comme l'inventaire des illustrations et pour la même raison : un relevé automatique rendrait
 des phrases, jamais un arbitrage. Chaque entrée porte le texte de GPT dans SES termes, un fait
