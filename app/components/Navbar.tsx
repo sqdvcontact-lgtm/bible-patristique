@@ -10,6 +10,7 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { LIVRES } from "@/app/lib/bible";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
+import EmblemeNavigation from "@/app/components/EmblemesNavigation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
@@ -48,12 +49,16 @@ const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?:
 ];
 // Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,
 // désormais des pages indépendantes. Le menu déroulant (au survol) les recense.
-const LIENS_ALLER_PLUS_LOIN: { href: string; label: string }[] = [
-  { href: "/traductions", label: "Les traductions" },
-  { href: "/librairies", label: "Acheter des livres" },
-  { href: "/statistiques", label: "Statistiques" },
-  { href: "/pericopes", label: "Péricopes" },
-  { href: "/histoire", label: "Histoire de l’Église" },
+// ⚠️ Chaque entrée porte ce que sa page CONTIENT, en une ligne. Un nom de page ne
+// dit pas toujours ce qu'on y trouve — « Statistiques » et « Péricopes » surtout —
+// et le menu était une liste de cinq mots sans un indice. Les phrases sont tirées
+// de la description de chaque page : ⛔ on ne promet ici que ce qu'elle porte.
+const LIENS_ALLER_PLUS_LOIN: { href: string; label: string; dit: string }[] = [
+  { href: "/traductions", label: "Les traductions", dit: "Chaque bible servie ici, sa notice et l’édition dont elle vient." },
+  { href: "/librairies", label: "Acheter des livres", dit: "Où trouver les éditions imprimées, neuves ou anciennes." },
+  { href: "/statistiques", label: "Statistiques", dit: "Les versets les plus cités par les Pères, et les plus lus ici." },
+  { href: "/pericopes", label: "Péricopes", dit: "Les passages nommés de l’Écriture, et ce que les Pères en disent." },
+  { href: "/histoire", label: "Histoire de l’Église", dit: "La frise des Pères, de leurs œuvres et des grands événements." },
 ];
 // Sections d'administration (menu déroulant « Administration », réservé aux admins) :
 // chaque entrée ouvre /admin sur la section voulue. Bible 899 est un outil d'atelier
@@ -175,9 +180,20 @@ function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSS
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </Link>
-      <div className="cs-plus-menu cs-defilement-discret">
+      {/* Le menu DIT ce que chaque page contient, et le montre d'un emblème.
+          « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
+          une liste de cinq mots laissait le lecteur ouvrir au hasard. */}
+      <div className="cs-plus-menu cs-plus-menu--riche cs-defilement-discret">
         {LIENS_ALLER_PLUS_LOIN.map(l => (
-          <Link key={l.href} href={l.href} className="cs-plus-lien">{l.label}</Link>
+          <Link key={l.href} href={l.href} className="cs-plus-riche">
+            <span className="cs-plus-riche-emb" aria-hidden="true">
+              <EmblemeNavigation href={l.href} />
+            </span>
+            <span className="cs-plus-riche-texte">
+              <span className="cs-plus-riche-nom">{l.label}</span>
+              <span className="cs-plus-riche-dit">{l.dit}</span>
+            </span>
+          </Link>
         ))}
       </div>
     </span>
@@ -1198,16 +1214,22 @@ export default function Navbar() {
   );
 
   // Lien du menu mobile (liste verticale dépliée sous la barre).
-  const lienMobile = (href: string, label: string) => {
+  // ⚠️ `embleme` n'est pas un ornement de plus : sur un téléphone il n'y a pas de
+  // survol, donc pas de glose, et le dessin est alors le seul indice de ce que la
+  // page contient. Le panneau garde une ligne par entrée — quinze entrées à deux
+  // lignes en feraient un rouleau.
+  const lienMobile = (href: string, label: string, embleme = false) => {
     const chemin = href.split("?")[0] || "/";
     const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
         aria-current={actif ? "page" : undefined}
-        // `display: block` OBLIGATOIRE : dans les groupes d'« Administration », les liens
-        // sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans cela, les
-        // <a> restent inline et se chevauchent (pastilles superposées, texte illisible).
-        style={{ display: "block", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        // `display: block` OBLIGATOIRE hors emblème : dans les groupes d'« Administration »,
+        // les liens sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans
+        // cela, les <a> restent inline et se chevauchent (pastilles superposées, texte
+        // illisible). Avec un emblème, le flex range les deux sur une ligne.
+        style={{ display: embleme ? "flex" : "block", alignItems: "center", gap: "10px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        {embleme && <EmblemeNavigation href={chemin} taille={18} />}
         {label}
       </Link>
     );
@@ -1322,6 +1344,33 @@ export default function Navbar() {
              de dix-sept : ni couleur, ni puce, ni place à part, qui déferaient l'ordre des
              familles. */
           .cs-plus-lien--fort { font-weight: 600; }
+          /* ── Le menu qui EXPLIQUE ──
+             Une entrée y tient sur deux lignes : ce que la page s'appelle, et ce
+             qu'elle contient, précédées d'un emblème au trait. ⛔ Classe à part, et
+             non un élargissement de .cs-plus-lien : le menu de l'administration
+             partage ce dernier et n'a rien à faire de dix-sept entrées à rallonge.
+             ⚠️ La phrase S'ENROULE, donc le menu se borne en largeur : sans
+             maximum, il s'étirerait à la plus longue et couvrirait la moitié de
+             la barre. */
+          .cs-plus-menu--riche { min-width: 21rem; max-width: 24rem; padding: 5px; }
+          .cs-plus-riche {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 7px 10px; border-radius: 4px; text-decoration: none;
+          }
+          .cs-plus-riche:hover { background: rgba(var(--cs-vert-rgb),0.08); }
+          /* L'emblème se cale sur la LIGNE DE BASE du nom, non sur le haut de la
+             boîte : posé au ras, il flotte au-dessus du texte qu'il annonce. */
+          .cs-plus-riche-emb { display: flex; padding-top: 2px; color: var(--cs-vert); }
+          .cs-plus-riche:hover .cs-plus-riche-emb { color: var(--cs-vert-fonce); }
+          .cs-plus-riche-texte { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+          .cs-plus-riche-nom { font-size: 0.8125rem; line-height: 1.3; color: var(--cs-encre); }
+          /* ⚠️ La glose ne se met pas en italique : à onze pixels et sur deux
+             lignes, l'italique se lit moins bien qu'un gris franc, et le site
+             réserve l'italique aux titres cités. */
+          .cs-plus-riche-dit {
+            font-size: 0.6875rem; line-height: 1.35; color: var(--cs-texte-gris);
+            white-space: normal;
+          }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
           /* Familles d'administration : intertitre coloré + filet coloré à gauche de
              chaque entrée, pour différencier les catégories par domaine. */
@@ -1483,7 +1532,7 @@ export default function Navbar() {
               {[...LIENS_LECTURE, ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(({ href, label }) => lienMobile(href, label))}
 
               <p style={styleSectionMobile}>Aller plus loin</p>
-              {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label))}
+              {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label, true))}
 
               {(estAdmin || estAdminEmail) && (
                 <>

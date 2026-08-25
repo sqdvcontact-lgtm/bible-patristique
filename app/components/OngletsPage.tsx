@@ -38,6 +38,7 @@ export default function OngletsPage<K extends string>({
   choisir,
   nature = 'panneaux',
   intitule,
+  className,
   style,
 }: {
   onglets: readonly OngletPage<K>[]
@@ -46,6 +47,9 @@ export default function OngletsPage<K extends string>({
   nature?: NatureOnglets
   /** Ce que la barre nomme, pour qui ne la voit pas. */
   intitule: string
+  /** La MESURE de la barre, quand la page en pose une : elle prend celle de ce
+   *  qu'elle commande, non celle de son conteneur. Voir `.cs-onglets`. */
+  className?: string
   /** Le PLACEMENT de la barre dans sa page — son blanc alentour, et rien d'autre.
    *  Le dessin appartient au modèle ; l'écart à ce qui suit appartient à la page. */
   style?: React.CSSProperties
@@ -53,7 +57,7 @@ export default function OngletsPage<K extends string>({
   const panneaux = nature === 'panneaux'
   return (
     <div
-      className="cs-onglets"
+      className={className ? `cs-onglets ${className}` : 'cs-onglets'}
       style={style}
       role={panneaux ? 'tablist' : 'group'}
       aria-label={intitule}

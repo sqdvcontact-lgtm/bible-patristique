@@ -886,9 +886,17 @@ button:focus-visible,
    Il rend 3,45 contre le fond, sous le seuil de 4,5 attendu à ce corps — dette
    ancienne du site, commune à toute son encre discrète, et non un choix pris ici.
    ───────────────────────────────────────────────────────────────────────────── */
+/* ⚠️ La barre prend la mesure de CE QU'ELLE COMMANDE, jamais celle de son
+   conteneur. La Communauté range ses couvertures sur 46,7 rem au milieu d'un
+   conteneur de 71 : la barre, elle, courait sur les 71 et surmontait de très
+   loin tout ce qu'elle annonçait, ses trois libellés jetés aux quatre coins.
+   Chaque page pose donc sa mesure, et la barre se centre dedans — d'où les
+   marges automatiques, sans lesquelles un `max-width` ne centrerait rien. */
 .cs-onglets {
   display: flex;
   align-items: stretch;
+  margin-left: auto;
+  margin-right: auto;
   border-bottom: 1px solid var(--cs-bord);
 }
 .cs-onglets-sep {

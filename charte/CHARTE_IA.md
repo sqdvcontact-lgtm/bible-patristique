@@ -2137,6 +2137,8 @@ Une barre d’onglets de PAGE se compose partout de la même façon. Elles étai
 
 **La structure.** Les onglets se partagent la mesure à parts ÉGALES, chaque libellé centré dans sa case, un filet fin entre deux cases, le filet plein dessous et le trait de l’onglet retenu POSÉ sur ce filet, jamais ajouté dessous — sans quoi la barre gagne deux pixels au premier clic. ⛔ Les parts égales ne sont pas un ornement : à largeur libre, la barre se range au fer à gauche et le filet court seul sur la moitié droite de la mesure.
 
+⚠️ **La barre prend la mesure de CE QU’ELLE COMMANDE, jamais celle de son conteneur.** La Communauté range ses couvertures sur 46,7 rem au milieu d’un conteneur qui en fait 71 : la barre, elle, courait sur les 71 et surmontait de très loin tout ce qu’elle annonçait, ses trois libellés jetés aux quatre coins. Chaque page pose donc sa mesure et la barre s’y centre. Là où cette mesure se calcule — la largeur d’une couverture et l’écart entre deux —, elle vit dans une seule paire de valeurs dont la grille et la barre dérivent toutes deux, faute de quoi elles se sépareraient au premier réglage.
+
 **La police est celle du CHROME, c’est-à-dire le sans.** Le sérif appartient aux textes d’œuvre, corps comme titres (§ 18) ; une barre d’onglets n’est pas du corpus, c’est de l’interface. Deux des trois barres portaient pourtant le sérif.
 
 ⛔ **L’onglet retenu change de graisse ET d’encre ET reçoit son trait.** Deux rangs ne se distinguent jamais par la seule couleur. ⚠️ Le gris de l’inactif est le plus SOMBRE de ceux qui coexistaient : un onglet est un bouton, il se lit avant qu’on le clique.
@@ -2152,3 +2154,13 @@ Une barre d’onglets de PAGE se compose partout de la même façon. Elles étai
 Presque toutes les pages du site sont un bloc centré par une marge automatique. Le jour où le contenu cesse de dépasser, la barre de défilement disparaît, la largeur utile gagne une quinzaine de pixels et le bloc SAUTE de sept vers la droite. Le défaut se lit comme un défaut du composant qu’on vient d’actionner, alors qu’il n’en vient pas : mesuré sur la Bibliothèque, passer à « Catalogue des traductions », dont la liste est courte, déplaçait toute la page de sept pixels sans que les onglets aient bougé d’un cheveu.
 
 La gouttière est donc réservée en permanence sur le document, qu’il y ait de quoi défiler ou non. ⚠️ Le prix est une bande vide d’une quinzaine de pixels sur les pages qui ne défilent pas ; il est moindre qu’une page qui se déplace sous les yeux du lecteur au moindre changement d’onglet.
+
+### 36.2. Un menu de navigation DIT ce qu’il ouvre
+
+Une liste de noms de pages n’apprend rien à qui ne connaît pas déjà le site, et « Statistiques » ou « Péricopes » surtout ne s’expliquent pas d’eux-mêmes. Chaque entrée du menu « Aller plus loin » porte donc, sous son nom, une ligne qui dit ce que la page contient, tirée de la description de cette page : ⛔ on n’y promet que ce qu’elle porte. Devant le nom vient un emblème au trait.
+
+Les emblèmes suivent la grammaire de ceux des couvertures : une viewBox carrée, aucune couleur écrite, tout en `currentColor`, si bien qu’ils prennent l’encre de la ligne qui les accueille et suivent le thème sans être déclinés deux fois. ⛔ Aucun ne doit se confondre avec une marque déjà employée : l’étoile dit « favori », le quadrilobe « citation choisie », le cœur « soutenir », la loupe « chercher », le chevron « avancer ».
+
+⚠️ Ils se jugent à la taille RÉELLE, autour de dix-sept pixels, jamais dans l’éditeur. Deux des cinq ont dû être redessinés à ce titre : une accolade se lisait comme une simple parenthèse, et une frise à repères comme trois petits points, indiscernable des barres voisines. C’est la leçon déjà apprise sur les emblèmes de couverture, dont cinq des neuf premières ébauches passaient pour autre chose une fois rendues.
+
+Sur un téléphone il n’y a pas de survol, donc pas de glose : l’emblème y est le seul indice de ce que la page contient, et il accompagne l’entrée dans le panneau déplié. Le panneau garde en revanche une ligne par entrée — quinze entrées à deux lignes en feraient un rouleau.

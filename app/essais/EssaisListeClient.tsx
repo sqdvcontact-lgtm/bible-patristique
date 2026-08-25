@@ -102,7 +102,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
   return (
     <main style={{ background: 'var(--cs-fond)', minHeight: '100vh', paddingTop: '8px' }}>
-      <div style={{ maxWidth: '71rem', margin: '0 auto', padding: '8px 30px 70px' }}>
+      <div className="essais-corps" style={{ maxWidth: '71rem', margin: '0 auto', padding: '8px 30px 70px' }}>
 
         {/* En-tête — sobre : le titre, un discret losange, puis les onglets. */}
         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
@@ -116,6 +116,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
               et « Écrire » (qui se subdivise en deux sous-onglets). Modèle commun du
               site, cf. `.cs-onglets` dans globals.css. */}
           <OngletsPage
+            className="essais-onglets"
             intitule="Sections de la communauté"
             actif={onglet}
             choisir={setOnglet}
@@ -228,10 +229,18 @@ function OngletCommunaute({
            (marge automatique ou justify-self) lui retire l'étirement, et comme tous
            ses enfants sont hors flux, sa largeur retombe à ZÉRO : elle disparaît
            sans que rien ne le signale. */
+        /* ⚠️ La largeur d'une couverture et l'écart entre deux vivent ICI, en une
+           seule paire de valeurs : le rayon les emploie, et la barre d'onglets en
+           DÉRIVE sa mesure. Écrites deux fois, elles dériveraient, et la barre
+           surmonterait de nouveau autre chose que ce qu'elle commande. */
+        .essais-corps { --couv: 14.5rem; --couv-ecart: 1.6rem; }
         .rayon {
-          display: grid; grid-template-columns: repeat(3, 14.5rem);
-          justify-content: center; gap: 2rem 1.6rem;
+          display: grid; grid-template-columns: repeat(3, var(--couv));
+          justify-content: center; gap: 2rem var(--couv-ecart);
         }
+        /* La barre se borne au rayon qu'elle surmonte et s'y centre. En deçà, le
+           conteneur est déjà plus étroit qu'elle et le maximum ne mord pas. */
+        .essais-onglets { max-width: calc(3 * var(--couv) + 2 * var(--couv-ecart)); }
 
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
            CENTRÉE et EN EMPATTEMENT, comme une page de titre gravée. La face
