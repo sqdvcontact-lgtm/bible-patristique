@@ -560,7 +560,18 @@ export default async function OeuvrePage({
   const idTexteEnRegard = texteEnLangueOriginale && texteEnLangueOriginale.id_texte !== idTexte
     ? (texteEnLangueOriginale.id_texte as string) : null
 
-  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, donneesNotesEnRegard, { count: nbSegmentsLiminaires }] = await Promise.all([
+  // Les alignements qui se disputent CETTE paire de textes. Quand il y en a plusieurs,
+  // c'est le plus FIN qui porte la lecture, et la finesse se compte : une ligne de
+  // `texte_alignements` par groupe. Le comptage part avec la vague ci-dessous, en
+  // `head`, donc sans qu'aucune ligne voyage — et il n'est PAS émis quand un seul
+  // alignement se présente, ce qui est le cas de toutes les œuvres sauf une.
+  const candidatsBilingues = idTexteEnRegard
+    ? alignementsDisponibles.filter(a =>
+        (a.referenceTextId === idTexte && a.alignedTextId === idTexteEnRegard)
+        || (a.referenceTextId === idTexteEnRegard && a.alignedTextId === idTexte))
+    : []
+
+  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, donneesNotesEnRegard, { count: nbSegmentsLiminaires }, granularites] = await Promise.all([
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id, p_id_texte: idTexte }),
     supabase.rpc('get_niv1_texte', { p_id_oeuvre: id, p_id_texte: idTexte }),
     Number.isFinite(segmentCibleId) && segmentCibleId > 0
@@ -573,9 +584,25 @@ export default async function OeuvrePage({
     supabase.from('segments').select('id', { count: 'exact', head: true })
       .eq('id_oeuvre', id).eq('id_texte', idTexte)
       .is('ref_niv1', null).in('nature', NATURES_CORPS),
+    candidatsBilingues.length > 1
+      ? Promise.all(candidatsBilingues.map(async alignement => ({
+          alignmentSetId: alignement.alignmentSetId,
+          nbGroupes: (await supabase.from('texte_alignements')
+            .select('alignment_id', { count: 'exact', head: true })
+            .eq('alignment_set_id', alignement.alignmentSetId)).count ?? null,
+        })))
+      : Promise.resolve([] as { alignmentSetId: string; nbGroupes: number | null }[]),
   ])
   const { notesParSegment: notesStructurees, ancresParSegment: ancresNotesStructurees } = donneesNotesStructurees
   const { notesParSegment: notesOriginales, ancresParSegment: ancresNotesOriginales } = donneesNotesEnRegard
+
+  // La finesse rejoint les alignements, qui partent tels quels au client : les deux
+  // côtés doivent choisir le même ensemble, sans quoi la division rechargée ne se
+  // mettrait pas en regard du même original que celle du premier rendu.
+  for (const { alignmentSetId, nbGroupes } of granularites) {
+    const cible = alignementsDisponibles.find(a => a.alignmentSetId === alignmentSetId)
+    if (cible) cible.nbGroupes = nbGroupes
+  }
 
   if (rpcError) console.error('get_niv1_list error:', rpcError)
 

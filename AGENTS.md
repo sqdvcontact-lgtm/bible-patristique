@@ -281,6 +281,21 @@ Pour un paragraphe traduit réparti sur plusieurs segments, `texte_original` va 
 
 Cas de référence : *Confessions* `A0010O0001`, latin de Pius Knöll, CSEL 33 (1896), 13 livres, 278 chapitres, 932 associations. Voir `scripts/confessions-align-latin-csel-2026-07-29.py` et `feedback_liens_protocole`.
 
+## Quel alignement porte la lecture : le plus FIN, et la finesse se COMPTE (2026-08-25)
+
+⛔ `alignment_level` (`paragraph`, `segment`, `division`) est l'étiquette de l'éditeur, non une mesure. `choisirEnsembleBilingue` ne s'y fie plus : entre plusieurs ensembles posés sur la même paire de textes, **c'est celui qui compte le plus de GROUPES qui l'emporte**, une ligne de `texte_alignements` valant un groupe. Le niveau ne tranche qu'à défaut — finesse inconnue ou égale — et le classement d'origine reprend alors la main mot pour mot.
+
+Le cas qui l'a imposé, relevé sur une capture du chapitre III de la *Doctrine des Apôtres* : l'œuvre a deux alignements, et l'ancienne règle retenait **le plus grossier des deux**.
+
+| ensemble | `alignment_level` | groupes | dont un pour un | couverture |
+|---|---|---|---|---|
+| `…:SECTION` | `division` | **100** | **90** | 109 grecs / 114 français, tous |
+| `…:PARAGRAPH` | `paragraph` | 57 | 25 (jusqu'à 5 contre 5) | idem |
+
+Les sections numérotées de Funk sont plus fines qu'un paragraphe Laurent–Hemmer : l'étiquette `division` mentait sur ce que l'ensemble fait. Le lecteur voyait donc *Didachè* 3, 1-3 en grec — trois sections — en regard de la seule phrase « Mon enfant, fuis tout ce qui est mal », les deux phrases suivantes faisant face au blanc.
+
+⚠️ **Le comptage ne se paie pas.** Il n'est émis que lorsque plusieurs alignements se disputent la même paire de textes — la *Doctrine des Apôtres* est aujourd'hui la seule œuvre dans ce cas — et il part avec la vague 1, en `head`, donc sans qu'aucune ligne voyage. Il rejoint ensuite `alignementsDisponibles`, qui part tel quel au client : ⛔ les deux côtés doivent choisir le MÊME ensemble, sans quoi une division rechargée se mettrait en regard d'un autre original que celle du premier rendu.
+
 ## Une langue originale est un TEXTE de l'œuvre, jamais une œuvre sœur (2026-08-23)
 
 Le latin des *Confessions* avait fini par exister deux fois : dans `segments.texte_original` de la traduction, et comme œuvre autonome `A0010O0110`. Les 932 blocs se répondaient un à un, dans le même ordre, avec la même division en livres et en chapitres, et le même texte à la casse près. Mais l'œuvre autonome portait seule les titres d'origine, les capitula latins et **l'apparat critique de Knöll**, que `texte_original` ignore : une « copie » peut donc valoir bien plus que l'autre. ⛔ Ne jamais conclure au doublon sur la seule collation des textes ; compter d'abord ce qui pend à chaque `id_texte` (`texte_notes`, `texte_note_ancres`, `texte_note_blocs`, `oeuvre_texte_unites`).

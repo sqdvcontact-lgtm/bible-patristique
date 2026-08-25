@@ -109,10 +109,15 @@ export type AlignementDisponible = {
   // langue originale se compose alors en sans-serif, comme en lecture bilingue.
   referenceLangue: string | null
   alignedLangue: string | null
-  // `paragraph`, `segment` ou `division`. C'est lui qui désigne l'ensemble apte à porter
-  // la lecture bilingue : le paragraphe d'abord, le segment à défaut, la division en
-  // dernier recours (voir `bilingueAlignement.ts`).
+  // `paragraph`, `segment` ou `division` — l'étiquette de l'éditeur. ⛔ Elle ne désigne
+  // plus l'ensemble qui porte la lecture bilingue : c'est `nbGroupes` qui le fait, et
+  // elle ne sert qu'à départager (voir `bilingueAlignement.ts`).
   alignmentLevel?: string | null
+  // Nombre de groupes de l'ensemble : la mesure de sa FINESSE, et donc ce qui le
+  // désigne pour porter la lecture. Chargé seulement quand plusieurs alignements se
+  // disputent la même paire de textes ; `null` partout ailleurs, faute d'avoir à
+  // choisir.
+  nbGroupes?: number | null
   status: string | null
 }
 

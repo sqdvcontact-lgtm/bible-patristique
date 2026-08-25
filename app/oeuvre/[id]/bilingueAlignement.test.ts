@@ -52,6 +52,34 @@ describe('choix de l’ensemble d’alignement', () => {
     const entreTraductions = { alignmentSetId: 'X', referenceTextId: 'MIRANDOL', alignedTextId: 'CERIZIERS', alignmentLevel: 'segment' }
     expect(choisirEnsembleBilingue([entreTraductions], FR, GREC)).toBeNull()
   })
+
+  // ⛔ Le cas de la Doctrine des Apôtres, relevé le 2026-08-25 sur une capture de son
+  // chapitre III : l'ensemble ÉTIQUETÉ `division` est celui qui apparie les sections
+  // numérotées de Funk une à une (100 groupes), et celui étiqueté `paragraph` en réunit
+  // jusqu'à cinq contre cinq (57). Croire l'étiquette retenait le plus grossier, et
+  // trois sections grecques paraissaient en regard d'une seule phrase française — le
+  // reste de la colonne restant blanc.
+  it('retient le plus FIN, quelle que soit l’étiquette de niveau', () => {
+    const sections = { alignmentSetId: 'SECTION', referenceTextId: GREC, alignedTextId: FR, alignmentLevel: 'division', nbGroupes: 100 }
+    const paragraphes = { alignmentSetId: 'PARAGRAPH', referenceTextId: GREC, alignedTextId: FR, alignmentLevel: 'paragraph', nbGroupes: 57 }
+    expect(choisirEnsembleBilingue([paragraphes, sections], FR, GREC)?.alignmentSetId).toBe('SECTION')
+    expect(choisirEnsembleBilingue([sections, paragraphes], FR, GREC)?.alignmentSetId).toBe('SECTION')
+  })
+
+  it('revient à l’étiquette quand la finesse est égale', () => {
+    const a = { alignmentSetId: 'D', referenceTextId: GREC, alignedTextId: FR, alignmentLevel: 'division', nbGroupes: 40 }
+    const b = { alignmentSetId: 'P', referenceTextId: GREC, alignedTextId: FR, alignmentLevel: 'paragraph', nbGroupes: 40 }
+    expect(choisirEnsembleBilingue([a, b], FR, GREC)?.alignmentSetId).toBe('P')
+  })
+
+  // La finesse n'est comptée que lorsque plusieurs alignements se disputent la même
+  // paire de textes : partout ailleurs elle est absente, et l'ancien classement doit
+  // rendre exactement ce qu'il rendait.
+  it('revient à l’étiquette quand la finesse est inconnue', () => {
+    expect(choisirEnsembleBilingue([division, paragraphe], FR, GREC)?.alignmentSetId).toBe('P')
+    const connu = { ...division, nbGroupes: 12 }
+    expect(choisirEnsembleBilingue([connu, paragraphe], FR, GREC)?.alignmentSetId).toBe('D')
+  })
 })
 
 describe('jonction des segments originaux', () => {

@@ -37,6 +37,10 @@ export type EnsembleAlignement = {
   referenceTextId: string
   alignedTextId: string
   alignmentLevel?: string | null
+  /** Nombre de GROUPES de l'ensemble, compté sur `texte_alignements` (une ligne par
+   *  groupe). C'est la mesure de finesse, et elle n'est chargée que lorsque plusieurs
+   *  alignements se disputent la même paire de textes. `null` ou absent : inconnue. */
+  nbGroupes?: number | null
 }
 
 /** Une ligne de `texte_alignement_membres`. */
@@ -77,10 +81,17 @@ export type ProjectionBilingue = {
 }
 
 /**
- * Le niveau d'alignement qui fait un paragraphe de lecture, du plus juste au moins
- * juste. `paragraph` est l'unité voulue ; `segment` est plus fin mais se recoupe tout
- * aussi bien ; `division` est grossier (un chapitre entier en regard d'un chapitre) et
- * ne sert qu'à défaut.
+ * Le niveau d'alignement, du plus juste au moins juste, quand rien d'autre ne départage.
+ * `paragraph` est l'unité voulue ; `segment` est plus fin mais se recoupe tout aussi
+ * bien ; `division` est grossier — en principe.
+ *
+ * ⛔ Cette échelle ne vaut que comme DÉPARTAGE, jamais comme mesure. Elle décrit ce que
+ * l'éditeur a voulu nommer, non ce que l'alignement fait. La Doctrine des Apôtres l'a
+ * montré le 2026-08-25 : son ensemble `…:SECTION`, étiqueté `division`, apparie les
+ * sections numérotées de Funk une à une — 100 groupes, dont 90 un pour un — quand son
+ * ensemble `…:PARAGRAPH`, étiqueté `paragraph`, en réunit jusqu'à cinq contre cinq en
+ * 57 groupes seulement. Croire l'étiquette faisait retenir le plus GROSSIER des deux, et
+ * le lecteur voyait alors trois sections grecques en regard d'une seule phrase française.
  */
 const ORDRE_NIVEAUX = ['paragraph', 'segment', 'division'] as const
 
@@ -90,6 +101,12 @@ const ORDRE_NIVEAUX = ['paragraph', 'segment', 'division'] as const
  * On ne retient qu'un ensemble dont UNE des deux faces est le texte lu et l'autre le
  * texte en langue originale : un alignement entre deux traductions françaises (Boèce)
  * n'a rien à faire dans une colonne de latin.
+ *
+ * ⛔ LA RÈGLE : le plus FIN l'emporte, et la finesse se COMPTE — c'est le nombre de
+ * groupes posés sur les deux mêmes textes. Plus il y en a, plus l'unité de lecture est
+ * courte, et plus la colonne de droite répond à ce qu'on lit à gauche. Le niveau déclaré
+ * ne tranche qu'à défaut : finesse inconnue (un seul candidat, alors rien à compter) ou
+ * égale.
  */
 export function choisirEnsembleBilingue(
   ensembles: readonly EnsembleAlignement[],
@@ -104,7 +121,10 @@ export function choisirEnsembleBilingue(
     const index = ORDRE_NIVEAUX.indexOf((e.alignmentLevel ?? '') as (typeof ORDRE_NIVEAUX)[number])
     return index < 0 ? ORDRE_NIVEAUX.length : index
   }
-  return [...candidats].sort((a, b) => rang(a) - rang(b))[0]
+  // Finesse inconnue = 0 : tous les candidats s'égalisent, et l'ancien classement par
+  // niveau reprend la main tel quel. Rien ne change pour une œuvre à un seul alignement.
+  const finesse = (e: EnsembleAlignement) => e.nbGroupes ?? 0
+  return [...candidats].sort((a, b) => finesse(b) - finesse(a) || rang(a) - rang(b))[0]
 }
 
 /**
