@@ -338,7 +338,61 @@ export async function loadBibleEditionChapter(
   },
 ): Promise<BibleEditionChapterPayload> {
   const canonIds = [...new Set(options.canonIds)]
-  if (canonIds.length === 0) return { bodyBlocks: [], notes: [], assets: [] }
+
+  // Un liminaire peut être la toute première matière d'une édition encore sans
+  // verset importé pour ce livre. Il doit alors rester visible sans qu'on lui
+  // invente une unité biblique ni un alignement canonique. Seuls les blocs sans
+  // ancre demandés comme matière d'ouverture ou de clôture sont chargés ici.
+  if (canonIds.length === 0) {
+    if (options.includeBookFrontMatter !== true && options.includeBookBackMatter !== true) {
+      return { bodyBlocks: [], notes: [], assets: [] }
+    }
+    const [bodyResult, assetsResult] = await Promise.all([
+      client
+        .from('v_bible_editorial_body_blocks')
+        .select('*')
+        .eq('family_id', options.familyId)
+        .eq('scope_book_code', options.bookCode)
+        .order('material_order'),
+      client
+        .from('v_bible_edition_assets')
+        .select('*')
+        .eq('family_id', options.familyId)
+        .eq('scope_book_code', options.bookCode)
+        .order('material_order'),
+    ])
+    const missingError = [bodyResult.error, assetsResult.error]
+      .find((error) => isMissingBibleEditionRelation(error))
+    if (missingError) return { bodyBlocks: [], notes: [], assets: [] }
+    if (bodyResult.error) throw new Error(`Blocs bibliques illisibles : ${bodyResult.error.message}`)
+    if (assetsResult.error) throw new Error(`Illustrations bibliques illisibles : ${assetsResult.error.message}`)
+
+    const bodyRows = ((bodyResult.data ?? []) as BibleEditionBodyBlockRow[]).filter((row) => (
+      row.canon_order_start === null
+      && blocSansAncreVisibleDansChapitre(
+        row.scope_kind,
+        row.placement,
+        options.includeBookFrontMatter === true,
+        options.includeBookBackMatter === true,
+      )
+    ))
+    const blockIds = new Set(bodyRows.map((row) => row.id))
+    const assets = ((assetsResult.data ?? []) as BibleEditionAssetRow[]).filter((asset) => (
+      (asset.body_block_id !== null && blockIds.has(asset.body_block_id))
+      || (asset.semantic_scope_kind === 'book'
+        && ((asset.placement === 'before' && options.includeBookFrontMatter === true)
+          || (asset.placement === 'after' && options.includeBookBackMatter === true)))
+    ))
+    const [bodyBlocks, notesInternes] = await Promise.all([
+      loadBodyBlockTexts(client, bodyRows),
+      chargerNotesInternesParBloc(client, bodyRows.map((row) => row.id)),
+    ])
+    return {
+      bodyBlocks: bodyBlocks.map((bloc) => ({ ...bloc, internal_notes: notesInternes.get(bloc.id) ?? [] })),
+      notes: [],
+      assets,
+    }
+  }
 
   // Les bornes canoniques ne conditionnent aucune des trois requêtes qui suivent :
   // elles ne servent qu'à FILTRER leurs résultats. Elles partent donc avec elles,
