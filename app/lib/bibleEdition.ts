@@ -33,6 +33,11 @@ export const BIBLE_EDITORIAL_NOTICE_SUBTYPES = [
   'doctrinal',
   'chronological',
   'liturgical',
+  'critical_apparatus',
+  'bibliography',
+  'sigla',
+  'transcription_table',
+  'editorial_matter',
   'other',
 ] as const
 
@@ -530,6 +535,29 @@ export function erreursSousTypeNotice(
     erreurs.push(`Sous-type de notice hors vocabulaire : ${noticeSubtype}.`)
   }
   return erreurs
+}
+
+/**
+ * Les liminaires sans ancre canonique apparaissent au début du premier
+ * chapitre du livre auquel leur source matérielle est rattachée. La portée
+ * peut être plus large que le livre (Bible, Testament ou groupe de livres) ;
+ * elle ne doit donc pas être confondue avec le simple point d'affichage.
+ * Les postliminaires restent, eux, strictement propres au livre.
+ */
+export function blocSansAncreVisibleDansChapitre(
+  scopeKind: BibleEditorialScopeKind,
+  placement: BibleEditorialPlacement,
+  includeBookFrontMatter: boolean,
+  includeBookBackMatter: boolean,
+): boolean {
+  if (placement === 'before') {
+    return includeBookFrontMatter
+      && (scopeKind === 'bible'
+        || scopeKind === 'testament'
+        || scopeKind === 'book_group'
+        || scopeKind === 'book')
+  }
+  return placement === 'after' && scopeKind === 'book' && includeBookBackMatter
 }
 
 /**

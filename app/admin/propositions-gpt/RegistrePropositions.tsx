@@ -271,7 +271,7 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
   const retenue = (p: Proposition) => {
     const d = directiveDe(directives, p.id)
     if (filtre === 'a_arbitrer') return d.etat === 'a_arbitrer'
-    if (filtre === 'conflits') return Boolean(p.conflit)
+    if (filtre === 'conflits') return (p.heurts?.length ?? 0) > 0
     if (filtre === 'annotees') return d.instructions.length > 0
     if (filtre === 'attente_gpt') return d.instructions.length > 0 && d.reponses.length === 0
     return true
@@ -349,7 +349,11 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
                         <h4 className="pg-carte-titre">{p.titre}</h4>
                         <div className="pg-badges">
                           {p.dejaEnPlace && <span className="pg-badge pg-badge--fait">Déjà en place</span>}
-                          {p.conflit && <span className="pg-badge pg-badge--conflit">Conflit</span>}
+                          {p.heurts && p.heurts.length > 0 && (
+                            <span className="pg-badge pg-badge--conflit">
+                              {p.heurts.length > 1 ? p.heurts.length + " conflits" : "Conflit"}
+                            </span>
+                          )}
                           {d.instructions.length > 0 && (
                             <span className="pg-badge pg-badge--instr">
                               {d.instructions.length} instruction{pluriel(d.instructions.length)}
@@ -374,11 +378,19 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
                         <p className="pg-mesure"><span className="pg-mesure-tag">Mesuré</span> {p.mesure}</p>
                       )}
 
-                      {p.conflit && (
+                      {p.heurts && p.heurts.length > 0 && (
                         <div className="pg-conflit">
-                          <p className="pg-conflit-tete">Cette proposition heurte une consigne antérieure</p>
-                          <p><span className="pg-conflit-tag">Consigne</span> {p.conflit.consigne}</p>
-                          <p><span className="pg-conflit-tag">Proposition</span> {p.conflit.proposition}</p>
+                          <p className="pg-conflit-tete">
+                            {p.heurts.length > 1
+                              ? `Cette proposition heurte ${p.heurts.length} consignes antérieures`
+                              : 'Cette proposition heurte une consigne antérieure'}
+                          </p>
+                          {p.heurts.map((h, i) => (
+                            <div key={i} className="pg-heurt">
+                              <p><span className="pg-conflit-tag">Consigne</span> {h.consigne}</p>
+                              <p><span className="pg-conflit-tag">Proposition</span> {h.proposition}</p>
+                            </div>
+                          ))}
                         </div>
                       )}
 
@@ -603,6 +615,9 @@ const CSS = `
   color:var(--cs-danger);margin:0 0 6px}
 .pg-conflit p{font-size:0.78125rem;line-height:1.6;color:var(--cs-texte);margin:0 0 4px}
 .pg-conflit p:last-child{margin-bottom:0}
+/* Plusieurs heurts sous le même point : un filet les sépare, sans changer la forme
+   du bloc, qui reste celle d'un heurt unique. */
+.pg-heurt + .pg-heurt{margin-top:7px;padding-top:7px;border-top:1px solid var(--cs-danger-bord)}
 .pg-conflit-tag{font-size:0.5625rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
   color:var(--cs-texte-doux);margin-right:6px}
 

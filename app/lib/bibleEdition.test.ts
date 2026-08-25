@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   appartientAuMembre,
+  blocSansAncreVisibleDansChapitre,
   blocsTexteEditoriaux,
   erreursApplicabilite,
   erreursSousTypeNotice,
@@ -71,6 +72,21 @@ describe('modèle éditorial biblique', () => {
     expect(erreursSousTypeNotice('introduction', 'historical')).toHaveLength(1)
     expect(erreursSousTypeNotice('notice', 'zoologique')).toHaveLength(1)
     expect(erreursSousTypeNotice('commentary', 'zoologique')).toHaveLength(2)
+    expect(erreursSousTypeNotice('notice', 'critical_apparatus')).toEqual([])
+    expect(erreursSousTypeNotice('notice', 'bibliography')).toEqual([])
+    expect(erreursSousTypeNotice('notice', 'sigla')).toEqual([])
+    expect(erreursSousTypeNotice('notice', 'transcription_table')).toEqual([])
+    expect(erreursSousTypeNotice('notice', 'editorial_matter')).toEqual([])
+  })
+
+  it('affiche au début de la Genèse les liminaires de portée large sans les canoniser', () => {
+    for (const scope of ['bible', 'testament', 'book_group', 'book'] as const) {
+      expect(blocSansAncreVisibleDansChapitre(scope, 'before', true, false)).toBe(true)
+      expect(blocSansAncreVisibleDansChapitre(scope, 'before', false, false)).toBe(false)
+    }
+    expect(blocSansAncreVisibleDansChapitre('chapter', 'before', true, false)).toBe(false)
+    expect(blocSansAncreVisibleDansChapitre('testament', 'after', false, true)).toBe(false)
+    expect(blocSansAncreVisibleDansChapitre('book', 'after', false, true)).toBe(true)
   })
 
   it('tait au rendu un sous-type incohérent plutôt que de l’afficher', () => {

@@ -2,7 +2,12 @@ import 'server-only'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
+import {
+  blocSansAncreVisibleDansChapitre,
+  recomposerFragmentsMateriels,
+  type BibleEditorialScopeKind,
+  type BibleSourceFragment,
+} from './bibleEdition'
 import { chargerVersetsEditoriaux } from './bibleEditorialServer'
 
 export type BibleEditionCatalogRow = {
@@ -45,7 +50,7 @@ export type BibleEditionBodyBlockRow = {
   segment_id: string
   block_key: string
   block_kind: string
-  scope_kind: string
+  scope_kind: BibleEditorialScopeKind
   notice_subtype: string | null
   placement: 'before' | 'after' | 'inline'
   applies_to: 'family' | 'member'
@@ -218,9 +223,13 @@ function filterBodyBlocks(
 ): BibleEditionBodyBlockRow[] {
   return rows.filter((row) => {
     if (overlapsChapter(row, firstOrder, lastOrder)) return true
-    if (row.canon_order_start !== null || row.scope_kind !== 'book') return false
-    return (row.placement === 'before' && includeBookFrontMatter)
-      || (row.placement === 'after' && includeBookBackMatter)
+    if (row.canon_order_start !== null) return false
+    return blocSansAncreVisibleDansChapitre(
+      row.scope_kind,
+      row.placement,
+      includeBookFrontMatter,
+      includeBookBackMatter,
+    )
   })
 }
 

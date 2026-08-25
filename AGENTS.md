@@ -1713,6 +1713,24 @@ plus ne coûte rien.
 directive qui y pend. `lireDirectives` conserve l'orpheline sans la faire paraître, de
 sorte qu'un renommage ne détruit rien, mais il fait disparaître la décision de l'écran.
 
+⛔ **Un renommage se fait donc par la table `REPRISES`, à la LECTURE, jamais en base.**
+Le lot est passé de dix-huit points à sept le 2026-08-25, cinq instructions étant déjà
+posées : chaque ancien identifiant y désigne le point qui a absorbé le sien, et
+`lireDirectives` fond les listes dans l'ordre où elles ont été écrites. ⚠️ Une réécriture
+du paramètre aurait été irréversible et aurait fait perdre la trace de ce que l'auteur
+avait répondu, et à quoi. Un test rejoue l'état réel d'avant le regroupement et vérifie
+que les cinq instructions retombent sur le bon point.
+
+⚠️ **Fondre deux points n'efface pas une décision** : un état déjà tranché l'emporte sur
+« à arbitrer ». Et `heurts` est une LISTE : le point qui absorbe trois conflits les porte
+tous les trois, cités des deux côtés, sans qu'aucun se perde.
+
+⚠️ **Le bon grain, c'est la DÉCISION, pas la consigne.** Dix-huit points découpaient la
+même décision en morceaux : refuser le parseur, c'est refuser du même coup le crochet
+masqué, le « Texte : », la ligne par variante et l'italique, qui n'existent pas sans lui.
+Les sept points suivent l'ordre des conséquences — ce qui commande, ce qu'il faut
+trancher, ce qui en découle, ce qui est déjà tenu — et non l'ordre du texte reçu.
+
 ⚠️ **La page ne s'ouvre pas si la lecture du paramètre échoue**, et c'est délibéré : un
 registre vierge servi sur une erreur de lecture ferait écrire l’auteur par-dessus ses
 propres décisions. Même famille que « un panneau discret journalise son erreur ».
@@ -1763,7 +1781,7 @@ Le socle est **générique**, pas « fait pour Fillion » : une **famille édito
 - **Les volumes ne sont pas uniformisés.** Les huit tomes viennent d'éditions et d'années différentes. Chaque volume est un `bible_edition_components` avec son année, sa mention d'édition, son éditeur et son empreinte de source. La notice affichée au lecteur nomme l'édition **de chaque volume**, sans laisser croire à une édition matérielle unique.
 - **Cinq références coexistent, aucune n'écrase les autres** : la référence imprimée par Fillion, la numérotation native française, la numérotation native latine, la référence canonique interne, et l'alignement structurel. La référence canonique sert d'axe d'alignement ; elle ne remplace jamais la numérotation native, qui reste une donnée source.
 - **Un commentaire n'est pas une note.** Une annotation attachée à un verset déterminé devient une **note de verset** (`bible_verse_notes`). Un développement de portée supérieure reste dans le **corps** (`bible_editorial_body_blocks`). ⛔ Ne jamais rattacher un commentaire de péricope, de section ou de chapitre à un seul verset pour le cacher dans une note. ⛔ Ne jamais verser l'apparat Fillion dans le champ libre `versets_v2.notes`.
-- **Trois axes normalisés, un style dérivé.** Nature (`block_kind`), portée (`scope_kind`) et position (`placement`). Le style sémantique (`introduction_livre`, `commentaire_pericope`, `sommaire_chapitre`…) est **dérivé** par la vue et par `styleSemantiqueBloc`. Ne pas créer une table ni une énumération par combinaison. Le **sous-type de notice** (`notice_subtype` : historique, géographique, littéraire, doctrinal, chronologique, liturgique) qualifie la matière et non la place : il reste **hors des trois axes** et ne change pas le style dérivé. La base le refuse sur autre chose qu'une notice.
+- **Trois axes normalisés, un style dérivé.** Nature (`block_kind`), portée (`scope_kind`) et position (`placement`). Le style sémantique (`introduction_livre`, `commentaire_pericope`, `sommaire_chapitre`…) est **dérivé** par la vue et par `styleSemantiqueBloc`. Ne pas créer une table ni une énumération par combinaison. Le **sous-type de notice** (`notice_subtype` : historique, géographique, littéraire, doctrinal, chronologique, liturgique, apparat critique, bibliographie, sigles, tableau de transcription, matière éditoriale) qualifie la matière et non la place : il reste **hors des trois axes** et ne change pas le style dérivé. La base le refuse sur autre chose qu'une notice.
 - **La reconnaissance automatique ne juge jamais sur le vocabulaire seul** : titre imprimé, typographie, mise en page, position matérielle, unité voisine et portée annoncée. Les cas douteux partent en validation humaine (`classification_confidence`, `requires_review`), ils ne se publient pas.
 - **Exception de numérotation propre aux notes bibliques.** Le numéro **visible** d'une note recommence à chaque chapitre, pour rester lisible ; l'identifiant interne (`note_key`, uuid) demeure **global et stable**. C'est une exception assumée à la règle générale de numérotation continue des notes d'œuvre.
 - **Une note peut appartenir au français, au latin, ou aux deux** (`applies_to` / `applies_to_member_id`). En lecture bilingue, les blocs communs à l'édition se rendent **pleine largeur**, avant ou après les deux colonnes ; ils ne sont jamais dupliqués dans chaque colonne.

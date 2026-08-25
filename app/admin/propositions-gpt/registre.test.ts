@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ROLE_APPARAT_CRITIQUE, texteApparatAffiche } from '@/app/lib/apparatCritique'
 import {
-  DIRECTIVES_VIDES, ETATS, LOTS, PLAFOND_INSTRUCTION, PLAFOND_INSTRUCTIONS,
+  DIRECTIVES_VIDES, ETATS, LOTS, PLAFOND_INSTRUCTION, PLAFOND_INSTRUCTIONS, REPRISES,
   avancement, conflits, directiveDe, lireDirectives, lireMessages, messagesGeneraux,
   roleExemple, texteAPorterAGpt,
   type Directives,
@@ -32,16 +32,17 @@ describe('le registre est une source rédigée, et il tient', () => {
 
   it('cite les DEUX côtés de chaque conflit, jamais un seul', () => {
     for (const p of conflits()) {
-      expect(p.conflit!.consigne.trim().length, p.id).toBeGreaterThan(20)
-      expect(p.conflit!.proposition.trim().length, p.id).toBeGreaterThan(10)
+      for (const h of p.heurts!) {
+        expect(h.consigne.trim().length, p.id).toBeGreaterThan(20)
+        expect(h.proposition.trim().length, p.id).toBeGreaterThan(10)
+      }
     }
-    // Les cinq contradictions relevées avec la consigne du 25 août.
+    // Trois points portent des heurts depuis le regroupement ; la recomposition
+    // en porte trois à elle seule, et n'en a perdu aucun.
     expect(conflits().map(p => p.id).sort()).toEqual([
-      'apparat-critique/abreviations-developpees',
-      'apparat-critique/crochet-masque',
-      'apparat-critique/parseur',
-      'apparat-critique/ponctuation-condensee',
-      'apparat-critique/sigles-separes',
+      'apparat-critique/abreviations',
+      'apparat-critique/recomposition',
+      'apparat-critique/sigles',
     ])
   })
 
@@ -91,32 +92,125 @@ describe('le registre est une source rédigée, et il tient', () => {
   })
 
   it('rend l’apparat par défaut, et le rôle déclaré sinon', () => {
-    const parseur = toutes.find(p => p.id === 'apparat-critique/parseur')!
+    const parseur = toutes.find(p => p.id === 'apparat-critique/recomposition')!
     expect(roleExemple(parseur.exemple!)).toBe(ROLE_APPARAT_CRITIQUE)
-    const autre = toutes.find(p => p.id === 'apparat-critique/renderer-reutilisable')!
+    const autre = toutes.find(p => p.id === 'apparat-critique/acquis')!
     expect(roleExemple(autre.exemple!)).toBeNull()
   })
 })
 
 describe('l’état « aujourd’hui » d’un exemple est CALCULÉ, jamais recopié', () => {
   it('retire la ligne imprimée sur une entrée d’apparat', () => {
-    const p = toutes.find(x => x.id === 'apparat-critique/crochet-masque')!
+    const p = toutes.find(x => x.id === 'apparat-critique/recomposition')!
     const rendu = texteApparatAffiche({
       text: p.exemple!.source.texte,
       printedLine: p.exemple!.source.ligne,
       editorialRole: roleExemple(p.exemple!),
     })
-    expect(rendu).toBe('uirtus (r ex s corr.) B; est] est et BPQ.')
+    expect(rendu).toBe('eum inuocabo Q; et] ut V; quo] in quo F; ueniad F sic saepe, uenat M; in me] M2 s. l.')
   })
 
   it('ne touche pas une entrée qui n’est pas de cet apparat', () => {
-    const p = toutes.find(x => x.id === 'apparat-critique/renderer-reutilisable')!
+    const p = toutes.find(x => x.id === 'apparat-critique/acquis')!
     const rendu = texteApparatAffiche({
       text: p.exemple!.source.texte,
       printedLine: p.exemple!.source.ligne,
       editorialRole: roleExemple(p.exemple!),
     })
     expect(rendu).toBe(p.exemple!.source.texte)
+  })
+})
+
+describe('la reprise des identifiants — rien de ce qui a été écrit ne se perd', () => {
+  const ids = new Set(toutes.map(p => p.id))
+
+  it('vise toujours un point qui existe', () => {
+    for (const [ancien, neuf] of Object.entries(REPRISES)) {
+      expect(ids.has(neuf), `${ancien} → ${neuf}`).toBe(true)
+    }
+  })
+
+  it('ne reprend jamais un identifiant encore en service, qui s’effacerait lui-même', () => {
+    for (const ancien of Object.keys(REPRISES)) {
+      expect(ids.has(ancien), ancien).toBe(false)
+    }
+  })
+
+  it('⛔ reporte les instructions RÉELLEMENT posées avant le regroupement', () => {
+    // L'état du paramètre au 2026-08-25, avant que dix-huit points ne deviennent sept.
+    const avant = JSON.stringify({
+      version: 1,
+      majLe: '2026-08-25T09:35:05.426Z',
+      instructionsGenerales: [],
+      parProposition: {
+        'apparat-critique/ligne-imprimee': {
+          etat: 'a_arbitrer',
+          instructions: [{ texte: 'Oui. Mais pas "Correspond exactement" ; simplement quand il y correspond.', posee: '2026-08-25T09:08:07.309Z' }],
+        },
+        'apparat-critique/crochet-masque': { etat: 'a_arbitrer', instructions: [] },
+        'apparat-critique/lemme-texte': {
+          etat: 'a_arbitrer',
+          instructions: [
+            { texte: "conserver un exposant n'est pas en fabriquer un - oui, il faut conserver les exposants", posee: '2026-08-25T09:26:25.782Z' },
+            { texte: 'Que signifie M2 ?', posee: '2026-08-25T09:26:46.096Z' },
+          ],
+        },
+        'apparat-critique/ligne-par-variante': {
+          etat: 'a_arbitrer',
+          instructions: [{ texte: 'que signifient ces lettres ? V F V P M ?', posee: '2026-08-25T09:28:05.359Z' }],
+        },
+        'apparat-critique/ponctuation-condensee': {
+          etat: 'a_arbitrer',
+          instructions: [{ texte: 'Revoir en effet en fonction de "Six points-virgules…"', posee: '2026-08-25T09:29:11.982Z' }],
+        },
+      },
+    })
+    const d = lireDirectives(avant)
+
+    // Les quatre instructions sont toujours là, et aucune n'a été inventée.
+    expect(avancement(d).instructions).toBe(5)
+
+    // Celle qui portait sur le numéro de ligne rejoint « ce qui est déjà tenu ».
+    expect(directiveDe(d, 'apparat-critique/acquis').instructions.map(m => m.texte))
+      .toEqual(['Oui. Mais pas "Correspond exactement" ; simplement quand il y correspond.'])
+
+    // Les quatre autres rejoignent la recomposition, DANS L'ORDRE où elles ont été écrites.
+    expect(directiveDe(d, 'apparat-critique/recomposition').instructions.map(m => m.texte)).toEqual([
+      "conserver un exposant n'est pas en fabriquer un - oui, il faut conserver les exposants",
+      'Que signifie M2 ?',
+      'que signifient ces lettres ? V F V P M ?',
+      'Revoir en effet en fonction de "Six points-virgules…"',
+    ])
+  })
+
+  it('garde l’état déjà tranché quand deux points fondus n’en portaient qu’un', () => {
+    const d = lireDirectives(JSON.stringify({
+      parProposition: {
+        'apparat-critique/sigles-separes': { etat: 'a_arbitrer', instructions: [] },
+        'apparat-critique/sigles-non-developpes': { etat: 'refusee', instructions: [] },
+      },
+    }))
+    expect(directiveDe(d, 'apparat-critique/sigles').etat).toBe('refusee')
+  })
+
+  it('fond aussi les réponses de GPT, sans les mêler aux instructions', () => {
+    const d = lireDirectives(JSON.stringify({
+      parProposition: {
+        'apparat-critique/couleur-secondaire': {
+          etat: 'a_arbitrer',
+          instructions: [{ texte: 'i1', posee: '2026-08-25T10:00:00.000Z' }],
+          reponses: [{ texte: 'r1', posee: '2026-08-25T10:01:00.000Z' }],
+        },
+        'apparat-critique/lisible-sans-couleur': {
+          etat: 'a_arbitrer',
+          instructions: [{ texte: 'i2', posee: '2026-08-25T10:02:00.000Z' }],
+          reponses: [{ texte: 'r2', posee: '2026-08-25T10:03:00.000Z' }],
+        },
+      },
+    }))
+    const dir = directiveDe(d, 'apparat-critique/couleur')
+    expect(dir.instructions.map(m => m.texte)).toEqual(['i1', 'i2'])
+    expect(dir.reponses.map(m => m.texte)).toEqual(['r1', 'r2'])
   })
 })
 
@@ -133,7 +227,7 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
       majLe: '2026-08-25T10:00:00.000Z',
       instructionsGenerales: [{ texte: 'Fidélité d’abord.', posee: '2026-08-25T10:00:00.000Z' }],
       parProposition: {
-        'apparat-critique/crochet-masque': {
+        'apparat-critique/recomposition': {
           etat: 'refusee',
           instructions: [
             { texte: 'On garde le crochet.', posee: '2026-08-25T10:01:00.000Z' },
@@ -147,7 +241,7 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
     expect(d.instructionsGenerales).toHaveLength(1)
     expect(d.instructionsGenerales[0].texte).toBe('Fidélité d’abord.')
 
-    const dir = directiveDe(d, 'apparat-critique/crochet-masque')
+    const dir = directiveDe(d, 'apparat-critique/recomposition')
     expect(dir.etat).toBe('refusee')
     expect(dir.instructions.map(i => i.texte)).toEqual(['On garde le crochet.', 'Voir la charte, §3.'])
   })
@@ -158,8 +252,8 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
         'apparat-critique/parseur': { etat: 'validee_par_la_machine', instructions: [{ texte: 'x' }] },
       },
     }))
-    expect(directiveDe(d, 'apparat-critique/parseur').etat).toBe('a_arbitrer')
-    expect(directiveDe(d, 'apparat-critique/parseur').instructions).toEqual([{ texte: 'x', posee: null }])
+    expect(directiveDe(d, 'apparat-critique/recomposition').etat).toBe('a_arbitrer')
+    expect(directiveDe(d, 'apparat-critique/recomposition').instructions).toEqual([{ texte: 'x', posee: null }])
   })
 
   it('reprend la forme héritée à note unique plutôt que de la perdre', () => {
@@ -170,12 +264,12 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
       },
     }))
     expect(d.instructionsGenerales).toEqual([{ texte: 'Ancienne note générale.', posee: null }])
-    expect(directiveDe(d, 'apparat-critique/lemme-texte').instructions)
+    expect(directiveDe(d, 'apparat-critique/recomposition').instructions)
       .toEqual([{ texte: 'Ancienne note.', posee: null }])
   })
 
   it('n’invente aucune directive pour une proposition jamais arbitrée', () => {
-    expect(directiveDe(DIRECTIVES_VIDES, 'apparat-critique/parseur'))
+    expect(directiveDe(DIRECTIVES_VIDES, 'apparat-critique/recomposition'))
       .toEqual({ etat: 'a_arbitrer', instructions: [], reponses: [] })
   })
 
@@ -184,7 +278,7 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
       instructionsGenerales: [{ texte: 'Fidélité d’abord.' }],
       reponsesGenerales: [{ texte: 'Compris.' }],
       parProposition: {
-        'apparat-critique/crochet-masque': {
+        'apparat-critique/recomposition': {
           etat: 'refusee',
           instructions: [{ texte: 'Le crochet reste.' }],
           reponses: [{ texte: 'Entendu, je cherche une autre marque.' }],
@@ -196,7 +290,7 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
     expect(messagesGeneraux(d, 'instructions')).toEqual(d.instructionsGenerales)
     expect(messagesGeneraux(d, 'reponses')).toEqual(d.reponsesGenerales)
 
-    const dir = directiveDe(d, 'apparat-critique/crochet-masque')
+    const dir = directiveDe(d, 'apparat-critique/recomposition')
     expect(dir.instructions.map(m => m.texte)).toEqual(['Le crochet reste.'])
     expect(dir.reponses.map(m => m.texte)).toEqual(['Entendu, je cherche une autre marque.'])
   })
@@ -205,8 +299,8 @@ describe('lireDirectives — tolérante, mais jamais inventive', () => {
     const d = lireDirectives(JSON.stringify({
       parProposition: { 'apparat-critique/parseur': { etat: 'retenue', instructions: [{ texte: 'x' }] } },
     }))
-    expect(directiveDe(d, 'apparat-critique/parseur').reponses).toEqual([])
-    expect(directiveDe(d, 'apparat-critique/parseur').instructions).toHaveLength(1)
+    expect(directiveDe(d, 'apparat-critique/recomposition').reponses).toEqual([])
+    expect(directiveDe(d, 'apparat-critique/recomposition').instructions).toHaveLength(1)
     expect(d.reponsesGenerales).toEqual([])
   })
 
@@ -254,12 +348,12 @@ describe('avancement', () => {
       majLe: null,
       instructionsGenerales: [{ texte: 'g', posee: null }], reponsesGenerales: [],
       parProposition: {
-        'apparat-critique/crochet-masque': {
+        'apparat-critique/recomposition': {
           etat: 'refusee',
           instructions: [{ texte: 'a', posee: null }, { texte: 'b', posee: null }], reponses: [],
         },
-        'apparat-critique/parseur': { etat: 'plus_tard', instructions: [], reponses: [{ texte: 'r', posee: null }] },
-        'apparat-critique/lemme-texte': { etat: 'a_arbitrer', instructions: [{ texte: 'c', posee: null }], reponses: [] },
+        'apparat-critique/sigles': { etat: 'plus_tard', instructions: [], reponses: [{ texte: 'r', posee: null }] },
+        'apparat-critique/couleur': { etat: 'a_arbitrer', instructions: [{ texte: 'c', posee: null }], reponses: [] },
       },
     }
     const a = avancement(d)
@@ -284,7 +378,7 @@ describe('avancement', () => {
 })
 
 describe('texteAPorterAGpt — le passage de main', () => {
-  const point = toutes.find(p => p.id === 'apparat-critique/crochet-masque')!
+  const point = toutes.find(p => p.id === 'apparat-critique/recomposition')!
 
   it('porte la proposition, la mesure, le conflit et l’entrée réelle', () => {
     const texte = texteAPorterAGpt(point, DIRECTIVES_VIDES.parProposition[point.id] ?? {
@@ -293,7 +387,7 @@ describe('texteAPorterAGpt — le passage de main', () => {
     expect(texte).toContain(point.titre)
     expect(texte).toContain(point.texte)
     expect(texte).toContain(point.mesure!)
-    expect(texte).toContain(point.conflit!.consigne)
+    expect(texte).toContain(point.heurts![0].consigne)
     expect(texte).toContain(point.exemple!.source.texte)
   })
 
