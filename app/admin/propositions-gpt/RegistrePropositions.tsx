@@ -20,19 +20,25 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { texteApparatAffiche } from '@/app/lib/apparatCritique'
 import {
-  ETATS, LOTS, avancement, directiveDe, roleExemple,
+  ETATS, LOTS, VOIX, avancement, directiveDe, messagesGeneraux, roleExemple, texteAPorterAGpt,
   type Directives, type EtatArbitrage, type Exemple, type Fragment,
-  type Instruction, type Proposition,
+  type Message, type Proposition, type Voix,
 } from './registre'
 
-type Filtre = 'toutes' | 'a_arbitrer' | 'conflits' | 'annotees'
+type Filtre = 'toutes' | 'a_arbitrer' | 'conflits' | 'annotees' | 'attente_gpt'
 
 const FILTRES: { cle: Filtre; label: string }[] = [
   { cle: 'toutes', label: 'Toutes' },
   { cle: 'a_arbitrer', label: 'À arbitrer' },
   { cle: 'conflits', label: 'Conflits' },
-  { cle: 'annotees', label: 'Avec instructions' },
+  { cle: 'annotees', label: 'Instruites' },
+  { cle: 'attente_gpt', label: 'Attendent GPT' },
 ]
+
+/** Ce que la route rend : les listes telles qu'elles ont été ÉCRITES, avec leurs
+ *  dates. Le client les reprend plutôt que d'en inventer. */
+type ChampListe = 'instructions' | 'reponses' | 'instructionsGenerales' | 'reponsesGenerales'
+type ReponseRoute = Partial<Record<ChampListe, Message[]>>
 
 const teinteEtat = (e: EtatArbitrage) => ETATS.find(x => x.cle === e)?.teinte ?? 'var(--cs-texte-doux)'
 const labelEtat = (e: EtatArbitrage) => ETATS.find(x => x.cle === e)?.label ?? 'À arbitrer'
@@ -51,12 +57,11 @@ function dateHeure(iso: string | null): string {
  * l'auteur a écrit : un clic malheureux ne doit pas l'effacer, et une fenêtre de
  * confirmation du navigateur serait plus brutale que le geste qu'elle protège.
  */
-function ListeInstructions({ instructions, aide, placeholder, nom, onChanger, envoi }: {
-  instructions: Instruction[]
-  aide?: string
+function ListeMessages({ messages, placeholder, nom, onChanger, envoi }: {
+  messages: Message[]
   placeholder: string
   nom: string
-  onChanger: (suivant: Instruction[]) => void
+  onChanger: (suivant: Message[]) => void
   envoi: boolean
 }) {
   const [brouillon, setBrouillon] = useState('')
@@ -67,21 +72,20 @@ function ListeInstructions({ instructions, aide, placeholder, nom, onChanger, en
     if (!texte) return
     setBrouillon('')
     setASupprimer(null)
-    onChanger([...instructions, { texte, posee: null }])
+    onChanger([...messages, { texte, posee: null }])
   }
 
   function supprimer(i: number) {
     if (aSupprimer !== i) { setASupprimer(i); return }
     setASupprimer(null)
-    onChanger(instructions.filter((_, k) => k !== i))
+    onChanger(messages.filter((_, k) => k !== i))
   }
 
   return (
     <div className="pg-instr">
-      {aide && <p className="pg-aide">{aide}</p>}
-      {instructions.length > 0 && (
+      {messages.length > 0 && (
         <ol className="pg-instr-liste">
-          {instructions.map((instruction, i) => (
+          {messages.map((instruction, i) => (
             <li key={i} className="pg-instr-item">
               <div className="pg-instr-corps">
                 <p className="pg-instr-texte">{instruction.texte}</p>
@@ -93,7 +97,7 @@ function ListeInstructions({ instructions, aide, placeholder, nom, onChanger, en
                 onClick={() => supprimer(i)}
                 onBlur={() => setASupprimer(null)}
                 disabled={envoi}
-                aria-label={aSupprimer === i ? `Confirmer la suppression de l’instruction ${i + 1}` : `Supprimer l’instruction ${i + 1}`}
+                aria-label={aSupprimer === i ? `Confirmer la suppression du message ${i + 1} : ${nom}` : `Supprimer le message ${i + 1} : ${nom}`}
               >
                 {aSupprimer === i ? 'Confirmer ?' : 'Supprimer'}
               </button>
@@ -101,7 +105,6 @@ function ListeInstructions({ instructions, aide, placeholder, nom, onChanger, en
           ))}
         </ol>
       )}
-
 
       <div className="pg-ajout">
         <textarea
@@ -111,7 +114,7 @@ function ListeInstructions({ instructions, aide, placeholder, nom, onChanger, en
           onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); ajouter() } }}
           placeholder={placeholder}
           rows={2}
-          aria-label={`Nouvelle instruction : ${nom}`}
+          aria-label={`Nouveau message : ${nom}`}
         />
         <div className="pg-ajout-pied">
           <span className="pg-raccourci">Ctrl + Entrée</span>
@@ -121,9 +124,73 @@ function ListeInstructions({ instructions, aide, placeholder, nom, onChanger, en
             onClick={ajouter}
             disabled={envoi || brouillon.trim().length === 0}
           >
-            Ajouter l’instruction
+            Ajouter
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Le passage de main vers GPT. ⚠️ GPT n'a pas accès au site : sans ce bouton, la
+ * colonne des réponses serait un champ que rien ne vient remplir. On copie la
+ * proposition, la mesure, le conflit et les instructions déjà posées, pour n'avoir
+ * pas à les recomposer de mémoire dans une autre fenêtre.
+ */
+function BoutonCopier({ texte }: { texte: string }) {
+  const [copie, setCopie] = useState(false)
+  return (
+    <button
+      type="button"
+      className="pg-copier"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(texte)
+          setCopie(true)
+          setTimeout(() => setCopie(false), 2000)
+        } catch { setCopie(false) }
+      }}
+    >
+      {copie ? 'Copié' : 'Copier pour GPT'}
+    </button>
+  )
+}
+
+/**
+ * Les DEUX voix d'un point, côte à côte : ce que l'auteur ordonne, ce que GPT
+ * répond. ⛔ Elles ne se mêlent jamais, et l'ordre ne change pas d'un point à
+ * l'autre : c'est ce qui permet de parcourir la page sans relire les intitulés.
+ */
+function Dialogue({ instructions, reponses, aide, nom, aCopier, onChanger, envoi }: {
+  instructions: Message[]
+  reponses: Message[]
+  aide?: string
+  nom: string
+  aCopier?: string
+  onChanger: (voix: Voix, suivant: Message[]) => void
+  envoi: boolean
+}) {
+  const parVoix: Record<Voix, Message[]> = { instructions, reponses }
+  return (
+    <div className="pg-dialogue">
+      {aide && <p className="pg-aide">{aide}</p>}
+      <div className="pg-voix-grille">
+        {VOIX.map(v => (
+          <section key={v.cle} className={v.cle === 'reponses' ? 'pg-voix pg-voix--gpt' : 'pg-voix'}>
+            <div className="pg-voix-tete">
+              <p className="pg-label">{v.label}</p>
+              {v.cle === 'reponses' && aCopier && <BoutonCopier texte={aCopier} />}
+            </div>
+            <ListeMessages
+              messages={parVoix[v.cle]}
+              placeholder={v.placeholder}
+              nom={`${v.label}, ${nom}`}
+              onChanger={suivant => onChanger(v.cle, suivant)}
+              envoi={envoi}
+            />
+          </section>
+        ))}
       </div>
     </div>
   )
@@ -156,7 +223,7 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
       const j = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(j.error || `Échec de l’enregistrement (${r.status}).`)
       setEnregistreLe(j.majLe ?? null)
-      return j as { instructions?: Instruction[]; instructionsGenerales?: Instruction[] }
+      return j as ReponseRoute
     } catch (e) {
       retour()
       setErreur(e instanceof Error ? e.message : 'Erreur d’enregistrement.')
@@ -173,28 +240,32 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
     await envoyer({ id, etat }, () => setDirectives(avant))
   }
 
-  async function poserInstructions(id: string, instructions: Instruction[]) {
+  async function poserMessages(id: string, voix: Voix, messages: Message[]) {
     const avant = directives
     const actuelle = directiveDe(directives, id)
-    setDirectives(d => ({ ...d, parProposition: { ...d.parProposition, [id]: { ...actuelle, instructions } } }))
+    setDirectives(d => ({
+      ...d,
+      parProposition: { ...d.parProposition, [id]: { ...actuelle, [voix]: messages } },
+    }))
     // La réponse porte les dates POSÉES PAR LE SERVEUR : on les reprend, sinon la
     // ligne resterait sans date jusqu'au prochain chargement.
-    const j = await envoyer({ id, instructions }, () => setDirectives(avant))
-    if (j?.instructions) {
+    const j = await envoyer({ id, [voix]: messages }, () => setDirectives(avant))
+    const rendu = j?.[voix]
+    if (rendu) {
       setDirectives(d => ({
         ...d,
-        parProposition: { ...d.parProposition, [id]: { ...directiveDe(d, id), instructions: j.instructions! } },
+        parProposition: { ...d.parProposition, [id]: { ...directiveDe(d, id), [voix]: rendu } },
       }))
     }
   }
 
-  async function poserGenerales(instructionsGenerales: Instruction[]) {
+  async function poserGenerales(voix: Voix, messages: Message[]) {
+    const champ: ChampListe = voix === 'instructions' ? 'instructionsGenerales' : 'reponsesGenerales'
     const avant = directives
-    setDirectives(d => ({ ...d, instructionsGenerales }))
-    const j = await envoyer({ instructionsGenerales }, () => setDirectives(avant))
-    if (j?.instructionsGenerales) {
-      setDirectives(d => ({ ...d, instructionsGenerales: j.instructionsGenerales! }))
-    }
+    setDirectives(d => ({ ...d, [champ]: messages }))
+    const j = await envoyer({ [champ]: messages }, () => setDirectives(avant))
+    const rendu = j?.[champ]
+    if (rendu) setDirectives(d => ({ ...d, [champ]: rendu }))
   }
 
   const retenue = (p: Proposition) => {
@@ -202,6 +273,7 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
     if (filtre === 'a_arbitrer') return d.etat === 'a_arbitrer'
     if (filtre === 'conflits') return Boolean(p.conflit)
     if (filtre === 'annotees') return d.instructions.length > 0
+    if (filtre === 'attente_gpt') return d.instructions.length > 0 && d.reponses.length === 0
     return true
   }
 
@@ -220,6 +292,10 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
           <span><strong>{compte.total}</strong> proposition{pluriel(compte.total)}</span>
           <span><strong>{compte.restantes}</strong> à arbitrer</span>
           <span><strong>{compte.instructions}</strong> instruction{pluriel(compte.instructions)}</span>
+          <span><strong>{compte.reponses}</strong> réponse{pluriel(compte.reponses)} de GPT</span>
+          {compte.attendGpt > 0 && (
+            <span><strong>{compte.attendGpt}</strong> attend{compte.attendGpt > 1 ? 'ent' : ''} GPT</span>
+          )}
           <span className="pg-etat-envoi">
             {enCours > 0 ? 'Enregistrement…' : enregistreLe ? `Enregistré le ${dateHeure(enregistreLe)}` : 'Rien d’enregistré'}
           </span>
@@ -228,12 +304,11 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
       </header>
 
       <section className="pg-generale">
-        <p className="pg-label">Instructions générales</p>
-        <ListeInstructions
-          instructions={directives.instructionsGenerales}
+        <Dialogue
+          instructions={messagesGeneraux(directives, 'instructions')}
+          reponses={messagesGeneraux(directives, 'reponses')}
           aide="Ce que vous posez ici commande tout le lot. C’est le bon endroit pour trancher l’ordre de priorité, ou pour dire ce que vous ne voulez voir nulle part."
-          placeholder="Une instruction générale…"
-          nom="instructions générales"
+          nom="sur l’ensemble du lot"
           onChanger={poserGenerales}
           envoi={enCours > 0}
         />
@@ -280,6 +355,11 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
                               {d.instructions.length} instruction{pluriel(d.instructions.length)}
                             </span>
                           )}
+                          {d.reponses.length > 0 && (
+                            <span className="pg-badge pg-badge--gpt">
+                              {d.reponses.length} réponse{pluriel(d.reponses.length)}
+                            </span>
+                          )}
                           <span className="pg-badge" style={{ color: teinteEtat(d.etat), borderColor: teinteEtat(d.etat) }}>
                             {labelEtat(d.etat)}
                           </span>
@@ -318,11 +398,12 @@ export default function RegistrePropositions({ initial }: { initial: Directives 
                             </button>
                           ))}
                         </div>
-                        <ListeInstructions
+                        <Dialogue
                           instructions={d.instructions}
-                          placeholder="Une instruction sur ce point…"
+                          reponses={d.reponses}
                           nom={p.titre}
-                          onChanger={suivant => poserInstructions(p.id, suivant)}
+                          aCopier={texteAPorterAGpt(p, d)}
+                          onChanger={(voix, suivant) => poserMessages(p.id, voix, suivant)}
                           envoi={enCours > 0}
                         />
                       </div>
@@ -414,7 +495,20 @@ const CSS = `
   text-transform:uppercase;color:var(--cs-texte-doux);margin:0 0 8px}
 .pg-aide{font-size:0.78125rem;line-height:1.55;color:var(--cs-texte-second);margin:0 0 9px}
 
-/* ── Instructions ───────────────────────────────────────────────────────── */
+/* ── Les deux voix ──────────────────────────────────────────────────────── */
+.pg-voix-grille{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.pg-voix{min-width:0}
+/* La colonne de GPT se distingue par un filet et un fond, jamais par la seule
+   couleur : les intitulés la nomment, et le dessin la seconde. */
+.pg-voix--gpt{padding-left:14px;border-left:1px solid var(--cs-bord)}
+.pg-voix-tete{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;min-height:1.375rem}
+.pg-voix-tete .pg-label{margin:0}
+.pg-copier{margin-left:auto;padding:2px 9px;font:inherit;font-size:0.625rem;
+  color:var(--cs-texte-second);background:none;border:1px solid var(--cs-bord);
+  border-radius:999px;cursor:pointer;white-space:nowrap}
+.pg-copier:hover{color:var(--cs-vert);border-color:var(--cs-vert)}
+
+/* ── Messages ───────────────────────────────────────────────────────────── */
 .pg-instr-liste{list-style:none;margin:0 0 11px;padding:0;counter-reset:instr}
 .pg-instr-item{counter-increment:instr;display:flex;gap:10px;align-items:flex-start;
   padding:8px 10px 8px 0;border-bottom:1px solid var(--cs-bord-clair)}
@@ -473,6 +567,7 @@ const CSS = `
 .pg-badge--fait{color:var(--cs-vert);border-color:var(--cs-vert-pale);background:var(--cs-vert-pale)}
 .pg-badge--conflit{color:var(--cs-danger);border-color:var(--cs-danger-bord);background:var(--cs-danger-fond)}
 .pg-badge--instr{color:var(--cs-or);border-color:var(--cs-or-doux)}
+.pg-badge--gpt{color:var(--cs-systeme);border-color:var(--cs-systeme)}
 
 .pg-texte{font-size:0.8125rem;line-height:1.62;color:var(--cs-texte);margin:0 0 10px}
 
@@ -519,6 +614,12 @@ const CSS = `
 .pg-etat--actif{font-weight:600;background:var(--cs-fond)}
 .pg-etat:disabled{cursor:default}
 
+/* Seuil de la charte : deux colonnes de saisie ne tiennent pas en dessous. La
+   colonne de GPT passe alors SOUS les instructions, et son filet passe en tête. */
+@media (max-width:900px){
+  .pg-voix-grille{grid-template-columns:1fr;gap:18px}
+  .pg-voix--gpt{padding-left:0;padding-top:14px;border-left:none;border-top:1px solid var(--cs-bord)}
+}
 @media (max-width:640px){
   .pg{padding:20px 14px 48px}
   .pg-ex-rang{grid-template-columns:1fr;gap:3px}

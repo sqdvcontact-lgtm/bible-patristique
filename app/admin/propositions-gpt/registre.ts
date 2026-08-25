@@ -428,31 +428,54 @@ export function roleExemple(exemple: Exemple): string | null {
 
 // ── Directives de l'auteur ───────────────────────────────────────────────────
 
-/** Une consigne, telle que l’auteur l’a écrite, avec le moment où elle a été posée.
- *  Les instructions s'EMPILENT : une consigne nouvelle ne remplace pas la
- *  précédente, elle vient après. C’est le journal des directives, pas un champ. */
-export type Instruction = { texte: string; posee: string | null }
+/** Une pièce du dialogue, telle qu’elle a été écrite, avec le moment où elle a été
+ *  posée. Les pièces s'EMPILENT : une consigne nouvelle ne remplace pas la
+ *  précédente, elle vient après. C’est un journal, pas un champ. */
+export type Message = { texte: string; posee: string | null }
 
-export type Directive = { etat: EtatArbitrage; instructions: Instruction[] }
+/** Nom conservé : `instructions` désignait déjà ce type avant que GPT n’ait sa
+ *  colonne. ⛔ Ne pas retirer, la route et la page l’importent. */
+export type Instruction = Message
+
+/** Un point du registre porte DEUX voix, et elles ne se mêlent jamais :
+ *  ce que l’auteur ordonne, et ce que GPT répond. */
+export type Directive = {
+  etat: EtatArbitrage
+  /** L’auteur du site. C’est cette voix qui commande. */
+  instructions: Message[]
+  /** GPT. Elle éclaire, elle ne décide pas. */
+  reponses: Message[]
+}
+
+export const DIRECTIVE_VIDE: Directive = { etat: 'a_arbitrer', instructions: [], reponses: [] }
 
 export type Directives = {
   version: 1
   majLe: string | null
-  instructionsGenerales: Instruction[]
+  instructionsGenerales: Message[]
+  reponsesGenerales: Message[]
   parProposition: Record<string, Directive>
 }
 
 export const DIRECTIVES_VIDES: Directives = {
-  version: 1, majLe: null, instructionsGenerales: [], parProposition: {},
+  version: 1, majLe: null, instructionsGenerales: [], reponsesGenerales: [], parProposition: {},
 }
 
 export const PLAFOND_INSTRUCTION = 4000
 export const PLAFOND_INSTRUCTIONS = 100
 
-/** Nettoie une liste d’instructions venue du client ou de la base. Écarte le vide,
+/** Les deux voix du dialogue. `instructions` est la clé de stockage historique. */
+export type Voix = 'instructions' | 'reponses'
+
+export const VOIX: { cle: Voix; label: string; placeholder: string }[] = [
+  { cle: 'instructions', label: 'Mes instructions', placeholder: 'Une instruction…' },
+  { cle: 'reponses', label: 'Réponses de GPT', placeholder: 'La réponse de GPT…' },
+]
+
+/** Nettoie une liste de messages venue du client ou de la base. Écarte le vide,
  *  borne la longueur et le nombre. ⛔ Ne date rien : c’est la route qui date, pour
  *  qu’un client ne puisse pas antidater une consigne. */
-export function lireInstructions(v: unknown): Instruction[] {
+export function lireMessages(v: unknown): Message[] {
   if (typeof v === 'string') {
     // Forme héritée : une note unique. On la garde comme première instruction plutôt
     // que de la perdre au premier chargement.
@@ -493,29 +516,80 @@ export function lireDirectives(valeur: unknown): Directives {
       const d = v as Record<string, unknown>
       const etat = ETATS.some(e => e.cle === d.etat) ? (d.etat as EtatArbitrage) : 'a_arbitrer'
       // `note` est la forme héritée du premier jet, quand la directive était un champ unique.
-      parProposition[cle] = { etat, instructions: lireInstructions(d.instructions ?? d.note) }
+      parProposition[cle] = {
+        etat,
+        instructions: lireMessages(d.instructions ?? d.note),
+        reponses: lireMessages(d.reponses),
+      }
     }
   }
   return {
     version: 1,
     majLe: typeof o.majLe === 'string' ? o.majLe : null,
-    instructionsGenerales: lireInstructions(o.instructionsGenerales ?? o.noteGenerale),
+    instructionsGenerales: lireMessages(o.instructionsGenerales ?? o.noteGenerale),
+    reponsesGenerales: lireMessages(o.reponsesGenerales),
     parProposition,
   }
 }
 
 export function directiveDe(directives: Directives, id: string): Directive {
-  return directives.parProposition[id] ?? { etat: 'a_arbitrer', instructions: [] }
+  return directives.parProposition[id] ?? DIRECTIVE_VIDE
 }
 
-/** Combien reste-t-il à arbitrer, et combien de propositions ont reçu une instruction. */
+/** Les messages d'une voix, sur un point ou en général. */
+export function messagesGeneraux(directives: Directives, voix: Voix): Message[] {
+  return voix === 'instructions' ? directives.instructionsGenerales : directives.reponsesGenerales
+}
+
+/** Combien reste-t-il à arbitrer, ce qui porte une instruction, et ce qui attend GPT. */
 export function avancement(directives: Directives) {
   const ids = LOTS.flatMap(lot => lot.propositions.map(p => p.id))
   const arbitrees = ids.filter(id => directiveDe(directives, id).etat !== 'a_arbitrer').length
   const annotees = ids.filter(id => directiveDe(directives, id).instructions.length > 0).length
   const instructions = ids.reduce((n, id) => n + directiveDe(directives, id).instructions.length, 0)
     + directives.instructionsGenerales.length
-  return { total: ids.length, arbitrees, annotees, instructions, restantes: ids.length - arbitrees }
+  const reponses = ids.reduce((n, id) => n + directiveDe(directives, id).reponses.length, 0)
+    + directives.reponsesGenerales.length
+  // Un point instruit mais sans réponse : c'est là que le dialogue attend.
+  const attendGpt = ids.filter(id => {
+    const d = directiveDe(directives, id)
+    return d.instructions.length > 0 && d.reponses.length === 0
+  }).length
+  return {
+    total: ids.length, arbitrees, annotees, instructions, reponses, attendGpt,
+    restantes: ids.length - arbitrees,
+  }
+}
+
+/**
+ * Ce qu'on met dans le presse-papiers pour le porter à GPT : la proposition dans
+ * ses termes, ce que la mesure en dit, ce qu'elle heurte, et les instructions déjà
+ * posées. ⚠️ GPT n'a pas accès au site : sans ce passage de main, la colonne des
+ * réponses resterait un champ que rien ne remplit.
+ */
+export function texteAPorterAGpt(p: Proposition, d: Directive): string {
+  const bloc: string[] = [
+    `Proposition : ${p.titre}`,
+    `Rubrique : ${p.rubrique}`,
+    '',
+    `Ta proposition : ${p.texte}`,
+  ]
+  if (p.mesure) bloc.push('', `Mesuré sur le corpus : ${p.mesure}`)
+  if (p.conflit) {
+    bloc.push('', 'Cette proposition heurte une consigne antérieure.',
+      `Consigne : ${p.conflit.consigne}`,
+      `Proposition : ${p.conflit.proposition}`)
+  }
+  if (p.exemple) {
+    bloc.push('', `Entrée réelle (note ${p.exemple.source.note}) : ${p.exemple.source.texte}`)
+    if (p.exemple.reserve) bloc.push(`Réserve : ${p.exemple.reserve}`)
+  }
+  if (d.instructions.length > 0) {
+    bloc.push('', 'Instructions de l’auteur du site :')
+    d.instructions.forEach((m, i) => bloc.push(`${i + 1}. ${m.texte}`))
+  }
+  bloc.push('', 'Réponds à ce point précis.')
+  return bloc.join('\n')
 }
 
 /** Les propositions qui heurtent une consigne antérieure : ce sont elles qui

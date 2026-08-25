@@ -7,9 +7,9 @@ import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 import {
-  CLE_DIRECTIVES, ETATS, LOTS,
-  lireDirectives, lireInstructions,
-  type Directives, type EtatArbitrage, type Instruction,
+  CLE_DIRECTIVES, DIRECTIVE_VIDE, ETATS, LOTS, VOIX,
+  lireDirectives, lireMessages,
+  type Directives, type EtatArbitrage, type Message,
 } from '@/app/admin/propositions-gpt/registre'
 
 const supabaseAdmin = createClient(
@@ -22,10 +22,10 @@ const supabaseAdmin = createClient(
 const IDS_CONNUS = new Set(LOTS.flatMap(l => l.propositions.map(p => p.id)))
 
 /** ⛔ La DATE est posée ici, jamais par le client : une consigne ne s'antidate pas.
- *  Une instruction déjà datée garde sa date, sinon toute la liste se redaterait
- *  à chaque ajout ou suppression. */
-function dater(instructions: Instruction[], quand: string): Instruction[] {
-  return instructions.map(i => ({ texte: i.texte, posee: i.posee ?? quand }))
+ *  Un message déjà daté garde sa date, sinon toute la liste se redaterait à chaque
+ *  ajout ou suppression. */
+function dater(messages: Message[], quand: string): Message[] {
+  return messages.map(m => ({ texte: m.texte, posee: m.posee ?? quand }))
 }
 
 export async function POST(request: Request) {
@@ -53,11 +53,15 @@ export async function POST(request: Request) {
     version: 1,
     majLe: maintenant,
     instructionsGenerales: courant.instructionsGenerales,
+    reponsesGenerales: courant.reponsesGenerales,
     parProposition: { ...courant.parProposition },
   }
 
   if ('instructionsGenerales' in body) {
-    suivant.instructionsGenerales = dater(lireInstructions(body.instructionsGenerales), maintenant)
+    suivant.instructionsGenerales = dater(lireMessages(body.instructionsGenerales), maintenant)
+  }
+  if ('reponsesGenerales' in body) {
+    suivant.reponsesGenerales = dater(lireMessages(body.reponsesGenerales), maintenant)
   }
 
   const id = typeof body.id === 'string' ? body.id : null
@@ -65,12 +69,14 @@ export async function POST(request: Request) {
     if (!IDS_CONNUS.has(id)) {
       return NextResponse.json({ error: `Proposition inconnue : ${id}` }, { status: 400 })
     }
-    const actuelle = courant.parProposition[id] ?? { etat: 'a_arbitrer' as EtatArbitrage, instructions: [] }
+    const actuelle = courant.parProposition[id] ?? DIRECTIVE_VIDE
     const etat = ETATS.some(e => e.cle === body.etat) ? (body.etat as EtatArbitrage) : actuelle.etat
-    const instructions = 'instructions' in body
-      ? dater(lireInstructions(body.instructions), maintenant)
-      : actuelle.instructions
-    suivant.parProposition[id] = { etat, instructions }
+    // Les deux voix s'écrivent par le même chemin, jamais l'une dans l'autre.
+    const voix = Object.fromEntries(VOIX.map(v => [
+      v.cle,
+      v.cle in body ? dater(lireMessages(body[v.cle]), maintenant) : actuelle[v.cle],
+    ])) as Pick<typeof actuelle, 'instructions' | 'reponses'>
+    suivant.parProposition[id] = { etat, ...voix }
   }
 
   const { error } = await supabaseAdmin
@@ -85,6 +91,8 @@ export async function POST(request: Request) {
     ok: true,
     majLe: maintenant,
     instructionsGenerales: suivant.instructionsGenerales,
+    reponsesGenerales: suivant.reponsesGenerales,
     instructions: id ? suivant.parProposition[id].instructions : undefined,
+    reponses: id ? suivant.parProposition[id].reponses : undefined,
   })
 }

@@ -1650,6 +1650,20 @@ l'on a écrit ou seulement pensé, et l'auteur l'a relevé le jour même. Une di
 pose désormais par un geste : on écrit, on clique « Ajouter l’instruction », et elle
 rejoint la liste. Ctrl + Entrée fait le même office.
 
+⛔ **Le registre porte DEUX VOIX, et elles ne se mêlent jamais** : `Directive.instructions`
+est celle de l’auteur du site, qui commande ; `Directive.reponses` est celle de GPT, qui
+éclaire. Elles paraissent en deux colonnes, nommées, séparées par un filet, et l’ordre ne
+change pas d’un point à l’autre. La voix de GPT ne se distingue jamais par la seule couleur.
+
+⚠️ **GPT n’a pas accès au site**, et sa colonne serait un champ que rien ne remplit sans le
+passage de main : le bouton « Copier pour GPT » met dans le presse-papiers la proposition,
+la mesure, le conflit, l’entrée réelle et les instructions déjà posées. ⛔ `texteAPorterAGpt`
+n’emporte JAMAIS les réponses de GPT, et un test le vérifie : on ne relit pas à quelqu’un ses
+propres mots. Les réponses se collent ensuite dans la colonne, à la main.
+
+⚠️ Le filtre **« Attendent GPT »** isole les points instruits et sans réponse : c’est là que
+le dialogue est en suspens. `avancement` compte `reponses` et `attendGpt` à part.
+
 **Les instructions S'EMPILENT**, elles ne se remplacent pas : `Directive.instructions`
 est un tableau, chaque entrée datée PAR LA ROUTE et supprimable. C'est un journal, et
 l'on doit pouvoir relire comment une décision s'est formée. ⚠️ La date se pose côté
