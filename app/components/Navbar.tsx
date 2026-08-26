@@ -11,6 +11,9 @@ import { LIVRES } from "@/app/lib/bible";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import EmblemeNavigation from "@/app/components/EmblemesNavigation";
+import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
+import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
+import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
@@ -141,7 +144,7 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
     <span style={{ position: "relative", display: "inline-flex" }}
       onMouseEnter={ouvrir} onMouseLeave={fermer}
       onFocus={ouvrir} onBlur={fermer}>
-      <Link href={href} className="cs-onglet" style={style}>{label}</Link>
+      <Link href={href} className="cs-nav-onglet" style={style}>{label}</Link>
       {ouvert && recentes.length > 0 && (
         <div onMouseEnter={ouvrir} onMouseLeave={fermer} className="cs-defilement-discret"
           style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "7px", zIndex: 3000,
@@ -174,7 +177,7 @@ function OngletPatristique({ href, label, style }: { href: string; label: string
 function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSSProperties }) {
   return (
     <span className="cs-plus" style={{ display: "inline-flex" }}>
-      <Link href="/traductions" className="cs-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+      <Link href="/traductions" className="cs-nav-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
         {label}
         <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -206,7 +209,7 @@ function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSS
 function OngletAdministration({ label, style }: { label: string; style: React.CSSProperties }) {
   return (
     <span className="cs-plus" style={{ display: "inline-flex" }}>
-      <Link href="/admin" className="cs-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+      <Link href="/admin" className="cs-nav-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
         {label}
         <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
           <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
@@ -264,9 +267,9 @@ function OngletBibles({ etat, pathname, styleLien }: {
   if (etat === 'deux') {
     return (
       <>
-        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-onglet" aria-current={surClassique ? "page" : undefined}
+        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-nav-onglet" aria-current={surClassique ? "page" : undefined}
           style={styleLien("/", true, true)}>Bible classique</Link>
-        <Link href="/polyglotte" className="cs-onglet" aria-current={surPolyglotte ? "page" : undefined}
+        <Link href="/polyglotte" className="cs-nav-onglet" aria-current={surPolyglotte ? "page" : undefined}
           style={styleLien("/polyglotte", undefined, true)}>Bible polyglotte</Link>
       </>
     );
@@ -292,7 +295,7 @@ function OngletBibles({ etat, pathname, styleLien }: {
   const styleFace = surPolyglotte ? styleLien("/polyglotte", undefined, true) : styleLien("/", true, true);
   return (
     <span className="cs-plus" style={{ display: "inline-flex" }}>
-      <Link href={HREF_BIBLE_CLASSIQUE} className="cs-onglet" aria-current={surClassique ? "page" : undefined}
+      <Link href={HREF_BIBLE_CLASSIQUE} className="cs-nav-onglet" aria-current={surClassique ? "page" : undefined}
         style={{ ...styleFace, display: "inline-flex", alignItems: "center", gap: "3px" }}>
         {etat === 'long' ? "La Bible" : "Bible"}
         <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
@@ -506,6 +509,17 @@ export default function Navbar() {
   const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
   const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null; note?: string | null }[]>([]);
+  // L'ÉDITION de chaque œuvre montrée, chargée juste après les titres (voir plus bas) :
+  // un même titre du même auteur paraît plusieurs fois, une ligne par édition, et rien
+  // ne disait laquelle on allait ouvrir. Une carte à part, pour que les titres
+  // s'affichent sans attendre cette seconde lecture.
+  const [editionsOeuvres, setEditionsOeuvres] = useState<Record<string, EditionOeuvre>>({});
+  // Table de référence des éditeurs, qui rend aux maisons leur nom RÉPERTORIÉ
+  // (« L. Guérin & Cie » → « Louis Guérin »). Lue à la première œuvre trouvée qui porte
+  // un éditeur, et pas avant : la barre est sur toutes les pages, elle n'a pas à charger
+  // cette table tant qu'on ne cherche rien. `null` en attendant — la ligne d'édition rend
+  // alors la forme rencontrée, qui vaut mieux que rien.
+  const [indexEditeurs, setIndexEditeurs] = useState<IndexEditeurs | null>(null);
   const [segmentsTrouves, setSegmentsTrouves] = useState<{ id: number; segment_texte: string; id_oeuvre: string; auteur_nom: string; oeuvre_titre: string }[]>([]);
   const [evenementsTrouves, setEvenementsTrouves] = useState<{ id: string; titre: string; date_affichage: string }[]>([]);
   const abortRef = useRef<AbortController | null>(null);
@@ -556,7 +570,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setSegmentsTrouves([]); setEvenementsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setEditionsOeuvres({}); setSegmentsTrouves([]); setEvenementsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
     setRechercheRapideLoading(true);
     setNbResultatsProgressif(0);
     setNbTotalReel(0);
@@ -578,6 +592,36 @@ export default function Navbar() {
           const totalCat = (arr: typeof rows) => (arr.length ? Number(arr[0].total_cat ?? arr.length) : 0);
           setAuteursTrouves(au.map(r => ({ id_auteur: r.id, nom: r.titre })));
           setOeuvresTrouvees(oe.map(r => ({ id_oeuvre: r.id, titre: r.titre, auteurs: r.sous_titre ? { nom: r.sous_titre } : null })));
+          // ── L'ÉDITION des œuvres montrées ──────────────────────────────────────
+          // `recherche_globale` rend un titre et son auteur, rien de plus : c'est une
+          // recherche, pas un catalogue, et l'on ne va pas lui faire porter les
+          // colonnes de la bibliothèque pour six lignes. Une seconde lecture, bornée
+          // aux TROIS œuvres effectivement affichées, va chercher de quoi les
+          // distinguer. Elle ne retarde pas les titres : ils sont déjà posés.
+          const idsMontres = oe.slice(0, 3).map(r => r.id);
+          setEditionsOeuvres({});
+          if (idsMontres.length) {
+            supabase.from('v_oeuvres_dates')
+              .select('id_oeuvre, trad_auteur, editeur, ville, date_publication_affichage_courte, langue_trad, langue_originale')
+              .in('id_oeuvre', idsMontres)
+              .abortSignal(signal)
+              .then(({ data: lignes }) => {
+                if (signal.aborted) return;
+                const parId: Record<string, EditionOeuvre> = {};
+                (lignes ?? []).forEach((l: Record<string, string | null>) => {
+                  parId[l.id_oeuvre as string] = {
+                    trad_auteur: l.trad_auteur, editeur: l.editeur, ville: l.ville,
+                    date: l.date_publication_affichage_courte,
+                    langue_trad: l.langue_trad, langue_originale: l.langue_originale,
+                  };
+                });
+                setEditionsOeuvres(parId);
+                // Les maisons d'édition ne se lisent qu'ici, et seulement s'il y en a une.
+                if (Object.values(parId).some(e => (e.editeur ?? '').trim())) {
+                  chargerEditeurs().then(() => setIndexEditeurs(indexEditeursNavigateur()));
+                }
+              }, () => { /* l'édition manque : le titre et l'auteur suffisent à ouvrir */ });
+          }
           setEssaisTrouves(es.map(r => ({ id: Number(r.id), titre: r.titre })));
           setEvenementsTrouves(ev.slice(0, 4).map(r => ({ id: r.id, titre: r.titre, date_affichage: r.sous_titre ?? '' })));
           setNbTotalReel(totalCat(au) + totalCat(oe) + totalCat(es) + totalCat(ev));
@@ -826,7 +870,7 @@ export default function Navbar() {
   const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
     const actif = estCheminActif(href, exact);
     // Le fond ne s'écrit PAS en ligne : un style en ligne l'emporte sur toute règle
-    // de feuille, et `.cs-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
+    // de feuille, et `.cs-nav-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
     return {
       display: "inline-block", padding: "0.25rem 0.5rem", borderRadius: "4px",
@@ -918,7 +962,18 @@ export default function Navbar() {
       </div>
 
       {rechercheOuverte && qNorm && (
-        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: 0, right: 0, width: mobile ? "100%" : "auto", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
+        /* Le panneau de résultats ne se mesure PAS sur le champ. Il l'a longtemps fait
+           (`left: 0; right: 0` dans un conteneur en `fit-content`) et valait donc la
+           largeur du champ plus la loupe : 154 px mesurés à 1 280, où « Anonyme /
+           Symboles et confessions de foi » se pliait en trois lignes et où l'édition
+           d'une œuvre n'avait aucune place. Le champ, lui, se resserre par paliers
+           (cf. largeurRecherche) — le panneau aurait donc rétréci à mesure qu'il avait
+           davantage à dire.
+           Il s'accroche maintenant par la DROITE, au bord des outils, et se déplie vers
+           la gauche, sur la place libre du milieu de la barre : c'est le seul côté où
+           l'on est sûr de ne buter contre rien. La largeur reste en rem, donc accordée
+           à la police racine, qui grandit avec la fenêtre au-delà de 1 440 px. */
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: mobile ? 0 : "auto", right: 0, width: mobile ? "100%" : "min(32rem, calc(100vw - 3rem))", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "var(--cs-fond-clair)" }}>
@@ -966,15 +1021,23 @@ export default function Navbar() {
               {oeuvresTrouvees.length > 0 && (
                 <div style={{ padding: "6px 0 5px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
                   <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 3px" }}>Œuvres patristiques</p>
-                  {oeuvresTrouvees.slice(0, 3).map(o => (
+                  {oeuvresTrouvees.slice(0, 3).map(o => {
+                    // Ce qui distingue CETTE édition des autres du même titre : son
+                    // traducteur (ou sa langue, si c'est le texte original), sa maison,
+                    // sa ville, son année. Muette tant que la seconde lecture n'est pas
+                    // revenue, et absente si l'œuvre ne porte aucune de ces mentions.
+                    const edition = ligneEdition(editionsOeuvres[o.id_oeuvre] ?? {}, indexEditeurs);
+                    return (
                     <Link key={o.id_oeuvre} id={`nav-oe:${o.id_oeuvre}`} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
                       style={{ display: "block", padding: "4px 12px", textDecoration: "none" }}
                       onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, requeteRapide.trim())}</span>
                       {o.auteurs?.nom && <span style={{ display: "block", fontSize: "0.71875rem", fontStyle: "italic", color: "var(--cs-texte-second)", lineHeight: 1.25, marginTop: "1px" }}>{o.auteurs.nom}</span>}
+                      {edition && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-doux)", lineHeight: 1.3, marginTop: "1px" }}>{edition}</span>}
                     </Link>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               {livresTrouves.length > 0 && (
@@ -1271,13 +1334,24 @@ export default function Navbar() {
              écrit en ligne aurait rendu impossible.
              La montée est un peu plus lente que la descente — l'éclaircissement se
              pose doucement sous le curseur, mais la barre s'éteint sans traîner
-             quand on la quitte. */
-          .cs-onglet {
+             quand on la quitte.
+
+             ⛔ « cs-nav-onglet », et non « cs-onglet » : ce dernier appartient depuis
+             le modèle unique d'onglets de PAGE (globals.css, .cs-onglets) à des boutons
+             qui se partagent une barre en parts égales — flex: 1. Les liens de la barre
+             de navigation portaient le même nom, et ont hérité de ce partage :
+             « Communauté », seul onglet primaire rendu en lien NU (les autres sont
+             enveloppés d'un span), était le seul enfant direct du flex de la barre à
+             porter la classe, et s'étalait donc sur toute la place restante — 204,8 px
+             mesurés pour un mot qui en demande 95. Il en tenait aussi un filet bas de
+             2 px et un décalage de −1 px, faits pour souligner un onglet retenu.
+             Deux dessins sans rapport ne partagent pas un nom de classe. */
+          .cs-nav-onglet {
             background: var(--fond, transparent);
             transition: background 260ms cubic-bezier(.33,.68,.36,1),
                         color 200ms cubic-bezier(.33,.68,.36,1);
           }
-          .cs-onglet:hover {
+          .cs-nav-onglet:hover {
             background: var(--fond-survol, rgba(255,255,255,0.085));
             color: var(--cs-sur-aplat);
             transition-duration: 140ms;
@@ -1377,7 +1451,7 @@ export default function Navbar() {
           .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 6px 12px 2px; opacity: 0.9; }
           .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 4px 4px 0; }
           @media (prefers-reduced-motion: reduce) {
-            .cs-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
+            .cs-nav-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
         `}</style>
         {/* Plus de `max-w-screen-xl mx-auto` : la barre bridait sa largeur à 1 280 px et
@@ -1432,7 +1506,7 @@ export default function Navbar() {
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
                 ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />
-                : <Link key={href} href={href} className="cs-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
+                : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} />
