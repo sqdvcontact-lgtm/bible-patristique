@@ -353,7 +353,24 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           reste épinglé au bas du volet. */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingTop: '2px' }}>
         {loading && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>}
-        {!loading && commentaires.length === 0 && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginBottom: '12px' }}>Aucun commentaire pour ce passage.</p>}
+        {!loading && commentaires.length === 0 && (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '8px 0' }}>
+            {/* La carapace vide tient le volet tant que personne n'a parlé, et elle se pose au
+                MILIEU de la zone défilante, en largeur comme en hauteur. Le centrage vertical
+                vient du « height: 100 % » de cette enveloppe : la zone est déjà « flex: 1 », donc
+                sa hauteur tient compte du formulaire épinglé au bas du volet sans qu'on ait à la
+                calculer. Un plafond composé sur la fenêtre, lui, devrait deviner cette hauteur.
+
+                ⛔ Aucune LARGEUR ni HAUTEUR posée sur la gravure, deux MAXIMA seulement (charte,
+                « Une illustration se borne par deux maxima, jamais par une largeur posée »). Le
+                plafond réserve 3,5 rem à l'invite qui se pose dessous, et « flexShrink: 0 » interdit
+                à la colonne de comprimer la planche : une hauteur imposée à une largeur déjà
+                arrêtée écraserait le dessin au lieu de le recalculer. */}
+            <img className="cs-ornement" src="/ornements/carapace-posee.png" alt="" aria-hidden="true"
+              style={{ maxWidth: 'min(20rem, 82%)', maxHeight: 'calc(100% - 3.5rem)', flexShrink: 0, opacity: 0.42 }} />
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun commentaire pour ce passage.</p>
+          </div>
+        )}
         {principaux.map(c => (
           <div key={c.id}>
             {renderCommentaire(c, false)}

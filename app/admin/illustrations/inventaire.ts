@@ -146,7 +146,17 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, après avoir cliqué un paragraphe dépourvu de référence biblique.' },
     source: 'app/oeuvre/[id]/OeuvreClient.tsx',
     traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 24rem et 88 %, bornée en hauteur' },
-    note: 'Répond à l’arbre ardent du même volet, dont elle reprend la planche, la mesure et l’opacité : les deux états du volet se ressemblent au lieu de se contredire. L’arbre est ici mort et le corbeau seul — l’absence se dit par l’image avant de se dire par la phrase. Le plafond de hauteur réserve 13,5 rem au lieu de 11,5 : le bouton de proposition se pose sous l’invite et sortirait de l’écran sur une fenêtre basse.',
+    note: 'Répond à l’arbre ardent du même volet, dont elle reprend la planche, la mesure et l’opacité : les deux états du volet se ressemblent au lieu de se contredire. L’arbre est ici mort et le corbeau seul — l’absence se dit par l’image avant de se dire par la phrase. Le plafond de hauteur réserve 13,5 rem au lieu de 11,5 : le bouton de proposition se pose sous l’invite et sortirait de l’écran sur une fenêtre basse. Détourée par le script maison : encre médiane mesurée à 110, 10,4 % de pleins — le même taux que l’arbre ardent, ce qui n’est pas un hasard, les deux planches étant de la même main.',
+  },
+  {
+    chemin: '/ornements/carapace-posee.png',
+    nom: 'Carapace posée',
+    fonction: 'blanc',
+    emploi: 'Tient l’onglet des commentaires d’une œuvre tant que personne n’y a écrit.',
+    lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, onglet « Commentaires », sur un paragraphe qui n’en porte aucun.' },
+    source: 'app/oeuvre/[id]/OngletCommentaires.tsx',
+    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 20rem et 82 %, bornée en hauteur' },
+    note: 'Seconde carapace du site, et ce n’est pas un doublon : celle-ci est bombée et vue de face, quand « Carapace vide » est couchée de trois quarts et sert le volet de la Bible. Elle se pose au MILIEU de la zone défilante, en largeur comme en hauteur ; la hauteur vient du flux, la zone étant déjà « flex: 1 », et non d’un calcul sur la fenêtre qui devrait deviner la hauteur du formulaire. Détourée par le script maison : encre médiane mesurée à 15, donc gravure au trait franc, 21,8 % de pleins.',
   },
   {
     chemin: '/ornements/ruines-fumantes.png',
