@@ -172,15 +172,16 @@ export const ILLUSTRATIONS: Illustration[] = [
 
   // ── Ouvrir une page ────────────────────────────────────────────────────────
   {
-    chemin: '/ornements/tour-babel-detoure.png',
-    nom: 'Tour de Babel',
+    chemin: '/ornements/tour-babel-ruinee.png',
+    nom: 'Tour de Babel ruinée',
     fonction: 'ouvrir',
     emploi: 'Occupe seule l’écran d’accueil du Polyglotte, sous l’invite « Ouvrez un livre ».',
     lieu: { href: '/polyglotte', label: 'Polyglotte', repere: 'Au centre, tant qu’aucun livre n’est ouvert, sous l’invite « Ouvrez un livre ».' },
     source: 'app/polyglotte/page.tsx',
-    traitement: { opacite: 0.92, ornement: true, largeur: 'min(51rem, 96%)' },
-    note: 'La plus lourde de toutes les images servies, pour un simple écran d’attente.',
+    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 51rem et 96 %, bornée en hauteur' },
+    note: 'A remplacé la tour intacte le 2026-08-26, sans que la pose change : deux maxima, aucune largeur posée. Elle pèse 406 Ko là où la précédente en pesait 2 114, qui était la plus lourde image servie du site, pour un simple écran d’attente. ⚠️ Son détourage a demandé une normalisation préalable du papier : celui de cette planche est à 253, et ses seuls quatre COINS sont à 255 — or c’est aux coins que le script maison mesure le fond. Il tenait donc les 91 % de papier pour une encre très pâle, et rendait 87,8 % de partiels pour 6 % de transparents. Papier ramené au blanc avant détourage, elle rend 81,7 % de transparents pour 12,1 % de partiels, dans la bande de la gravure au trait. Encre mesurée et reposée à la luminance 33.',
   },
+
   {
     chemin: '/ornements/semeur.png',
     nom: 'Le semeur',
@@ -385,6 +386,12 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Carapace de tortue',
     fonction: 'reserve',
     emploi: 'Tenait les états vides du volet biblique jusqu’au 2026-08-26, où la carapace posée a pris sa place sur les deux volets.',
+  },
+  {
+    chemin: '/ornements/tour-babel-detoure.png',
+    nom: 'Tour de Babel intacte',
+    fonction: 'reserve',
+    emploi: 'Tenait l’écran d’accueil du Polyglotte jusqu’au 2026-08-26, où la tour ruinée a pris sa place. Pesait 2,1 Mo, la plus lourde image servie du site.',
   },
   {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',

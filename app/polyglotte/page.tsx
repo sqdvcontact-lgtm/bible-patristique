@@ -1243,7 +1243,7 @@ export default function PolyglottePage() {
                   de 2,04 au lieu de 1,651, une tour de Babel étirée en travers. Quand les deux
                   dimensions sont automatiques et bornées, le navigateur applique les maxima l'un
                   après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
-              <img className="cs-ornement" src="/ornements/tour-babel-detoure.png" alt="" aria-hidden="true"
+              <img className="cs-ornement" src="/ornements/tour-babel-ruinee.png" alt="" aria-hidden="true"
                 style={{ maxWidth: "min(51rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 9rem)", opacity: 0.92, marginBottom: "16px" }} />
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
