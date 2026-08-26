@@ -206,7 +206,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   return (
     <>
       <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; reinitialiser(); setOuvert(true) }}
-        style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed var(--cs-bord)', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'left' }}>
+        style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed var(--cs-bord)', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'center' }}>
         + Proposer un lien biblique
       </button>
       {/* Sous la barre de navigation et bornée en hauteur, comme les autres fenêtres de
