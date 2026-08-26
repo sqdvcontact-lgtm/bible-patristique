@@ -224,12 +224,14 @@ const COMPOSITIONS: Record<CompositionParagraphe, CSSProperties> = {
   },
   // Le sous-titre d'une partie n'est pas un paragraphe d'introduction : c'est le
   // chapeau de son titre, tombé dans un bloc voisin par l'ordre matériel. Il se
-  // compose donc comme les chapeaux du site — centré, italique, plus clair.
+  // compose donc centré et en italique, mais dans l'ENCRE DE SON TITRE : une
+  // encre plus claire en faisait un commentaire du titre, quand il en est la
+  // suite. Le blanc qui les sépare se règle dans la feuille, à côté du rang.
   'sous-titre-partie': {
     fontSize: '0.9375rem',
     lineHeight: 1.35,
     fontStyle: 'italic',
-    color: 'var(--cs-texte-second)',
+    color: 'var(--cs-encre-fonce)',
     textAlign: 'center',
     hyphens: 'manual',
     margin: 0,

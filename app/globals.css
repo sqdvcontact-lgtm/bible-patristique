@@ -831,6 +831,18 @@ button:focus-visible,
    titre, que l'ordre matériel a fait tomber dans un bloc voisin. Il perd donc
    les larges marges de l'introduction, se centre sous « Première partie », et
    ne laisse presque rien entre eux — le blanc reste pour la suite. */
+/* ⚠️ Un titre et son sous-titre sont UNE seule composition, coupée en deux
+   blocs par l'ordre matériel. Mesuré avant reprise : douze pixels de blanc
+   entre les deux boîtes, trente-cinq entre les lignes de base — de quoi les
+   lire comme deux choses distinctes. Le titre rend donc sa marge basse à qui le
+   suit, et il ne reste que les trois pixels du sous-titre. */
+.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='part_subtitle']),
+.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='section_subtitle']),
+.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='part_subtitle']) > :is(h1, h2, h3, h4, h5, h6),
+.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='section_subtitle']) > :is(h1, h2, h3, h4, h5, h6) {
+  margin-bottom: 0;
+}
+
 .cs-bible-bloc[data-display-role='part_subtitle'] {
   padding-left: 0;
   padding-right: 0;
