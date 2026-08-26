@@ -112,14 +112,16 @@ export const ILLUSTRATIONS: Illustration[] = [
   // ── Occuper un blanc ───────────────────────────────────────────────────────
 
   {
-    chemin: '/ornements/cul-de-lampe-cristaux.png',
-    nom: 'Cristaux',
+    chemin: '/ornements/desert-fosse.png',
+    nom: 'Le désert et la fosse',
     fonction: 'blanc',
     emploi: 'Tient la page de recherche avant qu’on ait lancé la moindre requête.',
     lieu: { href: '/recherche', label: 'Recherche', repere: 'Au centre, sous la barre de recherche, tant qu’aucune requête n’est lancée.' },
     source: 'app/recherche/RechercheClient.tsx',
-    traitement: { opacite: 0.5, fusion: 'multiply', ornement: true, largeur: 'min(300px, 56%)' },
+    traitement: { opacite: 0.5, ornement: true, largeur: 'au plus 28rem et 76 %, bornée en hauteur' },
+    note: 'A remplacé les cristaux le 2026-08-26. La planche est LARGE là où le cul-de-lampe était vertical : elle prend donc plus de mesure, faute de quoi le paysage se lirait en timbre. Deux reprises au passage, les mêmes que sur la carapace : le mix-blend-mode était mort, la planche étant détourée, et la largeur de 300 px, absolue, ne suivait pas la police racine. ⚠️ Le papier de ce dessin est à 247, et le détoureur maison, qui échantillonne les quatre COINS, prenait les 85 % de papier pour une encre très pâle — 86 % de partiels pour 7 % de transparents. Papier ramené au blanc d’après son niveau DOMINANT avant détourage, la planche rend 80,4 % de transparents pour 12,5 % de partiels. Encre mesurée et reposée à la luminance 65. Elle pèse 239 Ko contre 388 pour les cristaux.',
   },
+
   {
     chemin: '/ornements/arbre-ardent.png',
     nom: 'Arbre ardent',
@@ -392,6 +394,12 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Tour de Babel intacte',
     fonction: 'reserve',
     emploi: 'Tenait l’écran d’accueil du Polyglotte jusqu’au 2026-08-26, où la tour ruinée a pris sa place. Pesait 2,1 Mo, la plus lourde image servie du site.',
+  },
+  {
+    chemin: '/ornements/cul-de-lampe-cristaux.png',
+    nom: 'Cristaux',
+    fonction: 'reserve',
+    emploi: 'Tenait la page de recherche jusqu’au 2026-08-26, où le désert et la fosse ont pris sa place.',
   },
   {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',

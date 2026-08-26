@@ -1042,10 +1042,20 @@ export default function RechercheClient() {
 
             {!done && !loading && (
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginTop:'70px' }}>
-                {/* Cul-de-lampe (cristaux enflammés) au-dessus de l'invite. `multiply` fond
-                    le fond blanc du dessin dans le papier de la page. */}
-                <img className="cs-ornement" src="/ornements/cul-de-lampe-cristaux.png" alt="" aria-hidden="true"
-                  style={{ width:'min(300px, 56%)', height:'auto', opacity:0.5, mixBlendMode:'multiply', marginBottom:'22px' }} />
+                {/* Un désert et une fosse tiennent la page tant qu'aucune requête n'est lancée.
+                    La planche est LARGE là où le cul-de-lampe qu'elle remplace était vertical :
+                    elle prend donc plus de mesure, faute de quoi le paysage se lirait en timbre.
+
+                    ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE, elle n'a plus de fond
+                    blanc à fondre dans le papier, et l'opacité posée sur la même image créait de
+                    toute façon un contexte d'empilement qui annulait le mélange (charte).
+
+                    ⛔ Aucune LARGEUR posée, deux MAXIMA seulement. Le `min(300px, 56%)` d'avant
+                    était une valeur absolue, qui ne suivait pas la police racine : la gravure
+                    rapetissait à mesure que l'écran s'agrandissait. Le plafond de hauteur ne sert
+                    que les fenêtres basses, où il garde l'invite au-dessus du pli. */}
+                <img className="cs-ornement" src="/ornements/desert-fosse.png" alt="" aria-hidden="true"
+                  style={{ maxWidth:'min(28rem, 76%)', maxHeight:'calc(100dvh - 3.5rem - 18rem)', opacity:0.5, marginBottom:'22px' }} />
                 <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
               </div>
             )}
