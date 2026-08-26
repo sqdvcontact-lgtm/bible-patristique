@@ -2755,14 +2755,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     }
                   </>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '40px' }}>
-                    {/* Cul-de-lampe (buisson ardent), puis l'invite dessous. `multiply` fond le
-                        fond blanc du dessin dans le papier. Le PNG porte un blanc interne en bas :
-                        on remonte le texte (marge négative) pour qu'il se pose sous le DESSIN, non
-                        sous le rectangle de l'image — l'ensemble reste ainsi équilibré. */}
-                    <img className="cs-ornement" src="/ornements/cul-de-lampe-buisson-ardent.png" alt="" aria-hidden="true"
-                      style={{ width: '82%', maxWidth: '11.875rem', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
-                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '-30px 0 0' }}>Cliquez sur un paragraphe.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '18px' }}>
+                    {/* L'arbre ardent tient le volet resté vide : il en prend la mesure, et
+                        l'invite se pose dessous. Il a remplacé un cul-de-lampe posé à 190 px
+                        de large, qui ornait un coin de la colonne au lieu de l'habiter.
+
+                        ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte, « Une illustration
+                        se borne par deux maxima, jamais par une largeur posée »). La planche est
+                        haute — 768 × 1232 —, et le volet se redimensionne à la main de 200 à
+                        560 px : une largeur définitive ne laisserait au navigateur aucun degré
+                        de liberté pour tenir les proportions sous une fenêtre basse, et la
+                        gravure s'écraserait. Le plafond de hauteur réserve la barre, les onglets,
+                        le sélecteur de traduction et l'invite. Le maximum de largeur est en rem,
+                        donc accordé à la police racine, qui grandit avec l'écran au-delà de
+                        1 440 px — en pixels, la gravure rapetisserait à mesure de l'agrandissement.
+
+                        ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE (le blanc du dessin
+                        est devenu une vraie couche alpha), et l'opacité posée sur la même image
+                        créait de toute façon un contexte d'empilement qui annulait le mélange.
+                        L'opacité reste celle du cul-de-lampe qu'il remplace. */}
+                    <img className="cs-ornement" src="/ornements/arbre-ardent.png" alt="" aria-hidden="true"
+                      style={{ maxWidth: 'min(24rem, 88%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 11.5rem)`, opacity: 0.42 }} />
+                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '10px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
               </>

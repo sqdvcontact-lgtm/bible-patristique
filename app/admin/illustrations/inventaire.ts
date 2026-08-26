@@ -129,13 +129,14 @@ export const ILLUSTRATIONS: Illustration[] = [
     traitement: { opacite: 0.5, fusion: 'multiply', ornement: true, largeur: 'min(300px, 56%)' },
   },
   {
-    chemin: '/ornements/cul-de-lampe-buisson-ardent.png',
-    nom: 'Buisson ardent',
+    chemin: '/ornements/arbre-ardent.png',
+    nom: 'Arbre ardent',
     fonction: 'blanc',
     emploi: 'Invite à cliquer sur un paragraphe, dans le volet resté vide d’une œuvre.',
     lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, tant qu’aucun paragraphe n’est choisi. Cliquer dans le texte la fait disparaître.' },
     source: 'app/oeuvre/[id]/OeuvreClient.tsx',
-    traitement: { opacite: 0.42, fusion: 'multiply', ornement: true, largeur: '82%, au plus 11.875rem' },
+    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 24rem et 88 %, bornée en hauteur' },
+    note: 'A remplacé le buisson ardent le 2026-08-26 : celui-ci tenait 190 px dans un volet qui en fait de 200 à 560, et ornait un coin de la colonne au lieu de l’habiter. Écart moyen au papier, à la taille servie : 9,7 contre 4,0 — la présence vient de la mesure, l’opacité n’a pas bougé.',
   },
   {
     chemin: '/ornements/ruines-fumantes.png',
@@ -366,6 +367,12 @@ export const ILLUSTRATIONS: Illustration[] = [
   })),
 
   // ── En réserve ─────────────────────────────────────────────────────────────
+  {
+    chemin: '/ornements/cul-de-lampe-buisson-ardent.png',
+    nom: 'Buisson ardent',
+    fonction: 'reserve',
+    emploi: 'Tenait le volet vide d’une œuvre jusqu’au 2026-08-26, où l’arbre ardent a pris sa place.',
+  },
   {
     chemin: '/ornements/cul-de-lampe-calice.png',
     nom: 'Calice',
