@@ -1112,15 +1112,20 @@ export default function PolyglottePage() {
             l'oméga sur le moniteur, c'est la Polyglotte dite en une image, celle des langues
             rassemblées ; le grand écran qu'on demande s'entend alors comme une promesse
             plutôt que comme une porte fermée.
-            L'opacité suit celle des culs-de-lampe du site (0,42 à 0,5), mais reste au-dessus :
-            ceux-là n'ornent qu'un vide, celle-ci porte encore le propos de l'écran.
+            L'INTENSITÉ et l'ENCRE sont celles de la tour de Babel, à l'autre bout de la même
+            page : cet écran n'a lui non plus qu'une gravure pour tout contenu, et elle porte le
+            propos au lieu d'orner un vide.
+            ⛔ Deux MAXIMA, aucune largeur ni hauteur posée (charte). Le plafond de hauteur n'est
+            pas décoratif ici : la planche est en hauteur là où la précédente était en largeur,
+            et sur un téléphone bas elle chasserait le texte hors de l'écran.
             PNG DÉTOURÉ, jamais mix-blend-mode. L'opacité posée sur la même image crée un
             contexte d'empilement qui isole l'élément et annule le mélange : le fond crème
             réapparaîtrait (voir la note des ornements dans app/chantier/page.tsx). Ici la
-            luminance du crème est passée en canal alpha, et l'encre décomposée de ce même
-            crème, si bien que le trait garde son anti-crénelage sans bord lavé. */}
-        <img className="cs-ornement" src="/ornements/ordinateur-pentecote.png" alt="" aria-hidden="true"
-          style={{ display: "block", width: "min(18rem, 82%)", height: "auto", margin: "34px auto 0", opacity: 0.72 }} />
+            luminance du papier est passée en canal alpha, et l'encre REPOSÉE en une teinte
+            unique, mesurée sur la planche : la décomposition par pixel divise par l'alpha et
+            fait virer les bords au bruit coloré sur un papier presque blanc. */}
+        <img className="cs-ornement" src="/ornements/ordinateur-ardent.png" alt="" aria-hidden="true"
+          style={{ display: "block", maxWidth: "min(16rem, 76%)", maxHeight: "46dvh", margin: "34px auto 0", opacity: 0.92 }} />
       </div>
 
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant

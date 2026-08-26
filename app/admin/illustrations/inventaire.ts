@@ -165,14 +165,16 @@ export const ILLUSTRATIONS: Illustration[] = [
   },
 
   {
-    chemin: '/ornements/ordinateur-pentecote.png',
-    nom: 'Pentecôte à l’ordinateur',
+    chemin: '/ornements/ordinateur-ardent.png',
+    nom: 'Ordinateur ardent',
     fonction: 'blanc',
-    emploi: 'Ferme la colonne d’explication de la page Polyglotte.',
-    lieu: { href: '/polyglotte', label: 'Polyglotte, sur écran étroit', repere: '⚠️ Visible SEULEMENT sous 820 px de large : elle ferme l’écran « cette page demande un écran large ». Rétrécir la fenêtre pour la voir.' },
+    emploi: 'Ferme le message qui demande un écran large, sur la Polyglotte ouverte depuis un téléphone.',
+    lieu: { href: '/polyglotte', label: 'Polyglotte', repere: 'En pied du message, sur un écran de moins de 820 px de large. À voir en réduisant la fenêtre.' },
     source: 'app/polyglotte/page.tsx',
-    traitement: { opacite: 0.72, ornement: true, largeur: 'min(18rem, 82%)' },
+    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 16rem et 76 %, bornée en hauteur' },
+    note: 'A remplacé l’ordinateur de Pentecôte le 2026-08-26. Même propos : l’ordinateur sous les langues de feu, l’alpha et l’oméga sur le moniteur, la Polyglotte dite en une image. Intensité et encre sont celles de la tour de Babel, à l’autre bout de la même page : cet écran n’a lui non plus qu’une gravure pour tout contenu. ⚠️ La planche est en HAUTEUR là où la précédente était en largeur, d’où un plafond de hauteur qui n’est pas décoratif : sur un téléphone bas, elle chasserait le texte hors de l’écran. Pourtour de la source rogné de 32 px avant traitement, faute de quoi le liseré sombre du bord devient une barre noire. Encre reposée à la luminance 33, contre 48 pour la planche brute. Elle pèse 278 Ko contre 530.',
   },
+
 
   // ── Ouvrir une page ────────────────────────────────────────────────────────
   {
@@ -408,6 +410,12 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Ruines fumantes carrées',
     fonction: 'reserve',
     emploi: 'Disait le livre absent d’une traduction jusqu’au 2026-08-26, où le panorama de colonnades a pris sa place.',
+  },
+  {
+    chemin: '/ornements/ordinateur-pentecote.png',
+    nom: 'Ordinateur de Pentecôte',
+    fonction: 'reserve',
+    emploi: 'Fermait le message d’écran large de la Polyglotte jusqu’au 2026-08-26, où l’ordinateur ardent a pris sa place.',
   },
   {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',
