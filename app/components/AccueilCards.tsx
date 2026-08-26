@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
@@ -16,8 +15,28 @@ function abregerTexte(texte?: string, max = 30) {
   return `${propre.slice(0, Math.max(0, max - 3)).trimEnd()}...`
 }
 
-function IconBible() {
-  return <Image className="ac-icon-img ac-icon-bible" src="/icons/home-bible-book.png" width={1201} height={1310} sizes="160px" alt="" aria-hidden="true" />;
+/**
+ * Une GRAVURE posée en masque, non une image posée sur la carte.
+ *
+ * Les cartons de l'accueil sont sombres : une gravure noire y disparaîtrait, et
+ * la repeindre en clair demanderait une planche par thème. Le fichier ne porte
+ * donc que l'ALPHA du trait — voir `scripts/gravures-en-masque.mjs` — et c'est
+ * la CARTE qui donne l'encre, par un aplat que le masque découpe. C'est la voie
+ * que la charte laissait ouverte pour les ornements : « le détourage ne sert que
+ * l'ALPHA : la couleur, on la repose ».
+ *
+ * ⛔ Ni `<Image>`, ni `mix-blend-mode` : le premier réencode et aplatit parfois
+ * la couche alpha, le second est annulé par la moindre opacité posée au-dessus
+ * (piège consigné à deux reprises dans AGENTS.md).
+ */
+function GravureAccueil({ nom }: { nom: 'bible' | 'patristique' | 'communaute' }) {
+  return (
+    <span
+      className={`ac-gravure ac-gravure--${nom}`}
+      aria-hidden="true"
+      style={{ maskImage: `url(/icons/accueil-${nom}.png)`, WebkitMaskImage: `url(/icons/accueil-${nom}.png)` }}
+    />
+  );
 }
 
 function IconPere() {
@@ -46,14 +65,6 @@ function IconCrayon() {
       <path d="M18.2 35.2h15.5" stroke="rgba(255,255,255,0.45)" strokeWidth="1.1" strokeLinecap="round"/>
     </svg>
   );
-}
-
-function IconPereImage() {
-  return <Image className="ac-icon-img ac-icon-pere" src="/icons/home-patristique-buste.png" width={1145} height={1374} sizes="160px" alt="" aria-hidden="true" />;
-}
-
-function IconPublicationsImage() {
-  return <Image className="ac-icon-img ac-icon-publications" src="/icons/home-publications-writing.png" width={1254} height={1254} sizes="160px" alt="" aria-hidden="true" />;
 }
 
 function IconDon() {
@@ -169,7 +180,7 @@ export default function AccueilCards() {
         <CarteAccueil
           href="/?livre=GEN&chapitre=1"
           className="ac-bible"
-          icon={<IconBible />}
+          icon={<GravureAccueil nom="bible" />}
           titre="Bible"
           reprendreHref={bible ? `/?livre=${bible.livre}&chapitre=${bible.chapitre}&trad=${bible.trad}` : undefined}
           reprendreLabel={bible ? `${bible.nomLivre} ${bible.chapitre}` : undefined}
@@ -178,7 +189,7 @@ export default function AccueilCards() {
         <CarteAccueil
           href="/bibliotheque"
           className="ac-patristique"
-          icon={<IconPereImage />}
+          icon={<GravureAccueil nom="patristique" />}
           titre="Patristique"
           reprendreHref={oeuvre ? `/oeuvre/${oeuvre.id}` : undefined}
           reprendreLabel={oeuvre ? oeuvre.titre : undefined}
@@ -187,7 +198,7 @@ export default function AccueilCards() {
         <CarteAccueil
           href="/essais"
           className="ac-publications"
-          icon={<IconPublicationsImage />}
+          icon={<GravureAccueil nom="communaute" />}
           titre="Communauté"
           reprendreHref={publication ? `/essais/${publication.id}` : undefined}
           reprendreLabel={publication ? publication.titre : undefined}
@@ -247,25 +258,31 @@ export default function AccueilCards() {
         .ac-card-main > svg,
         .ac-card-main > img,
         .ac-card-main > span { position: relative; z-index: 1; }
-        .ac-icon-img {
-          width: 4.75rem;
-          height: 4.75rem;
-          object-fit: contain;
-          opacity: 0.86;
-          mix-blend-mode: screen;
+        /* L'aplat que le masque découpe. ⚠️ L'encre est un KNOCKOUT littéral, non
+           un jeton : la carte est un aplat sombre dans les deux thèmes, et un
+           jeton d'encre s'y retournerait (AGENTS.md, § l'encre posée sur un aplat).
+           Elle reprend la valeur du titre, à un cheveu près, pour que la gravure
+           et le mot qu'elle surmonte soient de la même main. */
+        .ac-gravure {
+          display: block;
+          background-color: rgba(255,255,255,0.86);
+          mask-repeat: no-repeat;
+          -webkit-mask-repeat: no-repeat;
+          mask-position: center;
+          -webkit-mask-position: center;
+          mask-size: contain;
+          -webkit-mask-size: contain;
         }
-        .ac-icon-bible {
-          width: 5.375rem;
-          height: 4.375rem;
-        }
-        .ac-icon-pere {
-          width: 4.625rem;
-          height: 4.625rem;
-        }
-        .ac-icon-publications {
-          width: 5.75rem;
-          height: 4.625rem;
-        }
+        /* ⛔ MÊME HAUTEUR DE BOÎTE pour les trois ; seule la largeur varie. Les
+           trois cartes se lisent ensemble, dans la même rangée, et leur désaccord
+           s'y voit immédiatement : mesuré avec des boîtes de hauteurs différentes,
+           le titre « Bible » montait de 34 px au-dessus des deux autres — le
+           groupe étant centré, une gravure plus basse remonte le mot qu'elle
+           surmonte. La gravure se loge DANS sa boîte (« mask-size: contain »), si
+           bien que le livre, large et bas, s'y étale sans forcer la rangée. */
+        .ac-gravure--bible { width: 6rem; height: 4.75rem; }
+        .ac-gravure--patristique { width: 4.75rem; height: 4.75rem; }
+        .ac-gravure--communaute { width: 4.75rem; height: 4.75rem; }
         .ac-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 14px 36px rgba(20,30,16,0.34), inset 0 1px 0 rgba(255,255,255,0.12);
