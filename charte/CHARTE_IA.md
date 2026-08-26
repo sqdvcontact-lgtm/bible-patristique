@@ -2079,9 +2079,73 @@ La forme d’autorité d’un nom et sa forme d’affichage sont deux choses. Le
 
 Une citation latine ou grecque enchâssée dans une phrase française se compose en italique, mais les guillemets qui l’encadrent appartiennent au français qui cite et restent en romain. On écrit donc « *Jesu Christi* » et jamais *« Jesu Christi »*. ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.
 
-Le grec écrit en caractères grecs ne prend pas l’italique : l’alphabet le distingue déjà.
+Dans la couche éditoriale Fillion, les mots, lemmes et citations en grec, y compris lorsqu’ils sont écrits en caractères grecs, se composent en italique. Les guillemets français qui les encadrent restent en romain. La couche source demeure inchangée.
 
 La ponctuation stockée fait foi et ne se déplace pas au rendu. Un point-virgule que l’édition place hors des guillemets y reste ; ⛔ le rendu ne le rentre pas dans la citation, et ne recompose pas davantage l’apostrophe typographique, qui demeure U+2019 sur toutes les surfaces éditoriales françaises.
+
+
+
+### 35.8. Méthode obligatoire de traitement, correction et clôture Fillion (26 août 2026)
+
+Cette méthode est obligatoire pour chaque livre Fillion. Elle découle des erreurs constatées pendant la reprise de Matthieu : une passe mécanique peut être propre tout en laissant des doublons, des abréviations ou d’anciennes lectures dans une projection secondaire. ⛔ Ne jamais déclarer un livre « terminé » à partir d’un seul contrôle global ou d’une seule couche de texte.
+
+#### 35.8.1. Séparer strictement témoin source et lecture éditoriale
+
+Le témoin source ou diplomatique reste immuable. Toute modernisation typographique, désabréviation, correction de référence ou mise en forme se fait dans la couche éditoriale de lecture. Une correction conjecturale ou contextuelle ne remplace jamais silencieusement la forme imprimée : la forme source reste conservée dans `source_markup`, `facsimile_heading`, la provenance ou une sauvegarde dédiée.
+
+Avant toute écriture, identifier toutes les surfaces susceptibles d’être rendues : `heading`, corps de lecture principal, `editorial_normalization.reading_text`, sous-blocs `editorial_normalization.blocks[].reading_text`, rendu des notes, titres et chapeaux. Une correction n’est complète que si toutes les projections qui exposent le même contenu sont cohérentes.
+
+#### 35.8.2. Ordre obligatoire des passes
+
+1. **Structure et hiérarchie.** Traiter d’abord chapitres, sections, sous-sections, péricopes, titres, introductions et commentaires. Un titre ne doit jamais rester injecté dans le corps ni dans un sous-bloc de commentaire. Un bloc de type `title` a un corps vide. Une introduction peut avoir un heading et un corps de prose, mais le heading n’est jamais répété comme premier paragraphe ou premier sous-bloc. Les axes matériel et analytique restent distincts selon les §§ 35.1 et 35.5.
+
+2. **Typographie française.** Normaliser la couche éditoriale avec U+202F avant `; ! ?`, U+00A0 avant `:` et à l’intérieur des guillemets français, apostrophe U+2019, espaces et doubles espaces. Les points de suspension de la prose deviennent `…`. ⛔ Ne jamais convertir automatiquement `...` en `[…]` : `[…]` est réservé à une omission réelle dans une citation ou un lemme, vérifiée par le contexte ou le témoin.
+
+3. **Langues étrangères et italiques.** Les mots, locutions, lemmes et citations latins, les translittérations de langues anciennes et le grec cité se composent en italique dans la couche éditoriale. Les guillemets français restent en romain. Ne jamais mettre en italique par simple détection lexicale un homographe français : utiliser le paragraphe, la langue déclarée, les lemmes structurés et le contexte.
+
+4. **Désabréviation.** Faire une passe distincte et exhaustive. Développer les abréviations intelligibles dans la lecture éditoriale : `Comp.` / `Cf.` → `Comparer`, `ss.` → `suivants` ou `suivantes` selon le nom gouvernant, `etc.` → `et cetera`, sigles bibliques (`Mt`, `Mc`, `Lc`, `Jn`, etc.) → noms de livres, et abréviations matérielles ou savantes lorsqu’elles sont certaines (`Atl. archéol.` → *Atlas archéologique*, `pl.` → `planche`, `fig.` → `figure`, etc.). L’expansion doit rester grammaticalement française : contrôler les accords, la capitale de début de phrase et la ponctuation après remplacement. ⛔ Une regex globale ne suffit pas. Toute abréviation ambiguë reste en `review` jusqu’à identification certaine.
+
+5. **Références bibliques et bibliographie.** Moderniser les références bibliques avec nom de livre explicite et chapitre en chiffres arabes ; ne pas convertir mécaniquement les chiffres romains bibliographiques, qui restent romains et sont harmonisés en capitales. Vérifier l’existence canonique des références modernisées. Une référence impossible doit être confrontée au témoin et au contexte avant correction ; la correction éditoriale est documentée. Les titres d’ouvrages sont composés comme tels ; les noms d’auteurs suivent la forme d’autorité et la convention de petites capitales prévue par la charte.
+
+6. **Lemmes et ponctuation syntaxique.** Contrôler les lemmes latin/français, leur ancre canonique, leur numéro de paragraphe et leur composition. Si une explication commence après un lemme fermé par `»`, rétablir la ponctuation nécessaire après le guillemet fermant. Un commentaire général sans lemme ne reçoit jamais artificiellement un couple de lemmes.
+
+7. **Lecture directe.** Après les passes mécaniques, lire réellement le commentaire chapitre par chapitre, puis les introductions, titres, chapeaux et notes. Cette lecture recherche les fautes OCR, accords, ponctuations, références incohérentes, mots collés, titres injectés et anomalies de sens que les regex ne peuvent pas détecter. La passe directe est distincte des passes « typographie » et « abréviations » et doit être nommée comme telle dans le suivi.
+
+8. **Texte biblique.** Contrôler séparément les versets Fillion. Lorsque `source_markup` existe, comparer lexicalement le texte de lecture au témoin après neutralisation de la seule ponctuation et des espaces autorisés. Toute unité sans témoin stocké reste une réserve de provenance explicitement comptée ; ne jamais fabriquer un `source_markup` à partir du texte courant.
+
+#### 35.8.3. Contrôles structurels obligatoires après chaque passe
+
+Les contrôles ne portent jamais seulement sur `text_content`. Ils doivent couvrir toutes les surfaces d’affichage et vérifier au minimum :
+
+- la concaténation des sous-blocs de lecture recompose exactement le corps éditorial courant ;
+- aucun premier sous-bloc ne répète le heading, même avec une ponctuation, une référence ou une formulation légèrement différente ;
+- aucun bloc `title` n’a de corps non vide ;
+- aucun heading n’est répété dans le corps ;
+- le `reading_text` supérieur, lorsqu’il existe, est synchronisé avec le corps courant ;
+- les notes affichent leur `rendering` éditorial et non l’ancienne forme diplomatique ;
+- aucune ancienne abréviation ciblée, référence biblique en chapitre romain, mauvaise espace française, apostrophe droite, `...` brut, italique déséquilibré ou script étranger non composé ne subsiste dans une projection secondaire ;
+- les lemmes pointent vers un paragraphe valide et vers un canon existant ;
+- les séquences et clés structurelles restent continues et uniques ;
+- aucun faux `verse_note` ne compense un commentaire mal classé ;
+- aucune validation humaine n’est créée automatiquement.
+
+Un contrôle d’égalité textuelle simple est insuffisant pour les doublons. Il faut aussi contrôler la structure : si une introduction possède deux sous-blocs et que le second recompose à lui seul exactement le corps principal, le premier est un résidu extérieur au corps et doit être examiné comme titre ou autre élément mal projeté.
+
+#### 35.8.4. Sondages aléatoires reproductibles
+
+Après les contrôles exhaustifs, effectuer au moins deux sondages pseudo-aléatoires déterministes, avec graine enregistrée, répartis entre chapitres et types d’objets : versets, commentaires, introductions, titres et notes. Un sondage n’est jamais une preuve de complétude ; il sert à découvrir les angles morts des contrôles systématiques.
+
+⚠️ Si un sondage trouve une erreur, ne pas corriger seulement l’objet tiré. Définir la famille structurelle ou typographique de l’erreur, rechercher exhaustivement tous les objets analogues, les corriger, puis rejouer les contrôles globaux et le sondage. Toute nouvelle famille d’erreur révélant une faiblesse de méthode doit enrichir la présente charte.
+
+#### 35.8.5. Sauvegardes et discipline d’écriture
+
+Sauvegarder chaque objet avant une correction structurelle ou textuelle significative. Ne modifier que les champs réellement concernés. Ne jamais réécrire le témoin diplomatique pour une simple correction de lecture. Une correction de structure doit préserver l’ordre matériel, les ancres et la provenance. Après chaque lot, vérifier en SQL le nombre réel d’objets visés, modifiés et conformes ; ne jamais annoncer un chiffre estimé.
+
+#### 35.8.6. Conditions de clôture
+
+Employer des statuts distincts : `structure close`, `typographie close`, `désabréviation close`, `références close`, `lecture directe close`, puis seulement `relecture éditoriale exhaustive close`. ⛔ « Contrôles mécaniques à zéro » ne signifie jamais « livre terminé ».
+
+Un livre Fillion n’est clos que lorsque toutes les passes ci-dessus sont achevées, que les projections secondaires sont synchronisées, que les contrôles structurels forts sont à zéro, que les sondages aléatoires ont été exécutés après le dernier lot de corrections et que les réserves de provenance restantes sont explicitement énumérées. Si une erreur est découverte après clôture, la mission est rouverte ; la cause méthodologique est identifiée et la règle correspondante est ajoutée à la charte avant nouvelle clôture.
 
 
 ### Fillion — décisions de chantier et abréviations de renvoi (25 août 2026)
@@ -2105,7 +2169,7 @@ Dans toute la couche éditoriale Fillion, les formes autonomes `h. l.`, `H. L.` 
 
 ### Fillion — sections, translittérations et renvois internes (2026-08-25)
 - Titres de section : dans une formule imprimée du type « SECTION I. — APPARITION DU PRÉCURSEUR… III, 1 — IV, 11 », le marqueur « Section I » est le titre structurel (T3) et le libellé descriptif avec sa plage biblique est un sous-titre distinct attaché (`section_subtitle`). Ne jamais fusionner titre de section et sous-titre dans un seul heading. La règle vaut pour toutes les sections analogues.
-- Translittérations : toute translittération d’une langue ancienne écrite en alphabet latin (hébreu, araméen, etc.) se compose en italique dans la couche éditoriale, par ex. *p’râšîm*, *saddiq*, *Kêfâ’*. Le grec en caractères grecs reste en romain.
+- Translittérations : toute translittération d’une langue ancienne écrite en alphabet latin (hébreu, araméen, etc.) se compose en italique dans la couche éditoriale, par ex. *p’râšîm*, *saddiq*, *Kêfâ’*. Le grec en caractères grecs se compose en italique dans la couche éditoriale Fillion ; la couche source demeure inchangée.
 - Renvois bibliques internes : un renvoi sans sigle de livre et avec chapitre en chiffres romains, par ex. « cf. xv, 2 », doit être modernisé en donnant explicitement le livre courant et le chapitre en chiffres arabes : « *cf.* Mt 15, 2 ». Ne pas effectuer de conversion romaine globale hors d’un contexte biblique explicitement identifié.
 
 
@@ -2130,6 +2194,16 @@ Dans toute la couche éditoriale Fillion, les formes autonomes `h. l.`, `H. L.` 
 - Après modernisation, contrôler la validité canonique de toute référence biblique : un chapitre/verset inexistant (par ex. `Mt 6,35`) ne doit jamais être accepté mécaniquement.
 - En cas de référence impossible, conserver la forme source dans la provenance, confronter le témoin imprimé/OCR et le contexte scripturaire, puis enregistrer explicitement la correction éditoriale et sa justification.
 - Ne jamais transformer silencieusement une conjecture en transcription diplomatique. Si l’identification du locus reste incertaine, maintenir le bloc en `review` et signaler l’incertitude.
+
+### 35.9. Le repère d’un commentaire se pose en cartouche
+
+Le repère qui ouvre un commentaire de péricope — « 59-61. Jésus est mis au tombeau. » — n’est pas un titre : il n’entre ni dans le plan d’accessibilité ni au sommaire. Il ne prend pas non plus une ligne pleine au-dessus du développement. Il se pose dans un petit cadre carré, au fer à gauche, que le commentaire habille comme le texte habille une lettrine. Le fac-similé compose ainsi : Fillion imprime son repère et enchaîne ses notes dans la foulée, sans lui donner de ligne à lui seul.
+
+Le cadre est un FILET, jamais un fond teinté ni une couleur d’alerte : un commentaire d’édition n’avertit de rien. Le repère s’y compose centré et sans césure — sur une ligne de dix-sept signes, elle le hacherait plus qu’elle ne le rangerait — dans l’encre du texte second : encadré, il n’a plus besoin de s’effacer pour tenir sa place.
+
+Deux gardes-fous. Sur une mesure étroite, où le carré ne laisserait qu’une vingtaine de signes par ligne et creuserait le justifié de lézardes, le repère reprend toute la mesure en bandeau et le texte le suit au lieu de l’habiller. Et le bloc contient son flottant, faute de quoi un commentaire plus court que le carré le laisserait déborder sur ce qui suit. ⛔ Ce contexte se pose par `display: flow-root`, jamais par un `container-type` : celui-ci confine la mise en page et ferait du bloc le référent des fenêtres de note, qui sont en position fixe — elles s’y trouveraient enfermées.
+
+La disposition vaut pour les repères des rangs bas, chapitre, péricope et verset. Les rubriques de large portée — introduction, notice de livre ou de partie — gardent leur composition centrée en petites capitales : ce ne sont pas des repères de développement mais des noms de genre éditorial.
 
 ## 36. Le modèle d’onglets
 
