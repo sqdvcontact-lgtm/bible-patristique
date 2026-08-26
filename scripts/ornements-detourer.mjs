@@ -142,10 +142,41 @@ async function fabriquer({ source, nom, affichage }) {
     if (sortie[o + 3] >= 235) plein++; else part++;
   }
 
+  // ── 6. ROGNER SUR L'ALPHA ────────────────────────────────────────────────
+  // ⛔ Le rognage de l'étape 3 se fait sur le BLANC, et il laisse passer ce qui n'est
+  // blanc qu'à peu près. Mesuré sur la cité ruinée : 310 lignes entièrement
+  // transparentes subsistaient sous les ruines, soit le quart de la planche, et la
+  // légende se posait d'autant plus bas — à plus de cent pixels du sol dessiné.
+  // Après détourage la mesure est sans ambiguïté : on rogne sur l'alpha, en gardant
+  // deux pixels de lisière. Une planche hugge ainsi son encre, et la page peut poser
+  // son texte À QUELQUES PIXELS du dessin sans avoir à deviner le vide.
+  // ⛔ Le seuil ne peut pas être « alpha >= 1 » : sous le dessin traînent des pixels
+  // ISOLÉS à alpha 1 à 8, invisibles à l'œil, et un seul d'entre eux ancre la boîte.
+  // Mesuré sur la cité ruinée : 312 lignes de vide gardées par une douzaine de mouchetures.
+  // Un rang ne compte donc que s'il porte au moins trois pixels RÉELLEMENT visibles.
+  const ALPHA_VU = 8, MIN_PIXELS = 3;
+  const rangReel = new Array(H).fill(0), colReelle = new Array(W).fill(0);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (sortie[(y * W + x) * 4 + 3] >= ALPHA_VU) { rangReel[y]++; colReelle[x]++; }
+  }
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y++) if (rangReel[y] >= MIN_PIXELS) { if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  for (let x = 0; x < W; x++) if (colReelle[x] >= MIN_PIXELS) { if (x < x0) x0 = x; if (x > x1) x1 = x; }
+  if (x1 < 0 || y1 < 0) { x0 = 0; y0 = 0; x1 = W - 1; y1 = H - 1; }
+  const LISIERE = 2;
+  x0 = Math.max(0, x0 - LISIERE); y0 = Math.max(0, y0 - LISIERE);
+  x1 = Math.min(W - 1, x1 + LISIERE); y1 = Math.min(H - 1, y1 + LISIERE);
+  const LA = x1 - x0 + 1, HA = y1 - y0 + 1;
+  const ajuste = Buffer.alloc(LA * HA * 4);
+  for (let y = 0; y < HA; y++) {
+    sortie.copy(ajuste, y * LA * 4, ((y + y0) * W + x0) * 4, ((y + y0) * W + x1 + 1) * 4);
+  }
+
   const bilan = {
     nom, papier, source: path.basename(source),
+    videOte: (W - LA) + 'x' + (H - HA),
     rogne: rogne.info.width + 'x' + rogne.info.height,
-    servi: W + 'x' + H, affichage, rapport: +(W / affichage).toFixed(2),
+    servi: LA + 'x' + HA, affichage, rapport: +(LA / affichage).toFixed(2),
     transparent: +(100 * z / (W * H)).toFixed(1),
     partiels: +(100 * part / (W * H)).toFixed(1),
     pleins: +(100 * plein / (W * H)).toFixed(1),
@@ -156,7 +187,7 @@ async function fabriquer({ source, nom, affichage }) {
     const copie = path.join(SAUVEGARDE, nom + '-source.png');
     if (!fs.existsSync(copie)) fs.copyFileSync(source, copie);
     const dest = path.join(DOSSIER, nom + '.png');
-    await sharp(sortie, { raw: { width: W, height: H, channels: 4 } })
+    await sharp(ajuste, { raw: { width: LA, height: HA, channels: 4 } })
       .png({ compressionLevel: 9 }).toFile(dest + '.tmp');
     fs.renameSync(dest + '.tmp', dest);
     bilan.ecrit = dest;

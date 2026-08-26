@@ -606,13 +606,14 @@ export default function TexteBible({
                   chasserait la légende sous le pli. */}
               <img className="cs-ornement" src="/ornements/cite-ruinee.png" alt="" aria-hidden="true"
                 style={{ maxWidth: 'min(51rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 9rem)', opacity: 0.92 }} />
-              {/* La marge NÉGATIVE revient, et pour la raison qui l'avait fait naître : la cité
-                  repose bas dans son cadre, dont le quart inférieur est un sol presque vide. Le
-                  texte vient ainsi se poser à la lisière du sol plutôt que loin sous la planche.
-                  ⚠️ Elle avait dû être ôtée le temps d'une planche intermédiaire, qui descendait
-                  au ras des pierres : une marge négative se règle sur la COMPOSITION, elle ne se
-                  reconduit pas d'un dessin à l'autre. */}
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '-24px 0 0', maxWidth: '21.25rem' }}>
+              {/* DIX PIXELS, et plus aucune marge négative. Celle-ci corrigeait un vide qui
+                  n'aurait jamais dû être dans le fichier : la planche traînait 312 lignes
+                  transparentes sous les ruines, gardées par une douzaine de mouchetures à alpha 1.
+                  Le script rogne désormais sur ce qui se VOIT, la planche hugge son encre, et le
+                  texte se pose à quelques pixels du dessin sans qu'on ait à deviner le vide.
+                  ⚠️ Corollaire : une marge négative sous une gravure est presque toujours le
+                  symptôme d'une planche mal rognée, non un réglage de composition. */}
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '10px 0 0', maxWidth: '21.25rem' }}>
                 La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
               </p>
             </div>
