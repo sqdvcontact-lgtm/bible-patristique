@@ -607,14 +607,18 @@ button:focus-visible,
    change de caractère fait le gros du travail, la taille achève. */
 .cs-bible-title--t1 { font-size: 1.625rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
 .cs-bible-title--t2 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; margin: 3rem 0 0.75rem; }
-/* La section descend d’un cran FRANC sous la partie — rapport 1,4, non 1,05 —
-   et prend les petites capitales : deux axes, pas un seul. */
+/* ⛔ AUCUNE petite capitale sur un titre biblique (décision de l’auteur,
+   2026-08-26) : « pas lisible ». Composée à quinze pixels avec de la chasse, une
+   ligne entière en petites capitales devient une bande grise où l’œil ne trouve
+   plus de mot. Les rangs se séparent donc autrement — le corps, puis la POSE :
+   les rangs hauts sont centrés en romain, la péricope est au fer en italique.
+   La casse imprimée par Fillion se rend telle qu’elle est écrite.
+   La section descend d’un cran FRANC sous la partie — rapport 1,2, non 1,05. */
 .cs-bible-title--t3 {
-  font-size: 1.0625rem;
-  font-weight: 500;
+  font-size: 1.1875rem;
+  font-weight: 400;
   color: var(--cs-encre);
-  letter-spacing: 0.04em;
-  font-variant-caps: small-caps;
+  letter-spacing: 0.01em;
   margin: 2rem 0 0.6rem;
 }
 
@@ -625,22 +629,25 @@ button:focus-visible,
    péricope se lisait comme une étiquette d’interface, non comme un titre.
 
    Les rangs bas se distinguent alors par la POSITION — au fer, quand les hauts
-   sont centrés — et par la casse. */
+   sont centrés — et, pour le dernier, par l’ITALIQUE. */
 .cs-bible-title--t4,
 .cs-bible-title--t5,
 .cs-bible-title--t6 {
   text-align: left;
-  font-variant-caps: small-caps;
+  letter-spacing: 0.01em;
 }
-.cs-bible-title--t4 { font-size: 1rem;      font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
-.cs-bible-title--t5 { font-size: 0.9375rem; font-weight: 500; color: var(--cs-encre); letter-spacing: 0.03em; }
-/* Intertitre de péricope : au fer, en petites capitales sobres, avec de l’air
-   au-dessus et peu au-dessous — le texte qui suit lui appartient. */
+.cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); }
+.cs-bible-title--t5 { font-size: 1rem;      font-weight: 400; color: var(--cs-encre); }
+/* Intertitre de péricope : au fer, en ITALIQUE, avec de l’air au-dessus et peu
+   au-dessous — le texte qui suit lui appartient. L’italique le sépare de la
+   sous-section sans lui donner ni graisse ni capitale : il en est le rang le
+   plus bas, il ne doit pas peser plus que ce qu’il annonce. */
 .cs-bible-title--t6 {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--cs-texte-fort);
-  letter-spacing: 0.03em;
+  font-size: 1rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--cs-encre);
+  letter-spacing: 0;
   margin: 1.75rem 0 0.35rem;
 }
 
@@ -710,16 +717,17 @@ button:focus-visible,
    « Première partie », et son corps intermédiaire lui prêtait un rang qu’il
    n’a pas. Il prend donc la RUBRIQUE du site — très petite, largement chassée,
    grise — celle qui coiffe déjà « TRADUCTION » ou « AU SOMMAIRE » ailleurs.
-   Petites capitales vraies : la casse de la source est préservée. */
+   ⛔ Sans petites capitales, comme les titres : la casse écrite se rend telle
+   quelle, et la chasse tombe de moitié, une chasse large n’ayant de sens que
+   sous des capitales. */
 .cs-bible-info--i1 > .cs-bible-info-label,
 .cs-bible-info--i2 > .cs-bible-info-label,
 .cs-bible-info--i3 > .cs-bible-info-label {
   text-align: center;
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  font-variant-caps: small-caps;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   /* ⛔ Pas de gris sur les deux premiers rangs : une rubrique se distingue par
      sa petitesse et sa chasse, non en s’effaçant. Le gris reste à l’apparat. */
   color: var(--cs-encre);
@@ -884,9 +892,6 @@ button:focus-visible,
   font-style: italic;
   letter-spacing: 0;
   text-transform: none;
-  /* ⚠️ Le chapeau n’hérite PAS des petites capitales de son titre : c’est un
-     sous-titre, il se lit en italique ordinaire. */
-  font-variant-caps: normal;
   color: var(--cs-texte-second);
 }
 
