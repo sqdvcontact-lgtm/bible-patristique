@@ -284,19 +284,42 @@ export function intituleDeRendu(bloc: {
  *
  * ⛔ Rien n'est deviné : sans tiret séparateur, l'intitulé reste entier.
  */
-export function diviserIntitule(intitule: string | null): { titre: string; sousTitre: string | null } | null {
-  const propre = intitule?.trim()
-  if (!propre) return null
-  const coupure = propre.match(/^(.+?)\s+[—–-]\s+(.+)$/)
-  if (!coupure) return { titre: propre, sousTitre: null }
-  return { titre: coupure[1].trim(), sousTitre: ordinalLisible(coupure[2].trim()) }
-}
+/** Longueur au-delà de laquelle ce qui précède un tiret n'est plus une
+ *  désignation de division mais une phrase. Mesurée sur les 251 intitulés à
+ *  tiret du corpus Fillion, dont le plus long désignant est « TROISIÈME PARTIE ». */
+const LONGUEUR_DESIGNATION = 24
 
 /**
- * « 1° » se lit « primo » : à l'écran, le point est plus clair que le degré, et
- * c'est la forme qu'emploient les autres pages. La conversion ne touche que
- * l'ordinal de TÊTE, jamais un degré au fil du texte.
+ * La mention de chapitre imprimée en tête d'un intitulé.
+ *
+ * ⛔ Elle ne paraît pas : la barre de navigation nomme déjà le chapitre (charte
+ * § 35.1), et la règle valait déjà pour les blocs `titre_chapitre_livre`. Elle
+ * se glisse pourtant DANS l'intitulé de 58 commentaires — « CHAP. IX. — 1-2.
+ * Introduction… » — où elle prenait la place du repère, lequel passait alors en
+ * chapeau subordonné : la mention matérielle dominait l'information utile.
  */
+const MENTION_CHAPITRE = /^chap\.\s*[ivxlcdm]+\s*\.?\s*[—–-]\s*/i
+
+/** Vrai quand ce qui précède le tiret DÉSIGNE une division au lieu de la décrire. */
+function estDesignation(tete: string): boolean {
+  if (tete.length > LONGUEUR_DESIGNATION) return false
+  // « § II. », « SECTION I. » : une désignation se ferme sur un point.
+  if (tete.endsWith('.')) return true
+  // « PREMIÈRE PARTIE » : pas de point, mais aucun chiffre non plus. ⛔ C'est ce
+  // second cas qui la distingue d'un INTERVALLE de références, où le tiret joint
+  // deux nombres : « La Création. I, 1 — II, 3. » se coupait en « La Création.
+  // I, 1 » et « II, 3. », et « Le sermon sur la montagne (5, 1 — 7, 29) »
+  // laissait sa parenthèse ouverte sur une ligne et sa fermeture sur l'autre.
+  return !/\d/.test(tete)
+}
+
+export function diviserIntitule(intitule: string | null): { titre: string; sousTitre: string | null } | null {
+  const propre = intitule?.trim().replace(MENTION_CHAPITRE, '').trim()
+  if (!propre) return null
+  const coupure = propre.match(/^(.+?)\s+[—–-]\s+(.+)$/)
+  if (!coupure || !estDesignation(coupure[1].trim())) return { titre: propre, sousTitre: null }
+  return { titre: coupure[1].trim(), sousTitre: ordinalLisible(coupure[2].trim()) }
+}
 function ordinalLisible(texte: string): string {
   return texte.replace(/^(\d+)\s*°\s*/, '$1. ')
 }

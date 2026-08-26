@@ -248,6 +248,41 @@ describe('intitulé en deux temps', () => {
     })
   })
 
+  it('ne coupe pas un INTERVALLE de références', () => {
+    // Le tiret joignait deux références : le titre se coupait en plein milieu
+    // d'une parenthèse, dont la fermeture partait seule en chapeau. Cent
+    // intitulés du corpus étaient dans ce cas, presque tous dans Matthieu.
+    expect(diviserIntitule('§ II. Le sermon sur la montagne (5, 1 — 7, 29)')).toEqual({
+      titre: '§ II. Le sermon sur la montagne (5, 1 — 7, 29)', sousTitre: null,
+    })
+    expect(diviserIntitule('La Création. I, 1 — II, 3.')).toEqual({
+      titre: 'La Création. I, 1 — II, 3.', sousTitre: null,
+    })
+    expect(diviserIntitule('2° Les détails du triomphe (21, 7 — 11)')).toEqual({
+      titre: '2° Les détails du triomphe (21, 7 — 11)', sousTitre: null,
+    })
+  })
+
+  it('coupe quand la tête DÉSIGNE une division', () => {
+    expect(diviserIntitule('§ III. — Jésus au tribunal de Pilate.')).toEqual({
+      titre: '§ III.', sousTitre: 'Jésus au tribunal de Pilate.',
+    })
+    expect(diviserIntitule('PREMIÈRE PARTIE — La vie publique de Jésus.')).toEqual({
+      titre: 'PREMIÈRE PARTIE', sousTitre: 'La vie publique de Jésus.',
+    })
+  })
+
+  it('retire la mention de chapitre imprimée en tête', () => {
+    // La navigation nomme déjà le chapitre (charte § 35.1). Enchâssée dans
+    // l'intitulé, la mention prenait la place du repère, qui passait en chapeau.
+    expect(diviserIntitule('CHAP. IX. — 1-2. Introduction.')).toEqual({
+      titre: '1-2. Introduction.', sousTitre: null,
+    })
+    expect(diviserIntitule('Chap. XIX. — 1. Jésus est cruellement flagellé.')).toEqual({
+      titre: '1. Jésus est cruellement flagellé.', sousTitre: null,
+    })
+  })
+
   it('ne coupe pas un tiret qui appartient au mot', () => {
     expect(diviserIntitule('Jésus-Christ et les siens')).toEqual({
       titre: 'Jésus-Christ et les siens', sousTitre: null,
