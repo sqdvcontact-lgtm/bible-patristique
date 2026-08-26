@@ -139,6 +139,16 @@ export const ILLUSTRATIONS: Illustration[] = [
     note: 'A remplacé le buisson ardent le 2026-08-26 : celui-ci tenait 190 px dans un volet qui en fait de 200 à 560, et ornait un coin de la colonne au lieu de l’habiter. Écart moyen au papier, à la taille servie : 9,7 contre 4,0 — la présence vient de la mesure, l’opacité n’a pas bougé.',
   },
   {
+    chemin: '/ornements/arbre-corbeau.png',
+    nom: 'Arbre au corbeau',
+    fonction: 'blanc',
+    emploi: 'Dit qu’un paragraphe ne porte aucun lien biblique, dans le volet de droite d’une œuvre.',
+    lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, après avoir cliqué un paragraphe dépourvu de référence biblique.' },
+    source: 'app/oeuvre/[id]/OeuvreClient.tsx',
+    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 24rem et 88 %, bornée en hauteur' },
+    note: 'Répond à l’arbre ardent du même volet, dont elle reprend la planche, la mesure et l’opacité : les deux états du volet se ressemblent au lieu de se contredire. L’arbre est ici mort et le corbeau seul — l’absence se dit par l’image avant de se dire par la phrase. Le plafond de hauteur réserve 13,5 rem au lieu de 11,5 : le bouton de proposition se pose sous l’invite et sortirait de l’écran sur une fenêtre basse.',
+  },
+  {
     chemin: '/ornements/ruines-fumantes.png',
     nom: 'Ruines fumantes',
     fonction: 'blanc',

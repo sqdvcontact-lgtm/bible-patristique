@@ -2670,7 +2670,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
-                      <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)' }}>Aucun lien biblique pour ce passage.</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '18px' }}>
+                        {/* Même planche, même mesure et même opacité que l'arbre ardent du volet
+                            resté vide : les deux états du volet se répondent. L'arbre est ici mort
+                            et le corbeau seul — le passage n'a pas de lien biblique, et l'image le
+                            dit avant la phrase.
+
+                            ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte, « Une illustration
+                            se borne par deux maxima, jamais par une largeur posée »).
+
+                            Le plafond de hauteur réserve 13,5 rem là où l'arbre ardent en réserve
+                            11,5 : outre la barre, les onglets et le sélecteur de traduction, il faut
+                            ici la place de l'invite ET du bouton de proposition, qui se pose dessous
+                            et sortirait de l'écran sur une fenêtre basse. */}
+                        <img className="cs-ornement" src="/ornements/arbre-corbeau.png" alt="" aria-hidden="true"
+                          style={{ maxWidth: 'min(24rem, 88%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 13.5rem)`, opacity: 0.42 }} />
+                        <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '10px 0 0' }}>Aucun lien biblique pour ce passage.</p>
+                      </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {regrouperVersetsConsecutifs(segActifData.versets).map(groupe => {
