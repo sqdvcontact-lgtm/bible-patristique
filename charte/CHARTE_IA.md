@@ -2031,16 +2031,6 @@ Un seul tracé sert les deux emplois, l’emblème du filet en tête de page et 
 Remplacer la citation favorite se demande. On n’en porte qu’une à la fois, et c’est elle qui paraît sur le profil public : un clic défaisait jusqu’ici un choix sans rien dire. Désigner la première citation ne demande donc rien, et reprendre celle que l’on porte la retire sans rien demander non plus. Mais en désigner une autre quand la place est occupée ouvre une fenêtre qui met les deux citations en regard, l’ancienne et la nouvelle, avant de trancher.
 
 
-### 34.3. Une gravure destinée à un fond SOMBRE se pose en masque (26 août 2026)
-
-Les trois cartes de l’accueil sont des cartons sombres. Une gravure au trait, noire sur blanc, y disparaîtrait ; la repeindre en clair demanderait une planche par thème, et l’ancienne voie — poser l’image et la fondre par `mix-blend-mode` — est celle que la charte proscrit déjà, l’opacité posée au-dessus annulant le mélange.
-
-Le fichier ne porte donc que l’ALPHA du trait, et c’est la page qui donne l’encre : un aplat que le masque découpe. C’est l’application de la règle énoncée pour le monogramme, « le détourage ne sert que l’ALPHA : la couleur, on la repose », et la barre de navigation s’en servait déjà pour ses silhouettes. ⚠️ L’encre d’une carte est un knockout littéral, non un jeton : le carton est sombre dans les deux thèmes, et un jeton d’encre s’y retournerait.
-
-⛔ L’ordre du traitement n’est pas indifférent : on rogne le blanc, on RÉDUIT sur des pixels encore opaques, et l’on dérive l’alpha en dernier. Réduire après le détourage mêle de l’encre à du transparent et lave le trait. Le fond se mesure aux quatre coins et l’encre par la médiane de son nuage sombre ; l’histogramme du canal alpha dit ensuite si le détourage a pris, un plein n’ayant aucune raison d’être partiel. L’outil est `scripts/gravures-en-masque.mjs`, et sans `--ecrire` il mesure sans rien écrire.
-
-⛔ Trois gravures qui se lisent dans la MÊME RANGÉE reçoivent des boîtes de même HAUTEUR, seule la largeur variant. Le groupe d’une carte étant centré, une gravure plus basse remonte le mot qu’elle surmonte : mesuré, le titre d’une carte montait de trente-quatre pixels au-dessus de ses deux voisines. La gravure se loge dans sa boîte plutôt que de la commander, si bien qu’un livre ouvert, large et bas, s’y étale sans forcer la rangée.
-
 ## 35. Chantier Fillion — règles éditoriales du commentaire biblique (25 août 2026)
 
 ### 35.1. Chapitres bibliques redondants
