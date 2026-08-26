@@ -756,28 +756,34 @@ button:focus-visible,
      d'un bloc à l'autre et la page perdait son aplomb. La hauteur, elle, reste
      libre — ⛔ aucune taille imposée, c'est le texte qui la donne. */
   width: 7rem;
-  /* Manchette de gauche : elle se ferre à DROITE, contre la gouttière. Son bord
-     net longe ainsi le fer du commentaire, et ce sont ses lignes courtes qui
-     s'ouvrent du côté de la marge, où le blanc ne se voit pas. */
-  text-align: right;
-  /* Les lignes du repère s’égalisent au lieu de laisser une veuve d’un mot :
-     ferré à droite, c’est son bord GAUCHE que l’équilibrage rend lisible. */
-  text-wrap: balance;
-  /* La GRILLE du commentaire, 0,78125rem × 1,3, et non la conduite propre du
-     repère : c'est elle qui fait tomber la première ligne de la manchette sur
-     la première ligne du commentaire, et les suivantes avec.
-     ⚠️ Mesuré, non deviné : à hauteur de ligne égale, Source Sans et Source
-     Serif partagent ici leur ligne de base, et il n'y a aucune descente à
-     compenser. Toute autre valeur de conduite en demanderait une. */
-  line-height: 1.015625rem;
-  /* ⛔ Pas de marge basse : la manchette occupe des lignes ENTIÈRES de la
-     grille, et le texte reprend pleine mesure à la ligne suivante. Une marge
-     ici mordrait sur une ligne de plus et casserait cet escalier. */
-  margin: 0 1.25rem 0 0;
+  /* Le repère se compose en PAVÉ : justifié comme le commentaire qu'il ouvre,
+     sa dernière ligne ferrée à droite pour que son bord longe le fer du texte.
+     Ce sont ses lignes courtes qui s'ouvrent du côté de la marge, où le blanc
+     ne se voit pas. */
+  text-align: justify;
+  text-align-last: right;
+  /* ⚠️ La césure est ce qui REND ce justifié tenable sur dix-sept signes : sans
+     elle, chaque ligne se creuserait de lézardes. C'est l'inverse de la règle
+     d'un repère ferré, qui la refusait. */
+  hyphens: auto;
+  /* Conduite SERRÉE, plus courte que celle du commentaire : le repère fait pavé
+     au lieu de s'étaler. Il perd la grille ligne à ligne, que la marge haute lui
+     rend là où elle se voit — sur la PREMIÈRE ligne, celle qui fait face à la
+     première ligne du commentaire.
+     ⚠️ Descente mesurée, non devinée : deux pixels à cette conduite. Elle vaut
+     zéro quand les deux conduites sont égales ; toute autre valeur se remesure
+     plutôt qu'elle ne se calcule. */
+  line-height: 1.15;
+  /* Le blanc du BAS vaut celui de la DROITE : la manchette est cernée du même
+     blanc sur ses deux côtés libres. ⚠️ Il ne se règle pas à la même valeur pour
+     autant. En bas, c'est la GRILLE qui fait le blanc : le texte laisse une
+     ligne entière avant de reprendre pleine mesure, et la marge ne sert qu'à la
+     déclencher. Portée à 1,25 rem, elle en déclenchait deux dans les cas où la
+     conduite serrée du repère tombait juste sous une ligne du commentaire.
+     0,75 rem déclenche la première partout, de un à cinq lignes de repère.
+     La marge haute, elle, est la descente mesurée ci-dessus. */
+  margin: 0.125rem 1.25rem 0.75rem 0;
   padding: 0;
-  /* ⛔ Aucune césure dans la manchette : sur une ligne de seize signes, elle
-     hacherait le repère plus qu'elle ne le rangerait. */
-  hyphens: none;
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
      place : le gris de l'apparat s'y lisait anémique. */
   color: var(--cs-texte-second);
@@ -786,14 +792,18 @@ button:focus-visible,
 /* Sur une mesure étroite, la manchette ne laisserait au commentaire qu'une
    trentaine de signes par ligne, et le justifié s'y creuserait de lézardes. Le
    repère reprend alors toute la mesure et le texte le suit, au lieu de
-   l'habiller ; ferré à droite, il n'aurait plus de gouttière à longer. */
+   l'habiller. */
 @media (max-width: 700px) {
   .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
     float: none;
     width: auto;
+    /* Pleine mesure, le pavé n'a plus lieu d'être : le repère revient au fer, et
+       ⛔ sa dernière ligne avec lui — ferrée à droite, elle traverserait toute
+       la page pour aller se coller à la marge. */
     text-align: left;
+    text-align-last: auto;
     margin: 0 0 0.4rem;
   }
 }
