@@ -2,7 +2,6 @@
 import { ABREV_FR } from '@/app/lib/bible'
 
 import { Fragment, useState, useEffect, useRef } from 'react'
-import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
@@ -576,16 +575,27 @@ export default function TexteBible({
             // non centrées verticalement dans le vide.
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0' }}>
               {/* Des ruines fumantes plutôt qu'un fleuron : l'ornement disait « fin de
-                  chapitre », là où il faut dire « il n'y a rien ici ». Taille mesurée,
-                  discrète — c'est un ornement, pas une illustration. `multiply` fait
-                  disparaître le fond blanc du dessin sur le papier de la page. */}
-              <Image className="cs-ornement" src="/ornements/ruines-fumantes.png" alt="" aria-hidden="true"
-                width={1242} height={1242} priority={false}
-                style={{ width: 'min(190px, 55%)', height: 'auto', opacity: 0.42, mixBlendMode: 'multiply' }} />
-              {/* Le texte remonte sous l'image par une marge négative : la gravure est
-                  carrée mais les ruines reposent haut, laissant du blanc en bas. Le texte
-                  vient ainsi se poser à la lisière du sol, non loin sous le cadre. */}
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '-26px 0 0', maxWidth: '21.25rem' }}>
+                  chapitre », là où il faut dire « il n'y a rien ici ».
+
+                  ⛔ En img, jamais en Image de Next : à certaines largeurs l'optimiseur rend
+                  un PNG à trois canaux, la couche alpha est aplatie sur du blanc et le fond
+                  réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
+
+                  ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE, elle n'a plus de fond
+                  blanc à faire disparaître, et l'opacité posée sur la même image créait de
+                  toute façon un contexte d'empilement qui annulait le mélange (charte).
+
+                  ⛔ Aucune LARGEUR posée, deux MAXIMA seulement. Les 190 px d'avant étaient une
+                  valeur absolue, qui ne suivait pas la police racine. La planche est en outre un
+                  PANORAMA là où la précédente était carrée : elle prend donc plus de mesure pour
+                  que les ruines gardent leur poids, son ciel de fumée occupant à lui seul le
+                  cinquième supérieur du cadre. */}
+              <img className="cs-ornement" src="/ornements/ruines-colonnades.png" alt="" aria-hidden="true"
+                style={{ maxWidth: 'min(22rem, 76%)', maxHeight: '34vh', opacity: 0.42 }} />
+              {/* ⚠️ Plus de marge NÉGATIVE sous la gravure. Elle existait parce que la planche
+                  carrée laissait du blanc sous des ruines posées haut ; celle-ci descend au ras
+                  du sol, et le texte viendrait se poser dans les pierres. */}
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '14px 0 0', maxWidth: '21.25rem' }}>
                 La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
               </p>
             </div>

@@ -154,14 +154,16 @@ export const ILLUSTRATIONS: Illustration[] = [
   },
 
   {
-    chemin: '/ornements/ruines-fumantes.png',
+    chemin: '/ornements/ruines-colonnades.png',
     nom: 'Ruines fumantes',
     fonction: 'blanc',
     emploi: 'Dit qu’une traduction ne comporte pas le livre demandé. Des ruines plutôt qu’un fleuron : l’ornement devait dire « il n’y a rien ici », non « fin de chapitre ».',
-    lieu: { href: '/?livre=MAT&chapitre=1&trad=TR0005', label: 'Matthieu 1 dans la Septante', repere: 'Au centre, à la place du texte : la Septante ne comporte pas le Nouveau Testament.' },
+    lieu: { href: '/?livre=MAT&chapitre=1&trad=TR0005', label: 'Matthieu 1 dans la Septante', repere: 'Au tiers supérieur de la colonne de lecture : la Septante ne comporte aucun livre du Nouveau Testament.' },
     source: 'app/components/TexteBible.tsx',
-    traitement: { opacite: 0.42, fusion: 'multiply', ornement: true, largeur: 'min(190px, 55%)' },
+    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 22rem et 76 %, bornée en hauteur' },
+    note: 'A remplacé la planche carrée le 2026-08-26. C’est un PANORAMA : elle prend donc plus de mesure pour que les ruines gardent leur poids, son ciel de fumée occupant à lui seul le cinquième supérieur du cadre. La légende a perdu sa marge NÉGATIVE, qui existait parce que la planche carrée laissait du blanc sous des ruines posées haut : celle-ci descend au ras du sol, et le texte serait venu se poser dans les pierres. ⛔ Trois reprises que la charte réclamait : la pose passait par Image de Next, dont l’optimiseur aplatit parfois l’alpha sur du blanc et fait reparaître le fond ; le mix-blend-mode était mort, la planche étant détourée ; et la largeur de 190 px, absolue, ne suivait pas la police racine. Papier ramené au blanc d’après son niveau dominant, à 249 pour cette planche : 76,1 % de transparents, 17 % de partiels, la fumée en étant seule cause. Encre mesurée et reposée à la luminance 76. Elle pèse 223 Ko contre 423.',
   },
+
   {
     chemin: '/ornements/ordinateur-pentecote.png',
     nom: 'Pentecôte à l’ordinateur',
@@ -400,6 +402,12 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Cristaux',
     fonction: 'reserve',
     emploi: 'Tenait la page de recherche jusqu’au 2026-08-26, où le désert et la fosse ont pris sa place.',
+  },
+  {
+    chemin: '/ornements/ruines-fumantes.png',
+    nom: 'Ruines fumantes carrées',
+    fonction: 'reserve',
+    emploi: 'Disait le livre absent d’une traduction jusqu’au 2026-08-26, où le panorama de colonnades a pris sa place.',
   },
   {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',
