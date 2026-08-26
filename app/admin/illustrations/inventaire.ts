@@ -110,15 +110,7 @@ export type Illustration = {
 
 export const ILLUSTRATIONS: Illustration[] = [
   // ── Occuper un blanc ───────────────────────────────────────────────────────
-  {
-    chemin: '/ornements/carapace-vide.png',
-    nom: 'Carapace de tortue',
-    fonction: 'blanc',
-    emploi: 'Ferme le volet des commentaires quand un passage n’en a reçu aucun.',
-    lieu: { href: '/?livre=NUM&chapitre=7&trad=TR0001', label: 'Nombres 7', repere: 'Volet des Pères, à droite. Ce chapitre est le plus long du corpus à n’avoir reçu aucun apparat : la gravure y tient seule la colonne.' },
-    source: 'app/components/PanneauPatristique.tsx',
-    traitement: { opacite: 0.46, fusion: 'multiply', ornement: true, largeur: 'min(168px, 58%)' },
-  },
+
   {
     chemin: '/ornements/cul-de-lampe-cristaux.png',
     nom: 'Cristaux',
@@ -152,12 +144,13 @@ export const ILLUSTRATIONS: Illustration[] = [
     chemin: '/ornements/carapace-posee.png',
     nom: 'Carapace posée',
     fonction: 'blanc',
-    emploi: 'Tient l’onglet des commentaires d’une œuvre tant que personne n’y a écrit.',
-    lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, onglet « Commentaires », sur un paragraphe qui n’en porte aucun.' },
-    source: 'app/oeuvre/[id]/OngletCommentaires.tsx',
+    emploi: 'Dit qu’un passage n’a reçu ni commentaire ni apparat, dans le volet de droite d’une œuvre comme dans celui de la Bible.',
+    lieu: { href: '/?livre=NUM&chapitre=7&trad=TR0001', label: 'Nombres 7', repere: 'Volet des Pères, à droite. Ce chapitre est le plus long du corpus à n’avoir reçu aucun apparat : la gravure y tient seule la colonne.' },
+    source: 'app/components/PanneauPatristique.tsx',
     traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 20rem et 82 %, bornée en hauteur' },
-    note: 'Seconde carapace du site, et ce n’est pas un doublon : celle-ci est bombée et vue de face, quand « Carapace vide » est couchée de trois quarts et sert le volet de la Bible. Elle se pose au MILIEU de la zone défilante, en largeur comme en hauteur ; la hauteur vient du flux, la zone étant déjà « flex: 1 », et non d’un calcul sur la fenêtre qui devrait deviner la hauteur du formulaire. Détourée par le script maison : encre médiane mesurée à 15, donc gravure au trait franc, 21,8 % de pleins.',
+    note: 'Trois poses, une seule planche depuis le 2026-08-26 : les deux volets de commentaires — celui de la Bible et celui d’une œuvre, ce dernier dans app/oeuvre/[id]/OngletCommentaires.tsx — et le « Aucune occurrence » de l’apparat. Elle a remplacé la carapace couchée, qui disait la même absence sous un autre dessin selon la page où l’on se trouvait. Dans les deux volets de commentaires elle se pose au MILIEU de la zone défilante, en largeur comme en hauteur ; cette hauteur vient du flux, la zone étant déjà « flex: 1 », et non d’un calcul sur la fenêtre qui devrait deviner celle du formulaire. Sur « Aucune occurrence » elle reste dans le flux, sous les sous-onglets. Deux reprises au passage : le mix-blend-mode de la pose ancienne était mort, la planche étant détourée et l’opacité posée sur la même image annulant le mélange ; et sa largeur de 168 px, absolue, ne suivait pas la police racine, donc la gravure rapetissait à mesure que l’écran s’agrandissait. Détourée par le script maison : encre médiane mesurée à 15, donc gravure au trait franc, 21,8 % de pleins, encre reposée à la luminance 6, presque noire, parce que la décomposition par pixel vire au bruit sur un papier blanc pur. Le volet biblique la servait à 0,46 : les trois poses sont unifiées à 0,42, l’encre de cette planche étant bien plus dense que celle des gravures voisines.',
   },
+
   {
     chemin: '/ornements/ruines-fumantes.png',
     nom: 'Ruines fumantes',
@@ -387,6 +380,12 @@ export const ILLUSTRATIONS: Illustration[] = [
   })),
 
   // ── En réserve ─────────────────────────────────────────────────────────────
+  {
+    chemin: '/ornements/carapace-vide.png',
+    nom: 'Carapace de tortue',
+    fonction: 'reserve',
+    emploi: 'Tenait les états vides du volet biblique jusqu’au 2026-08-26, où la carapace posée a pris sa place sur les deux volets.',
+  },
   {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',
     nom: 'Buisson ardent',
