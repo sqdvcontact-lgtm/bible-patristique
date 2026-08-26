@@ -597,7 +597,7 @@ export default function TexteBible({
                   vaut pour les fenêtres BASSES : la planche est un panorama, et sa hauteur y
                   chasserait la légende sous le pli. */}
               <img className="cs-ornement" src="/ornements/cite-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: 'min(38rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 14rem)', opacity: 0.92 }} />
+                style={{ maxWidth: 'min(51rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 9rem)', opacity: 0.92 }} />
               {/* La marge NÉGATIVE revient, et pour la raison qui l'avait fait naître : la cité
                   repose bas dans son cadre, dont le quart inférieur est un sol presque vide. Le
                   texte vient ainsi se poser à la lisière du sol plutôt que loin sous la planche.
