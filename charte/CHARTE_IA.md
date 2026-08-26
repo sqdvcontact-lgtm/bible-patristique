@@ -2213,7 +2213,23 @@ Le blanc du bas vaut celui de la droite : la manchette est cernée du même blan
 
 Deux gardes-fous. Sur une mesure étroite, où la manchette ne laisserait au commentaire qu’une trentaine de signes par ligne et creuserait le justifié de lézardes, le repère reprend toute la mesure et le texte le suit au lieu de l’habiller. Et le bloc contient son flottant, faute de quoi un commentaire plus court que sa manchette la laisserait déborder sur ce qui suit. ⛔ Ce contexte se pose par `display: flow-root`, jamais par un `container-type` : celui-ci confine la mise en page et ferait du bloc le référent des fenêtres de note, qui sont en position fixe — elles s’y trouveraient enfermées.
 
-La disposition vaut pour les repères des rangs bas, chapitre, péricope et verset. Les rubriques de large portée — introduction, notice de livre ou de partie — gardent leur composition centrée en petites capitales : ce ne sont pas des repères de développement mais des noms de genre éditorial.
+La disposition vaut pour les repères des rangs bas, chapitre, péricope et verset. Les rubriques de large portée — introduction, notice de livre ou de partie — gardent leur composition centrée et leur petit corps : ce ne sont pas des repères de développement mais des noms de genre éditorial.
+
+### 35.10. Aucun titre biblique ne se compose en petites capitales
+
+⛔ Décision de l’auteur, 26 août 2026 : « laid et pas lisible ». Quatre rangs de titre sur six les portaient, plus les rubriques d’information. Composée à quinze pixels avec de la chasse, une ligne entière en petites capitales devient une bande grise où l’œil ne trouve plus de mot — et c’est précisément le rang qu’on lit le plus, celui des péricopes, qui en souffrait le plus.
+
+La casse imprimée par Fillion se rend donc telle qu’elle est écrite, et les rangs se séparent autrement : le corps d’abord, puis la POSE — les rangs hauts centrés en romain, la péricope au fer en ITALIQUE. ⚠️ L’italique fait ici le travail que faisait la capitale : elle distingue sans peser, et un titre de péricope ne doit pas peser plus que ce qu’il annonce. Les rubriques suivent, et leur chasse tombe de moitié : une chasse large n’a de sens que sous des capitales.
+
+⚠️ Cela ne touche pas les petites capitales que la SOURCE demande — un nom d’auteur dans une bibliographie, relevé comme tel dans les enrichissements du texte. Elles portent un sens, et elles ne composent jamais une ligne entière.
+
+### 35.11. Un intervalle de références ne coupe pas un intitulé
+
+Un intitulé se coupe en titre et chapeau sur un tiret cadratin, mais ⛔ le tiret joint aussi bien deux références de plage. « § II. Le sermon sur la montagne (5, 1 — 7, 29) » se coupait ainsi en plein milieu d’une parenthèse, dont la fermeture partait seule en chapeau : « 7, 29) ». Cent intitulés du corpus étaient dans ce cas, presque tous dans Matthieu, où la référence de plage est la règle.
+
+La coupure exige donc que la tête DÉSIGNE une division au lieu de la décrire : moins de vingt-quatre signes, et close par un point (« § III. », « SECTION I. ») ou sans aucun chiffre (« PREMIÈRE PARTIE »). ⚠️ Mesurée sur les 2 651 intitulés du corpus, la règle change exactement les cent cas fautifs et aucun autre.
+
+⛔ La mention de chapitre imprimée en tête d’un intitulé ne paraît pas, pour la raison qui vaut déjà au § 35.1 : la barre de navigation nomme le chapitre. Enchâssée dans l’intitulé de 58 commentaires — « CHAP. IX. — 1-2. Introduction… » — elle prenait la place du repère, lequel passait en chapeau subordonné : la mention matérielle dominait l’information utile.
 
 ## 36. Le modèle d’onglets
 
