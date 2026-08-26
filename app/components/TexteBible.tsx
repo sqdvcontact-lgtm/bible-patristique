@@ -577,6 +577,13 @@ export default function TexteBible({
               {/* Des ruines fumantes plutôt qu'un fleuron : l'ornement disait « fin de
                   chapitre », là où il faut dire « il n'y a rien ici ».
 
+                  La mesure et l'intensité sont celles de la tour de Babel sur le Polyglotte :
+                  c'est un écran d'attente, non un blanc de pied de page, et la gravure doit s'y
+                  voir. Elle partage d'ailleurs son encre, prise pour référence de la famille.
+
+                  ⚠️ La légende reste au TIERS SUPÉRIEUR du bloc (charte), et non centrée dans
+                  le vide : c'est la seule chose que cette pose ne reprend pas du Polyglotte.
+
                   ⛔ En img, jamais en Image de Next : à certaines largeurs l'optimiseur rend
                   un PNG à trois canaux, la couche alpha est aplatie sur du blanc et le fond
                   réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
@@ -586,12 +593,11 @@ export default function TexteBible({
                   toute façon un contexte d'empilement qui annulait le mélange (charte).
 
                   ⛔ Aucune LARGEUR posée, deux MAXIMA seulement. Les 190 px d'avant étaient une
-                  valeur absolue, qui ne suivait pas la police racine. La planche est en outre un
-                  PANORAMA là où la précédente était carrée : elle prend donc plus de mesure pour
-                  que les ruines gardent leur poids, son ciel de fumée occupant à lui seul le
-                  cinquième supérieur du cadre. */}
+                  valeur absolue, qui ne suivait pas la police racine. Le plafond de hauteur
+                  vaut pour les fenêtres BASSES : la planche est un panorama, et sa hauteur y
+                  chasserait la légende sous le pli. */}
               <img className="cs-ornement" src="/ornements/ruines-colonnades.png" alt="" aria-hidden="true"
-                style={{ maxWidth: 'min(22rem, 76%)', maxHeight: '34vh', opacity: 0.42 }} />
+                style={{ maxWidth: 'min(34rem, 92%)', maxHeight: 'calc(100dvh - 3.5rem - 14rem)', opacity: 0.92 }} />
               {/* ⚠️ Plus de marge NÉGATIVE sous la gravure. Elle existait parce que la planche
                   carrée laissait du blanc sous des ruines posées haut ; celle-ci descend au ras
                   du sol, et le texte viendrait se poser dans les pierres. */}

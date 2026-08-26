@@ -1041,22 +1041,30 @@ export default function RechercheClient() {
           <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
 
             {!done && !loading && (
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginTop:'70px' }}>
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                ...(mobile ? { marginTop:'40px', marginBottom:'24px' } : { height:'100%' }) }}>
                 {/* Un désert et une fosse tiennent la page tant qu'aucune requête n'est lancée.
-                    La planche est LARGE là où le cul-de-lampe qu'elle remplace était vertical :
-                    elle prend donc plus de mesure, faute de quoi le paysage se lirait en timbre.
 
-                    ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE, elle n'a plus de fond
-                    blanc à fondre dans le papier, et l'opacité posée sur la même image créait de
-                    toute façon un contexte d'empilement qui annulait le mélange (charte).
+                    La pose est celle de la tour de Babel sur le Polyglotte, et pour la même
+                    raison : sur PC cette colonne fait TOUTE la hauteur sous la navbar et se
+                    trouve entièrement vide, l'intitulé, la recherche et les onglets vivant dans
+                    le volet de gauche. C'est donc un écran d'attente, non un blanc de pied de
+                    page — d'où la même mesure, la même opacité et la même invite en sérif
+                    italique. Un cul-de-lampe discret posé en haut de la colonne y flottait.
 
-                    ⛔ Aucune LARGEUR posée, deux MAXIMA seulement. Le `min(300px, 56%)` d'avant
-                    était une valeur absolue, qui ne suivait pas la police racine : la gravure
-                    rapetissait à mesure que l'écran s'agrandissait. Le plafond de hauteur ne sert
-                    que les fenêtres basses, où il garde l'invite au-dessus du pli. */}
+                    ⚠️ Le centrage vertical vient du flux, la zone étant de hauteur définie sur
+                    PC. En MOBILE elle ne l'est pas (minHeight en vh, débordement visible) : un
+                    « height: 100 % » s'y effondrerait, et le groupe reprend donc des marges.
+
+                    ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte). Le plafond de hauteur
+                    est l'autre moitié du réglage et vaut pour les écrans BAS : la planche est
+                    large de 1600 sur 780, donc à 816 px elle en ferait 398 de haut, ce qui ne
+                    tient plus sous une fenêtre de 720 px. Les deux dimensions restant
+                    automatiques, le navigateur applique les maxima l'un après l'autre en tenant
+                    le rapport (CSS 2.1, § 10.4). */}
                 <img className="cs-ornement" src="/ornements/desert-fosse.png" alt="" aria-hidden="true"
-                  style={{ maxWidth:'min(28rem, 76%)', maxHeight:'calc(100dvh - 3.5rem - 18rem)', opacity:0.5, marginBottom:'22px' }} />
-                <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic', letterSpacing:'0.02em' }}>Lancez une recherche</p>
+                  style={{ maxWidth:'min(51rem, 96%)', maxHeight:'calc(100dvh - 3.5rem - 9rem)', opacity:0.92, marginBottom:'16px' }} />
+                <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontStyle:'italic', color:'var(--cs-texte-doux)', letterSpacing:'0.02em', margin:0 }}>Lancez une recherche</p>
               </div>
             )}
             {loading && (
