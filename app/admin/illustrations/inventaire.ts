@@ -119,7 +119,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/recherche', label: 'Recherche', repere: 'Au centre, sous la barre de recherche, tant qu’aucune requête n’est lancée.' },
     source: 'app/recherche/RechercheClient.tsx',
     traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 51rem et 96 %, bornée en hauteur' },
-    note: 'A remplacé les cristaux le 2026-08-26. Elle reprend la pose de la tour de Babel sur le Polyglotte, et pour la même raison : sur PC cette colonne fait TOUTE la hauteur sous la navbar et se trouve entièrement vide, l’intitulé, la recherche et les onglets vivant dans le volet de gauche. C’est donc un écran d’attente et non un blanc de pied de page — même mesure, même opacité, même encre, même invite en sérif italique. Posée d’abord comme un cul-de-lampe discret en haut de la colonne, elle y flottait. ⚠️ Le centrage vertical vient du flux, la zone étant de hauteur définie sur PC ; en mobile elle ne l’est pas et le groupe reprend des marges. Deux reprises sur l’ancienne pose : le mix-blend-mode était mort, la planche étant détourée, et la largeur de 300 px, absolue, ne suivait pas la police racine.',
+    note: 'A remplacé les cristaux. Elle reprend la pose de la tour de Babel sur le Polyglotte, et pour la même raison : sur PC cette colonne fait TOUTE la hauteur sous la navbar et se trouve entièrement vide, l’intitulé, la recherche et les onglets vivant dans le volet de gauche. C’est donc un écran d’attente et non un blanc de pied de page — même mesure, même opacité, même encre, même invite en sérif italique. ⚠️ Le centrage vertical vient du flux, la zone étant de hauteur définie sur PC ; en mobile elle ne l’est pas et le groupe reprend des marges. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau.',
   },
 
   {
@@ -140,7 +140,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, après avoir cliqué un paragraphe dépourvu de référence biblique.' },
     source: 'app/oeuvre/[id]/OeuvreClient.tsx',
     traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 24rem et 88 %, bornée en hauteur' },
-    note: 'Répond à l’arbre ardent du même volet, dont elle reprend la planche, la mesure et l’opacité : les deux états du volet se ressemblent au lieu de se contredire. L’arbre est ici mort et le corbeau seul — l’absence se dit par l’image avant de se dire par la phrase. Le plafond de hauteur réserve 13,5 rem au lieu de 11,5 : le bouton de proposition se pose sous l’invite et sortirait de l’écran sur une fenêtre basse. Détourée par le script maison : encre médiane mesurée à 110, 10,4 % de pleins — le même taux que l’arbre ardent, ce qui n’est pas un hasard, les deux planches étant de la même main.',
+    note: 'Répond à l’arbre ardent du même volet, dont elle reprend la mesure : les deux états du volet se ressemblent au lieu de se contredire. L’arbre est ici mort et le corbeau seul — l’absence se dit par l’image avant de se dire par la phrase. Le plafond de hauteur réserve 13,5 rem au lieu de 11,5 : le bouton de proposition se pose sous l’invite et sortirait de l’écran sur une fenêtre basse. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau.',
   },
   {
     chemin: '/ornements/carapace-posee.png',
@@ -150,19 +150,20 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/?livre=NUM&chapitre=7&trad=TR0001', label: 'Nombres 7', repere: 'Volet des Pères, à droite. Ce chapitre est le plus long du corpus à n’avoir reçu aucun apparat : la gravure y tient seule la colonne.' },
     source: 'app/components/PanneauPatristique.tsx',
     traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 20rem et 82 %, bornée en hauteur' },
-    note: 'Trois poses, une seule planche depuis le 2026-08-26 : les deux volets de commentaires — celui de la Bible et celui d’une œuvre, ce dernier dans app/oeuvre/[id]/OngletCommentaires.tsx — et le « Aucune occurrence » de l’apparat. Elle a remplacé la carapace couchée, qui disait la même absence sous un autre dessin selon la page où l’on se trouvait. Dans les deux volets de commentaires elle se pose au MILIEU de la zone défilante, en largeur comme en hauteur ; cette hauteur vient du flux, la zone étant déjà « flex: 1 », et non d’un calcul sur la fenêtre qui devrait deviner celle du formulaire. Sur « Aucune occurrence » elle reste dans le flux, sous les sous-onglets. Deux reprises au passage : le mix-blend-mode de la pose ancienne était mort, la planche étant détourée et l’opacité posée sur la même image annulant le mélange ; et sa largeur de 168 px, absolue, ne suivait pas la police racine, donc la gravure rapetissait à mesure que l’écran s’agrandissait. Détourée par le script maison : encre médiane mesurée à 15, donc gravure au trait franc, 21,8 % de pleins, encre reposée à la luminance 6, presque noire, parce que la décomposition par pixel vire au bruit sur un papier blanc pur. Le volet biblique la servait à 0,46 : les trois poses sont unifiées à 0,42, l’encre de cette planche étant bien plus dense que celle des gravures voisines.',
+    note: 'Trois poses, une seule planche : les deux volets de commentaires — celui de la Bible et celui d’une œuvre, ce dernier dans app/oeuvre/[id]/OngletCommentaires.tsx — et le « Aucune occurrence » de l’apparat. Elle a remplacé la carapace couchée, qui disait la même absence sous un autre dessin selon la page où l’on se trouvait. Dans les deux volets de commentaires elle se pose au MILIEU de la zone défilante, en largeur comme en hauteur ; cette hauteur vient du flux, la zone étant déjà « flex: 1 ». Sur « Aucune occurrence » elle reste dans le flux, sous les sous-onglets. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau.',
   },
 
   {
-    chemin: '/ornements/ruines-colonnades.png',
-    nom: 'Ruines fumantes',
+    chemin: '/ornements/cite-ruinee.png',
+    nom: 'Cité ruinée',
     fonction: 'blanc',
     emploi: 'Dit qu’une traduction ne comporte pas le livre demandé. Des ruines plutôt qu’un fleuron : l’ornement devait dire « il n’y a rien ici », non « fin de chapitre ».',
     lieu: { href: '/?livre=MAT&chapitre=1&trad=TR0005', label: 'Matthieu 1 dans la Septante', repere: 'Au tiers supérieur de la colonne de lecture : la Septante ne comporte aucun livre du Nouveau Testament.' },
     source: 'app/components/TexteBible.tsx',
-    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 34rem et 92 %, bornée en hauteur' },
-    note: 'A remplacé la planche carrée le 2026-08-26. Mesure, intensité et encre sont celles de la tour de Babel sur le Polyglotte : c’est un écran d’attente, non un blanc de pied de page, et la gravure doit s’y voir. ⚠️ La légende reste au TIERS SUPÉRIEUR du bloc (charte) et non centrée dans le vide : c’est la seule chose que cette pose ne reprenne pas du Polyglotte. Elle a aussi perdu la marge NÉGATIVE qui la remontait, laquelle n’existait que parce que la planche carrée laissait du blanc sous des ruines posées haut. ⛔ Trois reprises que la charte réclamait : la pose passait par Image de Next, dont l’optimiseur aplatit parfois l’alpha sur du blanc et fait reparaître le fond ; le mix-blend-mode était mort, la planche étant détourée ; et la largeur de 190 px, absolue, ne suivait pas la police racine.',
+    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 38rem et 96 %, bornée en hauteur' },
+    note: 'Une cité basse sur un horizon vide, sa fumée seule montant dans le blanc : l’encre franche n’occupe que 1 510 sur 397 d’un cadre de 1 600 sur 1 194, et ce vide EST le propos. La marge négative sous la gravure revient pour cette raison, le quart inférieur du cadre étant un sol presque vide : le texte se pose à la lisière du sol plutôt que loin sous la planche. ⚠️ Une marge négative se règle sur la COMPOSITION et ne se reconduit pas d’un dessin à l’autre — la planche intermédiaire de colonnades descendait au ras des pierres et l’avait fait ôter. ⛔ Trois reprises que la charte réclamait sur cette pose : elle passait par Image de Next, dont l’optimiseur aplatit parfois l’alpha sur du blanc et fait reparaître le fond ; le mix-blend-mode était mort, la planche étant détourée ; et la largeur de 190 px, absolue, ne suivait pas la police racine. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, l’ALPHA étant calculé sur cette encre et non sur la médiane de la planche. Profil de gravure au trait : 87,1 % de transparents pour 11,1 % de partiels.',
   },
+
 
   {
     chemin: '/ornements/ordinateur-ardent.png',
@@ -172,7 +173,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/polyglotte', label: 'Polyglotte', repere: 'En pied du message, sur un écran de moins de 820 px de large. À voir en réduisant la fenêtre.' },
     source: 'app/polyglotte/page.tsx',
     traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 16rem et 76 %, bornée en hauteur' },
-    note: 'A remplacé l’ordinateur de Pentecôte le 2026-08-26. Même propos : l’ordinateur sous les langues de feu, l’alpha et l’oméga sur le moniteur, la Polyglotte dite en une image. Intensité et encre sont celles de la tour de Babel, à l’autre bout de la même page : cet écran n’a lui non plus qu’une gravure pour tout contenu. ⚠️ La planche est en HAUTEUR là où la précédente était en largeur, d’où un plafond de hauteur qui n’est pas décoratif : sur un téléphone bas, elle chasserait le texte hors de l’écran. Pourtour de la source rogné de 32 px avant traitement, faute de quoi le liseré sombre du bord devient une barre noire. Encre reposée à la luminance 33, contre 48 pour la planche brute. Elle pèse 278 Ko contre 530.',
+    note: 'A remplacé l’ordinateur de Pentecôte. Même propos : l’ordinateur sous les langues de feu, l’alpha et l’oméga sur le moniteur, la Polyglotte dite en une image. Intensité et encre sont celles de la tour de Babel, à l’autre bout de la même page : cet écran n’a lui non plus qu’une gravure pour tout contenu. ⚠️ La planche est en HAUTEUR là où la précédente était en largeur, d’où un plafond de hauteur qui n’est pas décoratif : sur un téléphone bas, elle chasserait le texte hors de l’écran. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau.',
   },
 
 
@@ -185,7 +186,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/polyglotte', label: 'Polyglotte', repere: 'Au centre, tant qu’aucun livre n’est ouvert, sous l’invite « Ouvrez un livre ».' },
     source: 'app/polyglotte/page.tsx',
     traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 51rem et 96 %, bornée en hauteur' },
-    note: 'A remplacé la tour intacte le 2026-08-26, sans que la pose change : deux maxima, aucune largeur posée. Elle pèse 406 Ko là où la précédente en pesait 2 114, qui était la plus lourde image servie du site, pour un simple écran d’attente. ⚠️ Son détourage a demandé une normalisation préalable du papier : celui de cette planche est à 253, et ses seuls quatre COINS sont à 255 — or c’est aux coins que le script maison mesure le fond. Il tenait donc les 91 % de papier pour une encre très pâle, et rendait 87,8 % de partiels pour 6 % de transparents. Papier ramené au blanc avant détourage, elle rend 81,7 % de transparents pour 12,1 % de partiels, dans la bande de la gravure au trait. Encre mesurée et reposée à la luminance 33.',
+    note: 'A remplacé la tour intacte, sans que la pose change : deux maxima, aucune largeur posée. Elle pèse le quart des 2 114 Ko de la précédente, qui était la plus lourde image servie du site pour un simple écran d’attente. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau.',
   },
 
   {
@@ -416,6 +417,12 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Ordinateur de Pentecôte',
     fonction: 'reserve',
     emploi: 'Fermait le message d’écran large de la Polyglotte jusqu’au 2026-08-26, où l’ordinateur ardent a pris sa place.',
+  },
+  {
+    chemin: '/ornements/ruines-colonnades.png',
+    nom: 'Colonnades en ruine',
+    fonction: 'reserve',
+    emploi: 'Disait le livre absent d’une traduction le 2026-08-26, entre la planche carrée et la cité ruinée qui a pris sa place le même jour.',
   },
   {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',

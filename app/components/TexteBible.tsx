@@ -596,12 +596,15 @@ export default function TexteBible({
                   valeur absolue, qui ne suivait pas la police racine. Le plafond de hauteur
                   vaut pour les fenêtres BASSES : la planche est un panorama, et sa hauteur y
                   chasserait la légende sous le pli. */}
-              <img className="cs-ornement" src="/ornements/ruines-colonnades.png" alt="" aria-hidden="true"
-                style={{ maxWidth: 'min(34rem, 92%)', maxHeight: 'calc(100dvh - 3.5rem - 14rem)', opacity: 0.92 }} />
-              {/* ⚠️ Plus de marge NÉGATIVE sous la gravure. Elle existait parce que la planche
-                  carrée laissait du blanc sous des ruines posées haut ; celle-ci descend au ras
-                  du sol, et le texte viendrait se poser dans les pierres. */}
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '14px 0 0', maxWidth: '21.25rem' }}>
+              <img className="cs-ornement" src="/ornements/cite-ruinee.png" alt="" aria-hidden="true"
+                style={{ maxWidth: 'min(38rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 14rem)', opacity: 0.92 }} />
+              {/* La marge NÉGATIVE revient, et pour la raison qui l'avait fait naître : la cité
+                  repose bas dans son cadre, dont le quart inférieur est un sol presque vide. Le
+                  texte vient ainsi se poser à la lisière du sol plutôt que loin sous la planche.
+                  ⚠️ Elle avait dû être ôtée le temps d'une planche intermédiaire, qui descendait
+                  au ras des pierres : une marge négative se règle sur la COMPOSITION, elle ne se
+                  reconduit pas d'un dessin à l'autre. */}
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '-24px 0 0', maxWidth: '21.25rem' }}>
                 La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
               </p>
             </div>
