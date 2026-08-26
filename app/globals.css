@@ -728,10 +728,10 @@ button:focus-visible,
 .cs-bible-info--i3 > .cs-bible-info-label { color: var(--cs-texte-second); }
 
 /* Le repère d'un commentaire de rang bas ouvre son développement comme une
-   lettrine ouvre un chapitre : une manchette posée au fer à gauche, que le
-   commentaire habille. C'est la disposition du fac-similé — Fillion imprime
-   « 59-61. Jésus est mis au tombeau. » et enchaîne ses notes dans la foulée,
-   sans jamais donner au repère une ligne à lui seul.
+   lettrine ouvre un chapitre : une manchette posée en tête, que le commentaire
+   habille. C'est la disposition du fac-similé — Fillion imprime « 59-61. Jésus
+   est mis au tombeau. » et enchaîne ses notes dans la foulée, sans jamais donner
+   au repère une ligne à lui seul.
    ⛔ Rien ne le délimite qu'un blanc : ni filet, ni fond, ni pictogramme. Le
    sans-serif et le demi-gras le détachent assez du serif justifié qui l'entoure. */
 .cs-bible-info--i4.cs-bible-block--commentary,
@@ -750,24 +750,32 @@ button:focus-visible,
   /* Deux repères qui se suivent s'empilent, au lieu de se ranger côte à côte
      quand le premier développement est trop court pour les séparer. */
   clear: left;
-  /* La manchette épouse son texte et ne s'arrête qu'à la colonne : un repère
-     d'un mot n'ouvre pas un vide à sa droite, un repère de six lignes descend
-     d'autant. ⛔ Aucune hauteur imposée — c'est le texte qui la donne. */
-  width: max-content;
-  max-width: 7.5rem;
+  box-sizing: border-box;
+  /* Une COLONNE, et non une boîte taillée sur chaque repère. Éprouvé au fil à
+     plomb : quand la largeur suivait le texte, le fer du commentaire sautait
+     d'un bloc à l'autre et la page perdait son aplomb. La hauteur, elle, reste
+     libre — ⛔ aucune taille imposée, c'est le texte qui la donne. */
+  width: 7rem;
+  /* Manchette de gauche : elle se ferre à DROITE, contre la gouttière. Son bord
+     net longe ainsi le fer du commentaire, et ce sont ses lignes courtes qui
+     s'ouvrent du côté de la marge, où le blanc ne se voit pas. */
+  text-align: right;
+  /* Les lignes du repère s’égalisent au lieu de laisser une veuve d’un mot :
+     ferré à droite, c’est son bord GAUCHE que l’équilibrage rend lisible. */
+  text-wrap: balance;
   /* La GRILLE du commentaire, 0,78125rem × 1,3, et non la conduite propre du
      repère : c'est elle qui fait tomber la première ligne de la manchette sur
      la première ligne du commentaire, et les suivantes avec.
      ⚠️ Mesuré, non deviné : à hauteur de ligne égale, Source Sans et Source
-     Serif partagent leur ligne de base ici, et il n'y a aucune descente à
+     Serif partagent ici leur ligne de base, et il n'y a aucune descente à
      compenser. Toute autre valeur de conduite en demanderait une. */
   line-height: 1.015625rem;
   /* ⛔ Pas de marge basse : la manchette occupe des lignes ENTIÈRES de la
      grille, et le texte reprend pleine mesure à la ligne suivante. Une marge
      ici mordrait sur une ligne de plus et casserait cet escalier. */
-  margin: 0 1.1rem 0 0;
+  margin: 0 1.25rem 0 0;
   padding: 0;
-  /* ⛔ Aucune césure dans la manchette : sur une ligne de dix-sept signes, elle
+  /* ⛔ Aucune césure dans la manchette : sur une ligne de seize signes, elle
      hacherait le repère plus qu'elle ne le rangerait. */
   hyphens: none;
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
@@ -778,13 +786,14 @@ button:focus-visible,
 /* Sur une mesure étroite, la manchette ne laisserait au commentaire qu'une
    trentaine de signes par ligne, et le justifié s'y creuserait de lézardes. Le
    repère reprend alors toute la mesure et le texte le suit, au lieu de
-   l'habiller. */
+   l'habiller ; ferré à droite, il n'aurait plus de gouttière à longer. */
 @media (max-width: 700px) {
   .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
     float: none;
-    max-width: none;
+    width: auto;
+    text-align: left;
     margin: 0 0 0.4rem;
   }
 }
