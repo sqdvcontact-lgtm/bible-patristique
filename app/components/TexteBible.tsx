@@ -605,7 +605,7 @@ export default function TexteBible({
                   vaut pour les fenêtres BASSES : la planche est un panorama, et sa hauteur y
                   chasserait la légende sous le pli. */}
               <img className="cs-ornement" src="/ornements/cite-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: 'min(68rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 9rem)', opacity: 0.72 }} />
+                style={{ maxWidth: 'min(68rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 15rem)', opacity: 0.72 }} />
               {/* DIX PIXELS, et plus aucune marge négative. Celle-ci corrigeait un vide qui
                   n'aurait jamais dû être dans le fichier : la planche traînait 312 lignes
                   transparentes sous les ruines, gardées par une douzaine de mouchetures à alpha 1.

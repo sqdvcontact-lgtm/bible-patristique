@@ -983,7 +983,7 @@ export default function PolyglottePage() {
   const SOMMET_CORPS = `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_TITRE + HAUT_ENTETE}px)`;
 
   return (
-    <div style={{ background: FOND, minHeight: "100vh" }}>
+    <div style={{ background: FOND, minHeight: "calc(100vh - 3.5rem)" }}>
       {/* La comparaison en colonnes exige une largeur d'écran : indisponible sur téléphone. */}
       <style>{`
         .poly-outil { display: block; }
@@ -1131,7 +1131,7 @@ export default function PolyglottePage() {
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
           pour les deux pages, donc une seule navigation à maintenir et à apprendre. */}
       <div className="poly-outil">
-        <div style={{ display: "flex", alignItems: "flex-start", minHeight: "100vh" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", minHeight: "calc(100vh - 3.5rem)" }}>
         {/* `top: 0` collait le volet au bord du viewport, c'est-à-dire DERRIÈRE la
             navbar fixe : sa barre de recherche disparaissait sous elle dès qu'on
             descendait. Le volet se cale donc sous la navbar, et n'occupe que la
@@ -1249,7 +1249,7 @@ export default function PolyglottePage() {
                   dimensions sont automatiques et bornées, le navigateur applique les maxima l'un
                   après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
               <img className="cs-ornement" src="/ornements/tour-babel-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: "min(68rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 9rem)", opacity: 0.72, marginBottom: "16px" }} />
+                style={{ maxWidth: "min(68rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 15rem)", opacity: 0.72, marginBottom: "16px" }} />
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
           </div>
