@@ -3,7 +3,8 @@
 // à la taille où la page l'affiche. Patron : `scripts/logo-fabriquer.mjs`.
 // Doctrine : AGENTS.md, « Les ornements se DÉTOURENT, jamais mix-blend-mode ».
 //
-//   node scripts/ornements-detourer.mjs --source <chemin> --nom <nom> --affichage <px> [--ecrire]
+//   node scripts/ornements-detourer.mjs --source <chemin> --nom <nom> --affichage <px>
+//        [--garder-haut] [--ecrire]
 //   node scripts/ornements-detourer.mjs --profil <nom>…
 //
 // Sans `--ecrire`, le script MESURE et ne touche à rien : c'est ainsi qu'on relève une
@@ -37,6 +38,7 @@ const NETTETE = { sigma: 0.6, m1: 0, m2: 2 };
 const args = process.argv.slice(2);
 const opt = (nom) => { const i = args.indexOf('--' + nom); return i >= 0 ? args[i + 1] : null; };
 const ECRIRE = args.includes('--ecrire');
+const GARDER_HAUT = args.includes('--garder-haut');
 
 const lum = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
@@ -161,6 +163,10 @@ async function fabriquer({ source, nom, affichage }) {
   }
   let x0 = W, y0 = H, x1 = -1, y1 = -1;
   for (let y = 0; y < H; y++) if (rangReel[y] >= MIN_PIXELS) { if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  // ⚠️ Le vide du HAUT n'est pas toujours un défaut : sur une planche à horizon bas, le
+  // ciel EST la composition et le rogner ampute le dessin. Le vide du BAS, lui, éloigne
+  // toujours la légende, et il se rogne sans discussion. `--garder-haut` sépare les deux.
+  if (GARDER_HAUT) y0 = 0;
   for (let x = 0; x < W; x++) if (colReelle[x] >= MIN_PIXELS) { if (x < x0) x0 = x; if (x > x1) x1 = x; }
   if (x1 < 0 || y1 < 0) { x0 = 0; y0 = 0; x1 = W - 1; y1 = H - 1; }
   const LISIERE = 2;

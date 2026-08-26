@@ -581,7 +581,7 @@ export default function TexteBible({
             // mou. La largeur est celle qui rend EXACTEMENT 51rem une fois les 96 % du
             // maximum appliqués (51 / 0,96 = 53,125), et le débordement est centré sur l'axe
             // du parent, lui-même centré dans la page.
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0', boxSizing: 'border-box', width: 'min(53.125rem, 94vw)', marginLeft: '50%', transform: 'translateX(-50%)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0', boxSizing: 'border-box', width: 'min(70.83rem, 94vw)', marginLeft: '50%', transform: 'translateX(-50%)' }}>
               {/* Des ruines fumantes plutôt qu'un fleuron : l'ornement disait « fin de
                   chapitre », là où il faut dire « il n'y a rien ici ».
 
@@ -605,7 +605,7 @@ export default function TexteBible({
                   vaut pour les fenêtres BASSES : la planche est un panorama, et sa hauteur y
                   chasserait la légende sous le pli. */}
               <img className="cs-ornement" src="/ornements/cite-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: 'min(51rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 9rem)', opacity: 0.92 }} />
+                style={{ maxWidth: 'min(68rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 9rem)', opacity: 0.72 }} />
               {/* DIX PIXELS, et plus aucune marge négative. Celle-ci corrigeait un vide qui
                   n'aurait jamais dû être dans le fichier : la planche traînait 312 lignes
                   transparentes sous les ruines, gardées par une douzaine de mouchetures à alpha 1.

@@ -1249,7 +1249,7 @@ export default function PolyglottePage() {
                   dimensions sont automatiques et bornées, le navigateur applique les maxima l'un
                   après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
               <img className="cs-ornement" src="/ornements/tour-babel-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: "min(51rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 9rem)", opacity: 0.92, marginBottom: "16px" }} />
+                style={{ maxWidth: "min(68rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 9rem)", opacity: 0.72, marginBottom: "16px" }} />
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
           </div>
