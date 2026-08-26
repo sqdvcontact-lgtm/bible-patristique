@@ -727,6 +727,66 @@ button:focus-visible,
 }
 .cs-bible-info--i3 > .cs-bible-info-label { color: var(--cs-texte-second); }
 
+/* Le repère d'un commentaire de rang bas ouvre son développement comme une
+   lettrine ouvre un chapitre : un petit carré posé au fer à gauche, que le
+   texte habille. C'est la disposition même du fac-similé — Fillion imprime
+   « 59-61. Jésus est mis au tombeau. » et enchaîne ses notes dans la foulée,
+   sans jamais donner une ligne pleine au repère. Le cadre rend cette soudure
+   lisible : on voit d'un coup d'œil où commence chaque groupe de versets, et
+   le commentaire ne perd pas une ligne.
+   ⚠️ Le cadre est un FILET, jamais un fond teinté : la règle du site tient
+   toujours — un commentaire n'est pas une alerte. */
+.cs-bible-info--i4.cs-bible-block--commentary,
+.cs-bible-info--i5.cs-bible-block--commentary,
+.cs-bible-info--i6.cs-bible-block--commentary {
+  /* Le bloc contient son flottant. Sans ce contexte, un commentaire plus court
+     que le carré le laisserait déborder sur ce qui suit. */
+  display: flow-root;
+}
+.cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
+.cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
+.cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
+  float: left;
+  /* Deux repères qui se suivent s'empilent, au lieu de se ranger côte à côte
+     quand le premier développement est trop court pour les séparer. */
+  clear: left;
+  box-sizing: border-box;
+  width: 7.5rem;
+  min-height: 7.5rem;
+  /* Le texte se centre dans le carré SANS boîte flex : le contenu reste du
+     texte en ligne, et un appel de note y garde sa place au fil des mots. */
+  align-content: center;
+  /* Le filet s'aligne sur les capitales de la première ligne, non sur le haut
+     de sa boîte : d'où ce demi-point de descente. */
+  margin: 0.1rem 0.85rem 0.35rem 0;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--cs-bord);
+  text-align: center;
+  text-wrap: balance;
+  line-height: 1.3;
+  /* ⛔ Aucune césure dans le carré : sur une ligne de dix-sept signes, elle
+     hacherait le repère plus qu'elle ne le rangerait. */
+  hyphens: none;
+  /* Encadré, le repère n'a plus besoin de s'effacer pour rester à sa place :
+     le gris de l'apparat s'y lisait anémique. */
+  color: var(--cs-texte-second);
+}
+
+/* Sur une mesure étroite, le carré ne laisserait au commentaire qu'une
+   vingtaine de signes par ligne, et le justifié s'y creuserait de lézardes. Le
+   repère reprend alors toute la mesure, en bandeau, et le texte le suit au
+   lieu de l'habiller. */
+@media (max-width: 700px) {
+  .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
+  .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
+  .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
+    float: none;
+    width: auto;
+    min-height: 0;
+    margin: 0 0 0.5rem;
+  }
+}
+
 /* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
    ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style
    sémantique : une édition qui ne déclare pas le rôle n'est pas touchée, et
