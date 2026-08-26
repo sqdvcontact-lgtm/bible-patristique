@@ -573,7 +573,15 @@ export default function TexteBible({
           {(versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))) && (
             // Charte : l'image + légende se placent au tiers supérieur du bloc,
             // non centrées verticalement dans le vide.
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0' }}>
+            // ⛔ Le bloc SORT de la mesure de lecture, et il le faut. Les trois grandes
+            // gravures du site — Babel sur le Polyglotte, le désert sur la recherche, la
+            // cité ici — partagent la même pose, mais celle-ci vivait dans une colonne de
+            // 620 px quand les deux autres ont toute la largeur : elle s'affichait à 549
+            // contre 816, et se trouvait servie 2,9 fois trop grande, d'où un trait gris et
+            // mou. La largeur est celle qui rend EXACTEMENT 51rem une fois les 96 % du
+            // maximum appliqués (51 / 0,96 = 53,125), et le débordement est centré sur l'axe
+            // du parent, lui-même centré dans la page.
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0', boxSizing: 'border-box', width: 'min(53.125rem, 94vw)', marginLeft: '50%', transform: 'translateX(-50%)' }}>
               {/* Des ruines fumantes plutôt qu'un fleuron : l'ornement disait « fin de
                   chapitre », là où il faut dire « il n'y a rien ici ».
 
