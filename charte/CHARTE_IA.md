@@ -2008,6 +2008,10 @@ La planche carrée, crème sur aplat vert, est l’icône : onglet, favori, écr
 
 La planche du monogramme seul est le logo. Son détourage ne sert que la couche de transparence : la couleur, on la repose. Le monogramme prend donc l’encre du titre là où il paraît sur le papier, et le crème là où il paraît sur la barre verte. L’encre de la planche est un noir franc qui jurerait avec le vert d’encre des lettres.
 
+⛔ **« On la repose » se prend au pied de la lettre : la planche est posée en MASQUE, et c’est le fond de l’élément qui peint.** Le frontispice de l’accueil superposait deux planches, l’une en vert d’encre pour le Clair, l’autre en crème pour le Cuir, le thème n’en montrant qu’une — pour éviter qu’un choix en JavaScript ne la fasse paraître après la peinture. Leurs canaux alpha sont rigoureusement identiques, vérifié pixel à pixel, aucun écart : une seule suffit donc, et la couleur devient une valeur qu’on règle au lieu d’une image qu’il faut redessiner. Le Cuir garde exactement sa teinte, écrite en valeur littérale, et l’on économise une requête. ⚠️ Ce qui vaut pour le frontispice ne vaut pas pour la barre de navigation, où la planche crème reste une image : elle y est peinte sur un aplat vert, et non sur le papier.
+
+⚠️ **L’encre du monogramme se tient UN CRAN au-dessus de celle du titre qu’il surmonte.** Elle valait exactement la même — le noir vert le plus sombre de la palette —, et le trait d’une lettre ornée étant plus épais que celui d’un titre, la marque pesait davantage que ce qu’elle annonce. Un cran plus doux la remet à sa place d’enseigne.
+
 Sur la page de titre, la marque se lace entre « Corpus » et « Scriptura », sur leur ligne, où elle se lit comme une initiale ornée. Elle ne se pose plus au-dessus du bandeau gravé, en vignette séparée. Sa hauteur se mesure en em, puisqu’elle vit dans le titre, et son calage vertical la centre sur la bande des capitales : posée sur la ligne d’écriture, une marque plus haute que les capitales surplomberait le mot de toute sa différence.
 
 ### 34.1. Le logo « CS » (19 août 2026)
