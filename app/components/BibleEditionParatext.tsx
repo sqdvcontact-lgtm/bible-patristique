@@ -387,12 +387,13 @@ export function BlocEditorialBible({
   // intitulé, et sans elle le 2° remonterait sous le 1°.
   if (resolu.redondantAvecNavigation) return null
 
-  // ⚠️ Un intitulé déclaré TITRE par le registre porte un NOM, non une
-  // désignation de division : l'introduction d'un livre réunit le nom du livre
-  // et le genre du développement (« Évangile selon saint Matthieu —
-  // Introduction »), et la coupure ne dépend alors plus de la longueur de la
-  // tête. Un repère ordinaire, lui, garde la mesure des désignations.
-  const intitule = diviserIntitule(bloc.heading ?? null, { teteNommee: resolu.headingRole === 'title' })
+  // ⚠️ Un bloc de portée HAUTE (I1 : la Bible, un testament, un groupe de
+  // livres, un livre) nomme sa portée puis dit son genre — « Évangile selon
+  // saint Matthieu — Introduction ». C'est alors le GENRE qui titre, et le nom
+  // qui passe en chapeau : le lecteur sait déjà quel livre il ouvre, la barre
+  // de navigation le nomme. Un repère de portée plus étroite, lui, garde
+  // l'ordre imprimé et la mesure des désignations.
+  const intitule = diviserIntitule(bloc.heading ?? null, { genreEnTitre: resolu.level === 'I1' })
   const notesTitre = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'heading')
   const notesCorps = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'body')
   // La balise vient des parents réellement présents, jamais du chiffre du jeton.

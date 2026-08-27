@@ -272,26 +272,35 @@ describe('intitulé en deux temps', () => {
     })
   })
 
-  it('coupe une tête NOMMÉE, si longue soit-elle', () => {
-    // L'introduction d'un livre réunit le nom du livre et le genre du
-    // développement. La mesure des désignations n'y vaut pas : le même intitulé
-    // se divisait dans trois évangiles sur quatre, et la différence ne tenait
-    // qu'à l'abréviation du mot « saint » — vingt et un signes pour « ÉVANGILE
-    // SELON S. LUC », vingt-neuf pour « Évangile selon saint Matthieu ».
-    expect(diviserIntitule('Évangile selon saint Matthieu — Introduction', { teteNommee: true })).toEqual({
-      titre: 'Évangile selon saint Matthieu', sousTitre: 'Introduction',
+  it('donne le titre au GENRE quand l’intitulé nomme d’abord sa portée', () => {
+    // Un bloc de portée haute nomme le livre, puis dit ce qu'on va lire. C'est
+    // le genre qui titre : le lecteur sait déjà quel livre il ouvre.
+    expect(diviserIntitule('Évangile selon saint Matthieu — Introduction', { genreEnTitre: true })).toEqual({
+      titre: 'Introduction', sousTitre: 'Évangile selon saint Matthieu',
     })
-    expect(diviserIntitule('LES ACTES DES APÔTRES — INTRODUCTION', { teteNommee: true })).toEqual({
-      titre: 'LES ACTES DES APÔTRES', sousTitre: 'INTRODUCTION',
+    expect(diviserIntitule('LES ACTES DES APÔTRES — INTRODUCTION', { genreEnTitre: true })).toEqual({
+      titre: 'INTRODUCTION', sousTitre: 'LES ACTES DES APÔTRES',
     })
-    // Sans l'option, la longueur commande de nouveau.
+    // La mesure des désignations n'y vaut plus : le même intitulé se divisait
+    // dans trois évangiles sur quatre, et la différence ne tenait qu'à
+    // l'abréviation du mot « saint » — vingt et un signes pour « ÉVANGILE SELON
+    // S. LUC », vingt-neuf pour « Évangile selon saint Matthieu ».
     expect(diviserIntitule('Évangile selon saint Matthieu — Introduction')).toEqual({
       titre: 'Évangile selon saint Matthieu — Introduction', sousTitre: null,
     })
     // ⛔ La garde contre les INTERVALLES demeure : une tête qui porte un chiffre
     // ne se coupe pas, quel que soit l'appelant.
-    expect(diviserIntitule('La Création. I, 1 — II, 3.', { teteNommee: true })).toEqual({
+    expect(diviserIntitule('La Création. I, 1 — II, 3.', { genreEnTitre: true })).toEqual({
       titre: 'La Création. I, 1 — II, 3.', sousTitre: null,
+    })
+    // ⛔ Un genre qui OUVRE est déjà à sa place : l'ordre imprimé tient. C'est
+    // l'autre convention de Fillion, et les deux coexistent dans le même livre.
+    expect(diviserIntitule('Introduction — 1° La personne de l’auteur', { genreEnTitre: true })).toEqual({
+      titre: 'Introduction', sousTitre: '1. La personne de l’auteur',
+    })
+    // Ce qui n'est un genre ni d'un côté ni de l'autre garde l'ordre imprimé.
+    expect(diviserIntitule('La Genèse — sujet et but ; plan et division', { genreEnTitre: true })).toEqual({
+      titre: 'La Genèse', sousTitre: 'sujet et but ; plan et division',
     })
   })
 

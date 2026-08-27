@@ -314,15 +314,28 @@ function estDesignation(tete: string): boolean {
 }
 
 /**
- * `teteNommee` : ce qui précède le tiret est un NOM, non une désignation de
- * division. C'est le cas de l'introduction d'un livre, dont l'intitulé imprimé
- * réunit le nom du livre et le genre du développement : « Évangile selon saint
- * Matthieu — Introduction », « LES ACTES DES APÔTRES — INTRODUCTION ».
+ * Les GENRES éditoriaux, tels que Fillion les nomme en tête ou en queue d'un
+ * intitulé de portée haute. Liste CLOSE : un mot qui n'y figure pas ne renverse
+ * jamais l'ordre imprimé. ⚠️ Le qualificatif suit (« INTRODUCTION GÉNÉRALE »),
+ * d'où la borne de mot plutôt que l'égalité.
+ */
+const GENRE_EDITORIAL = /^(introductions?|notices?|sommaires?|conclusions?|préfaces?|avant-propos|appendices?|excursus|prologues?|avertissements?)\b/i
+
+/**
+ * `genreEnTitre` : dans un bloc de portée haute, c'est le GENRE qui titre, où
+ * qu'il se trouve dans l'intitulé imprimé (décision de l'auteur, 27 août 2026).
  *
- * ⛔ Sans cette option, la coupure dépend de la LONGUEUR de la tête, mesurée
- * sur les désignations (« TROISIÈME PARTIE ») : « ÉVANGILE SELON S. LUC » passe
- * à vingt et un signes et « Évangile selon saint Matthieu » échoue à vingt-neuf.
- * Le même intitulé se divisait donc dans trois évangiles sur quatre, et la
+ * ⛔ **L'ordre imprimé ne commande pas**, et c'est tout l'objet de l'option :
+ * Fillion écrit tantôt « Évangile selon saint Matthieu — Introduction », tantôt
+ * « Introduction — 1° La personne de l'auteur ». Dans les deux cas, le titre
+ * doit dire « Introduction » : le lecteur sait déjà quel livre il ouvre, la
+ * barre de navigation le nomme, et ce qu'il ignore est qu'il a sous les yeux
+ * une introduction. Le nom de la portée passe donc en chapeau quand il ouvre.
+ *
+ * ⛔ La coupure ne dépend alors plus de la LONGUEUR de la tête, mesurée sur les
+ * désignations (« TROISIÈME PARTIE ») : « ÉVANGILE SELON S. LUC » y passait à
+ * vingt et un signes, « Évangile selon saint Matthieu » échouait à vingt-neuf.
+ * Le même intitulé se divisait dans trois évangiles sur quatre, et la
  * différence ne tenait qu'à l'abréviation du mot « saint ».
  *
  * ⚠️ La garde contre les INTERVALLES de références demeure, elle : une tête qui
@@ -330,16 +343,22 @@ function estDesignation(tete: string): boolean {
  */
 export function diviserIntitule(
   intitule: string | null,
-  options?: { teteNommee?: boolean },
+  options?: { genreEnTitre?: boolean },
 ): { titre: string; sousTitre: string | null } | null {
   const propre = intitule?.trim().replace(MENTION_CHAPITRE, '').trim()
   if (!propre) return null
   const coupure = propre.match(/^(.+?)\s+[—–-]\s+(.+)$/)
   if (!coupure) return { titre: propre, sousTitre: null }
   const tete = coupure[1].trim()
-  const coupable = options?.teteNommee ? !/\d/.test(tete) : estDesignation(tete)
-  if (!coupable) return { titre: propre, sousTitre: null }
-  return { titre: tete, sousTitre: ordinalLisible(coupure[2].trim()) }
+  const queue = ordinalLisible(coupure[2].trim())
+  // Le genre ferme l'intitulé : il remonte en titre, et le nom de la portée
+  // descend en chapeau. Un genre qui OUVRE est déjà à sa place, et retombe sur
+  // le cas ordinaire ci-dessous, lequel garde l'ordre imprimé.
+  if (options?.genreEnTitre && !/\d/.test(tete) && GENRE_EDITORIAL.test(queue) && !GENRE_EDITORIAL.test(tete)) {
+    return { titre: queue, sousTitre: tete }
+  }
+  if (!estDesignation(tete)) return { titre: propre, sousTitre: null }
+  return { titre: tete, sousTitre: queue }
 }
 function ordinalLisible(texte: string): string {
   return texte.replace(/^(\d+)\s*°\s*/, '$1. ')
