@@ -126,9 +126,12 @@ function tonDominant(data: Uint8ClampedArray): { h: number; s: number } | null {
   if (meilleur < 0 || lourd <= 0) return null
 
   const teinte = ((Math.atan2(sin[meilleur], cos[meilleur]) * 180) / Math.PI + 360) % 360
-  // La saturation est bornée serré : une image très terne donnerait un ton invisible,
-  // une enluminure un ton criard. Entre les deux, c'est l'image qui décide.
-  const saturation = Math.min(0.60, Math.max(0.32, sat[meilleur] / lourd))
+  // ⛔ La saturation est bornée TRÈS BAS, et l'écart entre les bornes est étroit.
+  // Un fond de fiche n'est pas un aplat de couleur : c'est un lait de chaux, qui
+  // porte une teinte sans porter une couleur. Les bornes ont d'abord été posées à
+  // 32-60 % — l'auteur a jugé le résultat trop vif le 27 août 2026 —, puis à 14-28 %,
+  // où la même image donne une craie teintée au lieu d'un ton pastel.
+  const saturation = Math.min(0.28, Math.max(0.14, sat[meilleur] / lourd))
   return { h: Math.round(teinte * 10) / 10, s: Math.round(saturation * 100) }
 }
 
