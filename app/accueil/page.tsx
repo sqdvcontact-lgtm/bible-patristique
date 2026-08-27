@@ -96,6 +96,22 @@ export default async function AccueilPage() {
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
+        /* La marque qui ferme la page. C'était le fleuron ❧, un CARACTÈRE : son
+           dessin dépendait donc de la police que le système voulait bien lui donner,
+           et il ne disait rien du site. C'est maintenant le CHIFFRE de Corpus
+           Scriptura — le C et le S entrelacés, gravés pour lui.
+           ⛔ La planche ne sert que d'ALPHA : elle est posée en MASQUE, et c'est le
+           fond de l'élément qui peint. L'or est celui que portait le fleuron ; seul
+           le dessin change. Voir la charte, « Le monogramme CS ».
+           ⚠️ Ce chiffre n'est PAS le monogramme du frontispice : celui-là est une
+           lettrine gothique, celui-ci une capitale didone. Deux dessins, deux
+           emplois, deux fichiers. */
+        .colophon-marque {
+          display: inline-block; height: 1.75rem; aspect-ratio: 535 / 512; width: auto;
+          background-color: var(--cs-or);
+          -webkit-mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
+          mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
+        }
         /* Le monogramme se mesure en HAUTEUR : il est plus haut que large, et
            c'est sa hauteur qui doit s'accorder à celle du titre. En rem, pour
            suivre la police racine fluide comme tout le reste du frontispice.
@@ -416,9 +432,9 @@ export default async function AccueilPage() {
               </div>
             </div>
 
-            {/* Marque finale */}
-            <div style={{ marginTop: "42px", fontSize: "1.375rem", color: "var(--cs-or)", lineHeight: 1 }}>
-              ❧
+            {/* Marque finale — voir la règle .colophon-marque. */}
+            <div style={{ marginTop: "42px", lineHeight: 1 }}>
+              <span className="colophon-marque" aria-hidden="true" />
             </div>
 
             {/* Liens légaux — en ligne sur desktop, empilés (sans coupure) sur mobile */}

@@ -387,7 +387,29 @@ export const ILLUSTRATIONS: Illustration[] = [
     source: 'app/quiz/HolyGuessr.tsx',
   })),
 
+  {
+    chemin: '/ornements/chiffre-cs.png',
+    nom: 'Chiffre CS',
+    fonction: 'coiffer',
+    emploi: 'Le C et le S entrelacés, en capitales didones, qui ferment la page d’accueil sous le colophon. Y remplace le fleuron ❧ depuis le 27 août 2026 : un caractère dont le dessin dépendait de la police que le système voulait bien donner, et qui ne disait rien du site. ⚠️ À ne pas confondre avec le monogramme du frontispice, qui est une lettrine gothique : deux dessins, deux emplois, deux fichiers.',
+    lieu: { href: '/accueil', label: 'Accueil', repere: 'Tout en bas, sous le colophon « en l’An de grâce MMXXVI », avant les liens légaux.' },
+    source: 'app/accueil/page.tsx',
+    traitement: { masque: true, largeur: '1.75rem' },
+  },
+
   // ── En réserve ─────────────────────────────────────────────────────────────
+  {
+    chemin: '/ornements/fleuron-fleur-de-lys.png',
+    nom: 'Fleuron — fleur de lys',
+    fonction: 'reserve',
+    emploi: 'Fleuron typographique détouré, livré le 27 août 2026 avec le chiffre CS et le brin de lavande. Aucune page ne l’appelle encore. Détouré en alpha comme les autres marques : il se posera en masque et prendra la couleur qu’on lui donnera.',
+  },
+  {
+    chemin: '/ornements/fleuron-lavande.png',
+    nom: 'Fleuron — brin de lavande',
+    fonction: 'reserve',
+    emploi: 'Fleuron typographique détouré, livré le 27 août 2026 avec le chiffre CS et la fleur de lys. Aucune page ne l’appelle encore. Son trait est plus fin que celui des deux autres : il demandera une taille plus grande pour tenir.',
+  },
   {
     chemin: '/ornements/carapace-vide.png',
     nom: 'Carapace de tortue',
