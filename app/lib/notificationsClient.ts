@@ -135,6 +135,10 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
       .not('message_admin', 'is', null),
   ])
 
+  if (mesCommentairesRes.error || mesEssaisRes.error || signalementsRes.error) {
+    throw new Error('Chargement des notifications impossible')
+  }
+
   const mesCommentaires = (mesCommentairesRes.data ?? []) as any[]
   const mesEssais = (mesEssaisRes.data ?? []) as any[]
   const idsCommentaires = mesCommentaires.map(c => c.id)
@@ -143,17 +147,21 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
   const [likesRes, reponsesCommentairesRes, commentairesEssaisRes, appreciationsEssaisRes] = await Promise.all([
     idsCommentaires.length
       ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', idsCommentaires).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as any[], error: null }),
     idsCommentaires.length
       ? supabase.from('commentaires').select('id, texte, user_id, reponse_a, created_at').in('reponse_a', idsCommentaires).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as any[], error: null }),
     idsEssais.length
       ? supabase.from('essais_commentaires').select('id, texte, id_essai, user_id, auteur_nom, created_at').in('id_essai', idsEssais).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as any[], error: null }),
     idsEssais.length
       ? supabase.from('essais_appreciations').select('id_essai, user_id').in('id_essai', idsEssais).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as any[], error: null }),
   ])
+
+  if (likesRes.error || reponsesCommentairesRes.error || commentairesEssaisRes.error || appreciationsEssaisRes.error) {
+    throw new Error('Chargement des notifications impossible')
+  }
 
   const idsAuteurs = [
     ...((likesRes.data ?? []) as any[]).map(l => l.user_id),
@@ -164,7 +172,9 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
 
   const profilsRes = idsAuteurs.length
     ? await supabase.from('profils').select('id, pseudo').in('id', [...new Set(idsAuteurs)])
-    : { data: [] as any[] }
+    : { data: [] as any[], error: null }
+  if (profilsRes.error) throw new Error('Chargement des notifications impossible')
+
   const profils = new Map((profilsRes.data ?? []).map((p: any) => [p.id, p]))
   const commentaireParId = new Map(mesCommentaires.map(c => [c.id, c]))
   const essaiParId = new Map(mesEssais.map(e => [e.id, e]))
@@ -202,8 +212,8 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
       key: `reaction-commentaire:${l.id_commentaire}:${l.user_id}:${l.valeur}`,
       id: l.id_commentaire,
       type: 'reaction' as const,
-      titre: positif ? 'Nouveau j’aime' : 'Nouveau je n’aime pas',
-      objet: positif ? 'Votre commentaire a reçu un j’aime' : 'Votre commentaire a reçu un je n’aime pas',
+      titre: positif ? 'Nouveau j’aime' : 'Nouvelle désapprobation',
+      objet: positif ? 'Votre commentaire a reçu un j’aime' : 'Votre commentaire a reçu une désapprobation.',
       contexte: extrait(commentaire?.texte),
       auteur: nomAuteur(l.user_id, profils),
       message: positif ? 'Un utilisateur a aimé votre commentaire.' : 'Un utilisateur a désapprouvé votre commentaire.',
