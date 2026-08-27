@@ -2028,6 +2028,10 @@ La planche du monogramme seul est le logo. Son détourage ne sert que la couche 
 
 ⚠️ **L’encre du monogramme se tient UN CRAN au-dessus de celle du titre qu’il surmonte.** Elle valait exactement la même — le noir vert le plus sombre de la palette —, et le trait d’une lettre ornée étant plus épais que celui d’un titre, la marque pesait davantage que ce qu’elle annonce. Un cran plus doux la remet à sa place d’enseigne.
 
+⚠️ **Les deux lignes qui suivent le titre du frontispice tiennent le MÊME TON, à un pas d’écart.** La devise — « Lectures bibliques et patristiques » — porte le vert d’accent ; la mention qui la suit — « Somme collaborative » — portait `--cs-etiquette`, un khaki doré. Deux familles de couleur étrangères l’une à l’autre, empilées à trois lignes d’intervalle : le couple sonnait faux. ⛔ La forme d’étiquette ne commande pas le jeton d’étiquette.
+
+⚠️ **Le pas se prend en MÊLANT l’accent au papier, jamais en écrivant une valeur.** Au Cuir, où le vert d’accent vire à l’or et le papier au brun, le même calcul rend le même rapport ; une valeur écrite aurait tenu au Clair et détonné au sombre. Et la quantité d’accent se règle pour que la ligne garde EXACTEMENT le poids qu’elle avait : on change sa famille, non sa place dans la hiérarchie.
+
 Sur la page de titre, la marque se lace entre « Corpus » et « Scriptura », sur leur ligne, où elle se lit comme une initiale ornée. Elle ne se pose plus au-dessus du bandeau gravé, en vignette séparée. Sa hauteur se mesure en em, puisqu’elle vit dans le titre, et son calage vertical la centre sur la bande des capitales : posée sur la ligne d’écriture, une marque plus haute que les capitales surplomberait le mot de toute sa différence.
 
 ### 34.1. Le logo « CS » (19 août 2026)
