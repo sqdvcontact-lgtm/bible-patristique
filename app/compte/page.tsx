@@ -136,7 +136,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
     const res = await fetch("/api/compte/creer-profil", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: userId, pseudo: pseudo.trim() }) });
     const json = await res.json();
     setEnvoi(false);
-    if (!res.ok) { setErreur(json.error ?? "Erreur."); return; }
+    if (!res.ok) { setErreur(json.error ?? "Le profil n’a pas pu être créé. Réessayez."); return; }
     onCree({ id: userId, pseudo: pseudo.trim(), nom: null, prenom: null, traduction_defaut: "TR0001", theme_lecture: null, bio: null, contact_email: null, pub_rang: true, pub_essais: true, pub_favoris_oeuvre: false, pub_favoris_versets: false });
   };
 
@@ -595,7 +595,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       ? null
       : await changerTheme(themeChoisi).then(() => null).catch((e: unknown) => e);
     setEnregistrement(false);
-    if (error || erreurTheme) { setStatut({ ok: false, msg: "Erreur lors de l’enregistrement." }); return; }
+    if (error || erreurTheme) { setStatut({ ok: false, msg: "Les modifications n’ont pas pu être enregistrées. Réessayez." }); return; }
     localStorage.setItem("traduction_defaut", traduction);
     // La page Bible décide sa colonne sur le SERVEUR : sans ce cookie, elle
     // continuerait de servir la bible retenue jusqu'ici, et le nouveau choix ne
@@ -610,7 +610,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     setEnvoiEmail(true); setStatutEmail(null);
     const { error } = await supabase.auth.updateUser({ email: nouvelEmail.trim() }, { emailRedirectTo: urlCompte() });
     setEnvoiEmail(false);
-    if (error) { setStatutEmail({ ok: false, msg: "Erreur — vérifiez l’adresse saisie." }); return; }
+    if (error) { setStatutEmail({ ok: false, msg: "L’adresse n’a pas pu être modifiée. Vérifiez l’adresse saisie et réessayez." }); return; }
     setStatutEmail({ ok: true, msg: "Un e-mail de confirmation a été envoyé à la nouvelle adresse." });
   };
 
@@ -621,7 +621,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     setEnvoiMdp(true);
     const { error } = await supabase.auth.updateUser({ password: nouveauMdp });
     setEnvoiMdp(false);
-    if (error) { setStatutMdp({ ok: false, msg: "Erreur lors du changement de mot de passe." }); return; }
+    if (error) { setStatutMdp({ ok: false, msg: "Le mot de passe n’a pas pu être modifié. Réessayez." }); return; }
     setNouveauMdp(""); setConfirmationMdp("");
     setStatutMdp({ ok: true, msg: "Mot de passe modifié." });
   };
@@ -633,8 +633,7 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
     if (!token) { setErreurSuppression("Session expirée — reconnectez-vous puis réessayez."); setSuppressionEnCours(false); return; }
     const res = await fetch("/api/compte/supprimer", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      setErreurSuppression(json.error ?? "Erreur lors de la suppression.");
+      setErreurSuppression("Le compte n’a pas pu être supprimé. Réessayez.");
       setSuppressionEnCours(false); return;
     }
     await supabase.auth.signOut();
@@ -648,11 +647,11 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bio, contact_email: contactEmail, pub_rang: pubRang, pub_essais: pubEssais, pub_favoris_oeuvre: pubFavorisOeuvre, pub_favoris_versets: pubFavorisVersets }),
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Erreur");
+      if (!res.ok) throw new Error("profil");
       setStatutPage({ ok: true, msg: "Page publique mise à jour." });
       setTimeout(() => setStatutPage(null), 2500);
-    } catch (e: unknown) {
-      setStatutPage({ ok: false, msg: e instanceof Error ? e.message : "Erreur." });
+    } catch {
+      setStatutPage({ ok: false, msg: "La page publique n’a pas pu être mise à jour. Réessayez." });
     } finally {
       setEnregistrementPage(false);
     }
