@@ -732,6 +732,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const photoRefs = React.useRef<Record<string, HTMLInputElement | null>>({})
   const [photoStatut, setPhotoStatut] = useState<Record<string, 'loading' | 'ok' | 'err'>>({})
   const [positionModal, setPositionModal] = useState<string | null>(null) // trad_id ouvert
+  const [montrerPatristiques, setMontrerPatristiques] = useState(false)
   const [exportStatut, setExportStatut] = useState<Record<string, 'loading' | 'ok' | 'err'>>({})
   const [replaceModal, setReplaceModal] = useState<string | null>(null) // trad_id en cours de remplacement
   const replaceFileRef = React.useRef<HTMLInputElement>(null)
@@ -890,6 +891,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     { key: 'langue', label: 'Langue' },
   ]
 
+  // ⚠️ `est_biblique` peut manquer sur une ligne servie par un cache ancien : on ne
+  // range dans les patristiques que ce qui est explicitement marqué faux, faute de quoi
+  // une liste entière basculerait dans le pli.
+  const patristiques = lignes.filter(t => t.est_biblique === false)
+  const bibliques = lignes.filter(t => t.est_biblique !== false)
+  const affichees = montrerPatristiques ? [...bibliques, ...patristiques] : bibliques
+
   const ouvrir = (t: Traduction) => { setEdition(t.trad_id); setForm({ ...t }); setStatut(null) }
   const fermer = () => { setEdition(null); setForm({}) }
 
@@ -1035,8 +1043,15 @@ export default function SectionTraductions({ traductions: init }: { traductions:
         </div>
       )}
 
-      {/* Liste des traductions */}
-      {lignes.map(t => (
+      {/* Liste des traductions.
+          ⛔ Les notices des traductions PATRISTIQUES sont REPLIÉES par défaut. Elles
+          vivent dans la même table — `oeuvres.trad_id` y renvoie —, mais cette
+          section est la liste des traductions bibliques : quatre notices qui ne
+          paraissent dans aucun sélecteur de lecture n'ont pas à s'y mêler. On les
+          garde atteignables, non visibles. Dépliées, elles viennent en FIN de liste,
+          après quoi leur `ordre` les aurait dispersées au milieu (20 pour Jeannin,
+          99 pour les trois autres, 100 pour l'AELF). */}
+      {affichees.map(t => (
         <div key={t.trad_id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
           {/* En-tête */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
@@ -1064,8 +1079,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)', marginRight: '1px' }}>{t.trad_id}</code>
               {/* Deux images, deux dépôts : le bandeau horizontal qui coiffe la notice,
                   et l'encart en portrait qui se pose dans le bloc déplié. Elles ne se
-                  remplacent pas et ne se dérivent pas l'une de l'autre. */}
-              {([
+                  remplacent pas et ne se dérivent pas l'une de l'autre.
+                  ⛔ Rien de tout cela ne concerne une notice patristique : elle ne paraît
+                  sur aucune page publique, et elle n'a pas de versets. Les cinq boutons
+                  qui s'y rapportent — les deux dépôts, le cadrage, l'export et le
+                  remplacement — ne lui sont pas offerts, plutôt que d'être offerts et
+                  sans effet. */}
+              {t.est_biblique && ([
                 { variante: 'bandeau' as const, libelle: 'Bandeau', url: t.photo,        glose: 'image horizontale qui coiffe la notice' },
                 { variante: 'encart'  as const, libelle: 'Encart',  url: t.photo_encart, glose: 'image en portrait, posée dans le bloc déplié' },
               ]).map(({ variante, libelle, url, glose }) => {
@@ -1103,13 +1123,14 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               })}
               {/* Toujours présent — grisé et désactivé quand il n'y a aucune image, pour
                   que les lignes restent strictement alignées. */}
-              <button
+              {t.est_biblique && <button
                 onClick={() => (t.photo || t.photo_encart) && setPositionModal(t.trad_id)}
                 disabled={!t.photo && !t.photo_encart}
                 title={t.photo || t.photo_encart ? 'Cadrer et zoomer les images' : 'Aucune image à cadrer'}
                 style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: t.photo || t.photo_encart ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo || t.photo_encart ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
                 ⊹ Cadrer
-              </button>
+              </button>}
+              {t.est_biblique && <>
               {exportStatut[t.trad_id] === 'loading' && (
                 <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Export…</span>
               )}
@@ -1132,6 +1153,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-or)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 ↑ Remplacer
               </button>
+              </>}
               <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
                 title="Voir l'édition source précise et les apparats critiques"
                 style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: panneauInfos === t.trad_id ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '8.5rem', textAlign: 'center' }}>
@@ -1187,6 +1209,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           )}
         </div>
       ))}
+      {patristiques.length > 0 && (
+        <button type="button" onClick={() => setMontrerPatristiques(v => !v)}
+          style={{ alignSelf: 'flex-start', fontSize: '0.71875rem', padding: '4px 10px', borderRadius: '4px', border: '1px dashed var(--cs-bord)', background: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+          {montrerPatristiques ? '− Masquer' : '+ Montrer'} les {patristiques.length} notices de traductions patristiques
+        </button>
+      )}
+
       {/* Input fichier caché pour le remplacement CSV */}
       <input
         ref={replaceFileRef}
