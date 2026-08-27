@@ -110,7 +110,7 @@
     "introduction_livre": {
       "kind": "info", "level": "I1", "nature": "introduction",
       "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "heading_role": "title", "heading_level": "T2", "body_block": true, "aliases": []
     },
     "notice_livre": {
       "kind": "info", "level": "I1", "nature": "notice",

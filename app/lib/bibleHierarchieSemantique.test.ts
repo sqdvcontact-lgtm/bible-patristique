@@ -272,6 +272,29 @@ describe('intitulé en deux temps', () => {
     })
   })
 
+  it('coupe une tête NOMMÉE, si longue soit-elle', () => {
+    // L'introduction d'un livre réunit le nom du livre et le genre du
+    // développement. La mesure des désignations n'y vaut pas : le même intitulé
+    // se divisait dans trois évangiles sur quatre, et la différence ne tenait
+    // qu'à l'abréviation du mot « saint » — vingt et un signes pour « ÉVANGILE
+    // SELON S. LUC », vingt-neuf pour « Évangile selon saint Matthieu ».
+    expect(diviserIntitule('Évangile selon saint Matthieu — Introduction', { teteNommee: true })).toEqual({
+      titre: 'Évangile selon saint Matthieu', sousTitre: 'Introduction',
+    })
+    expect(diviserIntitule('LES ACTES DES APÔTRES — INTRODUCTION', { teteNommee: true })).toEqual({
+      titre: 'LES ACTES DES APÔTRES', sousTitre: 'INTRODUCTION',
+    })
+    // Sans l'option, la longueur commande de nouveau.
+    expect(diviserIntitule('Évangile selon saint Matthieu — Introduction')).toEqual({
+      titre: 'Évangile selon saint Matthieu — Introduction', sousTitre: null,
+    })
+    // ⛔ La garde contre les INTERVALLES demeure : une tête qui porte un chiffre
+    // ne se coupe pas, quel que soit l'appelant.
+    expect(diviserIntitule('La Création. I, 1 — II, 3.', { teteNommee: true })).toEqual({
+      titre: 'La Création. I, 1 — II, 3.', sousTitre: null,
+    })
+  })
+
   it('retire la mention de chapitre imprimée en tête', () => {
     // La navigation nomme déjà le chapitre (charte § 35.1). Enchâssée dans
     // l'intitulé, la mention prenait la place du repère, qui passait en chapeau.

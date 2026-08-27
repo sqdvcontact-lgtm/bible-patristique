@@ -313,12 +313,33 @@ function estDesignation(tete: string): boolean {
   return !/\d/.test(tete)
 }
 
-export function diviserIntitule(intitule: string | null): { titre: string; sousTitre: string | null } | null {
+/**
+ * `teteNommee` : ce qui précède le tiret est un NOM, non une désignation de
+ * division. C'est le cas de l'introduction d'un livre, dont l'intitulé imprimé
+ * réunit le nom du livre et le genre du développement : « Évangile selon saint
+ * Matthieu — Introduction », « LES ACTES DES APÔTRES — INTRODUCTION ».
+ *
+ * ⛔ Sans cette option, la coupure dépend de la LONGUEUR de la tête, mesurée
+ * sur les désignations (« TROISIÈME PARTIE ») : « ÉVANGILE SELON S. LUC » passe
+ * à vingt et un signes et « Évangile selon saint Matthieu » échoue à vingt-neuf.
+ * Le même intitulé se divisait donc dans trois évangiles sur quatre, et la
+ * différence ne tenait qu'à l'abréviation du mot « saint ».
+ *
+ * ⚠️ La garde contre les INTERVALLES de références demeure, elle : une tête qui
+ * porte un chiffre n'est jamais coupée, quel que soit l'appelant.
+ */
+export function diviserIntitule(
+  intitule: string | null,
+  options?: { teteNommee?: boolean },
+): { titre: string; sousTitre: string | null } | null {
   const propre = intitule?.trim().replace(MENTION_CHAPITRE, '').trim()
   if (!propre) return null
   const coupure = propre.match(/^(.+?)\s+[—–-]\s+(.+)$/)
-  if (!coupure || !estDesignation(coupure[1].trim())) return { titre: propre, sousTitre: null }
-  return { titre: coupure[1].trim(), sousTitre: ordinalLisible(coupure[2].trim()) }
+  if (!coupure) return { titre: propre, sousTitre: null }
+  const tete = coupure[1].trim()
+  const coupable = options?.teteNommee ? !/\d/.test(tete) : estDesignation(tete)
+  if (!coupable) return { titre: propre, sousTitre: null }
+  return { titre: tete, sousTitre: ordinalLisible(coupure[2].trim()) }
 }
 function ordinalLisible(texte: string): string {
   return texte.replace(/^(\d+)\s*°\s*/, '$1. ')

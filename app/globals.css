@@ -971,6 +971,19 @@ button:focus-visible,
   text-transform: none;
   color: var(--cs-texte-second);
 }
+/* Sous un titre de rang HAUT, le chapeau prend exactement la composition du
+   sous-titre de partie — « L'enfance et la vie cachée de Jésus (1, 1 - 2, 23) »
+   sous « Première partie ». Les deux disent la même chose à la même place, et
+   c'est le seul cas où le chapeau accompagne un titre centré : le gris et le
+   corps réduit de l'apparat l'y faisaient paraître d'un rang plus bas que son
+   voisin. ⚠️ Les rangs bas gardent le leur : là, le chapeau suit un intertitre
+   au fer, et il doit s'en effacer. */
+.cs-bible-title--t1 > .cs-bible-chapeau,
+.cs-bible-title--t2 > .cs-bible-chapeau,
+.cs-bible-title--t3 > .cs-bible-chapeau {
+  font-size: 0.9375rem;
+  color: var(--cs-encre-fonce);
+}
 
 /* ── Barre de défilement discrète ───────────────────────────────────────────
    Une seule écriture pour tout ce qui défile dans le CHROME du site : la barre
