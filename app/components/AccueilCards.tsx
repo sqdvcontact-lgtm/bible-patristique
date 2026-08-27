@@ -207,7 +207,12 @@ export default function AccueilCards() {
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 1rem;
           width: 100%;
-          max-width: 42.5rem;
+          /* La mesure vient de la page d'accueil, qui donne la même à ses volets et
+             à son bandeau : les trois blocs se tiennent sur une seule justification.
+             ⚠️ Le commentaire vit DANS un gabarit de chaîne : nommer la propriété
+             entre guillemets français, un accent grave fermerait la chaîne.
+             La valeur d'avant reste en repli si ce composant servait un jour ailleurs. */
+          max-width: var(--accueil-mesure, 42.5rem);
         }
         .ac-card {
           display: flex;
@@ -397,8 +402,31 @@ export default function AccueilCards() {
           text-align: center;
         }
         @media (max-width: 640px) {
-          .ac-grid { grid-template-columns: 1fr; max-width: 320px; }
-          .ac-card { min-height: 124px; }
+          /* ⛔ Plus de max-width de 320 px ici : empilées, les cartes rentraient de
+             quelques pixels sur les volets et le bandeau, qui prennent toute la
+             colonne. Trois bords qui ne s'alignent pas à quatre pixels près ne se
+             lisent pas comme un décalage voulu, seulement comme un travail mal fait.
+             Les cartes tiennent désormais la même colonne que le reste de la page. */
+          .ac-grid { grid-template-columns: 1fr; }
+          /* Empilée sur toute la colonne, la carte devient une BANDE, et une bande
+             ne se compose pas comme un carton carré : l'icône vient CONTRE le titre
+             au lieu de le surmonter, et la hauteur tombe de 140 px à 100. Autrement,
+             l'icône flottait au milieu de six cents pixels de vide, et les trois
+             cartes prenaient à elles seules le premier écran d'un téléphone.
+             ⚠️ 6,25rem n'est pas un chiffre rond : le volet de choix qui s'ouvre au
+             tap partage la carte en deux, et deux cibles de 50 px sont le plancher
+             de ce qu'un doigt vise sans se tromper. */
+          .ac-card { min-height: 6.25rem; }
+          /* ⛔ Le groupe n'est pas CENTRÉ dans la bande, il part du fer à gauche, et
+             l'icône reçoit une boîte de largeur FIXE. Centré, chaque titre se plaçait
+             selon sa propre longueur : « Bible », « Patristique » et « Communauté »
+             commençaient à trois abscisses différentes, et les trois icônes aussi.
+             Dans une pile de trois bandes, l'œil ne voit que ce désalignement. Ici,
+             une colonne d'icônes et une colonne de titres. */
+          .ac-card-main { flex-direction: row; justify-content: flex-start; gap: 1.125rem; padding-left: 1.75rem; }
+          .ac-icon-img, .ac-icon-bible, .ac-icon-pere, .ac-icon-publications {
+            width: 3.5rem; height: 3.25rem;
+          }
         }
 
         /* ── Écran tactile : on ÉTEINT le survol, on ne le laisse pas clignoter ──

@@ -233,7 +233,7 @@ Le JavaScript est irréprochable : les **onze** appels à `useEstMobile` passent
 | **520** | une couverture de publication par rang (charte, section Publications) |
 | **640** | grilles à une colonne, champs qui passent l'un sous l'autre, variantes de colophon |
 | **700** | ce qui DISPARAÎT sur un téléphone : photo de la carte d'auteur, portrait latéral d'une traduction, justification d'une colonne étroite |
-| **760** | volets de l'accueil et grilles de principes, à une colonne |
+| **760** | grilles de principes, à une colonne (les volets de l'accueil sont passés à 900 le 2026-08-27) |
 | **820** | la Polyglotte bascule sur « écran large requis » |
 | **880** | le quiz (route neutralisée en production) |
 | **900** | **le seuil de la charte**, celui du hook `useEstMobile` |
@@ -470,17 +470,30 @@ Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant
   - Elle produit aussi **`outils/icone-serveur.ico`** (16 à 256 px), l'icône du raccourci « Serveur Bible-Patristique » épinglé à la barre des tâches. ⚠️ Ce raccourci pointait sur `app/favicon.ico` : le fichier appartenant au dépôt, l'icône **changeait avec la branche cochée**, et restait l'ancienne tant que le poste travaillait ailleurs que sur `master`. Il pointe désormais sur une copie hors dépôt, `C:\Corpus Scriptura\icone-corpus-scriptura.ico`. Après refabrication, recopier le fichier là-bas.
 - **`monogramme-creme.png`** (le monogramme seul sur crème) est le **logo du site**. Le détourage ne sert que l'**alpha** : la couleur, on la repose. D'où deux fichiers dans `public/logo/`, même tracé à la teinte près — `monogramme-encre.png` en `--cs-encre-fonce` `rgb(30, 46, 36)` et `monogramme-creme.png` en `rgb(244, 231, 200)`.
   - ⚠️ **L'encre de la planche (#232323) ne sert PAS telle quelle.** Posé dans le titre, entre « Corpus » et « Scriptura », ce noir franc jurait avec le vert d'encre des lettres qui l'entourent. Le monogramme prend donc la teinte du titre lui-même : le noir s'en trouve adouci, et la marque appartient à la ligne au lieu d'y trancher.
-- **Poses.** En tête du frontispice de `app/accueil/page.tsx` (`.hero-monogramme`, 4,5rem, mesuré en **hauteur** puisqu'il est plus haut que large, et en **rem** pour suivre la police racine) ; dans `app/components/Navbar.tsx`, à la place du fleuron `✦`, à `1.875rem` contre le nom du site.
-  - ⛔ **Pas DANS le titre**, essayé et écarté le 2026-08-19. Lacé entre « Corpus » et « Scriptura », il oblige à le centrer sur la bande des capitales (`vertical-align`, faute de quoi il surplombe le mot), et surtout il coupe le nom en deux là où on le lit. La marque se tient au-dessus, seule.
+- **Pose.** Dans `app/components/Navbar.tsx`, à la place du fleuron `✦`, à `1.875rem` contre le nom du site. **Et là seulement, depuis le 2026-08-27.**
+  - ⛔ **Plus en tête de l'accueil** (décision de l'auteur, 2026-08-27). `.hero-monogramme` est supprimée : la marque est déjà dans la barre de navigation, donc sur toutes les pages, et répétée quarante pixels plus bas elle ne disait rien de plus. Sa masse poussait au second rang le titre, qui est l'enseigne véritable. La planche `/logo/monogramme-encre.png` n'est donc plus appelée par aucune page ; elle reste au dépôt, en réserve, et `scripts/logo-fabriquer.mjs` continue de la fabriquer.
+  - ⛔ **Pas DANS le titre**, essayé et écarté le 2026-08-19. Lacé entre « Corpus » et « Scriptura », il oblige à le centrer sur la bande des capitales (`vertical-align`, faute de quoi il surplombe le mot), et surtout il coupe le nom en deux là où on le lit.
 - ⚠️ **En `<img>`, jamais en `<Image>`** — même raison que les ornements ci-dessus, et le rectangle crème est bien plus visible sur une barre verte que sur du papier.
 
-## Le frontispice de l'accueil — quatre temps (2026-08-19)
+## Le frontispice de l'accueil — trois temps (2026-08-27)
 
-`app/accueil/page.tsx`. La marque, le nom, un filet gravé, la devise. Il en comptait sept, et **trois ornements se disputaient le même office** : un bandeau gravé en tête, un `❧ · ❧` que le CSS masquait précisément quand le bandeau était là (`.hero-title-ornament + div { display: none }`, une règle qui ne servait qu'à cacher son voisin), et un filet à fleuron sous le titre.
+`app/accueil/page.tsx`. Le nom, un filet gravé, la devise. Il en comptait sept jusqu'au 2026-08-19, et **trois ornements se disputaient le même office** : un bandeau gravé en tête, un `❧ · ❧` que le CSS masquait précisément quand le bandeau était là (`.hero-title-ornament + div { display: none }`, une règle qui ne servait qu'à cacher son voisin), et un filet à fleuron sous le titre. Ils sont tombés à quatre ce jour-là, à trois le 2026-08-27 avec le retrait de la marque (voir « Le monogramme CS » ci-dessus).
 
 - **La gravure descend sous le titre**, où elle remplace le filet à fleuron : elle EST un filet, et sa place est en pied (voir « Une gravure se pose EN PIED » ci-dessus). Son opacité passe de 0,82 à **0,72**, l'intensité suivant la place. Le `❧ · ❧` et le filet à fleuron sont supprimés, pas masqués.
 - ⚠️ **Elle était rendue en `<Image>` alors qu'elle porte une couche alpha** — exactement le défaut intermittent décrit plus haut. Passée en `<img>`, ce qui a rendu l'import `next/image` inutile dans le fichier.
-- **Écarts mesurés dans la page** (corps de titre 54 px) : monogramme 72 px, 20 px, titre, 12 px, gravure de 265 px, 14 px, sous-titre.
+- **Le titre monte d'un cran** en même temps que la marque s'en va : `clamp(2rem, 4.8vw, 3.625rem)` au lieu de `clamp(1.875rem, 4.4vw, 3.375rem)`. Il ouvre la page seul, et la masse que portait la marque lui revient. Le blanc au-dessus suit, de `clamp(22px, 3.5vh, 52px)` à `clamp(30px, 5vh, 64px)` : une page de titre respire au-dessus de son premier mot.
+- **Écarts mesurés dans la page** (corps de titre 58 px) : titre, 10 px, gravure de 265 px, 14 px, sous-titre, devise.
+
+## ⛔ L'accueil se mesure à UNE SEULE justification (2026-08-27)
+
+`--accueil-mesure`, posée sur `.accueil` dans `app/accueil/page.tsx` et **héritée** par `.ac-grid` d'`AccueilCards` (qui garde `42.5rem` en repli). Elle vaut **55rem** et gouverne ensemble les trois cartes, les deux volets et le bandeau de chiffres.
+
+Les cartes tenaient dans 42,5rem quand les volets et le bandeau en prenaient 58 : sur un écran de 1920, le bloc par où l'on entre dans le site était **en retrait de 124 px de chaque côté** sur ceux qui le suivent, et la page dessinait un sablier. ⛔ Ne pas redonner la mesure bloc par bloc : la changer doit les déplacer tous ensemble.
+
+- **Le pied du volet « Un mot » est SOLIDAIRE** (signature et bouton descendent ensemble). Le bouton seul portait le `margin-top: auto`, si bien que le blanc laissé par le volet voisin, toujours plus haut, s'ouvrait **entre « SQDV » et le bouton**. Un blanc de carte se met entre le corps et le pied, pas au milieu du pied.
+- **Le mot garde sa mesure** (`max-width: 30rem`) quand le volet passe à une colonne : il est CENTRÉ, et centré sur sept cents pixels il ne se lit plus.
+- ⚠️ **Les volets et le bandeau ne partagent PAS leur seuil.** Les volets passent à une colonne à **900** (le seuil de la charte, au lieu de 760 : entre les deux, deux colonnes de 365 px cassaient tous les titres des ajouts récents sur deux lignes) ; le bandeau ne se replie qu'à **640**, ses cinq tuiles tenant encore leur rang bien après qu'une colonne de prose a cessé d'être lisible. Fondus en un seuil, on ouvrait à 768 px deux colonnes de 360 px pour y loger un nombre à deux chiffres.
+- **Empilées, les cartes deviennent des BANDES** (`AccueilCards`, sous 640) : icône CONTRE le titre au lieu de le surmonter, hauteur de 140 px ramenée à 100, et le groupe part du fer à gauche avec une boîte d'icône de largeur fixe — centré, chaque titre se plaçait selon sa propre longueur et les trois icônes ne s'alignaient pas. ⚠️ 6,25rem de hauteur n'est pas un chiffre rond : le volet de choix qui s'ouvre au tap partage la carte en deux, et deux cibles de 50 px sont le plancher de ce qu'un doigt vise. ⛔ Leur `max-width: 320px` d'alors est retiré : empilées, elles rentraient de quelques pixels sur les volets et le bandeau, qui prennent toute la colonne.
 
 ## ⛔ Les trois cartes de l'accueil — toute enveloppe posée autour DOIT porter une largeur (2026-08-25)
 

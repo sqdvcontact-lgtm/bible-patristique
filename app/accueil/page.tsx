@@ -90,9 +90,19 @@ export default async function AccueilPage() {
   const nbTraductions = codesTraductions.length;
 
   return (
-    <div>
+    <div className="accueil">
       <style>{`
         html { scroll-behavior: smooth; }
+        /* ── UNE SEULE MESURE pour toute la colonne d'accueil ────────────────
+           Les trois cartes tenaient dans 42,5rem quand les volets et le bandeau
+           en prenaient 58 : sur un grand écran, le bloc le plus important de la
+           page — celui par où l'on entre — était le plus étroit, en retrait de
+           124 px de chaque côté sur les autres. La page dessinait un sablier.
+           Tout se mesure désormais à la même justification, dont hérite la grille
+           des cartes d'AccueilCards (qui garde son ancienne valeur en repli, au cas
+           où ce composant servirait ailleurs un jour). ⛔ Changer cette valeur les
+           déplace TOUS ensemble : c'est le but, ne pas la redonner bloc par bloc. */
+        .accueil { --accueil-mesure: 55rem; }
         .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
@@ -112,41 +122,20 @@ export default async function AccueilPage() {
           -webkit-mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
           mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
         }
-        /* Le monogramme se mesure en HAUTEUR : il est plus haut que large, et
-           c'est sa hauteur qui doit s'accorder à celle du titre. En rem, pour
-           suivre la police racine fluide comme tout le reste du frontispice.
-           La largeur suit le rapport de la planche, 464 sur 671.
-
-           ⛔ La planche ne sert plus que d'ALPHA : elle est posée en MASQUE, et
-           c'est le fond de l'élément qui donne la couleur. Deux planches étaient
-           superposées auparavant, l'une en vert d'encre pour le Clair, l'autre en
-           crème pour le Cuir, le thème n'en montrant qu'une. Leurs canaux alpha
-           sont rigoureusement identiques — vérifié pixel à pixel, aucun écart —,
-           si bien qu'une seule suffit : le Cuir garde exactement sa couleur, et
-           la teinte du Clair devient une valeur qu'on règle au lieu d'une image
-           qu'il faut redessiner. Une requête de moins, aussi.
-
-           ⚠️ L'encre du monogramme n'est plus --cs-encre-fonce mais --cs-encre :
-           la marque portait la MÊME valeur que le titre qu'elle surmonte, et son
-           trait, plus épais, pesait donc davantage. Un cran plus doux la remet à
-           sa place d'enseigne (décision de l'auteur, 27 août 2026). */
-        .hero-monogramme {
-          height: 4.5rem; aspect-ratio: 464 / 671; width: auto;
-          display: block; margin: 0 auto 20px;
-          background-color: var(--cs-encre);
-          -webkit-mask: url("/logo/monogramme-encre.png") no-repeat center / contain;
-          mask: url("/logo/monogramme-encre.png") no-repeat center / contain;
-        }
-        /* ⛔ Valeur LITTÉRALE, et c'est celle de la planche crème au pixel près :
-           le Cuir ne bouge pas d'un cheveu. --cs-encre y vaut #cdbb98, plus sourd. */
-        :root[data-theme="sombre"] .hero-monogramme { background-color: #f4e7c8; }
+        /* ⛔ PLUS DE MONOGRAMME EN TÊTE (décision de l'auteur, 27 août 2026).
+           Le frontispice tenait en quatre temps — la marque, le nom, un filet
+           gravé, la devise ; il en tient trois. La marque reste à sa place dans
+           la barre de navigation, où elle est présente sur TOUTES les pages :
+           répétée juste dessous, elle ne disait rien de plus, et sa masse poussait
+           au second rang le titre, qui est l'enseigne véritable. La planche
+           « /logo/monogramme-encre.png » n'est donc plus appelée par aucune page.
+           ⚠️ Le commentaire vit DANS un gabarit de chaîne : un accent grave autour
+           d'un chemin la fermerait, et la page tomberait en 500.
+           Le titre porte seul, et se prend d'un cran plus haut en conséquence. */
         /* La gravure ferme le titre au lieu de l'annoncer. Son intensité suit sa
            place : 0,72, comme toute gravure qui porte encore le propos, et non
            les 0,42 à 0,5 d'un cul-de-lampe qui n'orne qu'un vide. */
         .hero-filet-grave { width: min(265px, 48vw); height: auto; display: block; margin: 2px auto 14px; opacity: .72; }
-        @media (max-width: 640px) {
-          .hero-monogramme { height: 3.5rem; margin-bottom: 16px; }
-        }
         /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
            les lignes longues débordaient (« soins » rejeté seul). On bascule alors
            sur un découpage mobile en lignes plus courtes et plus nombreuses. */
@@ -157,7 +146,7 @@ export default async function AccueilPage() {
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 22px;
           width: 100%;
-          max-width: 58rem;
+          max-width: var(--accueil-mesure);
           margin: 24px auto 0;
         }
         .accueil-carte {
@@ -172,7 +161,7 @@ export default async function AccueilPage() {
           display: flex;
           align-items: stretch;
           width: 100%;
-          max-width: 58rem;
+          max-width: var(--accueil-mesure);
           /* Écart minimal garanti au-dessus du bandeau ; sur grand écran, le space-between
              du conteneur y ajoute sa part du blanc réparti. */
           margin: 24px auto 0;
@@ -220,11 +209,28 @@ export default async function AccueilPage() {
         .ajout-item:hover .ajout-lire-mot::after { transform: scaleX(1); }
         .ajout-lire .fleche { color: #b08f48; transition: transform 0.28s cubic-bezier(0.22,0.61,0.36,1); }
         .ajout-item:hover .ajout-lire .fleche { transform: translateX(4px); }
-        @media (max-width: 760px) {
+        /* ⚠️ 900 et non plus 760, et c'est le seuil de la charte (celui de
+           useEstMobile). Entre les deux, les volets tenaient bien deux colonnes,
+           mais de 365 px : la liste des ajouts y cassait tous ses titres sur deux
+           ou trois lignes, et le mot de l'auteur, plus court, se creusait d'autant.
+           Deux colonnes qu'on doit lire en escalier n'en valent pas une. */
+        @media (max-width: 900px) {
           .accueil-volets { grid-template-columns: 1fr; }
+        }
+        /* ⚠️ Le bandeau ne suit PAS les volets, et il ne faut pas les fondre en un
+           seul seuil. Un volet de texte devient illisible bien avant qu'une tuile de
+           chiffre ne manque de place : les cinq tuiles tiennent encore leur rang à
+           640 px, où deux colonnes de prose ne tiendraient plus depuis longtemps.
+           Passé à 900 comme les volets, le bandeau ouvrait à 768 px deux colonnes de
+           360 px pour y loger un nombre à deux chiffres. */
+        @media (max-width: 640px) {
           .accueil-stats { flex-wrap: wrap; }
+          /* Deux tuiles par rang, la cinquième prenant le rang entier : les filets
+             passent de la verticale à l'horizontale, sinon les tuiles flottent sans
+             rien qui les tienne. */
           .accueil-stat { flex: 1 0 44%; padding: 13px 8px; }
           .accueil-stat + .accueil-stat { border-left: none; }
+          .accueil-stat:nth-child(n + 3) { border-top: 1px solid var(--cs-bord-clair); }
         }
         @media (max-width: 640px) {
           .colophon-pyr-desktop { display: none; }
@@ -256,25 +262,23 @@ export default async function AccueilPage() {
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
-          padding: "clamp(22px, 3.5vh, 52px) 0 0",
+          padding: "clamp(30px, 5vh, 64px) 0 0",
         }}>
-        {/* Le frontispice tient en quatre temps : la marque, le nom, un filet
-            gravé, la devise. Il en comptait sept, et trois ornements se
-            disputaient le même office — un bandeau gravé en tête, un « ❧ · ❧ »
-            que le CSS masquait dès que le bandeau était là, un filet à fleuron
-            sous le titre. La gravure fait à elle seule le travail du filet, et
-            elle le fait EN PIED, où sa place est (charte, « Une gravure se pose
-            en pied »). La marque prend la tête, seule : c'est elle l'enseigne. */}
+        {/* Le frontispice tient en TROIS temps : le nom, un filet gravé, la devise.
+            Il en comptait sept jusqu'au 2026-08-19, puis quatre, la marque ouvrant
+            la page ; elle en est retirée le 2026-08-27 (voir la note du bloc de
+            style). La gravure fait à elle seule le travail du filet, et elle le fait
+            EN PIED, où sa place est (charte, « Une gravure se pose en pied »).
+            ⚠️ Le blanc au-dessus est monté d'un cran, le titre ayant pris la tête :
+            une page de titre respire au-dessus de son premier mot. */}
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
-          {/* UNE planche, posée en masque : le détourage ne sert que l'ALPHA, la
-              couleur se repose ensuite (charte, « Le monogramme CS »). Le thème
-              change le fond, non l'image — voir la règle .hero-monogramme. */}
-          <span className="hero-monogramme" aria-hidden="true" />
-
-          {/* Titre principal */}
+          {/* Titre principal — il ouvre la page, sans marque au-dessus de lui. */}
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: "clamp(1.875rem, 4.4vw, 3.375rem)",
+            /* Un cran plus haut depuis le retrait de la marque : le titre est seul à
+               ouvrir la page, et la masse qu'elle portait lui revient. Bornes en rem,
+               jamais en px : elles suivent la police racine fluide. */
+            fontSize: "clamp(2rem, 4.8vw, 3.625rem)",
             fontWeight: "normal",
             color: "var(--cs-encre-fonce)",
             lineHeight: 1.2,
@@ -537,17 +541,23 @@ function VoletUnMot() {
   return (
     <div className="accueil-carte" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
       <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {/* Le mot garde sa MESURE quand le volet passe à une colonne. En dessous de
+          900 px les deux volets s'empilent et prennent toute la page : le texte,
+          qui est CENTRÉ, y courait alors sur sept cents pixels, et l'œil perdait le
+          début de la ligne suivante. Le bloc se borne et reste centré dans sa carte. */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "30rem", width: "100%", margin: "0 auto" }}>
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l&rsquo;Église, anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L&rsquo;accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l&rsquo;édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
-      {/* Signature rapprochée du texte : « Merci. » juste au-dessus de SQDV. */}
-      <div style={{ marginTop: "12px" }}>
+      {/* PIED SOLIDAIRE : signature et bouton descendent ENSEMBLE au bas de la carte.
+          Le bouton seul y descendait, et le blanc que lui laisse le volet voisin,
+          toujours plus haut, s'ouvrait alors ENTRE « SQDV » et « Soutenir le projet » :
+          la signature restait accrochée au texte et le bouton flottait seul, quatre-vingts
+          pixels plus bas. Le blanc se met maintenant là où une carte en veut, entre le
+          corps et son pied. « Merci. » se tient juste au-dessus de SQDV. */}
+      <div style={{ marginTop: "auto", paddingTop: "20px" }}>
         <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte)", margin: "0 0 2px" }}>Merci.</p>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-or)", letterSpacing: "0.14em", margin: 0 }}>SQDV</p>
-      </div>
-      {/* Bouton ancré au bas de la carte, quelle que soit la hauteur du volet voisin. */}
-      <div style={{ marginTop: "auto", paddingTop: "18px" }}>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-or)", letterSpacing: "0.14em", margin: "0 0 16px" }}>SQDV</p>
         <Link href="/soutenir" style={boutonSoutenir}>Soutenir le projet</Link>
       </div>
     </div>
@@ -572,7 +582,7 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
           {recentes.map(o => (
             /* Date à GAUCHE (colonne fixe) ; « lire » révélé à droite au survol. */
             <li key={o.id_oeuvre} className="ajout-item" style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "7.5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "6.5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
               <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", flex: 1, minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
                 <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "var(--cs-texte-fort)", lineHeight: 1.32 }}>
                   {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
