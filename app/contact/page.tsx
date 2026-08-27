@@ -25,7 +25,6 @@ export default function ContactPage() {
   const [etat, setEtat] = useState<"repos" | "envoi" | "fait">("repos");
   const [erreur, setErreur] = useState<string | null>(null);
 
-
   const envoyer = async (e: React.FormEvent) => {
     e.preventDefault();
     setErreur(null); setEtat("envoi");
@@ -61,13 +60,13 @@ export default function ContactPage() {
         {etat === "fait" ? (
           <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "18px 20px" }}>
             <p style={{ fontSize: "0.84375rem", color: "var(--cs-vert-fonce)", margin: 0, lineHeight: 1.65 }}>
-              Votre message est parti. Merci&#8239;! Nous vous répondrons si vous avez laissé une adresse.
+              Votre message a bien été envoyé. Merci. Nous vous répondrons si vous avez laissé une adresse.
             </p>
           </div>
         ) : (
           <form onSubmit={envoyer} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {erreur && (
-              <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
+              <p role="alert" style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
               <div>
