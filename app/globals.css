@@ -482,13 +482,31 @@ button:focus-visible,
    ⚠️ CLAIR ne veut pas dire BLANC. La clarté a d'abord été posée à 96,5 %, par
    crainte de salir la fiche : sur le blanc de la carte, cela ne faisait plus qu'un
    écart de six à douze valeurs sur deux cent cinquante-cinq — l'auteur ne voyait
-   rien. À 91 %, le ton paraît sans que la fiche cesse d'être claire : la Bible de
-   Sacy y donne rgb(240 233 224), un ivoire chaud, contre le #fff de la carte. */
+   rien. À 91 %, le ton paraissait ; il est remonté à 94 %, l'enduit assombrissant
+   déjà le fond de son propre gris. */
 .trad-fiche-fond {
-  background: hsl(var(--trad-ton-h) var(--trad-ton-s) 91%);
+  /* ── L'enduit ──
+     Deux bruits fractals gris, et non un : un grain seul fait du bruit de capteur,
+     une nuée seule fait une tache. Le grain serré donne le sable de l'enduit, la
+     nuée large les inégalités de la pose. Les deux sont désaturés — la couleur du
+     fond vient de la teinte, jamais de la texture — et posés à cinq pour cent :
+     au-delà, ce n'est plus une fresque, c'est du papier peint.
+     ⛔ Pas de fichier image : le motif est un SVG en ligne, il pèse deux cents
+     octets, se répète sans couture (`stitchTiles`) et suit le thème sans qu'on ait
+     à en dessiner deux. */
+  background-color: hsl(var(--trad-ton-h) var(--trad-ton-s) 94%);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.014' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
 }
 :root[data-theme="sombre"] .trad-fiche-fond {
-  background: hsl(var(--trad-ton-h) calc(var(--trad-ton-s) / 1.7) 14%);
+  /* ⚠️ Le bruit est gris : sur un fond clair il assombrit, sur un fond sombre il
+     ÉCLAIRCIT, et il se voit deux fois plus pour la même opacité. Au Cuir, l'enduit
+     est donc dessiné à part, deux fois plus discret. */
+  background-color: hsl(var(--trad-ton-h) calc(var(--trad-ton-s) / 1.7) 14%);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.03'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.014' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
 /* ── Bibliothèque (page « Patristique ») : photo d'auteur sur petit écran ──
