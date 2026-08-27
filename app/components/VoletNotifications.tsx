@@ -25,12 +25,20 @@ function dateCourte(date: string | null) {
 
 export default function VoletNotifications({ uid, onFermer }: { uid: string; onFermer: () => void }) {
   const [items, setItems] = useState<NotificationItem[] | null>(null)
+  const [erreurChargement, setErreurChargement] = useState(false)
   const [archives, setArchives] = useState<Set<string>>(new Set())
   const [onglet, setOnglet] = useState<Onglet>('nouvelles')
 
   useEffect(() => {
     setArchives(lireSetLocalStorage(cleArchivesNotifications(uid)))
-    chargerNotificationsUtilisateur(uid).then(setItems).catch(() => setItems([]))
+    setItems(null)
+    setErreurChargement(false)
+    chargerNotificationsUtilisateur(uid)
+      .then(setItems)
+      .catch(() => {
+        setErreurChargement(true)
+        setItems([])
+      })
   }, [uid])
 
   useEffect(() => {
@@ -61,7 +69,6 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
 
   return createPortal(
     <>
-      {/* Voile transparent : referme au clic hors du volet. */}
       <div onClick={onFermer} style={{ position: 'fixed', inset: 0, zIndex: 2400 }} />
       <div role="dialog" aria-label="Notifications"
         style={{
@@ -71,7 +78,6 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           boxShadow: 'var(--cs-ombre-modale)', zIndex: 2500,
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
-        {/* En-tête : titre + tout archiver + fermer */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '12px 14px 10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)' }}>Notifications</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -84,7 +90,6 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           </div>
         </div>
 
-        {/* Onglets */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', padding: '0 6px' }}>
           {([
             { key: 'nouvelles' as Onglet, label: 'Nouvelles', count: nouvelles.length },
@@ -97,10 +102,13 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           ))}
         </div>
 
-        {/* Liste scrollable */}
         <div style={{ overflowY: 'auto', padding: '9px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
           {items === null ? (
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', padding: '18px 0', margin: 0 }}>Chargement…</p>
+          ) : erreurChargement ? (
+            <p role="alert" style={{ fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', textAlign: 'center', padding: '18px 0', margin: 0 }}>
+              Les notifications n’ont pas pu être chargées. Réessayez.
+            </p>
           ) : liste.length === 0 ? (
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', padding: '18px 0', margin: 0 }}>
               {onglet === 'nouvelles' ? 'Aucune notification nouvelle.' : 'Aucune notification archivée.'}
