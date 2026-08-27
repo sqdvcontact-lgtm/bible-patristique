@@ -39,25 +39,40 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
   const [token, setToken] = useState<string | null>(null)
   const [connecte, setConnecte] = useState<boolean | null>(null)
   const [conversations, setConversations] = useState<Conversation[] | null>(null)
+  const [erreurConversations, setErreurConversations] = useState<string | null>(null)
   const [filtre, setFiltre] = useState<'tous' | 'non-lus'>('tous')
   const [pseudoActif, setPseudoActif] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[] | null>(null)
+  const [erreurConversation, setErreurConversation] = useState<string | null>(null)
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
+  const [erreurEnvoi, setErreurEnvoi] = useState<string | null>(null)
   const [recherche, setRecherche] = useState('')
   const [resultats, setResultats] = useState<string[]>([])
+  const [erreurRecherche, setErreurRecherche] = useState<string | null>(null)
   const basRef = useRef<HTMLDivElement>(null)
   const rechercheTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   // Session + liste des conversations à l'ouverture.
   useEffect(() => {
     if (!ouvert) return
+    setErreurConversations(null)
     supabase.auth.getSession().then(async ({ data }) => {
       const s = data.session
       if (!s) { setConnecte(false); return }
       setConnecte(true); setToken(s.access_token)
-      const res = await fetch('/api/messagerie', { headers: { Authorization: `Bearer ${s.access_token}` } })
-      setConversations(res.ok ? await res.json() : [])
+      try {
+        const res = await fetch('/api/messagerie', { headers: { Authorization: `Bearer ${s.access_token}` } })
+        if (!res.ok) throw new Error('messagerie')
+        setConversations(await res.json())
+      } catch {
+        setConversations([])
+        setErreurConversations('La messagerie n’a pas pu être chargée. Réessayez.')
+      }
+    }).catch(() => {
+      setConnecte(true)
+      setConversations([])
+      setErreurConversations('La messagerie n’a pas pu être chargée. Réessayez.')
     })
   }, [ouvert])
 
@@ -73,12 +88,19 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
 
   const chargerConversation = useCallback(async (pseudo: string, tok: string) => {
     setMessages(null)
-    const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudo)}`, { headers: { Authorization: `Bearer ${tok}` } })
-    setMessages(res.ok ? (await res.json()).messages : [])
+    setErreurConversation(null)
+    try {
+      const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudo)}`, { headers: { Authorization: `Bearer ${tok}` } })
+      if (!res.ok) throw new Error('conversation')
+      setMessages((await res.json()).messages)
+    } catch {
+      setMessages([])
+      setErreurConversation('La conversation n’a pas pu être chargée. Réessayez.')
+    }
   }, [])
 
   const ouvrirConversation = (pseudo: string) => {
-    setPseudoActif(pseudo); setRecherche(''); setResultats([]); setTexte('')
+    setPseudoActif(pseudo); setRecherche(''); setResultats([]); setTexte(''); setErreurRecherche(null); setErreurEnvoi(null)
     if (token) chargerConversation(pseudo, token)
   }
 
@@ -88,10 +110,17 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
   useEffect(() => {
     const q = recherche.trim()
     clearTimeout(rechercheTimer.current)
+    setErreurRecherche(null)
     if (q.length < 2 || !token) { setResultats([]); return }
     rechercheTimer.current = setTimeout(async () => {
-      const res = await fetch(`/api/messagerie/rechercher?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token}` } })
-      setResultats(res.ok ? await res.json() : [])
+      try {
+        const res = await fetch(`/api/messagerie/rechercher?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${token}` } })
+        if (!res.ok) throw new Error('recherche')
+        setResultats(await res.json())
+      } catch {
+        setResultats([])
+        setErreurRecherche('La recherche n’a pas pu aboutir. Réessayez.')
+      }
     }, 200)
     return () => clearTimeout(rechercheTimer.current)
   }, [recherche, token])
@@ -100,12 +129,20 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
     const contenu = sansEmoticones(texte).trim()
     if (!contenu || !token || !pseudoActif || envoi) return
     setEnvoi(true)
-    const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudoActif)}`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contenu }),
-    })
-    if (res.ok) { setTexte(''); await chargerConversation(pseudoActif, token) }
-    setEnvoi(false)
+    setErreurEnvoi(null)
+    try {
+      const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudoActif)}`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contenu }),
+      })
+      if (!res.ok) throw new Error('envoi')
+      setTexte('')
+      await chargerConversation(pseudoActif, token)
+    } catch {
+      setErreurEnvoi('Le message n’a pas pu être envoyé. Réessayez.')
+    } finally {
+      setEnvoi(false)
+    }
   }
 
   if (!ouvert || typeof document === 'undefined') return null
@@ -133,7 +170,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
         {/* En-tête */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 16px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)' }}>
           {pseudoActif ? (
-            <button onClick={() => { setPseudoActif(null); setMessages(null) }} title="Retour" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-gris)', padding: '2px', lineHeight: 0 }}>
+            <button onClick={() => { setPseudoActif(null); setMessages(null); setErreurConversation(null); setErreurEnvoi(null) }} title="Retour" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-gris)', padding: '2px', lineHeight: 0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           ) : null}
@@ -153,6 +190,8 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 14px 8px' }}>
               {messages === null ? (
                 <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '24px' }}>Chargement…</p>
+              ) : erreurConversation ? (
+                <p role="alert" style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', marginTop: '24px' }}>{erreurConversation}</p>
               ) : messages.length === 0 ? (
                 <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', marginTop: '24px' }}>Début de votre conversation avec {pseudoActif}.</p>
               ) : (
@@ -171,16 +210,19 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
               )}
               <div ref={basRef} />
             </div>
-            <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)', padding: '10px 12px', display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-              <textarea value={texte}
-                onChange={e => setTexte(sansEmoticones(e.target.value))}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyer() } }}
-                placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
-                style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
-              <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
-                style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', borderRadius: '8px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
-                {envoi ? '…' : 'Envoyer'}
-              </button>
+            <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)', padding: '10px 12px' }}>
+              {erreurEnvoi && <p role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', margin: '0 0 7px', lineHeight: 1.4 }}>{erreurEnvoi}</p>}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                <textarea value={texte}
+                  onChange={e => { setTexte(sansEmoticones(e.target.value)); setErreurEnvoi(null) }}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyer() } }}
+                  placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
+                  style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
+                <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
+                  style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', borderRadius: '8px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
+                  {envoi ? '…' : 'Envoyer'}
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -192,7 +234,9 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                 style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', padding: '7px 11px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
               {recherche.trim().length >= 2 && (
                 <div style={{ position: 'absolute', left: '14px', right: '14px', top: 'calc(100% - 2px)', zIndex: 5, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' }}>
-                  {resultats.length === 0 ? (
+                  {erreurRecherche ? (
+                    <p role="alert" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', padding: '8px 12px', margin: 0 }}>{erreurRecherche}</p>
+                  ) : resultats.length === 0 ? (
                     <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 12px', margin: 0 }}>Aucun pseudonyme trouvé.</p>
                   ) : resultats.map(p => (
                     <button key={p} onClick={() => ouvrirConversation(p)}
@@ -212,6 +256,8 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 14px' }}>
               {conversations === null ? (
                 <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '24px' }}>Chargement…</p>
+              ) : erreurConversations ? (
+                <p role="alert" style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', marginTop: '24px' }}>{erreurConversations}</p>
               ) : convsFiltrees.length === 0 ? (
                 <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', marginTop: '24px' }}>
                   {filtre === 'non-lus' ? 'Aucun message non lu.' : 'Aucune conversation. Cherchez un pseudonyme ci-dessus pour écrire.'}
