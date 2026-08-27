@@ -2032,6 +2032,10 @@ La planche du monogramme seul est le logo. Son détourage ne sert que la couche 
 
 ⛔ **La page d’accueil se mesure à UNE SEULE justification.** Les trois cartes tenaient dans une mesure, les deux volets et le bandeau de chiffres dans une autre, plus large d’un huitième : sur un grand écran, le bloc par où l’on entre dans le site était le plus étroit de la page, en retrait de cent vingt pixels de chaque côté sur ceux qui le suivent, et la colonne dessinait un sablier. Les trois blocs partagent désormais la même largeur, tenue en un seul endroit : la changer les déplace tous ensemble, et l’on ne la redonne jamais bloc par bloc. ⚠️ Ce qui vaut pour la largeur ne vaut pas pour les SEUILS : un volet de prose devient illisible bien avant qu’une tuile de chiffre ne manque de place, et les deux se replient donc à des largeurs différentes. Fondre leurs seuils, c’est ouvrir deux colonnes de trois cent soixante pixels pour y loger un nombre à deux chiffres.
 
+⛔ **L’interligne du texte de l’accueil est RESSERRÉ** (décision de l’auteur, 27 août 2026). Le colophon composait sa prose à 1,75, soit le double de la hauteur d’œil du sérif à ce corps : les paragraphes s’y délitaient en lignes indépendantes, et l’on ne lisait plus un bloc mais une suite de lignes. Il passe à 1,55, le mot de l’auteur à 1,38, et la pyramide finale de 2,1 à 1,85 : elle garde un interligne plus large que la prose, ses lignes se lisant chacune pour elle-même, mais elle ne pouvait pas rester deux fois plus aérée que le texte qu’elle ferme. ⚠️ Seul l’interligne bouge. Ni le corps, ni l’encre, ni le blanc entre les sections, sans quoi l’on ne saurait plus ce qui a produit l’effet.
+
+⛔ **Un fleuron ne s’annonce pas au-dessus d’un titre, il le ferme.** Le colophon ouvrait sur un ❧ posé au-dessus de « Le projet », qu’un second fleuron à filets fermait trois lignes plus bas : deux ornements pour un seul titre, et le premier butait devant le nom de la section avant qu’on sache de quoi il retourne. Le premier est retiré, celui qui SUIT le titre demeure, comme sous chaque section. C’est la règle déjà écrite pour les gravures, appliquée aux fleurons.
+
 **Un CHIFFRE ferme la page d’accueil, et ce n’est pas le monogramme.** Sous le colophon — « en l’An de grâce MMXXVI » — se tenait le fleuron ❧. C’était un CARACTÈRE : son dessin dépendait de la police que le système voulait bien lui donner, il changeait d’une machine à l’autre, et il ne disait rien du site. À sa place vient le chiffre de Corpus Scriptura : le C et le S entrelacés, en capitales didones, gravés pour lui. ⚠️ Ce chiffre n’est PAS le monogramme du frontispice — celui-là est une lettrine gothique, celui-ci une capitale moderne. Deux dessins, deux emplois, deux fichiers, et l’on ne substitue pas l’un à l’autre. Il garde l’or que portait le fleuron : seul le dessin change.
 
 ⚠️ **Une planche livrée sur papier photographié se DÉTOURE en alpha avant d’entrer.** Le grain du papier court entre 225 et 250 de luminance : un seuil unique l’aurait gardé en entier ou mangé les bords adoucis du dessin. Le seuillage est donc une RAMPE — opaque en deçà de 96, transparent au-delà de 200, dégradé entre les deux —, le dessin est ensuite rogné à sa boîte et réduit. La planche ne sert alors que d’alpha, comme le monogramme, et prend la couleur qu’on lui donne.
@@ -2249,6 +2253,8 @@ Deux gardes-fous. Sur une mesure étroite, où la manchette ne laisserait au com
 
 La disposition vaut pour les repères des rangs bas, chapitre, péricope et verset. Les rubriques de large portée — introduction, notice de livre ou de partie — gardent leur composition centrée et leur petit corps : ce ne sont pas des repères de développement mais des noms de genre éditorial.
 
+⛔ **Rectification du 27 août 2026 : la manchette se ferre à GAUCHE, et en SÉRIF.** Ferrée à droite, chacune de ses lignes courtes commençait à une abscisse différente, et aucune ne tombait sur le fer de la page : dans une colonne où tout part du même bord, elle était la seule chose qui ne s’alignait sur rien. Elle prend donc le fer du commentaire ordinaire, et la police du texte. Le sans-serif qui la détachait s’en va avec : le demi-gras et la conduite serrée y suffisent, et une manchette qui appartient au texte n’a pas à s’en séparer par le caractère. Tout le reste du § 35.9 demeure — la colonne de largeur fixe, le pavé tassé, le refus du justifié, la césure serrée, les deux gardes-fous. ⚠️ Sur une mesure étroite, où le repère reprend déjà toute la largeur, le fer ne change plus : il est le même partout.
+
 ### 35.10. Aucun titre biblique ne se compose en petites capitales
 
 ⛔ Décision de l’auteur, 26 août 2026 : « laid et pas lisible ». Quatre rangs de titre sur six les portaient, plus les rubriques d’information. Composée à quinze pixels avec de la chasse, une ligne entière en petites capitales devient une bande grise où l’œil ne trouve plus de mot — et c’est précisément le rang qu’on lit le plus, celui des péricopes, qui en souffrait le plus.
@@ -2264,6 +2270,36 @@ Un intitulé se coupe en titre et chapeau sur un tiret cadratin, mais ⛔ le tir
 La coupure exige donc que la tête DÉSIGNE une division au lieu de la décrire : moins de vingt-quatre signes, et close par un point (« § III. », « SECTION I. ») ou sans aucun chiffre (« PREMIÈRE PARTIE »). ⚠️ Mesurée sur les 2 651 intitulés du corpus, la règle change exactement les cent cas fautifs et aucun autre.
 
 ⛔ La mention de chapitre imprimée en tête d’un intitulé ne paraît pas, pour la raison qui vaut déjà au § 35.1 : la barre de navigation nomme le chapitre. Enchâssée dans l’intitulé de 58 commentaires — « CHAP. IX. — 1-2. Introduction… » — elle prenait la place du repère, lequel passait en chapeau subordonné : la mention matérielle dominait l’information utile.
+
+### 35.12. Le texte biblique se cerne d’un blanc plus large que son apparat
+
+Un bloc de versets ne touche pas le commentaire qui l’entoure. Mesuré avant reprise : vingt pixels au-dessus du premier verset, quatorze sous le dernier, c’est-à-dire moins que l’interligne du commentaire lui-même. Le texte biblique se lisait comme un paragraphe parmi les autres. Le blanc vaut désormais deux rem, et il est le même en haut et en bas : un bloc de versets est CERNÉ, non posé.
+
+⛔ Les TITRES en sont exclus. Ils portent déjà leur propre blanc, plus large, et l’uniformiser le rétrécirait au lieu de l’ouvrir. ⚠️ Les marges verticales adjacentes FUSIONNENT en flux normal, la plus grande valant pour les deux : il n’y a rien à retrancher de la marge du verset, et croire l’inverse conduit à doubler le blanc.
+
+### 35.13. L’introduction d’un livre se compose comme un titre de partie, et c’est le GENRE qui titre
+
+« Évangile selon saint Matthieu — Introduction » se rendait en rubrique : sans-serif, demi-gras, chassée, grise. C’est le seul style de la page qui ne dise rien de la hiérarchie du livre, et il détonnait d’autant plus qu’il ouvre le premier chapitre. L’intitulé prend donc le rang de « Première partie » : le titre en grand romain centré, et le second membre en chapeau italique juste dessous, à la place et dans la forme de « L’enfance et la vie cachée de Jésus ».
+
+⛔ C’est le GENRE qui titre, non le nom du livre (décision de l’auteur, 27 août 2026). Le lecteur sait déjà quel livre il ouvre : la barre de navigation le nomme, le volet de gauche aussi. Ce qu’il ignore, c’est qu’il a sous les yeux une introduction. Le titre dit donc ce qu’on lit, le chapeau de quoi il traite.
+
+⚠️ La règle ne porte pas sur la POSITION, et c’est ce qui la rend juste. Fillion écrit tantôt « Évangile selon saint Matthieu — Introduction », tantôt « Introduction — 1° La personne de l’auteur », dans le même livre et à quelques lignes d’intervalle : inverser sur la place aurait retourné le second. Le genre se reconnaît sur une liste CLOSE — introduction, notice, sommaire, conclusion, préface, avant-propos, appendice, excursus, prologue, avertissement — et il remonte en titre quand il ferme l’intitulé ; s’il l’ouvre, il y est déjà. Un intitulé où le genre ne paraît d’aucun côté ne bouge pas.
+
+⚠️ La coupure ne dépend alors plus de la longueur de la tête (§ 35.11), qui est la mesure des DÉSIGNATIONS de division : « ÉVANGILE SELON S. LUC » y passait à vingt et un signes, « Évangile selon saint Matthieu » échouait à vingt-neuf. Le même intitulé se divisait dans trois évangiles sur quatre, et la différence ne tenait qu’à l’abréviation du mot « saint ». La garde contre les intervalles de références demeure, elle : une tête qui porte un chiffre ne se coupe jamais.
+
+### 35.14. Le sommaire de l’édition — ses pièces liminaires
+
+Une édition savante ouvre sur ce qui n’appartient à aucun livre : page de titre, « Du même auteur », imprimatur, dédicace, avant-propos, tableau de transcription de l’hébreu, abréviations, introduction générale, introduction du Testament, introduction du groupe de livres. Le tome I de Fillion en porte soixante-deux, toutes rattachées à la Genèse parce qu’elle l’ouvre, et toutes s’imprimaient avant le premier verset de la Bible. Le lecteur venu lire la Création traversait d’abord la page de titre et quinze notices bibliographiques.
+
+Elles se lisent désormais par un onglet « Sommaire », dans le volet de gauche, à côté des livres. ⛔ Il ne paraît que pour une édition qui porte un apparat général : une bible ordinaire n’a rien à y mettre, et l’on ne montre pas un onglet qui ouvrirait sur du blanc. Ouvrir une pièce la met À LA PLACE du texte biblique — on ouvre un volume à sa page de garde, on ne lit pas les deux à la fois — avec son nom en titre, la portée qu’elle coiffe en rubrique au-dessus, et le retour au chapitre en pied.
+
+⛔ Ce qui entre au sommaire se reconnaît à la PORTÉE du bloc, Bible, Testament ou groupe de livres, jamais à une liste d’intitulés tenue à la main. L’introduction d’un LIVRE n’en est pas : elle ouvre son livre, et c’est là qu’on la lit.
+
+⚠️ Les blocs se groupent en PIÈCES, sans quoi le sommaire compterait soixante-deux lignes, dont quinze pour la seule bibliographie de l’auteur. Deux blocs consécutifs font une pièce quand ils partagent leur portée et leur NOM — ce qui précède le tiret, la queue ne disant que la pagination de l’imprimé — ou quand le second est un apparat de bas de page portant la MÊME PAGE IMPRIMÉE que le premier. C’est ainsi que trente-trois « Apparat de la page N » rejoignent les dix pages d’introduction générale qu’ils annotent. Douze entrées pour soixante-deux blocs. ⚠️ La consécution compte : deux imprimatur que seize ans et tout l’avant-propos séparent portent le même nom et restent deux pièces.
+
+Le nom de la pièce s’écrit UNE fois, en tête. Les blocs qui le redisent perdent leur intitulé ; ceux dont la queue titre vraiment, « Introduction générale — § I. Ce qu’est la Bible », gardent le leur.
+
+⚠️ Le sommaire part dans la MÊME vague que les versets : il ne coûte pas un aller-retour de plus, et le texte d’une pièce ne se charge qu’à son ouverture.
 
 ## 36. Le modèle d’onglets
 
