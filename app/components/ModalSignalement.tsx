@@ -40,17 +40,12 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
     } catch (error) { console.error('Erreur signalement:', error); setStatut('err') }
   }
 
-  // Rendu dans un PORTAIL vers <body> : sans cela, un ancêtre porteur d'un
-  // `transform` (cartes au survol) devient le bloc conteneur du `position: fixed`,
-  // et la fenêtre se retrouve piégée puis rognée dans le bloc (overflow: hidden).
   if (typeof document === 'undefined') return null
   return createPortal(
     <div onClick={onClose}
       style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()}
         style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-danger-bord)', width: '100%', maxWidth: '26.25rem', boxShadow: 'var(--cs-ombre-modale)', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 40px)', overflow: 'hidden' }}>
-
-        {/* En-tête — teinte chaude (ocre/rouge), liseré d'accent à gauche du titre. */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'linear-gradient(180deg, var(--cs-danger-fond) 0%, var(--cs-danger-fond) 100%)', flexShrink: 0 }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '9px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#7a2f18', margin: 0 }}>
             <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '4px', background: 'var(--cs-danger-aplat)' }} />
@@ -60,10 +55,9 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
         </div>
 
         {statut === 'ok' ? (
-          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '26px 20px', margin: 0 }}>Signalement envoyé, merci !</p>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '26px 20px', margin: 0 }}>Signalement envoyé. Merci.</p>
         ) : (
           <div style={{ padding: '14px 20px 18px', overflowY: 'auto' }}>
-            {/* Objet du signalement : le texte cité EN ENTIER */}
             {(titre || texteObjet) && (
               <div style={{ marginBottom: '14px' }}>
                 <span style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b5764a', marginBottom: '5px' }}>Objet du signalement</span>
@@ -96,7 +90,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
               style={{ width: '100%', fontSize: '0.75rem', padding: '8px 10px', border: '1px solid var(--cs-danger-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
+              {statut === 'err' && <span role="alert" style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Le signalement n’a pas pu être envoyé. Réessayez.</span>}
               <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
                 style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
