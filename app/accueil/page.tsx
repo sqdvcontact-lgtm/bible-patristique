@@ -416,7 +416,11 @@ export default async function AccueilPage() {
           {/* Un seul séparateur : celui qui clôt la section « Soutenir » ci-dessus
               suffit (on a retiré le second, qui faisait doublon). */}
           <div style={{ marginTop: "44px" }}>
-            <div style={{ fontSize: "0.8125rem", lineHeight: "2.1", color: "var(--cs-texte-second)", letterSpacing: "0.01em" }}>
+            {/* La pyramide garde un interligne PLUS LARGE que la prose : ses lignes
+                sont des lignes de colophon, chacune se lisant pour elle-même. Elle
+                suit tout de même le resserrement du 27 août, de 2,1 à 1,85, sans quoi
+                elle aurait paru deux fois plus aérée que le texte qu'elle ferme. */}
+            <div style={{ fontSize: "0.8125rem", lineHeight: "1.85", color: "var(--cs-texte-second)", letterSpacing: "0.01em" }}>
               <div className="colophon-pyr-desktop">
                 <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Publié pour navigateur et mobile par les soins</p>
                 <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
@@ -498,9 +502,14 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
   )
 }
 
+// Prose du colophon. L'interligne est RESSERRÉ (décision de l'auteur, 27 août 2026) :
+// il valait 1,75, c'est-à-dire le double de la hauteur d'œil d'un sérif à ce corps, et
+// les paragraphes s'y délitaient en lignes indépendantes. À 1,55 le bloc redevient un
+// paragraphe. ⚠️ C'est la seule mesure qui bouge : le corps, l'encre et le blanc entre
+// les sections ne changent pas, sans quoi l'on ne saurait plus ce qui a produit l'effet.
 const paraStyle: React.CSSProperties = {
   fontSize: "0.875rem",
-  lineHeight: "1.75",
+  lineHeight: "1.55",
   color: "var(--cs-texte-fort)",
   margin: 0,
 }
@@ -512,7 +521,7 @@ const paraStyle: React.CSSProperties = {
 const motStyle: React.CSSProperties = {
   fontFamily: "var(--font-source-serif), Georgia, serif",
   fontSize: "0.78125rem",
-  lineHeight: 1.5,
+  lineHeight: 1.38,
   letterSpacing: "-0.006em",
   wordSpacing: "-0.03em",
   color: "var(--cs-texte)",
