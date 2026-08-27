@@ -1672,6 +1672,29 @@ pour 7 266 blocs.
 ⚠️ **Contrôle sans session** : le site étant fermé, la planche de contrôle se fabrique
 avec le composant RÉEL et des entrées réelles (`tmp/planche-apparat-critique.tsx`), selon
 la méthode déjà consignée plus haut pour les questions de mise en page.
+
+## Le SOMMAIRE de l'édition — les pièces liminaires (2026-08-27)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.14**. Ce qui dépasse le livre — page de titre, quinze notices « Du même auteur », deux imprimatur, dédicace, avant-propos, tableau de transcription, abréviations, introduction générale, introduction du Testament et du groupe de livres — ne se lit plus dans le fil d'un chapitre, mais par un onglet « Sommaire » du volet de gauche. Soixante-deux blocs pour le tome I, tous rattachés à `GEN`, tous imprimés avant le premier verset de la Bible jusqu'à cette date.
+
+- **Le critère est la PORTÉE**, jamais une liste d'intitulés : `estPieceGenerale` retient `bible`, `testament`, `book_group`. ⛔ `blocSansAncreVisibleDansChapitre` (`bibleEdition.ts`) ne rend donc plus `true` que pour `book` : c'est le seul point qui décide qu'un liminaire paraît en tête d'un chapitre, et son test dit les deux moitiés de la règle.
+- **Le groupement en pièces vit dans `app/lib/bibleSommaireEdition.ts`** (module PUR, 11 tests sur les intitulés réels). Deux blocs consécutifs font une pièce quand ils partagent leur portée ET leur nom (`nomDePiece`, ce qui précède le tiret), ou quand le second est un apparat portant la MÊME `printed_page_start` que le premier — c'est ainsi que trente-trois « Apparat de la page N » rejoignent l'introduction générale. Douze entrées pour soixante-deux blocs. ⚠️ Le nom se compare à celui de la PIÈCE, non à celui du bloc précédent : un apparat s'intercale entre deux pages d'une même pièce et romprait la chaîne.
+- **`intituleDansPiece`** retire l'intitulé d'un bloc qui redit le nom de la pièce, et ne garde la queue que lorsqu'elle titre vraiment (« § I. Ce qu'est la Bible » reste, « page IX » et « notice 3 » s'en vont).
+- **Deux chargeurs, dans `bibleEditionServer.ts`** : `chargerLiminairesEdition` (une requête, dans la MÊME vague que les versets, donc sans aller-retour de plus) et `chargerPieceLiminaire` (le texte de la seule pièce demandée). ⚠️ `BibleEditionBodyBlockRow` a gagné `scope_label` et `printed_page_start`, que la vue exposait déjà.
+- **L'adresse porte `?piece=<block_key>`** (`urlLectureBible`). ⛔ Elle ne voyage PAS d'un chapitre à l'autre : c'est une cible, non une manière de lire. Le livre et le chapitre restent dans l'URL pour que le retour ramène à sa place.
+- ⚠️ **`composerAffichage`** (`app/page.tsx`) est la transformation payload → affichage, désormais partagée par l'appareil d'un chapitre et par une pièce. Une seule écriture : c'est la règle déjà consignée pour les colonnes de `segments`.
+- **L'onglet ne paraît que si le sommaire n'est pas vide** (`NavLivres`, `sommaireEdition`), et il remplace la recherche et la liste des livres. Sur téléphone, il se loge dans le volet, lui-même ouvert par l'onglet mobile qui s'appelle déjà « Sommaire » : **les deux mots se superposent, à arbitrer**.
+
+## L'intitulé d'une introduction de livre (2026-08-27)
+
+Doctrine : charte **§ 35.13**. `introduction_livre` déclare désormais `heading_role: 'title'` et `heading_level: 'T2'` dans `work/fillion/semantic_display_hierarchy.json` : le rendu passe par la branche « cas mixte » de `BlocEditorialBible`, et l'intitulé prend la composition de « Première partie ». Le chapeau (`.cs-bible-chapeau`) reçoit sous les trois rangs HAUTS la composition du sous-titre de partie ; il garde le gris de l'apparat sous les rangs bas.
+
+⛔ **`diviserIntitule` prend une option `genreEnTitre`**, posée sur les blocs de portée haute (`resolu.level === 'I1'`) : le GENRE remonte en titre quand il ferme l'intitulé, l'ordre imprimé tient quand il l'ouvre. La liste des genres est CLOSE. ⚠️ La règle ne porte pas sur la position : Fillion écrit « Évangile selon saint Matthieu — Introduction » et « Introduction — 1° La personne de l'auteur » dans le même livre.
+
+## La manchette se ferre à gauche, et le texte s'écarte de son apparat (2026-08-27)
+
+Doctrine : charte **§ 35.9 (rectifié)** et **§ 35.12**. Dans `globals.css` : `.cs-bible-info-label` d'un commentaire passe en `text-align: left` et en sérif ; `.verset-row + .cs-bible-bloc:not(.cs-bible-block--title)` et son symétrique en `:has(+ .verset-row)` portent le blanc de 2rem qui cerne un bloc de versets. ⚠️ Les marges verticales adjacentes fusionnent : la marge du verset n'est pas à retrancher.
+
 # Propositions de GPT — le registre d’arbitrage (2026-08-25)
 
 `/admin/propositions-gpt`. GPT propose, l’auteur arbitre, et ce que l’auteur écrit là
