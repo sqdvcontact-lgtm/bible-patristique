@@ -290,7 +290,8 @@ export default function PrelevementsPage() {
           .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
-        supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true }),
+        // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
+        supabase.from("traductions").select("trad_id, nom").eq("est_biblique", true).order("ordre", { ascending: true }),
         supabase.from("profils").select("traduction_defaut, citation_preferee").eq("id", uid).maybeSingle(),
         codesTraductionsLecture(supabase),
       ]);

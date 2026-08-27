@@ -19,6 +19,10 @@ export async function POST(request: Request) {
     .from('traductions')
     .select('trad_id')
     .eq('trad_id', traduction)
+    // ⛔ Une coordonnée canonique ne se corrige que sur une traduction BIBLIQUE : la
+    // table tient aussi les notices des traductions patristiques, qui n'ont pas de
+    // versets.
+    .eq('est_biblique', true)
     .maybeSingle()
   if (tradErr || !traductionConnue) {
     return NextResponse.json({ error: 'Traduction inconnue.' }, { status: 400 })

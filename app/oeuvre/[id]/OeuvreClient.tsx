@@ -1286,7 +1286,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   useEffect(() => {
-    supabase.from('traductions').select('trad_id, nom').order('ordre', { ascending: true }).then(({ data }) => {
+    // ⛔ `est_biblique` : c'est ICI que le défaut se voyait le mieux — la page d'une œuvre
+    // patristique offrait, dans son menu de traductions BIBLIQUES, les quatre notices des
+    // traductions patristiques elles-mêmes, dont celle qui sert la page. Voir app/page.tsx.
+    supabase.from('traductions').select('trad_id, nom').eq('est_biblique', true).order('ordre', { ascending: true }).then(({ data }) => {
       if (data?.length) setTraductionsBible(data.map((t: any) => ({ code: t.trad_id, label: t.nom })))
     })
   }, [])

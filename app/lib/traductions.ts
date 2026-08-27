@@ -18,11 +18,15 @@ const CACHE_MS = 5 * 60_000
 let cacheCodes: { expiresAt: number; promise: Promise<string[]> } | null = null
 
 async function chargerCodesTraductionsLecture(client: SupabaseClient): Promise<string[]> {
+  // ⛔ Le tri se faisait sur la FORME de l'identifiant — les notices des traductions
+  // patristiques portent des identifiants parlants (TR_FR_1865_JEANNIN_…), les
+  // bibliques un numéro. Une forme ne dit pas ce qu'est une ligne, et le premier
+  // identifiant qui dérogerait aurait tout emporté. La colonne `est_biblique`, elle,
+  // le dit.
   const { data: trads } = await client
-    .from('traductions').select('trad_id').order('ordre', { ascending: true })
+    .from('traductions').select('trad_id').eq('est_biblique', true).order('ordre', { ascending: true })
   const demandes = ((trads ?? []) as { trad_id: string }[])
     .map(t => t.trad_id)
-    .filter(code => /^TR\d{4}$/.test(code))
 
   // Sonde une ligne de la vue pour connaître ses colonnes réelles.
   const { data: echantillon } = await client.from('versets_lecture').select('*').limit(1)

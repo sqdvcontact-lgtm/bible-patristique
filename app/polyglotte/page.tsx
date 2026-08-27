@@ -718,7 +718,9 @@ export default function PolyglottePage() {
     fetch("/api/livres-editions").then(r => r.json()).then(setLivresEd).catch(() => setLivresEd({}));
     supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
     (async () => {
-      const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").order("ordre");
+      // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx — la table tient aussi
+      // les notices des traductions patristiques, qui n'ont rien à faire ici.
+      const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").eq("est_biblique", true).order("ordre");
       const liste = tr ?? [];
       // Un count par traduction pour savoir laquelle est migrée dans versets_v2 —
       // mais TOUS EN PARALLÈLE (auparavant : un await par traduction, en cascade).

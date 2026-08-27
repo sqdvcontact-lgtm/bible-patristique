@@ -247,7 +247,8 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   const tradNom = trads.find(t => t.trad_id === trad)?.nom ?? null
 
   useEffect(() => {
-    supabase.from('traductions').select('trad_id, nom, langue, ordre').order('ordre').then(({ data }) => {
+    // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
+    supabase.from('traductions').select('trad_id, nom, langue, ordre').eq('est_biblique', true).order('ordre').then(({ data }) => {
       const liste = ((data ?? []) as any[]).map(t => ({ trad_id: t.trad_id, nom: t.nom, langue: t.langue }))
       setTrads(liste)
       if (liste.length && !liste.some(t => t.trad_id === 'TR0002')) setTrad(liste[0].trad_id)

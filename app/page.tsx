@@ -122,7 +122,11 @@ export default async function Home({
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `source_edition` = référence complète de
     // l'édition présentée (ville, éditeur, date), toutes deux pour l'encart Traduction.
-    supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').order('ordre', { ascending: true }),
+    // ⛔ `est_biblique` : la table tient aussi la notice bibliographique de la traduction
+    // employée par une œuvre PATRISTIQUE (Jeannin pour Chrysostome, Barreau et Charpentier
+    // pour la Cité de Dieu…), à laquelle renvoie `oeuvres.trad_id`. Un sélecteur de
+    // traduction BIBLIQUE ne montre que ce qui en est.
+    supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').eq('est_biblique', true).order('ordre', { ascending: true }),
     // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
     // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
     // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.

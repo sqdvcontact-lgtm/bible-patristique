@@ -512,7 +512,8 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
       .then(({ data }) => setClassement(data ?? { score: 0, nb_commentaires: 0, nb_valides: 0, nb_likes_recus: 0, nb_essais_publies: 0 }));
 
     // Traductions
-    supabase.from("traductions").select("trad_id, nom").order("ordre", { ascending: true })
+    // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
+    supabase.from("traductions").select("trad_id, nom").eq("est_biblique", true).order("ordre", { ascending: true })
       .then(({ data }) => { if (data?.length) setTraductionsCompte(data.map((t: any) => ({ code: t.trad_id, label: t.nom }))); });
 
     // Checklist DB

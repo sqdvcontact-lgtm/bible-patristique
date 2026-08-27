@@ -1050,6 +1050,17 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               )}
             </div>
             <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+              {/* ⚠️ La table tient aussi la notice bibliographique des traductions
+                  PATRISTIQUES — celles à quoi renvoie `oeuvres.trad_id`. Elles ne
+                  paraissent dans aucun sélecteur de lecture, et la plupart des boutons
+                  de cette ligne ne les concernent pas : on le dit ici plutôt que de
+                  laisser l'administrateur le déduire. */}
+              {!t.est_biblique && (
+                <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique."
+                  style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', marginRight: '4px', whiteSpace: 'nowrap' }}>
+                  patristique
+                </span>
+              )}
               <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)', marginRight: '1px' }}>{t.trad_id}</code>
               {/* Deux images, deux dépôts : le bandeau horizontal qui coiffe la notice,
                   et l'encart en portrait qui se pose dans le bloc déplié. Elles ne se

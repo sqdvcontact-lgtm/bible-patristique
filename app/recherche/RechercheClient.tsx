@@ -290,7 +290,8 @@ export default function RechercheClient() {
       const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
       if (profil?.traduction_defaut) { localStorage.setItem('traduction_defaut', profil.traduction_defaut); appliquer(profil.traduction_defaut) }
     })
-    supabase.from('traductions').select('trad_id, nom, langue').order('ordre', { ascending: true }).then(({ data }) => {
+    // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
+    supabase.from('traductions').select('trad_id, nom, langue').eq('est_biblique', true).order('ordre', { ascending: true }).then(({ data }) => {
       if (data?.length) {
         const trads = data.map((t: any) => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
         setTraductions(trads)

@@ -48,6 +48,10 @@ export type Traduction = {
   langue: string
   commentaire_editorial: string
   ordre: number
+  /** Faux pour la notice bibliographique d'une traduction PATRISTIQUE — celle à
+   *  laquelle renvoie `oeuvres.trad_id`. Ces lignes vivent dans la même table que
+   *  les traductions bibliques, mais ne paraissent dans aucun sélecteur de lecture. */
+  est_biblique: boolean
   photo: string | null
   photo_encart: string | null
   import_maj_le: string | null
