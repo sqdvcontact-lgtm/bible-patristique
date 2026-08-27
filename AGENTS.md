@@ -1028,6 +1028,17 @@ Le premier audit avait raison sur les vagues et ne regardait pas ce qu'elles tra
 
 **Contrôle de non-régression** : le TEXTE rendu (scripts et balises retirés) est comparé avant/après sur neuf pages — Matthieu 1 et 12, Genèse 1, Jean 1, Actes 2, Marc 3, la lecture en regard, le texte seul, la Sacy. Identique ligne pour ligne. ⚠️ Comparer le HTML BRUT ne prouve rien : les identifiants de la charge RSC changent à chaque rendu, et les neuf pages « diffèrent » toutes.
 
+## Le clic est ACQUITTÉ — `app/lib/attenteNavigation.tsx` (2026-08-27)
+
+Une page servie par le serveur ne change pas d'écran tant qu'elle n'est pas prête : le routeur garde l'ancienne, et rien ne bouge. Sur la Bible commentée, cela dure de sept à neuf dixièmes de seconde, pendant lesquelles on ne sait pas si le clic a porté. ⛔ Le `loading.tsx` de la route n'y paraît pas — seule la requête d'adresse change — et un squelette de page serait pire : il remplacerait tout, volets compris, à chaque changement de chapitre.
+
+Le module tient l'attente pour une page entière : `ProvisionAttente` l'ouvre (elle enveloppe `BibleLayout`, dont le corps est passé dans un `PageBible` interne — ⛔ un contexte ne se lit que SOUS celui qui le pose), `useNaviguer` remplace `router.push` partout où l'on navigue, `useEnAttente` dit à la marque quand paraître, et `usePrecharger` demande la page au survol.
+
+- **La marque ne paraît qu'au bout de 160 ms**, et seulement tant que l'attente dure. Une navigation préchargée revient plus vite qu'on ne la verrait, et une marque qui s'allume et s'éteint dans le même souffle se lit comme un défaut. ⛔ Rien ne s'éteint DANS le corps de l'effet : un `setState` synchrone y déclenche un rendu en cascade (le linter le refuse). L'extinction se lit sur `enAttente`, qui retombe seul ; le nettoyage rembobine le témoin.
+- **Elle ne masque pas la page** : voile à 4 %, texte lisible dessous, `pointer-events: none`. ⛔ Jamais un jeton d'ENCRE pour ce voile — sur le Cuir il est presque blanc, et le voile deviendrait un rideau (charte). Elle se pose SOUS la barre, qui ne change pas.
+- **Hors provision, `useNaviguer` rend une navigation ordinaire** : `NavLivres` sert aussi la Polyglotte, et un composant partagé n'a pas à savoir s'il est sous provision.
+- **`kind: 'full'` sur le préchargement** : un préchargement ordinaire s'arrête au `loading.tsx` de la route et ne rapporte rien de ce qui coûte. Même règle que sur la page d'œuvre.
+
 **Ce qui reste** : le chargement d'un chapitre éditorial est encore une cascade de trois vagues (alignements, puis segments et sources, puis texte des unités), chacune entre 63 et 91 ms. Aucune n'est lente ; les fondre demanderait une vue SQL qui rende le texte recomposé d'un chapitre en une fois, ce qui est un travail de BASE, non de dépôt. Les scripts d'atelier de cet audit sont dans `tmp/` (`audit-bible-perf.mjs`, `audit-bible-perf2.mjs`, `audit-versets.mjs`, `audit-bible-equivalence.mjs`).
 
 # Page Œuvre — largeur de lecture et axe de centrage

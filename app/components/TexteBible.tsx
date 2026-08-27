@@ -2,7 +2,8 @@
 import { ABREV_FR } from '@/app/lib/bible'
 
 import { Fragment, useState, useEffect, useRef } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
@@ -408,7 +409,9 @@ export default function TexteBible({
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
   const searchParams = useSearchParams()
-  const router = useRouter()
+  // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
+  // allume la marque au centre de la lecture tant que la page se prépare.
+  const naviguer = useNaviguer()
   const { modeUtilisateurStandard } = useAffichageAdmin()
 
   // Mobile : les boutons d'action encombreraient la marge droite d'un écran
@@ -468,7 +471,7 @@ export default function TexteBible({
   // Changement de chapitre en navigation douce : on ne recharge pas toute la page,
   // le composant reçoit simplement les nouveaux versets et les volets latéraux (état
   // client : largeurs, verset sélectionné) restent en place.
-  const allerAuChapitre = (n: number) => router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: tradCode }))
+  const allerAuChapitre = (n: number) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: tradCode }))
 
   // TR0009 (Bible 899) et éditions à segmentation éditoriale : l'adaptateur marque ses
   // lignes (`_est899`, `_estEditorial`). La GRAPHIE, la lecture en regard et le texte nu

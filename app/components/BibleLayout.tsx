@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { MarqueAttente, ProvisionAttente, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import NavLivres, { type PieceSommaireBible } from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
@@ -75,7 +75,22 @@ export type PieceLiminaireAffichee = {
 // liste qu'il passe contient toujours celle qu'on lit. Une liste de secours que
 // personne ne regarde finit par nommer des bibles qui ne sont plus les bonnes.
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
+/**
+ * La page Bible sous PROVISION D'ATTENTE : tout ce qui navigue en dedans passe
+ * par elle, et la marque d'attente paraît au centre tant que la page suivante
+ * se prépare. ⛔ Le corps de la page ne peut pas ouvrir sa propre provision et
+ * la consommer dans le même composant : un contexte ne se lit que sous celui
+ * qui le pose.
+ */
+export default function BibleLayout(props: Props) {
+  return (
+    <ProvisionAttente>
+      <PageBible {...props} />
+    </ProvisionAttente>
+  )
+}
+
+function PageBible({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
   const listeTraductions = traductions
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -85,7 +100,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     && versetSelectionne.chapitre === chapitreActif
     ? versetSelectionne
     : null
-  const router = useRouter()
+  // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
+  // allume la marque au centre de la lecture tant que la page se prépare.
+  const naviguer = useNaviguer()
+  const enAttente = useEnAttente()
+  const precharger = usePrecharger()
 
   // Mobile : un seul des trois volets ouvert à la fois (accordéon). Les barres
   // restent visibles ; ouvrir l'un referme l'autre.
@@ -261,7 +280,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
     if (!estVerseEditorial(readingCapabilities[code]) && !estVerseEditorial(readingCapabilities[traduction])) {
       setTraductionIndex(idx)
     }
-    router.push(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: code, mode }))
+    naviguer(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: code, mode }))
   }
 
   // Ce qui décrit la MANIÈRE de lire, d'un bloc : reporté tel quel par le volet des
@@ -284,17 +303,19 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
   // ce qu'il ne nomme pas est repris tel quel. C'est ce qui rend les axes
   // indépendants — passer au latin garde le réglage des commentaires, et régler les
   // commentaires garde le texte qu'on lisait.
-  const choisirModeLecture = (cible: CibleLectureAlternative) => {
-    router.push(urlLectureBible({
-      livre: livreActif,
-      chapitre: chapitreActif,
-      trad: cible.trad ?? traduction,
-      mode: 'verse',
-      couche: cible.couche ?? couche,
-      bilingue: cible.bilingue ?? !!lectureBilingue,
-      texteSeul: cible.texteSeul ?? texteSeul,
-    }))
-  }
+  const urlDuMode = (cible: CibleLectureAlternative) => urlLectureBible({
+    livre: livreActif,
+    chapitre: chapitreActif,
+    trad: cible.trad ?? traduction,
+    mode: 'verse',
+    couche: cible.couche ?? couche,
+    bilingue: cible.bilingue ?? !!lectureBilingue,
+    texteSeul: cible.texteSeul ?? texteSeul,
+  })
+  const choisirModeLecture = (cible: CibleLectureAlternative) => { naviguer(urlDuMode(cible)) }
+  // La page est DEMANDÉE AU SURVOL, avant même le clic : le temps qu'on descende
+  // du libellé au bouton, le serveur a commencé. Une fois par adresse.
+  const preparerModeLecture = (cible: CibleLectureAlternative) => { precharger(urlDuMode(cible)) }
 
   return (
     // `h-screen` valait 100vh, mais ce bloc est déjà décalé de la hauteur de la
@@ -337,6 +358,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         maniereDeLire={maniereDeLire}
         modesLecture={modesLecture}
         onChoisirModeLecture={choisirModeLecture}
+        onPreparerModeLecture={preparerModeLecture}
         sommaireEdition={sommaireEdition}
         pieceActive={pieceAffichee?.cle ?? null}
       />
@@ -393,14 +415,14 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
       {mobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
-          <button onClick={() => chapitreActif > 1 && router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif - 1, trad: traduction }))}
+          <button onClick={() => chapitreActif > 1 && naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif - 1, trad: traduction }))}
             aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? 'var(--cs-texte-gris)' : 'var(--cs-bord)', padding: '0 8px' }}>‹</button>
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: 'var(--cs-vert)' }}>{chapitreActif}</span>
           </span>
-          <button onClick={() => router.push(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif + 1, trad: traduction }))}
+          <button onClick={() => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif + 1, trad: traduction }))}
             aria-label="Chapitre suivant" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.375rem', lineHeight: 1, color: 'var(--cs-texte-gris)', padding: '0 8px' }}>›</button>
         </div>
       )}
@@ -427,6 +449,11 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           Rétablir les proportions
         </button>
       )}
+
+      {/* La réponse au clic : un anneau qui tourne au centre, sur la lecture qui
+          reste lisible dessous. Il ne paraît qu'au bout de 160 ms, une navigation
+          préchargée revenant plus vite qu'on ne le verrait. */}
+      <MarqueAttente enAttente={enAttente} />
     </div>
   )
 }

@@ -5,7 +5,7 @@
 // passage d'un mode à l'autre ne déplace rien à l'écran. Le corps est rendu par
 // `BibleBilingue`, et la logique d'appariement par `bibleEditionBilingue.ts`.
 
-import { useRouter } from 'next/navigation'
+import { useNaviguer } from '@/app/lib/attenteNavigation'
 
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { urlLectureBible } from '@/app/lib/bibleNavigation'
@@ -34,9 +34,11 @@ export default function LectureBilingueBible({
   mobile = false,
   ...contenu
 }: LectureBilingueBibleProps) {
-  const router = useRouter()
+  // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
+  // allume la marque au centre de la lecture tant que la page se prépare.
+  const naviguer = useNaviguer()
   const allerAuChapitre = (chapitre: number) => {
-    router.push(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
+    naviguer(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
   }
   const fleche = {
     color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none',

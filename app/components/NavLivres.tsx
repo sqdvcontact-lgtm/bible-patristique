@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useRouter } from 'next/navigation'
+import { useNaviguer } from '@/app/lib/attenteNavigation'
 import DOMPurify from 'dompurify'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
@@ -351,6 +351,9 @@ type Props = {
   // composé par le parent à partir des DONNÉES. Vide, il ne paraît pas.
   modesLecture?: GroupeLectureBible[]
   onChoisirModeLecture?: (cible: CibleLectureAlternative) => void
+  /** Demande la page au SURVOL, avant le clic : le temps de descendre du libellé
+   *  au bouton, le serveur a commencé. */
+  onPreparerModeLecture?: (cible: CibleLectureAlternative) => void
   /**
    * Le SOMMAIRE de l'édition : ses pièces liminaires, dans l'ordre du volume.
    * Vide, l'onglet ne paraît pas — une bible sans apparat éditorial n'a rien à y
@@ -403,7 +406,7 @@ export default function NavLivres({
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire,
-  modesLecture = [], onChoisirModeLecture,
+  modesLecture = [], onChoisirModeLecture, onPreparerModeLecture,
   sommaireEdition = [], pieceActive = null,
 }: Props) {
   const [recherche, setRecherche] = useState('')
@@ -455,7 +458,9 @@ export default function NavLivres({
   const setOuvert = (v: boolean) => { if (mobile) setVoletMobile?.(v ? 'livres' : null); else setOuvertLocal(v) }
   const scrollRef = useRef<HTMLDivElement>(null)
   const refPanel = useRef<HTMLDivElement>(null)
-  const router = useRouter()
+  // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
+  // allume la marque au centre de la lecture tant que la page se prépare.
+  const naviguer = useNaviguer()
 
   const tradCode = traductions[traductionIndex]?.code ?? 'TR0001'
   const refParsee = parseRefBiblique(recherche)
@@ -486,7 +491,7 @@ export default function NavLivres({
       setLivreOuvert(null)
     } else {
       setLivreOuvert(code)
-      router.push(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: 1, trad: tradCode }))
+      naviguer(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: 1, trad: tradCode }))
     }
     requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = pos
@@ -501,7 +506,7 @@ export default function NavLivres({
     if (mobile) setOuvert(false)
     // Polyglotte : on reste sur place et l'on demande le chapitre au parent.
     if (onChoisirChapitre) { onChoisirChapitre(code, ch); return }
-    router.push(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: ch, trad: tradCode }))
+    naviguer(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: ch, trad: tradCode }))
   }
 
   // Navigation vers ref parsée :
@@ -519,7 +524,7 @@ export default function NavLivres({
     // La lecture en regard tombe d'elle-même (`urlLectureBible`) : viser un verset
     // précis suppose de pouvoir le désigner, ce que les deux colonnes ne font pas. Le
     // lecteur retrouve donc la colonne unique, qui sait mettre le verset en évidence.
-    router.push(urlLectureBible({ ...maniereDeLire, livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode, verset: refParsee.verset }))
+    naviguer(urlLectureBible({ ...maniereDeLire, livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode, verset: refParsee.verset }))
   }
 
   const renderLivre = (livre: Livre) => {
@@ -707,6 +712,12 @@ export default function NavLivres({
                 {groupe.choix.map(choix => (
                   <button key={choix.cle} type="button" title={choix.description}
                     aria-pressed={choix.actif}
+                    // La page est demandée AU SURVOL, avant le clic : « Latin » vise
+                    // une autre adresse, donc un rendu serveur entier, et le temps de
+                    // descendre du libellé au bouton suffit à le commencer. Au clavier,
+                    // c'est le focus qui l'annonce.
+                    onMouseEnter={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
+                    onFocus={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
                     onClick={() => { if (!choix.actif) onChoisirModeLecture?.(choix.cible) }}
                     style={{ ...BTN_VOLET(choix.actif), cursor: choix.actif ? 'default' : 'pointer' }}>
                     {choix.label}
@@ -773,7 +784,7 @@ export default function NavLivres({
                   </div>
                 )}
                 <button type="button" aria-current={actif ? 'page' : undefined}
-                  onClick={() => router.push(urlLectureBible({
+                  onClick={() => naviguer(urlLectureBible({
                     ...maniereDeLire,
                     // Une pièce est commune aux deux membres de la famille : la
                     // mettre en regard d'elle-même n'aurait aucun sens.
