@@ -2,6 +2,10 @@
 
 import React, { useState, useRef, useCallback } from 'react'
 import { preparerPortrait, BOITE_TRADUCTION, BOITE_TRADUCTION_ENCART } from '@/app/lib/preparerPortrait'
+import {
+  VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO, CHEVRON_SUR_PHOTO,
+  OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
+} from '@/app/lib/bandeauTraduction'
 import DOMPurify from 'dompurify'
 import { supabase, headersAdmin } from './adminShared'
 import IconeCrayon from '@/app/components/IconeCrayon'
@@ -110,7 +114,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   }
 
   const meta = [t.langue, formaterDateHistorique(t.date_publication)].filter(Boolean).join(' · ')
-  const ombre = '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
+  const ombre = OMBRE_SUR_PHOTO
   const activePos = positions[active]
   const isDragging = !!dragRef.current
   const btnZ: React.CSSProperties = {
@@ -177,26 +181,26 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
               <>
                 <img src={imageBandeau} alt="" draggable={false} style={{
                   position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
-                  filter: 'brightness(0.78)',
+                  filter: `brightness(${BRILLANCE_BANDEAU.ouvert})`,
                   ...posStyle('bandeau'),
                 }} />
                 <div aria-hidden="true" style={{
                   position: 'absolute', inset: 0, zIndex: 0,
-                  background: 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)',
+                  background: VOILE_BANDEAU,
                 }} />
               </>
             )}
-            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '18px 14px 18px 20px' }}>
-              <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: imageBandeau ? '#f7f4ef' : 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.25, textShadow: imageBandeau ? ombre : 'none' }}>
+            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, maxWidth: imageBandeau ? MESURE_TEXTE_BANDEAU : undefined, padding: '18px 14px 18px 20px' }}>
+              <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: imageBandeau ? ENCRE_SUR_PHOTO : 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.25, textShadow: imageBandeau ? ombre : 'none' }}>
                 {t.nom}
               </h2>
               {meta && (
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', fontStyle: 'italic', color: imageBandeau ? 'rgba(242,239,232,0.72)' : 'var(--cs-texte-second)', display: 'block', marginTop: '4px', textShadow: imageBandeau ? ombre : 'none' }}>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', fontStyle: 'italic', color: imageBandeau ? META_SUR_PHOTO : 'var(--cs-texte-second)', display: 'block', marginTop: '4px', textShadow: imageBandeau ? ombre : 'none' }}>
                   {meta}
                 </span>
               )}
             </div>
-            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '18px', color: imageBandeau ? 'rgba(255,255,255,0.75)' : 'var(--cs-bord)', textShadow: imageBandeau ? ombre : 'none' }}>▼</span>
+            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '18px', color: imageBandeau ? CHEVRON_SUR_PHOTO : 'var(--cs-bord)', textShadow: imageBandeau ? ombre : 'none' }}>▼</span>
             {/* Calque drag invisible par-dessus tout */}
             {imageBandeau && <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />}
             {active === 'bandeau' && <div style={{ ...badgeStyle, top: 6, right: 6 }}>bandeau</div>}

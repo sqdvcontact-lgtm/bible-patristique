@@ -6,6 +6,10 @@ import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import {
+  VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO, MENTION_SUR_PHOTO,
+  CHEVRON_SUR_PHOTO, OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
+} from '@/app/lib/bandeauTraduction'
 
 type Traduction = {
   trad_id: string; nom: string; auteur: string | null; dates: string | null;
@@ -39,38 +43,6 @@ function encartDe(t: Traduction): { url: string; x: number; y: number; scale: nu
     return { url: t.photo, x: p?.x ?? 50, y: p?.y ?? 20, scale: p?.scale ?? 1 }
   }
   return null
-}
-
-function useImageLuminance(url: string | null): boolean | null {
-  const [estSombre, setEstSombre] = useState<boolean | null>(null)
-  useEffect(() => {
-    if (!url) { setEstSombre(null); return }
-    let annule = false
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      if (annule) return
-      try {
-        const canvas = document.createElement('canvas')
-        const sw = Math.round(Math.min(img.naturalWidth, 400) * 0.45)
-        const sh = Math.round(Math.min(img.naturalHeight, 300) * 0.65)
-        canvas.width = sw; canvas.height = sh
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, sw * (img.naturalWidth / Math.min(img.naturalWidth, 400)), sh * (img.naturalHeight / Math.min(img.naturalHeight, 300)), 0, 0, sw, sh)
-        const { data } = ctx.getImageData(0, 0, sw, sh)
-        let lum = 0
-        const n = sw * sh
-        for (let i = 0; i < data.length; i += 4) {
-          lum += 0.2126 * (data[i] / 255) + 0.7152 * (data[i + 1] / 255) + 0.0722 * (data[i + 2] / 255)
-        }
-        setEstSombre(lum / n < 0.55)
-      } catch { setEstSombre(null) }
-    }
-    img.onerror = () => { if (!annule) setEstSombre(null) }
-    img.src = url
-    return () => { annule = true }
-  }, [url])
-  return estSombre
 }
 
 /** La TEINTE dominante d'une image et sa saturation — jamais sa clarté. Rend `null`
@@ -185,27 +157,12 @@ function useTonImage(url: string | null): Ton | null {
 function BandeauTraduction({ t, estOuvert, onToggle }: {
   t: Traduction; estOuvert: boolean; onToggle: () => void
 }) {
-  const estSombre = useImageLuminance(t.photo ?? null)
   const meta = [t.langue, t.date_publication].filter(Boolean).join(' · ')
 
-  const fondSombre = estSombre !== false
-  // ⛔ Sur une PHOTO, l'encre s'écrit en valeur LITTÉRALE, jamais en jeton de thème.
-  // Le sol de ces trois lignes est une image, et une image ne se transpose pas : le
-  // jeton, lui, se retourne. `var(--cs-fond)` valait le crème du site au Clair et
-  // devenait `#1c1813` en Cuir, c'est-à-dire du brun très sombre écrit sur une photo
-  // sombre — le titre de la traduction disparaissait (relevé le 2026-08-23). Le crème
-  // est donc posé en dur, comme le faisaient déjà les deux lignes suivantes, et comme
-  // la charte l'exige des cartons de l'accueil et du jeu de couvertures : une couleur
-  // qui n'a pas de fond thématique n'a pas de jeton. `#f7f4ef` EST la valeur claire
-  // de `--cs-fond` : le rendu au Clair ne bouge pas d'un pixel.
-  const couleurTexte = t.photo ? (fondSombre ? '#f7f4ef' : '#18130f') : 'var(--cs-encre-fonce)'
-  const couleurMeta  = t.photo ? (fondSombre ? 'rgba(242,239,232,0.72)' : 'rgba(24,19,15,0.58)') : 'var(--cs-texte-second)'
-  const couleurChevron = t.photo ? (fondSombre ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.4)') : 'var(--cs-bord)'
-
-  const ombreForte = fondSombre
-    ? '0 1px 2px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.65), 0 4px 20px rgba(0,0,0,0.35)'
-    : '0 1px 2px rgba(255,255,255,0.95), 0 2px 8px rgba(255,255,255,0.75), 0 4px 16px rgba(255,255,255,0.4)'
-  const ombreTexte = t.photo ? ombreForte : 'none'
+  const couleurTexte = t.photo ? ENCRE_SUR_PHOTO : 'var(--cs-encre-fonce)'
+  const couleurMeta = t.photo ? META_SUR_PHOTO : 'var(--cs-texte-second)'
+  const couleurChevron = t.photo ? CHEVRON_SUR_PHOTO : 'var(--cs-bord)'
+  const ombreTexte = t.photo ? OMBRE_SUR_PHOTO : 'none'
 
   return (
     <button
@@ -231,7 +188,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             position: 'absolute', inset: 0, width: '100%', height: '100%',
             objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
             transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
-            filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
+            filter: `brightness(${estOuvert ? BRILLANCE_BANDEAU.ouvert : BRILLANCE_BANDEAU.ferme})`,
             transition: 'filter 0.2s',
           }} />
         )
@@ -240,16 +197,14 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
       {t.photo && (
         <div aria-hidden="true" style={{
           position: 'absolute', inset: 0, zIndex: 0,
-          background: fondSombre
-            ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
-            : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
-          transition: 'background 0.2s',
+          background: VOILE_BANDEAU,
         }} />
       )}
 
       <div style={{
         position: 'relative', zIndex: 1,
         flex: 1, minWidth: 0,
+        maxWidth: t.photo ? MESURE_TEXTE_BANDEAU : undefined,
         padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
       }}>
         <h2 style={{
@@ -276,7 +231,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         {t.import_maj_le && (
           <span style={{
             fontSize: '0.625rem', fontStyle: 'italic',
-            color: t.photo ? (fondSombre ? 'rgba(242,239,232,0.48)' : 'rgba(24,19,15,0.38)') : 'var(--cs-texte-faible)',
+            color: t.photo ? MENTION_SUR_PHOTO : 'var(--cs-texte-faible)',
             display: 'block', marginTop: '3px',
             textShadow: t.photo ? ombreTexte : 'none',
             transition: 'color 0.2s',
