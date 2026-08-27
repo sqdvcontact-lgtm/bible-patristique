@@ -812,14 +812,19 @@ button:focus-visible,
      d'un bloc à l'autre et la page perdait son aplomb. La hauteur, elle, reste
      libre — ⛔ aucune taille imposée, c'est le texte qui la donne. */
   width: 7rem;
-  /* Le repère se ferre à DROITE, contre la gouttière : son bord net longe le
-     fer du commentaire, et ce sont ses lignes courtes qui s'ouvrent du côté de
-     la marge, où le blanc ne se voit pas.
-     ⛔ Il ne se justifie PAS. Mesuré sur ce texte : justifié dans cette colonne,
-     l'espace la plus large atteignait 1,609 em, six fois le quart de cadratin,
-     et aucune propriété CSS ne borne cet étirement — c'est la mécanique même du
-     justifié. Ferré, toutes les espaces gardent leur chasse. */
-  text-align: right;
+  /* ⛔ LE REPÈRE SE FERRE À GAUCHE (décision de l'auteur, 27 août 2026), sur le
+     fer du commentaire ordinaire, et il en prend la police : le SÉRIF du texte,
+     non le sans qui le détachait. Il se ferrait à droite jusque-là, contre la
+     gouttière, si bien que ses lignes courtes commençaient chacune à une
+     abscisse différente et qu'aucune ne tombait sur le fer de la page. Une
+     manchette n'a pas à être la seule chose de la colonne qui ne s'aligne sur
+     rien. Le demi-gras et la conduite serrée suffisent à la détacher.
+     ⛔ Il ne se justifie toujours PAS. Mesuré sur ce texte : justifié dans cette
+     colonne, l'espace la plus large atteignait 1,609 em, six fois le quart de
+     cadratin, et aucune propriété CSS ne borne cet étirement — c'est la
+     mécanique même du justifié. Ferré, toutes les espaces gardent leur chasse. */
+  text-align: left;
+  font-family: var(--font-source-serif), Georgia, serif;
   /* La césure fait ici le travail que la justification ferait ailleurs : elle
      REMPLIT les lignes, si bien que le bord libre reste presque droit sans
      qu'une seule espace ait été étirée. Serrée, pour tasser davantage : un mot
@@ -863,12 +868,24 @@ button:focus-visible,
   .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
     float: none;
     width: auto;
-    /* Pleine mesure, ⛔ le fer à droite n'a plus de gouttière à longer : il
-       enverrait chaque ligne se coller à la marge. Le repère revient à gauche. */
-    text-align: left;
+    /* Le fer est le même qu'en pleine largeur depuis le 2026-08-27 : seule la
+       colonne disparaît, le repère prend toute la mesure et le texte le suit. */
     margin: 0 0 0.4rem;
   }
 }
+
+/* ── Le blanc entre le TEXTE et son APPARAT ──────────────────────────────────
+   Un bloc de versets se cerne d'un blanc plus large que celui qui sépare deux
+   paragraphes d'apparat : il valait 20 px au-dessus du premier verset et 14 en
+   dessous du dernier, c'est-à-dire moins que l'interligne du commentaire, si
+   bien que le texte biblique se lisait comme un paragraphe parmi les autres.
+   ⛔ Les TITRES en sont exclus : ils portent déjà leur propre blanc, plus
+   large, et l'uniformiser le rétrécirait au lieu de l'ouvrir.
+   ⚠️ La marge du verset (4 px) et celle du bloc FUSIONNENT, comme toute marge
+   verticale adjacente en flux normal : c'est la plus grande qui vaut, et il n'y
+   a donc rien à retrancher ici. */
+.verset-row + .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 2rem; }
+.cs-bible-bloc:not(.cs-bible-block--title):has(+ .verset-row) { margin-bottom: 2rem; }
 
 /* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
    ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style
