@@ -374,11 +374,14 @@ export default async function AccueilPage() {
           color: "var(--cs-texte-fort)",
         }}>
 
-          {/* En-tête colophon */}
+          {/* En-tête colophon. ⛔ PLUS DE FLEURON AU-DESSUS DU TITRE (décision de
+              l'auteur, 27 août 2026). Un ❧ l'annonçait, un second le fermait juste
+              dessous avec ses filets : deux ornements pour un seul titre, et le
+              premier butait devant le nom de la section avant qu'on sache de quoi
+              il retourne. Le fleuron à filets qui SUIT le titre demeure, comme sous
+              chaque section — un ornement ferme un texte, il ne l'annonce pas
+              (charte, « Une gravure se pose en pied »). */}
           <div style={{ marginBottom: "46px" }}>
-            <div style={{ fontSize: "1.25rem", color: "var(--cs-or)", marginBottom: "18px", letterSpacing: "0.18em" }}>
-              ❧
-            </div>
             <h2 style={{
               fontSize: "clamp(1.1875rem, 2.8vw, 1.5rem)",
               fontWeight: "normal",
