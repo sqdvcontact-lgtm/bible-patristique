@@ -10,7 +10,10 @@ import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
-import { chargerLectureBilingue, loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
+import {
+  chargerLectureBilingue, chargerLiminairesEdition, chargerPieceLiminaire,
+  loadBibleEditionCatalog, loadBibleEditionChapter,
+} from '@/app/lib/bibleEditionServer'
 import {
   blocsTexteEditoriaux, presentationDeBloc, sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
@@ -19,6 +22,7 @@ import type {
   BibleEditionBodyBlockRow, BibleEditionChapterPayload, BibleEditionNoteBlockRow,
 } from '@/app/lib/bibleEditionServer'
 import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
+import { grouperPiecesLiminaires, pieceParCle } from '@/app/lib/bibleSommaireEdition'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
 import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
 import { nomLivreReference } from '@/app/lib/referencesBibliques'
@@ -95,7 +99,7 @@ export async function generateMetadata({
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string; bilingue?: string; texte?: string }>
+  searchParams: Promise<{ livre?: string; chapitre?: string; trad?: string; mode?: string; division?: string; couche?: string; bilingue?: string; texte?: string; piece?: string }>
 }) {
   const params = await searchParams
   if (!params.livre && !params.chapitre && !params.trad) redirect('/accueil')
@@ -270,16 +274,15 @@ export default async function Home({
   // Même raison que ci-dessus : en regard, cet appareil n'est jamais rendu (c'est
   // `lectureBilingue` qui porte le sien), et le charger d'office coûtait cinq
   // allers-retours pour rien.
-  const chargerAppareilDuChapitre = async (
+  // ⚠️ La transformation d'une charge en matière d'AFFICHAGE sert deux lectures :
+  // l'appareil d'un chapitre, et une pièce du sommaire de l'édition. Une seule
+  // écriture, sinon les deux dérivent — c'est ainsi qu'une section entière est
+  // restée invisible en ligne pendant que ses tests passaient (voir AGENTS.md,
+  // « Les colonnes de `segments` s'écrivent en UN seul endroit »).
+  const composerAffichage = (
     membre: NonNullable<typeof editionMember>,
-    canonIds: string[],
-  ): Promise<BibleEditionChapterDisplay> => {
-    const payload = await loadBibleEditionChapter(supabase, {
-      familyId: membre.family_id,
-      bookCode: livre,
-      canonIds,
-      includeBookFrontMatter: chapitre === 1,
-    })
+    payload: BibleEditionChapterPayload,
+  ): BibleEditionChapterDisplay => {
     const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
       row.applies_to === 'family' || row.applies_to_member_id === membre.member_id
     )
@@ -340,6 +343,16 @@ export default async function Home({
       })),
     }
   }
+
+  const chargerAppareilDuChapitre = async (
+    membre: NonNullable<typeof editionMember>,
+    canonIds: string[],
+  ): Promise<BibleEditionChapterDisplay> => composerAffichage(membre, await loadBibleEditionChapter(supabase, {
+    familyId: membre.family_id,
+    bookCode: livre,
+    canonIds,
+    includeBookFrontMatter: chapitre === 1,
+  }))
 
   // Lecture « Latin-français » : demandée par l'URL, et servie seulement si la
   // famille éditoriale porte réellement deux membres pour ce chapitre. À défaut,
@@ -444,9 +457,49 @@ export default async function Home({
   // pas être servable (chapitre hors du lot aligné) et laisser la lecture ordinaire
   // prendre le relais. La charger d'avance, comme on le faisait, revenait à payer
   // NEUF allers-retours dont neuf inutiles dès que les deux colonnes s'affichaient.
-  const versets = lectureBilingue ? [] : await chargerVersetsDuChapitre()
+  // ⚠️ Le sommaire de l'édition part dans la MÊME vague que les versets : il ne
+  // coûte donc pas un aller-retour de plus. Il n'existe que pour une édition
+  // commentée — Fillion en a soixante-deux pièces, une bible ordinaire aucune —
+  // et c'est lui qui décide si l'onglet « Sommaire » paraît au volet de gauche.
+  const [versetsCharges, liminaires] = await Promise.all([
+    lectureBilingue ? Promise.resolve([]) : chargerVersetsDuChapitre(),
+    editionMember ? chargerLiminairesEdition(supabase, editionMember.family_id) : Promise.resolve([]),
+  ])
+  const piecesLiminaires = grouperPiecesLiminaires(liminaires.map((bloc) => ({
+    id: bloc.id,
+    blockKey: bloc.block_key,
+    heading: bloc.heading,
+    scopeKind: bloc.scope_kind,
+    scopeLabel: bloc.scope_label,
+    nature: bloc.block_kind,
+    pageImprimee: bloc.printed_page_start,
+    materialOrder: bloc.material_order,
+  })))
+  const pieceDemandee = pieceParCle(piecesLiminaires, params.piece)
+
+  // Une pièce liminaire REMPLACE le texte à l'écran : elle se lit seule, comme on
+  // ouvre un volume à sa page de garde. Le chapitre ne se rend donc pas, et son
+  // appareil ne se charge pas.
+  const cles = new Set(pieceDemandee?.blocs.map((bloc) => bloc.blockKey) ?? [])
+  const pieceChargee = pieceDemandee
+    ? await chargerPieceLiminaire(supabase, {
+      familyId: editionMember!.family_id,
+      blocs: liminaires.filter((bloc) => cles.has(bloc.block_key)),
+    })
+    : null
+
+  const pieceAffichee = (pieceDemandee && pieceChargee && editionMember)
+    ? {
+      cle: pieceDemandee.cle,
+      titre: pieceDemandee.titre,
+      portee: pieceDemandee.portee,
+      contenu: composerAffichage(editionMember, pieceChargee),
+    }
+    : null
+
+  const versets = pieceDemandee ? [] : versetsCharges
   const editionChapter: BibleEditionChapterDisplay | null =
-    (lectureBilingue || !editionMember || texteSeul)
+    (lectureBilingue || !editionMember || texteSeul || pieceDemandee)
       ? null
       : await chargerAppareilDuChapitre(editionMember, versets.map((verset) => verset.id_verset))
 
@@ -497,6 +550,10 @@ export default async function Home({
         membresFamille={membresFamille}
         paratexteDisponible={paratexteDisponible}
         texteSeul={texteSeul}
+        sommaireEdition={piecesLiminaires.map(({ cle, titre, portee, scopeKind }) => ({
+          cle, titre, portee, scopeKind,
+        }))}
+        pieceAffichee={pieceAffichee}
       />
     </>
   )

@@ -28,6 +28,17 @@ export type CibleLectureBible = {
   bilingue?: boolean
   /** Lecture « Texte biblique seul » : l'appareil éditorial de l'édition est écarté. */
   texteSeul?: boolean
+  /**
+   * Pièce LIMINAIRE de l'édition à lire à la place du chapitre : page de titre,
+   * dédicace, avant-propos, introduction générale. Sa clé est celle du premier
+   * bloc de la pièce (voir `bibleSommaireEdition.ts`).
+   *
+   * ⛔ Elle ne voyage PAS d'un chapitre à l'autre : c'est une CIBLE, non une
+   * manière de lire, et changer de chapitre en sort. Le livre et le chapitre
+   * restent pourtant dans l'adresse, pour que fermer la pièce ramène le lecteur
+   * là où il lisait.
+   */
+  piece?: string | null
 }
 
 /**
@@ -68,5 +79,6 @@ export function urlLectureBible(cible: CibleLectureBible): string {
   // L'appareil éditorial est un axe INDÉPENDANT de ce qu'on lit : il s'écarte
   // d'une colonne comme des deux en regard.
   if (cible.texteSeul) parametres.set('texte', 'seul')
+  if (cible.piece) parametres.set('piece', cible.piece)
   return `/?${parametres.toString()}`
 }

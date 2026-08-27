@@ -14,6 +14,7 @@ import {
   couperPointsDeCode,
   recomposerFragmentsMateriels,
   rangTitreBloc,
+  presentationDeBloc,
   styleSemantiqueBloc,
   trierBlocsMateriels,
   type BibleEditionMember,
@@ -79,14 +80,19 @@ describe('modèle éditorial biblique', () => {
     expect(erreursSousTypeNotice('notice', 'editorial_matter')).toEqual([])
   })
 
-  it('affiche au début de la Genèse les liminaires de portée large sans les canoniser', () => {
-    for (const scope of ['bible', 'testament', 'book_group', 'book'] as const) {
-      expect(blocSansAncreVisibleDansChapitre(scope, 'before', true, false)).toBe(true)
-      expect(blocSansAncreVisibleDansChapitre(scope, 'before', false, false)).toBe(false)
+  it('ouvre un livre sur SES liminaires, et sur eux seuls', () => {
+    // L'introduction du livre reste en tête de son premier chapitre.
+    expect(blocSansAncreVisibleDansChapitre('book', 'before', true, false)).toBe(true)
+    expect(blocSansAncreVisibleDansChapitre('book', 'before', false, false)).toBe(false)
+    expect(blocSansAncreVisibleDansChapitre('book', 'after', false, true)).toBe(true)
+    // ⛔ Ce qui dépasse le livre s'en va au sommaire de l'édition : soixante-deux
+    // pièces s'imprimaient avant le premier verset de la Genèse, dont quinze
+    // notices bibliographiques et une page de titre.
+    for (const scope of ['bible', 'testament', 'book_group'] as const) {
+      expect(blocSansAncreVisibleDansChapitre(scope, 'before', true, false)).toBe(false)
+      expect(blocSansAncreVisibleDansChapitre(scope, 'after', false, true)).toBe(false)
     }
     expect(blocSansAncreVisibleDansChapitre('chapter', 'before', true, false)).toBe(false)
-    expect(blocSansAncreVisibleDansChapitre('testament', 'after', false, true)).toBe(false)
-    expect(blocSansAncreVisibleDansChapitre('book', 'after', false, true)).toBe(true)
   })
 
   it('tait au rendu un sous-type incohérent plutôt que de l’afficher', () => {

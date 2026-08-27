@@ -27,6 +27,7 @@ import {
   type VarianteAppelNote,
 } from '@/app/lib/appelsDeNote'
 import { composerBibliographie } from '@/app/lib/bibleBibliographie'
+import { intituleDansPiece } from '@/app/lib/bibleSommaireEdition'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import BibliographieBible from './BibleBibliographie'
 
@@ -544,5 +545,75 @@ export function NotesBibleChapitre({
         ))}
       </ol>
     </section>
+  )
+}
+
+/**
+ * Une PIÈCE LIMINAIRE lue seule : page de titre, dédicace, avant-propos,
+ * introduction générale. Elle remplace le texte biblique à l'écran, comme on
+ * ouvre un volume à sa page de garde.
+ *
+ * ⚠️ Le titre de la pièce est écrit UNE fois, en tête. Les blocs qui le redisent
+ * (« Avant-propos — page IX », « Avant-propos — page X ») perdent leur intitulé ;
+ * ceux dont la queue titre vraiment (« Introduction générale — § I. Ce qu'est la
+ * Bible ») gardent la leur. La règle vit dans `intituleDansPiece`, module pur.
+ */
+export function PieceLiminaire({
+  titre,
+  portee,
+  blocs,
+  illustrationsParBloc,
+  urlRetour,
+  libelleRetour,
+}: {
+  titre: string
+  portee: string | null
+  blocs: readonly BlocEditorialBiblique[]
+  illustrationsParBloc?: Map<string, IllustrationBibliqueAffichable[]>
+  /** Où revient-on en fermant la pièce : le chapitre qu'on lisait. */
+  urlRetour?: string
+  libelleRetour?: string
+}) {
+  return (
+    <article>
+      <header style={{ textAlign: 'center', margin: '0 0 2rem' }}>
+        {portee && (
+          <p style={{
+            fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+            fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.09em',
+            textTransform: 'uppercase', color: 'var(--cs-texte-gris)', margin: '0 0 0.5rem',
+          }}>
+            {portee}
+          </p>
+        )}
+        {/* Le rang des titres hauts de l'édition : une pièce liminaire n'est pas
+            un chapitre, mais elle ouvre comme lui. ⛔ Pas de balise `h1` : la
+            page en porte déjà un, et deux titres de premier rang dans un même
+            document défont le plan d'accessibilité. */}
+        <h2 className="cs-bible-title--t2" style={{ margin: 0 }}>{titre}</h2>
+      </header>
+      {blocs.map((bloc) => (
+        <BlocEditorialBible
+          key={bloc.id}
+          bloc={{ ...bloc, heading: intituleDansPiece(bloc.heading ?? null, titre) }}
+          illustrations={illustrationsParBloc?.get(bloc.id) ?? []}
+        />
+      ))}
+      {/* Le retour se dit EN PIED, là où la lecture finit : en tête, il inviterait
+          à repartir avant d'avoir lu. Les flèches de chapitre y ramènent aussi,
+          une pièce n'étant pas une manière de lire mais une cible. */}
+      {urlRetour && (
+        <p style={{ textAlign: 'center', margin: '2.5rem 0 0.5rem' }}>
+          <a href={urlRetour} style={{
+            fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-vert)',
+            textDecoration: 'none', borderBottom: '1px solid var(--cs-or-doux)',
+            paddingBottom: '1px',
+          }}>
+            {libelleRetour ?? 'Revenir au texte'}
+          </a>
+        </p>
+      )}
+    </article>
   )
 }

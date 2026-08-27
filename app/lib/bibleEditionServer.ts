@@ -57,6 +57,12 @@ export type BibleEditionBodyBlockRow = {
   applies_to_member_id: string | null
   heading: string | null
   scope_book_code: string | null
+  /** Ce que la portée NOMME : « Bible », « Ancien Testament », « Pentateuque ».
+   *  Sert le sommaire de l'édition, qui range ses pièces par ce qu'elles coiffent. */
+  scope_label: string | null
+  /** La page de l'imprimé où le bloc commence. C'est par elle qu'un apparat de
+   *  bas de page rejoint la page qu'il annote (voir `bibleSommaireEdition.ts`). */
+  printed_page_start: string | null
   canon_id_start: string | null
   canon_id_end: string | null
   canon_order_start: number | null
@@ -572,5 +578,71 @@ export async function chargerLectureBilingue(
     familyId: familyRows[0].family_id,
     colonnes: colonnes.map(({ membre, cellules }) => ({ membre, cellules })),
     axeCanonique,
+  }
+}
+
+// --- Sommaire de l'édition : les pièces liminaires ---------------------------
+//
+// Ce qui dépasse le livre — page de titre, dédicace, avant-propos, introduction
+// générale, introduction du Testament, du groupe de livres. Rattachées au
+// premier livre de leur tome, ces pièces s'imprimaient toutes en tête de
+// Genèse 1 ; elles se lisent désormais par le sommaire du volet de gauche, une
+// à une. Le groupement en PIÈCES vit dans `app/lib/bibleSommaireEdition.ts`,
+// module pur : ici, on ne fait que lire.
+
+/**
+ * Les blocs de portée générale d'une famille éditoriale.
+ *
+ * ⚠️ Une seule requête, et elle part dans la même vague que le reste de la page :
+ * le sommaire coûte donc une lecture, jamais un aller-retour de plus. La famille
+ * de Fillion en compte soixante-deux.
+ */
+export async function chargerLiminairesEdition(
+  client: SupabaseClient,
+  familyId: string,
+): Promise<BibleEditionBodyBlockRow[]> {
+  const { data, error } = await client
+    .from('v_bible_editorial_body_blocks')
+    .select('*')
+    .eq('family_id', familyId)
+    .in('scope_kind', ['bible', 'testament', 'book_group'])
+    .order('material_order')
+  if (isMissingBibleEditionRelation(error)) return []
+  if (error) throw new Error(`Pièces liminaires illisibles : ${error.message}`)
+  return (data ?? []) as BibleEditionBodyBlockRow[]
+}
+
+/**
+ * Le contenu d'UNE pièce : le texte de ses blocs, leurs notes internes, leurs
+ * illustrations. ⛔ On ne charge que la pièce demandée : l'introduction générale
+ * du tome I pèse à elle seule dix pages d'apparat, et le sommaire n'a besoin
+ * que des intitulés.
+ */
+export async function chargerPieceLiminaire(
+  client: SupabaseClient,
+  options: { familyId: string; blocs: readonly BibleEditionBodyBlockRow[] },
+): Promise<BibleEditionChapterPayload> {
+  const blocs = [...options.blocs]
+  if (blocs.length === 0) return { bodyBlocks: [], notes: [], assets: [] }
+  const ids = blocs.map((bloc) => bloc.id)
+  const [bodyBlocks, notesInternes, assetsResult] = await Promise.all([
+    loadBodyBlockTexts(client, blocs),
+    chargerNotesInternesParBloc(client, ids),
+    client
+      .from('v_bible_edition_assets')
+      .select('*')
+      .eq('family_id', options.familyId)
+      .in('body_block_id', ids)
+      .order('material_order'),
+  ])
+  if (assetsResult.error && !isMissingBibleEditionRelation(assetsResult.error)) {
+    throw new Error(`Illustrations de la pièce illisibles : ${assetsResult.error.message}`)
+  }
+  return {
+    bodyBlocks: bodyBlocks.map((bloc) => ({ ...bloc, internal_notes: notesInternes.get(bloc.id) ?? [] })),
+    // Une pièce liminaire ne commente aucun verset : elle n'a pas de note de
+    // verset, et l'axe canonique ne la traverse pas.
+    notes: [],
+    assets: (assetsResult.data ?? []) as BibleEditionAssetRow[],
   }
 }

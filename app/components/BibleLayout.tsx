@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import NavLivres from './NavLivres'
+import NavLivres, { type PieceSommaireBible } from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
@@ -55,6 +55,18 @@ type Props = {
   paratexteDisponible?: boolean
   /** Lecture « Texte biblique seul » demandée : la page n’a pas passé l’appareil. */
   texteSeul?: boolean
+  /** Sommaire de l’édition : ses pièces liminaires. Vide, l’onglet ne paraît pas. */
+  sommaireEdition?: PieceSommaireBible[]
+  /** La pièce demandée par l’adresse : elle REMPLACE le texte biblique à l’écran. */
+  pieceAffichee?: PieceLiminaireAffichee | null
+}
+
+/** Une pièce liminaire, chargée et prête à composer. */
+export type PieceLiminaireAffichee = {
+  cle: string
+  titre: string
+  portee: string | null
+  contenu: BibleEditionChapterDisplay
 }
 
 // ⛔ Pas de liste de bibles en repli ici. Trois intitulés y étaient recopiés à la
@@ -63,7 +75,7 @@ type Props = {
 // liste qu'il passe contient toujours celle qu'on lit. Une liste de secours que
 // personne ne regarde finit par nommer des bibles qui ne sont plus les bonnes.
 
-export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false }: Props) {
+export default function BibleLayout({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
   const listeTraductions = traductions
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -325,6 +337,8 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
         maniereDeLire={maniereDeLire}
         modesLecture={modesLecture}
         onChoisirModeLecture={choisirModeLecture}
+        sommaireEdition={sommaireEdition}
+        pieceActive={pieceAffichee?.cle ?? null}
       />
       {/* Onglet « Texte » : masqué (et non démonté, pour préserver le défilement)
           quand un autre onglet est actif sur mobile. `display: contents` en desktop
@@ -357,6 +371,7 @@ export default function BibleLayout({ livres, versets, traductions, livreActif, 
           mobile={mobile}
           editionChapter={editionChapter}
           maniereDeLire={maniereDeLire}
+          pieceAffichee={pieceAffichee}
         />
         )}
       </div>

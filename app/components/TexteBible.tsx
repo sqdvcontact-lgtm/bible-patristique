@@ -17,9 +17,10 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
-import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre } from '@/app/components/BibleEditionParatext'
+import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre, PieceLiminaire } from '@/app/components/BibleEditionParatext'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
+import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import {
   indexerBlocsDeCorps,
   indexerIllustrations,
@@ -62,6 +63,8 @@ type Props = {
   /** Appareil de l’édition : introductions, commentaires, notes, illustrations.
    *  Nul en lecture « Texte biblique seul » — la page ne le charge alors pas. */
   editionChapter?: BibleEditionChapterDisplay | null
+  /** Pièce liminaire de l'édition, lue SEULE : elle remplace le chapitre. */
+  pieceAffichee?: PieceLiminaireAffichee | null
   /** La manière de lire courante, reportée sur les flèches de chapitre. */
   maniereDeLire?: ManiereDeLireBible
 }
@@ -394,7 +397,7 @@ export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, mobile = false,
-  editionChapter, maniereDeLire,
+  editionChapter, maniereDeLire, pieceAffichee = null,
 }: Props) {
   // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
   // composant tenait son propre abonnement d'authentification et sa propre lecture
@@ -567,6 +570,17 @@ export default function TexteBible({
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
+
+          {pieceAffichee ? (
+            <PieceLiminaire
+              titre={pieceAffichee.titre}
+              portee={pieceAffichee.portee}
+              blocs={pieceAffichee.contenu.bodyBlocks}
+              illustrationsParBloc={indexerIllustrations(pieceAffichee.contenu.assets).byBodyBlock}
+              urlRetour={urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif, trad: tradCode })}
+              libelleRetour={`Revenir à ${nomLivre} ${chapitreActif}`}
+            />
+          ) : (<>
 
           {rendreFluxEditorial(indexBlocs.opening, indexIllustrations.opening)}
 
@@ -759,6 +773,7 @@ export default function TexteBible({
             notes={editionChapter?.notes ?? []}
             illustrationsByNote={indexIllustrations.byNote}
           />
+          </>)}
         </div>
       </div>
       {editionCible && (

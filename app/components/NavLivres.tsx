@@ -351,6 +351,23 @@ type Props = {
   // composé par le parent à partir des DONNÉES. Vide, il ne paraît pas.
   modesLecture?: GroupeLectureBible[]
   onChoisirModeLecture?: (cible: CibleLectureAlternative) => void
+  /**
+   * Le SOMMAIRE de l'édition : ses pièces liminaires, dans l'ordre du volume.
+   * Vide, l'onglet ne paraît pas — une bible sans apparat éditorial n'a rien à y
+   * mettre, et l'on ne montre pas un onglet qui ouvrirait sur du blanc.
+   */
+  sommaireEdition?: PieceSommaireBible[]
+  /** La pièce ouverte, s'il y en a une : elle décide de l'onglet montré à l'arrivée. */
+  pieceActive?: string | null
+}
+
+/** Une entrée du sommaire, telle que le volet la montre. */
+export type PieceSommaireBible = {
+  cle: string
+  titre: string
+  /** « Bible », « Ancien Testament », « Pentateuque » : ce que la pièce coiffe. */
+  portee: string | null
+  scopeKind: string
 }
 
 /**
@@ -387,6 +404,7 @@ export default function NavLivres({
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire,
   modesLecture = [], onChoisirModeLecture,
+  sommaireEdition = [], pieceActive = null,
 }: Props) {
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
@@ -405,6 +423,17 @@ export default function NavLivres({
   const [chapitreRecu, setChapitreRecu] = useState(chapitreActif)
   if (!Object.is(chapitreRecu, chapitreActif)) { setChapitreRecu(chapitreActif); setChapitreActifLocal(chapitreActif) }
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
+  // Onglet du volet : les livres, ou le sommaire de l'édition. Ouvrir une pièce
+  // depuis le sommaire recharge la page ; l'onglet doit donc se retrouver ouvert
+  // au retour, sinon le lecteur perd sa place à chaque pièce lue. Même patron de
+  // recalage PENDANT le rendu que le livre et le chapitre ci-dessus.
+  const [ongletVolet, setOngletVolet] = useState<'livres' | 'sommaire'>(pieceActive ? 'sommaire' : 'livres')
+  const [pieceRecue, setPieceRecue] = useState(pieceActive)
+  if (pieceRecue !== pieceActive) {
+    setPieceRecue(pieceActive)
+    if (pieceActive) setOngletVolet('sommaire')
+  }
+  const sommaireOuvert = sommaireEdition.length > 0 && ongletVolet === 'sommaire'
   const polyMode = !!onChoisirChapitre
   const [atOuvert, setAtOuvert] = useState(true)
   const [ntOuvert, setNtOuvert] = useState(true)
@@ -689,8 +718,88 @@ export default function NavLivres({
         </div>
       )}
 
+      {/* ── Livres | Sommaire ───────────────────────────────────────────────
+          L'onglet ne paraît que pour une édition qui porte un apparat général :
+          Fillion ouvre son tome sur soixante-deux pièces, une bible ordinaire sur
+          aucune. ⛔ Pas d'onglet qui ouvrirait sur du blanc.
+
+          Le dessin est celui des onglets du site (bibliothèque, catalogue des
+          péricopes) : filet plein sur la mesure, trait vert sous l'onglet retenu,
+          et les deux se partagent la largeur À PARTS ÉGALES, sans quoi la graisse
+          de l'onglet actif décalerait son voisin à chaque changement. */}
+      {sommaireEdition.length > 0 && (
+        <div role="group" aria-label="Ce que montre le volet"
+          style={{ flexShrink: 0, display: 'flex', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
+          {([['livres', 'Livres'], ['sommaire', 'Sommaire']] as const).map(([cle, label]) => {
+            const actif = (cle === 'sommaire') === sommaireOuvert
+            return (
+              <button key={cle} type="button" aria-pressed={actif}
+                onClick={() => setOngletVolet(cle)}
+                style={{
+                  flex: 1, background: 'none', border: 'none', cursor: actif ? 'default' : 'pointer',
+                  padding: '7px 4px 6px', fontSize: '0.75rem', letterSpacing: '0.06em',
+                  textTransform: 'uppercase', fontWeight: actif ? 600 : 500,
+                  color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)',
+                  borderBottom: `2px solid ${actif ? 'var(--cs-vert-aplat)' : 'transparent'}`,
+                  marginBottom: '-1px',
+                }}>
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Le sommaire de l'édition ────────────────────────────────────────
+          Il prend la place de la recherche et de la liste des livres : on ne
+          cherche pas un livre dans les pièces liminaires, et deux listes
+          superposées feraient du volet un tiroir sans fond. */}
+      {sommaireOuvert && (
+        <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '6px 6px 10px' }}>
+          {sommaireEdition.map((piece, rang) => {
+            const actif = piece.cle === pieceActive
+            const nouvellePortee = piece.portee && piece.portee !== sommaireEdition[rang - 1]?.portee
+            return (
+              <div key={piece.cle}>
+                {/* La portée coiffe ses pièces au lieu de se répéter sur chaque
+                    ligne : « Bible », puis « Ancien Testament », puis « Pentateuque ». */}
+                {nouvellePortee && (
+                  <div style={{
+                    fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.09em',
+                    textTransform: 'uppercase', color: 'var(--cs-texte-gris)',
+                    padding: rang === 0 ? '4px 6px 3px' : '12px 6px 3px',
+                  }}>
+                    {piece.portee}
+                  </div>
+                )}
+                <button type="button" aria-current={actif ? 'page' : undefined}
+                  onClick={() => router.push(urlLectureBible({
+                    ...maniereDeLire,
+                    // Une pièce est commune aux deux membres de la famille : la
+                    // mettre en regard d'elle-même n'aurait aucun sens.
+                    bilingue: false,
+                    livre: livreActifLocal, chapitre: chapitreActifLocal, trad: tradCode,
+                    piece: piece.cle,
+                  }))}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'none',
+                    border: 'none', borderRadius: '4px', cursor: actif ? 'default' : 'pointer',
+                    padding: '5px 8px', fontSize: '0.8125rem', lineHeight: 1.35,
+                    fontFamily: 'var(--font-source-serif), Georgia, serif',
+                    color: actif ? 'var(--cs-encre)' : 'var(--cs-texte)',
+                  }}>
+                  {piece.titre}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
           et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}
+      {!sommaireOuvert && (
       <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input
           type="text"
@@ -712,9 +821,10 @@ export default function NavLivres({
           </button>
         )}
       </div>
+      )}
 
       {/* Suggestion de ref parsée — remplace toute la liste tant qu'une référence est reconnue */}
-      {refParsee && (
+      {!sommaireOuvert && refParsee && (
         <div style={{ padding: '8px' }}>
           <button onClick={appliquerRefParsee} style={{
             width: '100%', textAlign: 'left',
@@ -733,7 +843,7 @@ export default function NavLivres({
           par défaut de devenir plus petit que son contenu, si bien que `overflowY: auto` ne
           s'enclenchait jamais. Le volet s'allongeait à la hauteur des soixante-treize livres
           et emportait la barre de recherche hors de l'écran dès qu'on descendait. */}
-      {!refParsee && (
+      {!sommaireOuvert && !refParsee && (
       <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '4px 2px' }}>
         {AT.length > 0 && (
           <>

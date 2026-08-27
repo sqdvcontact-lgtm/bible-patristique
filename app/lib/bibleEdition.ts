@@ -622,10 +622,20 @@ export function erreursSousTypeNotice(
 
 /**
  * Les liminaires sans ancre canonique apparaissent au début du premier
- * chapitre du livre auquel leur source matérielle est rattachée. La portée
- * peut être plus large que le livre (Bible, Testament ou groupe de livres) ;
- * elle ne doit donc pas être confondue avec le simple point d'affichage.
- * Les postliminaires restent, eux, strictement propres au livre.
+ * chapitre du LIVRE auquel leur source matérielle est rattachée. Les
+ * postliminaires restent, eux aussi, strictement propres au livre.
+ *
+ * ⛔ Ce qui dépasse le livre n'y paraît plus (décision de l'auteur, 27 août
+ * 2026). Page de titre, quinze notices « Du même auteur », deux imprimatur,
+ * dédicace, avant-propos, tableau de transcription, abréviations, introduction
+ * générale, introduction de l'Ancien Testament, du Pentateuque : soixante-deux
+ * pièces, toutes rattachées à la Genèse parce qu'elle ouvre le tome I, et
+ * toutes imprimées avant le premier verset de la Bible. Elles se lisent
+ * désormais par le SOMMAIRE de l'édition, une à une — voir
+ * `app/lib/bibleSommaireEdition.ts`, qui les groupe, et `chargerLiminairesEdition`.
+ *
+ * ⚠️ La portée reste une donnée de l'édition, elle n'a pas changé : c'est le
+ * point d'AFFICHAGE qui change, et les deux ne se confondent pas.
  */
 export function blocSansAncreVisibleDansChapitre(
   scopeKind: BibleEditorialScopeKind,
@@ -633,13 +643,7 @@ export function blocSansAncreVisibleDansChapitre(
   includeBookFrontMatter: boolean,
   includeBookBackMatter: boolean,
 ): boolean {
-  if (placement === 'before') {
-    return includeBookFrontMatter
-      && (scopeKind === 'bible'
-        || scopeKind === 'testament'
-        || scopeKind === 'book_group'
-        || scopeKind === 'book')
-  }
+  if (placement === 'before') return includeBookFrontMatter && scopeKind === 'book'
   return placement === 'after' && scopeKind === 'book' && includeBookBackMatter
 }
 
