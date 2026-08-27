@@ -1,0 +1,54 @@
+export const TRADUCTIONS_RECHERCHE_BIBLE_AELF = ['TR0001', 'TR0002', 'TR0003', 'TR0004', 'TR0005'] as const
+export type TraductionRechercheBibleAelf = typeof TRADUCTIONS_RECHERCHE_BIBLE_AELF[number]
+
+export function estTraductionRechercheBibleAelf(code: string | null | undefined): code is TraductionRechercheBibleAelf {
+  return !!code && TRADUCTIONS_RECHERCHE_BIBLE_AELF.includes(code as TraductionRechercheBibleAelf)
+}
+
+export type ResultatRechercheBibleAelf = {
+  id_verset: string
+  ref: string
+  livre: string
+  chapitre: number
+  verset: number
+  chapitre_label?: string | null
+  verset_label?: string | null
+  aelf_version_id?: string | null
+  aelf_entry_id?: string | null
+  aelf_reference?: string | null
+  historical_canon_id?: string | null
+  hors_axe_aelf?: boolean
+  ordre?: number | null
+  relation_kind?: string | null
+  validation_status?: string | null
+  confidence_level?: string | null
+  est_suscription?: boolean
+  est_surnumeraire?: boolean
+  [key: string]: unknown
+}
+
+/**
+ * Construit la cible de lecture à partir d’un résultat déjà résolu sur l’axe AELF/TOL.
+ * Les positions historiques hors axe conservent leur identifiant EXTRA et restent
+ * navigables sans leur inventer de verset AELF.
+ */
+export function urlResultatRechercheBible(v: ResultatRechercheBibleAelf, traduction: string): string {
+  const chapitre = String(v.chapitre_label ?? v.chapitre)
+  const verset = String(v.verset_label ?? v.verset)
+  const base = `/?livre=${encodeURIComponent(v.livre)}&chapitre=${encodeURIComponent(chapitre)}&trad=${encodeURIComponent(traduction)}`
+  const ancre = v.aelf_entry_id
+    ? `verset-${v.aelf_entry_id}`
+    : v.id_verset.startsWith('EXTRA:')
+      ? `verset-${v.id_verset}`
+      : null
+
+  if (!ancre) return base
+
+  // Pour une entrée de la spine, `?verset=` permet à TexteBible de sélectionner la ligne.
+  // Pour un EXTRA, on s'en tient volontairement à l'ancre exacte : un même numéro natif
+  // peut coexister avec un verset AELF (p. ex. Si 6,31) et `?verset=31` ferait alors
+  // sélectionner l'entrée de l'axe au lieu de la matière hors axe visée.
+  return v.aelf_entry_id
+    ? `${base}&verset=${encodeURIComponent(verset)}#${ancre}`
+    : `${base}#${ancre}`
+}
