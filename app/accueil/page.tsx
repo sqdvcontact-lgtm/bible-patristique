@@ -98,11 +98,32 @@ export default async function AccueilPage() {
         .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
         /* Le monogramme se mesure en HAUTEUR : il est plus haut que large, et
            c'est sa hauteur qui doit s'accorder à celle du titre. En rem, pour
-           suivre la police racine fluide comme tout le reste du frontispice. */
-        .hero-monogramme { height: 4.5rem; width: auto; display: block; margin: 0 auto 20px; }
-        .hero-monogramme--sombre { display: none; }
-        :root[data-theme="sombre"] .hero-monogramme--clair { display: none; }
-        :root[data-theme="sombre"] .hero-monogramme--sombre { display: block; }
+           suivre la police racine fluide comme tout le reste du frontispice.
+           La largeur suit le rapport de la planche, 464 sur 671.
+
+           ⛔ La planche ne sert plus que d'ALPHA : elle est posée en MASQUE, et
+           c'est le fond de l'élément qui donne la couleur. Deux planches étaient
+           superposées auparavant, l'une en vert d'encre pour le Clair, l'autre en
+           crème pour le Cuir, le thème n'en montrant qu'une. Leurs canaux alpha
+           sont rigoureusement identiques — vérifié pixel à pixel, aucun écart —,
+           si bien qu'une seule suffit : le Cuir garde exactement sa couleur, et
+           la teinte du Clair devient une valeur qu'on règle au lieu d'une image
+           qu'il faut redessiner. Une requête de moins, aussi.
+
+           ⚠️ L'encre du monogramme n'est plus --cs-encre-fonce mais --cs-encre :
+           la marque portait la MÊME valeur que le titre qu'elle surmonte, et son
+           trait, plus épais, pesait donc davantage. Un cran plus doux la remet à
+           sa place d'enseigne (décision de l'auteur, 27 août 2026). */
+        .hero-monogramme {
+          height: 4.5rem; aspect-ratio: 464 / 671; width: auto;
+          display: block; margin: 0 auto 20px;
+          background-color: var(--cs-encre);
+          -webkit-mask: url("/logo/monogramme-encre.png") no-repeat center / contain;
+          mask: url("/logo/monogramme-encre.png") no-repeat center / contain;
+        }
+        /* ⛔ Valeur LITTÉRALE, et c'est celle de la planche crème au pixel près :
+           le Cuir ne bouge pas d'un cheveu. --cs-encre y vaut #cdbb98, plus sourd. */
+        :root[data-theme="sombre"] .hero-monogramme { background-color: #f4e7c8; }
         /* La gravure ferme le titre au lieu de l'annoncer. Son intensité suit sa
            place : 0,72, comme toute gravure qui porte encore le propos, et non
            les 0,42 à 0,5 d'un cul-de-lampe qui n'orne qu'un vide. */
@@ -229,19 +250,10 @@ export default async function AccueilPage() {
             elle le fait EN PIED, où sa place est (charte, « Une gravure se pose
             en pied »). La marque prend la tête, seule : c'est elle l'enseigne. */}
         <header style={{ textAlign: "center", marginBottom: "24px" }}>
-          {/* ⚠️ DEUX planches, et c'est la seule façon d'avoir la marque sur les deux
-              sols. Le détourage ne sert que l'ALPHA, la couleur se repose ensuite
-              (charte, « Le monogramme CS ») : `monogramme-encre.png` est le vert
-              d'encre, invisible sur le brun du Cuir, `monogramme-creme.png` porte le
-              même tracé en crème. On les superpose et le thème n'en montre qu'une,
-              plutôt que d'en choisir une en JavaScript, ce qui la ferait paraître
-              après la peinture. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo/monogramme-encre.png" alt="" aria-hidden="true"
-            className="hero-monogramme hero-monogramme--clair" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo/monogramme-creme.png" alt="" aria-hidden="true"
-            className="hero-monogramme hero-monogramme--sombre" />
+          {/* UNE planche, posée en masque : le détourage ne sert que l'ALPHA, la
+              couleur se repose ensuite (charte, « Le monogramme CS »). Le thème
+              change le fond, non l'image — voir la règle .hero-monogramme. */}
+          <span className="hero-monogramme" aria-hidden="true" />
 
           {/* Titre principal */}
           <h1 style={{
