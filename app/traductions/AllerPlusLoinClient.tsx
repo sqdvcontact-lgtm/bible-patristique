@@ -73,6 +73,112 @@ function useImageLuminance(url: string | null): boolean | null {
   return estSombre
 }
 
+/** Part du fond de carte conservée sous le ton tiré de l'image. C'est un TON, non
+ *  une couleur : à 88 %, la fiche reste le crème du site, teinté de ce que l'image
+ *  a de dominant. Descendre cette part colore la page ; on ne le fait pas.
+ *  ⚠️ Mesuré à 92 % : une image chaude et terne — l'intérieur d'église de la
+ *  Crampon, hsl(34 34% 50%) — donnait un fond que rien ne distinguait du crème,
+ *  parce que le crème est DÉJÀ chaud. Douze pour cent la font paraître sans que
+ *  la plus colorée des six, la Vulgate, se mette à crier. */
+const PART_SURFACE = 88
+
+/** Le ton dominant d'une image, en HSL, ou `null` si elle n'a pas de couleur franche.
+ *
+ *  ⛔ On ne prend PAS la moyenne des pixels : la moyenne d'un paysage est une boue
+ *  grise, parce que les complémentaires s'annulent. On range les teintes en
+ *  vingt-quatre seaux de quinze degrés, pondérées par leur saturation, on garde le
+ *  seau le plus lourd, et l'on en tire la moyenne CIRCULAIRE — une moyenne ordinaire
+ *  placerait au cyan le milieu de deux rouges à 350° et 10°.
+ *
+ *  Les gris, les noirs et les blancs sont écartés avant le comptage : ils n'ont pas
+ *  de teinte à donner, et ils sont le plus nombreux dans une photographie ancienne. */
+function tonDominant(data: Uint8ClampedArray): string | null {
+  const SEAUX = 24
+  const poids = new Float64Array(SEAUX)
+  const cos = new Float64Array(SEAUX)
+  const sin = new Float64Array(SEAUX)
+  const sat = new Float64Array(SEAUX)
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i] / 255, v = data[i + 1] / 255, b = data[i + 2] / 255
+    const haut = Math.max(r, v, b), bas = Math.min(r, v, b)
+    const clarte = (haut + bas) / 2
+    if (clarte < 0.08 || clarte > 0.94) continue
+    const ecart = haut - bas
+    if (ecart < 0.06) continue
+    const saturation = ecart / (1 - Math.abs(2 * clarte - 1))
+    if (saturation < 0.12) continue
+
+    let t: number
+    if (haut === r) t = ((v - b) / ecart) % 6
+    else if (haut === v) t = (b - r) / ecart + 2
+    else t = (r - v) / ecart + 4
+    t = (t * 60 + 360) % 360
+
+    const k = Math.floor(t / (360 / SEAUX)) % SEAUX
+    const rad = (t * Math.PI) / 180
+    poids[k] += saturation
+    cos[k] += Math.cos(rad) * saturation
+    sin[k] += Math.sin(rad) * saturation
+    sat[k] += saturation * saturation
+  }
+
+  let meilleur = -1, lourd = 0
+  for (let k = 0; k < SEAUX; k++) if (poids[k] > lourd) { lourd = poids[k]; meilleur = k }
+  if (meilleur < 0 || lourd <= 0) return null
+
+  const teinte = ((Math.atan2(sin[meilleur], cos[meilleur]) * 180) / Math.PI + 360) % 360
+  // La saturation est bornée serré : une image très terne donnerait un ton invisible,
+  // une enluminure un ton criard. Entre les deux, c'est l'image qui décide.
+  const saturation = Math.min(0.62, Math.max(0.38, sat[meilleur] / lourd))
+  return `hsl(${teinte.toFixed(1)} ${(saturation * 100).toFixed(0)}% 50%)`
+}
+
+// Une même image sert plusieurs ouvertures de la même notice : on ne la relit pas.
+const tonsConnus = new Map<string, string | null>()
+
+/** Le ton d'une image, calculé à la première ouverture seulement.
+ *  ⚠️ `url` vaut `null` tant que la notice est fermée : le fond n'est pas visible,
+ *  et six décodages au chargement de la page ne se justifieraient pas. */
+function useTonImage(url: string | null): string | null {
+  // ⚠️ L'état ne porte QUE le calcul asynchrone, et il porte l'adresse avec lui :
+  // le ton déjà connu se lit au rendu, dans le cache. Poser l'état depuis le corps
+  // de l'effet ferait un rendu de plus à chaque ouverture, et l'état d'une notice
+  // survivrait au changement de son image.
+  const [calcule, setCalcule] = useState<{ url: string; ton: string | null } | null>(null)
+
+  useEffect(() => {
+    if (!url || tonsConnus.has(url)) return
+    let annule = false
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      let trouve: string | null = null
+      try {
+        // Quarante-huit sur soixante-douze suffisent : on cherche une dominante,
+        // pas un détail. C'est aussi ce qui rend le calcul imperceptible.
+        const canvas = document.createElement('canvas')
+        canvas.width = 48; canvas.height = 72
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+        ctx.drawImage(img, 0, 0, 48, 72)
+        trouve = tonDominant(ctx.getImageData(0, 0, 48, 72).data)
+      } catch { trouve = null }
+      tonsConnus.set(url, trouve)
+      if (!annule) setCalcule({ url, ton: trouve })
+    }
+    img.onerror = () => {
+      tonsConnus.set(url, null)
+      if (!annule) setCalcule({ url, ton: null })
+    }
+    img.src = url
+    return () => { annule = true }
+  }, [url])
+
+  if (!url) return null
+  if (tonsConnus.has(url)) return tonsConnus.get(url) ?? null
+  return calcule?.url === url ? calcule.ton : null
+}
+
 function BandeauTraduction({ t, estOuvert, onToggle }: {
   t: Traduction; estOuvert: boolean; onToggle: () => void
 }) {
@@ -207,6 +313,81 @@ function normaliserContenu(texte: string): string {
   return DOMPurify.sanitize(formaterSieclesHTML(html))
 }
 
+/** Le volet déplié d'une notice.
+ *
+ *  ⛔ Il n'est PLUS deux colonnes. L'image y tenait une colonne entière, et le texte
+ *  l'autre : dès que la notice dépassait une quinzaine de lignes, il restait sous
+ *  l'image une bande blanche de cent soixante pixels de large et de cinq cents de
+ *  haut, que rien ne venait remplir. L'encart FLOTTE donc dans le texte, qui
+ *  l'entoure puis reprend toute la mesure sous lui. `flow-root` fait du bloc de
+ *  texte un contexte de formatage : sans lui, une notice plus courte que l'encart
+ *  laisserait celui-ci dépasser hors de la carte.
+ *
+ *  C'est un COMPOSANT, et non un fragment de la liste, parce qu'il lit le ton de son
+ *  image : un crochet ne se pose pas dans une boucle. */
+function FicheTraduction({ t }: { t: Traduction }) {
+  const e = encartDe(t)
+  const ton = useTonImage(e?.url ?? null)
+
+  // ⛔ Le ton se MÊLE au fond de thème, il ne le remplace pas. Écrit en valeur
+  // absolue, il aurait allumé une fiche crème au milieu du Cuir ; mêlé au jeton,
+  // il éclaircit le crème au Clair et fonce le brun au sombre, de la même teinte
+  // et de la même quantité. La couleur vient de l'image, la clarté du thème.
+  const fond = ton ? `color-mix(in oklab, var(--cs-surface) ${PART_SURFACE}%, ${ton})` : 'transparent'
+
+  return (
+    <div style={{
+      borderTop: '1px solid var(--cs-fond-doux)',
+      background: fond, transition: 'background 0.35s ease',
+    }}>
+      {/* Les marges internes suivent aussi : 40 px de blanc pris sur une colonne
+          de 184 px, c'était près du quart de la place restante. */}
+      <div className="trad-fiche-texte" style={{ display: 'flow-root', padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
+        {e && (
+          <div className="trad-fiche-encart" style={{
+            // ⚠️ La largeur était figée à 8.75rem (140 px), donc insensible à
+            // l'écran. Sur un téléphone de 375 px, la carte dispose de 327 px :
+            // l'image en prenait 141, et il restait 144 px de texte JUSTIFIÉ,
+            // soit dix-sept signes par ligne.
+            // ⛔ Sous 700 px, cet encart DISPARAÎT (règle `.trad-fiche-encart`
+            // dans globals.css, à côté de celle de la carte d'auteur, qui répond
+            // au même défaut) : il perturbait la lecture.
+            float: 'left',
+            width: 'clamp(4rem, 20vw, 8.75rem)',
+            // ⛔ L'encart NE TOUCHE AUCUN BORD : le fond du bloc l'entoure de trois
+            // côtés, le texte du quatrième. Sa forme ne dépend plus de la longueur
+            // de la notice — c'était une bande de 140 sur 600 quand le commentaire
+            // était long.
+            aspectRatio: '2 / 3',
+            margin: '3px 18px 12px 0',
+            borderRadius: '3px', overflow: 'hidden',
+            boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
+          }}>
+            <img src={e.url} alt="" aria-hidden="true"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${e.x}% ${e.y}%`, transform: `scale(${e.scale})`, transformOrigin: `${e.x}% ${e.y}%`, display: 'block' }} />
+          </div>
+        )}
+        {t.bio_courte && (
+          <p style={{
+            fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65,
+            margin: '0 0 12px', fontStyle: 'italic',
+            textAlign: 'justify', hyphens: 'auto',
+          }}>
+            {t.bio_courte}
+          </p>
+        )}
+        {t.commentaire_editorial && (
+          <div
+            className="trad-article"
+            style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+            dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AllerPlusLoinClient() {
   const [traductions, setTraductions] = useState<Traduction[]>([])
   const [ouvert, setOuvert] = useState<string | null>(null)
@@ -261,67 +442,7 @@ export default function AllerPlusLoinClient() {
               }}>
                 <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
 
-                {/* ⛔ Ce volet n'est PLUS deux colonnes. L'image y tenait une colonne
-                    entière, et le texte l'autre : dès que la notice dépassait une
-                    quinzaine de lignes, il restait sous l'image une bande blanche de
-                    cent soixante pixels de large et de cinq cents de haut, que rien ne
-                    venait remplir. L'encart FLOTTE donc dans le texte, qui l'entoure
-                    puis reprend toute la mesure sous lui.
-                    `flow-root` fait du bloc de texte un contexte de formatage : sans
-                    lui, une notice plus courte que l'encart laisserait celui-ci
-                    dépasser hors de la carte. */}
-                {estOuvert && (
-                  <div style={{ borderTop: '1px solid var(--cs-fond-doux)' }}>
-                    {/* Les marges internes suivent aussi : 40 px de blanc pris sur une colonne
-                        de 184 px, c'était près du quart de la place restante. */}
-                    <div className="trad-fiche-texte" style={{ display: 'flow-root', padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
-                      {(() => {
-                        const e = encartDe(t)
-                        if (!e) return null
-                        return (
-                        <div className="trad-fiche-encart" style={{
-                          // ⚠️ La largeur était figée à 8.75rem (140 px), donc insensible à
-                          // l'écran. Sur un téléphone de 375 px, la carte dispose de 327 px :
-                          // l'image en prenait 141, et il restait 144 px de texte JUSTIFIÉ,
-                          // soit dix-sept signes par ligne.
-                          // ⛔ Sous 700 px, cet encart DISPARAÎT (règle `.trad-fiche-encart`
-                          // dans globals.css, à côté de celle de la carte d'auteur, qui répond
-                          // au même défaut) : il perturbait la lecture.
-                          float: 'left',
-                          width: 'clamp(4rem, 20vw, 8.75rem)',
-                          // ⛔ L'encart NE TOUCHE AUCUN BORD : le blanc du bloc l'entoure de
-                          // trois côtés, le texte du quatrième. Sa forme ne dépend plus de la
-                          // longueur de la notice — c'était une bande de 140 sur 600 quand le
-                          // commentaire était long.
-                          aspectRatio: '2 / 3',
-                          margin: '3px 18px 12px 0',
-                          borderRadius: '3px', overflow: 'hidden',
-                          boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
-                        }}>
-                          <img src={e.url} alt="" aria-hidden="true"
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${e.x}% ${e.y}%`, transform: `scale(${e.scale})`, transformOrigin: `${e.x}% ${e.y}%`, display: 'block' }} />
-                        </div>
-                        )
-                      })()}
-                      {t.bio_courte && (
-                        <p style={{
-                          fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65,
-                          margin: '0 0 12px', fontStyle: 'italic',
-                          textAlign: 'justify', hyphens: 'auto',
-                        }}>
-                          {t.bio_courte}
-                        </p>
-                      )}
-                      {t.commentaire_editorial && (
-                        <div
-                          className="trad-article"
-                          style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
-                          dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
+                {estOuvert && <FicheTraduction t={t} />}
               </div>
             )
           })}
