@@ -79,7 +79,7 @@ describe('modes de lecture alternatifs de la page Bible', () => {
 
   it('ouvre le menu de graphie dès que les données portent deux couches', () => {
     expect(groupes({ couchesDisponibles: ['expanded', 'diplomatic'], coucheActive: 'expanded' }))
-      .toEqual([['graphie', ['Abréviations développées', 'Diplomatique']]])
+      .toEqual([['graphie', ['Développées', 'Diplomatique']]])
   })
 
   it('accueille la graphie modernisée le jour où elle est publiée, en tête', () => {
@@ -88,7 +88,7 @@ describe('modes de lecture alternatifs de la page Bible', () => {
       coucheActive: 'modernized',
     })
     expect(g[0].choix.map(c => c.label))
-      .toEqual(['Graphie modernisée', 'Abréviations développées', 'Diplomatique'])
+      .toEqual(['Modernisée', 'Développées', 'Diplomatique'])
     expect(g[0].choix.filter(c => c.actif).map(c => c.cle)).toEqual(['graphie:modernized'])
   })
 })

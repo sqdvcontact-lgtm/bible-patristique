@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { Fragment, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import DOMPurify from 'dompurify'
@@ -11,7 +11,7 @@ import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import { estUrl, type RangChrono } from '@/app/lib/frise'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
-import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
+import { LABEL_VOLET, BTN_VOLET, LIGNE_ACTION_VOLET, MOT_DU_FIL, SEPARATEUR_FIL } from '@/app/lib/stylesVoletLecture'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
@@ -706,24 +706,51 @@ export default function NavLivres({
       {modesLecture.length > 0 && (
         <div style={{ flexShrink: 0, padding: '9px 10px 10px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
-            <div key={groupe.cle} style={rang > 0 ? { marginTop: '7px' } : undefined}>
-              <span style={LABEL_VOLET}>{groupe.titre}</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                {groupe.choix.map(choix => (
+            <div key={groupe.cle} style={rang > 0 ? { marginTop: groupe.bascule ? '9px' : '7px' } : undefined}>
+              {/* ⛔ Un groupe de BASCULE ne porte pas d'étiquette : sa ligne se
+                  nomme elle-même (« Masquer les commentaires »), et l'étiquette
+                  ne ferait que redire le mot qui suit. */}
+              {!groupe.bascule && <span style={LABEL_VOLET}>{groupe.titre}</span>}
+              {groupe.bascule ? (
+                // Un oui-ou-non ne demande pas deux cases : il demande UNE ligne
+                // qui dit ce qu'un clic fera. On rend donc le seul choix inactif,
+                // sous son libellé d'action.
+                groupe.choix.filter((choix) => !choix.actif).slice(0, 1).map((choix) => (
                   <button key={choix.cle} type="button" title={choix.description}
-                    aria-pressed={choix.actif}
-                    // La page est demandée AU SURVOL, avant le clic : « Latin » vise
-                    // une autre adresse, donc un rendu serveur entier, et le temps de
-                    // descendre du libellé au bouton suffit à le commencer. Au clavier,
-                    // c'est le focus qui l'annonce.
-                    onMouseEnter={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
-                    onFocus={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
-                    onClick={() => { if (!choix.actif) onChoisirModeLecture?.(choix.cible) }}
-                    style={{ ...BTN_VOLET(choix.actif), cursor: choix.actif ? 'default' : 'pointer' }}>
-                    {choix.label}
+                    onMouseEnter={() => onPreparerModeLecture?.(choix.cible)}
+                    onFocus={() => onPreparerModeLecture?.(choix.cible)}
+                    onClick={() => onChoisirModeLecture?.(choix.cible)}
+                    className="cs-ligne-action"
+                    style={LIGNE_ACTION_VOLET}>
+                    {choix.labelAction ?? choix.label}
                   </button>
+                ))
+              ) : (
+              // Un FIL de mots, séparés par des points médians : l'actif porte
+              // l'encre du site, les autres restent gris et cliquables. ⛔ Plus de
+              // case par choix — cinq cadres pour deux décisions pesaient 181 px
+              // en tête du volet, avant même la recherche et les livres.
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', marginTop: '3px' }}>
+                {groupe.choix.map((choix, index) => (
+                  <Fragment key={choix.cle}>
+                    {index > 0 && <span aria-hidden="true" style={SEPARATEUR_FIL}>·</span>}
+                    <button type="button" title={choix.description}
+                      aria-pressed={choix.actif}
+                      // La page est demandée AU SURVOL, avant le clic : « Latin » vise
+                      // une autre adresse, donc un rendu serveur entier, et le temps de
+                      // descendre du libellé au bouton suffit à le commencer. Au clavier,
+                      // c'est le focus qui l'annonce.
+                      onMouseEnter={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
+                      onFocus={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
+                      onClick={() => { if (!choix.actif) onChoisirModeLecture?.(choix.cible) }}
+                      className="cs-mot-fil"
+                      style={MOT_DU_FIL(choix.actif)}>
+                      {choix.label}
+                    </button>
+                  </Fragment>
                 ))}
               </div>
+              )}
             </div>
           ))}
         </div>

@@ -44,6 +44,13 @@ export type CibleLectureAlternative = {
 export type ChoixLectureBible = {
   cle: string
   label: string
+  /**
+   * Le libellé d'ACTION, quand le groupe se rend en une seule ligne : ce qu'un
+   * clic fera, non l'état où l'on est. « Masquer les commentaires » plutôt que
+   * « Sans les commentaires ». ⚠️ Les deux sont nécessaires : le premier nomme
+   * un état pour l'infobulle et le contrôle, le second dit un geste.
+   */
+  labelAction?: string
   /** Infobulle : ce que ce mode montre, en une phrase. */
   description: string
   actif: boolean
@@ -55,6 +62,13 @@ export type GroupeLectureBible = {
   /** Intitulé du groupe, au rang des étiquettes de volet. */
   titre: string
   choix: ChoixLectureBible[]
+  /**
+   * Groupe BINAIRE, rendu en une seule ligne d'action plutôt qu'en deux choix.
+   * Un oui-ou-non ne demande pas deux cases : il demande une ligne qui dit ce
+   * qu'un clic fera. Le volet montre alors le seul choix INACTIF, sous son
+   * libellé d'action, et se passe d'étiquette — la ligne se nomme elle-même.
+   */
+  bascule?: boolean
 }
 
 /** Un membre de la famille éditoriale, tel que le catalogue le décrit. */
@@ -119,13 +133,19 @@ function libelleEnRegard(membres: readonly MembreFamilleLecture[]): string {
 /** Ordre de présentation : de la lecture la plus aisée à la plus fidèle au témoin. */
 const ORDRE_COUCHES: readonly Couche899[] = ['modernized', 'expanded', 'diplomatic']
 
+/**
+ * ⚠️ Les libellés ne redisent pas le nom de l'axe : sous l'étiquette « Graphie »,
+ * « Graphie modernisée » et « Abréviations développées » écrivaient deux fois le
+ * même mot, et le second débordait à lui seul la largeur du volet. Ce sont des
+ * ADJECTIFS qui qualifient la graphie ; la description en donne le sens entier.
+ */
 const LIBELLE_COUCHE: Record<Couche899, { label: string; description: string }> = {
   modernized: {
-    label: 'Graphie modernisée',
+    label: 'Modernisée',
     description: 'Orthographe modernisée, établie et validée par l’édition',
   },
   expanded: {
-    label: 'Abréviations développées',
+    label: 'Développées',
     description: 'Graphie du manuscrit, abréviations développées sans modernisation',
   },
   diplomatic: {
@@ -190,10 +210,12 @@ function groupeCommentaires(faits: FaitsLectureBible): GroupeLectureBible | null
   return {
     cle: 'commentaires',
     titre: 'Commentaires',
+    bascule: true,
     choix: [
       {
         cle: 'avec-commentaires',
         label: 'Avec les commentaires',
+        labelAction: 'Afficher les commentaires',
         description: 'Le texte avec l’appareil de l’édition : introductions, commentaires et notes',
         actif: !texteSeul,
         cible: { texteSeul: false },
@@ -201,6 +223,7 @@ function groupeCommentaires(faits: FaitsLectureBible): GroupeLectureBible | null
       {
         cle: 'sans-commentaires',
         label: 'Sans les commentaires',
+        labelAction: 'Masquer les commentaires',
         description: 'Le seul texte biblique, sans introduction, commentaire ni note',
         actif: texteSeul,
         cible: { texteSeul: true },

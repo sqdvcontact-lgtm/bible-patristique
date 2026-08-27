@@ -37,3 +37,64 @@ export const BTN_VOLET = (actif: boolean): CSSProperties => ({
   fontWeight: actif ? 600 : 400,
   transition: 'border-color 0.12s, background 0.12s',
 })
+
+/**
+ * Le FIL de choix : les états d'un même axe posés en ligne, séparés par des
+ * points médians, l'actif seul en encre du site (décision de l'auteur, 27 août
+ * 2026).
+ *
+ * ⛔ Il remplace la pile de cases pleine largeur pour les axes de la page Bible.
+ * Cinq cadres y tenaient deux décisions — trois langues, un oui-ou-non sur les
+ * commentaires — et pesaient 181 px en tête du volet, avant même la recherche et
+ * la liste des livres. Un axe est une suite d'états, non une collection d'objets :
+ * il se lit comme une ligne, pas comme un formulaire.
+ *
+ * ⚠️ Le mot ACTIF n'est pas cliquable et ne s'annonce pas comme tel : c'est là
+ * qu'on est. Les autres portent le gris des liens du volet et se soulignent au
+ * survol — c'est le seul signal d'action, le cadre ayant disparu.
+ */
+export const MOT_DU_FIL = (actif: boolean): CSSProperties => ({
+  background: 'none',
+  border: 'none',
+  padding: '1px 0',
+  fontSize: '0.6875rem',
+  lineHeight: 1.5,
+  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
+  fontWeight: actif ? 600 : 400,
+  cursor: actif ? 'default' : 'pointer',
+  textDecoration: 'none',
+  textUnderlineOffset: '3px',
+})
+
+/** Le point médian qui sépare deux mots du fil. Il ne se clique pas. */
+export const SEPARATEUR_FIL: CSSProperties = {
+  padding: '0 4px',
+  fontSize: '0.6875rem',
+  color: 'var(--cs-texte-faible)',
+}
+
+/**
+ * La LIGNE D'ACTION d'un groupe binaire : elle dit ce qu'un clic fera, non l'état
+ * où l'on est — « Masquer les commentaires », qui devient « Afficher les
+ * commentaires » une fois masqués.
+ *
+ * ⛔ Un oui-ou-non ne se rend pas en deux cases dont l'une est toujours éteinte :
+ * c'est une décision, pas un choix entre deux objets. La ligne se nomme
+ * elle-même, et se passe donc de l'étiquette de rubrique.
+ */
+export const LIGNE_ACTION_VOLET: CSSProperties = {
+  display: 'block',
+  width: '100%',
+  textAlign: 'left',
+  background: 'none',
+  border: 'none',
+  padding: '2px 0',
+  fontSize: '0.71875rem',
+  lineHeight: 1.45,
+  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontStyle: 'italic',
+  color: 'var(--cs-texte-second)',
+  cursor: 'pointer',
+  textUnderlineOffset: '3px',
+}

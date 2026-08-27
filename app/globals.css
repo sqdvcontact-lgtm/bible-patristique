@@ -1135,3 +1135,15 @@ button:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .cs-onglet { transition: none; }
 }
+
+/* ── Le FIL de choix du volet de lecture ─────────────────────────────────────
+   Les états d'un même axe posés en ligne, séparés par des points médians, à la
+   place des cases pleine largeur (charte, « Le volet de lecture »). ⛔ Le cadre
+   ayant disparu, c'est le SURVOL qui dit l'action : sans lui, un mot gris au
+   milieu d'un volet ne s'annonce plus comme cliquable. Le mot actif, lui, ne se
+   souligne pas — c'est là qu'on est, il n'y a rien à y faire. */
+.cs-mot-fil:hover,
+.cs-mot-fil:focus-visible { text-decoration: underline; }
+.cs-mot-fil[aria-pressed='true']:hover { text-decoration: none; }
+.cs-ligne-action:hover,
+.cs-ligne-action:focus-visible { text-decoration: underline; color: var(--cs-vert); }
