@@ -52,6 +52,10 @@ export type Traduction = {
    *  laquelle renvoie `oeuvres.trad_id`. Ces lignes vivent dans la même table que
    *  les traductions bibliques, mais ne paraissent dans aucun sélecteur de lecture. */
   est_biblique: boolean
+  /** Commande l'affichage de la NOTICE sur /traductions, et rien d'autre : une ligne
+   *  masquée reste offerte dans les sélecteurs de lecture. Ce n'est pas `est_privee`,
+   *  qui commande la RLS. */
+  visible_public: boolean
   photo: string | null
   photo_encart: string | null
   import_maj_le: string | null

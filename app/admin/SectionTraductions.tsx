@@ -270,6 +270,22 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   )
 }
 
+/** ⛔ Toute la rangée d'actions se compose de boutons de même hauteur et de largeur
+ *  RÉSERVÉE : c'est ce qui les aligne d'une ligne à l'autre. Un bouton dont le
+ *  libellé change — « + Bandeau » puis « ✓ Bandeau », « Modifier » puis « Fermer »,
+ *  « ↓ CSV » puis « envoi… » — ne doit pas changer de largeur pour autant, sans quoi
+ *  tout ce qui le suit se décale. */
+const BOUTON: React.CSSProperties = {
+  fontSize: '0.6875rem', padding: '3px 6px', borderRadius: '4px',
+  border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)',
+  color: 'var(--cs-texte-second)', cursor: 'pointer',
+  whiteSpace: 'nowrap', textAlign: 'center', lineHeight: 1.45,
+}
+
+/** Le blanc qui sépare deux familles de boutons. Plus large que le pas interne, il
+ *  fait lire trois groupes au lieu de neuf boutons en file. */
+const ECART_FAMILLE: React.CSSProperties = { width: '9px', flexShrink: 0 }
+
 const labelStyle: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }
 
 // Editeur rich-text
@@ -898,6 +914,20 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const bibliques = lignes.filter(t => t.est_biblique !== false)
   const affichees = montrerPatristiques ? [...bibliques, ...patristiques] : bibliques
 
+  /** Fait paraître ou retire la NOTICE de la page publique. Écriture optimiste : la
+   *  ligne bascule tout de suite, et revient si la base refuse — un aller-retour au
+   *  serveur pour un interrupteur se sentirait. */
+  const basculerVisible = async (t: Traduction) => {
+    const valeur = !t.visible_public
+    setLignes(prev => prev.map(l => l.trad_id === t.trad_id ? { ...l, visible_public: valeur } : l))
+    const { error } = await supabase.from('traductions').update({ visible_public: valeur }).eq('trad_id', t.trad_id)
+    if (error) {
+      setLignes(prev => prev.map(l => l.trad_id === t.trad_id ? { ...l, visible_public: !valeur } : l))
+      return
+    }
+    await revaliderTraductions()
+  }
+
   const ouvrir = (t: Traduction) => { setEdition(t.trad_id); setForm({ ...t }); setStatut(null) }
   const fermer = () => { setEdition(null); setForm({}) }
 
@@ -1053,118 +1083,142 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           99 pour les trois autres, 100 pour l'AELF). */}
       {affichees.map(t => (
         <div key={t.trad_id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
-          {/* En-tête */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+          {/* En-tête d'une ligne : l'identité à gauche, les actions à droite. */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '18px', padding: '11px 16px' }}>
+
+            {/* ⛔ L'IDENTIFIANT et l'étiquette « patristique » ont quitté la rangée des
+                boutons pour venir ici. De largeur variable — trente signes pour
+                TR_FR_1870_1873_BARREAU_… contre six pour TR0001 —, ils décalaient les
+                boutons d'une ligne à l'autre, et rien n'y était plus aligné. Ce qui DIT
+                la ligne se range avec son nom ; ce qui AGIT se range à droite. */}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', minWidth: 0 }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>{t.nom}</span>
               {t.dates && <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>{formaterDateHistorique(t.dates)}</span>}
+              {!t.est_biblique && (
+                <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique, ni sur la page publique."
+                  style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                  patristique
+                </span>
+              )}
+              <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)' }}>{t.trad_id}</code>
               {t.import_maj_le && (
-                <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>
                   import · {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-              {/* ⚠️ La table tient aussi la notice bibliographique des traductions
-                  PATRISTIQUES — celles à quoi renvoie `oeuvres.trad_id`. Elles ne
-                  paraissent dans aucun sélecteur de lecture, et la plupart des boutons
-                  de cette ligne ne les concernent pas : on le dit ici plutôt que de
-                  laisser l'administrateur le déduire. */}
-              {!t.est_biblique && (
-                <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique."
-                  style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', marginRight: '4px', whiteSpace: 'nowrap' }}>
-                  patristique
-                </span>
-              )}
-              <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)', marginRight: '1px' }}>{t.trad_id}</code>
-              {/* Deux images, deux dépôts : le bandeau horizontal qui coiffe la notice,
-                  et l'encart en portrait qui se pose dans le bloc déplié. Elles ne se
-                  remplacent pas et ne se dérivent pas l'une de l'autre.
-                  ⛔ Rien de tout cela ne concerne une notice patristique : elle ne paraît
-                  sur aucune page publique, et elle n'a pas de versets. Les cinq boutons
-                  qui s'y rapportent — les deux dépôts, le cadrage, l'export et le
-                  remplacement — ne lui sont pas offerts, plutôt que d'être offerts et
-                  sans effet. */}
-              {t.est_biblique && ([
-                { variante: 'bandeau' as const, libelle: 'Bandeau', url: t.photo,        glose: 'image horizontale qui coiffe la notice' },
-                { variante: 'encart'  as const, libelle: 'Encart',  url: t.photo_encart, glose: 'image en portrait, posée dans le bloc déplié' },
-              ]).map(({ variante, libelle, url, glose }) => {
-                const cle = `${t.trad_id}:${variante}`
-                const statut = photoStatut[cle]
-                return (
-                  <React.Fragment key={variante}>
-                    {statut === 'loading' && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Envoi…</span>
-                    )}
-                    {statut === 'ok' && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ {libelle} chargé</span>
-                    )}
-                    {statut === 'err' && (
-                      <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', fontWeight: 600 }}>✗ Erreur</span>
-                    )}
-                    <button
-                      onClick={() => photoRefs.current[cle]?.click()}
-                      disabled={statut === 'loading'}
-                      title={`${url ? 'Remplacer' : 'Ajouter'} le ${libelle.toLowerCase()} — ${glose}`}
-                      style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${url ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: url ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: url ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: statut === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap', minWidth: '5.25rem', textAlign: 'center' }}>
-                      {url ? `✓ ${libelle}` : `+ ${libelle}`}
-                    </button>
-                    <input ref={el => { photoRefs.current[cle] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
-                      onChange={async e => {
-                        const f = e.target.files?.[0]
-                        if (!f) return
-                        const blob = f.slice(0, f.size, 'image/jpeg')
-                        const fichierRenomme = new File([blob], `${t.trad_id}.jpg`, { type: 'image/jpeg' })
-                        await uploadPhoto(t.trad_id, fichierRenomme, variante)
-                        e.target.value = ''
-                      }} />
-                  </React.Fragment>
-                )
-              })}
-              {/* Toujours présent — grisé et désactivé quand il n'y a aucune image, pour
-                  que les lignes restent strictement alignées. */}
-              {t.est_biblique && <button
-                onClick={() => (t.photo || t.photo_encart) && setPositionModal(t.trad_id)}
-                disabled={!t.photo && !t.photo_encart}
-                title={t.photo || t.photo_encart ? 'Cadrer et zoomer les images' : 'Aucune image à cadrer'}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: t.photo || t.photo_encart ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo || t.photo_encart ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
-                ⊹ Cadrer
-              </button>}
-              {t.est_biblique && <>
-              {exportStatut[t.trad_id] === 'loading' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Export…</span>
-              )}
-              {exportStatut[t.trad_id] === 'ok' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ Téléchargé</span>
-              )}
-              {exportStatut[t.trad_id] === 'err' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', fontWeight: 600 }}>✗ Erreur</span>
-              )}
-              <button
-                onClick={() => exporterCSV(t.trad_id, t.nom)}
-                disabled={exportStatut[t.trad_id] === 'loading'}
-                title="Exporter cette traduction en CSV"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
-                ↓ CSV
-              </button>
-              <button
-                onClick={() => ouvrirRemplacement(t.trad_id)}
-                title="Remplacer les versets de cette traduction via un CSV"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-or)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                ↑ Remplacer
-              </button>
-              </>}
+
+            {/* ⛔ AUCUN message d'état ne s'intercale entre les boutons. « Envoi… »,
+                « ✓ Image ajoutée », « ✓ Téléchargé » s'écrivaient là, entre deux
+                boutons, et les poussaient de côté dès qu'ils paraissaient : la rangée
+                dansait à chaque dépôt. L'état s'écrit maintenant DANS le bouton qui l'a
+                déclenché, dont la largeur est réservée d'avance.
+                Trois familles, séparées par un blanc plus large que le pas interne :
+                les IMAGES de la notice, le TEXTE de la traduction, la FICHE elle-même. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+
+              {t.est_biblique && (<>
+                {/* Deux images, deux dépôts : le bandeau horizontal qui coiffe la notice,
+                    et l'encart en portrait qui se pose dans le bloc déplié. Elles ne se
+                    remplacent pas et ne se dérivent pas l'une de l'autre.
+                    ⛔ Rien de tout cela ne concerne une notice patristique : elle ne
+                    paraît sur aucune page publique et n'a pas de versets. Les cinq
+                    boutons qui s'y rapportent ne lui sont pas offerts, plutôt que d'être
+                    offerts et sans effet. */}
+                {([
+                  { variante: 'bandeau' as const, libelle: 'Bandeau', url: t.photo,        glose: 'image horizontale qui coiffe la notice' },
+                  { variante: 'encart'  as const, libelle: 'Encart',  url: t.photo_encart, glose: 'image en portrait, posée dans le bloc déplié' },
+                ]).map(({ variante, libelle, url, glose }) => {
+                  const cle = `${t.trad_id}:${variante}`
+                  const statut = photoStatut[cle]
+                  const pose = !!url && statut !== 'err'
+                  return (
+                    <React.Fragment key={variante}>
+                      <button
+                        onClick={() => photoRefs.current[cle]?.click()}
+                        disabled={statut === 'loading'}
+                        title={`${url ? 'Remplacer' : 'Ajouter'} le ${libelle.toLowerCase()} — ${glose}`}
+                        style={{ ...BOUTON, width: '4.9rem',
+                          border: `1px solid ${statut === 'err' ? 'var(--cs-danger-bord)' : pose ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
+                          background: pose ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
+                          color: statut === 'err' ? 'var(--cs-danger)' : pose ? 'var(--cs-vert)' : 'var(--cs-texte-doux)',
+                          cursor: statut === 'loading' ? 'default' : 'pointer' }}>
+                        {statut === 'loading' ? 'envoi…' : statut === 'err' ? '✗ erreur' : `${url ? '✓' : '+'} ${libelle}`}
+                      </button>
+                      <input ref={el => { photoRefs.current[cle] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
+                        onChange={async e => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          const blob = f.slice(0, f.size, 'image/jpeg')
+                          const fichierRenomme = new File([blob], `${t.trad_id}.jpg`, { type: 'image/jpeg' })
+                          await uploadPhoto(t.trad_id, fichierRenomme, variante)
+                          e.target.value = ''
+                        }} />
+                    </React.Fragment>
+                  )
+                })}
+                {/* Toujours présent — grisé et désactivé quand il n'y a aucune image, pour
+                    que les lignes restent strictement alignées. */}
+                <button
+                  onClick={() => (t.photo || t.photo_encart) && setPositionModal(t.trad_id)}
+                  disabled={!t.photo && !t.photo_encart}
+                  title={t.photo || t.photo_encart ? 'Cadrer et zoomer les images' : 'Aucune image à cadrer'}
+                  style={{ ...BOUTON, width: '4.6rem',
+                    color: t.photo || t.photo_encart ? 'var(--cs-texte-second)' : 'var(--cs-bord)',
+                    cursor: t.photo || t.photo_encart ? 'pointer' : 'default' }}>
+                  ⊹ Cadrer
+                </button>
+
+                <span style={ECART_FAMILLE} />
+
+                <button
+                  onClick={() => exporterCSV(t.trad_id, t.nom)}
+                  disabled={exportStatut[t.trad_id] === 'loading'}
+                  title="Exporter cette traduction en CSV"
+                  style={{ ...BOUTON, width: '3.9rem',
+                    color: exportStatut[t.trad_id] === 'err' ? 'var(--cs-danger)' : exportStatut[t.trad_id] === 'ok' ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
+                    cursor: exportStatut[t.trad_id] === 'loading' ? 'default' : 'pointer' }}>
+                  {exportStatut[t.trad_id] === 'loading' ? '…' : exportStatut[t.trad_id] === 'ok' ? '✓ CSV' : exportStatut[t.trad_id] === 'err' ? '✗ CSV' : '↓ CSV'}
+                </button>
+                <button
+                  onClick={() => ouvrirRemplacement(t.trad_id)}
+                  title="Remplacer les versets de cette traduction via un CSV"
+                  style={{ ...BOUTON, width: '5.5rem', color: 'var(--cs-or)' }}>
+                  ↑ Remplacer
+                </button>
+
+                <span style={ECART_FAMILLE} />
+
+                {/* ⛔ Commande la NOTICE publique, et rien d'autre : une traduction rendue
+                    invisible reste offerte dans tous les sélecteurs de lecture. Ce n'est
+                    pas `est_privee`, qui commande la RLS et réserve la TOL/AELF. */}
+                <button
+                  onClick={() => basculerVisible(t)}
+                  title={t.visible_public
+                    ? 'Sa notice paraît sur la page publique des traductions. Cliquer pour l’en retirer.'
+                    : 'Sa notice ne paraît pas sur la page publique des traductions. Cliquer pour l’y faire paraître.'}
+                  style={{ ...BOUTON, width: '5.6rem',
+                    border: `1px solid ${t.visible_public ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
+                    background: t.visible_public ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
+                    color: t.visible_public ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }}>
+                  {t.visible_public ? '◉ Visible' : '○ Masquée'}
+                </button>
+              </>)}
+
               <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
                 title="Voir l'édition source précise et les apparats critiques"
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${panneauInfos === t.trad_id ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: panneauInfos === t.trad_id ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', whiteSpace: 'nowrap', minWidth: '8.5rem', textAlign: 'center' }}>
+                style={{ ...BOUTON, width: '8.2rem',
+                  border: `1px solid ${panneauInfos === t.trad_id ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
+                  background: panneauInfos === t.trad_id ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
+                  color: 'var(--cs-vert)' }}>
                 Édition &amp; apparat{apparats[t.trad_id]?.length ? ` (${apparats[t.trad_id].length})` : ''}
               </button>
-              <button onClick={() => edition === t.trad_id ?fermer() : ouvrir(t)}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', minWidth: '4.5rem', textAlign: 'center' }}>
-                {edition === t.trad_id ?'Fermer' : 'Modifier'}
+              <button onClick={() => edition === t.trad_id ? fermer() : ouvrir(t)}
+                style={{ ...BOUTON, width: '4.3rem', color: 'var(--cs-vert)' }}>
+                {edition === t.trad_id ? 'Fermer' : 'Modifier'}
               </button>
               <button onClick={() => supprimer(t.trad_id)}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>
+                style={{ ...BOUTON, width: '4.7rem', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger)' }}>
                 Supprimer
               </button>
             </div>

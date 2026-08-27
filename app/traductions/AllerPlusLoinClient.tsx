@@ -357,7 +357,13 @@ export default function AllerPlusLoinClient() {
 
   useEffect(() => {
     supabase.from('traductions').select('*')
-      .not('schema_numerotation', 'is', null)
+      // ⛔ Deux conditions, et deux seulement. `est_biblique` écarte les notices des
+      // traductions patristiques, qui vivent dans la même table. `visible_public` porte
+      // la décision éditoriale, prise ligne à ligne depuis l'administration.
+      // Le filtre portait auparavant sur `schema_numerotation` : un PROXY, qui disait
+      // que le texte est versifié, non qu'on souhaitait en publier la notice.
+      .eq('est_biblique', true)
+      .eq('visible_public', true)
       .order('ordre', { ascending: true })
       .then(({ data }) => setTraductions(data ?? []))
   }, [])
