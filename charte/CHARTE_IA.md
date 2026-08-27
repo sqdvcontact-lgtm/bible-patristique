@@ -925,6 +925,16 @@ Le rendu doit distinguer légèrement cette matière du texte canonique par les 
 
 Le redécoupage d’un surnuméraire ne modifie jamais `bible_source_unit_texts`. Il agit seulement sur les segments éditoriaux, leurs mappings source et les alignements. Toute opération conserve exactement la couverture matérielle, l’ordre des unités, les empreintes des couches source et les invariants de séquence.
 
+### 15.5 Une table, deux natures — `traductions.est_biblique`
+
+La table `traductions` tient deux choses. Les traductions de la BIBLE, qui portent un texte versifié et se choisissent dans les menus de lecture. Et la notice bibliographique de la traduction employée pour une œuvre PATRISTIQUE — Jeannin pour Jean Chrysostome, Barreau et Charpentier pour la Cité de Dieu, Guillon pour Cyprien, Claude de Seyssel pour Eusèbe —, à laquelle renvoient `oeuvres.trad_id` et `oeuvre_textes.id_traduction`.
+
+⛔ Rien ne les distinguait, et les secondes paraissaient dans les sélecteurs de traduction biblique — jusque dans le menu de la page d’une œuvre patristique, qui offrait de lire ses citations bibliques dans la traduction même dont elle affiche le texte. La colonne `est_biblique` le dit désormais, et c’est elle, et elle seule, que filtre tout sélecteur de traduction.
+
+⚠️ Deux discriminants en tenaient lieu, et aucun ne disait ce QU’EST la ligne. `schema_numerotation` dit si le TEXTE est monté, non ce qu’il est ; la page publique des traductions filtre dessus à bon droit, mais pour une autre question. La FORME de l’identifiant — un numéro pour les bibliques, un intitulé parlant pour les autres — aurait cédé au premier identifiant dérogeant. ⛔ Et `type_objet` ne répond pas davantage : il dit la nature philologique de l’objet — traduction, recension, édition critique —, non le corpus auquel il appartient.
+
+⛔ Ces lignes ne se SUPPRIMENT pas. Elles sont référencées : vingt œuvres pour la seule traduction Jeannin de Jean Chrysostome. Un invariant interdit désormais la ligne incohérente plutôt que de la surveiller — une traduction non biblique ne peut pas porter de schéma de numérotation, puisqu’un schéma décrit une versification et qu’il n’y en a pas hors de la Bible.
+
 ## 16. Auteurs, œuvres et catalogue
 
 Les identifiants sont stables et ne sont pas recyclés. Supprimer une coquille vide ou une œuvre explicitement abandonnée exige de vérifier d’abord ses segments, liens, dépendances et statut de publication.
