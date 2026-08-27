@@ -101,32 +101,47 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   }), [essais, filtreCategorie, q])
 
   return (
-    <main style={{ background: 'var(--cs-fond)', minHeight: '100vh', paddingTop: '8px' }}>
-      <div className="essais-corps" style={{ maxWidth: '71rem', margin: '0 auto', padding: '8px 30px 70px' }}>
+    <main style={{
+      background: 'var(--cs-fond)',
+      // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
+      // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
+      // deux fois — c'est la règle déjà appliquée à la Bibliothèque et aux traductions.
+      minHeight: 'calc(100vh - 3.5rem)',
+    }}>
+      {/* ⛔ La MESURE reste celle de la Communauté, 71rem : elle porte trois
+          couvertures de front, quand la Bibliothèque n'a que du texte à ranger sur
+          56,25. Une page prend la mesure de ce qu'elle contient (charte, § 36).
+          Le RYTHME VERTICAL, lui, est celui de la Bibliothèque, au pixel près :
+          22 px au-dessus du titre, 14 entre le titre et les onglets, 14 sous eux. */}
+      <div className="essais-corps" style={{ maxWidth: '71rem', margin: '0 auto', padding: '22px 32px 40px' }}>
 
-        {/* En-tête — sobre : le titre, un discret losange, puis les onglets. */}
-        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '4px' }}>
-
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, letterSpacing: '0.02em' }}>
+        {/* En-tête : titre, onglets et recherche, avec une même respiration verticale
+            (≈14 px) entre chaque strate pour former un bloc au rythme régulier.
+            ⛔ Le losange d'or qui se tenait sous le titre a été retiré le 27 août 2026 :
+            la Bibliothèque n'en porte pas, et deux pages sœurs ne s'annoncent pas de
+            deux façons. Il tenait à lui seul l'écart entre le titre et les onglets,
+            qui est maintenant une marge chiffrée. */}
+        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, letterSpacing: '0.01em', margin: 0, lineHeight: 1.1 }}>
             Communauté
           </h1>
-          <div aria-hidden="true" style={{ color: 'var(--cs-or)', fontSize: '0.4375rem', letterSpacing: '0.4em', margin: '6px 0 8px' }}>◆</div>
-
-          {/* Onglets navigation — trois entrées : les écrits de la communauté, les siens,
-              et « Écrire » (qui se subdivise en deux sous-onglets). Modèle commun du
-              site, cf. `.cs-onglets` dans globals.css. */}
-          <OngletsPage
-            className="essais-onglets"
-            intitule="Sections de la communauté"
-            actif={onglet}
-            choisir={setOnglet}
-            onglets={[
-              { cle: 'communaute' as Onglet, libelle: 'Écrits de la communauté' },
-              { cle: 'mes-ecrits' as Onglet, libelle: 'Mes écrits' },
-              { cle: 'ecrire' as Onglet, libelle: 'Écrire' },
-            ]}
-          />
         </div>
+
+        {/* Onglets navigation — trois entrées : les écrits de la communauté, les siens,
+            et « Écrire » (qui se subdivise en deux sous-onglets). Modèle commun du
+            site, cf. `.cs-onglets` dans globals.css. */}
+        <OngletsPage
+          className="essais-onglets"
+          intitule="Sections de la communauté"
+          actif={onglet}
+          choisir={setOnglet}
+          style={{ marginBottom: '14px' }}
+          onglets={[
+            { cle: 'communaute' as Onglet, libelle: 'Écrits de la communauté' },
+            { cle: 'mes-ecrits' as Onglet, libelle: 'Mes écrits' },
+            { cle: 'ecrire' as Onglet, libelle: 'Écrire' },
+          ]}
+        />
 
         {onglet === 'communaute' ? (
           <OngletCommunaute
