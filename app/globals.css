@@ -478,9 +478,14 @@ button:focus-visible,
    fiche se lit sur un fond CLAIR au Clair, quelle que soit la couleur du tableau
    qui la surmonte : le tableau n'a de droit que sur la teinte.
    ⚠️ La saturation est divisée au Cuir. À clarté basse, une même saturation pousse
-   beaucoup plus de couleur, et le brun du thème tournait au roux. */
+   beaucoup plus de couleur, et le brun du thème tournait au roux.
+   ⚠️ CLAIR ne veut pas dire BLANC. La clarté a d'abord été posée à 96,5 %, par
+   crainte de salir la fiche : sur le blanc de la carte, cela ne faisait plus qu'un
+   écart de six à douze valeurs sur deux cent cinquante-cinq — l'auteur ne voyait
+   rien. À 91 %, le ton paraît sans que la fiche cesse d'être claire : la Bible de
+   Sacy y donne rgb(240 233 224), un ivoire chaud, contre le #fff de la carte. */
 .trad-fiche-fond {
-  background: hsl(var(--trad-ton-h) var(--trad-ton-s) 96.5%);
+  background: hsl(var(--trad-ton-h) var(--trad-ton-s) 91%);
 }
 :root[data-theme="sombre"] .trad-fiche-fond {
   background: hsl(var(--trad-ton-h) calc(var(--trad-ton-s) / 1.7) 14%);
