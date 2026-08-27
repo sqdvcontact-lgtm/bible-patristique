@@ -40,8 +40,14 @@
 // catalogue biblique : il n'a pas sa place au fond d'un volet, en troisième case, parmi
 // quinze registres. Les cases « Testament » sont donc retirées du volet — un même choix
 // ne se prend pas à deux endroits, et deux cases cochées ne se traduiraient par aucun
-// onglet retenu — et la rubrique de Testament ne paraît plus dans la liste lorsqu'un
-// seul testament est à l'écran : l'onglet le nomme déjà.
+// onglet retenu.
+//
+// ⛔ ET LA RUBRIQUE DE TESTAMENT NE PARAÎT PLUS DU TOUT (27 août 2026). Elle ne se
+// montrait déjà plus quand un seul testament était à l'écran, l'onglet le nommant.
+// Elle est maintenant retirée aussi de « Tout » : la liste y court d'une seule venue,
+// de la Genèse à l'Apocalypse, sans coupure nommée. L'ordre des livres dit le passage
+// d'un testament à l'autre à qui le cherche, et les onglets le donnent à qui le veut ;
+// une barre de titre au milieu de la course n'ajoutait qu'une halte.
 
 import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -212,24 +218,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       .sort((a, b) => (ORDRE_LIVRE[a[0]] ?? 9999) - (ORDRE_LIVRE[b[0]] ?? 9999))
       .map(([livre, list]) => ({ livre, list: list.sort((a, b) => cleTri(a) - cleTri(b)) }))
   }, [itemsFiltres])
-
-  // Le premier livre de chaque Testament porte sa rubrique. Calculé À PART, et non par
-  // une variable mutée au fil de la boucle de rendu : React ne garantit pas l'état d'une
-  // telle variable d'un rendu à l'autre (règle `react-hooks/immutability`).
-  const rubriqueDuLivre = useMemo(() => {
-    const m = new Map<string, string>()
-    // Un seul testament à l'écran : l'onglet le nomme, la rubrique le répéterait.
-    if (new Set(groupes.map(g => TESTAMENT_LIVRE[g.livre] ?? 'AUTRES')).size < 2) return m
-    let precedent: string | null = null
-    for (const g of groupes) {
-      const t = TESTAMENT_LIVRE[g.livre] ?? 'AUTRES'
-      if (t !== precedent) {
-        m.set(g.livre, TESTAMENTS.find(x => x.code === t)?.label ?? '')
-        precedent = t
-      }
-    }
-    return m
-  }, [groupes])
 
   const toggle = (set: Set<string>, val: string, setter: (s: Set<string>) => void) => {
     const s = new Set(set)
@@ -410,10 +398,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
         /* Rubrique de Testament : le seul rang au-dessus du livre. Sans elle, la
            descente de 48 livres n'avait aucune articulation. */
-        .peri-testament { display: flex; align-items: center; gap: 12px; margin: 0 0 1.125rem; }
-        .peri-testament + .peri-groupe { margin-top: 0; }
-        .peri-testament .mot { font-family: ${SANS}; font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cs-texte-faible); }
-        .peri-testament .rule { flex: 1; height: 1px; background: var(--cs-bord); }
 
         /* ── Une entrée ─────────────────────────────────────────────────────── */
         /* Deux cases : la référence dorée dans sa colonne, puis la péricope. Les
@@ -537,55 +521,44 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
               </div>
             ) : (
               <div>
-                {groupes.map(g => {
-                  const rubriqueTestament = rubriqueDuLivre.get(g.livre)
-                  return (
-                    <Fragment key={g.livre}>
-                      {rubriqueTestament && (
-                        <div className="peri-testament" style={{ marginTop: '0.5rem' }}>
-                          <span className="mot">{rubriqueTestament}</span>
-                          <span className="rule" aria-hidden="true" />
-                        </div>
-                      )}
-                      <div id={`livre-${g.livre}`}
-                        className={mobile ? 'peri-groupe--mobile' : 'peri-groupe'}
-                        style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_ONGLETS} + 12px)` }}>
-                        <div className="peri-marge">
-                          <div className="peri-marge-in">
-                            <h2>{NOM_LIVRE[g.livre] ?? g.livre}</h2>
-                          </div>
-                          {mobile && <span className="rule" aria-hidden="true" />}
-                        </div>
-                        <div className="peri-entrees">
-                          {g.list.map(it => {
-                            const via = viaAppellation[it.id]
-                            const glose = gloseEntree(it)
-                            return (
-                              <Link key={it.id} href={`/pericopes/${it.id}`} className="peri-entree">
-                                <span className="peri-ref">{refDansLivre(it.canon_debut, it.canon_fin)}</span>
-                                <div className="peri-corps">
-                                  <span className="peri-titre">
-                                    {rendreTexteEnrichi(it.nom)}
-                                    {glose && <span className="peri-glose">{glose}</span>}
-                                  </span>
-                                  {/* La rangée existe même sans notice : c'est elle qui porte
-                                      le chevron, seule affordance de navigation de l'entrée. */}
-                                  <div className="peri-l2">
-                                    <span className="peri-notice">{it.notice_debut ? rendreTexteEnrichi(it.notice_debut) : ''}</span>
-                                    <span className="peri-fleche" aria-hidden="true">
-                                      <IconeChevron dir="right" size={13} strokeWidth={1.5} />
-                                    </span>
-                                  </div>
-                                  {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}
-                                </div>
-                              </Link>
-                            )
-                          })}
-                        </div>
+                {groupes.map(g => (
+                  <div key={g.livre} id={`livre-${g.livre}`}
+                    className={mobile ? 'peri-groupe--mobile' : 'peri-groupe'}
+                    style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_ONGLETS} + 12px)` }}>
+                    <div className="peri-marge">
+                      <div className="peri-marge-in">
+                        <h2>{NOM_LIVRE[g.livre] ?? g.livre}</h2>
                       </div>
-                    </Fragment>
-                  )
-                })}
+                      {mobile && <span className="rule" aria-hidden="true" />}
+                    </div>
+                    <div className="peri-entrees">
+                      {g.list.map(it => {
+                        const via = viaAppellation[it.id]
+                        const glose = gloseEntree(it)
+                        return (
+                          <Link key={it.id} href={`/pericopes/${it.id}`} className="peri-entree">
+                            <span className="peri-ref">{refDansLivre(it.canon_debut, it.canon_fin)}</span>
+                            <div className="peri-corps">
+                              <span className="peri-titre">
+                                {rendreTexteEnrichi(it.nom)}
+                                {glose && <span className="peri-glose">{glose}</span>}
+                              </span>
+                              {/* La rangée existe même sans notice : c'est elle qui porte
+                                  le chevron, seule affordance de navigation de l'entrée. */}
+                              <div className="peri-l2">
+                                <span className="peri-notice">{it.notice_debut ? rendreTexteEnrichi(it.notice_debut) : ''}</span>
+                                <span className="peri-fleche" aria-hidden="true">
+                                  <IconeChevron dir="right" size={13} strokeWidth={1.5} />
+                                </span>
+                              </div>
+                              {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
