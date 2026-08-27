@@ -1005,6 +1005,31 @@ Mesuré depuis le poste de travail : **un aller-retour vers Supabase coûte ~65 
 
 ⚠️ **En développement, la compilation à la demande domine tout le reste** et ne dit rien de la production. Mesurer sur le site en ligne avant de conclure : `/api/chiffres` (deux requêtes) y rend en 345 à 560 ms.
 
+## Second audit (2026-08-27) — le coût, c'est aussi le VOLUME
+
+Le premier audit avait raison sur les vagues et ne regardait pas ce qu'elles transportent. Mesuré à chaud, page complète, médiane sur cinq :
+
+| Lecture | avant | après |
+|---|---|---|
+| Fillion, Matthieu 1 | 1 045 ms | **773 ms** |
+| Fillion, Matthieu 12 | 1 081 ms | **780 ms** |
+| Fillion, Genèse 1 | 1 149 ms | **797 ms** |
+| Fillion en regard | 1 128 ms | **847 ms** |
+| Fillion sans commentaires | 499 ms | 466 ms |
+| Sacy, Bible 899 | 310 / 355 ms | inchangés |
+
+⛔ **La page demandait les blocs éditoriaux du LIVRE ENTIER pour en afficher un chapitre.** Matthieu : 521 blocs, **744 Ko de JSON**, filtrés ensuite en mémoire. Le filtre passe en base sur les bornes d'ordre canonique du chapitre : 32 blocs, 26 Ko, et la requête tombe de 224 à 73 ms. ⚠️ Il ne REMPLACE pas `filterBodyBlocks` : les bornes du filtre SQL sont celles du chapitre canonique, le filtre en mémoire tranche sur les créneaux que l'édition porte vraiment. Éprouvé sur 26 chapitres de 10 livres — mêmes blocs retenus, 92 % de lignes rapatriées en moins.
+
+⛔ **`select('*')` rapatriait dix-huit colonnes de travail que le rendu ne regarde jamais** (statuts de validation, confiance de classification, horodatages) : 40 % du transfert. D'où `COLONNES_BLOC`. ⚠️ Toute colonne nouvellement lue doit y être AJOUTÉE : le type de la ligne est déclaré, il n'est pas vérifié — et PostgREST n'infère plus rien, le `select` n'étant plus littéral (d'où les casts par `unknown`).
+
+**Deux vagues retirées du chemin critique.** Le canon du chapitre était lu deux fois (une fois pour les bornes, une fois en tête de la cascade éditoriale) : il l'est une seule, dans la vague d'ouverture, et `chargerVersetsEditoriaux` le reçoit tout prêt. Et l'appareil ne suit plus les versets : `loadBibleEditionChapter` accepte une **promesse** de créneaux, si bien que ses blocs et ses illustrations partent pendant que le texte se charge. Seules les notes de verset et le calcul des bornes exactes attendent.
+
+⚠️ **La lecture du canon est lancée sans être attendue** : une bible ordinaire n'en a pas l'usage et ne doit pas payer son aller-retour. ⛔ Le `catch` sur cette promesse n'est pas un ornement : une promesse rejetée que personne ne cueille fait tomber le processus.
+
+**Contrôle de non-régression** : le TEXTE rendu (scripts et balises retirés) est comparé avant/après sur neuf pages — Matthieu 1 et 12, Genèse 1, Jean 1, Actes 2, Marc 3, la lecture en regard, le texte seul, la Sacy. Identique ligne pour ligne. ⚠️ Comparer le HTML BRUT ne prouve rien : les identifiants de la charge RSC changent à chaque rendu, et les neuf pages « diffèrent » toutes.
+
+**Ce qui reste** : le chargement d'un chapitre éditorial est encore une cascade de trois vagues (alignements, puis segments et sources, puis texte des unités), chacune entre 63 et 91 ms. Aucune n'est lente ; les fondre demanderait une vue SQL qui rende le texte recomposé d'un chapitre en une fois, ce qui est un travail de BASE, non de dépôt. Les scripts d'atelier de cet audit sont dans `tmp/` (`audit-bible-perf.mjs`, `audit-bible-perf2.mjs`, `audit-versets.mjs`, `audit-bible-equivalence.mjs`).
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.

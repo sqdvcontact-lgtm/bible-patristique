@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
 
-type CanonRow = {
+export type CanonRow = {
   id: string
   livre: string
   ch_canon: number | string
@@ -84,17 +84,31 @@ export async function chargerVersetsEditoriaux(
     livre: string
     chapitre: number
     preferredLayerCode?: string
+    /**
+     * Les créneaux canoniques du chapitre, quand l'appelant les a déjà.
+     *
+     * ⚠️ Le chargement d'un chapitre éditorial est une CASCADE de quatre vagues
+     * — canon, alignements, segments et sources, texte des unités — dont chacune
+     * attend la précédente. Mesurées entre 63 et 91 ms, aucune n'est lente : ce
+     * qui coûte est leur enchaînement. La première ne dépend pourtant que du
+     * livre et du chapitre, connus dès l'entrée de la page : passée ici, elle
+     * disparaît du chemin critique.
+     */
+    canonRows?: readonly CanonRow[] | null
   },
 ): Promise<VersetEditorialAdapte[]> {
   const sourceIds = [...new Set(options.sourceIds)]
   if (sourceIds.length === 0) return []
 
-  const { data: canonData, error: canonError } = await client
-    .from('versets_canon')
-    .select('id,livre,ch_canon,v_canon,ordre')
-    .eq('livre', options.livre)
-    .eq('ch_canon', options.chapitre)
-    .order('ordre')
+  const canonDejaLu = options.canonRows ?? null
+  const { data: canonData, error: canonError } = canonDejaLu
+    ? { data: canonDejaLu, error: null }
+    : await client
+      .from('versets_canon')
+      .select('id,livre,ch_canon,v_canon,ordre')
+      .eq('livre', options.livre)
+      .eq('ch_canon', options.chapitre)
+      .order('ordre')
   if (canonError) throw new Error(`Créneaux canoniques illisibles : ${canonError.message}`)
   const canonRows = (canonData ?? []) as CanonRow[]
   if (canonRows.length === 0) return []

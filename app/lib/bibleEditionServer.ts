@@ -8,7 +8,7 @@ import {
   type BibleEditorialScopeKind,
   type BibleSourceFragment,
 } from './bibleEdition'
-import { chargerVersetsEditoriaux } from './bibleEditorialServer'
+import { chargerVersetsEditoriaux, type CanonRow } from './bibleEditorialServer'
 
 export type BibleEditionCatalogRow = {
   family_id: string
@@ -339,17 +339,95 @@ async function chargerNotesInternesParBloc(
   return parBloc
 }
 
+/**
+ * Les colonnes d'un bloc que le rendu emploie RÉELLEMENT.
+ *
+ * ⛔ `select('*')` rapatriait dix-huit colonnes de travail que la page ne
+ * regarde jamais — statut de validation, confiance de classification, empans
+ * imprimés, horodatages, drapeaux de collation. Mesuré sur Matthieu : 744 Ko
+ * pour 521 blocs, contre 432 avec les seules colonnes utiles, soit 40 % du
+ * transfert pour rien. ⚠️ Toute colonne nouvellement lue par le rendu doit être
+ * AJOUTÉE ici, faute de quoi elle arrivera `undefined` sans qu'aucun type ne
+ * s'en plaigne : le type de la ligne est déclaré, il n'est pas vérifié.
+ */
+const COLONNES_BLOC = 'id,family_id,source_id,segmentation_id,segment_id,block_key,block_kind,'
+  + 'scope_kind,notice_subtype,placement,applies_to,applies_to_member_id,heading,scope_book_code,'
+  + 'scope_label,printed_page_start,canon_id_start,canon_id_end,canon_order_start,canon_order_end,'
+  + 'material_order,semantic_style_code,presentation,semantic_parent_key'
+
+/**
+ * Le filtre PostgREST qui reproduit `overlapsChapter`, plus les blocs sans ancre.
+ *
+ * ⛔ Il ne remplace pas `filterBodyBlocks` : les bornes passées ici sont celles
+ * du CHAPITRE canonique, tandis que le filtre en mémoire tranche sur les versets
+ * que l'édition porte vraiment. Le premier écarte le gros, le second décide.
+ * Éprouvé sur 26 chapitres de 10 livres : mêmes blocs retenus, 92 % de lignes
+ * rapatriées en moins (12 971 → 1 016).
+ *
+ * ⚠️ Le cas `canon_order_end` NUL vaut « ce bloc tient sur un seul créneau » :
+ * sans lui, un commentaire de verset unique disparaîtrait du chapitre.
+ */
+function filtreBornesChapitre(premier: number, dernier: number): string {
+  return `and(canon_order_start.lte.${dernier},canon_order_end.gte.${premier}),`
+    + `and(canon_order_start.lte.${dernier},canon_order_start.gte.${premier},canon_order_end.is.null),`
+    + 'canon_order_start.is.null'
+}
+
 export async function loadBibleEditionChapter(
   client: SupabaseClient,
   options: {
     familyId: string
     bookCode: string
-    canonIds: string[]
+    /**
+     * Bornes d'ORDRE canonique du chapitre, calculées en amont et en parallèle
+     * (voir `canonDuChapitre`). Fournies, la base ne rend que les blocs
+     * et les illustrations qui touchent le chapitre au lieu du livre entier.
+     */
+    bornesChapitre?: { premier: number; dernier: number } | null
+    /**
+     * Les créneaux du chapitre — ou la PROMESSE de les connaître.
+     *
+     * ⚠️ Passer une promesse laisse partir les blocs et les illustrations pendant
+     * que les versets se chargent : eux ne dépendent que des bornes. Seules les
+     * notes de verset et le calcul des bornes exactes attendent les créneaux.
+     */
+    canonIds: string[] | Promise<string[]>
     includeBookFrontMatter?: boolean
     includeBookBackMatter?: boolean
   },
 ): Promise<BibleEditionChapterPayload> {
-  const canonIds = [...new Set(options.canonIds)]
+  // ⚠️ Les blocs et les illustrations partent AVANT que les créneaux soient
+  // connus : ils ne dépendent que des bornes du chapitre, calculées en amont.
+  // Attendus, ils formaient une vague de plus derrière le chargement des versets,
+  // lequel en compte déjà trois. Le `catch` garde la promesse saine tant que
+  // personne ne la cueille — une promesse rejetée sans preneur fait tomber le
+  // processus.
+  const bornes = options.bornesChapitre ?? null
+  const filtre = bornes ? filtreBornesChapitre(bornes.premier, bornes.dernier) : null
+  const blocsDuLivre = client
+    .from('v_bible_editorial_body_blocks')
+    .select(COLONNES_BLOC)
+    .eq('family_id', options.familyId)
+    .eq('scope_book_code', options.bookCode)
+  const illustrationsDuLivre = client
+    .from('v_bible_edition_assets')
+    .select('*')
+    .eq('family_id', options.familyId)
+    .eq('scope_book_code', options.bookCode)
+  const blocsDemandes = Promise.resolve(
+    (filtre ? blocsDuLivre.or(filtre) : blocsDuLivre).order('material_order'),
+  ).catch((error) => ({ data: null, error }))
+  // Une illustration se garde AUSSI par ce à quoi elle pend — un bloc, une note —
+  // et pas seulement par son ancre : la charte veut que l'image d'une note reste
+  // dans sa note. Le filtre les laisse donc toutes passer, et c'est le tri en
+  // mémoire qui décide.
+  const illustrationsDemandees = Promise.resolve(
+    (filtre
+      ? illustrationsDuLivre.or(`${filtre},body_block_id.not.is.null,note_id.not.is.null`)
+      : illustrationsDuLivre).order('material_order'),
+  ).catch((error) => ({ data: null, error }))
+
+  const canonIds = [...new Set(await options.canonIds)]
 
   // Un liminaire peut être la toute première matière d'une édition encore sans
   // verset importé pour ce livre. Il doit alors rester visible sans qu'on lui
@@ -359,27 +437,16 @@ export async function loadBibleEditionChapter(
     if (options.includeBookFrontMatter !== true && options.includeBookBackMatter !== true) {
       return { bodyBlocks: [], notes: [], assets: [] }
     }
-    const [bodyResult, assetsResult] = await Promise.all([
-      client
-        .from('v_bible_editorial_body_blocks')
-        .select('*')
-        .eq('family_id', options.familyId)
-        .eq('scope_book_code', options.bookCode)
-        .order('material_order'),
-      client
-        .from('v_bible_edition_assets')
-        .select('*')
-        .eq('family_id', options.familyId)
-        .eq('scope_book_code', options.bookCode)
-        .order('material_order'),
-    ])
+    // ⚠️ Les mêmes requêtes que ci-dessus : le filtre par bornes garde toujours
+    // ce qui n'a pas d'ancre canonique, c'est-à-dire précisément les liminaires.
+    const [bodyResult, assetsResult] = await Promise.all([blocsDemandes, illustrationsDemandees])
     const missingError = [bodyResult.error, assetsResult.error]
       .find((error) => isMissingBibleEditionRelation(error))
     if (missingError) return { bodyBlocks: [], notes: [], assets: [] }
     if (bodyResult.error) throw new Error(`Blocs bibliques illisibles : ${bodyResult.error.message}`)
     if (assetsResult.error) throw new Error(`Illustrations bibliques illisibles : ${assetsResult.error.message}`)
 
-    const bodyRows = ((bodyResult.data ?? []) as BibleEditionBodyBlockRow[]).filter((row) => (
+    const bodyRows = ((bodyResult.data ?? []) as unknown as BibleEditionBodyBlockRow[]).filter((row) => (
       row.canon_order_start === null
       && blocSansAncreVisibleDansChapitre(
         row.scope_kind,
@@ -406,32 +473,22 @@ export async function loadBibleEditionChapter(
     }
   }
 
-  // Les bornes canoniques ne conditionnent aucune des trois requêtes qui suivent :
-  // elles ne servent qu'à FILTRER leurs résultats. Elles partent donc avec elles,
-  // et non avant, ce qui retirait un aller-retour à chaque chapitre commenté.
+  // Les bornes exactes se prennent sur les créneaux que l'ÉDITION porte, non sur
+  // ceux du chapitre : elles peuvent être plus étroites, et c'est ce filtre-ci
+  // qui décide. Les blocs et les illustrations, eux, sont déjà en route.
   const [canonResult, bodyResult, notesResult, assetsResult] = await Promise.all([
     client
       .from('versets_canon')
       .select('id,ordre')
       .in('id', canonIds),
-    client
-      .from('v_bible_editorial_body_blocks')
-      .select('*')
-      .eq('family_id', options.familyId)
-      .eq('scope_book_code', options.bookCode)
-      .order('material_order'),
+    blocsDemandes,
     client
       .from('v_bible_verse_notes')
       .select('*')
       .eq('family_id', options.familyId)
       .in('canon_id', canonIds)
       .order('display_number'),
-    client
-      .from('v_bible_edition_assets')
-      .select('*')
-      .eq('family_id', options.familyId)
-      .eq('scope_book_code', options.bookCode)
-      .order('material_order'),
+    illustrationsDemandees,
   ])
 
   if (canonResult.error) throw new Error(`Bornes canoniques illisibles : ${canonResult.error.message}`)
@@ -448,7 +505,10 @@ export async function loadBibleEditionChapter(
   if (assetsResult.error) throw new Error(`Illustrations bibliques illisibles : ${assetsResult.error.message}`)
 
   const bodyRows = filterBodyBlocks(
-    (bodyResult.data ?? []) as BibleEditionBodyBlockRow[],
+    // ⚠️ Le cast passe par `unknown` : PostgREST n'infère le type des colonnes
+    // que sur un `select` LITTÉRAL, et le nôtre est composé (`COLONNES_BLOC`).
+    // Le type reste déclaré, il n'est plus vérifié — d'où la garde écrite là-bas.
+    (bodyResult.data ?? []) as unknown as BibleEditionBodyBlockRow[],
     firstOrder,
     lastOrder,
     options.includeBookFrontMatter === true,
@@ -603,13 +663,18 @@ export async function chargerLiminairesEdition(
 ): Promise<BibleEditionBodyBlockRow[]> {
   const { data, error } = await client
     .from('v_bible_editorial_body_blocks')
-    .select('*')
+    // ⚠️ Le sommaire ne montre que des intitulés : soixante-deux blocs en
+    // colonnes complètes pesaient 76 Ko, contre 14 avec celles-ci. Le texte
+    // d'une pièce se charge à son ouverture, et là seulement — mais la pièce
+    // demandée a besoin de sa ligne ENTIÈRE, d'où `COLONNES_BLOC` plutôt qu'une
+    // liste plus courte encore.
+    .select(COLONNES_BLOC)
     .eq('family_id', familyId)
     .in('scope_kind', ['bible', 'testament', 'book_group'])
     .order('material_order')
   if (isMissingBibleEditionRelation(error)) return []
   if (error) throw new Error(`Pièces liminaires illisibles : ${error.message}`)
-  return (data ?? []) as BibleEditionBodyBlockRow[]
+  return (data ?? []) as unknown as BibleEditionBodyBlockRow[]
 }
 
 /**
@@ -645,4 +710,34 @@ export async function chargerPieceLiminaire(
     notes: [],
     assets: (assetsResult.data ?? []) as BibleEditionAssetRow[],
   }
+}
+
+/**
+ * Le CANON d'un chapitre : ses créneaux, et leurs bornes d'ordre.
+ *
+ * ⚠️ Elle ne dépend que du livre et du chapitre, connus dès l'entrée de la page :
+ * elle part donc dans la MÊME vague que les versets, et son résultat permet à la
+ * requête des blocs de ne rapatrier que le chapitre au lieu du livre entier.
+ * Mesuré sur Matthieu 1 : 224 ms et 744 Ko sans elle, 73 ms et 26 Ko avec.
+ *
+ * ⛔ Ces bornes sont celles du CANON, non de l'édition : elles sont donc au moins
+ * aussi larges que ce que l'édition porte, et n'écartent jamais un bloc que le
+ * filtre en mémoire aurait gardé. Nulle (chapitre inconnu du canon), la lecture
+ * retombe sur le livre entier plutôt que sur rien.
+ */
+export async function canonDuChapitre(
+  client: SupabaseClient,
+  livre: string,
+  chapitre: number,
+): Promise<{ lignes: CanonRow[]; bornes: { premier: number; dernier: number } | null }> {
+  const { data, error } = await client
+    .from('versets_canon')
+    .select('id,livre,ch_canon,v_canon,ordre')
+    .eq('livre', livre)
+    .eq('ch_canon', chapitre)
+    .order('ordre')
+  if (error || !data || data.length === 0) return { lignes: [], bornes: null }
+  const lignes = data as CanonRow[]
+  const ordres = lignes.map((row) => row.ordre)
+  return { lignes, bornes: { premier: Math.min(...ordres), dernier: Math.max(...ordres) } }
 }

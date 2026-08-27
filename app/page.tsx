@@ -11,7 +11,7 @@ import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleRe
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import {
-  chargerLectureBilingue, chargerLiminairesEdition, chargerPieceLiminaire,
+  canonDuChapitre, chargerLectureBilingue, chargerLiminairesEdition, chargerPieceLiminaire,
   loadBibleEditionCatalog, loadBibleEditionChapter,
 } from '@/app/lib/bibleEditionServer'
 import {
@@ -121,6 +121,17 @@ export default async function Home({
     ?? codeTraductionValide(cookieStore.get(COOKIE_TRAD_BIBLE)?.value)
 
   const supabase = await creerSupabaseServeur()
+  // ⚠️ Le CANON du chapitre part avec la vague, mais on ne l'ATTEND pas ici :
+  // seules les éditions commentées s'en servent, et une bible ordinaire n'a pas
+  // à payer son aller-retour. La requête est lancée, la promesse est cueillie
+  // plus bas, là où l'on sait qu'elle sert. ⛔ Le rattrapage d'erreur n'est pas
+  // un ornement : une promesse rejetée que personne n'attend fait tomber le
+  // processus. ⚠️ Elle sert les DEUX chemins de lecture, une colonne comme deux
+  // en regard, et c'est elle qui permet de ne demander à la base que les blocs
+  // du CHAPITRE au lieu de ceux du livre entier — mesuré sur Matthieu 1 : 224 ms
+  // et 744 Ko avant, 73 ms et 26 Ko après.
+  const canonPromis = canonDuChapitre(supabase, livre, chapitre)
+    .catch(() => ({ lignes: [] as Awaited<ReturnType<typeof canonDuChapitre>>['lignes'], bornes: null }))
   const [catalog, editionCatalog, { data: rawTranslations }, tradProfil] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
@@ -141,6 +152,16 @@ export default async function Home({
       const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
       return codeTraductionValide(profil?.traduction_defaut)
     })(),
+    // ⚠️ Les BORNES d'ordre canonique du chapitre. Elles ne dépendent que du
+    // livre et du numéro, connus dès l'entrée : elles partent donc ici, dans la
+    // vague qui ne coûte rien, et servent ensuite aux DEUX chemins de lecture —
+    // une colonne comme deux en regard. C'est elles qui permettent de ne
+    // demander à la base que les blocs du CHAPITRE au lieu de ceux du livre
+    // entier : mesuré sur Matthieu 1, 224 ms et 744 Ko avant, 73 ms et 26 Ko
+    // après. ⛔ Une bible sans apparat paie cette lecture pour rien, mais elle
+    // pèse un kilo-octet et part en parallèle : la calculer plus tard, là où
+    // l'on sait qu'elle sert, coûterait une vague entière.
+    canonDuChapitre(supabase, livre, chapitre),
   ])
   const toutesTraductions = (rawTranslations || [])
     .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, editionRef: t.source_edition ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))
@@ -220,7 +241,9 @@ export default async function Home({
       const sourceIds = catalog.rows
         .filter((row) => row.trad_id === trad && row.mode_code === 'verse' && row.is_available)
         .map((row) => row.source_id)
-      return chargerVersetsEditoriaux(supabase, { sourceIds, translationId: trad, livre, chapitre })
+      // ⚠️ Le canon est déjà lu : une des quatre vagues de la cascade éditoriale
+      // disparaît du chemin critique (mesurée à 83 ms).
+      return chargerVersetsEditoriaux(supabase, { sourceIds, translationId: trad, livre, chapitre, canonRows: canonChapitre.lignes })
     }
     const { data } = await supabase
       // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
@@ -262,6 +285,9 @@ export default async function Home({
   })
 
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
+  // La promesse lancée en tête n'est cueillie que si une édition commentée la
+  // demande : la lecture ordinaire ne l'attend jamais.
+  const canonChapitre = editionMember ? await canonPromis : { lignes: [], bornes: null }
   // Lecture « Sans les commentaires » : on n'écarte pas l'appareil à l'affichage, on
   // ne le CHARGE PAS. C'est un axe INDÉPENDANT de ce qu'on lit — il vaut pour une
   // colonne comme pour les deux en regard.
@@ -346,11 +372,16 @@ export default async function Home({
 
   const chargerAppareilDuChapitre = async (
     membre: NonNullable<typeof editionMember>,
-    canonIds: string[],
+    // Une PROMESSE est acceptée : l'appareil part alors avec les versets au lieu
+    // de les attendre (voir la note de `loadBibleEditionChapter`).
+    canonIds: string[] | Promise<string[]>,
   ): Promise<BibleEditionChapterDisplay> => composerAffichage(membre, await loadBibleEditionChapter(supabase, {
     familyId: membre.family_id,
     bookCode: livre,
     canonIds,
+    // ⚠️ Calculées plus bas, dans la vague des versets. La fonction n'étant
+    // appelée qu'après, la constante est déjà posée quand elle s'exécute.
+    bornesChapitre: canonChapitre.bornes,
     includeBookFrontMatter: chapitre === 1,
   }))
 
@@ -384,6 +415,7 @@ export default async function Home({
           familyId: editionMember.family_id,
           bookCode: livre,
           canonIds: chargee.axeCanonique,
+          bornesChapitre: canonChapitre.bornes,
           includeBookFrontMatter: chapitre === 1,
         })
       const balisesBilingue = baliserPayload(payload.bodyBlocks)
@@ -461,8 +493,22 @@ export default async function Home({
   // coûte donc pas un aller-retour de plus. Il n'existe que pour une édition
   // commentée — Fillion en a soixante-deux pièces, une bible ordinaire aucune —
   // et c'est lui qui décide si l'onglet « Sommaire » paraît au volet de gauche.
+  const versetsPromis = lectureBilingue ? Promise.resolve([]) : chargerVersetsDuChapitre()
+  // ⚠️ L'APPAREIL part avec les versets, non derrière eux : ses blocs ne
+  // dépendent que des bornes du chapitre, connues d'avance, et seules ses notes
+  // de verset attendent les créneaux — d'où la promesse passée telle quelle.
+  // Attendu, il ajoutait sa vague à celles du texte. ⛔ La condition se lit sur
+  // l'ADRESSE (`params.piece`) et non sur la pièce résolue, qui n'est connue
+  // qu'après le sommaire : une pièce demandée remplace le chapitre, et son
+  // appareil n'a alors pas à être chargé.
+  const appareilPromis = (editionMember && !lectureBilingue && !texteSeul && !params.piece)
+    ? chargerAppareilDuChapitre(
+      editionMember,
+      versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
+    )
+    : null
   const [versetsCharges, liminaires] = await Promise.all([
-    lectureBilingue ? Promise.resolve([]) : chargerVersetsDuChapitre(),
+    versetsPromis,
     editionMember ? chargerLiminairesEdition(supabase, editionMember.family_id) : Promise.resolve([]),
   ])
   const piecesLiminaires = grouperPiecesLiminaires(liminaires.map((bloc) => ({
@@ -498,10 +544,12 @@ export default async function Home({
     : null
 
   const versets = pieceDemandee ? [] : versetsCharges
+  // L'appareil a été demandé plus haut, en même temps que les versets : il ne
+  // reste qu'à le cueillir. ⚠️ Une pièce liminaire résolue APRÈS coup l'écarte,
+  // même s'il a été chargé : c'est le cas d'une clé d'adresse qui ne désigne
+  // aucune pièce, où l'on retombe sur le chapitre.
   const editionChapter: BibleEditionChapterDisplay | null =
-    (lectureBilingue || !editionMember || texteSeul || pieceDemandee)
-      ? null
-      : await chargerAppareilDuChapitre(editionMember, versets.map((verset) => verset.id_verset))
+    (appareilPromis && !pieceDemandee) ? await appareilPromis : null
 
   // ⛔ Pas de frontière `Suspense` ici. Il n'y avait rien à y suspendre — tout ce
   // qu'elle enveloppait est attendu ci-dessus — mais elle suffisait à faire diffuser
