@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { preparerPortrait, BOITE_TRADUCTION } from '@/app/lib/preparerPortrait'
+import { preparerPortrait, BOITE_TRADUCTION, BOITE_TRADUCTION_ENCART } from '@/app/lib/preparerPortrait'
 import DOMPurify from 'dompurify'
 import { supabase, headersAdmin } from './adminShared'
 import IconeCrayon from '@/app/components/IconeCrayon'
@@ -10,41 +10,54 @@ import { revaliderTraductions } from '@/app/actions/revalider'
 import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 
 type PhotoPos = { x: number; y: number; scale: number }
-type PhotoPositions = { bandeau: PhotoPos; lateral: PhotoPos }
+type PhotoPositions = { bandeau: PhotoPos; encart: PhotoPos }
 
 const POS_DEFAUT: PhotoPos = { x: 50, y: 20, scale: 1 }
+// Une image debout donnée à un cadre debout n'a presque rien à recadrer : elle se
+// centre. Le défaut du bandeau, lui, vise haut (y = 20) parce qu'une image couchée
+// serrée dans 92 px de haut coupe le plus souvent par le bas.
+const POS_DEFAUT_ENCART: PhotoPos = { x: 50, y: 50, scale: 1 }
 
 function parsePositions(raw: Traduction['photo_position']): PhotoPositions {
-  if (!raw) return { bandeau: { ...POS_DEFAUT }, lateral: { ...POS_DEFAUT } }
+  if (!raw) return { bandeau: { ...POS_DEFAUT }, encart: { ...POS_DEFAUT_ENCART } }
   // Rétro-compatibilité avec ancien format plat { x, y, scale }
   const r = raw as any
-  if (typeof r.x === 'number') return { bandeau: { x: r.x, y: r.y, scale: r.scale ?? 1 }, lateral: { ...POS_DEFAUT } }
+  if (typeof r.x === 'number') return { bandeau: { x: r.x, y: r.y, scale: r.scale ?? 1 }, encart: { ...POS_DEFAUT_ENCART } }
+  // `lateral` est l'ancien nom de l'encart, du temps où la même image servait aux
+  // deux cadres : on reprend le cadrage qui y dort, faute de mieux, tant qu'aucune
+  // image d'encart propre n'a été déposée.
   return {
     bandeau: r.bandeau ?? { ...POS_DEFAUT },
-    lateral: r.lateral ?? { ...POS_DEFAUT },
+    encart: r.encart ?? r.lateral ?? { ...POS_DEFAUT_ENCART },
   }
 }
 
 // ── Modale positionnement photo ───────────────────────────────────────────────
 // Rend la VRAIE carte (code identique à la page publique, données réelles)
-// avec un calque drag transparent par-dessus chaque image.
+// avec un calque drag transparent par-dessus chaque image. La carte y est
+// toujours DÉPLIÉE : le bandeau s'y montre donc dans son cadre, et l'encart
+// détaché des bords, exactement comme le lecteur les verra.
 function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   t: Traduction
   posInit: PhotoPositions
   onClose: () => void
   onSauvegarde: (pos: PhotoPositions) => Promise<void>
 }) {
+  // Tant qu'une notice n'a pas reçu son portrait, le bandeau tient lieu d'encart :
+  // on cadre alors la même image dans les deux boîtes, comme le fait la page publique.
+  const imageBandeau = t.photo
+  const imageEncart = t.photo_encart ?? t.photo
   const [positions, setPositions] = useState<PhotoPositions>(posInit)
-  const [active, setActive] = useState<'bandeau' | 'lateral'>('bandeau')
+  const [active, setActive] = useState<'bandeau' | 'encart'>(imageBandeau ? 'bandeau' : 'encart')
   const [saving, setSaving] = useState(false)
   const bandeauRef = useRef<HTMLDivElement>(null)
-  const lateralRef = useRef<HTMLDivElement>(null)
+  const encartRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<{
-    zone: 'bandeau' | 'lateral'
+    zone: 'bandeau' | 'encart'
     startX: number; startY: number; baseX: number; baseY: number
   } | null>(null)
 
-  const startDrag = (zone: 'bandeau' | 'lateral') => (e: React.MouseEvent) => {
+  const startDrag = (zone: 'bandeau' | 'encart') => (e: React.MouseEvent) => {
     e.preventDefault()
     setActive(zone)
     const p = positions[zone]
@@ -54,7 +67,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   const onMove = (e: React.MouseEvent) => {
     if (!dragRef.current) return
     const { zone, startX, startY, baseX, baseY } = dragRef.current
-    const el = zone === 'bandeau' ? bandeauRef.current : lateralRef.current
+    const el = zone === 'bandeau' ? bandeauRef.current : encartRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
     const scale = positions[zone].scale
@@ -79,7 +92,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     }))
 
   // Styles d'image calculés depuis les positions courantes (même logique que la page publique)
-  const posStyle = (zone: 'bandeau' | 'lateral'): React.CSSProperties => {
+  const posStyle = (zone: 'bandeau' | 'encart'): React.CSSProperties => {
     const p = positions[zone]
     return {
       objectFit: 'cover',
@@ -127,13 +140,19 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
-            Positionner l’image · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
+            Positionner les images · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.0625rem', color: 'var(--cs-texte-faible)', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', margin: '0 0 12px', lineHeight: 1.5 }}>
-          Glissez directement sur le bandeau ou la miniature pour cadrer · + / − pour zoomer
+          Glissez directement sur le bandeau ou sur l’encart pour cadrer · + / − pour zoomer
         </p>
+        {!t.photo_encart && (
+          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: '0 0 12px', lineHeight: 1.5 }}>
+            Cette notice n’a pas encore d’image d’encart : c’est le bandeau qui en tient lieu,
+            cadré en portrait. Déposez-en une par le bouton « Encart ».
+          </p>
+        )}
 
         {/* ════════════════════════════════════════════════════════════
             APERÇU : rendu identique à la page publique
@@ -144,58 +163,71 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
           onMouseLeave={endDrag}
           style={{ border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)', userSelect: 'none' }}>
 
-          {/* ── Bandeau (copie exacte de BandeauTraduction) ── */}
+          {/* ── Bandeau, dans son cadre (copie exacte de BandeauTraduction dépliée) ── */}
           <div
             ref={bandeauRef}
             style={{
-              position: 'relative', width: '100%', minHeight: '92px',
+              position: 'relative', width: '100%', minHeight: '112px',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               overflow: 'hidden',
               outline: active === 'bandeau' ? '3px solid var(--cs-vert)' : '3px solid transparent',
               outlineOffset: '-3px', transition: 'outline-color 0.12s',
             }}>
-            <img src={t.photo!} alt="" aria-hidden="true" draggable={false} style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
-              filter: 'brightness(0.9)', transition: 'filter 0.2s',
-              ...posStyle('bandeau'),
-            }} />
-            <div aria-hidden="true" style={{
-              position: 'absolute', inset: 0, zIndex: 0,
-              background: 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)',
-            }} />
-            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '18px 14px 18px 20px' }}>
-              <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: 'var(--cs-fond)', margin: 0, lineHeight: 1.25, textShadow: ombre }}>
+            {imageBandeau && (
+              <div aria-hidden="true" style={{
+                position: 'absolute', inset: '10px', zIndex: 0,
+                borderRadius: '3px', overflow: 'hidden',
+                boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.16)',
+              }}>
+                <img src={imageBandeau} alt="" draggable={false} style={{
+                  width: '100%', height: '100%', display: 'block',
+                  filter: 'brightness(0.78)',
+                  ...posStyle('bandeau'),
+                }} />
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)',
+                }} />
+              </div>
+            )}
+            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '28px 14px 28px 30px' }}>
+              <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: imageBandeau ? '#f7f4ef' : 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.25, textShadow: imageBandeau ? ombre : 'none' }}>
                 {t.nom}
               </h2>
               {meta && (
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', fontStyle: 'italic', color: 'rgba(242,239,232,0.72)', display: 'block', marginTop: '4px', textShadow: ombre }}>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', fontStyle: 'italic', color: imageBandeau ? 'rgba(242,239,232,0.72)' : 'var(--cs-texte-second)', display: 'block', marginTop: '4px', textShadow: imageBandeau ? ombre : 'none' }}>
                   {meta}
                 </span>
               )}
             </div>
-            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '18px', color: 'rgba(255,255,255,0.75)', textShadow: ombre }}>▼</span>
-            {/* Calque drag invisible par-dessus tout */}
-            <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />
-            {active === 'bandeau' && <div style={{ ...badgeStyle, top: 6, right: 6 }}>bandeau</div>}
+            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '28px', color: imageBandeau ? 'rgba(255,255,255,0.75)' : 'var(--cs-bord)', textShadow: imageBandeau ? ombre : 'none' }}>▼</span>
+            {/* Calque drag invisible, borné au cadre */}
+            {imageBandeau && <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: '10px', zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />}
+            {active === 'bandeau' && <div style={{ ...badgeStyle, top: 16, right: 16 }}>bandeau</div>}
           </div>
 
-          {/* ── Volet déplié (copie exacte de OngletTraductions) ── */}
-          <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'stretch' }}>
+          {/* ── Volet déplié (copie exacte de AllerPlusLoinClient) ── */}
+          <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'flex-start' }}>
 
-            {/* Miniature latérale */}
-            <div
-              ref={lateralRef}
-              style={{
-                position: 'relative', width: '8.75rem', flexShrink: 0,
-                borderRight: '1px solid var(--cs-fond-doux)', overflow: 'hidden',
-                outline: active === 'lateral' ? '3px solid var(--cs-vert)' : '3px solid transparent',
-                outlineOffset: '-3px', transition: 'outline-color 0.12s',
-              }}>
-              <img src={t.photo!} alt="" aria-hidden="true" draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', ...posStyle('lateral') }} />
-              <div onMouseDown={startDrag('lateral')} style={{ position: 'absolute', inset: 0, zIndex: 1, cursor: isDragging ? 'grabbing' : 'grab' }} />
-              {active === 'lateral' && <div style={{ ...badgeStyle, bottom: 6, left: '50%', transform: 'translateX(-50%)' }}>miniature</div>}
-            </div>
+            {/* Encart portrait, détaché des bords */}
+            {imageEncart && (
+              <div
+                ref={encartRef}
+                style={{
+                  position: 'relative', width: '8.75rem', flexShrink: 0,
+                  aspectRatio: '2 / 3',
+                  margin: '18px 0 18px 18px',
+                  borderRadius: '3px', overflow: 'hidden',
+                  boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
+                  outline: active === 'encart' ? '3px solid var(--cs-vert)' : '3px solid transparent',
+                  outlineOffset: '-3px', transition: 'outline-color 0.12s',
+                }}>
+                <img src={imageEncart} alt="" draggable={false}
+                  style={{ width: '100%', height: '100%', display: 'block', ...posStyle('encart') }} />
+                <div onMouseDown={startDrag('encart')} style={{ position: 'absolute', inset: 0, zIndex: 1, cursor: isDragging ? 'grabbing' : 'grab' }} />
+                {active === 'encart' && <div style={{ ...badgeStyle, bottom: 6, left: '50%', transform: 'translateX(-50%)' }}>encart</div>}
+              </div>
+            )}
 
             {/* Texte réel */}
             <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
@@ -215,12 +247,12 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
         {/* ── Contrôles ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
           <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: 0, flex: 1 }}>
-            Zone active : <strong style={{ color: active === 'bandeau' ? 'var(--cs-vert)' : 'var(--cs-or)' }}>{active === 'bandeau' ? 'bandeau' : 'miniature'}</strong>
+            Zone active : <strong style={{ color: active === 'bandeau' ? 'var(--cs-vert)' : 'var(--cs-or)' }}>{active === 'bandeau' ? 'bandeau' : 'encart'}</strong>
           </p>
           <button onClick={() => zoomer(-0.1)} style={btnZ}>−</button>
           <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)', minWidth: '44px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
           <button onClick={() => zoomer(+0.1)} style={btnZ}>+</button>
-          <button onClick={() => setPositions(prev => ({ ...prev, [active]: { ...POS_DEFAUT } }))}
+          <button onClick={() => setPositions(prev => ({ ...prev, [active]: active === 'bandeau' ? { ...POS_DEFAUT } : { ...POS_DEFAUT_ENCART } }))}
             style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '0 4px' }}>
             Réinit.
           </button>
@@ -824,23 +856,29 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     await revaliderTraductions()
   }
 
-  const uploadPhoto = async (tradId: string, fichier: File, estRemplacement: boolean) => {
-    setPhotoStatut(prev => ({ ...prev, [tradId]: 'loading' }))
+  const uploadPhoto = async (tradId: string, fichier: File, variante: 'bandeau' | 'encart') => {
+    // Une notice porte deux images : l'état de dépôt se suit par image, sans quoi
+    // le dépôt de l'encart afficherait « ✓ » sur le bouton du bandeau.
+    const cle = `${tradId}:${variante}`
+    setPhotoStatut(prev => ({ ...prev, [cle]: 'loading' }))
     const formData = new FormData()
     formData.append('trad_id', tradId)
-    // Boîte large : ce portrait remplit un bandeau pleine largeur, pas une vignette.
-    formData.append('fichier', await preparerPortrait(fichier, BOITE_TRADUCTION))
+    formData.append('variante', variante)
+    // Deux boîtes, parce que deux cadres : le bandeau court sur toute la largeur de
+    // la carte, l'encart tient dans 140 px de large mais se dresse.
+    formData.append('fichier', await preparerPortrait(fichier, variante === 'encart' ? BOITE_TRADUCTION_ENCART : BOITE_TRADUCTION))
     const headers = await headersAdmin()
     const res = await fetch('/api/admin/traduction-photo', { method: 'POST', headers, body: formData })
     const json = await res.json()
     if (!res.ok) {
-      setPhotoStatut(prev => ({ ...prev, [tradId]: 'err' }))
-      setTimeout(() => setPhotoStatut(prev => ({ ...prev, [tradId]: undefined as any })), 3000)
+      setPhotoStatut(prev => ({ ...prev, [cle]: 'err' }))
+      setTimeout(() => setPhotoStatut(prev => ({ ...prev, [cle]: undefined as any })), 3000)
       return
     }
-    setLignes(prev => prev.map(t => t.trad_id === tradId ? { ...t, photo: json.url } : t))
-    setPhotoStatut(prev => ({ ...prev, [tradId]: 'ok' }))
-    setTimeout(() => setPhotoStatut(prev => ({ ...prev, [tradId]: undefined as any })), 3000)
+    const colonne = variante === 'encart' ? 'photo_encart' : 'photo'
+    setLignes(prev => prev.map(t => t.trad_id === tradId ? { ...t, [colonne]: json.url } : t))
+    setPhotoStatut(prev => ({ ...prev, [cle]: 'ok' }))
+    setTimeout(() => setPhotoStatut(prev => ({ ...prev, [cle]: undefined as any })), 3000)
   }
 
   const CHAMPS_SIMPLES: { key: keyof Traduction; label: string }[] = [
@@ -1013,43 +1051,54 @@ export default function SectionTraductions({ traductions: init }: { traductions:
             </div>
             <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
               <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)', marginRight: '1px' }}>{t.trad_id}</code>
-              {photoStatut[t.trad_id] === 'loading' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Envoi…</span>
-              )}
-              {photoStatut[t.trad_id] === 'ok' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600 }}>
-                  {t.photo ? '✓ Nouvelle image chargée' : '✓ Image ajoutée'}
-                </span>
-              )}
-              {photoStatut[t.trad_id] === 'err' && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', fontWeight: 600 }}>✗ Erreur</span>
-              )}
+              {/* Deux images, deux dépôts : le bandeau horizontal qui coiffe la notice,
+                  et l'encart en portrait qui se pose dans le bloc déplié. Elles ne se
+                  remplacent pas et ne se dérivent pas l'une de l'autre. */}
+              {([
+                { variante: 'bandeau' as const, libelle: 'Bandeau', url: t.photo,        glose: 'image horizontale qui coiffe la notice' },
+                { variante: 'encart'  as const, libelle: 'Encart',  url: t.photo_encart, glose: 'image en portrait, posée dans le bloc déplié' },
+              ]).map(({ variante, libelle, url, glose }) => {
+                const cle = `${t.trad_id}:${variante}`
+                const statut = photoStatut[cle]
+                return (
+                  <React.Fragment key={variante}>
+                    {statut === 'loading' && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Envoi…</span>
+                    )}
+                    {statut === 'ok' && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', fontWeight: 600 }}>✓ {libelle} chargé</span>
+                    )}
+                    {statut === 'err' && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', fontWeight: 600 }}>✗ Erreur</span>
+                    )}
+                    <button
+                      onClick={() => photoRefs.current[cle]?.click()}
+                      disabled={statut === 'loading'}
+                      title={`${url ? 'Remplacer' : 'Ajouter'} le ${libelle.toLowerCase()} — ${glose}`}
+                      style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${url ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: url ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: url ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: statut === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap', minWidth: '5.25rem', textAlign: 'center' }}>
+                      {url ? `✓ ${libelle}` : `+ ${libelle}`}
+                    </button>
+                    <input ref={el => { photoRefs.current[cle] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
+                      onChange={async e => {
+                        const f = e.target.files?.[0]
+                        if (!f) return
+                        const blob = f.slice(0, f.size, 'image/jpeg')
+                        const fichierRenomme = new File([blob], `${t.trad_id}.jpg`, { type: 'image/jpeg' })
+                        await uploadPhoto(t.trad_id, fichierRenomme, variante)
+                        e.target.value = ''
+                      }} />
+                  </React.Fragment>
+                )
+              })}
+              {/* Toujours présent — grisé et désactivé quand il n'y a aucune image, pour
+                  que les lignes restent strictement alignées. */}
               <button
-                onClick={() => photoRefs.current[t.trad_id]?.click()}
-                disabled={photoStatut[t.trad_id] === 'loading'}
-                title={t.photo ? 'Remplacer la photo' : 'Ajouter une photo'}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: `1px solid ${t.photo ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: t.photo ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)', color: t.photo ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: photoStatut[t.trad_id] === 'loading' ? 'default' : 'pointer', whiteSpace: 'nowrap', minWidth: '4.5rem', textAlign: 'center' }}>
-                {t.photo ? '✓ Photo' : '+ Photo'}
-              </button>
-              {/* Toujours présent — grisé et désactivé quand il n'y a pas de photo, pour que
-                  les lignes restent strictement alignées. */}
-              <button
-                onClick={() => t.photo && setPositionModal(t.trad_id)}
-                disabled={!t.photo}
-                title={t.photo ? "Cadrer et zoomer l'image" : 'Aucune photo à cadrer'}
-                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: t.photo ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
+                onClick={() => (t.photo || t.photo_encart) && setPositionModal(t.trad_id)}
+                disabled={!t.photo && !t.photo_encart}
+                title={t.photo || t.photo_encart ? 'Cadrer et zoomer les images' : 'Aucune image à cadrer'}
+                style={{ fontSize: '0.71875rem', padding: '2px 7px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: t.photo || t.photo_encart ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: t.photo || t.photo_encart ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
                 ⊹ Cadrer
               </button>
-              <input ref={el => { photoRefs.current[t.trad_id] = el }} type="file" accept=".jpg,.jpeg,.png,.webp,.avif" style={{ display: 'none' }}
-                onChange={async e => {
-                  const f = e.target.files?.[0]
-                  if (!f) return
-                  const estRemplacement = !!t.photo
-                  const blob = f.slice(0, f.size, 'image/jpeg')
-                  const fichierRenomme = new File([blob], `${t.trad_id}.jpg`, { type: 'image/jpeg' })
-                  await uploadPhoto(t.trad_id, fichierRenomme, estRemplacement)
-                  e.target.value = ''
-                }} />
               {exportStatut[t.trad_id] === 'loading' && (
                 <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Export…</span>
               )}
@@ -1186,7 +1235,8 @@ export default function SectionTraductions({ traductions: init }: { traductions:
       {/* Modale positionnement photo */}
       {positionModal && (() => {
         const t = lignes.find(l => l.trad_id === positionModal)
-        if (!t?.photo) return null
+        if (!t) return null
+        if (!t.photo && !t.photo_encart) return null
         return (
           <ModalPositionPhoto
             t={t}

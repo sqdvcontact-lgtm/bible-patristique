@@ -49,10 +49,13 @@ export type Traduction = {
   commentaire_editorial: string
   ordre: number
   photo: string | null
+  photo_encart: string | null
   import_maj_le: string | null
   photo_position: {
     bandeau:  { x: number; y: number; scale: number }
-    lateral:  { x: number; y: number; scale: number }
+    encart?:  { x: number; y: number; scale: number }
+    /** Ancien nom de l'encart, du temps où la même image servait aux deux cadres. */
+    lateral?: { x: number; y: number; scale: number }
   } | null
 }
 

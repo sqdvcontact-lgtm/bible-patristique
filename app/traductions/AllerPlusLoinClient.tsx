@@ -13,11 +13,37 @@ type Traduction = {
   confession: string | null; langue: string | null;
   commentaire_editorial: string | null; ordre: number;
   photo: string | null;
+  photo_encart: string | null;
   import_maj_le: string | null;
   photo_position: {
     bandeau:  { x: number; y: number; scale: number }
-    lateral:  { x: number; y: number; scale: number }
+    encart?:  { x: number; y: number; scale: number }
+    /** Ancien nom de l'encart, du temps où la même image servait aux deux cadres. */
+    lateral?: { x: number; y: number; scale: number }
   } | null;
+}
+
+// Le blanc qui sépare le bandeau du bord de la carte une fois la notice dépliée.
+// C'est lui, et lui seul, qui fait le cadre : le fond de la carte passe derrière
+// l'image et lui tient lieu de passe-partout.
+const MARGE_CADRE = '10px'
+
+/** L'image de l'encart et son cadrage. Tant qu'une notice n'a pas reçu son portrait,
+ *  le bandeau en tient lieu, avec l'ancien cadrage `lateral` qui avait été réglé
+ *  pour lui : la notice ne se troue pas en attendant. */
+function encartDe(t: Traduction): { url: string; x: number; y: number; scale: number } | null {
+  if (t.photo_encart) {
+    const p = t.photo_position?.encart
+    return { url: t.photo_encart, x: p?.x ?? 50, y: p?.y ?? 50, scale: p?.scale ?? 1 }
+  }
+  if (t.photo) {
+    // `lateral` est l'ancien nom du cadrage de l'encart. L'administration l'a
+    // peut-être déjà recopié sous `encart` en enregistrant un autre cadrage :
+    // on lit donc le nouveau nom d'abord.
+    const p = t.photo_position?.encart ?? t.photo_position?.lateral
+    return { url: t.photo, x: p?.x ?? 50, y: p?.y ?? 20, scale: p?.scale ?? 1 }
+  }
+  return null
 }
 
 function useImageLuminance(url: string | null): boolean | null {
@@ -83,40 +109,56 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
       style={{
         width: '100%', position: 'relative',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0', minHeight: t.photo ? '92px' : undefined,
+        padding: '0',
+        // La hauteur de l'IMAGE ne bouge pas : ouverte, la carte gagne exactement
+        // les deux marges du cadre, si bien que le bandeau paraît reculer dans son
+        // passe-partout au lieu de rétrécir.
+        minHeight: t.photo ? (estOuvert ? '112px' : '92px') : undefined,
         background: t.photo ? 'transparent' : estOuvert ? 'rgba(var(--cs-vert-rgb),0.04)' : 'var(--cs-surface)',
         border: 'none', cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.15s', overflow: 'hidden',
+        transition: 'background 0.15s, min-height 0.22s ease', overflow: 'hidden',
       }}
     >
       {t.photo && (() => {
         const p = t.photo_position?.bandeau
         const px = p?.x ?? 50; const py = p?.y ?? 20; const ps = p?.scale ?? 1
         return (
-          <img src={t.photo} alt="" aria-hidden="true" style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
-            transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
-            filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
-            transition: 'filter 0.2s',
-          }} />
+          // ⚠️ Le voile dégradé vit DANS le cadre, et non par-dessus toute la carte :
+          // posé dehors, il assombrissait aussi le passe-partout, et le cadre se
+          // perdait dans une tache grise au lieu de se détacher.
+          <div aria-hidden="true" style={{
+            position: 'absolute', inset: estOuvert ? MARGE_CADRE : '0px', zIndex: 0,
+            borderRadius: estOuvert ? '3px' : '0px', overflow: 'hidden',
+            boxShadow: estOuvert
+              ? '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.16)'
+              : '0 0 0 0 transparent, 0 0 0 rgba(0,0,0,0)',
+            transition: 'inset 0.22s ease, border-radius 0.22s ease, box-shadow 0.22s ease',
+          }}>
+            <img src={t.photo} alt="" style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
+              transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
+              filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
+              transition: 'filter 0.2s',
+            }} />
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: fondSombre
+                ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
+                : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
+              transition: 'background 0.2s',
+            }} />
+          </div>
         )
       })()}
-
-      {t.photo && (
-        <div aria-hidden="true" style={{
-          position: 'absolute', inset: 0, zIndex: 0,
-          background: fondSombre
-            ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
-            : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
-          transition: 'background 0.2s',
-        }} />
-      )}
 
       <div style={{
         position: 'relative', zIndex: 1,
         flex: 1, minWidth: 0,
-        padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
+        // Le titre entre avec le cadre : sans cela il s'écrirait à cheval sur le
+        // passe-partout, moitié sur l'image, moitié sur le fond de la carte.
+        padding: t.photo ? (estOuvert ? '28px 14px 28px 30px' : '18px 14px 18px 20px') : '14px 18px',
+        transition: 'padding 0.22s ease',
       }}>
         <h2 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif",
@@ -154,9 +196,9 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
 
       <span style={{
         position: 'relative', zIndex: 1, fontSize: '0.625rem', flexShrink: 0,
-        marginRight: '18px', color: couleurChevron,
+        marginRight: t.photo && estOuvert ? '28px' : '18px', color: couleurChevron,
         textShadow: t.photo ? ombreTexte : 'none',
-        display: 'inline-block', transition: 'transform 0.18s, color 0.2s',
+        display: 'inline-block', transition: 'transform 0.18s, color 0.2s, margin-right 0.22s ease',
         transform: estOuvert ? 'rotate(180deg)' : 'none',
       }}>▼</span>
     </button>
@@ -236,31 +278,48 @@ export default function AllerPlusLoinClient() {
               }}>
                 <BandeauTraduction t={t} estOuvert={estOuvert} onToggle={() => setOuvert(prev => prev === t.trad_id ? null : t.trad_id)} />
 
+                {/* ⛔ Ce volet n'est PLUS deux colonnes. L'image y tenait une colonne
+                    entière, et le texte l'autre : dès que la notice dépassait une
+                    quinzaine de lignes, il restait sous l'image une bande blanche de
+                    cent soixante pixels de large et de cinq cents de haut, que rien ne
+                    venait remplir. L'encart FLOTTE donc dans le texte, qui l'entoure
+                    puis reprend toute la mesure sous lui.
+                    `flow-root` fait du bloc de texte un contexte de formatage : sans
+                    lui, une notice plus courte que l'encart laisserait celui-ci
+                    dépasser hors de la carte. */}
                 {estOuvert && (
-                  <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'stretch' }}>
-                    {t.photo && (
-                      <div className="trad-fiche-portrait" style={{
-                        // ⚠️ La largeur était figée à 8.75rem (140 px) avec `flexShrink: 0`, donc
-                        // insensible à l'écran. Sur un téléphone de 375 px, la carte dispose de
-                        // 327 px : le portrait en prenait 141, et il restait 144 px de texte
-                        // JUSTIFIÉ, soit dix-sept signes par ligne. Le portrait mangeait la fiche.
-                        // ⛔ Sous 700 px, cette colonne DISPARAÎT (règle `.trad-fiche-portrait`
-                        // dans globals.css, à côté de celle de la carte d'auteur, qui répond au
-                        // même défaut). Décision de l'auteur : elle perturbait la lecture, et le
-                        // portrait paraît DÉJÀ en bandeau au-dessus de la fiche — sur un téléphone,
-                        // cette colonne était un rappel, pas une découverte.
-                        // Entre 700 px et le bureau, la largeur suit l'écran et retrouve ses 140 px.
-                        width: 'clamp(4rem, 20vw, 8.75rem)', flexShrink: 0,
-                        borderRight: '1px solid var(--cs-fond-doux)',
-                        overflow: 'hidden',
-                      }}>
-                        <img src={t.photo} alt="" aria-hidden="true"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, transform: `scale(${t.photo_position?.lateral?.scale ?? 1})`, transformOrigin: `${t.photo_position?.lateral?.x ?? 50}% ${t.photo_position?.lateral?.y ?? 20}%`, display: 'block' }} />
-                      </div>
-                    )}
+                  <div style={{ borderTop: '1px solid var(--cs-fond-doux)' }}>
                     {/* Les marges internes suivent aussi : 40 px de blanc pris sur une colonne
                         de 184 px, c'était près du quart de la place restante. */}
-                    <div className="trad-fiche-texte" style={{ flex: 1, minWidth: 0, padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
+                    <div className="trad-fiche-texte" style={{ display: 'flow-root', padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
+                      {(() => {
+                        const e = encartDe(t)
+                        if (!e) return null
+                        return (
+                        <div className="trad-fiche-encart" style={{
+                          // ⚠️ La largeur était figée à 8.75rem (140 px), donc insensible à
+                          // l'écran. Sur un téléphone de 375 px, la carte dispose de 327 px :
+                          // l'image en prenait 141, et il restait 144 px de texte JUSTIFIÉ,
+                          // soit dix-sept signes par ligne.
+                          // ⛔ Sous 700 px, cet encart DISPARAÎT (règle `.trad-fiche-encart`
+                          // dans globals.css, à côté de celle de la carte d'auteur, qui répond
+                          // au même défaut) : il perturbait la lecture.
+                          float: 'left',
+                          width: 'clamp(4rem, 20vw, 8.75rem)',
+                          // ⛔ L'encart NE TOUCHE AUCUN BORD : le blanc du bloc l'entoure de
+                          // trois côtés, le texte du quatrième. Sa forme ne dépend plus de la
+                          // longueur de la notice — c'était une bande de 140 sur 600 quand le
+                          // commentaire était long.
+                          aspectRatio: '2 / 3',
+                          margin: '3px 18px 12px 0',
+                          borderRadius: '3px', overflow: 'hidden',
+                          boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
+                        }}>
+                          <img src={e.url} alt="" aria-hidden="true"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${e.x}% ${e.y}%`, transform: `scale(${e.scale})`, transformOrigin: `${e.x}% ${e.y}%`, display: 'block' }} />
+                        </div>
+                        )
+                      })()}
                       {t.bio_courte && (
                         <p style={{
                           fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65,

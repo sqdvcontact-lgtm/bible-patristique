@@ -21,12 +21,17 @@ export type Dimensions = { largeur: number; hauteur: number }
  *  charte retient 600 × 750, soit le double environ, pour rester net en HiDPI sans
  *  peser sur une page qui affiche quinze portraits à la suite.
  *
- *  TRADUCTION : bandeau PLEINE LARGEUR (app/traductions/AllerPlusLoinClient.tsx,
- *  `width: 100%`, 92 px de haut) et colonne latérale de 8,75rem. C'est la largeur
- *  qui commande, pas la hauteur : une boîte de 600 de large rendrait le bandeau flou
- *  sur un écran large. */
+ *  TRADUCTION — BANDEAU : bandeau PLEINE LARGEUR (app/traductions/AllerPlusLoinClient.tsx,
+ *  `width: 100%`, 92 px de haut). C'est la largeur qui commande, pas la hauteur :
+ *  une boîte de 600 de large rendrait le bandeau flou sur un écran large.
+ *
+ *  TRADUCTION — ENCART : l'encart au format portrait du bloc déplié ne dépasse pas
+ *  8,75rem de large, soit 140 px, 280 en HiDPI. La boîte est donnée en PORTRAIT,
+ *  parce que la réduction se fait à l'intérieur d'un rectangle et qu'une boîte
+ *  couchée n'accueillerait qu'une bande de l'image debout qu'on lui donne. */
 export const BOITE_AUTEUR: Dimensions = { largeur: 600, hauteur: 750 }
 export const BOITE_TRADUCTION: Dimensions = { largeur: 1600, hauteur: 1200 }
+export const BOITE_TRADUCTION_ENCART: Dimensions = { largeur: 600, hauteur: 900 }
 
 export const PORTRAIT_LARGEUR_MAX = BOITE_AUTEUR.largeur
 export const PORTRAIT_HAUTEUR_MAX = BOITE_AUTEUR.hauteur
