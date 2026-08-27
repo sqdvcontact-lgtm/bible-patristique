@@ -289,12 +289,22 @@ export default async function AccueilPage() {
           }}>
             Lectures bibliques et patristiques
           </p>
+          {/* ⛔ PAS `--cs-etiquette` ici, malgré la forme d'étiquette. Ce jeton est un
+              khaki doré, #9e8e6a au Clair : sous le vert d'encre de la ligne qui
+              précède, les deux lignes du frontispice tenaient deux familles de couleur
+              étrangères l'une à l'autre, et le couple sonnait faux. Elles se tiennent
+              maintenant dans le MÊME ton, à un pas d'écart.
+              ⚠️ Le pas se prend en MÊLANT l'accent au papier, non en écrivant une
+              valeur : au Cuir, où `--cs-vert` vire à l'or et `--cs-fond` au brun, le
+              même calcul rend le même rapport. La quantité de vert est réglée pour
+              que la ligne garde EXACTEMENT le poids qu'elle avait — on change sa
+              famille, non sa place dans la hiérarchie. */}
           <p style={{
             fontSize: "0.625rem",
             fontWeight: 600,
             letterSpacing: "0.20em",
             textTransform: "uppercase",
-            color: "var(--cs-etiquette)",
+            color: "color-mix(in oklab, var(--cs-vert) 78%, var(--cs-fond))",
           }}>
             Somme collaborative
           </p>
