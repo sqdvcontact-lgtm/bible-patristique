@@ -935,6 +935,8 @@ La table `traductions` tient deux choses. Les traductions de la BIBLE, qui porte
 
 ⛔ Ces lignes ne se SUPPRIMENT pas. Elles sont référencées : vingt œuvres pour la seule traduction Jeannin de Jean Chrysostome. Un invariant interdit désormais la ligne incohérente plutôt que de la surveiller — une traduction non biblique ne peut pas porter de schéma de numérotation, puisqu’un schéma décrit une versification et qu’il n’y en a pas hors de la Bible.
 
+⚠️ **L’ADMINISTRATION suit la même règle que les pages publiques.** La section « Traductions » est la liste des traductions BIBLIQUES : les quatre notices patristiques y sont repliées, derrière une ligne qui les compte, et viennent en fin de liste lorsqu’on les déplie — leur `ordre` les aurait dispersées au milieu. ⛔ Et elles ne reçoivent que les boutons qui les concernent : l’édition et l’apparat, la modification, la suppression. Le dépôt d’un bandeau, celui d’un encart, le cadrage, l’export en CSV et le remplacement des versets leur sont retirés — elles ne paraissent sur aucune page publique et n’ont pas de versets. Un bouton offert et sans effet est une promesse fausse.
+
 ## 16. Auteurs, œuvres et catalogue
 
 Les identifiants sont stables et ne sont pas recyclés. Supprimer une coquille vide ou une œuvre explicitement abandonnée exige de vérifier d’abord ses segments, liens, dépendances et statut de publication.
