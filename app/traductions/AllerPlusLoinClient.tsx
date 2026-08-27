@@ -23,11 +23,6 @@ type Traduction = {
   } | null;
 }
 
-// Le blanc qui sépare le bandeau du bord de la carte une fois la notice dépliée.
-// C'est lui, et lui seul, qui fait le cadre : le fond de la carte passe derrière
-// l'image et lui tient lieu de passe-partout.
-const MARGE_CADRE = '10px'
-
 /** L'image de l'encart et son cadrage. Tant qu'une notice n'a pas reçu son portrait,
  *  le bandeau en tient lieu, avec l'ancien cadrage `lateral` qui avait été réglé
  *  pour lui : la notice ne se troue pas en attendant. */
@@ -109,56 +104,44 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
       style={{
         width: '100%', position: 'relative',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0',
-        // La hauteur de l'IMAGE ne bouge pas : ouverte, la carte gagne exactement
-        // les deux marges du cadre, si bien que le bandeau paraît reculer dans son
-        // passe-partout au lieu de rétrécir.
-        minHeight: t.photo ? (estOuvert ? '112px' : '92px') : undefined,
+        padding: '0', minHeight: t.photo ? '92px' : undefined,
         background: t.photo ? 'transparent' : estOuvert ? 'rgba(var(--cs-vert-rgb),0.04)' : 'var(--cs-surface)',
         border: 'none', cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.15s, min-height 0.22s ease', overflow: 'hidden',
+        transition: 'background 0.15s', overflow: 'hidden',
       }}
     >
       {t.photo && (() => {
         const p = t.photo_position?.bandeau
         const px = p?.x ?? 50; const py = p?.y ?? 20; const ps = p?.scale ?? 1
         return (
-          // ⚠️ Le voile dégradé vit DANS le cadre, et non par-dessus toute la carte :
-          // posé dehors, il assombrissait aussi le passe-partout, et le cadre se
-          // perdait dans une tache grise au lieu de se détacher.
-          <div aria-hidden="true" style={{
-            position: 'absolute', inset: estOuvert ? MARGE_CADRE : '0px', zIndex: 0,
-            borderRadius: estOuvert ? '3px' : '0px', overflow: 'hidden',
-            boxShadow: estOuvert
-              ? '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.16)'
-              : '0 0 0 0 transparent, 0 0 0 rgba(0,0,0,0)',
-            transition: 'inset 0.22s ease, border-radius 0.22s ease, box-shadow 0.22s ease',
-          }}>
-            <img src={t.photo} alt="" style={{
-              width: '100%', height: '100%',
-              objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
-              transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
-              filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
-              transition: 'filter 0.2s',
-            }} />
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: fondSombre
-                ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
-                : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
-              transition: 'background 0.2s',
-            }} />
-          </div>
+          // ⛔ Le bandeau prend TOUT le bloc, ouvert comme fermé, bord à bord. Il a
+          // reculé un temps de dix pixels une fois la notice dépliée, le fond de la
+          // carte lui tenant lieu de passe-partout : le cadre a été écarté le
+          // 27 août 2026. Le titre s'écrit sur l'image, non sur une marge.
+          <img src={t.photo} alt="" aria-hidden="true" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
+            transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
+            filter: estOuvert ? 'brightness(0.78)' : 'brightness(0.9)',
+            transition: 'filter 0.2s',
+          }} />
         )
       })()}
+
+      {t.photo && (
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: fondSombre
+            ? 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)'
+            : 'linear-gradient(to right, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 55%, transparent 100%)',
+          transition: 'background 0.2s',
+        }} />
+      )}
 
       <div style={{
         position: 'relative', zIndex: 1,
         flex: 1, minWidth: 0,
-        // Le titre entre avec le cadre : sans cela il s'écrirait à cheval sur le
-        // passe-partout, moitié sur l'image, moitié sur le fond de la carte.
-        padding: t.photo ? (estOuvert ? '28px 14px 28px 30px' : '18px 14px 18px 20px') : '14px 18px',
-        transition: 'padding 0.22s ease',
+        padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
       }}>
         <h2 style={{
           fontFamily: "var(--font-source-serif), Georgia, serif",
@@ -196,9 +179,9 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
 
       <span style={{
         position: 'relative', zIndex: 1, fontSize: '0.625rem', flexShrink: 0,
-        marginRight: t.photo && estOuvert ? '28px' : '18px', color: couleurChevron,
+        marginRight: '18px', color: couleurChevron,
         textShadow: t.photo ? ombreTexte : 'none',
-        display: 'inline-block', transition: 'transform 0.18s, color 0.2s, margin-right 0.22s ease',
+        display: 'inline-block', transition: 'transform 0.18s, color 0.2s',
         transform: estOuvert ? 'rotate(180deg)' : 'none',
       }}>▼</span>
     </button>

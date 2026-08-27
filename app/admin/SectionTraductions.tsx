@@ -35,8 +35,8 @@ function parsePositions(raw: Traduction['photo_position']): PhotoPositions {
 // ── Modale positionnement photo ───────────────────────────────────────────────
 // Rend la VRAIE carte (code identique à la page publique, données réelles)
 // avec un calque drag transparent par-dessus chaque image. La carte y est
-// toujours DÉPLIÉE : le bandeau s'y montre donc dans son cadre, et l'encart
-// détaché des bords, exactement comme le lecteur les verra.
+// toujours DÉPLIÉE : le bandeau y prend tout son bloc, bord à bord, et l'encart
+// flotte dans le texte, exactement comme le lecteur les verra.
 function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   t: Traduction
   posInit: PhotoPositions
@@ -163,34 +163,30 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
           onMouseLeave={endDrag}
           style={{ border: '1px solid var(--cs-bord)', borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)', userSelect: 'none' }}>
 
-          {/* ── Bandeau, dans son cadre (copie exacte de BandeauTraduction dépliée) ── */}
+          {/* ── Bandeau (copie exacte de BandeauTraduction) ── */}
           <div
             ref={bandeauRef}
             style={{
-              position: 'relative', width: '100%', minHeight: '112px',
+              position: 'relative', width: '100%', minHeight: '92px',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               overflow: 'hidden',
               outline: active === 'bandeau' ? '3px solid var(--cs-vert)' : '3px solid transparent',
               outlineOffset: '-3px', transition: 'outline-color 0.12s',
             }}>
             {imageBandeau && (
-              <div aria-hidden="true" style={{
-                position: 'absolute', inset: '10px', zIndex: 0,
-                borderRadius: '3px', overflow: 'hidden',
-                boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.16)',
-              }}>
+              <>
                 <img src={imageBandeau} alt="" draggable={false} style={{
-                  width: '100%', height: '100%', display: 'block',
+                  position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block',
                   filter: 'brightness(0.78)',
                   ...posStyle('bandeau'),
                 }} />
-                <div style={{
-                  position: 'absolute', inset: 0,
+                <div aria-hidden="true" style={{
+                  position: 'absolute', inset: 0, zIndex: 0,
                   background: 'linear-gradient(to right, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.12) 55%, transparent 100%)',
                 }} />
-              </div>
+              </>
             )}
-            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '28px 14px 28px 30px' }}>
+            <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, padding: '18px 14px 18px 20px' }}>
               <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: imageBandeau ? '#f7f4ef' : 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.25, textShadow: imageBandeau ? ombre : 'none' }}>
                 {t.nom}
               </h2>
@@ -200,10 +196,10 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
                 </span>
               )}
             </div>
-            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '28px', color: imageBandeau ? 'rgba(255,255,255,0.75)' : 'var(--cs-bord)', textShadow: imageBandeau ? ombre : 'none' }}>▼</span>
-            {/* Calque drag invisible, borné au cadre */}
-            {imageBandeau && <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: '10px', zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />}
-            {active === 'bandeau' && <div style={{ ...badgeStyle, top: 16, right: 16 }}>bandeau</div>}
+            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '18px', color: imageBandeau ? 'rgba(255,255,255,0.75)' : 'var(--cs-bord)', textShadow: imageBandeau ? ombre : 'none' }}>▼</span>
+            {/* Calque drag invisible par-dessus tout */}
+            {imageBandeau && <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />}
+            {active === 'bandeau' && <div style={{ ...badgeStyle, top: 6, right: 6 }}>bandeau</div>}
           </div>
 
           {/* ── Volet déplié (copie exacte de AllerPlusLoinClient) ── */}
