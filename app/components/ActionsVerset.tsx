@@ -22,7 +22,7 @@ const BTN: React.CSSProperties = {
 
 export type ActionsVersetProps = {
   idVerset: string
-  refAffichee: string        // « Gn 3, 1 » — titre de la modale de signalement
+  refAffichee: string
   nomLivre: string
   refLivreAbr: string
   chapitre: number
@@ -43,13 +43,20 @@ export default function ActionsVerset({
   const [copie, setCopie] = useState(false)
   const [chargement, setChargement] = useState(false)
   const [signalOuvert, setSignalOuvert] = useState(false)
+  const [erreur, setErreur] = useState<string | null>(null)
   const { exigerCompte } = useCompte()
+
+  const afficherErreur = (message: string) => {
+    setErreur(message)
+    setTimeout(() => setErreur(null), 2400)
+  }
 
   const copier = (e: React.MouseEvent) => {
     e.stopPropagation()
+    setErreur(null)
     navigator.clipboard.writeText(texte).then(() => {
       setCopie(true); setTimeout(() => setCopie(false), 1400)
-    }).catch(() => {})
+    }).catch(() => afficherErreur('La copie a échoué. Réessayez.'))
   }
 
   const signaler = async (msg: string, importance?: string) => {
@@ -74,25 +81,36 @@ export default function ActionsVerset({
     if (chargement) return
     if (!preleve && !exigerCompte('prélever ce verset')) return
     if (!userId) return
+    setErreur(null)
     setChargement(true)
-    if (preleve) {
-      await supabase.from('prelevements').delete().eq('id', prelevementId)
-      onRetire(cle)
-    } else {
-      const { data, error } = await supabase.from('prelevements').insert({
-        user_id: userId, type: 'biblique',
-        ref_livre: nomLivre, ref_livre_abr: refLivreAbr,
-        ref_chapitre: chapitre, ref_verset: verset,
-        texte, traduction: tradLabel,
-      }).select('id').single()
-      if (!error && data) onPreleve(cle, data.id)
+    try {
+      if (preleve) {
+        const { error } = await supabase.from('prelevements').delete().eq('id', prelevementId)
+        if (error) {
+          afficherErreur('Le prélèvement n’a pas pu être retiré. Réessayez.')
+          return
+        }
+        onRetire(cle)
+      } else {
+        const { data, error } = await supabase.from('prelevements').insert({
+          user_id: userId, type: 'biblique',
+          ref_livre: nomLivre, ref_livre_abr: refLivreAbr,
+          ref_chapitre: chapitre, ref_verset: verset,
+          texte, traduction: tradLabel,
+        }).select('id').single()
+        if (error || !data) {
+          afficherErreur('Le verset n’a pas pu être ajouté à vos prélèvements. Réessayez.')
+          return
+        }
+        onPreleve(cle, data.id)
+      }
+    } finally {
+      setChargement(false)
     }
-    setChargement(false)
   }
 
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-      {/* Même ordre que la page Bible (TexteBible) : prélever · copier · signaler. */}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', position: 'relative' }}>
       {userId && (
         <button onClick={basculerPrelevement} disabled={chargement}
           className="bouton-action-verset"
@@ -103,7 +121,7 @@ export default function ActionsVerset({
         </button>
       )}
 
-      <button onClick={copier} className="bouton-action-verset" title="Copier ce verset" aria-label="Copier"
+      <button onClick={copier} className="bouton-action-verset" title={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} aria-label="Copier"
         style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
         {copie ? '✓' : (
           <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
@@ -118,6 +136,8 @@ export default function ActionsVerset({
         style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
         <IconeDrapeau />
       </button>
+
+      {erreur && <span role="alert" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 5, width: '15rem', padding: '5px 7px', borderRadius: '4px', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.625rem', lineHeight: 1.35 }}>{erreur}</span>}
 
       {signalOuvert && (
         <ModalSignalement titre={refAffichee} texteObjet={texte} avecNiveauImportance
