@@ -467,6 +467,25 @@ button:focus-visible,
   font-style: normal;
 }
 
+/* ── Le fond d'une fiche de traduction : la teinte vient de l'image, la clarté du
+   thème ──
+   L'encart en portrait donne sa TEINTE dominante et sa saturation, posées en ligne
+   par AllerPlusLoinClient (--trad-ton-h, --trad-ton-s). La CLARTÉ, elle, ne se tire
+   jamais de l'image : elle est écrite ici, une fois par thème.
+   ⛔ Un ton COMPLET — teinte, saturation et clarté prises à l'image, puis mêlées au
+   fond par color-mix — a été essayé le 27 août 2026. Les peintures étant sombres,
+   il salissait le blanc de la fiche d'un beige sourd au lieu de le teinter. Une
+   fiche se lit sur un fond CLAIR au Clair, quelle que soit la couleur du tableau
+   qui la surmonte : le tableau n'a de droit que sur la teinte.
+   ⚠️ La saturation est divisée au Cuir. À clarté basse, une même saturation pousse
+   beaucoup plus de couleur, et le brun du thème tournait au roux. */
+.trad-fiche-fond {
+  background: hsl(var(--trad-ton-h) var(--trad-ton-s) 96.5%);
+}
+:root[data-theme="sombre"] .trad-fiche-fond {
+  background: hsl(var(--trad-ton-h) calc(var(--trad-ton-s) / 1.7) 14%);
+}
+
 /* ── Bibliothèque (page « Patristique ») : photo d'auteur sur petit écran ──
    En pleine largeur, la photo prenait une haute bande verticale à gauche de la
    carte. Sur mobile/petit écran, on s'en passe entièrement : le texte gagne toute

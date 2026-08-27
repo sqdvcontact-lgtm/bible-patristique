@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -73,16 +73,14 @@ function useImageLuminance(url: string | null): boolean | null {
   return estSombre
 }
 
-/** Part du fond de carte conservée sous le ton tiré de l'image. C'est un TON, non
- *  une couleur : à 88 %, la fiche reste le crème du site, teinté de ce que l'image
- *  a de dominant. Descendre cette part colore la page ; on ne le fait pas.
- *  ⚠️ Mesuré à 92 % : une image chaude et terne — l'intérieur d'église de la
- *  Crampon, hsl(34 34% 50%) — donnait un fond que rien ne distinguait du crème,
- *  parce que le crème est DÉJÀ chaud. Douze pour cent la font paraître sans que
- *  la plus colorée des six, la Vulgate, se mette à crier. */
-const PART_SURFACE = 88
-
-/** Le ton dominant d'une image, en HSL, ou `null` si elle n'a pas de couleur franche.
+/** La TEINTE dominante d'une image et sa saturation — jamais sa clarté. Rend `null`
+ *  si l'image n'a pas de couleur franche.
+ *
+ *  ⛔ Le ton ne porte PAS de clarté, parce que la clarté appartient au THÈME : c'est
+ *  `.trad-fiche-fond`, dans globals.css, qui la pose, très haute au Clair et très
+ *  basse au Cuir. Un ton complet, mêlé au fond par `color-mix`, avait été essayé le
+ *  27 août 2026 : il salissait le blanc de la fiche d'un beige sourd au lieu de le
+ *  teinter, l'image donnant sa clarté en même temps que sa couleur.
  *
  *  ⛔ On ne prend PAS la moyenne des pixels : la moyenne d'un paysage est une boue
  *  grise, parce que les complémentaires s'annulent. On range les teintes en
@@ -92,7 +90,7 @@ const PART_SURFACE = 88
  *
  *  Les gris, les noirs et les blancs sont écartés avant le comptage : ils n'ont pas
  *  de teinte à donner, et ils sont le plus nombreux dans une photographie ancienne. */
-function tonDominant(data: Uint8ClampedArray): string | null {
+function tonDominant(data: Uint8ClampedArray): { h: number; s: number } | null {
   const SEAUX = 24
   const poids = new Float64Array(SEAUX)
   const cos = new Float64Array(SEAUX)
@@ -130,22 +128,24 @@ function tonDominant(data: Uint8ClampedArray): string | null {
   const teinte = ((Math.atan2(sin[meilleur], cos[meilleur]) * 180) / Math.PI + 360) % 360
   // La saturation est bornée serré : une image très terne donnerait un ton invisible,
   // une enluminure un ton criard. Entre les deux, c'est l'image qui décide.
-  const saturation = Math.min(0.62, Math.max(0.38, sat[meilleur] / lourd))
-  return `hsl(${teinte.toFixed(1)} ${(saturation * 100).toFixed(0)}% 50%)`
+  const saturation = Math.min(0.60, Math.max(0.32, sat[meilleur] / lourd))
+  return { h: Math.round(teinte * 10) / 10, s: Math.round(saturation * 100) }
 }
 
+type Ton = { h: number; s: number }
+
 // Une même image sert plusieurs ouvertures de la même notice : on ne la relit pas.
-const tonsConnus = new Map<string, string | null>()
+const tonsConnus = new Map<string, Ton | null>()
 
 /** Le ton d'une image, calculé à la première ouverture seulement.
  *  ⚠️ `url` vaut `null` tant que la notice est fermée : le fond n'est pas visible,
  *  et six décodages au chargement de la page ne se justifieraient pas. */
-function useTonImage(url: string | null): string | null {
+function useTonImage(url: string | null): Ton | null {
   // ⚠️ L'état ne porte QUE le calcul asynchrone, et il porte l'adresse avec lui :
   // le ton déjà connu se lit au rendu, dans le cache. Poser l'état depuis le corps
   // de l'effet ferait un rendu de plus à chaque ouverture, et l'état d'une notice
   // survivrait au changement de son image.
-  const [calcule, setCalcule] = useState<{ url: string; ton: string | null } | null>(null)
+  const [calcule, setCalcule] = useState<{ url: string; ton: Ton | null } | null>(null)
 
   useEffect(() => {
     if (!url || tonsConnus.has(url)) return
@@ -153,7 +153,7 @@ function useTonImage(url: string | null): string | null {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => {
-      let trouve: string | null = null
+      let trouve: Ton | null = null
       try {
         // Quarante-huit sur soixante-douze suffisent : on cherche une dominante,
         // pas un détail. C'est aussi ce qui rend le calcul imperceptible.
@@ -329,16 +329,21 @@ function FicheTraduction({ t }: { t: Traduction }) {
   const e = encartDe(t)
   const ton = useTonImage(e?.url ?? null)
 
-  // ⛔ Le ton se MÊLE au fond de thème, il ne le remplace pas. Écrit en valeur
-  // absolue, il aurait allumé une fiche crème au milieu du Cuir ; mêlé au jeton,
-  // il éclaircit le crème au Clair et fonce le brun au sombre, de la même teinte
-  // et de la même quantité. La couleur vient de l'image, la clarté du thème.
-  const fond = ton ? `color-mix(in oklab, var(--cs-surface) ${PART_SURFACE}%, ${ton})` : 'transparent'
+  // ⛔ L'image donne la TEINTE, le thème donne la CLARTÉ, et les deux ne se mêlent
+  // jamais. La clarté est posée par `.trad-fiche-fond`, dans globals.css : très
+  // haute au Clair, très basse au Cuir. Écrite ici, elle aurait allumé une fiche
+  // pâle au milieu du Cuir ; tirée de l'image, elle salissait le blanc de la fiche
+  // d'un beige sourd dès que la peinture était sombre — ce qu'elle est presque
+  // toujours.
+  const teinte = ton
+    ? ({ '--trad-ton-h': String(ton.h), '--trad-ton-s': `${ton.s}%` } as CSSProperties)
+    : undefined
 
   return (
-    <div style={{
+    <div className={ton ? 'trad-fiche-fond' : undefined} style={{
       borderTop: '1px solid var(--cs-fond-doux)',
-      background: fond, transition: 'background 0.35s ease',
+      transition: 'background 0.35s ease',
+      ...teinte,
     }}>
       {/* Les marges internes suivent aussi : 40 px de blanc pris sur une colonne
           de 184 px, c'était près du quart de la place restante. */}
