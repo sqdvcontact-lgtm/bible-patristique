@@ -1138,12 +1138,15 @@ button:focus-visible,
 
 /* ── Le FIL de choix du volet de lecture ─────────────────────────────────────
    Les états d'un même axe posés en ligne, séparés par des points médians, à la
-   place des cases pleine largeur (charte, « Le volet de lecture »). ⛔ Le cadre
-   ayant disparu, c'est le SURVOL qui dit l'action : sans lui, un mot gris au
-   milieu d'un volet ne s'annonce plus comme cliquable. Le mot actif, lui, ne se
-   souligne pas — c'est là qu'on est, il n'y a rien à y faire. */
+   place des cases pleine largeur (charte, « Le volet de lecture »). L'état retenu
+   porte le TRAIT vert des onglets du site ; le survol d'un autre l'ESQUISSE, en
+   gris, sous le mot qu'un clic retiendrait. ⛔ Pas de soulignement : le trait est
+   déjà sous le mot, et deux marques au même endroit se confondraient.
+   ⚠️ Le mot actif ne bouge PAS au survol — c'est là qu'on est, il n'y a rien à y
+   faire. La ligne d'action, elle, n'a pas de trait : elle se souligne. */
 .cs-mot-fil:hover,
-.cs-mot-fil:focus-visible { text-decoration: underline; }
-.cs-mot-fil[aria-pressed='true']:hover { text-decoration: none; }
+.cs-mot-fil:focus-visible { color: var(--cs-vert); border-bottom-color: var(--cs-texte-faible); }
+.cs-mot-fil[aria-pressed='true']:hover,
+.cs-mot-fil[aria-pressed='true']:focus-visible { color: var(--cs-encre); border-bottom-color: var(--cs-vert); }
 .cs-ligne-action:hover,
-.cs-ligne-action:focus-visible { text-decoration: underline; color: var(--cs-vert); }
+.cs-ligne-action:focus-visible { text-decoration: underline; }

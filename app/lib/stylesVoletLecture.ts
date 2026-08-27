@@ -40,39 +40,53 @@ export const BTN_VOLET = (actif: boolean): CSSProperties => ({
 
 /**
  * Le FIL de choix : les états d'un même axe posés en ligne, séparés par des
- * points médians, l'actif seul en encre du site (décision de l'auteur, 27 août
- * 2026).
+ * points médians, l'actif seul marqué (décision de l'auteur, 27 août 2026).
  *
  * ⛔ Il remplace la pile de cases pleine largeur pour les axes de la page Bible.
  * Cinq cadres y tenaient deux décisions — trois langues, un oui-ou-non sur les
  * commentaires — et pesaient 181 px en tête du volet, avant même la recherche et
- * la liste des livres. Un axe est une suite d'états, non une collection d'objets :
+ * la liste des livres. Un axe est une suite d'ÉTATS, non une collection d'objets :
  * il se lit comme une ligne, pas comme un formulaire.
  *
- * ⚠️ Le mot ACTIF n'est pas cliquable et ne s'annonce pas comme tel : c'est là
- * qu'on est. Les autres portent le gris des liens du volet et se soulignent au
- * survol — c'est le seul signal d'action, le cadre ayant disparu.
+ * ⛔ Le premier jet le composait en SÉRIF, gris, sans autre marque que la teinte
+ * de l'actif : trois mots de prose au milieu d'un volet, qui ne s'annonçaient pas
+ * comme un réglage (relevé par l'auteur le 27 août 2026). Il porte donc les deux
+ * signaux dont le site se sert déjà pour dire ce qu'on a choisi — le SANS des
+ * repères d'interface, et le TRAIT vert sous l'état retenu, celui des onglets de
+ * la bibliothèque et du catalogue des péricopes.
+ *
+ * ⛔ Le trait prend `--cs-vert`, JAMAIS `--cs-vert-aplat` dont les onglets du
+ * site se servent : le second est un APLAT, et sur le Cuir il vaut un brun de
+ * 4a3c2c posé sur un sol de 1c1813 — le trait y disparaîtrait, c'est-à-dire
+ * précisément la marque qui dit ce qu'on lit. Les deux valent le même vert au
+ * Clair. ⚠️ Le trait est posé sur les
+ * DEUX états, transparent quand le mot n'est pas retenu : sinon le fil sauterait
+ * d'un pixel à chaque changement.
  */
 export const MOT_DU_FIL = (actif: boolean): CSSProperties => ({
   background: 'none',
   border: 'none',
-  padding: '1px 0',
-  fontSize: '0.6875rem',
-  lineHeight: 1.5,
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
-  color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
-  fontWeight: actif ? 600 : 400,
+  borderBottom: `2px solid ${actif ? 'var(--cs-vert)' : 'transparent'}`,
+  padding: '0 0 3px',
+  fontSize: '0.71875rem',
+  lineHeight: 1.35,
+  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
+  fontWeight: actif ? 600 : 500,
   cursor: actif ? 'default' : 'pointer',
-  textDecoration: 'none',
-  textUnderlineOffset: '3px',
+  transition: 'color 0.12s, border-color 0.12s',
 })
 
-/** Le point médian qui sépare deux mots du fil. Il ne se clique pas. */
-export const SEPARATEUR_FIL: CSSProperties = {
-  padding: '0 4px',
-  fontSize: '0.6875rem',
-  color: 'var(--cs-texte-faible)',
-}
+/**
+ * Le BLANC qui sépare deux états du fil, posé sur le conteneur.
+ *
+ * ⛔ Ce fut d'abord un point médian, et il ne pouvait pas tenir : le fil se coupe
+ * quand les libellés sont longs — les trois graphies de la Bible 899 font 187 px
+ * pour 179 de volet — et le point restait alors SEUL en bout de ligne. Le trait
+ * vert liant désormais la série à lui seul, le point n'avait plus d'office que
+ * d'ajouter du bruit à 11,5 px.
+ */
+export const BLANC_DU_FIL = '14px'
 
 /**
  * La LIGNE D'ACTION d'un groupe binaire : elle dit ce qu'un clic fera, non l'état
@@ -82,6 +96,10 @@ export const SEPARATEUR_FIL: CSSProperties = {
  * ⛔ Un oui-ou-non ne se rend pas en deux cases dont l'une est toujours éteinte :
  * c'est une décision, pas un choix entre deux objets. La ligne se nomme
  * elle-même, et se passe donc de l'étiquette de rubrique.
+ *
+ * ⚠️ Elle porte le VERT du site, quand les mots du fil portent l'encre et le gris :
+ * dans ce volet, la teinte dit ce qu'on peut faire et l'encre ce qu'on lit. En
+ * italique grisée, elle passait pour une note de bas de page.
  */
 export const LIGNE_ACTION_VOLET: CSSProperties = {
   display: 'block',
@@ -89,12 +107,12 @@ export const LIGNE_ACTION_VOLET: CSSProperties = {
   textAlign: 'left',
   background: 'none',
   border: 'none',
-  padding: '2px 0',
+  padding: '2px 0 0',
   fontSize: '0.71875rem',
-  lineHeight: 1.45,
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
-  fontStyle: 'italic',
-  color: 'var(--cs-texte-second)',
+  lineHeight: 1.4,
+  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontWeight: 500,
+  color: 'var(--cs-vert)',
   cursor: 'pointer',
   textUnderlineOffset: '3px',
 }

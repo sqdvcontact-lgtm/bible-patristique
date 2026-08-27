@@ -11,7 +11,7 @@ import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import { estUrl, type RangChrono } from '@/app/lib/frise'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
-import { LABEL_VOLET, BTN_VOLET, LIGNE_ACTION_VOLET, MOT_DU_FIL, SEPARATEUR_FIL } from '@/app/lib/stylesVoletLecture'
+import { LABEL_VOLET, LIGNE_ACTION_VOLET, MOT_DU_FIL, BLANC_DU_FIL } from '@/app/lib/stylesVoletLecture'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
@@ -714,7 +714,8 @@ export default function NavLivres({
               {groupe.bascule ? (
                 // Un oui-ou-non ne demande pas deux cases : il demande UNE ligne
                 // qui dit ce qu'un clic fera. On rend donc le seul choix inactif,
-                // sous son libellé d'action.
+                // sous son libellé d'action, au vert du site — la teinte dit ici
+                // ce qu'on peut FAIRE, quand l'encre dit ce qu'on lit.
                 groupe.choix.filter((choix) => !choix.actif).slice(0, 1).map((choix) => (
                   <button key={choix.cle} type="button" title={choix.description}
                     onMouseEnter={() => onPreparerModeLecture?.(choix.cible)}
@@ -726,15 +727,16 @@ export default function NavLivres({
                   </button>
                 ))
               ) : (
-              // Un FIL de mots, séparés par des points médians : l'actif porte
-              // l'encre du site, les autres restent gris et cliquables. ⛔ Plus de
-              // case par choix — cinq cadres pour deux décisions pesaient 181 px
-              // en tête du volet, avant même la recherche et les livres.
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', marginTop: '3px' }}>
-                {groupe.choix.map((choix, index) => (
-                  <Fragment key={choix.cle}>
-                    {index > 0 && <span aria-hidden="true" style={SEPARATEUR_FIL}>·</span>}
-                    <button type="button" title={choix.description}
+              // Un FIL d'états, séparés par un blanc : l'état retenu porte l'encre
+              // du site et le TRAIT vert des onglets, les autres restent gris et
+              // cliquables. ⛔ Plus de case par choix — cinq cadres pour deux
+              // décisions pesaient 181 px en tête du volet, avant même la recherche
+              // et les livres.
+              // ⚠️ Alignement sur la ligne de PIED, non sur le milieu : c'est elle
+              // que les traits doivent partager.
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', marginTop: '4px', columnGap: BLANC_DU_FIL, rowGap: '3px' }}>
+                {groupe.choix.map((choix) => (
+                    <button key={choix.cle} type="button" title={choix.description}
                       aria-pressed={choix.actif}
                       // La page est demandée AU SURVOL, avant le clic : « Latin » vise
                       // une autre adresse, donc un rendu serveur entier, et le temps de
@@ -747,7 +749,6 @@ export default function NavLivres({
                       style={MOT_DU_FIL(choix.actif)}>
                       {choix.label}
                     </button>
-                  </Fragment>
                 ))}
               </div>
               )}
