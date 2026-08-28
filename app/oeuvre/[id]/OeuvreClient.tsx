@@ -21,6 +21,7 @@ import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets } from '@/app/lib/compositionVersets'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -1654,6 +1655,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // créer ici un second bloc imbriqué : elle ne traite que les citations encore
     // signalées par leurs guillemets dans un segment ordinaire.
     if (texteCitationStructurelle != null) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
+    // Un VERSET est déjà dans le bloc de sa citation : le sortir une seconde fois y
+    // imbriquerait un retrait dans un retrait, pour dire ce qui est déjà dit.
+    if (s.nature === NATURE_VERSET) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
     // `sansAnnonce` : réservé à la prose. Une réplique de dialogue est elle aussi
     // entre guillemets et n'est pas une citation d'auteur (Boèce).
     const sortie = detecterCitationSortie(texte, { sansAnnonce: s.nature === 'texte' })
@@ -1706,9 +1710,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // refait par-dessus (⚠️ on ne fond QUE là — le latin d'une strophe vit sur son vers
     // de rang 1, et fondre le poème en regard n'en garderait qu'un seul).
     if (!enRegard) {
+      // ⚠️ La citation en VERSETS se refait elle aussi. `paragraphe` la découpe comme
+      // il découpe un poème : selon ce que l'édition source a mis dedans — un
+      // paragraphe pour toute la citation ici, un par verset là. Sans fusion, le même
+      // style rendrait un bloc d'un côté et autant de blocs que de versets de l'autre,
+      // avec deux blancs différents entre les lignes. Le bloc est la CITATION.
       return fusionnerBlocs(
-        paragraphesDe(itemIds),
-        ids => ids.every(sid => segMap.get(sid)?.nature === 'vers'),
+        fusionnerBlocs(
+          paragraphesDe(itemIds),
+          ids => ids.every(sid => segMap.get(sid)?.nature === 'vers'),
+        ),
+        ids => estBlocVersets(ids.map(sid => segMap.get(sid)?.nature)),
       ).map(c => ({ ids: c.ids, groupe: null as string | null }))
     }
     if (!blocsAlignes) return paragraphesDe(itemIds).map(c => ({ ids: c.ids, groupe: null as string | null }))
@@ -1825,6 +1837,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            ligne VIDE. Son rembourrage y peignait au survol un trait vert d'un
            demi-pixel, flottant seul dans la marge au-dessus de la citation. */
         .seg-inline:has(> .citation-sortie:first-child) { padding: 0; }
+        /* Citation biblique DÉCOUPÉE EN VERSETS (nature de segment "verset"). Le style
+           de la citation sortie — corps réduit, justification, ni guillemets ni filet —
+           mais retrait à GAUCHE seulement, et un léger blanc entre versets au lieu du
+           blanc de paragraphe : on lit un passage continu, non une suite de sujets.
+           Les mesures vivent dans app/lib/compositionVersets.ts, que la comparaison
+           des traductions emploie aussi : une seule composition, deux surfaces. */
+        .citation-versets { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0 0 0.72rem; word-spacing: -0.025em; letter-spacing: 0; }
+        .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: 1.62; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
+        .citation-verset:last-child { margin-bottom: 0; }
+        @media(max-width: 980px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
         .texte-original { color: var(--cs-original); font-family: var(--font-source-serif), Georgia, serif; }
         .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
         @media(max-width: 980px){
@@ -2405,6 +2427,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // règle vit dans `app/lib/compositionVers.ts`, que les traductions
                     // parallèles emploient aussi — une seule composition, deux surfaces.
                     const toutVers = chunk.ids.every(sid => segMap.get(sid)?.nature === 'vers')
+                    // Citation biblique posée VERSET PAR VERSET : la coupure vient de
+                    // l'édition, non de la segmentation, et ne se recolle donc pas comme
+                    // celle d'une `citation` sortie. Règle et mesures dans
+                    // `app/lib/compositionVersets.ts`, partagées avec la comparaison.
+                    const toutVerset = estBlocVersets(chunk.ids.map(sid => segMap.get(sid)?.nature))
                     // L'original a sa PROPRE nature : un original en vers se compose en
                     // vers même si la traduction d'en face est en prose, et l'inverse.
                     // Le repli n'en sait rien et suit la colonne française, comme avant.
@@ -2452,6 +2479,31 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               )
                             })
                           })()}
+                        </div>
+                      ) : toutVerset ? (
+                        /* Citation biblique DÉCOUPÉE EN VERSETS : un verset = une boîte.
+                           Le style de la citation sortie — corps réduit, justification,
+                           ni guillemets ni filet — avec un retrait à GAUCHE seulement et
+                           un léger blanc entre versets au lieu du blanc de paragraphe.
+                           ⛔ Pas de lettrine ici, pour la raison qui l'interdit aux vers :
+                           le drop cap est un flottant, et posé dans la boîte d'une ligne
+                           il déborde sur les suivantes, qui sont des boîtes sœurs. */
+                        <div lang={langueCorps} className="citation-versets" style={{ display: afficherOriginalSeul ? 'none' : undefined }}>
+                          {chunk.ids.map((sid) => {
+                            const s = segMap.get(sid)
+                            if (!s) return null
+                            const actif = segActif === sid
+                            return (
+                              <span key={sid} className="citation-verset">
+                                <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
+                                  onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                  onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                                  onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                                  {rendreCorpsSegment(s, false)}
+                                </span>
+                              </span>
+                            )
+                          })}
                         </div>
                       ) : (
                       <p lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>

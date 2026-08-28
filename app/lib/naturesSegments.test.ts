@@ -6,11 +6,11 @@ describe('vocabulaire des importateurs génériques', () => {
     expect(NATURE_VALIDES).toEqual([
       'texte', 'citation', 'lemme', 'vers', 'rubrique', 'dialogue',
       'introduction', 'apparat_critique', 'separateur', 'texte absent',
-      'signature',
+      'signature', 'verset',
     ])
   })
 
-  it.each(['vers', 'dialogue', 'rubrique'] as const)('accepte %s sans la modifier', nature => {
+  it.each(['vers', 'verset', 'dialogue', 'rubrique'] as const)('accepte %s sans la modifier', nature => {
     expect(normaliserNatureSegment(nature)).toBe(nature)
   })
 

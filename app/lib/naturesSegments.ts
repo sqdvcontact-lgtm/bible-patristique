@@ -14,6 +14,9 @@ export const NATURE_VALIDES = [
   // Bloc de signatures (approbations, censeurs, souscripteurs) : composé au fer à
   // droite, interligne resserré, sans espace entre lignes de même nature.
   'signature',
+  // Verset d'une citation biblique longue que l'édition pose verset par verset.
+  // Un segment = un verset ; la suite forme le bloc. Voir `compositionVersets.ts`.
+  'verset',
 ] as const
 
 export type NatureSegmentValide = typeof NATURE_VALIDES[number]

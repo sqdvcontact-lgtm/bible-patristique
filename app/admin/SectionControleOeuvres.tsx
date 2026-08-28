@@ -60,6 +60,8 @@ const canonNature = (n: string | null | undefined): string => (n === 'apparat' ?
 const LIBELLE_NATURE: Record<string, string> = {
   texte: 'Texte', titre: 'Titre', introduction: 'Introduction',
   apparat_critique: 'Apparat critique', separateur: 'Séparateur', citation: 'Citation', note: 'Note',
+  // Un verset d'une citation biblique posée verset par verset (compositionVersets.ts).
+  verset: 'Verset',
 }
 type SegmentAfficheControle = { segment: SegmentControle; contexte?: boolean }
 type ChampLien = ChampLienBiblique
@@ -753,7 +755,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
   // ceux déjà présents dans l'œuvre) : on part d'une liste canonique, complétée des natures
   // effectivement rencontrées. UNE SEULE nature d'apparat : `apparat_critique` (celle que
   // lit la vue Apparat de la page œuvre) ; l'ancien `apparat` y est ramené.
-  const NATURES_CANONIQUES = ['texte', 'titre', 'introduction', 'apparat_critique', 'separateur', 'citation', 'note']
+  const NATURES_CANONIQUES = ['texte', 'titre', 'introduction', 'apparat_critique', 'separateur', 'citation', 'note', 'verset']
   const naturesDisponibles = React.useMemo(() => {
     const set = new Set<string>(NATURES_CANONIQUES)
     segments.forEach(s => { if (s.nature) set.add(canonNature(s.nature)) })

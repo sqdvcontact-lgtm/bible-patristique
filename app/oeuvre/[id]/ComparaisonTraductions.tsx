@@ -15,6 +15,7 @@ import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from
 import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { NATURE_VERSET } from '@/app/lib/compositionVersets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   projeterAppelsNotesStructurees,
@@ -173,7 +174,7 @@ const STYLE_TEXTE_PARALLELE = {
   whiteSpace: 'pre-line',
 } as const
 
-type BlocLecture = { type: 'prose' | 'vers' | 'rubrique'; segs: SegmentComparaison[] }
+type BlocLecture = { type: 'prose' | 'vers' | 'versets' | 'rubrique'; segs: SegmentComparaison[] }
 
 // Une colonne = une traduction. Les segments sont cliquables comme en lecture
 // (survol/clic → cellule d'actions flottante : prélever, copier, signaler). Le CSS
@@ -207,14 +208,21 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   }
 
   // Blocs : la prose d'un même paragraphe coule ensemble ; les vers consécutifs
-  // forment une strophe (lignes serrées) ; une rubrique est isolée.
+  // forment une strophe (lignes serrées) ; les versets consécutifs forment la citation
+  // biblique dont ils sont tirés ; une rubrique est isolée.
   const blocs: BlocLecture[] = []
   for (const segment of ordonnes) {
-    const type: BlocLecture['type'] = segment.nature === 'vers' ? 'vers' : segment.nature === 'rubrique' ? 'rubrique' : 'prose'
+    const type: BlocLecture['type'] = segment.nature === 'vers' ? 'vers'
+      : segment.nature === NATURE_VERSET ? 'versets'
+      : segment.nature === 'rubrique' ? 'rubrique' : 'prose'
     const dernier = blocs.at(-1)
     const memeProse = dernier?.type === 'prose' && type === 'prose' && segment.paragraphe != null && segment.paragraphe === dernier.segs[0].paragraphe
     const memeVers = dernier?.type === 'vers' && type === 'vers'
-    if (dernier && (memeProse || memeVers)) dernier.segs.push(segment)
+    // ⚠️ Les versets se réunissent sans regarder `paragraphe`, comme les vers : le
+    // bloc est la CITATION, et les éditions ne s'accordent pas sur ce qu'elles
+    // rangent dans un paragraphe (voir `compositionVersets.ts`).
+    const memeVersets = dernier?.type === 'versets' && type === 'versets'
+    if (dernier && (memeProse || memeVers || memeVersets)) dernier.segs.push(segment)
     else blocs.push({ type, segs: [segment] })
   }
 
@@ -263,6 +271,19 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
                   </span>
                 )
               })}
+            </div>
+          )
+        }
+        if (bloc.type === 'versets') {
+          // Citation biblique posée VERSET PAR VERSET, comme en lecture ordinaire :
+          // retrait à gauche, léger blanc entre versets, corps réduit. Les classes
+          // viennent du bloc <style> parent (OeuvreClient), leurs mesures de
+          // `app/lib/compositionVersets.ts` — une seule composition, deux surfaces.
+          return (
+            <div key={blocIndex} lang={codeLangue} className="citation-versets" style={{ marginTop, marginBottom: 0, fontFamily: police }}>
+              {bloc.segs.map(segment => (
+                <span key={segment.segment_key} className="citation-verset">{rendreSegment(segment)}</span>
+              ))}
             </div>
           )
         }
