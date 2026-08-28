@@ -39,80 +39,62 @@ export const BTN_VOLET = (actif: boolean): CSSProperties => ({
 })
 
 /**
- * Le FIL de choix : les états d'un même axe posés en ligne, séparés par des
- * points médians, l'actif seul marqué (décision de l'auteur, 27 août 2026).
+ * La RUBRIQUE d'un axe, dans le volet de la Bible : « Lecture », « Commentaires ».
  *
- * ⛔ Il remplace la pile de cases pleine largeur pour les axes de la page Bible.
- * Cinq cadres y tenaient deux décisions — trois langues, un oui-ou-non sur les
- * commentaires — et pesaient 181 px en tête du volet, avant même la recherche et
- * la liste des livres. Un axe est une suite d'ÉTATS, non une collection d'objets :
- * il se lit comme une ligne, pas comme un formulaire.
+ * ⛔ En casse ORDINAIRE. L'auteur a refusé les capitales du volet le 28 août 2026,
+ * d'abord sur la barre d'onglets, puis ici : un volet de lecture n'a rien à crier,
+ * et une rubrique de trois mots se distingue assez par sa petitesse et sa pâleur.
  *
- * ⛔ Le premier jet le composait en SÉRIF, gris, sans autre marque que la teinte
- * de l'actif : trois mots de prose au milieu d'un volet, qui ne s'annonçaient pas
- * comme un réglage (relevé par l'auteur le 27 août 2026). Il porte donc les deux
- * signaux dont le site se sert déjà pour dire ce qu'on a choisi — le SANS des
- * repères d'interface, et le TRAIT vert sous l'état retenu, celui des onglets de
- * la bibliothèque et du catalogue des péricopes.
- *
- * ⛔ Le trait prend `--cs-vert`, JAMAIS `--cs-vert-aplat` dont les onglets du
- * site se servent : le second est un APLAT, et sur le Cuir il vaut un brun de
- * 4a3c2c posé sur un sol de 1c1813 — le trait y disparaîtrait, c'est-à-dire
- * précisément la marque qui dit ce qu'on lit. Les deux valent le même vert au
- * Clair. ⚠️ Le trait est posé sur les
- * DEUX états, transparent quand le mot n'est pas retenu : sinon le fil sauterait
- * d'un pixel à chaque changement.
+ * ⚠️ `LABEL_VOLET` ci-dessus, qui les porte encore, ne sert plus que la page Œuvre.
+ * Les unifier est une décision qui n'a pas été prise : elle changerait les intitulés
+ * d'une page que l'auteur n'a pas nommée.
  */
-export const MOT_DU_FIL = (actif: boolean): CSSProperties => ({
-  background: 'none',
+export const RUBRIQUE_AXE: CSSProperties = {
+  display: 'block',
+  fontSize: '0.59375rem',
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  color: 'var(--cs-texte-faible)',
+  marginBottom: '3px',
+}
+
+/**
+ * Une OPTION d'axe : une ligne pleine largeur, l'option retenue sur pastille verte.
+ *
+ * ⛔ Une option par LIGNE, et toutes les options montrées (décision de l'auteur,
+ * 28 août 2026) : « je veux qu'on distingue en un coup d'œil toutes les options ».
+ * Deux formes ont été essayées avant, et toutes deux cachaient quelque chose. Le
+ * FIL en ligne — les états d'un axe posés côte à côte, l'actif souligné de vert —
+ * imitait la barre d'onglets qu'il surmontait, si bien que le volet portait deux
+ * rangs de mots soulignés l'un sur l'autre. Et la LIGNE D'ACTION d'un axe binaire
+ * (« Masquer les commentaires ») ne disait que le geste : l'état ne s'y lisait qu'à
+ * l'envers, et l'axe n'avait pas l'air d'un choix.
+ *
+ * ⚠️ La pastille est celle de la LISTE DES LIVRES, dans le même volet, à quelques
+ * pixels de là : c'est le signal dont le volet se sert déjà pour dire « voici ce
+ * que vous lisez ». Trois autres marqueurs ont été mis en regard le même jour —
+ * filet vert à gauche, puce pleine, cases encadrées — et celui-ci l'a emporté
+ * parce qu'il n'en introduit aucun de plus.
+ *
+ * ⚠️ La pastille DÉBORDE le bloc de sept pixels de chaque côté, comme une rangée
+ * de livre déborde le sien : sans cela elle paraîtrait rentrée par rapport à la
+ * liste qui la suit.
+ */
+export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
+  display: 'block',
+  width: 'calc(100% + 14px)',
+  margin: '0 -7px',
+  boxSizing: 'border-box',
+  textAlign: 'left',
+  padding: '3px 7px',
+  borderRadius: '4px',
   border: 'none',
-  borderBottom: `2px solid ${actif ? 'var(--cs-vert)' : 'transparent'}`,
-  padding: '0 0 3px',
+  background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
+  color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
+  fontWeight: actif ? 600 : 400,
   fontSize: '0.71875rem',
   lineHeight: 1.35,
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
-  color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
-  fontWeight: actif ? 600 : 500,
   cursor: actif ? 'default' : 'pointer',
-  transition: 'color 0.12s, border-color 0.12s',
+  transition: 'background 0.12s, color 0.12s',
 })
-
-/**
- * Le BLANC qui sépare deux états du fil, posé sur le conteneur.
- *
- * ⛔ Ce fut d'abord un point médian, et il ne pouvait pas tenir : le fil se coupe
- * quand les libellés sont longs — les trois graphies de la Bible 899 font 187 px
- * pour 179 de volet — et le point restait alors SEUL en bout de ligne. Le trait
- * vert liant désormais la série à lui seul, le point n'avait plus d'office que
- * d'ajouter du bruit à 11,5 px.
- */
-export const BLANC_DU_FIL = '14px'
-
-/**
- * La LIGNE D'ACTION d'un groupe binaire : elle dit ce qu'un clic fera, non l'état
- * où l'on est — « Masquer les commentaires », qui devient « Afficher les
- * commentaires » une fois masqués.
- *
- * ⛔ Un oui-ou-non ne se rend pas en deux cases dont l'une est toujours éteinte :
- * c'est une décision, pas un choix entre deux objets. La ligne se nomme
- * elle-même, et se passe donc de l'étiquette de rubrique.
- *
- * ⚠️ Elle porte le VERT du site, quand les mots du fil portent l'encre et le gris :
- * dans ce volet, la teinte dit ce qu'on peut faire et l'encre ce qu'on lit. En
- * italique grisée, elle passait pour une note de bas de page.
- */
-export const LIGNE_ACTION_VOLET: CSSProperties = {
-  display: 'block',
-  width: '100%',
-  textAlign: 'left',
-  background: 'none',
-  border: 'none',
-  padding: '2px 0 0',
-  fontSize: '0.71875rem',
-  lineHeight: 1.4,
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
-  fontWeight: 500,
-  color: 'var(--cs-vert)',
-  cursor: 'pointer',
-  textUnderlineOffset: '3px',
-}

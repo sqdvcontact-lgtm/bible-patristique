@@ -44,13 +44,6 @@ export type CibleLectureAlternative = {
 export type ChoixLectureBible = {
   cle: string
   label: string
-  /**
-   * Le libellé d'ACTION, quand le groupe se rend en une seule ligne : ce qu'un
-   * clic fera, non l'état où l'on est. « Masquer les commentaires » plutôt que
-   * « Sans les commentaires ». ⚠️ Les deux sont nécessaires : le premier nomme
-   * un état pour l'infobulle et le contrôle, le second dit un geste.
-   */
-  labelAction?: string
   /** Infobulle : ce que ce mode montre, en une phrase. */
   description: string
   actif: boolean
@@ -61,14 +54,14 @@ export type GroupeLectureBible = {
   cle: string
   /** Intitulé du groupe, au rang des étiquettes de volet. */
   titre: string
-  choix: ChoixLectureBible[]
   /**
-   * Groupe BINAIRE, rendu en une seule ligne d'action plutôt qu'en deux choix.
-   * Un oui-ou-non ne demande pas deux cases : il demande une ligne qui dit ce
-   * qu'un clic fera. Le volet montre alors le seul choix INACTIF, sous son
-   * libellé d'action, et se passe d'étiquette — la ligne se nomme elle-même.
+   * ⛔ Tous les choix se MONTRENT, y compris ceux d'un axe binaire : « Avec les
+   * commentaires » et « Sans les commentaires » sont deux options, non une ligne
+   * d'action. Le drapeau `bascule` et le `labelAction` qui servaient ce rendu ont
+   * été retirés le 28 août 2026 avec lui : l'état ne s'y lisait qu'à l'envers, dans
+   * le geste qu'un clic aurait fait.
    */
-  bascule?: boolean
+  choix: ChoixLectureBible[]
 }
 
 /** Un membre de la famille éditoriale, tel que le catalogue le décrit. */
@@ -210,12 +203,10 @@ function groupeCommentaires(faits: FaitsLectureBible): GroupeLectureBible | null
   return {
     cle: 'commentaires',
     titre: 'Commentaires',
-    bascule: true,
     choix: [
       {
         cle: 'avec-commentaires',
         label: 'Avec les commentaires',
-        labelAction: 'Afficher les commentaires',
         description: 'Le texte avec l’appareil de l’édition : introductions, commentaires et notes',
         actif: !texteSeul,
         cible: { texteSeul: false },
@@ -223,7 +214,6 @@ function groupeCommentaires(faits: FaitsLectureBible): GroupeLectureBible | null
       {
         cle: 'sans-commentaires',
         label: 'Sans les commentaires',
-        labelAction: 'Masquer les commentaires',
         description: 'Le seul texte biblique, sans introduction, commentaire ni note',
         actif: texteSeul,
         cible: { texteSeul: true },

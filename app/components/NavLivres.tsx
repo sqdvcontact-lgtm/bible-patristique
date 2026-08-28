@@ -7,7 +7,7 @@ import ModaleTraduction from '@/app/components/ModaleTraduction'
 import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
-import { LABEL_VOLET, LIGNE_ACTION_VOLET, MOT_DU_FIL, BLANC_DU_FIL } from '@/app/lib/stylesVoletLecture'
+import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
@@ -506,60 +506,34 @@ export default function NavLivres({
           écarter, un second membre à mettre en regard. Une bible ordinaire n'en a
           aucun, et le volet reste alors ce qu'il était.
 
-          Même forme que les menus de la page Œuvre (`stylesVoletLecture`) : c'est le
-          même geste — choisir comment on lit ce qu'on a sous les yeux — et il ne doit
-          pas se présenter de deux façons selon la page. Il vaut aussi sur mobile, où
-          il est la seule voie pour sortir d'une lecture en regard : c'est une
-          navigation, non un ornement. */}
+          ⛔ UNE OPTION PAR LIGNE, et toutes les options montrées (décision de
+          l'auteur, 28 août 2026). Ni fil en ligne, qui imitait la barre d'onglets
+          juste dessous, ni ligne d'action, qui ne disait que le geste et laissait
+          l'état se lire à l'envers. La forme vit dans `stylesVoletLecture`, avec la
+          raison de chacun de ses traits.
+
+          Il vaut aussi sur mobile, où il est la seule voie pour sortir d'une lecture
+          en regard : c'est une navigation, non un ornement. */}
       {modesLecture.length > 0 && (
         <div style={{ flexShrink: 0, padding: '9px 10px 10px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
-            <div key={groupe.cle} style={rang > 0 ? { marginTop: groupe.bascule ? '9px' : '7px' } : undefined}>
-              {/* ⛔ Un groupe de BASCULE ne porte pas d'étiquette : sa ligne se
-                  nomme elle-même (« Masquer les commentaires »), et l'étiquette
-                  ne ferait que redire le mot qui suit. */}
-              {!groupe.bascule && <span style={LABEL_VOLET}>{groupe.titre}</span>}
-              {groupe.bascule ? (
-                // Un oui-ou-non ne demande pas deux cases : il demande UNE ligne
-                // qui dit ce qu'un clic fera. On rend donc le seul choix inactif,
-                // sous son libellé d'action, au vert du site — la teinte dit ici
-                // ce qu'on peut FAIRE, quand l'encre dit ce qu'on lit.
-                groupe.choix.filter((choix) => !choix.actif).slice(0, 1).map((choix) => (
-                  <button key={choix.cle} type="button" title={choix.description}
-                    onMouseEnter={() => onPreparerModeLecture?.(choix.cible)}
-                    onFocus={() => onPreparerModeLecture?.(choix.cible)}
-                    onClick={() => onChoisirModeLecture?.(choix.cible)}
-                    className="cs-ligne-action"
-                    style={LIGNE_ACTION_VOLET}>
-                    {choix.labelAction ?? choix.label}
-                  </button>
-                ))
-              ) : (
-              // Un FIL d'états, séparés par un blanc : l'état retenu porte l'encre
-              // du site et le TRAIT vert des onglets, les autres restent gris et
-              // cliquables. ⛔ Plus de case par choix — cinq cadres pour deux
-              // décisions pesaient 181 px en tête du volet, avant même la recherche
-              // et les livres.
-              // ⚠️ Alignement sur la ligne de PIED, non sur le milieu : c'est elle
-              // que les traits doivent partager.
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', marginTop: '4px', columnGap: BLANC_DU_FIL, rowGap: '3px' }}>
-                {groupe.choix.map((choix) => (
-                    <button key={choix.cle} type="button" title={choix.description}
-                      aria-pressed={choix.actif}
-                      // La page est demandée AU SURVOL, avant le clic : « Latin » vise
-                      // une autre adresse, donc un rendu serveur entier, et le temps de
-                      // descendre du libellé au bouton suffit à le commencer. Au clavier,
-                      // c'est le focus qui l'annonce.
-                      onMouseEnter={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
-                      onFocus={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
-                      onClick={() => { if (!choix.actif) onChoisirModeLecture?.(choix.cible) }}
-                      className="cs-mot-fil"
-                      style={MOT_DU_FIL(choix.actif)}>
-                      {choix.label}
-                    </button>
-                ))}
-              </div>
-              )}
+            <div key={groupe.cle} style={rang > 0 ? { marginTop: '9px' } : undefined}>
+              <span style={RUBRIQUE_AXE}>{groupe.titre}</span>
+              {groupe.choix.map((choix) => (
+                <button key={choix.cle} type="button" title={choix.description}
+                  aria-pressed={choix.actif}
+                  // La page est demandée AU SURVOL, avant le clic : « Latin » vise
+                  // une autre adresse, donc un rendu serveur entier, et le temps de
+                  // descendre du libellé au bouton suffit à le commencer. Au clavier,
+                  // c'est le focus qui l'annonce.
+                  onMouseEnter={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
+                  onFocus={() => { if (!choix.actif) onPreparerModeLecture?.(choix.cible) }}
+                  onClick={() => { if (!choix.actif) onChoisirModeLecture?.(choix.cible) }}
+                  className="cs-option-volet"
+                  style={OPTION_VOLET(choix.actif)}>
+                  {choix.label}
+                </button>
+              ))}
             </div>
           ))}
         </div>
