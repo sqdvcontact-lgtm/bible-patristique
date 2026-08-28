@@ -33,6 +33,41 @@
 /** La nature de segment qui porte le style. Un segment = un verset. */
 export const NATURE_VERSET = 'verset'
 
+/**
+ * La case où s'écrit le numéro de verset : `segment_metadata.biblical_verse_number`.
+ *
+ * ⛔ **PAS `verse_number`**, qui est déjà pris et veut dire autre chose : chez Ceriziers,
+ * il porte le rang du VERS dans son poème (1 213 lignes, trente-neuf poèmes qui ont
+ * chacun leur ligne 1). Un vers n'est pas un verset ; réemployer la clé mêlerait la
+ * numérotation d'un mètre de Boèce à celle d'un chapitre d'Isaïe.
+ *
+ * ⚠️ Le numéro ne se DEVINE pas. Ni au nombre en tête du segment — un verset peut
+ * commencer par un nombre (« Quarante jours et quarante nuits… ») —, ni au lien
+ * biblique, qui relève d'un travail de liaison distinct et n'est pas toujours fait.
+ * Il est écrit à la main, verset par verset, par qui tient la donnée.
+ */
+export const CLE_NUMERO_VERSET = 'biblical_verse_number'
+
+/** Au-delà, ce n'est plus un numéro : « 12-13 » fait cinq signes, « 105a-106b » neuf. */
+export const LONGUEUR_MAX_NUMERO_VERSET = 12
+
+/**
+ * Le numéro de verset tel qu'il s'affichera, ou `null` s'il n'y en a pas.
+ *
+ * On accepte le nombre comme la chaîne (un `jsonb` rend l'un ou l'autre), et les formes
+ * composées que l'édition imprime vraiment : « 12 », « 12-13 » quand un segment couvre
+ * deux versets, « 12a » quand elle coupe le verset. On refuse en revanche ce qui ne
+ * porte aucun chiffre, et ce qui dépasse la longueur d'un numéro : mieux vaut ne rien
+ * afficher qu'imprimer une bribe de commentaire au milieu du texte cité.
+ */
+export function numeroVersetLisible(brut: unknown): string | null {
+  if (typeof brut === 'number') return Number.isFinite(brut) ? String(brut) : null
+  if (typeof brut !== 'string') return null
+  const valeur = brut.trim()
+  if (valeur === '' || valeur.length > LONGUEUR_MAX_NUMERO_VERSET) return null
+  return /[0-9]/.test(valeur) ? valeur : null
+}
+
 /** Le retrait gauche du bloc. Même mesure que la citation sortie. */
 export const RETRAIT_VERSET = '8mm'
 

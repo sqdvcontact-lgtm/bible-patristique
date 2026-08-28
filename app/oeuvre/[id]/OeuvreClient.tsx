@@ -21,7 +21,7 @@ import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
-import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets } from '@/app/lib/compositionVersets'
+import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -1047,6 +1047,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
+        numeroVerset: numeroVersetLisible(s.numero_verset),
       }
     })
 
@@ -1115,6 +1116,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
+        numeroVerset: numeroVersetLisible(s.numero_verset),
       }
     })
 
@@ -1657,7 +1659,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (texteCitationStructurelle != null) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
     // Un VERSET est déjà dans le bloc de sa citation : le sortir une seconde fois y
     // imbriquerait un retrait dans un retrait, pour dire ce qui est déjà dit.
-    if (s.nature === NATURE_VERSET) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
+    // ⛔ Et il porte SON numéro, celui du verset, à la place de l'ordinal du segment :
+    // deux nombres en exposant sur la même ligne ne se lisent pas, et c'est le verset
+    // que le lecteur cherche. Décision de l'auteur, 2026-08-28.
+    if (s.nature === NATURE_VERSET) {
+      const numeroVerset = numeroVersetLisible(s.numeroVerset)
+      return (
+        <>
+          {numeroVerset ? <sup className="num-verset">{numeroVerset}</sup> : null}
+          {rendreTexteAvecNotes(texte, s.notes ?? {})}
+        </>
+      )
+    }
     // `sansAnnonce` : réservé à la prose. Une réplique de dialogue est elle aussi
     // entre guillemets et n'est pas une citation d'auteur (Boèce).
     const sortie = detecterCitationSortie(texte, { sansAnnonce: s.nature === 'texte' })
@@ -1847,6 +1860,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: 1.62; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
         .citation-verset:last-child { margin-bottom: 0; }
         @media(max-width: 980px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
+        /* Le NUMÉRO DE VERSET, dans la face de la page Bible : graisse 600, teinte
+           faible, et le corps dans le rapport qu'il y tient (0,625 rem contre 0,875,
+           soit 0,71). La page Bible le pose dans une gouttière, qui se battrait ici
+           avec le retrait gauche ; il passe donc en exposant, sans changer de face.
+           ⚠️ Exposant à la manière de la maison (voir siecles.tsx) : line-height 0 et
+           calage par top, jamais vertical-align:super, qui gonfle la boîte de ligne —
+           et le blanc entre versets, qui est léger, s'en trouverait rouvert. */
+        .num-verset { font-size: 0.71em; font-weight: 600; color: var(--cs-texte-faible); line-height: 0; vertical-align: baseline; position: relative; top: -0.5em; margin-right: 0.25em; user-select: none; }
         .texte-original { color: var(--cs-original); font-family: var(--font-source-serif), Georgia, serif; }
         .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
         @media(max-width: 980px){

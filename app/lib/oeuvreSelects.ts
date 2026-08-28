@@ -34,6 +34,10 @@ export const COLONNES_SEGMENT = [
   'espace_textuel', 'join_before',
   'alinea:segment_metadata->>indent_inches',
   'strophe_avant:segment_metadata->>stanza_before',
+  // Le numéro du VERSET biblique, écrit à la main sur un segment de nature `verset`
+  // (voir `app/lib/compositionVersets.ts`). ⛔ Pas `verse_number` : cette clé-là porte
+  // déjà le rang du VERS dans son poème, chez Ceriziers.
+  'numero_verset:segment_metadata->>biblical_verse_number',
   // Provenance de la colonne latine : `texte_original` est la copie d'un segment du
   // texte en langue originale de l'œuvre, et cette clé dit lequel. Sans elle, le
   // bilingue ne peut pas rendre à ce bloc l'apparat critique qui pend à son segment.

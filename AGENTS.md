@@ -1200,6 +1200,15 @@ Doctrine : charte `parametres.charte_ia` **§3.8** (paragraphe « Une citation P
 - ⛔ **Ni lettrine ni citation sortie sur un verset.** La lettrine est un flottant qui déborderait sur les boîtes sœurs (raison qui l'interdit déjà aux vers) ; et `rendreCorpsSegment` court-circuite `detecterCitationSortie` pour un `verset`, qui imbriquerait un retrait dans un retrait.
 - **Portée au 2026-08-28 : zéro segment.** Le style est posé, la donnée reste à marquer — c'est un travail de lecture, œuvre par œuvre.
 
+## Le NUMÉRO DE VERSET — écrit à la main, dans la face de la page Bible (2026-08-28)
+
+- **La case est `segment_metadata.biblical_verse_number`** (`CLE_NUMERO_VERSET`), lue par `SELECT_SEGMENT` sous le nom `numero_verset` et relue par `numeroVersetLisible` (chaîne ou nombre, formes composées « 12-13 » et « 12a » admises, refus de ce qui ne porte aucun chiffre ou dépasse douze signes).
+- ⛔ **PAS `verse_number` : la clé est déjà prise, et veut dire autre chose.** Chez Ceriziers, elle porte le rang du VERS dans son poème — 1 213 lignes, trente-neuf poèmes qui ont chacun leur ligne 1. Un vers n'est pas un verset ; réemployer la clé mêlerait la numérotation d'un mètre de Boèce à celle d'un chapitre d'Isaïe. (Voir aussi `verse_layout_pending`, six segments de la Cité de Dieu : encore des vers, pas des versets.)
+- ⚠️ **Le numéro ne se DEVINE pas**, décision de l'auteur du 2026-08-28 : ni au nombre en tête du segment (un verset peut commencer par un nombre — « Quarante jours et quarante nuits… »), ni au lien biblique, qui relève d'un travail distinct et n'est pas toujours fait. Il est écrit à la main, verset par verset, par qui tient la donnée.
+- **La face est celle de la page Bible** : graisse 600, `--cs-texte-faible`, et le corps dans le rapport qu'il y tient — 0,625 rem contre 0,875, soit **0,71**, d'où `font-size: 0.71em`. La page Bible pose le numéro dans une gouttière, qui se battrait ici avec le retrait gauche : il passe en exposant sans changer de face.
+- ⚠️ **Exposant à la manière de la maison** (voir `siecles.tsx`) : `line-height: 0`, calage par `top: -0.5em`, **jamais** `vertical-align: super`, qui gonfle la boîte de ligne — et le blanc entre versets, qui est léger, s'en trouverait rouvert. Mesuré sur épreuve : boîte de ligne à 88,03 px avec numéro **comme sans**.
+- **Le numéro de SEGMENT s'efface dans le bloc** (décision de l'auteur) : deux nombres en exposant sur la même ligne ne se lisent pas, et c'est le verset que le lecteur cherche. Le court-circuit `NATURE_VERSET` de `rendreCorpsSegment` rend l'un à la place de l'autre.
+
 # Composition des VERS — l'alinéa de base, et les alinéas qui se lisent (2026-08-23)
 
 Toute la règle vit dans **`app/lib/compositionVers.ts`** (module pur, 15 tests sur les mesures RÉELLES de Boèce). `OeuvreClient` et `ComparaisonTraductions` s'y rapportent tous les deux : une seule composition, deux surfaces.

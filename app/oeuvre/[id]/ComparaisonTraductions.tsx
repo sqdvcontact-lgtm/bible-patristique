@@ -15,7 +15,7 @@ import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from
 import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
-import { NATURE_VERSET } from '@/app/lib/compositionVersets'
+import { CLE_NUMERO_VERSET, NATURE_VERSET, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   projeterAppelsNotesStructurees,
@@ -281,9 +281,15 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
           // `app/lib/compositionVersets.ts` — une seule composition, deux surfaces.
           return (
             <div key={blocIndex} lang={codeLangue} className="citation-versets" style={{ marginTop, marginBottom: 0, fontFamily: police }}>
-              {bloc.segs.map(segment => (
-                <span key={segment.segment_key} className="citation-verset">{rendreSegment(segment)}</span>
-              ))}
+              {bloc.segs.map(segment => {
+                const numero = numeroVersetLisible((segment.segment_metadata ?? {})[CLE_NUMERO_VERSET])
+                return (
+                  <span key={segment.segment_key} className="citation-verset">
+                    {numero ? <sup className="num-verset">{numero}</sup> : null}
+                    {rendreSegment(segment)}
+                  </span>
+                )
+              })}
             </div>
           )
         }

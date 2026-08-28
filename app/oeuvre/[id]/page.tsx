@@ -1,4 +1,5 @@
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
+import { numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
@@ -116,11 +117,11 @@ type Segment = {
   nature: string|null
   paragraphe: number|null; rang: number|null; texte_original: string|null
   espace_textuel: string|null; join_before: string|null
-  // ⚠️ Ces deux-là ne sont pas des colonnes mais des champs de `segment_metadata`,
+  // ⚠️ Ces trois-là ne sont pas des colonnes mais des champs de `segment_metadata`,
   // tirés par leur nom dans `SELECT_SEGMENT` et renommés au passage. PostgREST les
-  // rend donc en TEXTE, quel que soit leur type en base : `mesureAlinea` et
-  // `marqueStrophe` les relisent.
-  alinea: string|null; strophe_avant: string|null
+  // rend donc en TEXTE, quel que soit leur type en base : `mesureAlinea`,
+  // `marqueStrophe` et `numeroVersetLisible` les relisent.
+  alinea: string|null; strophe_avant: string|null; numero_verset: string|null
   // Même remarque : champ de `segment_metadata`, rendu en texte. Il désigne le
   // segment du texte en langue originale dont `texte_original` est la copie.
   cle_original: string|null
@@ -728,6 +729,7 @@ export default async function OeuvrePage({
       groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
+        numeroVerset: numeroVersetLisible(s.numero_verset),
     }))
 
   const groupesData = groupes.map((g, gi) => ({
@@ -757,6 +759,7 @@ export default async function OeuvrePage({
       groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
+        numeroVerset: numeroVersetLisible(s.numero_verset),
     }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({

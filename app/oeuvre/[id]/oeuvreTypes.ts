@@ -73,6 +73,10 @@ export type SegData = {
    *  ⚠️ `null` veut dire « l'édition n'a rien dit », et non « non » : c'est cette
    *  distinction qui commande le repli sur `paragraphe`. */
   stropheAvant?: boolean | null
+  /** Le numéro du VERSET biblique porté par un segment de nature `verset`
+   *  (`segment_metadata.biblical_verse_number`), écrit à la main. `null` quand
+   *  l'édition ne le donne pas : le bloc se lit alors sans numéros. */
+  numeroVerset?: string | null
 }
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
