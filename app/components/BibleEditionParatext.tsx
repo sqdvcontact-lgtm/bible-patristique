@@ -302,14 +302,23 @@ function rendreBlocTexte(
     const coupable = (bloc.inlineSpans?.length ?? 0) === 0
       && !notes.some((note) => positionAppelDansTexte(bloc.text, note, bloc) !== null)
     const intitule = coupable ? diviserIntitule(bloc.text) : null
+    const divise = Boolean(intitule?.sousTitre)
     return (
       <Balise
         key={bloc.id}
-        className={bloc.headingLevel ? classeIntituleTitre(bloc.headingLevel) : 'cs-bible-info-label'}
+        className={[
+          bloc.headingLevel ? classeIntituleTitre(bloc.headingLevel) : 'cs-bible-info-label',
+          divise ? 'cs-bible-titre--divise' : null,
+        ].filter(Boolean).join(' ')}
         data-source-start={bloc.sourceStartOffsetUnicode ?? undefined}
         data-source-end={bloc.sourceEndOffsetUnicode ?? undefined}
         style={{
-          textAlign: bloc.presentation?.textAlign,
+          // ⛔ L'alignement reconstruit du fac-similé décrivait UNE ligne : « I —
+          // Ce qu'est la Bible », composée au fer dans la colonne imprimée. Il ne
+          // dit plus rien d'une PAIRE, et l'appliquer laissait un chiffre romain
+          // solitaire pendre au bord gauche. La paire retombe donc sur son rang,
+          // qui centre les trois hauts et laisse les bas au fer (globals.css).
+          textAlign: divise ? undefined : bloc.presentation?.textAlign,
           fontStyle: bloc.presentation?.fontStyle,
         }}
       >

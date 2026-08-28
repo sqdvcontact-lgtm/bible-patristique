@@ -1152,6 +1152,21 @@ button:focus-visible,
   color: var(--cs-encre-fonce);
 }
 
+/* Un intertitre DIVISÉ — « I », puis « Ce qu'est la Bible » — n'est pas tout à
+   fait un titre suivi de son chapeau : sa tête ne fait souvent qu'un CHIFFRE
+   ROMAIN, là où « Première partie » remplit sa ligne. Une désignation d'une
+   lettre demande plus de blanc au-dessus pour ouvrir sa section, et un peu plus
+   d'air sous elle pour ne pas se coller à son objet.
+   ⛔ Aucune chasse sur la tête : une lettre seule ne s'espace pas, et la chasse
+   qu'on lui ajouterait, tombant APRÈS elle, la décalerait de l'axe. */
+.cs-bible-titre--divise {
+  margin-top: 2.5rem;
+  margin-bottom: 0.9rem;
+}
+.cs-bible-titre--divise > .cs-bible-chapeau {
+  margin-top: 0.3rem;
+}
+
 /* ── Barre de défilement discrète ───────────────────────────────────────────
    Une seule écriture pour tout ce qui défile dans le CHROME du site : la barre
    d'onglets de l'administration, les menus déroulants de la navbar. Les zones de
