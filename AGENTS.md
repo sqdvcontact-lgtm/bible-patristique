@@ -2236,3 +2236,45 @@ Elle vit désormais dans **`app/oeuvre/[id]/FicheEdition.tsx`**, sortie des 3 19
 - **Le genre et la date de composition**, qui ne paraissaient nulle part ailleurs que dans l'ancienne carte « Texte original ».
 
 ⚠️ **La garde du lien « En savoir plus sur cette édition » compte désormais CE QUE LA FICHE SAIT DIRE**, et non les seuls champs de l'édition imprimée : une œuvre sans éditeur ni collection a tout de même un genre, une date de composition et une étendue.
+
+# Recherche — trois FAMILLES DE CORPUS, et des résultats groupés (2026-08-28)
+
+Les quatre onglets de `app/recherche/RechercheClient.tsx` rendaient tout dans le seul `--cs-vert` : rien ne disait à l'œil d’où venait une carte. Trois familles désormais, en jetons (`app/globals.css`, § familles de corpus) : `--cs-ecriture` pour la Bible et la Polyglotte, `--cs-peres` pour les Pères, `--cs-communaute` pour les publications. Chacune tient en **deux valeurs**, une ENCRE et un APLAT.
+
+⛔ **Le lavis d’un groupe et son filet ne sont PAS des jetons.** Ils se dérivent de l’encre par `color-mix` — 7 % et 22 % dans `--cs-surface` — depuis la variable `--fam` posée une seule fois par `styleFamille()`. Ils suivent donc les deux thèmes sans être nommés, et **montent tout seuls** sur le sol sombre du Cuir, comme la charte l’exige d’un carton posé sur un fond sombre. Nommer six jetons de plus n’aurait rien ajouté qu’une occasion de dérive.
+
+⛔ **La teinte des Pères est un POURPRE DE RUBRIQUE (`#8a2846`), jamais un bleu.** La charte a essayé les teintes froides franches sur ce papier (§ La couleur appartient à l’auteur) et les a reprises le jour même. Il est à 162° du vert et à 36° de `--cs-danger`, ce qui suffit sur une page où le danger ne paraît que sur la ligne d’un verset absent.
+
+⛔ **La Communauté ne peut pas prendre `--cs-or` tel quel** : mesuré, il ne rend que 3,79 sur le papier. C’est un rang plus profond de la MÊME famille, pas une couleur de plus.
+
+⛔ **En Cuir, les ENCRES ne peuvent pas se rabattre sur `--cs-vert`**, qui y vaut `#dcc08a` : les trois familles y seraient identiques. Les APLATS, eux, redeviennent du **cuir profond** comme la barre de navigation, et pour la même raison — trois bandes claires répétées sur toute la hauteur d’une page en seraient la seule tache de couleur. Chacun garde le penchant de sa famille sans en avoir la clarté ; blanc mesuré dessus : 11,97 · 13,54 · 12,79. C’est la dérogation que la charte accorde déjà aux catégories encodées par la couleur.
+
+⛔ **Le SURLIGNAGE sort du jeu des familles** et prend `--cs-vise-fond`, le jeton qui dit déjà « le verset que vous cherchiez », identique dans les quatre onglets. Vert, il aurait dit « Bible » dans un résultat patristique. Mesuré 13,63 au Clair, 12,59 en Cuir. ⚠️ Et il **ne se resserre pas** quand tout le reste se resserre : c’est le seul objet de la page qu’on cherche des yeux.
+
+## Un GROUPE, pas des cartes
+
+Un groupe est une rubrique en aplat (le livre, l’auteur et l'œuvre, la publication) puis un bloc lavé dont les lignes se séparent d’un filet. Ce qui était répété à chaque ligne est **remonté d’un cran** ; rien n’est retranché.
+
+⛔ **Pas de liseré au flanc des lignes.** Essayé et refusé par l’auteur : un trait de trois pixels dit moins bien la famille qu’un fond qui la porte sur toute la hauteur du groupe, et il ajoute un objet là où l’on en retire.
+
+⛔ **Aucun COMPTE dans la rubrique.** Aucun n’est vrai : celui de la page ment sur le livre, celui du livre ment sur la page, et celui du volet gauche est en OCCURRENCES, non en résultats. Les comptes complets vivent dans le volet, le total sous la pagination.
+
+⚠️ **`grouperConsecutifs` groupe par tranches CONSÉCUTIVES, jamais par table de hachage** : les listes arrivent dans l’ordre canonique ou alphabétique d’auteur, et cet ordre est précisément ce qu’on montre. Un regroupement par clé le casserait en ramenant ensemble des tranches éloignées.
+
+## Le SIGLE d’une bible se dérive — `app/lib/sigleTraduction.ts`
+
+La ligne d’en-tête d’un verset énumérait EN TOUTES LETTRES les sept bibles qui portent le mot, sur chacun des vingt résultats. ⛔ Pas de table écrite à la main (la charte a déjà vu ce qu’il en advient pour les noms de livres) : le sigle se dérive du nom, les mots génériques écartés.
+
+⛔ **Ne jamais employer `sigleTraduction` seul sur une LISTE.** « Vulgate clémentine » et « Vulgate latine (Fillion) » donnent tous deux « Vulgate », et un sigle ambigu désigne la mauvaise bible — pire que pas de sigle. `siglesTraductions` rallonge les seuls noms qui se heurtent et retombe sur le nom entier si cela ne suffit pas. 11 tests, sur les noms réels de la base. Le nom entier reste porté en `title`.
+
+## Ce que la MESURE a démenti
+
+⚠️ **Une planche de proposition n’est pas une mesure.** Elle affirmait que les sept noms entiers reviennent à la ligne sur un écran de 1 440 : **faux**. Mesuré au navigateur, ils n’enroulent qu’en dessous de **580 px** de zone de résultats, soit une fenêtre d’environ 1 030 px. Les sigles gagnent de la LARGEUR (278 px au lieu de 600), pas un rang.
+
+⚠️ **Le groupement se paie, et le seuil se compte.** Un verset passe de 52,3 à 42,4 px, soit 18,9 % et 198 px sur une page de vingt. Mais une rubrique coûte 18 px et le blanc qui la précède 4 : **au delà de neuf rubriques sur une page de vingt, on perd de la hauteur au lieu d’en gagner**. Cela n’arrive en pratique que sur les Pères, où vingt passages peuvent venir de dix œuvres. Un groupe d’un SEUL résultat reste plus haut qu’une carte isolée (59 contre 52) : c’est le prix de la rubrique, et il ne se rattrape pas.
+
+⛔ **`color-mix()` rend `color(srgb 0.96 0.95 0.93)`, pas `rgb(245, 243, 240)`.** Un lecteur de couleur qui divise par 255 se trompe de 255 fois et rend un contraste de 1,38 là où il vaut 13,8. Piège rencontré en mesurant cette passe : le premier relevé annonçait un corps de texte illisible sur le lavis, ce qui était un défaut de la SONDE, non de la page. Toute mesure de contraste sur une couleur dérivée doit reconnaître les deux formes.
+
+## Trois teintes en dur retirées de l’inventaire
+
+`#f6cfca` et `#8a1710` étaient le surlignage ROUGE, que **plus rien n’appelait** depuis que la ligne d’en-tête dit où le mot se trouve — le paramètre `rouge` n’était jamais passé à `true`. `#4a453f` est passé à `--cs-texte`. Parties avec eux : `refFr`, `abrevFr` et `nombreFr`, ce dernier mort depuis bien plus longtemps.
