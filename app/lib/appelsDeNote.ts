@@ -48,6 +48,13 @@ export function styleAppelNote(variante: VarianteAppelNote = 'corps'): CSSProper
     fontFamily: 'inherit',
     // ⛔ `normal`, jamais `inherit` : voir la règle du romain ci-dessus.
     fontStyle: 'normal',
+    // ⛔ L'EXPOSANT EST DANS LE STYLE, jamais dans la seule balise `<sup>`. Il y
+    // était : les appels sont des `<sup>`, que le navigateur remonte tout seul,
+    // mais le séparateur d'une suite est un `<span>` dans le paratexte biblique :
+    // il restait donc sur la ligne de base, l'esperluette de « 2 & 3 » en bas.
+    // Posé ici, la forme ne dépend plus de la balise employée, et redire à un
+    // `<sup>` ce que sa feuille de style d'agent lui dit déjà ne change rien.
+    verticalAlign: 'super',
     userSelect: 'none',
     letterSpacing: 0,
     display: 'inline-block',

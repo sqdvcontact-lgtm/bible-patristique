@@ -695,7 +695,7 @@ La forme de l’appel s’accorde au style où il se trouve, au lieu d’imposer
 
 ⛔ **L’appel ne se sépare jamais de la ponctuation qui le suit.** Un point rejeté seul en tête de la ligne suivante est interdit. L’appel est un exposant composé en `inline-block`, où le navigateur voit une occasion de couper la ligne, en aval comme en amont. Au rendu, il voyage donc dans un groupe insécable qui emporte le dernier mot qui le précède et la ponctuation qui le suit.
 
-**Deux notes qui se suivent s’écrivent « 2 & 3 »**, esperluette entre deux espaces insécables : deux exposants collés se liraient « vingt-trois ». Au delà de deux, la suite s’écrit « 2, 3 & 4 », virgules puis esperluette avant le dernier.
+**Deux notes qui se suivent s’écrivent « 2 & 3 »**, esperluette entre deux espaces insécables : deux exposants collés se liraient « vingt-trois ». Au delà de deux, la suite s’écrit « 2, 3 & 4 », virgules puis esperluette avant le dernier. ⛔ **L’esperluette et les virgules sont elles-mêmes en exposant**, à la hauteur des chiffres qu’elles séparent : posées sur la ligne de base, elles font retomber le milieu de la suite. L’exposant appartient au STYLE de l’appel, jamais à la seule balise qui le porte : le séparateur n’est pas toujours composé dans la même balise que l’appel, et la forme ne peut pas dépendre de ce choix-là.
 
 Sur la page Bible, la note d’un développement éditorial (introduction, commentaire, notice) s’ouvre AU CLIC sur son appel, dans la même fenêtre que la note de verset. Elle ne s’imprime plus au bas du développement : une liste plantée au milieu du corps coupe la lecture de ce qu’elle commente. ⛔ La liste ne subsiste que pour les notes dont la transcription n’a relevé aucun point d’appel, faute de quoi elles disparaîtraient du site, et elles la quitteront une à une à mesure de leur ancrage.
 
@@ -2170,6 +2170,18 @@ Une note que la donnée déclare bibliographique n’est pas un paragraphe suivi
 Le tiret qui ouvre chaque ligne dans la donnée est un marqueur de la couche de rendu, au même titre que l’italique et les petites capitales : il dit « entrée de liste » et ne s’imprime pas. ⛔ Ni puce, ni tiret, ni boîte, ni fond, ni bordure, et aucune indentation qui doublerait celle de la liste.
 
 La forme d’autorité d’un nom et sa forme d’affichage sont deux choses. Le rendu ne touche jamais à la casse stockée : « van Steenkiste » demeure la forme d’autorité des données bibliographiques, et c’est la donnée qui porte « Van Steenkiste » là où l’item commence par ce nom.
+
+### 35.6.1. Normalisation bibliographique des notices
+
+Dans une liste bibliographique éditoriale, la casse du fac-similé ou de l’OCR ne commande jamais l’affichage. Les titres sont ramenés à la casse française normale ; le titre individualisé de l’ouvrage se compose en italique. Un sous-titre bibliographiquement solidaire du titre est intégré au même intitulé et séparé par une virgule, non par un point : `*Évangile selon saint Jean, introduction critique et commentaires*`.
+
+Lorsqu’un auteur doit être affiché, son nom de famille se compose en petites capitales sémantiques et son prénom en bas de casse. Pour les autorités antiques et médiévales qui ne se laissent pas ramener à un couple prénom/nom moderne, la forme d’autorité entière se compose en petites capitales. Dans une rubrique « Du même auteur », le nom n’est pas répété à chaque entrée : le titre de rubrique porte déjà cette information.
+
+Les éléments d’une même notice sont séparés par des virgules, et non par une succession de phrases ponctuées de points. L’ordre normal est : titre, lieu, éditeur, date, format et pagination ; le point final clôt seul la notice. Un point-virgule peut séparer deux états ou deux éditions réellement distincts.
+
+Les chiffres romains de pagination sont toujours en capitales dans la couche éditoriale (`XIX`, `LXIV`, `VII`). Toute forme OCR ambiguë (`Lx1v`, `xn`, etc.) doit être relue et ne peut être simplement passée en capitales par transformation mécanique. Lorsqu’une pagination romaine est suivie d’une pagination arabe, le séparateur est un trait d’union sans espaces : `LXIV-388 p.`, jamais `LXIV -388 p.` ni `LXIV - 388 p.`.
+
+Les dates, lieux, éditeurs, mentions d’édition et paginations ne sont pas repris aveuglément de l’OCR. Ils sont confrontés au fac-similé et, lorsque c’est utile, à une autorité bibliographique externe. La transcription source reste inchangée ; la couche éditoriale porte la valeur vérifiée. Toute divergence non résolue reste explicitement en `review` et n’est pas corrigée par conjecture.
 
 ### 35.7. Les guillemets d’une citation en langue étrangère restent en romain
 
