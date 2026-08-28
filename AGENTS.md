@@ -2314,3 +2314,13 @@ Elle prend donc les jetons des trois familles et le dessin des groupes — rubri
 ⚠️ **Le rang atteint au CLAVIER prend la teinte de SA famille**, et non plus un gris commun (`[data-nav-actif]` compose désormais sur `--fam`, avec repli). La flèche descend d’un domaine à l’autre, et le surlignage doit le dire.
 
 **Dix teintes en dur** ont quitté l’inventaire avec cette passe. Il n’en reste qu’une dans la navbar.
+
+### Le terme tapé ne porte AUCUNE couleur (2026-08-28)
+
+⛔ Il portait une pastille VERTE — encre `--cs-vert` sur un fond translucide de la même teinte. Tant que la liste était bleue, verte et ocre, elle passait ; depuis que les sections prennent les trois familles, elle était une **quatrième couleur, et la seule qui se répète à CHAQUE rang**. La liste en devenait bariolée, et le vert disait « Bible » au milieu d’un groupe pourpre. Relevé par l’auteur le jour même de la bascule.
+
+⚠️ **Elle ne prend pas non plus le jaune `--cs-vise-fond` de la page de résultats**, et la différence tient à ce qu’on FAIT dans chacune. Sur la page, on cherche un mot des yeux dans un paragraphe de prose, et le jaune est le repère qu’on y poursuit. Dans la liste, l’entrée fait trois mots, on vient de taper le début du premier, et l’on sait déjà ce qu’on a écrit : une pastille par ligne y serait un coup de surligneur sur un mot qu’on n’a pas besoin de retrouver. La graisse suffit, avec une encre d’un rang plus profonde (`--cs-encre-fonce` contre `--cs-encre` autour).
+
+⛔ **Une seule définition, `STYLE_TERME_TAPE`, pour les DEUX surligneurs de la barre** (`surlignerMatch` et `extraireEtSurligner`) : ils portaient la même déclaration recopiée, et une forme recopiée à deux endroits ne reste identique que par accident.
+
+⚠️ **Corollaire général, et il vaut au delà de cette liste** : quand une surface passe à un code de couleur, tout ce qui y était déjà coloré redevient une question. Le surlignage n’avait pas changé ; c’est son entourage qui a changé, et une teinte qui ne disait rien s’est mise à dire quelque chose de faux.
