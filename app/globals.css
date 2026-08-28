@@ -979,11 +979,23 @@ button:focus-visible,
   text-align: center;
 }
 
-/* Une bibliographie se compose en LISTE, et le marqueur de la donnée ne
-   s'imprime pas : ni puce, ni tiret. Le corps descend d'un cran sous celui qui
-   l'accueille — d'où des `em`, la note en fenêtre et le paratexte n'ayant pas
-   la même mesure. Le retrait de première ligne fait le reste. */
-.cs-bible-bibliographie {
+/* ── L'APPARAT BIBLIOGRAPHIQUE : une seule famille pour toutes les listes ─────
+   Elle sert la pièce « Du même auteur », toute pièce ou section
+   « Bibliographie », et tout bloc que la donnée déclare
+   `presentation.style = bibliographie` — l'édition, l'auteur et l'intitulé de la
+   pièce n'y changent rien. ⛔ Aucune classe ne porte le nom d'une pièce : « Du
+   même auteur » nomme une pièce, pas une composition (charte §35.6).
+
+   Une bibliographie se distingue du texte courant sans devenir un encadré : un
+   corps d'un cran en dessous, un interligne resserré, du blanc entre les
+   notices, le retrait suspendu des bibliographies imprimées, et la largeur
+   normale de la colonne. ⛔ Ni puce, ni tiret, ni cadre, ni fond, ni bordure :
+   le marqueur de la donnée dit « entrée », il ne s'imprime pas.
+
+   ⛔ Le TITRE de la pièce n'est pas touché : il garde son rang dans la
+   hiérarchie de l'apparat (`cs-bible-title--tN`). Cette famille ne compose que
+   les notices placées dessous. */
+.cs-apparat-bibliographie {
   /* ⚠️ 0,96 EST le cran de l'échelle à cette taille : les rangs vont de 0,5 px
      en 0,5 px sous 14 px, donc 12,5 → 12 et 13 → 12,5. La liste descend ainsi
      d'exactement un cran sous le corps qui l'accueille, qu'elle paraisse dans
@@ -992,55 +1004,80 @@ button:focus-visible,
   font-size: 0.96em;
   line-height: 1.35;
   margin: 0 0 0.5rem;
-}
-.cs-bible-bibliographie > p {
-  /* ⚠️ Blanc très fin sous l'annonce : la liste lui appartient, elle ne s'en
-     détache pas. */
-  margin: 0 0 0.25em;
-  text-align: left;
-}
-.cs-bible-bibliographie > ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.cs-bible-bibliographie > ul > li {
-  margin: 0 0 0.3em;
-  padding: 0;
   /* Au fer, non justifié : sur des lignes courtes, la justification creuse des
-     blancs que le retrait de première ligne rend criants. */
+     blancs que le retrait suspendu rend criants. */
   text-align: left;
-  text-indent: 0.7em;
 }
-.cs-bible-bibliographie > ul > li:last-child { margin-bottom: 0; }
 
-/* ── Une LISTE D'OUVRAGES lue seule — « Du même auteur » ──────────────────────
-   Elle n'est pas l'apparat d'un bloc mais le corps d'une pièce liminaire : sa
-   mesure est donc absolue, là où `.cs-bible-bibliographie` descend d'un cran
-   relatif sous l'hôte qui l'accueille. Le corps est celui du paratexte, un cran
-   sous le texte biblique que la pièce remplace à l'écran.
-   ⛔ Ni puce, ni tiret, ni cadre, ni fond, ni bordure : une bibliographie
-   imprimée se tient par son retrait et par son blanc (charte §35.6). */
-.cs-bibliographie-ouvrages {
+/* Une bibliographie lue SEULE — une pièce liminaire entière — n'a pas de texte
+   hôte sous lequel descendre d'un cran : son corps est absolu, et elle pose la
+   police et l'encre que l'apparat lui donnerait.
+   ⚠️ 0,75 rem VAUT le 0.96em de la base appliqué au corps de l'apparat
+   (12,5 px → 12) : une bibliographie se lit au même corps partout, prise dans
+   un commentaire comme tenant la page à elle seule.
+   ⚠️ Cette déclaration vient APRÈS celle de la base, dont elle a exactement la
+   spécificité : c'est l'ordre, et lui seul, qui la fait l'emporter. */
+.cs-apparat-bibliographie--corps-propre {
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.75rem;
+  color: var(--cs-texte-second);
+  margin: 0;
+}
+
+/* L'annonce qui ouvre une liste — « Signalons, comme œuvres spéciales : » — et
+   le repli d'une bibliographie déclarée mais pas encore structurée. ⛔ Pas de
+   retrait suspendu : ce n'est pas une notice, et on ne devine pas ce qu'il y a
+   dedans.
+   ⚠️ Blanc très fin dessous : la liste lui appartient, elle ne s'en détache pas. */
+.cs-apparat-bibliographie > p {
+  margin: 0 0 0.25em;
+}
+
+.cs-apparat-bibliographie__liste {
   list-style: none;
   margin: 0;
   padding: 0;
-  font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 0.78125rem;
-  line-height: 1.35;
-  color: var(--cs-texte-second);
-  /* Au fer, non justifié : sur des lignes courtes, la justification creuse des
-     blancs que le retrait de première ligne rend criants. */
-  text-align: left;
 }
-.cs-bibliographie-ouvrages > li {
+
+.cs-apparat-bibliographie__entree {
   margin: 0 0 0.45em;
   padding: 0;
-  /* Le retrait de première ligne des bibliographies imprimées, celui que porte
-     déjà l'apparat bibliographique d'une note. */
-  text-indent: 0.7em;
+  /* Le RETRAIT SUSPENDU des bibliographies imprimées : la première ligne part
+     du bord, les suivantes rentrent d'une largeur. ⚠️ Le retrait négatif se
+     reprend sur la marge intérieure, non sur la mesure : la colonne garde sa
+     largeur normale, et la liste n'est pas un bloc artificiellement étroit. */
+  padding-left: 1.1em;
+  text-indent: -1.1em;
 }
-.cs-bibliographie-ouvrages > li:last-child { margin-bottom: 0; }
+.cs-apparat-bibliographie__entree:last-child { margin-bottom: 0; }
+
+/* Les fragments d'une notice STRUCTURÉE, composés selon leur rôle. ⛔ La
+   ponctuation n'a pas de classe : elle appartient à la séquence où elle tombe et
+   en hérite — le deux-points du sous-titre reste ainsi dans l'italique du titre.
+   ⛔ Aucun séparateur, aucun tiret, aucune puce n'est produit ici : ce que la
+   donnée ne porte pas, la feuille ne l'ajoute pas. */
+.cs-apparat-bibliographie__titre-ouvrage,
+.cs-apparat-bibliographie__sous-titre { font-style: italic; }
+.cs-apparat-bibliographie__auteur,
+.cs-apparat-bibliographie__donnees { font-style: normal; }
+/* Petites capitales SÉMANTIQUES : la donnée dit quel fragment est le nom de
+   famille, la feuille le compose. ⛔ Jamais de `text-transform: uppercase`, qui
+   crierait le nom entier et perdrait la casse d'autorité. */
+.cs-apparat-bibliographie__nom-auteur {
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+}
+
+/* Sur une mesure étroite, un retrait suspendu large ampute la ligne : il se
+   RÉDUIT, il ne disparaît pas — la hiérarchie bibliographique tient à lui. Le
+   corps, lui, ne bouge pas : une liste déjà d'un cran sous le texte ne se lit
+   plus si on la rapetisse encore. */
+@media (max-width: 700px) {
+  .cs-apparat-bibliographie__entree {
+    padding-left: 0.7em;
+    text-indent: -0.7em;
+  }
+}
 
 /* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
 .cs-bible-bloc > .cs-bible-title--t1,

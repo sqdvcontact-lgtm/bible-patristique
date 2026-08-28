@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -42,13 +41,10 @@ function rendreDuMemeAuteur() {
   )
 }
 
-/** La déclaration de la liste dans la feuille du site, accolades comprises. */
-function regleDeLaListe(): string {
-  const css = readFileSync('app/globals.css', 'utf8')
-  const debut = css.indexOf('.cs-bibliographie-ouvrages {')
-  expect(debut).toBeGreaterThan(-1)
-  return css.slice(debut, css.indexOf('}', debut) + 1)
-}
+// ⚠️ La FORME commune — famille de classes, absence de puce, retrait suspendu,
+// rendu mobile — est éprouvée dans `apparatBibliographie.test.tsx`, qui la tient
+// pour toutes les bibliographies à la fois. Ici, on éprouve le CONTENU de la
+// liste structurée : ce que chaque notice compose, et depuis quels champs.
 
 describe('la pièce « Du même auteur »', () => {
   it('rend une ligne par ouvrage, quinze fois, dans l’ordre', () => {
@@ -74,31 +70,28 @@ describe('la pièce « Du même auteur »', () => {
 
   it('compose une vraie liste, sans puce ni tiret visible', () => {
     const html = rendreDuMemeAuteur()
-    expect(html).toContain('<ul class="cs-bibliographie-ouvrages">')
+    expect(html).toContain('<ul class="cs-apparat-bibliographie__liste">')
     // Aucun marqueur d'entrée en tête de ligne, dans le texte comme dans la forme.
     expect(html).not.toMatch(/<li[^>]*>\s*(<[^>]+>)?\s*[-–—•·*]/u)
     expect(html).not.toContain('•')
-    const regle = regleDeLaListe()
-    expect(regle).toContain('list-style: none')
-    expect(regle).not.toContain('border')
-    expect(regle).not.toContain('background')
   })
 
   it('compose titre et sous-titre en italique, joints par un deux-points insécable', () => {
     const html = rendreDuMemeAuteur()
     expect(html).toContain(
-      '<em data-champ="titre">Évangile selon saint Jean</em>'
+      '<em class="cs-apparat-bibliographie__titre-ouvrage" data-champ="titre">Évangile selon saint Jean</em>'
       + `<em>${String.fromCharCode(160)}: </em>`
-      + '<em data-champ="sous_titre">Introduction critique et commentaires</em>',
+      + '<em class="cs-apparat-bibliographie__sous-titre" data-champ="sous_titre">Introduction critique et commentaires</em>',
     )
   })
 
   it('prend le lieu, l’éditeur normalisé et l’année dans leurs champs', () => {
     const html = rendreDuMemeAuteur()
-    expect(html).toContain('<span data-champ="lieu">Paris</span>')
-    expect(html).toContain('<span data-champ="editeur">P. Lethielleux</span>')
-    expect(html).toContain('<span data-champ="editeur">Delhomme et Briguet</span>')
-    expect(html).toContain('<span data-champ="annee">1887</span>')
+    const donnees = 'class="cs-apparat-bibliographie__donnees"'
+    expect(html).toContain(`<span ${donnees} data-champ="lieu">Paris</span>`)
+    expect(html).toContain(`<span ${donnees} data-champ="editeur">P. Lethielleux</span>`)
+    expect(html).toContain(`<span ${donnees} data-champ="editeur">Delhomme et Briguet</span>`)
+    expect(html).toContain(`<span ${donnees} data-champ="annee">1887</span>`)
   })
 
   it('ne répète pas l’auteur, que le titre de la pièce établit déjà', () => {
@@ -119,7 +112,7 @@ describe('la pièce « Du même auteur »', () => {
     )
     expect(html).toContain('in-8')
     // ⛔ Et jamais un mélange : aucune entrée structurée dans ce rendu.
-    expect(html).not.toContain('cs-bibliographie-ouvrages')
+    expect(html).not.toContain('cs-apparat-bibliographie')
     expect(html).not.toContain('data-ouvrage-id')
   })
 })
@@ -133,7 +126,14 @@ describe('une autre liste d’ouvrages', () => {
     const html = renderToStaticMarkup(
       <PieceLiminaire titre="Bibliographie" portee="Bible" blocs={[]} bibliographie={autre} />,
     )
-    expect(html).toContain('<span data-champ="prenom">Louis-Claude</span>')
-    expect(html).toMatch(/<span data-champ="nom_famille" style="font-variant:small-caps[^"]*">Fillion<\/span>/)
+    expect(html).toContain(
+      '<span class="cs-apparat-bibliographie__auteur" data-champ="prenom">Louis-Claude</span>',
+    )
+    // ⛔ Les petites capitales sont SÉMANTIQUES : une classe que la feuille
+    // compose, jamais une chaîne passée en capitales par le rendu.
+    expect(html).toContain(
+      '<span class="cs-apparat-bibliographie__nom-auteur" data-champ="nom_famille">Fillion</span>',
+    )
+    expect(html).not.toContain('FILLION')
   })
 })

@@ -169,9 +169,14 @@ describe('le nom de l’auteur', () => {
   it('compose le nom de famille en petites capitales DEPUIS la donnée', () => {
     const [premier] = ouvragesDeLaPiece()
     const segments = segmentsReference(premier, { avecAuteur: true })
-    expect(segments[0]).toEqual({ champ: 'prenom', composition: 'romain', texte: 'Louis-Claude' })
+    // ⚠️ Chaque fragment porte le nom SÉMANTIQUE de sa fonction, dans le
+    // vocabulaire clos de l'apparat : c'est lui que la feuille compose.
+    expect(segments[0]).toEqual({
+      champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: 'Louis-Claude',
+    })
     expect(segments[2]).toEqual({
-      champ: 'nom_famille', composition: 'petites-capitales', texte: 'Fillion',
+      champ: 'nom_famille', style: 'bibliographie-nom-auteur',
+      composition: 'petites-capitales', texte: 'Fillion',
     })
     expect(texteReference(premier, { avecAuteur: true }))
       .toBe('Louis-Claude Fillion, Introduction générale aux Évangiles, Paris, P. Lethielleux, 1889.')
@@ -185,7 +190,8 @@ describe('le nom de l’auteur', () => {
     }
     const segments = segmentsReference(ancien, { avecAuteur: true })
     expect(segments[0]).toEqual({
-      champ: 'nom_famille', composition: 'petites-capitales', texte: 'Cyrille de Jérusalem',
+      champ: 'nom_famille', style: 'bibliographie-nom-auteur',
+      composition: 'petites-capitales', texte: 'Cyrille de Jérusalem',
     })
     // ⛔ Rien n'a été coupé à la première espace : la chaîne entière est le nom.
     expect(segments.some((segment) => segment.champ === 'prenom')).toBe(false)

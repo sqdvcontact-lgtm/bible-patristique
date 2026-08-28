@@ -21,6 +21,8 @@
  * Module PUR : il ne connaît ni Supabase, ni React.
  */
 
+import type { StyleCaractereBibliographie } from './apparatBibliographie'
+
 /** Ce que la vue `v_bible_editorial_bibliography_entries` sert, tel quel. */
 export type LigneBibliographieOuvrage = {
   family_id: string
@@ -67,16 +69,22 @@ export type BibliographiePiece = {
 }
 
 /**
- * Le fragment d'une référence : d'où il vient, et comment il se compose.
+ * Le fragment d'une référence : d'où il vient, ce qu'il EST, et comment il se
+ * compose.
  *
- * `champ` nomme la colonne d'origine — `null` pour la ponctuation, que le code
- * ajoute et que la donnée ne porte pas. Les trois compositions suffisent : le
- * romain pour tout ce qui n'est ni intitulé ni nom d'autorité, l'italique pour
- * l'intitulé de l'ouvrage (titre, sous-titre et le deux-points qui les joint),
- * les petites capitales pour le nom d'autorité de l'auteur.
+ * `champ` nomme la colonne d'origine et `style` la fonction bibliographique du
+ * fragment, dans le vocabulaire clos de `apparatBibliographie`. Les deux valent
+ * `null` pour la ponctuation, que le code ajoute et que la donnée ne porte pas :
+ * ⛔ un séparateur n'a pas de style propre, il appartient à la séquence où il
+ * tombe — d'où le deux-points du sous-titre, qui reste dans l'italique du titre.
+ *
+ * Les trois compositions suffisent : le romain pour tout ce qui n'est ni
+ * intitulé ni nom d'autorité, l'italique pour l'intitulé de l'ouvrage, les
+ * petites capitales pour le nom d'autorité de l'auteur.
  */
 export type SegmentReference = {
   champ: 'prenom' | 'nom_famille' | 'titre' | 'sous_titre' | 'lieu' | 'editeur' | 'annee' | null
+  style: StyleCaractereBibliographie | null
   composition: 'romain' | 'italique' | 'petites-capitales'
   texte: string
 }
@@ -199,25 +207,43 @@ export function segmentsReference(
     // compose entière en petites capitales, elle ne se coupe pas à la première
     // espace (charte §35.6.1).
     if (auteur.nomFamille && auteur.prenom) {
-      segments.push({ champ: 'prenom', composition: 'romain', texte: auteur.prenom })
-      segments.push({ champ: null, composition: 'romain', texte: ' ' })
-      segments.push({ champ: 'nom_famille', composition: 'petites-capitales', texte: auteur.nomFamille })
+      segments.push({ champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: auteur.prenom })
+      segments.push({ champ: null, style: null, composition: 'romain', texte: ' ' })
+      segments.push({
+        champ: 'nom_famille',
+        style: 'bibliographie-nom-auteur',
+        composition: 'petites-capitales',
+        texte: auteur.nomFamille,
+      })
     } else {
       segments.push({
         champ: 'nom_famille',
+        style: 'bibliographie-nom-auteur',
         composition: 'petites-capitales',
         texte: auteur.nomFamille ?? auteur.nom,
       })
     }
-    segments.push({ champ: null, composition: 'romain', texte: SEPARATEUR })
+    segments.push({ champ: null, style: null, composition: 'romain', texte: SEPARATEUR })
   }
 
   // Titre et sous-titre sont deux champs, mais UN seul intitulé : l'italique les
   // couvre tous les deux, et le deux-points qui les joint avec eux.
-  segments.push({ champ: 'titre', composition: 'italique', texte: ouvrage.titre })
+  segments.push({
+    champ: 'titre',
+    style: 'bibliographie-titre-ouvrage',
+    composition: 'italique',
+    texte: ouvrage.titre,
+  })
   if (ouvrage.sousTitre) {
-    segments.push({ champ: null, composition: 'italique', texte: LIAISON_SOUS_TITRE })
-    segments.push({ champ: 'sous_titre', composition: 'italique', texte: ouvrage.sousTitre })
+    // ⛔ Le deux-points n'a pas de style à lui : il reste dans la séquence
+    // italique du titre, dont il est la charnière.
+    segments.push({ champ: null, style: null, composition: 'italique', texte: LIAISON_SOUS_TITRE })
+    segments.push({
+      champ: 'sous_titre',
+      style: 'bibliographie-sous-titre',
+      composition: 'italique',
+      texte: ouvrage.sousTitre,
+    })
   }
 
   for (const mention of [
@@ -226,13 +252,18 @@ export function segmentsReference(
     { champ: 'annee' as const, texte: ouvrage.annee === null ? null : String(ouvrage.annee) },
   ]) {
     if (!mention.texte) continue
-    segments.push({ champ: null, composition: 'romain', texte: SEPARATEUR })
-    segments.push({ champ: mention.champ, composition: 'romain', texte: mention.texte })
+    segments.push({ champ: null, style: null, composition: 'romain', texte: SEPARATEUR })
+    segments.push({
+      champ: mention.champ,
+      style: 'bibliographie-donnees',
+      composition: 'romain',
+      texte: mention.texte,
+    })
   }
 
   const dernier = segments[segments.length - 1]
   if (!PONCTUATION_FORTE.test(dernier.texte)) {
-    segments.push({ champ: null, composition: 'romain', texte: '.' })
+    segments.push({ champ: null, style: null, composition: 'romain', texte: '.' })
   }
   return segments
 }

@@ -244,7 +244,8 @@ const COMPOSITIONS: Record<CompositionParagraphe, CSSProperties> = {
     hyphens: 'manual',
     margin: 0,
   },
-  // La bibliographie a sa propre matière : voir `BibliographieBible`.
+  // La bibliographie a sa propre matière — la famille `.cs-apparat-bibliographie`,
+  // voir `BibliographieBible` — et n'ajoute donc rien au style du paragraphe.
   bibliographie: {},
 }
 
@@ -255,11 +256,20 @@ function rendreBlocTexte(
   niveauParent?: 1 | 2 | 3 | 4 | 5 | 6,
   composition?: CompositionParagraphe | null,
 ): ReactNode {
-  // Une liste bibliographique n'est pas un paragraphe : elle a sa matière. Une
-  // note déclarée bibliographique mais sans entrée retombe sur le paragraphe
-  // ordinaire, plutôt que de disparaître.
-  if (composition === 'bibliographie' && composerBibliographie(bloc.text).entrees.length > 0) {
-    return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+  // Une liste bibliographique n'est pas un paragraphe : elle a sa matière, et
+  // c'est la DÉCLARATION de la donnée qui l'y envoie — ⛔ jamais le titre de la
+  // pièce, ni une forme reconnue au passage dans le texte.
+  //
+  // ⚠️ Une bibliographie déclarée mais pas encore structurée — aucun marqueur
+  // d'entrée à découper — garde le cadre typographique de la famille et reste
+  // un paragraphe : la reverser dans le paragraphe d'apparat ordinaire la
+  // justifierait et lui rendrait le corps du texte courant. Seul un bloc
+  // entièrement vide retombe sur le rendu commun, qui n'affichera rien.
+  if (composition === 'bibliographie') {
+    const composee = composerBibliographie(bloc.text)
+    if (composee.chapeau || composee.entrees.length > 0) {
+      return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+    }
   }
   if (bloc.kind === 'heading') {
     const niveau = Math.min(6, (niveauParent ?? 2) + 1) as 1 | 2 | 3 | 4 | 5 | 6
@@ -571,6 +581,12 @@ export function NotesBibleChapitre({
  * restent en base, témoins de la page imprimée, et ne sont plus la source du
  * texte affiché. ⛔ On ne mêle JAMAIS les deux : ou la liste structurée, ou le
  * repli matériel, et le repli ne joue que si la liste est réellement absente.
+ *
+ * ⛔ Ce qui décide n'est jamais l'INTITULÉ de la pièce. « Du même auteur »,
+ * « Bibliographie », « Ouvrages consultés » nomment des pièces, non des
+ * compositions : la liste structurée que la pièce PORTE fait seule la
+ * bibliographie, et toutes prennent la même famille de styles. Le titre, lui,
+ * garde son rang dans la hiérarchie de l'apparat.
  */
 export function PieceLiminaire({
   titre,

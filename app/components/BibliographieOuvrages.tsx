@@ -1,6 +1,10 @@
 import { Fragment } from 'react'
 
 import {
+  CLASSE_CARACTERE_BIBLIOGRAPHIE,
+  CLASSES_BIBLIOGRAPHIE,
+} from '@/app/lib/apparatBibliographie'
+import {
   segmentsReference,
   type OuvrageBibliographique,
   type SegmentReference,
@@ -12,11 +16,13 @@ import {
  * Le composant est générique : il sert « Du même auteur » de Fillion comme
  * toute autre liste bibliographique structurée, et c'est l'appelant qui dit si
  * l'auteur doit paraître — dans une rubrique qui le nomme déjà, on ne le répète
- * pas quinze fois.
+ * pas quinze fois. ⛔ Rien ici ne connaît le titre de la pièce : le composant ne
+ * lit pas « Du même auteur » pour en déduire quoi que ce soit.
  *
- * ⛔ Aucune puce, aucun tiret, aucun cadre, aucun fond, aucune bordure : une
- * bibliographie imprimée se tient par son retrait et par son blanc. La forme
- * vit dans `.cs-bibliographie-ouvrages` (`app/globals.css`).
+ * La forme est celle de TOUTES les bibliographies de l'apparat —
+ * `.cs-apparat-bibliographie` — et non une composition propre à cette pièce :
+ * ⛔ aucune puce, aucun tiret, aucun cadre, aucun fond, aucune bordure, une
+ * bibliographie imprimée se tenant par son retrait et par son blanc.
  *
  * ⚠️ Chaque `<li>` répond d'UN `ouvrage_id`, et sa clé React est cet
  * identifiant : ⛔ jamais le rang dans le tableau, qui change dès qu'une entrée
@@ -33,44 +39,49 @@ export default function BibliographieOuvrages({
 }) {
   if (ouvrages.length === 0) return null
   return (
-    <ul className="cs-bibliographie-ouvrages">
-      {ouvrages.map((ouvrage) => (
-        <li key={ouvrage.id} id={`ouvrage-${ouvrage.id}`} data-ouvrage-id={ouvrage.id}>
-          {segmentsReference(ouvrage, { avecAuteur }).map((segment, rang) => (
-            <RendreSegment key={`${ouvrage.id}:${rang}`} segment={segment} />
-          ))}
-        </li>
-      ))}
-    </ul>
+    // Une liste structurée se lit aujourd'hui comme une pièce entière : elle
+    // n'a pas de texte hôte sous lequel descendre d'un cran, d'où son corps
+    // propre. Le reste de la composition est celui de toute bibliographie.
+    <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.corpsPropre}`}>
+      <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
+        {ouvrages.map((ouvrage) => (
+          <li
+            key={ouvrage.id}
+            id={`ouvrage-${ouvrage.id}`}
+            className={CLASSES_BIBLIOGRAPHIE.entree}
+            data-ouvrage-id={ouvrage.id}
+          >
+            {segmentsReference(ouvrage, { avecAuteur }).map((segment, rang) => (
+              <RendreSegment key={`${ouvrage.id}:${rang}`} segment={segment} />
+            ))}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
 /**
  * Un fragment de référence, composé selon son RÔLE.
  *
- * Trois compositions, et rien d'autre : l'italique pour l'intitulé de l'ouvrage
- * — titre, sous-titre et le deux-points qui les joint ne font qu'un seul titre
- * typographique —, les petites capitales pour le nom d'autorité de l'auteur, le
- * romain pour tout le reste. ⚠️ Le nom se compose depuis la donnée
- * (`auteurs_valeur.nom_famille`), ⛔ jamais par découpe de la chaîne affichée.
+ * Le rôle est nommé par la donnée (`segment.style`) et la feuille le compose :
+ * l'italique pour l'intitulé de l'ouvrage — titre, sous-titre et le deux-points
+ * qui les joint ne font qu'un seul titre typographique —, les petites capitales
+ * pour le nom d'autorité de l'auteur, le romain pour tout le reste. ⚠️ Le nom se
+ * compose depuis la donnée (`auteurs_valeur.nom_famille`), ⛔ jamais par découpe
+ * de la chaîne affichée.
  */
 function RendreSegment({ segment }: { segment: SegmentReference }) {
   // Le champ d'origine reste dans le document : c'est par lui qu'on vérifie
   // qu'un titre et son sous-titre n'ont pas été fondus, et qu'aucune donnée
   // matérielle ne s'est glissée dans la référence.
   const champ = segment.champ ?? undefined
+  const classe = segment.style ? CLASSE_CARACTERE_BIBLIOGRAPHIE[segment.style] : undefined
   if (segment.composition === 'italique') {
-    return <em data-champ={champ}>{segment.texte}</em>
+    return <em className={classe} data-champ={champ}>{segment.texte}</em>
   }
-  if (segment.composition === 'petites-capitales') {
-    return (
-      <span data-champ={champ} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>
-        {segment.texte}
-      </span>
-    )
-  }
-  // La ponctuation que le composant ajoute n'a pas de champ, donc rien à
-  // baliser : elle se pose telle quelle, au fil du texte.
-  if (!champ) return <Fragment>{segment.texte}</Fragment>
-  return <span data-champ={champ}>{segment.texte}</span>
+  // La ponctuation que le composant ajoute n'a ni champ ni style : elle se pose
+  // telle quelle, au fil du texte, et hérite de la séquence qui l'entoure.
+  if (!champ && !classe) return <Fragment>{segment.texte}</Fragment>
+  return <span className={classe} data-champ={champ}>{segment.texte}</span>
 }

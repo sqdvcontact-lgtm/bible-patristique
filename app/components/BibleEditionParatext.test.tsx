@@ -403,8 +403,10 @@ describe('présentation déclarée par la donnée', () => {
         presentationStyle: 'bibliographie' as const,
       }],
     }]} />)
-    expect(html).toContain('class="cs-bible-bibliographie"')
-    expect(html).toContain('<li>')
+    // La MÊME famille que les listes structurées : une note bibliographique et
+    // une pièce « Du même auteur » se composent d'une seule manière.
+    expect(html).toContain('class="cs-apparat-bibliographie"')
+    expect(html).toContain('<li class="cs-apparat-bibliographie__entree">')
     // ⛔ Le marqueur de la donnée ne s'imprime pas.
     expect(html).not.toContain('- <span')
     expect(html).not.toContain('>- ')
@@ -425,6 +427,6 @@ describe('présentation déclarée par la donnée', () => {
         language: 'fr',
       }],
     }]} />)
-    expect(html).not.toContain('cs-bible-bibliographie')
+    expect(html).not.toContain('cs-apparat-bibliographie')
   })
 })
