@@ -2324,3 +2324,18 @@ Elle prend donc les jetons des trois familles et le dessin des groupes — rubri
 ⛔ **Une seule définition, `STYLE_TERME_TAPE`, pour les DEUX surligneurs de la barre** (`surlignerMatch` et `extraireEtSurligner`) : ils portaient la même déclaration recopiée, et une forme recopiée à deux endroits ne reste identique que par accident.
 
 ⚠️ **Corollaire général, et il vaut au delà de cette liste** : quand une surface passe à un code de couleur, tout ce qui y était déjà coloré redevient une question. Le surlignage n’avait pas changé ; c’est son entourage qui a changé, et une teinte qui ne disait rien s’est mise à dire quelque chose de faux.
+
+## L’onglet « Livres » EST le retour d’une pièce liminaire (2026-08-28)
+
+⛔ Une pièce portait en pied un « Revenir à Luc 1 » ; il est retiré (décision de l’auteur). C’était un objet de plus pour un geste que le volet fait déjà, et il paraissait sous chaque apparat.
+
+La bascule du volet est donc **locale dans un sens et navigante dans l’autre** :
+
+- vers **« Sommaire »**, rien ne bouge dans la page. On regarde une table des matières, on n’a pas encore choisi d’y entrer, et le chapitre qu’on lisait reste à l’écran. ⛔ Ne pas y ajouter de navigation : ouvrir le sommaire n’est pas ouvrir une pièce.
+- vers **« Livres »**, on ne navigue QUE si une pièce est ouverte. Sinon il n’y a rien à défaire, et une navigation gratuite rechargerait la page pour la rendre à l’identique.
+
+⚠️ **La bible revient telle qu’on l’avait laissée sans qu’on mémorise rien** : `livre` et `chapitre` n’ont jamais quitté l’adresse pendant qu’une pièce s’affichait — c’est déjà la règle consignée plus haut, « la pièce est une CIBLE, non une manière de lire » — et `maniereDeLire` porte le reste.
+
+⚠️ **Une seule chose ne revient pas : la lecture EN REGARD.** Ouvrir une pièce force `bilingue: false` (une pièce est commune aux deux membres, la mettre en face d’elle-même n’aurait pas de sens), et l’adresse perd donc l’information. Le retour rend une colonne. ⛔ Ce n’est pas une régression du présent changement — l’ancien lien de pied composait la même adresse — et le corriger demanderait d’apprendre à `LectureBilingueBible` à rendre une pièce, ce qui est un chantier, non un réglage.
+
+⚠️ **`urlRetour` reste une propriété OPTIONNELLE de `PieceLiminaire`**, et son rendu est gardé par elle : ne rien passer suffit à ne rien rendre. ⛔ Ne pas retirer la propriété du composant en croyant faire le ménage.
