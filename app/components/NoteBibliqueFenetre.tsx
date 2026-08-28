@@ -43,13 +43,18 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
           }
         }
         const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
+        const citationSortie = bloc.kind === 'quotation'
+        // Les citations sorties de l'apparat biblique partagent la même
+        // composition que celles du paratexte et des œuvres : aucune variante
+        // locale ne doit dupliquer `.citation-sortie`.
         return (
           <p
             key={bloc.id}
             lang={bloc.language ?? undefined}
+            className={citationSortie ? 'citation-sortie' : undefined}
             style={{
-              margin: discret ? '0.35rem 0 0' : '0 0 0.5rem',
-              fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
+              margin: citationSortie ? undefined : (discret ? '0.35rem 0 0' : '0 0 0.5rem'),
+              fontStyle: bloc.kind === 'lemma' ? 'italic' : 'normal',
               color: discret ? 'var(--cs-texte-second)' : 'var(--cs-texte-fort)',
               whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
               textAlign: 'justify',
