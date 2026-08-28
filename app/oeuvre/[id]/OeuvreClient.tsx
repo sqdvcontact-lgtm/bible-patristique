@@ -24,7 +24,12 @@ import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, 
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
-import { detecterCitationSortie } from '@/app/lib/citationSortie'
+import {
+  citationStructurelleEstLongue,
+  detecterCitationSortie,
+  regrouperCitationsStructurelles,
+  textesCitationStructurelleSansEncadrement,
+} from '@/app/lib/citationSortie'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
 import { libelleVersionComplet } from './versionTextuelle'
@@ -1632,9 +1637,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // même paragraphe ; la citation étant TERMINALE par construction
   // (`detecterCitationSortie`), le bloc ferme le segment et les suivants reprennent à
   // la ligne, sans qu'aucun voisin soit coupé en deux.
-  const rendreCorpsSegment = (s: SegData, estPremier: boolean): React.ReactNode => {
+  const rendreCorpsSegment = (s: SegData, estPremier: boolean, texteCitationStructurelle: string | null = null): React.ReactNode => {
     const texteAffichage = s.texteAffichage ?? s.texte
-    const texte = composerCorps(preparerTexteSegment(texteAffichage))
+    const texte = texteCitationStructurelle ?? composerCorps(preparerTexteSegment(texteAffichage))
     // Le numéro de segment est rendu ICI, et non par l'appelant : quand le segment
     // est la citation tout entière, il doit entrer DANS le bloc. Laissé dehors, il
     // se retrouverait seul sur sa ligne, le bloc qui le suit rompant la ligne.
@@ -1643,6 +1648,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       : null
     // La lettrine garde la priorité : un premier segment orné ne se sort pas.
     if (estPremier && texte.length > 0) return rendreAvecLettrine(composerCorps(texteAffichage), s.notes ?? {})
+    // Une suite déjà balisée `nature = citation` reçoit son bloc au niveau du
+    // paragraphe, autour de tous ses segments. La détection textuelle ne doit pas
+    // créer ici un second bloc imbriqué : elle ne traite que les citations encore
+    // signalées par leurs guillemets dans un segment ordinaire.
+    if (texteCitationStructurelle != null) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
     // `sansAnnonce` : réservé à la prose. Une réplique de dialogue est elle aussi
     // entre guillemets et n'est pas une citation d'auteur (Boèce).
     const sortie = detecterCitationSortie(texte, { sansAnnonce: s.nature === 'texte' })
@@ -1800,6 +1810,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            cité reste à 8mm tout en laissant la surbrillance déborder autour de lui. */
         .citation-sortie { display: block; margin: 0.5rem calc(8mm - 4px); padding: 0.12rem 4px; font-size: 0.95em; text-align: justify; border-radius: 4px; transition: background 0.12s; }
         @media(max-width: 980px){ .citation-sortie { margin-left: calc(5mm - 4px); margin-right: -4px; } }
+        /* Une citation balisée peut couvrir plusieurs segments : le bloc enveloppe
+           toute la suite, afin que les frontières techniques ne créent ni retraits
+           répétés ni faux paragraphes. Les segments restent cliquables en dedans. */
+        .citation-sortie--structurelle > .seg-inline { display: inline; }
         /* ⚠️ En mode paragraphes, le fond de .seg-inline ne peint QUE ses fragments
            en ligne : un enfant en display:block sort de l'inline et resterait sans
            surbrillance. Le survol et la sélection doivent donc l'atteindre à part,
@@ -2437,22 +2451,49 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         </div>
                       ) : (
                       <p lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
-                        {chunk.ids.map((sid, i) => {
-                          const s = segMap.get(sid)
-                          if (!s) return null
-                          const actif = segActif === sid
-                          const estPremier = sid === premierSegmentId
-                          return (
-                            <Fragment key={sid}>
-                              {i > 0 ? liantAvantSegment(s.joinBefore) : null}
-                              <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
-                                onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                                onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
-                                onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                {rendreCorpsSegment(s, estPremier)}
-                              </span>
-                            </Fragment>
+                        {regrouperCitationsStructurelles(
+                          chunk.ids,
+                          sid => segMap.get(sid)?.nature === 'citation',
+                        ).map((blocCitation) => {
+                          const sortieStructurelle = blocCitation.citation && citationStructurelleEstLongue(
+                            blocCitation.elements.map(sid => {
+                              const s = segMap.get(sid)
+                              return s ? composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)) : ''
+                            }),
                           )
+                          const textesStructurels = sortieStructurelle
+                            ? textesCitationStructurelleSansEncadrement(blocCitation.elements.map(sid => {
+                                const s = segMap.get(sid)
+                                return s ? composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)) : ''
+                              }))
+                            : []
+                          const contenu = blocCitation.elements.map((sid, i) => {
+                            const s = segMap.get(sid)
+                            if (!s) return null
+                            const actif = segActif === sid
+                            const estPremier = sid === premierSegmentId
+                            // À l'intérieur d'un bloc structurel, seule la jointure
+                            // entre ses propres segments subsiste. Son premier segment
+                            // commence le bloc : l'espace qui le rattachait à la prose
+                            // d'annonce n'a plus de fonction visible.
+                            const afficherLiant = sortieStructurelle
+                              ? i > 0
+                              : sid !== chunk.ids[0]
+                            return (
+                              <Fragment key={sid}>
+                                {afficherLiant ? liantAvantSegment(s.joinBefore) : null}
+                                <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
+                                  onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                  onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                                  onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                                  {rendreCorpsSegment(s, estPremier, sortieStructurelle ? textesStructurels[i] : null)}
+                                </span>
+                              </Fragment>
+                            )
+                          })
+                          return sortieStructurelle
+                            ? <span key={`citation-${blocCitation.elements[0]}`} className="citation-sortie citation-sortie--structurelle">{contenu}</span>
+                            : <Fragment key={`prose-${blocCitation.elements[0]}`}>{contenu}</Fragment>
                         })}
                       </p>
                       )}

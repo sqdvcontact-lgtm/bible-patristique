@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { detecterCitationSortie, guillemetsInternesEnFrancais, SEUIL_CITATION_SORTIE } from './citationSortie'
+import {
+  citationStructurelleEstLongue,
+  detecterCitationSortie,
+  guillemetsInternesEnFrancais,
+  regrouperCitationsStructurelles,
+  SEUIL_CITATION_SORTIE,
+  textesCitationStructurelleSansEncadrement,
+} from './citationSortie'
 
 // Écrite en toutes lettres : dans un test, une fine insécable ne se distingue pas
 // d'une espace ordinaire à la lecture (voir le piège consigné dans AGENTS.md).
@@ -113,5 +120,63 @@ describe('segment entièrement cité (option sansAnnonce)', () => {
     const r = detecterCitationSortie(`Augustin écrit : « ${longue()} »`, { sansAnnonce: true })
     expect(r!.avant).toBe('Augustin écrit :')
     expect(r!.citation).toBe(longue())
+  })
+})
+
+describe('citation balisée sur plusieurs segments', () => {
+  it('réunit une suite de citations sans absorber la prose qui l’annonce ou la suit', () => {
+    const segments = [
+      { id: 12, nature: 'texte' },
+      { id: 13, nature: 'citation' },
+      { id: 14, nature: 'citation' },
+      { id: 15, nature: 'citation' },
+      { id: 16, nature: 'texte' },
+    ]
+    expect(regrouperCitationsStructurelles(segments, s => s.nature === 'citation'))
+      .toEqual([
+        { citation: false, elements: [segments[0]] },
+        { citation: true, elements: segments.slice(1, 4) },
+        { citation: false, elements: [segments[4]] },
+      ])
+  })
+
+  it('mesure la longueur cumulée de la citation, pas celle de chaque segment', () => {
+    expect(citationStructurelleEstLongue(['a'.repeat(135), 'b'.repeat(265)]))
+      .toBe(true)
+    expect(citationStructurelleEstLongue(['a'.repeat(135), 'b'.repeat(264)]))
+      .toBe(false)
+  })
+
+  it('rend le seuil paramétrable pour les contrôles unitaires', () => {
+    expect(citationStructurelleEstLongue(['abc', 'def'], 6)).toBe(true)
+    expect(citationStructurelleEstLongue(['abc', 'de'], 6)).toBe(false)
+  })
+
+  it('retire l’encadrement ancien réparti sur plusieurs segments', () => {
+    expect(textesCitationStructurelleSansEncadrement([
+      `«${FINE}Premier “mot”`,
+      `suite.${FINE}»`,
+    ])).toEqual([
+      `Premier «${FINE}mot${FINE}»`,
+      'suite.',
+    ])
+  })
+
+  it('laisse intacte la forme éditoriale déjà privée de guillemets extérieurs', () => {
+    expect(textesCitationStructurelleSansEncadrement([
+      'Premier segment.',
+      `Il dit «${FINE}oui${FINE}».`,
+    ])).toEqual([
+      'Premier segment.',
+      `Il dit «${FINE}oui${FINE}».`,
+    ])
+  })
+
+  it('ne retire pas un guillemet isolé qui appartient au contenu', () => {
+    expect(textesCitationStructurelleSansEncadrement([
+      `«${FINE}Parole intérieure${FINE}» puis commentaire.`,
+    ])).toEqual([
+      `«${FINE}Parole intérieure${FINE}» puis commentaire.`,
+    ])
   })
 })

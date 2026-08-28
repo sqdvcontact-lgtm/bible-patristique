@@ -56,6 +56,59 @@ export type CitationSortie = {
   citation: string
 }
 
+export type BlocCitationStructurelle<T> = {
+  /** Vrai quand tous les éléments du bloc portent explicitement `nature = citation`. */
+  citation: boolean
+  elements: T[]
+}
+
+/** Réunit les citations structurelles consécutives pour que la segmentation
+ *  technique reste invisible dans le bloc typographique. Les éléments ordinaires
+ *  sont eux aussi réunis par plages : l'appelant peut ainsi rendre une seule suite
+ *  ordonnée sans perdre les jointures entre segments. */
+export function regrouperCitationsStructurelles<T>(
+  elements: readonly T[],
+  estCitation: (element: T) => boolean,
+): BlocCitationStructurelle<T>[] {
+  const blocs: BlocCitationStructurelle<T>[] = []
+  for (const element of elements) {
+    const citation = estCitation(element)
+    const dernier = blocs[blocs.length - 1]
+    if (dernier && dernier.citation === citation) dernier.elements.push(element)
+    else blocs.push({ citation, elements: [element] })
+  }
+  return blocs
+}
+
+/** Une citation déjà balisée par sa nature obéit au même seuil que la détection
+ *  textuelle. La longueur se calcule sur toute la suite, et non segment par segment :
+ *  une longue citation peut être découpée à des articulations internes sûres. */
+export function citationStructurelleEstLongue(
+  textes: readonly string[],
+  seuil = SEUIL_CITATION_SORTIE,
+): boolean {
+  return textes.reduce((total, texte) => total + texte.length, 0) >= seuil
+}
+
+/** Prépare une citation structurelle pour son bloc de lecture. L'ancien modèle
+ *  conserve parfois les guillemets encadrants dans le premier et le dernier
+ *  segment ; le modèle éditorial récent les a déjà retirés. Les deux formes doivent
+ *  donc converger au rendu, sans supprimer un guillemet isolé qui appartiendrait au
+ *  texte cité. */
+export function textesCitationStructurelleSansEncadrement(textes: readonly string[]): string[] {
+  const resultat = textes.map(guillemetsInternesEnFrancais)
+  if (resultat.length === 0) return resultat
+  const premier = resultat[0]
+  const dernierIndex = resultat.length - 1
+  const dernier = resultat[dernierIndex]
+  const ouvre = /^«[ \u00A0\u202F\t]*/.exec(premier)
+  const ferme = /[ \u00A0\u202F\t]*»([ \u00A0\u202F\t]*(?:\[\[[A-Z0-9]+\]\])?[ \u00A0\u202F\t]*)$/.exec(dernier)
+  if (!ouvre || !ferme) return resultat
+  resultat[0] = premier.slice(ouvre[0].length)
+  resultat[dernierIndex] = dernier.slice(0, ferme.index) + ferme[1]
+  return resultat
+}
+
 /** Les guillemets anglais d'une citation deviennent français dès que l'encadrement
  *  disparaît : ils passent au premier niveau (charte §3.3). */
 export function guillemetsInternesEnFrancais(texte: string): string {
