@@ -755,8 +755,8 @@ export default function RechercheClient() {
            thèmes sans être nommés, et montent tout seuls sur le sol sombre du Cuir, comme
            la charte l'exige d'un carton posé sur un fond sombre. */
         .grp { border-radius:8px; }
-        .grp + .grp { margin-top:7px; }
-        .grp-hd { display:flex; align-items:baseline; gap:8px; padding:2px 10px 3px; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:var(--font-source-serif), Georgia, serif; }
+        .grp + .grp { margin-top:4px; }
+        .grp-hd { display:flex; align-items:baseline; gap:8px; padding:1px 10px 2px; line-height:1.25; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:var(--font-source-serif), Georgia, serif; }
         .grp-hd .nom { font-size:0.75rem; font-weight:600; letter-spacing:0.035em; }
         .grp-hd .compl { min-width:0; font-size:0.6875rem; font-style:italic; opacity:0.84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .grp-hd .n { margin-left:auto; flex-shrink:0; font-size:0.625rem; font-weight:400; font-variant-numeric:tabular-nums; opacity:0.74; }
