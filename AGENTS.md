@@ -1098,6 +1098,19 @@ Le module tient l'attente pour une page entière : `ProvisionAttente` l'ouvre (e
 
 **Ce qui reste** : le chargement d'un chapitre éditorial est encore une cascade de trois vagues (alignements, puis segments et sources, puis texte des unités), chacune entre 63 et 91 ms. Aucune n'est lente ; les fondre demanderait une vue SQL qui rende le texte recomposé d'un chapitre en une fois, ce qui est un travail de BASE, non de dépôt. Les scripts d'atelier de cet audit sont dans `tmp/` (`audit-bible-perf.mjs`, `audit-bible-perf2.mjs`, `audit-versets.mjs`, `audit-bible-equivalence.mjs`).
 
+# Page Bible — UN SEUL axe de lecture (2026-08-28)
+
+⛔ La page en portait **trois**, mesurés au navigateur sur sa structure exacte : le titre du chapitre à **503 px**, le texte des versets à **495,5**, les blocs éditoriaux et les pièces liminaires à **514,5**. L'auteur l'a vu sur « Du même auteur », qui ne tombait pas sous « Genèse ». Deux causes indépendantes, qui s'additionnaient.
+
+- **La gouttière d'actions, 19 px.** Le titre et les versets se centrent sur le BLOC DE TEXTE (`--mesure-bloc`), la colonne de 2,375 rem des boutons étant exclue du centrage. Les blocs éditoriaux, les pièces et les notes se centraient, eux, sur toute la colonne de lecture (`--mesure-page` moins ses marges). Ils passent désormais par `surAxeTexte` (`TexteBible`), le gabarit que le titre et la mention de lacune employaient déjà. ⚠️ Conséquence heureuse : le commentaire de Fillion, qui débordait les versets de 17 px à gauche et de 55 à droite, partage enfin leur mesure.
+- **La barre de défilement, 7,5 px.** L'en-tête est HORS du défileur, tout le reste dedans. La barre mesure 15 px, elle rétrécit le défileur d'autant, et tout ce qui s'y centre glissait de la moitié vers la gauche. `scrollbar-gutter: stable both-edges` réserve la gouttière des DEUX côtés : le contenu reste centré, barre visible ou non. ⛔ `stable` seul ne suffit pas — il ne réserve qu'à droite, et le décalage demeurerait.
+
+⚠️ **La géométrie vit dans l'enveloppe, jamais sur le bloc.** Un bloc éditorial porte ses propres marges horizontales — 12 % pour un préambule (`.cs-bible-info--i1.cs-bible-block--introduction`), zéro pour un sous-titre de partie — et les mêler aurait fait dépendre l'axe du GENRE du bloc.
+
+⛔ **Les règles de voisinage de `globals.css` traversent l'enveloppe.** Un bloc éditorial n'est plus le frère direct d'une rangée de verset : `.verset-row + .cs-bible-bloc` est devenu `.verset-row + .cs-bible-axe > .cs-bible-bloc`, et de même pour le couple titre / sous-titre de partie. ⚠️ Sans ce report, le blanc de 2 rem qui cerne un bloc de versets (charte § 35.12) disparaissait **en silence** : aucun test ne le voit.
+
+**Contrôle** : `tmp/planche-axes-bible.tsx` rejoue la structure et fait MESURER au navigateur le centre de chaque repère. Les quatre tombent sur 503,0.
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.
