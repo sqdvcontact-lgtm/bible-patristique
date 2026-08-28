@@ -15,6 +15,29 @@ import { useEffect, useId, useRef, useState } from 'react'
 
 type Traduction = { code: string; label: string }
 
+/**
+ * Le chevron du menu.
+ *
+ * ⛔ Il prend l'encre du NOM, pâlie d'un rang (`--cs-texte-doux` contre
+ * `--cs-texte-gris`), et non plus un vert clair : c'est une marque d'ouverture, pas
+ * un accent, et le vert y appelait l'œil avant le nom qu'il accompagne.
+ *
+ * ⚠️ Sa taille est en `em`, donc relative au nom : le glyphe ▼ remplit presque tout
+ * son cadratin, si bien qu'à taille égale il pèse bien plus qu'une lettre. À 0,5625
+ * em du nom, il vaut 6,5 px pour un nom de 11,5 — un cran sous les 7 px d'avant, et
+ * l'échelle typographique n'a pas de rang au-dessous de 7.
+ *
+ * ⚠️ `lineHeight: 1` et aucun décalage : le bouton aligne ses enfants sur leur
+ * milieu, et le glyphe est centré dans son cadratin. Le `top: 1.5px` d'avant le
+ * faisait descendre sous la ligne du nom.
+ */
+const STYLE_CHEVRON: React.CSSProperties = {
+  color: 'var(--cs-texte-doux)',
+  fontSize: '0.5625em',
+  fontStyle: 'normal',
+  lineHeight: 1,
+}
+
 type Props = {
   traductions: readonly Traduction[]
   traductionIndex: number
@@ -103,8 +126,14 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
             fontStyle: 'italic', letterSpacing: '0.01em',
             transition: 'color 0.15s',
           }}>
+          {/* ⛔ Le chevron est DOUBLÉ, et le double de gauche est invisible : sans lui,
+              le bouton se centrait chevron compris, et le NOM de la bible se trouvait
+              donc porté d'une dizaine de pixels à gauche de l'axe du titre qui le
+              surmonte. C'est le même procédé que le double de `.cs-onglet-libelle`,
+              qui réserve d'avance la largeur d'un libellé en graisse 600. */}
+          <span aria-hidden="true" style={{ ...STYLE_CHEVRON, visibility: 'hidden' }}>▼</span>
           <span>{label}</span>
-          <span aria-hidden="true" style={{ color: 'var(--cs-vert-clair)', fontSize: '0.4375rem', fontStyle: 'normal', position: 'relative', top: '1.5px' }}>{ouvert ? '▲' : '▼'}</span>
+          <span aria-hidden="true" style={STYLE_CHEVRON}>{ouvert ? '▲' : '▼'}</span>
         </button>
         {ouvert && (
           <div id={idListe} role="listbox" aria-label="Bibles disponibles"
