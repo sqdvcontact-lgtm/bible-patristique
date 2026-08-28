@@ -22,6 +22,7 @@ import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
+import { paginerBlocs } from '@/app/lib/paginationLecture'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -758,47 +759,31 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const pages = useMemo(() => {
     if (groupes.length === 0) return [[]] as GroupeData[][]
     if (texteSansNiveaux) {
-      const result: GroupeData[][] = []
-      let currentIds: number[] = []
-      let currentChars = 0
-      let pageIndex = 0
-      const flush = () => {
-        if (currentIds.length === 0) return
-        result.push([{
-          niv1: '', niv2: '', niv3: '', niv4: '',
-          niv1_texte: '', niv2_texte: '', niv3_texte: '', niv4_texte: '',
-          anchor: `g-sans-niveaux-${pageIndex++}`,
-          itemIds: currentIds,
-        }])
-        currentIds = []
-        currentChars = 0
-      }
-      const tousIds = groupes.flatMap(g => g.itemIds)
-      for (const id of tousIds) {
-        const chars = segCharMap.get(id) ?? 0
-        if (currentIds.length > 0 && currentChars + chars > CHARS_PAR_PAGE) flush()
-        currentIds.push(id)
-        currentChars += chars
-      }
-      flush()
+      // Sans niveaux, ce sont les SEGMENTS que l'on répartit, et chaque page devient
+      // ensuite un groupe de rendu à elle seule.
+      const parPage = paginerBlocs(
+        groupes.flatMap(g => g.itemIds).map(id => ({ bloc: id, signes: segCharMap.get(id) ?? 0 })),
+        CHARS_PAR_PAGE,
+      )
+      const result = parPage.map((itemIds, pageIndex) => [{
+        niv1: '', niv2: '', niv3: '', niv4: '',
+        niv1_texte: '', niv2_texte: '', niv3_texte: '', niv4_texte: '',
+        anchor: `g-sans-niveaux-${pageIndex}`,
+        itemIds,
+      }])
       return result.length > 0 ? result : [[]]
     }
-    const result: GroupeData[][] = []
-    let current: GroupeData[] = []
-    let currentChars = 0
-    for (const groupe of groupes) {
-      const gc = groupe.itemIds.reduce((acc, id) => acc + (segCharMap.get(id) ?? 0), 0)
-      if (current.length > 0 && currentChars + gc > CHARS_PAR_PAGE) {
-        result.push(current)
-        current = [groupe]
-        currentChars = gc
-      } else {
-        current.push(groupe)
-        currentChars += gc
-      }
-    }
-    if (current.length > 0) result.push(current)
-    return result
+    // ⛔ Un groupe ne se coupe jamais (niv3/4/5 solidaires), et une page ne se ferme
+    // pas tant qu'elle ne porte pas de quoi en être une : toute la règle, avec le cas
+    // qui l'a imposée, vit dans `app/lib/paginationLecture.ts`.
+    const result = paginerBlocs(
+      groupes.map(groupe => ({
+        bloc: groupe,
+        signes: groupe.itemIds.reduce((acc, id) => acc + (segCharMap.get(id) ?? 0), 0),
+      })),
+      CHARS_PAR_PAGE,
+    )
+    return result.length > 0 ? result : [[]]
   }, [groupes, segCharMap, texteSansNiveaux])
 
   const groupesFiltres = useMemo(() => pages[pageActuelle] ?? [], [pages, pageActuelle])

@@ -1186,6 +1186,18 @@ Doctrine : charte `parametres.charte_ia` **§3.8**, cinquième règle. Une citat
   - Le lemme se détache par sa **fonction** (il ouvre le paragraphe qu'il commente), non par sa taille : ce serait une règle structurelle, pas un seuil. **Décision de l'auteur, 2026-08-20 : ne rien changer.** Le seuil reste à 400 et les lemmes se lisent au fil du texte.
 - ⚠️ La francisation des guillemets internes est **l'inverse** de `convertirGuillemetsInternes` (`app/lib/citation.ts`), qui bascule les internes en anglais parce que le copier-coller ajoute un encadrement français. Symétriques, opposées : ne pas les confondre.
 
+# Pagination de la lecture — pas de PARAGRAPHE ORPHELIN (2026-08-28)
+
+Toute la règle vit dans **`app/lib/paginationLecture.ts`** (module pur, 9 tests), employée par les deux chemins de pagination d'`OeuvreClient` — celui des œuvres à niveaux et celui des textes sans niveaux.
+
+- **Le défaut, relevé par l'auteur** : sur l'*Explication sur le psaume III* de Chrysostome (Jeannin, `TXT_A0014O0089_FR_1865_JEANNIN`), la page de lecture se fermait après le seul lemme, « Psaume pour David lorsqu'il fuyait devant son fils Absalon… ». Le lecteur tombait sur la barre de pages au bout d'une ligne et demie.
+- **La cause, en trois nombres** : la division ne porte que deux blocs dans le corps — le lemme, **123 signes**, et tout le commentaire, **14 952**. Le lemme fait bloc à part parce qu'il porte `ref_niv2` **nul** quand la suite porte « 1 ». Or 123 + 14 952 = **15 075**, soit **75 signes** au-dessus de `CHARS_PAR_PAGE` (15 000), et la pagination ne coupe jamais un bloc.
+- ⛔ **Ce n'est pas une règle « rompre au changement de `ref_niv2` », et le remède n'est pas de relever le plafond** : le texte suivant déborderait d'un signe. Le plafond est un CONFORT, pas une loi ; une page qui ne porte qu'un paragraphe est un accident que le lecteur voit. ⚠️ `nature`, `espace_textuel` et `source_unit_id` n'entrent dans aucun calcul de page — ce dernier ne figure nulle part dans le front.
+- **La règle** : une page ne se ferme pas tant qu'elle ne porte pas `PART_PAGE_ORPHELINE` du plafond (**un cinquième**, soit 3 000 signes, à peu près un écran de la colonne de lecture). En dessous, le bloc suivant la rejoint, quitte à dépasser. Et la **dernière** page, si elle reste sous ce seuil, rejoint la précédente : l'orphelin de queue est le même défaut vu par l'autre bout.
+- ⚠️ **Le plafond cède devant la règle de l'orphelin, jamais l'inverse.** Une page trop longue se lit, une page d'une ligne et demie s'explique. Un bloc plus lourd que le plafond fait sa page à lui seul, comme avant : il n'y a rien à y faire sans le couper.
+- **Portée mesurée sur tout le corpus (2026-08-28)** : sur 385 divisions d'au moins deux blocs, **une seule** produisait un orphelin de tête — celle-là. La règle ne bouleverse rien ; elle empêche le défaut de revenir.
+- ⛔ **Fonder le saut de page sur la seule page imprimée n'est pas possible en règle générale** : **42,2 %** des segments de corps portent `page` (39 381 sur 93 346), et **14 textes sur 51** n'en portent aucune — ils n'auraient plus qu'une page, interminable. La charte le dit déjà : « La pagination n'est pas un objectif obligatoire de complétude. »
+
 # Citation biblique DÉCOUPÉE EN VERSETS — nature `verset` (2026-08-28)
 
 Doctrine : charte `parametres.charte_ia` **§3.8** (paragraphe « Une citation POSÉE VERSET PAR VERSET ne se recolle pas ») et **§7** (table des natures). Demande de l'auteur : « dans le style des citations sortie, mais sans grand espace entre paragraphes de même style ; un léger blanc suffit ; avec retrait gauche ».
