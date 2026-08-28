@@ -434,3 +434,91 @@ describe('présentation déclarée par la donnée', () => {
     expect(html).not.toContain('cs-apparat-bibliographie')
   })
 })
+
+describe('citation sortie dans une introduction ou un apparat', () => {
+  const CITEE = 'Toutes les parties de ce livre sont unies de la façon la plus étroite par une relation unique, la relation qu’elles ont à Jésus-Christ, l’Oint de Dieu, le Sauveur d’Israël, le Sauveur de l’humanité. Sans lui, l’histoire sainte entière n’aurait ni enchaînement ni but. Non, elle n’en aurait pas, puisqu’il est l’objet perpétuel des promesses, des coutumes religieuses, de l’attente nationale, des aspirations ardentes des hommes de Dieu.'
+  const ANNONCE = 'À notre époque, Stolberg écrivait au sujet de la Bible : '
+
+  const rendre = (style: string, texte: string, inlineSpans?: unknown[]) => renderToStaticMarkup(
+    <BlocEditorialBible bloc={{
+      id: 'bloc',
+      semanticStyleCode: style,
+      placement: 'before',
+      textBlocks: [{
+        id: 'bloc-1', kind: 'commentary', form: 'prose', text: texte, language: 'fr',
+        ...(inlineSpans ? { inlineSpans } : {}),
+      }],
+    } as never} />,
+  )
+
+  it('détache une citation longue, isolée et terminale d’une introduction', () => {
+    const html = rendre('introduction_bible', `${ANNONCE}« ${CITEE} »`)
+    expect(html).toContain('class="citation-sortie"')
+    // ⛔ Les guillemets encadrants tombent : le retrait dit la citation.
+    expect(html).toContain('Toutes les parties de ce livre')
+    expect(html).not.toContain(`« ${CITEE}`)
+    // L’annonce, elle, reste au fil du texte.
+    expect(html).toContain('Stolberg écrivait au sujet de la Bible')
+  })
+
+  it('la détache aussi dans un apparat critique', () => {
+    expect(rendre('notice_bible', `${ANNONCE}« ${CITEE} »`)).toContain('class="citation-sortie"')
+  })
+
+  it('⛔ ne la détache PAS dans un commentaire de péricope', () => {
+    // Un commentaire cite en une ligne : le retrait l’y noierait.
+    expect(rendre('commentaire_pericope', `${ANNONCE}« ${CITEE} »`)).not.toContain('citation-sortie')
+  })
+
+  it('⛔ ne la détache PAS quand une locution marquée est à cheval sur la coupure', () => {
+    // Ses offsets ne se reportent pas : mieux vaut la citation au fil du texte
+    // qu’une italique perdue en silence.
+    const texte = `${ANNONCE}« ${CITEE} »`
+    const cheval = [{ kind: 'foreign_expression', rendering: 'italic', language: 'la',
+      startOffsetUnicode: ANNONCE.length - 10, endOffsetUnicode: ANNONCE.length + 20 }]
+    expect(rendre('introduction_bible', texte, cheval)).not.toContain('citation-sortie')
+  })
+
+  it('reporte une locution marquée qui tient tout entière dans la citation', () => {
+    const texte = `${ANNONCE}« ${CITEE} »`
+    const debut = texte.indexOf('Jésus-Christ')
+    const dedans = [{ kind: 'foreign_expression', rendering: 'italic', language: 'la',
+      startOffsetUnicode: debut, endOffsetUnicode: debut + 'Jésus-Christ'.length }]
+    const html = rendre('introduction_bible', texte, dedans)
+    expect(html).toContain('class="citation-sortie"')
+    expect(html).toContain('<em lang="la">Jésus-Christ</em>')
+  })
+})
+
+describe('une locution entre guillemets coupée par un appel de note', () => {
+  it('n’ouvre ses guillemets qu’une fois, et ne les ferme qu’une fois', () => {
+    // Relevé par l'auteur sur l'Introduction générale, 2026-08-28 : l'appel tombé
+    // au milieu coupait la locution en fragments, et CHAQUE fragment reprenait sa
+    // paire — « les hommes de » « Dieu » là où l'édition écrit « les hommes de
+    // Dieu ».
+    const texte = 'Les aspirations ardentes des hommes de Dieu sont là.'
+    const debut = texte.indexOf('hommes de Dieu')
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'bloc',
+        semanticStyleCode: 'commentaire_pericope',
+        placement: 'before',
+        internalNotes: [{
+          id: 'n1', displayNumber: 1, printedMarker: '1',
+          anchorTarget: 'body', anchorText: 'hommes de',
+          blocks: [],
+        }],
+        textBlocks: [{
+          id: 'bloc-1', kind: 'commentary', form: 'prose', text: texte, language: 'fr',
+          inlineSpans: [{
+            kind: 'quotation', rendering: 'quotation_italic', language: 'fr',
+            startOffsetUnicode: debut, endOffsetUnicode: debut + 'hommes de Dieu'.length,
+          }],
+        }],
+      } as never} />,
+    )
+    const ouvrants = (html.match(/«/g) ?? []).length
+    const fermants = (html.match(/»/g) ?? []).length
+    expect({ ouvrants, fermants }).toEqual({ ouvrants: 1, fermants: 1 })
+  })
+})

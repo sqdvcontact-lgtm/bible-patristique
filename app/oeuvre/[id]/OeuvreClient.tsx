@@ -1813,14 +1813,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
            différence de police distingue les deux colonnes d'un coup d'œil, mieux
            qu'un filet, et sans peser sur le latin quand il se lit seul. */
-        /* Citation sortie (charte §3.8, cinquième règle) : une citation longue,
-           isolée et terminale se détache de la prose. Retrait des deux côtés, corps
-           légèrement réduit, ni guillemets ni filet — le retrait suffit à la dire.
-           Même mesure que la citation d'un essai, pour une seule forme sur le site. */
-        /* Le retrait est porté par la marge MOINS le rembourrage, pour que le texte
-           cité reste à 8mm tout en laissant la surbrillance déborder autour de lui. */
-        .citation-sortie { display: block; margin: 0.5rem calc(8mm - 4px); padding: 0.12rem 4px; font-size: 0.95em; text-align: justify; border-radius: 4px; transition: background 0.12s; }
-        @media(max-width: 980px){ .citation-sortie { margin-left: calc(5mm - 4px); margin-right: -4px; } }
+        /* ⛔ La forme de .citation-sortie (charte §3.8, cinquième règle) vit
+           désormais dans globals.css : les introductions et apparats des bibles
+           la partagent, et deux écritures auraient fait deux mesures. Ne restent
+           ici que les règles propres aux ŒUVRES — la surbrillance de survol et le
+           bloc structurel, qui n'existent pas ailleurs.
+           ⚠️ Aucun accent grave dans ce bloc : il vit dans un littéral de gabarit. */
         /* Une citation balisée peut couvrir plusieurs segments : le bloc enveloppe
            toute la suite, afin que les frontières techniques ne créent ni retraits
            répétés ni faux paragraphes. Les segments restent cliquables en dedans. */

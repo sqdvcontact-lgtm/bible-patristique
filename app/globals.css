@@ -1177,6 +1177,36 @@ button:focus-visible,
   margin-top: 0.3rem;
 }
 
+/* ── La CITATION SORTIE — une seule forme pour tout le site ───────────────────
+   Doctrine : charte § 3.8, cinquième règle. Une citation longue, isolée par un
+   deux-points et terminant son paragraphe se détache de la prose : elle perd ses
+   guillemets encadrants, ses guillemets internes reviennent au français, et elle
+   reçoit un retrait des DEUX côtés. Ni guillemets, ni filet, ni fond — le retrait
+   suffit à la dire.
+
+   ⚠️ Cette règle vivait dans le bloc <style> d'`OeuvreClient`, donc pour les
+   ŒUVRES seules. Les introductions et les apparats critiques des bibles n'en
+   avaient aucune, et une citation de quatre cent trente-huit signes s'y coulait
+   dans le fil, guillemets compris (relevé de l'auteur sur l'Introduction générale
+   de Fillion, 2026-08-28). Elle est donc remontée ici, où les deux surfaces la
+   partagent. ⛔ Ne pas la redéfinir ailleurs : deux écritures, deux mesures.
+
+   Le retrait est porté par la marge MOINS le rembourrage, pour que le texte cité
+   reste à 8 mm tout en laissant la surbrillance de survol — celle des œuvres —
+   déborder autour de lui. */
+.citation-sortie {
+  display: block;
+  margin: 0.5rem calc(8mm - 4px);
+  padding: 0.12rem 4px;
+  font-size: 0.95em;
+  text-align: justify;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+@media (max-width: 980px) {
+  .citation-sortie { margin-left: calc(5mm - 4px); margin-right: -4px; }
+}
+
 /* ── Barre de défilement discrète ───────────────────────────────────────────
    Une seule écriture pour tout ce qui défile dans le CHROME du site : la barre
    d'onglets de l'administration, les menus déroulants de la navbar. Les zones de

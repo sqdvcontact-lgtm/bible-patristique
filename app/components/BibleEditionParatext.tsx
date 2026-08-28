@@ -16,8 +16,10 @@ import {
   resoudreStyleSemantique,
   diviserIntitule,
   type JetonTitre,
+  type NatureBloc,
   type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
+import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import {
   PONCTUATION_ATTACHEE,
@@ -111,20 +113,33 @@ function positionAppelDansTexte(
   return relative <= text.length ? relative : null
 }
 
+/** Un span coupé en morceaux : ce fragment OUVRE-t-il la locution, la FERME-t-il ?
+ *  Les deux sont vrais quand elle tient d'un seul tenant. */
+type BornesDuSpan = { ouvre: boolean; ferme: boolean }
+const SPAN_ENTIER: BornesDuSpan = { ouvre: true, ferme: true }
+
 function envelopperSpan(
   contenu: ReactNode,
   span: BibleEditionDisplayInlineSpan | undefined,
   key: string,
+  bornes: BornesDuSpan = SPAN_ENTIER,
 ): ReactNode {
   if (!span) return <Fragment key={key}>{contenu}</Fragment>
   const lang = span.language ?? undefined
   // ⛔ Les guillemets français restent en ROMAIN : ils appartiennent au français
   // qui cite, non au latin cité. « *Jesu Christi* », jamais *« Jesu Christi »* —
   // l'italique s'arrête au bord du guillemet, et la langue avec elle.
+  //
+  // ⛔ Et ils ne se posent qu'UNE fois, aux deux bouts de la locution. Un appel de
+  // note tombant en son milieu la coupe en fragments, et chaque fragment reprenait
+  // sa paire : « les hommes de » « Dieu » là où l'édition écrit « les hommes de
+  // Dieu ». Relevé par l'auteur sur l'Introduction générale, 2026-08-28.
   if (span.rendering === 'quotation_italic') {
     return (
       <span key={key}>
-        «&#8239;<em lang={lang}>{contenu}</em>&#8239;»
+        {bornes.ouvre ? <>«&#8239;</> : null}
+        <em lang={lang}>{contenu}</em>
+        {bornes.ferme ? <>&#8239;»</> : null}
       </span>
     )
   }
@@ -174,6 +189,21 @@ function rendreContenuAncre(
   for (const appel of appels) bornes.add(appel.position)
   const ordre = [...bornes].filter((position) => position >= 0 && position <= text.length).sort((a, b) => a - b)
   const noeuds: ReactNode[] = []
+  // ⚠️ Une locution coupée en plusieurs fragments n'ouvre ses guillemets qu'au
+  // PREMIER et ne les ferme qu'au DERNIER. On retient donc celles déjà ouvertes ;
+  // les fragments se suivent dans l'ordre du texte, un simple ensemble suffit.
+  const ouverts = new Set<BibleEditionDisplayInlineSpan>()
+  const poser = (
+    contenu: ReactNode,
+    span: BibleEditionDisplayInlineSpan | undefined,
+    key: string,
+    ferme: boolean,
+  ): ReactNode => {
+    if (!span) return envelopperSpan(contenu, span, key)
+    const ouvre = !ouverts.has(span)
+    if (ouvre) ouverts.add(span)
+    return envelopperSpan(contenu, span, key, { ouvre, ferme })
+  }
   // Curseur de lecture : la ponctuation emportée par un appel a déjà été rendue,
   // le fragment suivant reprend après elle.
   let rendu = 0
@@ -181,14 +211,16 @@ function rendreContenuAncre(
     const start = ordre[index]
     const end = ordre[index + 1]
     const span = spans.find((candidate) => candidate.startOffsetUnicode <= start && candidate.endOffsetUnicode >= end)
+    const clot = Boolean(span) && end >= (span?.endOffsetUnicode ?? 0)
     const appelsIci = appels.filter((candidate) => candidate.position === end)
     const brut = text.slice(Math.max(start, rendu), end)
     if (appelsIci.length === 0) {
-      if (brut) noeuds.push(envelopperSpan(rendreTexteEnrichi(brut), span, `run:${start}:${end}`))
+      if (brut) noeuds.push(poser(rendreTexteEnrichi(brut), span, `run:${start}:${end}`, clot))
       continue
     }
     const [tete, dernierMot] = detacherDernierMot(brut)
-    if (tete) noeuds.push(envelopperSpan(rendreTexteEnrichi(tete), span, `run:${start}:${end}`))
+    // La locution ne se ferme sur la tête que si aucun dernier mot ne la prolonge.
+    if (tete) noeuds.push(poser(rendreTexteEnrichi(tete), span, `run:${start}:${end}`, clot && !dernierMot))
     // La ponctuation ne se prend qu'en texte nu : sous une italique ou une
     // petite capitale, elle appartient à l'enveloppe et n'en sort pas.
     const spanApres = spans.find((candidate) => candidate.startOffsetUnicode <= end && candidate.endOffsetUnicode > end)
@@ -197,7 +229,7 @@ function rendreContenuAncre(
     rendu = end + ponctuation.length
     noeuds.push(
       <span key={`appels:${end}`} style={NOWRAP}>
-        {dernierMot ? envelopperSpan(rendreTexteEnrichi(dernierMot), span, `mot:${end}`) : null}
+        {dernierMot ? poser(rendreTexteEnrichi(dernierMot), span, `mot:${end}`, clot) : null}
         {appelsIci.map((appel, rang) => (
           <Fragment key={`appel:${appel.note.id}`}>
             {rang > 0 && (
@@ -351,6 +383,43 @@ function rendreBlocTexte(
     // précise, celle qui vise ce paragraphe-ci et non le genre de son bloc.
     ...(composition ? COMPOSITIONS[composition] : {}),
   }
+  const sortie = citationSortieDuParagraphe(bloc, resolu)
+  if (sortie) {
+    const { avant, citation, spansAvant, spansCitation } = sortie
+    // ⚠️ `bloc` n'est PAS passé à `rendreContenuAncre` sur les deux moitiés : ses
+    // offsets de source valent pour le paragraphe entier et ne veulent plus rien
+    // dire une fois coupé. Les appels de note s'y posent par leur texte d'ancrage,
+    // que les soixante-six notes de l'Introduction générale portent toutes.
+    return (
+      <Fragment key={bloc.id}>
+        <p lang={bloc.language ?? undefined} style={style}>
+          {rendreContenuAncre(avant, spansAvant, notes)}
+        </p>
+        {/* Le corps du paratexte se pose sur l'enveloppe, pour que le `0.95em` de
+            `.citation-sortie` s'y rapporte : la classe porte la forme, une seule
+            fois pour tout le site, et le paragraphe ne la redit pas. */}
+        <div style={{ fontSize: STYLE_CORPS.fontSize }}>
+          <p
+            className="citation-sortie"
+            lang={bloc.language ?? undefined}
+            data-source-start={bloc.sourceStartOffsetUnicode ?? undefined}
+            data-source-end={bloc.sourceEndOffsetUnicode ?? undefined}
+            style={{
+              fontFamily: STYLE_CORPS.fontFamily,
+              lineHeight: STYLE_CORPS.lineHeight,
+              color: STYLE_CORPS.color,
+              hyphens: 'auto',
+              overflowWrap: 'break-word',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {rendreContenuAncre(citation, spansCitation, notes)}
+          </p>
+        </div>
+      </Fragment>
+    )
+  }
+
   return (
     <p
       key={bloc.id}
@@ -363,6 +432,56 @@ function rendreBlocTexte(
       {rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc)}
     </p>
   )
+}
+
+/**
+ * La CITATION SORTIE d'un paragraphe de paratexte — charte § 3.8, cinquième règle.
+ *
+ * Une citation longue, annoncée par un deux-points et terminant son paragraphe se
+ * détache de la prose : elle perd ses guillemets encadrants et reçoit un retrait
+ * des deux côtés. La règle est celle des ŒUVRES (`app/lib/citationSortie.ts`,
+ * module pur et testé) et la forme aussi (`.citation-sortie`, dans `globals.css`) :
+ * une seule mesure sur le site.
+ *
+ * ⛔ Réservée aux INTRODUCTIONS et aux APPARATS. C'est là qu'un auteur cite au
+ * long — l'Introduction générale de Fillion cite Stolberg sur quatre cent
+ * trente-huit signes. Un commentaire de verset, lui, cite en une ligne, et le
+ * retrait l'y noierait.
+ *
+ * ⛔ Et l'on ne sort la citation que si TOUT ce qu'elle porte peut la suivre : une
+ * locution marquée à cheval sur la coupure ne se reporte pas, et la perdre en
+ * silence vaudrait moins que de laisser la citation au fil du texte.
+ */
+const NATURES_CITATION_SORTIE = new Set<NatureBloc>(['introduction', 'notice'])
+
+function citationSortieDuParagraphe(bloc: BlocTexteBiblique, resolu?: StyleResolu): {
+  avant: string
+  citation: string
+  spansAvant: BibleEditionDisplayInlineSpan[]
+  spansCitation: BibleEditionDisplayInlineSpan[]
+} | null {
+  if (bloc.kind !== 'commentary' || bloc.form !== 'prose') return null
+  if (!resolu || !NATURES_CITATION_SORTIE.has(resolu.nature)) return null
+  const sortie = detecterCitationSortie(bloc.text)
+  if (!sortie) return null
+  const spans = bloc.inlineSpans ?? []
+  if (spans.length === 0) return { ...sortie, spansAvant: [], spansCitation: [] }
+  const debut = sortie.debutCitation
+  if (debut === null) return null
+  const fin = debut + sortie.citation.length
+  const dansLAnnonce = (s: BibleEditionDisplayInlineSpan) => s.endOffsetUnicode <= debut
+  const dansLaCitation = (s: BibleEditionDisplayInlineSpan) =>
+    s.startOffsetUnicode >= debut && s.endOffsetUnicode <= fin
+  if (!spans.every((s) => dansLAnnonce(s) || dansLaCitation(s))) return null
+  return {
+    ...sortie,
+    spansAvant: spans.filter(dansLAnnonce),
+    spansCitation: spans.filter(dansLaCitation).map((s) => ({
+      ...s,
+      startOffsetUnicode: s.startOffsetUnicode - debut,
+      endOffsetUnicode: s.endOffsetUnicode - debut,
+    })),
+  }
 }
 
 export function IllustrationBible({ illustration }: { illustration: IllustrationBibliqueAffichable }) {

@@ -26,7 +26,9 @@ const APPEL_DE_NOTE = '(?:\\[\\[[A-Z0-9]+\\]\\])?'
 // citation qui en contient reste au fil du texte, faute de savoir laquelle sortir.
 const MOTIF = new RegExp(
   `^(.*?:${ESPACES}*)«${ESPACES}*([^«»]{${SEUIL_CITATION_SORTIE},}?)${ESPACES}*»${ESPACES}*(${APPEL_DE_NOTE})${ESPACES}*$`,
-  's',
+  // `d` : les INDICES des groupes, dont `debutCitation` a besoin pour reporter
+  // sur la citation les locutions marquées qui la traversent.
+  'sd',
 )
 
 // Le segment est la citation, tout entier : il OUVRE sur le guillemet, et le
@@ -39,7 +41,7 @@ const MOTIF = new RegExp(
 // sortir en ferait à tort une citation d'auteur (constaté sur Boèce).
 const MOTIF_SANS_ANNONCE = new RegExp(
   `^«${ESPACES}*([^«»]{${SEUIL_CITATION_SORTIE},}?)${ESPACES}*»${ESPACES}*(${APPEL_DE_NOTE})${ESPACES}*$`,
-  's',
+  'sd',
 )
 
 export type OptionsCitationSortie = {
@@ -54,6 +56,17 @@ export type CitationSortie = {
   avant: string
   /** Le texte cité, sans ses guillemets encadrants, guillemets internes francisés. */
   citation: string
+  /**
+   * Où commence, dans le texte SOURCE, ce qui est devenu `citation`. Les surfaces
+   * qui posent leurs locutions marquées et leurs appels de note par OFFSET — la
+   * page Bible — s'y reportent par soustraction ; la page d'œuvre, qui les pose
+   * par marqueur dans le texte, n'en a pas l'usage.
+   *
+   * ⛔ `null` quand la francisation a déplacé les signes : `“` devient `« `, deux
+   * caractères pour un, et la correspondance cesse d'être exacte. Mieux vaut ne
+   * rien reporter que reporter de travers.
+   */
+  debutCitation: number | null
 }
 
 export type BlocCitationStructurelle<T> = {
@@ -116,18 +129,31 @@ export function guillemetsInternesEnFrancais(texte: string): string {
 }
 
 /** Décrit la citation à sortir, ou `null` si le texte n'en porte pas. */
+/** Le début, dans le texte source, du contenu cité — ou `null` si la francisation
+ *  des guillemets a déplacé les signes et rompu la correspondance. */
+function debutDuContenu(m: RegExpExecArray, rang: number, brut: string): number | null {
+  const bornes = m.indices?.[rang]
+  if (!bornes) return null
+  if (guillemetsInternesEnFrancais(brut) !== brut) return null
+  return bornes[0] + (brut.length - brut.trimStart().length)
+}
+
 export function detecterCitationSortie(texte: string, options: OptionsCitationSortie = {}): CitationSortie | null {
   const m = MOTIF.exec(texte)
   if (!m) {
     if (!options.sansAnnonce) return null
     const seule = MOTIF_SANS_ANNONCE.exec(texte)
     if (!seule) return null
-    return { avant: '', citation: guillemetsInternesEnFrancais(seule[1].trim()) + (seule[2] ?? '') }
+    return {
+      avant: '',
+      citation: guillemetsInternesEnFrancais(seule[1].trim()) + (seule[2] ?? ''),
+      debutCitation: debutDuContenu(seule, 1, seule[1]),
+    }
   }
   const avant = m[1].trim()
   // Une citation sortie sans rien pour l'annoncer perdrait son attache : on exige
   // que l'annonce porte du texte, pas seulement le deux-points.
   if (avant.replace(/[:\s]/g, '').length === 0) return null
   const citation = guillemetsInternesEnFrancais(m[2].trim()) + (m[3] ?? '')
-  return { avant, citation }
+  return { avant, citation, debutCitation: debutDuContenu(m, 2, m[2]) }
 }

@@ -180,3 +180,28 @@ describe('citation balisée sur plusieurs segments', () => {
     ])
   })
 })
+
+describe('le début de la citation dans le texte source', () => {
+  // La page Bible pose ses locutions marquées et ses appels de note par OFFSET :
+  // sans ce repère, elle ne saurait pas les reporter sur la citation détachée.
+  it('donne la position du contenu cité', () => {
+    const annonce = 'Stolberg écrivait au sujet de la Bible : '
+    const texte = `${annonce}«${FINE}${longue()}${FINE}»`
+    const sortie = detecterCitationSortie(texte)
+    expect(sortie?.debutCitation).toBe(annonce.length + 2)
+    expect(texte.slice(sortie!.debutCitation!, sortie!.debutCitation! + 4)).toBe('aaaa')
+  })
+
+  it('le donne aussi quand le segment est la citation entière', () => {
+    const texte = `«${FINE}${longue()}${FINE}»`
+    const sortie = detecterCitationSortie(texte, { sansAnnonce: true })
+    expect(sortie?.debutCitation).toBe(2)
+  })
+
+  it('⛔ ne le donne PAS quand la francisation a déplacé les signes', () => {
+    // « “ » devient « « » plus une fine : deux caractères pour un, et toute
+    // position calculée après lui serait fausse d'un cran par guillemet.
+    const texte = `Il écrit : «${FINE}${longue()} “mot” ${longue()}${FINE}»`
+    expect(detecterCitationSortie(texte)?.debutCitation).toBeNull()
+  })
+})
