@@ -1,9 +1,11 @@
 'use client'
 
-import { Fragment, useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
+import OngletsPage from '@/app/components/OngletsPage'
+import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { LABEL_VOLET, LIGNE_ACTION_VOLET, MOT_DU_FIL, BLANC_DU_FIL } from '@/app/lib/stylesVoletLecture'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
@@ -175,14 +177,9 @@ type Props = {
   pieceActive?: string | null
 }
 
-/** Une entrée du sommaire, telle que le volet la montre. */
-export type PieceSommaireBible = {
-  cle: string
-  titre: string
-  /** « Bible », « Ancien Testament », « Pentateuque » : ce que la pièce coiffe. */
-  portee: string | null
-  scopeKind: string
-}
+// Le type vit auprès du composant qui le rend ; il se réexporte ici, où
+// `BibleLayout` l'a toujours trouvé.
+export type { PieceSommaireBible }
 
 /**
  * Parse "ex 20 20", "ex 20, 20", "Exode 20:20", "1Co 3 1"…
@@ -569,82 +566,51 @@ export default function NavLivres({
       )}
 
       {/* ── Livres | Sommaire ───────────────────────────────────────────────
-          L'onglet ne paraît que pour une édition qui porte un apparat général :
+          La barre ne paraît que pour une édition qui porte un apparat général :
           Fillion ouvre son tome sur soixante-deux pièces, une bible ordinaire sur
           aucune. ⛔ Pas d'onglet qui ouvrirait sur du blanc.
 
-          Le dessin est celui des onglets du site (bibliothèque, catalogue des
-          péricopes) : filet plein sur la mesure, trait vert sous l'onglet retenu,
-          et les deux se partagent la largeur À PARTS ÉGALES, sans quoi la graisse
-          de l'onglet actif décalerait son voisin à chaque changement. */}
+          ⛔ Le dessin vient du MODÈLE COMMUN (`OngletsPage`, `.cs-onglets` dans
+          globals.css), et il n'est plus recomposé ici. Les deux libellés étaient
+          en capitales espacées : deux mots criés en tête d'un volet de lecture,
+          quand aucune autre barre du site n'en porte. Le modèle donne le sans du
+          site, la casse ordinaire, le trait vert sous l'onglet retenu, et la
+          largeur réservée d'avance en graisse 600 pour que retenir un onglet ne
+          déplace jamais son voisin. */}
       {sommaireEdition.length > 0 && (
-        <div role="group" aria-label="Ce que montre le volet"
-          style={{ flexShrink: 0, display: 'flex', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
-          {([['livres', 'Livres'], ['sommaire', 'Sommaire']] as const).map(([cle, label]) => {
-            const actif = (cle === 'sommaire') === sommaireOuvert
-            return (
-              <button key={cle} type="button" aria-pressed={actif}
-                onClick={() => setOngletVolet(cle)}
-                style={{
-                  flex: 1, background: 'none', border: 'none', cursor: actif ? 'default' : 'pointer',
-                  padding: '7px 4px 6px', fontSize: '0.75rem', letterSpacing: '0.06em',
-                  textTransform: 'uppercase', fontWeight: actif ? 600 : 500,
-                  color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)',
-                  borderBottom: `2px solid ${actif ? 'var(--cs-vert-aplat)' : 'transparent'}`,
-                  marginBottom: '-1px',
-                }}>
-                {label}
-              </button>
-            )
-          })}
-        </div>
+        <OngletsPage
+          intitule="Ce que montre le volet"
+          actif={ongletVolet}
+          choisir={setOngletVolet}
+          style={{ flexShrink: 0, background: 'var(--cs-fond)' }}
+          onglets={[
+            { cle: 'livres', libelle: 'Livres' },
+            { cle: 'sommaire', libelle: 'Sommaire' },
+          ]}
+        />
       )}
 
       {/* ── Le sommaire de l'édition ────────────────────────────────────────
           Il prend la place de la recherche et de la liste des livres : on ne
           cherche pas un livre dans les pièces liminaires, et deux listes
-          superposées feraient du volet un tiroir sans fond. */}
+          superposées feraient du volet un tiroir sans fond.
+
+          ⛔ Sa mise en forme est celle du SOMMAIRE D'UNE ŒUVRE (`OeuvreClient`),
+          décision de l'auteur : c'est le même objet — la table des matières d'un
+          livre — et il n'avait pas à se présenter de deux façons. La portée prend
+          donc le rang du niveau 1, la pièce celui du niveau 2 avec son filet de
+          gauche, et l'on quitte le sérif sur pastille verte, qui était emprunté à
+          la liste des livres. */}
       {sommaireOuvert && (
-        <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '6px 6px 10px' }}>
-          {sommaireEdition.map((piece, rang) => {
-            const actif = piece.cle === pieceActive
-            const nouvellePortee = piece.portee && piece.portee !== sommaireEdition[rang - 1]?.portee
-            return (
-              <div key={piece.cle}>
-                {/* La portée coiffe ses pièces au lieu de se répéter sur chaque
-                    ligne : « Bible », puis « Ancien Testament », puis « Pentateuque ». */}
-                {nouvellePortee && (
-                  <div style={{
-                    fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.09em',
-                    textTransform: 'uppercase', color: 'var(--cs-texte-gris)',
-                    padding: rang === 0 ? '4px 6px 3px' : '12px 6px 3px',
-                  }}>
-                    {piece.portee}
-                  </div>
-                )}
-                <button type="button" aria-current={actif ? 'page' : undefined}
-                  onClick={() => naviguer(urlLectureBible({
-                    ...maniereDeLire,
-                    // Une pièce est commune aux deux membres de la famille : la
-                    // mettre en regard d'elle-même n'aurait aucun sens.
-                    bilingue: false,
-                    livre: livreActifLocal, chapitre: chapitreActifLocal, trad: tradCode,
-                    piece: piece.cle,
-                  }))}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left',
-                    background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'none',
-                    border: 'none', borderRadius: '4px', cursor: actif ? 'default' : 'pointer',
-                    padding: '5px 8px', fontSize: '0.8125rem', lineHeight: 1.35,
-                    fontFamily: 'var(--font-source-serif), Georgia, serif',
-                    color: actif ? 'var(--cs-encre)' : 'var(--cs-texte)',
-                  }}>
-                  {piece.titre}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+        <SommaireEdition pieces={sommaireEdition} pieceActive={pieceActive}
+          onOuvrir={cle => naviguer(urlLectureBible({
+            ...maniereDeLire,
+            // Une pièce est commune aux deux membres de la famille : la mettre en
+            // regard d'elle-même n'aurait aucun sens.
+            bilingue: false,
+            livre: livreActifLocal, chapitre: chapitreActifLocal, trad: tradCode,
+            piece: cle,
+          }))} />
       )}
 
       {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,

@@ -1747,6 +1747,22 @@ Doctrine : charte `parametres.charte_ia`, **§ 35.14**. Ce qui dépasse le livre
 - ⚠️ **`composerAffichage`** (`app/page.tsx`) est la transformation payload → affichage, désormais partagée par l'appareil d'un chapitre et par une pièce. Une seule écriture : c'est la règle déjà consignée pour les colonnes de `segments`.
 - **L'onglet ne paraît que si le sommaire n'est pas vide** (`NavLivres`, `sommaireEdition`), et il remplace la recherche et la liste des livres. Sur téléphone, il se loge dans le volet, lui-même ouvert par l'onglet mobile qui s'appelle déjà « Sommaire » : **les deux mots se superposent, à arbitrer**.
 
+
+### Sa mise en forme est celle du sommaire d'une ŒUVRE (2026-08-28)
+
+Décision de l'auteur. Le sommaire vit désormais dans **`app/components/SommaireEdition.tsx`**, sorti de `NavLivres`, et prend la composition du sommaire d'`OeuvreClient` : c'est le même objet, la table des matières d'un livre, et il n'avait pas à se présenter de deux façons. ⛔ Le sérif sur pastille verte qu'il portait venait de la liste des LIVRES, laquelle n'est pas une table des matières mais un index.
+
+- ⚠️ **Les rangs s'apparient par la FONCTION, non par la profondeur.** La pièce est ce qu'on ouvre : elle prend le rang du NIVEAU 1 du sommaire d'une œuvre (0,71875 rem, `--cs-texte`, vert et demi-gras quand elle est ouverte). La portée ne s'ouvre pas, elle coiffe : elle prend le rang des rubriques du volet d'une œuvre (« Apparat critique », « Sommaire »), en 0,5625 rem espacé et `--cs-texte-faible`. Le premier essai les avait pris pour un niveau 1 et un niveau 2 ; les pièces, seul contenu de l'onglet, s'y lisaient comme des sous-entrées d'une rubrique qui n'existe pas.
+- **Composant à part, et non un fragment de `NavLivres`** : il ne connaît ni la navigation ni l'adresse d'une pièce, seulement un `onOuvrir(cle)`. C'est ce qui permet à `tmp/planche-sommaire-bible.tsx` de le rendre hors session, l'ancien dessin en regard du nouveau.
+
+### ⛔ La barre « Livres | Sommaire » vient du MODÈLE COMMUN (2026-08-28)
+
+Les deux libellés étaient composés à la main, en **capitales espacées** : deux mots criés en tête d'un volet de lecture, quand aucune autre barre du site n'en porte. L'auteur les a refusés. La barre passe à **`OngletsPage`** (`.cs-onglets` dans globals.css), qui donne le sans du site à 0,71875 rem, la casse ordinaire, le filet séparateur, le trait vert sous l'onglet retenu, et la largeur réservée d'avance en graisse 600 pour que retenir un onglet ne déplace jamais son voisin.
+
+⚠️ C'était la SIXIÈME barre d'onglets du site à être recomposée en styles en ligne, ce que l'en-tête d'`OngletsPage` proscrit depuis sa création. La règle vaut pour toute barre à venir : on prend le modèle, on ne le redessine pas.
+
+⚠️ **La liste des LIVRES, elle, garde ses capitales** (« Ancien Testament », « Nouveau Testament », « Écrits non canoniques »), faute d'une décision : ce sont des rubriques de l'index, pas des onglets, et l'auteur n'a nommé que la barre.
+
 ## L'intitulé d'une introduction de livre (2026-08-27)
 
 Doctrine : charte **§ 35.13**. `introduction_livre` déclare désormais `heading_role: 'title'` et `heading_level: 'T2'` dans `work/fillion/semantic_display_hierarchy.json` : le rendu passe par la branche « cas mixte » de `BlocEditorialBible`, et l'intitulé prend la composition de « Première partie ». Le chapeau (`.cs-bible-chapeau`) reçoit sous les trois rangs HAUTS la composition du sous-titre de partie ; il garde le gris de l'apparat sous les rangs bas.
