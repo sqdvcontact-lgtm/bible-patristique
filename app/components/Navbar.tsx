@@ -335,6 +335,26 @@ function normaliserExtrait(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
+// ⛔ LE SURLIGNAGE DU TERME TAPÉ NE PORTE AUCUNE COULEUR.
+//
+// Il portait une pastille VERTE — encre `--cs-vert` sur un fond translucide de la
+// même teinte. Tant que la liste était bleue, verte et ocre, elle passait ; depuis
+// que les sections prennent les trois familles de corpus, elle est une QUATRIÈME
+// couleur, et la seule qui se répète à CHAQUE rang. La liste en devenait bariolée,
+// et le vert disait « Bible » au milieu d'un groupe pourpre.
+//
+// ⚠️ Elle ne prend pas non plus le jaune `--cs-vise-fond` de la page de résultats,
+// et la différence tient à ce qu'on FAIT dans chacune. Sur la page, on cherche un
+// mot des yeux dans un paragraphe de prose, et le jaune est le repère qu'on y
+// poursuit. Ici l'entrée fait trois mots, on vient de taper le début du premier, et
+// l'on sait déjà ce qu'on a écrit : une pastille par ligne y serait un coup de
+// surligneur sur un mot qu'on n'a pas besoin de retrouver. La graisse suffit.
+//
+// ⛔ Une seule définition pour les DEUX surligneurs : ils portaient la même
+// déclaration recopiée, et une forme recopiée à deux endroits ne reste identique
+// que par accident.
+const STYLE_TERME_TAPE: React.CSSProperties = { fontWeight: 700, color: 'var(--cs-encre-fonce)' };
+
 function surlignerMatch(texte: string, query: string): React.ReactNode {
   if (!query) return texte
   const tN = normaliserExtrait(texte)
@@ -344,7 +364,7 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
   return (
     <>
       {texte.slice(0, idx)}
-      <strong style={{ color: 'var(--cs-vert)', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{texte.slice(idx, idx + query.length)}</strong>
+      <strong style={STYLE_TERME_TAPE}>{texte.slice(idx, idx + query.length)}</strong>
       {texte.slice(idx + query.length)}
     </>
   )
@@ -364,7 +384,7 @@ function extraireEtSurligner(texte: string, q: string, longueur = 110): React.Re
   if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
   return (
     <>
-      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={{ color: 'var(--cs-vert)', fontWeight: 700, background: 'rgba(var(--cs-vert-rgb),0.14)', borderRadius: '4px', padding: '0 1px' }}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
+      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={STYLE_TERME_TAPE}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
     </>
   )
 }
