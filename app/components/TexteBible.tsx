@@ -482,6 +482,28 @@ export default function TexteBible({
   const estLacune899 = (v: Verset) => v._estLacune === true
   const indexBlocs = indexerBlocsDeCorps(editionChapter?.bodyBlocks ?? [])
   const indexIllustrations = indexerIllustrations(editionChapter?.assets ?? [])
+  // ⛔ L'AXE DE LECTURE de la page : le bloc de texte, la colonne d'actions
+  // EXCLUE du centrage. Le titre du chapitre et les rangées de verset s'y posaient
+  // déjà ; les blocs éditoriaux, les pièces liminaires et les notes se centraient,
+  // eux, sur toute la colonne de lecture. Mesuré le 2026-08-28 : trois axes dans la
+  // même page, à 503, 495,5 et 514,5 pixels. L'auteur l'a vu sur « Du même auteur »,
+  // qui ne tombait pas sous « Genèse ».
+  //
+  // ⚠️ La géométrie vit ICI, jamais sur le bloc : celui-ci porte ses propres marges
+  // horizontales (12 % pour un préambule, zéro pour un sous-titre de partie), et
+  // les mêler aurait fait dépendre l'axe du genre du bloc.
+  //
+  // ⚠️ Un seul enfant par cellule : les règles de voisinage de `globals.css`
+  // (`.verset-row + .cs-bible-axe > .cs-bible-bloc`) traversent l'enveloppe, et
+  // elles ne le peuvent que si le bloc en est l'enfant DIRECT.
+  const surAxeTexte = (contenu: React.ReactNode, cle?: string) => mobile ? contenu : (
+    <div key={cle} className="cs-bible-axe"
+      style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem' }}>
+      {contenu}
+      <div />
+    </div>
+  )
+
   const rendreFluxEditorial = (
     blocs: readonly BibleEditionDisplayBodyBlock[],
     illustrations: readonly BibleEditionDisplayAsset[],
@@ -495,7 +517,7 @@ export default function TexteBible({
     })),
   ]
     .sort((a, b) => a.materialOrder - b.materialOrder || a.id.localeCompare(b.id, 'fr'))
-    .map((item) => item.kind === 'block'
+    .map((item) => surAxeTexte(item.kind === 'block'
       ? (
           <BlocEditorialBible
             key={`bloc:${item.id}`}
@@ -503,7 +525,7 @@ export default function TexteBible({
             illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
           />
         )
-      : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />)
+      : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`))
   const notesParCanon = new Map<string, NonNullable<typeof editionChapter>['notes']>()
   for (const note of editionChapter?.notes ?? []) {
     const notes = notesParCanon.get(note.canonId) ?? []
@@ -563,7 +585,12 @@ export default function TexteBible({
 
       </div>
 
-      <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+      {/* ⛔ `scrollbar-gutter: stable both-edges` : l'en-tête est HORS de ce
+          défileur, tout le reste dedans. La barre de défilement mesurée à 15 px
+          rétrécissait le défileur d'autant, et tout ce qui s'y centre glissait de
+          7,5 px à gauche du titre. Réservée des DEUX côtés, la gouttière laisse le
+          contenu centré sur le même axe que l'en-tête, barre visible ou non. */}
+      <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px', ...(mobile ? {} : { scrollbarGutter: 'stable both-edges' }) }}>
         <div style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
             .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
@@ -574,7 +601,7 @@ export default function TexteBible({
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
 
-          {pieceAffichee ? (
+          {pieceAffichee ? surAxeTexte(
             <PieceLiminaire
               titre={pieceAffichee.titre}
               portee={pieceAffichee.portee}
@@ -582,7 +609,7 @@ export default function TexteBible({
               illustrationsParBloc={indexerIllustrations(pieceAffichee.contenu.assets).byBodyBlock}
               urlRetour={urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif, trad: tradCode })}
               libelleRetour={`Revenir à ${nomLivre} ${chapitreActif}`}
-            />
+            />,
           ) : (<>
 
           {rendreFluxEditorial(indexBlocs.opening, indexIllustrations.opening)}
@@ -772,10 +799,12 @@ export default function TexteBible({
             )
           })}
           {rendreFluxEditorial(indexBlocs.closing, indexIllustrations.closing)}
-          <NotesBibleChapitre
-            notes={editionChapter?.notes ?? []}
-            illustrationsByNote={indexIllustrations.byNote}
-          />
+          {surAxeTexte(
+            <NotesBibleChapitre
+              notes={editionChapter?.notes ?? []}
+              illustrationsByNote={indexIllustrations.byNote}
+            />,
+          )}
           </>)}
         </div>
       </div>

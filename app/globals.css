@@ -884,8 +884,13 @@ button:focus-visible,
    ⚠️ La marge du verset (4 px) et celle du bloc FUSIONNENT, comme toute marge
    verticale adjacente en flux normal : c'est la plus grande qui vaut, et il n'y
    a donc rien à retrancher ici. */
-.verset-row + .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 2rem; }
-.cs-bible-bloc:not(.cs-bible-block--title):has(+ .verset-row) { margin-bottom: 2rem; }
+/* ⚠️ Les règles de voisinage TRAVERSENT l'enveloppe d'axe : depuis le
+   2026-08-28, un bloc éditorial n'est plus le frère direct d'une rangée de
+   verset, il est l'enfant d'un `.cs-bible-axe` qui l'est. Sans le `>`, ces deux
+   règles ne s'appliquaient plus et le blanc qui cerne un bloc de versets
+   disparaissait en silence. */
+.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 2rem; }
+.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: 2rem; }
 
 /* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
    ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style
@@ -901,10 +906,12 @@ button:focus-visible,
    entre les deux boîtes, trente-cinq entre les lignes de base — de quoi les
    lire comme deux choses distinctes. Le titre rend donc sa marge basse à qui le
    suit, et il ne reste que les trois pixels du sous-titre. */
-.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='part_subtitle']),
-.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='section_subtitle']),
-.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='part_subtitle']) > :is(h1, h2, h3, h4, h5, h6),
-.cs-bible-bloc:has(+ .cs-bible-bloc[data-display-role='section_subtitle']) > :is(h1, h2, h3, h4, h5, h6) {
+/* ⚠️ Même remarque : le titre et son sous-titre sont désormais dans deux
+   enveloppes d'axe voisines, non plus frères directs. */
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-display-role='part_subtitle']) > .cs-bible-bloc,
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-display-role='section_subtitle']) > .cs-bible-bloc,
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-display-role='part_subtitle']) > .cs-bible-bloc > :is(h1, h2, h3, h4, h5, h6),
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-display-role='section_subtitle']) > .cs-bible-bloc > :is(h1, h2, h3, h4, h5, h6) {
   margin-bottom: 0;
 }
 
