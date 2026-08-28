@@ -7,6 +7,9 @@ import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
+  portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
+} from '@/app/lib/portraitTraduction'
+import {
   VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO, MENTION_SUR_PHOTO,
   CHEVRON_SUR_PHOTO, OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
 } from '@/app/lib/bandeauTraduction'
@@ -19,30 +22,7 @@ type Traduction = {
   photo: string | null;
   photo_encart: string | null;
   import_maj_le: string | null;
-  photo_position: {
-    bandeau:  { x: number; y: number; scale: number }
-    encart?:  { x: number; y: number; scale: number }
-    /** Ancien nom de l'encart, du temps où la même image servait aux deux cadres. */
-    lateral?: { x: number; y: number; scale: number }
-  } | null;
-}
-
-/** L'image de l'encart et son cadrage. Tant qu'une notice n'a pas reçu son portrait,
- *  le bandeau en tient lieu, avec l'ancien cadrage `lateral` qui avait été réglé
- *  pour lui : la notice ne se troue pas en attendant. */
-function encartDe(t: Traduction): { url: string; x: number; y: number; scale: number } | null {
-  if (t.photo_encart) {
-    const p = t.photo_position?.encart
-    return { url: t.photo_encart, x: p?.x ?? 50, y: p?.y ?? 50, scale: p?.scale ?? 1 }
-  }
-  if (t.photo) {
-    // `lateral` est l'ancien nom du cadrage de l'encart. L'administration l'a
-    // peut-être déjà recopié sous `encart` en enregistrant un autre cadrage :
-    // on lit donc le nouveau nom d'abord.
-    const p = t.photo_position?.encart ?? t.photo_position?.lateral
-    return { url: t.photo, x: p?.x ?? 50, y: p?.y ?? 20, scale: p?.scale ?? 1 }
-  }
-  return null
+  photo_position: PositionsPhotoTraduction;
 }
 
 /** La TEINTE dominante d'une image et sa saturation — jamais sa clarté. Rend `null`
@@ -284,7 +264,7 @@ function normaliserContenu(texte: string): string {
  *  C'est un COMPOSANT, et non un fragment de la liste, parce qu'il lit le ton de son
  *  image : un crochet ne se pose pas dans une boucle. */
 function FicheTraduction({ t }: { t: Traduction }) {
-  const e = encartDe(t)
+  const e = portraitTraduction(t)
   const ton = useTonImage(e?.url ?? null)
 
   // ⛔ L'image donne la TEINTE, le thème donne la CLARTÉ, et les deux ne se mêlent
@@ -327,7 +307,7 @@ function FicheTraduction({ t }: { t: Traduction }) {
             boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
           }}>
             <img src={e.url} alt="" aria-hidden="true"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${e.x}% ${e.y}%`, transform: `scale(${e.scale})`, transformOrigin: `${e.x}% ${e.y}%`, display: 'block' }} />
+              style={styleImagePortrait(e)} />
           </div>
         )}
         {t.bio_courte && (

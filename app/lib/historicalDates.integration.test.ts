@@ -54,7 +54,11 @@ describe('intégration des dates historiques', () => {
     const modale = lire('../components/ModaleAuteur.tsx')
 
     expect(modale).toContain("from('v_chronologie_auteurs_dates')")
-    expect(modale).toContain('value={a.date_affichage_courte} variant="short"')
+    // ⚠️ Le repli sur `date_affichage` n'affaiblit pas la règle : la vue des auteurs
+    // porte toujours les deux colonnes, et la date courte l'emporte. Il ne sert que la
+    // vue des TRADUCTIONS, qui n'a pas de date courte et laissait donc la colonne des
+    // dates VIDE sur toute chronologie de traduction (relevé le 2026-08-28).
+    expect(modale).toContain('value={a.date_affichage_courte ?? a.date_affichage} variant="short"')
     expect(modale).not.toContain("from('v_chronologie_auteurs')")
     expect(modale).not.toContain('auteur.chronologie')
   })

@@ -43,6 +43,10 @@ export type RangChrono = {
   date_debut: number | null
   date_fin: number | null
   date_affichage_courte: string
+  /** ⚠️ La vue des TRADUCTIONS (`v_chronologie_traductions`) ne porte pas de date
+   *  courte, seulement la date rédigée. Sans ce repli, la colonne des dates de la
+   *  frise restait VIDE sur toute chronologie de traduction. */
+  date_affichage?: string | null
   date_precision_affichage: string | null
   date_exacte: string | null
   qualification_date: string | null

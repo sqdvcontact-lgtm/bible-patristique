@@ -76,7 +76,7 @@ function stylePhoto(pos: AuteurPhotoPos): CSSProperties {
   }
 }
 
-function TitreSection({ children, centre }: { children: ReactNode; centre?: boolean }) {
+export function TitreSection({ children, centre }: { children: ReactNode; centre?: boolean }) {
   return <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.84375rem', color: 'var(--cs-vert)', margin: '0 0 5px', textAlign: centre ? 'center' : 'left' }}>{children}</h3>
 }
 
@@ -135,7 +135,7 @@ export function FriseAuteur({ evenements, sansLegende }: { evenements: RangChron
           const pb = dernier && !ouvert ? '0' : '10px'
           return (
             <li key={cle} style={{ display: 'contents' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}><HistoricalDate value={a.date_affichage_courte} variant="short" /></span>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}><HistoricalDate value={a.date_affichage_courte ?? a.date_affichage} variant="short" /></span>
               {/* Rail + puce. La puce est dimensionnée et positionnée en `em` (relatifs à
                   la taille du titre) : elle suit la police fluide et reste alignée sur la
                   première ligne, quelle que soit l'échelle de l'écran. */}
