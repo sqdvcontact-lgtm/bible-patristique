@@ -563,7 +563,13 @@ export default function NavLivres({
               }))
             }
           }}
-          style={{ flexShrink: 0, background: 'var(--cs-fond)' }}
+          /* ⛔ AUCUN FOND : la barre s'assoit dans le volet, elle n'est pas posée
+             sur une bande. Elle portait `--cs-fond` quand le volet est en
+             `--cs-fond-clair` : au Clair l'écart vaut 1,03 et ne se voit pas, mais
+             en Cuir il vaut 1,08 et la barre devenait une bande SOMBRE en travers
+             du volet. Un filet la sépare déjà de ce qu'elle commande ; un second
+             sol par-dessus est un objet que rien ne demande. */
+          style={{ flexShrink: 0 }}
           onglets={[
             { cle: 'livres', libelle: 'Livres' },
             { cle: 'sommaire', libelle: 'Sommaire' },

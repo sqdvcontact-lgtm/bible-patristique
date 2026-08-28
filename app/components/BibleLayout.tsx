@@ -118,11 +118,22 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // (voir AGENTS.md § Responsive mobile) : le côte-à-côte écraserait le texte.
   const mobile = useEstMobile(900)
 
-  // Mobile : navigation par TROIS ONGLETS en haut (Sommaire / Texte / Commentaires).
-  // L'onglet actif est porté par `voletMobile` : null = Texte, 'livres' = Sommaire,
+  // Mobile : navigation par TROIS ONGLETS en haut (Livres / Texte / Commentaires).
+  // L'onglet actif est porté par `voletMobile` : null = Texte, 'livres' = Livres,
   // 'commentaires' = Commentaires. Chaque volet s'affiche alors en pleine page.
+  //
+  // ⛔ Le premier s'appelait « Sommaire », et le mot était pris DEUX fois : le volet
+  // qu'il ouvre porte lui-même une barre « Livres | Sommaire », où « Sommaire » nomme
+  // les pièces liminaires de l'édition. Deux barres empilées, le même mot sur les deux,
+  // pour deux choses différentes dont l'une contient l'autre.
+  //
+  // C'est celle-ci qui nommait mal : l'onglet ouvre le volet des LIVRES, non un
+  // sommaire. Les trois libellés y gagnent d'ailleurs leur PARALLÈLE — Livres, Texte,
+  // Commentaires nomment tous trois un contenu, quand « Sommaire » nommait un dispositif.
+  // ⚠️ « Livres » paraît donc deux fois, mais imbriqué et dans le même sens : le
+  // premier dit où l'on est, le second ce qu'on y montre.
   const ONGLETS_MOBILE: { cle: 'livres' | 'commentaires' | null; label: string }[] = [
-    { cle: 'livres', label: 'Sommaire' },
+    { cle: 'livres', label: 'Livres' },
     { cle: null, label: 'Texte' },
     { cle: 'commentaires', label: 'Commentaires' },
   ]
