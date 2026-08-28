@@ -80,13 +80,15 @@ describe('la pièce « Du même auteur »', () => {
     expect(html).not.toContain('•')
   })
 
-  it('compose titre et sous-titre en italique, joints par un deux-points insécable', () => {
+  it('compose titre et sous-titre en italique, joints par un POINT', () => {
     const html = rendreDuMemeAuteur()
     expect(html).toContain(
       '<em class="cs-apparat-bibliographie__titre-ouvrage" data-champ="titre">Évangile selon saint Jean</em>'
-      + `<em>${String.fromCharCode(160)}: </em>`
+      + '<em>. </em>'
       + '<em class="cs-apparat-bibliographie__sous-titre" data-champ="sous_titre">Introduction critique et commentaires</em>',
     )
+    // ⛔ Ni deux-points ni insécable : les deux ont servi, l'un après l'autre.
+    expect(html).not.toContain(String.fromCharCode(160))
   })
 
   it('prend le lieu, l’éditeur normalisé et l’année dans leurs champs', () => {

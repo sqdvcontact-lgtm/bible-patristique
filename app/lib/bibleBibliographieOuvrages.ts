@@ -78,7 +78,7 @@ export type BibliographiePiece = {
  * fragment, dans le vocabulaire clos de `apparatBibliographie`. Les deux valent
  * `null` pour la ponctuation, que le code ajoute et que la donnée ne porte pas :
  * ⛔ un séparateur n'a pas de style propre, il appartient à la séquence où il
- * tombe — d'où le deux-points du sous-titre, qui reste dans l'italique du titre.
+ * tombe — d'où le point du sous-titre, qui reste dans l'italique du titre.
  *
  * Les trois compositions suffisent : le romain pour tout ce qui n'est ni
  * intitulé ni nom d'autorité, l'italique pour l'intitulé de l'ouvrage, les
@@ -104,12 +104,13 @@ export function auteurPorteParLeTitreDeLaPiece(pieceKey: string): boolean {
   return PIECES_A_AUTEUR_COMMUN.has(pieceKey)
 }
 
-// L'espace insécable qui précède les deux-points (charte §3.2) et la virgule
-// qui sépare les mentions d'une même notice (charte §35.6.1).
-// ⚠️ L'insécable s'écrit en ÉCHAPPEMENT : tapée telle quelle, elle ne se
-// distingue pas d'une espace ordinaire dans une colonne de code, et le dépôt
-// a déjà perdu des fines de cette façon (voir `typographie.ts`).
-const LIAISON_SOUS_TITRE = '\u00A0: '
+// Le POINT qui détache un sous-titre de son titre, et la virgule qui sépare
+// les mentions d'une même notice (charte §35.6.1).
+// ⚠️ Décision de l'auteur du 28 août 2026 : un sous-titre EST un sous-titre,
+// non une apposition — il se détache par un POINT. ⛔ Ni deux-points, ni
+// virgule : les deux ont été prescrits tour à tour, et l'un après l'autre
+// remplacés. L'insécable qui précédait le deux-points n'a plus d'objet.
+const LIAISON_SOUS_TITRE = '. '
 const SEPARATEUR = ', '
 // Un intitulé qui se ferme déjà sur une ponctuation forte ne reçoit pas un
 // second point : la ponctuation attestée d'un titre est conservée (charte §3.4).
@@ -284,8 +285,8 @@ export function bibliographieDesBlocs(
  * Une référence, fragment par fragment.
  *
  * Forme attendue, ponctuation comprise :
- * « Évangile selon saint Jean : Introduction critique et commentaires, Paris,
- * P. Lethielleux, 1887. »
+ * « Évangile selon saint Jean. Introduction critique et commentaires, Paris,
+ * Lethielleux, 1887. »
  *
  * ⚠️ Un champ absent emporte SON séparateur : sans lieu, la référence se lit
  * « Titre, P. Lethielleux, 1887. » et non « Titre, , P. Lethielleux, 1887. ».
@@ -323,7 +324,7 @@ export function segmentsReference(
   }
 
   // Titre et sous-titre sont deux champs, mais UN seul intitulé : l'italique les
-  // couvre tous les deux, et le deux-points qui les joint avec eux.
+  // couvre tous les deux, et le point qui les joint avec eux.
   segments.push({
     champ: 'titre',
     style: 'bibliographie-titre-ouvrage',
@@ -331,9 +332,17 @@ export function segmentsReference(
     texte: ouvrage.titre,
   })
   if (ouvrage.sousTitre) {
-    // ⛔ Le deux-points n'a pas de style à lui : il reste dans la séquence
+    // ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n'en reçoit pas
+    // une seconde : « Où en est la question biblique ? Réponse », et non
+    // « … ?. Réponse » — la ponctuation attestée du titre détache à elle seule.
+    // ⛔ Le point de liaison n'a pas de style à lui : il reste dans la séquence
     // italique du titre, dont il est la charnière.
-    segments.push({ champ: null, style: null, composition: 'italique', texte: LIAISON_SOUS_TITRE })
+    segments.push({
+      champ: null,
+      style: null,
+      composition: 'italique',
+      texte: PONCTUATION_FORTE.test(ouvrage.titre) ? ' ' : LIAISON_SOUS_TITRE,
+    })
     segments.push({
       champ: 'sous_titre',
       style: 'bibliographie-sous-titre',

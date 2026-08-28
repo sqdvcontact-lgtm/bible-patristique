@@ -116,7 +116,7 @@ describe('la composition d’une référence', () => {
   it('compose la forme attendue à partir des champs séparés', () => {
     const jean = ouvragesDeLaPiece().find((ouvrage) => ouvrage.ordre === 5)!
     expect(texteReference(jean, { avecAuteur: false })).toBe(
-      `Évangile selon saint Jean${NBSP}: Introduction critique et commentaires, `
+      'Évangile selon saint Jean. Introduction critique et commentaires, '
       + 'Paris, P. Lethielleux, 1887.',
     )
   })
@@ -128,10 +128,32 @@ describe('la composition d’une référence', () => {
     const sousTitre = segments.find((segment) => segment.champ === 'sous_titre')
     expect(titre?.texte).toBe('Évangile selon saint Jean')
     expect(sousTitre?.texte).toBe('Introduction critique et commentaires')
-    // Deux champs, un seul intitulé typographique : le deux-points qui les joint
-    // est italique comme eux.
+    // Deux champs, un seul intitulé typographique : le POINT qui les joint est
+    // italique comme eux. ⚠️ Décision de l'auteur du 28 août 2026 : un
+    // sous-titre se détache par un point, ⛔ ni par un deux-points (prescrit
+    // le matin même) ni par une virgule (prescrite jusque-là).
     expect(segments.filter((segment) => segment.composition === 'italique').map((s) => s.texte))
-      .toEqual(['Évangile selon saint Jean', `${NBSP}: `, 'Introduction critique et commentaires'])
+      .toEqual(['Évangile selon saint Jean', '. ', 'Introduction critique et commentaires'])
+    // ⛔ Et plus d'insécable : elle ne précédait que le deux-points.
+    expect(texteReference(jean)).not.toContain(NBSP)
+  })
+
+  it('ne double pas le point de liaison sur un titre déjà ponctué', () => {
+    // ⚠️ Le point qui détache le sous-titre ne s'ajoute pas à celui que le titre
+    // porte : « … biblique ?. Réponse » serait une faute que la donnée ne
+    // demande pas. La ponctuation attestée du titre détache à elle seule.
+    const jean = ouvrageDuRang(5)
+    const interrogatif = {
+      ...jean,
+      titre: 'Où en est la question biblique ?',
+      sousTitre: 'Réponse à quelques objections',
+      lieu: null, editeur: null, annee: null,
+    }
+    expect(texteReference(interrogatif, { avecAuteur: false }))
+      .toBe('Où en est la question biblique ? Réponse à quelques objections.')
+    // Et le sous-titre reste DANS la séquence italique, comme partout ailleurs.
+    expect(segmentsReference(interrogatif).filter((s) => s.composition === 'italique').map((s) => s.texte))
+      .toEqual(['Où en est la question biblique ?', ' ', 'Réponse à quelques objections'])
   })
 
   it('n’ouvre pas de liaison de sous-titre quand l’ouvrage n’en a pas', () => {
@@ -185,7 +207,7 @@ describe('la composition d’une référence', () => {
     expect(compose).not.toContain('in-8')
     expect(compose).not.toContain('planches')
     expect(compose).toBe(
-      `Évangile selon saint Jean${NBSP}: Introduction critique et commentaires, `
+      'Évangile selon saint Jean. Introduction critique et commentaires, '
       + 'Paris, P. Lethielleux, 1887.',
     )
   })

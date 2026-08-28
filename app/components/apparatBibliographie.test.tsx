@@ -292,16 +292,19 @@ describe('le style bibliographique commun de l’apparat', () => {
     expect(html).not.toContain('FILLION')
   })
 
-  it('tient titre, deux-points et sous-titre dans UNE séquence italique', () => {
+  it('tient titre, point de liaison et sous-titre dans UNE séquence italique', () => {
     const html = listeStructuree()
     expect(html).toContain(
       `<em class="${CLASSE_CARACTERE_BIBLIOGRAPHIE['bibliographie-titre-ouvrage']}" data-champ="titre">Évangile selon saint Jean</em>`
-      + `<em>${INSECABLE}: </em>`
+      + '<em>. </em>'
       + `<em class="${CLASSE_CARACTERE_BIBLIOGRAPHIE['bibliographie-sous-titre']}" data-champ="sous_titre">Introduction critique et commentaires</em>`,
     )
     // ⛔ La ponctuation n'a pas de style propre : elle hérite de la séquence où
     // elle tombe, et ne sort donc jamais de l'italique du titre.
-    expect(html).not.toContain(`<span>${INSECABLE}: </span>`)
+    expect(html).not.toContain('<span>. </span>')
+    // ⛔ Le deux-points et son insécable ont été prescrits le matin même, puis
+    // remplacés : un sous-titre se détache par un point.
+    expect(html).not.toContain(INSECABLE)
     expect(corpsPour('__titre-ouvrage')).toContain('font-style: italic')
     expect(corpsPour('__sous-titre')).toContain('font-style: italic')
   })
