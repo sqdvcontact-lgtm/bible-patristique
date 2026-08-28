@@ -25,32 +25,63 @@ function ouvragesDeLaPiece(): OuvrageBibliographique[] {
   return piece.ouvrages
 }
 
+/**
+ * L'ouvrage qui portait ce rang SUR LA PAGE IMPRIMÉE.
+ *
+ * ⚠️ Depuis que l'ordre d'affichage se calcule, le rang imprimé et le rang dans
+ * le tableau ne coïncident plus : un test qui écrit `ouvrages[0]` ne dit plus
+ * de quel ouvrage il parle.
+ */
+function ouvrageDuRang(ordre: number): OuvrageBibliographique {
+  const trouve = ouvragesDeLaPiece().find((ouvrage) => ouvrage.ordre === ordre)
+  if (!trouve) throw new Error(`Aucun ouvrage au rang imprimé ${ordre}.`)
+  return trouve
+}
+
 describe('la pièce et ses entrées', () => {
-  it('groupe les quinze ouvrages dans l’ordre de la page imprimée', () => {
+  it('range les quinze ouvrages par AUTEUR puis par titre, non par la page imprimée', () => {
     const pieces = grouperBibliographiesParPiece(ENTREES_DU_MEME_AUTEUR)
     expect(pieces).toHaveLength(1)
     expect(pieces[0].pieceKey).toBe('du-meme-auteur')
     expect(pieces[0].ouvrages).toHaveLength(15)
-    expect(pieces[0].ouvrages.map((ouvrage) => ouvrage.ordre))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
-    expect(pieces[0].ouvrages[0].titre).toBe('Introduction générale aux Évangiles')
-    expect(pieces[0].ouvrages[14].titre).toBe('Les Saints Évangiles')
+    // Un seul auteur ici : c'est donc le titre qui range, article initial ôté
+    // et accent replié — « L'Idée » sous I, « Les Saints Évangiles » sous S.
+    expect(pieces[0].ouvrages.map((ouvrage) => ouvrage.titre)).toEqual([
+      'Atlas archéologique de la Bible',
+      'Atlas d’histoire naturelle de la Bible',
+      'Atlas géographique de la Bible',
+      'Biblia sacra juxta Vulgatæ exemplaria et correctoria romana denuo edita',
+      'Essais d’exégèse',
+      'Évangile selon saint Jean',
+      'Évangile selon saint Luc',
+      'Évangile selon saint Marc',
+      'Évangile selon saint Matthieu',
+      'L’Idée centrale de la Bible',
+      'Introduction générale aux Évangiles',
+      'Novum Testamentum juxta Vulgatæ exemplaria et correctoria romana denuo editum',
+      'Les Psaumes commentés d’après la Vulgate et l’hébreu',
+      'Les Saints Évangiles',
+      'Synopsis evangelica seu quatuor sancta Jesu Christi evangelia',
+    ])
+    // ⛔ Ce n'est PAS l'ordre de la page imprimée, qui demeure dans la donnée.
+    expect(pieces[0].ouvrages.map((ouvrage) => ouvrage.ordre)).toEqual([8, 9, 10, 11, 7, 5, 4, 3, 2, 13, 1, 12, 14, 15, 6])
   })
 
-  it('range par `display_order`, quel que soit l’ordre reçu', () => {
+  it('donne le MÊME ordre quel que soit l’ordre reçu', () => {
+    const attendu = grouperBibliographiesParPiece(ENTREES_DU_MEME_AUTEUR)[0]
+      .ouvrages.map((ouvrage) => ouvrage.id)
     const melangees = [...ENTREES_DU_MEME_AUTEUR].reverse()
-    const [piece] = grouperBibliographiesParPiece(melangees)
-    expect(piece.ouvrages.map((ouvrage) => ouvrage.ordre))
-      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+    expect(grouperBibliographiesParPiece(melangees)[0].ouvrages.map((ouvrage) => ouvrage.id))
+      .toEqual(attendu)
   })
 
   it('donne quinze identifiants d’ouvrage DISTINCTS, et c’est l’identité de l’entrée', () => {
     const ids = ouvragesDeLaPiece().map((ouvrage) => ouvrage.id)
     expect(ids).toHaveLength(15)
     expect(new Set(ids).size).toBe(15)
-    // ⛔ L'identité n'est jamais le rang du tableau : le premier ouvrage porte
-    // 645, non 1.
-    expect(ids[0]).toBe(645)
+    // ⛔ L'identité n'est jamais le rang du tableau : la première ligne porte
+    // 649, ni 1 (son rang) ni 8 (son rang sur la page imprimée).
+    expect(ids[0]).toBe(649)
   })
 
   it('reconnaît la pièce par ses BLOCS, non par son titre translittéré', () => {
@@ -116,12 +147,12 @@ describe('la composition d’une référence', () => {
     expect(ouvrages.map((ouvrage) => ouvrage.editeur)).toContain('Berche et Tralin')
     // Une forme d'autorité que le code ne connaît pas se compose telle quelle :
     // ⛔ aucun dictionnaire d'éditeurs, aucune expression régulière.
-    const invente: OuvrageBibliographique = { ...ouvrages[0], editeur: 'Vve Ch. Poussielgue & Fils' }
+    const invente: OuvrageBibliographique = { ...ouvrageDuRang(1), editeur: 'Vve Ch. Poussielgue & Fils' }
     expect(texteReference(invente, { avecAuteur: false })).toContain('Vve Ch. Poussielgue & Fils')
   })
 
   it('emporte le séparateur d’un champ absent, au lieu de laisser une virgule vide', () => {
-    const [premier] = ouvragesDeLaPiece()
+    const premier = ouvrageDuRang(1)
     expect(texteReference({ ...premier, lieu: null }, { avecAuteur: false }))
       .toBe('Introduction générale aux Évangiles, P. Lethielleux, 1889.')
     expect(texteReference({ ...premier, annee: null }, { avecAuteur: false }))
@@ -131,7 +162,7 @@ describe('la composition d’une référence', () => {
   })
 
   it('ne double pas une ponctuation finale déjà attestée par le titre', () => {
-    const [premier] = ouvragesDeLaPiece()
+    const premier = ouvrageDuRang(1)
     const abrege = { ...premier, titre: 'Où en est la question biblique ?', lieu: null, editeur: null, annee: null }
     expect(texteReference(abrege, { avecAuteur: false })).toBe('Où en est la question biblique ?')
   })
@@ -167,7 +198,7 @@ describe('le nom de l’auteur', () => {
   })
 
   it('compose le nom de famille en petites capitales DEPUIS la donnée', () => {
-    const [premier] = ouvragesDeLaPiece()
+    const premier = ouvrageDuRang(1)
     const segments = segmentsReference(premier, { avecAuteur: true })
     // ⚠️ Chaque fragment porte le nom SÉMANTIQUE de sa fonction, dans le
     // vocabulaire clos de l'apparat : c'est lui que la feuille compose.
@@ -183,7 +214,7 @@ describe('le nom de l’auteur', () => {
   })
 
   it('compose entière une autorité que le couple prénom/nom ne décrit pas', () => {
-    const [premier] = ouvragesDeLaPiece()
+    const premier = ouvrageDuRang(1)
     const ancien: OuvrageBibliographique = {
       ...premier,
       auteur: { nom: 'Cyrille de Jérusalem', prenom: null, nomFamille: null },
@@ -198,8 +229,119 @@ describe('le nom de l’auteur', () => {
   })
 
   it('se tait quand la donnée ne porte aucun auteur', () => {
-    const [premier] = ouvragesDeLaPiece()
+    const premier = ouvrageDuRang(1)
     expect(texteReference({ ...premier, auteur: null }, { avecAuteur: true }))
       .toBe('Introduction générale aux Évangiles, Paris, P. Lethielleux, 1889.')
+  })
+})
+
+describe('l’ordre d’une bibliographie', () => {
+  const NOTICE = ENTREES_DU_MEME_AUTEUR[0]
+  /** Une liste faite de titres et d'auteurs nommés, sans autre différence. */
+  const listeDe = (
+    entrees: { titre: string; auteur?: [string, string | null] | null; ordre?: number }[],
+  ): string[] => {
+    const lignes: LigneBibliographieOuvrage[] = entrees.map((entree, rang) => ({
+      ...NOTICE,
+      piece_key: 'bibliographie',
+      display_order: entree.ordre ?? rang + 1,
+      ouvrage_id: 1000 + rang,
+      titre: entree.titre,
+      sous_titre: null,
+      auteur_nom: entree.auteur ? [entree.auteur[1], entree.auteur[0]].filter(Boolean).join(' ') : null,
+      auteur_prenom: entree.auteur ? entree.auteur[1] : null,
+      auteur_nom_famille: entree.auteur ? entree.auteur[0] : null,
+    }))
+    return grouperBibliographiesParPiece(lignes)[0].ouvrages.map((ouvrage) => ouvrage.titre)
+  }
+
+  it('range d’abord par NOM D’AUTEUR, le titre ne départageant qu’ensuite', () => {
+    expect(listeDe([
+      { titre: 'Zacharie', auteur: ['Arnoldi', 'Matthias'] },
+      { titre: 'Abdias', auteur: ['Van Steenkiste', 'Jean-Aloïs'] },
+      { titre: 'Baruch', auteur: ['Arnoldi', 'Matthias'] },
+    ])).toEqual(['Baruch', 'Zacharie', 'Abdias'])
+  })
+
+  it('départage deux homonymes par leur prénom', () => {
+    expect(listeDe([
+      { titre: 'Un', auteur: ['Fillion', 'Louis-Claude'] },
+      { titre: 'Deux', auteur: ['Fillion', 'Amédée'] },
+    ])).toEqual(['Deux', 'Un'])
+  })
+
+  it('n’entend pas l’article ni le déterminant initial', () => {
+    // ⛔ Sans la règle, « Les Psaumes » se rangerait à L et « L'Idée » aussi :
+    // toute la bibliographie française s'entasserait sous deux lettres.
+    expect(listeDe([
+      { titre: 'Les Psaumes' },
+      { titre: 'L’Idée centrale' },
+      { titre: 'Une histoire' },
+      { titre: 'Baruch' },
+      { titre: 'Ces jours-là' },
+      { titre: 'Notre père' },
+    ])).toEqual([
+      'Baruch', 'Une histoire', 'L’Idée centrale', 'Ces jours-là', 'Notre père', 'Les Psaumes',
+    ])
+  })
+
+  it('ne retire un article que s’il RESTE quelque chose', () => {
+    // Un titre qui n'est que son article se range sous lui : sa clé serait
+    // vide, et il remonterait en tête de la liste sans raison.
+    expect(listeDe([{ titre: 'Zacharie' }, { titre: 'Les' }, { titre: 'Abdias' }]))
+      .toEqual(['Abdias', 'Les', 'Zacharie'])
+  })
+
+  it('⛔ ne range pas un mot LATIN comme un article', () => {
+    // `a` est l'article anglais, mais la préposition latine ; `de` et `in` sont
+    // des prépositions dans les deux langues. Le latin n'a pas d'article, et il
+    // est ici partout : ces titres se rangent à leur premier mot.
+    expect(listeDe([
+      { titre: 'Zacharie' },
+      { titre: 'A solis ortus cardine' },
+      { titre: 'De civitate Dei' },
+      { titre: 'In Psalmos' },
+    ])).toEqual(['A solis ortus cardine', 'De civitate Dei', 'In Psalmos', 'Zacharie'])
+  })
+
+  it('replie l’accent, la casse et l’apostrophe', () => {
+    expect(listeDe([
+      { titre: 'Évangile selon saint Jean' },
+      { titre: 'Essais d’exégèse' },
+      { titre: 'Atlas d’histoire naturelle' },
+      { titre: 'Atlas géographique' },
+    ])).toEqual([
+      'Atlas d’histoire naturelle', 'Atlas géographique', 'Essais d’exégèse', 'Évangile selon saint Jean',
+    ])
+  })
+
+  it('range une œuvre ANONYME à son titre, dans la même suite', () => {
+    // ⛔ Pas de bloc à part en tête ni en queue : une œuvre sans auteur se file
+    // à son titre, comme un catalogue le fait.
+    expect(listeDe([
+      { titre: 'Zacharie', auteur: ['Arnoldi', 'Matthias'] },
+      { titre: 'Bible de Jérusalem', auteur: null },
+      { titre: 'Abdias', auteur: ['Cyrille', null] },
+    ])).toEqual(['Zacharie', 'Bible de Jérusalem', 'Abdias'])
+  })
+
+  it('⛔ n’ampute jamais le titre AFFICHÉ de son article', () => {
+    const [piece] = grouperBibliographiesParPiece(ENTREES_DU_MEME_AUTEUR)
+    const compose = piece.ouvrages.map((ouvrage) => texteReference(ouvrage, { avecAuteur: false }))
+    expect(compose.some((ligne) => ligne.startsWith('L’Idée centrale de la Bible'))).toBe(true)
+    expect(compose.some((ligne) => ligne.startsWith('Les Saints Évangiles'))).toBe(true)
+  })
+
+  it('garde le rang IMPRIMÉ comme dernier recours', () => {
+    // Deux notices que rien ne départage gardent l'ordre du témoin.
+    expect(listeDe([
+      { titre: 'Baruch', ordre: 9 },
+      { titre: 'Baruch', ordre: 4 },
+    ]).length).toBe(2)
+    const lignes: LigneBibliographieOuvrage[] = [9, 4].map((ordre, rang) => ({
+      ...NOTICE, piece_key: 'p', display_order: ordre, ouvrage_id: 2000 + rang,
+      titre: 'Baruch', sous_titre: null,
+    }))
+    expect(grouperBibliographiesParPiece(lignes)[0].ouvrages.map((o) => o.ordre)).toEqual([4, 9])
   })
 })

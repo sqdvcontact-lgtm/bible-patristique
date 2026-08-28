@@ -50,7 +50,9 @@ export type AuteurOuvrage = {
 }
 
 /** Une œuvre citée. ⚠️ `id` est `ouvrage_id` : c'est la seule identité stable,
- *  ⛔ jamais le rang dans le tableau. */
+ *  ⛔ jamais le rang dans le tableau. `ordre` est le `display_order` de la page
+ *  IMPRIMÉE : un témoin, et le dernier recours du tri — ⛔ plus l'ordre
+ *  d'affichage, qui se calcule (`comparerOuvrages`). */
 export type OuvrageBibliographique = {
   id: number
   ordre: number
@@ -119,12 +121,103 @@ function propre(valeur: string | null | undefined): string | null {
 }
 
 /**
- * Les entrées d'une famille, rangées par pièce et par `display_order`.
+ * Les mots qui n'entrent pas dans le CLASSEMENT d'un titre.
+ *
+ * « L'Idée centrale de la Bible » se range à I, « Les Saints Évangiles » à S :
+ * l'article initial se voit, il ne compte pas. ⚠️ La liste est CLOSE et ne vaut
+ * que pour le tri — ⛔ le titre affiché n'est jamais amputé.
+ *
+ * ⛔ Trois familles de mots en sont exclues À DESSEIN, parce qu'elles
+ * appartiennent au LATIN, qui n'a pas d'article et qui est ici partout :
+ *  — `a` (article anglais, mais préposition latine : « A solis ortus cardine »
+ *    se range à A) ;
+ *  — `de`, `in`, `ex`, `ad`, `pro` (prépositions latines, et prépositions
+ *    françaises : « De civitate Dei » se range à D) ;
+ *  — `i`, `uno`, `una` (italien et espagnol, où `una` et `uno` sont aussi des
+ *    mots latins). Le jour où une bibliographie italienne arrivera, ils
+ *    s'ajouteront en connaissance de cause.
+ */
+const ARTICLES_ET_DETERMINANTS: ReadonlySet<string> = new Set([
+  // Français : articles, article contracté, démonstratifs, possessifs.
+  'le', 'la', 'les', 'l', 'un', 'une', 'des', 'du',
+  'ce', 'cet', 'cette', 'ces',
+  'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses',
+  'notre', 'nos', 'votre', 'vos', 'leur', 'leurs',
+  // Anglais et allemand, que la bibliographie moderne apporte.
+  'the', 'an',
+  'der', 'die', 'das', 'den', 'dem', 'ein', 'eine', 'einen',
+])
+
+/**
+ * Le texte réduit à ce qui compte pour classer : bas de casse, sans accent,
+ * l'apostrophe et le trait d'union rendus à l'espace qu'ils valent — « Saint-Jean »
+ * se range comme « Saint Jean », « d'Alexandrie » comme « d Alexandrie ».
+ */
+function replier(texte: string): string {
+  return texte
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[’'‐-―-]/gu, ' ')
+    .replace(/[^\p{Letter}\p{Number} ]/gu, '')
+    .replace(/ +/gu, ' ')
+    .trim()
+}
+
+/** La clé d'un TITRE : replié, puis délesté de son article initial. */
+function clefDeTitre(texte: string): string {
+  const mots = replier(texte).split(' ')
+  // ⛔ Jamais le dernier mot : un titre qui n'est QUE son article se range sous
+  // lui, faute de quoi sa clé serait vide et il remonterait en tête.
+  if (mots.length > 1 && ARTICLES_ET_DETERMINANTS.has(mots[0])) return mots.slice(1).join(' ')
+  return mots.join(' ')
+}
+
+/**
+ * La VEDETTE d'une notice : ce sous quoi elle se range.
+ *
+ * Le nom de famille de l'auteur quand il y en a un, le titre sinon — une œuvre
+ * anonyme se range à son titre, DANS la même suite alphabétique, et non dans un
+ * bloc à part. ⛔ L'article ne se retire pas d'un nom d'autorité : « La Taille »
+ * est un nom, non un titre précédé d'un article.
+ */
+function clefDeVedette(ouvrage: OuvrageBibliographique): string {
+  const auteur = ouvrage.auteur
+  if (!auteur) return clefDeTitre(ouvrage.titre)
+  return replier(auteur.nomFamille ?? auteur.nom)
+}
+
+// Les clés sont déjà repliées : `localeCompare` ne range plus que des lettres
+// nues, et le français y met les chiffres et les espaces où un catalogue les met.
+const comparerClefs = (a: string, b: string) => a.localeCompare(b, 'fr')
+
+/**
+ * L'ordre d'AFFICHAGE d'une bibliographie : par auteur, puis par titre.
+ *
+ * ⚠️ Il se calcule, il ne se lit pas dans la donnée. `display_order` reste le
+ * témoin de la page imprimée — et le dernier recours, quand rien d'autre ne
+ * départage deux notices.
+ */
+export function comparerOuvrages(a: OuvrageBibliographique, b: OuvrageBibliographique): number {
+  return comparerClefs(clefDeVedette(a), clefDeVedette(b))
+    || comparerClefs(replier(a.auteur?.prenom ?? ''), replier(b.auteur?.prenom ?? ''))
+    || comparerClefs(clefDeTitre(a.titre), clefDeTitre(b.titre))
+    || comparerClefs(clefDeTitre(a.sousTitre ?? ''), clefDeTitre(b.sousTitre ?? ''))
+    || (a.annee ?? 0) - (b.annee ?? 0)
+    || a.ordre - b.ordre
+}
+
+/**
+ * Les entrées d'une famille, rangées par pièce puis par AUTEUR et par TITRE.
  *
  * ⚠️ Un ouvrage cité deux fois dans une même pièce ne paraît qu'une fois :
  * l'identité est `ouvrage_id`, et deux `<li>` de même clé seraient un défaut de
  * donnée, non un choix d'affichage. Une entrée sans titre est écartée — elle ne
  * pourrait rien composer.
+ *
+ * ⚠️ Le `display_order` sert ici à DÉDOUBLONNER de façon stable — la première
+ * occurrence imprimée l'emporte —, non à ranger : le rangement se calcule,
+ * `comparerOuvrages` en répond.
  */
 export function grouperBibliographiesParPiece(
   lignes: readonly LigneBibliographieOuvrage[],
@@ -154,7 +247,10 @@ export function grouperBibliographiesParPiece(
     })
     parPiece.set(ligne.piece_key, ouvrages)
   }
-  return [...parPiece].map(([pieceKey, ouvrages]) => ({ pieceKey, ouvrages }))
+  return [...parPiece].map(([pieceKey, ouvrages]) => ({
+    pieceKey,
+    ouvrages: [...ouvrages].sort(comparerOuvrages),
+  }))
 }
 
 /**

@@ -47,12 +47,16 @@ function rendreDuMemeAuteur() {
 // liste structurée : ce que chaque notice compose, et depuis quels champs.
 
 describe('la pièce « Du même auteur »', () => {
-  it('rend une ligne par ouvrage, quinze fois, dans l’ordre', () => {
+  it('rend une ligne par ouvrage, quinze fois, dans l’ordre CALCULÉ', () => {
     const lignes = [...rendreDuMemeAuteur().matchAll(/data-ouvrage-id="(\d+)"/g)].map((m) => m[1])
     expect(lignes).toHaveLength(15)
     expect(new Set(lignes).size).toBe(15)
-    expect(lignes[0]).toBe('645')
-    expect(lignes[14]).toBe('651')
+    // ⚠️ L'ordre est celui du CLASSEMENT — auteur, puis titre sans son
+    // article —, ⛔ non celui de la page imprimée : « Atlas archéologique »
+    // ouvre la liste, « Synopsis evangelica » la ferme. La règle vit dans
+    // `comparerOuvrages`, module pur, et s'y éprouve.
+    expect(lignes[0]).toBe('649')
+    expect(lignes[14]).toBe('639')
   })
 
   it('ancre chaque ligne sur son `ouvrage_id`, jamais sur son rang', () => {
