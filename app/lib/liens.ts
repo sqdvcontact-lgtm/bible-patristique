@@ -41,48 +41,77 @@ export type Lien = {
 
 const COLS = 'id, segment_id, canon_id, verset_v2_id, livre, chapitre, type, fiabilite, motif, provenance, arbitrage_requis'
 
+type SegmentPourLiens = {
+  id: number
+  id_texte: string | null
+  segment_key: string | null
+}
+
+type LienAvecSegment = Lien & {
+  segments: { id_texte: string; segment_key: string } | { id_texte: string; segment_key: string }[] | null
+}
+
+const cleStableSegment = (idTexte: string, segmentKey: string) => `${idTexte}\u0000${segmentKey}`
+
+function parentDuLien(lien: LienAvecSegment) {
+  return Array.isArray(lien.segments) ? lien.segments[0] : lien.segments
+}
+
+/**
+ * Les ids de `segments` sont des bigint à 19 chiffres. PostgREST les encode comme
+ * des nombres JSON et JavaScript les arrondit au-delà de Number.MAX_SAFE_INTEGER :
+ * réutiliser `segment.id` dans une clause `in` cherche alors un autre nombre et ne
+ * rapporte aucun lien. La paire textuelle (id_texte, segment_key), unique dans la
+ * base, est donc l'identité de transport de la page d'œuvre.
+ */
+export async function liensDeSegments(
+  segments: SegmentPourLiens[],
+  client: Pick<typeof supabase, 'from'> = supabase,
+): Promise<Map<string, Lien[]>> {
+  const parSegment = new Map<string, Lien[]>()
+  if (!segments.length) return parSegment
+
+  const parTexte = new Map<string, Set<string>>()
+  for (const segment of segments) {
+    if (!segment.id_texte || !segment.segment_key) {
+      throw new Error('Un segment sans id_texte ou segment_key ne peut pas charger ses liens bibliques sans perte de précision.')
+    }
+    if (!parTexte.has(segment.id_texte)) parTexte.set(segment.id_texte, new Set())
+    parTexte.get(segment.id_texte)!.add(segment.segment_key)
+  }
+
+  const requetes: PromiseLike<{ data: unknown; error: unknown }>[] = []
+  for (const [idTexte, ensemble] of parTexte) {
+    const cles = [...ensemble]
+    for (let i = 0; i < cles.length; i += 500) {
+      requetes.push(
+        client.from('liens_bibliques')
+          .select(`${COLS}, segments!inner(id_texte, segment_key)`)
+          .eq('segments.id_texte', idTexte)
+          .in('segments.segment_key', cles.slice(i, i + 500))
+          .order('id'),
+      )
+    }
+  }
+
+  const resultats = await Promise.all(requetes)
+  for (const { data, error } of resultats) {
+    if (error) throw error
+    for (const ligne of (data ?? []) as LienAvecSegment[]) {
+      const parent = parentDuLien(ligne)
+      if (!parent?.id_texte || !parent.segment_key) continue
+      const cle = cleStableSegment(parent.id_texte, parent.segment_key)
+      const { segments: _segments, ...lien } = ligne
+      if (!parSegment.has(cle)) parSegment.set(cle, [])
+      parSegment.get(cle)!.push(lien)
+    }
+  }
+  for (const arr of parSegment.values()) arr.sort((a, b) => a.type - b.type || a.id - b.id)
+  return parSegment
+}
+
 /** Tous les liens d'un lot de segments, groupés par segment puis par type.
  *  Une seule requête, quel que soit le nombre de segments. */
-export async function liensDeSegments(segmentIds: number[]): Promise<Map<number, Lien[]>> {
-  const parSegment = new Map<number, Lien[]>()
-  if (!segmentIds.length) return parSegment
-  // Par paquets (une clause `in` trop longue dépasse la limite d'URL), mais tirés
-  // EN PARALLÈLE : les grosses œuvres (milliers de segments) enchaînaient sinon
-  // une dizaine d'allers-retours séquentiels rien que pour les liens.
-  const lots: number[][] = []
-  for (let i = 0; i < segmentIds.length; i += 500) lots.push(segmentIds.slice(i, i + 500))
-  const resultats = await Promise.all(lots.map(lot =>
-    supabase.from('liens_bibliques').select(COLS).in('segment_id', lot)))
-  for (const { data, error } of resultats) {
-    if (error) throw error
-    for (const l of (data ?? []) as Lien[]) {
-      if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
-      parSegment.get(l.segment_id)!.push(l)
-    }
-  }
-  for (const arr of parSegment.values()) arr.sort((a, b) => a.type - b.type)
-  return parSegment
-}
-
-/** Même chose, avec un client fourni — pour le rendu serveur, qui a le sien. */
-async function liensParClient(client: { from: (t: string) => any }, segmentIds: number[]): Promise<Map<number, Lien[]>> {
-  const parSegment = new Map<number, Lien[]>()
-  if (!segmentIds.length) return parSegment
-  const lots: number[][] = []
-  for (let i = 0; i < segmentIds.length; i += 500) lots.push(segmentIds.slice(i, i + 500))
-  const resultats = await Promise.all(lots.map(lot =>
-    client.from('liens_bibliques').select(COLS).in('segment_id', lot)))
-  for (const { data, error } of resultats) {
-    if (error) throw error
-    for (const l of (data ?? []) as Lien[]) {
-      if (!parSegment.has(l.segment_id)) parSegment.set(l.segment_id, [])
-      parSegment.get(l.segment_id)!.push(l)
-    }
-  }
-  for (const arr of parSegment.values()) arr.sort((a, b) => a.type - b.type)
-  return parSegment
-}
-
 /** Recherche inverse : les segments qui renvoient à un verset donné.
  *
  *  Un lien peut viser trois choses — un créneau du canon, un verset surnuméraire
@@ -176,18 +205,18 @@ export const estAConstituer = (l: Lien) => !l.canon_id && !l.verset_v2_id && !l.
  *
  *  N'écrire AUCUN nouvel écran contre cette forme : utiliser `liensDeSegments`.
  */
-export async function hydraterLiensHerites<T extends { id: number }>(
+export async function hydraterLiensHerites<T extends SegmentPourLiens>(
   segs: T[],
   // La page d'une œuvre est rendue par le SERVEUR, avec son propre client : sans
   // ce paramètre, l'hydratation s'y ferait avec le client du navigateur — et le
   // premier rendu, celui que le lecteur voit, arriverait sans aucun lien.
-  client?: { from: (t: string) => any },
+  client?: Pick<typeof supabase, 'from'>,
 ): Promise<T[]> {
-  const parSegment = client
-    ? await liensParClient(client, segs.map(s => s.id))
-    : await liensDeSegments(segs.map(s => s.id))
+  const parSegment = await liensDeSegments(segs, client ?? supabase)
   for (const s of segs) {
-    const liens = parSegment.get(s.id) ?? []
+    const liens = s.id_texte && s.segment_key
+      ? parSegment.get(cleStableSegment(s.id_texte, s.segment_key)) ?? []
+      : []
     for (const t of [1, 2, 3, 4] as TypeLien[]) {
       ;(s as Record<string, unknown>)[`lien_${t}`] =
         liens.filter(l => l.type === t && l.canon_id).map(l => l.canon_id).join(';') || null

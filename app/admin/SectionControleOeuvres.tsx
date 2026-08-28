@@ -11,6 +11,8 @@ import type { Auteur } from './adminTypes'
 
 type SegmentControle = {
   id: number
+  id_texte?: string | null
+  segment_key?: string | null
   id_oeuvre: string
   auteur?: string | null
   titre?: string | null
@@ -699,7 +701,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       while (true) {
         const { data, error } = await supabase
           .from('segments')
-          .select('id,id_oeuvre,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,fiabilite,nature,notes,commentaire_ia,controle_rang_manuel,controle_verifie')
+          .select('id,id_texte,segment_key,id_oeuvre,segment_numero,segment_texte,ref_niv1,ref_niv2,ref_niv3,ref_niv4,ref_niv1_texte,ref_niv2_texte,ref_niv3_texte,ref_niv4_texte,lien_1,lien_2,lien_3,lien_4,fiabilite,nature,notes,commentaire_ia,controle_rang_manuel,controle_verifie')
           .eq('id_oeuvre', idOeuvre)
           .order('segment_numero')
           .range(from, from + 999)
@@ -717,7 +719,9 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       // section n'affichait plus aucun lien — sans la moindre erreur. Le §24.5 prévoit
       // exactement ce cas : `hydraterLiensHerites` reconstitue ces colonnes en mémoire
       // pour les écrans anciens. Un seul appel les remet en service.
-      try { await hydraterLiensHerites(lignes as unknown as { id: number }[]) } catch { /* liens indisponibles : l'écran reste utilisable sans eux */ }
+      try {
+        await hydraterLiensHerites(lignes as (SegmentControle & { id_texte: string; segment_key: string })[])
+      } catch { /* liens indisponibles : l'écran reste utilisable sans eux */ }
       if (!annule) {
         setSegments(lignes)
         setSegmentActif(lignes[0]?.id ?? null)
