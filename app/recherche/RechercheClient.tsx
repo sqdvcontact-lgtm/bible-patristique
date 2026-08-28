@@ -11,6 +11,7 @@ import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/t
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
+import { codesTraductionsLecture } from '@/app/lib/traductions'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
@@ -321,13 +322,33 @@ export default function RechercheClient() {
       if (profil?.traduction_defaut) { localStorage.setItem('traduction_defaut', profil.traduction_defaut); appliquer(profil.traduction_defaut) }
     })
     // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
-    supabase.from('traductions').select('trad_id, nom, langue').eq('est_biblique', true).order('ordre', { ascending: true }).then(({ data }) => {
-      if (data?.length) {
-        const trads = data.map((t: any) => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
-        setTraductions(trads)
-        setColTrads(trads.slice(0, 3).map((t: { code: string }) => t.code))
-      }
-    })
+    //
+    // ⛔ ET LE FILTRE PAR COLONNES RÉELLES, qui manquait ici — c'est le piège que la
+    // charte nomme « traductions lisibles vs colonnes de versets_lecture ». La liste
+    // servait telle quelle à composer `selVersets`, lequel nomme une colonne par
+    // traduction. Or `est_biblique` rend NEUF lignes et la vue n'a que CINQ colonnes :
+    // TR0009 (entrée le 3 août 2026), TR0010, TR0011 et TR0012 sont des segmentations
+    // éditoriales, dont le texte se recompose ailleurs. PostgREST refusait donc la
+    // requête ENTIÈRE — « column versets_lecture.TR0009 does not exist », 400, `data`
+    // nul — et les onglets Bible et Polyglotte ne rendaient plus RIEN, en silence,
+    // depuis cette date. Le même défaut avait déjà vidé l'apparat biblique de toutes
+    // les œuvres ; `codesTraductionsLecture` est le remède, il n'était pas appelé ici.
+    //
+    // ⚠️ Le filtre se corrige tout seul : le jour où une de ces bibles est matérialisée
+    // dans la vue, elle reparaît dans les menus sans qu'on touche à ce fichier.
+    void (async () => {
+      const { data } = await supabase
+        .from('traductions').select('trad_id, nom, langue')
+        .eq('est_biblique', true).order('ordre', { ascending: true })
+      if (!data?.length) return
+      const lisibles = new Set(await codesTraductionsLecture(supabase))
+      const trads = (data as { trad_id: string; nom: string; langue: string }[])
+        .filter(t => lisibles.has(t.trad_id))
+        .map(t => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
+      if (!trads.length) return
+      setTraductions(trads)
+      setColTrads(trads.slice(0, 3).map(t => t.code))
+    })()
   }, [])
 
   // Fermer suggestions au clic extérieur
