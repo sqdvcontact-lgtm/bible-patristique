@@ -2199,3 +2199,26 @@ Chiffres du 2026-08-24, tous lus sur le disque par la planche elle-même :
 - `livre_pol.png` est le seul fichier du dépôt nommé avec un souligné au lieu d'un trait.
 
 ⛔ Rien de tout cela n'a été supprimé : ce sont des dessins de l'auteur, et la planche existe pour qu'il décide.
+
+# Fiche « À propos de cette édition » — refonte du 2026-08-28
+
+Elle vit désormais dans **`app/oeuvre/[id]/FicheEdition.tsx`**, sortie des 3 199 lignes d'`OeuvreClient`. Elle est composée **sur le modèle de la fiche d'auteur** (`ModaleAuteur`) et de la fiche de traduction (`ModaleTraduction`), décision de l'auteur : même cadre (52 rem au lieu de 33,75, `--cs-fond`, rayon 12 px, croix collante, Échap, défilement du CONTENU et non du calque), même en-tête, mêmes titres de section, mêmes deux colonnes. Les trois fiches disent la même chose d'objets voisins ; celle-ci était restée une paire de petites cartes à étiquettes.
+
+⚠️ **Le CONTENU est séparé de la fenêtre** (`ContenuFicheEdition`), comme dans les deux autres : `createPortal` n'existe pas au rendu serveur, et sans cette coupure aucune planche de contrôle ne pourrait rendre la fiche hors session. `tmp/planche-fiche-edition.tsx` en tire les trois cas qui se distinguent (notice et collection, deux textes sans notice, opuscule) avec les données réelles.
+
+- **Les pièces communes aux TROIS fiches vivent dans `ModaleAuteur`**, qui est le modèle : `TitreSection` y était déjà, `PortraitAuteur`, `LigneTech` et `Consulter` l'ont rejointe. La fiche de traduction les importe au lieu de les recopier. ⛔ Ne pas redéfinir ailleurs une rangée « étiquette · valeur » ni un portrait sous passe-partout : trois copies d'un même cadre finissent toujours par diverger, et c'est exactement ce qu'on venait de défaire.
+- **En-tête** : le portrait du PREMIER auteur dans le cadre de la fiche d'auteur (6,5 rem × 130 px), puis le titre de catalogue en sérif 1,4375 rem, le sous-titre en italique, les auteurs cliquables, et une ligne de repères en capitales espacées (langue originale · date de composition). ⚠️ Le CADRAGE du portrait est la seule chose que la page de lecture n'a pas : elle connaît le nom et l'identifiant de ses auteurs, jamais leur `photo_position`. La fiche va le chercher à l'ouverture, et le portrait paraît sans l'attendre, son adresse se déduisant de l'identifiant.
+- **Deux colonnes** (`1.35fr / 1fr`, filet entre elles) : à GAUCHE l'édition qu'on lit, à DROITE ce qui la documente. ⚠️ La prose n'y tient pas la place qu'elle occupe dans les deux autres fiches, et c'est la DONNÉE qui le commande : 15 œuvres sur 49 portent un commentaire public, une seule une note éditoriale secondaire. Les rangées de l'édition ouvrent donc la colonne de gauche, la prose les suit.
+- ⛔ **« Édition de référence » n'est PAS repliable**, à la différence d'« Édition et état du texte » dans la fiche de traduction : ces rangées SONT le sujet d'une fiche qui s'appelle « À propos de cette édition », et l'on ne range pas derrière une flèche ce qu'on est venu chercher.
+- **Éditeur, lieu et année sur trois lignes distinctes**, comme dans la fiche de traduction. La ligne « Publication » les recollait en une chaîne où l'on ne savait plus lequel des trois manquait ; les trois valeurs viennent des mêmes morceaux que `publicationLabel`, rien n'est perdu.
+- **La colonne de droite EMPILE étiquette et valeur** au lieu de les poser côte à côte. La rangée partagée porte une colonne d'étiquettes de 8,5 rem, qui tient dans la colonne large et pas dans l'étroite. Deux formes, chacune pour la mesure qu'elle sert : c'est déjà ce que fait la fiche d'auteur, dont les deux colonnes ne se composent pas pareil. Sur téléphone, la classe `cs-fiche-cle` resserre l'étiquette partagée à 6 rem.
+
+## Ce que la fiche dit de plus
+
+- **La SOURCE retombe sur `oeuvres.url_source`.** Elle ne paraissait que si la version active portait un `source_url` : les cinquante œuvres du corpus ont toutes une `url_source`, et le lien n'était offert que par exception.
+- **L'édition en ligne** (`date_mise_en_ligne`), au millésime. ⛔ Pas la date au jour : la colonne a été estampillée en lot sur une partie du corpus, et une date précise donnerait à croire à une précision qu'elle n'a pas. C'est le millésime du colophon du frontispice.
+- **L'étendue du texte** (`oeuvres.nb_signes`), passée du serveur au client avec le reste de l'œuvre. ⚠️ Elle mesure le texte PAR DÉFAUT, et lui seul : sur une autre édition du même texte elle dirait la longueur d'un texte qu'on ne lit pas, et la fiche se tait alors.
+- **Les autres éditions du même texte**, nommées par `libelleVersionComplet`, et la mention du texte original lu en regard.
+- **Le genre et la date de composition**, qui ne paraissaient nulle part ailleurs que dans l'ancienne carte « Texte original ».
+
+⚠️ **La garde du lien « En savoir plus sur cette édition » compte désormais CE QUE LA FICHE SAIT DIRE**, et non les seuls champs de l'édition imprimée : une œuvre sans éditeur ni collection a tout de même un genre, une date de composition et une étendue.

@@ -35,6 +35,7 @@ import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeu
 import { libelleVersionComplet } from './versionTextuelle'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
+import FicheEdition from './FicheEdition'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
@@ -46,7 +47,7 @@ import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { COMPOSITION_INTITULE, sansPointFinal, cleTriTitre } from '@/app/lib/titres'
+import { COMPOSITION_INTITULE, cleTriTitre } from '@/app/lib/titres'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -1899,7 +1900,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   c'est le titre de catalogue qui nomme l'œuvre. */}
               {rendreTexteEnrichi(titreAffiche)}
             </p>
-            {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection) && (
+            {/* La fiche dit désormais aussi l'œuvre (genres, composition) et son édition
+                en ligne (millésime, étendue, autres éditions) : la garde compte donc
+                CE QU'ELLE SAIT DIRE, et non les seuls champs de l'édition imprimée. */}
+            {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.date_composition || oeuvreAffichee.genres?.length || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1) && (
               <button onClick={() => setInfoEditionOuverte(true)}
                 style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
                 En savoir plus sur cette édition
@@ -2885,94 +2889,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       })()}
 
 
-      {infoEditionOuverte && typeof document !== 'undefined' && createPortal(
-        /* ⛔ `top: 48` traînait ici, en pixels : la barre mesure 56px à la racine 16 mais
-            77 à la racine 22, si bien que sur un grand écran ce voile remontait de vingt et
-            un pixels DERRIÈRE elle (charte, § Responsive). Composé sur HAUTEUR_NAVBAR, il
-            la suit. */
-        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', padding: '20px', overflowY: 'auto' }}
-          onClick={() => setInfoEditionOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ margin: 'auto', background: 'var(--cs-surface)', borderRadius: '8px', padding: '18px 22px', width: '33.75rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
-                {/* Auteur ET titre sur la même ligne ; chaque auteur ouvre sa fiche. */}
-                <p style={{ margin: 0, lineHeight: 1.28 }}>
-                  {auteursCliquables.length > 0 ? (
-                    auteursCliquables.map((a, i) => (
-                      <Fragment key={a.id_auteur}>
-                        {i > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)' }}>{separateurAuteurs(i, auteursCliquables.length)}</span>}
-                        <button onClick={() => setAuteurModalId(a.id_auteur)} title="Voir la fiche de l’auteur"
-                          style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.02em' }}>{a.nom}</button>
-                      </Fragment>
-                    ))
-                  ) : (
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.02em' }}>{auteur}</span>
-                  )}
-                  <span style={{ margin: '0 3px' }}> </span>
-                  <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: 'var(--cs-encre)' }}>{rendreTexteEnrichi(titreAffiche)}</span>
-                </p>
-                {oeuvreLocale.sous_titre && (
-                  <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', lineHeight: 1.3, margin: '3px 0 0' }}>{oeuvreLocale.sous_titre}</p>
-                )}
-              </div>
-              <button onClick={() => setInfoEditionOuverte(false)} style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}>✕</button>
-            </div>
-
-            {/* Deux colonnes distinctes : texte original / édition de référence. */}
-            {(() => {
-              const aOriginal = !!(oeuvreLocale.titre_original || oeuvreLocale.date_composition || oeuvreLocale.langue_originale || (oeuvreLocale.genres && oeuvreLocale.genres.length))
-              const aEdition = !!(oeuvreAffichee.trad_auteur || oeuvreAffichee.trad_date || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.commentaire_traduction?.trim() || versionActive?.editionDescription || versionActive?.sourceUrl)
-              if (!aOriginal && !aEdition) return null
-              const carte: React.CSSProperties = { background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-vert-pale)', borderLeft: '2.5px solid var(--cs-vert-clair)', borderRadius: '8px', padding: '11px 13px' }
-              const legende: React.CSSProperties = { fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-vert)', margin: '0 0 8px', textTransform: 'uppercase' }
-              const cle: React.CSSProperties = { fontSize: '0.53125rem', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '-3px', lineHeight: 0.95 }
-              const val: React.CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.15 }
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: (aOriginal && aEdition) ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr', gap: '10px', marginBottom: '12px' }}>
-                  {aOriginal && (
-                    <div style={carte}>
-                      <p style={legende}>Texte original</p>
-                      {oeuvreLocale.titre_original && <div style={{ marginBottom: '6px' }}><span style={cle}>Titre</span><span style={{ ...val, fontStyle: 'italic' }}>{oeuvreLocale.titre_original}</span></div>}
-                      {oeuvreLocale.date_composition && <div style={{ marginBottom: '6px' }}><span style={cle}>Date de composition</span><span style={val}>{formaterDateHistorique(oeuvreLocale.date_composition)}</span></div>}
-                      {oeuvreLocale.langue_originale && <div style={{ marginBottom: '6px' }}><span style={cle}>Langue originale</span><span style={val}>{oeuvreLocale.langue_originale}</span></div>}
-                      {oeuvreLocale.genres && oeuvreLocale.genres.length > 0 && (
-                        <div><span style={cle}>Genre{oeuvreLocale.genres.length > 1 ? 's' : ''}</span><span style={val}>{oeuvreLocale.genres.join(', ')}</span></div>
-                      )}
-                    </div>
-                  )}
-                  {aEdition && (
-                    <div style={carte}>
-                      <p style={legende}>Édition de référence</p>
-                      {oeuvreAffichee.trad_auteur && <div style={{ marginBottom: '6px' }}><span style={cle}>Traducteur</span><span style={val}>{versionActive?.traducteurLabel ?? libelleTrad(oeuvreAffichee.trad_auteur)}{oeuvreAffichee.trad_date ? ` (${formaterDateHistorique(oeuvreAffichee.trad_date)})` : ''}</span></div>}
-                      {versionActive?.editionDescription && <div style={{ marginBottom: '6px' }}><span style={cle}>Édition</span><span style={val}>{versionActive.editionDescription}</span></div>}
-                      {(oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication) && <div style={{ marginBottom: '6px' }}><span style={cle}>Publication</span><span style={val}>{versionActive?.editionDescription && versionActive.publicationLabel ? versionActive.publicationLabel : [formaterEditeur(oeuvreAffichee.editeur), oeuvreAffichee.ville, formaterDateHistorique(oeuvreAffichee.date_publication)].filter(Boolean).join(', ')}</span></div>}
-                      {oeuvreAffichee.collection && <div><span style={cle}>Collection</span><span style={val}>{oeuvreAffichee.collection}</span></div>}
-                      {versionActive?.sourceUrl && <div style={{ marginTop: '6px' }}><span style={cle}>Source</span><a href={versionActive.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ ...val, color: 'var(--cs-vert)' }}>Consulter la source</a></div>}
-                      {/* Commentaire éventuel destiné au public, dans la carte « Édition de référence ». */}
-                      {oeuvreAffichee.commentaire_traduction?.trim() && (
-                        <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid var(--cs-vert-pale)' }}>
-                          <span style={{ ...cle, marginBottom: '2px' }}>Commentaire</span>
-                          <span style={{ ...val, display: 'block', lineHeight: 1.55, fontStyle: 'italic', color: 'var(--cs-texte)', marginTop: '1px', whiteSpace: 'pre-line' }}>{sansPointFinal(oeuvreAffichee.commentaire_traduction)}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-            {/* Notes éditoriales secondaires : rubrique DISTINCTE de la page de titre.
-                Le frontispice (commentaire_traduction) reste réservé aux informations
-                éditoriales factuelles de l'œuvre ; les remarques secondaires vivent ici. */}
-            {oeuvreAffichee.note_editoriale_secondaire?.trim() && (
-              <div style={{ marginTop: '4px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '8px', padding: '11px 13px' }}>
-                <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 6px' }}>Notes éditoriales</p>
-                <div style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', whiteSpace: 'pre-line' }}>{rendreTexteEnrichi(oeuvreAffichee.note_editoriale_secondaire ?? '')}</div>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
+      {infoEditionOuverte && (
+        <FicheEdition
+          donnees={{
+            oeuvre: oeuvreAffichee,
+            titre: titreAffiche,
+            auteurs: auteursCliquables,
+            auteurNom: auteur,
+            versionActive,
+            versions: versionsTextuelles,
+            aTexteOriginal,
+          }}
+          onOuvrirAuteur={setAuteurModalId}
+          onFermer={() => setInfoEditionOuverte(false)} />
       )}
 
       {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}

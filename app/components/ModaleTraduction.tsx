@@ -18,13 +18,12 @@
 // pas rendre la fiche si tout tenait dans un seul composant.
 
 import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { rendreSiecles } from '@/app/lib/siecles'
-import { FriseAuteur, TitreSection } from '@/app/components/ModaleAuteur'
-import { estUrl, type RangChrono } from '@/app/lib/frise'
+import { FriseAuteur, TitreSection, LigneTech, Consulter } from '@/app/components/ModaleAuteur'
+import { type RangChrono } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
   portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
@@ -116,17 +115,10 @@ function formaterProse(html: string): string {
   return s
 }
 
-// Ligne « étiquette · valeur » de la section technique. Composants purs, définis
-// au niveau module (jamais recréés à chaque rendu — sinon React perd l'identité
-// et l'état des sous-arbres).
-const cleTech: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.5, paddingTop: '1px' }
-const LigneTech = ({ c, children }: { c: string; children: ReactNode }) => children ? (
-  <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond)', alignItems: 'baseline' }}>
-    <span style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
-  </div>
-) : null
-const Consulter = ({ url, libelle }: { url: string | null; libelle: string }) => (url && estUrl(url))
-  ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null
+// ⚠️ La rangée « étiquette · valeur » et le lien de consultation vivent désormais
+// dans `ModaleAuteur`, avec le portrait et le titre de section : les trois fiches
+// (auteur, traduction, édition) les partagent, et trois copies d'un même cadre
+// finissent toujours par diverger.
 
 const STYLES_FICHE = `
   .trad-notice h2 { font-family: ${SERIF}; font-style: italic; font-weight: normal; font-size: 0.84375rem; color: var(--cs-vert); margin: 15px 0 5px; }

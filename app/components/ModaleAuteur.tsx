@@ -17,7 +17,7 @@ import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rendreSiecles } from '@/app/lib/siecles'
-import { type RangChrono, coulType, LIB_TYPE } from '@/app/lib/frise'
+import { type RangChrono, coulType, LIB_TYPE, estUrl } from '@/app/lib/frise'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import HistoricalDate from '@/app/components/HistoricalDate'
@@ -79,6 +79,54 @@ function stylePhoto(pos: AuteurPhotoPos): CSSProperties {
 export function TitreSection({ children, centre }: { children: ReactNode; centre?: boolean }) {
   return <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.84375rem', color: 'var(--cs-vert)', margin: '0 0 5px', textAlign: centre ? 'center' : 'left' }}>{children}</h3>
 }
+
+// ── Les pièces communes aux TROIS fiches ───────────────────────────────────────
+// La fiche d'auteur est le modèle : la fiche de traduction (`ModaleTraduction`) et
+// la fiche d'édition (`app/oeuvre/[id]/FicheEdition`) sont composées sur elle. Les
+// pièces qu'elles partagent vivent donc ICI, et non recopiées dans chacune : le
+// portrait sous passe-partout, le titre de section, la rangée « étiquette · valeur »
+// et le lien de consultation. Trois copies d'un même cadre finissent toujours par
+// diverger, et c'est exactement ce qu'on venait de défaire.
+
+/** Le portrait d'un auteur dans le cadre de la fiche : 6,5 rem × 130 px, passe-partout
+ *  de 5 px, ombre posée. Repli sur les initiales quand l'image manque.
+ *
+ *  ⚠️ On retient l'ADRESSE qui a manqué, et non un booléen : la même fiche peut
+ *  changer d'auteur sans être remontée, et un booléen resterait alors à « cassé ». */
+export function PortraitAuteur({ idAuteur, nom, photoPosition }: {
+  idAuteur: string; nom: string; photoPosition?: unknown
+}) {
+  const [casse, setCasse] = useState<string | null>(null)
+  const url = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg`
+  const initiales = nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
+  return (
+    <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
+      <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {casse !== url ? (
+          <img src={url} alt={nom} onError={() => setCasse(url)}
+            style={{ width: '100%', height: '100%', display: 'block', ...stylePhoto(parsePhotoPos(photoPosition)) }} />
+        ) : (
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '2.125rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>{initiales}</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** Rangée « étiquette · valeur » des sections documentaires. La colonne d'étiquettes
+ *  mesure 8,5 rem : elle porte des intitulés entiers (« Responsable de l'édition »),
+ *  et c'est cette mesure qui commande la pleine largeur de ces sections. La classe
+ *  `cs-fiche-cle` existe pour que chaque fiche puisse la resserrer sur téléphone. */
+const cleTech: CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.5, paddingTop: '1px' }
+export const LigneTech = ({ c, children }: { c: string; children: ReactNode }) => children ? (
+  <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond)', alignItems: 'baseline' }}>
+    <span className="cs-fiche-cle" style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
+  </div>
+) : null
+
+/** Lien vers une source extérieure. Rien du tout si l'adresse n'en est pas une. */
+export const Consulter = ({ url, libelle }: { url: string | null | undefined; libelle: string }) => (url && estUrl(url))
+  ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null
 
 // ── Frise agrégée de l'auteur ──────────────────────────────────────────────────
 // Trois brins, distingués par la couleur du point : Vie (le parcours de l'auteur),
@@ -177,11 +225,7 @@ function DetailChrono({ label, children }: { label?: string; children: ReactNode
 }
 
 function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () => void; evenements: RangChrono[] }) {
-  const [photoOk, setPhotoOk] = useState(true)
-  const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`
-  const photoPos = parsePhotoPos(auteur.photo_position)
   const datesAuteur = espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates))
-  const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
   // Dates, langue et traditions sur une même ligne d'étiquettes : la langue y prend
   // donc la capitale, comme le siècle et la tradition qui l'encadrent.
   const meta = rendreSiecles([datesAuteur, libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
@@ -253,16 +297,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
     <>
       {/* En-tête : portrait, nom, contexte */}
       <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
-        <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
-          <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {photoOk ? (
-              <img src={photoUrl} alt={auteur.nom} onError={() => setPhotoOk(false)}
-                style={{ width: '100%', height: '100%', display: 'block', ...stylePhoto(photoPos) }} />
-            ) : (
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '2.125rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>{initiales}</span>
-            )}
-          </div>
-        </div>
+        <PortraitAuteur idAuteur={auteur.id_auteur} nom={auteur.nom} photoPosition={auteur.photo_position} />
         <div style={{ minWidth: 0 }}>
           <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{auteur.nom}</h2>
           {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
