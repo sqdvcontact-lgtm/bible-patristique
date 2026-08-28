@@ -47,4 +47,11 @@ describe('composition d’une note bibliographique', () => {
     expect(entrees).toEqual([])
     expect(chapeau).toBe('Un commentaire ordinaire, sans liste.')
   })
+
+  it('compose un bloc déclaré comme entrée autonome sans injecter de tiret', () => {
+    const texte = '*Évangile selon saint Matthieu*. Introduction critique et commentaires.'
+    const { chapeau, entrees } = composerBibliographie(texte, { entreeAutonome: true })
+    expect(chapeau).toBeNull()
+    expect(entrees).toEqual([texte])
+  })
 })
