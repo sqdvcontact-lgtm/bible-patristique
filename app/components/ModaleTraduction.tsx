@@ -384,19 +384,27 @@ export default function ModaleTraduction({ code, nomFallback, onFermer }: { code
     return () => { annule = true }
   }, [code])
 
-  // Échap ferme la gravure agrandie d'abord, la fiche ensuite. Le défilement de
-  // fond est gelé tant que la fenêtre est ouverte (comme la fiche d'auteur) : le
-  // calque, lui, ne défile pas, c'est le CONTENU de la boîte qui défile.
+  // Le défilement de fond est gelé tant que la fenêtre est ouverte (comme la fiche
+  // d'auteur) : le calque, lui, ne défile pas, c'est le CONTENU de la boîte qui
+  // défile. ⛔ Cet effet n'a AUCUNE dépendance, et c'est nécessaire : rejoué à
+  // l'ouverture d'une gravure, il retiendrait « hidden » comme état antérieur et
+  // ne rendrait jamais le défilement à la page.
+  useEffect(() => {
+    const prec = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prec }
+  }, [])
+
+  // Échap ferme la gravure agrandie d'abord, la fiche ensuite.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      setPlanche(p => { if (!p) onFermer(); return null })
+      if (planche) setPlanche(null)
+      else onFermer()
     }
     document.addEventListener('keydown', onKey)
-    const prec = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prec }
-  }, [onFermer])
+    return () => document.removeEventListener('keydown', onKey)
+  }, [planche, onFermer])
 
   if (typeof document === 'undefined') return null
 
