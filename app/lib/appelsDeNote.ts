@@ -36,13 +36,36 @@ import type { CSSProperties } from 'react'
 // signaler. Ne pas le réintroduire au prétexte d'indiquer qu'il est cliquable.
 export type VarianteAppelNote = 'corps' | 'titre' | 'frontispice'
 
-const FORME_APPEL: Record<VarianteAppelNote, CSSProperties> = {
-  corps: { fontSize: '0.60em', color: 'var(--cs-lacune)' },
-  titre: { fontSize: '0.42em', color: 'currentColor', opacity: 0.55 },
-  frontispice: { fontSize: '0.30em', color: 'currentColor', opacity: 0.45 },
+// La TAILLE de l'appel, en em du texte qui le porte, et sa TEINTE. La HAUTEUR,
+// elle, ne varie pas d'une variante à l'autre : voir REMONTEE_APPEL.
+const TAILLE_APPEL: Record<VarianteAppelNote, number> = {
+  corps: 0.60,
+  titre: 0.42,
+  frontispice: 0.30,
 }
 
+const TEINTE_APPEL: Record<VarianteAppelNote, CSSProperties> = {
+  corps: { color: 'var(--cs-lacune)' },
+  titre: { color: 'currentColor', opacity: 0.55 },
+  frontispice: { color: 'currentColor', opacity: 0.45 },
+}
+
+// ── Hauteur de l'appel ───────────────────────────────────────────────────────
+// ⛔ JAMAIS `vertical-align: super`, qui monte l'appel TROP HAUT : mesuré le
+// 2026-08-28 dans le texte de lecture, il le hisse à 0,41 em au-dessus de la
+// ligne de base, et le chiffre flotte alors au-dessus des hampes au lieu de s'y
+// ranger. Décalage MAÎTRISÉ, comme partout ailleurs sur le site (`siecles.tsx`,
+// `HistoricalDate.tsx`) : 0,31 em, soit exactement la hauteur de l'ordinal des
+// siècles — un « XIIIe » et un appel de note se lisent ainsi à la même hauteur
+// dans la même ligne, et le haut du chiffre affleure les hampes.
+//
+// Cette hauteur se compte en em du TEXTE PORTEUR, et elle est la même pour les
+// trois variantes : un appel plus petit ne se lit pas plus bas, il se lit plus
+// petit. Elle ne gonfle pas l'interligne, contrairement à `super`.
+const REMONTEE_APPEL = 0.31
+
 export function styleAppelNote(variante: VarianteAppelNote = 'corps'): CSSProperties {
+  const taille = TAILLE_APPEL[variante]
   return {
     cursor: 'help',
     fontFamily: 'inherit',
@@ -52,15 +75,20 @@ export function styleAppelNote(variante: VarianteAppelNote = 'corps'): CSSProper
     // était : les appels sont des `<sup>`, que le navigateur remonte tout seul,
     // mais le séparateur d'une suite est un `<span>` dans le paratexte biblique :
     // il restait donc sur la ligne de base, l'esperluette de « 2 & 3 » en bas.
-    // Posé ici, la forme ne dépend plus de la balise employée, et redire à un
-    // `<sup>` ce que sa feuille de style d'agent lui dit déjà ne change rien.
-    verticalAlign: 'super',
+    // Posé ici, la forme ne dépend plus de la balise employée — et l'on annule au
+    // passage la remontée d'office du `<sup>`, qu'on ne veut justement pas.
+    verticalAlign: 'baseline',
+    position: 'relative',
+    // `top` se compte en em de l'APPEL, quand la hauteur voulue se pense en em du
+    // texte porteur : d'où la division.
+    top: `${(-REMONTEE_APPEL / taille).toFixed(3)}em`,
+    fontSize: `${taille}em`,
     userSelect: 'none',
     letterSpacing: 0,
     display: 'inline-block',
     lineHeight: 1,
     padding: '0 1px',
-    ...FORME_APPEL[variante],
+    ...TEINTE_APPEL[variante],
   }
 }
 
