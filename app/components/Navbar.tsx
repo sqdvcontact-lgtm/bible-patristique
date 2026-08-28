@@ -104,17 +104,36 @@ const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: b
 // Bible 899 : outil d'atelier, rattaché à la famille « Système ».
 const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899", famille: "systeme" };
 
-// Couleurs de domaine pour la recherche rapide : chaque catégorie de résultats est
-// rattachée à un grand domaine par une couleur FORTE (filet gauche + libellé + fond
-// léger) — Bible (bleu), Patristique (vert), Publications (ocre). Les sous-ensembles
-// d'un même domaine partagent la couleur et se distinguent plus légèrement (libellé
-// + fins séparateurs).
+// ── Les FAMILLES DE CORPUS, dans la liste déroulante de la barre ─────────────
+//
+// ⛔ Elles sont celles de la page de résultats, et ce sont les MÊMES jetons
+// (`app/globals.css`, § familles de corpus). La barre avait sa propre table :
+// la Bible y était BLEUE quand elle est verte sur la page de résultats, les
+// Pères VERTS quand ils y sont pourpres, et les publications portaient l'ocre
+// de lacune. Deux codes de couleur contradictoires à quarante pixels l'un de
+// l'autre, sur le même mot cherché : ce que la liste apprenait au lecteur, la
+// page le démentait aussitôt.
+//
+// ⚠️ La CHRONOLOGIE rejoint les Pères, dont elle raconte le monde. Elle portait
+// un violet à elle, ce qui faisait un quatrième domaine vivant dans cette seule
+// liste. La rubrique nomme déjà le genre de ce qu'on trouve ; la couleur, elle,
+// dit le domaine — et trois sections peuvent partager un domaine, comme Bible et
+// Polyglotte partagent le vert sur la page de résultats.
+//
+// Chaque famille tient en deux valeurs : l'ENCRE et l'APLAT de la rubrique. Le
+// fond lavé du groupe, son filet et le survol s'en DÉRIVENT par `color-mix`,
+// depuis `--fam` (voir `styleDomaine`) : ils suivent donc les deux thèmes sans
+// être nommés.
 const DOMAINE = {
-  bible:        { base: "#3a5a8c", fond: "rgba(58,90,140,0.12)",  survol: "rgba(58,90,140,0.22)" },
-  patristique:  { base: "var(--cs-vert)", fond: "rgba(var(--cs-vert-rgb),0.12)",  survol: "rgba(var(--cs-vert-rgb),0.20)" },
-  publications: { base: "var(--cs-lacune)", fond: "rgba(154,106,46,0.13)", survol: "rgba(154,106,46,0.22)" },
-  chronologie:  { base: "#6d5a86", fond: "rgba(109,90,134,0.12)", survol: "rgba(109,90,134,0.22)" },
+  bible:        { encre: "var(--cs-ecriture)",   aplat: "var(--cs-ecriture-aplat)" },
+  patristique:  { encre: "var(--cs-peres)",      aplat: "var(--cs-peres-aplat)" },
+  publications: { encre: "var(--cs-communaute)", aplat: "var(--cs-communaute-aplat)" },
 } as const;
+
+/** Pose une famille sur un groupe de la liste ; tout son CSS en dérive. */
+function styleDomaine(d: keyof typeof DOMAINE): React.CSSProperties {
+  return { "--fam": DOMAINE[d].encre, "--fam-aplat": DOMAINE[d].aplat } as React.CSSProperties;
+}
 
 // ── Données statiques pour la recherche rapide ───────────────────────────────
 const LIVRES_RECHERCHE = LIVRES.map(({ code, nom }) => ({ code, nom }));
@@ -904,7 +923,31 @@ export default function Navbar() {
         .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
         @keyframes spin-search { to { transform: rotate(360deg); } }
         .spinner-search { animation: spin-search 0.8s linear infinite; }
-        [data-nav-actif] { background: var(--cs-fond-doux) !important; }
+        /* ── LES GROUPES DE LA LISTE, au modèle de la page de résultats ──────────
+           Une rubrique en aplat, puis un bloc lavé de la même famille dont les
+           lignes se séparent d'un filet. La famille se pose une fois, par --fam
+           et --fam-aplat (voir styleDomaine), et tout le reste s'en dérive.
+
+           ⛔ Plus de filet de trois pixels au flanc des sections. Il a été essayé
+           et refusé sur la page de résultats : un trait dit moins bien le domaine
+           qu'un fond qui le porte sur toute la hauteur du groupe, et il ajoute un
+           objet là où l'on en retire. Les sept rubriques portaient chacune le
+           leur, plus un fond translucide, plus un filet de séparation en haut.
+
+           ⚠️ La rubrique garde sa TYPOGRAPHIE : petites capitales espacées au
+           même corps qu'avant. Ce n'est pas un titre — elle nomme un genre de
+           résultat, non une œuvre. Seule la couleur a changé de place, du texte
+           vers la bande. */
+        .rr-hd { padding:2px 12px 3px; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-size:0.59375rem; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; }
+        .rr-corps { background:color-mix(in srgb, var(--fam) 7%, var(--cs-surface)); }
+        .rr-ligne { display:block; padding:3px 12px; text-decoration:none; transition:background 0.1s; }
+        .rr-ligne + .rr-ligne { border-top:1px solid color-mix(in srgb, var(--fam) 18%, var(--cs-surface)); }
+        .rr-ligne:hover { background:color-mix(in srgb, var(--fam) 14%, var(--cs-surface)); }
+        .rr-vide { margin:0; padding:3px 12px; font-size:0.71875rem; color:var(--cs-texte-doux); font-style:italic; }
+        /* Le rang atteint au CLAVIER prend la teinte de sa propre famille, et non
+           plus un gris commun : la flèche descend d'un domaine à l'autre, et le
+           surlignage doit le dire. */
+        [data-nav-actif] { background: color-mix(in srgb, var(--fam, var(--cs-texte-doux)) 20%, var(--cs-surface)) !important; }
       `}</style>
       {/* Champ + bouton page de recherche */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -1019,8 +1062,9 @@ export default function Navbar() {
                      autres rubriques plus bas) : c'est le prix de la mise en tête, et le
                      filet de gauche continue de dire le domaine de chacun. ── */}
               {oeuvresTrouvees.length > 0 && (
-                <div style={{ padding: "6px 0 5px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 3px" }}>Œuvres patristiques</p>
+                <div style={styleDomaine("patristique")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Œuvres patristiques</p>
+                  <div className="rr-corps">
                   {oeuvresTrouvees.slice(0, 3).map(o => {
                     // Ce qui distingue CETTE édition des autres du même titre : son
                     // traducteur (ou sa langue, si c'est le texte original), sa maison,
@@ -1029,47 +1073,48 @@ export default function Navbar() {
                     const edition = ligneEdition(editionsOeuvres[o.id_oeuvre] ?? {}, indexEditeurs);
                     return (
                     <Link key={o.id_oeuvre} id={`nav-oe:${o.id_oeuvre}`} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "4px 12px", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      className="rr-ligne" style={{ padding: "4px 12px" }}>
                       <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, requeteRapide.trim())}</span>
                       {o.auteurs?.nom && <span style={{ display: "block", fontSize: "0.71875rem", fontStyle: "italic", color: "var(--cs-texte-second)", lineHeight: 1.25, marginTop: "1px" }}>{o.auteurs.nom}</span>}
                       {edition && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-doux)", lineHeight: 1.3, marginTop: "1px" }}>{edition}</span>}
                     </Link>
                     );
                   })}
+                  </div>
                 </div>
               )}
               {livresTrouves.length > 0 && (
-                <div style={{ padding: "6px 0 5px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: oeuvresTrouvees.length > 0 ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 3px" }}>Livres bibliques</p>
+                <div style={styleDomaine("bible")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Livres bibliques</p>
+                  <div className="rr-corps">
                   {livresTrouves.slice(0, 3).map(l => (
                     <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "4px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      className="rr-ligne"
+                      style={{ padding: "4px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
                       {surlignerMatch(l.nom, requeteRapide.trim())}
                     </Link>
                   ))}
+                  </div>
                 </div>
               )}
               {auteursTrouves.length > 0 && (
-                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.patristique.base}`, background: DOMAINE.patristique.fond, borderTop: (oeuvresTrouvees.length > 0 || livresTrouves.length > 0) ? "1px solid rgba(var(--cs-vert-rgb),0.14)" : "none" }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.patristique.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Auteurs</p>
+                <div style={styleDomaine("patristique")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Auteurs</p>
+                  <div className="rr-corps">
                   {auteursTrouves.slice(0, 3).map(a => (
                     <Link key={a.id_auteur} id={`nav-au:${a.id_auteur}`} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.patristique.survol)}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      className="rr-ligne" style={{ fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>
                       {surlignerMatch(a.nom, requeteRapide.trim())}
                     </Link>
                   ))}
+                  </div>
                 </div>
               )}
-              {/* ── Péricopes (RPC) : section distincte. Domaine biblique (bleu). ── */}
+              {/* ── Péricopes (RPC) : section distincte, famille de l'Écriture. ── */}
               {(pericopesLoading || pericopes.length > 0 || (pericopesFait && !pericopesErreur) || pericopesErreur) && (
-                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: (oeuvresTrouvees.length > 0 || livresTrouves.length > 0 || auteursTrouves.length > 0) ? "1px solid rgba(58,90,140,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Péricopes</p>
+                <div style={styleDomaine("bible")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Péricopes</p>
+                  <div className="rr-corps">
                   {pericopes.length > 0 ? (
                     pericopes.map(p => {
                       const ref = referencePericope(p);
@@ -1079,9 +1124,7 @@ export default function Navbar() {
                       const actif = cleActive === `p:${p.pericope_id}`;
                       return (
                         <Link key={p.pericope_id} id={`nav-p:${p.pericope_id}`} href={`/pericopes/${p.pericope_id}`} onClick={fermerRechercheRapide}
-                          onMouseEnter={e => { e.currentTarget.style.background = DOMAINE.bible.survol; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = actif ? DOMAINE.bible.survol : "transparent"; }}
-                          style={{ display: "block", padding: "3px 12px", textDecoration: "none", background: actif ? DOMAINE.bible.survol : "transparent" }}>
+                          className="rr-ligne" {...(actif ? { 'data-nav-actif': '' } : {})}>
                           <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{p.titre}</span>
                           <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-second)", lineHeight: 1.25 }}>
                             {ref}
@@ -1093,55 +1136,56 @@ export default function Navbar() {
                       );
                     })
                   ) : pericopesLoading ? (
-                    <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-faible)", margin: "1px 12px 3px" }}>…</p>
+                    <p className="rr-vide" style={{ color: "var(--cs-texte-faible)", fontStyle: "normal" }}>…</p>
                   ) : pericopesErreur ? (
-                    <p style={{ fontSize: "0.71875rem", color: "var(--cs-texte-faible)", fontStyle: "italic", margin: "1px 12px 3px" }}>Recherche de péricopes momentanément indisponible.</p>
+                    <p className="rr-vide" style={{ color: "var(--cs-texte-faible)" }}>Recherche de péricopes momentanément indisponible.</p>
                   ) : (
-                    <p style={{ fontSize: "0.71875rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: "1px 12px 3px" }}>Aucune péricope trouvée.</p>
+                    <p className="rr-vide">Aucune péricope trouvée.</p>
                   )}
+                  </div>
                 </div>
               )}
+              {/* La CHRONOLOGIE porte la famille des Pères : voir la note de DOMAINE. */}
               {evenementsTrouves.length > 0 && (
-                <div style={{ padding: "5px 0 3px", borderLeft: `3px solid ${DOMAINE.chronologie.base}`, background: DOMAINE.chronologie.fond }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.chronologie.base, textTransform: "uppercase", margin: "0 12px 2px" }}>Chronologie</p>
+                <div style={styleDomaine("patristique")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Chronologie</p>
+                  <div className="rr-corps">
                   {evenementsTrouves.map(e => {
                     const titrePropre = e.titre.replace(/\*{1,2}|\+\+|\^\^/g, '');
                     return (
-                      <Link key={e.id} id={`nav-ev:${e.id}`} href={`/histoire#${e.id}`} onClick={fermerRechercheRapide}
-                        style={{ display: "block", padding: "3px 12px", textDecoration: "none" }}
-                        onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.chronologie.survol)}
-                        onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
+                      <Link key={e.id} id={`nav-ev:${e.id}`} href={`/histoire#${e.id}`} onClick={fermerRechercheRapide} className="rr-ligne">
                         <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, requeteRapide.trim())}</span>
                         {e.date_affichage && <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
                       </Link>
                     );
                   })}
+                  </div>
                 </div>
               )}
               {essaisTrouves.length > 0 && (
-                <div style={{ padding: "4px 0 3px", borderLeft: `3px solid ${DOMAINE.publications.base}`, background: DOMAINE.publications.fond, borderTop: (auteursTrouves.length > 0 || oeuvresTrouvees.length > 0 || livresTrouves.length > 0 || segmentsTrouves.length > 0 || pericopes.length > 0 || evenementsTrouves.length > 0) ? "1px solid rgba(154,106,46,0.16)" : "none" }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.publications.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Essais et méditations</p>
+                <div style={styleDomaine("publications")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Essais et méditations</p>
+                  <div className="rr-corps">
                   {essaisTrouves.slice(0, 3).map(e => (
                     <Link key={e.id} id={`nav-es:${e.id}`} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
-                      onMouseEnter={ev => (ev.currentTarget.style.background = DOMAINE.publications.survol)}
-                      onMouseLeave={ev => (ev.currentTarget.style.background = "transparent")}>
+                      className="rr-ligne" style={{ fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>
                       {surlignerMatch(e.titre, requeteRapide.trim())}
                     </Link>
                   ))}
+                  </div>
                 </div>
               )}
               {traductionsTrouvees.length > 0 && (
-                <div style={{ padding: "4px 0 6px", borderLeft: `3px solid ${DOMAINE.bible.base}`, background: DOMAINE.bible.fond, borderTop: "1px solid rgba(58,90,140,0.16)" }}>
-                  <p style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.09em", color: DOMAINE.bible.base, textTransform: "uppercase", margin: "2px 12px 2px" }}>Traductions</p>
+                <div style={styleDomaine("bible")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Traductions</p>
+                  <div className="rr-corps">
                   {traductionsTrouvees.slice(0, 3).map(t => (
                     <Link key={t.code} id={`nav-tr:${t.code}`} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
-                      style={{ display: "block", padding: "3px 12px", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)", textDecoration: "none" }}
-                      onMouseEnter={e => (e.currentTarget.style.background = DOMAINE.bible.survol)}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      className="rr-ligne" style={{ fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>
                       {surlignerMatch(t.nom, requeteRapide.trim())}
                     </Link>
                   ))}
+                  </div>
                 </div>
               )}
               {(auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (

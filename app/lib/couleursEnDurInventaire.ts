@@ -69,7 +69,13 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'components/ModaleMessagerie.tsx': ['rgba(30,26,20,0.42)', 'rgba(40,30,15,0.26)'],
   'components/ModalLienBiblique.tsx': ['#5f574d', '#8b7a5c', '#b05638', '#b07b65', 'rgba(20,25,20,0.32)'],
   'components/ModalSignalement.tsx': ['#5a1010', '#6b1010', '#7a2f18', '#7b0000', '#a06060', '#a85c3a', '#b5764a', '#c09a86', '#c53030', '#efd8c6', '#f0a0a0', 'rgba(30,26,20,0.5)'],
-  'components/Navbar.tsx': ['#3a5a8c', '#6d5a86', '#fff', 'rgba(109,90,134,0.12)', 'rgba(109,90,134,0.22)', 'rgba(154,106,46,0.13)', 'rgba(154,106,46,0.16)', 'rgba(154,106,46,0.22)', 'rgba(58,90,140,0.12)', 'rgba(58,90,140,0.16)', 'rgba(58,90,140,0.22)'],
+  // ⬇ DIX teintes retirées le 2026-08-28, avec le passage de la recherche rapide aux
+  //    familles de corpus : le bleu de la Bible (#3a5a8c et ses trois translucides), le
+  //    violet de la chronologie (#6d5a86 et ses deux), et les trois ocres des
+  //    publications. Toutes vivaient dans la table DOMAINE, laquelle contredisait la
+  //    page de résultats. Elles passent aux jetons --cs-ecriture / --cs-peres /
+  //    --cs-communaute, et les fonds se dérivent par color-mix.
+  'components/Navbar.tsx': ['#fff'],
   'components/NavLivres.tsx': ['#a9b6a6', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
   'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(154,126,61,0.16)', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)', 'rgba(198,184,158,0.08)'],
   'components/TexteBible.tsx': ['#b0a088'],
