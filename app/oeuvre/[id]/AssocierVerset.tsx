@@ -54,7 +54,14 @@ export default function AssocierVerset({ segId, onAssocie }: {
       <button
         onClick={() => { setErreur(null); setOuvert(true) }}
         title="Ajouter un lien biblique à ce segment"
-        style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
+        // ⛔ Pleine largeur et libellé CENTRÉ, comme « + Proposer un lien biblique »
+        // que voit le lecteur : c'est le même geste, il ne doit pas se présenter de
+        // deux façons selon qu'on est administrateur ou non. Le bouton se dimensionnait
+        // à son texte et pendait donc à gauche, sous un arbre qui, lui, est centré
+        // dans le volet (relevé par l'auteur le 2026-08-28).
+        // ⚠️ `boxSizing` : sans lui, le rembourrage et le filet s'ajouteraient aux
+        // 100 %, et le bouton déborderait le volet de vingt-deux pixels.
+        style={{ width: '100%', boxSizing: 'border-box', textAlign: 'center', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
       >
         + Ajouter un lien biblique
       </button>
