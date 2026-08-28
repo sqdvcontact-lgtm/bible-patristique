@@ -96,7 +96,11 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'polyglotte/page.tsx': ['rgba(90,75,156,0.22)'],
   'profil/[pseudo]/page.tsx': ['#7a8a6e', '#c8a858', '#c8c0b8', '#e2c98d', '#e2ca91', '#e4cc91', '#e4d7b6', '#ead9a9', 'rgba(198,169,100,.42)', 'rgba(222,190,111,.18)', 'rgba(222,190,111,.20)', 'rgba(222,190,111,.34)', 'rgba(233,204,136,.24)', 'rgba(233,204,136,.28)', 'rgba(233,204,136,.30)', 'rgba(235,218,175,.46)', 'rgba(235,218,175,.7)'],
   'progression/ProgressionClient.tsx': ['#3d8bc0', '#7a8e7e', '#8a6fb0', '#9a7e5e', '#c0566a', '#d4af37', '#fff'],
-  'recherche/RechercheClient.tsx': ['#4a453f', '#5a5248', '#6a8474', '#6f8f7b', '#7a1d16', '#7a5a10', '#8a1710', '#8aa593', '#a9bcb0', '#b6ccbd', '#c8c0b8', '#e8c96a', '#f6cfca', 'rgba(30,28,24,0.38)'],
+  // ⬇ Trois teintes retirées le 2026-08-28, avec la refonte des résultats de recherche :
+  //    #4a453f (nom d'auteur d'une ligne de répartition) est passé à --cs-texte ;
+  //    #f6cfca et #8a1710 étaient le surlignage ROUGE, que plus rien n'appelait depuis
+  //    que la ligne d'en-tête dit où le mot se trouve. Partis avec lui.
+  'recherche/RechercheClient.tsx': ['#5a5248', '#6a8474', '#6f8f7b', '#7a1d16', '#7a5a10', '#8aa593', '#a9bcb0', '#b6ccbd', '#c8c0b8', '#e8c96a', 'rgba(30,28,24,0.38)'],
   'soutenir/page.tsx': ['#b0a088', '#cfc6b6', '#fff'],
   'soutenir/VotesClient.tsx': ['#4a3e7a', '#7a5e1e', 'rgba(154,126,61,0.12)', 'rgba(250,253,250,0.96)', 'rgba(255,253,249,0.92)', 'rgba(90,80,140,0.10)'],
   'traductions/AllerPlusLoinClient.tsx': ['#18130f', '#f7f4ef', 'rgba(24,19,15,0.38)', 'rgba(24,19,15,0.58)', 'rgba(242,239,232,0.48)', 'rgba(242,239,232,0.72)'],

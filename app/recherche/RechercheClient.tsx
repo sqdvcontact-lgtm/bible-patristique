@@ -1,5 +1,5 @@
 'use client'
-import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { LIVRES } from '@/app/lib/bible'
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -10,6 +10,7 @@ import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
+import { siglesTraductions } from '@/app/lib/sigleTraduction'
 
 // ── Graphies & normalisation (hérités de la concordance) ─────────────────────
 function normaliser(s: string): string {
@@ -24,24 +25,10 @@ function graphiesVariantes(base: string): string[] {
   return [...v].filter(s => s.length >= 2)
 }
 
-const NOMBRES_FR = ['','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix',
-  'onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf','vingt']
-function nombreFr(n: number): string {
-  return n <= 20 ? NOMBRES_FR[n] : String(n)
-}
-
-// Abréviation française, avec une espace après le numéro de livre : « 1Co » → « 1 Co »,
-// « 2P » → « 2 P ». On ne touche pas la table ABREV_FR (partagée par tout le site) ;
-// l'espacement est propre à l'affichage des résultats de recherche.
-function abrevFr(code: string): string {
-  return (ABREV_FR[code] || code).replace(/^([1-3])(\p{L})/u, '$1 $2')
-}
-function refFr(ref: string): string {
-  const p = ref.trim().split(' ')
-  if (p.length < 2) return ref
-  const cv = p[1].split(':')
-  return cv[1] ? `${abrevFr(p[0])} ${cv[0]}, ${cv[1]}` : `${abrevFr(p[0])} ${cv[0]}`
-}
+// (`refFr` et son `abrevFr` composaient la référence entière — « Ps 18, 2 » — sur chaque
+// carte de résultat. Le nom du livre étant monté dans la rubrique de groupe, la ligne ne
+// porte plus que « 18, 2 » et l'abréviation n'a plus d'emploi ici. `nombreFr`, lui, était
+// mort depuis plus longtemps encore. Tous trois sont partis avec les cartes.)
 
 // Noms des livres DÉRIVÉS de `LIVRES` (app/lib/bible.ts), comme le fait déjà `app/page.tsx`.
 // Une table écrite à la main ici a dérivé : il y manquait les deutérocanoniques, et
@@ -117,21 +104,28 @@ function contientTerme(texte: string, terme: string, mode: Mode): boolean {
   }
   catch { return false }
 }
-// `rouge` : surligne l'occurrence en rouge au lieu du vert. Sert dans l'onglet Bible
-// quand le mot cherché est ABSENT de la traduction affichée mais présent ailleurs : on
-// montre alors le verset d'une traduction qui le porte, l'occurrence en rouge.
 // Surligne les occurrences du terme dans UN run de texte plat. Renvoie toujours des nœuds
 // CLÉS (préfixe `kb`) — pour pouvoir être imbriqué dans l'enrichissement sans collision de clé.
 // On construit le regex sur le texte normalisé pour trouver les positions, puis on surligne
 // les caractères originaux aux mêmes positions.
-function surligneParts(texte: string, terme: string, mode: Mode, rouge: boolean, kb: string): React.ReactNode[] {
+//
+// ⛔ Le surlignage SORT du jeu des familles de corpus. Il portait --cs-vert-clair, c'est-à-dire
+// la teinte de la Bible : dans un résultat patristique, il aurait désormais dit « Bible ».
+// Il prend donc --cs-vise-fond, le jeton qui dit déjà « le verset que vous cherchiez », le
+// même dans les quatre onglets. Mesuré 13,6 sur son fond.
+//
+// ⚠️ Le surlignage NE SE RESSERRE PAS quand tout le reste se resserre : c'est le seul objet
+// de la page qu'on cherche des yeux, et le comprimer le rendrait plus difficile à trouver.
+//
+// (Une variante ROUGE a existé, pour le verset dont la traduction affichée ne porte pas le
+// mot. Plus rien ne l'appelait depuis que la ligne d'en-tête dit où le mot se trouve ; c'est
+// maintenant le sigle barré et le fond d'absence qui le disent.)
+function surligneParts(texte: string, terme: string, mode: Mode, kb: string): React.ReactNode[] {
   const termes = termesRecherche(terme)
   if (!texte || !termes.length) return [texte]
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
-  const style = rouge
-    ? { background: '#f6cfca', color: '#8a1710', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
-    : { background: 'var(--cs-vert-clair)', color: 'var(--cs-vert-fonce)', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
+  const style = { background: 'var(--cs-vise-fond)', color: 'var(--cs-texte-fort)', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
   try {
     const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
     const alt = termesN.map(echapperRegex).join('|')
@@ -150,18 +144,54 @@ function surligneParts(texte: string, terme: string, mode: Mode, rouge: boolean,
   } catch { return [texte] }
 }
 
-function highlighter(texte: string, terme: string, mode: Mode, rouge = false): React.ReactNode {
+function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode {
   if (!texte || !terme) return texte
-  const parts = surligneParts(texte, terme, mode, rouge, 'h')
+  const parts = surligneParts(texte, terme, mode, 'h')
   return parts.length > 1 ? <>{parts}</> : texte
 }
 
 // Enrichissement (gras, italique, `<i>` de Sacy…) ET surlignage du mot cherché, ensemble :
 // on passe le surligneur en `transform` de rendreTexteEnrichi. Sans cela, la recherche
 // affichait soit les balises en clair (onglet Bible), soit un texte appauvri (Polyglotte).
-function rendreEtSurligner(texte: string, terme: string, mode: Mode, rouge = false): React.ReactNode {
+function rendreEtSurligner(texte: string, terme: string, mode: Mode): React.ReactNode {
   if (!texte) return texte
-  return rendreTexteEnrichi(texte, (s, key) => surligneParts(s, terme, mode, rouge, key))
+  return rendreTexteEnrichi(texte, (s, key) => surligneParts(s, terme, mode, key))
+}
+
+// ── Les trois FAMILLES DE CORPUS ────────────────────────────────────────────
+// Quatre onglets, trois corpus : la Polyglotte est une autre VUE sur les mêmes versets
+// que la Bible, et partage donc sa teinte. Les valeurs vivent dans `app/globals.css`
+// (§ familles de corpus) et se transposent seules au Cuir ; ici on ne nomme que le rôle.
+//
+// Le fond lavé d'un groupe et son filet ne sont PAS des jetons : ils se dérivent de
+// l'encre par `color-mix`, en CSS, à partir de la variable `--fam` posée sur le groupe.
+// Une famille se dit donc en un seul endroit, et tout le reste suit.
+const FAMILLES: Record<Onglet, { encre: string; aplat: string }> = {
+  bible:       { encre: 'var(--cs-ecriture)',   aplat: 'var(--cs-ecriture-aplat)' },
+  polyglotte:  { encre: 'var(--cs-ecriture)',   aplat: 'var(--cs-ecriture-aplat)' },
+  patristique: { encre: 'var(--cs-peres)',      aplat: 'var(--cs-peres-aplat)' },
+  essais:      { encre: 'var(--cs-communaute)', aplat: 'var(--cs-communaute-aplat)' },
+}
+
+/** Le style qui pose une famille sur un groupe ; tout le CSS du groupe en dérive. */
+function styleFamille(onglet: Onglet): React.CSSProperties {
+  const f = FAMILLES[onglet]
+  return { '--fam': f.encre, '--fam-aplat': f.aplat } as React.CSSProperties
+}
+
+// Regroupe une liste DÉJÀ TRIÉE en tranches consécutives de même clé. Consécutives, et
+// non par table de hachage : les listes arrivent dans l'ordre canonique (Genèse →
+// Apocalypse) ou alphabétique d'auteur, et cet ordre est précisément ce qu'on montre.
+// Un regroupement par clé le casserait en ramenant ensemble des tranches éloignées.
+function grouperConsecutifs<T>(liste: T[], cle: (x: T) => string): { cle: string; items: T[] }[] {
+  const tranches: { cle: string; items: T[] }[] = []
+  for (const item of liste) {
+    const k = cle(item)
+    const derniere = tranches[tranches.length - 1]
+    if (derniere && derniere.cle === k) derniere.items.push(item)
+    else tranches.push({ cle: k, items: [item] })
+  }
+  return tranches
 }
 
 // PostgREST plafonne CHAQUE réponse à 1000 lignes (réglage max-rows), quel que soit le
@@ -626,6 +656,14 @@ export default function RechercheClient() {
   // la traduction affichée → en bas » est abandonné au profit de l'ordre biblique demandé.
   const versetsTries = useMemo(() => [...versetsRes].sort(comparerVersets), [versetsRes])
 
+  // Le SIGLE de chaque bible, calculé une fois sur la liste ENTIÈRE : c'est à cette
+  // condition seulement que deux bibles ne peuvent pas recevoir le même (voir
+  // `app/lib/sigleTraduction.ts`). Le nom entier reste porté en `title` sur chaque sigle.
+  const siglesParCode = useMemo(() => {
+    const sigles = siglesTraductions(traductions.map(t => t.label))
+    return Object.fromEntries(traductions.map((t, i) => [t.code, sigles[i]])) as Record<string, string>
+  }, [traductions])
+
   // Résultats patristiques TRIÉS par nom d'auteur (alphabétique), puis œuvre, puis segment.
   const segmentsTries = useMemo(() => [...segmentsRes].sort((a, b) =>
     a.auteur_nom.localeCompare(b.auteur_nom, 'fr') ||
@@ -697,22 +735,68 @@ export default function RechercheClient() {
   return (
     <>
       <style>{`
-        .res-card { display:block; text-decoration:none; padding:6px 12px; background:var(--cs-surface); border-radius:8px; border:1px solid var(--cs-bord-clair); transition:border-color 0.12s, box-shadow 0.12s; }
-        .res-card:hover { border-color:var(--cs-vert); box-shadow:0 1px 6px rgba(var(--cs-vert-rgb),0.10); }
-        .res-card--absent { background:var(--cs-fond-clair); border-color:var(--cs-danger-bord); }
-        .res-card--absent:hover { border-color:var(--cs-danger); }
+        /* ── UN GROUPE, PAS DES CARTES ──────────────────────────────────────────────
+           Les résultats étaient vingt cartes indépendantes, chacune avec son cadre, son
+           rayon, son ombre et son survol, et toutes de la même couleur. Elles répétaient
+           en outre à chaque ligne ce que le TRI disait déjà : le même livre vingt fois,
+           le même auteur et la même œuvre à chaque passage.
+
+           Un groupe est désormais UN SEUL objet : une rubrique en aplat qui porte le
+           commun (le livre, l'auteur et l'œuvre, la publication), puis un bloc lavé de la
+           même famille dont les lignes se séparent d'un filet. Rien n'est retranché ;
+           ce qui était répété est REMONTÉ d'un cran.
+
+           ⛔ Pas de liseré au flanc des lignes. Il a été essayé et refusé : un trait de
+           trois pixels dit moins bien la famille qu'un fond qui la porte sur toute la
+           hauteur du groupe, et il ajoute un objet là où l'on en retire.
+
+           La famille se pose UNE fois, par --fam et --fam-aplat (voir styleFamille).
+           Le lavis et le filet s'en dérivent par color-mix : ils suivent donc les deux
+           thèmes sans être nommés, et montent tout seuls sur le sol sombre du Cuir, comme
+           la charte l'exige d'un carton posé sur un fond sombre. */
+        .grp { border-radius:8px; }
+        .grp + .grp { margin-top:7px; }
+        .grp-hd { display:flex; align-items:baseline; gap:8px; padding:2px 10px 3px; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:var(--font-source-serif), Georgia, serif; }
+        .grp-hd .nom { font-size:0.75rem; font-weight:600; letter-spacing:0.035em; }
+        .grp-hd .compl { min-width:0; font-size:0.6875rem; font-style:italic; opacity:0.84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .grp-hd .n { margin-left:auto; flex-shrink:0; font-size:0.625rem; font-weight:400; font-variant-numeric:tabular-nums; opacity:0.74; }
+        .grp-corps { border:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); border-top:none; border-radius:0 0 8px 8px; background:color-mix(in srgb, var(--fam) 7%, var(--cs-surface)); overflow:hidden; }
+        .grp-ligne { display:block; text-decoration:none; padding:4px 10px 5px; transition:background 0.1s; }
+        .grp-ligne + .grp-ligne { border-top:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); }
+        .grp-ligne:hover { background:color-mix(in srgb, var(--fam) 14%, var(--cs-surface)); }
+        /* Le verset dont la traduction AFFICHÉE ne porte pas le mot : le fond d'absence,
+           et le sigle barré sur la ligne du haut disent lequel. */
+        .grp-ligne--absent { background:var(--cs-danger-fond); }
+        .grp-ligne--absent:hover { background:var(--cs-danger-fond); }
+        /* ── Sigles de bible ──
+           Sept noms entiers ne tiennent pas sur une ligne et repoussaient le verset à un
+           troisième rang ; sept sigles y tiennent. Le nom entier reste en title. */
+        .sigles { display:inline-flex; gap:4px; flex-wrap:wrap; align-items:baseline; }
+        .sigle { font-size:0.5625rem; font-weight:600; letter-spacing:0.03em; line-height:1.55; padding:0 4px; border-radius:4px; color:var(--cs-texte-doux); background:color-mix(in srgb, var(--fam) 12%, var(--cs-surface)); }
+        .sigle--affichee { color:var(--fam); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--fam) 34%, var(--cs-surface)); }
+        .sigle--absente { color:var(--cs-texte-faible); background:transparent; text-decoration:line-through; }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
         .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:var(--cs-texte-second); line-height:1.4; font-family:inherit; transition:background 0.1s; }
-        .brk-row:hover { background:rgba(var(--cs-vert-rgb),0.08); }
-        .brk-row--actif { background:rgba(var(--cs-vert-rgb),0.15); color:var(--cs-encre); font-weight:600; }
-        .brk-row--actif:hover { background:rgba(var(--cs-vert-rgb),0.2); }
-        .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-faible); }
-        .brk-row--actif .brk-count { color:var(--cs-vert); }
-        .ong-btn { padding:8px 16px; font-size:0.71875rem; border:none; border-bottom:3px solid transparent; cursor:pointer; background:transparent; color:var(--cs-texte-gris); font-weight:400; transition:color 0.12s, border-color 0.12s; white-space:nowrap; margin-bottom:-2px; }
-        .ong-btn--actif { color:var(--cs-encre); font-weight:600; border-bottom-color:var(--cs-vert); }
-        .ong-btn:not(.ong-btn--actif):hover { color:var(--cs-vert); border-bottom-color:var(--cs-vert-pale); }
-        .ong-count { margin-left:5px; font-size:0.59375rem; color:var(--cs-texte-faible); font-weight:400; }
-        .ong-btn--actif .ong-count { color:var(--cs-vert); }
+        .brk-row:hover { background:color-mix(in srgb, var(--fam) 10%, var(--cs-surface)); }
+        .brk-row--actif { background:color-mix(in srgb, var(--fam) 15%, var(--cs-surface)); color:var(--fam); font-weight:600; }
+        .brk-row--actif:hover { background:color-mix(in srgb, var(--fam) 21%, var(--cs-surface)); }
+        .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-faible); font-variant-numeric:tabular-nums; }
+        .brk-row--actif .brk-count { color:var(--fam); }
+        /* ── Onglets VERTICAUX du volet gauche ──
+           Une pastille carrée devant chaque libellé donne la clef du code de couleurs :
+           c'est le seul endroit de la page où les trois familles se voient ENSEMBLE, et
+           donc le seul où l'on peut apprendre ce qu'elles disent.
+           ⛔ Le liseré de 3 px qui marquait l'onglet actif est retiré : le lavis fait le
+           même travail, se voit mieux, et n'ajoute pas un objet à la page.
+           (Les anciennes classes .ong-btn et .ong-count, d'une barre d'onglets
+           HORIZONTALE qui n'existe plus, ont disparu avec elles.) */
+        .ong-vert { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 20px; border:none; background:transparent; color:var(--cs-texte-second); font-weight:400; font-size:0.78125rem; cursor:pointer; text-align:left; font-family:var(--font-source-serif), Georgia, serif; transition:background 0.12s, color 0.12s; }
+        .ong-vert:hover { background:color-mix(in srgb, var(--fam) 8%, var(--cs-surface)); }
+        .ong-vert--actif { background:color-mix(in srgb, var(--fam) 11%, var(--cs-surface)); color:var(--fam); font-weight:600; }
+        .ong-vert .lib { display:flex; align-items:center; gap:8px; min-width:0; line-height:1.25; }
+        .ong-vert .pastille { width:7px; height:7px; flex-shrink:0; border-radius:4px; background:var(--fam); }
+        .ong-count { flex-shrink:0; font-size:0.625rem; font-weight:400; color:var(--cs-texte-faible); font-variant-numeric:tabular-nums; }
+        .ong-vert--actif .ong-count { color:var(--fam); }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
         .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
@@ -939,17 +1023,18 @@ export default function RechercheClient() {
                 const actif = onglet===o.k
                 return (
                   <Fragment key={o.k}>
-                    <button onClick={()=>setOnglet(o.k)}
-                      style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px', padding:'9px 20px', border:'none', borderLeft:`3px solid ${actif?'var(--cs-vert-aplat)':'transparent'}`, background:actif?'rgba(var(--cs-vert-rgb),0.07)':'transparent', color:actif?'var(--cs-encre)':'var(--cs-texte-second)', fontWeight:actif?600:400, fontSize:'0.78125rem', cursor:'pointer', textAlign:'left', fontFamily:"var(--font-source-serif), Georgia, serif", transition:'background 0.12s, color 0.12s' }}>
-                      <span style={{ whiteSpace:'normal', lineHeight:1.25 }}>{o.label}</span>
-                      <span style={{ flexShrink:0, fontSize:'0.625rem', color:actif?'var(--cs-vert)':'var(--cs-texte-faible)', fontWeight:400 }}>{o.n}</span>
+                    {/* La famille se pose sur l'onglet ET sur sa répartition : le survol,
+                        l'état actif et la ligne filtrée en dérivent tous par `color-mix`. */}
+                    <button className={`ong-vert${actif ? ' ong-vert--actif' : ''}`} style={styleFamille(o.k)} onClick={()=>setOnglet(o.k)}>
+                      <span className="lib"><span className="pastille" aria-hidden="true" />{o.label}</span>
+                      <span className="ong-count">{o.n}</span>
                     </button>
                     {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
                         œuvres (Pères), publications (communauté), avec le nombre d'occurrences.
                         Chaque ligne est CLIQUABLE : elle restreint les résultats à ce
                         regroupement ; un second clic sur la même ligne annule le filtre. */}
                     {actif && o.n > 0 && (
-                      <div style={{ padding:'2px 14px 8px 26px', display:'flex', flexDirection:'column', gap:'1px' }}>
+                      <div style={{ ...styleFamille(o.k), padding:'2px 14px 8px 26px', display:'flex', flexDirection:'column', gap:'1px' }}>
                         {(o.k==='bible' || o.k==='polyglotte') && repartitionLivres.map(([code, n]) => {
                           const sel = filtres.livre === code
                           return (
@@ -969,7 +1054,7 @@ export default function RechercheClient() {
                               onClick={() => { setFiltres(f => ({ ...f, oeuvre: f.oeuvre === cle ? null : cle })); setPageS(0) }}
                               title={sel ? 'Retirer le filtre' : `N'afficher que ${r.auteur}${r.titre ? ' — ' + r.titre : ''}`}>
                               <span style={{ minWidth:0 }}>
-                                <span style={{ color: sel ? 'inherit' : '#4a453f' }}>{r.auteur}</span>
+                                <span style={{ color: sel ? 'inherit' : 'var(--cs-texte)' }}>{r.auteur}</span>
                                 {r.titre && <span style={{ color: sel ? 'inherit' : 'var(--cs-texte-doux)', fontStyle:'italic' }}> — {r.titre}</span>}
                               </span>
                               <span className="brk-count">{r.n}</span>
@@ -1078,82 +1163,104 @@ export default function RechercheClient() {
             {done && onglet==='bible' && (
               versetsFiltres.length===0
                 ? <Vide texte="Aucun verset trouvé." />
-                : <>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
-                    {versetsPageBible.map(v => {
-                      const texte = String((v as any)[tradBible]??'')
-                      const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
-                      const displayLeMot = !!(lastQuery && contientTerme(texte, lastQuery, mode))
-                      // TOUTES les traductions qui contiennent le mot, listées sur la ligne du
-                      // haut. La traduction affichée est barrée si le mot n'y figure pas ; les
-                      // traductions qui le portent s'affichent alors en rouge discret.
-                      const contientDans = lastQuery
-                        ? traductions.filter(t => contientTerme(String((v as any)[t.code]??''), lastQuery, mode))
-                        : []
-                      return (
-                        <a key={v.id_verset}
-                          // Lien vers la page Bible : livre, chapitre, verset ET la traduction
-                          // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
-                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
-                          target="_blank" rel="noopener noreferrer"
-                          className={`res-card${!displayLeMot && contientDans.length ? ' res-card--absent' : ''}`}>
-                          {/* Référence (couleur neutre, pas verte), traduction affichée (barrée si
-                              le mot y est absent) puis TOUTES les traductions qui contiennent le mot. */}
-                          <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                            <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'#5a5248', letterSpacing:'0.01em' }}>{refFr(v.ref)}</span>
-                            {/* Tous les noms de bibles : même couleur, même espacement (le gap
-                                du conteneur), chacun dans son propre span. La traduction affichée
-                                est barrée quand le mot n'y figure pas — seule distinction retenue. */}
-                            <span style={{ fontSize:'0.59375rem', fontWeight:600, color:'var(--cs-texte-doux)', textDecoration: displayLeMot ? 'none' : 'line-through' }}>{labelDisplay}</span>
-                            {contientDans.filter(t => t.code !== tradBible).map(t => (
-                              <span key={t.code} style={{ fontSize:'0.59375rem', color:'var(--cs-texte-doux)' }}>{t.label}</span>
-                            ))}
-                          </div>
-                          {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
-                              mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
-                          <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
-                            {texte
-                              ? rendreEtSurligner(texte, lastQuery, mode)
-                              : <span style={{ color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
-                          </p>
-                        </a>
-                      )
-                    })}
-                  </div>
-                </>
+                : <div style={styleFamille('bible')}>
+                  {/* Un groupe par LIVRE. Les versets arrivant dans l'ordre canonique, une
+                      tranche consécutive est exactement un livre. Le nom du livre monte donc
+                      dans la rubrique et la référence de chaque ligne retombe à « 18, 2 ».
+                      ⛔ Aucun COMPTE dans la rubrique : celui de la page mentirait sur le
+                      livre, celui du livre mentirait sur la page. Les comptes complets vivent
+                      dans le volet gauche, et le total sous la pagination. */}
+                  {grouperConsecutifs(versetsPageBible, v => v.livre).map(tranche => (
+                    <div className="grp" key={tranche.cle}>
+                      <div className="grp-hd">
+                        <span className="nom">{NOMS_LIVRES[tranche.cle] ?? tranche.cle}</span>
+                      </div>
+                      <div className="grp-corps">
+                        {tranche.items.map(v => {
+                          const texte = String((v as any)[tradBible]??'')
+                          const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
+                          const displayLeMot = !!(lastQuery && contientTerme(texte, lastQuery, mode))
+                          // TOUTES les bibles qui portent le mot, en SIGLES sur la ligne du haut.
+                          // Celle qui est affichée porte un filet ; elle est barrée quand le mot
+                          // n'y figure pas, et la ligne prend alors le fond d'absence.
+                          const contientDans = lastQuery
+                            ? traductions.filter(t => contientTerme(String((v as any)[t.code]??''), lastQuery, mode))
+                            : []
+                          return (
+                            <a key={v.id_verset}
+                              // Lien vers la page Bible : livre, chapitre, verset ET la traduction
+                              // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
+                              href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className={`grp-ligne${!displayLeMot && contientDans.length ? ' grp-ligne--absent' : ''}`}>
+                              <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
+                                <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-texte-second)', letterSpacing:'0.01em', fontVariantNumeric:'tabular-nums' }}>{v.chapitre}, {v.verset}</span>
+                                <span className="sigles">
+                                  <span className={`sigle ${displayLeMot ? 'sigle--affichee' : 'sigle--absente'}`} title={labelDisplay}>{siglesParCode[tradBible] ?? tradBible}</span>
+                                  {contientDans.filter(t => t.code !== tradBible).map(t => (
+                                    <span key={t.code} className="sigle" title={t.label}>{siglesParCode[t.code] ?? t.label}</span>
+                                  ))}
+                                </span>
+                              </div>
+                              {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
+                                  mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
+                              <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                                {texte
+                                  ? rendreEtSurligner(texte, lastQuery, mode)
+                                  : <span style={{ color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
+                              </p>
+                            </a>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
             )}
 
             {/* ── Patristique ── */}
             {done && onglet==='patristique' && (
               segmentsFiltres.length===0
                 ? <Vide texte="Aucun passage trouvé." />
-                : <div style={{ display:'flex', flexDirection:'column', gap:'3px' }}>
-                  {segmentsPage.map(s=>(
-                    <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}&segment=${s.id}#segment-${s.id}`}
-                      target="_blank" rel="noopener noreferrer" className="res-card">
-                      {/* Auteur, titre de l'œuvre PUIS niveau 1, tout sur une même ligne, séparés
-                          par une espace claire (plus de point médian). Le niveau 1 ne paraît que
-                          s'il existe. Résultats triés par nom d'auteur (alphabétique). */}
-                      <div style={{ display:'flex', alignItems:'baseline', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
-                        <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{s.auteur_nom}</span>
-                        {s.oeuvre_titre && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>{s.oeuvre_titre}</span>}
-                        {s.ref_niv1 && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)' }}>{s.ref_niv1}</span>}
+                : <div style={styleFamille('patristique')}>
+                  {/* Un groupe par ŒUVRE (auteur puis titre). Les segments arrivent triés par
+                      nom d'auteur puis par œuvre : une tranche consécutive est exactement une
+                      œuvre. L'auteur et le titre cessent donc d'être répétés à chaque passage,
+                      et la ligne ne porte plus que sa cote. */}
+                  {grouperConsecutifs(segmentsPage, s => s.auteur_nom + '¦' + (s.oeuvre_titre ?? '')).map(tranche => (
+                    <div className="grp" key={tranche.cle}>
+                      <div className="grp-hd">
+                        <span className="nom">{tranche.items[0].auteur_nom}</span>
+                        {tranche.items[0].oeuvre_titre && <span className="compl">{tranche.items[0].oeuvre_titre}</span>}
                       </div>
-                      {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
-                          latin en italiques, grec en romain). Sinon, le texte français. */}
-                      {s.matchOrig && s.texte_original ? (
-                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
-                          <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--cs-vert)', background:'var(--cs-vert-pale)', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
-                          <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
-                            {rendreEtSurligner(nettoyerFin(s.texte_original), lastQuery, mode)}
-                          </span>
-                        </p>
-                      ) : (
-                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.4, color:'var(--cs-texte-fort)', margin:0 }}>
-                          {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
-                        </p>
-                      )}
-                    </a>
+                      <div className="grp-corps">
+                        {tranche.items.map(s=>(
+                          <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}&segment=${s.id}#segment-${s.id}`}
+                            target="_blank" rel="noopener noreferrer" className="grp-ligne">
+                            {/* Le niveau 1 seul, et seulement s'il existe : le reste est dans la rubrique. */}
+                            {s.ref_niv1 && (
+                              <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
+                                <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-texte-second)' }}>{s.ref_niv1}</span>
+                              </div>
+                            )}
+                            {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
+                                latin en italiques, grec en romain). Sinon, le texte français. */}
+                            {s.matchOrig && s.texte_original ? (
+                              <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                                <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
+                                <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
+                                  {rendreEtSurligner(nettoyerFin(s.texte_original), lastQuery, mode)}
+                                </span>
+                              </p>
+                            ) : (
+                              <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                                {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
+                              </p>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
             )}
@@ -1162,21 +1269,27 @@ export default function RechercheClient() {
             {done && onglet==='essais' && (
               essaisFiltres.length===0
                 ? <Vide texte="Aucun essai trouvé." />
-                : <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                : <div style={styleFamille('essais')}>
+                  {/* Une publication est déjà un groupe à elle seule : son titre monte dans la
+                      rubrique avec sa catégorie, et la ligne garde le sous-titre et l'extrait. */}
                   {essaisPage.map(e=>{
                     const extrait = snippetEssai(e.contenu, lastQuery)
                     const texteAffiche = (e.resume && contientTerme(e.resume, lastQuery, mode)) ? e.resume : extrait
                     return (
-                      <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-card">
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:'3px' }}>
-                          <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-vert)' }}>{e.titre}</span>
-                          {e.categories?.[0] && <span style={{ fontSize:'0.59375rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>{e.categories[0]}</span>}
+                      <div className="grp" key={e.id}>
+                        <div className="grp-hd">
+                          <span className="nom">{e.titre}</span>
+                          {e.categories?.[0] && <span className="compl">{e.categories[0]}</span>}
                         </div>
-                        {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:'0 0 3px' }}>{e.sous_titre}</p>}
-                        <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.55, color:'var(--cs-texte-fort)', margin:0 }}>
-                          {highlighter(texteAffiche, lastQuery, mode)}
-                        </p>
-                      </a>
+                        <div className="grp-corps">
+                          <a href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="grp-ligne">
+                            {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:'0 0 2px' }}>{e.sous_titre}</p>}
+                            <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.42, color:'var(--cs-texte-fort)', margin:0 }}>
+                              {highlighter(texteAffiche, lastQuery, mode)}
+                            </p>
+                          </a>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>

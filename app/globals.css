@@ -141,6 +141,38 @@
      doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
      donc intransposable en Cuir. Il l'est maintenant. */
   --cs-systeme: #5f6b86;
+
+  /* ── Les trois FAMILLES DE CORPUS : une teinte par section de résultats ──
+     La recherche rend quatre onglets (Bible, Polyglotte, Pères, Publications) et les
+     rendait tous dans le seul --cs-vert : rien ne disait à l'œil d'où venait une carte.
+     Les familles de la navbar ne suffisaient pas — elles nomment des ZONES du site, non
+     les corpus — mais elles donnent le ton : l'Écriture garde le vert, la Communauté
+     garde l'or, et il ne manquait que les Pères.
+
+     ⛔ La teinte des Pères est un POURPRE DE RUBRIQUE, la seconde encre du manuscrit
+     après l'or, et non un bleu : la charte a essayé les teintes froides franches sur ce
+     papier (§ La couleur appartient à l'auteur) et les a reprises le jour même. Il est
+     à 162° du vert, c'est-à-dire presque à l'opposé, et à 36° de --cs-danger, ce qui
+     suffit sur une page où le danger ne paraît que sur la ligne d'un verset absent.
+
+     ⛔ La Communauté ne peut PAS prendre --cs-or tel quel : mesuré, il ne rend que 3,79
+     sur le papier, sous le seuil AA. La charte l'avait déjà constaté pour les couvertures
+     de publications. C'est donc un rang plus profond de la MÊME famille, pas une couleur
+     de plus dans la palette.
+
+     Chaque famille tient en DEUX valeurs, et rien d'autre n'est teinté :
+       ·  l'ENCRE   — la pastille et le libellé de l'onglet actif ;
+       ·  l'APLAT   — la rubrique de groupe, qui porte du --cs-sur-aplat.
+     Le fond lavé du groupe et son filet de séparation se DÉRIVENT de l'encre par
+     `color-mix` (7 % et 22 % dans --cs-surface) : ils suivent ainsi les deux thèmes sans
+     qu'on ait à les nommer, et ils montent tout seuls sur le sol sombre du Cuir. */
+  --cs-ecriture: #3d6b4f;
+  --cs-ecriture-aplat: #3d6b4f;
+  --cs-peres: #8a2846;
+  --cs-peres-aplat: #8a2846;
+  --cs-communaute: #7a5f22;
+  --cs-communaute-aplat: #7a5f22;
+
   /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
      profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
      sur les fonds clairs, tout en se lisant comme une annotation d'éditeur, non comme du
@@ -288,6 +320,30 @@
      neutre, de chroma basse, qui le distingue des deux autres familles par sa
      retenue plutôt que par sa couleur. */
   --cs-systeme: #b3a68e;
+
+  /* ── Les trois familles de corpus, jeu du Cuir ──
+     ⚠️ C'est une DÉROGATION au monochrome, et elle est celle que la charte accorde déjà :
+     « la frise de l'histoire et les catégories de modération encodent des CATÉGORIES par
+     la couleur, et les rabattre effacerait l'information ». Une section de résultats est
+     exactement cela. Les trois teintes sont donc gardées, mais SOURDES : une sauge, une
+     rose fanée et l'or du Cuir, toutes dans la clarté du parchemin, sans réintroduire ni
+     bleu ni vert franc.
+
+     ⛔ Les ENCRES ne peuvent pas se rabattre sur --cs-vert, qui vaut ici #dcc08a : les
+     trois familles y seraient identiques. Elles ont donc leurs valeurs propres.
+
+     ⛔ Les APLATS, eux, redeviennent du CUIR PROFOND, comme la barre de navigation et
+     pour la même raison : trois bandes claires répétées sur toute la hauteur d'une page
+     de résultats en seraient la seule tache de couleur. Chacun garde le PENCHANT de sa
+     famille (le vert, le rose, l'or) sans en avoir la clarté. Blanc mesuré dessus :
+     11,96 · 13,55 · 12,79. */
+  --cs-ecriture: #9fc0a4;
+  --cs-ecriture-aplat: #2c3a30;
+  --cs-peres: #d99a9f;
+  --cs-peres-aplat: #3a2a2e;
+  --cs-communaute: #dcc08a;
+  --cs-communaute-aplat: #3a3122;
+
   /* Le surnuméraire septante perd son violet. Ses quatre rangs deviennent quatre
      beiges, séparés par la seule luminance. */
   --cs-surnum-fort: #e0d3b4;
