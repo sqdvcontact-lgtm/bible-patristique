@@ -1053,20 +1053,44 @@ button:focus-visible,
 }
 .cs-apparat-bibliographie__entree:last-child { margin-bottom: 0; }
 
-/* Les fragments d'une notice STRUCTURÉE, composés selon leur rôle. ⛔ La
-   ponctuation n'a pas de classe : elle appartient à la séquence où elle tombe et
-   en hérite — le deux-points du sous-titre reste ainsi dans l'italique du titre.
-   ⛔ Aucun séparateur, aucun tiret, aucune puce n'est produit ici : ce que la
-   donnée ne porte pas, la feuille ne l'ajoute pas. */
-.cs-apparat-bibliographie__titre-ouvrage,
-.cs-apparat-bibliographie__sous-titre { font-style: italic; }
-.cs-apparat-bibliographie__auteur,
-.cs-apparat-bibliographie__donnees { font-style: normal; }
+/* Les fragments d'une notice STRUCTURÉE, composés selon leur rôle.
+
+   ⚠️ Chaque règle se pend AU BLOC — `.cs-apparat-bibliographie .cs-…__x` — et
+   non à la classe seule. Sans cela elle ne déciderait rien : mesuré le
+   2026-08-28, retirer `__titre-ouvrage` ne changeait pas un pixel, l'italique
+   ne tenant que par la balise `<em>` ; et sous une règle d'ambiance qui vise
+   la balise — `.cs-notice-italique em`, spécificité (0,1,1) —, le titre
+   sortait en romain AVEC la classe comme sans elle. ⛔ Une feuille ne déclare
+   pas ce qu'elle ne décide pas : le sélecteur à deux classes (0,2,0) l'emporte,
+   et chaque rôle répond désormais de sa propre composition.
+
+   ⚠️ `font-variant-caps`, et non le raccourci `font-variant` : celui-ci
+   remettrait à zéro les chiffres elzéviriens qu'un bloc de titre pose
+   (`font-variant-numeric: oldstyle-nums`), et une année de notice les mérite.
+
+   ⛔ La ponctuation n'a pas de classe : elle appartient à la séquence où elle
+   tombe et en hérite — le point du sous-titre reste ainsi dans l'italique du
+   titre. ⛔ Aucun séparateur, aucun tiret, aucune puce n'est produit ici : ce
+   que la donnée ne porte pas, la feuille ne l'ajoute pas. */
+.cs-apparat-bibliographie .cs-apparat-bibliographie__titre-ouvrage,
+.cs-apparat-bibliographie .cs-apparat-bibliographie__sous-titre {
+  font-style: italic;
+  font-variant-caps: normal;
+}
+.cs-apparat-bibliographie .cs-apparat-bibliographie__auteur,
+.cs-apparat-bibliographie .cs-apparat-bibliographie__donnees {
+  font-style: normal;
+  font-variant-caps: normal;
+}
+
 /* Petites capitales SÉMANTIQUES : la donnée dit quel fragment est le nom de
    famille, la feuille le compose. ⛔ Jamais de `text-transform: uppercase`, qui
-   crierait le nom entier et perdrait la casse d'autorité. */
-.cs-apparat-bibliographie__nom-auteur {
-  font-variant: small-caps;
+   crierait le nom entier et perdrait la casse d'autorité. Le romain est posé
+   avec elles : un nom d'auteur ne s'italise pas parce que son voisinage le
+   ferait. */
+.cs-apparat-bibliographie .cs-apparat-bibliographie__nom-auteur {
+  font-style: normal;
+  font-variant-caps: small-caps;
   letter-spacing: 0.02em;
 }
 
