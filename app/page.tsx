@@ -11,9 +11,10 @@ import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleRe
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import {
-  canonDuChapitre, chargerLectureBilingue, chargerLiminairesEdition, chargerPieceLiminaire,
-  loadBibleEditionCatalog, loadBibleEditionChapter,
+  canonDuChapitre, chargerBibliographiesEdition, chargerLectureBilingue, chargerLiminairesEdition,
+  chargerPieceLiminaire, loadBibleEditionCatalog, loadBibleEditionChapter,
 } from '@/app/lib/bibleEditionServer'
+import { bibliographieDesBlocs } from '@/app/lib/bibleBibliographieOuvrages'
 import {
   blocsTexteEditoriaux, presentationDeBloc, sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
@@ -527,12 +528,19 @@ export default async function Home({
   // ouvre un volume à sa page de garde. Le chapitre ne se rend donc pas, et son
   // appareil ne se charge pas.
   const cles = new Set(pieceDemandee?.blocs.map((bloc) => bloc.blockKey) ?? [])
-  const pieceChargee = pieceDemandee
-    ? await chargerPieceLiminaire(supabase, {
-      familyId: editionMember!.family_id,
-      blocs: liminaires.filter((bloc) => cles.has(bloc.block_key)),
-    })
-    : null
+  // ⚠️ La bibliographie STRUCTURÉE part avec le texte de la pièce, non derrière
+  // lui : les deux ne dépendent que de la famille et des blocs, connus ici. Et
+  // elle ne part QUE si une pièce est demandée — un chapitre ordinaire n'en a
+  // aucun usage et ne doit pas payer l'aller-retour.
+  const [pieceChargee, entreesBibliographiques] = (pieceDemandee && editionMember)
+    ? await Promise.all([
+      chargerPieceLiminaire(supabase, {
+        familyId: editionMember.family_id,
+        blocs: liminaires.filter((bloc) => cles.has(bloc.block_key)),
+      }),
+      chargerBibliographiesEdition(supabase, editionMember.family_id),
+    ])
+    : [null, []]
 
   const pieceAffichee = (pieceDemandee && pieceChargee && editionMember)
     ? {
@@ -540,6 +548,13 @@ export default async function Home({
       titre: pieceDemandee.titre,
       portee: pieceDemandee.portee,
       contenu: composerAffichage(editionMember, pieceChargee),
+      // ⛔ La pièce ne se reconnaît pas à son titre translittéré : chaque entrée
+      // désigne le bloc matériel dont elle est issue, et c'est cette
+      // appartenance-là qui lui donne sa clé de bibliographie.
+      bibliographie: bibliographieDesBlocs(
+        entreesBibliographiques,
+        pieceDemandee.blocs.map((bloc) => bloc.id),
+      ),
     }
     : null
 

@@ -1807,6 +1807,20 @@ Les deux libellés étaient composés à la main, en **capitales espacées** : d
 
 ⚠️ **La liste des LIVRES, elle, garde ses capitales** (« Ancien Testament », « Nouveau Testament », « Écrits non canoniques »), faute d'une décision : ce sont des rubriques de l'index, pas des onglets, et l'auteur n'a nommé que la barre.
 
+### ⛔ « Du même auteur » se compose depuis les CHAMPS, non depuis une notice précomposée (2026-08-28)
+
+Doctrine : charte **§ 35.6.1**, refondu ce jour. Règles de code :
+
+- **Un module pur, `app/lib/bibleBibliographieOuvrages.ts`** (19 tests, plus 10 sur le rendu) : `grouperBibliographiesParPiece`, `bibliographieDesBlocs`, `segmentsReference`, `texteReference`. ⛔ Ne recomposer une référence nulle part ailleurs, et ne jamais y ajouter de découpe d'un ancien texte de lecture : ce qui n'est pas dans un champ n'est pas affiché.
+- **La lecture passe par `v_bible_editorial_bibliography_entries`**, qui réunit déjà les quatre tables et **coalesce l'éditeur sur `editeurs_valeur.nom`**. ⛔ Ne pas recoder ici un dictionnaire d'éditeurs, ni une expression régulière pour décider d'un nom : c'est la vue qui apparie l'autorité. Chargeur : `chargerBibliographiesEdition` (`bibleEditionServer.ts`), qui ne part **que si une pièce est demandée**.
+- ⛔ **La pièce ne se reconnaît pas à son titre passé au tamis d'une translittération.** Chaque entrée désigne le bloc matériel dont elle est issue (`source_body_block_id`), et `bibliographieDesBlocs` apparie les blocs de la pièce à cette appartenance. Un titre slugifié serait une heuristique de plus, sur une donnée qui porte déjà le lien. ⚠️ La pièce prend ensuite TOUTES les entrées de sa clé, y compris celles qu'aucun bloc ne porte : une bibliographie tronquée sans que rien ne le signale serait pire qu'une bibliographie absente.
+- **`ouvrage_id` est l'identité**, donc la clé React (`key={ouvrage.id}`) et l'ancre (`id="ouvrage-<id>"`). ⛔ Jamais le rang du tableau.
+- **La ponctuation vient du RENDU.** `segmentsReference` rend des fragments typés — `champ` (la colonne d'origine, `null` pour la ponctuation) et `composition` (`romain`, `italique`, `petites-capitales`) —, et `BibliographieOuvrages.tsx` ne fait que les baliser. ⚠️ Le `data-champ` posé sur chaque fragment n'est pas un ornement : c'est par lui que les tests vérifient qu'un titre et son sous-titre n'ont pas été fondus, et qu'aucune donnée matérielle n'est passée.
+- ⛔ **Ou la liste structurée, ou le repli matériel, jamais un mélange.** `PieceLiminaire` compose les blocs quand `bibliographie` est vide, et eux seuls sinon. Les quinze blocs restent en base pour la provenance et le témoin source.
+- **Le composant reste GÉNÉRIQUE** : c'est `auteurPorteParLeTitreDeLaPiece` — une liste NOMMÉE, non une devinette — qui dit que « du-meme-auteur » établit déjà son auteur commun. Ailleurs, le nom paraît, nom de famille en petites capitales tiré de `auteurs_valeur.nom_famille`, ⛔ jamais par découpe de la chaîne affichée.
+- ⚠️ **L'insécable du deux-points s'écrit en ÉCHAPPEMENT** (`'\u00A0: '`), jamais tapée : le dépôt a déjà perdu des fines de cette façon (voir `typographie.ts`).
+- **Témoin partagé** : `app/lib/bibleBibliographieOuvrages.fixture.ts`, les quinze lignes recopiées de la base, sous-titres longs compris — c'est sur eux que se vérifie l'absence de toute description matérielle. Modèle de `couleursEnDurInventaire.ts` : donnée rédigée, employée par les tests, appelée par aucune page.
+
 ## L'intitulé d'une introduction de livre (2026-08-27)
 
 Doctrine : charte **§ 35.13**. `introduction_livre` déclare désormais `heading_role: 'title'` et `heading_level: 'T2'` dans `work/fillion/semantic_display_hierarchy.json` : le rendu passe par la branche « cas mixte » de `BlocEditorialBible`, et l'intitulé prend la composition de « Première partie ». Le chapeau (`.cs-bible-chapeau`) reçoit sous les trois rangs HAUTS la composition du sous-titre de partie ; il garde le gris de l'apparat sous les rangs bas.

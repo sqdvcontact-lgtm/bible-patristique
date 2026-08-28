@@ -958,6 +958,34 @@ button:focus-visible,
 }
 .cs-bible-bibliographie > ul > li:last-child { margin-bottom: 0; }
 
+/* ── Une LISTE D'OUVRAGES lue seule — « Du même auteur » ──────────────────────
+   Elle n'est pas l'apparat d'un bloc mais le corps d'une pièce liminaire : sa
+   mesure est donc absolue, là où `.cs-bible-bibliographie` descend d'un cran
+   relatif sous l'hôte qui l'accueille. Le corps est celui du paratexte, un cran
+   sous le texte biblique que la pièce remplace à l'écran.
+   ⛔ Ni puce, ni tiret, ni cadre, ni fond, ni bordure : une bibliographie
+   imprimée se tient par son retrait et par son blanc (charte §35.6). */
+.cs-bibliographie-ouvrages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.78125rem;
+  line-height: 1.35;
+  color: var(--cs-texte-second);
+  /* Au fer, non justifié : sur des lignes courtes, la justification creuse des
+     blancs que le retrait de première ligne rend criants. */
+  text-align: left;
+}
+.cs-bibliographie-ouvrages > li {
+  margin: 0 0 0.45em;
+  padding: 0;
+  /* Le retrait de première ligne des bibliographies imprimées, celui que porte
+     déjà l'apparat bibliographique d'une note. */
+  text-indent: 0.7em;
+}
+.cs-bibliographie-ouvrages > li:last-child { margin-bottom: 0; }
+
 /* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
 .cs-bible-bloc > .cs-bible-title--t1,
 .cs-bible-bloc > .cs-bible-title--t2,

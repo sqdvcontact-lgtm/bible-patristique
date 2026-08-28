@@ -27,9 +27,14 @@ import {
   type VarianteAppelNote,
 } from '@/app/lib/appelsDeNote'
 import { composerBibliographie } from '@/app/lib/bibleBibliographie'
+import {
+  auteurPorteParLeTitreDeLaPiece,
+  type BibliographiePiece,
+} from '@/app/lib/bibleBibliographieOuvrages'
 import { intituleDansPiece } from '@/app/lib/bibleSommaireEdition'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import BibliographieBible from './BibleBibliographie'
+import BibliographieOuvrages from './BibliographieOuvrages'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
@@ -559,12 +564,20 @@ export function NotesBibleChapitre({
  * (« Avant-propos — page IX », « Avant-propos — page X ») perdent leur intitulé ;
  * ceux dont la queue titre vraiment (« Introduction générale — § I. Ce qu'est la
  * Bible ») gardent la leur. La règle vit dans `intituleDansPiece`, module pur.
+ *
+ * ⛔ Une pièce dont la BIBLIOGRAPHIE est structurée — « Du même auteur » et ses
+ * quinze ouvrages — ne se compose pas depuis ses blocs matériels : elle se
+ * compose depuis les tables d'autorité, par `BibliographieOuvrages`. Les blocs
+ * restent en base, témoins de la page imprimée, et ne sont plus la source du
+ * texte affiché. ⛔ On ne mêle JAMAIS les deux : ou la liste structurée, ou le
+ * repli matériel, et le repli ne joue que si la liste est réellement absente.
  */
 export function PieceLiminaire({
   titre,
   portee,
   blocs,
   illustrationsParBloc,
+  bibliographie,
   urlRetour,
   libelleRetour,
 }: {
@@ -572,10 +585,18 @@ export function PieceLiminaire({
   portee: string | null
   blocs: readonly BlocEditorialBiblique[]
   illustrationsParBloc?: Map<string, IllustrationBibliqueAffichable[]>
+  /** La liste d'ouvrages que la pièce porte, lue dans les tables d'autorité. */
+  bibliographie?: BibliographiePiece | null
   /** Où revient-on en fermant la pièce : le chapitre qu'on lisait. */
   urlRetour?: string
   libelleRetour?: string
 }) {
+  const ouvrages = bibliographie?.ouvrages ?? []
+  // Dans « Du même auteur », le titre de la pièce établit l'auteur commun : le
+  // redire devant chacune des quinze références serait le dire seize fois.
+  // Ailleurs, le nom se compose normalement, en petites capitales.
+  const auteurDansLaReference = bibliographie === null || bibliographie === undefined
+    || !auteurPorteParLeTitreDeLaPiece(bibliographie.pieceKey)
   return (
     <article>
       <header style={{ textAlign: 'center', margin: '0 0 2rem' }}>
@@ -594,7 +615,9 @@ export function PieceLiminaire({
             document défont le plan d'accessibilité. */}
         <h2 className="cs-bible-title--t2" style={{ margin: 0 }}>{titre}</h2>
       </header>
-      {blocs.map((bloc) => (
+      {ouvrages.length > 0 ? (
+        <BibliographieOuvrages ouvrages={ouvrages} avecAuteur={auteurDansLaReference} />
+      ) : blocs.map((bloc) => (
         <BlocEditorialBible
           key={bloc.id}
           bloc={{ ...bloc, heading: intituleDansPiece(bloc.heading ?? null, titre) }}

@@ -2,6 +2,7 @@ import 'server-only'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import type { LigneBibliographieOuvrage } from './bibleBibliographieOuvrages'
 import {
   blocSansAncreVisibleDansChapitre,
   recomposerFragmentsMateriels,
@@ -710,6 +711,39 @@ export async function chargerPieceLiminaire(
     notes: [],
     assets: (assetsResult.data ?? []) as BibleEditionAssetRow[],
   }
+}
+
+// Ce que la référence AFFICHE, et rien de plus. ⛔ La vue ne porte de toute
+// façon aucune description matérielle — format, pagination, planches — et c'est
+// plus sûr qu'un filtre posé au rendu.
+const COLONNES_BIBLIOGRAPHIE = 'family_id,piece_key,display_order,source_body_block_id,'
+  + 'ouvrage_id,titre,sous_titre,lieu,editeur,annee,auteur_nom,auteur_prenom,auteur_nom_famille'
+
+/**
+ * Les ouvrages CITÉS par les pièces d'une famille éditoriale.
+ *
+ * La source de vérité n'est plus le texte des blocs matériels mais les tables
+ * d'autorité : `bible_editorial_bibliography_entries` pour l'appartenance et
+ * l'ordre, `ouvrages_bibliographiques` pour les champs, `auteurs_valeur` et
+ * `editeurs_valeur` pour les formes normalisées. La vue les réunit et fait
+ * seule autorité — ⛔ ne pas recoder ici un dictionnaire d'éditeurs.
+ *
+ * ⚠️ Elle ne part QUE lorsqu'une pièce est demandée : quinze lignes ne pèsent
+ * rien, mais un chapitre ordinaire n'en a aucun usage et ne doit pas payer
+ * l'aller-retour.
+ */
+export async function chargerBibliographiesEdition(
+  client: SupabaseClient,
+  familyId: string,
+): Promise<LigneBibliographieOuvrage[]> {
+  const { data, error } = await client
+    .from('v_bible_editorial_bibliography_entries')
+    .select(COLONNES_BIBLIOGRAPHIE)
+    .eq('family_id', familyId)
+    .order('display_order')
+  if (isMissingBibleEditionRelation(error)) return []
+  if (error) throw new Error(`Bibliographie de l’édition illisible : ${error.message}`)
+  return (data ?? []) as unknown as LigneBibliographieOuvrage[]
 }
 
 /**

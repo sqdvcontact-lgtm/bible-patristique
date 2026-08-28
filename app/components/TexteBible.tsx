@@ -607,6 +607,7 @@ export default function TexteBible({
               portee={pieceAffichee.portee}
               blocs={pieceAffichee.contenu.bodyBlocks}
               illustrationsParBloc={indexerIllustrations(pieceAffichee.contenu.assets).byBodyBlock}
+              bibliographie={pieceAffichee.bibliographie}
               urlRetour={urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif, trad: tradCode })}
               libelleRetour={`Revenir à ${nomLivre} ${chapitreActif}`}
             />,

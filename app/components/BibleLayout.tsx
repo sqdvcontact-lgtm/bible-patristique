@@ -14,6 +14,7 @@ import { estVerseEditorial } from '@/app/lib/bibleMultimode'
 import { livresDisponibles899, TRAD_ID_BIBLE899, type Couche899 } from '@/app/lib/bible899'
 import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import type { BibliographiePiece } from '@/app/lib/bibleBibliographieOuvrages'
 import LectureBilingueBible from './LectureBilingueBible'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
@@ -67,6 +68,9 @@ export type PieceLiminaireAffichee = {
   titre: string
   portee: string | null
   contenu: BibleEditionChapterDisplay
+  /** Les ouvrages que la pièce cite, lus dans les tables d'autorité. Présente,
+   *  cette liste REMPLACE les blocs matériels au rendu (« Du même auteur »). */
+  bibliographie: BibliographiePiece | null
 }
 
 // ⛔ Pas de liste de bibles en repli ici. Trois intitulés y étaient recopiés à la
