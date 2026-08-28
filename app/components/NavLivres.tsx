@@ -539,7 +539,30 @@ export default function NavLivres({
         <OngletsPage
           intitule="Ce que montre le volet"
           actif={ongletVolet}
-          choisir={setOngletVolet}
+          /* ⛔ L'ONGLET « Livres » EST LE RETOUR (décision de l'auteur, 2026-08-28).
+             Une pièce liminaire portait en pied un « Revenir à Luc 1 » ; il est
+             retiré, et c'est le volet qui rend le chapitre. La bascule est donc
+             locale dans un seul sens et NAVIGUE dans l'autre :
+
+             · vers « Sommaire », rien ne bouge dans la page. On regarde une table
+               des matières, on n'a pas encore choisi d'y entrer, et le chapitre
+               qu'on lisait reste à l'écran.
+             · vers « Livres », on ne navigue QUE si une pièce est ouverte — sinon
+               il n'y a rien à défaire, et une navigation gratuite rechargerait la
+               page pour la rendre à l'identique.
+
+             ⚠️ La bible revient TELLE QU'ON L'AVAIT LAISSÉE sans qu'on ait rien à
+             mémoriser : `livre` et `chapitre` n'ont jamais quitté l'adresse pendant
+             qu'une pièce s'affichait, et `maniereDeLire` porte le reste. */
+          choisir={cle => {
+            setOngletVolet(cle)
+            if (cle === 'livres' && pieceActive) {
+              naviguer(urlLectureBible({
+                ...maniereDeLire,
+                livre: livreActifLocal, chapitre: chapitreActifLocal, trad: tradCode,
+              }))
+            }
+          }}
           style={{ flexShrink: 0, background: 'var(--cs-fond)' }}
           onglets={[
             { cle: 'livres', libelle: 'Livres' },

@@ -608,8 +608,16 @@ export default function TexteBible({
               blocs={pieceAffichee.contenu.bodyBlocks}
               illustrationsParBloc={indexerIllustrations(pieceAffichee.contenu.assets).byBodyBlock}
               bibliographie={pieceAffichee.bibliographie}
-              urlRetour={urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif, trad: tradCode })}
-              libelleRetour={`Revenir à ${nomLivre} ${chapitreActif}`}
+              /* ⛔ Aucun RETOUR en pied de pièce (décision de l'auteur, 2026-08-28).
+                 Il disait « Revenir à Luc 1 » sous chaque apparat, et c'était un
+                 objet de plus pour un geste que le volet fait déjà : l'onglet
+                 « Livres » rend le chapitre, et il le rend TEL QU'ON L'AVAIT
+                 LAISSÉ, le livre et le chapitre n'ayant jamais quitté l'adresse.
+                 Les flèches de chapitre y ramènent aussi.
+                 ⚠️ `urlRetour` reste une propriété OPTIONNELLE de PieceLiminaire,
+                 et son rendu est gardé par elle : ne rien passer suffit à ne rien
+                 rendre. Ne pas retirer la propriété du composant, qui sert aussi
+                 la fenêtre de note. */
             />,
           ) : (<>
 
