@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-import ModaleTraduction from '@/app/components/ModaleTraduction'
+import EncartTraduction, { type TraductionEncart } from '@/app/components/EncartTraduction'
 import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
@@ -14,31 +14,6 @@ import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibl
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
 // bouger la mise en page. Données passées en prop (chargées côté serveur avec la
 // session du visiteur), et lien « En savoir plus » sur le modèle de la page Œuvre.
-
-function EncartTraduction({ trad }: { trad: Traduction }) {
-  const [modaleOuverte, setModaleOuverte] = useState(false)
-  return (
-    <div style={{ flexShrink: 0, minHeight: '6.75rem', boxSizing: 'border-box', overflow: 'hidden', padding: '10px 10px 9px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-      <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)' }}>Traduction</span>
-      {/* Auteur avec ses dates de vie complètes, puis la référence complète de l'édition
-          présentée (ville, éditeur, date). La langue n'est pas indiquée ici. */}
-      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.22 }}>
-        {trad.auteur || trad.label || '—'}
-        {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> ({trad.auteurDates})</span>}
-      </span>
-      {/* Div BLOC volontaire : `-webkit-line-clamp` sur un enfant DIRECT du flex serait
-          neutralisé (blockification). Certaines références sont très longues (Crampon),
-          on les borne à deux lignes ; la fiche « En savoir plus » donne le détail. */}
-      {trad.editionRef && (
-        <div>
-          <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65625rem', color: 'var(--cs-texte-second)', lineHeight: 1.3 }}>{trad.editionRef}</span>
-        </div>
-      )}
-      <button onClick={() => setModaleOuverte(true)} style={{ marginTop: 'auto', paddingTop: '4px', fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', textDecoration: 'underline', textUnderlineOffset: '2px', width: 'fit-content', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>En savoir plus sur cette traduction</button>
-      {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
-    </div>
-  )
-}
 
 const NB_CHAPITRES: Record<string, number> = {
   GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
@@ -122,7 +97,8 @@ const ABREV_TO_CODE: Record<string, string> = {
 }
 
 type Livre = { code: string; nom: string; testament: string }
-type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; editionRef?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
+// Le type vit auprès de la carte qui le rend ; une seule déclaration pour les deux.
+type Traduction = TraductionEncart
 
 type Props = {
   livres: Livre[]
@@ -483,6 +459,14 @@ export default function NavLivres({
       width: panelWidth == null ? 'clamp(200px, 14vw, 320px)' : panelWidth + 'px', flexShrink: 0, background: 'var(--cs-fond-clair)',
       borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%',
       position: 'relative',
+      // ⛔ Le volet est un CONTENEUR : ce qu'il porte se règle sur SA largeur, jamais
+      // sur celle de l'écran. Il se traîne de 120 à 400 px à la main, et sa largeur au
+      // repos suit l'écran ; une média-query n'aurait vu que le second cas. Les règles
+      // sont dans `globals.css` (`@container volet`).
+      // ⚠️ `inline-size` n'emporte PAS la containment de peinture : la poignée de
+      // redimensionnement, posée à `right: -4px`, déborde toujours du volet.
+      containerType: 'inline-size',
+      containerName: 'volet',
     }}>
       {!mobile && onWidthChange && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"

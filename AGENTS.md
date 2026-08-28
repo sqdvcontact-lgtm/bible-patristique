@@ -996,6 +996,18 @@ Deux gestes, deux endroits, et ils ne se mélangent jamais.
 
 ⚠️ **Les rubriques d'axe sont en casse ORDINAIRE** (« Lecture », « Commentaires »), dans la suite des capitales refusées sur la barre d'onglets. `LABEL_VOLET`, qui les porte encore en capitales, ne sert plus que la page Œuvre : **unifier les deux est une décision qui n'a pas été prise.**
 
+⛔ **LE VOLET EST UN CONTENEUR : ce qu'il porte se règle sur SA largeur** (2026-08-28). Il se traîne de 120 à 400 px à la poignée, et sa largeur au repos suit l'écran — `clamp(200px, 14vw, 320px)`, soit 200 px sur un portable de 1280 et 320 sur un écran de 2286. Le volet porte donc `container-type: inline-size` et `container-name: volet` (branche DESKTOP seulement), et les règles sont des `@container volet` dans `globals.css`. ⚠️ **Une média-query ne pouvait pas servir**, et pas seulement parce qu'elle ignore la poignée : sous 900 px le volet devient un tiroir et la carte n'est plus rendue du tout, si bien qu'un seuil du tableau des média-queries (700, 640…) ne se déclencherait JAMAIS ici. C'est un AXE différent, et le tableau des seuils ne le gouverne pas.
+
+⛔ **La RÉFÉRENCE D'ÉDITION s'efface sous 260 px de volet.** Relevé par l'auteur sur la Vulgate de Fillion : « Texte latin en regard dans Louis-Claude Fillion, La Sainte Bible (texte latin… ». Ces références comptent de 163 à 348 signes, et deux lignes ne les portent jamais en entier ; le seuil ne dit donc pas où elles TIENNENT, mais où elles cessent de dire quelque chose. Mesuré sur la plus longue (Fillion, 348 signes) : **76 signes à 200 px**, soit le titre coupé en son milieu, **100 à 240**, **115 à 280**. Sous 260, la phrase s'arrête avant d'avoir nommé l'ouvrage, et un moignon de titre vaut moins que rien. La fiche « En savoir plus » la donne entière, à toute largeur. Planche de mesure : `tmp/planche-volet-largeurs.tsx`, qui rend la VRAIE carte à sept largeurs.
+
+⚠️ **Le libellé du lien se raccourcit sous 200 px** (« En savoir plus »), les deux formes étant écrites dans le balisage. ⛔ Un libellé ne se coupe pas en JavaScript : il faudrait mesurer à chaque rendu.
+
+⛔ **Le repli d'une forme se pose AVANT sa requête de conteneur.** `@container` n'ajoute aucune spécificité : `.cs-volet-lien-court { display: none }` écrit APRÈS le bloc l'emportait sur lui, les deux formes du lien étaient masquées, et le lien disparaissait tout à fait. Vu et corrigé sur la planche, invisible aux types comme aux tests.
+
+⚠️ **La carte a perdu son `minHeight` de 6,75 rem**, qui existait pour ne jamais faire bouger la mise en page : il laissait un blanc de deux lignes dès que la référence s'efface. Rien ne bouge pour autant, la référence ne paraissant ou ne disparaissant qu'au geste délibéré de redimensionner le volet.
+
+⚠️ `container-type: inline-size` n'emporte PAS la containment de peinture : la poignée de redimensionnement, posée à `right: -4px`, déborde toujours du volet. Elle devient en revanche le bloc conteneur de ses descendants absolus, ce qu'elle était déjà par son `position: relative`.
+
 ⚠️ **Un groupe à un seul choix ne paraît pas.** C'est ce qui rend le menu occasionnel plutôt que permanent : tant que la couche modernisée n'existe pas et que `diplomatic` est seule en face d'`expanded`, la Bible 899 montre deux graphies ; une bible ordinaire ne montre aucun menu. Le jour où Codex publie `texte_modernized`, le choix paraît de lui-même, **sans qu'une ligne change ici**.
 
 ⚠️ **`paratexteDisponible` se juge sur la FAMILLE, jamais sur le chapitre affiché.** Un chapitre de Fillion sans commentaire ferait sinon disparaître le menu, et le lecteur passé en « texte seul » n'aurait plus aucun moyen d'en sortir.

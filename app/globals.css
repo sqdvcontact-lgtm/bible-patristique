@@ -1147,3 +1147,37 @@ button:focus-visible,
 .cs-option-volet:focus-visible { background: rgba(var(--cs-vert-rgb), 0.05); color: var(--cs-texte); }
 .cs-option-volet[aria-pressed='true']:hover,
 .cs-option-volet[aria-pressed='true']:focus-visible { background: rgba(var(--cs-vert-rgb), 0.10); color: var(--cs-encre); }
+
+/* ── Le VOLET DE LECTURE s'adapte à SA largeur ────────────────────────────────
+   Le volet se traîne de 120 à 400 px à la main, et sa largeur au repos suit
+   l'écran — clamp(200px, 14vw, 320px), soit 200 px sur un portable de 1280 et
+   320 sur un écran de 2286. Ce qu'il porte se règle donc sur SA largeur, par une
+   requête de conteneur, et non sur celle de l'écran : une média-query n'aurait vu
+   que la moitié des cas, et n'aurait rien su d'un volet rétréci à la poignée.
+   ⚠️ Elle ne peut pas non plus servir : sous 900 px le volet devient un tiroir et
+   la carte n'est plus rendue du tout, si bien qu'un seuil du tableau des
+   média-queries (700, 640…) ne se déclencherait JAMAIS ici.
+
+   ⛔ 260 px pour la RÉFÉRENCE D'ÉDITION. Elle compte de 163 à 348 signes, et deux
+   lignes ne la portent jamais en entier : le seuil ne dit donc pas où elle tient,
+   mais où elle cesse de dire quelque chose. Mesuré sur la plus longue (Fillion,
+   348 signes) : 76 signes à 200 px, soit le titre coupé en son milieu ; 100 à 240 ;
+   115 à 280. Sous 260 la phrase s'arrête avant d'avoir nommé l'ouvrage, et un
+   moignon de titre vaut moins que rien — c'est celui-là que l'auteur a relevé le
+   28 août 2026. La fiche « En savoir plus » la donne entière, à toute largeur.
+
+   ⛔ 200 px pour le LIBELLÉ du lien : « En savoir plus sur cette traduction » y
+   passe à deux lignes, puis à trois. Les deux formes sont écrites dans le
+   balisage et l'on n'en montre qu'une ; ⛔ un libellé ne se coupe pas en
+   JavaScript, il faudrait mesurer à chaque rendu. */
+/* ⚠️ Le repli se pose AVANT les requêtes : une requête de conteneur n'ajoute
+   aucune spécificité, et la même règle écrite APRÈS elle l'emportait — les deux
+   formes du lien étaient alors masquées, et le lien disparaissait tout à fait. */
+.cs-volet-lien-court { display: none; }
+
+@container volet (max-width: 259px) {
+  .cs-volet-ref { display: none; }
+}
+@container volet (max-width: 199px) {
+  .cs-volet-lien-long { display: none; }
+  .cs-volet-lien-court { display: inline; }
