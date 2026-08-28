@@ -2041,6 +2041,8 @@ Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualific
 
 Le socle est **générique**, pas « fait pour Fillion » : une **famille éditoriale** (`bible_edition_families`) relie plusieurs traductions distinctes (`bible_edition_members`), et servira à toute autre édition bilingue ou apparentée. Pour Fillion, `TR0011` porte la Vulgate **telle qu’imprimée dans ses volumes** et `TR0010` son français. ⛔ **Ne jamais réutiliser `TR0004`** (Vulgate clémentine) comme Vulgate Fillion : ce sont deux témoins, pas deux vues d’un même texte.
 
+📚 **La bibliothèque des styles vit dans `work/fillion/STYLES_BIBLIQUES.md`** — écrite POUR LES IA qui produisent ou corrigent la donnée éditoriale. Elle dit, style par style, ce qu’il est, quand l’employer, comment il se rend, et où il sert déjà ; elle distingue les **quatre couches** que l’on confond sans cesse (style sémantique du bloc, rôle d’affichage, style de paragraphe, sous-type de notice) ; et elle porte l’audit de couverture du 2026-08-28 sur les 4 935 blocs des dix livres publiés. ⛔ Le registre `work/fillion/semantic_display_hierarchy.json` fait foi sur les VALEURS, la bibliothèque sur l’USAGE : ne pas laisser diverger l’un de l’autre.
+
 ## Clôture OCR d’un livre Fillion : nettoyage obligatoire
 
 Quand l’OCR d’un livre est réellement terminé, exécuter la clôture `scripts/fillion/close-fillion-book-ocr.mjs`. « Terminé » comprend l’extraction, la structuration, la collation nécessaire, les contrôles aléatoires de lecture et l’absence de dépendance aval aux caches. Une passe Tesseract achevée ne suffit pas.
