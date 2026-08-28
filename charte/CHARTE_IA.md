@@ -2175,7 +2175,7 @@ Lorsqu’un titre ou un chapeau analytique est suivi d’une référence bibliqu
 
 ### 35.6. Une note bibliographique se compose en liste
 
-Une note que la donnée déclare bibliographique n’est pas un paragraphe suivi. Son annonce garde sa phrase, ses références prennent chacune leur ligne, un cran sous le corps qui les accueille, avec le retrait de première ligne des bibliographies imprimées, un blanc très fin entre l’annonce et la première entrée et un blanc léger entre deux entrées.
+Une note que la donnée déclare bibliographique n’est pas un paragraphe suivi. Son annonce garde sa phrase, ses références prennent chacune leur ligne, un cran sous le corps qui les accueille, avec le retrait suspendu des bibliographies imprimées — la première ligne au bord, les suivantes légèrement rentrées —, un blanc très fin entre l’annonce et la première entrée et un blanc léger entre deux entrées.
 
 Le tiret qui ouvre chaque ligne dans la donnée est un marqueur de la couche de rendu, au même titre que l’italique et les petites capitales : il dit « entrée de liste » et ne s’imprime pas. ⛔ Ni puce, ni tiret, ni boîte, ni fond, ni bordure, et aucune indentation qui doublerait celle de la liste.
 
@@ -2193,11 +2193,27 @@ Les éléments d’une même notice sont séparés par des virgules, et non par 
 
 ⛔ **La description MATÉRIELLE ne s’affiche pas dans une liste d’ouvrages** : le format (`in-8°`, `in-4°`), le nombre de pages, la pagination romaine ou arabe, le nombre de planches, les figures et les dimensions sont des données de description, conservées dans la notice, et ne paraissent pas au lecteur. Une liste d’ouvrages nomme des œuvres, elle ne décrit pas des exemplaires. La forme affichée est donc : intitulé, lieu, éditeur normalisé, année, point final — `*Évangile selon saint Jean : Introduction critique et commentaires*, Paris, P. Lethielleux, 1887.` ⚠️ Décision de l’auteur du 28 août 2026.
 
-Une liste d’ouvrages lue SEULE, en pièce liminaire, prend la composition du § 35.6 : un seul titre en tête, une œuvre par ligne, aucune puce ni tiret, aucun cadre, aucun fond, aucune bordure, alignement à gauche, retrait de première ligne des bibliographies imprimées, blanc léger entre deux références, et un corps légèrement inférieur au corps courant.
+Une liste d’ouvrages lue SEULE, en pièce liminaire, prend la composition du § 35.6 : un seul titre en tête, une œuvre par ligne, aucune puce ni tiret, aucun cadre, aucun fond, aucune bordure, alignement à gauche, retrait suspendu, blanc léger entre deux références, et un corps légèrement inférieur au texte de l’apparat. ⚠️ Le retrait suspendu remplace le retrait de première ligne prescrit jusque-là (décision de l’auteur du 28 août 2026).
 
 Les chiffres romains de pagination sont toujours en capitales dans la couche éditoriale (`XIX`, `LXIV`, `VII`). Toute forme OCR ambiguë (`Lx1v`, `xn`, etc.) doit être relue et ne peut être simplement passée en capitales par transformation mécanique. Lorsqu’une pagination romaine est suivie d’une pagination arabe, le séparateur est un trait d’union sans espaces : `LXIV-388 p.`, jamais `LXIV -388 p.` ni `LXIV - 388 p.`.
 
 Les dates, lieux, éditeurs, mentions d’édition et paginations ne sont pas repris aveuglément de l’OCR. Ils sont confrontés au fac-similé et, lorsque c’est utile, à une autorité bibliographique externe. La transcription source reste inchangée ; la couche éditoriale porte la valeur vérifiée. Toute divergence non résolue reste explicitement en `review` et n’est pas corrigée par conjecture.
+
+### 35.6.2. Un seul style bibliographique, et il vient de la donnée
+
+Toutes les bibliographies de l’apparat se composent de la même manière : la pièce « Du même auteur », toute pièce ou section « Bibliographie », et tout bloc que la donnée déclare bibliographique. Une seule famille de styles les sert, et l’édition, l’auteur et l’intitulé de la pièce n’y changent rien.
+
+⛔ **Le genre ne se lit jamais dans le texte du titre.** « Du même auteur », « Bibliographie », « Ouvrages consultés » nomment des PIÈCES, non des compositions : le style vient de `presentation.style = bibliographie`, de la liste bibliographique structurée que la pièce porte, ou d’un rôle équivalent déjà présent dans la donnée. ⛔ Aucun style ne prend le nom d’une pièce, d’une édition ni d’un auteur — ni `du-meme-auteur`, ni `bibliographie-fillion`, ni `bibliographie-genese`.
+
+**Le titre de la pièce n’est pas concerné.** « Du même auteur » ou « Bibliographie » reste un véritable titre de pièce ou de section et garde son rang dans la hiérarchie de l’apparat. ⛔ Il ne reçoit pas le style `bibliographie`, réservé aux notices placées dessous.
+
+**Le vocabulaire de la donnée est court, stable et CLOS.** `bibliographie` désigne le paragraphe d’une notice bibliographique. Pour les fragments d’une notice structurée, et seulement lorsqu’ils répondent d’une fonction bibliographique réelle : `bibliographie-titre-ouvrage` pour le titre de l’ouvrage (italique), `bibliographie-sous-titre` pour le sous-titre (italique), `bibliographie-auteur` pour l’auteur affiché (romain) avec `bibliographie-nom-auteur` pour le nom de famille en petites capitales, et `bibliographie-donnees` pour le lieu, l’éditeur, l’année et les autres données retenues (romain). ⛔ **La ponctuation n’a aucun style propre** : elle appartient à la séquence où elle tombe et en hérite — le deux-points qui joint le titre au sous-titre reste ainsi dans l’italique du titre.
+
+**Une bibliographie se distingue du texte courant sans devenir un encadré** : un corps légèrement inférieur au texte de l’apparat, un interligne modérément resserré, l’alignement à gauche, un blanc discret entre deux notices, le retrait suspendu, et la largeur normale de la colonne — ⛔ jamais un bloc artificiellement étroit. ⛔ Aucun fond, aucune bordure, aucune puce, aucun tiret ajouté par la feuille : la ponctuation et les séparateurs sont produits à partir des champs structurés, jamais par le style.
+
+**Sur une mesure étroite**, le retrait suspendu se réduit pour ne pas comprimer la ligne ; ⛔ il ne disparaît pas, et le corps ne rapetisse pas davantage : la hiérarchie bibliographique tient à l’un et à l’autre.
+
+**Repli historique.** Une bibliographie que la donnée déclare mais qui n’est pas encore structurée prend le même cadre typographique général. ⛔ On n’en déduit ni titre, ni auteur, ni éditeur par analyse de son contenu : elle reste un paragraphe, dans le cadre de la famille, et l’on se contente de lui attribuer `presentation.style = bibliographie`.
 
 ### 35.7. Les guillemets d’une citation en langue étrangère restent en romain
 
