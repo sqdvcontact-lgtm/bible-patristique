@@ -1181,3 +1181,4 @@ button:focus-visible,
 @container volet (max-width: 199px) {
   .cs-volet-lien-long { display: none; }
   .cs-volet-lien-court { display: inline; }
+}
