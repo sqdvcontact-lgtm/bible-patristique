@@ -1111,6 +1111,23 @@ Le module tient l'attente pour une page entière : `ProvisionAttente` l'ouvre (e
 
 **Contrôle** : `tmp/planche-axes-bible.tsx` rejoue la structure et fait MESURER au navigateur le centre de chaque repère. Les quatre tombent sur 503,0.
 
+# Introductions et apparats des bibles — la PIÈCE a sa mesure et ses intertitres (2026-08-28)
+
+Deux styles de paragraphe propres au paratexte biblique, demandés par l'auteur sur l'*Introduction générale* de Fillion.
+
+## La mesure d'une pièce lue seule
+
+- ⛔ **Le retrait de 12 % ne vaut que dans le FIL d'un chapitre.** `.cs-bible-info--i1/i2.cs-bible-block--introduction` rentre le préambule de 12 % des deux côtés pour dire qu'on n'est pas encore dans le texte biblique. Dans une **pièce liminaire lue seule**, ce texte n'est pas là : l'introduction EST la page, et le retrait ne faisait plus que resserrer la mesure.
+- **Le défaut, mesuré** : l'introduction se composait sur **23,75 rem** (380 px) quand l'apparat critique qui la suit, page imprimée après page imprimée, gardait les **31,25 rem** (500 px) de `--mesure-bloc`. Les deux moitiés d'une même page de Fillion se lisaient sur deux largeurs, dix pages durant.
+- **La règle** : `PieceLiminaire` porte la classe **`cs-bible-piece`**, et `globals.css` y annule le retrait. ⚠️ La même introduction posée dans le fil d'un chapitre le garde entier — c'est la SURFACE qui décide, jamais le genre du bloc.
+
+## L'intertitre se divise en titre et chapeau
+
+- **Le cas** : « I — Ce qu'est la Bible » se rendait sur une seule ligne, mettant la désignation et son objet sur le même plan. `rendreBlocTexte` applique désormais `diviserIntitule` aux blocs de texte `kind: 'heading'`, comme le faisaient déjà les intitulés de BLOC : titre « I », chapeau « Ce qu'est la Bible » (`.cs-bible-chapeau`).
+- ⛔ **Sans `genreEnTitre`** : l'ordre imprimé fait foi ici, la désignation ouvre et l'objet suit. Cette option ne sert qu'aux intitulés de bloc de portée haute.
+- ⛔ **Un intertitre qui porte une locution marquée ou un appel de note n'est PAS coupé** : leurs offsets pointent dans le texte entier, et le couper les déplacerait. Le corpus le permet — sur les **43** intertitres relevés, les **5** à tiret séparateur (les deux de l'Introduction générale, les trois de l'introduction à l'Ancien Testament) n'ont ni span ni appel, et les 3 qui portent un span (« 1. La Loi ou Tôrah ») n'ont pas de tiret.
+- ⚠️ Le tiret **collé** n'est pas un séparateur : « II — Jésus-Christ, centre de la Bible » se coupe une seule fois, au tiret entouré d'espaces. Cinq cas réels sont fixés dans `bibleHierarchieSemantique.test.ts`.
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.

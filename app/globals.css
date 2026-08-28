@@ -795,6 +795,19 @@ button:focus-visible,
   margin-top: 2.25rem;
   margin-bottom: 2rem;
 }
+/* ⛔ Mais une introduction lue DANS SA PIÈCE n'a rien de quoi s'écarter : elle
+   EST la page, le texte biblique n'y est pas. Le retrait de 12 % des deux côtés
+   n'y disait donc plus rien et ne faisait que resserrer la mesure — 23,75 rem
+   contre les 31,25 de l'apparat critique qui la suit page après page, si bien
+   que les deux moitiés d'une MÊME page imprimée se lisaient sur deux largeurs.
+   Les dix pages de l'Introduction générale de Fillion s'y perdaient.
+   ⚠️ Le retrait demeure entier pour l'introduction posée dans le fil d'un
+   chapitre, où il est ce qui dit qu'on n'est pas encore dans le texte. */
+.cs-bible-piece .cs-bible-info--i1.cs-bible-block--introduction,
+.cs-bible-piece .cs-bible-info--i2.cs-bible-block--introduction {
+  padding-left: 0;
+  padding-right: 0;
+}
 .cs-bible-block--commentary { font-style: normal; }
 .cs-bible-block--notice { font-size: 0.78125rem; }
 .cs-bible-block--summary { letter-spacing: 0.01em; }

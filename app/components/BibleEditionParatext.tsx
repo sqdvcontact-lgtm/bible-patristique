@@ -287,6 +287,21 @@ function rendreBlocTexte(
   if (bloc.kind === 'heading') {
     const niveau = Math.min(6, (niveauParent ?? 2) + 1) as 1 | 2 | 3 | 4 | 5 | 6
     const Balise = `h${niveau}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+    // Un intertitre d'introduction porte souvent sa DÉSIGNATION puis son objet —
+    // « I — Ce qu'est la Bible ». Sur une seule ligne, les deux se lisent sur le
+    // même plan, alors que le second est subordonné au premier : ils se composent
+    // donc en titre et chapeau, par la règle même qui divise les intitulés de
+    // bloc (`diviserIntitule`). ⛔ Sans `genreEnTitre` : l'ordre imprimé fait foi
+    // ici, la désignation ouvre et l'objet suit.
+    //
+    // ⛔ On ne coupe PAS un intertitre qui porte une locution marquée ou un appel
+    // de note : leurs offsets pointent dans le texte ENTIER, et couper le texte
+    // les déplacerait. Le corpus le permet — sur les 43 intertitres relevés, les
+    // 5 qui portent un tiret séparateur n'ont ni span ni appel, et les 3 qui
+    // portent un span (« La Loi ou Tôrah ») n'ont pas de tiret.
+    const coupable = (bloc.inlineSpans?.length ?? 0) === 0
+      && !notes.some((note) => positionAppelDansTexte(bloc.text, note, bloc) !== null)
+    const intitule = coupable ? diviserIntitule(bloc.text) : null
     return (
       <Balise
         key={bloc.id}
@@ -298,7 +313,12 @@ function rendreBlocTexte(
           fontStyle: bloc.presentation?.fontStyle,
         }}
       >
-        {rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc, varianteAppel(bloc.headingLevel))}
+        {intitule?.sousTitre ? (
+          <>
+            {rendreTexteEnrichi(intitule.titre)}
+            <span className="cs-bible-chapeau">{rendreTexteEnrichi(intitule.sousTitre)}</span>
+          </>
+        ) : rendreContenuAncre(bloc.text, bloc.inlineSpans, notes, bloc, varianteAppel(bloc.headingLevel))}
       </Balise>
     )
   }
@@ -627,7 +647,10 @@ export function PieceLiminaire({
   const auteurDansLaReference = bibliographie === null || bibliographie === undefined
     || !auteurPorteParLeTitreDeLaPiece(bibliographie.pieceKey)
   return (
-    <article>
+    // `cs-bible-piece` : la pièce lue SEULE. C'est par cette classe que la feuille
+    // rend à l'introduction la mesure de sa page — voir globals.css. Une même
+    // introduction posée dans le fil d'un chapitre garde, elle, son retrait.
+    <article className="cs-bible-piece">
       <header style={{ textAlign: 'center', margin: '0 0 2rem' }}>
         {portee && (
           <p style={{

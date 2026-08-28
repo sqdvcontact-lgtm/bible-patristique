@@ -272,6 +272,39 @@ describe('intitulé en deux temps', () => {
     })
   })
 
+  it('coupe les INTERTITRES des introductions de Fillion', () => {
+    // Les cinq intertitres à tiret du corpus, tels qu'ils sont écrits dans la
+    // normalisation éditoriale. Le chiffre romain seul DÉSIGNE la section : il
+    // titre, et l'objet passe en chapeau (demande de l'auteur, 2026-08-28).
+    expect(diviserIntitule('I — Ce qu’est la Bible')).toEqual({
+      titre: 'I', sousTitre: 'Ce qu’est la Bible',
+    })
+    expect(diviserIntitule('II — Jésus-Christ, centre de la Bible')).toEqual({
+      // ⚠️ Le tiret de « Jésus-Christ » est collé : il appartient au mot et ne
+      // coupe rien. Seul le tiret ENTOURÉ D'ESPACES sépare.
+      titre: 'II', sousTitre: 'Jésus-Christ, centre de la Bible',
+    })
+    expect(diviserIntitule('I — La division de la Bible')).toEqual({
+      titre: 'I', sousTitre: 'La division de la Bible',
+    })
+    expect(diviserIntitule('II — Le mot Testament')).toEqual({
+      titre: 'II', sousTitre: 'Le mot Testament',
+    })
+    expect(diviserIntitule('III — Les livres de l’Ancien Testament')).toEqual({
+      titre: 'III', sousTitre: 'Les livres de l’Ancien Testament',
+    })
+  })
+
+  it('laisse entiers les intertitres SANS tiret séparateur', () => {
+    // Trente-huit des quarante-trois intertitres relevés sont dans ce cas.
+    expect(diviserIntitule('1. La personne de l’auteur')).toEqual({
+      titre: '1. La personne de l’auteur', sousTitre: null,
+    })
+    expect(diviserIntitule('Authenticité et intégrité')).toEqual({
+      titre: 'Authenticité et intégrité', sousTitre: null,
+    })
+  })
+
   it('donne le titre au GENRE quand l’intitulé nomme d’abord sa portée', () => {
     // Un bloc de portée haute nomme le livre, puis dit ce qu'on va lire. C'est
     // le genre qui titre : le lecteur sait déjà quel livre il ouvre.
