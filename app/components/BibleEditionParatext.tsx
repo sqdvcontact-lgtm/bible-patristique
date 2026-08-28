@@ -265,10 +265,23 @@ function rendreBlocTexte(
   // un paragraphe : la reverser dans le paragraphe d'apparat ordinaire la
   // justifierait et lui rendrait le corps du texte courant. Seul un bloc
   // entièrement vide retombe sur le rendu commun, qui n'affichera rien.
+  //
+  // ⚠️ `sansHote` : ici, le corps, la police et l'encre de l'apparat sont posés
+  // sur chaque PARAGRAPHE, en style inline — un bloc éditorial ne les porte pas
+  // toujours. La liste n'est pas l'enfant de ces paragraphes mais leur sœur :
+  // sans ce drapeau, son `em` se calculerait sur la page, et elle paraîtrait
+  // plus GROSSE que le texte qu'elle accompagne.
   if (composition === 'bibliographie') {
     const composee = composerBibliographie(bloc.text)
     if (composee.chapeau || composee.entrees.length > 0) {
-      return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+      return (
+        <BibliographieBible
+          key={bloc.id}
+          texte={bloc.text}
+          lang={bloc.language ?? undefined}
+          sansHote
+        />
+      )
     }
   }
   if (bloc.kind === 'heading') {

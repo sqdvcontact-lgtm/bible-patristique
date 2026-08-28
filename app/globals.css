@@ -1009,19 +1009,21 @@ button:focus-visible,
   text-align: left;
 }
 
-/* Une bibliographie lue SEULE — une pièce liminaire entière — n'a pas de texte
-   hôte sous lequel descendre d'un cran : son corps est absolu, et elle pose la
-   police et l'encre que l'apparat lui donnerait.
-   ⚠️ 0,75 rem VAUT le 0.96em de la base appliqué au corps de l'apparat
-   (12,5 px → 12) : une bibliographie se lit au même corps partout, prise dans
-   un commentaire comme tenant la page à elle seule.
-   ⚠️ Cette déclaration vient APRÈS celle de la base, dont elle a exactement la
-   spécificité : c'est l'ordre, et lui seul, qui la fait l'emporter. */
-.cs-apparat-bibliographie--corps-propre {
+/* Quand AUCUN ancêtre ne porte la composition, la bibliographie la pose.
+   ⚠️ Ce n'est pas le cas d'une pièce lue seule seulement. Un bloc d'apparat
+   pose son corps, sa police et son encre sur ses PARAGRAPHES, en style
+   inline ; la bibliographie n'en est pas l'enfant mais la sœur, et le `em`
+   de la base s'y calculerait sur la page — plus GROS que le texte qu'elle
+   accompagne. La fenêtre d'une note, elle, compose sur son conteneur : elle
+   se passe de ce modificateur, et le cran relatif y joue seul.
+   ⚠️ 0,75 rem VAUT ce même cran appliqué au corps de l'apparat (12,5 px →
+   12) : une bibliographie se lit ainsi au même corps partout.
+   ⚠️ Cette déclaration vient APRÈS celle de la base, dont elle a exactement
+   la spécificité : c'est l'ordre, et lui seul, qui la fait l'emporter. */
+.cs-apparat-bibliographie--sans-hote {
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 0.75rem;
   color: var(--cs-texte-second);
-  margin: 0;
 }
 
 /* L'annonce qui ouvre une liste — « Signalons, comme œuvres spéciales : » — et

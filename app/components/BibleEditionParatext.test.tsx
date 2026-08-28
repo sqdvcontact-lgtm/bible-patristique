@@ -405,7 +405,11 @@ describe('présentation déclarée par la donnée', () => {
     }]} />)
     // La MÊME famille que les listes structurées : une note bibliographique et
     // une pièce « Du même auteur » se composent d'une seule manière.
-    expect(html).toContain('class="cs-apparat-bibliographie"')
+    // ⚠️ Le modificateur suit : la liste des notes pose le corps de l'apparat
+    // sur ses PARAGRAPHES, jamais sur un ancêtre de la bibliographie.
+    expect(html).toContain(
+      'class="cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote"',
+    )
     expect(html).toContain('<li class="cs-apparat-bibliographie__entree">')
     // ⛔ Le marqueur de la donnée ne s'imprime pas.
     expect(html).not.toContain('- <span')

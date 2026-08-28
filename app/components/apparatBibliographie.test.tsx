@@ -12,6 +12,7 @@ import {
   ENTREES_DU_MEME_AUTEUR,
 } from '@/app/lib/bibleBibliographieOuvrages.fixture'
 import { PieceLiminaire } from './BibleEditionParatext'
+import { ContenuNoteBiblique } from './NoteBibliqueFenetre'
 
 /**
  * LE STYLE BIBLIOGRAPHIQUE COMMUN de l'apparat.
@@ -157,11 +158,25 @@ function bibliographieDeclaree(titre = 'Ouvrages consultés') {
   )
 }
 
+/** La même note, lue dans la FENÊTRE d'un appel : là, le conteneur compose. */
+function noteEnFenetre() {
+  return renderToStaticMarkup(
+    <ContenuNoteBiblique note={{ blocks: [{
+      id: 'note-1',
+      kind: 'commentary' as const,
+      form: 'prose' as const,
+      text: LISTE_TEXTUELLE,
+      language: 'fr',
+      presentationStyle: 'bibliographie' as const,
+    }] }} />,
+  )
+}
+
 describe('le style bibliographique commun de l’apparat', () => {
   it('compose « Du même auteur » dans la famille commune', () => {
     const html = listeStructuree()
     expect(html).toContain(
-      `class="${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.corpsPropre}"`,
+      `class="${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}"`,
     )
     expect(html).toContain(`<ul class="${CLASSES_BIBLIOGRAPHIE.liste}">`)
     expect(html).toContain(`class="${CLASSES_BIBLIOGRAPHIE.entree}"`)
@@ -172,9 +187,11 @@ describe('le style bibliographique commun de l’apparat', () => {
   it('donne EXACTEMENT le même cadre à une pièce déclarée « bibliographie »', () => {
     const structuree = classesApparat(listeStructuree())
     const declaree = classesApparat(bibliographieDeclaree())
+    const fenetre = classesApparat(noteEnFenetre())
     for (const classe of CADRE) {
       expect(structuree, 'liste structurée').toContain(classe)
       expect(declaree, 'pièce déclarée').toContain(classe)
+      expect(fenetre, 'note en fenêtre').toContain(classe)
     }
     // ⛔ Rien hors de la famille déclarée : ni classe « du-meme-auteur », ni
     // classe « bibliographie-fillion ». Les seuls écarts admis sont la mesure
@@ -182,11 +199,23 @@ describe('le style bibliographique commun de l’apparat', () => {
     // caractère, que seule une notice STRUCTURÉE peut porter.
     const admises = new Set<string>([
       ...CADRE,
-      CLASSES_BIBLIOGRAPHIE.corpsPropre,
+      CLASSES_BIBLIOGRAPHIE.sansHote,
       ...Object.values(CLASSE_CARACTERE_BIBLIOGRAPHIE),
     ])
-    for (const classe of [...structuree, ...declaree]) expect(admises).toContain(classe)
-    expect(declaree).not.toContain(CLASSES_BIBLIOGRAPHIE.corpsPropre)
+    for (const classe of [...structuree, ...declaree, ...fenetre]) {
+      expect(admises).toContain(classe)
+    }
+    // ⚠️ Le modificateur ne se pose QUE là où aucun ancêtre ne compose : la
+    // pièce lue seule et le bloc d'apparat, dont le corps est posé sur les
+    // paragraphes. ⛔ Pas dans la fenêtre d'une note, qui compose sur son
+    // conteneur — l'y mettre figerait un corps que la fenêtre choisit.
+    expect(structuree, 'pièce lue seule').toContain(CLASSES_BIBLIOGRAPHIE.sansHote)
+    expect(declaree, 'bloc d’apparat').toContain(CLASSES_BIBLIOGRAPHIE.sansHote)
+    expect(fenetre, 'note en fenêtre').not.toContain(CLASSES_BIBLIOGRAPHIE.sansHote)
+    // ⚠️ Base et modificateur ont EXACTEMENT la même spécificité : c'est
+    // l'ordre de déclaration, et lui seul, qui fait gagner le second.
+    expect(CSS.indexOf('.cs-apparat-bibliographie--sans-hote {'))
+      .toBeGreaterThan(CSS.indexOf('.cs-apparat-bibliographie {'))
   })
 
   it('ne tire JAMAIS le style du texte du titre', () => {

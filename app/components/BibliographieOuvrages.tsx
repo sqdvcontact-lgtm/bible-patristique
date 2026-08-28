@@ -39,10 +39,10 @@ export default function BibliographieOuvrages({
 }) {
   if (ouvrages.length === 0) return null
   return (
-    // Une liste structurée se lit aujourd'hui comme une pièce entière : elle
-    // n'a pas de texte hôte sous lequel descendre d'un cran, d'où son corps
-    // propre. Le reste de la composition est celui de toute bibliographie.
-    <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.corpsPropre}`}>
+    // Une liste structurée se lit aujourd'hui comme une pièce entière : aucun
+    // ancêtre ne porte la composition dont elle devrait descendre d'un cran,
+    // elle la pose donc elle-même. Le reste est celui de toute bibliographie.
+    <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`}>
       <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
         {ouvrages.map((ouvrage) => (
           <li

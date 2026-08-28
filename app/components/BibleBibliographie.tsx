@@ -30,16 +30,26 @@ export default function BibliographieBible({
   texte,
   lang,
   entreeAutonome = false,
+  sansHote = false,
 }: {
   texte: string
   lang?: string
   entreeAutonome?: boolean
+  /** Aucun ancêtre ne porte la composition : la liste la pose elle-même. Vrai
+   *  dans un bloc d'apparat, qui compose ses PARAGRAPHES en style inline ;
+   *  faux dans la fenêtre d'une note, qui compose sur son conteneur. */
+  sansHote?: boolean
 }) {
   const { chapeau, entrees } = composerBibliographie(texte, { entreeAutonome })
   // Un bloc vide ne compose rien : l'appelant reprend la main.
   if (!chapeau && entrees.length === 0) return null
   return (
-    <div className={CLASSES_BIBLIOGRAPHIE.bloc} lang={lang}>
+    <div
+      className={sansHote
+        ? `${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`
+        : CLASSES_BIBLIOGRAPHIE.bloc}
+      lang={lang}
+    >
       {chapeau && <p>{rendreTexteEnrichi(chapeau)}</p>}
       {entrees.length > 0 && (
         <ul className={CLASSES_BIBLIOGRAPHIE.liste}>

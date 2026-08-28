@@ -31,9 +31,16 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
       {note.blocks.map((bloc) => {
         // Une note que la donnée déclare bibliographique se compose en liste,
         // ici comme dans le paratexte : c'est le même genre de texte, il ne
-        // change pas de forme selon la surface qui l'accueille.
-        if (bloc.presentationStyle === 'bibliographie' && composerBibliographie(bloc.text).entrees.length > 0) {
-          return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+        // change pas de forme selon la surface qui l'accueille — même famille
+        // de styles, même repli quand la liste n'est pas encore structurée.
+        //
+        // ⚠️ Pas de `sansHote` : la fenêtre pose sa composition sur SON
+        // conteneur, et la liste en descend donc d'un cran toute seule.
+        if (bloc.presentationStyle === 'bibliographie') {
+          const composee = composerBibliographie(bloc.text)
+          if (composee.chapeau || composee.entrees.length > 0) {
+            return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
+          }
         }
         const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
         return (

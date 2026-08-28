@@ -27,14 +27,16 @@
 export const CLASSES_BIBLIOGRAPHIE = {
   bloc: 'cs-apparat-bibliographie',
   /**
-   * Une bibliographie lue SEULE — une pièce liminaire entière — n'a pas de
-   * texte hôte sous lequel descendre d'un cran : son corps est absolu, et elle
-   * pose elle-même la police et l'encre que l'apparat lui donnerait.
+   * La bibliographie compose ELLE-MÊME, faute d'un hôte qui le fasse pour elle.
    *
-   * ⚠️ Il n'y a pas de modificateur symétrique : une bibliographie prise dans
-   * un texte qui l'accueille est le cas GÉNÉRAL, et la classe de base y suffit.
+   * ⚠️ Ce n'est pas « lue seule » : c'est « sans ancêtre qui porte la
+   * composition ». Un bloc d'apparat pose son corps, sa police et son encre sur
+   * ses PARAGRAPHES, en style inline ; la bibliographie n'en est pas l'enfant
+   * mais la sœur, et un `em` s'y calculerait sur la page. Une pièce liminaire
+   * lue seule est dans le même cas. La fenêtre d'une note, elle, compose sur
+   * son conteneur : la classe de base y suffit, et le cran relatif joue.
    */
-  corpsPropre: 'cs-apparat-bibliographie--corps-propre',
+  sansHote: 'cs-apparat-bibliographie--sans-hote',
   liste: 'cs-apparat-bibliographie__liste',
   entree: 'cs-apparat-bibliographie__entree',
 } as const
