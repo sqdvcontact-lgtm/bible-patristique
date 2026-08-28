@@ -1981,7 +1981,13 @@ Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualific
 
 # Éditions bibliques commentées — famille Fillion (2026-08-20)
 
-Le socle est **générique**, pas « fait pour Fillion » : une **famille éditoriale** (`bible_edition_families`) relie plusieurs traductions distinctes (`bible_edition_members`), et servira à toute autre édition bilingue ou apparentée. Pour Fillion, `TR0011` porte la Vulgate **telle qu'imprimée dans ses volumes** et `TR0010` son français. ⛔ **Ne jamais réutiliser `TR0004`** (Vulgate clémentine) comme Vulgate Fillion : ce sont deux témoins, pas deux vues d'un même texte.
+Le socle est **générique**, pas « fait pour Fillion » : une **famille éditoriale** (`bible_edition_families`) relie plusieurs traductions distinctes (`bible_edition_members`), et servira à toute autre édition bilingue ou apparentée. Pour Fillion, `TR0011` porte la Vulgate **telle qu’imprimée dans ses volumes** et `TR0010` son français. ⛔ **Ne jamais réutiliser `TR0004`** (Vulgate clémentine) comme Vulgate Fillion : ce sont deux témoins, pas deux vues d’un même texte.
+
+## Clôture OCR d’un livre Fillion : nettoyage obligatoire
+
+Quand l’OCR d’un livre est réellement terminé, exécuter la clôture `scripts/fillion/close-fillion-book-ocr.mjs`. « Terminé » comprend l’extraction, la structuration, la collation nécessaire, les contrôles aléatoires de lecture et l’absence de dépendance aval aux caches. Une passe Tesseract achevée ne suffit pas.
+
+⛔ Ne supprimer que les répertoires explicitement déclarés dans le manifeste du livre et porteurs d’un marqueur `.fillion-ocr-disposable.json` concordant. Conserver les fac-similés, OCR bruts servant de témoin, résultats finaux, manifestes, rapports, empreintes, illustrations finales et preuves visuelles encore nécessaires. Jouer d’abord la simulation sans `--apply`, relire son rapport, puis appliquer. Le rapport final de suppression fait partie des preuves conservées du livre.
 
 - **Les volumes ne sont pas uniformisés.** Les huit tomes viennent d'éditions et d'années différentes. Chaque volume est un `bible_edition_components` avec son année, sa mention d'édition, son éditeur et son empreinte de source. La notice affichée au lecteur nomme l'édition **de chaque volume**, sans laisser croire à une édition matérielle unique.
 - **Cinq références coexistent, aucune n'écrase les autres** : la référence imprimée par Fillion, la numérotation native française, la numérotation native latine, la référence canonique interne, et l'alignement structurel. La référence canonique sert d'axe d'alignement ; elle ne remplace jamais la numérotation native, qui reste une donnée source.
@@ -2290,3 +2296,19 @@ La ligne d’en-tête d’un verset énumérait EN TOUTES LETTRES les sept bible
 ## Trois teintes en dur retirées de l’inventaire
 
 `#f6cfca` et `#8a1710` étaient le surlignage ROUGE, que **plus rien n’appelait** depuis que la ligne d’en-tête dit où le mot se trouve — le paramètre `rouge` n’était jamais passé à `true`. `#4a453f` est passé à `--cs-texte`. Parties avec eux : `refFr`, `abrevFr` et `nombreFr`, ce dernier mort depuis bien plus longtemps.
+
+## La barre de recherche parle la MÊME langue que ses résultats (2026-08-28)
+
+⛔ La liste déroulante de `app/components/Navbar.tsx` avait sa PROPRE table de couleurs, `DOMAINE` : la Bible y était **bleue** (`#3a5a8c`) quand elle est verte sur la page de résultats, les Pères **verts** quand ils y sont pourpres, et les publications portaient l’ocre de lacune. Deux codes de couleur contradictoires à quarante pixels l’un de l’autre, sur le même mot cherché : ce que la liste apprenait au lecteur, la page le démentait aussitôt.
+
+Elle prend donc les jetons des trois familles et le dessin des groupes — rubrique en aplat, bloc lavé, lignes séparées d’un filet — le lavis, le filet et le survol se dérivant par `color-mix` depuis `--fam` (voir `styleDomaine`). ⛔ Plus de filet de trois pixels au flanc des sept sections : il a été essayé et refusé sur la page de résultats, il n’avait pas à survivre ici.
+
+⚠️ **Sept rubriques pour TROIS familles**, et c’est voulu : la rubrique nomme le GENRE de résultat, la couleur dit le DOMAINE. L’Écriture porte Livres bibliques, Péricopes et Traductions ; les Pères portent Œuvres patristiques, Auteurs et Chronologie ; la Communauté porte les Essais. C’est exactement ce que font Bible et Polyglotte, qui partagent le vert sur la page de résultats.
+
+⚠️ **La CHRONOLOGIE a perdu son violet**, qui faisait un quatrième domaine vivant dans cette seule liste. Elle rejoint les Pères, dont elle raconte le monde. ⛔ Ne pas la ressortir sans décision : ce serait une couleur de plus dans la palette pour une section qui paraît trois fois sur dix.
+
+⚠️ **La rubrique garde sa TYPOGRAPHIE** — petites capitales espacées, même corps qu’avant. Ce n’est pas un titre : elle nomme un genre de résultat, non une œuvre. Seule la couleur a changé de place, du texte vers la bande. C’est la différence avec la page de résultats, où la rubrique porte un nom de livre ou d’auteur et se compose en sérif.
+
+⚠️ **Le rang atteint au CLAVIER prend la teinte de SA famille**, et non plus un gris commun (`[data-nav-actif]` compose désormais sur `--fam`, avec repli). La flèche descend d’un domaine à l’autre, et le surlignage doit le dire.
+
+**Dix teintes en dur** ont quitté l’inventaire avec cette passe. Il n’en reste qu’une dans la navbar.
