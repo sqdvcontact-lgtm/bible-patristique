@@ -687,7 +687,7 @@ Partout ailleurs l’appel demeure **actif** : dans le corps du texte, dans les 
 
 La forme de l’appel s’accorde au style où il se trouve, au lieu d’imposer partout la même vignette :
 
-- il hérite la police et l’italique de son contexte, si bien qu’un chapeau en italique porte un appel en italique ;
+- il hérite la police et le corps de son contexte, mais **jamais l’italique** : ⛔ **un appel de note est toujours en romain**, sur quelque page que ce soit, et quoi que fasse le texte autour de lui. Un chapeau, un titre original, un sous-titre d’essai sont composés en italique ; l’appel qu’ils portent reste droit. C’est un renvoi, non un mot de la phrase, et il n’imite pas la composition qui l’accueille. Règle d’auteur du 28 août 2026, qui remplace la règle inverse tenue jusque-là ;
 - dans la prose et dans les titres de rang bas, composés à la taille du texte, il garde sa teinte brune ;
 - dans un titre de haut rang et sur la page de titre, composés très larges, cette teinte devient une tache : l’appel y prend l’encre du titre, proportionnellement plus petit.
 
@@ -2099,7 +2099,7 @@ Cette synthèse est la porte d’entrée normative du chantier Fillion. Elle hé
 
 **2. Guillemets, citations et appels de note.** Les guillemets français appartiennent à la phrase française et restent en romain, même lorsqu’ils encadrent une langue étrangère : `« *Jesu Christi* »`. L’appel de note suit immédiatement le passage annoté, reste à l’intérieur du guillemet fermant et précède la ponctuation conformément au § 13.4. La ponctuation des citations suit le § 3.8 ; elle n’est jamais déplacée au rendu. Lorsqu’un lemme fermé par `»` est suivi d’une nouvelle phrase explicative, la ponctuation nécessaire après le guillemet est rétablie : `« *…* ». C’est…`.
 
-**3. Langues étrangères et italiques.** Les termes, locutions, lemmes et citations en latin ainsi que les translittérations de langues anciennes se composent en italique. Dérogation locale au § 3.6 : dans la couche éditoriale Fillion, le grec cité en caractères grecs se compose lui aussi en italique. Les guillemets français et la ponctuation française qui encadrent ces passages restent en romain. Les noms propres étrangers restent en romain. La couche source demeure inchangée.
+**3. Langues étrangères et italiques.** Les termes, locutions, lemmes et citations en latin ainsi que les translittérations de langues anciennes se composent en italique. Le grec écrit en caractères grecs reste en romain, conformément au § 3.6 ; seules les translittérations grecques en alphabet latin se composent en italique. Les guillemets français et la ponctuation française qui encadrent ces passages restent en romain. Les noms propres étrangers restent en romain. La couche source demeure inchangée.
 
 **4. Casse, titres et petites capitales.** Les titres éditoriaux suivent la casse française du § 3.5, sous réserve des décisions structurelles propres à Fillion ; la formulation imprimée est conservée dans `facsimile_heading`, `source_markup` ou une provenance équivalente. Aucun titre biblique n’est composé en petites capitales. Les petites capitales attestées ou sémantiques des noms d’auteurs dans une bibliographie sont en revanche conservées ; elles ne doivent jamais être simulées par une transformation de casse.
 
@@ -2153,6 +2153,16 @@ Un titre porté par l’axe matériel ne commande donc pas l’axe analytique : 
 
 Et le parent ne se déduit jamais du seul rang du jeton : quand la donnée nomme son parent par `semantic_parent_key`, c’est ce nom qui fait foi, et la profondeur reprend l’état où ce parent l’a laissée. ⛔ Ce qui ne se rend pas n’entre pas au plan : une entrée de sommaire pointant vers une mention masquée serait une ancre sans cible.
 
+### 35.5.1. Liminaires Fillion : casse, repères analytiques et références de portée
+
+Dans la couche éditoriale Fillion, les têtes liminaires qui donnent le nom du livre ou la mention d’introduction se composent en casse française, jamais en capitales intégrales héritées du fac-similé : `ÉVANGILE SELON SAINT LUC` → `Évangile selon saint Luc` ; `INTRODUCTION` → `Introduction`. La forme imprimée demeure conservée dans `facsimile_heading` ou une provenance équivalente.
+
+Le numéro imprimé ne suffit jamais, à lui seul, à créer un niveau de titre. Toutefois, une série continue de repères `1°`, `2°`, `3°`, etc. placés chacun en tête de paragraphes distincts constitue un indice structurel positif lorsqu’elle est confirmée par le contexte du témoin — notamment lorsqu’un niveau interne emploie une autre forme (`1.`, `2.`) et que les énumérations `1°`, `2°`, etc. qui ne sont pas structurelles restent inline dans un même paragraphe. Dans ce cas, tous les membres de la série appartiennent au même niveau analytique, même si certains commencent par une phrase complète plutôt que par un intitulé nominal. Les vrais headings de cette série sont normalisés à l’affichage sous la forme `1.`, `2.`, `3.`, etc.
+
+Aucune rubrique courte ne doit être inventée pour rendre la série régulière. Lorsque le témoin fournit un libellé autonome ou une ponctuation de titre, ce libellé est repris. Lorsqu’une division de même niveau commence directement par une phrase et qu’aucun titre abrégé n’est attesté, le libellé éditorial reprend mot pour mot la première phrase — ou, si le témoin marque clairement une césure interne, la proposition initiale — et le reste demeure en prose. Les sous-points (`1.`, `2.`) et les énumérations inline ne sont jamais promus pour compléter artificiellement une hiérarchie. Toute scission conserve exactement les empans du témoin source et n’altère pas `text_content`.
+
+Lorsqu’un titre ou un chapeau analytique est suivi d’une référence biblique qui en définit la portée, la référence est placée entre parenthèses immédiatement après l’intitulé : `Quelques récits relatifs à l’enfance de Jésus (Luc 1, 1 - 2, 52).`
+
 ### 35.6. Une note bibliographique se compose en liste
 
 Une note que la donnée déclare bibliographique n’est pas un paragraphe suivi. Son annonce garde sa phrase, ses références prennent chacune leur ligne, un cran sous le corps qui les accueille, avec le retrait de première ligne des bibliographies imprimées, un blanc très fin entre l’annonce et la première entrée et un blanc léger entre deux entrées.
@@ -2163,9 +2173,9 @@ La forme d’autorité d’un nom et sa forme d’affichage sont deux choses. Le
 
 ### 35.7. Les guillemets d’une citation en langue étrangère restent en romain
 
-Une citation latine ou grecque enchâssée dans une phrase française se compose en italique, mais les guillemets qui l’encadrent appartiennent au français qui cite et restent en romain. On écrit donc « *Jesu Christi* » et jamais *« Jesu Christi »*. ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.
+Une citation latine ou une translittération grecque en alphabet latin enchâssée dans une phrase française se compose en italique, mais les guillemets qui l’encadrent appartiennent au français qui cite et restent en romain. On écrit donc « *Jesu Christi* » et jamais *« Jesu Christi »*. ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.
 
-Dans la couche éditoriale Fillion, les mots, lemmes et citations en grec, y compris lorsqu’ils sont écrits en caractères grecs, se composent en italique. Les guillemets français qui les encadrent restent en romain. La couche source demeure inchangée.
+**Règle grecque Fillion.** Un terme, lemme ou citation grecque écrit en caractères grecs reste en romain dans la couche éditoriale, conformément au § 3.6. Seules les translittérations du grec en alphabet latin se composent en italique. Les guillemets et la ponctuation française restent en romain. La couche source demeure inchangée.
 
 La ponctuation stockée fait foi et ne se déplace pas au rendu. Un point-virgule que l’édition place hors des guillemets y reste ; ⛔ le rendu ne le rentre pas dans la citation, et ne recompose pas davantage l’apostrophe typographique, qui demeure U+2019 sur toutes les surfaces éditoriales françaises.
 
@@ -2187,7 +2197,7 @@ Avant toute écriture, identifier toutes les surfaces susceptibles d’être ren
 
 2. **Typographie française.** Normaliser la couche éditoriale avec U+202F avant `; ! ?`, U+00A0 avant `:` et U+202F à l’intérieur des guillemets français, apostrophe U+2019, espaces et doubles espaces. Les points de suspension de la prose deviennent `…`. ⛔ Ne jamais convertir automatiquement `...` en `[…]` : `[…]` est réservé à une omission réelle dans une citation ou un lemme, vérifiée par le contexte ou le témoin.
 
-3. **Langues étrangères et italiques.** Les mots, locutions, lemmes et citations latins, les translittérations de langues anciennes et le grec cité se composent en italique dans la couche éditoriale. Les guillemets français restent en romain. Ne jamais mettre en italique par simple détection lexicale un homographe français : utiliser le paragraphe, la langue déclarée, les lemmes structurés et le contexte.
+3. **Langues étrangères et italiques.** Les mots, locutions, lemmes et citations latins ainsi que les translittérations de langues anciennes se composent en italique dans la couche éditoriale. Le grec écrit en caractères grecs reste en romain ; une translittération grecque en alphabet latin reste en italique. Les guillemets français restent en romain. Ne jamais mettre en italique par simple détection lexicale un homographe français : utiliser le paragraphe, la langue déclarée, les lemmes structurés et le contexte.
 
 4. **Désabréviation.** Faire une passe distincte et exhaustive. Développer les abréviations intelligibles propres à la prose de lecture : `Comp.` → `Comparer`, `ss.` → `suivants` ou `suivantes` selon le nom gouvernant, `etc.` → `et cetera`, `h. l.` → `à cet endroit`, `c.-à-d.` / `C.-à-d.` → `c’est-à-dire` / `C’est-à-dire`, et les abréviations matérielles ou savantes lorsqu’elles sont certaines (`Atl. archéol.` → *Atlas archéologique*, `pl.` → `planche`, `fig.` → `figure`, etc.). L’abréviation savante `cf.` reste distincte de `Comp.` : elle n’est jamais développée en `Comparer` et se compose en italique selon le § 3.6. Les sigles bibliques ne sont pas développés mécaniquement en noms complets : ils sont normalisés vers les formes du § 3.5.1. L’expansion doit rester grammaticalement française : contrôler les accords, la capitale de début de phrase et la ponctuation après remplacement. ⛔ Une regex globale ne suffit pas. Toute abréviation ambiguë reste en `review` jusqu’à identification certaine.
 
@@ -2255,7 +2265,7 @@ Dans toute la couche éditoriale Fillion, les formes autonomes `h. l.`, `H. L.` 
 
 ### Fillion — sections, translittérations et renvois internes (2026-08-25)
 - Titres de section : dans une formule imprimée du type « SECTION I. — APPARITION DU PRÉCURSEUR… III, 1 — IV, 11 », le marqueur « Section I » est le titre structurel (T3) et le libellé descriptif avec sa plage biblique est un sous-titre distinct attaché (`section_subtitle`). Ne jamais fusionner titre de section et sous-titre dans un seul heading. La règle vaut pour toutes les sections analogues.
-- Translittérations : toute translittération d’une langue ancienne écrite en alphabet latin (hébreu, araméen, etc.) se compose en italique dans la couche éditoriale, par ex. *p’râšîm*, *saddiq*, *Kêfâ’*. Le grec en caractères grecs se compose en italique dans la couche éditoriale Fillion ; la couche source demeure inchangée.
+- Translittérations : toute translittération d’une langue ancienne écrite en alphabet latin (hébreu, araméen, grec, etc.) se compose en italique dans la couche éditoriale, par ex. *p’râšîm*, *saddiq*, *Kêfâ’*. Le grec écrit en caractères grecs reste en romain dans la couche éditoriale Fillion ; la couche source demeure inchangée.
 - Renvois bibliques internes : un renvoi sans sigle de livre et avec chapitre en chiffres romains, par ex. « cf. xv, 2 », doit être modernisé en donnant explicitement le livre courant et le chapitre en chiffres arabes : « *cf.* Mt 15, 2 ». Ne pas effectuer de conversion romaine globale hors d’un contexte biblique explicitement identifié.
 
 

@@ -47,7 +47,10 @@ type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: 
 // son bouton — il n’ouvre aucune note.
 const STYLE_SEPARATEUR_APPELS: React.CSSProperties = {
   display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline',
-  lineHeight: 0, fontSize: '0.68em', color: 'var(--cs-vert)',
+  // ⛔ `normal` : un appel de note est toujours en romain, et son séparateur avec
+  // lui (voir `app/lib/appelsDeNote.ts`). Sans cela il s'inclinait dans un texte
+  // en italique pendant que les deux appels qu'il sépare restaient droits.
+  lineHeight: 0, fontSize: '0.68em', color: 'var(--cs-vert)', fontStyle: 'normal',
 }
 
 function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {

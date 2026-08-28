@@ -16,14 +16,20 @@
 import type { CSSProperties } from 'react'
 
 // ── Forme de l'appel selon l'endroit où il se trouve ──────────────────────────
-// L'appel prend le style du texte qui l'accueille : il hérite la police et
-// l'italique du contexte (un chapeau en italique porte un appel en italique, une
-// colonne en sans-serif un appel en sans-serif) et se règle en corps sur lui.
-// Dans la prose, il garde sa teinte brune. Dans un titre de haut rang, cette
-// teinte devient une tache : l'intitulé est court et composé large, l'appel y
-// prend donc l'encre du titre, plus discret et proportionnellement plus petit.
-// Les titres de rang bas (niveaux 3 et 4), composés à la taille du texte,
-// gardent la forme du corps.
+// L'appel se règle en corps et en police sur le texte qui l'accueille : une
+// colonne en sans-serif porte un appel en sans-serif. Dans la prose, il garde sa
+// teinte brune. Dans un titre de haut rang, cette teinte devient une tache :
+// l'intitulé est court et composé large, l'appel y prend donc l'encre du titre,
+// plus discret et proportionnellement plus petit. Les titres de rang bas
+// (niveaux 3 et 4), composés à la taille du texte, gardent la forme du corps.
+//
+// ⛔ UN APPEL DE NOTE EST TOUJOURS EN ROMAIN, sur quelque page que ce soit, et
+// quoi que fasse le texte autour de lui : règle d'auteur, sans exception. Il
+// n'imite pas la composition qui l'accueille. Un chapeau, un titre original, un
+// sous-titre d'essai sont en italique ; l'appel qu'ils portent reste droit. C'est
+// un renvoi, pas un mot de la phrase, et un chiffre penché se lit moins bien
+// qu'un chiffre droit. ⚠️ La règle d'avant disait exactement l'inverse (« il
+// s'incline avec lui ») : ne pas y revenir, `fontStyle` ne s'hérite plus.
 //
 // ⛔ JAMAIS de pointillé (ni de soulignement d'aucune sorte) sous un appel de
 // note : règle d'auteur, sans exception. L'exposant et la teinte suffisent à le
@@ -40,7 +46,8 @@ export function styleAppelNote(variante: VarianteAppelNote = 'corps'): CSSProper
   return {
     cursor: 'help',
     fontFamily: 'inherit',
-    fontStyle: 'inherit',
+    // ⛔ `normal`, jamais `inherit` : voir la règle du romain ci-dessus.
+    fontStyle: 'normal',
     userSelect: 'none',
     letterSpacing: 0,
     display: 'inline-block',

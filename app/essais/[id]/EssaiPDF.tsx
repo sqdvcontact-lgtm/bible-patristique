@@ -236,7 +236,10 @@ function renderNodes(nodes: InlineNode[]): React.ReactNode[] {
     if (n.t === 'smallcaps') return <Text key={i} style={{ fontSize: 9, letterSpacing: 1.2 }}>{n.v.toUpperCase()}</Text>
     // Appel de note (et exposant) : en exposant, sans crochets, dans la couleur du
     // texte (pas de vert), à une taille discrète (~0,7× le corps).
-    if (n.t === 'sup')       return <Text key={i} style={{ fontSize: 8, color: C.beige, verticalAlign: 'super' }}>{n.v}</Text>
+    // ⛔ `fontStyle: 'normal'` : un appel de note est toujours en ROMAIN, et un
+    // sous-titre `##` comme une citation en bloc sont composés en italique. Sans
+    // cela l'appel s'y inclinait, ici comme il le faisait à l'écran.
+    if (n.t === 'sup')       return <Text key={i} style={{ fontSize: 8, color: C.beige, verticalAlign: 'super', fontStyle: 'normal' }}>{n.v}</Text>
     if (n.t === 'link')      return <Link key={i} src={n.href!} style={{ color: C.vert }}>{typographier(n.v)}</Link>
     return avecSiecles(n.v, `t${i}`)
   })
@@ -349,7 +352,7 @@ function EssaiDocument({ titre, sousTitre, auteur, date, verset, contenu }: Prop
           <View style={s.notes}>
             <Text style={s.noteTitre}>Notes</Text>
             {notes.map((n, i) => (
-              <Text key={i} style={s.noteItem}><Text style={{ verticalAlign: 'super', fontSize: 7.5, color: C.beige }}>{i + 1}</Text>{' '}{renderNodes(parseInline(n, []))}</Text>
+              <Text key={i} style={s.noteItem}><Text style={{ verticalAlign: 'super', fontSize: 7.5, color: C.beige, fontStyle: 'normal' }}>{i + 1}</Text>{' '}{renderNodes(parseInline(n, []))}</Text>
             ))}
           </View>
         )}

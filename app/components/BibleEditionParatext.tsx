@@ -138,10 +138,12 @@ function envelopperSpan(
 // un `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit.
 const NOWRAP: CSSProperties = { whiteSpace: 'nowrap' }
 
-/** L'appel prend la forme du texte qui l'accueille. Les trois rangs hauts sont
- *  composés large et centrés : la teinte brune du corps y ferait une tache, et
- *  l'appel prend l'encre du titre. Les rangs bas, composés à la taille du texte,
- *  gardent la forme du corps (même règle que sur la page d'œuvre). */
+/** L'appel prend la TAILLE et la TEINTE du texte qui l'accueille, jamais son
+ *  italique : il est toujours en romain (voir `app/lib/appelsDeNote.ts`). Les
+ *  trois rangs hauts sont composés large et centrés, où la teinte brune du corps
+ *  ferait une tache : l'appel y prend l'encre du titre. Les rangs bas, composés
+ *  à la taille du texte, gardent la forme du corps (même règle que sur la page
+ *  d'œuvre). */
 function varianteAppel(headingLevel: JetonTitre | null | undefined): VarianteAppelNote {
   return headingLevel === 'T1' || headingLevel === 'T2' || headingLevel === 'T3' ? 'titre' : 'corps'
 }
