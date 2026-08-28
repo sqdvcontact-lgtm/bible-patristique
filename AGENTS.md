@@ -823,11 +823,22 @@ C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site 
 | Titres de page | `titresPages.test.ts` | tenu |
 | **Couleur** | `couleursEnDur.test.ts` (**neuf**) | 353 teintes gelées, la liste ne peut que décroître |
 | **Illustrations** | `admin/illustrations/inventaire.test.ts` (**neuf, 2026-08-24**) | 58 images recensées, aucune oubliée, aucun fantôme |
+| **Syntaxe CSS** | `cssValide.test.ts` (**neuve, 2026-08-28**) | 2 feuilles passées à `postcss.parse` à chaque exécution |
 | **Empilement** | **aucune** | 147 déclarations de `z-index`, **40 valeurs distinctes**, de 0 à 9999 |
 
 ⚠️ **Les 1 772 `fontSize` écrites en dur ne sont PAS de la dette**, et un audit qui les signale produit un faux positif : elles sont sur la grille, et un test le vérifie à chaque exécution. Ce qui compte n'est pas qu'une valeur soit littérale, c'est qu'elle soit sous garde.
 
 ⛔ **L'empilement n'a jamais eu sa passe**, et c'est le dernier axe qui manque. Quarante valeurs pour un besoin qui en demande quatre ou cinq (page, flottant, volet, modale, alerte) : trait pour trait le désordre des 112 tailles et celui des rayons de 2 à 20. Il a déjà une conséquence consignée — la règle « fenêtres contextuelles, jamais sous la nav » est exactement le symptôme d'un empilement sans échelle.
+
+## La garde du CSS — le seul axe que rien ne LISAIT (2026-08-28)
+
+⛔ `app/globals.css` a été poussé avec **une accolade en moins** : une règle `@container` sans sa fermeture. PostCSS refuse alors le fichier ENTIER (« Unclosed block », ligne 1181), `next build` s'arrête, et **deux déploiements de suite ont échoué**. Le site est resté sur la version de la veille pendant une heure, sans que rien ne le signale côté dépôt — c'est le piège déjà consigné (« un déploiement qui échoue ne se voit NULLE PART »), rencontré une seconde fois.
+
+⚠️ **Les trois gardes du dessin lisent le CSS comme du TEXTE**, à coups d'expressions régulières : elles auraient relevé sans broncher les tailles et les teintes d'un fichier que le navigateur refuse d'ouvrir. `tsc` ignore les feuilles, `eslint` aussi. Le seul outil qui PARSE est `next build`, qui coûte trois minutes et qu'on ne joue pas à chaque commit. D'où **`app/lib/cssValide.test.ts`** : il passe chaque feuille à `postcss.parse`, le même analyseur que la chaîne de construction. Il ne juge rien du dessin ; il vérifie que le fichier est du CSS, ce qui est le préalable de toutes les autres gardes.
+
+⛔ **Et le défaut ne venait pas du code, mais de la MISE EN INDEX.** `globals.css` portait aussi un chantier d'autrui ; pour n'indexer que ma part, le morceau avait été découpé par recherche de chaîne, et la première accolade fermante trouvée après `.cs-volet-lien-court { display: inline; }` est celle de CETTE déclaration, non celle du bloc `@container`. L'arbre de travail était juste, l'index ne l'était pas, et rien ne le montrait : `git diff --cached --stat` disait le bon nombre de lignes.
+
+**Règle** : quand on n'indexe qu'une partie d'un fichier, on relit le CONTENU indexé (`git diff --cached <fichier>`), jamais seulement son compte de lignes. Et une découpe par index de chaîne se borne à une ancre de FIN explicite, jamais au premier `}` rencontré.
 
 ## La garde chromatique — on GÈLE, on ne rabat pas
 
