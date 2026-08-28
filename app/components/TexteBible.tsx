@@ -17,6 +17,10 @@ import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import {
+  STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
+  styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
+} from '@/app/lib/compositionBible'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre, PieceLiminaire } from '@/app/components/BibleEditionParatext'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
@@ -497,8 +501,7 @@ export default function TexteBible({
   // (`.verset-row + .cs-bible-axe > .cs-bible-bloc`) traversent l'enveloppe, et
   // elles ne le peuvent que si le bloc en est l'enfant DIRECT.
   const surAxeTexte = (contenu: React.ReactNode, cle?: string) => mobile ? contenu : (
-    <div key={cle} className="cs-bible-axe"
-      style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem' }}>
+    <div key={cle} className="cs-bible-axe" style={styleAxeTexte()}>
       {contenu}
       <div />
     </div>
@@ -726,15 +729,15 @@ export default function TexteBible({
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
-              style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: mobile ? '0.03125rem 0.375rem' : '0.1875rem 0.375rem', borderRadius: '4px', cursor: 'pointer', marginBottom: mobile ? '0.05rem' : '0.25rem', background: 'transparent' }}>
+              style={styleRangeeVerset({ mobile })}>
 
-              <div style={{ display: 'grid', gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem', width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', alignItems: 'flex-start' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'auto minmax(0, var(--mesure-texte))', columnGap:'0.1875rem', alignItems: 'baseline', borderRadius:'4px', padding:'0.125rem 0.25rem 0.125rem 0', background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent' }}>
+              <div style={styleGrilleRangee({ mobile })}>
+                <div style={styleBlocVerset({ actif })}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
-                  <span style={{ minWidth: '1.0625rem', textAlign: 'right', paddingRight: '0.3125rem', fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', lineHeight: 1.40, whiteSpace: 'nowrap' }}>
+                  <span style={STYLE_NUMERO_VERSET}>
                     {v.verset}
                     {v.chapitre_alternatif != null && (
-                      <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--cs-texte-faible)' }}>
+                      <span style={STYLE_NUMERO_ALTERNATIF}>
                         {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
                       </span>
                     )}
@@ -744,17 +747,17 @@ export default function TexteBible({
                       TR0009 : lacune du manuscrit rendue explicitement ; marqueurs éditoriaux
                       inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
                       statut technique d'alignement n'est montré au lecteur. */}
-                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', lineHeight: mobile ? 1.42 : 1.5, color: 'var(--cs-texte-fort)', margin: 0, textAlign: mobile ? 'left' : 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word' } as React.CSSProperties}>
+                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={styleTexteVerset({ mobile })}>
                     {lacune ? (
                       // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique
                       // de labeur, capitale initiale, teinte effacée : signalé sans peser.
-                      <span title="Lacune matérielle du manuscrit" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', color: 'var(--cs-lacune)', fontStyle: 'italic' }}>Lacune du manuscrit</span>
+                      <span title="Lacune matérielle du manuscrit" style={STYLE_LACUNE}>Lacune du manuscrit</span>
                     ) : (overrides[v.id_verset]?.[traduction] ?? v[traduction]) ? (
                       ligne899
                         ? rendreMarqueurs899(String(v[traduction] ?? ''))
                         : rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
                     ) : (
-                      <span style={{ color:'var(--cs-bord)', fontStyle:'italic' }}>—</span>
+                      <span style={STYLE_VERSET_VIDE}>—</span>
                     )}
                     {notesDuVerset.map((note) => (
                       <AppelNoteBiblique key={note.id} note={note} />

@@ -23,6 +23,10 @@ import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
+import {
+  STYLE_NUMERO_SEGMENT, margeArgument, styleArgument, styleBlocDeVers,
+  styleLigneDeVers, styleParagrapheApparat, styleParagrapheLecture,
+} from '@/app/lib/compositionOeuvre'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
@@ -135,9 +139,11 @@ function segmentAffichable(s: any) {
 
 const SEUIL_TITRE_COLOPHON = 86
 
-// Numéro de segment en exposant. Une seule définition : le corps et l'apparat le
-// composaient à l'identique.
-const STYLE_NUMERO_SEGMENT: React.CSSProperties = { fontSize: '0.50rem', color: 'var(--cs-texte-faible)', userSelect: 'none', marginRight: '2px', lineHeight: 1 }
+// ⛔ Toute la composition de la lecture — paragraphe, vers, argument, numéro de
+// segment — vit dans `app/lib/compositionOeuvre.ts`. Elle en est sortie pour que la
+// PLANCHE DES STYLES montre ce que cette page FAIT, et non ce qu'on croit qu'elle
+// fait : un spécimen qui rejoue une composition de mémoire dérive au premier
+// réglage, et fait ensuite autorité contre la page qu'il décrit.
 
 // Appels de note (info-bulle, formes selon le contexte) et outils de titre :
 // voir ./appelNote — partagés avec la page de titre.
@@ -2319,9 +2325,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 const suivant = intros[index + 1]
                 const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
                 return (
-                <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}` }}>
+                <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: margeArgument({ memeParagraphe }) }}>
                   <div lang={langueCorps} onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
-                    style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.6, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', cursor: 'pointer', borderRadius: '4px', padding: '2px 6px', margin: 0, background: segActif === s.id ? 'var(--cs-vert-pale)' : 'transparent' } as React.CSSProperties}>
+                    style={styleArgument({ actif: segActif === s.id })}>
                     {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
                   </div>
                   <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
@@ -2449,7 +2455,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                            un saut forcé. D'où une boîte par vers — et le retrait de suite
                            qui distingue une ligne trop longue du vers d'après.
                            Ni justification ni césure : on ne coupe pas un alexandrin. */
-                        <div lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0 }}>
+                        <div lang={langueCorps} style={styleBlocDeVers({ masque: afficherOriginalSeul })}>
                           {(() => {
                             // ⛔ L'ombre de la LETTRINE se retire avant de composer : une
                             // capitale ornée pousse les premiers vers vers la droite, et
@@ -2472,7 +2478,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 i > 0 ? segMap.get(chunk.ids[i - 1]) : undefined,
                               )
                               return (
-                                <span key={sid} style={{ display: 'block', lineHeight: 1.4, marginTop: strophe ? '0.6rem' : 0, marginLeft: `${retraitVers(rangs[i])}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
+                                <span key={sid} style={styleLigneDeVers({ rang: rangs[i], ouvreStrophe: strophe })}>
                                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
@@ -2510,7 +2516,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           })}
                         </div>
                       ) : (
-                      <p lang={langueCorps} style={{ display: afficherOriginalSeul ? 'none' : undefined, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: toutSignature ? '1.32' : '1.62', textAlign: toutSignature ? 'right' : toutRubrique ? 'center' : 'justify', textJustify: 'inter-word', fontStyle: toutRubrique ? 'italic' : undefined, margin: toutSignature ? '0 0 0.3rem' : '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                      <p lang={langueCorps} style={styleParagrapheLecture({ signature: toutSignature, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
                         {regrouperCitationsStructurelles(
                           chunk.ids,
                           sid => segMap.get(sid)?.nature === 'citation',
@@ -2662,7 +2668,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )}
                       {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang={langueCorps} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: '1.62', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                          <p lang={langueCorps} style={styleParagrapheApparat()}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null
