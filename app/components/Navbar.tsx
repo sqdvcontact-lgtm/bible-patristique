@@ -99,6 +99,7 @@ const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: b
   { href: "/admin?onglet=charte", label: "Charte IA", famille: "systeme" },
   { href: "/admin?onglet=charte-accentuation", label: "Accentuation", famille: "systeme" },
   { href: "/admin/illustrations", label: "Illustrations", famille: "systeme" },
+  { href: "/admin/styles", label: "Planche des styles", famille: "systeme" },
   { href: "/admin/propositions-gpt", label: "Propositions de GPT", famille: "systeme" },
 ];
 // Bible 899 : outil d'atelier, rattaché à la famille « Système ».
