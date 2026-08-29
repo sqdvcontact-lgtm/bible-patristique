@@ -113,7 +113,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'oeuvre/[id]/OngletCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
   'polyglotte/page.tsx': ['rgba(90,75,156,0.22)'],
   'profil/[pseudo]/page.tsx': ['#7a8a6e', '#c8a858', '#c8c0b8', '#e2c98d', '#e2ca91', '#e4cc91', '#e4d7b6', '#ead9a9', 'rgba(198,169,100,.42)', 'rgba(222,190,111,.18)', 'rgba(222,190,111,.20)', 'rgba(222,190,111,.34)', 'rgba(233,204,136,.24)', 'rgba(233,204,136,.28)', 'rgba(233,204,136,.30)', 'rgba(235,218,175,.46)', 'rgba(235,218,175,.7)'],
-  'progression/ProgressionClient.tsx': ['#3d8bc0', '#7a8e7e', '#8a6fb0', '#9a7e5e', '#c0566a', '#d4af37', '#fff'],
   // ⬇ Trois teintes retirées le 2026-08-28, avec la refonte des résultats de recherche :
   //    #4a453f (nom d'auteur d'une ligne de répartition) est passé à --cs-texte ;
   //    #f6cfca et #8a1710 étaient le surlignage ROUGE, que plus rien n'appelait depuis

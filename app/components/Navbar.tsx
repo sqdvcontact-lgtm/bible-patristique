@@ -1276,7 +1276,6 @@ export default function Navbar() {
           { href: "/compte", label: "Mon compte", badge: 0, icone: null },
           ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0, icone: null }] : []),
           { href: "/prelevements", label: "Mes citations", badge: 0, icone: null },
-          { href: "/progression", label: "Ma progression", badge: 0, icone: null },
           // Le lien Administration reste toujours accessible à un vrai admin, quel que
           // soit l'état de l'interrupteur d'affichage « mode utilisateur standard ».
           ...((estAdmin || estAdminEmail) ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),

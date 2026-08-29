@@ -57,7 +57,6 @@ describe('métadonnées des pages', () => {
       'app/essais/mes-ecrits/layout.tsx',
       'app/messagerie/layout.tsx',
       'app/prelevements/layout.tsx',
-      'app/progression/page.tsx',
       'app/recherche/page.tsx',
     ]
     const manquants = HORS_INDEX_ATTENDU.filter(chemin => {
