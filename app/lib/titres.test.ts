@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cleTriTitre, memeIntitule, sansPointFinal, normaliserTitreTechnique } from './titres'
+import { cleTriTitre, complementDeTitre, memeIntitule, sansPointFinal, normaliserTitreTechnique } from './titres'
 
 describe('cleTriTitre', () => {
   it('retire l’article défini de tête', () => {
@@ -95,5 +95,38 @@ describe('memeIntitule', () => {
     expect(memeIntitule('', '')).toBe(false)
     expect(memeIntitule(null, undefined)).toBe(false)
     expect(memeIntitule('   ', 'Confessiones')).toBe(false)
+  })
+})
+
+describe('complementDeTitre', () => {
+  it('rend le complément quand il dit autre chose', () => {
+    expect(complementDeTitre('Chapitre premier', 'Le symbole, règle de foi'))
+      .toBe('Le symbole, règle de foi')
+    expect(complementDeTitre('Livre I', 'De la cité terrestre')).toBe('De la cité terrestre')
+  })
+  it('rend le vide quand il n’y a pas de complément — le cas ORDINAIRE', () => {
+    // 27 156 segments portent un titre de niveau 1 sans complément (28 % au 2026-08-29) :
+    // ce n’est pas un défaut, et rien ne doit se composer à la place.
+    expect(complementDeTitre('Chapitre premier', null)).toBe('')
+    expect(complementDeTitre('Chapitre premier', undefined)).toBe('')
+    expect(complementDeTitre('Chapitre premier', '')).toBe('')
+    expect(complementDeTitre('Chapitre premier', '   ')).toBe('')
+  })
+  it('écarte le complément qui REDIT son titre', () => {
+    expect(complementDeTitre('Prologue', 'Prologue')).toBe('')
+    expect(complementDeTitre('PROLOGUE', 'Prologue')).toBe('')
+    expect(complementDeTitre('Question 2', 'Question  2 ')).toBe('')
+    expect(complementDeTitre('L’Évangile', "L'Évangile")).toBe('')
+    expect(complementDeTitre('Prologue', 'Prologue.')).toBe('')
+    expect(complementDeTitre('Prologue [[3]]', 'Prologue')).toBe('')
+  })
+  it('garde les accents distinctifs, comme memeIntitule', () => {
+    expect(complementDeTitre('Hexaemeron', 'Hexaéméron')).toBe('Hexaéméron')
+  })
+  it('ne s’applique pas à un titre vide : le complément reste', () => {
+    // Aucun segment du corpus ne porte un complément sans titre (mesuré à zéro le
+    // 2026-08-29), mais un complément orphelin ne doit pas disparaître en silence.
+    expect(complementDeTitre('', 'Le symbole')).toBe('Le symbole')
+    expect(complementDeTitre(null, 'Le symbole')).toBe('Le symbole')
   })
 })

@@ -248,6 +248,18 @@ Le JavaScript est irréprochable : les **onze** appels à `useEstMobile` passent
 
 La coloration de la liste (rouge/jaune/vert selon critique/moyen) venait de la vue `oeuvres_controle_stats`, **recalculée à chaque ouverture** : ~10,5 s (scan de ~123 000 segments + ~10 regex/segment + tri disque). Désormais **figée** dans la vue matérialisée `oeuvres_controle_stats_mat` (lecture ~0,1 ms). Recalcul **sur demande seulement** : bouton « ↻ Recalculer » → route admin `POST /api/admin/controle-refresh` → RPC `rafraichir_controle_stats()` (SECURITY DEFINER, service_role) qui fait `REFRESH MATERIALIZED VIEW CONCURRENTLY` et met à jour `controle_stats_meta.calcule_le` (affiché comme « Qualité calculée le … »). ⚠️ Après édition de segments/rangs, les couleurs restent figées jusqu'au prochain recalcul manuel — c'est voulu. `anon` n'a pas accès à ces objets (admin = `authenticated`).
 
+# Un titre de niveau et son COMPLÉMENT — `ref_nivN` / `ref_nivN_texte` (2026-08-29)
+
+Règle générale posée par l'auteur, et elle vaut pour **tous les niveaux N**, pas seulement le premier.
+
+- **`ref_nivN` est le titre STRUCTUREL du niveau N**, `ref_nivN_texte` un complément FACULTATIF. ⛔ La navigation, le regroupement et l'identification d'un niveau reposent sur `ref_nivN`, jamais sur son complément.
+- ⛔ **Un complément nul ou vide est parfaitement valide, et c'est le cas ORDINAIRE** : au 2026-08-29, 27 156 segments portent un titre de niveau 1 sans complément (28 %), 31 550 au niveau 2 (36 %), 1 534 au niveau 3. Il ne fait donc jamais échouer une requête, et son absence n'écarte jamais un niveau du sommaire.
+- **Sans complément, le titre se compose SEUL** : ni séparateur, ni tiret, ni emplacement vide. Chaque site de rendu le pose sous condition, et c'est déjà le cas partout.
+- ⛔ **Un complément qui REDIT son titre ne se compose qu'une fois.** Tout passe par **`complementDeTitre`** (`app/lib/titres.ts`, pur, testé), qui rend `''` sur un complément vide ou identique après la normalisation de `memeIntitule` — blancs, casse, apostrophe, point final, appels de note ; les accents restent distinctifs. Dix sites l'emploient dans `OeuvreClient` : les trois rangs du sommaire, l'en-tête de division, les quatre rangs du texte suivi, les deux de l'apparat. ⛔ Ne pas rendre `groupe.nivN_texte` directement.
+- ⚠️ **Écarter n'est pas corriger** : `app/admin/controleQualite.ts` continue de signaler le doublon comme un défaut de DONNÉE, et le crayon de l'administrateur montre toujours la valeur réelle. 1 524 segments sont dans ce cas, dont 89 réellement visibles — la Somme théologique est la seule œuvre dont `texte_corps` affiche ses compléments.
+- ⚠️ **L'affichage d'un complément reste sous le réglage de l'œuvre** (`texte_sommaire` / `texte_corps`, un booléen par niveau) : la règle dit ce qu'on ne compose PAS, elle n'impose pas de composer.
+- ⚠️ **Les niveaux 4 et 5 ne sont employés par AUCUN segment du corpus** (mesuré à zéro le 2026-08-29). Le type `Groupe` s'arrête au niveau 4 et `COLONNES_SEGMENT` ne lit pas `ref_niv5_texte` : à compléter le jour où un import descendra si bas, pas avant.
+
 # Titres — jamais de point final ; commentaire de traduction
 
 - **Pas de point final AU FRONTISPICE, et là seulement** (décision de l'auteur, 2026-08-24). `sansPointFinal` (`app/lib/titres.ts`) ne s'applique plus qu'à `PageTitre` — titre, sous-titre, commentaire de traduction — et aux commentaires publics, dont la charte dit qu'ils « ne prennent pas de point final ». Il préserve « … » / « ... » et les points internes.

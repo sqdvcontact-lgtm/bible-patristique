@@ -54,7 +54,7 @@ import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { COMPOSITION_INTITULE, cleTriTitre } from '@/app/lib/titres'
+import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -2144,6 +2144,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
             {!modeComparaisonActif && !texteSansNiveaux && niv1List.map(n1 => {
               const estActif = vue === 'texte' && n1 === niv1Actif
+              // Le complément ne se compose que s'il dit autre chose que son titre.
+              const n1txt = complementDeTitre(n1, niv1TexteMap[n1])
 
               return (
                 <div key={n1} style={{ marginBottom: profondeurSommaire >= 2 ? '6px' : '0' }}>
@@ -2151,15 +2153,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, ...COMPOSITION_INTITULE }}>
                     {titreSansAppelsDeNote(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'Liminaires') : n1)}
-                    {n1 !== NIV1_LIMINAIRES && niv1TexteMap[n1] && configNiveaux.txtSommaire[0] && (
-                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(niv1TexteMap[n1])}</span>
+                    {n1 !== NIV1_LIMINAIRES && n1txt && configNiveaux.txtSommaire[0] && (
+                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(n1txt)}</span>
                     )}
                   </button>
 
                   {/* Niv2 — affiché si profondeur >= 2 ET niv1 actif */}
                   {profondeurSommaire >= 2 && estActif && niv2List.map(n2 => {
                     const g2 = groupes.find(g => (!lectureTexteEntier || g.niv1 === n1) && g.niv2 === n2)
-                    const n2txt = g2?.niv2_texte || ''
+                    const n2txt = complementDeTitre(n2, g2?.niv2_texte)
                     const actif2 = vue === 'texte' && niv2Actif === n2
                     // Niv3 distincts pour ce niv2
                     const niv3DeN2 = profondeurSommaire >= 3
@@ -2177,7 +2179,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
                           const g3 = groupes.find(g => (!lectureTexteEntier || g.niv1 === n1) && g.niv2 === n2 && g.niv3 === n3)
-                          const n3txt = g3?.niv3_texte || ''
+                          const n3txt = complementDeTitre(n3, g3?.niv3_texte)
                           const ancre = groupes.find(g => (!lectureTexteEntier || g.niv1 === n1) && g.niv2 === n2 && g.niv3 === n3)?.anchor
                           return (
                             <button key={n3}
@@ -2301,7 +2303,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       )
                     })()}
                     {(() => {
-                      const txt = groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif] || ''
+                      // Le titre réellement composé au-dessus : sous « Liminaires », c'est le
+                      // libellé de la carte, et il n'a pas à se redire en sous-titre.
+                      const titreAffiche = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif
+                      const txt = complementDeTitre(titreAffiche, groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif])
                       const notesTitre = notesDuTitre([txt], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes)
                       return txt && configNiveaux.txtCorps[0]
                         ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(txt), notesTitre)}</span>
@@ -2361,6 +2366,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 [groupe.niv1, groupe.niv1_texte, groupe.niv2, groupe.niv2_texte, groupe.niv3, groupe.niv3_texte, groupe.niv4, groupe.niv4_texte],
                 segMap.get(itemsReels[0])?.notes,
               )
+              // Le complément d'un titre est FACULTATIF, et il ne se compose que s'il
+              // dit autre chose que le titre lui-même (cf. `complementDeTitre`).
+              const sousTitre1 = complementDeTitre(groupe.niv1, groupe.niv1_texte)
+              const sousTitre2 = complementDeTitre(groupe.niv2, groupe.niv2_texte)
+              const sousTitre3 = complementDeTitre(groupe.niv3, groupe.niv3_texte)
+              const sousTitre4 = complementDeTitre(groupe.niv4, groupe.niv4_texte)
               const showNiv1 = lectureTexteEntier && profondeurCorps >= 1 && groupe.niv1 && groupe.niv1 !== dniv1
               const showNiv2 = profondeurCorps >= 2 && groupe.niv2 && groupe.niv2 !== dniv2
               const showNiv3 = profondeurCorps >= 3 && groupe.niv3 && groupe.niv3 !== dniv3
@@ -2381,13 +2392,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {showNiv1 && (
                     <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', position: 'relative' }}>
                       <h2 style={styleTitreNiveau(1)}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, 'titre')}</h2>
-                      {groupe.niv1_texte && configNiveaux.txtCorps[0] && <p style={styleSousTitreNiveau(1)}>{rendreTexteAvecNotes(preparerTitreColophon(groupe.niv1_texte), notesTitre)}</p>}
+                      {sousTitre1 && configNiveaux.txtCorps[0] && <p style={styleSousTitreNiveau(1)}>{rendreTexteAvecNotes(preparerTitreColophon(sousTitre1), notesTitre)}</p>}
                     </div>
                   )}
                   {showNiv2 && (
                     <div style={{ textAlign: 'center', marginTop: marginTop, marginBottom: '1rem', paddingTop: '0.5rem', position: 'relative' }}>
                       <h3 style={styleTitreNiveau(2)}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, 'titre')}</h3>
-                      {groupe.niv2_texte && configNiveaux.txtCorps[1] && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                      {sousTitre2 && configNiveaux.txtCorps[1] && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(sousTitre2, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
@@ -2401,7 +2412,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {showNiv3 && (
                     <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)', position: 'relative' }}>
                       <p style={{ ...styleTitreNiveau(3), textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(groupe.niv3, notesTitre)}</p>
-                      {groupe.niv3_texte && configNiveaux.txtCorps[2] && <p style={styleSousTitreNiveau(3)}>{rendreTitreColophonAvecNotes(groupe.niv3_texte, notesTitre)}</p>}
+                      {sousTitre3 && configNiveaux.txtCorps[2] && <p style={styleSousTitreNiveau(3)}>{rendreTitreColophonAvecNotes(sousTitre3, notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
@@ -2415,7 +2426,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {showNiv4 && (
                     <p style={{ ...styleTitreNiveau(4), position: 'relative' }}>
                       {rendreTitreColophonAvecNotes(groupe.niv4, notesTitre)}
-                      {groupe.niv4_texte && configNiveaux.txtCorps[3] && <span style={styleSousTitreNiveau(4)}>{rendreTitreColophonAvecNotes(groupe.niv4_texte, notesTitre)}</span>}
+                      {sousTitre4 && configNiveaux.txtCorps[3] && <span style={styleSousTitreNiveau(4)}>{rendreTitreColophonAvecNotes(sousTitre4, notesTitre)}</span>}
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
@@ -2656,6 +2667,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     [groupe.niv1, groupe.niv1_texte, groupe.niv2, groupe.niv2_texte],
                     segMapApparat.get(groupe.itemIds[0])?.notes,
                   )
+                  // Même règle que dans le texte suivi : un complément absent, ou qui
+                  // redit son titre, ne se compose pas.
+                  const sousTitre1 = complementDeTitre(groupe.niv1, groupe.niv1_texte)
+                  const sousTitre2 = complementDeTitre(groupe.niv2, groupe.niv2_texte)
                   // Même valeur qu'au niveau 1 du texte suivi : l'apparat prenait 2,5rem
                   // quand le texte en prend 2,8, écart que rien ne justifiait.
                   const marginTop = isFirst ? '0' : '2.8rem'
@@ -2672,7 +2687,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // pour cesser de faire partie de ce qui le suit.
                         <div style={{ textAlign: 'center', marginTop, marginBottom: '1.5rem', paddingTop: '0.5rem', position: 'relative' }}>
                           <h2 style={styleTitreNiveau(1)}>{rendreTitreColophonAvecNotes(groupe.niv1, notesTitre, 'titre')}</h2>
-                          {groupe.niv1_texte && <p style={styleSousTitreNiveau(1)}>{rendreTitreColophonAvecNotes(groupe.niv1_texte, notesTitre)}</p>}
+                          {sousTitre1 && <p style={styleSousTitreNiveau(1)}>{rendreTitreColophonAvecNotes(sousTitre1, notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
@@ -2682,7 +2697,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {showNiv2 && (
                         <div style={{ margin: showNiv1 ? '1rem 0 0.6rem' : '2rem 0 0.6rem', textAlign: 'center' }}>
                           <h3 style={styleTitreNiveau(2)}>{rendreTitreColophonAvecNotes(groupe.niv2, notesTitre, 'titre')}</h3>
-                          {groupe.niv2_texte && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
+                          {sousTitre2 && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(sousTitre2, notesTitre)}</p>}
                         </div>
                       )}
                       {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => {

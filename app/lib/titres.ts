@@ -66,6 +66,34 @@ export function memeIntitule(a: string | null | undefined, b: string | null | un
   return cle !== '' && cle === cleIntitule(b)
 }
 
+// Le COMPLÉMENT d'un titre de niveau — ce qu'il faut en composer, s'il dit quelque chose.
+//
+// `ref_nivN` est le titre STRUCTUREL du niveau N, `ref_nivN_texte` son complément, et
+// ce complément est FACULTATIF : son absence est le cas ordinaire, non un défaut. Au
+// 29 août 2026, 27 156 segments portent un titre de niveau 1 sans complément (28 %),
+// 31 550 au niveau 2 (36 %), 1 534 au niveau 3. Un niveau sans complément se compose
+// donc seul, sans séparateur, sans tiret et sans emplacement vide — c'est ce que fait
+// le lecteur depuis toujours, chaque complément étant rendu sous condition.
+//
+// ⛔ Ce que le lecteur ne faisait PAS : écarter le complément qui REDIT son titre.
+// 1 524 segments sont dans ce cas, et la Somme théologique est la seule œuvre qui les
+// montre (89 segments aux niveaux 2 et 3), les autres ayant `texte_corps` à zéro. Le
+// titre y paraissait deux fois de suite, en romain puis en italique.
+//
+// ⚠️ La comparaison est celle de `memeIntitule` : blancs, casse, forme de l'apostrophe,
+// point final et appels de note. Les accents restent distinctifs.
+//
+// ⚠️ Écarter n'est pas corriger : `app/admin/controleQualite.ts` continue de signaler
+// le cas comme un défaut de DONNÉE, et le crayon de l'administrateur montre toujours
+// la valeur réelle. On refuse seulement de composer deux fois le même intitulé.
+export function complementDeTitre(
+  titre: string | null | undefined,
+  complement: string | null | undefined,
+): string {
+  if (!complement || !complement.trim()) return ''
+  return memeIntitule(titre, complement) ? '' : complement
+}
+
 /** Comment COMPOSER un intitulé de sommaire. Deux réglages, et ils ne se gênent pas.
  *
  *  `white-space: pre-line` fait voir le saut de ligne SAISI par l'éditeur. Un chapeau
