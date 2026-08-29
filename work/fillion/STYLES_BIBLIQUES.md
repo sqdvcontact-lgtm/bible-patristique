@@ -349,12 +349,39 @@ couple (rang, nature) que le lecteur compose est identique, et aucun bloc ne se
 retrouve sans rang. Sauvegarde `internal.backup_styles_normalisation_20260829`,
 retour en arrière dans `sql/rollback_normalisation_styles_20260829.sql`.
 
-⚠️ **Vingt-quatre blocs portaient un rang écrit qui CONTREDISAIT celui de leur nom**,
-toujours d’un cran plus profond — `introduction_sous_section` écrit I4 quand son nom
-dit I3, `titre_section_livre` écrit T4 quand son nom dit T3. Le NOM l’a emporté,
-parce que c’est lui que le rendu a toujours lu : la composition n’a donc pas bougé.
-Les vingt-quatre sont relevés dans `internal.styles_rangs_ecartes_20260829`, à relire
-sur le fac-similé. **C’est une question philologique, pas technique.**
+### Les vingt-quatre rangs contradictoires, arbitrés
+
+Vingt-quatre blocs portaient un rang écrit qui contredisait celui de leur nom, toujours
+d’un cran plus profond. Ils ont été arbitrés un par un sur la preuve **structurelle** :
+ce que le bloc couvre, la portée qu’il déclare, et surtout ce que portent ses **frères**
+— les blocs de même fonction, de même étendue, à la même place. ⛔ Aucun n’a été tranché
+à l’intuition.
+
+**Onze corrigés :**
+
+| Cas | Ce que la preuve dit |
+|---|---|
+| **5 titres de la Genèse** — « Le sujet et le but », « Plan et division », « Beauté, utilité », « Les sources de la Genèse », « Commentaires » | Ils divisent l’INTRODUCTION. Le transcripteur les marquait T4 quand il marquait T3 « Le Divin Prélude » et les dix « Livre N » du corps : il distinguait bien, et c’est le NOM qui était faux. ⚠️ Confirmé par le corpus : **sept livres** ont leur introduction subdivisée, et les six autres la marquaient déjà `titre_sous_section`. → renommés |
+| **2 commentaires du Deutéronome** (I1 → I2) | Le livre a quatre discours, chacun avec son `titre_partie_livre` suivi de son commentaire sur exactement la même étendue. Deux portaient I2, deux I1. Les frères tranchent. |
+| **4 commentaires de la Genèse** | GEN.14.1-24 et GEN.18.1-8 couvrent une péricope et suivent un titre de péricope ou de paragraphe → **I5**. GEN.38 et GEN.39 couvrent un chapitre entier, et un seul → **I4**. |
+
+**Treize confirmés justes**, et qui n’ont pas bougé :
+
+- **11 introductions de Matthieu**, écrites I4 : elles introduisent une SOUS-SECTION,
+  mais l’échelle I n’a aucun rang pour cela — `I3` couvre la section ET la sous-section,
+  par décision du registre. Le I4 écrit visait un rang qui n’existe pas, et il signifie
+  « chapitre », ce que ces blocs ne sont pas.
+- **GEN.24.62-67**, écrit I6 : il suit un titre de péricope et en couvre l’étendue, six
+  versets. C’est une péricope, donc I5.
+- **GEN.28.10-35.29**, écrit I4 : son JUMEAU — même nom d’origine, même étendue, même
+  place après « Section II » — porte I3.
+
+⚠️ **Un seul changement est VISIBLE** : les cinq titres de la Genèse passent de T3 à T4,
+donc du centre au fer, et d’un cran plus petit. Tout le reste ne touche qu’au rang d’une
+information, qui ne change sa composition qu’entre I1-I2 et le reste.
+
+Sauvegarde `internal.backup_styles_arbitrage_20260829`, retour en arrière dans
+`sql/rollback_arbitrage_rangs_20260829.sql`.
 
 | Livre | Blocs | Styles |
 |---|---|---|
