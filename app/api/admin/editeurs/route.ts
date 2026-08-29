@@ -145,11 +145,30 @@ async function traiterCoedition(body: Record<string, unknown>) {
   return NextResponse.json({ ok: true, creees, reemployees, separee })
 }
 
+/** La marque de travail : elle dit ce que l’auteur a déjà examiné. ⛔ Purement
+ *  informative — elle ne commande ni la résolution, ni l’affichage, ni la fusion —, et
+ *  l’écriture ne touche donc à rien d’autre : le déclencheur de cohérence la laisse
+ *  passer même sur une fiche prise dans un litige de graphie. */
+async function marquerValide(body: Record<string, unknown>) {
+  const id = entier(body.id)
+  if (!id) return NextResponse.json({ error: 'Identifiant manquant.' }, { status: 400 })
+  const valide = body.valide === true
+  const { data, error } = await supabaseAdmin
+    .from('editeurs')
+    .update({ valide, valide_le: valide ? new Date().toISOString() : null })
+    .eq('id', id)
+    .select('id, valide, valide_le')
+    .single()
+  if (error) return reponseErreur(error)
+  return NextResponse.json({ ok: true, editeur: data })
+}
+
 export async function POST(request: Request) {
   if (!(await estAdminUtilisateur(request))) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const body = await request.json()
   if (body?.action === 'coedition') return traiterCoedition(body)
+  if (body?.action === 'valider') return marquerValide(body)
 
   const nom_complet = String(body.nom_complet ?? '').trim()
   if (!nom_complet) return NextResponse.json({ error: 'Le nom complet est requis.' }, { status: 400 })

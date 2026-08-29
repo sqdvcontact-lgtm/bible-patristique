@@ -63,9 +63,9 @@ comment on function public.editeurs_variantes_propres(text, text[]) is
   'Variantes nettoyées : ni vide, ni doublon de clé, ni renvoi de la fiche à elle-même.';
 
 -- ── `editeurs` : maisons des éditions primaires ─────────────────────────────
--- ⚠️ `internal.trg_editeurs_fusion_variantes` est RÉÉCRITE le même jour par
--- `20260829_editeurs_coedition.sql`, qui lui ajoute le refus d’un nom composé.
--- ⛔ C’est ce fichier-là qui fait foi sur cette fonction.
+-- ⚠️ `internal.trg_editeurs_fusion_variantes` est RÉÉCRITE deux fois le même jour, par
+-- `20260829_editeurs_coedition.sql` puis `20260829_editeurs_marque_de_validation.sql`.
+-- ⛔ C’est le DERNIER qui fait foi sur cette fonction.
 
 create or replace function internal.trg_editeurs_fusion_variantes()
 returns trigger

@@ -2489,6 +2489,15 @@ Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le point-virgule est la
 
 **État au 2026-08-29** : 50 formes composées dans `editeurs`, dont **13 dont toutes les maisons sont déjà répertoriées** (un clic chacune). ⛔ Aucune n’a été séparée d’office : plusieurs portent une mention de diffusion ou d’impression qui ne doit pas devenir une autorité, et c’est un arbitrage. Contrôle : `public.coeditions_editeurs_a_separer()`.
 
+## La recherche et la marque de travail de l’écran des éditeurs (2026-08-29)
+
+- **La recherche compare par CLÉ**, `cleEditeur`, non par la chaîne : « guerin » trouve « L. Guérin & Cie », l’accent, la ponctuation et la casse étant précisément ce que la clé efface. Elle regarde AUSSI les variantes, puisque c’est souvent par elles qu’on cherche une maison. ⛔ Ne pas y mettre un `toLowerCase().includes()` : deux façons de comparer dans le même écran, et l’une trouve ce que l’autre manque.
+- **`editeurs.valide` / `valide_le` sont une marque de TRAVAIL**, purement informative (demande de l’auteur : « c’est purement informatif, pour moi ; pour voir ce que j’ai ou non traité »). ⛔ Elle ne commande ni la résolution, ni l’affichage, ni la fusion, n’a aucune contrainte, et n’est jamais posée ni retirée automatiquement — pas même quand la fiche est modifiée. Colonne sur `editeurs`, comme `notes` qui y porte déjà des marques d’atelier.
+- ⛔ **Le verrou de cohérence SORT d’emblée quand ni le nom ni les variantes ne changent** (`sql/20260829_editeurs_marque_de_validation.sql`). Sans cette sortie, les deux fiches qui se disputent « J.-P. Migne » n’auraient pu être ni marquées, ni même pourvues d’une ville, tant que le litige n’est pas tranché : un repère de travail aurait été refusé pour une raison philologique. **Une écriture qui ne touche pas à l’invariant n’a pas à en répondre.**
+- **La marque se pose SANS attendre le serveur**, et un refus la rend : une liste de six cents lignes ne se recharge pas pour une case cochée.
+- ⚠️ **Le libellé dit l’ÉTAT, non le geste** — « ✓ Validé » / « À traiter » —, l’encre le redoublant. Un bouton qui nommerait l’action laisserait ignorer où l’on en est, ce qui est tout ce qu’on lui demande. ⛔ Et pas de ☑/☐ : ces glyphes ne sont dans aucune des deux polices du site et tomberaient sur une police système.
+
+
 
 
 ## Une version se donne comme une traduction, pas comme un nom

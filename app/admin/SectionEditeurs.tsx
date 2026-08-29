@@ -28,6 +28,10 @@ type Editeur = {
   annee_debut: number | null
   annee_fin: number | null
   notes: string | null
+  // Marque de TRAVAIL, purement informative : ce que l’auteur a déjà examiné. ⛔ Elle ne
+  // commande ni la résolution, ni l’affichage, ni la fusion.
+  valide: boolean
+  valide_le: string | null
 }
 
 type Brouillon = {
@@ -86,6 +90,8 @@ export default function SectionEditeurs() {
   // Les maisons d’une coédition qu’on propose d’ouvrir séparément, après un refus de la
   // route ou un clic sur une forme composée de la file.
   const [coedition, setCoedition] = useState<{ parties: string[]; id?: number } | null>(null)
+  const [q, setQ] = useState('')
+  const [filtre, setFiltre] = useState<'tous' | 'a_traiter' | 'valides'>('tous')
 
   const charger = useCallback(async () => {
     const [{ data: eds }, { data: oeuvres }] = await Promise.all([
@@ -116,8 +122,18 @@ export default function SectionEditeurs() {
 
   // Une maison porte un nom simple ; une coédition en réunit deux et se traite à part.
   const index = useMemo(() => construireIndexEditeurs(editeurs ?? []), [editeurs])
-  const maisons = useMemo(() => (editeurs ?? []).filter(e => !estCoedition(e.nom_complet)), [editeurs])
-  const coeditions = useMemo(() => (editeurs ?? []).filter(e => estCoedition(e.nom_complet)), [editeurs])
+  // La recherche compare par CLÉ : « guerin » trouve « L. Guérin & Cie », accents,
+  // ponctuation et casse étant ce que la clé efface. Elle regarde aussi les variantes,
+  // puisque c’est souvent par elles qu’on cherche une maison.
+  const retenus = useMemo(() => {
+    const cle = cleEditeur(q)
+    return (editeurs ?? []).filter(e =>
+      (!cle || cleEditeur(e.nom_complet).includes(cle) || (e.variantes ?? []).some(v => cleEditeur(v).includes(cle)))
+      && (filtre === 'tous' || (filtre === 'valides') === !!e.valide))
+  }, [editeurs, q, filtre])
+  const maisons = useMemo(() => retenus.filter(e => !estCoedition(e.nom_complet)), [retenus])
+  const coeditions = useMemo(() => retenus.filter(e => estCoedition(e.nom_complet)), [retenus])
+  const nbValides = useMemo(() => (editeurs ?? []).filter(e => e.valide).length, [editeurs])
 
   const editer = (e: Editeur) => setBrouillon({
     id: e.id, nom_complet: e.nom_complet, variantes: (e.variantes ?? []).join(', '),
@@ -154,6 +170,27 @@ export default function SectionEditeurs() {
     await charger()
   }
 
+  // La marque se pose SANS attendre le serveur : c’est un repère de travail, et une liste
+  // de six cents lignes ne se recharge pas pour une case cochée. Un refus la rend.
+  const basculerValide = async (fiche: Editeur) => {
+    const valide = !fiche.valide
+    const poser = (v: boolean, le: string | null) => setEditeurs(liste =>
+      (liste ?? []).map(x => (x.id === fiche.id ? { ...x, valide: v, valide_le: le } : x)))
+    poser(valide, valide ? new Date().toISOString() : null)
+    const { data: session } = await supabase.auth.getSession()
+    const token = session.session?.access_token
+    const res = await fetch('/api/admin/editeurs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'valider', id: fiche.id, valide }),
+    })
+    if (!res.ok) {
+      const reponse = await res.json().catch(() => null)
+      poser(fiche.valide, fiche.valide_le)
+      setErreur(reponse?.error ?? 'Erreur.'); setStatut('err')
+    }
+  }
+
   // Ouvre ou réemploie chaque maison, puis retire la fiche composée quand il y en a une.
   const ouvrirCoedition = async (parties: string[], id?: number) => {
     setStatut('envoi'); setErreur('')
@@ -187,6 +224,20 @@ export default function SectionEditeurs() {
   const champ: React.CSSProperties = { width: '100%', fontSize: '0.8125rem', padding: '5px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
   const label: React.CSSProperties = { display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase', margin: '0 0 2px' }
   const entete: React.CSSProperties = { fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }
+
+  // ⛔ Le libellé dit l’ÉTAT, non le geste : « À traiter » sur une fiche non traitée. Un
+  // bouton qui nommerait l’action laisserait ignorer où l’on en est, ce qui est tout ce
+  // qu’on lui demande.
+  const boutonValide = (e: Editeur) => (
+    <button className="ed-lien" onClick={() => basculerValide(e)}
+      aria-pressed={e.valide}
+      title={e.valide
+        ? (e.valide_le ? `Validé le ${new Date(e.valide_le).toLocaleDateString('fr-FR')} — cliquer pour dé-valider` : 'Validé — cliquer pour dé-valider')
+        : 'Marquer comme traité'}
+      style={{ fontSize: '0.71875rem', color: e.valide ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, whiteSpace: 'nowrap' }}>
+      {e.valide ? '\u2713\u202fValidé' : 'À traiter'}
+    </button>
+  )
 
   return (
     <div>
@@ -279,11 +330,29 @@ export default function SectionEditeurs() {
 
         {/* ── Colonne droite : liste des éditeurs répertoriés ── */}
         <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap', margin: '0 0 13px' }}>
+            <input value={q} onChange={ev => setQ(ev.target.value)} aria-label="Rechercher un éditeur"
+              placeholder="Rechercher un nom ou une variante…"
+              style={{ ...champ, width: 'auto', flex: '1 1 15rem', maxWidth: '24rem' }} />
+            <div role="group" aria-label="Filtrer par état" style={{ display: 'inline-flex', border: '1px solid var(--cs-bord)', borderRadius: '999px', overflow: 'hidden' }}>
+              {([['tous', 'Tous'], ['a_traiter', 'À traiter'], ['valides', 'Validés']] as const).map(([cle, libelle]) => (
+                <button key={cle} onClick={() => setFiltre(cle)} aria-pressed={filtre === cle}
+                  style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '4px 12px', border: 'none', cursor: 'pointer',
+                    background: filtre === cle ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
+                    color: filtre === cle ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)' }}>
+                  {libelle}
+                </button>
+              ))}
+            </div>
+            <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)' }} aria-live="polite">
+              {nbValides} validés sur {editeurs?.length ?? 0}
+            </span>
+          </div>
           <p style={{ ...entete, color: 'var(--cs-texte-gris)' }}>Répertoriés ({maisons.length})</p>
           {editeurs === null ? (
             <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
           ) : maisons.length === 0 ? (
-            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun éditeur répertorié pour l’instant.</p>
+            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{q || filtre !== 'tous' ? 'Aucun éditeur ne répond à cette recherche.' : 'Aucun éditeur répertorié pour l’instant.'}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {maisons.map(e => (
@@ -296,6 +365,7 @@ export default function SectionEditeurs() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '9px', flexShrink: 0 }}>
+                    {boutonValide(e)}
                     <button className="ed-lien" onClick={() => editer(e)} style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Modifier</button>
                     <button className="ed-lien" onClick={() => supprimer(e.id)} style={{ fontSize: '0.71875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Supprimer</button>
                   </div>
@@ -334,6 +404,7 @@ export default function SectionEditeurs() {
                         })}
                       </div>
                       <div style={{ display: 'flex', gap: '9px', flexShrink: 0 }}>
+                        {boutonValide(e)}
                         <button className="ed-lien" onClick={() => ouvrirCoedition(parties, e.id)} disabled={statut === 'envoi'}
                           style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Séparer</button>
                         <button className="ed-lien" onClick={() => editer(e)}

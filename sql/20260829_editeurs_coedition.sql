@@ -18,8 +18,8 @@
 -- quand une coédition en demande deux.
 --
 -- Le déclencheur est réécrit ENTIER, la garde s’ajoutant en tête de
--- `sql/20260829_fusion_autorites_editeurs.sql` : ⛔ les deux fichiers décrivent la même
--- fonction, celui-ci fait foi.
+-- `sql/20260829_fusion_autorites_editeurs.sql`. ⛔ Elle est réécrite une fois de plus par
+-- `20260829_editeurs_marque_de_validation.sql`, qui fait foi sur cette fonction.
 
 create or replace function internal.trg_editeurs_fusion_variantes()
 returns trigger
