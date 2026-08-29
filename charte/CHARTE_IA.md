@@ -682,23 +682,46 @@ dit ce que la chose est, la surface dit comment elle se compose.
 
 | Surface | Comment on déclare le vers | Où le bloc se compose |
 |---|---|---|
-| Corps d'une œuvre | `nature = 'vers'` *(hérité)* ou `segment_metadata.forme = 'vers'` | `styleBlocDeVers` |
+| Corps d'une œuvre | `segment_metadata.forme = 'vers'` | `styleBlocDeVers` |
 | Apparat d'une œuvre | `segment_metadata.forme = 'vers'` **seulement** | `styleBlocDeVers` |
 | Apparat d'une bible | `form: 'verse'` sur le paragraphe | `STYLE_CORPS` |
 | Texte biblique | *(reste à déclarer — voir plus bas)* | `styleTexteVerset({ enVers })` |
 
-#### Deux écritures pour déclarer un vers, et pourquoi
+#### Une seule écriture, et c'est l'APPARAT qui l'a imposée
 
 ⛔ **Dans l'apparat, la NATURE est déjà prise.** Un segment d'apparat vaut
-`apparat_critique` — c'est par là qu'il est sélectionné — et il ne peut pas dire en
+`apparat_critique` — c'est par là qu'il est SÉLECTIONNÉ — et il ne peut pas dire en
 plus qu'il est en vers. Il fallait donc un second axe : `segment_metadata.forme`, qui
 dit la MATIÈRE d'un segment sans toucher à sa nature. C'est exactement ce que le
 paratexte biblique fait depuis toujours avec son couple `kind` × `form`.
 
-⚠️ `nature = 'vers'` reste la façon HÉRITÉE, et les 2 325 segments qui la portent ne
-bougent pas. Le prédicat `estEnVers` lit les deux, et `estBlocDeVers` applique le
-TOUT OU RIEN : un bloc mêlant un vers et de la prose se compose en prose. ⛔ Ne jamais
-lire l'une des deux écritures sans l'autre.
+⚠️ **Et ce que l'apparat impose, le corps l'adopte.** `nature = 'vers'` a existé
+jusqu'au 29 août 2026 ; elle est sortie du vocabulaire ce jour-là, et ses 2 325
+segments ont migré vers la forme — 1 213 vers de Boèce chez Ceriziers, 1 092 chez
+Mirandol, 20 du *Manuel* de Dhuoda. La nature retombe sur celle de leurs FRÈRES, ce que
+porte un bloc de même fonction dans le même espace : `texte` dans le corps,
+`introduction` dans l'introduction. Aucun n'a changé de composition.
+
+⛔ **Garder les deux aurait été garder deux façons de dire le même fait, et deux façons
+de dire un même fait divergent toujours.** Elles avaient DÉJÀ divergé : trois lecteurs
+du site jugeaient le vers sur la seule nature, sans passer par `estEnVers` — la lecture
+bilingue et deux endroits des traductions parallèles. Le prédicat ne lit donc plus que
+la forme, et `estBlocDeVers` applique le TOUT OU RIEN : un bloc mêlant un vers et de
+la prose se compose en prose.
+
+⚠️ **Une déclaration, mais DEUX enveloppes, et il faut lire les deux.** Selon la
+requête, la forme arrive à plat (`forme:segment_metadata->>forme`, comme le fait
+`SELECT_SEGMENT`) ou dans la colonne `segment_metadata` entière. Ce n'est pas une
+seconde façon de DÉCLARER un vers mais une seconde façon de le TRANSPORTER, et c'est
+exactement là que le défaut se logeait. ⛔ Ne jamais juger un vers ailleurs que dans
+`estEnVers`.
+
+⚠️ **Ce que la levée du verrou a coûté, et qu'on ne refera pas.** La base est PARTAGÉE
+entre le poste de travail et le site en ligne : la migration des données a donc rendu
+faux, à la seconde même, le code DÉJÀ DÉPLOYÉ qui lisait la nature. Les traductions
+parallèles de Boèce ont composé leurs vers en prose le temps que le correctif soit
+poussé. C'est le piège déjà consigné pour `oeuvres_auteurs` — **on change le code
+AVANT la donnée, ou bien les deux dans le même souffle.**
 
 #### Ce que la garde impose
 
@@ -738,8 +761,7 @@ Les chiffres sont ceux du 29 août 2026 ; ils disent l'emploi réel, non une per
 
 | Nature | Ce qu'elle sert | ⛔ Ce qu'elle n'est pas | Segments |
 |---|---|---|---|
-| `texte` | la prose de l'auteur : le cas ordinaire, et le défaut | un fourre-tout — 93 % du corpus, mais un lemme ou une citation structurelle méritent leur nom | 88 811 |
-| `vers` | une ligne de poésie, une par segment | ⛔ pas `verset` : un vers est une ligne de MÈTRE, un verset une unité de l'Écriture | 2 325 |
+| `texte` | la prose de l'auteur : le cas ordinaire, et le défaut | un fourre-tout — 93 % du corpus, mais un lemme ou une citation structurelle méritent leur nom | 91 116 |
 | `apparat_critique` | l'apparat de l'ÉDITEUR — variantes, collation | il a sa PROPRE vue dans la page, il n'est pas dans le corps | 1 295 |
 | `citation` | une citation structurelle, dont le rendu RECOLLE les segments | ⛔ pas une citation en ligne : celle-là reste dans `texte` et se détache d'elle-même au delà de 400 signes | 1 221 |
 | `dialogue` | une réplique, dans un texte qui en compte | ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
@@ -747,15 +769,17 @@ Les chiffres sont ceux du 29 août 2026 ; ils disent l'emploi réel, non une per
 | `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR | ⛔ pas `apparat_critique` : celui-ci appartient au CORPS et se lit à sa place | 96 |
 | `lemme` | le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente | ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026) | 68 |
 | `rubrique` | une rubrique éditoriale qui n'est PAS un niveau de titre | un titre : elle ne prend ni balise `h*` ni place au plan | 43 |
-| `introduction` | un préambule appartenant au texte | 37 |
+| `introduction` | un préambule appartenant au texte | | 57 |
 | `verset` | un verset d'une citation que l'ÉDITION pose verset par verset | ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
-| `texte absent` | une lacune du témoin | 1 |
-| `signature` | approbations, censeurs, souscripteurs : au fer à droite, interligne resserré | 0 |
-| `separateur` | ⛔ **ÉTEINTE.** Conservée pour d'anciens exports ; ne plus en créer. | 0 |
+| `texte absent` | une lacune du témoin | | 1 |
+| `signature` | approbations, censeurs, souscripteurs : au fer à droite, interligne resserré | | 0 |
+| `separateur` | ⛔ **ÉTEINTE.** Conservée pour d'anciens exports ; ne plus en créer. | | 0 |
 
-⚠️ Un second axe dit la FORME et non la fonction : `segment_metadata.forme = 'vers'`
-(§ 7.4). Il est le seul moyen de déclarer un vers là où la nature est déjà prise —
-dans l'apparat.
+⛔ **Le VERS n'est PAS dans cette table, et c'est le point à retenir** : ce n'est pas
+une nature mais une FORME, déclarée par `segment_metadata.forme = 'vers'` (§ 7.4).
+La nature `vers` a existé jusqu'au 29 août 2026 ; ses 2 325 segments ont migré, la
+contrainte la refuse, et le compte de `texte` a monté d'autant. ⚠️ Un vers reste une
+ligne de MÈTRE, à ne pas confondre avec `verset`, qui est une unité de l'Écriture.
 
 #### 7.5.2. Les styles du paratexte biblique — `metadata.semantic_style`
 
@@ -2746,6 +2770,8 @@ L’ordre d’affichage d’une liste bibliographique ne se lit pas dans la donn
 Cette obligation vaut aussi pour les œuvres antiques, médiévales ou anciennes lorsqu’aucune édition moderne précise n’est citée. Dans ce cas, on crée ou réemploie une notice au niveau documentaire réellement attesté, sans inventer lieu, éditeur, date ni édition. Si l’identification demeure incertaine, la citation reste explicitement en `review`, avec la forme source conservée et le motif de l’incertitude ; elle ne disparaît jamais silencieusement. Les références bibliques et les simples renvois internes ne sont pas des ouvrages bibliographiques et échappent à cette règle.
 
 **L’éditeur d’une notice doit être une autorité, non une simple chaîne libre.** Lorsqu’un éditeur est identifié, `ouvrages_bibliographiques.editeur_valeur_id` doit pointer vers l’autorité correspondante dans `editeurs_valeur`. Si cette autorité existe déjà sous son nom canonique ou sous un alias, le rattachement est obligatoire : ⛔ ne pas créer de doublon. Si elle n’existe pas, créer une seule autorité canonique, y conserver les variantes utiles comme alias, puis rattacher la notice. Si l’éditeur reste douteux, conserver la forme source et le statut de révision sans fabriquer d’autorité conjecturale. `editeurs_valeur` est le référentiel bibliographique qui alimente la normalisation et la section « Éditeurs » de l’administration ; l’ancienne table `editeurs` ne constitue pas l’autorité de normalisation des notices bibliographiques.
+
+**La rubrique de normalisation des éditeurs est exhaustive.** Toute forme non vide présente dans un champ `editeur` ou `publisher` d’une table source du corpus doit être représentée dans `editeurs_valeur`, soit comme autorité canonique, soit comme alias, soit comme candidat `a_verifier`. Cette règle vaut notamment pour `ouvrages_bibliographiques`, `catalogue_notices`, `oeuvres`, `editions_sources`, `bible_edition_components`, `propositions_oeuvres` et `sources_pericopes`. ⛔ Une forme source ne peut rester invisible au seul motif qu’elle n’a pas encore été normalisée : elle doit apparaître dans la rubrique d’administration afin de pouvoir être contrôlée, fusionnée, conservée comme variante ou exclue.
 
 **Contrôle de clôture obligatoire.** Toute passe bibliographique, y compris sur une bibliographie ancienne déjà présente dans le corpus, vérifie au minimum : (1) chaque œuvre identifiable possède ou réemploie un `ouvrage_id` ; (2) chaque éditeur identifié possède ou réemploie un `editeur_valeur_id` ; (3) aucun doublon d’œuvre ou d’autorité n’a été créé ; (4) les formes imprimées ou OCR restent conservées comme provenance lorsqu’elles diffèrent de la forme normalisée. Une bibliographie critique d’introduction — notamment chez Fillion — n’est donc pas achevée tant que ses références n’ont pas été raccordées au catalogue et aux autorités correspondantes.
 

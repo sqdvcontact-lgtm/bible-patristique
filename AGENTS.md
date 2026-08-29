@@ -2126,16 +2126,18 @@ Doctrine : charte **§ 7.5** (ce que chaque style sert, et ce qu'il n'est pas) e
   n'est pas une vertu — celle du paratexte comptait 23 styles jamais employés, et c'est
   elle qui a permis à deux tomes de nommer différemment la même chose.
 
-⛔ **UN VERROU NON DOCUMENTÉ GÈLE LA NATURE DES SEGMENTS DE BOÈCE.**
-`trg_guard_boece_source_immutability_v3` interdit toute modification, sur
-`A0064O0001`, de vingt-cinq champs : identité, texte, les cinq niveaux de référence,
-`source_unit_id`, `espace_textuel`, offsets, `join_before`, `paragraphe`, `rang`,
-`page`, `texte_original` — **et `nature`**. Son auteur a donc rangé la nature parmi les
-faits de la SOURCE. ⚠️ Il bloque la migration des 2 305 vers de Boèce vers
-`forme: vers`, et **il n'était consigné nulle part** — ni charte, ni ici, ni centre de
-contrôle. Le contourner est une décision de l'auteur, pas un geste technique. Il laisse
-passer `segment_metadata` : on pourrait y écrire la forme sans toucher à la nature,
-mais les segments porteraient alors les DEUX déclarations.
+✅ **LE VERROU D'IMMUTABILITÉ DE BOÈCE EST LEVÉ (2026-08-29).**
+`trg_guard_boece_source_immutability_v3` gelait, sur `A0064O0001`, vingt-six champs :
+identité, texte, les cinq niveaux de référence et leurs intitulés, `source_unit_id`,
+`espace_textuel`, offsets, `join_before`, `paragraphe`, `rang`, `page`,
+`texte_original` — **et `nature`**. Son auteur avait donc rangé la nature parmi les
+faits de la SOURCE, et il bloquait la migration des 2 305 vers de Boèce.
+
+⚠️ **Il n'était consigné NULLE PART** — ni charte, ni ici, ni centre de contrôle : on
+l'a découvert en butant dessus. C'est la seule chose à retenir de lui. Levé sur décision
+de l'auteur (« le verrou de Boèce ne tient plus »), migration
+`20260829140000_boece_verrou_leve.sql`. ⚠️ **La FONCTION est conservée**, seul le
+déclencheur tombe : le reposer ne demande qu'une ligne, écrite en tête de la migration.
 
 ## ⛔ Le VERS — un style, QUATRE surfaces (2026-08-29)
 
@@ -2147,7 +2149,7 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
 
 | Surface | Déclaration | Bloc |
 |---|---|---|
-| Corps d'une œuvre | `nature = 'vers'` *(hérité)* ou `segment_metadata.forme` | `styleBlocDeVers` |
+| Corps d'une œuvre | `segment_metadata.forme = 'vers'` | `styleBlocDeVers` |
 | Apparat d'une œuvre | `segment_metadata.forme = 'vers'` **seulement** | `styleBlocDeVers` |
 | Apparat d'une bible | `form: 'verse'` sur le paragraphe | `STYLE_CORPS` |
 | Texte biblique | *(reste à déclarer)* | `styleTexteVerset({ enVers })` |
@@ -2157,10 +2159,29 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   plus qu'il est en vers. D'où le second axe `segment_metadata.forme`, qui dit la
   MATIÈRE sans toucher à la nature — exactement ce que le paratexte biblique fait
   depuis toujours avec son couple `kind` × `form`.
-- ⚠️ **Deux écritures, une règle.** `estEnVers` lit la nature héritée ET la forme ;
-  `estBlocDeVers` applique le tout ou rien. ⛔ Ne jamais lire l'une sans l'autre.
-  `styleLigneDeVers` a quitté `compositionOeuvre.ts` le 29 août pour que les quatre
-  surfaces le partagent.
+- ⛔ **UNE SEULE écriture, et ce que l'apparat impose le corps l'adopte.**
+  `nature = 'vers'` a existé jusqu'au 29 août 2026 et n'existe plus : ses 2 325
+  segments ont migré vers la forme — 1 213 vers de Boèce chez Ceriziers, 1 092 chez
+  Mirandol, 20 du *Manuel* de Dhuoda —, la nature retombant sur celle de leurs FRÈRES
+  (`texte` dans le corps, `introduction` dans l'introduction). Aucun n'a changé de
+  composition ; `chk_segments_nature` refuse désormais `vers`. `estBlocDeVers` applique
+  le tout ou rien. `styleLigneDeVers` a quitté `compositionOeuvre.ts` le 29 août pour
+  que les quatre surfaces le partagent.
+- ⚠️ **Une déclaration, mais DEUX enveloppes, et il faut lire les deux.** Selon la
+  requête, la forme arrive à plat (`forme:segment_metadata->>forme`, ce que fait
+  `SELECT_SEGMENT`) ou dans la colonne `segment_metadata` entière. Ce n'est pas une
+  seconde façon de DÉCLARER un vers mais une seconde façon de le TRANSPORTER — et
+  c'est exactement là que le défaut se logeait. ⛔ **Ne jamais juger un vers ailleurs
+  que dans `estEnVers`** : trois lecteurs le faisaient sur la seule nature, sans passer
+  par le prédicat — la lecture bilingue (`bilingueAlignement.ts`) et deux endroits des
+  traductions parallèles (`ComparaisonTraductions.tsx`). Ni les types, ni les tests, ni
+  la relecture du prédicat ne le disaient : c'est le grep sur la NATURE qui les a
+  trouvés.
+- ⚠️ **La base est PARTAGÉE, et la migration s'est vue en ligne.** Écrire la donnée
+  avant de pousser le code a rendu faux, à la seconde même, le code déjà déployé : les
+  traductions parallèles de Boèce ont composé leurs vers en prose le temps du
+  correctif. Même piège que `oeuvres_auteurs`, consigné plus bas — **on change le code
+  AVANT la donnée, ou les deux dans le même souffle.**
 - ⛔ **On ne DÉCOUPE pas en lignes un paragraphe qui porte une locution marquée ou un
   appel de note** : leurs offsets pointent dans le texte entier. Il garde son
   `pre-line`, qui rend les sauts sans les indenter. Même garde que sur l'intertitre
@@ -2171,9 +2192,10 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   serait inventer une prosodie. Le style est posé, éprouvé et montré sur la planche ;
   il attend. *Poser un style avant sa donnée est légitime ; deviner la donnée depuis
   le style ne l'est pas.*
-- **Garde** : `app/lib/versQuatreSurfaces.test.ts` (8 tests) tient les deux moitiés —
-  les deux écritures de la déclaration, et le fait que la ligne se compose pareil
-  partout tandis que chaque surface apporte sa seule police.
+- **Garde** : `app/lib/versQuatreSurfaces.test.ts` (10 tests) tient les deux moitiés —
+  la déclaration sous ses deux enveloppes, le refus de la nature disparue, et le fait
+  que la ligne se compose pareil partout tandis que chaque surface apporte sa seule
+  police.
 
 ## ⛔ Un SOUS-TITRE se compose comme SON titre (2026-08-29)
 

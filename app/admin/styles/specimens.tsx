@@ -256,7 +256,7 @@ const OEUVRES: Unite[] = [
   {
     style: 'patristique/verset',
     note: 'Quand l’édition ne coule pas la citation dans sa prose mais la pose verset par verset. Un segment, un verset ; retrait à GAUCHE seulement, et un léger blanc entre versets au lieu du blanc de paragraphe.',
-    alerte: '⛔ La marque ne dit PAS qu’un passage est une citation biblique, mais que l’ÉDITION le pose verset par verset (charte § 3.8.1, resserrée le 29 août 2026) : une citation coulée dans la prose reste une `citation`. Portée réelle du corpus : deux suites, douze segments. ⚠️ Ne pas confondre avec `vers`, la ligne de poésie ; et le numéro s’écrit à la main dans `segment_metadata.biblical_verse_number` — jamais `verse_number`, déjà pris.',
+    alerte: '⛔ La marque ne dit PAS qu’un passage est une citation biblique, mais que l’ÉDITION le pose verset par verset (charte § 3.8.1, resserrée le 29 août 2026) : une citation coulée dans la prose reste une `citation`. Portée réelle du corpus : deux suites, douze segments. ⚠️ Ne pas confondre avec le VERS, la ligne de poésie, qui n’est plus une nature mais une forme ; et le numéro s’écrit à la main dans `segment_metadata.biblical_verse_number` — jamais `verse_number`, déjà pris.',
     contenu: (
       <>
         <p style={{ ...styleParagrapheLecture(), margin: 0 }}>
@@ -273,7 +273,7 @@ const OEUVRES: Unite[] = [
   {
     style: 'patristique/vers',
     note: 'Une ligne de poésie. Alinéa de base de 1,5 em, alinéas poétiques LUS dans la source, ni justification ni césure — on ne coupe pas un alexandrin —, interligne 1,4, et un retrait de suite qui distingue une ligne trop longue du vers d’après.',
-    alerte: '⛔ Un vers ne prend jamais de lettrine : le drop cap est un flottant, et posé dans la boîte d’une ligne il déborde sur les suivantes.',
+    alerte: '⛔ Un vers ne prend jamais de lettrine : le drop cap est un flottant, et posé dans la boîte d’une ligne il déborde sur les suivantes. ⚠️ Il se déclare par `segment_metadata.forme = "vers"`, JAMAIS par une nature : `vers` est sortie du vocabulaire le 29 août 2026, et ses 2 325 segments ont migré. Une nature et une forme qui disent le même fait finissent par diverger — trois lecteurs du site jugeaient déjà le vers sans passer par `estEnVers`.',
     contenu: (
       <div style={styleBlocDeVers()}>
         {[
@@ -310,7 +310,7 @@ const OEUVRES: Unite[] = [
   {
     style: 'patristique/signature',
     note: 'Un bloc d’approbations, de censeurs, de souscripteurs : au fer à droite, interligne resserré à 1,32, et un blanc de 0,3 rem seulement entre lignes de même nature.',
-    alerte: '⚠️ La base la REFUSAIT jusqu’au 29 août 2026 : le rendu existait, la donnée ne pouvait pas l’atteindre. Contrainte élargie depuis, `chk_segments_nature` porte les quatorze natures de `NATURE_VALIDES`.',
+    alerte: '⚠️ La base la REFUSAIT jusqu’au 29 août 2026 : le rendu existait, la donnée ne pouvait pas l’atteindre. Contrainte élargie depuis, `chk_segments_nature` porte les treize natures de `NATURE_VALIDES`.',
     contenu: (
       <>
         <p style={styleParagrapheLecture({ signature: true })}><Segment>Fr. Jean de Sainte-Marie, censeur.</Segment></p>
@@ -373,7 +373,7 @@ const APPARAT_OEUVRES: Unite[] = [
   {
     style: 'patristique_apparat/vers',
     note: 'Le MÊME style que dans le corps de l’œuvre : l’apparat critique compose ses vers comme la lecture les siens. Alinéas, strophe, retrait de suite — rien n’en change.',
-    alerte: '⛔ Dans l’apparat, la nature vaut déjà `apparat_critique` et ne peut pas dire en plus que le passage est en vers : c’est `segment_metadata.forme` qui le déclare. Le prédicat `estEnVers` lit les deux écritures.',
+    alerte: '⛔ Dans l’apparat, la nature vaut déjà `apparat_critique` — c’est par là que le segment est SÉLECTIONNÉ — et elle ne peut pas dire en plus que le passage est en vers : c’est `segment_metadata.forme` qui le déclare. ⚠️ C’est cette nécessité-là qui a fait de la forme la SEULE écriture, dans le corps comme dans l’apparat.',
     contenu: (
       <div style={styleBlocDeVers()}>
         {[
