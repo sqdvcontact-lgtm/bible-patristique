@@ -76,3 +76,20 @@ describe('lecteur comparé multiversion', () => {
     expect(sourceLecteur).not.toContain('>Comparaison</span>')
   })
 })
+
+describe('un `verset` se compose de la même façon sur les deux surfaces', () => {
+  it('les deux passent par `estBlocVersets`, jamais par la seule nature du segment', () => {
+    // ⛔ La lecture ordinaire découpe par `paragraphe` puis exige le TOUT OU RIEN :
+    // une citation glissée dans le fil d'un commentaire s'y compose en prose. La
+    // comparaison formait son bloc sur la seule nature, si bien que la MÊME donnée
+    // sortait du fil ici et y restait là. Corollaire, pris par l'autre bout, de la
+    // règle déjà payée sur les vers : une nature ne se compose pas de deux façons.
+    expect(sourceLecteur).toContain('estBlocVersets(chunk.ids.map(sid => segMap.get(sid)?.nature))')
+    expect(sourceParallele).toContain('estBlocVersets(naturesDuParagraphe.get(cleParagraphe(segment))')
+  })
+
+  it('la comparaison ne fait plus bloc sur la seule nature', () => {
+    expect(sourceParallele).not.toContain("segment.nature === NATURE_VERSET ? 'versets'")
+    expect(sourceParallele).toContain("segment.nature === NATURE_VERSET && faitBloc ? 'versets'")
+  })
+})

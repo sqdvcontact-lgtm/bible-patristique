@@ -15,7 +15,7 @@ import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from
 import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
-import { CLE_NUMERO_VERSET, NATURE_VERSET, numeroVersetLisible } from '@/app/lib/compositionVersets'
+import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   projeterAppelsNotesStructurees,
@@ -207,13 +207,33 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
     return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
   }
 
+  // ⛔ Un `verset` ne fait BLOC que si son paragraphe n'en porte QUE, et c'est la
+  // règle de la lecture ordinaire : elle découpe par `paragraphe`, puis exige le tout
+  // ou rien d'`estBlocVersets`. Une citation glissée dans le fil d'un commentaire s'y
+  // compose donc en prose. Ici, le bloc se formait sur la seule nature du segment : la
+  // MÊME donnée sortait du fil sur une surface et restait dans le fil sur l'autre.
+  // ⚠️ Une nature ne peut pas se composer de deux façons — c'est le corollaire de la
+  // règle déjà payée sur les vers, « une nature traitée sur UNE surface ne l'est nulle
+  // part », prise par l'autre bout. Relevé le 29 août 2026 sur les 1 055 versets que
+  // le Commentaire sur les Psaumes de Chrysostome portait dans sa prose.
+  const naturesDuParagraphe = new Map<string, (string | null)[]>()
+  const cleParagraphe = (segment: SegmentComparaison) =>
+    segment.paragraphe == null ? `seul:${segment.segment_key}` : `par:${segment.paragraphe}`
+  for (const segment of ordonnes) {
+    const cle = cleParagraphe(segment)
+    const liste = naturesDuParagraphe.get(cle)
+    if (liste) liste.push(segment.nature)
+    else naturesDuParagraphe.set(cle, [segment.nature])
+  }
+
   // Blocs : la prose d'un même paragraphe coule ensemble ; les vers consécutifs
   // forment une strophe (lignes serrées) ; les versets consécutifs forment la citation
   // biblique dont ils sont tirés ; une rubrique est isolée.
   const blocs: BlocLecture[] = []
   for (const segment of ordonnes) {
+    const faitBloc = estBlocVersets(naturesDuParagraphe.get(cleParagraphe(segment)) ?? [])
     const type: BlocLecture['type'] = segment.nature === 'vers' ? 'vers'
-      : segment.nature === NATURE_VERSET ? 'versets'
+      : segment.nature === NATURE_VERSET && faitBloc ? 'versets'
       : segment.nature === 'rubrique' ? 'rubrique' : 'prose'
     const dernier = blocs.at(-1)
     const memeProse = dernier?.type === 'prose' && type === 'prose' && segment.paragraphe != null && segment.paragraphe === dernier.segs[0].paragraphe

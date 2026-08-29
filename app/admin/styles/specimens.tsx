@@ -219,7 +219,7 @@ const OEUVRES: Unite[] = [
   {
     style: 'patristique/verset',
     note: 'Quand l’édition ne coule pas la citation dans sa prose mais la pose verset par verset. Un segment, un verset ; retrait à GAUCHE seulement, et un léger blanc entre versets au lieu du blanc de paragraphe.',
-    alerte: '⛔ Ne pas confondre avec `vers`, la ligne de poésie. Le numéro s’écrit à la main dans `segment_metadata.biblical_verse_number` — jamais `verse_number`, déjà pris.',
+    alerte: '⛔ La marque ne dit PAS qu’un passage est une citation biblique, mais que l’ÉDITION le pose verset par verset (charte § 3.8.1, resserrée le 29 août 2026) : une citation coulée dans la prose reste une `citation`. Portée réelle du corpus : deux suites, douze segments. ⚠️ Ne pas confondre avec `vers`, la ligne de poésie ; et le numéro s’écrit à la main dans `segment_metadata.biblical_verse_number` — jamais `verse_number`, déjà pris.',
     contenu: (
       <>
         <p style={{ ...styleParagrapheLecture(), margin: 0 }}>
