@@ -60,23 +60,53 @@ export function resoudreNomEditeur(brut: string, index: IndexEditeurs | null): s
   return t ? (index.noms.get(cleEditeur(t)) ?? null) : null
 }
 
+/** Le « ; » du catalogue sépare DEUX MAISONS qui ont coédité le même ouvrage : c’est la
+ *  norme du catalogage, et ce n’est donc JAMAIS le nom d’une maison. ⛔ Une autorité ne
+ *  porte pas de point-virgule, et une coédition n’a pas sa place dans la liste des
+ *  éditeurs répertoriés. ⚠️ La barre oblique, elle, appartient à de vrais noms de maison
+ *  (« Centre Thomas More / CADIR », « Leuven University Press / Peeters ») : elle ne
+ *  décide de rien. */
+export function partiesCoedition(nom: string): string[] {
+  return nom.split(/\s*;\s*/u).map((p) => p.trim()).filter(Boolean)
+}
+
+/** Deux maisons ou plus dans une même mention. */
+export function estCoedition(nom: string): boolean {
+  return partiesCoedition(nom).length > 1
+}
+
+/** La barre qui joint deux co-éditeurs, encadrée de FINES INSÉCABLES (U+202F) : espace
+ *  légère, et la barre ne passe jamais seule à la ligne. Écrite en échappement, faute de
+ *  quoi une réécriture du fichier la rendrait en espace ordinaire sans que rien ne le
+ *  montre — le dépôt a déjà perdu des fines de cette façon. */
+export const SEPARATEUR_COEDITEURS = '\u202f/\u202f'
+
+/** Les morceaux d’une mention d’éditeur, pour le RENDU. On y ajoute la barre oblique
+ *  parce que c’est par elle que la fonction joint ses résultats : sans cela, repasser un
+ *  affichage déjà composé le découperait autrement la seconde fois. */
+function morceauxDeMention(nom: string): string[] {
+  return nom.split(/\s*[;/]\s*/u).map((p) => p.trim()).filter(Boolean)
+}
+
 /** Affichage d'un champ éditeur : « / » entre co-éditeurs (jamais le « ; » brut du
- *  catalogue), et nom répertorié quand il l'est. La barre est encadrée de fines
- *  insécables, si bien qu'elle ne passe pas seule à la ligne. */
+ *  catalogue), et nom répertorié quand il l'est. */
 export function normaliserNomEditeur(
   editeur: string | null | undefined,
   index: IndexEditeurs | null,
 ): string {
   const brut = (editeur ?? '').trim()
   if (!brut) return ''
-  // La forme ENTIÈRE d'abord : « Veuve Jean Camusat ; Pierre Le Petit » est UNE graphie
-  // répertoriée, non deux maisons. Découper avant de chercher rend introuvable toute
-  // variante qui porte un « ; » — et c'est ainsi qu'une variante déclarée restait sans effet.
+  // La forme ENTIÈRE d’abord : « Veuve Jean Camusat ; Pierre Le Petit » est UNE graphie
+  // de la maison, non deux maisons. Découper avant de chercher rend introuvable toute
+  // variante qui porte un « ; » — et c’est ainsi qu’une variante déclarée restait sans effet.
   const entier = resoudreNomEditeur(brut, index)
-  if (entier) return entier
-  return brut.split(/\s*[;/]\s*/u).filter(Boolean)
+  if (entier && !estCoedition(entier)) return entier
+  // ⛔ Une COÉDITION ne se rend jamais telle quelle. Chaque maison se résout pour son
+  // propre compte et la barre les joint, que la forme composée soit restée dans la table
+  // (résidu d’import) ou qu’elle n’y ait jamais été.
+  return morceauxDeMention(entier ?? brut)
     .map((part) => resoudreNomEditeur(part, index) ?? part)
-    .join(' / ')
+    .join(SEPARATEUR_COEDITEURS)
 }
 
 /** Un segment de notice porte-t-il un ou plusieurs éditeurs RÉPERTORIÉS ? On exige que
@@ -85,15 +115,14 @@ export function normaliserNomEditeur(
  *  d'éditeur, c'est une bribe de notice où il s'en trouve un. */
 export function editeursDuSegment(segment: string, index: IndexEditeurs | null): string | null {
   if (!index) return null
-  // Même ordre que ci-dessus : un segment qui EST une graphie répertoriée se résout
-  // entier, fût-elle une co-édition écrite avec un « ; ».
+  // Même ordre que ci-dessus, et même refus de rendre une coédition telle quelle.
   const entier = resoudreNomEditeur(segment, index)
-  if (entier) return entier
-  const parts = segment.split(/\s*;\s*/u).map((p) => p.trim()).filter(Boolean)
+  if (entier && !estCoedition(entier)) return entier
+  const parts = morceauxDeMention(entier ?? segment)
   if (!parts.length) return null
   const noms = parts.map((p) => resoudreNomEditeur(p, index))
   if (noms.some((n) => n === null)) return null
-  return noms.join(' / ')
+  return noms.join(SEPARATEUR_COEDITEURS)
 }
 
 /** Reconnaît une ville répertoriée. */

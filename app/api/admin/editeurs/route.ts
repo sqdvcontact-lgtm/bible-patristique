@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
-import { cleEditeur } from '@/app/lib/editeursNormalisation'
+import {
+  cleEditeur,
+  construireIndexEditeurs,
+  estCoedition,
+  partiesCoedition,
+  resoudreNomEditeur,
+} from '@/app/lib/editeursNormalisation'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,11 +23,17 @@ const supabaseAdmin = createClient(
 // ce qui va être absorbé pour pouvoir le dire à l'écran, et elle propage la déclaration
 // à `editeurs_valeur`, le référentiel bibliographique, pour que les deux listes disent
 // la même chose. Les données des œuvres et des notices ne sont jamais réécrites.
+//
+// ⛔ Et un NOM d'autorité ne porte jamais de point-virgule : « A ; B » dit que deux
+// maisons ont coédité, non qu'il existe une maison de ce nom. Une telle forme se TRAITE
+// (action `coedition` : on ouvre ou l'on réemploie chaque maison, puis la fiche composée
+// disparaît), elle ne s'enregistre pas. ⚠️ Une VARIANTE composée reste licite : « Veuve
+// Jean Camusat ; Pierre Le Petit » est une graphie d'une maison unique.
 
 /** Code d'erreur des déclencheurs de cohérence : une graphie disputée par deux autorités. */
 const COLLISION = 'ZE001'
 
-function nettoyerVariantes(v: unknown): string[] {
+function nettoyerListe(v: unknown): string[] {
   if (!Array.isArray(v)) return []
   return [...new Set(v.map(x => String(x ?? '').trim()).filter(Boolean))]
 }
@@ -83,23 +95,84 @@ async function propagerAuxAutorites(nom: string, variantes: string[]) {
   return { fusions, avertissement: null }
 }
 
+/** Une coédition se traite maison par maison : celle qui est déjà répertoriée — fût-ce
+ *  sous une variante — est RÉEMPLOYÉE, les autres s'ouvrent. La fiche composée ne
+ *  disparaît qu'ensuite, quand plus rien n'est perdu à la retirer. */
+async function traiterCoedition(body: Record<string, unknown>) {
+  const parties = nettoyerListe(body.parties)
+  if (parties.length < 2) {
+    return NextResponse.json({ error: 'Une coédition compte au moins deux maisons.' }, { status: 400 })
+  }
+  if (parties.some(estCoedition)) {
+    return NextResponse.json({ error: 'Le nom d’une maison ne porte pas de point-virgule.' }, { status: 400 })
+  }
+
+  const { data } = await supabaseAdmin.from('editeurs').select('nom_complet, variantes, ville')
+  const index = construireIndexEditeurs(
+    (data ?? []) as { nom_complet: string; variantes: string[] | null; ville: string | null }[],
+  )
+
+  const creees: string[] = []
+  const reemployees: string[] = []
+  for (const partie of parties) {
+    const connue = resoudreNomEditeur(partie, index)
+    if (connue) { reemployees.push(connue); continue }
+    const { error } = await supabaseAdmin.from('editeurs').insert({ nom_complet: partie, variantes: [] })
+    if (error) return reponseErreur(error)
+    creees.push(partie)
+  }
+
+  let separee: string | null = null
+  const id = entier(body.id)
+  if (id) {
+    const { data: fiche } = await supabaseAdmin
+      .from('editeurs').select('nom_complet, variantes').eq('id', id).maybeSingle()
+    const composee = fiche as { nom_complet: string; variantes: string[] | null } | null
+    if (composee) {
+      // ⛔ Une fiche composée qui porte des variantes ne se retire pas en silence : ses
+      // graphies n'auraient plus d'autorité où se ranger.
+      if ((composee.variantes ?? []).length) {
+        return NextResponse.json({
+          error: `« ${composee.nom_complet} » porte des variantes : rattachez-les d’abord à une maison.`,
+        }, { status: 409 })
+      }
+      const { error } = await supabaseAdmin.from('editeurs').delete().eq('id', id)
+      if (error) return reponseErreur(error)
+      separee = composee.nom_complet
+    }
+  }
+
+  return NextResponse.json({ ok: true, creees, reemployees, separee })
+}
+
 export async function POST(request: Request) {
   if (!(await estAdminUtilisateur(request))) return NextResponse.json({ error: 'Non autorisé.' }, { status: 403 })
 
   const body = await request.json()
+  if (body?.action === 'coedition') return traiterCoedition(body)
+
   const nom_complet = String(body.nom_complet ?? '').trim()
   if (!nom_complet) return NextResponse.json({ error: 'Le nom complet est requis.' }, { status: 400 })
 
+  // ⛔ « A ; B » n'est pas une maison : c'est une coédition. On ne l'enregistre pas, on
+  // rend ses parties pour que l'écran propose de les ouvrir séparément.
+  if (estCoedition(nom_complet)) {
+    return NextResponse.json({
+      error: 'Le point-virgule sépare deux maisons qui ont coédité : ce n’est pas le nom d’un éditeur.',
+      coedition: partiesCoedition(nom_complet),
+    }, { status: 409 })
+  }
+
   const ligne = {
     nom_complet,
-    variantes: nettoyerVariantes(body.variantes),
+    variantes: nettoyerListe(body.variantes),
     ville: body.ville ? String(body.ville).trim() : null,
     annee_debut: entier(body.annee_debut),
     annee_fin: entier(body.annee_fin),
     notes: body.notes ? String(body.notes).trim() : null,
   }
 
-  const id = body.id ? Number(body.id) : null
+  const id = entier(body.id)
   const fusions = await autoritesAbsorbees('editeurs', 'nom_complet', ligne.variantes, id)
 
   const { data, error } = id

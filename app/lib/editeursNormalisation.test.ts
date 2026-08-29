@@ -6,6 +6,9 @@ import {
   estVilleConnue,
   normaliserNomEditeur,
   resoudreNomEditeur,
+  estCoedition,
+  partiesCoedition,
+  SEPARATEUR_COEDITEURS,
 } from './editeursNormalisation'
 
 // Extrait fidèle de la table `editeurs` (les maisons que le corpus rencontre
@@ -141,5 +144,51 @@ describe('une variante qui porte un « ; »', () => {
 
   it('laisse la maison seule se résoudre pour son propre compte', () => {
     expect(normaliserNomEditeur('Veuve Jean Camusat', CAMUSAT)).toBe('Veuve Jean Camusat')
+  })
+})
+
+
+// ⛔ Le « ; » du catalogue sépare deux MAISONS qui ont coédité : ce n’est jamais le nom
+// d’une maison. La barre oblique, elle, appartient à de vrais noms.
+const COEDITION = construireIndexEditeurs([
+  { nom_complet: 'Éditions du Cerf', variantes: ['Cerf'], ville: null },
+  { nom_complet: 'Abbaye Saint-Pierre de Solesmes', variantes: [], ville: null },
+  // Résidu d’import : la coédition avait été rangée parmi les autorités.
+  { nom_complet: 'Éditions du Cerf ; Abbaye Saint-Pierre de Solesmes', variantes: [], ville: null },
+  { nom_complet: 'Centre Thomas More / CADIR', variantes: ['CADIR'], ville: null },
+])
+
+describe('coédition', () => {
+  it('reconnaît le point-virgule, et lui seul', () => {
+    expect(estCoedition('Éditions du Cerf ; Abbaye Saint-Pierre de Solesmes')).toBe(true)
+    expect(partiesCoedition('A ; B ; C')).toEqual(['A', 'B', 'C'])
+  })
+
+  it('ne prend pas une barre oblique pour un séparateur', () => {
+    expect(estCoedition('Centre Thomas More / CADIR')).toBe(false)
+    expect(partiesCoedition('Centre Thomas More / CADIR')).toEqual(['Centre Thomas More / CADIR'])
+  })
+
+  // La régression du 29 août : la forme entière se résolvant d’abord, la fiche composée
+  // était rendue telle quelle, point-virgule brut compris.
+  it('ne rend JAMAIS une coédition telle quelle, même si la table la porte', () => {
+    const attendu = 'Éditions du Cerf' + SEPARATEUR_COEDITEURS + 'Abbaye Saint-Pierre de Solesmes'
+    expect(normaliserNomEditeur('Éditions du Cerf ; Abbaye Saint-Pierre de Solesmes', COEDITION)).toBe(attendu)
+    expect(editeursDuSegment('Éditions du Cerf ; Abbaye Saint-Pierre de Solesmes', COEDITION)).toBe(attendu)
+  })
+
+  it('résout chaque maison par sa variante', () => {
+    expect(normaliserNomEditeur('Cerf ; Abbaye Saint-Pierre de Solesmes', COEDITION))
+      .toBe('Éditions du Cerf' + SEPARATEUR_COEDITEURS + 'Abbaye Saint-Pierre de Solesmes')
+  })
+
+  it('laisse entier un nom de maison qui porte une barre oblique', () => {
+    expect(normaliserNomEditeur('Centre Thomas More / CADIR', COEDITION)).toBe('Centre Thomas More / CADIR')
+    expect(normaliserNomEditeur('CADIR', COEDITION)).toBe('Centre Thomas More / CADIR')
+  })
+
+  it('rend le même affichage quand on le recompose une seconde fois', () => {
+    const une = normaliserNomEditeur('Éditions du Cerf ; Abbaye Saint-Pierre de Solesmes', COEDITION)
+    expect(normaliserNomEditeur(une, COEDITION)).toBe(une)
   })
 })

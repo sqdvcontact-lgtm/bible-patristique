@@ -2474,6 +2474,22 @@ Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le mal : on inscrivait 
 
 **Passe du 2026-08-29** : 94 fiches nettoyées de leur renvoi à elles-mêmes, 3 fusions — « Veuve Jean Camusat ; Pierre Le Petit » dans les deux référentiels, et « Cerf » dans « Éditions du Cerf », qui a emporté **139 notices, 3 collections et le score 2**. Contrôle de clôture à zéro. ⛔ **Une collision reste ouverte, et elle attend un arbitrage** : « J.-P. Migne » est revendiquée par « Jacques-Paul Migne » (`editeurs` #14) ET par « Migne » (#71, `editeurs_valeur` #40), qui sont deux autorités pour la même maison. Le verrou refuse désormais d’enregistrer l’une ou l’autre tant que ce n’est pas tranché, en nommant sa rivale.
 
+## ⛔ « A ; B » n’est pas une maison, c’est une COÉDITION (2026-08-29)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le point-virgule est la norme du catalogage pour dire que deux éditeurs ont travaillé au même ouvrage. Règles de code :
+
+- **Tout passe par `app/lib/editeursNormalisation.ts`** : `partiesCoedition` (découpe sur « ; » et rien d’autre), `estCoedition`, `SEPARATEUR_COEDITEURS`. ⛔ Ne pas recomposer un découpage ailleurs.
+- ⛔ **`estCoedition` ne regarde QUE le point-virgule.** La barre oblique appartient à de vrais noms de maison — « Centre Thomas More / CADIR », « Leuven University Press / Peeters », « Studies in Religion / Sciences Religieuses » — et la prendre pour un séparateur dédoublait le nom, chaque moitié étant une variante qui résout vers le tout. Le découpage du RENDU, lui, ajoute la barre parce que c’est par elle qu’il joint ses résultats : sans quoi repasser un affichage déjà composé le découperait autrement la seconde fois.
+- ⛔ **Une coédition ne se rend JAMAIS telle quelle.** Régression introduite le matin même : depuis que la résolution lit la forme entière d’abord, une coédition restée dans la table se résolvait sur elle-même et s’affichait avec son point-virgule brut au lieu de « A / B ». `normaliserNomEditeur` et `editeursDuSegment` refusent donc un résultat composé et résolvent chaque maison pour son compte.
+- ⚠️ **Une VARIANTE composée reste licite, et la distinction porte** : « Veuve Jean Camusat ; Pierre Le Petit » est une graphie d’une maison unique. Le verrou (`sql/20260829_editeurs_coedition.sql`, code `ZE002`) ne regarde que le NOM.
+- ⛔ **Le verrou ne porte que sur `editeurs`.** `editeurs_valeur` compte les mêmes 50 formes composées, mais aucun écran n’offre encore de quoi les séparer, et l’on ne ferme pas une porte dont on n’a pas donné la clé. ⚠️ Trois notices y sont rattachées à une coédition, ce qui pose une question de MODÈLE : `ouvrages_bibliographiques` ne porte qu’un `editeur_valeur_id`, quand une coédition en demande deux.
+- **L’écran** (`SectionEditeurs`) sépare « Répertoriés » (les maisons) de « Coéditions à séparer » (les formes composées). Chaque partie y paraît en pastille, à l’encre d’attente si elle n’est pas répertoriée. « Séparer » ouvre ou réemploie chaque maison puis retire la fiche composée ; « Corriger le nom » sert à retirer d’abord une partie qui n’est pas une maison (« diffusion Cerf », « imprimerie Henri Thierry »), sans quoi on remplacerait une fiche parasite par une autre.
+- **Route** : `action: 'coedition'` sur `/api/admin/editeurs`. Elle résout chaque partie par l’INDEX (nom complet ET variantes), pour réemployer « Juste Angé » quand on lui présente « J. Angé » au lieu de heurter le verrou de collision. ⛔ Elle refuse de retirer une fiche composée qui porte des variantes : ses graphies n’auraient plus d’autorité où se ranger.
+- ⚠️ **La file « à normaliser » ne porte jamais de forme composée** : elle découpe la mention brute et n’ajoute que les parties non couvertes. Une branche « si la puce est une coédition » y a été écrite puis retirée le jour même, morte à la naissance.
+
+**État au 2026-08-29** : 50 formes composées dans `editeurs`, dont **13 dont toutes les maisons sont déjà répertoriées** (un clic chacune). ⛔ Aucune n’a été séparée d’office : plusieurs portent une mention de diffusion ou d’impression qui ne doit pas devenir une autorité, et c’est un arbitrage. Contrôle : `public.coeditions_editeurs_a_separer()`.
+
+
 
 ## Une version se donne comme une traduction, pas comme un nom
 

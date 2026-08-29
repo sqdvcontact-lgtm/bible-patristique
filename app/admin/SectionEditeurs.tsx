@@ -1,12 +1,24 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { supabase } from '@/app/lib/supabase'
-import { cleEditeur } from '@/app/lib/editeursNormalisation'
+import {
+  cleEditeur,
+  construireIndexEditeurs,
+  estCoedition,
+  partiesCoedition,
+  resoudreNomEditeur,
+} from '@/app/lib/editeursNormalisation'
 
 // Écran de curation des éditeurs : liste, ajout/édition, et repérage des éditeurs
 // « à normaliser » (présents dans oeuvres.editeur mais pas encore répertoriés). Les
 // données brutes des œuvres ne sont jamais modifiées.
+//
+// ⛔ Le « ; » d’une mention d’éditeur dit que DEUX MAISONS ont coédité l’ouvrage : ce
+// n’est jamais le nom d’une maison, et une forme composée n’a donc pas sa place parmi
+// les répertoriés. Elle se TRAITE — on ouvre ou l’on réemploie chaque maison, puis la
+// fiche composée disparaît. ⚠️ Une VARIANTE composée reste licite : « Veuve Jean
+// Camusat ; Pierre Le Petit » est une graphie d’une maison unique.
 
 type Editeur = {
   id: number
@@ -29,6 +41,20 @@ type Brouillon = {
 }
 
 const VIDE: Brouillon = { nom_complet: '', variantes: '', ville: '', annee_debut: '', annee_fin: '', notes: '' }
+
+// Le compte rendu d’une coédition traitée : ce qu’on a ouvert, ce qu’on a réemployé, et
+// la fiche composée qui a disparu. Rien ne s’efface en silence.
+function messageDeCoedition(r: {
+  creees?: string[]; reemployees?: string[]; separee?: string | null
+} | null): string {
+  if (!r) return ''
+  const noms = (liste: string[]) => liste.map(n => '« ' + n + ' »').join(', ')
+  const phrases: string[] = []
+  if (r.creees?.length) phrases.push('Maisons ouvertes : ' + noms(r.creees) + '.')
+  if (r.reemployees?.length) phrases.push('Déjà répertoriées : ' + noms(r.reemployees) + '.')
+  if (r.separee) phrases.push('La forme composée « ' + r.separee + ' » a quitté la liste des éditeurs.')
+  return phrases.join(' ')
+}
 
 // Le compte rendu d'un enregistrement : ce qui a été absorbé de part et d'autre, et ce
 // que le référentiel bibliographique a refusé. Une graphie ne disparaît pas en silence.
@@ -57,6 +83,9 @@ export default function SectionEditeurs() {
   // Ce que l'enregistrement a FUSIONNÉ : une variante déclarée fait disparaître de la
   // liste l'autorité qu'elle remplace, et le dire est le seul moyen de s'en assurer.
   const [bilan, setBilan] = useState('')
+  // Les maisons d’une coédition qu’on propose d’ouvrir séparément, après un refus de la
+  // route ou un clic sur une forme composée de la file.
+  const [coedition, setCoedition] = useState<{ parties: string[]; id?: number } | null>(null)
 
   const charger = useCallback(async () => {
     const [{ data: eds }, { data: oeuvres }] = await Promise.all([
@@ -85,6 +114,11 @@ export default function SectionEditeurs() {
 
   useEffect(() => { let a = false; (async () => { if (!a) await charger() })(); return () => { a = true } }, [charger])
 
+  // Une maison porte un nom simple ; une coédition en réunit deux et se traite à part.
+  const index = useMemo(() => construireIndexEditeurs(editeurs ?? []), [editeurs])
+  const maisons = useMemo(() => (editeurs ?? []).filter(e => !estCoedition(e.nom_complet)), [editeurs])
+  const coeditions = useMemo(() => (editeurs ?? []).filter(e => estCoedition(e.nom_complet)), [editeurs])
+
   const editer = (e: Editeur) => setBrouillon({
     id: e.id, nom_complet: e.nom_complet, variantes: (e.variantes ?? []).join(', '),
     ville: e.ville ?? '', annee_debut: e.annee_debut?.toString() ?? '', annee_fin: e.annee_fin?.toString() ?? '', notes: e.notes ?? '',
@@ -109,9 +143,31 @@ export default function SectionEditeurs() {
       }),
     })
     const reponse = await res.json().catch(() => null)
-    if (!res.ok) { setErreur(reponse?.error ?? 'Erreur.'); setStatut('err'); return }
-    setBrouillon(VIDE); setStatut('idle'); setErreur('')
+    if (!res.ok) {
+      setErreur(reponse?.error ?? 'Erreur.'); setStatut('err')
+      // ⛔ On n’enregistre pas « A ; B » : on propose d’ouvrir A et B.
+      if (Array.isArray(reponse?.coedition)) setCoedition({ parties: reponse.coedition, id: brouillon.id })
+      return
+    }
+    setBrouillon(VIDE); setStatut('idle'); setErreur(''); setCoedition(null)
     setBilan(messageDeFusion(reponse))
+    await charger()
+  }
+
+  // Ouvre ou réemploie chaque maison, puis retire la fiche composée quand il y en a une.
+  const ouvrirCoedition = async (parties: string[], id?: number) => {
+    setStatut('envoi'); setErreur('')
+    const { data: session } = await supabase.auth.getSession()
+    const token = session.session?.access_token
+    const res = await fetch('/api/admin/editeurs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'coedition', parties, id }),
+    })
+    const reponse = await res.json().catch(() => null)
+    if (!res.ok) { setErreur(reponse?.error ?? 'Erreur.'); setStatut('err'); return }
+    setStatut('idle'); setErreur(''); setCoedition(null); setBrouillon(VIDE)
+    setBilan(messageDeCoedition(reponse))
     await charger()
   }
 
@@ -183,6 +239,18 @@ export default function SectionEditeurs() {
               </div>
             </div>
             {statut === 'err' && <p style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreur}</p>}
+            {coedition && (
+              <div style={{ margin: '0 0 8px' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.45, margin: '0 0 6px' }}>
+                  Deux maisons ont coédité : {coedition.parties.map(m => `« ${m} »`).join(
+)}. Chacune devient une fiche.
+                </p>
+                <button onClick={() => ouvrirCoedition(coedition.parties, coedition.id)} disabled={statut === 'envoi'}
+                  style={{ fontSize: '0.75rem', padding: '4px 11px', borderRadius: '4px', border: '1px solid var(--cs-vert)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer', fontWeight: 600 }}>
+                  Ouvrir les {coedition.parties.length} maisons séparément
+                </button>
+              </div>
+            )}
             {bilan && <p style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', margin: '0 0 8px', lineHeight: 1.45 }}>{bilan}</p>}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
               {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle'); setBilan('') }} style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
@@ -211,14 +279,14 @@ export default function SectionEditeurs() {
 
         {/* ── Colonne droite : liste des éditeurs répertoriés ── */}
         <div>
-          <p style={{ ...entete, color: 'var(--cs-texte-gris)' }}>Répertoriés ({editeurs?.length ?? 0})</p>
+          <p style={{ ...entete, color: 'var(--cs-texte-gris)' }}>Répertoriés ({maisons.length})</p>
           {editeurs === null ? (
             <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
-          ) : editeurs.length === 0 ? (
+          ) : maisons.length === 0 ? (
             <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun éditeur répertorié pour l’instant.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {editeurs.map(e => (
+              {maisons.map(e => (
                 <div key={e.id} className="ed-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '7px 11px', transition: 'border-color 0.12s' }}>
                   <div style={{ minWidth: 0 }}>
                     <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)' }}>{e.nom_complet}</span>
@@ -233,6 +301,48 @@ export default function SectionEditeurs() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ── Coéditions : deux maisons pour un même ouvrage, jamais une autorité ── */}
+          {coeditions.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+              <p style={{ ...entete, color: 'var(--cs-attente)' }}>Coéditions à séparer ({coeditions.length})</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', lineHeight: 1.45, margin: '0 0 9px', maxWidth: '38rem' }}>
+                Le point-virgule dit que deux maisons ont travaillé au même ouvrage : ce n’est pas le nom d’un éditeur.
+                Chaque maison déjà répertoriée est réemployée ; les autres s’ouvrent. La forme composée disparaît alors de la liste.
+                ⚠️ Une partie qui n’est pas une maison, une mention de diffusion ou d’impression, se retire d’abord par « Corriger le nom ».
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                {coeditions.map(e => {
+                  const parties = partiesCoedition(e.nom_complet)
+                  return (
+                    <div key={e.id} className="ed-row"
+                      style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '7px 11px', transition: 'border-color 0.12s' }}>
+                      <div style={{ minWidth: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px' }}>
+                        {parties.map((partie, rang) => {
+                          const connue = resoudreNomEditeur(partie, index)
+                          return (
+                            <React.Fragment key={partie}>
+                              {rang > 0 && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.75rem' }}>+</span>}
+                              <span title={connue && connue !== partie ? `répertoriée sous « ${connue} »` : undefined}
+                                style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', padding: '2px 9px', borderRadius: '999px', border: connue ? '1px solid var(--cs-bord-clair)' : '1px solid var(--cs-danger-bord)', background: connue ? 'var(--cs-fond-doux)' : 'var(--cs-danger-fond)', color: connue ? 'var(--cs-encre-fonce)' : 'var(--cs-attente)' }}>
+                                {partie}
+                              </span>
+                            </React.Fragment>
+                          )
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', gap: '9px', flexShrink: 0 }}>
+                        <button className="ed-lien" onClick={() => ouvrirCoedition(parties, e.id)} disabled={statut === 'envoi'}
+                          style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Séparer</button>
+                        <button className="ed-lien" onClick={() => editer(e)}
+                          style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-second)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0 }}>Corriger le nom</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
