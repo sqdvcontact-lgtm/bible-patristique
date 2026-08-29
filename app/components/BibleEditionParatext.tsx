@@ -42,7 +42,8 @@ export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
-  'id' | 'blockKey' | 'semanticStyleCode' | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement'
+  'id' | 'blockKey' | 'semanticStyleCode' | 'semanticLevel' | 'embeddedTitleLevel'
+  | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement'
   | 'textBlocks' | 'presentation'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
 
@@ -556,7 +557,13 @@ export function BlocEditorialBible({
 
   // Le registre décide, et lui seul. Un style qu'il ignore n'est PAS aplati en
   // paragraphe générique : il n'est pas rendu, et l'administration le signale.
-  const resolu = resoudreStyleSemantique(bloc.semanticStyleCode)
+  // ⚠️ Le rang DÉCLARÉ n'est lu que par les codes canoniques : un nom hérité porte
+  // le sien dans son propre nom, et `resoudreStyleSemantique` lui donne la priorité.
+  // Sans ce report, la base accepterait un bloc — `commentaire` + I5 — que le rendu
+  // refuserait, ce qui est exactement ce que son verrou existe pour empêcher.
+  const resolu = resoudreStyleSemantique(bloc.semanticStyleCode, {
+    niveau: bloc.semanticLevel, titre: bloc.embeddedTitleLevel,
+  })
   if (!resolu || !resolu.bodyBlock) return null
   // ⛔ « Chapitre I » redit ce que la page annonce déjà : la barre de navigation
   // nomme le chapitre au-dessus du texte, et la mention imprimée s'y répétait

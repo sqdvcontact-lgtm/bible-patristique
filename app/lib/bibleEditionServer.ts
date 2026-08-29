@@ -74,6 +74,19 @@ export type BibleEditionBodyBlockRow = {
   presentation: unknown
   /** Parent DÉCLARÉ sur l'axe analytique, quand la suite matérielle ne le donne pas. */
   semantic_parent_key: string | null
+  /**
+   * Le RANG déclaré du bloc — I1 à I6.
+   *
+   * ⛔ Depuis le regroupement du 2026-08-29, un style d'information dit une NATURE et
+   * le rang se dit ici. Un nom HÉRITÉ le porte encore dans son propre nom, et ce
+   * rang-là fait foi ; le champ ne sert donc qu'aux codes canoniques. ⚠️ Il était
+   * écrit et exposé par la vue depuis l'origine, et lu par AUCUNE ligne du site : le
+   * rendu prenait le rang dans le nom du style, si bien que le même fait était dit
+   * deux fois et que les deux écritures divergeaient déjà.
+   */
+  semantic_level: string | null
+  /** Le rang du titre qu'un bloc porte, quand il en porte un — T1 à T6. */
+  embedded_title_level: string | null
 }
 
 export type BibleEditionBodyBlockPayload = BibleEditionBodyBlockRow & {
@@ -354,7 +367,8 @@ async function chargerNotesInternesParBloc(
 const COLONNES_BLOC = 'id,family_id,source_id,segmentation_id,segment_id,block_key,block_kind,'
   + 'scope_kind,notice_subtype,placement,applies_to,applies_to_member_id,heading,scope_book_code,'
   + 'scope_label,printed_page_start,canon_id_start,canon_id_end,canon_order_start,canon_order_end,'
-  + 'material_order,semantic_style_code,presentation,semantic_parent_key'
+  + 'material_order,semantic_style_code,presentation,semantic_parent_key,'
+  + 'semantic_level,embedded_title_level'
 
 /**
  * Le filtre PostgREST qui reproduit `overlapsChapter`, plus les blocs sans ancre.

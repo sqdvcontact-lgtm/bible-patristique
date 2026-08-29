@@ -315,6 +315,16 @@ export type BibleEditionDisplayBodyBlock = {
   /** Clé éditoriale stable : c'est par elle qu'un bloc en désigne un autre. */
   blockKey?: string | null
   semanticStyleCode: string
+  /**
+   * Le RANG déclaré — I1 à I6 — et celui du titre porté — T1 à T6.
+   *
+   * ⛔ Depuis le regroupement du 2026-08-29, un style d'information dit une NATURE :
+   * `commentaire`, `notice`. Le rang se déclare ici. ⚠️ Un nom HÉRITÉ le porte encore
+   * dans son propre nom — `commentaire_pericope` — et ce rang-là fait foi, sans quoi
+   * le regroupement changerait la composition d'un bloc qui n'a pas bougé.
+   */
+  semanticLevel?: string | null
+  embeddedTitleLevel?: string | null
   presentation?: BibleEditionDisplayBlockPresentation | null
   /** Parent de l'axe ANALYTIQUE, quand la suite matérielle ne le donne pas. */
   semanticParentKey?: string | null
@@ -447,10 +457,20 @@ export function styleSemantiqueBloc(
  * Le rang 1 reste sous le titre de chapitre de la page : un paratexte ne prend
  * jamais le pas sur le nom du chapitre qu'on lit.
  */
-export function rangTitreBloc(semanticStyleCode: string): 1 | 2 | 3 {
-  const portee = semanticStyleCode.slice(semanticStyleCode.indexOf('_') + 1)
-  if (['bible', 'testament', 'groupe_livres', 'livre'].includes(portee)) return 1
-  if (['partie', 'chapitre', 'section'].includes(portee)) return 2
+export function rangTitreBloc(semanticStyleCode: string, niveauDeclare?: string | null): 1 | 2 | 3 {
+  const portee = semanticStyleCode.includes('_')
+    ? semanticStyleCode.slice(semanticStyleCode.indexOf('_') + 1)
+    : null
+  // ⚠️ La PORTÉE du nom hérité l'emporte, et elle dit plus que le rang : `section` et
+  // `sous_section` sont toutes deux I3 et ne se composent pas au même rang.
+  if (portee !== null) {
+    if (['bible', 'testament', 'groupe_livres', 'livre'].includes(portee)) return 1
+    if (['partie', 'chapitre', 'section'].includes(portee)) return 2
+    return 3
+  }
+  // ⛔ Un nom CANONIQUE ne porte pas de portée : le rang déclaré prend le relais.
+  if (niveauDeclare === 'I1') return 1
+  if (niveauDeclare === 'I2' || niveauDeclare === 'I3' || niveauDeclare === 'I4') return 2
   return 3
 }
 

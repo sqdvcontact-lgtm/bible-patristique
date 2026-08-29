@@ -33,6 +33,47 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).toContain('Introduction à l’Évangile selon saint Marc')
   })
 
+  it('compose un style CANONIQUE dont le bloc déclare le rang', () => {
+    // ⛔ Depuis le regroupement du 29 août 2026, un style d'information dit une
+    // NATURE et le rang se déclare. Sans ce report, la base accepterait un bloc que
+    // le rendu refuserait — ce qui est exactement ce que son verrou existe pour
+    // empêcher. Voir la migration 20260829120000.
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'canon-1',
+        semanticStyleCode: 'commentaire',
+        semanticLevel: 'I5',
+        placement: 'before',
+        textBlocks: [{
+          id: 'canon-1-p', kind: 'commentary', form: 'prose',
+          text: 'Le commentaire de la péricope.', language: 'fr',
+        }],
+      }} />,
+    )
+    expect(html).toContain('data-semantic-style="commentaire"')
+    expect(html).toContain('cs-bible-info--i5')
+    expect(html).toContain('cs-bible-block--commentary')
+    expect(html).toContain('Le commentaire de la péricope.')
+  })
+
+  it('⛔ ne rend RIEN d’un style canonique dont le rang manque', () => {
+    // Le nom dit la nature, le rang se déclare. Un bloc qui n'en déclare aucun ne
+    // s'en invente pas un : le rendu refuse ce qu'il ne sait pas composer, au lieu
+    // de l'aplatir en paragraphe générique.
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'canon-2',
+        semanticStyleCode: 'commentaire',
+        placement: 'before',
+        textBlocks: [{
+          id: 'canon-2-p', kind: 'commentary', form: 'prose',
+          text: 'Ceci ne doit pas paraître.', language: 'fr',
+        }],
+      }} />,
+    )
+    expect(html).not.toContain('Ceci ne doit pas paraître.')
+  })
+
   it('relie la note de fin de chapitre à l’appel qui l’a posée', () => {
     const note = {
       id: 'note-1',
