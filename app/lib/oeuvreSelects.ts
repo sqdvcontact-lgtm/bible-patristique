@@ -81,5 +81,5 @@ export const SELECT_SEGMENT = COLONNES_SEGMENT.join(',')
  */
 export const NATURES_CORPS = [
   'texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent',
-  'vers', 'verset', 'rubrique', 'signature', 'apparat_auteur',
+  'verset', 'rubrique', 'signature', 'apparat_auteur',
 ] as const

@@ -14,12 +14,20 @@
  *
  * ⚠️ `separateur` n'est conservé que pour la compatibilité des anciens exports :
  * ⛔ ne plus en créer.
+ *
+ * ⛔ `vers` EST SORTIE DU VOCABULAIRE le 29 août 2026, et ce n'est pas un retrait de
+ * fonction : la poésie se déclare désormais par `segment_metadata.forme = 'vers'`, la
+ * seule écriture qui vaille aussi dans l'apparat, où la nature est déjà prise par
+ * `apparat_critique`. Les 2 325 segments qui la portaient ont migré, aucun n'a changé
+ * de composition, et `chk_segments_nature` la refuse désormais. ⛔ Une nature et une
+ * forme qui disent le même fait, c'est la seconde vérité qui finit par contredire la
+ * première — trois lecteurs du site jugeaient déjà le vers sans passer par
+ * `estEnVers`. Voir `app/lib/compositionVers.ts`.
  */
 export const NATURE_VALIDES = [
   'texte',
   'citation',
   'lemme',
-  'vers',
   'rubrique',
   'dialogue',
   'introduction',

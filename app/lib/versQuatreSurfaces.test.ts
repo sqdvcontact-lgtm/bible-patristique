@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { estEnVers, estBlocDeVers, styleLigneDeVers, FORME_VERS } from './compositionVers'
+import { estEnVers, estBlocDeVers, formeDeSegment, styleLigneDeVers, FORME_VERS } from './compositionVers'
+import { NATURE_VALIDES } from './naturesSegments'
 import { styleTexteVerset } from './compositionBible'
 import { styleBlocDeVers } from './compositionOeuvre'
 
@@ -15,30 +16,45 @@ import { styleBlocDeVers } from './compositionOeuvre'
  * chaque surface. Cette garde tient les deux moitiés de la règle.
  */
 
-describe('déclarer un vers : deux écritures, une règle', () => {
-  it('la nature HÉRITÉE `vers` vaut déclaration', () => {
-    // 2 325 segments la portent, tous dans la Consolation de Boèce.
-    expect(estEnVers({ nature: 'vers' })).toBe(true)
+describe('déclarer un vers : UNE écriture, deux enveloppes', () => {
+  it('la FORME vaut déclaration, et elle seule', () => {
+    // ⛔ C'est la seule écriture possible dans l'apparat, où la nature vaut déjà
+    // `apparat_critique` — c'est par là que le segment est SÉLECTIONNÉ — et ne peut
+    // pas dire en plus qu'il est en vers.
+    expect(estEnVers({ forme: FORME_VERS })).toBe(true)
+    expect(estEnVers({ segment_metadata: { forme: FORME_VERS } })).toBe(true)
   })
 
-  it('la forme CANONIQUE vaut déclaration, quelle que soit la nature', () => {
-    // ⛔ C'est la seule écriture possible dans l'apparat, où la nature vaut déjà
-    // `apparat_critique` et ne peut pas dire deux choses à la fois.
-    expect(estEnVers({ nature: 'apparat_critique', forme: FORME_VERS })).toBe(true)
-    expect(estEnVers({ nature: 'texte', forme: FORME_VERS })).toBe(true)
+  it('⛔ la nature `vers` ne déclare plus rien : elle n’existe plus', () => {
+    // Sortie du vocabulaire le 29 août 2026 ; les 2 325 segments qui la portaient
+    // ont migré vers la forme. La garder en repli aurait laissé vivre deux écritures
+    // d'un même fait, ce qui est exactement ce qui avait dérivé : trois lecteurs du
+    // site jugeaient le vers sans passer par ce prédicat.
+    expect(NATURE_VALIDES).not.toContain('vers')
+    expect(estEnVers({ nature: 'vers' } as never)).toBe(false)
   })
 
   it('rien d’autre ne vaut déclaration', () => {
-    expect(estEnVers({ nature: 'texte' })).toBe(false)
-    expect(estEnVers({ nature: 'apparat_critique' })).toBe(false)
-    expect(estEnVers({ nature: 'texte', forme: 'prose' })).toBe(false)
+    expect(estEnVers({})).toBe(false)
+    expect(estEnVers({ forme: 'prose' })).toBe(false)
+    expect(estEnVers({ segment_metadata: { forme: 'prose' } })).toBe(false)
+    expect(estEnVers({ segment_metadata: null })).toBe(false)
     expect(estEnVers(null)).toBe(false)
     expect(estEnVers(undefined)).toBe(false)
   })
 
+  it('les DEUX enveloppes se lisent, à plat comme imbriquée', () => {
+    // ⚠️ Ce n'est pas une seconde déclaration mais un second TRANSPORT : selon la
+    // requête, la forme arrive à plat (`forme:segment_metadata->>forme` de
+    // `SELECT_SEGMENT`) ou dans la colonne entière. C'est là que le défaut se logeait.
+    expect(formeDeSegment({ forme: FORME_VERS })).toBe(FORME_VERS)
+    expect(formeDeSegment({ segment_metadata: { forme: FORME_VERS } })).toBe(FORME_VERS)
+    expect(formeDeSegment({})).toBe(null)
+  })
+
   it('⛔ un bloc est en vers TOUT ou RIEN, comme pour les versets', () => {
-    expect(estBlocDeVers([{ nature: 'vers' }, { nature: 'texte', forme: FORME_VERS }])).toBe(true)
-    expect(estBlocDeVers([{ nature: 'vers' }, { nature: 'texte' }])).toBe(false)
+    expect(estBlocDeVers([{ forme: FORME_VERS }, { segment_metadata: { forme: FORME_VERS } }])).toBe(true)
+    expect(estBlocDeVers([{ forme: FORME_VERS }, {}])).toBe(false)
     expect(estBlocDeVers([])).toBe(false)
   })
 })

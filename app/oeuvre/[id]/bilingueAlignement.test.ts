@@ -9,6 +9,7 @@ import {
   type MembreAlignement,
   type SegmentOriginal,
 } from './bilingueAlignement'
+import { FORME_VERS } from '@/app/lib/compositionVers'
 
 const FR = 'A0012O0002T0002'
 const GREC = 'A0012O0002T0001'
@@ -25,6 +26,17 @@ function membre(alignmentId: string, idTexte: string, cle: string, ordre = 1): M
 
 function segmentGrec(cle: string, texte: string, nature: string | null = 'texte', joinBefore: string | null = null): SegmentOriginal {
   return { segment_key: cle, segment_texte: texte, nature, join_before: joinBefore }
+}
+
+/**
+ * Un vers de la colonne originale.
+ *
+ * ⛔ La poésie se déclare par sa FORME, jamais par sa nature : `nature = 'vers'` est
+ * sortie du vocabulaire le 29 août 2026. Un segment d'apparat vaut déjà
+ * `apparat_critique` et ne peut pas dire en plus qu'il est en vers.
+ */
+function versGrec(cle: string, texte: string, joinBefore: string | null = null): SegmentOriginal {
+  return { segment_key: cle, segment_texte: texte, nature: 'texte', join_before: joinBefore, forme: FORME_VERS }
 }
 
 describe('choix de l’ensemble d’alignement', () => {
@@ -170,7 +182,7 @@ describe('projection bilingue', () => {
     const enVers = projeterBilingue({
       ...base,
       membres: [membre('g1', GREC, 'el-1', 1), membre('g1', GREC, 'el-2', 2), membre('g1', FR, 'fr-1', 1)],
-      segmentsOriginaux: [segmentGrec('el-1', 'un', 'vers'), segmentGrec('el-2', 'deux', 'vers')],
+      segmentsOriginaux: [versGrec('el-1', 'un'), versGrec('el-2', 'deux')],
     })
     expect(enVers.blocParGroupe.get('g1')?.toutVers).toBe(true)
     expect(enVers.blocParGroupe.get('g1')?.texte).toBe('un\ndeux')
@@ -178,7 +190,7 @@ describe('projection bilingue', () => {
     const mixte = projeterBilingue({
       ...base,
       membres: [membre('g1', GREC, 'el-1', 1), membre('g1', GREC, 'el-2', 2), membre('g1', FR, 'fr-1', 1)],
-      segmentsOriginaux: [segmentGrec('el-1', 'un', 'vers'), segmentGrec('el-2', 'deux', 'texte', ' ')],
+      segmentsOriginaux: [versGrec('el-1', 'un'), segmentGrec('el-2', 'deux', 'texte', ' ')],
     })
     expect(mixte.blocParGroupe.get('g1')?.toutVers).toBe(false)
     expect(mixte.blocParGroupe.get('g1')?.texte).toBe('un deux')

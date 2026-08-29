@@ -4,14 +4,23 @@ import { NATURE_VALIDES, normaliserNatureSegment } from './naturesSegments'
 describe('vocabulaire des importateurs génériques', () => {
   it('contient exactement les natures autorisées', () => {
     expect(NATURE_VALIDES).toEqual([
-      'texte', 'citation', 'lemme', 'vers', 'rubrique', 'dialogue',
+      'texte', 'citation', 'lemme', 'rubrique', 'dialogue',
       'introduction', 'apparat_critique', 'apparat_auteur', 'apparat_editeur',
       'separateur', 'texte absent', 'signature', 'verset',
     ])
   })
 
-  it.each(['vers', 'verset', 'dialogue', 'rubrique'] as const)('accepte %s sans la modifier', nature => {
+  it.each(['verset', 'dialogue', 'rubrique'] as const)('accepte %s sans la modifier', nature => {
     expect(normaliserNatureSegment(nature)).toBe(nature)
+  })
+
+  it('⛔ `vers` n’est plus une nature : la poésie se déclare par sa FORME', () => {
+    // Sortie du vocabulaire le 29 août 2026, avec les 2 325 segments qui la
+    // portaient. Un importateur qui l’écrirait encore la rabat sur `texte` — la
+    // nature que ses frères portent —, et c’est exactement ce que la migration a
+    // fait. La forme, elle, se pose à part : `segment_metadata.forme = 'vers'`.
+    expect(NATURE_VALIDES).not.toContain('vers')
+    expect(normaliserNatureSegment('vers')).toBe('texte')
   })
 
   it('rabât une valeur inconnue sur texte', () => {
@@ -36,10 +45,11 @@ describe('le menu de l’administration ne peut offrir que ce qui existe', () =>
 describe('le vocabulaire et la base disent la même chose', () => {
   it('reproduit exactement `chk_segments_nature`', () => {
     // ⚠️ Recopié à la main, faute qu'un test puisse interroger la base : c'est le
-    // prix de la garde. Contrainte posée par les migrations 20260828120000 (verset)
-    // et 20260829090000 (signature) ; toute migration qui la touche passe ici.
+    // prix de la garde. Contrainte posée par les migrations 20260828120000 (verset),
+    // 20260829090000 (signature) et 20260829150000 (retrait de `vers`) ; toute
+    // migration qui la touche passe ici.
     const CONTRAINTE = [
-      'texte', 'citation', 'verset', 'lemme', 'vers', 'rubrique', 'dialogue',
+      'texte', 'citation', 'verset', 'lemme', 'rubrique', 'dialogue',
       'signature', 'separateur', 'apparat_critique', 'apparat_auteur',
       'apparat_editeur', 'texte absent', 'introduction',
     ]

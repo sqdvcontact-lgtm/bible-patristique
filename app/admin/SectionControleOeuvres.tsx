@@ -69,7 +69,8 @@ const LIBELLE_NATURE: Record<string, string> = {
   // Un verset d'une citation biblique posée verset par verset (compositionVersets.ts).
   verset: 'Verset',
   lemme: 'Lemme',
-  vers: 'Vers',
+  // ⛔ Plus de « Vers » : la poésie n'est pas une nature mais une FORME, posée dans
+  // `segment_metadata.forme`. Sortie du vocabulaire le 29 août 2026.
   rubrique: 'Rubrique',
   dialogue: 'Dialogue',
   introduction: 'Introduction (argument)',

@@ -30,6 +30,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
+import { estBlocDeVers } from '@/app/lib/compositionVers'
 
 /** Un ensemble d'alignement, tel que la page le charge déjà pour la comparaison. */
 export type EnsembleAlignement = {
@@ -58,6 +59,8 @@ export type SegmentOriginal = {
   segment_texte: string
   nature: string | null
   join_before: string | null
+  /** La forme, à plat : `forme:segment_metadata->>forme`. Voir `compositionVers`. */
+  forme?: string | null
 }
 
 /** L'original d'un groupe d'alignement, prêt à composer dans la colonne de droite. */
@@ -194,7 +197,7 @@ export function projeterBilingue(params: {
 
     // Un groupe est « en vers » quand TOUS ses segments le sont : un groupe mixte se
     // compose en prose, faute de savoir où le poème commence.
-    const toutVers = segments.every(s => s.nature === 'vers')
+    const toutVers = estBlocDeVers(segments)
     const parts = segments.map(s => ({
       texte: s.segment_texte,
       joinBefore: s.join_before,
@@ -376,7 +379,7 @@ export async function chargerProjectionBilingue(
 
   const clesOriginales = [...new Set(membresOriginaux.map(m => m.segment_key))]
   const pagesSegments = await Promise.all(lots(clesOriginales).map(lot =>
-    table('segments').select('segment_key,segment_texte,nature,join_before')
+    table('segments').select('segment_key,segment_texte,nature,join_before,forme:segment_metadata->>forme')
       .eq('id_texte', params.idTexteOriginal)
       .in('segment_key', lot)))
   const segmentsOriginaux = pagesSegments.flatMap(r => (r.data ?? []) as SegmentOriginal[])

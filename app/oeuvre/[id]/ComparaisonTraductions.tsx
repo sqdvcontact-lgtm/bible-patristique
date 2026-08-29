@@ -14,7 +14,7 @@ import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } f
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
-import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, estEnVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
@@ -232,7 +232,7 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   const blocs: BlocLecture[] = []
   for (const segment of ordonnes) {
     const faitBloc = estBlocVersets(naturesDuParagraphe.get(cleParagraphe(segment)) ?? [])
-    const type: BlocLecture['type'] = segment.nature === 'vers' ? 'vers'
+    const type: BlocLecture['type'] = estEnVers(segment) ? 'vers'
       : segment.nature === NATURE_VERSET && faitBloc ? 'versets'
       : segment.nature === 'rubrique' ? 'rubrique' : 'prose'
     const dernier = blocs.at(-1)
@@ -570,7 +570,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
 
   const estGroupeVers = (groupe: Groupe) => {
     const mg = membresParGroupe.get(groupe.alignment_id)
-    return mg ? [...mg.reference, ...mg.aligned].some(m => segments.get(m.segment_key)?.nature === 'vers') : false
+    return mg ? [...mg.reference, ...mg.aligned].some(m => estEnVers(segments.get(m.segment_key))) : false
   }
   // Les groupes de VERS consécutifs sont FUSIONNÉS en un seul bloc : chaque colonne
   // coule alors d'un trait, à interligne rigoureusement constant (comme le poème

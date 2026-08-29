@@ -221,30 +221,50 @@ export const CLE_FORME = 'forme'
 export const FORME_VERS = 'vers'
 
 /**
+ * Un segment tel qu'on le lit, quelle que soit la requête qui l'a chargé.
+ *
+ * ⚠️ La forme arrive sous DEUX enveloppes : à plat (`forme`) pour les lectures qui
+ * passent par `SELECT_SEGMENT` et son `forme:segment_metadata->>forme`, imbriquée
+ * (`segment_metadata.forme`) pour celles qui rapatrient la colonne entière. Ce ne
+ * sont pas deux façons de DÉCLARER un vers — il n'y en a qu'une — mais deux façons de
+ * le TRANSPORTER, et le prédicat lit les deux. ⛔ C'est exactement là que le défaut se
+ * loge : trois lecteurs du site jugeaient le vers sans passer par ici.
+ */
+export type SegmentAForme = {
+  forme?: unknown
+  segment_metadata?: Record<string, unknown> | null
+}
+
+/** La forme déclarée d'un segment, sous l'une ou l'autre enveloppe. */
+export function formeDeSegment(segment: SegmentAForme | null | undefined): string | null {
+  if (!segment) return null
+  if (typeof segment.forme === 'string') return segment.forme
+  const imbriquee = segment.segment_metadata?.[CLE_FORME]
+  return typeof imbriquee === 'string' ? imbriquee : null
+}
+
+/**
  * Ce segment est-il un VERS ?
  *
- * ⚠️ Deux façons de le dire, et c'est voulu — la seconde est la seule possible là où
- * la nature est déjà prise :
+ * ⛔ Une SEULE déclaration, `segment_metadata.forme = 'vers'`, et c'est la nécessité
+ * qui l'impose : dans l'apparat la nature vaut déjà `apparat_critique` — c'est par là
+ * que le segment est SÉLECTIONNÉ — et elle ne peut pas dire en plus qu'il est en vers.
+ * La forme dit la MATIÈRE sans toucher à la nature, comme le paratexte biblique le
+ * fait depuis toujours avec son couple `kind` × `form`.
  *
- *   · `nature = 'vers'` — la façon HÉRITÉE, celle du corps d'une œuvre. 2 325 segments
- *     la portent, tous dans la *Consolation* de Boèce.
- *   · `segment_metadata.forme = 'vers'` — la façon CANONIQUE. Elle dit la MATIÈRE d'un
- *     segment sans toucher à sa nature, et c'est ce qu'il faut dans l'apparat, où la
- *     nature vaut déjà `apparat_critique` et ne peut pas dire deux choses à la fois.
- *
- * ⛔ Une seule RÈGLE, deux écritures : c'est le patron des noms hérités des styles
- * bibliques. Ne jamais lire l'une des deux sans l'autre.
+ * ⚠️ `nature = 'vers'` a existé jusqu'au 29 août 2026, et n'existe plus. Les 2 325
+ * segments qui la portaient — 2 305 de la *Consolation* de Boèce, 20 du *Manuel* de
+ * Dhuoda — ont migré vers la forme, et la nature est sortie du vocabulaire. ⛔ Ne pas
+ * la rétablir ici « au cas où » : une nature qu'aucun segment ne porte est une seconde
+ * vérité qui attend de contredire la première.
  */
-export function estEnVers(
-  segment: { nature?: string | null; forme?: unknown } | null | undefined,
-): boolean {
-  if (!segment) return false
-  return segment.nature === 'vers' || segment.forme === FORME_VERS
+export function estEnVers(segment: SegmentAForme | null | undefined): boolean {
+  return formeDeSegment(segment) === FORME_VERS
 }
 
 /** Ce bloc est-il ENTIÈREMENT composé de vers ? Tout ou rien, comme `estBlocVersets`. */
 export function estBlocDeVers(
-  segments: readonly ({ nature?: string | null; forme?: unknown } | null | undefined)[],
+  segments: readonly (SegmentAForme | null | undefined)[],
 ): boolean {
   return segments.length > 0 && segments.every(estEnVers)
 }
