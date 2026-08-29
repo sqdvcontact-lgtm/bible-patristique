@@ -45,7 +45,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'admin/SectionConstituerLiens.tsx': ['#9a6a3e', '#d8b48f'],
   'admin/SectionControleOeuvres.tsx': ['#5b3a7a', '#6f2a19', '#8aa185', '#c3aed6', '#c7832f', '#e2b9aa'],
   'admin/SectionEssaisAdmin.tsx': ['#4a4540'],
-  'admin/SectionEssaisPublies.tsx': ['#4a4540'],
   'admin/SectionEvenements.tsx': ['#b7a06a', '#e7d3b8'],
   'admin/SectionFiabilite.tsx': ['#6f8a3e'],
   'admin/SectionModeration.tsx': ['#3d5a6b', '#573f86', '#6b4fa0', '#6b5fa0', '#7a746c', '#8a1f1f', '#9a6650', '#b0442a', '#b8ccbd', '#d8c9ec', '#db988c', '#e2b9aa', '#e6ab95', '#ece3f8'],
@@ -53,13 +52,11 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'admin/SectionRemplacerSegments.tsx': ['#8a4a1a', '#9a6a3a', '#a0b8aa', '#e4c4a0'],
   'admin/SectionTraductions.tsx': ['#a0b8aa'],
   'admin/SectionValidationNotices.tsx': ['#6f8a3e'],
-  'admin/SectionVerificationCatalogue.tsx': ['#2f5d7a', '#3d6b87', '#8a5a00', '#b14b38', '#b66a54', '#b8cddd', '#c8d8cc', '#e5a99b', '#e8b1a4'],
   'admin/SectionVerifications.tsx': ['rgba(60,50,30,0.06)'],
   'bibliotheque/BibliothequeClient.tsx': ['#3d5a6b', '#4a4030', '#4a6070', '#7a6040', '#7a6a48', '#7a6a50', '#7a8a6a', '#8a7a5a', '#a2564a', '#b0442a', '#b07d1e', '#b87a30', '#b88a45', '#b8a888', '#c09050', '#cfe0d5', 'rgba(139,107,60,0.05)', 'rgba(139,107,60,0.07)', 'rgba(139,107,60,0.08)', 'rgba(139,107,60,0.22)', 'rgba(30,26,20,0.42)', 'rgba(30,26,20,0.55)', 'rgba(61,90,107,0.07)', 'rgba(61,90,107,0.22)'],
   'bienvenue/page.tsx': ['#7a7068'],
   'chantier/page.tsx': ['#bca877', 'rgba(180,50,40,0.06)', 'rgba(180,50,40,0.18)'],
   'components/AccueilCards.tsx': ['#1e2e24', '#2a2520', '#2a3d30', '#3a3125', '#3a3530', '#4a3d2d', '#4a412f', '#52472c', '#5b5140', '#5f5138', '#736750', '#fff', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
-  'components/BandeauMobile.tsx': ['#8a7759', 'rgba(154,126,61,0.38)', 'rgba(244,237,219,0.98)', 'rgba(255,252,244,0.98)', 'rgba(74,55,32,0.16)'],
   'components/BibleLayout.tsx': ['#b0a088', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
   'components/EtoileFavori.tsx': ['#8a7a5e', '#a07028', '#c8933a'],
@@ -119,5 +116,4 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   //    que la ligne d'en-tête dit où le mot se trouve. Partis avec lui.
   'recherche/RechercheClient.tsx': ['#5a5248', '#6a8474', '#6f8f7b', '#7a1d16', '#7a5a10', '#8aa593', '#a9bcb0', '#b6ccbd', '#c8c0b8', '#e8c96a', 'rgba(30,28,24,0.38)'],
   'soutenir/page.tsx': ['#b0a088', '#cfc6b6', '#fff'],
-  'soutenir/VotesClient.tsx': ['#4a3e7a', '#7a5e1e', 'rgba(154,126,61,0.12)', 'rgba(250,253,250,0.96)', 'rgba(255,253,249,0.92)', 'rgba(90,80,140,0.10)'],
 }

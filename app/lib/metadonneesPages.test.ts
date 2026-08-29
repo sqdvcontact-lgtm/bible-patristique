@@ -54,7 +54,6 @@ describe('métadonnées des pages', () => {
     const HORS_INDEX_ATTENDU = [
       'app/bienvenue/layout.tsx',
       'app/compte/layout.tsx',
-      'app/essais/mes-ecrits/layout.tsx',
       'app/messagerie/layout.tsx',
       'app/prelevements/layout.tsx',
       'app/recherche/page.tsx',
