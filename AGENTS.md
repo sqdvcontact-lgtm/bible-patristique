@@ -1227,7 +1227,7 @@ Toute la règle vit dans **`app/lib/paginationLecture.ts`** (module pur, 9 tests
 - **Portée mesurée sur tout le corpus (2026-08-28)** : sur 385 divisions d'au moins deux blocs, **une seule** produisait un orphelin de tête — celle-là. La règle ne bouleverse rien ; elle empêche le défaut de revenir.
 - ⛔ **Fonder le saut de page sur la seule page imprimée n'est pas possible en règle générale** : **42,2 %** des segments de corps portent `page` (39 381 sur 93 346), et **14 textes sur 51** n'en portent aucune — ils n'auraient plus qu'une page, interminable. La charte le dit déjà : « La pagination n'est pas un objectif obligatoire de complétude. »
 
-# Citation biblique DÉCOUPÉE EN VERSETS — nature `verset` (2026-08-28)
+# Citation biblique DÉCOUPÉE EN VERSETS — nature `verset` (2026-08-28, resserrée le 2026-08-29)
 
 Doctrine : charte `parametres.charte_ia` **§3.8** (paragraphe « Une citation POSÉE VERSET PAR VERSET ne se recolle pas ») et **§7** (table des natures). Demande de l'auteur : « dans le style des citations sortie, mais sans grand espace entre paragraphes de même style ; un léger blanc suffit ; avec retrait gauche ».
 
@@ -1238,8 +1238,11 @@ Doctrine : charte `parametres.charte_ia` **§3.8** (paragraphe « Une citation P
 - **Ce que le style reprend de la citation sortie** : corps `0.95em`, justification, ni guillemets ni filet, retrait de 8 mm. **Ce qu'il en change** : le retrait ne se pose qu'à GAUCHE (deux marges étrangleraient une suite de lignes déjà rentrées), et le blanc de paragraphe (0,72 rem) tombe à un léger blanc entre versets — il reste AUTOUR du bloc, car c'est la citation qui est un paragraphe, non chacun de ses versets.
 - **Deux surfaces, une composition** : `OeuvreClient` (classes `.citation-versets` / `.citation-verset` de son bloc `<style>`, interpolées depuis le module) et `ComparaisonTraductions` (type de bloc `versets`, qui emprunte les mêmes classes au `<style>` parent). *Corollaire de méthode déjà payé sur les vers : une nature traitée sur UNE surface ne l'est nulle part.*
 - ⚠️ **Les versets se réunissent sans regarder `paragraphe`**, exactement comme les vers : selon l'édition, un paragraphe porte toute la citation ou un verset chacun, et sans fusion le même style rendrait un bloc d'un côté et autant de blocs que de versets de l'autre. Le bloc est la CITATION. (Hors lecture en regard, où le groupe d'alignement commande.)
+- ⛔ **Mais un verset ne fait BLOC que si son paragraphe n'en porte QUE**, et les deux surfaces doivent le dire de la même façon. La lecture exigeait ce tout ou rien (`estBlocVersets`) quand la comparaison faisait bloc sur la seule nature du segment : la MÊME donnée sortait du fil ici et y restait là. Les deux passent désormais par `estBlocVersets`, et `comparaisonTraductions.test.ts` le tient. *C'est la règle payée sur les vers prise par l'autre bout : **une nature ne se compose pas de deux façons.***
 - ⛔ **Ni lettrine ni citation sortie sur un verset.** La lettrine est un flottant qui déborderait sur les boîtes sœurs (raison qui l'interdit déjà aux vers) ; et `rendreCorpsSegment` court-circuite `detecterCitationSortie` pour un `verset`, qui imbriquerait un retrait dans un retrait.
-- **Portée au 2026-08-28 : zéro segment.** Le style est posé, la donnée reste à marquer — c'est un travail de lecture, œuvre par œuvre.
+- ⛔ **La marque ne dit PAS qu'un passage est une citation biblique : elle dit que l'ÉDITION le pose verset par verset** (charte § 3.8.1, **resserrée le 2026-08-29**). Une citation coulée dans la prose d'un commentaire — fût-elle lemme ou reprise de verset — reste une `citation` et se lit au fil du texte. Le § 3.8.1 disait l'inverse du 28 au 29 août, autorisant la marque « même si l'édition imprimée la compose dans le fil de la prose » : la donnée suivait cette doctrine pendant que le code suivait l'autre.
+- **Portée réelle au 2026-08-29 : DEUX suites, douze segments** — psaume CVIII, 2-11 et psaume CXXVI, 1-2, dans le *Commentaire sur les Psaumes* de Chrysostome (`TXT_A0014O0089_FR_1865_JEANNIN`, non publié). Sur les 1 109 segments d'abord marqués, **1 055 étaient des citations glissées dans la prose**, dont 976 sous 200 signes et douze seulement atteignant les 400 à partir desquels une citation quitte le fil. Repassés en `citation` ; sauvegarde `internal.backup_verset_jeannin_20260829`, retour en arrière dans `sql/rollback_verset_jeannin_20260829.sql`.
+- ⚠️ **Un verset qui ne fait pas bloc garde son ORDINAL de segment.** `rendreCorpsSegment` échangeait l'ordinal contre le numéro de verset sur la seule nature, sans regarder si le segment composait vraiment dans un bloc : il le perdait donc sans rien recevoir, la case `biblical_verse_number` étant vide. La règle vit dans `numeroDUnVerset` (`compositionVersets.ts`), avec ses tests — dans le bloc le numéro du VERSET et lui seul, hors du bloc l'ordinal, que rien ne lui dispute.
 
 ## Le NUMÉRO DE VERSET — écrit à la main, dans la face de la page Bible (2026-08-28)
 
@@ -1312,6 +1315,23 @@ Corollaire direct de ce qui précède, et il touche le RENDU. La lecture ordinai
 `TXT_A0176O0001_1887_BONDURAND` (« Manuel pour mon fils ») compte 20 segments de nature `vers`, et **aucun n'est une ligne** : chacun porte plusieurs vers courus ensemble (« Deus summe, lucis conditor poli Syderumque ductor, rex æterne, … »). Il n'a donc pas été uniformisé : y écrire une marque de strophe reviendrait à encoder une fiction par-dessus un défaut. C'est une **re-segmentation** qu'il lui faut, pas une métadonnée.
 
 ## Les colonnes de `segments` s'écrivent en UN seul endroit
+
+⛔ **`NATURES_CORPS` décide seule qu'une nature PARAÎT, et le dépôt l'a payé DEUX fois.**
+Une nature qu'accepte `chk_segments_nature` et qu'ignore cette liste n'est pas mal
+composée : elle n'existe pas pour le lecteur, en silence. Le 18 août 2026,
+`apparat_auteur` retiré faisait disparaître le « Prologue de Rufin aux livres X et XI ».
+Le 29 août 2026, `lemme` n'y avait **jamais** figuré : les **47 segments** qui la
+portent — tous dans le *Commentaire sur Jonas* de Jérôme, œuvre **publiée**, tous au
+rang 1 de leur paragraphe — n'étaient pas chargés. Or un lemme EST le verset que le
+commentaire commente : la division « Jonas 1, 1 » ouvrait sur « La traduction des
+Septante est la même, à cette différence près… », qui compare une traduction à un
+verset absent, et cela sur quarante divisions.
+
+D'où une garde, `app/lib/oeuvreSelects.test.ts` : toute nature de `NATURE_VALIDES` doit
+être RANGÉE — au corps, à l'apparat de l'éditeur, ou parmi les formes éteintes. Ajouter
+une nature sans dire où elle se compose fait échouer les tests, ce qui est le seul
+moment où l'on peut encore y penser. ⚠️ Un lemme se lit AU FIL DU TEXTE, comme
+n'importe quel paragraphe (décision de l'auteur du 20 août 2026, charte § 3.8).
 
 **`app/lib/oeuvreSelects.ts`** porte `SELECT_SEGMENT` et `NATURES_CORPS`. Les deux étaient recopiés à **trois** endroits chacun — rendu serveur, rechargement de division, chargement de l'apparat — sans qu'aucun mécanisme n'oblige les six listes à rester d'accord. C'est exactement la dérive qui avait tenu la section « Opuscules » invisible en ligne pendant que ses neuf tests passaient. ⛔ Lire les colonnes d'un segment ailleurs qu'ici, c'est la rouvrir.
 
@@ -2050,6 +2070,41 @@ Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualific
 # Éditions bibliques commentées — famille Fillion (2026-08-20)
 
 Le socle est **générique**, pas « fait pour Fillion » : une **famille éditoriale** (`bible_edition_families`) relie plusieurs traductions distinctes (`bible_edition_members`), et servira à toute autre édition bilingue ou apparentée. Pour Fillion, `TR0011` porte la Vulgate **telle qu’imprimée dans ses volumes** et `TR0010` son français. ⛔ **Ne jamais réutiliser `TR0004`** (Vulgate clémentine) comme Vulgate Fillion : ce sont deux témoins, pas deux vues d’un même texte.
+
+## ⛔ Les TROIS AXES d'un style, et le nom qualifié (2026-08-29)
+
+Doctrine : charte `parametres.charte_ia` **§ 7.1**, arbitrée par l'auteur le 29 août 2026.
+La question posée était de préfixer chaque style par sa famille de page —
+`patristique_citation_sortie`, `bible_apparat_citation_sortie` — ou de garder un
+vocabulaire de FONCTIONS dont la composition change selon la surface. La seconde voie
+est retenue. Règles de code :
+
+| Axe | Ce qu'il dit | Où il se déclare |
+|---|---|---|
+| **Le style** | ce que la chose EST | dans la donnée (`segments.nature`, `semantic_style`) |
+| **La surface** | OÙ elle se compose | par la page — ⛔ jamais sur le segment |
+| **Le rang** | profondeur d'un titre (T1-T6) ou portée d'une information (I1-I6) | dans la donnée, pour le paratexte biblique |
+
+- ⛔ **Le style ne se préfixe PAS par sa famille de page.** `segments.nature` vit dans
+  `segments`, qui EST le corpus patristique ; `semantic_style` dans une table qui n'est
+  que biblique. Écrire la famille dans la valeur répète ce que la table dit déjà, et ce
+  qui se répète dérive — `introduction_subsection` contre `introduction_sous_section`,
+  deux graphies d'un même style, onze blocs invisibles.
+- ⚠️ **Le nom se QUALIFIE dès qu'il sort de sa table** : dans la charte, dans une
+  planche, dans une conversation, on écrit `patristique/verset` et
+  `bible_apparat/commentaire_pericope`. La barre dit la surface sans l'écrire dans la
+  donnée. C'est nécessaire, `verset` désignant deux choses — une rangée de la page
+  Bible et une nature de segment patristique.
+- ⛔ **Le vocabulaire est CLOS, et la base le tient** : `chk_segments_nature` pour les
+  segments, le déclencheur `trg_bible_style_semantique_connu` pour le paratexte
+  biblique (migration `20260829100000`). Jusque-là un style inconnu entrait sans bruit
+  et le bloc ne paraissait nulle part, le rendu refusant ce qu'il ne sait pas composer.
+- **On étend le vocabulaire, on ne le contourne pas** : `work/fillion/
+  semantic_display_hierarchy.json` pour le paratexte, `app/lib/naturesSegments.ts` et
+  la contrainte pour les segments, puis on sème. ⛔ Jamais un INSERT à la main.
+- **La composition appartient à la SURFACE** et vit en un seul endroit par famille :
+  `app/lib/compositionBible.ts`, `compositionOeuvre.ts`, `compositionVers.ts`,
+  `compositionVersets.ts`, et les classes de `globals.css`.
 
 🎨 **La PLANCHE DES STYLES — `/admin/styles`** (2026-08-28). **Quatre ÉPREUVES CONTINUES**, une par vocabulaire — le texte biblique, le corps d'une œuvre, l'apparat d'une œuvre, l'apparat d'une bible —, avec le nom du style et sa notice **en marge**. Le texte court d'un bout à l'autre comme il court sur le site : c'est ainsi seulement qu'on voit les RELATIONS entre styles, et non chacun d'eux isolé.
 - ⛔ **RIEN n'est rejoué.** Exigence de l'auteur : la planche doit reproduire *exactement* ce que font les pages visées. Les compositions ont donc été SORTIES de leurs composants — `app/lib/compositionOeuvre.ts` (paragraphe, vers, argument, numéro de segment ; `OeuvreClient` s'en sert) et `app/lib/compositionBible.ts` (rangée de verset, axe de la page ; `TexteBible` s'en sert). Le paratexte biblique passe par `BlocEditorialBible` lui-même. ⛔ Ajouter une épreuve, c'est d'abord sortir sa composition de son composant.
