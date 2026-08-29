@@ -444,30 +444,40 @@ Sauvegarde `internal.backup_styles_arbitrage_20260829`, retour en arrière dans
 
 ⚠️ **Les pièces liminaires sont re-déduites au lieu d’être lues.** 64 blocs déclarent `piece_key` (douze pièces nommées : `page-de-titre`, `du-meme-auteur`, `imprimatur-1888`, `imprimatur-1904`, `dedicace-vigouroux`, `avant-propos`, `transcription-hebreu`, `principales-abreviations`, `introduction-generale`, `ancien-testament`, `pentateuque`, `genese`) et `piece_role` (`head`, `continuation`, `apparatus`, `entry`). Le site ne les lit pas : `grouperPiecesLiminaires` reconstruit le groupement à partir du nom, de la portée et de la page imprimée. Cela marche aujourd’hui, mais une donnée explicite vaut mieux qu’une heuristique.
 
-### 6.4 ⚠️ Les deux tomes ne commentent pas au même RANG
+### 6.4 Les deux tomes ne commentent pas au même RANG — et c’est Fillion
 
 La même fonction éditoriale ne se traite pas au même niveau selon le tome. ⚠️ Ce
 n’était pas lisible avant le regroupement : c’étaient alors deux **vocabulaires**
 disjoints, et l’on ne pouvait pas voir que la question était celle du rang. Le
 tableau se lit maintenant sur une seule colonne de noms.
 
-| Fonction | Pentateuque (GEN-DEU) | Nouveau Testament (MAT-ACT) |
-|---|---|---|
-| Ouvrir une péricope | `titre_pericope` (607) | `introduction_titree` I5 (257) + `titre_pericope` (272) |
-| Commenter au verset | `commentaire` **I6** (462) | *aucun* |
-| Commenter au chapitre | `commentaire` **I4** (257) | *aucun* |
-| Commenter à la péricope | `commentaire` I5 (1 070) | `commentaire` I5 (1 099) |
-| Marquer le chapitre imprimé | *aucun* | `titre_chapitre_livre` (117) |
-| Introduire une section | *aucun* | `introduction` I3 (35) |
-| Introduire une partie | *aucun* | `introduction` I2 (14) |
+⛔ **Rectification du 2026-08-29.** Ce paragraphe soupçonnait ici « deux passes de
+transcription qui n’ont pas nommé la même chose », sur la foi d’un écart de
+`commentaire_section` de **175 blocs contre 13**. C’était faux, et la cause en était
+tout autre : **154 de ces 175 blocs sont des SOUS-TITRES** — « § I », puis « L’état
+d’innocence (2, 4-26) » — qui n’étaient pas encore marqués comme tels. Une fois le
+rôle `sous_titre` posé, l’écart disparaît : **49 introductions contre 57, 3
+commentaires contre 13**. Les deux tomes se comportent pareil à ce rang.
 
-Ce n’est pas nécessairement une faute : Fillion ne compose pas le Pentateuque comme
-les Évangiles, et il y commente réellement verset par verset. Mais l’écart de
-`commentaire_section` — **175 blocs contre 13** — quand `introduction_section` fait
-**0 contre 35** ressemble, lui, à deux passes de transcription qui n’ont pas nommé la
-même chose de la même façon. **Les départager demande le fac-similé : c’est
-philologique, pas technique.** Avant d’en tirer une statistique ou une règle,
-vérifier que la question porte sur la même chose des deux côtés.
+Ce qui reste est **Fillion lui-même**, et non la transcription :
+
+| Fonction | Pentateuque (GEN-DEU) | Nouveau Testament (MAT-ACT) |
+|---|---:|---:|
+| Commenter au VERSET — `commentaire` I6 | **462** | 0 |
+| Commenter au CHAPITRE — `commentaire` I4 | **259** | 0 |
+| Ouvrir une péricope par une introduction titrée — `introduction_titree` I5 | 0 | **257** |
+| Commenter à la péricope — `commentaire` I5 | 1 072 | 1 099 |
+| Introduire une section — `introduction` I3 | 49 | 57 |
+
+Le Pentateuque commente verset par verset et chapitre par chapitre ; les évangiles
+s’organisent par péricope, chacune ouverte d’une introduction titrée. À la péricope,
+les deux tomes s’équilibrent presque exactement — 1 072 contre 1 099. **C’est une
+différence de composition entre les volumes de Fillion, pas une divergence de
+vocabulaire.**
+
+⚠️ Les 42 `notice` I1 du Pentateuque n’en sont pas une non plus : la matière liminaire
+de toute la Bible — avant-propos, tableau de transcription, abréviations — est imprimée
+en tête du tome I, celui de la Genèse.
 
 ### 6.5 Le vocabulaire est passé de 48 styles à 12
 
