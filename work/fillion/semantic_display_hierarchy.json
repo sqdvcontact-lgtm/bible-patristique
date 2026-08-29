@@ -1,300 +1,586 @@
 {
   "version": "1.0.0",
-  "updated": "2026-08-20",
+  "updated": "2026-08-29",
   "note": "Registre des styles sémantiques de la page Bible. Deux échelles qui ne sont PAS interchangeables : T1-T6 dit la profondeur d'un titre structurel attesté, I1-I6 dit l'étendue qu'un bloc d'information explique. La nature (introduction, commentaire, notice, sommaire, excursus, conclusion) est un modificateur distinct du niveau. Aucun niveau ne se déduit de la casse, du corps de caractère ou de la ponctuation de la source. Règle normative : charte/CHARTE_IA.md, §§ 6.2 et 33.3.",
   "levels": {
     "titles": [
-      { "token": "T1", "role": "titre du livre biblique, fourni par les métadonnées de page" },
-      { "token": "T2", "role": "partie du livre" },
-      { "token": "T3", "role": "section" },
-      { "token": "T4", "role": "sous-section" },
-      { "token": "T5", "role": "chapitre biblique" },
-      { "token": "T6", "role": "péricope" }
+      {
+        "token": "T1",
+        "role": "titre du livre biblique, fourni par les métadonnées de page"
+      },
+      {
+        "token": "T2",
+        "role": "partie du livre"
+      },
+      {
+        "token": "T3",
+        "role": "section"
+      },
+      {
+        "token": "T4",
+        "role": "sous-section"
+      },
+      {
+        "token": "T5",
+        "role": "chapitre biblique (axe matériel) ou division « § » du commentaire (axe analytique)"
+      },
+      {
+        "token": "T6",
+        "role": "péricope"
+      }
     ],
     "info": [
-      { "token": "I1", "scope": "livre" },
-      { "token": "I2", "scope": "partie de livre" },
-      { "token": "I3", "scope": "section" },
-      { "token": "I4", "scope": "chapitre" },
-      { "token": "I5", "scope": "péricope" },
-      { "token": "I6", "scope": "verset" }
+      {
+        "token": "I1",
+        "scope": "livre"
+      },
+      {
+        "token": "I2",
+        "scope": "partie de livre"
+      },
+      {
+        "token": "I3",
+        "scope": "section"
+      },
+      {
+        "token": "I4",
+        "scope": "chapitre"
+      },
+      {
+        "token": "I5",
+        "scope": "péricope"
+      },
+      {
+        "token": "I6",
+        "scope": "verset"
+      }
     ]
   },
-  "natures": ["title", "introduction", "commentary", "notice", "summary", "excursus", "conclusion", "note"],
+  "natures": [
+    "title",
+    "introduction",
+    "commentary",
+    "notice",
+    "summary",
+    "excursus",
+    "conclusion",
+    "note"
+  ],
   "styles": {
     "titre_livre": {
-      "kind": "title", "level": "T1", "nature": "title",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "none", "body_block": false,
+      "kind": "title",
+      "level": "T1",
+      "nature": "title",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": false,
       "aliases": [],
       "note": "Le titre du livre vient des métadonnées de page. Un bloc de corps qui le répète n'est pas rendu : la page le porte déjà."
     },
     "titre_partie_livre": {
-      "kind": "title", "level": "T2", "nature": "title",
-      "include_in_outline": true, "placement": "editorial_anchor",
-      "heading_role": "none", "body_block": true,
-      "aliases": ["titre_partie"]
+      "kind": "title",
+      "level": "T2",
+      "nature": "title",
+      "include_in_outline": true,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": true,
+      "aliases": [
+        "titre_partie"
+      ]
     },
     "titre_section_livre": {
-      "kind": "title", "level": "T3", "nature": "title",
-      "include_in_outline": true, "placement": "editorial_anchor",
-      "heading_role": "none", "body_block": true,
-      "aliases": ["titre_section"],
+      "kind": "title",
+      "level": "T3",
+      "nature": "title",
+      "include_in_outline": true,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": true,
+      "aliases": [
+        "titre_section"
+      ],
       "note": "L'alias ancien « titre_section » se résout ici."
     },
     "titre_sous_section": {
-      "kind": "title", "level": "T4", "nature": "title",
-      "include_in_outline": true, "placement": "editorial_anchor",
-      "heading_role": "none", "body_block": true,
+      "kind": "title",
+      "level": "T4",
+      "nature": "title",
+      "include_in_outline": true,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": true,
       "aliases": []
     },
     "titre_chapitre_livre": {
-      "kind": "title", "level": "T5", "nature": "title",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "none", "body_block": true,
+      "kind": "title",
+      "level": "T5",
+      "nature": "title",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": true,
       "hierarchy_axis": "material",
       "redundant_with_reader_navigation": true,
-      "aliases": ["titre_chapitre"],
+      "aliases": [
+        "titre_chapitre"
+      ],
       "note": "Charte §35.1. La mention imprimée « Chapitre I » est un témoin matériel de l’édition, conservé dans la donnée et non affiché là où la navigation dit déjà le chapitre. Elle n’est pas un niveau analytique du commentaire : elle ne commande donc pas l’axe des subdivisions et n’entre pas au plan."
     },
     "titre_pericope": {
-      "kind": "title", "level": "T6", "nature": "title",
-      "include_in_outline": true, "placement": "editorial_anchor",
-      "heading_role": "none", "body_block": true,
+      "kind": "title",
+      "level": "T6",
+      "nature": "title",
+      "include_in_outline": true,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": true,
       "aliases": []
     },
-
     "introduction_bible": {
-      "kind": "info", "level": "I1", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true,
+      "kind": "info",
+      "level": "I1",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
       "aliases": [],
       "note": "Portée plus large que le livre. L'échelle d'information s'arrête au livre : ce style prend donc I1, son étendue réelle restant dans scope_kind."
     },
     "introduction_testament": {
-      "kind": "info", "level": "I1", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true,
+      "kind": "info",
+      "level": "I1",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
       "aliases": [],
       "note": "Portée plus large que le livre ; voir introduction_bible."
     },
     "introduction_groupe_livres": {
-      "kind": "info", "level": "I1", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true,
+      "kind": "info",
+      "level": "I1",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
       "aliases": [],
       "note": "Portée plus large que le livre ; voir introduction_bible."
     },
     "notice_bible": {
-      "kind": "info", "level": "I1", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true,
+      "kind": "info",
+      "level": "I1",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
       "aliases": [],
       "note": "Notice matérielle de portée biblique ; le sous-type précise séparément s'il s'agit d'apparat, de sigles, de bibliographie ou de matière éditoriale."
     },
     "notice_testament": {
-      "kind": "info", "level": "I1", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true,
+      "kind": "info",
+      "level": "I1",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
       "aliases": [],
       "note": "Notice de portée testamentaire ; l'étendue réelle reste portée par scope_kind."
     },
     "notice_groupe_livres": {
-      "kind": "info", "level": "I1", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true,
+      "kind": "info",
+      "level": "I1",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
       "aliases": [],
       "note": "Notice de portée groupe de livres ; l'étendue réelle reste portée par scope_kind."
     },
-
     "introduction_livre": {
-      "kind": "info", "level": "I1", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "title", "heading_level": "T2", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I1",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "title",
+      "heading_level": "T2",
+      "body_block": true,
+      "aliases": []
     },
     "notice_livre": {
-      "kind": "info", "level": "I1", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I1",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "sommaire_livre": {
-      "kind": "info", "level": "I1", "nature": "summary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I1",
+      "nature": "summary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "conclusion_livre": {
-      "kind": "info", "level": "I1", "nature": "conclusion",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I1",
+      "nature": "conclusion",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "excursus_livre": {
-      "kind": "info", "level": "I1", "nature": "excursus",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": ["excursus"]
+      "kind": "info",
+      "level": "I1",
+      "nature": "excursus",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": [
+        "excursus"
+      ]
     },
     "commentaire_livre": {
-      "kind": "info", "level": "I1", "nature": "commentary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I1",
+      "nature": "commentary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "transition_livre": {
-      "kind": "info", "level": "I1", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I1",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
-
     "introduction_partie": {
-      "kind": "info", "level": "I2", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": ["introduction_partie_livre"]
+      "kind": "info",
+      "level": "I2",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": [
+        "introduction_partie_livre"
+      ]
     },
     "commentaire_partie": {
-      "kind": "info", "level": "I2", "nature": "commentary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I2",
+      "nature": "commentary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "notice_partie": {
-      "kind": "info", "level": "I2", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I2",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "sommaire_partie": {
-      "kind": "info", "level": "I2", "nature": "summary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I2",
+      "nature": "summary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "conclusion_partie": {
-      "kind": "info", "level": "I2", "nature": "conclusion",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I2",
+      "nature": "conclusion",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "excursus_partie": {
-      "kind": "info", "level": "I2", "nature": "excursus",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I2",
+      "nature": "excursus",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
-
     "introduction_section": {
-      "kind": "info", "level": "I3", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I3",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "introduction_sous_section": {
-      "kind": "info", "level": "I3", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": [],
+      "kind": "info",
+      "level": "I3",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": [],
       "note": "Développement informationnel placé sous un titre T4. L’échelle d’information n’ayant pas de niveau distinct pour la sous-section, ce style reste au niveau I3."
     },
     "commentaire_section": {
-      "kind": "info", "level": "I3", "nature": "commentary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I3",
+      "nature": "commentary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "notice_section": {
-      "kind": "info", "level": "I3", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I3",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "sommaire_section": {
-      "kind": "info", "level": "I3", "nature": "summary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I3",
+      "nature": "summary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "conclusion_section": {
-      "kind": "info", "level": "I3", "nature": "conclusion",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I3",
+      "nature": "conclusion",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "excursus_section": {
-      "kind": "info", "level": "I3", "nature": "excursus",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I3",
+      "nature": "excursus",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
-
     "introduction_chapitre": {
-      "kind": "info", "level": "I4", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I4",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "commentaire_chapitre": {
-      "kind": "info", "level": "I4", "nature": "commentary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I4",
+      "nature": "commentary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "notice_chapitre": {
-      "kind": "info", "level": "I4", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I4",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "sommaire_chapitre": {
-      "kind": "info", "level": "I4", "nature": "summary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I4",
+      "nature": "summary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "conclusion_chapitre": {
-      "kind": "info", "level": "I4", "nature": "conclusion",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I4",
+      "nature": "conclusion",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "excursus_chapitre": {
-      "kind": "info", "level": "I4", "nature": "excursus",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I4",
+      "nature": "excursus",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
-
     "introduction_pericope": {
-      "kind": "info", "level": "I5", "nature": "introduction",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "title", "heading_level": "T6", "heading_in_outline": true,
-      "body_block": true, "aliases": [],
+      "kind": "info",
+      "level": "I5",
+      "nature": "introduction",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "title",
+      "heading_level": "T6",
+      "heading_in_outline": true,
+      "body_block": true,
+      "aliases": [],
       "note": "Cas mixte : l'intitulé EST le titre de la péricope (T6, au plan), le développement est l'information I5 placée avant la péricope. Deux éléments distincts, jamais concaténés."
     },
     "commentaire_pericope": {
-      "kind": "info", "level": "I5", "nature": "commentary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "heading_in_outline": false,
-      "body_block": true, "aliases": [],
+      "kind": "info",
+      "level": "I5",
+      "nature": "commentary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "heading_in_outline": false,
+      "body_block": true,
+      "aliases": [],
       "note": "Cas mixte : l'intitulé n'est qu'un repère interne, exclu du plan. Un commentaire de péricope ne paraît jamais au sommaire."
     },
     "notice_pericope": {
-      "kind": "info", "level": "I5", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I5",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "sommaire_pericope": {
-      "kind": "info", "level": "I5", "nature": "summary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I5",
+      "nature": "summary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "conclusion_pericope": {
-      "kind": "info", "level": "I5", "nature": "conclusion",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I5",
+      "nature": "conclusion",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "excursus_pericope": {
-      "kind": "info", "level": "I5", "nature": "excursus",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I5",
+      "nature": "excursus",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
     "transition_pericope": {
-      "kind": "info", "level": "I5", "nature": "notice",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "body_block": true, "aliases": []
+      "kind": "info",
+      "level": "I5",
+      "nature": "notice",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "body_block": true,
+      "aliases": []
     },
-
     "commentaire_verset": {
-      "kind": "info", "level": "I6", "nature": "commentary",
-      "include_in_outline": false, "placement": "editorial_anchor",
-      "heading_role": "label", "heading_in_outline": false,
-      "body_block": true, "aliases": [],
+      "kind": "info",
+      "level": "I6",
+      "nature": "commentary",
+      "include_in_outline": false,
+      "placement": "editorial_anchor",
+      "heading_role": "label",
+      "heading_in_outline": false,
+      "body_block": true,
+      "aliases": [],
       "note": "Commentaire suivi explicitement ancré sur un verset. Son numéro ou son lemme est un repère interne exclu du plan. Ne pas confondre avec note_verset, qui reste une note de bas de page hors corps."
     },
-
     "note_verset": {
-      "kind": "note", "level": "I6", "nature": "note",
-      "include_in_outline": false, "placement": "footnote_only",
-      "heading_role": "none", "body_block": false, "aliases": [],
+      "kind": "note",
+      "level": "I6",
+      "nature": "note",
+      "include_in_outline": false,
+      "placement": "footnote_only",
+      "heading_role": "none",
+      "body_block": false,
+      "aliases": [],
       "note": "Appel dans le verset, contenu au bas de l'unité de lecture. Ne devient JAMAIS un encadré du corps."
+    },
+    "titre_paragraphe_livre": {
+      "kind": "title",
+      "level": "T5",
+      "nature": "title",
+      "include_in_outline": true,
+      "placement": "editorial_anchor",
+      "heading_role": "none",
+      "body_block": true,
+      "hierarchy_axis": "analytic",
+      "aliases": [
+        "titre_division"
+      ],
+      "note": "La division « § » de Fillion, entre la sous-section et la péricope. ⚠️ Partage le rang T5 avec `titre_chapitre_livre`, dont elle se distingue par l'AXE : le chapitre est matériel et ne commande pas les subdivisions, le paragraphe est analytique et les commande."
     }
   }
 }

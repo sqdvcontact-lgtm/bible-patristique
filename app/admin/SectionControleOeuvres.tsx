@@ -8,6 +8,7 @@ import { hydraterLiensHerites } from '@/app/lib/liens'
 import ModalLienBiblique, { type ChampLienBiblique, type VersetLienBiblique } from '@/app/components/ModalLienBiblique'
 import { analyserCorpus, analyserPerso, RANGS, type Rang, type Verdict } from './controleQualite'
 import type { Auteur } from './adminTypes'
+import { NATURE_VALIDES } from '@/app/lib/naturesSegments'
 
 type SegmentControle = {
   id: number
@@ -57,11 +58,28 @@ const versStatutPerso = (r: Rang): string => (r === 'moyen' ? 'revoir' : r)
 // l'affichage ; les rares lignes encore en `apparat` en base seront basculées à la
 // prochaine modification (une migration Supabase reste souhaitable pour les uniformiser).
 const canonNature = (n: string | null | undefined): string => (n === 'apparat' ? 'apparat_critique' : (n ?? 'texte'))
+// ⚠️ Un libellé POUR CHAQUE nature du vocabulaire, et rien de plus : une entrée
+// sans nature offrirait au menu une valeur que la base refuse, une nature sans
+// libellé s'y afficherait sous son nom technique. `naturesSegments.test.ts` tient
+// les deux listes en regard.
 const LIBELLE_NATURE: Record<string, string> = {
-  texte: 'Texte', titre: 'Titre', introduction: 'Introduction',
-  apparat_critique: 'Apparat critique', separateur: 'Séparateur', citation: 'Citation', note: 'Note',
+  texte: 'Texte',
+  // Une citation longue ou un bloc cité, quand une distinction d'affichage sert.
+  citation: 'Citation',
   // Un verset d'une citation biblique posée verset par verset (compositionVersets.ts).
   verset: 'Verset',
+  lemme: 'Lemme',
+  vers: 'Vers',
+  rubrique: 'Rubrique',
+  dialogue: 'Dialogue',
+  introduction: 'Introduction (argument)',
+  signature: 'Signature',
+  apparat_critique: 'Apparat critique',
+  apparat_auteur: 'Apparat d’auteur',
+  apparat_editeur: 'Apparat d’éditeur',
+  'texte absent': 'Texte absent',
+  // Héritage : plus jamais créé, conservé pour les anciens exports.
+  separateur: 'Séparateur (hérité)',
 }
 type SegmentAfficheControle = { segment: SegmentControle; contexte?: boolean }
 type ChampLien = ChampLienBiblique
@@ -750,14 +768,20 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
     verdicts.forEach(v => { out[v.rang] += 1 })
     return out
   }, [verdicts])
-  // Natures déjà présentes dans l'œuvre : alimentent le menu déroulant « Nature ».
-  // On peut reclasser un segment dans N'IMPORTE lequel des niveaux existants (pas seulement
-  // ceux déjà présents dans l'œuvre) : on part d'une liste canonique, complétée des natures
-  // effectivement rencontrées. UNE SEULE nature d'apparat : `apparat_critique` (celle que
-  // lit la vue Apparat de la page œuvre) ; l'ancien `apparat` y est ramené.
-  const NATURES_CANONIQUES = ['texte', 'titre', 'introduction', 'apparat_critique', 'separateur', 'citation', 'note', 'verset']
+  // Le menu « Nature » n'offre QUE des natures qui existent.
+  //
+  // ⛔ Il partait d'une liste écrite à la main où figuraient `titre` et `note`, que
+  // `chk_segments_nature` refuse : les choisir écrivait une erreur en base, sans que
+  // rien ne l'annonce avant. Une liste offerte est une promesse ; offrir ce que la
+  // base refuse est une promesse fausse. Elle vient donc du vocabulaire lui-même,
+  // `NATURE_VALIDES` (`app/lib/naturesSegments.ts`), qu'importateurs et contrainte
+  // partagent. Décision de l'auteur, 2026-08-29.
+  //
+  // ⚠️ Les natures RENCONTRÉES dans l'œuvre s'y ajoutent quand même — `apparat_editeur`
+  // et `apparat_auteur` en font partie, que le vocabulaire d'import ne connaît pas :
+  // sans elles, ouvrir le menu sur un tel segment en changerait la nature en silence.
   const naturesDisponibles = React.useMemo(() => {
-    const set = new Set<string>(NATURES_CANONIQUES)
+    const set = new Set<string>(NATURE_VALIDES)
     segments.forEach(s => { if (s.nature) set.add(canonNature(s.nature)) })
     return [...set].sort((a, b) => a.localeCompare(b, 'fr'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
