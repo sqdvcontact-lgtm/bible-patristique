@@ -740,7 +740,17 @@ button:focus-visible,
   text-align: left;
   letter-spacing: 0.01em;
 }
-.cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); }
+.cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); margin-bottom: 0.35rem; }
+
+/* ⛔ Le blanc SOUS une sous-section se referme : ce qui suit lui appartient, comme
+   au rang T6. ⚠️ Et il ne suffit pas de raccourcir la marge du titre — les marges
+   verticales se fondent, et c'est la PLUS GRANDE qui l'emporte : celle du bloc
+   suivant, 1,25 rem pour un commentaire et 1,75 pour une péricope, rouvrait le
+   blanc qu'on venait de fermer. Le titre paraissait alors flotter loin de son
+   développement (relevé par l'auteur, 2026-08-29). On ferme donc des DEUX côtés. */
+.cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc {
+  margin-top: 0.35rem;
+}
 .cs-bible-title--t5 { font-size: 1rem;      font-weight: 400; color: var(--cs-encre); }
 /* Intertitre de péricope : au fer, en ITALIQUE, avec de l’air au-dessus et peu
    au-dessous — le texte qui suit lui appartient. L’italique le sépare de la
@@ -919,8 +929,11 @@ button:focus-visible,
      déclencher. Portée à 1,25 rem, elle en déclenchait deux dans les cas où la
      conduite serrée du repère tombait juste sous une ligne du commentaire.
      0,75 rem déclenche la première partout, de un à cinq lignes de repère.
-     La marge haute, elle, est la descente mesurée ci-dessus. */
-  margin: 0.125rem 1.25rem 0.75rem 0;
+     La marge haute, elle, est la descente mesurée ci-dessus.
+     ⚠️ Le blanc de DROITE est passé de 1,25 à 0,9 rem le 2026-08-29 : la gouttière
+     entre le repère et son développement se lisait plus large que le retrait qui
+     les sépare de la page, et la manchette s'en détachait au lieu de le coiffer. */
+  margin: 0.125rem 0.9rem 0.75rem 0;
   padding: 0;
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
      place : le gris de l'apparat s'y lisait anémique. */
