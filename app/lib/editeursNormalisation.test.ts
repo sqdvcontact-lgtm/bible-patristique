@@ -9,6 +9,7 @@ import {
   estCoedition,
   partiesCoedition,
   SEPARATEUR_COEDITEURS,
+  variantesDepuisLignes,
 } from './editeursNormalisation'
 
 // Extrait fidèle de la table `editeurs` (les maisons que le corpus rencontre
@@ -190,5 +191,28 @@ describe('coédition', () => {
   it('rend le même affichage quand on le recompose une seconde fois', () => {
     const une = normaliserNomEditeur('Éditions du Cerf ; Abbaye Saint-Pierre de Solesmes', COEDITION)
     expect(normaliserNomEditeur(une, COEDITION)).toBe(une)
+  })
+})
+
+
+// ⛔ La virgule ne peut pas séparer deux variantes : elle est DANS le nom des maisons.
+// Cas réel, et déjà cassé en base avant la correction : « J.-P. Migne (Patrologia Latina,
+// t. 63) » avait été enregistrée en DEUX graphies dont ni l’une ni l’autre ne veut rien dire.
+describe('variantesDepuisLignes', () => {
+  it('garde la virgule DANS le nom', () => {
+    expect(variantesDepuisLignes('J.-P. Migne (Patrologia Latina, t. 63)'))
+      .toEqual(['J.-P. Migne (Patrologia Latina, t. 63)'])
+    expect(variantesDepuisLignes('Delsol, Pradel et Cie\nFirmin Didot frères, fils et Cie'))
+      .toEqual(['Delsol, Pradel et Cie', 'Firmin Didot frères, fils et Cie'])
+  })
+
+  it('une graphie par ligne, sans blanc ni ligne vide', () => {
+    expect(variantesDepuisLignes('  L. Guérin  \n\n L. Guérin & Cie \n'))
+      .toEqual(['L. Guérin', 'L. Guérin & Cie'])
+    expect(variantesDepuisLignes('')).toEqual([])
+  })
+
+  it('lit aussi bien un collage à fins de ligne Windows', () => {
+    expect(variantesDepuisLignes('Cerf\r\nÉditions du Cerf')).toEqual(['Cerf', 'Éditions du Cerf'])
   })
 })

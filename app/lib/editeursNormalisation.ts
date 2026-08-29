@@ -70,6 +70,17 @@ export function partiesCoedition(nom: string): string[] {
   return nom.split(/\s*;\s*/u).map((p) => p.trim()).filter(Boolean)
 }
 
+/** Les variantes telles qu’on les SAISIT : une par ligne.
+ *
+ * ⛔ Pas la virgule comme séparateur. Le nom d’une maison en contient — « Delsol, Pradel
+ * et Cie », « Firmin Didot frères, fils et Cie », « J.-P. Migne (Patrologia Latina, t. 63) »
+ * — et la virgule le coupait en deux graphies dont ni l’une ni l’autre ne veut rien dire.
+ * Un nom, lui, ne contient jamais de saut de ligne : la ligne est le seul séparateur qui
+ * n’ait pas à être protégé. */
+export function variantesDepuisLignes(texte: string): string[] {
+  return texte.split(/\r?\n/u).map((v) => v.trim()).filter(Boolean)
+}
+
 /** Deux maisons ou plus dans une même mention. */
 export function estCoedition(nom: string): boolean {
   return partiesCoedition(nom).length > 1

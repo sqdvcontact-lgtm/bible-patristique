@@ -2499,6 +2499,9 @@ Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le point-virgule est la
 
 
 
+- ⛔ **Les variantes se saisissent UNE PAR LIGNE, jamais séparées par une virgule** (`variantesDepuisLignes`). Le nom d’une maison en contient — « Delsol, Pradel et Cie », « Firmin Didot frères, fils et Cie », « Centre d’études médiévales et dialectales, Université Lille III » : neuf fiches sur 670. Le défaut n’était pas théorique : « J.-P. Migne (Patrologia Latina, t. 63) », saisie par l’auteur, avait été enregistrée en DEUX graphies, « J.-P. Migne (Patrologia Latina » et « t. 63) », dont ni l’une ni l’autre ne veut rien dire, et dans les DEUX référentiels. Un nom ne contient jamais de saut de ligne : la ligne est le seul séparateur qui n’ait pas à être protégé. Réparation et retour arrière : `sql/rollback_variante_migne_coupee_20260829.sql`.
+- ⚠️ **L’affichage des variantes suit** : « ≈ A · B » et non « ≈ A, B ». Avec la virgule, une virgule DANS un nom se lisait comme la frontière de deux graphies — le champ mentait de la même façon que la saisie.
+- ⛔ **Le même défaut dort ailleurs.** `auteurs.variantes` et `auteurs_valeur.aliases` passent toujours par `listeDepuisVirgules` (`nomsPersonnes.ts`), et un nom de personne porte une virgule aussi souvent (« Dupont, Jean », un titre entre virgules). Non corrigé faute de décision : aligner les deux demande de toucher `SectionFiabilite`, `SectionOuvrages` et les 24 tests du module.
 
 ## Une version se donne comme une traduction, pas comme un nom
 

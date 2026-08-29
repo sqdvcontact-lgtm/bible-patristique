@@ -8,6 +8,7 @@ import {
   estCoedition,
   partiesCoedition,
   resoudreNomEditeur,
+  variantesDepuisLignes,
 } from '@/app/lib/editeursNormalisation'
 
 // Écran de curation des éditeurs : liste, ajout/édition, et repérage des éditeurs
@@ -136,7 +137,7 @@ export default function SectionEditeurs() {
   const nbValides = useMemo(() => (editeurs ?? []).filter(e => e.valide).length, [editeurs])
 
   const editer = (e: Editeur) => setBrouillon({
-    id: e.id, nom_complet: e.nom_complet, variantes: (e.variantes ?? []).join(', '),
+    id: e.id, nom_complet: e.nom_complet, variantes: (e.variantes ?? []).join('\n'),
     ville: e.ville ?? '', annee_debut: e.annee_debut?.toString() ?? '', annee_fin: e.annee_fin?.toString() ?? '', notes: e.notes ?? '',
   })
 
@@ -151,7 +152,7 @@ export default function SectionEditeurs() {
       body: JSON.stringify({
         id: brouillon.id,
         nom_complet: brouillon.nom_complet.trim(),
-        variantes: brouillon.variantes.split(',').map(v => v.trim()).filter(Boolean),
+        variantes: variantesDepuisLignes(brouillon.variantes),
         ville: brouillon.ville.trim() || null,
         annee_debut: brouillon.annee_debut.trim() || null,
         annee_fin: brouillon.annee_fin.trim() || null,
@@ -267,8 +268,10 @@ export default function SectionEditeurs() {
                 <input style={champ} value={brouillon.nom_complet} onChange={e => setBrouillon(b => ({ ...b, nom_complet: e.target.value }))} placeholder="Louis Guérin" />
               </div>
               <div>
-                <label style={label}>Variantes (séparées par des virgules)</label>
-                <input style={champ} value={brouillon.variantes} onChange={e => setBrouillon(b => ({ ...b, variantes: e.target.value }))} placeholder="L. Guérin, Guérin" />
+                <label style={label}>Variantes (une par ligne)</label>
+                <textarea rows={3} style={{ ...champ, fontFamily: 'inherit', lineHeight: 1.5, resize: 'vertical' }}
+                  value={brouillon.variantes} onChange={e => setBrouillon(b => ({ ...b, variantes: e.target.value }))}
+                  placeholder={'L. Guérin\nL. Guérin & Cie'} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '7px' }}>
                 <div>
@@ -360,7 +363,7 @@ export default function SectionEditeurs() {
                   <div style={{ minWidth: 0 }}>
                     <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)' }}>{e.nom_complet}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginTop: '1px' }}>
-                      {e.variantes?.length > 0 && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>≈ {e.variantes.join(', ')}</span>}
+                      {e.variantes?.length > 0 && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>≈ {e.variantes.join(' · ')}</span>}
                       {(e.ville || e.annee_debut || e.annee_fin) && <span>{[e.ville, [e.annee_debut, e.annee_fin].filter(Boolean).join('–')].filter(Boolean).join(', ')}</span>}
                     </div>
                   </div>
