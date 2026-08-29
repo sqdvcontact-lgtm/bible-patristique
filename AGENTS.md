@@ -2122,6 +2122,27 @@ curl -s "$SUPABASE_URL/rest/v1/oeuvres?select=id_oeuvre,auteurs(nom)&limit=1" -H
 
 Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualification à écrire.
 
+# ⛔ Une clause `in` se découpe en OCTETS D'ADRESSE, jamais en nombre de valeurs (2026-08-29)
+
+La passerelle refuse une requête PostgREST dès que l'**adresse** dépasse **~25 000 octets** (seuil mesuré par dichotomie : 25 027 passent, 25 108 non). Elle rend alors un « **400 Bad Request** » **nu** — pas une erreur PostgREST, pas de `code`, pas de `hint`, rien qui nomme la cause. Le client ne voit qu'un échec.
+
+Un lot de taille fixe ne protège donc de rien : il tient sous la barre quand les valeurs sont courtes et la crève quand elles sont longues, **selon l'œuvre**, sans qu'aucun test ni aucune relecture ne puisse le prévoir. Les clés de `segments` vont de trente à quatre-vingts signes ; un lot de 500 pesait 12 ko chez l'un et 30 ko chez l'autre.
+
+**Deux pannes, la même cause, deux visages :**
+
+- **« Explication sur le psaume IV »** (*Commentaire sur les Psaumes* de Jean Chrysostome, `A0014O0089`) : 392 segments, adresse de **29 635 octets** pour aller chercher leurs liens bibliques. `liensDeSegments` **lève**, `changerNiv1` attrape, et la division affichait « **Erreur de chargement. Réessayer** » indéfiniment — pendant que les psaumes V, VI et VII, aux clés plus brèves, s'ouvraient sans rien dire. Une panne qui ne frappe qu'**une division sur soixante** ne ressemble pas à un défaut de code : c'est ce qui l'a fait chercher du côté des données.
+- **`versets_lecture` au rechargement d'une division** : la « Secunda Secundae » de la Somme vise 2 092 versets distincts, soit près de 36 ko rien que pour la liste. Là, l'erreur n'est **pas lue** (à dessein : un verset manquant ne doit pas fermer la division) — la division s'ouvrait donc, mais **sans aucun texte biblique sous ses citations**, et sans que rien ne le dise. Le rendu serveur découpait déjà : le premier écran était juste, et le rechargement le défaisait.
+
+**Règle** : toute clause `in` dont la liste n'est pas bornée par construction passe par **`lotsPourClauseIn`** (`app/lib/paginationSupabase.ts`), qui compte les octets **réellement écrits dans l'adresse** — percent-encodage compris, un deux-points pèse trois octets — et coupe à 6 000. L'adresse entière reste autour de 7 ko : loin des 25 000, et sous les 8 ko qu'un proxy ordinaire accorde à une ligne de requête. Multiplier les lots ne coûte rien, ils partent en parallèle.
+
+⚠️ **Le journal Supabase nomme la panne en une requête**, quand la console du navigateur ne dit que « échec » :
+
+```
+source = 'edge_logs', log_attributes['response.status_code'] not in ('200','206'…)
+```
+
+`request.path`, `length(request.search)` et `request.headers.x_client_info` donnent la table, la longueur d'adresse et le client (`createBrowserClient` / `createServerClient`) — c'est-à-dire la cause entière.
+
 # Éditions bibliques commentées — famille Fillion (2026-08-20)
 
 Le socle est **générique**, pas « fait pour Fillion » : une **famille éditoriale** (`bible_edition_families`) relie plusieurs traductions distinctes (`bible_edition_members`), et servira à toute autre édition bilingue ou apparentée. Pour Fillion, `TR0011` porte la Vulgate **telle qu’imprimée dans ses volumes** et `TR0010` son français. ⛔ **Ne jamais réutiliser `TR0004`** (Vulgate clémentine) comme Vulgate Fillion : ce sont deux témoins, pas deux vues d’un même texte.

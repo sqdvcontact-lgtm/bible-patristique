@@ -1,6 +1,7 @@
 'use client'
 import { ABREV_FR } from '@/app/lib/bible'
 import { hydraterLiensHerites } from '@/app/lib/liens'
+import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 
@@ -1006,10 +1007,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (idsArr.length > 0) {
       const codesTraductions = await chargerCodesTraductions()
       const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
-      const { data: vd } = await supabase.from('versets_lecture')
-        .select(selectVersets)
-        .in('id_verset', idsArr)
-      ;(vd ?? []).forEach((v: any) => {
+      // ⛔ Découpage OBLIGATOIRE, et par octets d'adresse : la « Secunda Secundae »
+      // de la Somme vise 2 092 versets distincts, soit près de 36 ko rien que pour
+      // la liste — bien au-delà des ~25 ko que la passerelle accepte, qu'elle
+      // refuse d'un « 400 » nu. L'erreur n'est pas lue ici, à dessein : un verset
+      // manquant ne doit pas fermer la division. Sans découpage, la division
+      // s'ouvrait donc bel et bien, mais SANS aucun texte biblique sous ses
+      // citations, et sans que rien ne le dise. Le rendu serveur, lui, découpait
+      // déjà (`enrichirAvecVersets`) : le premier écran était juste, et le
+      // rechargement d'une division le défaisait.
+      const lots = await Promise.all(lotsPourClauseIn(idsArr).map(lot =>
+        supabase.from('versets_lecture').select(selectVersets).in('id_verset', lot)))
+      const vd = lots.flatMap(r => r.data ?? [])
+      vd.forEach((v: any) => {
         const ref = detailsRefBiblique(v.ref)
         const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
         versetMap[v.id_verset] = { ...ref, textes }

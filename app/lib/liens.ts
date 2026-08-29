@@ -10,6 +10,7 @@
 // Ils vivent maintenant dans `liens_bibliques`, une ligne par lien, avec clés
 // étrangères et index. LES QUATRE TYPES SONT CONSERVÉS À L'IDENTIQUE (charte §9) —
 // c'est leur portage qui change, pas la distinction éditoriale.
+import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { supabase } from '@/app/lib/supabase'
 
 export type TypeLien = 1 | 2 | 3 | 4
@@ -82,13 +83,16 @@ export async function liensDeSegments(
 
   const requetes: PromiseLike<{ data: unknown; error: unknown }>[] = []
   for (const [idTexte, ensemble] of parTexte) {
-    const cles = [...ensemble]
-    for (let i = 0; i < cles.length; i += 500) {
+    // ⛔ Les lots se comptent en OCTETS D'ADRESSE, jamais en nombre de clés : voir
+    // `lotsPourClauseIn`, et l'« Explication sur le psaume IV » qu'un lot de 500
+    // avait fermée. Les clés de segment vont de trente à quatre-vingts signes selon
+    // l'œuvre — aucun nombre fixe ne tient d'un texte à l'autre.
+    for (const lot of lotsPourClauseIn([...ensemble])) {
       requetes.push(
         client.from('liens_bibliques')
           .select(`${COLS}, segments!inner(id_texte, segment_key)`)
           .eq('segments.id_texte', idTexte)
-          .in('segments.segment_key', cles.slice(i, i + 500))
+          .in('segments.segment_key', lot)
           .order('id'),
       )
     }
