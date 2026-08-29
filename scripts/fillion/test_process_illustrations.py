@@ -16,9 +16,39 @@ detect_candidates = MODULE["detect_candidates"]
 automatic_rotation_degrees = MODULE["automatic_rotation_degrees"]
 read_ocr_page = MODULE["read_ocr_page"]
 remove_isolated_speckles = MODULE["remove_isolated_speckles"]
+level_stretch = MODULE["level_stretch"]
+tone_statistics = MODULE["tone_statistics"]
+classify_illustration_family = MODULE["classify_illustration_family"]
+resize_for_web = MODULE["resize_for_web"]
 
 
 class IllustrationPipelineTests(unittest.TestCase):
+    def test_level_stretch_uses_no_hard_threshold(self):
+        ramp = np.tile(np.arange(256, dtype=np.uint8), (32, 1))
+        stretched, parameters = level_stretch(Image.fromarray(ramp), 0.5)
+        self.assertLessEqual(parameters["clip_percent_each_end"], 0.5)
+        self.assertGreater(len(np.unique(stretched[(stretched > 230) & (stretched < 255)])), 5)
+
+    def test_family_is_measured_after_levels(self):
+        line = np.full((100, 100), 245, dtype=np.uint8)
+        line[:, :20] = 90
+        half = np.tile(np.linspace(60, 200, 100, dtype=np.uint8), (100, 1))
+        self.assertEqual(classify_illustration_family(line)[0], "line_art")
+        self.assertEqual(classify_illustration_family(half)[0], "halftone")
+
+    def test_large_reduction_uses_area_resampling(self):
+        image = Image.new("L", (3000, 1800), 128)
+        web, parameters = resize_for_web(image, 1200)
+        self.assertEqual(web.size, (1200, 720))
+        self.assertEqual(parameters["resampling"], "area_box")
+        self.assertTrue(parameters["anti_alias_prefilter"])
+
+    def test_tone_statistics_keep_midtones_explicit(self):
+        values = np.array([[0, 60, 100, 200, 230, 255]], dtype=np.uint8)
+        stats = tone_statistics(values)
+        self.assertEqual(stats["midtone_60_200_percent"], 50.0)
+        self.assertEqual(stats["pure_white_percent"], 16.6667)
+
     def test_full_page_plate_without_ocr_is_rotated_clockwise(self):
         candidate = MODULE["Candidate"](
             box=(100, 150, 610, 1010),

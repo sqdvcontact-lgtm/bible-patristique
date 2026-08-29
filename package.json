@@ -14,7 +14,8 @@
     "bible899:multimode:dry-run": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs",
     "bible899:multimode:import-staged": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs",
     "bible899:multimode:validate-publication": "tsx scripts/bible899/import-multimode-tr0009-remote-staged.mjs --validate-publication",
-    "bible899:verifier": "node scripts/bible899/verifier-facsimiles.mjs"
+    "bible899:verifier": "node scripts/bible899/verifier-facsimiles.mjs",
+    "fillion:ocr:close": "node scripts/fillion/close-fillion-book-ocr.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.12",

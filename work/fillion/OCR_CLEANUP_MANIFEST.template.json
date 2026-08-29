@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "book": {
+    "id": "BOOK_CODE",
+    "label": "Nom du livre"
+  },
+  "status": "ocr_complete",
+  "cleanup_authorized": true,
+  "completion_checks": [
+    {
+      "name": "Toutes les pages attendues portent un résultat OCR",
+      "pass": true,
+      "observed": 0,
+      "expected": 0
+    },
+    {
+      "name": "Les contrôles de lecture aléatoires sont consignés",
+      "pass": true,
+      "observed": 0,
+      "expected": 0
+    },
+    {
+      "name": "Aucune étape de collation restante ne dépend des caches à supprimer",
+      "pass": true
+    }
+  ],
+  "required_artifacts": [
+    {
+      "path": "work/fillion/chemin-du-livre/ocr_final.json",
+      "sha256": "REMPLACER_PAR_64_CARACTERES_HEXADECIMAUX",
+      "role": "ocr_final"
+    },
+    {
+      "path": "work/fillion/chemin-du-livre/rapport_controle.md",
+      "sha256": "REMPLACER_PAR_64_CARACTERES_HEXADECIMAUX",
+      "role": "quality_report"
+    }
+  ],
+  "cleanup_targets": [
+    {
+      "path": "tmp/fillion/BOOK_CODE/full-page-renders",
+      "category": "full_page_render_cache",
+      "mode": "tree"
+    },
+    {
+      "path": "work/fillion/chemin-du-livre/ocr-crops",
+      "category": "crop_image_cache",
+      "mode": "matching_files",
+      "extensions": [
+        ".png"
+      ],
+      "recursive": false
+    },
+    {
+      "path": "tmp/fillion/BOOK_CODE/source-reproductible.zip",
+      "category": "scratch",
+      "mode": "file"
+    }
+  ],
+  "report_directory": "work/fillion/chemin-du-livre/ocr_cleanup_reports"
+}

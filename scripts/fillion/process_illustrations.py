@@ -25,7 +25,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 
 PROFILE_CODE = "fillion-illustration"
-PROFILE_VERSION = "1.1.0"
+PROFILE_VERSION = "1.2.0"
 DEFAULT_ANALYSIS_DPI = 120
 DEFAULT_SOURCE_DPI = 400
 DEFAULT_WEB_MAX_PX = 1600
@@ -205,14 +205,99 @@ def read_ocr_page(xml_path: Path, page_index: int) -> OcrPage:
 
 
 def normalized_gray(image: Image.Image, blur_radius: float) -> np.ndarray:
-    gray = ImageOps.grayscale(image)
-    values = np.asarray(gray, dtype=np.float32)
-    background = np.asarray(
-        gray.filter(ImageFilter.GaussianBlur(radius=max(2.0, blur_radius))),
-        dtype=np.float32,
-    )
-    corrected = values * 248.0 / np.maximum(background, 32.0)
-    return np.clip(corrected, 0, 255).astype(np.uint8)
+    """Étale les niveaux sans division par un fond flouté.
+
+    ``blur_radius`` est conservé dans la signature pour ne pas casser les
+    appels historiques, mais n'intervient plus dans le traitement. La
+    précédente correction de champ plat effaçait les grandes plages sombres
+    des demi-teintes. Les points noir et blanc sont désormais relevés sur la
+    planche elle-même, avec au plus 0,5 % d'écrêtage à chaque extrémité.
+    """
+
+    del blur_radius
+    return level_stretch(image)[0]
+
+
+def level_stretch(
+    image: Image.Image,
+    clip_percent: float = 0.5,
+) -> tuple[np.ndarray, dict[str, float]]:
+    """Produit une rampe continue noir-blanc, sans seuil ni détourage."""
+
+    if not 0.0 <= clip_percent <= 0.5:
+        raise ValueError("clip_percent doit rester compris entre 0 et 0,5")
+    values = np.asarray(ImageOps.grayscale(image), dtype=np.float32)
+    low = float(np.percentile(values, clip_percent))
+    high = float(np.percentile(values, 100.0 - clip_percent))
+    if high - low < 1.0:
+        stretched = np.clip(values, 0, 255)
+    else:
+        stretched = np.clip((values - low) * 255.0 / (high - low), 0, 255)
+    return stretched.astype(np.uint8), {
+        "black_point": round(low, 4),
+        "white_point": round(high, 4),
+        "clip_percent_each_end": clip_percent,
+    }
+
+
+def tone_statistics(values: np.ndarray) -> dict[str, float]:
+    """Mesures reproductibles employées pour classer et refuser un actif."""
+
+    return {
+        "pure_white_percent": round(float((values == 255).mean() * 100.0), 4),
+        "paper_over_230_percent": round(float((values > 230).mean() * 100.0), 4),
+        "midtone_60_200_percent": round(
+            float(((values >= 60) & (values <= 200)).mean() * 100.0),
+            4,
+        ),
+    }
+
+
+def classify_illustration_family(
+    stretched_values: np.ndarray,
+    threshold_percent: float = 35.0,
+) -> tuple[str, dict[str, float | str]]:
+    """Classe d'après la planche mesurée, jamais d'après son sujet."""
+
+    midtone_percent = tone_statistics(stretched_values)["midtone_60_200_percent"]
+    family = "line_art" if midtone_percent < threshold_percent else "halftone"
+    return family, {
+        "method": "midtone_mass_after_level_stretch",
+        "threshold_percent": threshold_percent,
+        "measured_midtone_60_200_percent": midtone_percent,
+        "decision": family,
+        "doubt_defaults_to": "halftone",
+    }
+
+
+def resize_for_web(
+    image: Image.Image,
+    max_px: int,
+) -> tuple[Image.Image, dict[str, object]]:
+    """Réduit avec moyenne de surface au-delà de 1,5× pour éviter la moire."""
+
+    width, height = image.size
+    ratio = max(width / max_px, height / max_px, 1.0)
+    if ratio == 1.0:
+        return image.copy(), {
+            "reduction_ratio": 1.0,
+            "resampling": "none",
+            "anti_alias_prefilter": False,
+        }
+    target = (max(1, round(width / ratio)), max(1, round(height / ratio)))
+    if ratio > 1.5:
+        resized = image.resize(target, Image.Resampling.BOX)
+        method = "area_box"
+        anti_alias = True
+    else:
+        resized = image.resize(target, Image.Resampling.LANCZOS)
+        method = "lanczos"
+        anti_alias = False
+    return resized, {
+        "reduction_ratio": round(ratio, 6),
+        "resampling": method,
+        "anti_alias_prefilter": anti_alias,
+    }
 
 
 def make_text_mask(page: OcrPage, size: tuple[int, int], padding: int = 3) -> np.ndarray:
@@ -573,27 +658,35 @@ def clean_master(
     speckle_area: int,
     forced_background: np.ndarray | None = None,
 ) -> tuple[Image.Image, dict[str, object]]:
-    blur = max(12.0, min(raw_crop.size) * 0.10)
-    values = normalized_gray(raw_crop, blur_radius=blur)
-    low = float(np.percentile(values, 0.25))
-    high = float(np.percentile(values, 99.25))
-    if high - low >= 12:
-        values = np.clip((values.astype(np.float32) - low) * 255.0 / (high - low), 0, 255).astype(np.uint8)
-    # Le papier jauni et ses ombres faibles sont neutralisés ; les traits et
-    # hachures, nettement plus sombres, restent continus.
-    values[values >= 230] = 255
-    values, removed = remove_isolated_speckles(values, speckle_area)
+    source_values = np.asarray(ImageOps.grayscale(raw_crop), dtype=np.uint8)
+    values, levels = level_stretch(raw_crop, clip_percent=0.5)
+    family, classification = classify_illustration_family(values)
+    removed = 0
     if forced_background is not None:
         values[forced_background] = 255
-    trim_box = dominant_content_box(values)
-    master = Image.fromarray(values, mode="L").crop(trim_box)
+    master = Image.fromarray(values, mode="L")
+    source_stats = tone_statistics(source_values)
+    output_stats = tone_statistics(values)
+    source_midtones = source_stats["midtone_60_200_percent"]
+    retained = (
+        output_stats["midtone_60_200_percent"] / source_midtones * 100.0
+        if source_midtones
+        else 100.0
+    )
     return master, {
-        "background_normalization_blur_radius_px": round(blur, 2),
-        "autocontrast_percentiles": [0.25, 99.25],
-        "isolated_speckle_max_area_px": speckle_area,
+        "background_normalization": "none",
+        "levels": levels,
+        "family": family,
+        "family_classification": classification,
+        "source_tone_statistics": source_stats,
+        "output_tone_statistics": output_stats,
+        "midtone_mass_retained_percent": round(retained, 4),
+        "minimum_midtone_mass_retained_percent": 55.0,
+        "isolated_speckle_max_area_px": 0,
         "isolated_speckles_removed": removed,
-        "paper_white_threshold": 230,
-        "content_trim_box_px": list(trim_box),
+        "paper_white_threshold": None,
+        "content_trim_box_px": [0, 0, raw_crop.width, raw_crop.height],
+        "legacy_speckle_area_argument_ignored": speckle_area,
     }
 
 
@@ -601,8 +694,8 @@ def save_qa(raw: Image.Image, master: Image.Image, web: Image.Image, output: Pat
     panels: list[tuple[str, Image.Image]] = []
     for label, image in (("Découpe source", raw), ("Master PNG", master), ("WebP site", web)):
         panel = image.convert("RGB")
-        panel.thumbnail((680, 680), Image.Resampling.LANCZOS)
-        panels.append((label, panel.copy()))
+        panel, _parameters = resize_for_web(panel, 680)
+        panels.append((label, panel))
     panel_width = max(image.width for _label, image in panels) + 40
     panel_height = max(image.height for _label, image in panels) + 70
     sheet = Image.new("RGB", (panel_width * len(panels), panel_height), "white")
@@ -737,8 +830,7 @@ def process(args: argparse.Namespace) -> dict[str, object]:
                 compress_level=9,
                 dpi=(args.source_dpi, args.source_dpi),
             )
-            web = master.copy()
-            web.thumbnail((args.web_max_px, args.web_max_px), Image.Resampling.LANCZOS)
+            web, web_resize = resize_for_web(master, args.web_max_px)
             web_path = asset_dir / "web.webp"
             web.save(
                 web_path,
@@ -799,7 +891,7 @@ def process(args: argparse.Namespace) -> dict[str, object]:
                         **common_parameters,
                         "web_max_px": args.web_max_px,
                         "web_quality": args.web_quality,
-                        "resampling": "lanczos",
+                        **web_resize,
                     },
                 ),
             ]
@@ -820,6 +912,21 @@ def process(args: argparse.Namespace) -> dict[str, object]:
                     "profile": PROFILE_CODE,
                     "version": PROFILE_VERSION,
                     **asdict(candidate),
+                },
+                "illustration_family": cleanup["family"],
+                "quality_controls": {
+                    "midtone_mass_retained_percent": cleanup[
+                        "midtone_mass_retained_percent"
+                    ],
+                    "midtone_mass_minimum_percent": 55.0,
+                    "halftone_pure_white_percent": (
+                        cleanup["output_tone_statistics"]["pure_white_percent"]
+                        if cleanup["family"] == "halftone"
+                        else None
+                    ),
+                    "halftone_pure_white_maximum_percent": 2.0,
+                    "family_declared": True,
+                    "printed_frame_preserved": None,
                 },
                 "files": files,
                 "qa_path": str(qa_path),
