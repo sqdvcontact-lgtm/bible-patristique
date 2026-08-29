@@ -588,13 +588,13 @@ const APPARAT_OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'patristique_apparat/apparat_critique',
-    note: 'L’apparat de l’ÉDITEUR — variantes, collation, conjectures. Il a sa propre vue dans la page d’œuvre : le même paragraphe, mais dans un autre onglet, où il se lit pour lui-même.',
-    alerte: '⛔ L’apparat ne SORT pas ses citations : c’est une vue de comparaison, pas la lecture suivie. ⛔ Et un bloc d’apparat critique ne passe NI par la normalisation typographique NI par l’ajout d’un point final : 3 596 entrées portent une haute ponctuation à qui l’on glissait une fine insécable, et 6 604 ne se terminent par aucune ponctuation forte, à qui l’on ajoutait un point que l’éditeur n’a pas écrit.',
+    style: 'patristique_apparat/apparat_critique — HÉRITÉE',
+    note: 'Une valeur FOURRE-TOUT, rendue dans la vue d’apparat de la page d’œuvre. Sondés le 29 août 2026, ses 1 295 segments, répartis sur 26 textes, portent des épîtres dédicatoires, des privilèges d’imprimer, des gloses de vocabulaire, des arguments analytiques et de la prose de commentaire.',
+    alerte: '⛔ NE PLUS EN CRÉER (charte § 7) : employer `apparat_auteur` ou `apparat_editeur`. ⚠️ Et l’on ne reclasse JAMAIS ces segments en masse — l’auteur et la fonction de chacun doivent être établis avant migration. ⛔ Ne pas la confondre avec l’apparat critique d’une édition savante, qui n’est PAS une nature de segment mais un RÔLE de bloc de note (`editorial_role`) : les 7 266 entrées de Knöll sur les Confessions vivent là, et nulle part ailleurs. Deux choses portent le même nom, et le catalogue de la charte a décrit l’une pour l’autre jusqu’à ce jour. ⚠️ La valeur sert AUSSI d’espace textuel, où `apparat_editeur` est rangé : l’espace et la nature ne disent pas la même chose.',
     contenu: (
       <p style={styleParagrapheApparat()}>
-        <Segment n={5}>Knöll conjecture ici <em>inspirent</em> ; les manuscrits portent <em>inspire</em>, que Migne avait gardé sans le discuter.</Segment>{' '}
-        <Segment n={6}>La leçon du Parisinus, <em>inspirat</em>, n’est attestée nulle part ailleurs et paraît une correction d’atelier.</Segment>
+        <Segment n={5}>A MONSEIGNEVR PIERRE SCARRON, EVESQVE ET PRINCE DE GRENOBLE. MONSEIGNEVR, cette composition étant vn remede contre les disgraces de la fortune, ie n’ay creu la pouuoir mieux adresser qu’à celuy que la fortune n’a iamais pû esbranler.</Segment>{' '}
+        <Segment n={6}>Permis d’imprimer, et ce durant le temps et espace de vingt ans, avec deffences à tous Libraires, Imprimeurs et autres de les imprimer ou faire imprimer.</Segment>
       </p>
     ),
   },

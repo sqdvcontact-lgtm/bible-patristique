@@ -419,7 +419,6 @@ Le vocabulaire éditorial autorisé est :
 | `citation` | citation longue ou bloc cité, lorsqu’une distinction d’affichage est utile |
 | `verset` | verset d’une citation biblique que l’édition pose verset par verset : un segment, un verset, et la suite des versets consécutifs forme la citation (§ 3.8) |
 | `lemme` | fragment cité servant de point de départ au commentaire |
-| `vers` | versification réellement présente |
 | `signature` | bloc de signatures fermant un volume — approbations, censeurs, souscripteurs : une suite de lignes courtes que l’édition compose au fer à droite. ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
 | `rubrique` | rubrique éditoriale qui n’est pas un niveau de titre |
 | `dialogue` | réplique ou bloc dialogué lorsque la distinction est utile |
@@ -429,6 +428,17 @@ Le vocabulaire éditorial autorisé est :
 | `apparat_critique` | valeur héritée seulement ; ne plus en créer, sauf compatibilité transitoire explicitement documentée |
 | `separateur` | héritage ancien seulement ; ne plus en créer pour représenter un alinéa |
 | `texte absent` | lacune matérielle signalée sans invention |
+
+⛔ **Elles sont TREIZE, et `vers` n’en est pas.** La poésie ne se déclare pas par une
+nature mais par une FORME, `segment_metadata.forme = 'vers'` (§ 7.4) : c’est la seule
+écriture qui vaille aussi dans l’apparat, où la nature est déjà prise par
+`apparat_critique` — c’est par là que le segment y est SÉLECTIONNÉ, et elle ne peut pas
+dire en plus qu’il est en vers. La nature `vers` a existé jusqu’au 29 août 2026 ; ses
+2 325 segments ont migré, et `chk_segments_nature` la refuse.
+
+⚠️ **Un segment en vers porte donc la nature de ses FRÈRES** — ce que porte, dans le même
+espace, un bloc de même fonction : `texte` dans le corps, `introduction` dans
+l’introduction. Sa forme se déclare à part, sur le second axe.
 
 Un titre structurel n’est pas un segment de nature `titre`. Il appartient aux métadonnées ou aux `ref_niv`.
 
@@ -762,11 +772,11 @@ Les chiffres sont ceux du 29 août 2026 ; ils disent l'emploi réel, non une per
 | Nature | Ce qu'elle sert | ⛔ Ce qu'elle n'est pas | Segments |
 |---|---|---|---|
 | `texte` | la prose de l'auteur : le cas ordinaire, et le défaut | un fourre-tout — 93 % du corpus, mais un lemme ou une citation structurelle méritent leur nom | 91 116 |
-| `apparat_critique` | l'apparat de l'ÉDITEUR — variantes, collation | il a sa PROPRE vue dans la page, il n'est pas dans le corps | 1 295 |
+| `apparat_critique` | ⛔ **HÉRITÉE** (§ 7) : un fourre-tout de paratexte — dédicaces, privilèges, gloses de vocabulaire, arguments analytiques —, rendu dans la vue d'apparat. Ne plus en créer : employer `apparat_auteur` ou `apparat_editeur` | ⛔ **PAS** l'apparat critique d'une édition savante : celui-là n'est pas une nature de segment mais un RÔLE de bloc de note (`editorial_role`), et les 7 266 entrées de Knöll vivent là. Deux choses portent le même nom | 1 295 |
 | `citation` | une citation structurelle, dont le rendu RECOLLE les segments | ⛔ pas une citation en ligne : celle-là reste dans `texte` et se détache d'elle-même au delà de 400 signes | 1 221 |
 | `dialogue` | une réplique, dans un texte qui en compte | ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
 | `apparat_editeur` | préface du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l'œuvre | l'apparat de l'auteur, qui appartient au corps | 323 |
-| `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR | ⛔ pas `apparat_critique` : celui-ci appartient au CORPS et se lit à sa place | 96 |
+| `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR | ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
 | `lemme` | le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente | ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026) | 68 |
 | `rubrique` | une rubrique éditoriale qui n'est PAS un niveau de titre | un titre : elle ne prend ni balise `h*` ni place au plan | 43 |
 | `introduction` | un préambule appartenant au texte | | 57 |
