@@ -1162,6 +1162,21 @@ Quatre réglages demandés par l’auteur sur la Bible de Fillion, et un princip
 - ⚠️ **`wordSpacing: -0.02em`** referme les blancs que la justification ouvre entre les mots ; même valeur que la colonne en langue originale d’une œuvre. C’est le seul levier horizontal qui ne touche ni au corps ni à la mesure.
 - ⚠️ **Valeurs POSÉES, non mesurées à l’écran** : le site étant fermé, elles ont été calculées sur la cascade. Le prochain réglage se fera à vue.
 
+## ⛔ Le commentaire n’HABILLE plus la manchette : il se range à côté (2026-08-29)
+
+Relevé par l’auteur sur la note « Statim » de Marc 1, 20. Le repère d’un commentaire de rang bas était un **flottant** de 7 rem : le texte coulait autour, puis reprenait pleine mesure dès qu’il l’avait dépassé. Un développement de trois lignes laissait donc ses derniers mots seuls, au fer de la page, sous la manchette, avec un grand blanc à leur droite.
+
+⚠️ **Ce n’était pas un cas isolé, et c’est la mesure qui l’a dit** : sur le seul chapitre de Marc 1, **douze commentaires sur dix-neuf** portaient ce rejet. Repérage, à rejouer dans la console : une ligne dont l’abscisse dépasse le bord du bloc de plus de 40 px voisine avec une ligne posée sur ce bord même.
+
+- **Deux colonnes** : le repère dans la première, tout le développement dans la seconde, quelle que soit sa hauteur. Le rejet devient impossible, et la mesure y gagne — **60 signes par ligne au lieu de 88**, sous un corps de 12,5 px.
+- ⛔ **La grille ne se pose QUE si le repère existe** (`:has(> .cs-bible-info-label)`). La PLUPART des commentaires n’en portent pas : 259 sur 259 au rang I4, 462 sur 462 au rang I6, 1 221 sur 2 173 au rang I5. Une grille inconditionnelle leur creuserait une colonne vide de 7 rem — vérifié sur Genèse 1, dont les 26 commentaires de rang bas sont tous sans manchette et ne bougent pas d’un pixel.
+- ⚠️ **Tout ce qui n’est pas le repère est forcé en colonne 2**, sinon l’auto-placement rangerait le deuxième paragraphe sous le repère.
+- **La largeur vient de la PISTE, non du repère** : `grid-template-columns: 7rem …` et plus de `width` sur la manchette. Une seule source pour la mesure de la colonne.
+- ⚠️ **Deux de ses marges perdent leur office** : celle de droite devient la gouttière de la grille (même valeur, 0,9 rem), celle du bas ne servait qu’à déclencher le retour à pleine mesure sous le flottant. Il ne reste que la DESCENTE de deux pixels, qui aligne la première ligne du repère sur celle du commentaire.
+- ⚠️ **`display: flow-root` reste** sur les blocs sans manchette : c’est leur seule règle, et la grille ne les atteint pas.
+
+⚠️ **Éprouvé dans le navigateur de l’auteur, sur le site EN LIGNE**, avant d’être porté au dépôt : la règle a été injectée, mesurée (12 rejets → 0), puis vérifiée sur un chapitre sans manchette. C’est la seule façon de juger une règle qui dépend de la hauteur relative de deux boîtes.
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.

@@ -884,19 +884,51 @@ button:focus-visible,
      fenêtres de note, qui sont en position fixe, et les y enfermerait. */
   display: flow-root;
 }
+
+/* ⛔ LE COMMENTAIRE N'HABILLE PLUS LE REPÈRE : il se range À CÔTÉ (décision de
+   l'auteur, 2026-08-29, sur la note « Statim » de Marc 1, 20).
+
+   Le flottant faisait couler le texte autour de la manchette, puis reprendre pleine
+   mesure dès qu’il l’avait dépassée. Un développement de trois lignes y laissait donc
+   ses derniers mots seuls, au fer de la page, sous la manchette, avec un grand blanc à
+   leur droite. Ce n’était pas un cas isolé : mesuré sur Marc 1, DOUZE commentaires sur
+   dix-neuf portaient ce rejet.
+
+   Deux colonnes, donc : le repère dans la première, tout le développement dans la
+   seconde, quelle que soit sa hauteur. Le rejet devient impossible, et la mesure du
+   commentaire y gagne — 60 signes par ligne au lieu de 88.
+
+   ⛔ La grille ne se pose QUE si le repère existe (`:has`). La plupart des commentaires
+   n’en portent pas — 259 sur 259 au rang I4, 462 sur 462 au rang I6, 1 221 sur 2 173 au
+   rang I5 — et une grille inconditionnelle leur creuserait une colonne vide de 7 rem.
+   ⚠️ `display: flow-root` reste pour eux : c’est leur seule règle. */
+.cs-bible-info--i4.cs-bible-block--commentary:has(> .cs-bible-info-label),
+.cs-bible-info--i5.cs-bible-block--commentary:has(> .cs-bible-info-label),
+.cs-bible-info--i6.cs-bible-block--commentary:has(> .cs-bible-info-label) {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  /* La gouttière entre le repère et son développement : elle valait la marge droite de
+     la manchette, elle est maintenant la colonne qui les sépare. Même valeur. */
+  column-gap: 0.9rem;
+  align-items: start;
+}
+/* Tout ce qui n’est pas le repère va dans la SECONDE colonne — paragraphes, listes,
+   figures —, sans quoi l'auto-placement en rangerait un dans la colonne du repère. */
+.cs-bible-info--i4.cs-bible-block--commentary > *:not(.cs-bible-info-label),
+.cs-bible-info--i5.cs-bible-block--commentary > *:not(.cs-bible-info-label),
+.cs-bible-info--i6.cs-bible-block--commentary > *:not(.cs-bible-info-label) {
+  grid-column: 2;
+}
 .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
 .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
 .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
-  float: left;
-  /* Deux repères qui se suivent s'empilent, au lieu de se ranger côte à côte
-     quand le premier développement est trop court pour les séparer. */
-  clear: left;
+  /* ⛔ PLUS DE FLOTTANT : le repère est la PREMIÈRE COLONNE de la grille posée
+     ci-dessus, et le commentaire la seconde. Sa largeur vient de la piste, non de lui :
+     une seule source pour la mesure de la colonne. La hauteur reste libre — ⛔ aucune
+     taille imposée, c'est le texte qui la donne. */
+  grid-column: 1;
+  grid-row: 1;
   box-sizing: border-box;
-  /* Une COLONNE, et non une boîte taillée sur chaque repère. Éprouvé au fil à
-     plomb : quand la largeur suivait le texte, le fer du commentaire sautait
-     d'un bloc à l'autre et la page perdait son aplomb. La hauteur, elle, reste
-     libre — ⛔ aucune taille imposée, c'est le texte qui la donne. */
-  width: 7rem;
   /* ⛔ LE REPÈRE SE FERRE À GAUCHE (décision de l'auteur, 27 août 2026), sur le
      fer du commentaire ordinaire, et il en prend la police : le SÉRIF du texte,
      non le sans qui le détachait. Il se ferrait à droite jusque-là, contre la
@@ -927,19 +959,12 @@ button:focus-visible,
      ⚠️ Descente mesurée, non devinée : deux pixels à cette conduite. Elle vaut
      zéro quand les deux conduites sont égales ; toute autre valeur se remesure
      plutôt qu'elle ne se calcule. */
-  line-height: 1.15;
-  /* Le blanc du BAS vaut celui de la DROITE : la manchette est cernée du même
-     blanc sur ses deux côtés libres. ⚠️ Il ne se règle pas à la même valeur pour
-     autant. En bas, c'est la GRILLE qui fait le blanc : le texte laisse une
-     ligne entière avant de reprendre pleine mesure, et la marge ne sert qu'à la
-     déclencher. Portée à 1,25 rem, elle en déclenchait deux dans les cas où la
-     conduite serrée du repère tombait juste sous une ligne du commentaire.
-     0,75 rem déclenche la première partout, de un à cinq lignes de repère.
-     La marge haute, elle, est la descente mesurée ci-dessus.
-     ⚠️ Le blanc de DROITE est passé de 1,25 à 0,9 rem le 2026-08-29 : la gouttière
-     entre le repère et son développement se lisait plus large que le retrait qui
-     les sépare de la page, et la manchette s'en détachait au lieu de le coiffer. */
-  margin: 0.125rem 0.9rem 0.75rem 0;
+  /* ⚠️ Il ne reste que la DESCENTE, mesurée et non devinée : deux pixels, pour que la
+     première ligne du repère tombe sur la première ligne du commentaire, leurs conduites
+     différant. Le blanc de droite est devenu la gouttière de la grille, et celui du bas
+     n'a plus d'office : il ne servait qu'à déclencher le retour à pleine mesure sous le
+     flottant, retour qui n’existe plus. */
+  margin: 0.125rem 0 0;
   padding: 0;
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
      place : le gris de l'apparat s'y lisait anémique. */
