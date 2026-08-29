@@ -733,9 +733,11 @@ button:focus-visible,
    péricope se lisait comme une étiquette d’interface, non comme un titre.
 
    Les rangs bas se distinguent alors par la POSITION — au fer, quand les hauts
-   sont centrés — et, pour le dernier, par l’ITALIQUE. */
+   sont centrés — et, pour le dernier, par l’ITALIQUE.
+
+   ⚠️ T5 fait exception depuis le 29 août 2026 : ce rang ne porte pas de titre,
+   mais une DÉSIGNATION seule, et il se centre. Voir sa règle plus bas. */
 .cs-bible-title--t4,
-.cs-bible-title--t5,
 .cs-bible-title--t6 {
   text-align: left;
   letter-spacing: 0.01em;
@@ -754,7 +756,31 @@ button:focus-visible,
 .cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc {
   margin-top: 0.2rem;
 }
-.cs-bible-title--t5 { font-size: 1rem;      font-weight: 400; color: var(--cs-encre); }
+/* ── LE PARAGRAPHE (« § I ») SE CENTRE ────────────────────────────────────────
+   Ce rang ne porte JAMAIS un titre en prose. Sur les 35 blocs visibles du corpus
+   — tous dans la Genèse, les 117 « CHAPITRE I » des évangiles ne se rendant pas
+   —, l'intitulé est une DÉSIGNATION seule, et son objet tombe à côté : en
+   chapeau pour trois d'entre eux (« I — Le début de la création (1, 1-2) »), en
+   bloc de sous-titre pour les trente-deux autres (« § I », puis « Abraham dans
+   la terre de Chanaan et en Égypte »). Au fer, cette désignation d'une ou deux
+   lettres pendait au bord gauche, et son objet, plus petit et plus clair, se
+   lisait comme une légende (relevé de l'auteur, 2026-08-29).
+
+   ⚠️ Le centre le sépare enfin de la SOUS-SECTION, dont un seul pixel de corps le
+   distinguait : T4 et T5 s'écrivent tous deux « Section II » puis « § I », même
+   forme, même caractère, même pose. Deux rangs voisins doivent différer sur deux
+   axes au moins ; ceux-là n'en avaient pas un.
+   ⛔ Le CORPS ne monte pas : il passerait celui de la sous-section, qu'il ne doit
+   pas égaler. C'est l'OBJET qui grossit — voir le chapeau et `compositionSousTitre`.
+   ⛔ Aucune chasse : une désignation d'une lettre ne s'espace pas, et la chasse,
+   tombant APRÈS elle, la décalerait de l'axe. */
+.cs-bible-title--t5 {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--cs-encre);
+  text-align: center;
+  letter-spacing: 0;
+}
 /* Intertitre de péricope : au fer, en ITALIQUE, avec de l’air au-dessus et peu
    au-dessous — le texte qui suit lui appartient. L’italique le sépare de la
    sous-section sans lui donner ni graisse ni capitale : il en est le rang le
@@ -1030,9 +1056,9 @@ button:focus-visible,
   margin-bottom: 1.5rem;
   text-align: center;
 }
-/* Les trois rangs bas restent AU FER, comme leurs titres. */
+/* Les rangs bas restent AU FER, comme leurs titres. ⚠️ Sauf T5, qui s'est centré
+   le 29 août 2026 : son sous-titre le suit, et c'est toute la règle. */
 .cs-bible-bloc[data-titre-rang='T4'],
-.cs-bible-bloc[data-titre-rang='T5'],
 .cs-bible-bloc[data-titre-rang='T6'] {
   text-align: left;
 }
@@ -1188,18 +1214,29 @@ button:focus-visible,
   text-transform: none;
   color: var(--cs-texte-second);
 }
-/* Sous un titre de rang HAUT, le chapeau prend exactement la composition du
-   sous-titre de partie — « L'enfance et la vie cachée de Jésus (1, 1 - 2, 23) »
-   sous « Première partie ». Les deux disent la même chose à la même place, et
-   c'est le seul cas où le chapeau accompagne un titre centré : le gris et le
-   corps réduit de l'apparat l'y faisaient paraître d'un rang plus bas que son
-   voisin. ⚠️ Les rangs bas gardent le leur : là, le chapeau suit un intertitre
-   au fer, et il doit s'en effacer. */
+/* Sous un titre CENTRÉ, le chapeau prend exactement la composition du sous-titre
+   de partie — « L'enfance et la vie cachée de Jésus (1, 1 - 2, 23) » sous
+   « Première partie ». Les deux disent la même chose à la même place : le gris et
+   le corps réduit de l'apparat l'y faisaient paraître d'un rang plus bas que son
+   voisin. ⚠️ T4 et T6 gardent le leur : là, le chapeau suit un intertitre au fer,
+   et il doit s'en effacer. */
 .cs-bible-title--t1 > .cs-bible-chapeau,
 .cs-bible-title--t2 > .cs-bible-chapeau,
 .cs-bible-title--t3 > .cs-bible-chapeau {
   font-size: 0.9375rem;
   color: var(--cs-encre-fonce);
+}
+/* T5 a rejoint les titres centrés le 29 août 2026, et son chapeau avec lui —
+   c'est même LUI qui porte le sens, la tête n'étant qu'un chiffre : « I », puis
+   « Le début de la création (1, 1-2) » en gris de quatorze pixels, soit plus
+   petit que le texte courant. Il monte donc d'un cran et sort du gris.
+   ⚠️ Mais dans l'encre de SON titre, `--cs-encre`, et non celle des rangs hauts :
+   c'est la règle du sous-titre, et les trente-deux autres paragraphes de la
+   Genèse, dont l'objet tombe dans un bloc voisin, la reçoivent déjà par
+   `compositionSousTitre`. Les deux formes d'une même paire doivent se ressembler. */
+.cs-bible-title--t5 > .cs-bible-chapeau {
+  font-size: 0.9375rem;
+  color: var(--cs-encre);
 }
 
 /* Un intertitre DIVISÉ — « I », puis « Ce qu'est la Bible » — n'est pas tout à

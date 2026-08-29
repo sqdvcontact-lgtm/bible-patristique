@@ -188,13 +188,20 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
  * 201 sous-titres du corpus recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
  */
 export function compositionSousTitre(rangDuTitre?: string | null): CSSProperties {
-  const auFer = rangDuTitre === 'T4' || rangDuTitre === 'T5' || rangDuTitre === 'T6'
+  // ⚠️ T5 n'est PAS au fer : le paragraphe de Fillion n'a pour intitulé qu'une
+  // désignation — « § I » —, qui pendait au bord gauche pendant que son objet,
+  // seul porteur du sens, se lisait plus bas comme une légende. Le rang s'est
+  // centré le 29 août 2026 (voir `.cs-bible-title--t5`), et son sous-titre le
+  // suit : c'est toute la règle de cette fonction.
+  const auFer = rangDuTitre === 'T4' || rangDuTitre === 'T6'
   return {
-    // Le corps suit celui du titre : les rangs hauts sont plus gros d'un cran.
+    // Le corps suit celui du titre : les rangs centrés sont plus gros d'un cran.
     fontSize: auFer ? '0.875rem' : '0.9375rem',
     // ⛔ L'encre est celle de SON titre. Une encre plus claire ferait du sous-titre
     // un commentaire du titre, quand il en est la suite.
-    color: auFer || rangDuTitre === 'T3' ? 'var(--cs-encre)' : 'var(--cs-encre-fonce)',
+    color: auFer || rangDuTitre === 'T3' || rangDuTitre === 'T5'
+      ? 'var(--cs-encre)'
+      : 'var(--cs-encre-fonce)',
     textAlign: auFer ? 'left' : 'center',
     lineHeight: 1.35,
     fontStyle: 'italic',

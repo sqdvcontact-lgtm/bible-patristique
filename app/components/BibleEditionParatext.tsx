@@ -360,7 +360,7 @@ function rendreBlocTexte(
           // Ce qu'est la Bible », composée au fer dans la colonne imprimée. Il ne
           // dit plus rien d'une PAIRE, et l'appliquer laissait un chiffre romain
           // solitaire pendre au bord gauche. La paire retombe donc sur son rang,
-          // qui centre les trois hauts et laisse les bas au fer (globals.css).
+          // qui centre T1 à T3 et T5, et laisse T4 et T6 au fer (globals.css).
           textAlign: divise ? undefined : bloc.presentation?.textAlign,
           fontStyle: bloc.presentation?.fontStyle,
         }}

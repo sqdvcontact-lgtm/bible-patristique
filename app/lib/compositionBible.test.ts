@@ -30,14 +30,25 @@ describe('la composition d’un sous-titre suit le rang de SON titre', () => {
     })
   })
 
-  it('⛔ les trois rangs bas se posent AU FER, comme leurs titres', () => {
+  it('⛔ la sous-section et la péricope se posent AU FER, comme leurs titres', () => {
     // C'est la correction du 29 août 2026 : 149 sous-titres sur 201 se composaient
     // centrés sous un titre lui-même au fer.
-    for (const rang of ['T4', 'T5', 'T6']) {
+    for (const rang of ['T4', 'T6']) {
       expect(compositionSousTitre(rang)).toMatchObject({
         textAlign: 'left', fontSize: '0.875rem', color: 'var(--cs-encre)',
       })
     }
+  })
+
+  it('T5 se centre : son titre n’est qu’une désignation, et l’objet est ICI', () => {
+    // Les 32 paragraphes de la Genèse dont l'objet tombe dans un bloc voisin :
+    // « § I », puis « Abraham dans la terre de Chanaan et en Égypte ». Au fer, la
+    // désignation pendait au bord gauche et son objet se lisait comme une légende
+    // (relevé de l'auteur, 2026-08-29). ⚠️ Dans l'encre de son titre, comme T3 :
+    // le paragraphe est en `--cs-encre`, non en `--cs-encre-fonce`.
+    expect(compositionSousTitre('T5')).toMatchObject({
+      textAlign: 'center', fontSize: '0.9375rem', color: 'var(--cs-encre)',
+    })
   })
 
   it('sans rang connu, garde la composition des rangs hauts', () => {

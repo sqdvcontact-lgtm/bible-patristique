@@ -733,7 +733,7 @@ const APPARAT_BIBLES: Unite[] = [
   },
   {
     style: 'bible_apparat/titre_sous_section — T4',
-    note: 'Les trois rangs bas passent AU FER et changent de caractère : c’est la POSE, non la taille seule, qui les sépare des rangs hauts. 248 blocs le portent, et c’est le plus employé des rangs bas.',
+    note: 'La sous-section et la péricope passent AU FER : c’est la POSE, non la taille seule, qui les sépare des rangs centrés. 248 blocs portent celui-ci, le plus employé des rangs bas. ⚠️ Le PARAGRAPHE, entre les deux, se centre depuis le 29 août 2026 — voir sa planche : son intitulé n’est jamais qu’une désignation.',
     contenu: <Bible bloc={blocBible('titre_sous_section', [], { heading: '1° La personne de l’auteur', niveauHtml: 4 })} />,
   },
   {
@@ -757,12 +757,16 @@ const APPARAT_BIBLES: Unite[] = [
   },
   {
     style: 'bible_apparat/titre_paragraphe_livre — T5, axe ANALYTIQUE',
-    note: 'La division « § » de Fillion, entre la sous-section et la péricope : « La Création. I, 1 — II, 3. » (T4) contient « L’Œuvre des six jours », qui contient les six jours (T6). Au fer, corps intermédiaire.',
-    alerte: '⚠️ Deux styles au rang T5, et ils ne se rencontrent jamais : le CHAPITRE vit sur l’axe matériel et ne paraît pas, le PARAGRAPHE sur l’axe analytique et compose. Ce rang manquait au registre jusqu’au 29 août 2026, et ses trente-quatre blocs de la Genèse ne paraissaient nulle part.',
+    note: 'La division « § » de Fillion, entre la sous-section et la péricope : « La création (1, 1 - 2, 3) » (T4) contient « Le début de la création », qui contient les jours (T6). CENTRÉ, seul des rangs bas, et pour une raison qui tient à la donnée : son intitulé n’est jamais un titre, mais une DÉSIGNATION seule — « § I », « I » —, dont l’objet tombe à côté. Ci-contre les deux formes qu’elle prend, en chapeau puis en bloc voisin.',
+    alerte: '⚠️ Deux styles au rang T5, et ils ne se rencontrent jamais : le CHAPITRE vit sur l’axe matériel et ne paraît pas, le PARAGRAPHE sur l’axe analytique et compose. Ce rang manquait au registre jusqu’au 29 août 2026, et ses trente-quatre blocs de la Genèse ne paraissaient nulle part. ⛔ Aucune chasse sur la désignation : une lettre seule ne s’espace pas, et la chasse, tombant APRÈS elle, la décalerait de l’axe. ⛔ Le corps ne monte pas non plus — il égalerait la sous-section : c’est l’OBJET qui a grossi, d’un cran, et qui a quitté le gris.',
     contenu: (
       <>
-        <Bible bloc={blocBible('titre_paragraphe_livre', [], { heading: '2. L’Œuvre des six jours. I, 2-32.', niveauHtml: 5 })} />
-        <Bible bloc={blocBible('titre_pericope', [], { heading: '1. Le Premier Jour. I, 2-5.', niveauHtml: 6 })} />
+        <Bible bloc={blocBible('titre_paragraphe_livre', [], { heading: 'I — Le début de la création (1, 1-2)', niveauHtml: 5 })} />
+        <Bible bloc={blocBible('titre_pericope', [], { heading: '1. Le premier jour (1, 3-5)', niveauHtml: 6 })} />
+        <Bible bloc={blocBible('titre_paragraphe_livre', [], { heading: '§ II', niveauHtml: 5 })} />
+        <Bible bloc={blocBible('introduction_sous_section', ['Lot est éliminé de la race choisie (13, 1-18)'], {
+          presentation: PRESENTATION_SOUS_TITRE, rangDuTitre: 'T5',
+        })} />
       </>
     ),
   },
