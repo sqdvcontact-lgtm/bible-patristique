@@ -21,7 +21,7 @@ import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
-import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
+import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
   STYLE_NUMERO_SEGMENT, margeArgument, styleArgument, styleBlocDeVers,
@@ -1632,7 +1632,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // même paragraphe ; la citation étant TERMINALE par construction
   // (`detecterCitationSortie`), le bloc ferme le segment et les suivants reprennent à
   // la ligne, sans qu'aucun voisin soit coupé en deux.
-  const rendreCorpsSegment = (s: SegData, estPremier: boolean, texteCitationStructurelle: string | null = null): React.ReactNode => {
+  const rendreCorpsSegment = (s: SegData, estPremier: boolean, texteCitationStructurelle: string | null = null, dansBlocDeVersets = false): React.ReactNode => {
     const texteAffichage = s.texteAffichage ?? s.texte
     const texte = texteCitationStructurelle ?? composerCorps(preparerTexteSegment(texteAffichage))
     // Le numéro de segment est rendu ICI, et non par l'appelant : quand le segment
@@ -1649,15 +1649,29 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // signalées par leurs guillemets dans un segment ordinaire.
     if (texteCitationStructurelle != null) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
     // Un VERSET est déjà dans le bloc de sa citation : le sortir une seconde fois y
-    // imbriquerait un retrait dans un retrait, pour dire ce qui est déjà dit.
-    // ⛔ Et il porte SON numéro, celui du verset, à la place de l'ordinal du segment :
-    // deux nombres en exposant sur la même ligne ne se lisent pas, et c'est le verset
-    // que le lecteur cherche. Décision de l'auteur, 2026-08-28.
+    // imbriquerait un retrait dans un retrait, pour dire ce qui est déjà dit. Cela vaut
+    // qu'il compose dans son bloc ou dans le fil.
+    // ⛔ DANS LE BLOC, il porte SON numéro, celui du verset, à la place de l'ordinal du
+    // segment : deux nombres en exposant sur la même ligne ne se lisent pas, et c'est le
+    // verset que le lecteur cherche. Décision de l'auteur, 2026-08-28.
+    // ⚠️ HORS DU BLOC, il garde son ORDINAL. Un `verset` dont le paragraphe porte aussi
+    // de la prose ne forme pas de bloc (`estBlocVersets` est tout ou rien) : il coule
+    // dans le fil comme n'importe quel segment, et rien ne dispute alors sa place à
+    // l'ordinal — qui est la prise par laquelle tout le site cite un segment. L'échanger
+    // là contre un numéro de verset, c'était le faire DISPARAÎTRE partout où la case
+    // `biblical_verse_number` est vide, c'est-à-dire aujourd'hui partout. Le défaut ne se
+    // voyait pas, la seule œuvre qui porte des `verset` masquant ses numéros.
     if (s.nature === NATURE_VERSET) {
-      const numeroVerset = numeroVersetLisible(s.numeroVerset)
+      const marque = numeroDUnVerset({
+        dansLeBloc: dansBlocDeVersets,
+        numeroVerset: s.numeroVerset,
+        ordinal: configNiveaux.afficherNumeros && !estPremier ? s.numero : null,
+      })
       return (
         <>
-          {numeroVerset ? <sup className="num-verset">{numeroVerset}</sup> : null}
+          {marque === null ? null : marque.forme === 'verset'
+            ? <sup className="num-verset">{marque.valeur}</sup>
+            : <sup style={STYLE_NUMERO_SEGMENT}>{marque.valeur}</sup>}
           {rendreTexteAvecNotes(texte, s.notes ?? {})}
         </>
       )
@@ -2509,7 +2523,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                   onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
                                   onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                   onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                  {rendreCorpsSegment(s, false)}
+                                  {rendreCorpsSegment(s, false, null, true)}
                                 </span>
                               </span>
                             )

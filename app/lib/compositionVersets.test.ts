@@ -7,6 +7,7 @@ import {
   RETRAIT_VERSET_ETROIT,
   estBlocVersets,
   numeroVersetLisible,
+  numeroDUnVerset,
 } from './compositionVersets'
 
 describe('le bloc de versets', () => {
@@ -79,5 +80,38 @@ describe('le numéro de verset', () => {
     // la numérotation d'un mètre de Boèce à celle d'un chapitre d'Isaïe.
     expect(CLE_NUMERO_VERSET).toBe('biblical_verse_number')
     expect(CLE_NUMERO_VERSET).not.toBe('verse_number')
+  })
+})
+
+describe('le numéro que porte un verset', () => {
+  it('dans son bloc, c’est celui du VERSET', () => {
+    expect(numeroDUnVerset({ dansLeBloc: true, numeroVerset: '12', ordinal: 340 }))
+      .toEqual({ forme: 'verset', valeur: '12' })
+  })
+
+  it('dans son bloc, une case vide ne donne rien — pas de repli sur l’ordinal', () => {
+    // Une édition qui n’imprime pas les numéros n’en reçoit pas ; y glisser
+    // l’ordinal du segment ferait passer une numérotation technique pour celle
+    // de l’Écriture.
+    expect(numeroDUnVerset({ dansLeBloc: true, numeroVerset: null, ordinal: 340 })).toBeNull()
+    expect(numeroDUnVerset({ dansLeBloc: true, numeroVerset: '  ', ordinal: 340 })).toBeNull()
+  })
+
+  it('hors du bloc, c’est l’ORDINAL du segment', () => {
+    // ⛔ L’invariant : un verset ne perd JAMAIS sa prise. Dans le fil d’un
+    // commentaire, rien ne dispute sa place à l’ordinal, et c’est par lui que le
+    // site prélève, cite, signale et ancre.
+    expect(numeroDUnVerset({ dansLeBloc: false, numeroVerset: null, ordinal: 340 }))
+      .toEqual({ forme: 'ordinal', valeur: '340' })
+  })
+
+  it('hors du bloc, l’ordinal l’emporte même si le numéro de verset est écrit', () => {
+    expect(numeroDUnVerset({ dansLeBloc: false, numeroVerset: '12', ordinal: 340 }))
+      .toEqual({ forme: 'ordinal', valeur: '340' })
+  })
+
+  it('sans ordinal — numérotation masquée — il ne porte rien', () => {
+    expect(numeroDUnVerset({ dansLeBloc: false, numeroVerset: '12', ordinal: null })).toBeNull()
+    expect(numeroDUnVerset({ dansLeBloc: false, numeroVerset: '12', ordinal: '' })).toBeNull()
   })
 })

@@ -86,6 +86,37 @@ export const BLANC_ENTRE_VERSETS = '0.25rem'
  * seulement d'un paragraphe ne dirait rien au lecteur, sinon que la mise en page a
  * glissé.
  */
+/**
+ * Quel numéro un verset porte-t-il, selon l'endroit où il compose ?
+ *
+ * Un `verset` ne fait pas toujours bloc. `estBlocVersets` est tout ou rien : dès que
+ * son paragraphe porte aussi de la prose — la citation glissée dans le fil d'un
+ * commentaire —, le segment coule comme n'importe quel autre. Les deux situations
+ * n'appellent pas la même marque.
+ *
+ * ⛔ **DANS le bloc, le numéro du VERSET, et lui seul.** Deux nombres en exposant sur
+ * la même ligne ne se lisent pas, et c'est le verset que le lecteur cherche quand
+ * l'édition pose la citation verset par verset (décision de l'auteur, 2026-08-28). La
+ * case vide ne donne rien : une édition qui n'imprime pas les numéros n'en reçoit pas.
+ *
+ * ⚠️ **HORS du bloc, l'ORDINAL du segment.** Rien ne lui dispute alors sa place, et
+ * c'est la prise par laquelle tout le site désigne un segment — prélèvement, citation,
+ * signalement, ancre. L'échanger là contre un numéro de verset le faisait DISPARAÎTRE
+ * partout où la case est vide, c'est-à-dire, au 29 août 2026, sur la totalité des
+ * 1 109 segments qui portent la nature. Le défaut ne se voyait pas : la seule œuvre
+ * concernée masque ses numéros.
+ */
+export function numeroDUnVerset(
+  { dansLeBloc, numeroVerset, ordinal }:
+  { dansLeBloc: boolean; numeroVerset: unknown; ordinal: number | string | null | undefined },
+): { forme: 'verset'; valeur: string } | { forme: 'ordinal'; valeur: string } | null {
+  if (dansLeBloc) {
+    const valeur = numeroVersetLisible(numeroVerset)
+    return valeur === null ? null : { forme: 'verset', valeur }
+  }
+  if (ordinal === null || ordinal === undefined || ordinal === '') return null
+  return { forme: 'ordinal', valeur: String(ordinal) }
+}
 export function estBlocVersets(natures: readonly (string | null | undefined)[]): boolean {
   return natures.length > 0 && natures.every(nature => nature === NATURE_VERSET)
 }
