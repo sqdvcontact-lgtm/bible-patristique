@@ -130,3 +130,118 @@ export function styleArgument({ actif }: { actif?: boolean } = {}): CSSPropertie
 export function margeArgument({ memeParagraphe }: { memeParagraphe?: boolean } = {}): string {
   return `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}`
 }
+
+// ── Les TITRES du corps d'une œuvre ──────────────────────────────────────────
+
+/**
+ * Le rang d'un titre dans le corps d'une œuvre. Quatre niveaux, pas davantage.
+ *
+ * ⛔ Ces quatre compositions étaient écrites EN LIGNE dans `OeuvreClient`, et
+ * recopiées DEUX fois — une fois pour la lecture, une fois pour l'apparat. Elles
+ * avaient déjà divergé : le rang 2 valait `1.125rem` en graisse 400 dans la lecture
+ * et `1.0625rem` en graisse 500 dans l'apparat, soit deux rendus d'un même rang à un
+ * onglet de distance. Rien ne le justifiait, `styleParagrapheApparat` n'étant que
+ * `styleParagrapheLecture` : les deux surfaces composent leur prose au même corps,
+ * elles n'ont aucune raison de composer leurs titres autrement. Les valeurs de la
+ * LECTURE font foi (relevé et réuni le 29 août 2026).
+ *
+ * ⚠️ Seul le CARACTÈRE est ici. Le cadre — marges, centrage, filet de gauche, place
+ * du crayon d'administration — appartient à la SURFACE et reste chez elle : c'est la
+ * distinction de toujours, le style dit ce que la chose est, la surface dit comment
+ * elle se compose. Les deux flux n'ont pas les mêmes blancs, et c'est légitime.
+ */
+export type RangTitreOeuvre = 1 | 2 | 3 | 4
+
+/** Le TITRE d'un rang. Les deux hauts sont en sérif, les deux bas en sans. */
+export function styleTitreNiveau(rang: RangTitreOeuvre): CSSProperties {
+  if (rang === 1) {
+    return {
+      fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 500,
+      color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line',
+    } as CSSProperties
+  }
+  if (rang === 2) {
+    return {
+      fontFamily: SERIF, fontSize: '1.125rem', fontWeight: 400,
+      color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0,
+      letterSpacing: '0.01em', whiteSpace: 'pre-line',
+    } as CSSProperties
+  }
+  if (rang === 3) {
+    return {
+      fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)',
+      lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line',
+    } as CSSProperties
+  }
+  // Rang 4 : le seul qui prenne la capitale, et le seul dont le sous-titre reste
+  // sur la même ligne. C'est le rang des intertitres serrés d'un commentaire.
+  return {
+    fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-faible)',
+    letterSpacing: '0.10em', textTransform: 'uppercase',
+    margin: '0.5rem 0 0.25rem', whiteSpace: 'pre-line',
+  } as CSSProperties
+}
+
+/**
+ * Le SOUS-TITRE d'un rang — le `ref_nivN_texte` de la donnée.
+ *
+ * ⚠️ Il est en ITALIQUE à tous les rangs, et d'une encre plus claire que son titre :
+ * c'est ce qui l'en distingue sans l'en détacher. ⛔ Au rang 4 il reste sur la LIGNE
+ * du titre, en romain de casse ordinaire — une capitale espacée de plus y ferait deux
+ * titres au lieu d'un titre et de sa glose.
+ */
+export function styleSousTitreNiveau(rang: RangTitreOeuvre): CSSProperties {
+  if (rang === 1 || rang === 2) {
+    return {
+      fontFamily: SERIF, fontSize: '0.9375rem', fontWeight: 400,
+      color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4,
+      margin: '5px 0 0', whiteSpace: 'pre-line',
+    } as CSSProperties
+  }
+  if (rang === 3) {
+    return {
+      fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)',
+      lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line',
+    } as CSSProperties
+  }
+  return {
+    fontWeight: 400, textTransform: 'none', letterSpacing: 0,
+    marginLeft: '6px', fontStyle: 'italic',
+  } as CSSProperties
+}
+
+/**
+ * La LETTRINE du premier segment d'une division.
+ *
+ * ⛔ C'est un FLOTTANT, et c'est ce qui lui interdit un vers ou un verset : posée
+ * dans la boîte d'une ligne, elle déborde sur les suivantes, qui sont des boîtes
+ * sœurs. Elle n'a de sens que dans un paragraphe de prose, dont les lignes coulent.
+ *
+ * ⚠️ Elle vivait en constante LOCALE d'`OeuvreClient`, donc refabriquée à chaque
+ * rendu de la page.
+ */
+export const STYLE_LETTRINE: CSSProperties = {
+  float: 'left',
+  fontFamily: SERIF,
+  fontSize: '3.4em',
+  lineHeight: '0.78',
+  paddingRight: '5px',
+  paddingTop: '3px',
+  color: 'var(--cs-encre)',
+  fontWeight: 'normal',
+  userSelect: 'none',
+}
+
+/**
+ * La ponctuation qui PRÉCÈDE la lettre ornée, glissée dans le même flottant.
+ *
+ * ⛔ Rendue à part, le flottant la rejetterait à DROITE de la lettrine : on lirait
+ * « [V] «ous… » au lieu de « «Vous… ». Elle doit donc rester solidaire, en petit
+ * corps calé sur le haut de la lettre.
+ */
+export const STYLE_PREFIXE_LETTRINE: CSSProperties = {
+  fontSize: '0.34em',
+  verticalAlign: '0.72em',
+  lineHeight: 1,
+  paddingRight: '1px',
+}
