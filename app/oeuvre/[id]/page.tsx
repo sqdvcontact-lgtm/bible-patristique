@@ -122,6 +122,8 @@ type Segment = {
   // rend donc en TEXTE, quel que soit leur type en base : `mesureAlinea`,
   // `marqueStrophe` et `numeroVersetLisible` les relisent.
   alinea: string|null; strophe_avant: string|null; numero_verset: string|null
+  /** La FORME du segment : `vers`, ou rien. Axe séparé de la nature — voir `estEnVers`. */
+  forme: string|null
   // Même remarque : champ de `segment_metadata`, rendu en texte. Il désigne le
   // segment du texte en langue originale dont `texte_original` est la copie.
   cle_original: string|null
@@ -730,6 +732,7 @@ export default async function OeuvrePage({
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
         numeroVerset: numeroVersetLisible(s.numero_verset),
+        forme: s.forme,
     }))
 
   const groupesData = groupes.map((g, gi) => ({
@@ -760,6 +763,7 @@ export default async function OeuvrePage({
       nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
         numeroVerset: numeroVersetLisible(s.numero_verset),
+        forme: s.forme,
     }))
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({

@@ -35,8 +35,9 @@ import {
 } from '@/app/lib/compositionBible'
 import {
   STYLE_NUMERO_SEGMENT, margeArgument, styleArgument, styleBlocDeVers,
-  styleLigneDeVers, styleParagrapheApparat, styleParagrapheLecture,
+ styleParagrapheApparat, styleParagrapheLecture,
 } from '@/app/lib/compositionOeuvre'
+import { styleLigneDeVers } from '@/app/lib/compositionVers'
 
 export type CleOnglet = 'bible' | 'oeuvres' | 'apparat-oeuvres' | 'apparat-bibles'
 
@@ -181,6 +182,30 @@ const BIBLE: Unite[] = [
     style: 'bible/verset — après un bloc',
     note: 'La lecture reprend. Le blanc au-dessus de la rangée est celui que la règle de voisinage a ouvert sous le bloc.',
     contenu: <Rangee n="8">Dieu dit encore : Que le firmament soit fait au milieu des eaux.</Rangee>,
+  },
+  {
+    style: 'bible/verset — EN VERS',
+    note: 'Le psaume est de la poésie. Le verset se compose alors comme un vers, avec le style de ligne de partout : ni justification ni césure — on ne coupe pas un stique —, une boîte par ligne, l’alinéa et le retrait de suite.',
+    alerte: '⛔ Rien ne l’emploie, et ce n’est pas un oubli : sur les 2 693 versets du Psautier, AUCUNE des quatre traductions ne porte un seul saut de ligne. La coupe des stiques n’existe pas dans la donnée, et elle ne se devine pas. Le style attend son corpus.',
+    contenu: (
+      <div className="verset-row" style={styleRangeeVerset()}>
+        <div style={styleGrilleRangee()}>
+          <div style={styleBlocVerset()}>
+            <span style={STYLE_NUMERO_VERSET}>2</span>
+            <div data-verse-text style={styleTexteVerset({ enVers: true })}>
+              {[
+                { t: 'Heureux l’homme qui n’a point marché dans le conseil des impies,', rang: 0, strophe: false },
+                { t: 'qui ne s’est point arrêté dans la voie des pécheurs,', rang: 1, strophe: false },
+                { t: 'et qui ne s’est point assis dans la chaire de pestilence ;', rang: 1, strophe: false },
+              ].map((v, i) => (
+                <span key={i} style={styleLigneDeVers({ rang: v.rang, ouvreStrophe: v.strophe })}>{v.t}</span>
+              ))}
+            </div>
+          </div>
+          <div />
+        </div>
+      </div>
+    ),
   },
 ]
 
@@ -345,9 +370,30 @@ const APPARAT_OEUVRES: Unite[] = [
       </div>
     ),
   },
+  {
+    style: 'patristique_apparat/vers',
+    note: 'Le MÊME style que dans le corps de l’œuvre : l’apparat critique compose ses vers comme la lecture les siens. Alinéas, strophe, retrait de suite — rien n’en change.',
+    alerte: '⛔ Dans l’apparat, la nature vaut déjà `apparat_critique` et ne peut pas dire en plus que le passage est en vers : c’est `segment_metadata.forme` qui le déclare. Le prédicat `estEnVers` lit les deux écritures.',
+    contenu: (
+      <div style={styleBlocDeVers()}>
+        {[
+          { t: 'Ô toi qui règles l’univers par une loi durable,', rang: 0, strophe: false },
+          { t: 'Semeur de la terre et du ciel, qui du fond des âges', rang: 1, strophe: false },
+          { t: 'Ordonnes au temps de courir, et, demeurant en repos,', rang: 0, strophe: true },
+          { t: 'Donnes à toute chose le mouvement.', rang: 1, strophe: false },
+        ].map((v, i) => (
+          <span key={i} style={styleLigneDeVers({ rang: v.rang, ouvreStrophe: v.strophe })}>
+            <Segment>{v.t}</Segment>
+          </span>
+        ))}
+      </div>
+    ),
+  },
 ]
 
 // ══ ÉPREUVE 4 — L'APPARAT D'UNE BIBLE ════════════════════════════════════════
+
+
 
 const APPARAT_BIBLES: Unite[] = [
   {
@@ -455,6 +501,23 @@ const APPARAT_BIBLES: Unite[] = [
         'Le voile du temple se déchira. Ce voile séparait le Saint des saints du reste de l’édifice ; sa déchirure marquait la fin de l’ancienne alliance et l’ouverture du sanctuaire à tous les peuples.',
         'Et la terre trembla. Saint Jérôme rapporte que les pierres brisées se voyaient encore de son temps.',
       ], { heading: '51. Le voile du temple' })} />
+    ),
+  },
+  {
+    style: 'bible_apparat/vers — form: verse',
+    note: 'Quand le commentaire d’une bible cite un passage en vers. Le style de la ligne est celui de partout — l’apparat n’a que sa police et son corps en propre.',
+    alerte: '⛔ On ne DÉCOUPE pas un paragraphe qui porte une locution marquée ou un appel de note : leurs offsets pointent dans le texte entier, et les couper les déplacerait. Un tel paragraphe garde alors son `pre-line`, qui rend les sauts sans les indenter. Même garde que sur l’intertitre divisé.',
+    contenu: (
+      <Bible bloc={{
+        id: 'epreuve-vers-apparat',
+        semanticStyleCode: 'commentaire',
+        semanticLevel: 'I5',
+        placement: 'before',
+        textBlocks: [{
+          id: 'epreuve-vers-apparat-p', kind: 'commentary', form: 'verse', language: 'fr',
+          text: 'Que les cieux répandent leur rosée,\net que les nuées fassent pleuvoir le Juste ;\nque la terre s’ouvre et germe le Sauveur.',
+        }],
+      }} />
     ),
   },
   {

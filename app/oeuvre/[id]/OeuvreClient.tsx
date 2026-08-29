@@ -20,12 +20,12 @@ import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
 import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
-import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
   STYLE_NUMERO_SEGMENT, margeArgument, styleArgument, styleBlocDeVers,
-  styleLigneDeVers, styleParagrapheApparat, styleParagrapheLecture,
+ styleParagrapheApparat, styleParagrapheLecture,
 } from '@/app/lib/compositionOeuvre'
 import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
@@ -1039,6 +1039,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
         numeroVerset: numeroVersetLisible(s.numero_verset),
+        forme: s.forme,
       }
     })
 
@@ -1108,6 +1109,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
         numeroVerset: numeroVersetLisible(s.numero_verset),
+        forme: s.forme,
       }
     })
 
@@ -1736,7 +1738,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       return fusionnerBlocs(
         fusionnerBlocs(
           paragraphesDe(itemIds),
-          ids => ids.every(sid => segMap.get(sid)?.nature === 'vers'),
+          ids => estBlocDeVers(ids.map(sid => segMap.get(sid))),
         ),
         ids => estBlocVersets(ids.map(sid => segMap.get(sid)?.nature)),
       ).map(c => ({ ids: c.ids, groupe: null as string | null }))
@@ -2450,7 +2452,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Strophe : un poème ne se compose pas comme de la prose. Toute la
                     // règle vit dans `app/lib/compositionVers.ts`, que les traductions
                     // parallèles emploient aussi — une seule composition, deux surfaces.
-                    const toutVers = chunk.ids.every(sid => segMap.get(sid)?.nature === 'vers')
+                                    // ⚠️ `estBlocDeVers` lit les DEUX façons de déclarer un vers : la
+                    // nature héritée `vers`, et `segment_metadata.forme`. La seconde est
+                    // la seule possible dans l'apparat, où la nature est déjà prise.
+                    const toutVers = estBlocDeVers(chunk.ids.map(sid => segMap.get(sid)))
                     // Citation biblique posée VERSET PAR VERSET : la coupure vient de
                     // l'édition, non de la segmentation, et ne se recolle donc pas comme
                     // celle d'une `citation` sortie. Règle et mesures dans
@@ -2680,7 +2685,39 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           {groupe.niv2_texte && <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4, margin: '5px 0 0', whiteSpace: 'pre-line' }}>{rendreTitreColophonAvecNotes(groupe.niv2_texte, notesTitre)}</p>}
                         </div>
                       )}
-                      {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => (
+                      {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => {
+                        // ⛔ L'APPARAT compose ses vers comme la lecture les sien. La
+                        // nature y vaut `apparat_critique` et ne peut pas dire en plus
+                        // que le passage est en vers : c'est `segment_metadata.forme`
+                        // qui le déclare, et `estBlocDeVers` lit les deux écritures.
+                        const versApparat = estBlocDeVers(chunk.ids.map(sid => segMapApparat.get(sid)))
+                        if (versApparat) {
+                          const rangs = ombreDeLettrine(niveauxAlinea(chunk.ids.map(sid => segMapApparat.get(sid)?.alinea)))
+                          return (
+                            <div key={`apparat-vers-${chunk.ids[0]}`} lang={langueCorps} style={styleBlocDeVers()}>
+                              {chunk.ids.map((sid, i) => {
+                                const s = segMapApparat.get(sid)
+                                if (!s) return null
+                                const actif = segActif === sid
+                                const strophe = ouvreStrophe(
+                                  { strophe_avant: s.stropheAvant, paragraphe: s.paragraphe },
+                                  i > 0 ? segMapApparat.get(chunk.ids[i - 1]) : undefined,
+                                )
+                                return (
+                                  <span key={sid} style={styleLigneDeVers({ rang: rangs[i], ouvreStrophe: strophe })}>
+                                    <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
+                                      onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                      onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                                      onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                                      {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
+                                    </span>
+                                  </span>
+                                )
+                              })}
+                            </div>
+                          )
+                        }
+                        return (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
                           <p lang={langueCorps} style={styleParagrapheApparat()}>
                             {chunk.ids.map((sid, i) => {
@@ -2702,7 +2739,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             })}
                           </p>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )
                 })}

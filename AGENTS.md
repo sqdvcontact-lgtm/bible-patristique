@@ -2106,6 +2106,44 @@ est retenue. Règles de code :
   `app/lib/compositionBible.ts`, `compositionOeuvre.ts`, `compositionVers.ts`,
   `compositionVersets.ts`, et les classes de `globals.css`.
 
+## ⛔ Le VERS — un style, QUATRE surfaces (2026-08-29)
+
+Doctrine : charte **§ 7.4**. Ce qui fait qu'un vers est un vers ne dépend d'aucune
+surface : ni justification ni césure — on ne coupe pas un alexandrin —, alinéa
+poétique, strophe, retrait de suite. La règle vit dans **`styleLigneDeVers`**
+(`app/lib/compositionVers.ts`), et les quatre surfaces la partagent. ⚠️ Seuls la
+police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC.
+
+| Surface | Déclaration | Bloc |
+|---|---|---|
+| Corps d'une œuvre | `nature = 'vers'` *(hérité)* ou `segment_metadata.forme` | `styleBlocDeVers` |
+| Apparat d'une œuvre | `segment_metadata.forme = 'vers'` **seulement** | `styleBlocDeVers` |
+| Apparat d'une bible | `form: 'verse'` sur le paragraphe | `STYLE_CORPS` |
+| Texte biblique | *(reste à déclarer)* | `styleTexteVerset({ enVers })` |
+
+- ⛔ **Dans l'apparat, la NATURE est déjà prise** : un segment y vaut
+  `apparat_critique`, c'est par là qu'il est SÉLECTIONNÉ, et il ne peut pas dire en
+  plus qu'il est en vers. D'où le second axe `segment_metadata.forme`, qui dit la
+  MATIÈRE sans toucher à la nature — exactement ce que le paratexte biblique fait
+  depuis toujours avec son couple `kind` × `form`.
+- ⚠️ **Deux écritures, une règle.** `estEnVers` lit la nature héritée ET la forme ;
+  `estBlocDeVers` applique le tout ou rien. ⛔ Ne jamais lire l'une sans l'autre.
+  `styleLigneDeVers` a quitté `compositionOeuvre.ts` le 29 août pour que les quatre
+  surfaces le partagent.
+- ⛔ **On ne DÉCOUPE pas en lignes un paragraphe qui porte une locution marquée ou un
+  appel de note** : leurs offsets pointent dans le texte entier. Il garde son
+  `pre-line`, qui rend les sauts sans les indenter. Même garde que sur l'intertitre
+  divisé et la citation sortie.
+- ⛔ **Le TEXTE biblique attend sa donnée, et le style ne la devinera pas.** Sur les
+  **2 693 versets du Psautier**, AUCUNE des quatre traductions ne porte un seul saut
+  de ligne : la coupe des stiques n'existe pas dans le corpus. Couper à la ponctuation
+  serait inventer une prosodie. Le style est posé, éprouvé et montré sur la planche ;
+  il attend. *Poser un style avant sa donnée est légitime ; deviner la donnée depuis
+  le style ne l'est pas.*
+- **Garde** : `app/lib/versQuatreSurfaces.test.ts` (8 tests) tient les deux moitiés —
+  les deux écritures de la déclaration, et le fait que la ligne se compose pareil
+  partout tandis que chaque surface apporte sa seule police.
+
 ## ⛔ Un SOUS-TITRE se compose comme SON titre (2026-08-29)
 
 Un sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre

@@ -16,7 +16,6 @@
  */
 
 import type { CSSProperties } from 'react'
-import { RETRAIT_SUITE, retraitVers } from './compositionVers'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
@@ -68,8 +67,16 @@ export function styleParagrapheApparat(): CSSProperties {
   return styleParagrapheLecture()
 }
 
+
 /** L'enveloppe d'un bloc de VERS. ⛔ Elle ne porte ni interligne ni alignement :
  *  ceux-là appartiennent à la LIGNE, qui est une boîte et non un fragment. */
+/**
+ * Le BLOC qui porte des vers — dans la LECTURE comme dans l'APPARAT.
+ *
+ * ⚠️ Les deux surfaces composent pareil, `styleParagrapheApparat` n'étant que
+ * `styleParagrapheLecture` : il n'y a donc qu'un bloc. Le style de la LIGNE, lui, est
+ * celui de PARTOUT — `styleLigneDeVers`, dans `compositionVers.ts`.
+ */
 export function styleBlocDeVers({ masque }: { masque?: boolean } = {}): CSSProperties {
   return {
     display: masque ? 'none' : undefined,
@@ -90,18 +97,10 @@ export function styleBlocDeVers({ masque }: { masque?: boolean } = {}): CSSPrope
  * césure — on ne coupe pas un alexandrin —, et un retrait de suite qui distingue une
  * ligne trop longue du vers d'après.
  */
-export function styleLigneDeVers({ rang, ouvreStrophe }: { rang: number; ouvreStrophe?: boolean }): CSSProperties {
-  return {
-    display: 'block',
-    lineHeight: 1.4,
-    marginTop: ouvreStrophe ? '0.6rem' : 0,
-    marginLeft: `${retraitVers(rang)}em`,
-    paddingLeft: `${RETRAIT_SUITE}em`,
-    textIndent: `-${RETRAIT_SUITE}em`,
-    hyphens: 'none',
-    WebkitHyphens: 'none',
-  } as CSSProperties
-}
+// ⚠️ `styleLigneDeVers` a QUITTÉ ce module le 29 août 2026 pour `compositionVers.ts`.
+// Il n'avait rien de propre à la lecture d'une œuvre : l'interligne, l'alinéa, le
+// retrait de suite et l'absence de césure sont ceux d'un vers PARTOUT. Seul le bloc
+// qui les porte — police, corps, encre — appartient à sa surface.
 
 /**
  * L'ARGUMENT qui ouvre une division — « Saint Chrysostome examine dans cette

@@ -21,6 +21,7 @@ import {
   type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
 import { compositionSousTitre } from '@/app/lib/compositionBible'
+import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import {
@@ -431,6 +432,37 @@ function rendreBlocTexte(
           </p>
         </div>
       </Fragment>
+    )
+  }
+
+  // ── UN PARAGRAPHE EN VERS ───────────────────────────────────────────────────
+  //
+  // ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne : `text-indent`
+  // ne s'applique qu'à la PREMIÈRE ligne d'un bloc, et jamais après un saut forcé.
+  // Sans boîte, l'alinéa ne se poserait que sur le premier vers. C'est la règle de
+  // `compositionVers.ts`, et l'apparat biblique la partage désormais : le style de la
+  // ligne y est le MÊME que dans le corps d'une œuvre.
+  //
+  // ⚠️ On ne découpe PAS un paragraphe qui porte une locution marquée ou un appel de
+  // note : leurs offsets pointent dans le texte ENTIER, et les couper les déplacerait.
+  // C'est la même garde que sur l'intertitre divisé et la citation sortie. Un tel
+  // paragraphe garde le `pre-line` de son style, qui rend les sauts sans les indenter.
+  const lignes = bloc.form === 'verse' ? lignesDeVers(bloc.text) : []
+  if (lignes.length > 1 && (bloc.inlineSpans ?? []).length === 0 && !notes.some((note) => positionAppelDansTexte(bloc.text, note, bloc) !== null)) {
+    return (
+      <div
+        key={bloc.id}
+        lang={bloc.language ?? undefined}
+        className={composition ? `cs-bible-${composition}` : undefined}
+        data-source-start={bloc.sourceStartOffsetUnicode ?? undefined}
+        data-source-end={bloc.sourceEndOffsetUnicode ?? undefined}
+        data-forme="vers"
+        style={{ ...style, whiteSpace: 'normal' }}
+      >
+        {lignes.map((ligne, i) => (
+          <span key={`${bloc.id}:vers:${i}`} style={styleLigneDeVers({ rang: 0 })}>{ligne}</span>
+        ))}
+      </div>
     )
   }
 

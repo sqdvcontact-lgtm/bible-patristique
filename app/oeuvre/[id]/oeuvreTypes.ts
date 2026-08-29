@@ -77,6 +77,9 @@ export type SegData = {
    *  (`segment_metadata.biblical_verse_number`), écrit à la main. `null` quand
    *  l'édition ne le donne pas : le bloc se lit alors sans numéros. */
   numeroVerset?: string | null
+  /** La FORME du segment : `vers`, ou rien. ⛔ Axe SÉPARÉ de la nature — dans
+   *  l'apparat celle-ci vaut déjà `apparat_critique`. Voir `estEnVers`. */
+  forme?: string | null
 }
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string

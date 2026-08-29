@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 /**
  * La composition des VERS — une seule règle, deux surfaces.
  *
@@ -195,4 +197,74 @@ export function marqueStrophe(brut: unknown): boolean | null {
   if (brut === 'true') return true
   if (brut === 'false') return false
   return null
+}
+
+/* ── LE VERS SE COMPOSE PARTOUT DE LA MÊME FAÇON ───────────────────────────────
+ *
+ * Demande de l'auteur, 29 août 2026 : « je veux un style propre à la poésie », et son
+ * équivalent sur les quatre surfaces — le corps d'une œuvre, l'apparat d'une œuvre,
+ * l'apparat d'une bible, le texte biblique lui-même.
+ *
+ * ⛔ C'est UN style, et quatre surfaces. Ce qui fait qu'un vers est un vers ne dépend
+ * d'aucune d'elles : on ne le justifie pas, on ne le coupe pas — on ne coupe pas un
+ * alexandrin —, il porte son alinéa, sa strophe et son retrait de suite. Seuls la
+ * police, le corps et l'encre appartiennent à la surface, et vivent dans son bloc.
+ *
+ * ⚠️ `styleLigneDeVers` vivait dans `compositionOeuvre.ts`, où il ne servait qu'une
+ * surface. Il est ici depuis le 29 août 2026, pour que les quatre le partagent.
+ */
+
+/** La clé qui déclare la FORME d'un segment patristique. */
+export const CLE_FORME = 'forme'
+
+/** La seule forme qui ne soit pas la prose. */
+export const FORME_VERS = 'vers'
+
+/**
+ * Ce segment est-il un VERS ?
+ *
+ * ⚠️ Deux façons de le dire, et c'est voulu — la seconde est la seule possible là où
+ * la nature est déjà prise :
+ *
+ *   · `nature = 'vers'` — la façon HÉRITÉE, celle du corps d'une œuvre. 2 325 segments
+ *     la portent, tous dans la *Consolation* de Boèce.
+ *   · `segment_metadata.forme = 'vers'` — la façon CANONIQUE. Elle dit la MATIÈRE d'un
+ *     segment sans toucher à sa nature, et c'est ce qu'il faut dans l'apparat, où la
+ *     nature vaut déjà `apparat_critique` et ne peut pas dire deux choses à la fois.
+ *
+ * ⛔ Une seule RÈGLE, deux écritures : c'est le patron des noms hérités des styles
+ * bibliques. Ne jamais lire l'une des deux sans l'autre.
+ */
+export function estEnVers(
+  segment: { nature?: string | null; forme?: unknown } | null | undefined,
+): boolean {
+  if (!segment) return false
+  return segment.nature === 'vers' || segment.forme === FORME_VERS
+}
+
+/** Ce bloc est-il ENTIÈREMENT composé de vers ? Tout ou rien, comme `estBlocVersets`. */
+export function estBlocDeVers(
+  segments: readonly ({ nature?: string | null; forme?: unknown } | null | undefined)[],
+): boolean {
+  return segments.length > 0 && segments.every(estEnVers)
+}
+
+/**
+ * La composition d'une LIGNE de vers, identique sur les quatre surfaces.
+ *
+ * ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne : `text-indent` ne
+ * s'applique qu'à la PREMIÈRE ligne d'un bloc, et jamais après un saut forcé. Sans
+ * boîte, l'alinéa ne se poserait que sur le premier vers de la strophe.
+ */
+export function styleLigneDeVers({ rang, ouvreStrophe }: { rang: number; ouvreStrophe?: boolean }): CSSProperties {
+  return {
+    display: 'block',
+    lineHeight: 1.4,
+    marginTop: ouvreStrophe ? '0.6rem' : 0,
+    marginLeft: `${retraitVers(rang)}em`,
+    paddingLeft: `${RETRAIT_SUITE}em`,
+    textIndent: `-${RETRAIT_SUITE}em`,
+    hyphens: 'none',
+    WebkitHyphens: 'none',
+  } as CSSProperties
 }

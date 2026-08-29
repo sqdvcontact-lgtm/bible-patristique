@@ -38,6 +38,11 @@ export const COLONNES_SEGMENT = [
   // (voir `app/lib/compositionVersets.ts`). ⛔ Pas `verse_number` : cette clé-là porte
   // déjà le rang du VERS dans son poème, chez Ceriziers.
   'numero_verset:segment_metadata->>biblical_verse_number',
+  // La FORME du segment — `vers` ou rien. ⛔ C'est un axe SÉPARÉ de la nature, et il
+  // le faut : dans l'apparat, la nature vaut déjà `apparat_critique` et ne peut pas
+  // dire en plus que le passage est en vers. Voir `estEnVers`, qui lit cette clé ET
+  // la nature héritée `vers`.
+  'forme:segment_metadata->>forme',
   // Provenance de la colonne latine : `texte_original` est la copie d'un segment du
   // texte en langue originale de l'œuvre, et cette clé dit lequel. Sans elle, le
   // bilingue ne peut pas rendre à ce bloc l'apparat critique qui pend à son segment.

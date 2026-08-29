@@ -101,7 +101,34 @@ export const STYLE_NUMERO_ALTERNATIF: CSSProperties = {
 }
 
 /** Le texte du verset. Justifié sur écran large, au fer sur mobile. */
-export function styleTexteVerset({ mobile }: { mobile?: boolean } = {}): CSSProperties {
+/**
+ * Le texte d'un verset de la page Bible.
+ *
+ * ⚠️ `enVers` compose le verset comme de la POÉSIE : ni justification ni césure — on
+ * ne coupe pas un stique —, et une boîte par ligne, portant l'alinéa de
+ * `styleLigneDeVers`, celui-là même que composent le corps d'une œuvre, son apparat
+ * et l'apparat d'une bible. Un style, quatre surfaces (charte § 7.4).
+ *
+ * ⛔ **Rien ne l'emploie encore, et ce n'est pas un oubli.** Le Psautier est de la
+ * poésie, mais la donnée n'en porte pas la coupe : relevé le 29 août 2026, sur les
+ * 2 693 versets du Psautier, AUCUNE des quatre traductions ne contient un seul saut
+ * de ligne. Sans stiques, il n'y a rien à composer. Le style est prêt pour le jour où
+ * la donnée les portera ; il ne se devine pas d'ici là.
+ */
+export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?: boolean } = {}): CSSProperties {
+  if (enVers) {
+    return {
+      fontFamily: SERIF,
+      fontSize: '0.875rem',
+      color: 'var(--cs-texte-fort)',
+      margin: 0,
+      // ⛔ Ni justification ni césure : c'est ce qui fait un vers, partout.
+      textAlign: 'left',
+      hyphens: 'none',
+      WebkitHyphens: 'none',
+      overflowWrap: 'break-word',
+    } as CSSProperties
+  }
   return {
     fontFamily: SERIF,
     fontSize: '0.875rem',
