@@ -69,7 +69,7 @@ const CSS = `
   /* ⛔ La désignation ne touche pas au texte : un rectangle peint par-dessus, hors
      du flux et sans événements. Poser une classe sur les nœuds, ce serait modifier
      la composition que la planche montre. */
-  .pl-designation { position: absolute; pointer-events: none; border-radius: 5px; }
+  .pl-designation { position: absolute; pointer-events: none; border-radius: 4px; }
   .pl-designation--survol { background: rgba(var(--cs-vert-rgb),0.07); outline: 1px solid rgba(var(--cs-vert-rgb),0.28); }
   .pl-designation--epingle { background: rgba(var(--cs-vert-rgb),0.11); outline: 1px solid var(--cs-vert); }
 

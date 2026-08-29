@@ -217,7 +217,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
                   position: 'relative', width: '8.75rem', flexShrink: 0,
                   aspectRatio: '2 / 3',
                   margin: '18px 0 18px 18px',
-                  borderRadius: '3px', overflow: 'hidden',
+                  borderRadius: '4px', overflow: 'hidden',
                   boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
                   outline: active === 'encart' ? '3px solid var(--cs-vert)' : '3px solid transparent',
                   outlineOffset: '-3px', transition: 'outline-color 0.12s',

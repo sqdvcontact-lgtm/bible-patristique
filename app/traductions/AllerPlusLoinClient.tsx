@@ -303,7 +303,7 @@ function FicheTraduction({ t }: { t: Traduction }) {
             // était long.
             aspectRatio: '2 / 3',
             margin: '3px 18px 12px 0',
-            borderRadius: '3px', overflow: 'hidden',
+            borderRadius: '4px', overflow: 'hidden',
             boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
           }}>
             <img src={e.url} alt="" aria-hidden="true"

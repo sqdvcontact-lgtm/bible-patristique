@@ -51,7 +51,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'admin/SectionModeration.tsx': ['#3d5a6b', '#573f86', '#6b4fa0', '#6b5fa0', '#7a746c', '#8a1f1f', '#9a6650', '#b0442a', '#b8ccbd', '#d8c9ec', '#db988c', '#e2b9aa', '#e6ab95', '#ece3f8'],
   'admin/SectionPropositions.tsx': ['#5a6b9a'],
   'admin/SectionRemplacerSegments.tsx': ['#8a4a1a', '#9a6a3a', '#a0b8aa', '#e4c4a0'],
-  'admin/SectionTraductions.tsx': ['#a0b8aa', 'rgba(242,239,232,0.72)'],
+  'admin/SectionTraductions.tsx': ['#a0b8aa'],
   'admin/SectionValidationNotices.tsx': ['#6f8a3e'],
   'admin/SectionVerificationCatalogue.tsx': ['#2f5d7a', '#3d6b87', '#8a5a00', '#b14b38', '#b66a54', '#b8cddd', '#c8d8cc', '#e5a99b', '#e8b1a4'],
   'admin/SectionVerifications.tsx': ['rgba(60,50,30,0.06)'],
@@ -87,6 +87,14 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'essais/EditeurEssai.tsx': ['#5b544c', '#7a5a30', '#a8564d', '#e8d5a0'],
   'essais/EssaisListeClient.tsx': ['#9a5a2a', '#a02d2d', '#c8d8cc', '#fff', 'rgba(0,0,0,0)', 'rgba(120,110,96,0.06)', 'rgba(154,90,42,0.075)', 'rgba(154,90,42,0.24)', 'rgba(160,45,45,0.08)', 'rgba(160,45,45,0.25)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
   'histoire/HistoireClient.tsx': ['#5a5044', '#7a6f61', '#7a746d', '#b0a088', '#b7a06a', 'rgba(183,160,106,0.38)'],
+  // ⛔ Un dégradé et une encre posés SUR UNE PHOTOGRAPHIE, non sur le sol du site.
+  // Un jeton se retourne avec le thème ; une image, non. `var(--cs-fond)` valait le
+  // crème au Clair et devenait le brun sombre en Cuir, c'est-à-dire du brun écrit sur
+  // une photo sombre : le titre de la traduction y disparaissait (relevé le
+  // 2026-08-23). Et le brun 26 19 12 n'est pas un noir : un noir neutre posé sur une
+  // peinture ancienne la refroidit. Ces valeurs ne se transposent donc pas — elles
+  // sont ici pour mémoire, non comme dette.
+  'lib/bandeauTraduction.ts': ['#f7f4ef', 'rgba(26,19,12,0)', 'rgba(26,19,12,0.06)', 'rgba(26,19,12,0.24)', 'rgba(26,19,12,0.50)', 'rgba(26,19,12,0.68)', 'rgba(247,244,239,0.58)', 'rgba(247,244,239,0.7)', 'rgba(247,244,239,0.82)'],
   'lib/frise.ts': ['#6d7d43', '#746187', '#83a06a', '#8a7440', '#b54d3f', '#c19a3e', '#c79a3a'],
   'lib/NoteTooltip.tsx': ['#c0a878', 'rgba(10,8,4,0.06)', 'rgba(10,8,4,0.13)', 'rgba(185,165,120,0.35)', 'rgba(255,248,235,0.7)'],
   'lib/SelecteurCitation.tsx': ['#cddbd1', 'rgba(30,26,22,0.45)'],
@@ -97,6 +105,10 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'oeuvre/[id]/AssocierVerset.tsx': ['#b8cdc0'],
   'oeuvre/[id]/ComparaisonStatut.tsx': ['#7a5a2d', 'rgba(142,102,38,0.32)', 'rgba(190,145,66,0.09)'],
   'oeuvre/[id]/ComparaisonTraductions.tsx': ['#b0a08a'],
+  // Le CALQUE d'une modale : une forme que la charte prescrit, et qui ne se
+  // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
+  // la page qu'il assombrit — le site est chaud jusque dans son ombre.
+  'oeuvre/[id]/FicheEdition.tsx': ['rgba(30,26,20,0.42)'],
   'oeuvre/[id]/OeuvreClient.tsx': ['#9a958d', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
   'oeuvre/[id]/OngletCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
   'polyglotte/page.tsx': ['rgba(90,75,156,0.22)'],
@@ -109,5 +121,4 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'recherche/RechercheClient.tsx': ['#5a5248', '#6a8474', '#6f8f7b', '#7a1d16', '#7a5a10', '#8aa593', '#a9bcb0', '#b6ccbd', '#c8c0b8', '#e8c96a', 'rgba(30,28,24,0.38)'],
   'soutenir/page.tsx': ['#b0a088', '#cfc6b6', '#fff'],
   'soutenir/VotesClient.tsx': ['#4a3e7a', '#7a5e1e', 'rgba(154,126,61,0.12)', 'rgba(250,253,250,0.96)', 'rgba(255,253,249,0.92)', 'rgba(90,80,140,0.10)'],
-  'traductions/AllerPlusLoinClient.tsx': ['#18130f', '#f7f4ef', 'rgba(24,19,15,0.38)', 'rgba(24,19,15,0.58)', 'rgba(242,239,232,0.48)', 'rgba(242,239,232,0.72)'],
 }
