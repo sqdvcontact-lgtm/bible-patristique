@@ -310,6 +310,29 @@ Les sections numérotées de Funk sont plus fines qu'un paragraphe Laurent–Hem
 
 ⚠️ **Le comptage ne se paie pas.** Il n'est émis que lorsque plusieurs alignements se disputent la même paire de textes — la *Doctrine des Apôtres* est aujourd'hui la seule œuvre dans ce cas — et il part avec la vague 1, en `head`, donc sans qu'aucune ligne voyage. Il rejoint ensuite `alignementsDisponibles`, qui part tel quel au client : ⛔ les deux côtés doivent choisir le MÊME ensemble, sans quoi une division rechargée se mettrait en regard d'un autre original que celle du premier rendu.
 
+## Le GRAIN de l'empan — la règle est à la charte, l'état est MESURÉ (2026-08-29)
+
+Doctrine : charte `parametres.charte_ia`, **§ 12.2**, sous « Le grain de l'empan ». Trois règles, dans cet ordre : le paragraphe de l'édition traduite fait loi ; à défaut, on pose les frontières à la main aux jonctions sémantiques ; l'empan reste bref, environ 900 signes, 1 500 en limite haute. ⛔ Le paragraphe du texte TRADUIT est une frontière absolue qu'aucun groupe n'enjambe ; la langue originale, elle, n'oppose aucune frontière, ses propres paragraphes et ses sections numérotées se traversant librement.
+
+⛔ **Le site LIT les trois tables d'alignement, il n'y écrit JAMAIS.** Les six appels d'`app/` sont des lectures — `app/oeuvre/[id]/page.tsx:321` et `:612`, `OeuvreClient.tsx:476` et `:489`, `ComparaisonTraductions.tsx:471` et `:481` — et tous les ensembles existants viennent de scripts ponctuels ou de migrations. Il n'existe donc **aucun outil pour poser une frontière à la main**, ce que la règle 2 réclame nommément : c'est le préalable de toute correction, et il est suivi dans le centre de contrôle, section `alignements_empans`.
+
+**État mesuré le 2026-08-29**, sur la colonne TRADUITE de chaque ensemble (signes) :
+
+| ensemble | groupes | médiane | max | > 1 500 | à cheval |
+|---|---:|---:|---:|---:|---:|
+| Confessions `CSEL33-ANDILLY` | 932 | 876 | 3 359 | 70 | **0** |
+| Cité de Dieu `VIVES` | 1 032 | **2 237** | 9 275 | **795** | 2 |
+| Heptateuque `ZYC1895-POGNON1866` | 653 | 855 | **56 585** | 186 | **33** |
+| Didachè `…:SECTION` *(celui qui sert)* | 100 | 136 | 743 | 0 | 6 |
+| Didachè `…:PARAGRAPH` *(écarté)* | 57 | 300 | 743 | 0 | 28 |
+| Boèce `MIR1861-CER1646` *(deux français)* | 780 | 215 | 1 474 | 0 | 17 |
+
+Les *Confessions* sont le témoin, et le seul ensemble `validated_human` du corpus : 932 groupes pour 932 paragraphes, aucun chevauchement. ⚠️ Deux défauts distincts, à ne pas confondre — un groupe **à cheval** défait ce que l'alignement établit, un empan **trop long** tient la frontière mais ne se lit plus en regard. Le second se corrige d'abord en rendant au texte traduit les alinéas de son édition : le français Vivès ne compte que 1 033 paragraphes pour 665 chapitres.
+
+⚠️ **Le comptage ne peut pas devenir une tuile du centre de contrôle** : il joint les 21 879 membres d'alignement à `segments` puis agrège par groupe, **2 650 ms à froid**, mesuré. La carte est donc en prose, comme sa voisine « Textes originaux », et pour la même raison.
+
+⚠️ **`paragraphe` SEUL n'identifie pas un paragraphe** : il repart à 1 dans chaque division. La clé est `(id_texte, ref_niv1, ref_niv2, ref_niv3, paragraphe)`, et un `count(distinct paragraphe)` sur un texte entier rend son plus grand NUMÉRO, non son nombre de paragraphes — 18 pour les 932 paragraphes du français des Confessions.
+
 ## Une langue originale est un TEXTE de l'œuvre, jamais une œuvre sœur (2026-08-23)
 
 Le latin des *Confessions* avait fini par exister deux fois : dans `segments.texte_original` de la traduction, et comme œuvre autonome `A0010O0110`. Les 932 blocs se répondaient un à un, dans le même ordre, avec la même division en livres et en chapitres, et le même texte à la casse près. Mais l'œuvre autonome portait seule les titres d'origine, les capitula latins et **l'apparat critique de Knöll**, que `texte_original` ignore : une « copie » peut donc valoir bien plus que l'autre. ⛔ Ne jamais conclure au doublon sur la seule collation des textes ; compter d'abord ce qui pend à chaque `id_texte` (`texte_notes`, `texte_note_ancres`, `texte_note_blocs`, `oeuvre_texte_unites`).

@@ -396,6 +396,21 @@ export default async function StatistiquesControlePage() {
             dernière ligne éteignant la colonne.
           </p>
         </Carte>
+
+        {/* 10. Le grain de l'empan — la règle est à la charte, § 12.2 ; la liste des œuvres est
+            ici. Carte SANS tuiles, comme les deux précédentes, et pour une raison mesurée :
+            compter les groupes à cheval et les empans trop longs demande de joindre les 21 879
+            membres d'alignement à `segments` puis d'agréger par groupe — 2 650 ms à froid, pour
+            des chiffres que la note porte déjà et que les tâches détaillent œuvre par œuvre. */}
+        <Carte titre="Alignements — le grain de l’empan" note={sec('alignements_empans').commentaire_ia} cle="alignements_empans" todos={sec('alignements_empans').todos} majLe={sec('alignements_empans').maj_le}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            Le groupe d’alignement est le paragraphe de la lecture en regard. Quand l’édition traduite paragraphe,
+            l’alignement suit son paragraphage ; à défaut, on pose des frontières à la main aux jonctions
+            sémantiques. Le paragraphe est une frontière absolue qu’aucun groupe n’enjambe, mais l’empan doit
+            rester bref, faute de quoi l’œil ne tient plus les deux colonnes ensemble. Une œuvre par ligne
+            ci-dessous, l’atelier d’alignement étant le préalable de toutes.
+          </p>
+        </Carte>
       </div>
     </main>
   )
