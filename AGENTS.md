@@ -893,6 +893,22 @@ Les trois sont rabattues. Reste **une exception nommée** dans `RAYONS_DESSINES`
 
 ⚠️ **Corollaire de méthode, et il vaut pour tout l'outillage** : la CI et le poste de travail ne voient pas le même arbre. La CI ignore les chantiers non versionnés et les dossiers d'atelier ; le poste les porte. Un outil vert en CI peut être inutilisable là où l'on travaille — les trois défauts ci-dessus (lint, garde typographique rouge, types cassés par `pixi.js`) sont tous de cette famille, et tous invisibles depuis GitHub.
 
+## ⛔ La compilation locale ne vérifiait plus rien (2026-08-29)
+
+`next build` échouait en local pour **deux raisons étrangères au code de `master`**, si bien que le seul filet avant une poussée ne servait plus. Vercel, qui compile depuis une copie propre, ne voyait ni l'une ni l'autre — d'où vingt déploiements réussis dans la journée pendant que la commande refusait de passer ici.
+
+1. **Un `.next` périmé mêlait les types de `dev` et ceux de `build`.** `tsconfig.json` inclut `.next/types/**` ET `.next/dev/types/**` : après une session de développement, les deux déclarent des unions de routes contradictoires, et le contrôle tombe sur `Type 'Route' does not satisfy the constraint 'LayoutRoutes'` en citant une route SUPPRIMÉE (`/essais/mes-ecrits`, retirée le matin même). ⚠️ Le message ne dit jamais « votre cache est vieux ». **`rm -rf .next` avant toute compilation qui suit un `next dev`.**
+2. **`tmp/` était ignoré par git mais pas par TypeScript.** L'`include` porte `**/*.mts`, et un brouillon d'audit posé là faisait échouer le contrôle. `tmp`, `livraisons` et `outils` sont désormais dans l'`exclude`.
+
+⚠️ Reste le troisième blocage, connu : `pixi.js` (voir juste après). Les quatre fichiers Holy Guessr n'étant pas versionnés, **la compilation fidèle à Vercel se fait en les écartant** — c'est exactement ce que voit le serveur :
+
+```
+for f in HolyGuessr.tsx holyGuessrDonnees.ts holyGuessrLivres.ts holyGuessrMoteur.ts; do mv "app/quiz/$f" /ailleurs/; done
+npx next build   # puis on les remet
+```
+
+⛔ **Un déploiement échoué laisse le site sur la version précédente sans rien dire** (déjà payé, voir la section sur la base partagée). Un filet local qui ne se lève plus est donc une dette, pas un détail.
+
 ## `pixi.js` n'est déclaré nulle part
 
 Les 5 erreurs de `tsc --noEmit` viennent toutes d'`app/quiz/holyGuessrMoteur.ts` : la dépendance n'est ni dans `package.json`, ni installée. Sans conséquence en ligne aujourd'hui — les quatre fichiers Holy Guessr ne sont pas versionnés, donc absents de `master` — mais `npm run build` échoue en local, et il **échouera au déploiement** le jour où ces fichiers seront commités sans que `pixi.js` entre d'abord dans `package.json`. La vérification de `master` étant bloquante sur les types, la poussée serait refusée.

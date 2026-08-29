@@ -32,7 +32,30 @@ const nextConfig: NextConfig = {
   // pas davantage. La planche mesure désormais dans le NAVIGATEUR, qui charge les
   // images de toute façon.
   async headers() {
-    return [{ source: "/:chemin*", headers: ENTETES_SECURITE }];
+    return [
+      { source: "/:chemin*", headers: ENTETES_SECURITE },
+      // ── Les folios de la Bible 899 se mettent en cache POUR DE BON ────────────
+      //
+      // Vercel sert `public/` avec `max-age=0, must-revalidate` : c'est le bon
+      // défaut, car un fichier statique peut être remplacé sous le même nom. Il ne
+      // l'est PAS ici. Les 1 264 numérisations sont scellées par empreinte SHA-256
+      // dans `data/manuscrits/bible-899/manifest.json`, et le chargeur refuse de
+      // démarrer si une seule a bougé : leur immuabilité n'est pas une hypothèse,
+      // c'est une garde qui s'exécute.
+      //
+      // Sans cette règle, un lecteur qui a DÉJÀ le folio en cache repaie tout de
+      // même un aller-retour conditionnel à chaque affichage — pour des images de
+      // 1,4 Mo en moyenne, tournées une par une. Avec elle, la seconde visite ne
+      // touche plus le réseau.
+      //
+      // ⛔ Si un jour une numérisation est refaite, elle DOIT changer de nom (ou le
+      // sceau change, donc le manifeste, donc le nom) : un fichier remplacé sous le
+      // même nom resterait un an dans les navigateurs.
+      {
+        source: "/manuscrits/:chemin*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
   },
   images: {
     remotePatterns: [
