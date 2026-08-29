@@ -416,6 +416,7 @@ Le vocabulaire éditorial autorisé est :
 | `verset` | verset d’une citation biblique que l’édition pose verset par verset : un segment, un verset, et la suite des versets consécutifs forme la citation (§ 3.8) |
 | `lemme` | fragment cité servant de point de départ au commentaire |
 | `vers` | versification réellement présente |
+| `signature` | bloc de signatures fermant un volume — approbations, censeurs, souscripteurs : une suite de lignes courtes que l’édition compose au fer à droite. ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
 | `rubrique` | rubrique éditoriale qui n’est pas un niveau de titre |
 | `dialogue` | réplique ou bloc dialogué lorsque la distinction est utile |
 | `introduction` | brève introduction ou argument placé en tête d’une division du corps |
