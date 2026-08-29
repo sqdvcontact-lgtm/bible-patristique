@@ -292,7 +292,8 @@ const APPARAT_OEUVRES: Unite[] = [
     alerte: '⛔ Son retrait de `NATURES_CORPS` avait fait disparaître, le 18 août 2026, le « Prologue de Rufin aux livres X et XI ». À ne pas confondre avec `apparat_critique`, l’apparat de l’ÉDITEUR.',
     contenu: (
       <p style={styleParagrapheLecture()}>
-        <Segment n={1}>Prologue de Rufin aux livres X et XI. Il m’a paru bon de joindre à cette traduction ce que l’auteur n’avait pas écrit, afin que l’histoire ne s’arrêtât point au milieu du chemin.</Segment>
+        <Segment n={1}>Prologue de Rufin aux livres X et XI. Il m’a paru bon de joindre à cette traduction ce que l’auteur n’avait pas écrit, afin que l’histoire ne s’arrêtât point au milieu du chemin, et que le lecteur, conduit jusqu’au seuil de son propre temps, pût mesurer d’un seul regard le chemin parcouru par l’Église.</Segment>{' '}
+        <Segment n={2}>J’ai donc pris sur moi de continuer, non de corriger : ce qui suit n’est pas d’Eusèbe, et je serais bien fâché qu’on le lui attribuât un jour.</Segment>
       </p>
     ),
   },
@@ -301,7 +302,8 @@ const APPARAT_OEUVRES: Unite[] = [
     note: 'Préface ou avertissement du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l’œuvre de l’auteur. Une contrainte de base lui impose `espace_textuel = apparat_critique`.',
     contenu: (
       <p style={styleParagrapheApparat()}>
-        <Segment n={2}>Avertissement du traducteur. On a suivi pour cette édition le texte de Migne, corrigé sur les leçons de Knöll partout où le sens l’exigeait.</Segment>
+        <Segment n={3}>Avertissement du traducteur. On a suivi pour cette édition le texte de Migne, corrigé sur les leçons de Knöll partout où le sens l’exigeait, et sans jamais toucher à la ponctuation sans le dire.</Segment>{' '}
+        <Segment n={4}>Les divisions en chapitres sont celles de l’édition de 1679 ; celles des paragraphes appartiennent à la présente traduction, et n’engagent que nous.</Segment>
       </p>
     ),
   },
@@ -311,7 +313,8 @@ const APPARAT_OEUVRES: Unite[] = [
     alerte: '⛔ L’apparat ne sort pas ses citations : c’est une vue de comparaison, pas la lecture suivie.',
     contenu: (
       <p style={styleParagrapheApparat()}>
-        <Segment n={3}>Knöll conjecture ici <em>inspirent</em> ; les manuscrits portent <em>inspire</em>, que Migne avait gardé sans le discuter.</Segment>
+        <Segment n={5}>Knöll conjecture ici <em>inspirent</em> ; les manuscrits portent <em>inspire</em>, que Migne avait gardé sans le discuter.</Segment>{' '}
+        <Segment n={6}>La leçon du Parisinus, <em>inspirat</em>, n’est attestée nulle part ailleurs et paraît une correction d’atelier.</Segment>
       </p>
     ),
   },
@@ -322,7 +325,7 @@ const APPARAT_OEUVRES: Unite[] = [
     contenu: (
       <div className="para-bilingue">
         <p style={styleParagrapheLecture()}>
-          <Segment n={4}>Vous nous avez faits pour vous, et notre cœur est sans repos tant qu’il ne se repose en vous.</Segment>
+          <Segment n={7}>Vous nous avez faits pour vous, et notre cœur est sans repos tant qu’il ne se repose en vous. C’est la première phrase du livre, et déjà tout y est dit.</Segment>
         </p>
         <p className="texte-original" style={{ fontSize: '0.78125rem', lineHeight: 1.5, margin: 0 }}>
           Fecisti nos ad te et inquietum est cor nostrum donec requiescat in te.
