@@ -1,30 +1,37 @@
 'use client'
 
 /**
- * La PLANCHE DES STYLES — quatre ÉPREUVES continues, styles nommés en marge.
+ * La PLANCHE DES STYLES — quatre ÉPREUVES continues, le style se donnant AU SURVOL.
  *
  * Le texte court d'un bout à l'autre, comme il court sur le site : c'est ainsi
  * seulement qu'on voit les RELATIONS — le blanc qu'un titre laisse sous lui,
  * l'apparat qui suit un commentaire, la citation qui coupe un paragraphe.
  *
- * ⛔ AUCUNE ENVELOPPE AUTOUR D'UNE UNITÉ. Le premier jet en posait une par unité,
- * pour y accrocher la légende ; elle rompait en silence les règles de VOISINAGE de
+ * ⛔ AUCUNE ENVELOPPE AUTOUR D'UNE UNITÉ. Un premier jet en posait une par unité,
+ * pour y accrocher sa légende ; elle rompait en silence les règles de VOISINAGE de
  * `globals.css` — `.verset-row + .cs-bible-axe > .cs-bible-bloc` ne trouve plus ses
  * frères quand un `<div>` les sépare —, c'est-à-dire précisément ce que la planche
  * sert à juger. Les contenus sont donc versés À PLAT dans la colonne, et l'on
- * retrouve chaque unité par le RANG de son premier nœud.
+ * retrouve l'unité survolée par le RANG de son premier nœud.
  *
- * ⛔ ET LA MARGE A SON PROPRE FLUX. Posées toutes à `top: 0` de leur unité, les
- * légendes se recouvraient dès que l'unité était plus courte qu'elles — un
- * paragraphe fait trente pixels, sa notice en fait cent cinquante. Chacune se cale
- * donc au plus bas de deux repères : le haut de son unité, ou le bas de la légende
- * précédente. C'est la règle des manchettes d'un livre imprimé.
+ * ⛔ ET RIEN N'EST ÉCRIT DANS LE TEXTE. La désignation ne pose ni classe ni style
+ * sur les nœuds de l'épreuve : elle peint un RECTANGLE par-dessus, hors du flux et
+ * sans événements. Toucher aux nœuds, ce serait modifier la composition que la
+ * planche est censée montrer telle quelle.
+ *
+ * ⚠️ Toutes les légendes ensemble ne tenaient pas : posées au haut de leur unité,
+ * elles se recouvraient dès qu'une unité était plus courte que sa notice — trente
+ * pixels contre cent cinquante. Une SEULE à la fois, celle qu'on désigne, et le
+ * problème disparaît au lieu d'être contourné (proposition de l'auteur, 2026-08-29).
+ *
+ * ⚠️ Le survol seul ne suffirait pas : il ne se lit pas au clavier et il fuit dès
+ * qu'on bouge. Le CLIC épingle donc l'unité, et la liste sous l'épreuve donne les
+ * mêmes notices en clair, dans l'ordre, atteignables sans souris.
  */
 
-import { Children, Fragment, isValidElement, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { Children, Fragment, isValidElement, useEffect, useRef, useState, type ReactNode } from 'react'
 import OngletsPage from '@/app/components/OngletsPage'
 import { EPREUVES, type CleOnglet } from './specimens'
-import { calerManchettes } from './manchettes'
 
 /** Les deux fonds du site. Un style ne s'apprécie pas dans l'absolu : il
  *  s'apprécie sur son fond, et le Cuir a déjà fait paraître gris ce qui était vert. */
@@ -34,8 +41,8 @@ const FONDS = {
 }
 type CleFond = keyof typeof FONDS
 
-/** En deçà, la marge n'a plus la place : elle passe sous l'épreuve. */
-const LARGEUR_MARGE_POSSIBLE = 1200
+/** Ce que la désignation déborde autour de l'unité, pour ne pas la serrer. */
+const DEBORD = 6
 
 const CSS = `
   .pl-page { min-height: calc(100vh - 3.5rem); background: var(--cs-fond); padding: 0 0 6rem; }
@@ -54,38 +61,50 @@ const CSS = `
   .pl-bouton--actif { border-color: var(--cs-vert); color: var(--cs-vert); font-weight: 600; }
 
   /* ── L'ÉPREUVE ─────────────────────────────────────────────────────────── */
-  .pl-epreuve { position: relative; margin-top: 2.5rem; }
+  .pl-epreuve { position: relative; margin-top: 2.25rem; }
   /* La colonne de lecture, à sa mesure exacte. ⛔ Ses enfants sont les contenus
      eux-mêmes : aucune enveloppe ne s'intercale entre deux unités. */
-  .pl-colonne { width: min(var(--mesure-ligne), 100%); }
+  .pl-colonne { width: min(var(--mesure-ligne), 100%); cursor: pointer; }
 
-  .pl-marges { position: absolute; left: min(var(--mesure-ligne), 100%); top: 0; width: 17rem; margin-left: 1.75rem; }
-  .pl-legende { position: absolute; left: 0; width: 100%; }
+  /* ⛔ La désignation ne touche pas au texte : un rectangle peint par-dessus, hors
+     du flux et sans événements. Poser une classe sur les nœuds, ce serait modifier
+     la composition que la planche montre. */
+  .pl-designation { position: absolute; pointer-events: none; border-radius: 5px; }
+  .pl-designation--survol { background: rgba(var(--cs-vert-rgb),0.07); outline: 1px solid rgba(var(--cs-vert-rgb),0.28); }
+  .pl-designation--epingle { background: rgba(var(--cs-vert-rgb),0.11); outline: 1px solid var(--cs-vert); }
+
+  /* La légende : une SEULE à la fois, donc rien à empiler et rien qui se recouvre. */
+  .pl-legende { position: absolute; left: min(var(--mesure-ligne), 100%); width: 17rem; margin-left: 1.75rem; }
+  .pl-legende::before { content: ""; position: absolute; left: -1.2rem; top: 0.45rem; width: 0.8rem; height: 1px; background: var(--cs-bord); }
   .pl-style { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.71875rem; font-weight: 600; color: var(--cs-encre); line-height: 1.35; margin: 0 0 0.25rem; }
   .pl-note { font-size: 0.71875rem; color: var(--cs-texte-second); line-height: 1.45; margin: 0; }
   .pl-alerte { font-size: 0.6875rem; color: var(--cs-texte-second); line-height: 1.45; margin: 0.4rem 0 0; padding-left: 0.55rem; border-left: 2px solid var(--cs-or-doux); }
-  /* Le filet de repère : il tire l'œil de la légende vers son unité, sans peser. */
-  .pl-legende::before { content: ""; position: absolute; left: -1.2rem; top: 0.45rem; width: 0.8rem; height: 1px; background: var(--cs-bord); }
+  .pl-epingle { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cs-vert); margin: 0.5rem 0 0; }
 
-  /* ── Écran étroit : la marge n'a plus la place, elle passe dessous ──────── */
-  .pl-liste { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--cs-bord); }
+  .pl-invite { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.71875rem; color: var(--cs-texte-faible); margin: 1.5rem 0 0; }
+
+  /* ── La liste, sous l'épreuve : les mêmes notices, sans souris ──────────── */
+  .pl-liste { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--cs-bord); }
   .pl-liste-titre { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cs-texte-faible); margin: 0 0 1rem; }
-  .pl-liste .pl-legende { position: static; width: auto; margin-bottom: 1.1rem; padding-left: 0.6rem; border-left: 2px solid var(--cs-bord-clair); }
-  .pl-liste .pl-legende::before { display: none; }
-`
+  .pl-entree { display: block; width: 100%; max-width: 46rem; text-align: left; background: none; border: none; border-left: 2px solid var(--cs-bord-clair); padding: 0.35rem 0 0.35rem 0.7rem; margin-bottom: 0.9rem; cursor: pointer; font: inherit; }
+  .pl-entree:hover, .pl-entree:focus-visible { border-left-color: var(--cs-vert); }
+  .pl-entree--actif { border-left-color: var(--cs-vert); }
 
-type Mesures = { hauts: number[]; hauteurTotale: number }
+  @media (max-width: 1200px) {
+    .pl-colonne { width: 100%; }
+    /* La marge n'a plus la place : la légende passe sous l'épreuve, dans la liste. */
+    .pl-legende { display: none; }
+  }
+`
 
 /**
  * Verse les contenus À PLAT et retient le RANG du premier nœud de chaque unité.
  *
- * ⛔ C'est ce rang qui remplace l'enveloppe. Envelopper chaque unité aurait rompu
- * les règles de voisinage de `globals.css` — `.verset-row + .cs-bible-axe` ne
- * trouve plus ses frères quand un `<div>` les sépare —, c'est-à-dire précisément
- * ce que la planche sert à juger.
+ * ⛔ C'est ce rang qui remplace l'enveloppe : envelopper aurait rompu les règles de
+ * voisinage de `globals.css`, c'est-à-dire ce que la planche sert à juger.
  *
- * ⚠️ Fonction PURE, appelée au rendu ET dans l'effet de calage : les deux doivent
- * compter les nœuds de la même façon, sinon les légendes se posent de travers.
+ * ⚠️ Fonction PURE, appelée au rendu ET par la désignation : les deux doivent
+ * compter les nœuds de la même façon, sinon le rectangle se pose de travers.
  */
 function aplatir(unites: readonly { contenu: ReactNode }[]): { noeuds: ReactNode[]; premiers: number[] } {
   const noeuds: ReactNode[] = []
@@ -102,75 +121,63 @@ function aplatir(unites: readonly { contenu: ReactNode }[]): { noeuds: ReactNode
   return { noeuds, premiers }
 }
 
-/** La marge a-t-elle la place ? ⚠️ Au rendu serveur on la suppose large : c'est
- *  l'état de la grande majorité des écrans d'administration. */
-const REQUETE_LARGE = `(min-width: ${LARGEUR_MARGE_POSSIBLE}px)`
-function ecouterLargeur(rappel: () => void): () => void {
-  const mq = window.matchMedia(REQUETE_LARGE)
-  mq.addEventListener('change', rappel)
-  return () => mq.removeEventListener('change', rappel)
-}
+type Cadre = { haut: number; hauteur: number }
 
 export default function PlancheStyles() {
   const [onglet, setOnglet] = useState<CleOnglet>('bible')
   const [fond, setFond] = useState<CleFond>('papier')
-  const [mesures, setMesures] = useState<Mesures>({ hauts: [], hauteurTotale: 0 })
-  const large = useSyncExternalStore(
-    ecouterLargeur,
-    () => window.matchMedia(REQUETE_LARGE).matches,
-    () => true,
-  )
+  const [survol, setSurvol] = useState<number | null>(null)
+  const [epingle, setEpingle] = useState<number | null>(null)
+  const [cadre, setCadre] = useState<Cadre | null>(null)
 
   const colonne = useRef<HTMLDivElement>(null)
-  const legendes = useRef<(HTMLElement | null)[]>([])
-
   const courante = EPREUVES.find((e) => e.cle === onglet) ?? EPREUVES[0]
-  const { noeuds } = aplatir(courante.unites)
+  const { noeuds, premiers } = aplatir(courante.unites)
+  const designe = epingle ?? survol
 
-  /**
-   * La règle des manchettes : chaque légende se pose au plus bas de deux repères,
-   * le haut de son unité ou le bas de la précédente. Sans quoi une notice de cent
-   * cinquante pixels recouvre celle du paragraphe de trente qui la suit.
-   *
-   * ⚠️ Le calage se refait quand les polices arrivent, d'où l'observateur : au
-   * premier rendu, les hauteurs sont celles des polices de secours.
-   */
-  useEffect(() => {
-    const cadre = colonne.current
-    if (!cadre || !large) return
-    const { premiers } = aplatir(courante.unites)
-    const caler = () => {
-      // ⛔ On MESURE ici, on ne décide pas : la règle de pose vit dans
-      // `manchettes.ts`, avec ses tests. Sept cas y prouvent qu'aucune légende
-      // n'en recouvre une autre, quelles que soient les hauteurs.
-      const origine = cadre.getBoundingClientRect().top
-      const ancres = premiers.map((rang) => {
-        const noeud = cadre.children[rang] as HTMLElement | undefined
-        return noeud ? noeud.getBoundingClientRect().top - origine : 0
-      })
-      const hauteurs = premiers.map((_, i) => legendes.current[i]?.offsetHeight ?? 0)
-      setMesures(calerManchettes(ancres, hauteurs))
-    }
-    const observateur = new ResizeObserver(caler)
-    observateur.observe(cadre)
-    caler()
-    return () => observateur.disconnect()
-  }, [courante, large, fond])
-
-  const Legende = ({ rang, style }: { rang: number; style?: React.CSSProperties }) => {
-    const unite = courante.unites[rang]
-    return (
-      <aside
-        className="pl-legende"
-        ref={(el) => { legendes.current[rang] = el }}
-        style={style}
-      >
-        <p className="pl-style">{unite.style}</p>
-        <p className="pl-note">{unite.note}</p>
-        {unite.alerte && <p className="pl-alerte">{unite.alerte}</p>}
-      </aside>
-    )
+  /** L'unité à laquelle appartient un nœud de l'épreuve, ou `null`. */
+  const uniteDe = (cible: EventTarget | null): number | null => {
+    const col = colonne.current
+    if (!col || !(cible instanceof Node)) return null
+    let noeud: Node | null = cible
+    while (noeud && noeud.parentNode !== col) noeud = noeud.parentNode
+    if (!noeud) return null
+    const rang = Array.prototype.indexOf.call(col.children, noeud)
+    if (rang < 0) return null
+    let unite = 0
+    premiers.forEach((debut, i) => { if (debut <= rang) unite = i })
+    return unite
   }
+
+  // Le rectangle de l'unité désignée : l'union des boîtes de ses nœuds.
+  // ⛔ Mesuré, jamais posé sur les nœuds eux-mêmes.
+  useEffect(() => {
+    const col = colonne.current
+    if (!col || designe == null) { setCadre(null); return }
+    const bornes = aplatir(courante.unites).premiers
+    const mesurer = () => {
+      const debut = bornes[designe]
+      const fin = designe + 1 < bornes.length ? bornes[designe + 1] : col.children.length
+      const origine = col.getBoundingClientRect().top
+      let haut = Infinity
+      let bas = -Infinity
+      for (let i = debut; i < fin; i += 1) {
+        const noeud = col.children[i] as HTMLElement | undefined
+        if (!noeud) continue
+        const r = noeud.getBoundingClientRect()
+        haut = Math.min(haut, r.top - origine)
+        bas = Math.max(bas, r.bottom - origine)
+      }
+      if (!Number.isFinite(haut) || !Number.isFinite(bas)) { setCadre(null); return }
+      setCadre({ haut: haut - DEBORD, hauteur: bas - haut + DEBORD * 2 })
+    }
+    mesurer()
+    const observateur = new ResizeObserver(mesurer)
+    observateur.observe(col)
+    return () => observateur.disconnect()
+  }, [designe, courante, fond])
+
+  const unite = designe == null ? null : courante.unites[designe]
 
   return (
     // ⚠️ `data-theme` est posé sur la PLANCHE, non sur la racine : on regarde le
@@ -205,37 +212,72 @@ export default function PlancheStyles() {
         <OngletsPage
           onglets={EPREUVES.map((e) => ({ cle: e.cle, libelle: e.libelle }))}
           actif={onglet}
-          choisir={setOnglet}
+          choisir={(cle) => { setOnglet(cle); setSurvol(null); setEpingle(null) }}
           intitule="Familles de styles"
           style={{ marginTop: '1.25rem' }}
         />
 
         <p className="pl-chapeau">{courante.chapeau}</p>
+        <p className="pl-invite">Survolez un passage pour en lire le style ; cliquez pour l’épingler.</p>
 
-        <div
-          className="pl-epreuve"
-          key={courante.cle}
-          style={large ? { minHeight: mesures.hauteurTotale } : undefined}
-        >
-          <div className="pl-colonne" ref={colonne}>
+        <div className="pl-epreuve" key={courante.cle}>
+          <div
+            className="pl-colonne"
+            ref={colonne}
+            onMouseOver={(e) => setSurvol(uniteDe(e.target))}
+            onMouseLeave={() => setSurvol(null)}
+            onClick={(e) => {
+              const rang = uniteDe(e.target)
+              setEpingle((actuel) => (actuel === rang ? null : rang))
+            }}
+          >
             {noeuds.map((noeud, i) => <Fragment key={i}>{noeud}</Fragment>)}
           </div>
 
-          {large && (
-            <div className="pl-marges">
-              {courante.unites.map((unite, i) => (
-                <Legende key={unite.style} rang={i} style={{ top: mesures.hauts[i] ?? 0 }} />
-              ))}
-            </div>
+          {cadre && (
+            <div
+              className={`pl-designation pl-designation--${epingle != null ? 'epingle' : 'survol'}`}
+              style={{
+                top: cadre.haut,
+                height: cadre.hauteur,
+                left: -DEBORD,
+                width: `calc(min(var(--mesure-ligne), 100%) + ${DEBORD * 2}px)`,
+              }}
+              aria-hidden="true"
+            />
+          )}
+
+          {unite && cadre && (
+            <aside className="pl-legende" style={{ top: cadre.haut + DEBORD }}>
+              <p className="pl-style">{unite.style}</p>
+              <p className="pl-note">{unite.note}</p>
+              {unite.alerte && <p className="pl-alerte">{unite.alerte}</p>}
+              {epingle != null && <p className="pl-epingle">Épinglé — cliquez pour détacher</p>}
+            </aside>
           )}
         </div>
 
-        {!large && (
-          <div className="pl-liste">
-            <p className="pl-liste-titre">Les styles de cette épreuve</p>
-            {courante.unites.map((unite, i) => <Legende key={unite.style} rang={i} />)}
-          </div>
-        )}
+        {/* ⚠️ Les mêmes notices en clair, dans l'ordre : le survol ne se lit pas au
+            clavier, et sur écran étroit la marge n'a plus la place. */}
+        <div className="pl-liste">
+          <p className="pl-liste-titre">Tous les styles de cette épreuve</p>
+          {courante.unites.map((u, i) => (
+            <button
+              key={u.style}
+              type="button"
+              className={`pl-entree${designe === i ? ' pl-entree--actif' : ''}`}
+              onMouseEnter={() => setSurvol(i)}
+              onFocus={() => setSurvol(i)}
+              onMouseLeave={() => setSurvol(null)}
+              onBlur={() => setSurvol(null)}
+              onClick={() => setEpingle((actuel) => (actuel === i ? null : i))}
+            >
+              <p className="pl-style">{u.style}</p>
+              <p className="pl-note">{u.note}</p>
+              {u.alerte && <p className="pl-alerte">{u.alerte}</p>}
+            </button>
+          ))}
+        </div>
       </div>
     </main>
   )

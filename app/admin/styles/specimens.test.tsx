@@ -67,9 +67,12 @@ describe('la page de la planche', () => {
     const html = renderToStaticMarkup(<PlancheStyles />)
     expect(html).toContain('Planche des styles')
     for (const epreuve of EPREUVES) expect(html).toContain(epreuve.libelle)
-    // ⛔ La légende sort du flux : sans cela, chaque marge ouvrirait un blanc
-    // entre deux unités et la planche mentirait sur l'espacement qu'elle montre.
-    expect(html).toContain('pl-marge')
+    // ⛔ Aucune enveloppe entre deux unités : les contenus sont versés à plat,
+    // sans quoi les règles de voisinage de globals.css ne trouveraient plus
+    // leurs frères — et c'est ce que la planche sert à juger.
+    expect(html).not.toContain('pl-unite')
+    // Les notices restent atteignables sans souris, sous l'épreuve.
+    expect(html).toContain('Tous les styles de cette épreuve')
     expect(html).toContain('rangée de verset')
   })
 })
