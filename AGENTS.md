@@ -2122,6 +2122,48 @@ curl -s "$SUPABASE_URL/rest/v1/oeuvres?select=id_oeuvre,auteurs(nom)&limit=1" -H
 
 Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualification à écrire.
 
+# ⛔ Un travail périodique qui ne se demande jamais s'il a du travail (2026-08-29)
+
+Le site est resté **indisponible vingt-huit minutes** le 29 août 2026 (17:52 → 18:20). La cause immédiate était une rafale d'écritures par le connecteur MCP, mais la cause de fond était ailleurs : **la base n'avait aucune marge**, et elle n'en avait aucune depuis des semaines.
+
+## Le travail cron n° 4
+
+`rafraichir_lecture` lançait `refresh materialized view concurrently versets_lecture` **toutes les minutes**, sans jamais regarder si quelque chose avait changé. Du 24 juillet au 29 août :
+
+| | |
+|---|---|
+| exécutions | **51 446** |
+| durée moyenne | **14,5 s**, pour une cadence de 60 s |
+| pire cas | **430 s** — sept minutes |
+| au-delà de la minute | **8 241**, soit 16 % : les travaux s'empilaient |
+| temps cumulé (17 j) | **41 heures** |
+
+Pendant ce temps, les deux seules tables que lit la vue — `versets_v2` et `versets_canon` — n'ont reçu qu'une quarantaine de milliers d'écritures **au total**, et par rafales d'import. Soit environ **un rafraîchissement par écriture**, pour reconstruire 36 391 lignes et 33 Mo.
+
+**Corrigé sans rien changer à la fraîcheur** : la cadence reste `* * * * *`, une correction paraît toujours en moins d'une minute. Ce qui change, c'est qu'une minute sans écriture ne coûte plus rien. Mesuré aussitôt après : **de 5 500 ms à 15 ms** par passage.
+
+- Des déclencheurs **par instruction** sur les deux tables tirent une **séquence** (`internal.versets_lecture_maj_seq`). Une séquence ne verrouille rien — un drapeau dans une table à une ligne sérialiserait tous les écrivains — et elle se trompe **dans le bon sens** : une transaction annulée laisse un rafraîchissement inutile, jamais un rafraîchissement manquant.
+- ⛔ **La séquence se lit AVANT le rafraîchissement.** `refresh` prend son propre instantané, forcément postérieur : tout changement compté est donc dans la vue. Lire après perdrait silencieusement les écritures survenues entre les deux.
+- Un verrou consultatif **transactionnel** (`pg_try_advisory_xact_lock`) interdit deux rafraîchissements de front, et se relâche seul même en cas d'échec. C'est l'empilement qui portait les 430 secondes.
+
+⚠️ **Le premier `nextval` d'une séquence ne fait pas bouger `last_value`.** Une séquence neuve vaut `last_value = 1, is_called = false` ; son premier appel rend 1 en se contentant de basculer `is_called`. Comparer le seul `last_value` laissait donc passer la toute première écriture. Le compte juste est `case when is_called then last_value else last_value - 1 end`.
+
+⚠️ Et **la garde disait « à jour »**, ce qui est le mot juste quand tout va bien : le trou n'est apparu qu'en provoquant une écriture — annulée, pour ne rien toucher — et en la voyant ignorée. Deuxième fois dans la même journée qu'une garde passe au vert sur un défaut réel. **On éprouve, on ne regarde pas.**
+
+## Le rôle `postgres` n'avait aucun garde-fou
+
+`anon` a 3 s de `statement_timeout`, `authenticated` et `service_role` 8 s, `authenticator` 8 s de verrou, `supabase_auth_admin` 60 s d'inactivité en transaction. **`postgres` — celui du connecteur MCP, de l'éditeur SQL et de nos scripts — n'avait rien.** Un `begin;` qui échoue y restait ouvert indéfiniment, verrous compris.
+
+Il porte désormais `idle_in_transaction_session_timeout = 5min`. ⚠️ Ce réglage ne compte que le temps passé **inactif** dans une transaction ouverte : un import de trois heures n'est pas concerné, une transaction oubliée après une erreur l'est.
+
+⛔ **On NE POSE PAS de `lock_timeout` sur `postgres`**, sciemment : il ferait échouer un import légitime qui attend un verrou, c'est-à-dire qu'il déplacerait le risque sur le travail éditorial au lieu de le retirer.
+
+## Ce qui reste, et qui n'est pas à nous
+
+- **5 482 rechargements du cache de schéma PostgREST** en 17 jours, treize par heure, chacun reconstruisant le pool de connexions. Déclenchés par le DDL. Deux ont eu lieu douze secondes avant la chute. Il n'y a pas de réglage : la mesure est de **grouper les migrations** au lieu de les envoyer une par une.
+- `v_aelf_polyglotte_cells` : 586 appels à **4,4 s de moyenne**, 7,8 s au pire — c'est-à-dire au ras du délai de 8 s.
+- Les avis de performance restants (clés étrangères sans index, RLS par ligne sur `polyglotte_notes`) portent **tous** sur les tables Bible 899, Fillion et polyglotte. Domaine de GPT : on les signale, on n'y touche pas.
+
 # ⛔ Une liste de natures RECOPIÉE finit toujours par coûter du texte au lecteur (2026-08-29)
 
 Trois fois déjà, une nature valide en base n'avait pas de surface qui la demande, et le lecteur perdait du texte sans qu'aucun test, aucune relecture, aucun écran d'admin ne le dise. La quatrième et la cinquième se sont trouvées le même jour, sur la question « GPT me dit qu'il y a un sommaire, je ne le vois pas ».
