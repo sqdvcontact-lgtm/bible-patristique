@@ -740,7 +740,10 @@ button:focus-visible,
   text-align: left;
   letter-spacing: 0.01em;
 }
-.cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); margin-bottom: 0.35rem; }
+/* ⚠️ Une sous-section ouvre un développement qui LUI appartient : elle s'en approche,
+   et prend un peu moins d'air au-dessus (décision de l'auteur, 2026-08-29). Le blanc du
+   dessous se ferme des deux côtés — voir la règle de voisinage juste dessous. */
+.cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); margin-top: 1.15rem; margin-bottom: 0.2rem; }
 
 /* ⛔ Le blanc SOUS une sous-section se referme : ce qui suit lui appartient, comme
    au rang T6. ⚠️ Et il ne suffit pas de raccourcir la marge du titre — les marges
@@ -749,7 +752,7 @@ button:focus-visible,
    blanc qu'on venait de fermer. Le titre paraissait alors flotter loin de son
    développement (relevé par l'auteur, 2026-08-29). On ferme donc des DEUX côtés. */
 .cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc {
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
 }
 .cs-bible-title--t5 { font-size: 1rem;      font-weight: 400; color: var(--cs-encre); }
 /* Intertitre de péricope : au fer, en ITALIQUE, avec de l’air au-dessus et peu
@@ -974,8 +977,11 @@ button:focus-visible,
    verset, il est l'enfant d'un `.cs-bible-axe` qui l'est. Sans le `>`, ces deux
    règles ne s'appliquaient plus et le blanc qui cerne un bloc de versets
    disparaissait en silence. */
-.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 2rem; }
-.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: 2rem; }
+/* ⚠️ Le blanc qui cerne un bloc de versets valait 2 rem de chaque côté : c'est lui qui
+   séparait le texte de son commentaire. Le RETRAIT du verset le dit désormais, et le
+   blanc n'a plus à le crier (décision de l'auteur, 2026-08-29). */
+.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 1.1rem; }
+.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: 1.1rem; }
 
 /* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
    ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style

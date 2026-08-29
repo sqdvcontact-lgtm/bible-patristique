@@ -378,7 +378,10 @@ function rendreBlocTexte(
   const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
   const style: CSSProperties = {
     ...STYLE_CORPS,
-    margin: discret ? '0.35rem 0 0' : '0 0 0.6rem',
+    // ⚠️ 0,6 rem sous un corps de 12,5 px à l'interligne 1,3 valait plus d'une demi-ligne
+    // entre deux paragraphes d'un MÊME style : l'apparat s'y égrenait (décision de
+    // l'auteur, 2026-08-29).
+    margin: discret ? '0.35rem 0 0' : '0 0 0.4rem',
     whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
     fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
     ...(discret

@@ -1140,6 +1140,28 @@ Deux styles de paragraphe propres au paratexte biblique, demandés par l'auteur 
 - **La classe `cs-bible-titre--divise`** porte le peu qui distingue la paire du couple titre-chapeau ordinaire : **0,9 rem** de blanc au-dessous au lieu de 0,6, et **0,3 rem** entre les deux lignes au lieu de 0,2. Une désignation d'UNE lettre demande plus d'air que « Première partie », qui remplit sa ligne. ⛔ Aucune chasse sur la tête : une lettre seule ne s'espace pas, et la chasse qu'on lui ajouterait, tombant après elle, la décalerait de l'axe.
 - ⚠️ **Le blanc AU-DESSUS sépare deux sections, il n'aère pas un titre** (2026-08-28). « II — Jésus-Christ, centre de la Bible » se lisait comme la suite du § I : dans une introduction de dix pages, rien d'autre ne dit au lecteur qu'il change de matière. D'où **4 rem**, soit environ quatre lignes du corps de l'apparat. ⚠️ **Sauf le PREMIER intertitre d'une pièce**, qui n'a rien à séparer et suit le grand titre de tête : il garde 2,5 rem (`.cs-bible-piece > header + * .cs-bible-titre--divise:first-of-type`). Mesuré sur épreuve : **40 px avant « I », 64 avant « II »**.
 
+# Bible commentée — le RETRAIT désigne le verset, non le blanc (2026-08-29)
+
+Quatre réglages demandés par l’auteur sur la Bible de Fillion, et un principe qui les tient : **ce qui identifie un verset au milieu d’un commentaire est son retrait, pas le blanc qui l’entoure.** On rend donc au retrait ce qu’on retire au blanc.
+
+| Ce qui change | Avant | Après |
+|---|---|---|
+| Titre de sous-section (T4), au-dessus | 1,5 rem | **1,15 rem** |
+| Titre de sous-section (T4), au-dessous | 0,35 rem | **0,2 rem** |
+| Frontière commentaire ↔ versets | 2 rem | **1,1 rem** |
+| Entre deux versets, texte à texte | ~14 px | **~8 px** |
+| Interligne d’un verset | 1,5 | **1,42** |
+| Gouttière du numéro (donc retrait) | 22 px | **30 px** |
+| Piste de texte d’un verset | 480 px | **472 px** |
+| Deux paragraphes d’un même style | 0,6 rem | **0,4 rem** |
+
+- ⚠️ **La gouttière s’élargit de ce que la piste perd** : le bloc garde EXACTEMENT sa largeur (502 px), et rien ne bouge autour. C’est ce qui permet d’augmenter le retrait sans décaler la page.
+- ⚠️ **Le blanc entre versets se paie deux fois** : le rembourrage de la rangée le pose en haut ET en bas, et la marge s’y ajoute. Trois valeurs à baisser ensemble, sinon on croit avoir réduit et l’on n’a rien fait.
+- ⛔ **Fermer le blanc SOUS un titre T4 se fait des deux côtés** — marge du titre ET marge du bloc suivant, par la règle de voisinage. Les marges verticales fusionnent et c’est la plus grande qui l’emporte ; la règle est déjà consignée plus haut, elle vaut encore ici.
+- **`--mesure-texte` n’est employée qu’à un SEUL endroit**, `styleBlocVerset` : la resserrer n’atteint rien d’autre. ⚠️ Ne pas la changer dans `:root`, où elle passerait pour une mesure générale du site.
+- ⚠️ **`wordSpacing: -0.02em`** referme les blancs que la justification ouvre entre les mots ; même valeur que la colonne en langue originale d’une œuvre. C’est le seul levier horizontal qui ne touche ni au corps ni à la mesure.
+- ⚠️ **Valeurs POSÉES, non mesurées à l’écran** : le site étant fermé, elles ont été calculées sur la cascade. Le prochain réglage se fera à vue.
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.

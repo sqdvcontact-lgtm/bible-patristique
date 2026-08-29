@@ -42,10 +42,14 @@ export function styleRangeeVerset({ mobile }: { mobile?: boolean } = {}): CSSPro
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    padding: mobile ? '0.03125rem 0.375rem' : '0.1875rem 0.375rem',
+    // ⚠️ Le blanc entre versets se paie deux fois : le rembourrage de la rangée le pose
+    // en haut ET en bas, la marge s'y ajoute. Ce qui identifie un verset n'est pas ce
+    // blanc mais son RETRAIT (décision de l'auteur, 2026-08-29) : on rend au retrait ce
+    // qu'on retire au blanc, et la colonne se lit d'un trait au lieu de s'égrener.
+    padding: mobile ? '0.03125rem 0.375rem' : '0.125rem 0.375rem',
     borderRadius: '4px',
     cursor: 'pointer',
-    marginBottom: mobile ? '0.05rem' : '0.25rem',
+    marginBottom: mobile ? '0.05rem' : '0.125rem',
     background: 'transparent',
   }
 }
@@ -65,11 +69,14 @@ export function styleGrilleRangee({ mobile }: { mobile?: boolean } = {}): CSSPro
 export function styleBlocVerset({ actif }: { actif?: boolean } = {}): CSSProperties {
   return {
     display: 'grid',
-    gridTemplateColumns: 'auto minmax(0, var(--mesure-texte))',
+    // ⚠️ La gouttière du numéro s'élargit de 8 px et la piste de texte se resserre
+    // d'autant : le bloc garde EXACTEMENT sa largeur, mais le verset rentre davantage
+    // et sa ligne porte moins de mots. C'est le retrait, non le blanc, qui le désigne.
+    gridTemplateColumns: 'auto minmax(0, calc(var(--mesure-texte) - 0.5rem))',
     columnGap: '0.1875rem',
     alignItems: 'baseline',
     borderRadius: '4px',
-    padding: '0.125rem 0.25rem 0.125rem 0',
+    padding: '0.0625rem 0.25rem 0.0625rem 0',
     background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent',
   }
 }
@@ -83,9 +90,9 @@ export function styleBlocVerset({ actif }: { actif?: boolean } = {}): CSSPropert
  * citation patristique, en exposant faute de gouttière (voir `compositionVersets.ts`).
  */
 export const STYLE_NUMERO_VERSET: CSSProperties = {
-  minWidth: '1.0625rem',
+  minWidth: '1.4375rem',
   textAlign: 'right',
-  paddingRight: '0.3125rem',
+  paddingRight: '0.4375rem',
   fontSize: '0.625rem',
   fontWeight: 600,
   color: 'var(--cs-texte-faible)',
@@ -132,11 +139,14 @@ export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?
   return {
     fontFamily: SERIF,
     fontSize: '0.875rem',
-    lineHeight: mobile ? 1.42 : 1.5,
+    lineHeight: 1.42,
     color: 'var(--cs-texte-fort)',
     margin: 0,
     textAlign: mobile ? 'left' : 'justify',
     textJustify: 'inter-word',
+    // Une chasse à peine resserrée referme les blancs que la justification ouvre entre
+    // les mots. Même valeur que la colonne en langue originale d'une œuvre.
+    wordSpacing: '-0.02em',
     hyphens: 'auto',
     WebkitHyphens: 'auto',
     overflowWrap: 'break-word',
