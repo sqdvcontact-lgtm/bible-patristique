@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
+import { cleEditeur } from '@/app/lib/editeursNormalisation'
 
 // Écran de curation des éditeurs : liste, ajout/édition, et repérage des éditeurs
 // « à normaliser » (présents dans oeuvres.editeur mais pas encore répertoriés). Les
@@ -29,8 +30,22 @@ type Brouillon = {
 
 const VIDE: Brouillon = { nom_complet: '', variantes: '', ville: '', annee_debut: '', annee_fin: '', notes: '' }
 
-function cle(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+// Le compte rendu d'un enregistrement : ce qui a été absorbé de part et d'autre, et ce
+// que le référentiel bibliographique a refusé. Une graphie ne disparaît pas en silence.
+function messageDeFusion(r: {
+  fusions?: string[]; fusionsAutorites?: string[]; avertissement?: string | null
+} | null): string {
+  if (!r) return ''
+  const noms = (l: string[]) => l.map(n => '« ' + n + ' »').join(', ')
+  const phrases: string[] = []
+  if (r.fusions?.length) phrases.push(
+    r.fusions.length > 1
+      ? noms(r.fusions) + ' ne sont plus des éditeurs à part : ces fiches ont été fusionnées dans celle-ci.'
+      : noms(r.fusions) + " n'est plus un éditeur à part : cette fiche a été fusionnée dans celle-ci.")
+  if (r.fusionsAutorites?.length) phrases.push(
+    'Dans les autorités bibliographiques, ' + noms(r.fusionsAutorites) + ' a rejoint la même autorité, avec ses notices.')
+  if (r.avertissement) phrases.push(r.avertissement)
+  return phrases.join(' ')
 }
 
 export default function SectionEditeurs() {
@@ -39,6 +54,9 @@ export default function SectionEditeurs() {
   const [brouillon, setBrouillon] = useState<Brouillon>(VIDE)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'err'>('idle')
   const [erreur, setErreur] = useState('')
+  // Ce que l'enregistrement a FUSIONNÉ : une variante déclarée fait disparaître de la
+  // liste l'autorité qu'elle remplace, et le dire est le seul moyen de s'en assurer.
+  const [bilan, setBilan] = useState('')
 
   const charger = useCallback(async () => {
     const [{ data: eds }, { data: oeuvres }] = await Promise.all([
@@ -49,13 +67,19 @@ export default function SectionEditeurs() {
     setEditeurs(liste)
     // Clés couvertes (noms complets + variantes).
     const couvertes = new Set<string>()
-    liste.forEach(e => { couvertes.add(cle(e.nom_complet)); (e.variantes ?? []).forEach(v => couvertes.add(cle(v))) })
-    // Formes brutes rencontrées (chaque co-éditeur séparément), non couvertes.
+    liste.forEach(e => { couvertes.add(cleEditeur(e.nom_complet)); (e.variantes ?? []).forEach(v => couvertes.add(cleEditeur(v))) })
+    // La forme ENTIÈRE d'abord, ses co-éditeurs ensuite : « Veuve Jean Camusat ; Pierre
+    // Le Petit » est une graphie répertoriée à elle seule, et la découper d'office ferait
+    // reparaître ses deux moitiés dans la file de ce qui reste à normaliser.
     const brutes = new Set<string>()
-    ;((oeuvres ?? []) as { editeur: string | null }[]).forEach(o => String(o.editeur ?? '').split(/\s*[;/]\s*/).forEach((p: string) => {
-      const t = p.trim()
-      if (t && !couvertes.has(cle(t))) brutes.add(t)
-    }))
+    ;((oeuvres ?? []) as { editeur: string | null }[]).forEach(o => {
+      const brut = String(o.editeur ?? '').trim()
+      if (!brut || couvertes.has(cleEditeur(brut))) return
+      brut.split(/\s*[;/]\s*/u).forEach((p: string) => {
+        const t = p.trim()
+        if (t && !couvertes.has(cleEditeur(t))) brutes.add(t)
+      })
+    })
     setANormaliser([...brutes].sort((a, b) => a.localeCompare(b, 'fr')))
   }, [])
 
@@ -84,8 +108,10 @@ export default function SectionEditeurs() {
         notes: brouillon.notes.trim() || null,
       }),
     })
-    if (!res.ok) { const d = await res.json().catch(() => null); setErreur(d?.error ?? 'Erreur.'); setStatut('err'); return }
-    setBrouillon(VIDE); setStatut('idle')
+    const reponse = await res.json().catch(() => null)
+    if (!res.ok) { setErreur(reponse?.error ?? 'Erreur.'); setStatut('err'); return }
+    setBrouillon(VIDE); setStatut('idle'); setErreur('')
+    setBilan(messageDeFusion(reponse))
     await charger()
   }
 
@@ -157,8 +183,9 @@ export default function SectionEditeurs() {
               </div>
             </div>
             {statut === 'err' && <p style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreur}</p>}
+            {bilan && <p style={{ fontSize: '0.75rem', color: 'var(--cs-vert)', margin: '0 0 8px', lineHeight: 1.45 }}>{bilan}</p>}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle') }} style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
+              {brouillon.id && <button onClick={() => { setBrouillon(VIDE); setStatut('idle'); setBilan('') }} style={{ fontSize: '0.78125rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>}
               <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize: '0.78125rem', padding: '5px 15px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
                 {statut === 'envoi' ? 'Enregistrement…' : brouillon.id ? 'Enregistrer' : 'Ajouter'}
               </button>

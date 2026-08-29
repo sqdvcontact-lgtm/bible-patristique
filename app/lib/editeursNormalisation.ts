@@ -69,6 +69,11 @@ export function normaliserNomEditeur(
 ): string {
   const brut = (editeur ?? '').trim()
   if (!brut) return ''
+  // La forme ENTIÈRE d'abord : « Veuve Jean Camusat ; Pierre Le Petit » est UNE graphie
+  // répertoriée, non deux maisons. Découper avant de chercher rend introuvable toute
+  // variante qui porte un « ; » — et c'est ainsi qu'une variante déclarée restait sans effet.
+  const entier = resoudreNomEditeur(brut, index)
+  if (entier) return entier
   return brut.split(/\s*[;/]\s*/u).filter(Boolean)
     .map((part) => resoudreNomEditeur(part, index) ?? part)
     .join(' / ')
@@ -80,6 +85,10 @@ export function normaliserNomEditeur(
  *  d'éditeur, c'est une bribe de notice où il s'en trouve un. */
 export function editeursDuSegment(segment: string, index: IndexEditeurs | null): string | null {
   if (!index) return null
+  // Même ordre que ci-dessus : un segment qui EST une graphie répertoriée se résout
+  // entier, fût-elle une co-édition écrite avec un « ; ».
+  const entier = resoudreNomEditeur(segment, index)
+  if (entier) return entier
   const parts = segment.split(/\s*;\s*/u).map((p) => p.trim()).filter(Boolean)
   if (!parts.length) return null
   const noms = parts.map((p) => resoudreNomEditeur(p, index))

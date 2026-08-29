@@ -33,6 +33,16 @@ describe('cleEditeur', () => {
   it('rapproche deux graphies de la même maison', () => {
     expect(cleEditeur('J.-P. Migne')).toBe(cleEditeur('J. P. MIGNE'))
   })
+
+  // ⛔ La clé SQL `public.cle_editeur` perdait ses capitales accentuées : elle
+  // translittérait AVANT de passer en minuscules, et « Éditions du Cerf » se rangeait
+  // sous « ditions du cerf ». Les deux écritures de la clé doivent rendre la MÊME
+  // chose, faute de quoi ce que la base fusionne et ce que l'écran annonce divergent.
+  it('replie une capitale accentuée comme sa minuscule', () => {
+    expect(cleEditeur('Éditions du Cerf')).toBe('editions du cerf')
+    expect(cleEditeur('Éditions du Cerf')).toBe(cleEditeur('Editions du Cerf'))
+    expect(cleEditeur('ÉCOLE BIBLIQUE')).toBe(cleEditeur('École biblique'))
+  })
 })
 
 describe('resoudreNomEditeur', () => {
@@ -99,5 +109,37 @@ describe('estVilleConnue', () => {
 
   it('ne prend pas une maison pour une ville', () => {
     expect(estVilleConnue('Pélagaud', INDEX)).toBe(false)
+  })
+})
+// Le cas qui a fait la règle : « Veuve Jean Camusat ; Pierre Le Petit » est UNE graphie
+// de la maison, non deux maisons. Le point-virgule y sépare deux associés, comme le « et »
+// de la forme retenue — et la table porte à la fois la maison entière et la veuve seule.
+const CAMUSAT = construireIndexEditeurs([
+  { nom_complet: 'Veuve Jean Camusat et Pierre Le Petit', variantes: ['Veuve Jean Camusat ; Pierre Le Petit'], ville: null },
+  { nom_complet: 'Veuve Jean Camusat', variantes: [], ville: null },
+  { nom_complet: 'Juste Angé', variantes: ['J. Angé'], ville: null },
+  { nom_complet: 'Alfred Cherest', variantes: ['A. Cherest'], ville: null },
+])
+
+describe('une variante qui porte un « ; »', () => {
+  it('se résout ENTIÈRE, sans être découpée en co-éditeurs', () => {
+    expect(normaliserNomEditeur('Veuve Jean Camusat ; Pierre Le Petit', CAMUSAT))
+      .toBe('Veuve Jean Camusat et Pierre Le Petit')
+  })
+
+  it('l’emporte sur la moitié gauche, pourtant répertoriée elle aussi', () => {
+    expect(editeursDuSegment('Veuve Jean Camusat ; Pierre Le Petit', CAMUSAT))
+      .toBe('Veuve Jean Camusat et Pierre Le Petit')
+  })
+
+  it('ne prive pas les vraies co-éditions de leur découpage', () => {
+    expect(normaliserNomEditeur('J. Angé ; A. Cherest', CAMUSAT))
+      .toBe('Juste Angé / Alfred Cherest')
+    expect(editeursDuSegment('J. Angé ; A. Cherest', CAMUSAT))
+      .toBe('Juste Angé / Alfred Cherest')
+  })
+
+  it('laisse la maison seule se résoudre pour son propre compte', () => {
+    expect(normaliserNomEditeur('Veuve Jean Camusat', CAMUSAT)).toBe('Veuve Jean Camusat')
   })
 })
