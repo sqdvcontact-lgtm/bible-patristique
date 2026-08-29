@@ -2,15 +2,33 @@
 
 **Destinataire : une IA qui écrit ou corrige la donnée éditoriale d’une bible commentée** (aujourd’hui la famille Fillion). Ce document dit, pour chaque style, *ce qu’il est*, *quand l’employer*, *comment il se rend*, et *où il sert déjà*.
 
-Registre technique : `work/fillion/semantic_display_hierarchy.json` (version 1.0.0, mise à jour le 2026-08-20). Le présent document en est la lecture raisonnée ; **le registre fait foi sur les valeurs, ce document sur l’usage.**
+Registre technique : `work/fillion/semantic_display_hierarchy.json` (version 1.0.0, mise à jour le **2026-08-29**, 48 styles). Le présent document en est la lecture raisonnée ; **le registre fait foi sur les valeurs, ce document sur l’usage.**
 
-Audit de couverture : § 6, relevé du **2026-08-28** sur les 4 935 blocs éditoriaux des dix livres publiés.
+Audit de couverture : § 6, relevé du **2026-08-28** sur les 4 935 blocs éditoriaux des dix livres publiés, **corrigé le 2026-08-29**.
 
 ---
 
-## 0. La règle qui gouverne toutes les autres
+## 0. Trois axes, et le nom qualifié
 
-⛔ **Un style ne se devine jamais du texte.** Ni de la casse, ni du corps de caractère, ni de la ponctuation, ni de la place dans la page. Il se déclare, et il se déclare depuis le registre. `resoudreStyleSemantique` **refuse** un style inconnu : le bloc n’est alors pas rendu du tout, il n’est pas rabattu sur un paragraphe générique. Un style mal orthographié fait donc disparaître son bloc du site sans un mot.
+Un style se déclare sur **trois axes qui ne se confondent jamais** (charte § 7.1) :
+
+| Axe | Ce qu'il dit | Où il se déclare |
+|---|---|---|
+| **Le style** | ce que la chose EST | dans la donnée |
+| **La surface** | OÙ elle se compose : `bible`, `bible_apparat`, `patristique`, `patristique_apparat` | par la page — ⛔ jamais sur le segment |
+| **Le rang** | T1-T6 pour un titre, I1-I6 pour une information | dans la donnée |
+
+⛔ **Le style ne se préfixe PAS par sa famille de page.** `segments.nature` vit dans `segments`, qui EST le corpus patristique ; `semantic_style` dans une table qui n'est que biblique. Le préfixe répéterait ce que la table dit déjà, et ce qui se répète dérive.
+
+⚠️ **Mais le nom se QUALIFIE dès qu'il sort de sa table** — ici, dans une planche, dans une conversation : `patristique/verset`, `bible_apparat/commentaire_pericope`. La barre dit la surface sans l'écrire dans la donnée. C'est nécessaire : `verset` désigne deux choses, une rangée de la page Bible et une nature de segment patristique.
+
+## 0.1. La règle qui gouverne toutes les autres
+
+⛔ **Un style ne se devine jamais du texte.** Ni de la casse, ni du corps de caractère, ni de la ponctuation, ni de la place dans la page. Il se déclare, et il se déclare depuis le registre. `resoudreStyleSemantique` **refuse** un style inconnu : le bloc n’est alors pas rendu du tout, il n’est pas rabattu sur un paragraphe générique.
+
+⛔ **Et depuis le 29 août 2026, LA BASE LE TIENT.** Un style hors du vocabulaire est refusé à l’écriture — table `bible_styles_semantiques` et déclencheur `bible_style_semantique_connu()` pour le paratexte, contrainte `chk_segments_nature` pour les segments. Jusque-là, un style mal orthographié entrait sans bruit et son bloc disparaissait du site sans un mot : c’est ainsi que quarante-cinq blocs étaient devenus invisibles.
+
+⚠️ **On étend le vocabulaire, on ne le contourne pas.** Un besoin nouveau s’écrit dans `semantic_display_hierarchy.json`, puis se sème par `scripts/fillion/semer-styles-semantiques.mjs`. ⛔ Jamais un INSERT à la main. Et une faute de graphie ne devient pas un alias : les alias sont pour les noms hérités, les coquilles se corrigent dans la donnée.
 
 ---
 
@@ -20,7 +38,7 @@ Un bloc éditorial porte jusqu’à quatre déclarations indépendantes. Les con
 
 | Couche | Où elle s’écrit | Ce qu’elle dit | Vocabulaire |
 |---|---|---|---|
-| **1. Style sémantique** | `semantic_style_code` du bloc | Ce que le bloc EST, et l’étendue qu’il couvre | 47 valeurs (§ 2) |
+| **1. Style sémantique** | `semantic_style_code` du bloc | Ce que le bloc EST, et l’étendue qu’il couvre | 48 valeurs (§ 2) |
 | **2. Rôle d’affichage** | `presentation` du bloc (jsonb) | Ce que la page imprimée FAISAIT de ce bloc | 6 clés lues (§ 3) |
 | **3. Style de paragraphe** | `editorial_normalization.blocks[]` de l’unité source | Comment se compose CHAQUE paragraphe | `kind`, `form`, `presentation`, `inline_spans` (§ 4) |
 | **4. Sous-type de notice** | `notice_subtype` du bloc | De quelle espèce est une notice | 5 valeurs (§ 5) |
@@ -38,7 +56,7 @@ Un bloc éditorial porte jusqu’à quatre déclarations indépendantes. Les con
   | `T2` | partie du livre |
   | `T3` | section |
   | `T4` | sous-section |
-  | `T5` | chapitre biblique |
+  | `T5` | chapitre biblique (axe **matériel**) ou division « § » du commentaire (axe **analytique**) |
   | `T6` | péricope |
 
 - **`I1` à `I6` — l’étendue qu’un bloc d’INFORMATION explique.** Une information n’est pas une division : elle commente une portée.
@@ -66,7 +84,10 @@ Un titre porte son texte dans `heading` ; il n’a pas de « repère » séparé
 | `titre_section_livre` *(alias `titre_section`)* | T3 | **oui** | analytique | « § II. — Le sermon sur la montagne » | 1,1875 rem, centré, chasse 0,01 em |
 | `titre_sous_section` | T4 | **oui** | analytique | « 1° La personne de l’auteur » | 1,0625 rem, **au fer** |
 | `titre_chapitre_livre` *(alias `titre_chapitre`)* | T5 | non | **matériel** | « CHAPITRE IX » | ⛔ **Jamais affiché** (charte § 35.1) |
+| `titre_paragraphe_livre` *(alias `titre_division`)* | T5 | **oui** | analytique | « § I », « 2. L’Œuvre des six jours. I, 2-32. » | 1 rem, au fer |
 | `titre_pericope` | T6 | **oui** | analytique | « 3. Ce qui suivit la mort de Jésus (27, 51-56) » | 1 rem, **italique**, au fer |
+
+⚠️ **Deux styles au rang T5, et ils ne se rencontrent pas.** `titre_chapitre_livre` est **matériel** : il traverse la hiérarchie sans la commander, et ne paraît pas. `titre_paragraphe_livre` est **analytique** : c’est la division « § » de Fillion, entre la sous-section et la péricope — « La Création. I, 1 — II, 3. » (T4) contient « L’Œuvre des six jours », qui contient les six jours (T6). Ce rang manquait au registre jusqu’au 2026-08-29, et ses trente-quatre blocs de la Genèse ne paraissaient nulle part.
 
 ⛔ **`titre_chapitre_livre` est conservé mais invisible.** La barre de navigation nomme déjà le chapitre ; la mention imprimée n’apprenait rien. Elle reste dans la donnée comme témoin matériel, et **continue de traverser l’axe analytique** : c’est sa PLACE qui compte. Un titre matériel ne devient jamais le parent de ce qui le suit — « 2° L’adoration des Mages » relève du § II, non du chapitre II.
 
@@ -236,7 +257,7 @@ Un intertitre porte souvent sa **désignation** puis son **objet** : « I — Ce
 
 ### 6.1 Couverture
 
-**4 935 blocs**, **10 livres**, **26 styles employés** sur les 47 du registre. 4 893 blocs publics.
+**4 935 blocs**, **10 livres**, **25 styles employés** sur les 48 du registre. 4 893 blocs publics. ✅ **Zéro bloc hors vocabulaire** depuis la correction du 2026-08-29.
 
 | Livre | Blocs | Styles |
 |---|---|---|
@@ -263,17 +284,17 @@ Un intertitre porte souvent sa **désignation** puis son **objet** : « I — Ce
 | `titre_sous_section` | 21 | 24 | 29 | 30 | 22 | 24 | 20 | 25 | 15 | 33 | **243** |
 | `commentaire_section` | 69 | 24 | 30 | 33 | 19 | 6 | 7 | · | · | · | **188** |
 | `titre_chapitre_livre` | · | · | · | · | · | 28 | 16 | 24 | 21 | 28 | **117** |
-| `introduction_sous_section` | 10 | 6 | 8 | 13 | 12 | 2 | · | 6 | 3 | 16 | **76** |
+| `introduction_sous_section` | 10 | 6 | 8 | 13 | 12 | 13 | · | 6 | 3 | 16 | **87** |
 | `titre_section_livre` | 16 | 3 | 5 | 9 | 2 | 7 | 6 | 12 | 7 | 6 | **73** |
 | `introduction_section` | · | · | · | · | · | 13 | 8 | 3 | 9 | 2 | **35** |
-| ⛔ `titre_division` | 34 | · | · | · | · | · | · | · | · | · | **34** |
+| `titre_paragraphe_livre` | 34 | · | · | · | · | · | · | · | · | · | **34** |
 | `notice_bible` | 33 | · | · | · | · | · | · | · | · | · | **33** |
 | `titre_partie_livre` | 2 | 3 | 2 | 3 | 4 | 3 | 3 | 4 | 4 | 2 | **30** |
 | `introduction_partie` | · | · | · | · | · | 3 | 3 | 5 | 3 | · | **14** |
 | `introduction_bible` | 13 | · | · | · | · | · | · | · | · | · | **13** |
 | `introduction_livre` | 4 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | **13** |
 | `commentaire_partie` | 2 | 3 | 2 | 3 | 2 | · | · | · | · | · | **12** |
-| ⛔ `introduction_subsection` | · | · | · | · | · | 11 | · | · | · | · | **11** |
+
 | `introduction_testament` | 4 | · | · | · | · | · | · | · | · | · | **4** |
 | `notice_testament` | 4 | · | · | · | · | · | · | · | · | · | **4** |
 | `commentaire_livre` | · | · | · | 2 | · | · | · | 1 | · | · | **3** |
@@ -284,16 +305,18 @@ Un intertitre porte souvent sa **désignation** puis son **objet** : « I — Ce
 
 *(Les blocs liminaires — page de titre, « Du même auteur », imprimatur, dédicace, avant-propos, table de transcription, abréviations, introduction générale — sont rattachés à la Genèse, qui ouvre le tome. D’où ses 18 styles.)*
 
-### 6.3 ⛔ Ce qui ne s’affiche pas
+### 6.3 ✅ Ce qui ne s’affichait pas — corrigé le 2026-08-29
 
-**45 blocs portent un style que le registre ignore**, et `resoudreStyleSemantique` les refuse : ils ne paraissent nulle part.
+**Quarante-cinq blocs portaient un style que le registre ignorait**, et `resoudreStyleSemantique` les refuse : ils ne paraissaient nulle part, en silence.
 
-| Style écrit | Blocs | Livre | Ce qu’il faudrait |
+| Style écrit | Blocs | Livre | Ce qu’il est devenu |
 |---|--:|---|---|
-| `titre_division` | 34 | Genèse | Aucun `titre_division` au registre. Selon la profondeur réelle : `titre_section_livre` (T3) ou `titre_sous_section` (T4). |
-| `introduction_subsection` | 11 | Matthieu | **Faute d’orthographe** : le registre dit `introduction_sous_section`, en français. |
+| `titre_division` | 34 | Genèse | → `titre_paragraphe_livre`. Le rang manquait au registre : c’est la division « § » de Fillion, T5 sur l’axe analytique. L’ancien nom y reste comme ALIAS, filet pour ce qui aurait échappé. |
+| `introduction_subsection` | 11 | Matthieu | → `introduction_sous_section`. Une coquille à moitié anglaise. ⛔ Non versée aux alias : une faute ne devient pas du vocabulaire. |
 
-**117 blocs sont volontairement masqués** : les `titre_chapitre_livre`, que la barre de navigation redit déjà.
+⛔ **Et le trou est bouché.** `semantic_style` était la seule chose non contrainte de la table, quand `block_kind`, `scope_kind`, `notice_subtype`, `placement` et `validation_status` l’étaient toutes. Depuis le 2026-08-29, un déclencheur refuse à l’écriture tout style hors de `bible_styles_semantiques`. ⚠️ Il valide le code EFFECTIF : celui de la métadonnée, ou celui que dérive le couple `block_kind` × `scope_kind` — lequel peut être faux tout seul, `transition` × `chapter` donnant un `transition_chapitre` que le registre ne connaît pas.
+
+**117 blocs restent volontairement masqués** : les `titre_chapitre_livre`, que la barre de navigation redit déjà.
 
 ⚠️ **Les pièces liminaires sont re-déduites au lieu d’être lues.** 64 blocs déclarent `piece_key` (douze pièces nommées : `page-de-titre`, `du-meme-auteur`, `imprimatur-1888`, `imprimatur-1904`, `dedicace-vigouroux`, `avant-propos`, `transcription-hebreu`, `principales-abreviations`, `introduction-generale`, `ancien-testament`, `pentateuque`, `genese`) et `piece_role` (`head`, `continuation`, `apparatus`, `entry`). Le site ne les lit pas : `grouperPiecesLiminaires` reconstruit le groupement à partir du nom, de la portée et de la page imprimée. Cela marche aujourd’hui, mais une donnée explicite vaut mieux qu’une heuristique.
 
@@ -313,7 +336,7 @@ La même fonction éditoriale ne porte pas le même style selon le tome. **La do
 
 Ce n’est pas nécessairement une faute : Fillion ne compose pas le Pentateuque comme les Évangiles. Mais avant d’en tirer une statistique ou une règle, **vérifier que la question porte sur la même chose des deux côtés**.
 
-### 6.5 Styles jamais employés — 23 sur 47
+### 6.5 Styles jamais employés — 23 sur 48
 
 `titre_livre`, `sommaire_livre`, `conclusion_livre`, `excursus_livre`, `transition_livre`, `notice_partie`, `sommaire_partie`, `conclusion_partie`, `excursus_partie`, `notice_section`, `sommaire_section`, `conclusion_section`, `excursus_section`, `notice_chapitre`, `sommaire_chapitre`, `conclusion_chapitre`, `excursus_chapitre`, `notice_pericope`, `sommaire_pericope`, `conclusion_pericope`, `excursus_pericope`, `transition_pericope`, `note_verset`.
 
@@ -321,12 +344,13 @@ Le registre a été posé en grille complète (nature × portée). Ces styles so
 
 ---
 
-## 7. Les sept règles d’or
+## 7. Les huit règles d’or
 
 1. ⛔ **Un style ne se devine pas.** Il vient du registre. Un style inconnu fait disparaître son bloc, en silence.
 2. ⛔ **Le nom du style s’écrit en français.** `introduction_sous_section`, jamais `introduction_subsection`.
-3. ⚠️ **Le jeton n’est pas la balise.** `T3` ne veut pas dire `h3`.
-4. ⚠️ **La nature est un axe à part.** `introduction_pericope` et `commentaire_pericope` sont tous deux `I5`.
-5. ⛔ **Un titre matériel (`titre_chapitre_livre`) ne devient jamais le parent de ce qui le suit.**
-6. ⛔ **Le rendu ne lit que six clés de `presentation`.** Tout le reste est écrit pour mémoire, sans effet — `text_alignment` en premier lieu.
-7. ⚠️ **Trois couches, trois vocabulaires.** Le style du BLOC (`semantic_style_code`), le rôle d’AFFICHAGE (`presentation`), le style du PARAGRAPHE (`editorial_normalization.blocks[].kind`). Ne jamais écrire l’un à la place de l’autre.
+3. ⛔ **Le vocabulaire est CLOS, et la base le tient.** Un style hors de `bible_styles_semantiques` est refusé à l’écriture. On l’ÉTEND — dans le registre, puis en semant — on ne le contourne pas, et une coquille ne devient jamais un alias.
+4. ⚠️ **Le jeton n’est pas la balise.** `T3` ne veut pas dire `h3`.
+5. ⚠️ **La nature est un axe à part.** `introduction_pericope` et `commentaire_pericope` sont tous deux `I5`.
+6. ⛔ **Un titre matériel (`titre_chapitre_livre`) ne devient jamais le parent de ce qui le suit.**
+7. ⛔ **Le rendu ne lit que six clés de `presentation`.** Tout le reste est écrit pour mémoire, sans effet — `text_alignment` en premier lieu.
+8. ⚠️ **Trois couches, trois vocabulaires.** Le style du BLOC (`semantic_style_code`), le rôle d’AFFICHAGE (`presentation`), le style du PARAGRAPHE (`editorial_normalization.blocks[].kind`). Ne jamais écrire l’un à la place de l’autre.
