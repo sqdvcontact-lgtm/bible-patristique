@@ -331,7 +331,24 @@ Les *Confessions* sont le témoin, et le seul ensemble `validated_human` du corp
 
 ⚠️ **Le comptage ne peut pas devenir une tuile du centre de contrôle** : il joint les 21 879 membres d'alignement à `segments` puis agrège par groupe, **2 650 ms à froid**, mesuré. La carte est donc en prose, comme sa voisine « Textes originaux », et pour la même raison.
 
-⚠️ **`paragraphe` SEUL n'identifie pas un paragraphe** : il repart à 1 dans chaque division. La clé est `(id_texte, ref_niv1, ref_niv2, ref_niv3, paragraphe)`, et un `count(distinct paragraphe)` sur un texte entier rend son plus grand NUMÉRO, non son nombre de paragraphes — 18 pour les 932 paragraphes du français des Confessions.
+### La mesure est du CODE, pas une requête d'atelier
+
+**`app/lib/grainAlignement.ts`** (module pur, 23 tests) porte toute la mesure : `cleDeParagraphe`, `mesurerEmpans`, `bilanDuGrain`, `empansARependre`, et les deux repères `REPERE_EMPAN` (900) / `LIMITE_EMPAN` (1 500). **`scripts/alignement-grain-controle.mts`** le rejoue sur la base (`npx tsx`, `--detail <set>` pour les empans à reprendre).
+
+⛔ **Le script n'a AUCUNE règle à lui** : la mesure vient du module, et le choix de l'ensemble qui porte la lecture de **`choisirEnsembleBilingue`**, la fonction que la page d'œuvre emploie. Une seconde écriture de l'une ou de l'autre divergerait au premier ajustement, et le contrôle certifierait un site imaginaire. Il ne fait aucune écriture.
+
+⚠️ **Il rend DEUX totaux, et ils ne disent pas la même chose.** Sur les ensembles qui portent la lecture — ce que le lecteur subit — **41** empans enjambent une frontière et **1 051** dépassent la limite ; toutes colonnes traduites confondues, écartés compris, **172** et **1 055**. L'écart est Boèce, dont l'appariement confronte deux traductions FRANÇAISES et ne sert donc aucune colonne originale : ses 86 et 17 franchissements ne se voient nulle part aujourd'hui, et se verront le jour où son latin aura son texte propre. ⛔ Publier l'un pour l'autre, c'est ce qui fait diverger un chiffre d'un document à l'autre — la mission a d'abord porté 58, qui comptait Boèce sans le dire.
+
+### ⛔ Le paragraphe INCONNU est un troisième état, ni tenu ni franchi
+
+`paragraphe` **SEUL** n'identifie pas un paragraphe : il repart à 1 dans chaque division. La clé est `(ref_niv1, ref_niv2, ref_niv3, paragraphe)`, et un `count(distinct paragraphe)` sur un texte entier rend son plus grand NUMÉRO, non son nombre de paragraphes — 18 pour les 932 paragraphes du français des Confessions.
+
+⛔ **Et un segment sans numéro ne se range NI d'un côté NI de l'autre.** Six segments du français de la Cité de Dieu sont dans ce cas : les préfaces des livres VI et VII, quatre et deux paragraphes de prose dont l'importation n'a pas retenu la numérotation.
+
+- les fondre en un seul paragraphe — ce que fait un `coalesce` en SQL — déclare sain ce qu'on n'a pas regardé, et c'est l'erreur qu'avait faite la première mesure ;
+- en faire un paragraphe chacun crie à la violation là où l'on ne sait rien, et c'est l'erreur qu'a faite la seconde : elle donnait **4** empans à cheval sur la Cité de Dieu au lieu de 2.
+
+Les deux mentent. `EmpanMesure.paragrapheInconnu` désigne donc un défaut de DONNÉE — le cas même de la règle 2 — et n'entre jamais dans le compte des frontières franchies. ⚠️ `frontieresTenues` ne vaut que sur ce que la donnée dit : le lire sans regarder `paragrapheInconnu`, c'est prendre une ignorance pour une garantie.
 
 ## Une langue originale est un TEXTE de l'œuvre, jamais une œuvre sœur (2026-08-23)
 
