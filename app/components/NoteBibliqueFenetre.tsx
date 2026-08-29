@@ -19,6 +19,7 @@ import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { composerBibliographie } from '@/app/lib/bibleBibliographie'
 import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
+import { SEUIL_CITATION_SORTIE } from '@/app/lib/citationSortie'
 import BibliographieBible from './BibleBibliographie'
 
 /** Plus large et plus haute que l'infobulle des œuvres (340 × 340). */
@@ -43,13 +44,23 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
           }
         }
         const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
+        // `quotation` décrit le GENRE du bloc, pas sa longueur. Une courte citation
+        // (par ex. « Ignoratio Scripturarum… ») reste dans le fil de la note ; seule
+        // une citation qui atteint le seuil commun de la charte reçoit la composition
+        // détachée `.citation-sortie`. Le seuil est importé de la source canonique :
+        // aucune seconde valeur locale à maintenir.
+        const citationSortie = bloc.kind === 'quotation' && bloc.text.length >= SEUIL_CITATION_SORTIE
+        // Les citations sorties de l'apparat biblique partagent la même
+        // composition que celles du paratexte et des œuvres : aucune variante
+        // locale ne doit dupliquer `.citation-sortie`.
         return (
           <p
             key={bloc.id}
             lang={bloc.language ?? undefined}
+            className={citationSortie ? 'citation-sortie' : undefined}
             style={{
-              margin: discret ? '0.35rem 0 0' : '0 0 0.5rem',
-              fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
+              margin: citationSortie ? undefined : (discret ? '0.35rem 0 0' : '0 0 0.5rem'),
+              fontStyle: bloc.kind === 'lemma' ? 'italic' : 'normal',
               color: discret ? 'var(--cs-texte-second)' : 'var(--cs-texte-fort)',
               whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
               textAlign: 'justify',
