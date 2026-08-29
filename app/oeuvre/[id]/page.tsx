@@ -1,6 +1,6 @@
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
 import { numeroVersetLisible } from '@/app/lib/compositionVersets'
-import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
+import { SELECT_SEGMENT, NATURES_CORPS, NATURES_APPARAT } from '@/app/lib/oeuvreSelects'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
@@ -395,6 +395,10 @@ export default async function OeuvrePage({
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_CORPS)
+        // ⛔ « apparat » désigne les DEUX natures d'apparat, jamais la seule
+        // `apparat_critique` : voir `NATURES_APPARAT`, et les 342 segments que
+        // cette égalité-là tenait hors de l'écran.
+        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
         else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
@@ -437,6 +441,10 @@ export default async function OeuvrePage({
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_CORPS)
+        // ⛔ « apparat » désigne les DEUX natures d'apparat, jamais la seule
+        // `apparat_critique` : voir `NATURES_APPARAT`, et les 342 segments que
+        // cette égalité-là tenait hors de l'écran.
+        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
         else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
@@ -591,7 +599,7 @@ export default async function OeuvrePage({
     Number.isFinite(segmentCibleId) && segmentCibleId > 0
       ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id_texte', idTexte).eq('id', segmentCibleId).maybeSingle()
       : Promise.resolve({ data: null }),
-    chargerTousSegments({ nature: 'apparat_critique' }),
+    chargerTousSegments({ nature: 'apparat' }),
     chargerCodesTraductions(supabase),
     chargerNotesStructurees(idTexte),
     chargerNotesStructurees(idTexteEnRegard),
@@ -640,7 +648,10 @@ export default async function OeuvrePage({
   if ((nbSegmentsLiminaires ?? 0) > 0) niv1TexteMap[NIV1_LIMINAIRES] = 'LIMINAIRES'
 
   const segmentCible = segmentCibleData
-  const vueInitiale = segmentCible?.nature === 'apparat_critique' ? 'apparat' : 'texte'
+  // Un lien vers un segment d'apparat ouvre la page SUR l'apparat. Les deux natures
+  // y donnent droit : viser un paragraphe du « Sommaire général » ne doit pas ouvrir
+  // le texte suivi, où il ne se lit pas.
+  const vueInitiale = NATURES_APPARAT.includes(segmentCible?.nature as never) ? 'apparat' : 'texte'
   const texteSansNiveaux = niv1List.length === 0
   const lectureTexteEntier = oeuvre.lecture_texte_entier === true
   const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1

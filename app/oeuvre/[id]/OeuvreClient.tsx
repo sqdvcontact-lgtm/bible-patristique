@@ -19,7 +19,7 @@ import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normali
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
-import { SELECT_SEGMENT, NATURES_CORPS } from '@/app/lib/oeuvreSelects'
+import { SELECT_SEGMENT, NATURES_CORPS, NATURES_APPARAT } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
@@ -1090,7 +1090,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       .select(SELECT_SEGMENT)
       .eq('id_oeuvre', idOeuvre)
       .eq('id_texte', idTexte)
-      .eq('nature', 'apparat_critique')
+      // ⛔ Les DEUX natures d'apparat, comme au rendu serveur : une égalité sur la
+      // seule `apparat_critique` aurait fait disparaître, au premier rechargement
+      // admin, ce que la page venait d'afficher. Voir `NATURES_APPARAT`.
+      .in('nature', NATURES_APPARAT)
       .order('segment_numero')
     if (error) {
       console.error(`Chargement de l'apparat impossible (${idTexte}) :`, error)

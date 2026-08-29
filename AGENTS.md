@@ -2122,6 +2122,21 @@ curl -s "$SUPABASE_URL/rest/v1/oeuvres?select=id_oeuvre,auteurs(nom)&limit=1" -H
 
 Un `PGRST201` (HTTP 300) répond de lui-même ; la clé `hint` nomme la qualification à écrire.
 
+# ⛔ Une liste de natures RECOPIÉE finit toujours par coûter du texte au lecteur (2026-08-29)
+
+Trois fois déjà, une nature valide en base n'avait pas de surface qui la demande, et le lecteur perdait du texte sans qu'aucun test, aucune relecture, aucun écran d'admin ne le dise. La quatrième et la cinquième se sont trouvées le même jour, sur la question « GPT me dit qu'il y a un sommaire, je ne le vois pas ».
+
+**Les cinq copies de la même liste.** `NATURES_CORPS` et `NATURES_APPARAT` (`app/lib/oeuvreSelects.ts`) décident ce qui paraît. Mais la même liste vivait recopiée dans la requête d'apparat du rendu serveur, dans celle du rechargement client, et — la plus difficile à voir — **dans la fonction `get_niv1_texte`, en base**. Chacune pouvait dériver seule.
+
+- **La vue d'apparat ne demandait qu'`apparat_critique`**, à l'égalité. `apparat_editeur` — la nature que la charte § 7 prescrit d'employer À SA PLACE — n'était donc chargée nulle part : ni au corps, qui l'écarte à bon droit, ni à l'apparat, qui l'ignorait. **342 segments de cinq œuvres publiées** ne paraissaient pas : le « Sommaire général » des *Homélies sur l'Hexaéméron* (dix-neuf paragraphes, un par homélie), la « Table des chapitres », le « Colophon », l'« Explicit » et le « Privilège » de l'*Histoire ecclésiastique*, les « Avertissement » des *Homélies sur Anne* et du *Commentaire sur Isaïe*. La charte disait aux éditeurs d'employer la nature neuve, et le site cachait tout ce qu'ils écrivaient avec.
+- **`get_niv1_texte` jugeait sur sa propre liste**, qui ignorait `lemme`, `verset`, `signature` et `apparat_auteur`, et nommait encore `vers`, morte le matin même. Une division dont tout le texte est d'une nature ignorée sort du sommaire ET des flèches ‹ › : quatre œuvres publiées y perdaient leur ouverture — la « Préface » du *Commentaire sur Isaïe*, les « Prologue » de Jérôme sur *Jonas*, *Abdias* et *Joël*, tous d'`apparat_auteur`, c'est-à-dire la préface de l'auteur lui-même.
+
+**Règle** : une liste de natures ne s'écrit QUE dans `app/lib/oeuvreSelects.ts`. Tout autre endroit qui en a besoin l'importe, ou — s'il vit en SQL — est **relu par une garde** qui le compare au fichier. `oeuvreSelects.test.ts` en porte deux : l'une refuse une égalité sur une seule nature d'apparat dans les deux requêtes de la page, l'autre relit la dernière migration qui définit `get_niv1_texte` et exige le miroir exact de `NATURES_CORPS`.
+
+⚠️ **Une garde s'éprouve avant d'être crue.** Celle du SQL est passée au vert sur un défaut réel à sa première écriture : elle prenait « la dernière migration » par ordre alphabétique, et une copie `.bak` laissée dans le dossier triait après l'originale. Elle ne lit plus que les `.sql`. Écrire une garde et la voir verte ne prouve rien ; il faut réintroduire le défaut et la voir rouge, dans les deux sens quand la garde est une égalité.
+
+⚠️ Le partage entre les deux listes est celui de l'**auteur** et de l'**éditeur**, non celui du texte et de l'appareil : `apparat_auteur` se lit au corps, à sa place ; `apparat_editeur` se lit à l'apparat. Un segment d'apparat qui tombe sous un niveau 1 portant du texte reste filtré de la vue d'apparat (il y ferait doublon) : 44 des 342 sont dans ce cas, chez les *Catéchèses baptismales* et les *Homélies sur Anne*.
+
 # ⛔ Une clause `in` se découpe en OCTETS D'ADRESSE, jamais en nombre de valeurs (2026-08-29)
 
 La passerelle refuse une requête PostgREST dès que l'**adresse** dépasse **~25 000 octets** (seuil mesuré par dichotomie : 25 027 passent, 25 108 non). Elle rend alors un « **400 Bad Request** » **nu** — pas une erreur PostgREST, pas de `code`, pas de `hint`, rien qui nomme la cause. Le client ne voit qu'un échec.

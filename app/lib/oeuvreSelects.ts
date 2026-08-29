@@ -83,3 +83,28 @@ export const NATURES_CORPS = [
   'texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent',
   'verset', 'rubrique', 'signature', 'apparat_auteur',
 ] as const
+
+/**
+ * Les natures composées dans la VUE D'APPARAT, la seconde surface de la page d'œuvre.
+ *
+ * ⛔ `apparat_editeur` en fait partie, et son absence a coûté exactement ce que la
+ * garde ci-dessus annonçait : la vue ne chargeait QUE `apparat_critique`, si bien que
+ * **342 segments de cinq œuvres publiées ne paraissaient nulle part** — ni au corps,
+ * qui les écarte à bon droit, ni à l'apparat, qui ne les demandait pas. Le « Sommaire
+ * général » des *Homélies sur l'Hexaéméron* de Basile (dix-neuf paragraphes, un par
+ * homélie), la « Table des chapitres », le « Colophon » et le « Privilège » de
+ * l'*Histoire ecclésiastique*, l'« Avertissement » des *Homélies sur Anne* : tous
+ * étaient en base, tous manquaient à l'écran, et rien ne le disait. Relevé le
+ * 2026-08-29, sur la question « GPT me dit qu'il y a un sommaire, je ne le vois pas ».
+ *
+ * ⚠️ Le partage entre les deux listes est celui de l'AUTEUR et de l'ÉDITEUR, non celui
+ * du texte et de l'appareil : `apparat_auteur` (préface, prologue, dédicace de
+ * l'auteur) se lit au corps ; `apparat_editeur` (avertissement du traducteur,
+ * privilège, approbation, sommaire analytique) se lit à l'apparat. La base impose
+ * d'ailleurs à ce dernier `espace_textuel = 'apparat_critique'`
+ * (`segments_apparat_editeur_space_ck`).
+ *
+ * ⛔ `apparat_critique` est la valeur HÉRITÉE, fourre-tout : on n'en crée plus (charte
+ * § 7), mais la vue continue de la servir — ses 1 276 segments sont en ligne.
+ */
+export const NATURES_APPARAT = ['apparat_critique', 'apparat_editeur'] as const
