@@ -2514,9 +2514,19 @@ Tous les chiffres du bandeau viennent désormais de **`statistiques_accueil()`**
 - **« Contributeurs »** réunit les administrateurs et les auteurs d'un essai publié. ⚠️ `profils` ne se lit que « soi-même » : compter les administrateurs depuis une page est impossible sans passer par la fonction.
 - **Une tuile dont le chiffre n'a pas de sens se retire** au lieu d'annoncer « 0 % ». Les filets venant de `.accueil-stat + .accueil-stat`, la barre se recompose d'elle-même.
 
-## Deux verrous, pas un, pour retenir une œuvre
+## Deux verrous, pas un, pour retenir une œuvre — et un TROISIÈME sur le texte
 
-Une œuvre retenue porte **le marqueur `[Corpus Scriptura:depublie]` dans `note`** ET **`acces_public = false`**. Les deux sont indépendants : le premier filtre les listes du site, le second est la RLS. Juger de la publication sur un seul, c'est se tromper une fois sur deux. Les 17 œuvres retenues au 2026-08-21 les portaient toutes deux, et ont été ouvertes sur demande explicite (retour en arrière : `sql/rollback_publication_totale_oeuvres_20260821.sql`).
+Une œuvre retenue porte **le marqueur `[Corpus Scriptura:depublie]` dans `note`** ET **`acces_public = false`**. Les deux sont indépendants : le premier filtre les listes du site, le second est la RLS. Juger de la publication sur un seul, c'est se tromper une fois sur deux.
+
+⛔ **Un troisième verrou est porté par le TEXTE, non par l'œuvre** : `oeuvre_textes.is_public`. La politique de lecture de `segments` exige **les deux à la fois** — `o.acces_public AND t.is_public` — si bien qu'une œuvre ouverte dont aucun texte n'est public s'annonce au catalogue, ouvre sa page… et **ne rend pas une ligne** au lecteur qui n'est pas admin. L'admin, lui, passe par la branche `is_admin()` de la politique et ne voit jamais rien manquer : le défaut est **invisible depuis le compte qui publie**. Le contrôle se fait donc en se mettant à la place du lecteur, jamais en regardant la page :
+
+```sql
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select count(*) from segments where id_oeuvre = '<id>';
+```
+
+Le recensement du 2026-08-29 en dénombre **quatorze** dans cet état (Commentaire sur les Psaumes et Commentaire sur Isaïe de Chrysostome, les quatre pièces de Cyrille de Jérusalem, Manuel pour mon fils, etc.). ⚠️ **Toutes ne sont pas des défauts** — un latin de service, une importation partielle se retiennent légitimement ainsi ; la liste se relit une par une avant de rien ouvrir. Les 17 œuvres retenues au 2026-08-21 les portaient toutes deux, et ont été ouvertes sur demande explicite (retour en arrière : `sql/rollback_publication_totale_oeuvres_20260821.sql`).
 
 L'ouverture en bloc n'a rien vérifié : elle a rouvert des fiches retenues pour de bonnes raisons. La première refermée depuis est le latin de Migne de la Cité de Dieu (`A0010O0109`), dont l'importation s'arrêtait à la *Praefatio* : six segments et 1 411 signes, pour un ouvrage qui compte vingt-deux livres. Une version incomplète ne se propose pas à la lecture, et elle ne s'efface pas pour autant. Les deux verrous se reposent, les données restent en place : `sql/depublication_cite_de_dieu_migne_20260826.sql` (2026-08-26). Le latin complet de la Cité de Dieu est servi ailleurs, sous l'édition Vivès (`A0010O0002`), en regard du français.
 
