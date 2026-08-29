@@ -378,10 +378,13 @@ function rendreBlocTexte(
   const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
   const style: CSSProperties = {
     ...STYLE_CORPS,
-    // ⚠️ 0,6 rem sous un corps de 12,5 px à l'interligne 1,3 valait plus d'une demi-ligne
-    // entre deux paragraphes d'un MÊME style : l'apparat s'y égrenait (décision de
-    // l'auteur, 2026-08-29).
-    margin: discret ? '0.35rem 0 0' : '0 0 0.4rem',
+    // ⚠️ Le blanc entre deux paragraphes d'un MÊME style : 0,6 rem sous un corps de
+    // 12,5 px à l'interligne 1,3 valait plus d'une demi-ligne, et l'apparat s'y égrenait.
+    // Deux crans le 29 août 2026, à la demande de l'auteur — 0,6 puis 0,4 —, jusqu'à
+    // 0,25 rem : quatre pixels sous une ligne de seize, soit le quart d'une ligne. Fillion
+    // enchaîne ses notes, il ne les aère pas. ⛔ En dessous elles se toucheraient, et le
+    // blanc cesserait de dire où finit une note.
+    margin: discret ? '0.35rem 0 0' : '0 0 0.25rem',
     whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
     fontStyle: bloc.kind === 'lemma' || bloc.kind === 'quotation' ? 'italic' : 'normal',
     ...(discret

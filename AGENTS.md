@@ -1153,7 +1153,7 @@ Quatre réglages demandés par l’auteur sur la Bible de Fillion, et un princip
 | Interligne d’un verset | 1,5 | **1,42** |
 | Gouttière du numéro (donc retrait) | 22 px | **30 px** |
 | Piste de texte d’un verset | 480 px | **472 px** |
-| Deux paragraphes d’un même style | 0,6 rem | **0,4 rem** |
+| Deux paragraphes d’un même style | 0,6 rem | **0,25 rem** (deux crans) |
 
 - ⚠️ **La gouttière s’élargit de ce que la piste perd** : le bloc garde EXACTEMENT sa largeur (502 px), et rien ne bouge autour. C’est ce qui permet d’augmenter le retrait sans décaler la page.
 - ⚠️ **Le blanc entre versets se paie deux fois** : le rembourrage de la rangée le pose en haut ET en bas, et la marge s’y ajoute. Trois valeurs à baisser ensemble, sinon on croit avoir réduit et l’on n’a rien fait.
