@@ -327,7 +327,34 @@ Un intertitre porte souvent sa **désignation** puis son **objet** : « I — Ce
 
 ### 6.1 Couverture
 
-**4 936 blocs**, **10 livres**, **25 noms employés** — tous hérités, aucun canonique encore écrit. 4 893 blocs publics. ✅ **Zéro bloc hors vocabulaire** depuis la correction du 2026-08-29.
+**4 936 blocs**, **10 livres**, **DIX noms employés — tous canoniques** depuis la
+normalisation du 2026-08-29. 4 893 blocs publics. ✅ **Zéro bloc hors vocabulaire**, et
+zéro nom hérité restant dans la donnée.
+
+| Nom | Blocs | Rang |
+|---|---:|---|
+| `commentaire` | 3 091 | déclaré |
+| `titre_pericope` | 880 | T6, dans le nom |
+| `introduction_titree` | 270 | déclaré |
+| `titre_sous_section` | 243 | T4, dans le nom |
+| `introduction` | 156 | déclaré |
+| `titre_chapitre_livre` | 117 | T5, dans le nom |
+| `titre_section_livre` | 73 | T3, dans le nom |
+| `notice` | 42 | déclaré |
+| `titre_paragraphe_livre` | 34 | T5, dans le nom |
+| `titre_partie_livre` | 30 | T2, dans le nom |
+
+⛔ **Le rendu n’a pas bougé d’un bloc.** Vérifié après écriture sur les 4 936 : le
+couple (rang, nature) que le lecteur compose est identique, et aucun bloc ne se
+retrouve sans rang. Sauvegarde `internal.backup_styles_normalisation_20260829`,
+retour en arrière dans `sql/rollback_normalisation_styles_20260829.sql`.
+
+⚠️ **Vingt-quatre blocs portaient un rang écrit qui CONTREDISAIT celui de leur nom**,
+toujours d’un cran plus profond — `introduction_sous_section` écrit I4 quand son nom
+dit I3, `titre_section_livre` écrit T4 quand son nom dit T3. Le NOM l’a emporté,
+parce que c’est lui que le rendu a toujours lu : la composition n’a donc pas bougé.
+Les vingt-quatre sont relevés dans `internal.styles_rangs_ecartes_20260829`, à relire
+sur le fac-similé. **C’est une question philologique, pas technique.**
 
 | Livre | Blocs | Styles |
 |---|---|---|
