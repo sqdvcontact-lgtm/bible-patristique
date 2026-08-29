@@ -25,7 +25,7 @@ describe('les épreuves de la planche', () => {
     const html = renderToStaticMarkup(<>{unite.contenu}</>)
     // ⛔ `titre_chapitre_livre` est le seul dont le VIDE est la bonne réponse :
     // la barre de navigation nomme déjà le chapitre (charte § 35.1).
-    if (style.startsWith('titre_chapitre_livre')) {
+    if (style.includes('titre_chapitre_livre')) {
       expect(html).toContain('cs-bible-axe')
       expect(html).not.toContain('Ceci ne doit pas paraître')
       return
@@ -73,6 +73,6 @@ describe('la page de la planche', () => {
     expect(html).not.toContain('pl-unite')
     // Les notices restent atteignables sans souris, sous l'épreuve.
     expect(html).toContain('Tous les styles de cette épreuve')
-    expect(html).toContain('rangée de verset')
+    expect(html).toContain('bible/verset')
   })
 })

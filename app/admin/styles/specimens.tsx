@@ -110,7 +110,7 @@ const Rangee = ({ n, alternatif, actif, children }: {
 
 const BIBLE: Unite[] = [
   {
-    style: 'rangée de verset',
+    style: 'bible/verset — la rangée',
     note: 'La ligne ordinaire de la lecture. Le numéro se pose dans une gouttière au fer à droite : la colonne du texte reste ainsi rigoureusement stable d’un verset à l’autre.',
     contenu: (
       <>
@@ -120,12 +120,12 @@ const BIBLE: Unite[] = [
     ),
   },
   {
-    style: 'rangée de verset — sélectionnée',
+    style: 'bible/verset — sélectionné',
     note: 'Le clic teint le bloc numéro + texte d’un seul tenant. La gouttière d’actions, elle, reste hors de la teinte.',
     contenu: <Rangee n="3" actif>Or Dieu dit : Que la lumière soit ; et la lumière fut.</Rangee>,
   },
   {
-    style: 'enrichissement en ligne',
+    style: 'bible/enrichissement en ligne',
     note: 'Cinq marques, stockées dans le texte même : **gras**, *italique*, ++petites capitales++, ^^exposant^^, et la balise <i> — qui chez Sacy marque les mots AJOUTÉS par le traducteur, absents de la Vulgate.',
     alerte: 'Faute de reconnaître <i>, la page Bible affichait jadis la balise en clair au milieu des versets.',
     contenu: (
@@ -137,12 +137,12 @@ const BIBLE: Unite[] = [
     ),
   },
   {
-    style: 'numérotation alternative',
+    style: 'bible/verset — numérotation alternative',
     note: 'Quand l’édition suit une autre numérotation, la sienne s’écrit entre parenthèses, en italique et sans graisse : elle accompagne le numéro sans le disputer.',
     contenu: <Rangee n="5" alternatif="4,1">Et du soir et du matin se fit un jour.</Rangee>,
   },
   {
-    style: 'lacune du manuscrit',
+    style: 'bible/lacune',
     note: 'Un verset absent du témoin, quand le chapitre est par ailleurs porté. Italique de labeur, teinte effacée : signalé sans peser.',
     alerte: '⛔ Une seule mention, à sa place — non autant qu’il manque de versets.',
     contenu: (
@@ -152,12 +152,12 @@ const BIBLE: Unite[] = [
     ),
   },
   {
-    style: 'verset sans texte',
+    style: 'bible/verset vide',
     note: 'La traduction ne porte rien pour ce créneau canonique. Un tiret cadratin de la teinte des bords, et rien d’autre.',
     contenu: <Rangee n="7"><span style={STYLE_VERSET_VIDE}>—</span></Rangee>,
   },
   {
-    style: 'bloc éditorial dans le fil',
+    style: 'bible_apparat/bloc dans le fil',
     note: 'Un commentaire de péricope s’intercale entre deux versets. ⚠️ Le blanc de 2 rem qui le cerne vient d’une règle de VOISINAGE — `.verset-row + .cs-bible-axe > .cs-bible-bloc` — et non du bloc : c’est pourquoi l’axe doit être là.',
     contenu: (
       <Bible bloc={blocBible('commentaire_pericope', [
@@ -166,7 +166,7 @@ const BIBLE: Unite[] = [
     ),
   },
   {
-    style: 'rangée de verset — après un bloc',
+    style: 'bible/verset — après un bloc',
     note: 'La lecture reprend. Le blanc au-dessus de la rangée est celui que la règle de voisinage a ouvert sous le bloc.',
     contenu: <Rangee n="8">Dieu dit encore : Que le firmament soit fait au milieu des eaux.</Rangee>,
   },
@@ -176,7 +176,7 @@ const BIBLE: Unite[] = [
 
 const OEUVRES: Unite[] = [
   {
-    style: 'introduction — l’argument',
+    style: 'patristique/introduction — l’argument',
     note: 'L’argument qui ouvre une division, hissé en tête, hors des groupes et de la pagination. Plus petit, en italique, d’une encre plus claire.',
     contenu: (
       <div className="seg-wrapper" style={{ position: 'relative', margin: margeArgument() }}>
@@ -188,7 +188,7 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'texte',
+    style: 'patristique/texte',
     note: 'La prose principale — 87 744 segments, l’immense majorité du corpus. Justifiée, césurée, interligne 1,62. Les segments coulent dans un même paragraphe et se désignent au survol.',
     contenu: (
       <p style={styleParagrapheLecture()}>
@@ -198,7 +198,7 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'citation sortie',
+    style: 'patristique/citation sortie',
     note: 'Charte § 3.8. Une citation LONGUE de 400 signes, ISOLÉE par un deux-points et TERMINALE se détache : retrait des deux côtés, corps réduit, ni guillemets ni filet — le retrait suffit à la dire.',
     alerte: 'Les trois conditions sont cumulées : une citation enchâssée sortie laisserait sa phrase d’accueil coupée en deux.',
     contenu: (
@@ -217,7 +217,7 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'verset — la citation posée verset par verset',
+    style: 'patristique/verset',
     note: 'Quand l’édition ne coule pas la citation dans sa prose mais la pose verset par verset. Un segment, un verset ; retrait à GAUCHE seulement, et un léger blanc entre versets au lieu du blanc de paragraphe.',
     alerte: '⛔ Ne pas confondre avec `vers`, la ligne de poésie. Le numéro s’écrit à la main dans `segment_metadata.biblical_verse_number` — jamais `verse_number`, déjà pris.',
     contenu: (
@@ -234,7 +234,7 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'vers',
+    style: 'patristique/vers',
     note: 'Une ligne de poésie. Alinéa de base de 1,5 em, alinéas poétiques LUS dans la source, ni justification ni césure — on ne coupe pas un alexandrin —, interligne 1,4, et un retrait de suite qui distingue une ligne trop longue du vers d’après.',
     alerte: '⛔ Un vers ne prend jamais de lettrine : le drop cap est un flottant, et posé dans la boîte d’une ligne il déborde sur les suivantes.',
     contenu: (
@@ -253,7 +253,7 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'rubrique',
+    style: 'patristique/rubrique',
     note: 'Une rubrique éditoriale qui n’est pas un niveau de titre : centrée, en italique, dans le corps de la lecture.',
     contenu: (
       <p style={styleParagrapheLecture({ rubrique: true })}>
@@ -262,7 +262,7 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'texte — retour à la prose',
+    style: 'patristique/texte — retour à la prose',
     note: 'Le fil reprend après la rubrique. C’est ici qu’on juge le blanc : 0,72 rem sous la rubrique, comme sous n’importe quel paragraphe.',
     contenu: (
       <p style={styleParagrapheLecture()}>
@@ -271,9 +271,9 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'signature',
+    style: 'patristique/signature',
     note: 'Un bloc d’approbations, de censeurs, de souscripteurs : au fer à droite, interligne resserré à 1,32, et un blanc de 0,3 rem seulement entre lignes de même nature.',
-    alerte: '⛔ La base REFUSE cette nature : `chk_segments_nature` ne la contient pas. Le rendu existe, la donnée ne peut pas l’atteindre.',
+    alerte: '⚠️ La base la REFUSAIT jusqu’au 29 août 2026 : le rendu existait, la donnée ne pouvait pas l’atteindre. Contrainte élargie depuis, `chk_segments_nature` porte les quatorze natures de `NATURE_VALIDES`.',
     contenu: (
       <>
         <p style={styleParagrapheLecture({ signature: true })}><Segment>Fr. Jean de Sainte-Marie, censeur.</Segment></p>
@@ -287,7 +287,7 @@ const OEUVRES: Unite[] = [
 
 const APPARAT_OEUVRES: Unite[] = [
   {
-    style: 'apparat_auteur',
+    style: 'patristique_apparat/apparat_auteur',
     note: 'Préface, digression, argument ou autre paratexte rédigé par L’AUTEUR de l’œuvre. Il appartient à `NATURES_CORPS` et se lit à sa place dans le texte, avec la composition ordinaire.',
     alerte: '⛔ Son retrait de `NATURES_CORPS` avait fait disparaître, le 18 août 2026, le « Prologue de Rufin aux livres X et XI ». À ne pas confondre avec `apparat_critique`, l’apparat de l’ÉDITEUR.',
     contenu: (
@@ -298,7 +298,7 @@ const APPARAT_OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'apparat_editeur',
+    style: 'patristique_apparat/apparat_editeur',
     note: 'Préface ou avertissement du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l’œuvre de l’auteur. Une contrainte de base lui impose `espace_textuel = apparat_critique`.',
     contenu: (
       <p style={styleParagrapheApparat()}>
@@ -308,7 +308,7 @@ const APPARAT_OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'apparat_critique',
+    style: 'patristique_apparat/apparat_critique',
     note: 'L’apparat de l’éditeur, qui a sa propre vue dans la page d’œuvre — le même paragraphe, mais dans un autre onglet.',
     alerte: '⛔ L’apparat ne sort pas ses citations : c’est une vue de comparaison, pas la lecture suivie.',
     contenu: (
@@ -319,7 +319,7 @@ const APPARAT_OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'texte-original — en regard',
+    style: 'patristique_apparat/texte original — en regard',
     note: 'La langue originale mise en regard du français. Elle passe alors en SANS : la différence de police distingue les deux colonnes d’un coup d’œil, mieux qu’un filet et sans peser sur le latin.',
     alerte: 'Lue SEULE, la même langue reste en sérif comme le reste de l’œuvre. C’est le regard qui change la police, non la langue.',
     contenu: (
@@ -339,7 +339,7 @@ const APPARAT_OEUVRES: Unite[] = [
 
 const APPARAT_BIBLES: Unite[] = [
   {
-    style: 'introduction_livre — I1, titre T2',
+    style: 'bible_apparat/introduction_livre — I1, titre T2',
     note: 'L’introduction d’un livre. Elle porte un VRAI titre, de rang T2, et c’est le GENRE qui titre : le lecteur sait déjà quel livre il ouvre, le nom du livre passe donc en chapeau.',
     contenu: (
       <Bible bloc={blocBible('introduction_livre', [
@@ -348,7 +348,7 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'intertitre divisé — kind: heading',
+    style: 'bible_apparat/intertitre divisé — kind: heading',
     note: 'Un intertitre porte souvent sa désignation puis son objet. On les compose en titre et chapeau, la coupure se faisant au tiret ENTOURÉ D’ESPACES. La paire retombe sur son rang, qui centre les trois hauts.',
     alerte: '⛔ Un intertitre qui porte une locution marquée ou un appel de note n’est PAS coupé : leurs offsets pointent dans le texte entier. Et le blanc au-dessus vaut 4 rem : il sépare deux sections, il n’aère pas un titre.',
     contenu: (
@@ -365,7 +365,7 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'notice_bible — nature notice, sous-type critical_apparatus',
+    style: 'bible_apparat/notice_bible — sous-type critical_apparatus',
     note: 'L’apparat de bas de page, rendu dans un `<aside>` : à côté du fil, jamais dedans. Corps réduit à 0,78 rem.',
     contenu: (
       <Bible bloc={blocBible('notice_bible', [
@@ -374,7 +374,7 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'citation sortie — introductions et notices',
+    style: 'bible_apparat/citation sortie — introductions et notices',
     note: 'La règle des œuvres vaut ici depuis le 28 août 2026, pour les natures `introduction` et `notice` seulement. La citation quitte le fil, perd ses guillemets encadrants et prend le retrait.',
     alerte: '⛔ Pas dans un commentaire de péricope ou de verset : on y cite en une ligne, et le retrait l’y noierait. Portée réelle du corpus : un paragraphe sur 3 221.',
     contenu: (
@@ -384,22 +384,33 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'titre_partie_livre — T2',
+    style: 'bible_apparat/titre_partie_livre — T2',
     note: 'Une partie du livre : centrée, chasse large, encre foncée. Elle ouvre sur 3 rem de blanc.',
     contenu: <Bible bloc={blocBible('titre_partie_livre', [], { heading: 'PREMIÈRE PARTIE — La vie publique de Jésus.', niveauHtml: 2 })} />,
   },
   {
-    style: 'titre_sous_section — T4',
+    style: 'bible_apparat/titre_sous_section — T4',
     note: 'Les trois rangs bas passent AU FER et changent de corps : c’est la pose, non la taille seule, qui les sépare des rangs hauts.',
     contenu: <Bible bloc={blocBible('titre_sous_section', [], { heading: '1° La personne de l’auteur', niveauHtml: 4 })} />,
   },
   {
-    style: 'titre_pericope — T6',
+    style: 'bible_apparat/titre_paragraphe_livre — T5',
+    note: 'La division « § » de Fillion, entre la sous-section et la péricope : « La Création. I, 1 — II, 3. » (T4) contient « L’Œuvre des six jours », qui contient les six jours (T6). Au fer, corps intermédiaire.',
+    alerte: '⚠️ Deux styles au rang T5, et ils ne se rencontrent pas : le CHAPITRE y vit sur l’axe matériel — il traverse la hiérarchie sans la commander, et ne paraît pas —, le PARAGRAPHE sur l’axe analytique. Ce rang manquait au registre jusqu’au 2026-08-29, et ses trente-quatre blocs de la Genèse ne paraissaient nulle part.',
+    contenu: (
+      <>
+        <Bible bloc={blocBible('titre_paragraphe_livre', [], { heading: '2. L’Œuvre des six jours. I, 2-32.', niveauHtml: 5 })} />
+        <Bible bloc={blocBible('titre_pericope', [], { heading: '1. Le Premier Jour. I, 2-5.', niveauHtml: 6 })} />
+      </>
+    ),
+  },
+  {
+    style: 'bible_apparat/titre_pericope — T6',
     note: 'Le rang le plus bas : au fer, en ITALIQUE, avec de l’air au-dessus et peu au-dessous — le texte qui suit lui appartient.',
     contenu: <Bible bloc={blocBible('titre_pericope', [], { heading: '3. Ce qui suivit la mort de Jésus (27, 51-56)', niveauHtml: 6 })} />,
   },
   {
-    style: 'commentaire_pericope — I5',
+    style: 'bible_apparat/commentaire_pericope — I5',
     note: 'Le style le plus employé du corpus : 2 169 blocs. Son repère devient une MANCHETTE flottante, posée en tête du développement, que le commentaire habille — la disposition du fac-similé.',
     alerte: '⛔ Rien ne délimite la manchette qu’un blanc : ni filet, ni fond, ni pictogramme.',
     contenu: (
@@ -410,7 +421,7 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'locutions marquées — inline_spans',
+    style: 'bible_apparat/locutions marquées — inline_spans',
     note: 'Sémantiques, jamais déduites du texte ni posées en CSS. Le grec, le latin, une abréviation, un titre d’ouvrage : tous en italique avec leur `lang`. Une citation en ligne prend ses guillemets français, qui restent en ROMAIN.',
     alerte: '⛔ La paire de guillemets ne se pose qu’UNE fois. Un appel de note tombé au milieu coupait jadis la locution en fragments, et chaque fragment reprenait sa paire.',
     contenu: (
@@ -430,7 +441,7 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'titre_chapitre_livre — T5',
+    style: 'bible_apparat/titre_chapitre_livre — T5',
     note: 'La mention imprimée « CHAPITRE IX ». Elle reste dans la donnée comme témoin matériel de l’édition, et traverse l’axe analytique — c’est sa PLACE qui compte.',
     alerte: '⛔ JAMAIS AFFICHÉE (charte § 35.1) : la barre de navigation nomme déjà le chapitre. L’épreuve ci-contre est donc VIDE, et c’est la bonne réponse.',
     contenu: <Bible bloc={blocBible('titre_chapitre_livre', ['Ceci ne doit pas paraître.'], { heading: 'CHAPITRE IX', niveauHtml: 5 })} />,
