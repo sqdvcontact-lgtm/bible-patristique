@@ -2106,6 +2106,37 @@ est retenue. Règles de code :
   `app/lib/compositionBible.ts`, `compositionOeuvre.ts`, `compositionVers.ts`,
   `compositionVersets.ts`, et les classes de `globals.css`.
 
+## ⛔ Le CATALOGUE des styles, et la règle pour en créer un (2026-08-29)
+
+Doctrine : charte **§ 7.5** (ce que chaque style sert, et ce qu'il n'est pas) et
+**§ 7.6** (créer un style neuf). Règles de code :
+
+- ⛔ **On ne crée pas un style parce qu'un cas PARAÎT nouveau.** En nécessité extrême,
+  ou quand l'auteur le demande. Le registre du paratexte biblique a compté jusqu'à
+  **48 styles pour 13 faits**, et quatre de ses natures ne se distinguaient par rien de
+  visible — un centième d'em, une italique, ou rien.
+- **Trois questions avant, dans cet ordre** : un style existant ne compose-t-il pas déjà
+  cela ? un AXE ne dirait-il pas la différence sans un nom de plus — le rang, la forme,
+  le rôle, le sous-type, la place ? la différence se VOIT-elle à la lecture ?
+- ⛔ **La CHARTE d'abord, et c'est une règle de l'auteur** : tout style nouveau
+  s'explique dans la charte AVANT d'entrer dans la donnée — sa fonction, quand
+  l'employer, quand NE PAS l'employer, comment il compose. Puis le registre, puis le
+  semis, puis la composition et sa garde, puis l'épreuve sur `/admin/styles`.
+- ⚠️ **Et l'inverse vaut : un style qui ne sert plus se retire.** ⛔ Une grille complète
+  n'est pas une vertu — celle du paratexte comptait 23 styles jamais employés, et c'est
+  elle qui a permis à deux tomes de nommer différemment la même chose.
+
+⛔ **UN VERROU NON DOCUMENTÉ GÈLE LA NATURE DES SEGMENTS DE BOÈCE.**
+`trg_guard_boece_source_immutability_v3` interdit toute modification, sur
+`A0064O0001`, de vingt-cinq champs : identité, texte, les cinq niveaux de référence,
+`source_unit_id`, `espace_textuel`, offsets, `join_before`, `paragraphe`, `rang`,
+`page`, `texte_original` — **et `nature`**. Son auteur a donc rangé la nature parmi les
+faits de la SOURCE. ⚠️ Il bloque la migration des 2 305 vers de Boèce vers
+`forme: vers`, et **il n'était consigné nulle part** — ni charte, ni ici, ni centre de
+contrôle. Le contourner est une décision de l'auteur, pas un geste technique. Il laisse
+passer `segment_metadata` : on pourrait y écrire la forme sans toucher à la nature,
+mais les segments porteraient alors les DEUX déclarations.
+
 ## ⛔ Le VERS — un style, QUATRE surfaces (2026-08-29)
 
 Doctrine : charte **§ 7.4**. Ce qui fait qu'un vers est un vers ne dépend d'aucune
