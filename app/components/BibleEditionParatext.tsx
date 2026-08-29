@@ -146,6 +146,13 @@ function envelopperSpan(
       </span>
     )
   }
+  // Le grec en caractères grecs se compose au fer dans Fillion. La nature
+  // `foreign_expression` décrit la langue, pas une italique implicite : les
+  // translittérations (`grc-Latn`) et les autres langues gardent, elles, la
+  // composition étrangère habituelle.
+  if (span.kind === 'foreign_expression' && span.language === 'grc') {
+    return <span key={key} lang={lang}>{contenu}</span>
+  }
   if (span.rendering === 'italic' || ['quotation', 'foreign_expression', 'bibliographic_title', 'abbreviation'].includes(span.kind)) {
     return <em key={key} lang={lang}>{contenu}</em>
   }
