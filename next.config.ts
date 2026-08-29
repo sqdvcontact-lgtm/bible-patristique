@@ -31,31 +31,22 @@ const nextConfig: NextConfig = {
   // ce projet pèsent déjà quelque 240 Mo à vide : la marge est de dix mégaoctets,
   // pas davantage. La planche mesure désormais dans le NAVIGATEUR, qui charge les
   // images de toute façon.
+  // ⛔ NE PAS poser de `Cache-Control: immutable` sur `/manuscrits/:chemin*`.
+  // Essayé puis retiré le 29 août 2026, sur une prémisse fausse : les 1 264
+  // fac-similés de la Bible 899 ne sont PAS servis par `public/`. Le dossier local
+  // est un miroir de travail, ignoré par git (voir `.gitignore`) ; les images
+  // viennent du seau Supabase `manuscrits`. Sous ce chemin, Vercel ne sert donc
+  // qu'une chose : la PAGE de lecture — dynamique, et pour un visiteur sans session
+  // une redirection 307 vers la connexion. La règle la gelait un an dans le
+  // navigateur : le lecteur, une fois connecté, aurait continué d'être renvoyé
+  // vers `/chantier` depuis son propre cache.
+  //
+  // ⚠️ La leçon vaut au-delà de ce chemin : une règle d'en-tête écrite sur un
+  // `source` désigne des ROUTES, pas des fichiers, et une route de page y répond
+  // aussi bien qu'un fichier statique. Vérifier ce que le chemin sert RÉELLEMENT
+  // en ligne avant d'y poser un cache long.
   async headers() {
-    return [
-      { source: "/:chemin*", headers: ENTETES_SECURITE },
-      // ── Les folios de la Bible 899 se mettent en cache POUR DE BON ────────────
-      //
-      // Vercel sert `public/` avec `max-age=0, must-revalidate` : c'est le bon
-      // défaut, car un fichier statique peut être remplacé sous le même nom. Il ne
-      // l'est PAS ici. Les 1 264 numérisations sont scellées par empreinte SHA-256
-      // dans `data/manuscrits/bible-899/manifest.json`, et le chargeur refuse de
-      // démarrer si une seule a bougé : leur immuabilité n'est pas une hypothèse,
-      // c'est une garde qui s'exécute.
-      //
-      // Sans cette règle, un lecteur qui a DÉJÀ le folio en cache repaie tout de
-      // même un aller-retour conditionnel à chaque affichage — pour des images de
-      // 1,4 Mo en moyenne, tournées une par une. Avec elle, la seconde visite ne
-      // touche plus le réseau.
-      //
-      // ⛔ Si un jour une numérisation est refaite, elle DOIT changer de nom (ou le
-      // sceau change, donc le manifeste, donc le nom) : un fichier remplacé sous le
-      // même nom resterait un an dans les navigateurs.
-      {
-        source: "/manuscrits/:chemin*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
-      },
-    ];
+    return [{ source: "/:chemin*", headers: ENTETES_SECURITE }];
   },
   images: {
     remotePatterns: [
