@@ -1204,7 +1204,7 @@ Deux styles de paragraphe propres au paratexte biblique, demandés par l'auteur 
 - ⛔ **Sans `genreEnTitre`** : l'ordre imprimé fait foi ici, la désignation ouvre et l'objet suit. Cette option ne sert qu'aux intitulés de bloc de portée haute.
 - ⛔ **Un intertitre qui porte une locution marquée ou un appel de note n'est PAS coupé** : leurs offsets pointent dans le texte entier, et le couper les déplacerait. Le corpus le permet — sur les **43** intertitres relevés, les **5** à tiret séparateur (les deux de l'Introduction générale, les trois de l'introduction à l'Ancien Testament) n'ont ni span ni appel, et les 3 qui portent un span (« 1. La Loi ou Tôrah ») n'ont pas de tiret.
 - ⚠️ Le tiret **collé** n'est pas un séparateur : « II — Jésus-Christ, centre de la Bible » se coupe une seule fois, au tiret entouré d'espaces. Cinq cas réels sont fixés dans `bibleHierarchieSemantique.test.ts`.
-- ⛔ **Une paire ne prend pas l'alignement reconstruit du fac-similé** (2026-08-28). `presentation.text_align: "left"` décrivait UNE ligne, « I — Ce qu'est la Bible », composée au fer dans la colonne imprimée ; appliqué à la paire, il laissait le chiffre romain pendre au bord gauche pendant que son objet occupait la colonne. **Mesuré sur épreuve : 48,8 px contre 295, soit 246 px d'écart entre les deux axes.** Un intertitre divisé retombe donc sur son RANG — `.cs-bible-title--t1/t2/t3` centrent, les rangs bas restent au fer —, et les deux lignes tombent alors sur le même axe à 295 px.
+- ⛔ **Une paire ne prend pas l'alignement reconstruit du fac-similé** (2026-08-28). `presentation.text_align: "left"` décrivait UNE ligne, « I — Ce qu'est la Bible », composée au fer dans la colonne imprimée ; appliqué à la paire, il laissait le chiffre romain pendre au bord gauche pendant que son objet occupait la colonne. **Mesuré sur épreuve : 48,8 px contre 295, soit 246 px d'écart entre les deux axes.** Un intertitre divisé retombe donc sur son RANG — `.cs-bible-title--t1/t2/t3` centrent, et `--t5` depuis le 29 août ; T4 et T6 restent au fer —, et les deux lignes tombent alors sur le même axe à 295 px.
 - **La classe `cs-bible-titre--divise`** porte le peu qui distingue la paire du couple titre-chapeau ordinaire : **0,9 rem** de blanc au-dessous au lieu de 0,6, et **0,3 rem** entre les deux lignes au lieu de 0,2. Une désignation d'UNE lettre demande plus d'air que « Première partie », qui remplit sa ligne. ⛔ Aucune chasse sur la tête : une lettre seule ne s'espace pas, et la chasse qu'on lui ajouterait, tombant après elle, la décalerait de l'axe.
 - ⚠️ **Le blanc AU-DESSUS sépare deux sections, il n'aère pas un titre** (2026-08-28). « II — Jésus-Christ, centre de la Bible » se lisait comme la suite du § I : dans une introduction de dix pages, rien d'autre ne dit au lecteur qu'il change de matière. D'où **4 rem**, soit environ quatre lignes du corps de l'apparat. ⚠️ **Sauf le PREMIER intertitre d'une pièce**, qui n'a rien à séparer et suit le grand titre de tête : il garde 2,5 rem (`.cs-bible-piece > header + * .cs-bible-titre--divise:first-of-type`). Mesuré sur épreuve : **40 px avant « I », 64 avant « II »**.
 
@@ -2034,7 +2034,7 @@ Doctrine : charte **§ 35.6.2**. Une seule famille sert « Du même auteur », t
 
 ## L'intitulé d'une introduction de livre (2026-08-27)
 
-Doctrine : charte **§ 35.13**. `introduction_livre` déclare désormais `heading_role: 'title'` et `heading_level: 'T2'` dans `work/fillion/semantic_display_hierarchy.json` : le rendu passe par la branche « cas mixte » de `BlocEditorialBible`, et l'intitulé prend la composition de « Première partie ». Le chapeau (`.cs-bible-chapeau`) reçoit sous les trois rangs HAUTS la composition du sous-titre de partie ; il garde le gris de l'apparat sous les rangs bas.
+Doctrine : charte **§ 35.13**. `introduction_livre` déclare désormais `heading_role: 'title'` et `heading_level: 'T2'` dans `work/fillion/semantic_display_hierarchy.json` : le rendu passe par la branche « cas mixte » de `BlocEditorialBible`, et l'intitulé prend la composition de « Première partie ». Le chapeau (`.cs-bible-chapeau`) reçoit sous les trois rangs HAUTS la composition du sous-titre de partie ; il garde le gris de l'apparat sous T4 et T6. ⚠️ T5 a le sien depuis le 29 août : le même corps, mais dans l'encre de SON titre.
 
 ⛔ **`diviserIntitule` prend une option `genreEnTitre`**, posée sur les blocs de portée haute (`resolu.level === 'I1'`) : le GENRE remonte en titre quand il ferme l'intitulé, l'ordre imprimé tient quand il l'ouvre. La liste des genres est CLOSE. ⚠️ La règle ne porte pas sur la position : Fillion écrit « Évangile selon saint Matthieu — Introduction » et « Introduction — 1° La personne de l'auteur » dans le même livre.
 
@@ -2399,7 +2399,9 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
 
 Un sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
 matériel de la page imprimée. Il prend donc la pose, l'encre et le corps de ce
-titre : centré sous un titre centré (T1-T3), au fer sous un titre au fer (T4-T6).
+titre : centré sous un titre centré (T1-T3 **et T5**), au fer sous un titre au fer
+(T4, T6). ⚠️ T5 a rejoint les rangs centrés le soir même — voir la section
+suivante ; c'est la règle qui décide, non la liste, et la liste la suit.
 
 - ⛔ **Le rang vient de l'ANCRE, jamais du rôle ni du rang du sous-titre.** La donnée
   le prouve : un `section_subtitle` de rang I3 visait indifféremment un titre **T3,
@@ -2421,6 +2423,34 @@ titre : centré sous un titre centré (T1-T3), au fer sous un titre au fer (T4-T
   `rangDesSousTitres` (`bibleHierarchieSemantique.ts`), tous deux purs et testés.
 - ⚠️ **Sans rang connu, on garde la composition des rangs HAUTS** : c'est celle que les
   201 sous-titres recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
+
+## ⛔ Le PARAGRAPHE (T5) se centre, seul des rangs bas (2026-08-29)
+
+Doctrine : charte **§ 35.10**. « ce niveau de titre me paraît pas bien placé »
+(relevé de l'auteur sur « I — Le début de la création (1, 1-2) »).
+
+- ⚠️ **La pose de ce rang ne vient pas de son rang, mais de sa DONNÉE.** T5 ne porte
+  jamais un titre en prose : sur ses **35 blocs visibles** — tous dans la Genèse, les
+  117 `titre_chapitre_livre` ne se rendant pas —, l'intitulé est une DÉSIGNATION
+  seule, et son objet tombe à côté. **Trois** le portent en chapeau (« I », puis « Le
+  début de la création (1, 1-2) »), **trente-deux** dans un bloc de sous-titre
+  (« § I », puis « Abraham dans la terre de Chanaan et en Égypte »). Au fer, la
+  désignation d'une ou deux lettres pendait au bord gauche, et son objet — gris, et
+  plus petit que le texte courant — se lisait comme une légende.
+- ⚠️ **Le centre le sépare enfin de la SOUS-SECTION**, dont un seul pixel de corps le
+  distinguait — 17 px contre 16, tous deux au fer, tous deux en sérif romain. Et les
+  deux rangs s'écrivent pareil dans la Genèse : « Section II » puis « § I ». Deux rangs
+  voisins doivent différer sur DEUX axes au moins ; ceux-là n'en avaient pas un.
+- ⛔ **Le corps de la tête ne monte pas** : il égalerait la sous-section. C'est
+  l'OBJET qui monte d'un cran — 14 px → 15 — et quitte le gris, sous ses deux formes :
+  le chapeau par `.cs-bible-title--t5 > .cs-bible-chapeau`, le bloc de sous-titre par
+  `compositionSousTitre`.
+- ⛔ **Aucune chasse sur la désignation.** Une lettre seule ne s'espace pas, et la
+  chasse, tombant APRÈS elle, la décalerait de l'axe qu'on vient de lui donner.
+- ⛔ **T4 n'est PAS touché**, et ce n'est pas un oubli : ses 248 blocs mêlent les deux
+  formes dans une même page — 24 désignations contre 9 titres pleins aux Actes, 9
+  contre 15 chez Matthieu. Le centrer n'aurait donné qu'une pose au hasard de la
+  donnée, soit deux rangs apparents pour un seul rang réel.
 
 ⚠️ **Le trait sous l'onglet retenu prend `--cs-vert`, non `--cs-vert-aplat`** (correction
 du même jour, dans un chantier voisin). Les deux jetons sont IDENTIQUES au Clair
