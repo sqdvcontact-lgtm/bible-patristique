@@ -55,8 +55,26 @@ export const SELECT_SEGMENT = COLONNES_SEGMENT.join(',')
  * disparaître du rendu le 18 août 2026 — le « Prologue de Rufin aux livres X et XI »
  * ne paraissait plus entre le titre du Livre X et « Chapitre I ». À ne pas confondre
  * avec `apparat_critique`, l'apparat de l'ÉDITEUR, qui a sa propre vue.
+ *
+ * ⛔ `lemme` en fait partie POUR LA MÊME RAISON, et son absence coûtait la même chose.
+ * C'est le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente.
+ * Quarante-sept segments le portent, tous dans le *Commentaire sur Jonas* de Jérôme
+ * (`TXT_A0051O0022_FR_1879_BAREILLE`), œuvre PUBLIÉE, tous au rang 1 de leur
+ * paragraphe — et aucun n'était chargé. Le lecteur recevait donc le commentaire sans
+ * le texte commenté : la division « Jonas 1, 1 » ouvrait sur « La traduction des
+ * Septante est la même, à cette différence près… », qui compare une traduction à un
+ * verset absent. Relevé et corrigé le 29 août 2026.
+ *
+ * ⚠️ Un lemme se lit AU FIL DU TEXTE, comme n'importe quel paragraphe : décision de
+ * l'auteur du 20 août 2026 (charte § 3.8) — « le lemme se détache par sa FONCTION, non
+ * par sa taille », et le seuil de la citation sortie reste à 400 signes.
+ *
+ * ⚠️ La règle générale, qu'on a maintenant payée DEUX fois : cette liste est le seul
+ * endroit qui décide qu'une nature paraît. Une nature admise par
+ * `chk_segments_nature` et absente d'ici n'est pas mal composée — elle n'existe pas
+ * pour le lecteur, en silence, et aucun test ne le dit.
  */
 export const NATURES_CORPS = [
-  'texte', 'introduction', 'citation', 'dialogue', 'texte absent',
+  'texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent',
   'vers', 'verset', 'rubrique', 'signature', 'apparat_auteur',
 ] as const
