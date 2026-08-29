@@ -25,7 +25,10 @@ describe('paratexte des éditions bibliques', () => {
         }],
       }} />,
     )
-    expect(html).toContain('data-semantic-style="introduction_livre"')
+    // ⚠️ L'attribut rapporte le nom CANONIQUE, non le code écrit dans la donnée.
+    // Depuis le regroupement du 29 août 2026, `introduction_livre` est un alias de
+    // `introduction_titree` : l'introduction qui porte son propre titre.
+    expect(html).toContain('data-semantic-style="introduction_titree"')
     expect(html).toContain('data-placement="before"')
     expect(html).toContain('Introduction à l’Évangile selon saint Marc')
   })

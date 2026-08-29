@@ -20,14 +20,25 @@ const essaiSeul = process.argv.includes('--dry')
 
 const registre = JSON.parse(readFileSync(resolve(racine, 'work/fillion/semantic_display_hierarchy.json'), 'utf8'))
 
-/** Un style de plein droit porte sa définition ; un alias ne porte que son renvoi. */
+/**
+ * Un style de plein droit porte sa définition ; un alias ne porte que son renvoi.
+ *
+ * ⚠️ Depuis le REGROUPEMENT du 29 août 2026, une NATURE d'information ne porte plus de
+ * rang : `niveau` y est nul, et le rang se déclare sur le bloc. Un nom HÉRITÉ, lui,
+ * porte le rang qu'il disait dans son propre nom, et c'est ce rang qui fait foi.
+ */
+const propreALAlias = (valeur) => {
+  if (valeur === null || valeur === undefined) return {}
+  return typeof valeur === 'string' ? { niveau: valeur } : valeur
+}
+
 const lignes = []
 for (const [code, s] of Object.entries(registre.styles)) {
   lignes.push({
     code,
     alias_de: null,
     kind: s.kind,
-    niveau: s.level,
+    niveau: s.level ?? null,
     nature: s.nature,
     axe: s.hierarchy_axis === 'material' ? 'material' : 'analytic',
     au_plan: s.include_in_outline === true,
@@ -37,12 +48,19 @@ for (const [code, s] of Object.entries(registre.styles)) {
     masque_par_navigation: s.redundant_with_reader_navigation === true,
     note: s.note ?? null,
   })
-  for (const alias of s.aliases ?? []) {
+  for (const [alias, valeur] of Object.entries(s.aliases ?? {})) {
+    const porte = propreALAlias(valeur)
     lignes.push({
-      code: alias, alias_de: code, kind: null, niveau: null, nature: null, axe: null,
-      au_plan: false, role_intitule: null, niveau_intitule: null,
-      bloc_de_corps: true, masque_par_navigation: false,
-      note: `Alias de \`${code}\`.`,
+      code: alias, alias_de: code, kind: null, nature: null, axe: null,
+      niveau: porte.niveau ?? null,
+      au_plan: porte.auSommaire === true,
+      role_intitule: null,
+      niveau_intitule: porte.titre ?? null,
+      bloc_de_corps: porte.horsCorps !== true,
+      masque_par_navigation: porte.redondant === true,
+      note: porte.niveau
+        ? `Nom hérité de ${code}, rang ${porte.niveau}.`
+        : `Alias de ${code}.`,
     })
   }
 }

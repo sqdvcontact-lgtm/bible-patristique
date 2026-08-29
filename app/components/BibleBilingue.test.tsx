@@ -77,7 +77,10 @@ describe('lecture bilingue de la page Bible', () => {
       />,
     )
     expect(html.split('Commun aux deux langues.')).toHaveLength(2)
-    expect(html).toContain('data-semantic-style="introduction_livre"')
+    // ⚠️ L'attribut rapporte le nom CANONIQUE, non le code écrit dans la donnée.
+    // Depuis le regroupement du 29 août 2026, `introduction_livre` est un alias de
+    // `introduction_titree` : l'introduction qui porte son propre titre.
+    expect(html).toContain('data-semantic-style="introduction_titree"')
   })
 
   it('appelle une note commune depuis les deux colonnes, avec des ancres distinctes', () => {

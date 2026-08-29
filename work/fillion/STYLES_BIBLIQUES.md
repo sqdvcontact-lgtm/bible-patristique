@@ -2,7 +2,7 @@
 
 **Destinataire : une IA qui écrit ou corrige la donnée éditoriale d’une bible commentée** (aujourd’hui la famille Fillion). Ce document dit, pour chaque style, *ce qu’il est*, *quand l’employer*, *comment il se rend*, et *où il sert déjà*.
 
-Registre technique : `work/fillion/semantic_display_hierarchy.json` (version 1.0.0, mise à jour le **2026-08-29**, 48 styles). Le présent document en est la lecture raisonnée ; **le registre fait foi sur les valeurs, ce document sur l’usage.**
+Registre technique : `work/fillion/semantic_display_hierarchy.json` (version **2.0.0**, mise à jour le **2026-08-29**, **12 styles** et 46 noms hérités). Le présent document en est la lecture raisonnée ; **le registre fait foi sur les valeurs, ce document sur l’usage.**
 
 Audit de couverture : § 6, relevé du **2026-08-28** sur les 4 935 blocs éditoriaux des dix livres publiés, **corrigé le 2026-08-29**.
 
@@ -38,7 +38,7 @@ Un bloc éditorial porte jusqu’à quatre déclarations indépendantes. Les con
 
 | Couche | Où elle s’écrit | Ce qu’elle dit | Vocabulaire |
 |---|---|---|---|
-| **1. Style sémantique** | `semantic_style_code` du bloc | Ce que le bloc EST, et l’étendue qu’il couvre | 48 valeurs (§ 2) |
+| **1. Style sémantique** | `semantic_style_code` du bloc | Ce que le bloc EST — sa NATURE ; l’étendue se déclare à part | 12 valeurs (§ 2) |
 | **2. Rôle d’affichage** | `presentation` du bloc (jsonb) | Ce que la page imprimée FAISAIT de ce bloc | 6 clés lues (§ 3) |
 | **3. Style de paragraphe** | `editorial_normalization.blocks[]` de l’unité source | Comment se compose CHAQUE paragraphe | `kind`, `form`, `presentation`, `inline_spans` (§ 4) |
 | **4. Sous-type de notice** | `notice_subtype` du bloc | De quelle espèce est une notice | 5 valeurs (§ 5) |
@@ -69,7 +69,7 @@ Un bloc éditorial porte jusqu’à quatre déclarations indépendantes. Les con
   | `I5` | une péricope |
   | `I6` | un verset |
 
-⚠️ **La NATURE est un troisième axe, séparé.** `introduction_pericope` et `commentaire_pericope` sont tous deux `I5` et n’ont ni le même rôle ni le même rendu. Les huit natures : `title`, `introduction`, `commentary`, `notice`, `summary`, `excursus`, `conclusion`, `note`.
+⚠️ **La NATURE est un troisième axe, séparé.** Une introduction et un commentaire peuvent tous deux être `I5` sans avoir ni le même rôle ni le même rendu. Les natures, ramenées de huit à **cinq** le 29 août 2026 : `title`, `introduction`, `commentary`, `notice`, `note`. ⛔ `summary`, `excursus` et `conclusion` ont été fondues : aucune ne portait un bloc, et aucune ne composait autrement (§ 2.3).
 
 ⛔ **Le chiffre du jeton n’est pas la balise HTML.** `baliseTitre` calcule `h1`–`h6` sur les parents **réellement présents** : une édition sans partie ni sous-section passerait de `h1` à `h5` et casserait le plan d’accessibilité. Ne jamais recopier le chiffre.
 
@@ -91,33 +91,84 @@ Un titre porte son texte dans `heading` ; il n’a pas de « repère » séparé
 
 ⛔ **`titre_chapitre_livre` est conservé mais invisible.** La barre de navigation nomme déjà le chapitre ; la mention imprimée n’apprenait rien. Elle reste dans la donnée comme témoin matériel, et **continue de traverser l’axe analytique** : c’est sa PLACE qui compte. Un titre matériel ne devient jamais le parent de ce qui le suit — « 2° L’adoration des Mages » relève du § II, non du chapitre II.
 
-### 2.3 Les styles d’INFORMATION : une grammaire régulière
+### 2.3 Les styles d’INFORMATION : QUATRE natures, et le rang se déclare
 
-Le nom se lit **`{nature}_{portée}`**. Les portées, de la plus large à la plus étroite :
+⛔ **Un style dit une NATURE. Le rang se dit à part.** C’est le regroupement du
+29 août 2026, et c’est la règle à retenir avant toute autre.
 
-`bible` → `testament` → `groupe_livres` → `livre` → `partie` → `section` / `sous_section` → `chapitre` → `pericope` → `verset`
+Le registre portait auparavant **quarante** styles d’information qui étaient un
+**produit croisé** `{nature}_{portée}` — `commentaire_pericope`, `introduction_livre`,
+`notice_chapitre`. Or le rendu ne compose que sur le couple **niveau × nature** : le
+suffixe répétait ce que la portée disait déjà, et ce qui se répète dérive (charte
+§ 7.1). La dérive s’était produite, et ce document la constate encore au § 6.4 : le
+Pentateuque et le Nouveau Testament avaient fini par employer des vocabulaires
+disjoints pour des fonctions voisines.
 
-Les natures disponibles : `introduction`, `commentaire`, `notice`, `sommaire`, `conclusion`, `excursus`, `transition`.
-
-| Portée | Jeton | Styles existants |
+| Style | Ce qu’il est | Ce qu’il a absorbé |
 |---|---|---|
-| Bible | I1 | `introduction_bible`, `notice_bible` |
-| Testament | I1 | `introduction_testament`, `notice_testament` |
-| Groupe de livres | I1 | `introduction_groupe_livres`, `notice_groupe_livres` |
-| Livre | I1 | `introduction_livre`, `notice_livre`, `commentaire_livre`, `sommaire_livre`, `conclusion_livre`, `excursus_livre` *(alias `excursus`)*, `transition_livre` |
-| Partie | I2 | `introduction_partie` *(alias `introduction_partie_livre`)*, `commentaire_partie`, `notice_partie`, `sommaire_partie`, `conclusion_partie`, `excursus_partie` |
-| Section | I3 | `introduction_section`, `introduction_sous_section`, `commentaire_section`, `notice_section`, `sommaire_section`, `conclusion_section`, `excursus_section` |
-| Chapitre | I4 | `introduction_chapitre`, `commentaire_chapitre`, `notice_chapitre`, `sommaire_chapitre`, `conclusion_chapitre`, `excursus_chapitre` |
-| Péricope | I5 | `introduction_pericope`, `commentaire_pericope`, `notice_pericope`, `sommaire_pericope`, `conclusion_pericope`, `excursus_pericope`, `transition_pericope` |
-| Verset | I6 | `commentaire_verset`, `note_verset` |
+| **`introduction_titree`** | l’introduction qui porte son **propre titre** | `introduction_livre`, `introduction_pericope` |
+| **`introduction`** | l’introduction qui **n’en porte pas** : son intitulé n’est qu’un repère | les sept autres `introduction_*`, et les cinq `sommaire_*` |
+| **`commentaire`** | l’explication suivie | les six `commentaire_*`, et les cinq `conclusion_*` |
+| **`notice`** | l’appoint documentaire, rendu **à côté** du fil | les huit `notice_*`, les cinq `excursus_*`, les deux `transition_*` |
 
-⚠️ **Trois exceptions à connaître par cœur :**
+Plus **`note_verset`**, qui n’est pas un bloc de corps (`body_block: false`,
+`placement: footnote_only`) et ne se rend qu’en note.
 
-1. **`introduction_livre` porte un vrai TITRE** (`heading_role: title`, niveau `T2`) : son intitulé — « Évangile selon saint Matthieu — Introduction » — se compose comme un titre de partie, non comme un repère.
-2. **`introduction_pericope` porte un vrai titre de rang `T6`, ET entre au plan** (`heading_in_outline: true`) : le titre d’une péricope vit à l’intérieur d’un bloc d’introduction, et le sommaire doit l’y trouver.
-3. **`note_verset` n’est pas un bloc de corps** (`body_block: false`, `placement: footnote_only`) : il ne se rend qu’en note.
+**Pourquoi ces fusions, et pas d’autres.** Elles ne se distinguaient par rien de
+visible : `excursus` composait **exactement** comme `notice` — même corps, même
+aparté ; `sommaire` s’en écartait d’**un centième d’em** ; `conclusion` d’une
+italique, alors qu’une conclusion est un commentaire **placé** à la fin, et que la
+position est un axe à part ; `transition_*` portait déjà `nature: notice`. ⚠️ Aucune
+des quatre ne portait un seul bloc du corpus : le regroupement n’a rien déplacé.
 
-Tous les autres portent un **repère** (`heading_role: label`) : ce n’est **pas** un titre — ni balise `h*`, ni place au plan.
+#### Comment on écrit un bloc, désormais
+
+```jsonc
+"metadata": {
+  "semantic_style": "commentaire",   // la NATURE  — quatre valeurs, plus note_verset
+  "semantic_level": "I5"             // le RANG    — I1 à I6, obligatoire
+}
+```
+
+⛔ **Un style d’information sans rang est REFUSÉ**, par la base comme par le rendu. Ce
+n’est pas une sévérité gratuite : c’est le sens même du regroupement. Le nom dit la
+nature, le rang se déclare, et un bloc qui n’en déclare aucun ne s’en invente pas un.
+
+Les rangs, de la portée la plus large à la plus étroite :
+
+| Jeton | Portée |
+|---|---|
+| `I1` | bible, testament, groupe de livres, **livre** |
+| `I2` | partie de livre |
+| `I3` | section, sous-section |
+| `I4` | chapitre |
+| `I5` | péricope |
+| `I6` | verset |
+
+#### Les noms HÉRITÉS continuent de fonctionner
+
+⚠️ Les quarante anciens codes vivent comme **noms hérités**, chacun portant le rang
+qu’il disait dans son propre nom : `commentaire_pericope` se résout en `commentaire`
++ `I5`, et le rendu ne change pas d’un pixel. **La donnée n’a rien à migrer pour
+continuer de paraître.** ⛔ Mais on n’en écrit plus de nouveaux : le nom hérité est là
+pour que rien ne casse, non pour qu’on continue.
+
+⛔ **Le rang d’un nom hérité fait foi contre un rang déclaré.** Sans quoi le
+regroupement changerait la composition d’un bloc qui n’a pas bougé.
+
+#### Les deux introductions, et ce qui les sépare
+
+C’est la distinction que l’auteur a demandé de garder, et la seule qui reste dans la
+famille : **une introduction porte-t-elle son propre titre, ou non ?**
+
+1. **`introduction_titree`** — son intitulé se compose comme un titre. ⚠️ Le rang de ce
+   titre se **déclare** (`embedded_title_level`) : il ne se déduit pas du niveau, un
+   `I1` portant un `T2` et un `I5` un `T6`. L’introduction d’une péricope entre en
+   outre **au plan** (`auPlan`), le titre de la péricope vivant à l’intérieur du bloc.
+2. **`introduction`** — son intitulé n’est qu’un **repère** (`heading_role: label`) :
+   ni balise `h*`, ni place au plan.
+
+Tous les autres styles d’information portent un repère, jamais un titre.
 
 ### 2.4 Ce que chaque axe change au rendu
 
@@ -257,7 +308,7 @@ Un intertitre porte souvent sa **désignation** puis son **objet** : « I — Ce
 
 ### 6.1 Couverture
 
-**4 935 blocs**, **10 livres**, **25 styles employés** sur les 48 du registre. 4 893 blocs publics. ✅ **Zéro bloc hors vocabulaire** depuis la correction du 2026-08-29.
+**4 936 blocs**, **10 livres**, **25 noms employés** — tous hérités, aucun canonique encore écrit. 4 893 blocs publics. ✅ **Zéro bloc hors vocabulaire** depuis la correction du 2026-08-29.
 
 | Livre | Blocs | Styles |
 |---|---|---|
@@ -320,27 +371,47 @@ Un intertitre porte souvent sa **désignation** puis son **objet** : « I — Ce
 
 ⚠️ **Les pièces liminaires sont re-déduites au lieu d’être lues.** 64 blocs déclarent `piece_key` (douze pièces nommées : `page-de-titre`, `du-meme-auteur`, `imprimatur-1888`, `imprimatur-1904`, `dedicace-vigouroux`, `avant-propos`, `transcription-hebreu`, `principales-abreviations`, `introduction-generale`, `ancien-testament`, `pentateuque`, `genese`) et `piece_role` (`head`, `continuation`, `apparatus`, `entry`). Le site ne les lit pas : `grouperPiecesLiminaires` reconstruit le groupement à partir du nom, de la portée et de la page imprimée. Cela marche aujourd’hui, mais une donnée explicite vaut mieux qu’une heuristique.
 
-### 6.4 ⚠️ Deux vocabulaires pour un même corpus
+### 6.4 ⚠️ Les deux tomes ne commentent pas au même RANG
 
-La même fonction éditoriale ne porte pas le même style selon le tome. **La donnée est cohérente en elle-même, mais elle n’est pas comparable d’un livre à l’autre.**
+La même fonction éditoriale ne se traite pas au même niveau selon le tome. ⚠️ Ce
+n’était pas lisible avant le regroupement : c’étaient alors deux **vocabulaires**
+disjoints, et l’on ne pouvait pas voir que la question était celle du rang. Le
+tableau se lit maintenant sur une seule colonne de noms.
 
 | Fonction | Pentateuque (GEN-DEU) | Nouveau Testament (MAT-ACT) |
 |---|---|---|
-| Ouvrir une péricope | `titre_pericope` (607) | `introduction_pericope` (257) + `titre_pericope` (272) |
-| Commenter verset par verset | `commentaire_verset` (462) | *aucun* |
-| Commenter un chapitre | `commentaire_chapitre` (257) | *aucun* |
+| Ouvrir une péricope | `titre_pericope` (607) | `introduction_titree` I5 (257) + `titre_pericope` (272) |
+| Commenter au verset | `commentaire` **I6** (462) | *aucun* |
+| Commenter au chapitre | `commentaire` **I4** (257) | *aucun* |
+| Commenter à la péricope | `commentaire` I5 (1 070) | `commentaire` I5 (1 099) |
 | Marquer le chapitre imprimé | *aucun* | `titre_chapitre_livre` (117) |
-| Introduire une section | *aucun* | `introduction_section` (35) |
-| Introduire une partie | *aucun* | `introduction_partie` (14) |
-| Commenter une partie | `commentaire_partie` (12) | *aucun* |
+| Introduire une section | *aucun* | `introduction` I3 (35) |
+| Introduire une partie | *aucun* | `introduction` I2 (14) |
 
-Ce n’est pas nécessairement une faute : Fillion ne compose pas le Pentateuque comme les Évangiles. Mais avant d’en tirer une statistique ou une règle, **vérifier que la question porte sur la même chose des deux côtés**.
+Ce n’est pas nécessairement une faute : Fillion ne compose pas le Pentateuque comme
+les Évangiles, et il y commente réellement verset par verset. Mais l’écart de
+`commentaire_section` — **175 blocs contre 13** — quand `introduction_section` fait
+**0 contre 35** ressemble, lui, à deux passes de transcription qui n’ont pas nommé la
+même chose de la même façon. **Les départager demande le fac-similé : c’est
+philologique, pas technique.** Avant d’en tirer une statistique ou une règle,
+vérifier que la question porte sur la même chose des deux côtés.
 
-### 6.5 Styles jamais employés — 23 sur 48
+### 6.5 Le vocabulaire est passé de 48 styles à 12
 
-`titre_livre`, `sommaire_livre`, `conclusion_livre`, `excursus_livre`, `transition_livre`, `notice_partie`, `sommaire_partie`, `conclusion_partie`, `excursus_partie`, `notice_section`, `sommaire_section`, `conclusion_section`, `excursus_section`, `notice_chapitre`, `sommaire_chapitre`, `conclusion_chapitre`, `excursus_chapitre`, `notice_pericope`, `sommaire_pericope`, `conclusion_pericope`, `excursus_pericope`, `transition_pericope`, `note_verset`.
+⛔ **Il n’y a plus de « styles jamais employés ».** Il y en avait vingt-trois sur
+quarante-huit, et l’ancienne rédaction de ce paragraphe défendait de les supprimer,
+« la grille se lit d’un coup d’œil, et une grille trouée ne se lit plus ». C’était
+prendre le défaut pour la règle : **la grille ELLE-MÊME était le problème**, puisqu’elle
+nommait un produit croisé nature × portée que le rendu ne regarde pas.
 
-Le registre a été posé en grille complète (nature × portée). Ces styles sont **valides et prêts** ; leur absence dit seulement que le corpus publié n’en a pas eu besoin. ⛔ Ne pas les supprimer : la grille se lit d’un coup d’œil, et une grille trouée ne se lit plus.
+Les douze qui restent — sept titres, quatre natures d’information, une note — sont
+tous employés, sauf `titre_livre`, dont le vide est la bonne réponse : la page porte
+déjà le titre du livre dans ses métadonnées.
+
+⚠️ Un besoin nouveau **étend** le vocabulaire, il ne le contourne pas : on l’écrit
+dans `work/fillion/semantic_display_hierarchy.json`, puis on sème
+(`scripts/fillion/semer-styles-semantiques.mjs`). ⛔ Jamais un INSERT à la main : deux
+vocabulaires qui divergent valent moins qu’un seul.
 
 ---
 

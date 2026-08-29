@@ -2106,6 +2106,51 @@ est retenue. Règles de code :
   `app/lib/compositionBible.ts`, `compositionOeuvre.ts`, `compositionVers.ts`,
   `compositionVersets.ts`, et les classes de `globals.css`.
 
+## ⛔ Un style dit une NATURE ; le rang se dit à part (2026-08-29)
+
+Doctrine : charte **§ 7.2**. Le paratexte biblique confondait encore les axes du
+§ 7.1 : sur ses **48** styles, **quarante** étaient un produit croisé nature × portée
+(`commentaire_pericope`, `introduction_livre`, `notice_chapitre`). Or le rendu ne pose
+que deux classes, `cs-bible-info--i5` et `cs-bible-block--commentary` : le code n'est
+qu'une clé de recherche, et son suffixe répétait la portée. **Ils sont douze** — sept
+titres, quatre natures d'information, une note.
+
+| Style | Absorbe |
+|---|---|
+| `introduction_titree` | l'introduction qui porte son PROPRE titre : `introduction_livre`, `introduction_pericope` |
+| `introduction` | les sept autres `introduction_*`, et les cinq `sommaire_*` |
+| `commentaire` | les six `commentaire_*`, et les cinq `conclusion_*` |
+| `notice` | les huit `notice_*`, les cinq `excursus_*`, les deux `transition_*` |
+
+- ⚠️ **Les TITRES ne bougent pas**, et l'asymétrie est motivée : chez eux il n'y a aucun
+  produit croisé — un code par rang —, et le rang EST leur identité.
+- ⚠️ **Aucune des quatre natures fondues ne portait un bloc** (`summary`, `excursus`,
+  `conclusion`, `transition`), et aucune ne composait autrement : `excursus` rendait
+  EXACTEMENT comme `notice`, `sommaire` s'en écartait d'un centième d'em. Le
+  regroupement n'a donc rien déplacé à l'écran. ⛔ Leurs trois classes CSS sont retirées
+  de `globals.css`, et le validateur du registre refuse leur retour : une règle qui ne
+  peut plus s'appliquer se lit comme un style disponible.
+- ⚠️ **Les anciens codes vivent comme NOMS HÉRITÉS**, chacun portant son rang :
+  `commentaire_pericope` → `commentaire` + I5. La donnée n'a rien à migrer. ⛔ Et le rang
+  d'un nom hérité **fait foi contre** un rang déclaré, sans quoi le regroupement
+  changerait la composition d'un bloc qui n'a pas bougé.
+- ⛔ **Un style d'information sans rang est REFUSÉ**, par le rendu
+  (`resoudreStyleSemantique` rend `null`) comme par la base (déclencheur
+  `bible_style_semantique_connu`, migration `20260829120000`). Le rang se déclare dans
+  `metadata.semantic_level`. Éprouvé en transaction annulée sur les quatre cas.
+- ⚠️ **Deux champs de la donnée disaient un fait que personne ne lisait** :
+  `metadata.semantic_level` et `metadata.embedded_title_level` étaient écrits, exposés
+  par la vue, et lus par AUCUNE ligne du site — le rendu prenait le rang dans le nom du
+  style. Les deux écritures divergeaient déjà : le même code portait I3 sur 76 blocs et
+  I4 sur 11. ⛔ **Un champ que rien ne lit n'est pas une réserve pour plus tard, c'est
+  une seconde vérité qui attend de contredire la première.**
+- **Gardes** : `app/lib/bibleStylesRegroupement.test.ts` (12 tests) tient les deux
+  moitiés de la promesse — ce qui composait comme avant compose comme avant, ce qui
+  change est exactement ce qu'on a voulu changer ; et
+  `scripts/fillion/validate_semantic_display_hierarchy.mjs` contrôle chaque nom, hérité
+  compris, par sa RÉSOLUTION.
+
+
 🎨 **La PLANCHE DES STYLES — `/admin/styles`** (2026-08-28). **Quatre ÉPREUVES CONTINUES**, une par vocabulaire — le texte biblique, le corps d'une œuvre, l'apparat d'une œuvre, l'apparat d'une bible —, avec le nom du style et sa notice **en marge**. Le texte court d'un bout à l'autre comme il court sur le site : c'est ainsi seulement qu'on voit les RELATIONS entre styles, et non chacun d'eux isolé.
 - ⛔ **RIEN n'est rejoué.** Exigence de l'auteur : la planche doit reproduire *exactement* ce que font les pages visées. Les compositions ont donc été SORTIES de leurs composants — `app/lib/compositionOeuvre.ts` (paragraphe, vers, argument, numéro de segment ; `OeuvreClient` s'en sert) et `app/lib/compositionBible.ts` (rangée de verset, axe de la page ; `TexteBible` s'en sert). Le paratexte biblique passe par `BlocEditorialBible` lui-même. ⛔ Ajouter une épreuve, c'est d'abord sortir sa composition de son composant.
 - ⛔ **AUCUNE ENVELOPPE AUTOUR D'UNE UNITÉ, et la légende sort du flux.** Le premier jet enveloppait chaque unité d'un `<div>` pour y accrocher sa légende : cela rompait en silence les règles de VOISINAGE de `globals.css` — `.verset-row + .cs-bible-axe > .cs-bible-bloc` ne trouve plus ses frères quand un `<div>` les sépare —, c'est-à-dire précisément ce que la planche sert à juger. Les contenus sont donc versés **à plat** dans la colonne (`aplatir`), et chaque unité se retrouve par le **rang de son premier nœud**. Une grille à deux colonnes aurait fait la même faute, en y ajoutant la perte de la fusion des marges.

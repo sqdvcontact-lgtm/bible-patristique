@@ -339,7 +339,7 @@ const APPARAT_OEUVRES: Unite[] = [
 
 const APPARAT_BIBLES: Unite[] = [
   {
-    style: 'bible_apparat/introduction_livre — I1, titre T2',
+    style: 'bible_apparat/introduction_titree — I1, titre T2',
     note: 'L’introduction d’un livre. Elle porte un VRAI titre, de rang T2, et c’est le GENRE qui titre : le lecteur sait déjà quel livre il ouvre, le nom du livre passe donc en chapeau.',
     contenu: (
       <Bible bloc={blocBible('introduction_livre', [
@@ -365,7 +365,7 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
-    style: 'bible_apparat/notice_bible — sous-type critical_apparatus',
+    style: 'bible_apparat/notice — I1, sous-type critical_apparatus',
     note: 'L’apparat de bas de page, rendu dans un `<aside>` : à côté du fil, jamais dedans. Corps réduit à 0,78 rem.',
     contenu: (
       <Bible bloc={blocBible('notice_bible', [
@@ -410,7 +410,7 @@ const APPARAT_BIBLES: Unite[] = [
     contenu: <Bible bloc={blocBible('titre_pericope', [], { heading: '3. Ce qui suivit la mort de Jésus (27, 51-56)', niveauHtml: 6 })} />,
   },
   {
-    style: 'bible_apparat/commentaire_pericope — I5',
+    style: 'bible_apparat/commentaire — I5',
     note: 'Le style le plus employé du corpus : 2 169 blocs. Son repère devient une MANCHETTE flottante, posée en tête du développement, que le commentaire habille — la disposition du fac-similé.',
     alerte: '⛔ Rien ne délimite la manchette qu’un blanc : ni filet, ni fond, ni pictogramme.',
     contenu: (

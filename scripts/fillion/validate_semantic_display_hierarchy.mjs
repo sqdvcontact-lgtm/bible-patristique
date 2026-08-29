@@ -8,6 +8,12 @@
 // remonterait au sommaire, une note de verset qui deviendrait un encadré.
 //
 // Il ne juge pas le contenu d'un volume : il juge le registre et le thème.
+//
+// ⚠️ Depuis le REGROUPEMENT du 29 août 2026, un style d'information ne porte plus
+// son rang : il dit une NATURE, et le rang vient de l'alias hérité ou se déclare.
+// Le contrôle porte donc sur deux plans — la forme des douze entrées canoniques,
+// et la RÉSOLUTION de chaque nom, canonique ou hérité, qui doit rendre un couple
+// niveau × nature composable.
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -40,49 +46,89 @@ const reserver = (nom, pour) => {
   noms.set(nom, pour)
 }
 
-const jetonsEmployes = new Set()
-for (const [canonique, e] of Object.entries(registre.styles)) {
-  const ou = `le style « ${canonique} »`
-  reserver(canonique, ou)
-  for (const alias of e.aliases ?? []) reserver(alias, `un alias de ${ou}`)
+/** Ce qu'un alias porte, sous une forme unique — la chaîne n'en dit que le rang. */
+const propreALAlias = (valeur) => {
+  if (valeur === null || valeur === undefined) return {}
+  return typeof valeur === 'string' ? { niveau: valeur } : valeur
+}
 
-  const echelle = e.kind === 'title' ? JETONS_TITRE : JETONS_INFO
-  if (!echelle.includes(e.level)) refuser(`${ou} porte le niveau ${e.level}, hors de son échelle.`)
-  jetonsEmployes.add(e.level)
-  if (!NATURES.has(e.nature)) refuser(`${ou} porte une nature inconnue : ${e.nature}.`)
-  if (!PLACEMENTS.has(e.placement)) refuser(`${ou} porte un emplacement inconnu : ${e.placement}.`)
-  if (!ROLES.has(e.heading_role)) refuser(`${ou} porte un rôle d'intitulé inconnu : ${e.heading_role}.`)
-  if (typeof e.include_in_outline !== 'boolean') refuser(`${ou} n'a pas de décision de plan.`)
-  if (typeof e.body_block !== 'boolean') refuser(`${ou} ne dit pas s'il se rend dans le corps.`)
+/** La résolution, telle que `bibleHierarchieSemantique.ts` la fait. */
+const resoudre = (canonique, valeurAlias) => {
+  const e = registre.styles[canonique]
+  const porte = propreALAlias(valeurAlias)
+  return {
+    kind: e.kind,
+    level: e.level ?? porte.niveau ?? null,
+    nature: e.nature,
+    includeInOutline: e.include_in_outline || porte.auSommaire === true,
+    placement: e.placement,
+    headingRole: e.heading_role,
+    headingLevel: e.heading_level ?? porte.titre ?? null,
+    headingInOutline: e.heading_in_outline === true || porte.auPlan === true,
+    bodyBlock: e.body_block && porte.horsCorps !== true,
+    hierarchyAxis: (e.hierarchy_axis ?? porte.axe) === 'material' ? 'material' : 'analytic',
+    redondant: e.redundant_with_reader_navigation === true || porte.redondant === true,
+  }
+}
+
+const jetonsEmployes = new Set()
+
+/** Les invariants qui doivent tenir sur TOUT nom, canonique ou hérité. */
+const controlerResolution = (nom, r) => {
+  const ou = `« ${nom} »`
+  const echelle = r.kind === 'title' ? JETONS_TITRE : JETONS_INFO
+  if (r.level === null) {
+    // Une nature seule n'a pas de rang : c'est voulu, le rang se déclare. Mais
+    // un nom HÉRITÉ qui en perdrait un cesserait de se composer.
+    if (registre.styles[nom] === undefined) refuser(`${ou} est un nom hérité sans rang.`)
+  } else {
+    if (!echelle.includes(r.level)) refuser(`${ou} porte le niveau ${r.level}, hors de son échelle.`)
+    jetonsEmployes.add(r.level)
+  }
+  if (!NATURES.has(r.nature)) refuser(`${ou} porte une nature inconnue : ${r.nature}.`)
+  if (!PLACEMENTS.has(r.placement)) refuser(`${ou} porte un emplacement inconnu : ${r.placement}.`)
+  if (!ROLES.has(r.headingRole)) refuser(`${ou} porte un rôle d'intitulé inconnu : ${r.headingRole}.`)
+  if (!AXES.has(r.hierarchyAxis)) refuser(`${ou} porte un axe de hiérarchie inconnu : ${r.hierarchyAxis}.`)
 
   // Un intitulé qui est un vrai titre doit dire à quel niveau il se compose.
-  if (e.heading_role === 'title' && !JETONS_TITRE.includes(e.heading_level ?? '')) {
+  if (r.headingRole === 'title' && r.level !== null && !JETONS_TITRE.includes(r.headingLevel ?? '')) {
     refuser(`${ou} annonce un intitulé-titre sans niveau de titre valide.`)
   }
-  if (e.heading_role !== 'title' && e.heading_in_outline === true) {
+  if (r.headingRole !== 'title' && r.headingInOutline) {
     refuser(`${ou} met au plan un intitulé qui n'est pas un titre.`)
   }
   // Seul un titre structurel entre au plan par lui-même.
-  if (e.include_in_outline && e.kind !== 'title') {
-    refuser(`${ou} entre au plan sans être un titre.`)
-  }
-
-  // L'axe est CLOS : un troisième nom passerait pour analytique en silence.
-  if (e.hierarchy_axis !== undefined && !AXES.has(e.hierarchy_axis)) {
-    refuser(`${ou} porte un axe de hiérarchie inconnu : ${e.hierarchy_axis}.`)
-  }
-  if (e.redundant_with_reader_navigation !== undefined && typeof e.redundant_with_reader_navigation !== 'boolean') {
-    refuser(`${ou} porte une redondance de navigation qui n'est pas un booléen.`)
-  }
+  if (r.includeInOutline && r.kind !== 'title') refuser(`${ou} entre au plan sans être un titre.`)
   // Une mention que la surface de lecture redit déjà ne se rend pas ; elle ne
   // peut donc pas être une entrée de plan, qui serait une ancre sans cible.
-  if (e.redundant_with_reader_navigation === true && e.include_in_outline) {
+  if (r.redondant && r.includeInOutline) {
     refuser(`${ou} n'est pas affiché mais entre au plan : l'ancre n'aurait pas de cible.`)
   }
   // Un titre matériel qui commanderait l'axe analytique casserait la suite des
   // subdivisions qu'il traverse.
-  if (e.redundant_with_reader_navigation === true && e.hierarchy_axis !== 'material') {
+  if (r.redondant && r.hierarchyAxis !== 'material') {
     refuser(`${ou} est masqué comme témoin matériel sans porter l'axe matériel.`)
+  }
+}
+
+for (const [canonique, e] of Object.entries(registre.styles)) {
+  const ou = `le style « ${canonique} »`
+  reserver(canonique, ou)
+  if (typeof e.include_in_outline !== 'boolean') refuser(`${ou} n'a pas de décision de plan.`)
+  if (typeof e.body_block !== 'boolean') refuser(`${ou} ne dit pas s'il se rend dans le corps.`)
+  if (e.aliases === undefined || Array.isArray(e.aliases) || typeof e.aliases !== 'object') {
+    refuser(`${ou} porte des alias qui ne sont pas une table nom → rang.`)
+    continue
+  }
+  // ⛔ Un TITRE porte son rang dans son nom ; une NATURE ne peut pas en porter,
+  // sans quoi le regroupement n'aurait servi à rien.
+  if (e.kind !== 'info' && e.level === undefined) refuser(`${ou} n'est pas une nature et ne porte pas de rang.`)
+  if (e.kind === 'info' && e.level !== undefined) refuser(`${ou} est une nature et porte pourtant un rang : ${e.level}.`)
+
+  controlerResolution(canonique, resoudre(canonique, null))
+  for (const [alias, valeur] of Object.entries(e.aliases)) {
+    reserver(alias, `un alias de ${ou}`)
+    controlerResolution(alias, resoudre(canonique, valeur))
   }
 }
 
@@ -105,23 +151,45 @@ for (const nature of NATURES) {
   }
 }
 
-// Invariants éditoriaux, nommément demandés.
-const attendu = (style, champ, valeur) => {
-  const e = registre.styles[style]
-  if (!e) return refuser(`Le registre a perdu « ${style} ».`)
-  if (JSON.stringify(e[champ]) !== JSON.stringify(valeur)) {
-    refuser(`« ${style} » doit avoir ${champ} = ${JSON.stringify(valeur)}, et porte ${JSON.stringify(e[champ])}.`)
+// ⛔ Et le thème ne doit plus porter une nature que le registre a REGROUPÉE : une
+// règle qui ne peut plus s'appliquer se lit comme un style disponible.
+for (const morte of ['summary', 'excursus', 'conclusion']) {
+  if (theme.includes(`.cs-bible-block--${morte}`)) {
+    refuser(`Le thème garde .cs-bible-block--${morte}, que le regroupement du 29 août 2026 a fondu.`)
+  }
+}
+
+// Invariants éditoriaux, nommément demandés. ⚠️ Ils portent sur la RÉSOLUTION,
+// et non sur l'entrée brute : depuis le regroupement, plusieurs de ces noms sont
+// des alias, et c'est justement leur résolution qui doit rester intacte.
+const parNom = new Map()
+for (const [canonique, e] of Object.entries(registre.styles)) {
+  parNom.set(canonique, resoudre(canonique, null))
+  for (const [alias, valeur] of Object.entries(e.aliases ?? {})) parNom.set(alias, resoudre(canonique, valeur))
+}
+const attendu = (nom, champ, valeur) => {
+  const r = parNom.get(nom)
+  if (!r) return refuser(`Le registre a perdu « ${nom} ».`)
+  if (JSON.stringify(r[champ]) !== JSON.stringify(valeur)) {
+    refuser(`« ${nom} » doit se résoudre en ${champ} = ${JSON.stringify(valeur)}, et rend ${JSON.stringify(r[champ])}.`)
   }
 }
 attendu('note_verset', 'level', 'I6')
 attendu('note_verset', 'placement', 'footnote_only')
-attendu('note_verset', 'body_block', false)
-attendu('commentaire_pericope', 'heading_in_outline', false)
-attendu('introduction_pericope', 'heading_role', 'title')
-attendu('introduction_pericope', 'heading_level', 'T6')
-attendu('introduction_pericope', 'heading_in_outline', true)
-attendu('titre_livre', 'body_block', false)
-if (!(registre.styles.titre_section_livre?.aliases ?? []).includes('titre_section')) {
+attendu('note_verset', 'bodyBlock', false)
+attendu('commentaire_pericope', 'level', 'I5')
+attendu('commentaire_pericope', 'nature', 'commentary')
+attendu('commentaire_pericope', 'headingInOutline', false)
+attendu('introduction_pericope', 'level', 'I5')
+attendu('introduction_pericope', 'headingRole', 'title')
+attendu('introduction_pericope', 'headingLevel', 'T6')
+attendu('introduction_pericope', 'headingInOutline', true)
+attendu('introduction_livre', 'level', 'I1')
+attendu('introduction_livre', 'headingLevel', 'T2')
+attendu('introduction_livre', 'headingInOutline', false)
+attendu('titre_livre', 'bodyBlock', false)
+attendu('titre_chapitre_livre', 'redondant', true)
+if (!Object.keys(registre.styles.titre_section_livre?.aliases ?? {}).includes('titre_section')) {
   refuser('L\'alias ancien « titre_section » ne se résout plus vers « titre_section_livre ».')
 }
 
@@ -158,5 +226,6 @@ if (erreurs.length > 0) {
   process.exit(1)
 }
 
-console.log(`Registre accepté : ${Object.keys(registre.styles).length} styles, `
+console.log(`Registre accepté : ${Object.keys(registre.styles).length} styles canoniques, `
+  + `${noms.size - Object.keys(registre.styles).length} noms hérités, `
   + `${jetonsEmployes.size} jetons employés sur 12, thème complet.`)

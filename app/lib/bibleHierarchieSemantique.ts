@@ -2,10 +2,24 @@
  * Deux hiérarchies, et elles ne sont pas interchangeables.
  *
  * `T1` à `T6` disent la PROFONDEUR d'un titre structurel attesté ; `I1` à `I6`
- * disent l'ÉTENDUE qu'un bloc d'information explique. La nature du bloc —
- * introduction, commentaire, notice, sommaire, excursus, conclusion — est un
- * modificateur séparé : `introduction_pericope` et `commentaire_pericope` sont
- * tous deux `I5` et n'ont pourtant ni le même rôle ni le même rendu.
+ * disent l'ÉTENDUE qu'un bloc d'information explique. La NATURE du bloc —
+ * introduction, commentaire, notice — est un modificateur séparé : une
+ * introduction et un commentaire peuvent tous deux être `I5` sans avoir ni le même
+ * rôle ni le même rendu.
+ *
+ * ⛔ **UN STYLE DIT UNE NATURE, LE RANG SE DIT À PART** (regroupement du 2026-08-29).
+ * Le registre portait quarante styles d'information qui étaient un produit croisé
+ * nature × portée — `commentaire_pericope`, `introduction_livre`, `notice_chapitre` —
+ * alors que le rendu ne compose que sur le couple `niveau × nature`. Le suffixe
+ * répétait donc ce que la portée disait déjà, et ce qui se répète dérive : le
+ * Pentateuque et le Nouveau Testament avaient fini par employer des vocabulaires
+ * disjoints pour des fonctions voisines. Ils sont QUATRE : `introduction_titree`,
+ * `introduction`, `commentaire`, `notice`.
+ *
+ * ⚠️ Les anciens codes vivent comme ALIAS, chacun portant le niveau qu'il disait, et
+ * se résolvent à l'identique : la donnée n'a rien à migrer pour continuer de paraître.
+ * Un code canonique, lui, exige que le rang soit DÉCLARÉ — c'est le sens du
+ * regroupement, et un bloc sans rang ne s'en invente pas un.
  *
  * ⛔ Un niveau ne se déduit jamais de la casse, du corps de caractère ou de la
  * ponctuation du texte source. Il vient du registre, et de lui seul :
@@ -47,9 +61,30 @@ export type StyleResolu = {
   redondantAvecNavigation: boolean
 }
 
+/**
+ * Ce qu'un ALIAS ajoute au canonique.
+ *
+ * Le rang qu'il disait dans son nom, et tout ce qui VARIAIT d'un ancien code à
+ * l'autre au sein d'une même famille. ⚠️ `introduction_livre` et
+ * `introduction_pericope` sont tous deux titrés et pourtant l'un porte un T2 hors du
+ * plan, l'autre un T6 qui y entre : une famille ne peut pas trancher pour ses membres,
+ * et un alias qui perdrait ces différences changerait la composition d'un bloc qui n'a
+ * pas bougé.
+ */
+type ValeurAlias = string | {
+  niveau: string
+  titre?: string
+  auPlan?: boolean
+  auSommaire?: boolean
+  axe?: string
+  redondant?: boolean
+  horsCorps?: boolean
+} | null
+
 type EntreeRegistre = {
   kind: 'title' | 'info' | 'note'
-  level: string
+  /** Porté par les TITRES et la note, qui sont un code par rang. Absent des natures. */
+  level?: string
   nature: string
   include_in_outline: boolean
   placement: string
@@ -59,42 +94,67 @@ type EntreeRegistre = {
   body_block: boolean
   hierarchy_axis?: string
   redundant_with_reader_navigation?: boolean
-  aliases: string[]
+  aliases: Record<string, ValeurAlias>
   note?: string
 }
 
 const ENTREES = registre.styles as unknown as Record<string, EntreeRegistre>
 
-const PAR_ALIAS = new Map<string, string>()
+/** Un code — canonique ou hérité — vers sa famille et ce que l'alias lui ajoute. */
+const PAR_ALIAS = new Map<string, { canonique: string; alias: ValeurAlias }>()
 for (const [canonique, entree] of Object.entries(ENTREES)) {
-  PAR_ALIAS.set(canonique, canonique)
-  for (const alias of entree.aliases) PAR_ALIAS.set(alias, canonique)
+  PAR_ALIAS.set(canonique, { canonique, alias: null })
+  for (const [alias, valeur] of Object.entries(entree.aliases)) {
+    PAR_ALIAS.set(alias, { canonique, alias: valeur })
+  }
 }
 
 export const JETONS_TITRE = registre.levels.titles.map((n) => n.token) as JetonTitre[]
 export const JETONS_INFO = registre.levels.info.map((n) => n.token) as JetonInfo[]
 
+/** Ce que porte un alias, sous une forme unique — la chaîne n'en dit que le rang. */
+function propreALAlias(alias: ValeurAlias): Exclude<ValeurAlias, string | null> | Record<string, never> {
+  if (alias === null) return {}
+  return typeof alias === 'string' ? { niveau: alias } : alias
+}
+
 /**
  * Résout un style au registre. Rend `null` pour un style inconnu : l'appelant
  * doit le REFUSER et le signaler, jamais l'aplatir en paragraphe générique.
+ *
+ * ⚠️ `rang` est le niveau DÉCLARÉ par le bloc (`metadata.semantic_level`), et `titre`
+ * celui du titre qu'il porte (`metadata.embedded_title_level`). Les deux ne servent
+ * qu'aux codes CANONIQUES : un code hérité porte son rang dans son propre nom, et ce
+ * rang-là fait foi — sans quoi le regroupement changerait la composition d'un bloc
+ * qui n'a pas bougé.
+ *
+ * ⛔ Un style d'INFORMATION sans rang est refusé comme un style inconnu. C'est le sens
+ * même du regroupement : le nom dit la nature, le rang se déclare, et un bloc qui n'en
+ * déclare aucun ne s'en invente pas un.
  */
-export function resoudreStyleSemantique(semanticStyle: string): StyleResolu | null {
-  const canonique = PAR_ALIAS.get(semanticStyle)
-  if (!canonique) return null
-  const entree = ENTREES[canonique]
+export function resoudreStyleSemantique(
+  semanticStyle: string,
+  rang?: { niveau?: string | null; titre?: string | null },
+): StyleResolu | null {
+  const trouve = PAR_ALIAS.get(semanticStyle)
+  if (!trouve) return null
+  const entree = ENTREES[trouve.canonique]
+  const porte = propreALAlias(trouve.alias)
+  const level = (entree.level ?? porte.niveau ?? rang?.niveau) as JetonNiveau | undefined
+  if (!level) return null
   return {
-    canonique,
+    canonique: trouve.canonique,
     kind: entree.kind,
-    level: entree.level as JetonNiveau,
+    level,
     nature: entree.nature as NatureBloc,
-    includeInOutline: entree.include_in_outline,
+    includeInOutline: entree.include_in_outline || porte.auSommaire === true,
     placement: entree.placement as StyleResolu['placement'],
     headingRole: entree.heading_role as StyleResolu['headingRole'],
-    headingLevel: (entree.heading_level as JetonTitre | undefined) ?? null,
-    headingInOutline: entree.heading_in_outline === true,
-    bodyBlock: entree.body_block,
-    hierarchyAxis: entree.hierarchy_axis === 'material' ? 'material' : 'analytic',
-    redondantAvecNavigation: entree.redundant_with_reader_navigation === true,
+    headingLevel: ((entree.heading_level ?? porte.titre ?? rang?.titre) as JetonTitre | undefined) ?? null,
+    headingInOutline: entree.heading_in_outline === true || porte.auPlan === true,
+    bodyBlock: entree.body_block && porte.horsCorps !== true,
+    hierarchyAxis: (entree.hierarchy_axis ?? porte.axe) === 'material' ? 'material' : 'analytic',
+    redondantAvecNavigation: entree.redundant_with_reader_navigation === true || porte.redondant === true,
   }
 }
 

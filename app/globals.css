@@ -819,10 +819,13 @@ button:focus-visible,
   padding-right: 0;
 }
 .cs-bible-block--commentary { font-style: normal; }
+/* Le vocabulaire a ete REGROUPE le 29 aout 2026 : la notice absorbe l'excursus,
+   qui composait exactement comme elle, et la transition, qui portait deja sa
+   nature ; le sommaire rejoint l'introduction, la conclusion le commentaire. Les
+   trois classes fondues sont retirees d'ici : une regle qui ne peut plus
+   s'appliquer se lit comme un style disponible, et le controle du registre la
+   refuse desormais. */
 .cs-bible-block--notice { font-size: 0.78125rem; }
-.cs-bible-block--summary { letter-spacing: 0.01em; }
-.cs-bible-block--excursus { font-size: 0.78125rem; }
-.cs-bible-block--conclusion { font-style: italic; }
 .cs-bible-block--note { font-size: 0.8125rem; }
 
 
