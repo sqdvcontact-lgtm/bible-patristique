@@ -423,3 +423,62 @@ export function diviserIntitule(
 function ordinalLisible(texte: string): string {
   return texte.replace(/^(\d+)\s*°\s*/, '$1. ')
 }
+
+/* ── LE SOUS-TITRE PREND LE RANG DE SON TITRE ──────────────────────────────────
+ *
+ * Un sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
+ * matériel de la page imprimée. Il doit donc se composer comme lui : centré sous un
+ * titre centré, au fer sous un titre au fer.
+ *
+ * ⛔ Ni le rôle ni le rang du sous-titre ne disent celui du titre, et la donnée le
+ * prouve : au 29 août 2026, un `section_subtitle` de rang I3 vise indifféremment un
+ * titre T3, T4 ou T5, et un autre de rang I2 vise un T2. Les deux échelles divergent
+ * d'ailleurs à partir du quatrième rang — I4 est le CHAPITRE quand T4 est la
+ * SOUS-SECTION —, si bien qu'aucune arithmétique ne les rapproche.
+ *
+ * **Seule l'ancre le dit.** `attach_to_block_key` porte la clé du titre, et les 201
+ * sous-titres du corpus la portent tous, tous résolus.
+ *
+ * ⚠️ Sans cette règle, 149 sous-titres sur 201 se composaient CENTRÉS sous un titre
+ * qui est lui-même au fer — 117 sous une sous-section, 32 sous un paragraphe. C'est
+ * le défaut déjà consigné pour l'intertitre divisé (charte § 35) : les deux moitiés
+ * d'une même composition ne partageaient pas leur axe.
+ */
+
+/** Le rôle canonique, et les deux noms hérités qui disaient la même chose. */
+export const ROLES_SOUS_TITRE = new Set(['sous_titre', 'part_subtitle', 'section_subtitle'])
+
+export type BlocASousTitre = {
+  id: string
+  blockKey?: string | null
+  semanticStyle: string
+  /** Rang déclaré par le bloc, pour un style canonique qui n'en porte pas. */
+  niveau?: string | null
+  /** Rôle d'affichage déclaré, s'il y en a un. */
+  roleAffichage?: string | null
+  /** Le bloc auquel un sous-titre s'accroche. */
+  ancre?: string | null
+}
+
+/**
+ * Le rang du TITRE auquel chaque sous-titre appartient, par identifiant de bloc.
+ *
+ * Un sous-titre dont l'ancre manque, ne résout pas, ou ne désigne pas un titre est
+ * absent de la table : le rendu lui laisse alors sa composition par défaut plutôt
+ * que de lui inventer un rang.
+ */
+export function rangDesSousTitres(blocs: readonly BlocASousTitre[]): Map<string, JetonTitre> {
+  const titreParCle = new Map<string, JetonTitre>()
+  for (const bloc of blocs) {
+    if (!bloc.blockKey) continue
+    const resolu = resoudreStyleSemantique(bloc.semanticStyle, { niveau: bloc.niveau })
+    if (resolu?.kind === 'title') titreParCle.set(bloc.blockKey, resolu.level as JetonTitre)
+  }
+  const rangs = new Map<string, JetonTitre>()
+  for (const bloc of blocs) {
+    if (!bloc.roleAffichage || !ROLES_SOUS_TITRE.has(bloc.roleAffichage)) continue
+    const rang = bloc.ancre ? titreParCle.get(bloc.ancre) : undefined
+    if (rang) rangs.set(bloc.id, rang)
+  }
+  return rangs
+}

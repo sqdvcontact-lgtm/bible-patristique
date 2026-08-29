@@ -1000,6 +1000,22 @@ button:focus-visible,
   margin-bottom: 0;
 }
 
+/* ── LE SOUS-TITRE PREND LA POSE DE SON TITRE ────────────────────────────────
+   Un sous-titre est le CHAPEAU de son titre, tombe dans un bloc voisin par
+   l'ordre materiel de la page imprimee. Il se compose donc comme lui : centre
+   sous un titre centre, au fer sous un titre au fer, dans son encre et un cran
+   sous son corps.
+
+   Le rang vient de `data-titre-rang`, que la page calcule en suivant l'ancre du
+   sous-titre (`rangDesSousTitres`). Ni le role ni le rang du sous-titre ne le
+   disent : au 29 aout 2026, un `section_subtitle` de rang I3 visait
+   indifferemment un titre T3, T4 ou T5. Et les deux echelles divergent des le
+   quatrieme rang, I4 etant le CHAPITRE quand T4 est la SOUS-SECTION.
+
+   Sans cette regle, 149 sous-titres sur 201 se composaient CENTRES sous un titre
+   lui-meme au fer. C'est le defaut deja consigne pour l'intertitre divise : les
+   deux moities d'une meme composition ne partageaient pas leur axe. */
+.cs-bible-bloc[data-display-role='sous_titre'],
 .cs-bible-bloc[data-display-role='part_subtitle'],
 .cs-bible-bloc[data-display-role='section_subtitle'] {
   padding-left: 0;
@@ -1008,6 +1024,17 @@ button:focus-visible,
   margin-bottom: 1.5rem;
   text-align: center;
 }
+/* Les trois rangs bas restent AU FER, comme leurs titres. */
+.cs-bible-bloc[data-titre-rang='T4'],
+.cs-bible-bloc[data-titre-rang='T5'],
+.cs-bible-bloc[data-titre-rang='T6'] {
+  text-align: left;
+}
+/* ⛔ Le CORPS et l'ENCRE d'un sous-titre ne sont PAS ici, et l'on ne peut pas les
+   y mettre : le paragraphe d'apparat pose les siens EN LIGNE (`STYLE_CORPS`), et
+   une regle de feuille serait morte. Ils vivent dans `compositionSousTitre`
+   (`app/lib/compositionBible.ts`), avec le rang dont ils dependent. Essaye ici le
+   29 aout 2026, et repris aussitot. */
 
 /* ── L'APPARAT BIBLIOGRAPHIQUE : une seule famille pour toutes les listes ─────
    Elle sert la pièce « Du même auteur », toute pièce ou section

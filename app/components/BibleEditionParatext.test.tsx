@@ -351,15 +351,40 @@ describe('présentation déclarée par la donnée', () => {
     }],
   }
 
-  it('pose le sous-titre de partie centré, et non comme un paragraphe d’introduction', () => {
+  it('pose un sous-titre de partie, et non un paragraphe d’introduction', () => {
     const html = renderToStaticMarkup(<BlocEditorialBible bloc={sousTitre} />)
     expect(html).toContain('data-display-role="part_subtitle"')
-    expect(html).toContain('class="cs-bible-sous-titre-partie"')
+    expect(html).toContain('class="cs-bible-sous-titre"')
     const paragraphe = html.slice(0, html.indexOf('L’enfance'))
-    expect(paragraphe).toContain('text-align:center')
     expect(paragraphe).toContain('font-style:italic')
     // ⛔ Pas de justification : ce n'est pas un développement.
     expect(paragraphe).not.toContain('text-align:justify')
+    // Sans rang connu, la composition des rangs HAUTS : centrée, dans l'encre du
+    // titre. C'est celle que les 201 sous-titres du corpus recevaient tous.
+    expect(paragraphe).toContain('text-align:center')
+    expect(paragraphe).toContain('font-size:0.9375rem')
+    expect(paragraphe).toContain('color:var(--cs-encre-fonce)')
+  })
+
+  it('⛔ un sous-titre de rang BAS se pose AU FER, comme son titre', () => {
+    // C'est la correction du 29 août 2026 : 149 sous-titres sur 201 se composaient
+    // centrés sous un titre lui-même au fer — 117 sous une sous-section, 32 sous un
+    // paragraphe. Les deux moitiés d'une même composition ne partageaient pas leur
+    // axe, défaut déjà consigné pour l'intertitre divisé.
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{ ...sousTitre, rangDuTitre: 'T4' }} />,
+    )
+    expect(html).toContain('data-titre-rang="T4"')
+    const paragraphe = html.slice(0, html.indexOf('L’enfance'))
+    expect(paragraphe).toContain('text-align:left')
+    expect(paragraphe).toContain('font-size:0.875rem')
+    expect(paragraphe).toContain('color:var(--cs-encre)')
+  })
+
+  it('⛔ ne pose aucun rang quand l’ancre n’en a pas donné', () => {
+    // Mieux vaut la composition par défaut qu'un rang deviné.
+    expect(renderToStaticMarkup(<BlocEditorialBible bloc={sousTitre} />))
+      .not.toContain('data-titre-rang')
   })
 
   it('conserve le niveau section dans la donnée tout en composant son sous-titre comme un chapeau', () => {
@@ -374,11 +399,21 @@ describe('présentation déclarée par la donnée', () => {
       },
     }} />)
     expect(html).toContain('data-display-role="section_subtitle"')
-    expect(html).toContain('class="cs-bible-sous-titre-partie"')
+    expect(html).toContain('class="cs-bible-sous-titre"')
     const paragraphe = html.slice(0, html.indexOf('L’enfance'))
-    expect(paragraphe).toContain('text-align:center')
     expect(paragraphe).toContain('font-style:italic')
     expect(paragraphe).not.toContain('text-align:justify')
+  })
+
+  it('reconnaît le rôle CANONIQUE `sous_titre`', () => {
+    // Les deux noms hérités disaient dans le rôle un rang que le rôle ne sait pas
+    // dire : le rang vient du titre, et le rôle ne dit plus que la fonction.
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={{
+      ...sousTitre,
+      presentation: { ...sousTitre.presentation, displayRole: 'sous_titre' },
+    }} />)
+    expect(html).toContain('data-display-role="sous_titre"')
+    expect(html).toContain('class="cs-bible-sous-titre"')
   })
 
   it('ne pose aucun rôle d’affichage sur un bloc qui n’en déclare pas', () => {
@@ -386,7 +421,7 @@ describe('présentation déclarée par la donnée', () => {
       <BlocEditorialBible bloc={{ ...sousTitre, presentation: null }} />,
     )
     expect(html).not.toContain('data-display-role')
-    expect(html).not.toContain('cs-bible-sous-titre-partie')
+    expect(html).not.toContain('cs-bible-sous-titre')
   })
 
   it('ne rend pas la mention de chapitre, que la navigation dit déjà', () => {

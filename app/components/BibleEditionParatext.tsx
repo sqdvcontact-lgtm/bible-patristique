@@ -11,6 +11,7 @@ import {
   type StyleCompositionBloc,
 } from '@/app/lib/bibleEdition'
 import {
+  ROLES_SOUS_TITRE,
   classeIntituleTitre,
   classesDuStyle,
   resoudreStyleSemantique,
@@ -19,6 +20,7 @@ import {
   type NatureBloc,
   type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
+import { compositionSousTitre } from '@/app/lib/compositionBible'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import {
@@ -42,7 +44,7 @@ export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
-  'id' | 'blockKey' | 'semanticStyleCode' | 'semanticLevel' | 'embeddedTitleLevel'
+  'id' | 'blockKey' | 'semanticStyleCode' | 'semanticLevel' | 'embeddedTitleLevel' | 'rangDuTitre'
   | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement'
   | 'textBlocks' | 'presentation'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
@@ -55,7 +57,7 @@ export type BlocEditorialBiblique = Pick<
  * d'un bloc entier. ⛔ Aucune ne se devine à la forme du texte : sans la
  * métadonnée, le paragraphe se compose comme les autres.
  */
-type CompositionParagraphe = StyleCompositionBloc | 'sous-titre-partie'
+type CompositionParagraphe = StyleCompositionBloc | 'sous-titre'
 
 export type NoteBibliqueAffichable = Pick<
   BibleEditionDisplayNote,
@@ -263,20 +265,19 @@ const COMPOSITIONS: Record<CompositionParagraphe, CSSProperties> = {
     hyphens: 'manual',
     margin: '0.15em 0 0.45em',
   },
-  // Le sous-titre d'une partie n'est pas un paragraphe d'introduction : c'est le
-  // chapeau de son titre, tombé dans un bloc voisin par l'ordre matériel. Il se
-  // compose donc centré et en italique, mais dans l'ENCRE DE SON TITRE : une
-  // encre plus claire en faisait un commentaire du titre, quand il en est la
-  // suite. Le blanc qui les sépare se règle dans la feuille, à côté du rang.
-  'sous-titre-partie': {
-    fontSize: '0.9375rem',
-    lineHeight: 1.35,
-    fontStyle: 'italic',
-    color: 'var(--cs-encre-fonce)',
-    textAlign: 'center',
-    hyphens: 'manual',
-    margin: 0,
-  },
+  // Un sous-titre n'est pas un paragraphe d'introduction : c'est le CHAPEAU de son
+  // titre, tombé dans un bloc voisin par l'ordre matériel de la page imprimée. Il se
+  // compose donc en italique, et dans l'encre de son titre — une encre plus claire en
+  // ferait un commentaire du titre, quand il en est la suite.
+  //
+  // ⛔ Le CORPS, l'ENCRE et la POSE ne sont pas ici : ils dépendent du RANG du titre,
+  // et la feuille les donne par `[data-titre-rang]`. Un style en ligne l'emporterait
+  // sur elle, et les 149 sous-titres accrochés à un titre au fer resteraient centrés
+  // comme ils l'étaient. Ne rien remettre ici de ce que le rang commande.
+  // ⛔ `sous-titre` n'a PAS sa composition ici : elle dépend du rang du TITRE auquel
+  // le sous-titre s'accroche, et vit dans `compositionSousTitre`. Cette table est
+  // indexée par le seul nom de la composition, elle ne saurait pas la faire varier.
+  'sous-titre': {},
   // La bibliographie a sa propre matière — la famille `.cs-apparat-bibliographie`,
   // voir `BibliographieBible` — et n'ajoute donc rien au style du paragraphe.
   bibliographie: {},
@@ -288,6 +289,7 @@ function rendreBlocTexte(
   notes: readonly BibleEditionDisplayInternalNote[] = [],
   niveauParent?: 1 | 2 | 3 | 4 | 5 | 6,
   composition?: CompositionParagraphe | null,
+  rangDuTitre?: string | null,
 ): ReactNode {
   // Une liste bibliographique n'est pas un paragraphe : elle a sa matière, et
   // c'est la DÉCLARATION de la donnée qui l'y envoie — ⛔ jamais le titre de la
@@ -383,6 +385,10 @@ function rendreBlocTexte(
     // Le style de composition vient en DERNIER : c'est la déclaration la plus
     // précise, celle qui vise ce paragraphe-ci et non le genre de son bloc.
     ...(composition ? COMPOSITIONS[composition] : {}),
+    // ⛔ Le sous-titre vient APRÈS tout le reste, et en style EN LIGNE : le
+    // paragraphe d'apparat pose déjà son corps, son encre et sa justification ici
+    // même, si bien qu'une règle de feuille serait morte.
+    ...(composition === 'sous-titre' ? compositionSousTitre(rangDuTitre) : {}),
   }
   const sortie = citationSortieDuParagraphe(bloc, resolu)
   if (sortie) {
@@ -539,9 +545,9 @@ function compositionDuParagraphe(
 ): CompositionParagraphe | null {
   if (texte.presentationStyle) return texte.presentationStyle
   if (!bloc.presentation) return null
-  if (bloc.presentation.displayRole === 'part_subtitle' || bloc.presentation.displayRole === 'section_subtitle') {
-    return 'sous-titre-partie'
-  }
+  // ⚠️ `part_subtitle` et `section_subtitle` sont les noms HÉRITÉS de `sous_titre` :
+  // ils prétendaient dire dans le rôle un rang que le rôle ne sait pas dire.
+  if (ROLES_SOUS_TITRE.has(bloc.presentation.displayRole ?? '')) return 'sous-titre'
   if (rang === 0) return bloc.presentation.leadingParagraphStyle
   return null
 }
@@ -635,6 +641,7 @@ export function BlocEditorialBible({
       ))}
       {bloc.textBlocks.map((texte, rang) => rendreBlocTexte(
         texte, resolu, notesCorps, bloc.niveauHtml, compositionDuParagraphe(bloc, texte, rang),
+        bloc.rangDuTitre,
       ))}
       {rendreIllustrations(dansLeFlux)}
       {notesSansAppel.length > 0 && (
@@ -672,9 +679,15 @@ export function BlocEditorialBible({
     // devinée du style sémantique, que le thème sait poser un sous-titre de
     // partie sous son titre. Une œuvre qui n'en porte pas n'est pas touchée.
     'data-display-role': bloc.presentation?.displayRole ?? undefined,
+    // ⚠️ Le rang du TITRE auquel un sous-titre s'accroche : c'est par lui, et par
+    // rien d'autre, que la feuille lui donne la pose de son titre — centrée sous
+    // un titre centré, au fer sous un titre au fer.
+    'data-titre-rang': bloc.rangDuTitre ?? undefined,
   }
-  // Une notice et un excursus se tiennent à côté du fil de lecture.
-  if (resolu.nature === 'notice' || resolu.nature === 'excursus') {
+  // Une notice se tient à côté du fil de lecture. ⚠️ `excursus` figurait ici : le
+  // regroupement du 29 août 2026 l'a fondu dans `notice`, dont il ne se distinguait
+  // par rien — même corps, même aparté. La branche est donc devenue inatteignable.
+  if (resolu.nature === 'notice') {
     return <aside {...props}>{contenu}</aside>
   }
   return <section {...props}>{contenu}</section>

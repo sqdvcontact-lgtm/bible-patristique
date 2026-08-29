@@ -22,7 +22,7 @@ import {
 import type {
   BibleEditionBodyBlockRow, BibleEditionChapterPayload, BibleEditionNoteBlockRow,
 } from '@/app/lib/bibleEditionServer'
-import { baliserBlocs } from '@/app/lib/bibleHierarchieSemantique'
+import { baliserBlocs, rangDesSousTitres } from '@/app/lib/bibleHierarchieSemantique'
 import { grouperPiecesLiminaires, pieceParCle } from '@/app/lib/bibleSommaireEdition'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
 import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
@@ -273,6 +273,20 @@ export default async function Home({
       axeHierarchie: presentationDeBloc(b.presentation)?.hierarchyAxis ?? null,
     })))
 
+  // Le rang du TITRE auquel chaque sous-titre s'accroche, du même passage : un
+  // sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
+  // matériel, et il doit se composer comme lui. ⛔ Ni son rôle ni son propre rang
+  // ne le disent — voir `rangDesSousTitres`.
+  const rangerSousTitres = (blocs: readonly BibleEditionBodyBlockRow[]) =>
+    rangDesSousTitres(blocs.map((b) => ({
+      id: b.id,
+      blockKey: b.block_key,
+      semanticStyle: b.semantic_style_code,
+      niveau: b.semantic_level,
+      roleAffichage: presentationDeBloc(b.presentation)?.displayRole ?? null,
+      ancre: presentationDeBloc(b.presentation)?.attachToBlockKey ?? null,
+    })))
+
   // Un bloc de note se compose partout de la même façon : la couche de RENDU
   // quand elle existe — c'est elle qui porte `*italique*` et `++capitales++` —,
   // la transcription sinon, et le style que la donnée déclare.
@@ -314,6 +328,7 @@ export default async function Home({
       row.applies_to === 'family' || row.applies_to_member_id === membre.member_id
     )
     const balises = baliserPayload(payload.bodyBlocks)
+    const rangs = rangerSousTitres(payload.bodyBlocks)
     return {
       familyId: membre.family_id,
       memberId: membre.member_id,
@@ -326,6 +341,7 @@ export default async function Home({
         presentation: presentationDeBloc(block.presentation),
         semanticParentKey: block.semantic_parent_key,
         niveauHtml: balises.get(block.id),
+        rangDuTitre: rangs.get(block.id),
         noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
         heading: block.heading,
         placement: block.placement,
@@ -422,6 +438,7 @@ export default async function Home({
           includeBookFrontMatter: chapitre === 1,
         })
       const balisesBilingue = baliserPayload(payload.bodyBlocks)
+      const rangsBilingue = rangerSousTitres(payload.bodyBlocks)
       lectureBilingue = {
         membres: chargee.colonnes.map((colonne) => colonne.membre),
         colonnes: chargee.colonnes,
@@ -435,6 +452,7 @@ export default async function Home({
           presentation: presentationDeBloc(block.presentation),
           semanticParentKey: block.semantic_parent_key,
           niveauHtml: balisesBilingue.get(block.id),
+          rangDuTitre: rangsBilingue.get(block.id),
           noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
           heading: block.heading,
           placement: block.placement,

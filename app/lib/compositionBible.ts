@@ -129,3 +129,39 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
   color: 'var(--cs-bord)',
   fontStyle: 'italic',
 }
+
+/**
+ * La composition d'un SOUS-TITRE, selon le rang du titre auquel il appartient.
+ *
+ * Un sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
+ * matériel de la page imprimée. Il se compose donc comme lui : centré sous un titre
+ * centré, au fer sous un titre au fer, dans son encre et un cran sous son corps.
+ *
+ * ⛔ **Tout est en style EN LIGNE, et ce n'est pas un choix de confort.** Le paragraphe
+ * d'apparat pose déjà son corps et son encre en ligne (`STYLE_CORPS`) : une règle de
+ * feuille serait morte, et le sous-titre garderait la composition du texte courant.
+ * Essayé le 29 août 2026, et repris aussitôt.
+ *
+ * ⚠️ **Le rang vient du TITRE, jamais du sous-titre.** Ni son rôle ni son propre rang
+ * ne le disent : au 29 août 2026, un `section_subtitle` de rang I3 visait indifféremment
+ * un titre T3, T4 ou T5. Et les deux échelles divergent dès le quatrième rang, I4 étant
+ * le CHAPITRE quand T4 est la SOUS-SECTION. Voir `rangDesSousTitres`.
+ *
+ * ⚠️ Sans rang connu, on garde la composition des rangs hauts : c'est celle que les
+ * 201 sous-titres du corpus recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
+ */
+export function compositionSousTitre(rangDuTitre?: string | null): CSSProperties {
+  const auFer = rangDuTitre === 'T4' || rangDuTitre === 'T5' || rangDuTitre === 'T6'
+  return {
+    // Le corps suit celui du titre : les rangs hauts sont plus gros d'un cran.
+    fontSize: auFer ? '0.875rem' : '0.9375rem',
+    // ⛔ L'encre est celle de SON titre. Une encre plus claire ferait du sous-titre
+    // un commentaire du titre, quand il en est la suite.
+    color: auFer || rangDuTitre === 'T3' ? 'var(--cs-encre)' : 'var(--cs-encre-fonce)',
+    textAlign: auFer ? 'left' : 'center',
+    lineHeight: 1.35,
+    fontStyle: 'italic',
+    hyphens: 'manual',
+    margin: 0,
+  }
+}

@@ -588,7 +588,7 @@ Le partage du corpus est le **premier tri** qu'on fait dans un catalogue bibliqu
 
 - ⛔ **Le choix ne se prend qu'à un endroit.** Les cases « Testament » du volet sont retirées : deux cases cochées ne se traduiraient par aucun onglet retenu, et l'état de la page cesserait d'être lisible. L'état passe donc d'un `Set` à un choix unique (`ChoixTestament`) ; `filtrerCatalogue` reçoit toujours un ensemble, à un élément ou vide.
 - **La barre est COLLANTE** sous la barre de navigation (`top: HAUTEUR_NAVBAR`), comme le volet à sa gauche. Sa hauteur vit dans `HAUTEUR_ONGLETS`, et **deux autres mesures s'y composent** : la marge collante du nom de livre (`top: calc(NAVBAR + ONGLETS + 14px)`) et le `scrollMarginTop` du saut à un livre. Un nombre recopié à l'un des trois endroits ferait passer les noms de livre **sous** la barre.
-- **Le dessin est celui de la Bibliothèque, repris trait pour trait** : filet plein sur la mesure, trait `--cs-vert-aplat` sous l'onglet retenu, libellé en `--cs-vert`, graisse 600, et les onglets se partagent la mesure **à parts égales** (`flex: 1`), chaque libellé centré dans sa case. ⛔ **Les parts égales ne sont pas un ornement** : c'est ce qui permet à la graisse de changer sans décaler personne. Une première version les avait laissés à largeur libre — la barre se rangeait alors au fer à gauche, le filet courait seul sur la moitié droite de la mesure, et la graisse a dû être abandonnée. L'auteur l'a refusée à vue ; la reprise a suivi le même jour.
+- **Le dessin est celui de la Bibliothèque, repris trait pour trait** : filet plein sur la mesure, trait `--cs-vert` sous l'onglet retenu — il valait `--cs-vert-aplat` jusqu'au 2026-08-29, un brun presque invisible sur le sol du Cuir —, libellé en `--cs-vert`, graisse 600, et les onglets se partagent la mesure **à parts égales** (`flex: 1`), chaque libellé centré dans sa case. ⛔ **Les parts égales ne sont pas un ornement** : c'est ce qui permet à la graisse de changer sans décaler personne. Une première version les avait laissés à largeur libre — la barre se rangeait alors au fer à gauche, le filet courait seul sur la moitié droite de la mesure, et la graisse a dû être abandonnée. L'auteur l'a refusée à vue ; la reprise a suivi le même jour.
 - **La mesure de la liste se CENTRE dans sa colonne** (`margin: 0 auto` sur le bloc de `52rem`). Le fer à gauche tenait tant que la liste occupait seule la colonne ; sous une barre d'onglets, il collait tout le bloc au volet et laissait le tiers droit de l'écran vide. Ce n'est pas un retour aux 39rem centrées de l'audit : la mesure ne bouge pas, c'est elle qui rendait la page creuse.
 - ⚠️ **En mobile, les parts égales seraient plus courtes que « Nouveau Testament »** : les onglets y repartent de leur propre largeur (`flex: 1 1 auto`) et ne se partagent que le jeu qui reste. Les quatre libellés tiennent tout juste — 347 px de barre pour 347 px de mesure à 375 px de large, blanc et corps resserrés (`0 8px`, `0.6875rem`) ; plus étroit, la barre glisse (`overflow-x: auto`) plutôt que d'abréger « Testament ». La graisse, elle, ne bouge pas là : sans jeu à distribuer, elle ferait glisser la barre de trois pixels. Toute retouche de ces valeurs se remesure.
 - **Ce sont des FILTRES, non des panneaux** : `role="group"` nommé et `aria-pressed`, jamais un `tablist` — il n'y a pas de `tabpanel` derrière, seulement une liste qui se restreint.
@@ -2105,6 +2105,40 @@ est retenue. Règles de code :
 - **La composition appartient à la SURFACE** et vit en un seul endroit par famille :
   `app/lib/compositionBible.ts`, `compositionOeuvre.ts`, `compositionVers.ts`,
   `compositionVersets.ts`, et les classes de `globals.css`.
+
+## ⛔ Un SOUS-TITRE se compose comme SON titre (2026-08-29)
+
+Un sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
+matériel de la page imprimée. Il prend donc la pose, l'encre et le corps de ce
+titre : centré sous un titre centré (T1-T3), au fer sous un titre au fer (T4-T6).
+
+- ⛔ **Le rang vient de l'ANCRE, jamais du rôle ni du rang du sous-titre.** La donnée
+  le prouve : un `section_subtitle` de rang I3 visait indifféremment un titre **T3,
+  T4 ou T5**, et un autre de rang I2 visait un T2. Et les deux échelles divergent dès
+  le quatrième rang — `I4` est le CHAPITRE quand `T4` est la SOUS-SECTION —, si bien
+  qu'aucune arithmétique ne les rapproche. `attach_to_block_key` porte la clé du
+  titre, et les **201** sous-titres du corpus la portent tous, tous résolus.
+- ⚠️ **Sans cette règle, 149 sous-titres sur 201** se composaient centrés sous un titre
+  lui-même au fer : 117 sous une sous-section, 32 sous un paragraphe. C'est le défaut
+  déjà consigné pour l'intertitre divisé — les deux moitiés d'une même composition ne
+  partageaient pas leur axe.
+- **Le rôle canonique est `sous_titre`** ; `part_subtitle` et `section_subtitle` en
+  sont les noms HÉRITÉS. Ils prétendaient dire dans le rôle un rang que le rôle ne
+  sait pas dire.
+- ⛔ **La composition est en style EN LIGNE, et l'on ne peut pas la mettre en feuille** :
+  le paragraphe d'apparat pose déjà son corps et son encre en ligne (`STYLE_CORPS`), et
+  une règle de feuille serait morte. Essayé le 29 août 2026, repris aussitôt. Elle vit
+  dans `compositionSousTitre` (`app/lib/compositionBible.ts`), le rang dans
+  `rangDesSousTitres` (`bibleHierarchieSemantique.ts`), tous deux purs et testés.
+- ⚠️ **Sans rang connu, on garde la composition des rangs HAUTS** : c'est celle que les
+  201 sous-titres recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
+
+⚠️ **Le trait sous l'onglet retenu prend `--cs-vert`, non `--cs-vert-aplat`** (correction
+du même jour, dans un chantier voisin). Les deux jetons sont IDENTIQUES au Clair
+(`#3d6b4f`), si bien que rien n'y bouge ; au Cuir, `--cs-vert-aplat` vaut un brun sombre
+(`#4a3c2c`) là où `--cs-vert` est le doré du libellé (`#dcc08a`), et le trait de l'onglet
+actif y était presque invisible. C'est la règle déjà consignée : une famille transposée
+se relit dans son nouveau sol, elle ne se recopie pas.
 
 ## ⛔ Un style dit une NATURE ; le rang se dit à part (2026-08-29)
 

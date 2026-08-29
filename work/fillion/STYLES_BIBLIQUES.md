@@ -210,8 +210,27 @@ Cette couche ne dit pas un goût de composition : elle dit **ce que la page impr
 
 | Clé | Valeurs | Ce qu’elle fait |
 |---|---|---|
-| `display_role` | `part_subtitle`, `section_subtitle` | Le bloc est le CHAPEAU du titre qui précède : centré, sans retrait, collé à lui. |
-| `attach_to_block_key` | clé d’un autre bloc | À quel titre ce chapeau se rattache. |
+| `display_role` | **`sous_titre`** *(noms hérités : `part_subtitle`, `section_subtitle`)* | Le bloc est le CHAPEAU du titre qui précède. |
+| `attach_to_block_key` | clé d’un autre bloc | **À quel titre ce chapeau se rattache — et c’est de LUI qu’il tient son rang.** |
+
+⛔ **Un sous-titre se compose comme SON titre**, et c’est l’ancre qui le dit — jamais
+le rôle, jamais son propre rang. Centré sous un titre centré (T1-T3), au fer sous un
+titre au fer (T4-T6), dans son encre et un cran sous son corps.
+
+⚠️ **Ni le rôle ni le rang du sous-titre ne peuvent le dire**, et la donnée le prouve :
+au 29 août 2026, un `section_subtitle` de rang I3 visait indifféremment un titre T3,
+T4 **ou** T5, et un autre de rang I2 visait un T2. Les deux échelles divergent d’ailleurs
+dès le quatrième rang — `I4` est le CHAPITRE quand `T4` est la SOUS-SECTION —, si bien
+qu’aucune arithmétique ne les rapproche. C’est pourquoi les deux anciens rôles sont
+devenus des **noms hérités** de `sous_titre` : ils prétendaient dire dans le rôle un
+rang que le rôle ne sait pas dire.
+
+⚠️ Sans cette règle, **149 sous-titres sur 201** se composaient centrés sous un titre
+lui-même au fer : 117 sous une sous-section, 32 sous un paragraphe. Les deux moitiés
+d’une même composition ne partageaient pas leur axe — le défaut déjà consigné pour
+l’intertitre divisé. Corrigé le 29 août 2026 ; la règle vit dans `rangDesSousTitres`
+et sa composition dans `compositionSousTitre`.
+
 | `hierarchy_axis` | `analytic`, `material` | Confirme ou infléchit l’axe que le registre donne au style. |
 | `outline_role` | texte libre (`piece`, `none`, `parallel_chapter_marker`) | Rôle au sommaire. |
 | `leading_paragraph_style` | `bibliographie`, `renvois-bible` | Composition imposée au PREMIER paragraphe du bloc. |

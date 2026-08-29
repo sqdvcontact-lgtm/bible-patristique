@@ -185,7 +185,7 @@ function presentationSure(value: unknown): BibleEditionDisplayTextBlock['present
  * décide, et lui seul emporte son alignement.
  */
 export type BibleEditionDisplayBlockPresentation = {
-  displayRole: 'part_subtitle' | 'section_subtitle' | null
+  displayRole: 'sous_titre' | 'part_subtitle' | 'section_subtitle' | null
   attachToBlockKey: string | null
   hierarchyAxis: 'material' | 'analytic' | null
   outlineRole: string | null
@@ -197,7 +197,11 @@ export function presentationDeBloc(value: unknown): BibleEditionDisplayBlockPres
   const record = objet(value)
   if (!record) return null
   const presentation: BibleEditionDisplayBlockPresentation = {
-    displayRole: record.display_role === 'part_subtitle' || record.display_role === 'section_subtitle'
+    // ⚠️ `part_subtitle` et `section_subtitle` sont les noms HÉRITÉS de `sous_titre` :
+    // ils disaient dans le rôle un rang que le rôle ne sait pas dire. Le rang d'un
+    // sous-titre vient du TITRE auquel il s'accroche — voir `rangDesSousTitres`.
+    displayRole: record.display_role === 'sous_titre' || record.display_role === 'part_subtitle'
+      || record.display_role === 'section_subtitle'
       ? record.display_role
       : null,
     attachToBlockKey: typeof record.attach_to_block_key === 'string' ? record.attach_to_block_key : null,
@@ -326,6 +330,14 @@ export type BibleEditionDisplayBodyBlock = {
    * le regroupement changerait la composition d'un bloc qui n'a pas bougé.
    */
   semanticLevel?: string | null
+  /**
+   * Le rang du TITRE auquel ce bloc s'accroche, quand il en est le sous-titre.
+   *
+   * ⛔ Il ne se déduit ni du rôle ni du rang du sous-titre : les deux échelles
+   * divergent dès le quatrième rang, I4 étant le CHAPITRE quand T4 est la
+   * SOUS-SECTION. Calculé d'un seul passage par `rangDesSousTitres`.
+   */
+  rangDuTitre?: string | null
   embeddedTitleLevel?: string | null
   presentation?: BibleEditionDisplayBlockPresentation | null
   /** Parent de l'axe ANALYTIQUE, quand la suite matérielle ne le donne pas. */

@@ -89,6 +89,18 @@ function blocBible(
   }
 }
 
+/** La présentation d'un SOUS-TITRE. Le rang, lui, vient de l'ancre : voir `rangDuTitre`. */
+const PRESENTATION_SOUS_TITRE = {
+  displayRole: 'sous_titre' as const,
+  attachToBlockKey: null,
+  hierarchyAxis: null,
+  outlineRole: null,
+  textAlign: null,
+  fontStyle: null,
+  leadingParagraphStyle: null,
+  leadingParagraphAttachedToHeading: false,
+}
+
 // ══ ÉPREUVE 1 — LE TEXTE BIBLIQUE ════════════════════════════════════════════
 
 const Rangee = ({ n, alternatif, actif, children }: {
@@ -392,6 +404,31 @@ const APPARAT_BIBLES: Unite[] = [
     style: 'bible_apparat/titre_sous_section — T4',
     note: 'Les trois rangs bas passent AU FER et changent de corps : c’est la pose, non la taille seule, qui les sépare des rangs hauts.',
     contenu: <Bible bloc={blocBible('titre_sous_section', [], { heading: '1° La personne de l’auteur', niveauHtml: 4 })} />,
+  },
+  {
+    style: 'bible_apparat/sous_titre — sous un T2',
+    note: 'Le sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l’ordre matériel de la page. Sous un rang haut, il se centre comme lui, dans son encre foncée.',
+    contenu: (
+      <>
+        <Bible bloc={blocBible('titre_partie_livre', [], { heading: 'PREMIÈRE PARTIE', niveauHtml: 2 })} />
+        <Bible bloc={blocBible('introduction_partie', ['L’enfance et la vie cachée de Jésus (1, 1 - 2, 23).'], {
+          presentation: PRESENTATION_SOUS_TITRE, rangDuTitre: 'T2',
+        })} />
+      </>
+    ),
+  },
+  {
+    style: 'bible_apparat/sous_titre — sous un T4',
+    note: 'Le MÊME style sous un titre au fer : il s’y pose au fer, un cran plus petit, dans l’encre de son titre. Le rang vient de l’ANCRE, que la donnée porte déjà.',
+    alerte: '⛔ Ni le rôle ni le rang du sous-titre ne disent celui du titre : un `section_subtitle` de rang I3 visait indifféremment un T3, un T4 ou un T5. Jusqu’au 29 août 2026, 149 sous-titres sur 201 se composaient donc CENTRÉS sous un titre lui-même au fer.',
+    contenu: (
+      <>
+        <Bible bloc={blocBible('titre_sous_section', [], { heading: '1° La personne de l’auteur', niveauHtml: 4 })} />
+        <Bible bloc={blocBible('introduction_sous_section', ['Ce que la tradition en a retenu, et ce que le texte en dit.'], {
+          presentation: PRESENTATION_SOUS_TITRE, rangDuTitre: 'T4',
+        })} />
+      </>
+    ),
   },
   {
     style: 'bible_apparat/titre_paragraphe_livre — T5',
