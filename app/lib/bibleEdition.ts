@@ -185,7 +185,7 @@ function presentationSure(value: unknown): BibleEditionDisplayTextBlock['present
  * décide, et lui seul emporte son alignement.
  */
 export type BibleEditionDisplayBlockPresentation = {
-  displayRole: 'part_subtitle' | null
+  displayRole: 'part_subtitle' | 'section_subtitle' | null
   attachToBlockKey: string | null
   hierarchyAxis: 'material' | 'analytic' | null
   outlineRole: string | null
@@ -197,7 +197,9 @@ export function presentationDeBloc(value: unknown): BibleEditionDisplayBlockPres
   const record = objet(value)
   if (!record) return null
   const presentation: BibleEditionDisplayBlockPresentation = {
-    displayRole: record.display_role === 'part_subtitle' ? 'part_subtitle' : null,
+    displayRole: record.display_role === 'part_subtitle' || record.display_role === 'section_subtitle'
+      ? record.display_role
+      : null,
     attachToBlockKey: typeof record.attach_to_block_key === 'string' ? record.attach_to_block_key : null,
     hierarchyAxis: record.hierarchy_axis === 'material' || record.hierarchy_axis === 'analytic'
       ? record.hierarchy_axis

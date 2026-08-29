@@ -231,4 +231,10 @@ describe('modèle éditorial biblique', () => {
     expect(blocsTexteEditoriaux('titre', '', null)).toEqual([])
     expect(blocsTexteEditoriaux('titre', '  \n\n ', null)).toEqual([])
   })
+
+  it('distingue les sous-titres de partie et de section dans le vocabulaire fermé', () => {
+    expect(presentationDeBloc({ display_role: 'part_subtitle' })?.displayRole).toBe('part_subtitle')
+    expect(presentationDeBloc({ display_role: 'section_subtitle' })?.displayRole).toBe('section_subtitle')
+    expect(presentationDeBloc({ display_role: 'subtitle_guessed_from_text' })).toBeNull()
+  })
 })

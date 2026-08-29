@@ -539,7 +539,9 @@ function compositionDuParagraphe(
 ): CompositionParagraphe | null {
   if (texte.presentationStyle) return texte.presentationStyle
   if (!bloc.presentation) return null
-  if (bloc.presentation.displayRole === 'part_subtitle') return 'sous-titre-partie'
+  if (bloc.presentation.displayRole === 'part_subtitle' || bloc.presentation.displayRole === 'section_subtitle') {
+    return 'sous-titre-partie'
+  }
   if (rang === 0) return bloc.presentation.leadingParagraphStyle
   return null
 }

@@ -362,6 +362,25 @@ describe('présentation déclarée par la donnée', () => {
     expect(paragraphe).not.toContain('text-align:justify')
   })
 
+  it('conserve le niveau section dans la donnée tout en composant son sous-titre comme un chapeau', () => {
+    const html = renderToStaticMarkup(<BlocEditorialBible bloc={{
+      ...sousTitre,
+      id: 'mat-struct-section-01-info',
+      blockKey: 'mat-struct-section-01-info',
+      presentation: {
+        ...sousTitre.presentation,
+        displayRole: 'section_subtitle',
+        attachToBlockKey: 'mat-struct-section-01',
+      },
+    }} />)
+    expect(html).toContain('data-display-role="section_subtitle"')
+    expect(html).toContain('class="cs-bible-sous-titre-partie"')
+    const paragraphe = html.slice(0, html.indexOf('L’enfance'))
+    expect(paragraphe).toContain('text-align:center')
+    expect(paragraphe).toContain('font-style:italic')
+    expect(paragraphe).not.toContain('text-align:justify')
+  })
+
   it('ne pose aucun rôle d’affichage sur un bloc qui n’en déclare pas', () => {
     const html = renderToStaticMarkup(
       <BlocEditorialBible bloc={{ ...sousTitre, presentation: null }} />,
