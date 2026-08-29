@@ -152,6 +152,17 @@ describe('⛔ la planche ne rejoue aucune composition', () => {
     }
   })
 
+  it('rend les SIX rangs d’information, chacun dans sa classe', () => {
+    // L'échelle ne vaut que si les six se distinguent : un rang qui retomberait sur
+    // la classe de son voisin ne se verrait pas, et la planche mentirait sur la
+    // marche qui les sépare. ⚠️ La bascule titre → manchette tombe entre I3 et I4.
+    const html = rendu(unite('apparat-bibles', 'l’ÉCHELLE des rangs'))
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      expect(html, `rang I${n}`).toContain(`cs-bible-info--i${n}`)
+      expect(html, `intitulé du rang I${n}`).toContain(`Rang I${n}`)
+    }
+  })
+
   it('rend les marqueurs du manuscrit par leur tokeniseur, sans crochet résiduel', () => {
     const html = rendu(unite('bible', 'marqueurs éditoriaux'))
     expect(html).toContain('Lecture incertaine')

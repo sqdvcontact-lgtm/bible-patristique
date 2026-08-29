@@ -793,6 +793,25 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
+    style: 'bible_apparat/l’ÉCHELLE des rangs — I1 à I6',
+    note: 'Les six rangs d’INFORMATION à la suite, ce qui est le seul moyen de juger les marches entre eux : le blanc qui les cerne se resserre de 2 rem à 1 rem, l’encre du repère s’efface, et le dernier rang descend d’un cran de corps. Un rang ne se lit jamais seul — il se lit contre son voisin.',
+    alerte: '⛔ La bascule tombe entre I3 et I4, et elle change la NATURE du repère : jusqu’à I3 c’est un titre posé au-dessus du développement, à partir de I4 c’est une MANCHETTE flottante que le commentaire habille, à la façon du fac-similé. ⚠️ Ne pas confondre cette échelle avec celle des TITRES : les deux divergent dès le quatrième rang, I4 étant le CHAPITRE quand T4 est la SOUS-SECTION. Aucune arithmétique ne les rapproche, et c’est pourquoi le rang d’un sous-titre vient de son ANCRE.',
+    contenu: (
+      <>
+        {(['I1', 'I2', 'I3', 'I4', 'I5', 'I6'] as const).map((rang) => (
+          <Bible
+            key={rang}
+            bloc={blocBible('commentaire', [
+              rang <= 'I3'
+                ? 'Jusqu’à ce rang, le repère est un TITRE : il se pose au-dessus du développement, et le blanc qui l’en sépare décroît d’un rang à l’autre.'
+                : 'À partir de ce rang, le repère devient une MANCHETTE : il ouvre la première ligne, et le commentaire vient l’habiller comme sur la page imprimée.',
+            ], { heading: `Rang ${rang}`, semanticLevel: rang })}
+          />
+        ))}
+      </>
+    ),
+  },
+  {
     style: 'bible_apparat/introduction — rang BAS, dans le fil',
     note: 'La même introduction à une portée étroite : elle appartient alors au fil, au fer et en romain, dans la mesure ordinaire, sous son intertitre. Ce n’est plus un préambule de livre mais un préambule de section.',
     alerte: '⛔ Le même traitement pour les deux faisait flotter au milieu de la page un texte qui accompagne un passage précis. La composition d’une introduction dépend de sa PORTÉE, non de sa seule nature.',
