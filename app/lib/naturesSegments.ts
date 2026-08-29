@@ -24,6 +24,8 @@
  * première — trois lecteurs du site jugeaient déjà le vers sans passer par
  * `estEnVers`. Voir `app/lib/compositionVers.ts`.
  */
+import { CLE_FORME, FORME_VERS } from './compositionVers'
+
 export const NATURE_VALIDES = [
   'texte',
   'citation',
@@ -50,6 +52,41 @@ export const NATURE_VALIDES = [
 ] as const
 
 export type NatureSegmentValide = typeof NATURE_VALIDES[number]
+
+/** L'ancienne façon de déclarer un vers, reconnue à l'import pour n'être pas perdue. */
+const NATURE_VERS_HERITEE = 'vers'
+
+/**
+ * Ce qu'une ligne d'import déclare : sa NATURE et sa FORME, qui sont DEUX AXES.
+ *
+ * ⛔ Sans cette fonction, un import qui écrit `nature: 'vers'` perd le vers EN SILENCE :
+ * `normaliserNatureSegment` rabat toute valeur inconnue sur `texte`, et la poésie
+ * deviendrait de la prose sans que rien ne le dise. C'est exactement le défaut que la
+ * charte reproche à une nature admise et jamais composée — sauf qu'ici la perte a lieu
+ * à l'écriture, donc sans retour possible.
+ *
+ * ⚠️ La nature héritée est donc TRADUITE, jamais rabattue : elle pose la forme, et la
+ * nature retombe sur celle des FRÈRES du segment — ce que porte un bloc de même
+ * fonction dans le même espace. C'est la règle qu'a suivie la migration du 29 août
+ * 2026, et le seul choix qu'un importateur puisse faire sans lire l'œuvre.
+ *
+ * ⛔ Elle n'ouvre PAS `segment_metadata` en grand : la seule clé qu'elle écrive est
+ * `forme`. Un passe-plat de métadonnées serait une porte par où entrerait tout ce que
+ * personne ne relit.
+ */
+export function declarationDeSegment(ligne: {
+  nature?: unknown
+  forme?: unknown
+  espace_textuel?: unknown
+}): { nature: NatureSegmentValide; segment_metadata: Record<string, string> | null } {
+  const brute = String(ligne.nature ?? '').trim()
+  const heritee = brute === NATURE_VERS_HERITEE
+  const enVers = heritee || String(ligne.forme ?? '').trim() === FORME_VERS
+  const nature: NatureSegmentValide = heritee
+    ? (String(ligne.espace_textuel ?? '').trim() === 'introduction' ? 'introduction' : 'texte')
+    : normaliserNatureSegment(brute)
+  return { nature, segment_metadata: enVers ? { [CLE_FORME]: FORME_VERS } : null }
+}
 
 export function normaliserNatureSegment(nature: unknown): NatureSegmentValide {
   const valeur = String(nature ?? '')

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { NATURE_VALIDES, normaliserNatureSegment } from './naturesSegments'
+import { NATURE_VALIDES, declarationDeSegment, normaliserNatureSegment } from './naturesSegments'
 
 describe('vocabulaire des importateurs génériques', () => {
   it('contient exactement les natures autorisées', () => {
@@ -25,6 +25,41 @@ describe('vocabulaire des importateurs génériques', () => {
 
   it('rabât une valeur inconnue sur texte', () => {
     expect(normaliserNatureSegment('inconnue')).toBe('texte')
+  })
+})
+
+describe('⛔ un import ne perd JAMAIS le vers en silence', () => {
+  // Le danger est propre à l'écriture : `normaliserNatureSegment` rabat toute valeur
+  // inconnue sur `texte`, si bien qu'un import écrivant encore la nature héritée
+  // `vers` aurait fait de la poésie de la prose, sans retour possible.
+  it('traduit la nature héritée au lieu de la rabattre', () => {
+    expect(declarationDeSegment({ nature: 'vers' }))
+      .toEqual({ nature: 'texte', segment_metadata: { forme: 'vers' } })
+  })
+
+  it('la nature retombe sur celle des FRÈRES, selon l’espace', () => {
+    // C'est la règle qu'a suivie la migration du 29 août 2026 : `introduction` dans
+    // l'espace d'introduction — les 20 vers du Manuel de Dhuoda —, `texte` ailleurs.
+    expect(declarationDeSegment({ nature: 'vers', espace_textuel: 'introduction' }).nature).toBe('introduction')
+    expect(declarationDeSegment({ nature: 'vers', espace_textuel: 'corps' }).nature).toBe('texte')
+  })
+
+  it('la FORME se déclare pour elle-même, sur n’importe quelle nature', () => {
+    // ⛔ C'est la seule écriture possible dans l'apparat, où la nature est déjà prise.
+    expect(declarationDeSegment({ nature: 'apparat_critique', forme: 'vers' }))
+      .toEqual({ nature: 'apparat_critique', segment_metadata: { forme: 'vers' } })
+  })
+
+  it('la prose n’écrit AUCUNE métadonnée', () => {
+    expect(declarationDeSegment({ nature: 'texte' })).toEqual({ nature: 'texte', segment_metadata: null })
+    expect(declarationDeSegment({ nature: 'dialogue' })).toEqual({ nature: 'dialogue', segment_metadata: null })
+    expect(declarationDeSegment({})).toEqual({ nature: 'texte', segment_metadata: null })
+  })
+
+  it('⛔ n’ouvre pas `segment_metadata` en grand : la seule clé est la forme', () => {
+    // Un passe-plat serait une porte par où entrerait tout ce que personne ne relit.
+    const d = declarationDeSegment({ nature: 'vers', page: 42, stanza_before: true } as never)
+    expect(Object.keys(d.segment_metadata ?? {})).toEqual(['forme'])
   })
 })
 

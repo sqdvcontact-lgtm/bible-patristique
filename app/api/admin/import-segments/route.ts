@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 import { erreur500 } from '@/app/lib/apiErreur'
-import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, normaliserNatureSegment } from '@/app/lib/naturesSegments'
+import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, declarationDeSegment } from '@/app/lib/naturesSegments'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -81,7 +81,10 @@ export async function POST(req: NextRequest) {
         lien_4:           l.lien_4            || null,
         // Vocabulaire unique de la fiabilité (charte §24.3).
         fiabilite:        ['à constituer', 'douteux', 'probable', 'vérifié'].includes(String(l.fiabilite ?? '')) ? String(l.fiabilite) : null,
-        nature:           normaliserNatureSegment(l.nature),
+        // ⛔ La nature ET la forme : `declarationDeSegment` traduit la nature héritée
+        // `vers` au lieu de la rabattre sur `texte`, ce qui perdrait la poésie sans
+        // que rien ne le dise. Les deux axes s'écrivent ensemble ou pas du tout.
+        ...declarationDeSegment(l),
       }
     })
     .filter(r => r.segment_numero !== null && r.segment_texte !== null)

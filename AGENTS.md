@@ -2182,6 +2182,15 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   traductions parallèles de Boèce ont composé leurs vers en prose le temps du
   correctif. Même piège que `oeuvres_auteurs`, consigné plus bas — **on change le code
   AVANT la donnée, ou les deux dans le même souffle.**
+- ⛔ **UN IMPORT NE PERD JAMAIS LE VERS EN SILENCE.** Les deux importateurs génériques
+  passent par `declarationDeSegment` (`naturesSegments.ts`), qui rend la NATURE et la
+  FORME ensemble. Sans elle, une ligne écrivant encore `nature: 'vers'` serait rabattue
+  sur `texte` par `normaliserNatureSegment` — la poésie deviendrait de la prose, à
+  l'ÉCRITURE, donc sans retour possible. La nature héritée est donc TRADUITE : elle pose
+  la forme, et la nature retombe sur celle des frères du segment (`introduction` dans
+  l'espace d'introduction, `texte` ailleurs). ⚠️ `segment_metadata` n'est pas ouverte
+  en grand pour autant : la seule clé que l'importateur écrive est `forme`, un
+  passe-plat étant une porte par où entrerait tout ce que personne ne relit.
 - ⛔ **On ne DÉCOUPE pas en lignes un paragraphe qui porte une locution marquée ou un
   appel de note** : leurs offsets pointent dans le texte entier. Il garde son
   `pre-line`, qui rend les sauts sans les indenter. Même garde que sur l'intertitre

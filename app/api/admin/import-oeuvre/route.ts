@@ -3,7 +3,7 @@ import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 import { colonnesPeriodeHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
-import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, normaliserNatureSegment } from '@/app/lib/naturesSegments'
+import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, declarationDeSegment } from '@/app/lib/naturesSegments'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,6 +33,8 @@ const COLONNES_SEGMENTS = [
   'id_oeuvre', 'id_texte', 'segment_numero', 'segment_texte',
   'ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5',
   'lien_1', 'lien_2', 'lien_3', 'lien_4', 'fiabilite', 'nature', 'notes',
+  // La FORME du segment, second axe : voir `declarationDeSegment`.
+  'segment_metadata',
 ] as const
 
 function nulSiVide(v: unknown): string | null {
@@ -48,7 +50,7 @@ const FIABILITE_VALIDES = ['à constituer', 'douteux', 'probable', 'vérifié']
 export const NATURE_VALIDES = [...NATURES_SEGMENTS_IMPORT]
 
 function normaliserSegment(s: SegmentCsv, idOeuvre: string, idTexte: string, index: number) {
-  const row: Record<string, string | number | null> = {
+  const row: Record<string, string | number | null | Record<string, string>> = {
     id_oeuvre: idOeuvre,
     id_texte: idTexte,
     segment_numero: Number.parseInt(String(s.segment_numero ?? ''), 10) || index + 1,
@@ -59,12 +61,14 @@ function normaliserSegment(s: SegmentCsv, idOeuvre: string, idTexte: string, ind
     lien_1: nulSiVide(s.lien_1), lien_2: nulSiVide(s.lien_2),
     lien_3: nulSiVide(s.lien_3), lien_4: nulSiVide(s.lien_4),
     fiabilite: FIABILITE_VALIDES.includes(String(s.fiabilite ?? '')) ? String(s.fiabilite) : null,
-    nature: normaliserNatureSegment(s.nature),
+    // ⛔ La nature ET la forme, ensemble : rabattre `vers` sur `texte` perdrait la
+    // poésie en silence. Voir `declarationDeSegment`.
+    ...declarationDeSegment(s),
   }
   return Object.fromEntries(COLONNES_SEGMENTS.map(c => [c, row[c]]))
 }
 
-function segmentUtile(row: Record<string, string | number | null>) {
+function segmentUtile(row: Record<string, string | number | null | Record<string, string>>) {
   return Boolean(
     String(row.segment_texte ?? '').trim() ||
     row.lien_1 || row.lien_2 || row.lien_3 || row.lien_4 ||
