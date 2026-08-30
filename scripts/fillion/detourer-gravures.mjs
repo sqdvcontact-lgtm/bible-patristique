@@ -211,9 +211,17 @@ function bornesDeRampe(gris, N) {
  *      1,3    14,0 %    14,25        8,7 %
  *      1,6    11,9 %    13,89       16,0 %
  *
- *  ⚠️ ELLE A UN PRIX, et c'est pourquoi on prend la fermeté MODESTE : elle efface
- *  les partiels les plus faibles. Rien ne s'est vu manquer à l'agrandissement sur
- *  les quatre gravures éprouvées, mais la mesure dit le risque, et 1,6 le double.
+ *  ⚠️ ELLE A UN PRIX : elle efface les partiels les plus faibles. Rien ne s'est
+ *  vu manquer à l'agrandissement sur les quatre gravures éprouvées, ni à la taille
+ *  d'affichage sur les quatre autres, mais la mesure dit le risque.
+ *
+ *  ⛔ POSÉE D'ABORD À 1,3, ELLE NE SE VOYAIT PAS. L'auteur l'a relevé le jour
+ *  même, et le contrôle a écarté les deux autres causes possibles : les octets
+ *  servis sont exactement ceux de la base, et le seau rend bien un 200 avec le
+ *  nouveau fichier à un client qui présente l'ancien ETag. Le pas était simplement
+ *  trop petit. Éprouvée à la taille d'AFFICHAGE — 151 px, l'encre reposée comme la
+ *  page la repose — la marche de 1 à 1,3 ne se distingue pas ; celle de 1,3 à 1,6
+ *  se voit ; 2 commence à amincir les traits. D'où 1,6.
  *
  *  ⛔ QUATRE AUTRES VOIES ONT ÉTÉ ÉPROUVÉES ET ÉCARTÉES, ne pas les refaire :
  *   · le BRUIT ne fait pas reculer la bouillie d'un point (23,9 → 23,6 % sur le
@@ -233,7 +241,7 @@ function bornesDeRampe(gris, N) {
  *  17,3 → 16,5 %. À 301 px, PLUS RIEN N'EST PLAT. C'est la preuve que la bouillie
  *  est de la hachure, non un lavis, et qu'aucun traitement ne la rendra : le vrai
  *  levier est la TAILLE D'AFFICHAGE, pas le fichier. */
-const COURBE_ALPHA = 1.3
+const COURBE_ALPHA = 1.6
 
 function courber(a) {
   if (COURBE_ALPHA === 1 || a <= 0 || a >= 1) return a
@@ -566,7 +574,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '3.1.0',
+    processing_version: '3.2.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
