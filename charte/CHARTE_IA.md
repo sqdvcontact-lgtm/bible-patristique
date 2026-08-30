@@ -1122,6 +1122,38 @@ Une divergence de limite de chapitre peut être résolue en redistribuant un fra
 
 La propagation des liens bibliques entre versions au § 9.7 n’est permise que sur un alignement sémantique contrôlé. L’alignement ne prouve jamais, à lui seul, l’identité d’une citation ou d’une allusion.
 
+#### La lecture EN REGARD a sa propre mesure
+
+Deux colonnes ne tiennent pas dans la mesure d’une seule. La lecture bilingue partageait les 31,25 rem de la lecture ordinaire, ce qui laissait 266 px au français et 209 au latin. C’est assez pour de la prose serrée. C’est trop peu pour un vers, qui ne se coupe pas.
+
+⛔ **La lecture en regard se compose donc sur 42 rem**, le rapport des colonnes étant de 1,2 pour 1 et la gouttière de 1,4 rem. Règle posée par l’auteur le 30 août 2026 : « tu peux éventuellement augmenter la largeur des colonnes ; on peut tolérer quelques retours à la ligne disgracieux, mais il faut des limites ».
+
+⚠️ **La limite se MESURE.** Les 2 011 vers de Boèce ont été rendus un par un dans leur composition réelle, puis mesurés au navigateur. Le français en demande 302 px au neuvième dixième et 343 au quatre-vingt-dix-neuvième ; le latin 227 et 283. Dans l’ancienne mesure, **468 vers s’enroulaient, soit près d’un sur quatre**. Dans la nouvelle, il en reste **trois**.
+
+⚠️ **Le rapport des colonnes se compte, il ne se devine pas.** Sur cette mesure, des colonnes égales laissent 33 vers enroulés, l’ancien rapport de 1,12 pour 0,88 en laisse neuf, et 1,2 pour 1 en laisse trois. Le français demande plus de place que le latin, et c’est l’inverse de ce que l’œil suppose devant un hexamètre.
+
+⚠️ **Les trois qui restent sont irréductibles à cette échelle** : deux vers du Mirandol, et la citation grecque d’Euripide, qui demanderait à elle seule 402 px. Les faire tenir voudrait une mesure de 55 rem, où la prose ne se lirait plus. C’est la limite qu’on accepte.
+
+⛔ **Le « Latin seul » garde 31,25 rem.** Il n’a qu’une colonne, et une colonne de 672 px n’est plus une mesure de lecture. La règle ne vaut que là où il y a deux colonnes.
+
+⚠️ **La prose y gagne aussi** : sa colonne originale passe de 209 à 295 px. Une colonne de 209 px ne porte qu’une trentaine de signes, ce qui est en deçà de toute mesure de lecture.
+
+#### ⛔ DEUX POÈMES NE S’ALIGNENT PAS L’UN SUR L’AUTRE
+
+Règle posée par l’auteur le 30 août 2026 : « je ne veux pas que les textes poétiques soient alignés entre eux ; le latin, tout du long, doit respecter sa forme d’origine, sans gros blancs artificiels, et inversement ».
+
+⛔ **La prose s’apparie empan par empan, le vers ne s’apparie pas.** Chaque empan de prose fait un rang de grille, et un rang prend la hauteur de la plus haute de ses deux cellules : trois vers français en regard d’un distique latin creusent donc un blanc au bas de la colonne latine. Le poème s’en trouve scandé de silences que l’édition n’a pas écrits, et la forme d’origine est perdue des deux côtés à la fois.
+
+⚠️ **Ce n’est pas un défaut marginal, c’est la moitié de la page.** Mesuré sur le mètre I du Livre premier de Boèce, colonne par colonne : le français porte 437 px d’encre pour **406 px de blanc**, et le latin **435 px de blanc pour 389 px d’encre** — plus de vide que de texte. Treize trous par colonne, jusqu’à 49 px, sur un poème de quatorze groupes d’alignement. Le seul blanc voulu, celui qui sépare les deux strophes, s’y noyait.
+
+⛔ **Un poème fait donc UN SEUL rang de grille**, la traduction dans sa colonne et la langue originale dans la sienne, chacune coulant d’un trait avec ses strophes et son seul blanc de fin. Les deux colonnes demeurent : c’est bien un texte en regard, mais le regard se fait poème contre poème, non vers contre vers.
+
+⚠️ **L’appariement vers à vers était de toute façon une illusion.** Mirandol traduit dans un autre mètre et n’a pas le compte de lignes de Migne : ce seul poème confronte 24 vers français à 22 vers latins. Aligner ce qui ne se correspond pas ne produit pas une correspondance, mais du blanc.
+
+⛔ **Les originaux de TOUTES les strophes suivent**, joints par un saut de ligne. C’est ce qui rend la fusion possible en regard : le latin d’une strophe vit sur son vers de rang 1, et fondre les blocs sans cette précaution n’en garderait qu’un et jetterait les autres.
+
+⚠️ **La prose ne bouge pas.** L’empan reste son unité, avec ses bornes et son filet. La règle ne vaut que pour une suite de blocs entièrement composés de vers ; un poème d’un seul groupe repasse par le cas ordinaire, n’ayant rien à refaire.
+
 ### 12.3 Résorption des œuvres originales autonomes
 
 Une langue originale prend son rang parmi les **textes** de l’œuvre, et n’ouvre pas d’entrée de catalogue distincte. L’original vient en premier, `…T0001`, les traductions ensuite, `…T0002`. C’est la forme déjà tenue par *La Cité de Dieu*, `A0010O0002`, dont le latin et le français vivent sous un seul `id_oeuvre`. L’œuvre originale autonome décrite au § 12.1 est une forme héritée, à résorber quand on la rencontre et à ne plus produire.
@@ -3073,6 +3105,10 @@ Un bloc de versets ne touche pas le commentaire qui l’entoure. Mesuré avant r
 
 ⚠️ Fermer le blanc sous un titre demande donc DEUX sélecteurs, un par surface. Une règle qui n’en porte qu’un ne ferme rien sur téléphone : c’était le cas de la sous-section T4 depuis le 29 août. ⚠️ Un titre dont le développement lui appartient — la sous-section T4, la péricope T6 — ferme des deux côtés, et son blanc vaut alors le MÊME quoi qu’il suive : un commentaire, une introduction, ou la première rangée de verset, laquelle ne porte aucune marge en tête. Sans quoi un même rang s’aère de deux façons selon qu’un bloc s’intercale ou non.
 
+⛔ **Rectification du 30 août 2026 : ce blanc N’EST PAS SYMÉTRIQUE, et il ne l’a jamais dû.** Les deux valeurs étaient égales — deux rem d’abord, puis 1,1 après la reprise du 29 août — et elles ne disent pourtant pas la même chose. Celui du DESSUS est une COUTURE : le commentaire et les versets qu’il commente sont une seule unité de lecture, que l’auteur veut « plus tassée, condensée ». Celui du DESSOUS est une COUPURE : on quitte une unité pour la suivante, et l’auteur en demande « un blanc plus important ». Un seul chiffre pour les deux effaçait la frontière et creusait la couture, soit l’exact contraire de ce qu’on cherche. Il vaut désormais 0,55 rem avant les versets et 1,75 rem après.
+
+⛔ **Et ces deux règles NE PORTAIENT PAS sur la lecture EN REGARD, sans que rien ne le dise.** Une règle de voisinage ne s’applique qu’à la surface dont on a écrit le sélecteur. La lecture bilingue n’a ni rangée de verset ni enveloppe d’axe : ses rangées sont des grilles à deux colonnes, et chaque créneau canonique enveloppe ses blocs et sa rangée dans une boîte à lui, si bien qu’un bloc n’y est JAMAIS le frère d’une rangée de verset. C’était donc la marge PROPRE du rang d’information qui faisait le blanc — 1,25 rem au-dessus, 0,9 en dessous, la même quoi qu’il l’entoure —, et la lecture en regard portait depuis l’origine le défaut que ces règles corrigent ailleurs. ⚠️ Corollaire de méthode : une seconde surface qui rend les mêmes blocs autrement ne reçoit rien d’une règle de voisinage, et rien ne le signale — ni type, ni test, ni relecture de la feuille.
+
 ### 35.13. L’introduction d’un livre se compose comme un titre de partie, et c’est le GENRE qui titre
 
 « Évangile selon saint Matthieu — Introduction » se rendait en rubrique : sans-serif, demi-gras, chassée, grise. C’est le seul style de la page qui ne dise rien de la hiérarchie du livre, et il détonnait d’autant plus qu’il ouvre le premier chapitre. L’intitulé prend donc le rang de « Première partie » : le titre en grand romain centré, et le second membre en chapeau italique juste dessous, à la place et dans la forme de « L’enfance et la vie cachée de Jésus ».
@@ -3271,6 +3307,20 @@ Lorsqu’une resegmentation doit avancer avant que tous les alinéas aient pu ê
 La longueur ne décide jamais seule d’une coupure. Elle sert à repérer un segment à relire. Une coupure n’est admise qu’à une articulation syntaxique ou argumentative sûre ; un découpage à la phrase peut servir de présélection, mais les périodes longues, citations, objections, réponses et énumérations sont relues avant publication. Si le texte legacy présente une fusion, une inversion, une répétition ou une lacune à une jonction de page, la source est recollationnée avant toute resegmentation définitive.
 
 Lorsqu’un paragraphe de lecture est créé sans correspondre à un alinéa attesté de la source, il s’agit d’une frontière éditoriale, non documentaire. La source reste découpée selon ses paragraphes attestés dans `oeuvre_texte_unites`; la couche de lecture peut subdiviser ces unités par `segments.paragraphe` pour améliorer la lisibilité. La première frontière d’un paragraphe de lecture doit conserver dans les métadonnées une origine explicite (`source` ou `editorial`) ainsi que le paragraphe source auquel elle appartient. Une frontière éditoriale ne doit jamais être présentée ultérieurement comme un alinéa du témoin.
+
+### 35.15. L’apparat n’a qu’UN gris de titre, et la sous-section est un titre centré
+
+Quatre remarques de l’auteur sur la Fillion lue en regard, le 30 août 2026, et un principe qui les tient : **une page qui porte déjà quatre rangs de gris n’en accueille pas un cinquième.** Le commentaire, la manchette, le français et le latin en tiennent quatre ; les titres y ajoutaient un vert.
+
+⛔ **On ne transforme pas un STYLE DE RENDU pour corriger une DONNÉE mal rangée.** Le matin du 30 août, la sous-section était passée au corps de l’apparat et à l’italique parce que la grande introduction « Ancien Testament » la montrait trop lourde. Le diagnostic était faux, et l’auteur l’a corrigé le soir même : ce qui déplaisait dans cette pièce, ce sont les PARAGRAPHES qui y portent ce rang, non le rang lui-même. La correction est donc à faire dans la pièce, et le rang garde la composition qui convient aux dix-neuf autres sous-sections du corpus.
+
+**La sous-section est un titre CENTRÉ** — dix-sept pixels, demi-graisse, romain. ⚠️ Sa distinction d’avec le paragraphe ne peut plus être la POSE, les deux se centrant : ce sont le CORPS et la GRAISSE. Le 29 août, c’était le centre qui les séparait ; poser une distinction sur un axe, c’est s’interdire de l’employer ailleurs, et il faut alors en trouver deux autres.
+
+⛔ **Le chapeau d’une sous-section est en ROMAIN, seul chapeau du jeu à l’être.** Elle touche presque toujours un titre de péricope, qui la suit à quatre pixels et se compose en italique de seize : un chapeau italique de seize donnait deux lignes que rien ne séparait, sinon leur axe, et la paire se lisait comme une seule composition mal coupée. Il monte en outre à seize pixels, un cran au-dessus de celui du paragraphe — la ligne où l’on lit la sous-section ne peut pas être plus petite que le titre qu’elle domine. Le sous-titre tombé dans un bloc voisin suit, corps pour corps : les deux formes d’une même paire doivent se ressembler.
+
+**L’ENCRE DES RANGS DE L’APPARAT.** Les rangs de sous-section, de paragraphe et de péricope quittent le vert des titres pour l’échelle de gris chauds, au MILIEU EXACT du corps de l’apparat qu’ils dominent et du texte biblique qu’ils annoncent (décision de l’auteur : « légèrement plus foncé que le texte des commentaires ; et légèrement plus clair que le texte des versets »). Mesuré au navigateur : L\* 43,2 · 29,6 · 15,1, soit deux crans de 13,6 et 14,5, et un contraste de 8,64 sur le papier. ⚠️ Les trois rangs hauts — livre, partie, section — gardent le vert : la coupure tombe entre les rangs qui coiffent une PIÈCE et ceux qui vivent dans le fil d’un chapitre. ⚠️ Au Cuir la bande est trois fois plus étroite (crans de 7,4 et 7,0) : là, l’encre ne fait que confirmer une hiérarchie que le corps, la pose et l’italique portent déjà.
+
+⚠️ **Une couleur peut être JUSTE et paraître fausse : c’était la GRAISSE.** L’auteur demandait que la manchette « soit dans la couleur du texte des commentaires ». Elle y était depuis toujours — la même valeur mesurée sur le repère et sur le paragraphe qu’il coiffe — et il y lisait pourtant un gris de plus. À douze pixels, le demi-gras hérité de la rubrique posait assez d’encre par ligne pour se lire comme un quatrième rang. ⛔ **Avant de changer une teinte que quelqu’un dit fausse, la MESURER** : c’est parfois le poids, le corps ou l’interligne, et retoucher la teinte alors n’ajoute qu’un gris à une échelle qui en avait déjà trop.
 
 ### 35.4.3. Corps des introductions longues
 
