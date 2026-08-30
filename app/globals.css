@@ -291,6 +291,41 @@
      parce que le fer du commentaire en dépend. */
   --cs-manchette-colonne: 7rem;
   --cs-manchette-gouttiere: 0.9rem;
+
+  /* ── L'ÉCHELLE DES BLANCS de la page Bible ──
+     Un blanc ne dit rien tout seul : il ne dit que son RAPPORT aux autres. Mesurés
+     dans la page rendue le 2026-08-30, les six rangs de titre tenaient TOUS entre
+     33 et 56 px, et l'échelle était INVERSÉE — la sous-section (T4) en recevait 33,
+     soit exactement autant qu'un simple changement d'unité de commentaire, et moins
+     que la péricope (T6) qu'elle domine ; « Première partie », la plus haute division
+     du livre, en recevait 53, moins que « Livre I » qui lui est subordonné. Six rangs
+     dans un mouchoir, et deux inversés : la hiérarchie ne se lisait pas.
+
+     Les valeurs se lisent en LIGNES de l'apparat (16,25 px), seule unité que la page
+     donne à l'œil, et progressent d'environ un quart à chaque rang. ⛔ Ne pas les
+     rapprocher : deux rangs qui diffèrent de moins d'un cinquième ne se distinguent
+     pas, et c'est ainsi que l'échelle s'était aplatie.
+
+     ⚠️ Ce sont les marges DÉCLARÉES. La rangée de verset ajoute ~5 px de son propre
+     rembourrage, et les marges de deux blocs voisins s'ADDITIONNENT dans l'axe de
+     texte, qui est une grille — d'où les règles de voisinage plus bas, qui ferment
+     la marge de ce qui précède un titre pour que le rang décide seul. */
+  /* Dans l'unité : du commentaire aux versets qu'il commente. La couture, non la
+     coupure. ⚠️ À peine plus large que le blanc entre deux versets (8 px) : c'est un
+     change de nature, pas un change d'unité. */
+  --cs-blanc-couture: 0.4rem;
+  /* D'une unité de commentaire à la suivante, dans une même péricope. */
+  --cs-blanc-unite: 2.25rem;
+  --cs-blanc-t6: 4rem;      /* une péricope */
+  --cs-blanc-t5: 5rem;      /* un paragraphe (« § I »), un chapitre */
+  --cs-blanc-t4: 6.25rem;   /* une sous-section */
+  --cs-blanc-t3: 7.75rem;   /* une section */
+  --cs-blanc-t2: 9.5rem;    /* une partie */
+  --cs-blanc-t1: 11.5rem;   /* le livre */
+  /* Deux titres qui se suivent forment UNE composition d'ouverture, non deux
+     ouvertures. ⛔ Sans cette règle, un chapitre qui ouvre à la fois une partie, une
+     section et un paragraphe empilait 152 + 124 + 80 px de blanc pur. */
+  --cs-blanc-titres: 1.75rem;
 }
 
 /* ══ Confort de lecture — le seul thème alternatif (surcouche de tokens) ══
@@ -814,8 +849,111 @@ button:focus-visible,
 .cs-bible-title--t6 {
   font-family: var(--font-source-serif), Georgia, serif;
   line-height: 1.3;
-  margin: 1.5rem 0 0.5rem;
+  /* ⛔ Le blanc du DESSUS se pose rang par rang, jamais ici : c'est lui qui porte la
+     hiérarchie, et une valeur commune l'effacerait. Voir l'échelle des blancs, en
+     tête de fichier. Seul le blanc du DESSOUS a un défaut, chaque rang le resserrant
+     ou l'ouvrant selon ce qu'il annonce. */
+  margin: 0 0 0.5rem;
   white-space: pre-line;
+}
+
+/* ── L'ÉCHELLE, appliquée ─────────────────────────────────────────────────────
+   ⚠️ Ces déclarations viennent AVANT celles de chaque rang, qui posent le corps,
+   la graisse et la pose : un rang peut donc resserrer son blanc du dessous sans
+   toucher à celui du dessus. */
+.cs-bible-title--t1 { margin-top: var(--cs-blanc-t1); }
+.cs-bible-title--t2 { margin-top: var(--cs-blanc-t2); }
+.cs-bible-title--t3 { margin-top: var(--cs-blanc-t3); }
+.cs-bible-title--t4 { margin-top: var(--cs-blanc-t4); }
+.cs-bible-title--t5 { margin-top: var(--cs-blanc-t5); }
+.cs-bible-title--t6 { margin-top: var(--cs-blanc-t6); }
+
+/* ⛔ LE BLANC D'UN RANG DÉCIDE SEUL, et il ne le peut que si ce qui précède rend
+   sa marge. L'axe de texte est une GRILLE : les marges de deux blocs voisins ne
+   fusionnent pas, elles s'ADDITIONNENT (charte § 35.12). Mesuré avant reprise, un
+   titre de péricope précédé d'une introduction recevait 28 + 17,6 = 46 px quand son
+   voisin, précédé d'une rangée de verset, en recevait 33 : le MÊME rang s'ouvrait de
+   deux façons selon ce qui tombait devant lui, et l'échelle ne voulait rien dire.
+   ⚠️ Second sélecteur : la mesure ÉTROITE, où l'axe disparaît et les blocs
+   redeviennent frères. Là les marges fusionnent pour de bon, et poser zéro laisse
+   valoir celle du titre — soit le même blanc que sur la grille, ce qui est le but. */
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc.cs-bible-block--title) > .cs-bible-bloc,
+.cs-bible-bloc:has(+ .cs-bible-bloc.cs-bible-block--title) {
+  margin-bottom: 0;
+}
+
+/* ⛔ DEUX TITRES QUI SE SUIVENT NE S'OUVRENT PAS DEUX FOIS. « Première partie », son
+   chapeau, « Livre I », son chapeau, puis « § I » : chacun réclamant son rang, la
+   Genèse 2 ouvrait sur 356 px de blanc pur avant le premier mot. Une pile de titres
+   est UNE composition d'ouverture — le premier porte le blanc de son rang, les
+   suivants s'y rangent.
+   ⚠️ Le sous-titre compte comme un titre : c'est le chapeau de celui qu'il continue,
+   et le rang qui le suit ne recommence pas davantage après lui. */
+.cs-bible-axe:has(> .cs-bible-bloc.cs-bible-block--title) + .cs-bible-axe > .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-axe:has(> .cs-bible-bloc[data-display-role='sous_titre']) + .cs-bible-axe > .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-axe:has(> .cs-bible-bloc[data-display-role='part_subtitle']) + .cs-bible-axe > .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-axe:has(> .cs-bible-bloc[data-display-role='section_subtitle']) + .cs-bible-axe > .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-bloc.cs-bible-block--title + .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-bloc[data-display-role='sous_titre'] + .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-bloc[data-display-role='part_subtitle'] + .cs-bible-bloc.cs-bible-block--title,
+.cs-bible-bloc[data-display-role='section_subtitle'] + .cs-bible-bloc.cs-bible-block--title {
+  margin-top: var(--cs-blanc-titres);
+}
+
+/* ⛔ LE PREMIER BLOC D'UN CHAPITRE N'A RIEN À SÉPARER. Le blanc d'un rang dit qu'on
+   quitte ce qui précède ; en tête de chapitre il n'y a rien à quitter, et l'en-tête
+   « Matthieu ❧ Chapitre 5 » a déjà son filet. Mesuré sans cette règle : 120 px de
+   vide entre le filet et « Le sermon sur la montagne », le rang T4 y posant ses
+   100 px comme s'il fermait une section précédente.
+   ⚠️ `:first-of-type` et non `:first-child` : le flux s'ouvre sur un `<style>`, et
+   les rangées de verset sont des `div` comme les axes — si un verset ouvre le
+   chapitre, aucun axe ne matche, ce qui est exactement ce qu'on veut.
+   ⛔ Elle ne se défend PAS par sa spécificité, qui est faible — (0,3,0) —, et c'est
+   délibéré : ce sont les DEUX règles concurrentes qui s'écartent d'elles-mêmes du
+   premier bloc. La coupure d'unité exige une rangée de verset AVANT, que le premier
+   bloc n'a par définition pas ; et le rang d'un titre PORTÉ porte un
+   `:not(:first-of-type)` explicite. Une spécificité gonflée aurait masqué le fait
+   qu'il y avait là trois règles à accorder, non une à faire gagner. */
+.cs-bible-axe:first-of-type > .cs-bible-bloc { margin-top: 0.75rem; }
+/* ⛔ ET LA VARIANTE ÉTROITE SE GARDE DERRIÈRE LE SEUIL DE LA CHARTE, faute de quoi
+   elle ne dit pas ce qu'elle a l'air de dire. Sur l'axe de texte, un bloc est TOUJOURS
+   `:first-of-type` : l'enveloppe ne porte que lui et une cellule vide, et il est donc
+   le premier `div` de sa propre grille. Écrite sans garde, la règle donnait ses 12 px
+   à CHAQUE bloc de la page, avec une spécificité qui battait les six rangs — mesuré,
+   « 2. Les béatitudes » s'ouvrait sur 17 px au lieu de 69, et toute l'échelle tombait
+   d'un coup. Elle ne vaut que là où l'axe disparaît et où les blocs redeviennent les
+   enfants directs du flux, c'est-à-dire sous les 900 px de `useEstMobile`. */
+@media (max-width: 900px) {
+  .cs-bible-bloc:first-of-type { margin-top: 0.75rem; }
+}
+
+/* ⛔ Une PIÈCE lue seule n'a pas de fil de chapitre à ponctuer : ses titres coiffent
+   des sections de prose qui se suivent page après page — l'introduction « Ancien
+   Testament » en range dix dans un SEUL bloc, avec onze paragraphes et quatre listes.
+   L'échelle du fil y ouvrirait un demi-écran entre deux paragraphes, et jusqu'à
+   100 px avant « 3. Livres prophétiques (17 livres) », qui est le sous-titre d'une
+   liste et non une division du livre. Elle se resserre donc, en gardant son ordre.
+   ⛔ `:not(.cs-bible-titre--divise)` : l'intertitre divisé pose quatre rem plus bas
+   dans cette feuille et les mérite — c'est lui qui sépare deux sections d'une pièce
+   (charte, 2026-08-28). Sans cette exclusion, la présente règle, plus spécifique,
+   les lui reprendrait en silence. */
+.cs-bible-piece .cs-bible-title--t1:not(.cs-bible-titre--divise) { margin-top: 5rem; }
+.cs-bible-piece .cs-bible-title--t2:not(.cs-bible-titre--divise) { margin-top: 4.25rem; }
+.cs-bible-piece .cs-bible-title--t3:not(.cs-bible-titre--divise) { margin-top: 3.5rem; }
+.cs-bible-piece .cs-bible-title--t4:not(.cs-bible-titre--divise) { margin-top: 2.5rem; }
+.cs-bible-piece .cs-bible-title--t5:not(.cs-bible-titre--divise) { margin-top: 2.15rem; }
+.cs-bible-piece .cs-bible-title--t6:not(.cs-bible-titre--divise) { margin-top: 1.85rem; }
+
+/* ⛔ Sur un TÉLÉPHONE, l'échelle se compte en écrans, non en lignes. Les trois rangs
+   hauts prennent de 124 à 184 px, c'est-à-dire jusqu'au quart d'un écran de 760 px,
+   pour un blanc qu'on traverse au pouce. Ils se resserrent d'un tiers ; les trois
+   bas ne bougent pas, un titre de péricope ouvrant là ce qu'on va lire tout de
+   suite. ⚠️ L'ordre des rangs est conservé, c'est lui qui porte la hiérarchie. */
+@media (max-width: 700px) {
+  .cs-bible-title--t1 { margin-top: 7.5rem; }
+  .cs-bible-title--t2 { margin-top: 6.25rem; }
+  .cs-bible-title--t3 { margin-top: 5.25rem; }
+  .cs-bible-title--t4 { margin-top: 4.5rem; }
 }
 
 /* Les rangs hauts se CENTRENT, le dernier reste au fer : c'est ainsi que
@@ -839,7 +977,7 @@ button:focus-visible,
    SANS et au fer à gauche, comme les intertitres de la page d'œuvre. Le
    change de caractère fait le gros du travail, la taille achève. */
 .cs-bible-title--t1 { font-size: 1.625rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
-.cs-bible-title--t2 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; margin: 3rem 0 0.75rem; }
+.cs-bible-title--t2 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; margin-bottom: 0.75rem; }
 /* ⛔ AUCUNE petite capitale sur un titre biblique (décision de l’auteur,
    2026-08-26) : « pas lisible ». Composée à quinze pixels avec de la chasse, une
    ligne entière en petites capitales devient une bande grise où l’œil ne trouve
@@ -852,7 +990,7 @@ button:focus-visible,
   font-weight: 400;
   color: var(--cs-encre);
   letter-spacing: 0.01em;
-  margin: 2rem 0 0.6rem;
+  margin-bottom: 0.6rem;
 }
 
 /* ⚠️ La coupure des polices n’est PAS entre rangs hauts et rangs bas : elle est
@@ -894,7 +1032,10 @@ button:focus-visible,
   font-weight: 500;
   color: var(--cs-encre-apparat);
   letter-spacing: 0.01em;
-  margin-top: 1.15rem;
+  /* ⚠️ Le blanc du DESSUS vient de l'échelle (`--cs-blanc-t4`) depuis le
+     2026-08-30 : il valait 1,15 rem, c'est-à-dire MOINS que celui d'un titre de
+     péricope, que ce rang domine. Seul celui du dessous reste ici — il se ferme,
+     et la règle de voisinage juste dessous le ferme de l'autre côté. */
   margin-bottom: 0.2rem;
 }
 
@@ -954,9 +1095,12 @@ button:focus-visible,
   letter-spacing: 0;
   /* ⚠️ Le blanc du DESSOUS se resserre encore (0,35 → 0,25 rem) : de son titre
      jusqu'au dernier verset, l'ensemble doit se lire d'un bloc, et non s'égrener
-     (décision de l'auteur, 2026-08-30). Celui du DESSUS ne bouge pas — c'est lui
-     qui ouvre la péricope, et l'auteur en demande davantage, non moins. */
-  margin: 1.75rem 0 0.25rem;
+     (décision de l'auteur, 2026-08-30). Celui du DESSUS a doublé le même jour —
+     c'est lui qui ouvre la péricope, et l'auteur en demande davantage, non moins :
+     il vient désormais de l'échelle (--cs-blanc-t6), où il vaut 4 rem contre les
+     2,25 d'un simple changement d'unité de commentaire. Les deux valaient 1,75 rem,
+     de sorte qu'une péricope neuve s'ouvrait exactement comme une note de plus. */
+  margin-bottom: 0.25rem;
 }
 
 /* ⛔ Le blanc SOUS un titre de péricope se referme, exactement comme au rang T4,
@@ -1208,8 +1352,61 @@ button:focus-visible,
    DESSOUS est une COUPURE — on quitte une unité pour la suivante, et il en faut
    « un blanc plus important ». Un seul et même chiffre pour les deux effaçait la
    frontière et creusait la couture, soit l'exact contraire. */
-.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 1.75rem; }
-.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: 0.55rem; }
+/* ⚠️ Reprise du 2026-08-30 (soir) : les deux valeurs viennent de l'échelle, et
+   l'écart entre elles s'ouvre. Elles valaient 1,75 et 0,55 rem, soit 33 px contre
+   12 : un rapport de 2,75 dans une page où tout est du même sérif justifié au même
+   corps, et 33 px n'y font que DEUX lignes d'apparat. La coupure ne se lisait pas,
+   et le lecteur n'avait aucun moyen de voir où un commentaire finissait et où le
+   suivant commençait. La couture se ferme à 9 px (à peine plus que le blanc entre
+   deux versets, qui en vaut 8) et la coupure s'ouvre à 41 : un rapport de 4,5.
+   ⛔ Et la coupure reste SOUS le blanc d'un titre de péricope (64 px), sans quoi
+   changer d'unité se lirait comme changer de péricope — c'est exactement le défaut
+   qu'on vient de corriger, les deux valant 33 px l'un comme l'autre. */
+.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: var(--cs-blanc-unite); }
+.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: var(--cs-blanc-couture); }
+/* ⛔ ET LES DEUX RÈGLES NE PORTAIENT PAS SUR LA MESURE ÉTROITE, sans que rien ne le
+   dise. Sur un téléphone, `surAxeTexte` rend le contenu nu : le bloc redevient le
+   FRÈRE DIRECT de la rangée de verset, et `.verset-row + .cs-bible-axe > …` ne
+   trouve plus personne. La couture et la coupure — c'est-à-dire tout ce qui fait
+   voir un groupe — n'existaient donc que sur un écran large, là où l'on en a le
+   moins besoin. Même famille de défaut que la lecture en regard, qui n'a ni axe ni
+   rangée et porte sa propre règle plus bas. */
+.verset-row + .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: var(--cs-blanc-unite); }
+.cs-bible-bloc:not(.cs-bible-block--title):has(+ .verset-row) { margin-bottom: var(--cs-blanc-couture); }
+
+/* ⛔ UN BLOC QUI PORTE UN TITRE S'OUVRE AU RANG DE CE TITRE. Une péricope se dit de
+   deux façons chez Fillion : par un bloc `titre_pericope`, qui EST un titre T6, et
+   par un `introduction_titree`, bloc d'information qui porte son titre au-dedans.
+   Le premier prenait les 64 px de son rang, le second les 41 px d'un changement
+   d'unité : deux ouvertures de péricope, deux blancs, pour la même chose. 268 blocs
+   du corpus sont dans ce cas, dont deux dans le seul Matthieu 5.
+   ⚠️ Le titre porté a lui-même `margin-top: 0` (le bloc l'espace, charte 2026-08-30) :
+   c'est donc bien au BLOC de porter le blanc, et cette règle-ci ne fait que lui
+   dire lequel.
+   ⚠️ Elle l'emporte sur la coupure d'unité par sa SPÉCIFICITÉ — (0,5,0) contre
+   (0,4,0) — et non par son rang dans la feuille : une péricope qui ouvre après des
+   versets n'est pas un changement d'unité.
+   ⛔ `:not(:first-of-type)` : en tête de chapitre il n'y a rien à séparer, et la
+   règle du premier bloc, plus haut, y a la main. Sans cette exclusion elle la
+   perdrait, sa spécificité étant plus faible.
+   ⛔ `:not(.cs-bible-block--title)` : un bloc de TITRE porte lui aussi son intitulé,
+   et l'intitulé y répète la classe de rang du bloc — la règle l'attrapait donc, et
+   son rang y était bien le bon. Elle n'en était pas moins fausse : sa spécificité
+   (0,5,0) écrasait en silence la RÉDUCTION MOBILE des rangs hauts, à (0,1,0), et
+   « Première partie » gardait ses 152 px sur un téléphone. Un bloc de titre porte
+   son rang dans ses propres classes ; il n'a pas besoin qu'on le lui dise. */
+.cs-bible-axe:not(:first-of-type) > .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t1),
+.cs-bible-bloc:not(:first-of-type):not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t1) { margin-top: var(--cs-blanc-t1); }
+.cs-bible-axe:not(:first-of-type) > .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t2),
+.cs-bible-bloc:not(:first-of-type):not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t2) { margin-top: var(--cs-blanc-t2); }
+.cs-bible-axe:not(:first-of-type) > .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t3),
+.cs-bible-bloc:not(:first-of-type):not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t3) { margin-top: var(--cs-blanc-t3); }
+.cs-bible-axe:not(:first-of-type) > .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t4),
+.cs-bible-bloc:not(:first-of-type):not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t4) { margin-top: var(--cs-blanc-t4); }
+.cs-bible-axe:not(:first-of-type) > .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t5),
+.cs-bible-bloc:not(:first-of-type):not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t5) { margin-top: var(--cs-blanc-t5); }
+.cs-bible-axe:not(:first-of-type) > .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t6),
+.cs-bible-bloc:not(:first-of-type):not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t6) { margin-top: var(--cs-blanc-t6); }
 
 /* ── LE MÊME BLANC, EN LECTURE EN REGARD ─────────────────────────────────────
    ⛔ Les deux règles ci-dessus ne portent PAS sur la lecture bilingue, et cela ne
@@ -1224,9 +1421,22 @@ button:focus-visible,
    (0,3,0), qui referment le blanc entre un titre et son commentaire. Ne pas y
    ajouter une troisième classe — le titre reprendrait son air. */
 [data-lecture='bilingue'] .cs-bible-block--commentary {
-  margin-top: 1.75rem;
-  margin-bottom: 0.55rem;
+  margin-top: var(--cs-blanc-unite);
+  margin-bottom: var(--cs-blanc-couture);
 }
+/* ⛔ Et le rang d'un titre PORTÉ ne l'atteignait pas non plus, pour la raison
+   symétrique : la règle générale s'écarte du premier bloc par `:not(:first-of-type)`,
+   or en lecture en regard CHAQUE bloc est le premier de sa boîte de créneau. Une
+   péricope ouverte par un `introduction_titree` y recevait donc les 24 px de son rang
+   d'information quand sa voisine, ouverte par un `titre_pericope`, en recevait 64.
+   ⚠️ Ces règles n'ont PAS à s'écarter d'une tête de chapitre : la lecture en regard
+   ne pose pas de règle de tête, et l'en-tête y sépare déjà. */
+[data-lecture='bilingue'] .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t1) { margin-top: var(--cs-blanc-t1); }
+[data-lecture='bilingue'] .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t2) { margin-top: var(--cs-blanc-t2); }
+[data-lecture='bilingue'] .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t3) { margin-top: var(--cs-blanc-t3); }
+[data-lecture='bilingue'] .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t4) { margin-top: var(--cs-blanc-t4); }
+[data-lecture='bilingue'] .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t5) { margin-top: var(--cs-blanc-t5); }
+[data-lecture='bilingue'] .cs-bible-bloc:not(.cs-bible-block--title):has(> .cs-bible-title--porte.cs-bible-title--t6) { margin-top: var(--cs-blanc-t6); }
 
 /* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
    ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style
