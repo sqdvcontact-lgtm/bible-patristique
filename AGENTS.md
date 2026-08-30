@@ -2602,6 +2602,75 @@ du même jour, dans un chantier voisin). Les deux jetons sont IDENTIQUES au Clai
 actif y était presque invisible. C'est la règle déjà consignée : une famille transposée
 se relit dans son nouveau sol, elle ne se recopie pas.
 
+## ⛔ La SOUS-SECTION est un titre centré, et l'apparat n'a plus qu'UN gris de titre (2026-08-30)
+
+Quatre remarques de l'auteur sur la Fillion lue en regard, et un principe qui les tient :
+**une page qui porte déjà quatre rangs de gris n'en accueille pas un cinquième, et le
+blanc qui coud une unité de lecture ne peut pas valoir celui qui l'en sépare.**
+
+- ⛔ **On ne transforme pas un STYLE DE RENDU pour corriger une DONNÉE mal rangée.** Le
+  30 août au matin, T4 était passé au corps de l'apparat et à l'italique parce que la
+  grande introduction « Ancien Testament » le montrait trop lourd. Le diagnostic était
+  faux, et l'auteur l'a corrigé le soir même : ce qui déplaisait dans cette pièce, ce sont
+  les PARAGRAPHES qui y portent ce rang. Le rang redevient donc un titre CENTRÉ —
+  1,0625 rem, graisse 500, romain — et la correction est à faire dans la pièce.
+- ⛔ **T4 et T5 se centrent tous deux : leur distinction est le CORPS et la GRAISSE**
+  (17 px demi-gras contre 16 px maigre). ⚠️ Le 29 août, c'était le CENTRE qui les
+  séparait ; poser une distinction sur un axe, c'est s'interdire de l'employer ailleurs.
+- ⛔ **Le chapeau de T4 est en ROMAIN, seul du jeu à l'être.** Une sous-section touche
+  presque toujours un titre de PÉRICOPE, qui la suit à quatre pixels et se compose en
+  italique de seize : un chapeau italique de seize donnait deux lignes que rien ne
+  séparait, sinon leur axe. Il monte en outre à 1 rem, un cran au-dessus de celui de T5 —
+  la ligne où l'on lit la sous-section ne peut pas être plus petite que le titre qu'elle
+  domine. `compositionSousTitre` suit, corps pour corps.
+- **`--cs-encre-apparat`, l'encre des rangs T4, T5 et T6.** Ils quittent le vert
+  `--cs-encre` pour l'échelle de gris chauds, au MILIEU EXACT de `--cs-texte-second` et de
+  `--cs-texte-fort` — `#4a4540` au Clair, `#e0d7c3` au Cuir. Mesuré : L\* 43,2 · 29,6 ·
+  15,1, contraste 8,64 sur `--cs-fond`. ⚠️ T1 à T3 gardent le vert : la coupure tombe
+  entre les rangs qui coiffent une PIÈCE et ceux qui vivent dans le fil d'un chapitre.
+  ⚠️ Au Cuir la bande est trois fois plus étroite (crans de 7,4 et 7,0) : là, l'encre ne
+  fait que confirmer une hiérarchie que le corps, la pose et l'italique portent déjà.
+- ⚠️ **Une couleur peut être JUSTE et paraître fausse : c'était la GRAISSE.** L'auteur
+  demandait que la manchette « soit dans la couleur du texte des commentaires ». Elle y
+  était depuis toujours — `rgb(107, 101, 96)` mesuré sur le repère comme sur le paragraphe
+  qu'il coiffe. À douze pixels, le 600 hérité de la rubrique posait assez d'encre par ligne
+  pour se lire comme un quatrième rang de gris. Le rang tombe à 500, et pas à 400 : une
+  manchette doit se retrouver d'un coup d'œil. ⛔ **Avant de changer une teinte que
+  quelqu'un dit fausse, la MESURER : c'est parfois le poids, la taille ou l'interligne.**
+- ⛔ **Le blanc qui cerne un bloc de versets N'EST PAS SYMÉTRIQUE.** Il valait 1,1 rem des
+  deux côtés, et les deux ne disent pas la même chose : au-DESSUS c'est une couture — le
+  commentaire et ses versets sont une seule unité de lecture — au-DESSOUS une COUPURE. Un
+  seul chiffre effaçait la frontière et creusait la couture, soit l'exact contraire.
+  Désormais 0,55 rem avant les versets, 1,75 rem après.
+- ⛔ **Et ces deux règles NE PORTAIENT PAS sur la lecture en regard, sans que rien ne le
+  dise.** `BibleBilingue` n'a ni `.verset-row` ni `.cs-bible-axe` : ses rangées sont des
+  grilles, et chaque créneau canonique enveloppe ses blocs et sa rangée dans une boîte à
+  lui, si bien qu'un bloc n'y est JAMAIS le frère d'une rangée de verset. C'est sa marge
+  propre qui faisait le blanc. D'où `[data-lecture='bilingue'] .cs-bible-block--commentary`.
+  ⚠️ Spécificité (0,2,0), délibérément : elle passe SOUS les règles de voisinage des
+  titres (0,3,0), qui referment le blanc entre un titre et son commentaire. Ne pas y
+  ajouter une troisième classe.
+- ⚠️ **Corollaire de méthode, et il vaut pour toute règle de VOISINAGE** : elle ne
+  s'applique qu'à la surface dont on a écrit le sélecteur. Une seconde surface qui rend
+  les mêmes blocs autrement ne la reçoit pas, et rien — ni type, ni test, ni relecture de
+  la feuille — ne le signale.
+
+### ⚠️ Un calque hors serveur suffit à régler des blancs, et il ment sur UN point
+
+Le site étant fermé et le serveur de développement à éviter, ces quatre réglages ont été
+pris sur un calque : le DOM exact d'un créneau (relevé dans
+`v_bible_editorial_body_blocks`), la feuille `globals.css` inlinée, les styles en ligne
+des composants recopiés, les deux polices tirées de Google Fonts, ouvert en `file://`
+dans le panneau navigateur. Il rejoue la cascade RÉELLE, et l'avant/après se compare en
+rejouant la même page sous `git show HEAD:app/globals.css`.
+
+⛔ **Mais `white-space: pre-line` transforme l'indentation du calque en LIGNES RENDUES.**
+Les rangs de titre le portent : un `<h3>` écrit sur sa propre ligne dans le fichier
+gagnait 22 px au-dessus et 25 en dessous, que React ne produit jamais (JSX supprime les
+blancs qui contiennent un saut de ligne). Le calque annonçait 74 px de haut pour un titre
+qui en fait 38, et la moitié des blancs mesurés étaient faux. **Écrire une section de
+titre sur une seule ligne**, ou vérifier que la boîte du bloc vaut celle de son titre.
+
 ## ⛔ Un style dit une NATURE ; le rang se dit à part (2026-08-29)
 
 Doctrine : charte **§ 7.2**. Le paratexte biblique confondait encore les axes du

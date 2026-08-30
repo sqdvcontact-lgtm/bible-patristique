@@ -292,20 +292,30 @@ export const MENTION_LACUNE_TITRE = 'Lacune matérielle du manuscrit'
  * 201 sous-titres du corpus recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
  */
 export function compositionSousTitre(rangDuTitre?: string | null): CSSProperties {
-  // ⚠️ T5 n'est PAS au fer : le paragraphe de Fillion n'a pour intitulé qu'une
-  // désignation — « § I » —, qui pendait au bord gauche pendant que son objet,
-  // seul porteur du sens, se lisait plus bas comme une légende. Le rang s'est
-  // centré le 29 août 2026 (voir `.cs-bible-title--t5`), et son sous-titre le
-  // suit : c'est toute la règle de cette fonction.
-  const auFer = rangDuTitre === 'T4' || rangDuTitre === 'T6'
-  return {
-    // Le corps suit celui du titre : les rangs centrés sont plus gros d'un cran.
-    fontSize: auFer ? '0.875rem' : '0.9375rem',
-    // ⛔ L'encre est celle de SON titre. Une encre plus claire ferait du sous-titre
-    // un commentaire du titre, quand il en est la suite.
-    color: auFer || rangDuTitre === 'T3' || rangDuTitre === 'T5'
+  // ⚠️ Ni T5 ni T4 ne sont au fer : le paragraphe et la sous-section de Fillion
+  // n'ont pour intitulé qu'une désignation — « § I », « II » —, qui pendait au bord
+  // gauche pendant que son objet, seul porteur du sens, se lisait plus bas comme une
+  // légende. T5 s'est centré le 29 août 2026, T4 le 30 (voir `.cs-bible-title--t4`
+  // et `--t5`), et leurs sous-titres les suivent : c'est toute la règle de cette
+  // fonction. ⛔ SEUL T6 reste au fer, comme son titre.
+  const auFer = rangDuTitre === 'T6'
+  // ⛔ Le corps du sous-titre suit celui de SON CHAPEAU, jamais une valeur à part :
+  // les deux formes d'une même paire — l'objet accolé au titre, et l'objet tombé dans
+  // le bloc voisin — doivent se ressembler. Les chiffres sont ceux de `globals.css`,
+  // `.cs-bible-title--tN > .cs-bible-chapeau`.
+  const corps = auFer ? '0.875rem' : rangDuTitre === 'T4' ? '1rem' : '0.9375rem'
+  // ⛔ L'encre est celle de SON titre. Une encre plus claire ferait du sous-titre
+  // un commentaire du titre, quand il en est la suite. Les rangs de l'apparat —
+  // sous-section, paragraphe, péricope — ont quitté le vert des titres le
+  // 30 août 2026 pour le gris d'apparat ; T3 et au-dessus le gardent.
+  const encre = rangDuTitre === 'T4' || rangDuTitre === 'T5' || rangDuTitre === 'T6'
+    ? 'var(--cs-encre-apparat)'
+    : rangDuTitre === 'T3'
       ? 'var(--cs-encre)'
-      : 'var(--cs-encre-fonce)',
+      : 'var(--cs-encre-fonce)'
+  return {
+    fontSize: corps,
+    color: encre,
     textAlign: auFer ? 'left' : 'center',
     lineHeight: 1.35,
     fontStyle: 'italic',

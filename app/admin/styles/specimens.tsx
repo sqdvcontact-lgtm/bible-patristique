@@ -765,12 +765,12 @@ const APPARAT_BIBLES: Unite[] = [
   },
   {
     style: 'bible_apparat/titre_sous_section — T4',
-    note: 'La sous-section et la péricope passent AU FER : c’est la POSE, non la taille seule, qui les sépare des rangs centrés. 248 blocs portent celui-ci, le plus employé des rangs bas. ⚠️ Le PARAGRAPHE, entre les deux, se centre depuis le 29 août 2026 — voir sa planche : son intitulé n’est jamais qu’une désignation.',
+    note: 'La sous-section se CENTRE depuis le 30 août 2026, comme le paragraphe qu’elle contient : seule la péricope, le rang le plus bas, tient encore le fer. 248 blocs portent celui-ci, le plus employé des rangs bas. ⚠️ Elle ne se distingue donc plus du paragraphe par la pose, mais par le CORPS et la GRAISSE — dix-sept pixels en demi-graisse, contre seize en graisse ordinaire.',
     contenu: <Bible bloc={blocBible('titre_sous_section', [], { heading: '1° La personne de l’auteur', niveauHtml: 4 })} />,
   },
   {
     style: 'bible_apparat/sous_titre — sous un T4',
-    note: 'Le MÊME style sous un titre au fer : il s’y pose au fer, un cran plus petit, dans l’encre de son titre. Le rang vient de l’ANCRE — `attach_to_block_key` —, que la donnée porte déjà pour les 201 sous-titres du corpus.',
+    note: 'Le MÊME style sous une sous-section : il s’y centre comme elle, au corps de son chapeau — seize pixels, pour ne pas passer sous le titre de péricope que la sous-section domine —, et dans son encre. Le rang vient de l’ANCRE — `attach_to_block_key` —, que la donnée porte déjà pour les 201 sous-titres du corpus.',
     alerte: '⛔ Ni le rôle ni le rang du sous-titre ne disent celui du titre : un `section_subtitle` de rang I3 visait indifféremment un T3, un T4 ou un T5, et les deux échelles divergent dès le quatrième rang — I4 est le CHAPITRE quand T4 est la SOUS-SECTION. Jusqu’au 29 août 2026, 149 sous-titres sur 201 se composaient donc CENTRÉS sous un titre lui-même au fer.',
     contenu: (
       <>
@@ -789,7 +789,7 @@ const APPARAT_BIBLES: Unite[] = [
   },
   {
     style: 'bible_apparat/titre_paragraphe_livre — T5, axe ANALYTIQUE',
-    note: 'La division « § » de Fillion, entre la sous-section et la péricope : « La création (1, 1 - 2, 3) » (T4) contient « Le début de la création », qui contient les jours (T6). CENTRÉ, seul des rangs bas, et pour une raison qui tient à la donnée : son intitulé n’est jamais un titre, mais une DÉSIGNATION seule — « § I », « I » —, dont l’objet tombe à côté. Ci-contre les deux formes qu’elle prend, en chapeau puis en bloc voisin.',
+    note: 'La division « § » de Fillion, entre la sous-section et la péricope : « La création (1, 1 - 2, 3) » (T4) contient « Le début de la création », qui contient les jours (T6). CENTRÉ, pour une raison qui tient à la donnée : son intitulé n’est jamais un titre, mais une DÉSIGNATION seule — « § I », « I » —, dont l’objet tombe à côté. La sous-section, qui le domine, l’a rejoint au centre le 30 août 2026 ; ce qui les sépare est le corps et la graisse. Ci-contre les deux formes que prend le paragraphe, en chapeau puis en bloc voisin.',
     alerte: '⚠️ Deux styles au rang T5, et ils ne se rencontrent jamais : le CHAPITRE vit sur l’axe matériel et ne paraît pas, le PARAGRAPHE sur l’axe analytique et compose. Ce rang manquait au registre jusqu’au 29 août 2026, et ses trente-quatre blocs de la Genèse ne paraissaient nulle part. ⛔ Aucune chasse sur la désignation : une lettre seule ne s’espace pas, et la chasse, tombant APRÈS elle, la décalerait de l’axe. ⛔ Le corps ne monte pas non plus — il égalerait la sous-section : c’est l’OBJET qui a grossi, d’un cran, et qui a quitté le gris.',
     contenu: (
       <>

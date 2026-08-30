@@ -418,19 +418,30 @@ describe('présentation déclarée par la donnée', () => {
     expect(paragraphe).toContain('color:var(--cs-encre-fonce)')
   })
 
-  it('⛔ un sous-titre de rang BAS se pose AU FER, comme son titre', () => {
+  it('⛔ un sous-titre prend la POSE de son titre, quel qu’il soit', () => {
     // C'est la correction du 29 août 2026 : 149 sous-titres sur 201 se composaient
-    // centrés sous un titre lui-même au fer — 117 sous une sous-section, 32 sous un
-    // paragraphe. Les deux moitiés d'une même composition ne partageaient pas leur
-    // axe, défaut déjà consigné pour l'intertitre divisé.
-    const html = renderToStaticMarkup(
+    // centrés sous un titre lui-même au fer. Les deux moitiés d'une même composition
+    // ne partageaient pas leur axe, défaut déjà consigné pour l'intertitre divisé.
+    // ⚠️ La règle n'a pas changé le 30 août ; ce sont les TITRES qui ont bougé. La
+    // sous-section s'est recentrée, son sous-titre la suit, et seule la péricope
+    // tient encore le fer. Un test qui nommerait « les rangs bas » manquerait le
+    // point : rien ici ne dépend du rang, tout dépend de la pose du titre.
+    const sousSection = renderToStaticMarkup(
       <BlocEditorialBible bloc={{ ...sousTitre, rangDuTitre: 'T4' }} />,
     )
-    expect(html).toContain('data-titre-rang="T4"')
-    const paragraphe = html.slice(0, html.indexOf('L’enfance'))
-    expect(paragraphe).toContain('text-align:left')
-    expect(paragraphe).toContain('font-size:0.875rem')
-    expect(paragraphe).toContain('color:var(--cs-encre)')
+    expect(sousSection).toContain('data-titre-rang="T4"')
+    const centre = sousSection.slice(0, sousSection.indexOf('L’enfance'))
+    expect(centre).toContain('text-align:center')
+    expect(centre).toContain('font-size:1rem')
+    expect(centre).toContain('color:var(--cs-encre-apparat)')
+
+    const pericope = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{ ...sousTitre, rangDuTitre: 'T6' }} />,
+    )
+    const auFer = pericope.slice(0, pericope.indexOf('L’enfance'))
+    expect(auFer).toContain('text-align:left')
+    expect(auFer).toContain('font-size:0.875rem')
+    expect(auFer).toContain('color:var(--cs-encre-apparat)')
   })
 
   it('⛔ ne pose aucun rang quand l’ancre n’en a pas donné', () => {

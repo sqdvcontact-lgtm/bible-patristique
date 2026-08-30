@@ -110,6 +110,20 @@
   --cs-texte-second: #6b6560;
   --cs-texte: #3a3530;
   --cs-texte-fort: #2a2520;
+  /* ── L'ENCRE DES RANGS DE TITRE DE L'APPARAT ──
+     Un titre de sous-section, de paragraphe ou de péricope n'appartient plus à la
+     famille des ENCRES DE TITRE : il rejoint l'échelle de gris chauds, entre le
+     corps de l'apparat qu'il domine et le texte biblique qu'il annonce (décision
+     de l'auteur, 2026-08-30 : « légèrement plus foncé que le texte des
+     commentaires ; et légèrement plus clair que le texte des versets »).
+
+     ⚠️ La valeur est le MILIEU EXACT de --cs-texte-second et de --cs-texte-fort,
+     composante par composante — 107→42, 101→37, 96→32. Mesuré au navigateur :
+     L* 43,2 · 29,6 · 15,1, soit deux crans de 13,6 et 14,5 ; contraste 8,64 sur --cs-fond.
+     ⛔ Le vert --cs-encre ne convient pas ici : sur une page où le commentaire,
+     la manchette et les deux colonnes de versets tiennent déjà quatre rangs de
+     gris, il ajoutait une TEINTE de plus au lieu d'un rang de moins. */
+  --cs-encre-apparat: #4a4540;
   /* Encre — verts des titres (deux valeurs, cf. §AGENTS) */
   --cs-encre: #2a3d30;
   --cs-encre-fonce: #1e2e24;
@@ -255,10 +269,11 @@
 
   /* ── Le corps de l'APPARAT ──
      Le commentaire de Fillion se compose un cran sous le texte biblique. ⛔ Ce
-     nombre vit ICI et nulle part ailleurs : il gouverne à la fois les paragraphes
-     de l'apparat (BibleEditionParatext, STYLE_CORPS) et le rang de titre qui
-     s'aligne dessus (T4, plus bas). Recopié aux deux endroits, il n'y resterait
-     identique que par accident. */
+     nombre vit ICI et nulle part ailleurs : il gouverne les paragraphes de
+     l'apparat (compositionBible, STYLE_CORPS), qui se composent en style EN LIGNE
+     et ne peuvent donc pas le lire dans une règle de feuille.
+     ⚠️ Le rang T4 s'y alignait le 30 août 2026 au matin ; il a repris son corps
+     propre le soir même, la sous-section étant un titre et non du texte. */
   --cs-corps-apparat: 0.78125rem;
 }
 
@@ -319,6 +334,13 @@
   --cs-texte-second:#cdc2ab;
   --cs-texte: #e6ded0;
   --cs-texte-fort: #f2ebda;
+  /* Le rang d'apparat, transposé : même place, milieu exact du second et du fort.
+     ⚠️ La bande est ici BEAUCOUP plus étroite qu'au Clair — 78,8 · 86,2 · 93,2 en
+     L*, soit deux crans de 7,4 et 7,0 quand le Clair en donne deux de quatorze. Les trois
+     rangs ne se séparent donc pas par l'encre seule sur ce fond, et ils n'ont pas
+     à le faire : le corps, la pose et l'italique portent la hiérarchie, l'encre
+     ne fait que la confirmer. C'est mesuré, non estimé ; à revoir à la mesure. */
+  --cs-encre-apparat: #e0d7c3;
   /* Encre des titres : un sépia franchement plus SATURÉ que le corps (20 contre 8),
      et un peu plus sombre que lui. C'est ce double écart qui le fait lire comme une
      encre, là où le Clair employait un vert. */
@@ -761,12 +783,15 @@ button:focus-visible,
   white-space: pre-line;
 }
 
-/* Les rangs hauts se CENTRENT, les rangs bas restent au fer : c'est ainsi que
+/* Les rangs hauts se CENTRENT, le dernier reste au fer : c'est ainsi que
    la page d'œuvre distingue un titre de partie d'un intertitre, et c'est ce
-   qui rend la hiérarchie lisible d'un coup d'œil, sans comparer des tailles. */
+   qui rend la hiérarchie lisible d'un coup d'œil, sans comparer des tailles.
+   ⚠️ T4 les a rejoints le 30 août 2026 — voir sa règle plus bas. Seul T6, le
+   rang le plus bas, tient encore le fer ; T5 se centre par sa propre règle. */
 .cs-bible-title--t1,
 .cs-bible-title--t2,
-.cs-bible-title--t3 { text-align: center; }
+.cs-bible-title--t3,
+.cs-bible-title--t4 { text-align: center; }
 
 /* ⛔ AUCUN `text-transform`. Les capitales de « PREMIÈRE PARTIE » viennent de
    l'édition elle-même ; celles que le rendu ajoutait à « 1° L'apparition… »
@@ -801,12 +826,10 @@ button:focus-visible,
    éditoriaux — rubriques et marqueurs de commentaire. Mis en sans, un titre de
    péricope se lisait comme une étiquette d’interface, non comme un titre.
 
-   Les rangs bas se distinguent alors par la POSITION — au fer, quand les hauts
-   sont centrés — et, pour le dernier, par l’ITALIQUE.
+   Le rang le plus bas se distingue alors par la POSITION — au fer, quand tous
+   les autres sont centrés — et par l’ITALIQUE.
 
-   ⚠️ T5 fait exception depuis le 29 août 2026 : ce rang ne porte pas de titre,
-   mais une DÉSIGNATION seule, et il se centre. Voir sa règle plus bas. */
-.cs-bible-title--t4,
+   ⚠️ T5 s’est centré le 29 août 2026, T4 le 30 : voir leurs règles plus bas. */
 .cs-bible-title--t6 {
   text-align: left;
   letter-spacing: 0.01em;
@@ -815,24 +838,30 @@ button:focus-visible,
    et prend un peu moins d'air au-dessus (décision de l'auteur, 2026-08-29). Le blanc du
    dessous se ferme des deux côtés — voir la règle de voisinage juste dessous. */
 
-/* ⛔ UNE SOUS-SECTION NE GROSSIT PAS : elle prend le CORPS MÊME de l'apparat, et
-   c'est l'ITALIQUE qui la lève (décision de l'auteur, 2026-08-30 : « il devrait
-   être de la taille du texte ; normal ; pourquoi pas en italiques ? »).
+/* ⛔ LA SOUS-SECTION EST UN TITRE CENTRÉ, et elle le redevient (décision de
+   l'auteur, 2026-08-30). Le 30 août au matin, ce rang était passé au corps de
+   l'apparat et à l'italique parce que la grande introduction « Ancien Testament »
+   le montrait trop lourd. Le diagnostic était FAUX, et l'auteur l'a corrigé le
+   soir même : ce qui déplaisait dans cette pièce, ce sont les PARAGRAPHES qui y
+   portent le rang T4, non le rang lui-même. ⛔ On ne transforme pas un style de
+   rendu pour corriger une donnée mal rangée : la correction est à faire dans la
+   pièce, et le rang garde la composition qui convient aux dix-neuf autres.
 
-   À dix-sept pixels sur un corps de douze et demi, ce rang pesait presque autant
-   que la section centrée qui le domine — et il n'annonce le plus souvent qu'une
-   liste de six lignes. Le corps disait donc une importance que le contenu
-   dément.
-
-   ⚠️ Il ne se confond pas pour autant avec ce qu'il annonce : il en garde
-   l'ENCRE PLEINE quand l'apparat se compose en gris second, l'italique, et le
-   blanc qui l'ouvre. Trois signes, là où il n'y avait qu'un demi-corps.
-
-   ⚠️ L'italique appartient DÉSORMAIS AU RANG, non à la page imprimée. Les
-   dix-neuf sous-sections du corpus le portaient déjà, mais en style POSÉ par la
-   normalisation ; la vingtième, qui est un bloc-titre, ne le portait pas. Un
-   signal de rang ne se laisse pas au hasard de la donnée. */
-.cs-bible-title--t4 { font-size: var(--cs-corps-apparat); font-weight: 400; font-style: italic; color: var(--cs-encre); margin-top: 1.15rem; margin-bottom: 0.2rem; }
+   ⚠️ Sa distinction d'avec T5 ne peut donc plus être la POSE — les deux se
+   centrent. Elle est double : le corps (17 px contre 16) ET la graisse (500
+   contre 400). Deux axes, comme la charte l'exige, et aucun qui soit la teinte.
+   ⚠️ Et d'avec T6, qu'il domine, elle est triple : le centre contre le fer, le
+   romain contre l'italique, la demi-graisse contre la graisse ordinaire — c'est
+   ce que l'auteur demande par « un peu plus fort que le titre de niveau qui lui
+   est inférieur ». */
+.cs-bible-title--t4 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--cs-encre-apparat);
+  letter-spacing: 0.01em;
+  margin-top: 1.15rem;
+  margin-bottom: 0.2rem;
+}
 
 /* ⛔ Le blanc SOUS une sous-section se referme : ce qui suit lui appartient, comme
    au rang T6. ⚠️ Et il ne suffit pas de raccourcir la marge du titre — le bloc
@@ -862,10 +891,11 @@ button:focus-visible,
    lettres pendait au bord gauche, et son objet, plus petit et plus clair, se
    lisait comme une légende (relevé de l'auteur, 2026-08-29).
 
-   ⚠️ Le centre le sépare enfin de la SOUS-SECTION, dont un seul pixel de corps le
-   distinguait : T4 et T5 s'écrivent tous deux « Section II » puis « § I », même
-   forme, même caractère, même pose. Deux rangs voisins doivent différer sur deux
-   axes au moins ; ceux-là n'en avaient pas un.
+   ⚠️ Le centre le rapproche de la SOUS-SECTION, qui s'est centrée à son tour le
+   30 août : T4 et T5 s'écrivent tous deux « Section II » puis « § I », même
+   forme, même caractère, désormais même pose. Deux rangs voisins doivent différer
+   sur deux axes au moins, et ce sont ici le CORPS et la GRAISSE — T4 à dix-sept
+   pixels en demi-graisse, T5 à seize en graisse ordinaire.
    ⛔ Le CORPS ne monte pas : il passerait celui de la sous-section, qu'il ne doit
    pas égaler. C'est l'OBJET qui grossit — voir le chapeau et `compositionSousTitre`.
    ⛔ Aucune chasse : une désignation d'une lettre ne s'espace pas, et la chasse,
@@ -873,7 +903,7 @@ button:focus-visible,
 .cs-bible-title--t5 {
   font-size: 1rem;
   font-weight: 400;
-  color: var(--cs-encre);
+  color: var(--cs-encre-apparat);
   text-align: center;
   letter-spacing: 0;
 }
@@ -885,9 +915,13 @@ button:focus-visible,
   font-size: 1rem;
   font-weight: 400;
   font-style: italic;
-  color: var(--cs-encre);
+  color: var(--cs-encre-apparat);
   letter-spacing: 0;
-  margin: 1.75rem 0 0.35rem;
+  /* ⚠️ Le blanc du DESSOUS se resserre encore (0,35 → 0,25 rem) : de son titre
+     jusqu'au dernier verset, l'ensemble doit se lire d'un bloc, et non s'égrener
+     (décision de l'auteur, 2026-08-30). Celui du DESSUS ne bouge pas — c'est lui
+     qui ouvre la péricope, et l'auteur en demande davantage, non moins. */
+  margin: 1.75rem 0 0.25rem;
 }
 
 /* ⛔ Le blanc SOUS un titre de péricope se referme, exactement comme au rang T4,
@@ -1086,6 +1120,16 @@ button:focus-visible,
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
      place : le gris de l'apparat s'y lisait anémique. */
   color: var(--cs-texte-second);
+  /* ⛔ ET IL NE DOIT PAS LE PARAÎTRE PLUS SOMBRE (décision de l'auteur, 2026-08-30 :
+     « doit être dans la couleur du texte des commentaires »). Il PORTE cette couleur
+     depuis toujours — mesuré rgb(107, 101, 96) sur le repère comme sur le paragraphe
+     qu'il coiffe —, et l'auteur y lisait pourtant un gris de plus. Ce n'était donc
+     pas la teinte, mais la GRAISSE : à douze pixels, le 600 hérité de la rubrique
+     posait assez d'encre par ligne pour se lire comme un quatrième rang de gris.
+     Le rang tombe à 500. ⚠️ Il ne tombe pas à 400 : le repère est une manchette,
+     il doit se retrouver d'un coup d'œil, et il ne lui resterait alors que la
+     colonne et le blanc pour le dire. */
+  font-weight: 500;
 }
 
 /* Sur une mesure étroite, la manchette ne laisserait au commentaire qu'une
@@ -1121,9 +1165,33 @@ button:focus-visible,
    disparaissait en silence. */
 /* ⚠️ Le blanc qui cerne un bloc de versets valait 2 rem de chaque côté : c'est lui qui
    séparait le texte de son commentaire. Le RETRAIT du verset le dit désormais, et le
-   blanc n'a plus à le crier (décision de l'auteur, 2026-08-29). */
-.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 1.1rem; }
-.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: 1.1rem; }
+   blanc n'a plus à le crier (décision de l'auteur, 2026-08-29).
+   ⛔ ET IL N'EST PAS SYMÉTRIQUE (décision de l'auteur, 2026-08-30). Les deux blancs
+   valaient 1,1 rem l'un comme l'autre, et ils ne disent pourtant pas la même chose :
+   celui du DESSUS est une couture — le commentaire et les versets qu'il commente sont
+   une seule unité de lecture, et l'auteur la veut « plus tassée, condensée » ; celui du
+   DESSOUS est une COUPURE — on quitte une unité pour la suivante, et il en faut
+   « un blanc plus important ». Un seul et même chiffre pour les deux effaçait la
+   frontière et creusait la couture, soit l'exact contraire. */
+.verset-row + .cs-bible-axe > .cs-bible-bloc:not(.cs-bible-block--title) { margin-top: 1.75rem; }
+.cs-bible-axe:has(+ .verset-row) > .cs-bible-bloc:not(.cs-bible-block--title) { margin-bottom: 0.55rem; }
+
+/* ── LE MÊME BLANC, EN LECTURE EN REGARD ─────────────────────────────────────
+   ⛔ Les deux règles ci-dessus ne portent PAS sur la lecture bilingue, et cela ne
+   se voit pas : elle n'a ni `.verset-row` ni `.cs-bible-axe`: ses rangées sont des
+   grilles à deux colonnes, et chaque créneau canonique enveloppe ses blocs et sa
+   rangée dans une boîte à lui (`BibleBilingue`). Un bloc n'y est donc jamais le
+   frère d'une rangée de verset, et c'est sa marge PROPRE qui fait le blanc — celle
+   du rang d'information, 1,25 rem au-dessus et 0,9 en dessous, la même quel que
+   soit ce qui l'entoure. La lecture en regard portait ainsi le défaut que les deux
+   règles ci-dessus corrigent, et personne ne pouvait le lire dans la feuille.
+   ⚠️ Spécificité (0,2,0) : elle passe SOUS les règles de voisinage des titres
+   (0,3,0), qui referment le blanc entre un titre et son commentaire. Ne pas y
+   ajouter une troisième classe — le titre reprendrait son air. */
+[data-lecture='bilingue'] .cs-bible-block--commentary {
+  margin-top: 1.75rem;
+  margin-bottom: 0.55rem;
+}
 
 /* ── Rôles d'affichage déclarés par la donnée ────────────────────────────────
    ⛔ Ces règles se pendent à un `data-` porté par le bloc, jamais à son style
@@ -1172,9 +1240,9 @@ button:focus-visible,
   margin-bottom: 1.5rem;
   text-align: center;
 }
-/* Les rangs bas restent AU FER, comme leurs titres. ⚠️ Sauf T5, qui s'est centré
-   le 29 août 2026 : son sous-titre le suit, et c'est toute la règle. */
-.cs-bible-bloc[data-titre-rang='T4'],
+/* Le rang le plus bas reste AU FER, comme son titre. ⚠️ T5 s'est centré le
+   29 août 2026 et T4 le 30 : leurs sous-titres les suivent, et c'est toute la
+   règle — un sous-titre ne se pose jamais autrement que le titre qu'il continue. */
 .cs-bible-bloc[data-titre-rang='T6'] {
   text-align: left;
 }
@@ -1352,7 +1420,7 @@ button:focus-visible,
    de partie — « L'enfance et la vie cachée de Jésus (1, 1 - 2, 23) » sous
    « Première partie ». Les deux disent la même chose à la même place : le gris et
    le corps réduit de l'apparat l'y faisaient paraître d'un rang plus bas que son
-   voisin. ⚠️ T4 et T6 gardent le leur : là, le chapeau suit un intertitre au fer,
+   voisin. ⚠️ Seul T6 garde le sien : là, le chapeau suit un intertitre au fer,
    et il doit s'en effacer. */
 .cs-bible-title--t1 > .cs-bible-chapeau,
 .cs-bible-title--t2 > .cs-bible-chapeau,
@@ -1360,17 +1428,35 @@ button:focus-visible,
   font-size: 0.9375rem;
   color: var(--cs-encre-fonce);
 }
-/* T5 a rejoint les titres centrés le 29 août 2026, et son chapeau avec lui —
-   c'est même LUI qui porte le sens, la tête n'étant qu'un chiffre : « I », puis
-   « Le début de la création (1, 1-2) » en gris de quatorze pixels, soit plus
-   petit que le texte courant. Il monte donc d'un cran et sort du gris.
-   ⚠️ Mais dans l'encre de SON titre, `--cs-encre`, et non celle des rangs hauts :
-   c'est la règle du sous-titre, et les trente-deux autres paragraphes de la
-   Genèse, dont l'objet tombe dans un bloc voisin, la reçoivent déjà par
-   `compositionSousTitre`. Les deux formes d'une même paire doivent se ressembler. */
+/* T5 a rejoint les titres centrés le 29 août 2026, T4 le 30, et leurs chapeaux
+   avec eux — c'est même LE CHAPEAU qui porte le sens, la tête n'étant qu'un
+   chiffre : « II », puis « Quelques récits relatifs à l'enfance… » en gris de
+   quatorze pixels, soit plus petit que le texte courant. Il monte donc d'un cran
+   et sort du gris.
+   ⚠️ Mais dans l'encre de SON titre, `--cs-encre-apparat`, et non celle des rangs
+   hauts : c'est la règle du sous-titre, et les paragraphes dont l'objet tombe dans
+   un bloc voisin la reçoivent déjà par `compositionSousTitre`. Les deux formes
+   d'une même paire doivent se ressembler.
+   ⚠️ Le chapeau de T4 monte d'un cran de PLUS que celui de T5 — seize pixels
+   contre quinze —, et il le doit : la ligne où l'auteur lit la sous-section ne
+   peut pas être plus petite que le titre de péricope qu'elle domine, sans quoi
+   « un peu plus fort que le titre de niveau qui lui est inférieur » serait faux
+   à l'endroit même où le rang se voit. */
+/* ⛔ ET EN ROMAIN, seul chapeau du jeu à l'être. La sous-section touche presque
+   toujours un titre de PÉRICOPE, qui la suit à quatre pixels et se compose en
+   italique de seize : un chapeau italique de seize donnait deux lignes que rien ne
+   séparait, sinon leur axe, et la paire se lisait comme une seule composition mal
+   coupée. Le romain tranche là où la teinte et le corps ne peuvent plus rien — et
+   il dit vrai : sous une tête qui n'est qu'un chiffre, le chapeau n'est pas un
+   commentaire du titre, il EST le titre. */
+.cs-bible-title--t4 > .cs-bible-chapeau {
+  font-size: 1rem;
+  font-style: normal;
+  color: var(--cs-encre-apparat);
+}
 .cs-bible-title--t5 > .cs-bible-chapeau {
   font-size: 0.9375rem;
-  color: var(--cs-encre);
+  color: var(--cs-encre-apparat);
 }
 
 /* Un intertitre DIVISÉ — « I », puis « Ce qu'est la Bible » — n'est pas tout à

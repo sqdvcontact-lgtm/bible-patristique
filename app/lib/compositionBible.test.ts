@@ -30,24 +30,26 @@ describe('la composition d’un sous-titre suit le rang de SON titre', () => {
     })
   })
 
-  it('⛔ la sous-section et la péricope se posent AU FER, comme leurs titres', () => {
+  it('⛔ SEULE la péricope se pose AU FER, comme son titre', () => {
     // C'est la correction du 29 août 2026 : 149 sous-titres sur 201 se composaient
-    // centrés sous un titre lui-même au fer.
-    for (const rang of ['T4', 'T6']) {
-      expect(compositionSousTitre(rang)).toMatchObject({
-        textAlign: 'left', fontSize: '0.875rem', color: 'var(--cs-encre)',
-      })
-    }
+    // centrés sous un titre lui-même au fer. ⚠️ T4 en est sorti le 30, son titre
+    // s'étant recentré ; T6 est désormais le seul rang au fer.
+    expect(compositionSousTitre('T6')).toMatchObject({
+      textAlign: 'left', fontSize: '0.875rem', color: 'var(--cs-encre-apparat)',
+    })
   })
 
-  it('T5 se centre : son titre n’est qu’une désignation, et l’objet est ICI', () => {
-    // Les 32 paragraphes de la Genèse dont l'objet tombe dans un bloc voisin :
-    // « § I », puis « Abraham dans la terre de Chanaan et en Égypte ». Au fer, la
-    // désignation pendait au bord gauche et son objet se lisait comme une légende
-    // (relevé de l'auteur, 2026-08-29). ⚠️ Dans l'encre de son titre, comme T3 :
-    // le paragraphe est en `--cs-encre`, non en `--cs-encre-fonce`.
+  it('T4 et T5 se centrent : leur titre n’est qu’une désignation, et l’objet est ICI', () => {
+    // « § I », puis « Abraham dans la terre de Chanaan et en Égypte » ; « II », puis
+    // « Quelques récits relatifs à l'enfance… ». Au fer, la désignation pendait au
+    // bord gauche et son objet se lisait comme une légende.
+    // ⚠️ Le CORPS diffère : celui de T4 monte à seize pixels, comme son chapeau, pour
+    // ne pas passer sous le titre de péricope qu'il domine.
+    expect(compositionSousTitre('T4')).toMatchObject({
+      textAlign: 'center', fontSize: '1rem', color: 'var(--cs-encre-apparat)',
+    })
     expect(compositionSousTitre('T5')).toMatchObject({
-      textAlign: 'center', fontSize: '0.9375rem', color: 'var(--cs-encre)',
+      textAlign: 'center', fontSize: '0.9375rem', color: 'var(--cs-encre-apparat)',
     })
   })
 
