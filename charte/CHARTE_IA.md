@@ -3362,6 +3362,14 @@ Le seuil au-dessous duquel un bloc ne peut pas habiller se calcule sur la hauteu
 
 Une scène cadrée et une planche hors-texte ne s'habillent jamais. Une scène large coupée par de la prose ne se lit plus.
 
+#### 35.16.4. Une vignette franchit la manchette, et à gauche elle prend sa colonne
+
+Le repère d'un commentaire est lui aussi un flottant de gauche, large de sept rem. Une vignette qui flotte sans en tenir compte se range à côté de lui, et les deux ensemble ne laissent au texte que deux cent quinze pixels de piste, où le justifié se creuse de lézardes. Le flottant se dégage donc des deux côtés, car à droite aussi la manchette rognait la piste ; celle-ci revient alors à la mesure sur laquelle le seuil d'habillage est calculé.
+
+À gauche, la vignette prend la colonne de la manchette, et non sa part de la colonne de lecture. Plus large que le repère, elle fait sauter le fer du texte d'un paragraphe à l'autre dans un même bloc. Rangée dans la colonne du repère, elle appartient à la grille de la page au lieu de la contrarier, et le bord gauche du texte ne bouge plus. Les deux mesures, la colonne et sa gouttière, se nomment et se lisent des deux côtés : recopiées, elles divergeraient.
+
+Une épreuve dont la feuille est recopiée ment. Celle qui a servi ici ignorait que la manchette flotte, et le cas gauche y paraissait bon alors qu'il était mauvais. Une épreuve de mise en page lit la feuille du site telle quelle, et se photographie à la largeur d'un écran de bureau : sous sept cents pixels de fenêtre, les règles mobiles défont l'habillage et la manchette, ce qui n'a rien à voir avec ce que l'on veut juger.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
