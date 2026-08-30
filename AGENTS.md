@@ -3018,47 +3018,47 @@ Relevé en ligne le 2026-08-24, sur la Didachè même. Les sections se rendent s
 
 ⚠️ **Le défaut ne se voyait ni aux types, ni aux tests, ni dans la donnée** : les 57 groupes sont complets et sans orphelin, et la projection est juste. Il naît de la rencontre entre l'alignement et le découpage en sections du RENDU, et il a fallu regarder la page.
 
-### ⛔ Un POÈME n'est pas un empan : il fait BLOC, en pleine mesure (2026-08-30)
+### ⛔ La lecture EN REGARD a sa propre mesure : 42 rem (2026-08-30)
 
-Doctrine : charte `parametres.charte_ia`, **§ 12.2**, sous « Le POÈME n'est pas un
-empan ». Relevé de l'auteur : « pour les vers, c'est immonde ; les vers sont coupés car
-trop longs ; peut-être ne devrait-on pas les aligner, mais considérer, pour les vers
-seulement, qu'ils constituent un bloc ». Règles de code :
+Doctrine : charte `parametres.charte_ia`, **§ 12.2**, sous « La lecture EN REGARD a sa
+propre mesure ». Relevé de l'auteur : « les vers sont coupés car trop longs » ; puis, le
+parti du bloc pleine largeur ayant été refusé, « reviens au système en regard ; tu peux
+éventuellement augmenter la largeur des colonnes ; on peut tolérer quelques retours à la
+ligne disgracieux, mais il faut des limites ». Règles de code :
 
-- ⛔ **Le poème SORT de la grille** : `.para-bilingue--vers { display: block }`. La
-  colonne originale ne mesure que **209 px** et la française **266**, quand la mesure de
-  lecture en fait 500. Or un vers ne se coupe pas. Mesuré au navigateur sur le mètre I du
-  Livre premier de Boèce : **29 des 46 vers s'enroulaient**, le poème occupait **75 lignes
-  au lieu de 46**, et chaque enroulement portait en plus son retrait de suite. Pleine
-  mesure, **zéro** enroulé. ⚠️ Aucun réglage ne rattrape une colonne trop étroite pour un
-  hexamètre : ni le corps, ni la chasse, ni le retrait de suite, qui ne fait que rendre
-  le défaut lisible.
-- ⛔ **Le poème CESSE d'être haché** : `fusionnerBlocsDeVers` (`bilingueAlignement.ts`,
-  pur, testé) réunit les blocs voisins entièrement composés de vers, et le bloc rendu
-  porte la LISTE de ses groupes dans l'ordre de lecture. Ce mètre en compte quatorze, et
-  le lecteur recevait quatorze rangs de grille pour un seul poème.
-- ⛔ **C'est `fondreOriginaux` qui a levé l'obstacle.** La lecture ORDINAIRE fondait déjà
-  ses poèmes (`fusionnerBlocs`), et ne le pouvait pas en regard : le latin d'une strophe
-  vit sur son vers de rang 1, si bien que fondre les blocs n'en gardait **qu'un** original
-  et jetait les autres. Les originaux se joignent donc tous, par un SAUT de ligne et
-  jamais par une espace, la colonne les recomposant ligne à ligne (`lignesDeVers`).
-  Éprouvé sur ce mètre : **22 lignes latines** conservées sur 22.
-- ⚠️ **Un poème refait n'a plus d'empan à borner** : il réunit à lui seul tous ses
-  groupes, il porte donc son original et il se clôt. `bornesDesGroupes` est court-circuité
-  quand `chunk.poeme` est posé, sans quoi le bloc se déclarait « suite » et perdait son
-  blanc de fin.
-- ⚠️ **Un poème d'un SEUL groupe repasse par le cas ordinaire** (`poeme` remis à `null`) :
-  rien n'a été fondu, et rien ne doit changer là où il n'y avait rien à refaire.
-- ⚠️ **Le latin prend le blanc qu'une gouttière lui donnait** : il SUIT le français au
-  lieu de lui faire face, d'où `margin-top: 1.1rem` en lecture bilingue seulement. En
-  « Latin seul » il n'a rien au-dessus de lui et n'en prend pas.
-- ⚠️ **L'appariement vers à vers était de toute façon une illusion** : Mirandol traduit
-  dans un autre mètre et n'a pas le compte de lignes de Migne. Ce poème confronte 24 vers
-  français à 22 vers latins. Le poème est l'unité qui se recoupe d'une langue à l'autre.
-- **Planche de mesure** : `tmp/planche-vers-bilingue.tsx`. ⛔ Elle ne rejoue rien : son
-  volet B passe par `fusionnerBlocsDeVers` et `originalEnRegard` eux-mêmes, et sa CSS est
-  celle d'`OeuvreClient` recopiée telle quelle. C'est le navigateur qui compte les
-  enroulements, en comparant la boîte de chaque vers à son interligne.
+- ⛔ **`largeurLecture` vaut 42 rem quand `affichageBilingue`**, comme elle vaut déjà
+  52 rem en traductions parallèles. Deux colonnes ne tiennent pas dans la mesure d'UNE
+  seule : la lecture en regard partageait les 31,25 rem de la lecture ordinaire, ce qui
+  laissait **266 px au français et 209 au latin**.
+- ⛔ **Le « Latin seul » garde 31,25 rem.** Il n'a qu'une colonne, et une colonne de
+  672 px n'est plus une mesure de lecture. La condition porte donc sur `affichageBilingue`
+  seul, jamais sur `afficherOriginalSeul`.
+- ⛔ **Le rapport des colonnes se COMPTE.** `1.2fr / 1fr`, gouttière `1.4rem`. Sur cette
+  mesure, des colonnes égales laissent **33** vers enroulés, l'ancien rapport
+  `1.12 / 0.88` en laisse **9**, et `1.2 / 1` en laisse **3**. ⚠️ C'est le FRANÇAIS qui
+  demande le plus de place, et c'est l'inverse de ce que l'œil suppose devant un
+  hexamètre : le Mirandol demande 302 px au neuvième dixième contre 227 au latin.
+- ⚠️ **La limite est mesurée, non ressentie.** `tmp/mesure-largeur-vers.mjs` tire les
+  2 011 vers de Boèce et fabrique une page qui les rend un par un, sans enroulement, dans
+  leur composition réelle ; le navigateur donne alors la largeur dont chacun a besoin,
+  alinéa de base compris. Avant : **468 enroulés, un vers sur quatre**. Après : **trois**.
+- ⚠️ **Les trois qui restent sont irréductibles à cette échelle** : deux vers du Mirandol,
+  et la citation grecque d'Euripide, qui demanderait à elle seule 402 px. Il faudrait
+  55 rem, où la prose ne se lirait plus.
+- ⚠️ **La PROSE y gagne aussi**, et c'est pourquoi la mesure est portée par le mode et non
+  par les seuls blocs de vers : sa colonne originale passe de 209 à 295 px. Une colonne de
+  209 px ne porte qu'une trentaine de signes. ⛔ Une mesure propre aux vers aurait en
+  outre fait alterner deux largeurs de bloc dans la même page.
+- ⚠️ **Le `maxWidth` fait le reste** : là où la place manque (deux volets ouverts sur un
+  écran de 1 280), la colonne se borne d'elle-même et les enroulements reviennent
+  progressivement. Mesuré : 600 px de bloc en rend 106, 560 px en rend 251.
+
+⛔ **Le parti du BLOC pleine largeur a été essayé et REFUSÉ** (commit `8b119065`, révoqué
+le jour même). Il fondait le poème en un seul bloc hors de la grille, ce qui supprimait
+tout enroulement mais aussi le texte en regard. ⚠️ Ne pas le reproposer : ce qu'il
+corrigeait, l'élargissement le corrige en gardant les deux colonnes. Ce qu'il apportait
+en plus — le poème cessant d'être haché en quatorze cadres, un par groupe d'alignement —
+reste une question OUVERTE, et elle est distincte de la largeur.
 
 # La planche des illustrations — /admin/illustrations (2026-08-24)
 

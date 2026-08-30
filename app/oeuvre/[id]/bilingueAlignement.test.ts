@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   blocsBilingues,
   choisirEnsembleBilingue,
-  fondreOriginaux,
-  fusionnerBlocsDeVers,
   joindreSegmentsOriginaux,
   originalEnRegard,
   bornesDesGroupes,
@@ -354,105 +352,5 @@ describe('découpe en blocs de lecture', () => {
       { ids: ['fr-3'], groupe: null },
       { ids: ['fr-2'], groupe: 'g1' },
     ])
-  })
-})
-
-describe('le poème refait dans la lecture en regard', () => {
-  // Un mètre de Boèce se découpe en quatorze groupes d'alignement. Chacun ouvrait son
-  // rang de grille, dans une colonne latine de 209 px où deux vers sur trois
-  // s'enroulaient : c'est ce hachage que la fusion défait.
-  const enVers = (ids: readonly string[]) => ids.every(id => id.startsWith('v'))
-
-  it('réunit les blocs de vers voisins, et retient leurs groupes dans l’ordre', () => {
-    expect(fusionnerBlocsDeVers([
-      { ids: ['v1'], groupe: 'g1' },
-      { ids: ['v2', 'v3'], groupe: 'g2' },
-      { ids: ['v4'], groupe: 'g3' },
-    ], enVers)).toEqual([
-      { ids: ['v1', 'v2', 'v3', 'v4'], groupe: 'g1', poeme: ['g1', 'g2', 'g3'] },
-    ])
-  })
-
-  // ⛔ La prose garde son empan : c'est l'unité que l'alignement établit, et la fusion
-  // ne vaut que là où l'empan n'est pas la bonne unité.
-  it('ne fond jamais deux blocs de prose', () => {
-    expect(fusionnerBlocsDeVers([
-      { ids: ['p1'], groupe: 'g1' },
-      { ids: ['p2'], groupe: 'g2' },
-    ], enVers)).toEqual([
-      { ids: ['p1'], groupe: 'g1', poeme: null },
-      { ids: ['p2'], groupe: 'g2', poeme: null },
-    ])
-  })
-
-  it('s’arrête à la prose qui borde le poème', () => {
-    expect(fusionnerBlocsDeVers([
-      { ids: ['p1'], groupe: 'g1' },
-      { ids: ['v1'], groupe: 'g2' },
-      { ids: ['v2'], groupe: 'g3' },
-      { ids: ['p2'], groupe: 'g4' },
-    ], enVers)).toEqual([
-      { ids: ['p1'], groupe: 'g1', poeme: null },
-      { ids: ['v1', 'v2'], groupe: 'g2', poeme: ['g2', 'g3'] },
-      { ids: ['p2'], groupe: 'g4', poeme: null },
-    ])
-  })
-
-  // Rien n'a été fondu : le bloc repasse par le cas ordinaire, et les bornes d'empan
-  // continuent de le gouverner comme avant.
-  it('ne déclare pas un poème là où un seul groupe se présente', () => {
-    expect(fusionnerBlocsDeVers([{ ids: ['v1'], groupe: 'g1' }], enVers)).toEqual([
-      { ids: ['v1'], groupe: 'g1', poeme: null },
-    ])
-  })
-
-  it('fond un poème dont une strophe échappe à l’alignement', () => {
-    expect(fusionnerBlocsDeVers([
-      { ids: ['v1'], groupe: 'g1' },
-      { ids: ['v2'], groupe: null },
-      { ids: ['v3'], groupe: 'g2' },
-    ], enVers)).toEqual([
-      { ids: ['v1', 'v2', 'v3'], groupe: 'g1', poeme: ['g1', 'g2'] },
-    ])
-  })
-})
-
-describe('les originaux d’un poème refait', () => {
-  const strophe = (id: string, texte: string) => ({
-    alignmentId: id, texte, texteAffichage: texte,
-    notes: { [id]: { noteKey: id, noteNumber: 1, blocks: [] } }, toutVers: true,
-  })
-  const blocs = { g1: strophe('g1', 'Carmina qui quondam'), g2: strophe('g2', 'Flebilis, heu!') }
-
-  // ⚠️ Par un SAUT, jamais par une espace : la colonne recompose ligne à ligne, et deux
-  // strophes jointes par une espace couleraient en prose.
-  it('joint les strophes par un saut de ligne', () => {
-    expect(fondreOriginaux(['g1', 'g2'], blocs)?.texte).toBe('Carmina qui quondam\nFlebilis, heu!')
-  })
-
-  it('fait suivre les notes de toutes les strophes', () => {
-    expect(Object.keys(fondreOriginaux(['g1', 'g2'], blocs)?.notes ?? {})).toEqual(['g1', 'g2'])
-  })
-
-  // C'est l'obstacle qui interdisait la fusion en regard : le latin d'une strophe vit
-  // sur son vers de rang 1, et fondre les blocs n'en gardait qu'un.
-  it('ne perd aucune strophe, ce que la fusion d’avant ne savait pas faire', () => {
-    expect(fondreOriginaux(['g1', 'g2'], blocs)?.texte.split('\n')).toHaveLength(2)
-  })
-
-  it('rend `null` quand aucun groupe ne porte d’original', () => {
-    expect(fondreOriginaux(['g1', 'g2'], {})).toBeNull()
-  })
-
-  it('compose le poème depuis `groupes`, et non depuis le seul premier groupe', () => {
-    const r = originalEnRegard({ groupe: 'g1', groupes: ['g1', 'g2'], blocs, segmentsDuBloc: [], notesVides: {} })
-    expect(r?.texte).toBe('Carmina qui quondam\nFlebilis, heu!')
-    expect(r?.toutVers).toBe(true)
-  })
-
-  // Hors poème, rien ne change : c'est la garantie que la prose n'est pas touchée.
-  it('garde le cas ordinaire quand aucun poème ne se déclare', () => {
-    expect(originalEnRegard({ groupe: 'g1', groupes: null, blocs, segmentsDuBloc: [], notesVides: {} })?.texte)
-      .toBe('Carmina qui quondam')
   })
 })
