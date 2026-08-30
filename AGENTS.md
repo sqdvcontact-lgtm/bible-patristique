@@ -2845,12 +2845,16 @@ l'audit du 26 août relevait. Elle se pose à l'endroit du texte où elle tombe,
 la manchette passée. ⚠️ Son bloc doit la CONTENIR (`display: flow-root`), sans quoi elle
 déborde sur le titre suivant.
 
-⛔ **RIEN DE CECI N'EST EN SERVICE.** `IllustrationBible` compose toujours les 43 à
-`min(fichier, 760 px)`, centrées et sans traitement de thème. Les gravures détourées sont
-déposées dans le seau sous `fillion/propositions/<clé>/detouree.webp`, **à côté** du
-fichier servi et jamais à sa place : `public_uri` désigne toujours `web.webp`. Le jour où
-le parti est retenu, le régime devient une colonne de `bible_edition_assets` et
-`regimesFillion.ts` disparaît.
+✅ **EN SERVICE depuis le 30 août 2026.** `IllustrationBible` compose selon le régime, et
+les onze gravures de Marc sont refaites depuis leur feuillet JP2, master et fichier servi.
+Les propositions déposées sous `fillion/propositions/` n’ont plus d’objet : les fichiers
+sont à leur place.
+
+⚠️ Le régime reste DÉRIVÉ et n’est pas une colonne : tant qu’aucun arbitrage humain ne le
+contredit, une donnée dérivée ne peut pas mentir, quand une colonne recopiée le peut. La
+colonne viendra le jour où l’on voudra forcer un cas contre la mesure.
+
+⚠️ **Sauvegarde des fichiers d’avant** : `C:Corpus Scripturaillion-illustrations-avant-jp2-20260830`.
 
 ⚠️ **Les 43 sont `is_public = true` alors qu'elles portent toutes
 `metadata.test_only = true`, `validation_status = 'review'` et `requires_review = true`.**
