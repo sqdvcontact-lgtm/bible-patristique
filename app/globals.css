@@ -1732,10 +1732,18 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    moignon de titre vaut moins que rien — c'est celui-là que l'auteur a relevé le
    28 août 2026. La fiche « En savoir plus » la donne entière, à toute largeur.
 
-   ⛔ 200 px pour le LIBELLÉ du lien : « En savoir plus sur cette traduction » y
-   passe à deux lignes, puis à trois. Les deux formes sont écrites dans le
-   balisage et l'on n'en montre qu'une ; ⛔ un libellé ne se coupe pas en
-   JavaScript, il faudrait mesurer à chaque rendu. */
+   ⛔ 230 px pour le LIBELLÉ du lien, et le seuil a CHANGÉ le 2026-08-30 avec ce
+   que le lien fait. Il occupait une ligne à lui, où le libellé long passait à deux
+   lignes puis à trois sous 200 px ; il partage désormais la ligne de l'étiquette
+   « Traduction », qui lui en prend déjà 53. Mesuré : « En savoir plus sur cette
+   traduction » réclame 218 px de volet pour tenir à côté d'elle, et le seuil est
+   porté à 230 pour la douzaine de pixels qui sépare une mesure d'une marge. Sous
+   230, « En savoir plus » suffit et tient dès 120. Les deux formes sont écrites
+   dans le balisage et l'on n'en montre qu'une ; ⛔ un libellé ne se coupe pas en
+   JavaScript, il faudrait mesurer à chaque rendu.
+   ⚠️ Le lien ne se laisse pas comprimer, et la carte est en `overflow: hidden` :
+   un seuil trop bas ne ferait donc pas déborder le libellé, il le COUPERAIT, et le
+   défaut ne paraîtrait qu'entre deux largeurs de volet. */
 /* ⚠️ Le repli se pose AVANT les requêtes : une requête de conteneur n'ajoute
    aucune spécificité, et la même règle écrite APRÈS elle l'emportait — les deux
    formes du lien étaient alors masquées, et le lien disparaissait tout à fait. */
@@ -1744,7 +1752,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 @container volet (max-width: 259px) {
   .cs-volet-ref { display: none; }
 }
-@container volet (max-width: 199px) {
+@container volet (max-width: 229px) {
   .cs-volet-lien-long { display: none; }
   .cs-volet-lien-court { display: inline; }
 }

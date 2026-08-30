@@ -55,7 +55,11 @@ export const RUBRIQUE_AXE: CSSProperties = {
   fontWeight: 600,
   letterSpacing: '0.06em',
   color: 'var(--cs-texte-faible)',
-  marginBottom: '3px',
+  // ⚠️ 1 pixel, non 3 : une rubrique doit toucher la liste qu'elle coiffe. Le blanc
+  // qui compte est celui qui SÉPARE les deux axes (6 pixels dans `NavLivres`) ; à
+  // trois pixels de part et d'autre, les deux blancs se ressemblaient assez pour
+  // que « Commentaires » paraisse appartenir à la liste du dessus.
+  marginBottom: '1px',
 }
 
 /**
@@ -79,6 +83,13 @@ export const RUBRIQUE_AXE: CSSProperties = {
  * ⚠️ La pastille DÉBORDE le bloc de sept pixels de chaque côté, comme une rangée
  * de livre déborde le sien : sans cela elle paraîtrait rentrée par rapport à la
  * liste qui la suit.
+ *
+ * ⚠️ La RANGÉE est resserrée depuis le 2026-08-30 (condensation demandée par
+ * l'auteur) : deux pixels de rembourrage au lieu de trois, interligne 1,3 au lieu
+ * de 1,35. Elle mesure alors 17 pixels pour un texte de 11,5 — la même proportion
+ * qu'une rangée de la liste des livres, à quelques pixels de là, qui en vaut 22
+ * pour un texte de 13,5. ⛔ Ne pas descendre plus bas : la pastille cesserait de se
+ * lire comme une cible, et cinq rangées d'affilée n'ont pas d'autre respiration.
  */
 export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   display: 'block',
@@ -86,14 +97,14 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   margin: '0 -7px',
   boxSizing: 'border-box',
   textAlign: 'left',
-  padding: '3px 7px',
+  padding: '2px 7px',
   borderRadius: '4px',
   border: 'none',
   background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
   color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
   fontWeight: actif ? 600 : 400,
   fontSize: '0.71875rem',
-  lineHeight: 1.35,
+  lineHeight: 1.3,
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   cursor: actif ? 'default' : 'pointer',
   transition: 'background 0.12s, color 0.12s',

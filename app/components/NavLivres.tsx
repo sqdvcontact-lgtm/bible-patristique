@@ -497,11 +497,17 @@ export default function NavLivres({
           raison de chacun de ses traits.
 
           Il vaut aussi sur mobile, où il est la seule voie pour sortir d'une lecture
-          en regard : c'est une navigation, non un ornement. */}
+          en regard : c'est une navigation, non un ornement.
+
+          ⚠️ Le bloc est RESSERRÉ depuis le 2026-08-30, à la demande de l'auteur : la
+          tête du volet lui prenait le quart de sa hauteur avant la première rangée de
+          livre. Rien n'y est retranché — même rubriques, mêmes options, même pastille
+          — seuls les blancs se referment. Le rembourrage et l'écart entre les deux
+          axes vivent ici, la rangée et sa rubrique dans `stylesVoletLecture`. */}
       {modesLecture.length > 0 && (
-        <div style={{ flexShrink: 0, padding: '9px 10px 10px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
+        <div style={{ flexShrink: 0, padding: '6px 10px 7px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
-            <div key={groupe.cle} style={rang > 0 ? { marginTop: '9px' } : undefined}>
+            <div key={groupe.cle} style={rang > 0 ? { marginTop: '6px' } : undefined}>
               <span style={RUBRIQUE_AXE}>{groupe.titre}</span>
               {groupe.choix.map((choix) => (
                 <button key={choix.cle} type="button" title={choix.description}
