@@ -3505,6 +3505,78 @@ seconde réduction du navigateur avant de la montrer.
 témoin n'étant à cette taille que du gris. La conclusion inverse avait été
 annoncée, puis retirée le jour même.
 
+#### 35.16.10. L'encre d'une gravure n'est pas celle d'un titre
+
+⛔ Une vignette détourée ne s'affiche pas, elle DÉCOUPE : son dessin est dans la
+couche alpha et **la couleur vient de la page**. Elle prenait `--cs-encre`,
+c'est-à-dire le **vert des titres** — et une gravure sur bois n'a jamais été tirée
+en vert. Relevé par l'auteur le 30 août 2026.
+
+Le jeton est désormais **`--cs-gravure`** : au Clair l'encre de la famille,
+`#22211e`, celle des ornements, mesurée sur la tour de Babel ruinée et déjà écrite
+dans les fichiers par la chaîne ; en Cuir la valeur MESURÉE du filtre d'inversion
+des ornements, `#a69f93`, de sorte qu'une gravure et un cul-de-lampe portent la
+même encre sur le même sol.
+
+⚠️ **Les fichiers, eux, étaient neutres** : écart maximal d'UN niveau sur 255 entre
+les trois canaux. Une teinte qu'on croit voir dans une image se cherche d'abord
+dans ce que la PAGE lui applique.
+
+#### 35.16.11. Une photogravure se CREUSE, elle ne se recadre pas une seconde fois
+
+L'étalement porte déjà le papier au blanc et l'encre au noir : la plage est
+entière. Et pourtant le rendu reste **gris** — moyenne 143 sur le Jourdain, 127 sur
+la synagogue —, parce que l'essentiel du dessin d'une photogravure vit dans les
+demi-tons, non dans ses extrêmes.
+
+⛔ Un second étalement ne rendrait donc rien, les deux bouts étant pris. C'est une
+COURBE qu'il faut, et une simple puissance suffit :
+
+| γ | moyenne (Jourdain) | blanc pur | noir pur |
+|---:|---:|---:|---:|
+| 1 | 142,6 | 2,45 % | 4,14 % |
+| **1,4** | **122,1** | **2,45 %** | **4,33 %** |
+| 1,6 | 113,8 | 2,45 % | 4,61 % |
+
+⚠️ **Le blanc ne bouge pas et le noir gagne deux dixièmes de point** : on creuse
+sans rien écrêter, ce qu'un étalement plus dur ferait perdre. À 1,6 la feuillée la
+plus sombre commence à se fermer ; d'où 1,4.
+
+⛔ **Le MASTER reste neutre** : il ne porte que l'étalement, qui est une remise à
+l'échelle et non un parti. C'est de lui qu'on repartirait pour changer le ton, et
+un ton cuit dans le master se composerait au suivant.
+
+⛔ Et la courbe ne vaut QUE pour la photogravure : une gravure au trait n'a pas de
+demi-tons à creuser, son alpha venant d'une rampe qui a déjà ses deux bornes
+mesurées.
+
+#### 35.16.12. DEUX BORNES pour toute illustration, quel que soit son régime
+
+⛔ Jusqu'au 30 août 2026, seule la VIGNETTE avait des bornes : une scène valait
+0,90 de la colonne et une planche 1, **deux valeurs fixes qui échappaient à toute
+borne**. La colonne portait donc des gravures de 200 à 500 px, et les plus grandes
+écrasaient le texte qu'elles accompagnent.
+
+Le régime donne désormais une part NOMINALE, que deux bornes rabattent — et c'est
+le seul endroit où la taille se décide :
+
+| | part |
+|---|---:|
+| plancher, toute illustration | **0,36** (180 px) |
+| plafond d'une VIGNETTE | 0,56 (280 px) |
+| une SCÈNE cadrée | 0,78 (390 px) |
+| plafond, toute illustration | **0,88** (440 px) |
+
+⚠️ **Ce que les bornes réduisent, ce sont les EXTRÊMES.** Entre elles, la part suit
+toujours la largeur imprimée par Fillion : le médecin garde ses 40 %, la barque ses
+45 %. La règle du § 35.16.5 n'est pas défaite, elle est encadrée.
+
+⚠️ **Trouvaille au passage, NON traitée** : les 32 planches du tome I sont servies à
+**3,2×** leur taille d'affichage — 3,64× depuis que le plafond les rabat — là où la
+règle veut le double au plus. Le défaut est ANTÉRIEUR à ces bornes et tient à leur
+chaîne d'origine ; il se corrige en refabriquant ces trente-deux fichiers, ce qui
+est un chantier à part.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
