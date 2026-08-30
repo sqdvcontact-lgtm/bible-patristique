@@ -13,6 +13,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { FAMILLES, type Famille } from './inventaire'
 import type { EchantillonFamille } from './PlancheIllustrations'
+import { GRAVURES_CLASSEES, cheminProposition, type GravureFillion } from './regimesFillion'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -86,4 +87,51 @@ async function releverFamille(famille: Famille): Promise<EchantillonFamille> {
 /** Le relevé des familles trop nombreuses pour figurer sur la planche. */
 export async function releverFamilles(): Promise<EchantillonFamille[]> {
   return Promise.all(FAMILLES.map(releverFamille))
+}
+
+// ── Les gravures de Fillion, rangées par régime de composition ───────────────
+
+/** ⚠️ Le classement vient de la SOURCE RÉDIGÉE (`regimesFillion.ts`), la base ne
+ *  porte encore aucun régime. On ne lit ici que ce que la base sait dire : les
+ *  adresses, les dimensions et le nombre de planches. Une gravure classée qui
+ *  aurait disparu de la base est simplement écartée, sans faire tomber la page. */
+export async function releverGravuresFillion(): Promise<{
+  gravures: GravureFillion[]
+  planches: number
+  planche: { url: string; legende: string } | null
+}> {
+  const { data, error } = await supabaseAdmin
+    .from('v_bible_edition_assets')
+    .select('asset_key,asset_kind,public_uri,width_px,height_px,printed_caption,editorial_caption')
+  if (error) throw new Error(`Gravures de Fillion illisibles : ${error.message}`)
+  const parCle = new Map((data ?? []).map(a => [a.asset_key as string, a]))
+
+  const gravures = GRAVURES_CLASSEES.flatMap((g): GravureFillion[] => {
+    const a = parCle.get(g.cle)
+    if (!a) return []
+    return [{
+      ...g,
+      url: a.public_uri as string,
+      urlDetouree: g.regime === 'A'
+        ? `${URL_SUPABASE}/storage/v1/object/public/bible-illustrations-web/${cheminProposition(g.cle)}`
+        : null,
+      largeur: a.width_px as number,
+      hauteur: a.height_px as number,
+    }]
+  })
+  // Une planche TÉMOIN pour le régime C. Prise par son rang dans l'ordre des clés,
+  // non au hasard : la planche montrée doit être la même d'une visite à l'autre.
+  const lesPlanches = (data ?? []).filter(a => a.asset_kind === 'plate')
+    .sort((a, b) => String(a.asset_key).localeCompare(String(b.asset_key)))
+  const temoin = lesPlanches[Math.floor(lesPlanches.length / 2)] ?? null
+  return {
+    gravures,
+    planches: lesPlanches.length,
+    planche: temoin
+      ? {
+        url: temoin.public_uri as string,
+        legende: (temoin.editorial_caption ?? temoin.printed_caption ?? 'Planche hors-texte') as string,
+      }
+      : null,
+  }
 }

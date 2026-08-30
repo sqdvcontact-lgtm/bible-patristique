@@ -187,6 +187,33 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
  */
 
 /** Le corps de la mention : un cran fin, deux rangs sous le texte comparé (14 px). */
+
+/**
+ * LE CORPS D’UN PARATEXTE — la composition d’un verset de la page Bible, mais
+ * un cran en dessous. Une introduction de Fillion se lit AUTOUR du texte biblique,
+ * non à sa place : elle se compose donc plus petit, plus serré et d’une encre plus
+ * claire. C’est cette différence de composition qui la situe, et non un filet dans
+ * la marge. ⛔ Aucun filet à gauche ni sous un bloc.
+ *
+ * ⛔ Le nombre lui-même vit dans la feuille de styles (--cs-corps-apparat) : le
+ * rang de titre T4 s’aligne dessus depuis le 30 août 2026, et deux valeurs
+ * recopiées ne restent identiques que par accident.
+ *
+ * ⚠️ Sorti de BibleEditionParatext le 30 août 2026, pour la raison donnée en tête
+ * de ce module : une planche qui rejoue une composition de mémoire dérive au
+ * premier réglage. La planche des illustrations s’en sert pour montrer les trois
+ * régimes proposés aux gravures de Fillion.
+ */
+export const STYLE_CORPS: CSSProperties = {
+  fontFamily: SERIF,
+  fontSize: 'var(--cs-corps-apparat)',
+  lineHeight: 1.3,
+  color: 'var(--cs-texte-second)',
+  textAlign: 'justify',
+  hyphens: 'auto',
+  overflowWrap: 'break-word',
+}
+
 export const CORPS_MENTION = '0.6875rem'
 /** L'invite est d'un rang encore plus fin : elle propose, elle ne constate pas. */
 export const CORPS_INVITE = '0.625rem'

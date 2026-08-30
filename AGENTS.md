@@ -2707,6 +2707,110 @@ Quand l’OCR d’un livre est réellement terminé, exécuter la clôture `scri
   - ⛔ **Ce qui appartient à une langue ne se perd pas faute de place dans la grille** (défaut corrigé le 2026-08-20). La première version n'accueillait un contenu propre à un membre que s'il était ancré sur un verset ET placé avant lui : une introduction propre au français, une conclusion latine placée après son verset, et **toutes** les illustrations propres à une langue tombaient dans le vide sans rien signaler — leur index était calculé puis jamais lu. Ce qui n'a pas d'ancre de verset ouvre ou ferme désormais SA colonne. L'indexation passe par `indexerBlocsDeCorps` et `indexerIllustrations`, déjà testées, plutôt que d'être refaite à la main.
   - ⚠️ **Une illustration matériellement attachée à un bloc ou à une note suit CE bloc ou CETTE note**, quel que soit le membre à qui elle appartient : la charte veut que l'image d'une note reste dans sa note. Les index par bloc et par note sont donc fusionnés entre le commun et les membres, à la différence des ancres de verset, qui restent par colonne.
 
+## ⛔ Les GRAVURES de Fillion : trois régimes, et une bavure qui n'est pas un défaut de traitement (2026-08-30)
+
+Les 43 illustrations de la famille Fillion ont **deux provenances**, et leurs défauts
+sont opposés. Le fait est dans `bible_edition_assets.metadata.source`, il se vérifie
+sur les fichiers, et il commande tout le reste.
+
+| | Tome I · Pentateuque | Tome VII · Marc |
+|---|---|---|
+| Nombre | 32 planches | 11 gravures |
+| Source | archive **JP2** d'Internet Archive, feuillets bruts 2912 × 4368 | **PDF dérivé**, compression MRC |
+| Nature | ton continu, gris réels | trait à 1 bit + fond 134 ppp |
+| Fond du master | 222 à 246 (papier) | **255, blanc absolu** |
+| Demi-teintes gardées | 70 à 73 % | **perdues** |
+| Master en réserve | 2535 × 1384, intact | **identique au fichier servi** |
+
+⛔ **La trame des gravures de Marc est perdue À LA SOURCE, et aucun traitement ne la
+rendra.** `tmp/pdfs/fillion/lasaintebibletex07fill.pdf` est une compression à contenu
+mixte : `pdfimages -list` y montre, par page, un fond JPX de 819 × 1363 à **134 ppp**
+qui porte les demi-teintes, et un masque **JBIG2 de 2455 × 4088 à 1 bit** qui porte le
+trait. La taille d'une gravure sur bois n'étant ni du texte ni un aplat, elle tombe
+entre les deux couches. Rendre la page à 800 ppp n'y changerait rien : le plafond est
+dans le fichier. La seule issue est de **récupérer l'archive JP2 du tome VII**, comme
+il a été fait pour le tome I. ⚠️ **Le contrôler avant d'importer les six tomes qui
+restent** : `wsl -e bash -lc 'pdfimages -list -f N -l N "…"'`, et une ligne
+`smask … 1 bit … jbig2` signe le piège.
+
+### Le CRITÈRE se mesure, il ne se devine pas
+
+`scripts/fillion/detourer-gravures.mjs` mesure sur chaque fichier la **part des gris qui
+BORDE un noyau de trait**, dans un rayon de deux pixels. Élevée, les gris sont les restes
+d'une trame, donc de la structure. Basse, ils flottent à l'écart du trait : ce sont les
+bavures du fond comprimé. Mesuré le 2026-08-30, l'écart est net et sans recouvrement :
+
+- les deux photogravures survivantes (le Jourdain, la synagogue) rendent **47 et 48 %** ;
+- les neuf gravures ruinées rendent **7 à 22 %**.
+
+Le seuil est à 35 %. ⛔ **Ce n'est PAS un détecteur de planche** : les feuillets du
+tome I portent une grande masse grise faiblement adjacente, qui est le grain du papier,
+et le critère les rangerait à tort. Il ne se lit qu'après avoir écarté les planches
+pleine page, que `asset_kind = 'plate'` suffit à désigner.
+
+### Le DÉTOURAGE reprend la recette des ornements, plus deux étapes
+
+La recette de la charte tient toujours : papier par son niveau **dominant**, réduction à
+la taille servie **avant** de bâtir l'alpha, alpha calculé sur l'**encre qu'on repose**,
+rognage sur ce qui **se voit**. Deux étapes s'y ajoutent, propres à ces fichiers :
+
+1. le **champ plat**, parce que la bavure du fond JPX est de basse fréquence quand le
+   trait est franc ;
+2. le **liseré**, qui éteint tout gris à plus de six pixels d'un noyau de trait.
+
+⚠️ La charte proscrit la correction de champ plat pour les planches en **demi-teintes**
+(`process_illustrations.py` : « la précédente correction de champ plat effaçait les
+grandes plages sombres »). Elle est légitime ici, et **seulement** ici, parce que la
+trame de ces fichiers n'existe plus. C'est précisément ce que le critère mesure, et le
+script refuse de détourer une gravure dont les gris bordent le trait.
+
+⛔ **Sans ces deux étapes, le détourage est pire que le fichier brut.** Mesuré sur le
+« Médecin pansant un blessé » : **17,3 %** de pixels partiellement opaques, là où la
+charte attend 3 à 13 % pour un trait. Le trait s'y dissout en gris mou pendant que la
+bavure garde sa masse. Avec elles : **5,9 %**, et le trait redevient franc.
+
+⚠️ **Et un premier détourage bâti en pleine définition PUIS réduit rendait le même
+défaut** : deux réductions successives moyennent le trait, exactement le piège que la
+charte consigne déjà pour les ornements. La réduction vient d'abord, toujours.
+
+### Les trois régimes
+
+`app/admin/illustrations/regimesFillion.ts` est la SOURCE, sur le modèle du recensement
+des illustrations : il dit ce que chaque régime est, et le classement mesuré des onze.
+La planche `/admin/illustrations` en porte une section, qui montre le spécimen d'habillage
+sur le **texte réel** de Fillion et sur les **deux sols**.
+
+| Régime | Pour | Largeur | Détourage | Habillage |
+|---|---|---:|---|---|
+| **A** vignette | objet isolé, sans filet | 30 % | oui | oui, à droite |
+| **B** au fil du texte | scène à filet gravé | 75 % | jamais | non |
+| **C** planche hors-texte | page entière | 100 % | jamais | non, agrandissable |
+
+⛔ **La vignette du régime A ne se pose PAS en tête du bloc.** La manchette occupe déjà
+sept rem à gauche du commentaire : une vignette posée en face ne laisse que deux cents
+pixels de texte justifié entre les deux, et les lézardes y sont pires que celles que
+l'audit du 26 août relevait. Elle se pose à l'endroit du texte où elle tombe, une fois
+la manchette passée. ⚠️ Son bloc doit la CONTENIR (`display: flow-root`), sans quoi elle
+déborde sur le titre suivant.
+
+⛔ **RIEN DE CECI N'EST EN SERVICE.** `IllustrationBible` compose toujours les 43 à
+`min(fichier, 760 px)`, centrées et sans traitement de thème. Les gravures détourées sont
+déposées dans le seau sous `fillion/propositions/<clé>/detouree.webp`, **à côté** du
+fichier servi et jamais à sa place : `public_uri` désigne toujours `web.webp`. Le jour où
+le parti est retenu, le régime devient une colonne de `bible_edition_assets` et
+`regimesFillion.ts` disparaît.
+
+⚠️ **Les 43 sont `is_public = true` alors qu'elles portent toutes
+`metadata.test_only = true`, `validation_status = 'review'` et `requires_review = true`.**
+Quarante-trois objets déclarés essais techniques sont servis au lecteur. À trancher avant
+le reste.
+
+⚠️ **`STYLE_CORPS` a quitté `BibleEditionParatext` pour `app/lib/compositionBible.ts`**
+le 2026-08-30, pour la raison déjà donnée à propos de la planche des styles : un spécimen
+qui rejoue une composition de mémoire dérive au premier réglage, et fait ensuite autorité
+contre la page qu'il décrit.
+
+
 ## La PRÉSENTATION vient de `metadata`, et le rendu n'en sort pas (2026-08-25)
 
 Doctrine : charte `parametres.charte_ia`, **§§ 35.4 à 35.7**. Règles de code :

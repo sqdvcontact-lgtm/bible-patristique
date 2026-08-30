@@ -10,6 +10,7 @@ import {
   type BibleEditionDisplayTextBlock,
   type StyleCompositionBloc,
 } from '@/app/lib/bibleEdition'
+import { STYLE_CORPS } from '@/app/lib/compositionBible'
 import {
   ROLES_SOUS_TITRE,
   classeIntituleTitre,
@@ -74,27 +75,6 @@ export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 // n'est pas une alerte, c'est du texte d'édition.
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
-
-// Corps d'un paratexte : la composition d'un verset de la page Bible, mais un
-// cran en dessous. Une introduction de Fillion se lit AUTOUR du texte biblique,
-// non à sa place : elle se compose donc plus petit, plus serré et d'une encre
-// plus claire. C’est cette différence de composition qui la situe, et non un
-// filet dans la marge — ⛔ aucun filet à gauche ni sous un bloc.
-const STYLE_CORPS: CSSProperties = {
-  fontFamily: SERIF,
-  // Un cran de plus sous le texte biblique (13 → 12,5 px, rang de l'échelle),
-  // et l'interligne resserré avec lui : Fillion compose son commentaire dense,
-  // et un apparat qui respire comme le texte qu'il commente lui dispute la page.
-  // ⛔ Le nombre lui-même vit dans la feuille de styles (`--cs-corps-apparat`) :
-  // le rang de titre T4 s'aligne dessus depuis le 30 août 2026, et deux valeurs
-  // recopiées ne restent identiques que par accident.
-  fontSize: 'var(--cs-corps-apparat)',
-  lineHeight: 1.3,
-  color: 'var(--cs-texte-second)',
-  textAlign: 'justify',
-  hyphens: 'auto',
-  overflowWrap: 'break-word',
-}
 
 function positionAppelDansTexte(
   text: string,
