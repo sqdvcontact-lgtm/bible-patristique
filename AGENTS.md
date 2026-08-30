@@ -3128,6 +3128,33 @@ empreintes, pour qu'un essai ultérieur reparte du même fichier. ⛔ Ils ne son
 installés dans ComfyUI, et `1x_wtp_descreentone_compact` ne déclare **aucune
 licence** : il ne pourrait de toute façon pas servir une image publiée.
 
+### ⛔ LE RATTRAPAGE SE RÈGLE APRÈS LA SECONDE RÉDUCTION, ET ON RECOUD CE QU'ELLE A DILUÉ (2026-08-30)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.16.7 à 35.16.9**. Règles de code,
+toutes dans `scripts/fillion/detourer-gravures.mjs`, `processing_version` 4.1.0 :
+
+- ⛔ **`NETTETE_TRAIT` (σ 1,6 · m2 3) pour les gravures au TRAIT, `NETTETE`
+  (σ 0,6 · m2 2) pour les deux planches CADRÉES.** Un fichier servi au double
+  subit la réduction du navigateur : mesuré en énergie de bord APRÈS elle, σ 0,6
+  ne rend que **83 %** de ce que notre propre réduction rendrait, σ 1,6 en rend
+  **99 %**. ⚠️ C'est le RAYON qui décide, non la force — à σ 0,6, monter
+  l'amplitude de 2 à 4 ne rend qu'un point. Sur une photogravure en ton continu,
+  σ 1,6 fait bouillir la feuillée : ne pas l'y étendre.
+- ⛔ **`coudreLesCreux` ne dessine rien, et trois verrous le garantissent** : un
+  creux tenu par de l'encre des DEUX côtés (`COUTURE_TENU`, `COUTURE_PORTEE`), un
+  plafond pris sur le gris le plus SOMBRE du scan sous le pixel (`plafondDuScan`),
+  et jamais plus que le plus faible des deux bords. ⚠️ Le plafond ne peut PAS être
+  la rampe nue : la courbe ne mordant que sous 0,5, elle y vaut au plus 0,47, et
+  aucun creux ne se referme — mesuré, 1,15 % de surface touchée pour **zéro** trait
+  rejoint. C'est la RÉDUCTION, non la courbe, qui a dilué le trait.
+- ⚠️ **`versAlpha` prend le scan À SA RÉSOLUTION** en cinquième argument, non
+  l'image réduite : le plafond est précisément ce que la réduction a moyenné.
+  `profil.cousus` rend la part de surface recousue (0,09 % à 3,37 %).
+- ⚠️ **Une planche de contrôle compose à la taille d'AFFICHAGE**, agrandit au PLUS
+  PROCHE VOISIN, et fait subir à l'image la seconde réduction du navigateur. Jugé
+  au double, le paralytique paraissait avoir perdu son modelé ; à 200 px il est
+  plus net que le scan brut. Une demi-journée de conclusions fausses.
+
 ### ⛔ LE CONTENEUR D'UNE ILLUSTRATION EST LE BLOC, 500 px, NON L'AXE (2026-08-30)
 
 Trouvé à l'audit du rendu, en interrogeant le navigateur sur la page composée.
