@@ -3018,6 +3018,48 @@ Relevé en ligne le 2026-08-24, sur la Didachè même. Les sections se rendent s
 
 ⚠️ **Le défaut ne se voyait ni aux types, ni aux tests, ni dans la donnée** : les 57 groupes sont complets et sans orphelin, et la projection est juste. Il naît de la rencontre entre l'alignement et le découpage en sections du RENDU, et il a fallu regarder la page.
 
+### ⛔ Un POÈME n'est pas un empan : il fait BLOC, en pleine mesure (2026-08-30)
+
+Doctrine : charte `parametres.charte_ia`, **§ 12.2**, sous « Le POÈME n'est pas un
+empan ». Relevé de l'auteur : « pour les vers, c'est immonde ; les vers sont coupés car
+trop longs ; peut-être ne devrait-on pas les aligner, mais considérer, pour les vers
+seulement, qu'ils constituent un bloc ». Règles de code :
+
+- ⛔ **Le poème SORT de la grille** : `.para-bilingue--vers { display: block }`. La
+  colonne originale ne mesure que **209 px** et la française **266**, quand la mesure de
+  lecture en fait 500. Or un vers ne se coupe pas. Mesuré au navigateur sur le mètre I du
+  Livre premier de Boèce : **29 des 46 vers s'enroulaient**, le poème occupait **75 lignes
+  au lieu de 46**, et chaque enroulement portait en plus son retrait de suite. Pleine
+  mesure, **zéro** enroulé. ⚠️ Aucun réglage ne rattrape une colonne trop étroite pour un
+  hexamètre : ni le corps, ni la chasse, ni le retrait de suite, qui ne fait que rendre
+  le défaut lisible.
+- ⛔ **Le poème CESSE d'être haché** : `fusionnerBlocsDeVers` (`bilingueAlignement.ts`,
+  pur, testé) réunit les blocs voisins entièrement composés de vers, et le bloc rendu
+  porte la LISTE de ses groupes dans l'ordre de lecture. Ce mètre en compte quatorze, et
+  le lecteur recevait quatorze rangs de grille pour un seul poème.
+- ⛔ **C'est `fondreOriginaux` qui a levé l'obstacle.** La lecture ORDINAIRE fondait déjà
+  ses poèmes (`fusionnerBlocs`), et ne le pouvait pas en regard : le latin d'une strophe
+  vit sur son vers de rang 1, si bien que fondre les blocs n'en gardait **qu'un** original
+  et jetait les autres. Les originaux se joignent donc tous, par un SAUT de ligne et
+  jamais par une espace, la colonne les recomposant ligne à ligne (`lignesDeVers`).
+  Éprouvé sur ce mètre : **22 lignes latines** conservées sur 22.
+- ⚠️ **Un poème refait n'a plus d'empan à borner** : il réunit à lui seul tous ses
+  groupes, il porte donc son original et il se clôt. `bornesDesGroupes` est court-circuité
+  quand `chunk.poeme` est posé, sans quoi le bloc se déclarait « suite » et perdait son
+  blanc de fin.
+- ⚠️ **Un poème d'un SEUL groupe repasse par le cas ordinaire** (`poeme` remis à `null`) :
+  rien n'a été fondu, et rien ne doit changer là où il n'y avait rien à refaire.
+- ⚠️ **Le latin prend le blanc qu'une gouttière lui donnait** : il SUIT le français au
+  lieu de lui faire face, d'où `margin-top: 1.1rem` en lecture bilingue seulement. En
+  « Latin seul » il n'a rien au-dessus de lui et n'en prend pas.
+- ⚠️ **L'appariement vers à vers était de toute façon une illusion** : Mirandol traduit
+  dans un autre mètre et n'a pas le compte de lignes de Migne. Ce poème confronte 24 vers
+  français à 22 vers latins. Le poème est l'unité qui se recoupe d'une langue à l'autre.
+- **Planche de mesure** : `tmp/planche-vers-bilingue.tsx`. ⛔ Elle ne rejoue rien : son
+  volet B passe par `fusionnerBlocsDeVers` et `originalEnRegard` eux-mêmes, et sa CSS est
+  celle d'`OeuvreClient` recopiée telle quelle. C'est le navigateur qui compte les
+  enroulements, en comparant la boîte de chaque vers à son interligne.
+
 # La planche des illustrations — /admin/illustrations (2026-08-24)
 
 Toutes les images DESSINÉES du site sur une seule page, groupées par ce qu'elles font, montrées sur les fonds du site au choix, agrandissables, chacune avec un lien vers la page où elle paraît. Elle sert à juger l'harmonie du jeu, ce qu'aucune page du site ne permet : les gravures y sont dispersées sur douze écrans.

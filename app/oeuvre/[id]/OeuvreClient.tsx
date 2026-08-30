@@ -13,7 +13,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
+import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
@@ -1773,7 +1773,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
    * Les segments qu'aucun groupe ne couvre retombent sur `paragraphesDe`, leur
    * composition de toujours. Hors bilingue, ou faute d'alignement, rien ne change.
    */
-  const blocsDeLecture = (itemIds: number[]): { ids: number[]; groupe: string | null }[] => {
+  const blocsDeLecture = (itemIds: number[]): { ids: number[]; groupe: string | null; poeme?: string[] | null }[] => {
     const enRegard = affichageBilingue || afficherOriginalSeul
     // Hors lecture en regard, rien ne change : découpe par `paragraphe`, et le POÈME se
     // refait par-dessus (⚠️ on ne fond QUE là — le latin d'une strophe vit sur son vers
@@ -1793,17 +1793,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       ).map(c => ({ ids: c.ids, groupe: null as string | null }))
     }
     if (!blocsAlignes) return paragraphesDe(itemIds).map(c => ({ ids: c.ids, groupe: null as string | null }))
-    return blocsBilingues(itemIds, sid => segMap.get(sid)?.segmentKey, groupeParCle)
-      .flatMap(bloc => bloc.groupe
-        ? [{ ids: bloc.ids, groupe: bloc.groupe }]
-        : paragraphesDe(bloc.ids).map(c => ({ ids: c.ids, groupe: null as string | null })))
+    // ⛔ Le POÈME se refait ICI AUSSI, et il ne le pouvait pas avant. L'empan est
+    // l'unité de la prose : un mètre de Boèce en compte quatorze, et le lecteur
+    // recevait quatorze rangs de grille pour un seul poème, dans une colonne latine
+    // de 209 px où deux vers sur trois s'enroulaient. `fondreOriginaux` fait suivre
+    // tous les originaux, ce qui lève l'obstacle qui interdisait la fusion en regard.
+    return fusionnerBlocsDeVers(
+      blocsBilingues(itemIds, sid => segMap.get(sid)?.segmentKey, groupeParCle)
+        .flatMap(bloc => bloc.groupe
+          ? [{ ids: bloc.ids, groupe: bloc.groupe }]
+          : paragraphesDe(bloc.ids).map(c => ({ ids: c.ids, groupe: null as string | null }))),
+      ids => estBlocDeVers(ids.map(sid => segMap.get(sid))),
+    )
   }
 
   /** L'original mis en regard d'un bloc. La règle vit dans `bilingueAlignement.ts`,
    *  avec ses tests ; ici on ne fait que lui présenter les segments du bloc. */
-  const originalDuBloc = (chunk: { ids: number[]; groupe: string | null }) =>
+  const originalDuBloc = (chunk: { ids: number[]; groupe: string | null; poeme?: string[] | null }) =>
     originalEnRegard<Record<string, NoteAffichee>>({
       groupe: chunk.groupe,
+      groupes: chunk.poeme,
       blocs: blocsOriginalEtat,
       segmentsDuBloc: chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
       notesVides: {},
@@ -1874,7 +1883,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            trait à chaque respiration du poème. Un blanc dit la même chose sans rien
            dessiner, et c'est ce que fait la page imprimée.
            ⚠️ Aucun accent grave dans ce bloc : il vit dans un littéral de gabarit. */
-        .para-bilingue--vers { border-bottom: none; margin-bottom: 1.15rem; }
+        /* ⛔ Un POÈME sort de la grille et prend toute la mesure (décision de
+           l'auteur, 2026-08-30 : « les vers sont coupés car trop longs ; peut-être
+           ne devrait-on pas les aligner, mais considérer, pour les vers seulement,
+           qu'ils constituent un bloc »). La colonne latine ne mesure que 209 px, et
+           un vers ne se coupe pas : mesuré sur le mètre I du Livre premier de Boèce,
+           29 des 46 vers s'y enroulaient, et le poème occupait 75 lignes au lieu de
+           46. Aucun réglage ne rattrape une colonne trop étroite pour un hexamètre :
+           il faut lui rendre la page. Le français ouvre, le latin suit, et le change
+           de police les sépare comme il séparait les deux colonnes. */
+        .para-bilingue--vers { display: block; border-bottom: none; margin-bottom: 1.15rem; }
         /* ⛔ La SUITE d'un empan : un groupe d'alignement qui enjambe deux sections se
            rend en deux blocs, et le filet tiré entre eux annoncerait une frontière que
            l'alignement ne reconnaît pas. Le blanc se resserre au lieu de s'ouvrir : les
@@ -2501,7 +2519,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const original = originalDuBloc(chunk)
                     // Le bloc PORTE-t-il l'original, ou le prolonge-t-il ? Un groupe qui
                     // enjambe deux sections ne le compose que dans la première.
-                    const bornes = chunk.groupe ? bornesGroupes.get(chunk.groupe) : undefined
+                    // ⚠️ Un POÈME refait n'a plus d'empan à borner : il réunit à lui seul
+                    // tous ses groupes, il porte donc son original et il se clôt.
+                    const bornes = !chunk.poeme && chunk.groupe ? bornesGroupes.get(chunk.groupe) : undefined
                     const porteOriginal = !bornes || bornes.premier === chunk.ids[0]
                     // Le filet marque l'appariement empan par empan : il ne se tire qu'au
                     // BOUT du groupe, jamais entre deux blocs qu’un même empan réunit.
@@ -2653,7 +2673,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                              ⚠️ Pas de rang d'alinéa ici : la source ne mesure l'indentation
                              que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
                              le retrait de suite, qui appartiennent à la composition. */
-                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0 }}>
+                          /* ⚠️ Le poème n'étant plus en colonnes, le latin SUIT le
+                             français au lieu de lui faire face : il lui faut le blanc
+                             qu'une gouttière lui donnait. En « Latin seul » il n'a rien
+                             au-dessus de lui, et n'en prend donc pas. */
+                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, margin: affichageBilingue ? '1.1rem 0 0.72rem' : '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0 }}>
                             {lignesDeVers(original.affichage).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
                                 {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
