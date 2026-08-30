@@ -28,6 +28,7 @@ import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigat
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import {
   indexerBlocsDeCorps,
+  habillerLesVignettes,
   indexerIllustrations,
   type BibleEditionChapterDisplay,
   type BibleEditionDisplayAsset,
@@ -486,6 +487,12 @@ export default function TexteBible({
   const estLacune899 = (v: Verset) => v._estLacune === true
   const indexBlocs = indexerBlocsDeCorps(editionChapter?.bodyBlocks ?? [])
   const indexIllustrations = indexerIllustrations(editionChapter?.assets ?? [])
+  // ⛔ LES VIGNETTES SE FONDENT DANS LE COMMENTAIRE QUI COUVRE LEUR VERSET, et y
+  //    flottent. L'ancre ne bouge pas : c'est une donnée de provenance. Voir
+  //    `habillerLesVignettes`, qui porte toute la règle et ses tests.
+  const habillage = habillerLesVignettes(
+    versets.map((v) => v.id_verset), indexBlocs, indexIllustrations,
+  )
   // ⛔ L'AXE DE LECTURE de la page : le bloc de texte, la colonne d'actions
   // EXCLUE du centrage. Le titre du chapitre et les rangées de verset s'y posaient
   // déjà ; les blocs éditoriaux, les pièces liminaires et les notes se centraient,
@@ -509,8 +516,10 @@ export default function TexteBible({
 
   const rendreFluxEditorial = (
     blocs: readonly BibleEditionDisplayBodyBlock[],
-    illustrations: readonly BibleEditionDisplayAsset[],
-  ) => [
+    toutesIllustrations: readonly BibleEditionDisplayAsset[],
+  ) => {
+    const illustrations = toutesIllustrations.filter((a) => !habillage.absorbees.has(a.id))
+    return [
     ...blocs.map((bloc) => ({ kind: 'block' as const, materialOrder: bloc.materialOrder, id: bloc.id, value: bloc })),
     ...illustrations.map((illustration) => ({
       kind: 'illustration' as const,
@@ -519,16 +528,18 @@ export default function TexteBible({
       value: illustration,
     })),
   ]
-    .sort((a, b) => a.materialOrder - b.materialOrder || a.id.localeCompare(b.id, 'fr'))
-    .map((item) => surAxeTexte(item.kind === 'block'
-      ? (
-          <BlocEditorialBible
-            key={`bloc:${item.id}`}
-            bloc={item.value}
-            illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
-          />
-        )
-      : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`))
+      .sort((a, b) => a.materialOrder - b.materialOrder || a.id.localeCompare(b.id, 'fr'))
+      .map((item) => surAxeTexte(item.kind === 'block'
+        ? (
+            <BlocEditorialBible
+              key={`bloc:${item.id}`}
+              bloc={item.value}
+              illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
+              habillage={habillage.parBloc.get(item.id) ?? []}
+            />
+          )
+        : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`))
+  }
   const notesParCanon = new Map<string, NonNullable<typeof editionChapter>['notes']>()
   for (const note of editionChapter?.notes ?? []) {
     const notes = notesParCanon.get(note.canonId) ?? []

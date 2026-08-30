@@ -9,6 +9,9 @@ import {
   type BibleEditionDisplayTextBlock,
   type StyleCompositionBloc,
   PART_DU_REGIME,
+  estDetouree,
+  type CoteHabillage,
+  type IllustrationHabillee,
 } from '@/app/lib/bibleEdition'
 import { STYLE_CORPS } from '@/app/lib/compositionBible'
 import {
@@ -542,23 +545,28 @@ function citationSortieDuParagraphe(bloc: BlocTexteBiblique, resolu?: StyleResol
  * avec un seul fichier et sans filtre d'inversion. Une PLANCHE, elle, garde son
  * papier de 1923 et se rend en image.
  */
-export function IllustrationBible({ illustration, habillage }: {
+export function IllustrationBible({ illustration, habillage, cote }: {
   illustration: IllustrationBibliqueAffichable
-  /** Le commentaire contourne la vignette. ⚠️ N'a de sens que DANS un bloc :
-   *  ancrée sur un verset, une illustration a son propre axe et n'a rien à
-   *  habiller. C'est la structure qui le dit, et la page ne le force pas. */
+  /** Le commentaire contourne la vignette. ⚠️ N'a de sens que DANS un bloc de
+   *  prose : posée sur son propre axe, une illustration n'a rien à habiller. */
   habillage?: boolean
+  /** De quel côté elle flotte. Les vignettes ALTERNENT le long du chapitre :
+   *  toutes du même bord, la colonne se déséquilibre. */
+  cote?: CoteHabillage
 }) {
   const regime = illustration.regime
   const part = PART_DU_REGIME[regime]
-  const detouree = regime !== 'hors-texte'
+  const detouree = estDetouree(regime)
   const flotte = habillage === true && regime === 'vignette'
+  const aGauche = flotte && cote === 'gauche'
 
   const cadre: CSSProperties = {
     width: `${Math.round(part * 100)}%`,
     maxWidth: `${illustration.width}px`,
-    margin: flotte ? '0.15rem 0 0.55rem 1.1rem' : '1.25rem auto',
-    float: flotte ? 'right' : undefined,
+    margin: flotte
+      ? (aGauche ? '0.15rem 1.1rem 0.55rem 0' : '0.15rem 0 0.55rem 1.1rem')
+      : '1.25rem auto',
+    float: flotte ? (aGauche ? 'left' : 'right') : undefined,
     textAlign: 'center',
   }
 
@@ -568,7 +576,8 @@ export function IllustrationBible({ illustration, habillage }: {
       data-asset-kind={illustration.assetKind}
       data-placement={illustration.placement}
       data-regime={regime}
-      className={`cs-bible-gravure cs-bible-gravure--${regime}`}
+      data-cote={flotte ? (aGauche ? 'gauche' : 'droite') : undefined}
+      className={`cs-bible-gravure cs-bible-gravure--${regime}${flotte ? ` cs-bible-gravure--flottante cs-bible-gravure--${aGauche ? 'gauche' : 'droite'}` : ''}`}
       style={cadre}
     >
       {detouree ? (
@@ -585,7 +594,10 @@ export function IllustrationBible({ illustration, habillage }: {
           }}
         />
       ) : (
-        <span className="cs-bible-gravure-passe">
+        // ⛔ Une PHOTOGRAVURE et une PLANCHE gardent leur papier : elles sont
+        //    opaques, et le thème ne les retourne pas. La première est rognée au
+        //    filet gravé et prend le filet du site ; la seconde son passe-partout.
+        <span className={regime === 'au-fil' ? 'cs-bible-gravure-cadre' : 'cs-bible-gravure-passe'}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={illustration.url}
@@ -613,6 +625,15 @@ function rendreIllustrations(
 ) {
   return illustrations.map((illustration) => (
     <IllustrationBible key={illustration.id} illustration={illustration} habillage={habillage} />
+  ))
+}
+
+/** Les vignettes fondues dans ce bloc par la composition, chacune de son côté.
+ *  ⚠️ Distinctes de celles que la DONNÉE pose dans le flux (`placement: inline`) :
+ *  celles-ci sont ancrées sur un verset, et c'est la page qui les y fond. */
+function rendreHabillage(vignettes: readonly IllustrationHabillee[]) {
+  return vignettes.map(({ illustration, cote }) => (
+    <IllustrationBible key={illustration.id} illustration={illustration} habillage cote={cote} />
   ))
 }
 
@@ -645,9 +666,12 @@ function compositionDuParagraphe(
 export function BlocEditorialBible({
   bloc,
   illustrations = [],
+  habillage = [],
 }: {
   bloc: BlocEditorialBiblique
   illustrations?: IllustrationBibliqueAffichable[]
+  /** Vignettes ancrées sur un verset que la page fond dans ce commentaire. */
+  habillage?: readonly IllustrationHabillee[]
 }) {
   const avant = illustrations.filter((illustration) => illustration.placement === 'before')
   const dansLeFlux = illustrations.filter((illustration) => illustration.placement === 'inline')
@@ -733,6 +757,7 @@ export function BlocEditorialBible({
           après, il n'a plus rien à habiller. Le bloc le CONTIENT par
           `display: flow-root`, sans quoi il déborderait sur le titre suivant. */}
       {rendreIllustrations(dansLeFlux, true)}
+      {rendreHabillage(habillage)}
       {bloc.textBlocks.map((texte, rang) => rendreBlocTexte(
         texte, resolu, notesCorps, bloc.niveauHtml, compositionDuParagraphe(bloc, texte, rang),
         bloc.rangDuTitre,

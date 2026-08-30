@@ -3322,6 +3322,46 @@ Quatre remarques de l’auteur sur la Fillion lue en regard, le 30 août 2026, e
 
 ⚠️ **Une couleur peut être JUSTE et paraître fausse : c’était la GRAISSE.** L’auteur demandait que la manchette « soit dans la couleur du texte des commentaires ». Elle y était depuis toujours — la même valeur mesurée sur le repère et sur le paragraphe qu’il coiffe — et il y lisait pourtant un gris de plus. À douze pixels, le demi-gras hérité de la rubrique posait assez d’encre par ligne pour se lire comme un quatrième rang. ⛔ **Avant de changer une teinte que quelqu’un dit fausse, la MESURER** : c’est parfois le poids, le corps ou l’interligne, et retoucher la teinte alors n’ajoute qu’un gris à une échelle qui en avait déjà trop.
 
+### 35.16. Les gravures de Fillion — trois régimes, et ce que chacun fait du papier
+
+Une gravure se tire du **feuillet JP2** de l'archive, jamais de la page composée du PDF, dont la compression à contenu mixte a détruit la demi-teinte. Trois régimes, décidés par la **largeur imprimée** sur la page à deux colonnes de Fillion : une gravure qui tient dans une colonne est une **vignette**, une gravure qui les enjambe est une **scène**, une page entière est une **planche hors-texte**. Le régime se dérive, il ne se saisit pas.
+
+#### 35.16.1. La rampe alpha se mesure aux deux bouts, et sur cette gravure-ci
+
+Une gravure au trait se détoure : son dessin passe dans la couche alpha, et l'encre se repose au rendu, de sorte qu'un seul fichier sert le papier et le cuir. Mais la rampe qui convertit le gris en alpha doit être bornée par deux valeurs MESURÉES sur la gravure, non par deux valeurs supposées.
+
+**En haut, le papier n'atteint jamais le blanc absolu.** Il a un grain, et le verso transparaît. Une rampe qui part du blanc donne donc à tout le papier un alpha faible mais non nul : mesuré sur le « Modius ou boisseau romain », la moyenne des quatre coins valait 4,8 sur 255, pour un maximum de 16. Un voile uniforme ne se voit pas en lui-même, mais ses bords dessinent le rectangle de la découpe, et les caractères du verso y deviennent lisibles parce qu'ils ont une forme. C'est ce que l'auteur a relevé sur la page servie.
+
+**En bas, l'encre doit atteindre l'opaque.** Prendre l'amplitude sur l'encre du site, et non sur l'encre de la gravure, laisse le gros du trait entre 40 et 120 d'alpha : la gravure paraît grise et molle.
+
+Le plancher se prend sur la dispersion propre du papier, mesurée du côté clair de son pic, le seul flanc qui ne soit mêlé à aucune encre, puisque rien n'est plus clair que le papier ; le pic étant symétrique, sa demi-largeur haute donne son pied bas. Le plafond est le niveau sous lequel se tiennent deux pour cent des pixels, c'est-à-dire l'encre pleine.
+
+On ne cherche pas une vallée entre le papier et l'encre : sur une gravure sur bois, la hachure peuple tout le registre, et il n'y en a pas.
+
+L'alpha se calcule sur le gris brut, jamais sur une image déjà étalée. Les deux opérations font le même travail, et l'étalement, en plaquant tout le papier sur le blanc, détruit le flanc que la rampe doit mesurer.
+
+#### 35.16.2. Une photogravure ne se détoure pas : elle se cadre
+
+Une scène qui enjambe les deux colonnes est une photogravure en ton continu, dont l'encre couvre tout le champ. Mesuré sur les deux vues de Marc, la surface réellement transparente y valait trois pour cent, quand une gravure au trait en rend quatre-vingt-cinq à quatre-vingt-quatorze. La détourer revient à poser sur la page un rectangle d'encre à peine ajouré, dont le seul effet visible est d'en montrer les bords ; sur le thème sombre, elle disparaît.
+
+Une photogravure garde donc son papier, comme une planche hors-texte, et se rogne en dedans du filet gravé que Fillion imprime autour d'elle. On ne conserve pas ce filet : il est irrégulier et écaillé aux angles, et un cadre imprimé de travers posé dans un cadre du site en fait deux. Le site pose le sien, droit.
+
+Le filet se lit dans le profil de luminance moyenne au bord, où le papier laisse place à un creux net avant l'image. Un seuil compté en pixels sombres n'y suffit pas : à pleine résolution le filet est gris et fin.
+
+#### 35.16.3. Une vignette se compose dans le commentaire qui couvre son verset
+
+Décision de l'auteur du 30 août 2026 : le texte doit habiller les illustrations, tantôt à droite, tantôt à gauche.
+
+Une illustration ancrée sur un verset est posée entre deux versets, sur son propre axe, où elle n'a rien à contourner. L'ancre ne bouge pas pour autant : elle dit où la gravure est imprimée dans le volume, c'est une donnée de provenance, et la déplacer pour obtenir un rendu serait réécrire le témoin. C'est la composition qui la fond dans la prose qui l'entoure, exactement comme le fait la page de Fillion, dont les deux colonnes sont du commentaire.
+
+Le bloc porteur est le dernier bloc de prose que la page a posé avant d'arriver à la gravure. On ne refait pas de son côté un classement canonique : ce serait se donner une seconde vérité, qui dérivera de la première.
+
+Les vignettes alternent d'un bord à l'autre le long du chapitre. Toutes du même côté, la colonne se déséquilibre.
+
+Le seuil au-dessous duquel un bloc ne peut pas habiller se calcule sur la hauteur du flottant ; ce n'est pas une constante. Un seuil fixe écarte une gravure basse dans un commentaire court et laisse passer une gravure haute dans un commentaire à peine plus long. Le calcul se fonde sur trois mesures prises au navigateur, sur la composition réelle : la largeur du flottant, la piste de texte qui lui reste, et le nombre de signes qu'une ligne y porte. On retient le bas de la fourchette, car sous-estimer la piste revient à exiger plus de texte, donc à ne jamais poser un flottant qui dépasse ; et l'on ajoute deux lignes, pour que l'habillage se lise comme voulu. Un texte qui s'arrête au ras du flottant a l'air de l'avoir subi.
+
+Une scène cadrée et une planche hors-texte ne s'habillent jamais. Une scène large coupée par de la prose ne se lit plus.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.

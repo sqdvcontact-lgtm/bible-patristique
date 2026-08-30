@@ -27,17 +27,17 @@ export const REGIMES: Record<RegimeIllustration, Regime> = {
     titre: 'Vignette',
     pour: 'tient dans une colonne de la page imprimée',
     propos:
-      'Un boisseau, un charpentier, un outil, une scène brève. Détourée, l’encre reposée au rendu, à trente pour cent de la colonne de lecture. ⚠️ Elle n’est habillée que si son ancre la pose DANS un bloc de commentaire : ancrée sur un verset, elle a son propre axe et n’a rien à contourner. C’est la structure qui le dit, et la page ne le force pas.',
+      'Un boisseau, un charpentier, un outil, une scène brève. Détourée, l’encre reposée au rendu, à trente pour cent de la colonne de lecture. Le commentaire qui COUVRE son verset l’habille, et les vignettes alternent d’un bord à l’autre le long du chapitre. ⚠️ L’ancre ne bouge pas pour autant : elle dit où la gravure est imprimée dans le volume, et c’est la composition qui la fond dans la prose.',
     detourage: true,
     cadre: false,
     habillage: true,
   },
   'au-fil': {
-    titre: 'Gravure au fil du texte',
+    titre: 'Scène cadrée',
     pour: 'enjambe les deux colonnes de la page imprimée',
     propos:
-      'Une vue, un bas-relief, une photogravure. Elle porte son cadre gravé : on rogne AU filet, on pose autour un filet à l’encre du site, et le texte ne l’habille pas. Une scène large coupée par de la prose ne se lit plus.',
-    detourage: true,
+      'Une vue, une photogravure en ton continu. ⛔ Elle ne se détoure PAS : son encre couvre tout le champ, et mesurée, sa surface transparente valait 3 % quand une gravure au trait en rend 85 à 94. Elle garde son papier, rognée EN DEDANS du filet gravé — irrégulier, écaillé aux angles — et prend le filet du site, droit. Le texte ne l’habille pas : une scène large coupée par de la prose ne se lit plus.',
+    detourage: false,
     cadre: true,
     habillage: false,
   },
@@ -55,9 +55,10 @@ export const REGIMES: Record<RegimeIllustration, Regime> = {
 /** L'ordre d'exposition : du plus intégré au texte au plus détaché. */
 export const ORDRE_REGIMES: RegimeIllustration[] = ['vignette', 'au-fil', 'hors-texte']
 
-/** La colonne de lecture d'un chapitre, en pixels, à la racine 16. C'est sur elle
- *  que se comptent les largeurs, non sur la fenêtre. */
-export const MESURE_COLONNE = 502
+/** La colonne de lecture d'un chapitre. ⛔ Elle vit dans `bibleEdition`, où la
+ *  règle d'habillage la lit pour calculer la hauteur d'un flottant : deux
+ *  déclarations d'une même mesure ne restent égales que par accident. */
+export { MESURE_COLONNE } from '@/app/lib/bibleEdition'
 
 /** Une gravure telle que la planche la montre : ce que la base sait en dire, plus
  *  le régime DÉRIVÉ et la largeur imprimée qui l'a décidé.

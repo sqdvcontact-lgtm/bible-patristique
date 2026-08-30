@@ -735,9 +735,9 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
             <p className="ill-reg-texte">{r.propos}</p>
             <dl className="ill-reg-fiche">
               <dt>Largeur</dt><dd>{Math.round(part * 100)} % de la colonne, soit {Math.round(MESURE_COLONNE * part)} px</dd>
-              <dt>Détourage</dt><dd>{r.detourage ? 'oui, encre reposée au rendu' : 'jamais'}</dd>
-              <dt>Habillage</dt><dd>{r.habillage ? 'oui, quand l’ancre la pose dans un bloc' : 'non'}</dd>
-              <dt>Cadre</dt><dd>{r.cadre ? 'filet du site, rogné au filet gravé' : cle === 'hors-texte' ? 'passe-partout' : 'aucun'}</dd>
+              <dt>Détourage</dt><dd>{r.detourage ? 'oui, encre reposée au rendu' : 'jamais, elle garde son papier'}</dd>
+              <dt>Habillage</dt><dd>{r.habillage ? 'oui, dans le commentaire qui couvre son verset, un bord après l’autre' : 'non'}</dd>
+              <dt>Cadre</dt><dd>{r.cadre ? 'filet du site, rogné EN DEDANS du filet gravé' : cle === 'hors-texte' ? 'passe-partout' : 'aucun'}</dd>
             </dl>
 
             {cle === 'vignette' && boisseau && <SpecimenHabillage gravure={boisseau} fond={fond} />}
@@ -745,7 +745,10 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
               <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
                 <div className="ill-reg-colonne">
                   <figure className="ill-reg-cadre" style={{ width: `${Math.round(part * 100)}%`, borderColor: colorMix(f.encre, 30) }}>
-                    <span className="ill-reg-encree" style={{ ...encree(scene.url, f.encre), aspectRatio: `${scene.largeur} / ${scene.hauteur}` }} role="img" aria-label={scene.legende} />
+                    {/* ⛔ Une SCÈNE est opaque : la poser en masque la rendrait
+                        en aplat d'encre. Elle garde son papier. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={scene.url} alt={scene.legende} style={{ display: 'block', width: '100%', height: 'auto', border: `1px solid ${colorMix(f.encre, 30)}` }} />
                     <figcaption style={{ ...STYLE_CORPS, textAlign: 'center', color: colorMix(f.encre, 70), fontStyle: 'italic', marginTop: '0.375rem' }}>
                       {scene.legende}
                     </figcaption>
@@ -781,7 +784,10 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
           {gravures.map(g => (
             <div key={g.cle} className="ill-reg-servie">
               <div className="ill-reg-case" style={{ backgroundColor: f.fond }}>
-                <span className="ill-reg-encree" style={{ ...encree(g.url, f.encre), aspectRatio: `${g.largeur} / ${g.hauteur}` }} role="img" aria-label={g.legende} />
+                {g.regime === 'vignette'
+                  ? <span className="ill-reg-encree" style={{ ...encree(g.url, f.encre), aspectRatio: `${g.largeur} / ${g.hauteur}` }} role="img" aria-label={g.legende} />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  : <img src={g.url} alt={g.legende} style={{ display: 'block', width: '100%', height: 'auto' }} />}
               </div>
               <p className="ill-reg-paire-nom">{g.legende}<br /><span>{g.largeur} × {g.hauteur} px servis · {REGIMES[g.regime].titre.toLowerCase()}</span></p>
             </div>

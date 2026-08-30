@@ -220,10 +220,20 @@ describe('paratexte des éditions bibliques', () => {
     expect(part('hors-texte')).toBe('100')
   })
 
+  it('⛔ rend une SCÈNE en image OPAQUE, jamais en masque', () => {
+    // Une photogravure en ton continu ne se détoure pas : mesurée, sa surface
+    // transparente valait 3 % quand une gravure au trait en rend 85 à 94.
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} />)
+    expect(html).toContain('<img')
+    expect(html).toContain('cs-bible-gravure-cadre')
+    expect(html).not.toContain('mask-image')
+  })
+
   it('rend une PLANCHE en image, papier compris, et jamais en masque', () => {
     const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte')} />)
     expect(html).toContain('<img')
     expect(html).toContain('alt="Requin figurant le poisson de Jonas."')
+    expect(html).toContain('cs-bible-gravure-passe')
     expect(html).not.toContain('mask-image')
   })
 
@@ -232,6 +242,21 @@ describe('paratexte des éditions bibliques', () => {
     const dansUnBloc = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage />)
     expect(seule).not.toContain('float')
     expect(dansUnBloc).toContain('float:right')
+  })
+
+  it('⛔ ALTERNE les bords : le côté vient de la composition, non du régime', () => {
+    const droite = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="droite" />)
+    const gauche = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="gauche" />)
+    expect(droite).toContain('float:right')
+    expect(gauche).toContain('float:left')
+    // ⚠️ La marge suit le bord : posée du mauvais côté, elle colle la gravure au texte.
+    expect(gauche).toContain('data-cote="gauche"')
+    expect(gauche).toContain('cs-bible-gravure--gauche')
+  })
+
+  it('⛔ une SCÈNE ne flotte jamais, même si on le lui demande', () => {
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} habillage cote="gauche" />)
+    expect(html).not.toContain('float')
   })
 })
 

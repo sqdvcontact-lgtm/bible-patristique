@@ -2841,6 +2841,16 @@ feuillets, qui sont **exactement les pages illustrées de Marc**. On les a cherc
 ailleurs deux jours en croyant qu'il fallait les récupérer. ⛔ **Avant toute
 extraction, regarder ce que `tmp/pdfs/fillion/` contient déjà.**
 
+⛔ **`rotate` + `extract` + `resize` dans une SEULE chaîne sharp fait tourner AVANT
+de découper**, et la boîte tombe alors hors du champ (« bad extract area ») — ou
+pire, découpe ailleurs sans rien dire. La chaîne de production les sépare déjà en
+refermant le tampon après la rotation ; un script d'atelier qui l'ignore mesure une
+autre image que celle qu'il croit.
+
+⚠️ **`sharp(...).extract(box).stats()` IGNORE la découpe** et rend les statistiques
+de l'image ENTIÈRE. Deux fenêtres différentes y rendent le même chiffre, ce qui est
+le seul signe. Matérialiser la découpe en tampon avant de mesurer.
+
 ⚠️ Ni sharp ni libvips ne lisent le JPEG 2000 ici : le décodage passe par
 ImageMagick, dans le WSL qui sert déjà Kraken.
 
@@ -2882,6 +2892,113 @@ jamais plus tard**, et la version de traitement bouge avec la source d'autorité
 Remplacer un fichier à la même adresse laisse un client sur l'ancien : pour juger
 sur épreuve, vider le profil du navigateur de contrôle.
 
+### ⛔ LA RAMPE ALPHA SE MESURE AUX DEUX BOUTS (2026-08-30)
+
+Relevé de l'auteur sur la page servie : « on devine un fond, peut-être les
+caractères noirs de la page suivante », « le boisseau est encore flou, baveux, et
+on voit la délimitation du cadre de l'image ». Les deux bouts de la rampe étaient
+faux, et le second l'était depuis l'origine.
+
+⛔ **EN HAUT, le papier n'atteint jamais 255.** Il a un grain, et le verso
+TRANSPARAÎT. Une rampe qui part de 255 donne donc à tout le papier un alpha de 1
+à 16 : mesuré, la moyenne des quatre coins du boisseau valait **4,8 pour un
+maximum de 16**. Un voile uniforme ne se voit pas en soi, mais ses BORDS
+dessinent le rectangle de la découpe, et les caractères du verso y deviennent
+lisibles parce qu'ils ont une FORME.
+
+⛔ **EN BAS, l'encre n'atteignait jamais l'opaque.** L'amplitude était prise sur
+l'encre du site (`255 − lum_encre`), non sur l'encre de CETTE gravure : le gros
+du trait, entre 150 et 220 après étalement, rendait un alpha de 40 à 120, donc
+une gravure grise et molle.
+
+**Le PLANCHER se prend sur la dispersion PROPRE du papier**, mesurée du côté
+CLAIR du pic, le seul qui ne soit mêlé à aucune encre — rien n'est plus clair que
+le papier. Le pic étant symétrique, sa demi-largeur haute donne son pied bas. Le
+PLAFOND est le niveau sous lequel se tiennent 2 % des pixels, c'est-à-dire
+l'encre pleine. Mesuré sur les neuf gravures au trait de Marc : papier 188 à 203,
+plancher 176 à 199, encre pleine 29 à 116.
+
+⚠️ **Un premier essai cherchait la VALLÉE entre le papier et l'encre. Il n'y en a
+pas** : sur une gravure sur bois, la hachure peuple tout le registre, et le
+détecteur dérivait de 143 à 211 selon la planche.
+
+⛔ **L'ALPHA SE CALCULE SUR LE GRIS BRUT, JAMAIS SUR L'ÉTALEMENT.** Les deux font
+le même travail — porter le papier au blanc et l'encre au noir — et l'étalement
+passe le premier : il PLAQUE tout le papier sur 255 et détruit le flanc clair du
+pic, qui est précisément ce que la rampe mesure. Mesuré, la demi-largeur
+retombait à 1 et le plancher à 254 : la rampe ne mordait plus, et le voile
+revenait intact. L'étalement reste sur le MASTER, image de ton continu à garder.
+
+### ⛔ UNE PHOTOGRAVURE NE SE DÉTOURE PAS : ELLE SE CADRE (2026-08-30)
+
+Les deux vues de Marc — le Jourdain, les restes de la synagogue de Kefr Bir'im —
+sont des photogravures en ton continu : l'encre couvre TOUT le champ. Mesuré, la
+surface réellement transparente y valait **3,3 % et 2,4 %**, quand une gravure au
+trait en rend 85 à 94. Les détourer revenait à poser sur la page un rectangle
+d'encre à peine ajouré, dont le seul effet visible était d'en montrer les bords.
+Sur le thème Cuir, elles disparaissaient purement et simplement.
+
+Elles gardent donc leur papier, comme une planche hors-texte, et se rognent **EN
+DEDANS du filet gravé** que Fillion imprime autour d'elles. ⚠️ On ne le garde
+pas : il est irrégulier, écaillé aux angles, et un cadre imprimé de travers dans
+un cadre du site en fait deux. Le site pose le sien, droit.
+
+⛔ **Le filet se lit dans le PROFIL DE LUMINANCE MOYENNE au bord** : du papier sur
+quelques dizaines de rangs, un creux net, puis l'image. On entre au premier
+creux, on s'arrête à la remontée qui le suit, et l'on ajoute un cheveu — le bord
+intérieur du filet est dégradé sur deux ou trois pixels, et la remontée le
+franchit d'un rang trop tôt. ⚠️ Le seuil ne peut pas être « part de pixels
+sombres » : à pleine résolution le filet est gris et fin, et un seuil à 120 n'en
+attrapait que la moitié. La moyenne, elle, le voit sans ambiguïté — 204 de
+papier, 126 au creux.
+
+⚠️ **Les deux critères concordent, et ce n'est pas un hasard** : ces deux gravures
+sont AUSSI les deux seules qui enjambent les deux colonnes imprimées. Fillion ne
+donne cette largeur qu'aux vues, jamais aux objets isolés. Le régime les
+désignait donc déjà.
+
+### ⛔ UNE VIGNETTE SE COMPOSE DANS LE COMMENTAIRE QUI COUVRE SON VERSET (2026-08-30)
+
+Décision de l'auteur : « il faut que les illustrations soient habillées par le
+texte, tantôt à droite, tantôt à gauche ». La charte signalait l'habillage comme
+une décision éditoriale en attente ; elle est prise.
+
+Les onze gravures de Marc sont ancrées sur un VERSET, donc posées ENTRE deux
+versets, chacune sur son propre axe, où elle n'a rien à contourner. ⛔ **L'ANCRE
+NE BOUGE PAS POUR AUTANT** : elle dit où la gravure est IMPRIMÉE dans le volume,
+c'est une donnée de provenance, et la déplacer pour obtenir un rendu serait
+réécrire le témoin. C'est la COMPOSITION qui la fond dans la prose qui l'entoure,
+exactement comme le fait la page de Fillion, dont les deux colonnes sont du
+commentaire.
+
+⚠️ **Le bloc porteur se lit dans l'ORDRE DE LECTURE**, non par un classement
+canonique refait de son côté : c'est le dernier bloc de prose que la page a posé
+avant d'arriver à la gravure. Éprouvé sur les onze, la marche rend exactement
+l'appariement que la base donne par `canon_order_start`.
+
+⛔ **L'ordre MATÉRIEL ne peut pas comparer une gravure et un bloc** : les deux
+familles sont sur des échelles étrangères — les gravures de Marc vont de 1,1 à
+1,3 million, ses blocs de 11,8 à 12,2 millions — et les trier ensemble met toutes
+les gravures avant tous les blocs.
+
+**Les vignettes ALTERNENT**, un bord après l'autre le long du chapitre : toutes du
+même côté, la colonne se déséquilibre.
+
+⛔ **LE SEUIL D'HABILLAGE SE CALCULE SUR LA HAUTEUR DU FLOTTANT**, il n'est pas
+une constante. Un premier jet exigeait 900 signes de tout bloc : il écartait « On
+met le blé sur l'aire », dont le commentaire porte 626 signes pour un flottant
+qui n'en réclame que 506, et il aurait laissé passer une gravure haute dans un
+bloc à peine plus long. Les mesures qui fondent le calcul ont été prises AU
+NAVIGATEUR sur la composition réelle : le flottant fait 151 px de large et de 126
+à 222 px de haut, la piste de texte qui lui reste vaut 337 à 469 px, et elle porte
+de 45 à 54 signes par ligne. On retient le BAS de la fourchette — sous-estimer la
+piste, c'est exiger plus de texte, donc ne jamais poser un flottant qui dépasse —
+et l'on ajoute deux lignes, pour que l'habillage se LISE comme voulu : un texte
+qui s'arrête au ras du flottant a l'air de l'avoir subi.
+
+⚠️ **Un bloc trop court ne reçoit rien** : la gravure garde son propre axe, et
+c'est le cas d'aucune des onze depuis que le seuil se calcule.
+
 ### Les trois régimes
 
 `app/admin/illustrations/regimesFillion.ts` est la SOURCE, sur le modèle du recensement
@@ -2891,8 +3008,8 @@ sur le **texte réel** de Fillion et sur les **deux sols**.
 
 | Régime | Ce qui le décide | Largeur | Détourage | Habillage |
 |---|---|---:|---|---|
-| **vignette** | tient dans une colonne imprimée | 30 % | oui | oui, dans un bloc |
-| **au-fil** | enjambe les deux colonnes | 75 % | oui | non |
+| **vignette** | tient dans une colonne imprimée | 30 % | oui | oui, dans le commentaire qui couvre son verset, un bord après l'autre |
+| **au-fil** | enjambe les deux colonnes | 75 % | **jamais, elle se CADRE** | non |
 | **hors-texte** | page entière du volume | 100 % | jamais | non, agrandissable |
 
 ⛔ **Le régime se DÉRIVE de la largeur imprimée**, par `regimeIllustration`
@@ -2901,11 +3018,10 @@ planche d'administration. ⚠️ Un premier jet classait sur la part des gris qu
 bordent le trait : il rendait le même partage, mais pour une mauvaise raison, en
 mesurant les dégâts de la compression au lieu de la composition de la page.
 
-⛔ **L'HABILLAGE ne se force pas.** Une illustration ancrée sur un VERSET est posée
-entre deux versets, où elle a son propre axe et n'a rien à contourner. Le flottant
-n'est posé que sur une illustration du FLUX d'un bloc. Gagner l'habillage demande
-de déplacer l'ANCRE vers le bloc de commentaire : décision éditoriale, non réglage
-de rendu.
+✅ **L'HABILLAGE est SERVI depuis le 30 août 2026**, et l'ancre n'a pas bougé : voir
+« Une vignette se compose dans le commentaire qui couvre son verset », ci-dessus.
+⚠️ La règle vit dans `habillerLesVignettes` (`app/lib/bibleEdition.ts`, pure, sept
+tests) et `estDetouree` y dit lequel des trois régimes porte un alpha.
 
 ⛔ **La vignette du régime A ne se pose PAS en tête du bloc.** La manchette occupe déjà
 sept rem à gauche du commentaire : une vignette posée en face ne laisse que deux cents

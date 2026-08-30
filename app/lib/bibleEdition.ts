@@ -405,6 +405,21 @@ export type RegimeIllustration = 'vignette' | 'au-fil' | 'hors-texte'
 
 const LARGEUR_DEUX_COLONNES = 0.6
 
+/** ⛔ SEULE LA VIGNETTE EST DÉTOURÉE. Elle porte son dessin dans la couche ALPHA
+ *  et l'encre se repose au rendu, de sorte qu'un seul fichier sert le papier et
+ *  le cuir. Les deux autres régimes gardent leur papier et sont OPAQUES.
+ *
+ *  ⚠️ Le régime « au-fil » était détouré jusqu'au 30 août 2026, et c'était un
+ *  contresens que la mesure disait : ce sont des PHOTOGRAVURES en ton continu,
+ *  dont l'encre couvre tout le champ. Mesurée, la surface réellement transparente
+ *  y valait 3,3 % et 2,4 %, quand une gravure au trait en rend 85 à 94. Les
+ *  détourer revenait à poser un rectangle d'encre à peine ajouré, dont le seul
+ *  effet visible était d'en montrer les bords. Elles se CADRENT désormais,
+ *  rognées au filet gravé, ce que la doctrine du régime prescrivait déjà. */
+export function estDetouree(regime: RegimeIllustration): boolean {
+  return regime === 'vignette'
+}
+
 /** Part de la colonne de lecture que prend chaque régime. */
 export const PART_DU_REGIME: Record<RegimeIllustration, number> = {
   'vignette': 0.30,
@@ -630,6 +645,130 @@ export function indexerIllustrations(
     ;(asset.placement === 'after' ? index.closing : index.opening).push(asset)
   }
   return index
+}
+
+// ── L'HABILLAGE des vignettes ────────────────────────────────────────────────
+
+/** De quel côté la vignette flotte. Elles ALTERNENT, faute de quoi une colonne
+ *  de lecture qui en porte plusieurs se déséquilibre d'un seul côté. */
+export type CoteHabillage = 'gauche' | 'droite'
+
+export type IllustrationHabillee = {
+  illustration: BibleEditionDisplayAsset
+  cote: CoteHabillage
+}
+
+export type HabillageDesVignettes = {
+  /** Les vignettes fondues dans un bloc de prose, par identifiant de bloc. */
+  parBloc: ReadonlyMap<string, readonly IllustrationHabillee[]>
+  /** Ce que la page ne repose donc PAS sur son propre axe, par identifiant. */
+  absorbees: ReadonlySet<string>
+}
+
+/** ⛔ LE SEUIL D'HABILLAGE SE CALCULE SUR LA HAUTEUR DU FLOTTANT, il n'est pas
+ *  une constante. Un premier jet exigeait 900 signes de tout bloc : il écartait
+ *  « On met le blé sur l'aire », dont le commentaire porte 626 signes pour un
+ *  flottant qui n'en réclame que 506, et il aurait laissé passer une gravure
+ *  haute dans un bloc à peine plus long.
+ *
+ *  Les trois mesures ci-dessous ont été prises AU NAVIGATEUR sur la composition
+ *  réelle, à la mesure réelle de la colonne (`tmp/mesure-piste.js`) :
+ *
+ *   · le flottant fait 151 px de large et de 126 à 222 px de haut ;
+ *   · la piste de texte qui lui reste vaut 337 à 469 px ;
+ *   · elle porte de 45 à 54 signes par ligne, et l'on retient le BAS de la
+ *     fourchette : sous-estimer la piste, c'est exiger plus de texte, donc ne
+ *     jamais poser un flottant qui dépasse. */
+const INTERLIGNE_APPARAT = 16.25
+const SIGNES_PAR_LIGNE_ETROITE = 45
+/** La légende, sous la gravure : une à deux lignes de 11 px et sa marge.
+ *  Mesurée sur les six vignettes, l'écart au relevé va de −14 à +15 px. */
+const HAUTEUR_LEGENDE = 37
+/** ⚠️ Deux lignes de plus, pour que l'habillage se LISE comme voulu : un texte
+ *  qui s'arrête au ras du flottant a l'air de l'avoir subi. */
+const LIGNES_APRES_LE_FLOTTANT = 2
+
+/** La colonne de lecture d'un chapitre, en pixels, à la racine 16. C'est sur
+ *  elle que se comptent les largeurs, non sur la fenêtre. */
+export const MESURE_COLONNE = 502
+
+function signesPourHabiller(illustration: BibleEditionDisplayAsset): number {
+  const largeur = PART_DU_REGIME[illustration.regime] * MESURE_COLONNE
+  const hauteur = largeur * (illustration.height / illustration.width)
+    + (illustration.caption ? HAUTEUR_LEGENDE : 0)
+  const lignes = Math.ceil(hauteur / INTERLIGNE_APPARAT) + LIGNES_APRES_LE_FLOTTANT
+  return lignes * SIGNES_PAR_LIGNE_ETROITE
+}
+
+function proseDuBloc(bloc: BibleEditionDisplayBodyBlock): number {
+  return bloc.textBlocks
+    .filter((texte) => texte.kind !== 'heading')
+    .reduce((total, texte) => total + texte.text.length, 0)
+}
+
+/**
+ * ⛔ UNE VIGNETTE SE COMPOSE DANS LE COMMENTAIRE QUI COUVRE SON VERSET.
+ *
+ * Les onze gravures de Marc sont ancrées sur un VERSET, donc posées ENTRE deux
+ * versets, chacune sur son propre axe, où elle n'a rien à contourner. C'est ce
+ * qui rendait l'habillage impossible, et la charte le signalait comme une
+ * décision éditoriale en attente. Elle est prise : le texte doit les habiller.
+ *
+ * ⛔ L'ANCRE NE BOUGE PAS. Elle dit où la gravure est IMPRIMÉE dans le volume,
+ * c'est une donnée de provenance, et la déplacer pour obtenir un rendu serait
+ * réécrire le témoin. C'est la COMPOSITION qui la fond dans la prose qui
+ * l'entoure, exactement comme le fait la page de Fillion, dont les deux colonnes
+ * sont du commentaire.
+ *
+ * ⚠️ Le bloc porteur se lit dans l'ORDRE DE LECTURE, non par un classement
+ * canonique refait ici : c'est le dernier bloc de prose que la page a posé avant
+ * d'arriver à la gravure. Rejouer l'ordre canonique de son côté, c'est se donner
+ * une seconde vérité qui dérivera de la première. Éprouvé sur les onze : la
+ * marche rend exactement l'appariement que la base donne par canon_order_start.
+ *
+ * ⛔ L'ordre MATÉRIEL ne peut pas comparer une gravure et un bloc : les deux
+ * familles sont sur des échelles étrangères — les gravures de Marc vont de 1,1 à
+ * 1,3 million, ses blocs de 11,8 à 12,2 millions — et les trier ensemble met
+ * toutes les gravures avant tous les blocs.
+ */
+export function habillerLesVignettes(
+  ordreDeLecture: readonly string[],
+  blocs: BibleEditionBodyBlockIndex,
+  illustrations: BibleEditionAssetIndex,
+): HabillageDesVignettes {
+  const parBloc = new Map<string, IllustrationHabillee[]>()
+  const absorbees = new Set<string>()
+  let porteur: BibleEditionDisplayBodyBlock | null = null
+  let rang = 0
+
+  const retenir = (candidats: readonly BibleEditionDisplayBodyBlock[] | undefined) => {
+    for (const bloc of candidats ?? []) {
+      if (proseDuBloc(bloc) > 0) porteur = bloc
+    }
+  }
+  const fondre = (candidats: readonly BibleEditionDisplayAsset[] | undefined) => {
+    for (const illustration of candidats ?? []) {
+      const hote = porteur
+      if (illustration.regime !== 'vignette' || hote === null) continue
+      // ⛔ Un bloc trop court ne peut pas habiller : le flottant en sortirait par
+      //    le bas au lieu d'être contourné. La gravure garde alors son propre axe.
+      if (proseDuBloc(hote) < signesPourHabiller(illustration)) continue
+      const groupe = parBloc.get(hote.id) ?? []
+      groupe.push({ illustration, cote: rang % 2 === 0 ? 'droite' : 'gauche' })
+      parBloc.set(hote.id, groupe)
+      absorbees.add(illustration.id)
+      rang += 1
+    }
+  }
+
+  retenir(blocs.opening)
+  for (const canonId of ordreDeLecture) {
+    retenir(blocs.beforeByCanon.get(canonId))
+    fondre(illustrations.beforeByCanon.get(canonId))
+    fondre(illustrations.afterByCanon.get(canonId))
+    retenir(blocs.afterByCanon.get(canonId))
+  }
+  return { parBloc, absorbees }
 }
 
 export function notesDuVerset(

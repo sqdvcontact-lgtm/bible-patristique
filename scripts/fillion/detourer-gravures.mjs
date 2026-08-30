@@ -150,14 +150,58 @@ function fermer(source, W, H) {
   return passe(passe(source, true), false)
 }
 
-/** L'alpha se calcule sur l'ENCRE QU'ON REPOSE, jamais sur la médiane de la
- *  planche : dès qu'on repose une encre plus sombre, les deux ne s'accordent
- *  plus et tout le dégradé qui borde un trait s'assombrit (charte). */
-function versAlpha(gris, W, H) {
+/** ⛔ LA RAMPE ALPHA SE MESURE AUX DEUX BOUTS, ET SUR CETTE GRAVURE-CI.
+ *
+ *  La version d'avant faisait partir la rampe de 255 et l'arrêtait sur une
+ *  amplitude fixe, tirée de l'encre du site. Les deux bouts étaient faux :
+ *
+ *  ⛔ EN HAUT, le papier n'atteint jamais 255. Il a un grain, et le verso
+ *     TRANSPARAÎT. Tout ce qui borde le papier recevait donc un alpha de 1 à 16,
+ *     c'est-à-dire un VOILE sur toute la découpe : mesuré, la moyenne des quatre
+ *     coins du boisseau valait 4,8 pour un maximum de 16. Un voile uniforme ne se
+ *     voit pas en soi, mais ses BORDS dessinent le rectangle de la découpe, et
+ *     les caractères du verso y deviennent lisibles parce qu'ils ont une forme.
+ *     C'est ce que l'auteur a relevé : « on devine un fond, peut-être les
+ *     caractères noirs de la page suivante », « on voit la délimitation du cadre ».
+ *
+ *  ⛔ EN BAS, l'encre n'atteignait jamais l'opaque. Le gros du trait gravé se
+ *     tient entre 150 et 220 après étalement, ce qui rendait un alpha de 40 à 120 :
+ *     une gravure GRISE, molle, « floue et baveuse ». La charte le disait déjà des
+ *     ornements — « l'ENCRE aussi se mesure, et par sa MÉDIANE » — mais la mesure
+ *     ne servait ici qu'à l'étalement, jamais à l'alpha.
+ *
+ *  Le PLANCHER se prend sur la dispersion PROPRE du papier, mesurée du côté
+ *  CLAIR du pic, le seul que l'étalement ne tronque pas : rien n'est plus clair
+ *  que le papier, donc ce flanc n'est mêlé à aucune encre. Le pic étant
+ *  symétrique, sa demi-largeur haute donne son pied bas.
+ *
+ *  ⚠️ Un premier essai cherchait la VALLÉE entre le papier et l'encre. Il n'y en
+ *  a pas : sur une gravure sur bois, la hachure peuple tout le registre, et le
+ *  détecteur dérivait de 143 à 211 selon la planche. */
+const FERMETE_DU_PIED = 0.2
+const PART_ENCRE_PLEINE = 0.02
+
+function bornesDeRampe(gris, N) {
+  const hist = new Uint32Array(256)
+  for (const v of gris) hist[v]++
+  const lisse = (v) => (hist[Math.max(0, v - 1)] + hist[v] + hist[Math.min(255, v + 1)]) / 3
+  let pic = 150
+  for (let v = 150; v < 256; v++) if (lisse(v) > lisse(pic)) pic = v
+  let demi = 1
+  while (pic + demi < 255 && lisse(pic + demi) >= lisse(pic) * FERMETE_DU_PIED) demi++
+  let cum = 0, encre = 0
+  for (let v = 0; v < 256; v++) { cum += hist[v]; if (cum / N >= PART_ENCRE_PLEINE) { encre = v; break } }
+  const plancher = Math.max(encre + 24, pic - demi)
+  return { papier: pic, plancher, encre }
+}
+
+function versAlpha(gris, W, H, bornes) {
+  const { plancher, encre } = bornes
+  const amplitude = plancher - encre
   const rgba = Buffer.alloc(W * H * 4)
   let vide = 0, partiels = 0, plein = 0
   for (let i = 0; i < W * H; i++) {
-    const a = Math.max(0, Math.min(1, (255 - gris[i]) / AMPLITUDE))
+    const a = Math.max(0, Math.min(1, (plancher - gris[i]) / amplitude))
     if (a < 0.004) { vide++; continue }
     const o = i * 4
     rgba[o] = ENCRE[0]; rgba[o + 1] = ENCRE[1]; rgba[o + 2] = ENCRE[2]
@@ -282,12 +326,23 @@ export async function detourerDepuisJp2(feuillet, n, largeurServie) {
   const brutRaw = { raw: { width: brut.info.width, height: brut.info.height, channels: 1 } }
   const master = await sharp(etale, brutRaw).png({ compressionLevel: 9 }).toBuffer()
 
+  // ⛔ L'ALPHA SE CALCULE SUR LE GRIS BRUT, JAMAIS SUR L'ÉTALEMENT.
+  //    Les deux font le même travail — porter le papier au blanc et l'encre au
+  //    noir — et l'étalement passe le premier : il PLAQUE tout le papier sur 255
+  //    et détruit le flanc clair du pic, qui est précisément ce que la rampe
+  //    mesure pour trouver son plancher. Mesuré, la demi-largeur retombait à 1 et
+  //    le plancher à 254 : la rampe ne mordait plus, et le voile revenait intact.
+  //    L'étalement reste sur le MASTER, qui est une image de ton continu à garder.
   const red = await monocanal(
-    sharp(etale, brutRaw)
+    sharp(brut.data, brutRaw)
       .resize({ width: Math.min(largeurServie, brut.info.width), fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
       .sharpen(NETTETE)
   )
-  const { rgba, profil } = versAlpha(red.data, red.info.width, red.info.height)
+  // La rampe se mesure sur l'image RÉDUITE, celle qu'on sert : la réduction et le
+  // rattrapage de netteté déplacent l'histogramme, et une rampe posée sur la
+  // pleine résolution ne décrirait pas le fichier qu'on écrit.
+  const bornes = bornesDeRampe(red.data, red.info.width * red.info.height)
+  const { rgba, profil } = versAlpha(red.data, red.info.width, red.info.height, bornes)
   const boite = boiteUtile(rgba, red.info.width, red.info.height)
   const image = sharp(rgba, { raw: { width: red.info.width, height: red.info.height, channels: 4 } }).extract(boite)
   return {
@@ -296,7 +351,7 @@ export async function detourerDepuisJp2(feuillet, n, largeurServie) {
     master,
     webp: await image.clone().webp({ lossless: true, effort: 6 }).toBuffer(),
     png: await image.clone().png({ compressionLevel: 9 }).toBuffer(),
-    largeur: boite.width, hauteur: boite.height, papier, noir, profil,
+    largeur: boite.width, hauteur: boite.height, papier, noir, profil, bornes,
   }
 }
 
@@ -339,11 +394,121 @@ export async function detourerDepuisMasque(masque, n, largeurServie) {
 }
 
 
+// ── Le cadrage ───────────────────────────────────────────────────────────────
+
+/** ⛔ UNE PHOTOGRAVURE NE SE DÉTOURE PAS : ELLE SE CADRE.
+ *
+ *  Les deux vues de Marc — le Jourdain, les restes de la synagogue de Kefr
+ *  Bir'im — sont des photogravures en ton continu : l'encre couvre TOUT le
+ *  champ. Mesuré, la surface réellement transparente y valait 3,3 % et 2,4 %,
+ *  quand une gravure au trait en rend 85 à 94. Les détourer revenait à poser sur
+ *  la page un rectangle d'encre à peine ajouré, dont le seul effet visible était
+ *  d'en montrer les bords.
+ *
+ *  Elles gardent donc leur papier, comme une planche hors-texte, et se rognent
+ *  AU FILET GRAVÉ, que Fillion imprime autour d'elles. La doctrine du régime le
+ *  disait déjà — « on rogne AU filet, on pose autour un filet à l'encre du
+ *  site » — mais la chaîne ne l'appliquait pas.
+ *
+ *  ⚠️ On rogne EN DEDANS du filet, sans le garder : il est irrégulier, écaillé
+ *  aux angles, et un cadre imprimé de travers dans un cadre du site en fait deux.
+ *  Le site pose le sien, droit. */
+
+/** Le filet se lit dans le PROFIL DE LUMINANCE MOYENNE au bord : du papier sur
+ *  quelques dizaines de rangs, un creux net, puis l'image. On entre donc au
+ *  premier creux, et l'on s'arrête à la remontée qui le suit.
+ *
+ *  ⛔ Le seuil ne peut pas être « part de pixels sombres » : à pleine résolution
+ *  le filet est gris et fin, et un seuil à 120 n'en attrapait que la moitié. La
+ *  MOYENNE, elle, le voit sans ambiguïté (204 de papier, 126 au creux).
+ *
+ *  ⚠️ Bornes : le filet se tient dans les 8 % extérieurs, et le creux doit valoir
+ *  au moins 20 niveaux sous le papier du bord. Faute de quoi il n'y a pas de
+ *  filet, et l'on ne rogne rien plutôt que de rogner au hasard. */
+const BANDE_DU_FILET = 0.08
+const CREUX_DU_FILET = 20
+/** ⚠️ Un cheveu de plus, une fois le filet passé : son bord intérieur est
+ *  dégradé sur deux ou trois pixels, et la remontée de la moyenne le franchit
+ *  d'un rang trop tôt. Vu à l'agrandissement sur la synagogue, où une bande
+ *  claire d'un pixel courait en tête de l'image servie. */
+const MARGE_APRES_FILET = 0.0015
+
+function entreeDuFilet(gris, W, H, horizontal, depuisLaFin) {
+  const long = horizontal ? H : W
+  const bande = Math.max(8, Math.round(long * BANDE_DU_FILET))
+  const rang = (k) => {
+    const i = depuisLaFin ? long - 1 - k : k
+    let s = 0
+    const n = horizontal ? W : H
+    for (let j = 0; j < n; j++) s += horizontal ? gris[i * W + j] : gris[j * W + i]
+    return s / n
+  }
+  const bord = (rang(0) + rang(1) + rang(2)) / 3
+  let creux = 0
+  for (let k = 1; k < bande; k++) if (rang(k) < rang(creux)) creux = k
+  if (bord - rang(creux) < CREUX_DU_FILET) return 0
+  let k = creux
+  while (k + 1 < bande && rang(k + 1) > rang(k)) k++
+  return Math.min(bande - 1, k + Math.max(3, Math.round(long * MARGE_APRES_FILET)))
+}
+
+/** Le papier de 1923 se garde, mais on lui rend sa plage : point blanc sur le
+ *  niveau DOMINANT, point noir au demi-centile, comme pour une gravure au trait.
+ *  ⛔ Sans alpha : l'image est OPAQUE, et le thème ne la retourne pas. */
+export async function cadrerDepuisJp2(feuillet, n, largeurServie) {
+  const m = await sharp(feuillet).metadata()
+  const tournee = estPlancheTournee(n, m.width, m.height)
+  const decoupee = sharp(feuillet).extract(decouper(m.width, m.height, n))
+  // ⚠️ extract + rotate se referment en TAMPON avant tout resize : dans une même
+  //    chaîne, sharp tourne AVANT de découper, et la boîte tombe alors hors du
+  //    champ (« bad extract area »), ou pire, découpe ailleurs sans rien dire.
+  const brut = await monocanal(tournee ? decoupee.rotate(90) : decoupee)
+  const W = brut.info.width, H = brut.info.height, total = W * H
+
+  const dedans = {
+    left: entreeDuFilet(brut.data, W, H, false, false),
+    top: entreeDuFilet(brut.data, W, H, true, false),
+  }
+  dedans.width = W - dedans.left - entreeDuFilet(brut.data, W, H, false, true)
+  dedans.height = H - dedans.top - entreeDuFilet(brut.data, W, H, true, true)
+
+  const hist = new Uint32Array(256)
+  for (const v of brut.data) hist[v]++
+  let papier = 200
+  for (let v = 200; v < 256; v++) if (hist[v] > hist[papier]) papier = v
+  let cum = 0, noir = 0
+  for (let v = 0; v < 256; v++) { cum += hist[v]; if (cum / total >= 0.005) { noir = v; break } }
+  if (papier - noir < 24) throw new Error('plage tonale trop étroite, feuillet suspect')
+
+  const etale = Buffer.alloc(total)
+  for (let i = 0; i < total; i++) {
+    etale[i] = Math.max(0, Math.min(255, Math.round((brut.data[i] - noir) * 255 / (papier - noir))))
+  }
+  const cadre = sharp(etale, { raw: { width: W, height: H, channels: 1 } }).extract(dedans)
+  const master = await cadre.clone().png({ compressionLevel: 9 }).toBuffer()
+  const image = sharp(await cadre.clone().png().toBuffer())
+    .resize({ width: Math.min(largeurServie, dedans.width), kernel: 'lanczos3' })
+    .sharpen(NETTETE)
+  const rendu = await image.clone().png().toBuffer()
+  const mm = await sharp(rendu).metadata()
+  return {
+    source: 'jp2',
+    cadree: true,
+    tournee,
+    master,
+    webp: await sharp(rendu).webp({ quality: 90, effort: 6 }).toBuffer(),
+    png: rendu,
+    largeur: mm.width, hauteur: mm.height, papier, noir,
+    rogne: { gauche: dedans.left, haut: dedans.top, droite: W - dedans.left - dedans.width, bas: H - dedans.top - dedans.height },
+    profil: { vide: 0, partiels: 0, plein: 100 },
+  }
+}
+
 /** Reporte dans `bible_edition_asset_files` ce que le fichier déposé porte
  *  vraiment : dimensions, poids, empreinte, profil et version du traitement.
  *  ⚠️ Le profil passe à 2.0.0 : la source d'autorité a changé, et une version
  *  qui ne bougerait pas ferait croire au même traitement. */
-async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur) {
+async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, traitement = null) {
   const { data: actif, error: e0 } = await db
     .from('bible_edition_assets').select('id').eq('asset_key', cle).single()
   if (e0) throw new Error(`actif ${cle} introuvable : ${e0.message}`)
@@ -353,8 +518,8 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur) {
     byte_size: buffer.length,
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
-    processing_profile: 'fillion-illustration',
-    processing_version: '2.0.0',
+    processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
+    processing_version: '3.0.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
@@ -393,7 +558,13 @@ async function principal() {
     if (FABRIQUER) {
       const feuillet = feuilletJp2(a.source_page_index)
       let r
-      if (feuillet) {
+      if (feuillet && regime === 'B') {
+        // ⛔ Une gravure qui ENJAMBE LES DEUX COLONNES imprimées est une
+        //    photogravure en ton continu : elle se CADRE, elle ne se détoure pas.
+        //    Les deux critères concordent, ce qui n'est pas un hasard — Fillion
+        //    ne donne cette largeur qu'aux vues, jamais aux objets isolés.
+        r = await cadrerDepuisJp2(feuillet, n, REGIMES[regime].servie)
+      } else if (feuillet) {
         r = await detourerDepuisJp2(feuillet, n, REGIMES[regime].servie)
       } else {
         const composee = Buffer.from(await (await fetch(a.public_uri)).arrayBuffer())
@@ -405,7 +576,7 @@ async function principal() {
         }
         r = await detourerDepuisMasque(await masqueDeTrait(a.source_page_index), n, REGIMES[regime].servie)
       }
-      Object.assign(ligne, { source: r.source, largeur: r.largeur, hauteur: r.hauteur, profil: r.profil, tournee: r.tournee })
+      Object.assign(ligne, { source: r.source, largeur: r.largeur, hauteur: r.hauteur, profil: r.profil, tournee: r.tournee, cadree: r.cadree, rogne: r.rogne, bornes: r.bornes })
       writeFileSync(`${DOSSIER_LOCAL}/${a.asset_key}.png`, r.png)
       if (TELEVERSER) {
         const { error: e1 } = await db.storage.from(SEAU_WEB)
@@ -421,7 +592,7 @@ async function principal() {
         //    l'épreuve du 30 août a rendu le Jourdain en portrait, sa proportion
         //    étant lue dans une ligne périmée. Dimensions, poids et empreinte se
         //    reportent au même passage que le dépôt, jamais plus tard.
-        await reporterFichier(db, a.asset_key, 'web', r.webp, 'image/webp', r.largeur, r.hauteur)
+        await reporterFichier(db, a.asset_key, 'web', r.webp, 'image/webp', r.largeur, r.hauteur, r.cadree ? 'cadree' : 'detouree')
         if (r.master) {
           const mm = await sharp(r.master).metadata()
           await reporterFichier(db, a.asset_key, 'master', r.master, 'image/png', mm.width, mm.height)
@@ -437,9 +608,10 @@ async function principal() {
     const lp = r.largeurImprimee ? `${(100 * r.largeurImprimee).toFixed(0).padStart(3)} % de large` : ''
     const src = r.source ? `  ${r.source.padEnd(7)}` : '  '
     const tour = r.tournee ? ' ↻' : '  '
+    const rampe = r.bornes ? `  papier ${String(r.bornes.papier).padStart(3)}  plancher ${String(r.bornes.plancher).padStart(3)}  encre ${String(r.bornes.encre).padStart(3)}` : ''
     const dim = r.largeur ? `${String(r.largeur).padStart(3)}×${String(r.hauteur).padStart(3)}  ` : ''
     const prof = r.profil ? `plein ${r.profil.plein.toFixed(1).padStart(4)} %  partiels ${r.profil.partiels.toFixed(1).padStart(4)} %` : (r.motif ?? '')
-    console.log(`${r.regime}${tour} ${r.cle.padEnd(38)} ${lp}${src}${dim}${prof}`)
+    console.log(`${r.regime}${tour} ${r.cle.padEnd(38)} ${lp}${src}${dim}${prof}${rampe}`)
   }
   const par = (g) => rapport.filter(r => r.regime === g).length
   console.log(`\nA ${par('A')} · B ${par('B')} · C ${par('C')}`)

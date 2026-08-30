@@ -579,20 +579,22 @@ button:focus-visible,
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
   -webkit-mask-position: center; mask-position: center;
 }
-/* Une SCÈNE porte son propre filet gravé : on lui pose autour le filet du site,
-   à l'encre du papier, plutôt que de laisser son cadre flotter dans la page. */
-.cs-bible-gravure--au-fil .cs-bible-gravure-encre { padding: 0; }
-.cs-bible-gravure--au-fil { border: 1px solid var(--cs-bord); padding: 6px; }
+/* Une SCÈNE est une PHOTOGRAVURE : elle garde son papier, rognée au filet gravé
+   que Fillion imprime autour d'elle, et prend le filet du site, droit. Le filet
+   imprimé est irrégulier et écaillé aux angles ; gardé, il en ferait deux. */
+.cs-bible-gravure-cadre { display: block; border: 1px solid var(--cs-bord); }
 /* Une PLANCHE hors-texte garde le papier de 1923 : elle se pose dans un
    passe-partout qui l'assume, au lieu de le subir. */
 .cs-bible-gravure-passe { display: block; padding: 10px; background: var(--cs-fond-doux); }
 /* ⛔ Un BLOC qui porte un flottant doit le CONTENIR, sans quoi la vignette
-   déborde sur le titre suivant. */
-.cs-bible-bloc:has(> .cs-bible-gravure--vignette) { display: flow-root; }
+   déborde sur le titre suivant. ⚠️ Le sélecteur vise la classe du FLOTTANT et
+   non celle du régime : une vignette posée sur son propre axe ne flotte pas, et
+   un bloc qui n'en porte aucune n'a pas à changer de mode de mise en page. */
+.cs-bible-bloc:has(> .cs-bible-gravure--flottante) { display: flow-root; }
 @media (max-width: 620px) {
   /* Sous cette mesure, il ne reste pas deux cents pixels de texte à côté d'une
      vignette : l'habillage se défait et la gravure se centre. */
-  .cs-bible-gravure--vignette { float: none !important; margin: 0.75rem auto !important; width: 60% !important; }
+  .cs-bible-gravure--flottante { float: none !important; margin: 0.75rem auto !important; width: 60% !important; }
 }
 
 /* Champs sur fond vert/sombre : l'anneau vert ne contrasterait pas → anneau clair. */
