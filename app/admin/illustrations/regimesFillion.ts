@@ -70,14 +70,32 @@ export const ORDRE_REGIMES: CleRegime[] = ['A', 'B', 'C']
 
 /** Au-dessus de ce taux, les gris BORDENT le trait : c'est de la trame, donc de
  *  la structure, et l'on ne détoure pas. Mesuré sur les onze gravures de Marc,
- *  les deux photogravures survivantes rendent 47 et 48 %, les neuf ruinées 7 à
- *  22 %. L'écart est net et le seuil tombe dedans.
+ *  les deux photogravures survivantes rendent 54 et 55 %, les neuf ruinées 9 à
+ *  28 %. L'écart est net et le seuil tombe dedans.
  *
  *  ⛔ Ce n'est PAS un détecteur de planche. Les feuillets du tome I portent une
  *  grande masse grise faiblement adjacente, qui est le grain du papier : le
  *  critère les rangerait à tort en A. Il ne se lit qu'après avoir écarté les
  *  planches pleine page, que leur nature suffit à désigner. */
 export const SEUIL_TRAME = 0.35
+
+
+/** ⛔ LE TRAIT VIENT DE LA COUCHE DE TRAIT, non de la page composée.
+ *
+ *  Le PDF du tome VII est une compression à contenu mixte : chaque page y porte
+ *  un fond à 134 points par pouce, qui ne garde que du papier et les bavures de
+ *  sa propre compression, et un masque à 1 BIT qui porte le dessin, franc et
+ *  continu. Le détourage lit le masque, et lui seul.
+ *
+ *  ⚠️ Ce n’est pas une affaire de netteté seule. Sur « Le paralytique introduit
+ *  par le toit », le registre SUPÉRIEUR — le toit qu’on découvre, c’est-à-dire le
+ *  sujet que la légende nomme — était si pâle dans la page composée que le
+ *  rognage l’ôtait : la gravure servie n’en montrait que la moitié basse.
+ *
+ *  ⛔ Ce chemin ne vaut QUE pour le trait : sur une photogravure la trame vit
+ *  dans le fond, et le masque ne porterait qu’un contour. C’est ce que mesure
+ *   ci-dessus, et le script refuse alors de détourer. */
+export const TRAIT_VIENT_DU_MASQUE = true
 
 export type GravureClassee = {
   cle: string
@@ -93,17 +111,17 @@ export type GravureClassee = {
  *  Les trente-deux planches du tome I sont toutes en régime C, par nature ;
  *  les énumérer ici n'apprendrait rien qu'un compte ne dise mieux. */
 export const GRAVURES_CLASSEES: GravureClassee[] = [
-  { cle: 'fillion-t07-p0202-i01', legende: 'Le Jourdain, à l’endroit présumé où saint Jean baptisait.', verset: 'Marc 1, 9', part: 0.48, regime: 'B' },
-  { cle: 'fillion-t07-p0212-i01', legende: 'Restes de la synagogue de Kefr Bir’im.', verset: 'Marc 3, 1', part: 0.47, regime: 'B' },
-  { cle: 'fillion-t07-p0224-i01', legende: 'Guérison de l’hémorrhoïsse et résurrection de la fille de Jaïre.', verset: 'Marc 5, 34', part: 0.22, regime: 'A' },
-  { cle: 'fillion-t07-p0227-i01', legende: 'Charpentier au travail.', verset: 'Marc 6, 3', part: 0.14, regime: 'A' },
-  { cle: 'fillion-t07-p0209-i01', legende: 'Médecin pansant un blessé.', verset: 'Marc 2, 17', part: 0.13, regime: 'A' },
-  { cle: 'fillion-t07-p0217-composite-proposal', legende: 'On met le blé sur l’aire.', verset: 'Marc 4, 8', part: 0.13, regime: 'A' },
-  { cle: 'fillion-t07-p0225-i01', legende: 'Scène de deuil auprès d’un mort.', verset: 'Marc 5, 38', part: 0.13, regime: 'A' },
-  { cle: 'fillion-t07-p0213-i01', legende: 'Jésus dans une barque avec les quatre évangélistes.', verset: 'Marc 3, 9', part: 0.11, regime: 'A' },
-  { cle: 'fillion-t07-p0221-i01', legende: 'Guérison d’un démoniaque.', verset: 'Marc 5, 2', part: 0.08, regime: 'A' },
-  { cle: 'fillion-t07-p0207-i01', legende: 'Le paralytique introduit par le toit.', verset: 'Marc 2, 3', part: 0.07, regime: 'A' },
-  { cle: 'fillion-t07-p0219-i01', legende: 'Modius ou boisseau romain.', verset: 'Marc 4, 21', part: 0.07, regime: 'A' },
+  { cle: 'fillion-t07-p0202-i01', legende: 'Le Jourdain, à l’endroit présumé où saint Jean baptisait.', verset: 'Marc 1, 9', part: 0.54, regime: 'B' },
+  { cle: 'fillion-t07-p0212-i01', legende: 'Restes de la synagogue de Kefr Bir’im.', verset: 'Marc 3, 1', part: 0.55, regime: 'B' },
+  { cle: 'fillion-t07-p0224-i01', legende: 'Guérison de l’hémorrhoïsse et résurrection de la fille de Jaïre.', verset: 'Marc 5, 34', part: 0.28, regime: 'A' },
+  { cle: 'fillion-t07-p0227-i01', legende: 'Charpentier au travail.', verset: 'Marc 6, 3', part: 0.18, regime: 'A' },
+  { cle: 'fillion-t07-p0209-i01', legende: 'Médecin pansant un blessé.', verset: 'Marc 2, 17', part: 0.17, regime: 'A' },
+  { cle: 'fillion-t07-p0217-composite-proposal', legende: 'On met le blé sur l’aire.', verset: 'Marc 4, 8', part: 0.17, regime: 'A' },
+  { cle: 'fillion-t07-p0225-i01', legende: 'Scène de deuil auprès d’un mort.', verset: 'Marc 5, 38', part: 0.17, regime: 'A' },
+  { cle: 'fillion-t07-p0213-i01', legende: 'Jésus dans une barque avec les quatre évangélistes.', verset: 'Marc 3, 9', part: 0.15, regime: 'A' },
+  { cle: 'fillion-t07-p0221-i01', legende: 'Guérison d’un démoniaque.', verset: 'Marc 5, 2', part: 0.1, regime: 'A' },
+  { cle: 'fillion-t07-p0207-i01', legende: 'Le paralytique introduit par le toit.', verset: 'Marc 2, 3', part: 0.1, regime: 'A' },
+  { cle: 'fillion-t07-p0219-i01', legende: 'Modius ou boisseau romain.', verset: 'Marc 4, 21', part: 0.09, regime: 'A' },
 ]
 
 /** Le chemin, dans le seau, d'une proposition détourée. Le script y dépose son

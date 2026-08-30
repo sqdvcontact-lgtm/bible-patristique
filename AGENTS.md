@@ -2748,30 +2748,67 @@ tome I portent une grande masse grise faiblement adjacente, qui est le grain du 
 et le critère les rangerait à tort. Il ne se lit qu'après avoir écarté les planches
 pleine page, que `asset_kind = 'plate'` suffit à désigner.
 
-### Le DÉTOURAGE reprend la recette des ornements, plus deux étapes
+### ⛔ Le TRAIT vient de la COUCHE DE TRAIT, jamais de la page composée (2026-08-30)
 
-La recette de la charte tient toujours : papier par son niveau **dominant**, réduction à
-la taille servie **avant** de bâtir l'alpha, alpha calculé sur l'**encre qu'on repose**,
-rognage sur ce qui **se voit**. Deux étapes s'y ajoutent, propres à ces fichiers :
+C'est la correction la plus importante du chantier, et elle rend caduque la
+recette qui occupait cette place le matin même.
 
-1. le **champ plat**, parce que la bavure du fond JPX est de basse fréquence quand le
-   trait est franc ;
-2. le **liseré**, qui éteint tout gris à plus de six pixels d'un noyau de trait.
+`pdfimages -list` dit tout en trois lignes : **chaque page du tome VII porte
+TROIS images**. Un fond JPX de 819 × 1363 à **134 points par pouce**, une couche
+d'avant-plan, et un masque JBIG2 de 2455 × 4088 **à 1 bit**. Le masque EST le
+dessin, franc et continu. Le fond ne porte que du papier et les bavures de sa
+propre compression.
 
-⚠️ La charte proscrit la correction de champ plat pour les planches en **demi-teintes**
-(`process_illustrations.py` : « la précédente correction de champ plat effaçait les
-grandes plages sombres »). Elle est légitime ici, et **seulement** ici, parce que la
-trame de ces fichiers n'existe plus. C'est précisément ce que le critère mesure, et le
-script refuse de détourer une gravure dont les gris bordent le trait.
+⛔ **Tirer le trait de la page COMPOSÉE, c'est le tirer déjà mêlé à la bavure**,
+et passer ensuite sa vie à les séparer. Une première chaîne s'y est employée le
+30 août 2026 — papier au niveau dominant, champ plat, points noir et blanc,
+liseré — et elle marchait ; mais elle combattait un mal qu'il suffisait de ne
+pas lire. Mesuré sur le « Médecin pansant un blessé », en encre pleine :
 
-⛔ **Sans ces deux étapes, le détourage est pire que le fichier brut.** Mesuré sur le
-« Médecin pansant un blessé » : **17,3 %** de pixels partiellement opaques, là où la
-charte attend 3 à 13 % pour un trait. Le trait s'y dissout en gris mou pendant que la
-bavure garde sa masse. Avec elles : **5,9 %**, et le trait redevient franc.
+| chaîne | encre pleine |
+|---|---:|
+| recette des ornements sur la page composée | 2,0 % |
+| la même, plus champ plat et liseré | 2,5 % |
+| **le masque de trait** | **5,1 %** |
 
-⚠️ **Et un premier détourage bâti en pleine définition PUIS réduit rendait le même
-défaut** : deux réductions successives moyennent le trait, exactement le piège que la
-charte consigne déjà pour les ornements. La réduction vient d'abord, toujours.
+Et le masque n'a besoin d'AUCUNE de ces étapes : ni normalisation de papier, ni
+point noir, ni champ plat, ni liseré. Il est l'alpha.
+
+⛔ **Ce n'était pas qu'une affaire de netteté.** Sur « Le paralytique introduit
+par le toit », le registre SUPÉRIEUR — le toit qu'on découvre, c'est-à-dire le
+sujet que la légende nomme — était si pâle dans la page composée que le rognage
+l'ôtait. **La gravure servie n'en montrait que la moitié basse.** Le masque le
+rend entier : la hauteur passe de 517 à 726 pixels avant réduction. Une chaîne
+qui perd la moitié d'un sujet ne se corrige pas par un réglage.
+
+⚠️ **Le masque se reconnaît à ses PROPRIÉTÉS**, un seul canal et la plus grande
+définition des trois, jamais à son rang dans la sortie de `pdfimages`, que rien
+ne garantit.
+
+⚠️ **Une seule étape de forme demeure** : une fermeture morphologique 3 × 3, qui
+comble les entailles d'un pixel laissées par la substitution de symboles du
+JBIG2. ⛔ Dilatation PUIS érosion : l'ordre inverse amincirait le trait.
+
+⛔ **Ce chemin ne vaut QUE pour le trait.** Sur une photogravure la trame vit
+dans le FOND, et le masque ne porterait qu'un contour : c'est ce que mesure la
+part des gris au bord du trait, et le script refuse alors de détourer.
+
+⚠️ **`pdfimages` vient de poppler et n'est pas sur le PATH de Windows.** Il est
+dans le WSL Ubuntu qui sert déjà Kraken. Le script l'appelle s'il le trouve, et
+accepte sinon un dossier de couches déjà extraites (`tmp/fillion-couches`) :
+
+```
+wsl -e bash -lc 'cd "/mnt/c/Corpus Scriptura/bible-patristique/tmp/fillion-couches" && pdfimages -f 219 -l 219 -png "../pdfs/fillion/lasaintebibletex07fill.pdf" p219'
+```
+
+⚠️ **Une découpe peut n'avoir pas de bornes normalisées** : celle de Marc 4, 8
+porte ses bornes absolues et les dimensions de page, et rien d'autre. Elles se
+CALCULENT, ce n'est pas deviner. ⛔ Ne jamais inventer un cadrage.
+
+⚠️ **La largeur servie est 300 px**, le double des 151 px qu'occupe une vignette
+de régime A dans la colonne de 502. C'est la règle de la charte, et elle vaut ici
+comme ailleurs : au-delà, le navigateur réduirait une seconde fois derrière nous.
+⛔ Le premier jet servait 600, soit quatre fois la taille d'affichage.
 
 ### Les trois régimes
 
