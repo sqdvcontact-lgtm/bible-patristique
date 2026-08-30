@@ -3398,6 +3398,86 @@ Une réserve subsiste, et elle vaut même pour un détramage réussi : sur une g
 
 Enfin, une remarque de méthode sur la sécurité. Un fichier de poids au format PyTorch est un pickle, dont la lecture peut exécuter du code. La bibliothèque que ComfyUI emploie pour charger ces modèles passe par un dépickleur restreint dont la liste blanche ne compte que les primitives de reconstruction de tenseurs ; tout autre appel est refusé. C'est la seule raison pour laquelle un modèle de provenance faible a pu être essayé sans risque. Un modèle sans licence déclarée ne peut de toute façon pas servir une image publiée.
 
+#### 35.16.7. Le rattrapage se règle sur ce que le NAVIGATEUR rend
+
+Une gravure se sert au double de sa taille d'affichage (§ 35.16.5). Sur un écran
+ordinaire, le navigateur en fait donc une **seconde réduction**, avec son propre
+filtre et sans aucun rattrapage de netteté : ⛔ **le lecteur ne voit jamais le
+fichier que nous écrivons, il voit cette réduction-là.** Un réglage pris sur le
+fichier servi se règle sur une image que personne ne regarde.
+
+Mesuré le 30 août 2026 sur les neuf gravures au trait de Marc, en énergie de bord
+APRÈS la seconde réduction, 100 % valant ce que notre propre réduction rendrait :
+
+| rattrapage | trait restitué |
+|---|---:|
+| σ 0,6 (m2 2) | **83 %** |
+| σ 1,0 (m2 3) | 90 % |
+| σ 1,2 (m2 3) | 92 % |
+| σ 1,4 (m2 3) | 97 % |
+| **σ 1,6 (m2 3)** | **99 %** |
+
+⛔ **Le remède n'est pas de rattraper plus FORT, mais plus LARGE.** À σ 0,6, monter
+l'amplitude de 2 à 4 ne rend qu'un point : le rattrapage étroit renforce des
+fréquences qui se trouvent au-dessus de la coupure de la seconde réduction, et
+qu'elle jette donc aussitôt. C'est le rayon, non la force, qui décide de ce qui
+survit.
+
+⛔ **Et il ne vaut QUE pour le trait.** Sur une photogravure en ton continu, σ 1,6
+fait bouillir la feuillée et granule les ciels : le défaut déjà consigné du
+contraste local (§ 35.16.5), rencontré par une autre porte. Les planches cadrées
+gardent le rattrapage étroit.
+
+#### 35.16.8. Recoudre un trait que la RÉDUCTION a dilué
+
+⛔ **Ce n'est pas une exception au § 35.16.6, c'est son revers.** Deux choses très
+différentes s'appellent « un trait qui manque » :
+
+- **un trait que la SOURCE n'a plus** — bois usé, encrage pauvre. Le rétablir,
+  c'est dessiner à la place du graveur, et cela reste proscrit ;
+- **un trait que NOTRE chaîne a dilué.** Un trait fin qui traverse un pixel en
+  diagonale n'en couvre qu'une fraction : la moyenne de la réduction rend un gris
+  pâle, et la courbe en S achève de le pousser au papier. Le trait est pourtant
+  là, franc, dans le scan. Lui rendre son poids ne dessine rien : **on cesse
+  seulement de retirer ce que le témoin porte.**
+
+**Trois verrous, et il faut les trois :**
+
+1. ⛔ **On ne coud qu'un CREUX** — un pixel tenu par de l'encre des DEUX côtés sur
+   un même axe, à un ou deux pixels. Un trait qui s'arrête ne se prolonge jamais ;
+   seul se referme ce qui était déjà tenu aux deux bouts.
+2. ⛔ **Le plafond est le SCAN**, par le gris le plus sombre qu'il porte sous le
+   pixel. Là où aucun trait ne passe, ce minimum est clair et rien ne bouge.
+3. ⛔ **On ne dépasse pas le trait lui-même** : jamais plus que le plus faible des
+   deux bords qui tiennent le creux.
+
+⚠️ **Un premier plafond avait été pris sur la rampe NUE**, l'alpha d'avant la
+courbe. Il ne peut rien faire, et c'est arithmétique : la courbe ne mordant que
+sous 0,5, la rampe nue y vaut au plus 0,47. Mesuré, 1,15 % de la surface était
+touchée et **zéro** trait rejoint. C'est le minimum du scan qu'il faut, parce que
+c'est la RÉDUCTION, et non la courbe, qui a dilué le trait.
+
+Effet mesuré, en fragments du dessin — deux bouts d'un même trait séparés par un
+trou comptent pour deux : paralytique **604 → 559**, hémorrhoïsse **740 → 611**,
+médecin **179 → 164**. De 0,09 % à 3,37 % de la surface est touchée.
+
+#### 35.16.9. Une gravure se juge à la taille d'AFFICHAGE, jamais au double
+
+⚠️ Corollaire de méthode, et il a coûté une demi-journée de conclusions fausses.
+Toutes les planches de contrôle d'une gravure la rendent volontiers au double,
+qui est la taille du FICHIER ; un trait y paraît franc qui, ramené à 200 px par le
+navigateur, se moyenne en gris. C'est là que vit le « flou », et nulle part
+ailleurs.
+
+⛔ **Une planche de contrôle compose donc à la taille d'affichage, puis agrandit au
+PLUS PROCHE VOISIN** — qui ne réinvente aucun pixel — et fait subir à l'image la
+seconde réduction du navigateur avant de la montrer.
+
+⚠️ Jugé au double, le paralytique paraissait avoir perdu son modelé ; rendu à ses
+200 px réels, il est **plus net et plus lisible que le scan brut**, le lavis du
+témoin n'étant à cette taille que du gris. La conclusion inverse avait été
+annoncée, puis retirée le jour même.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
