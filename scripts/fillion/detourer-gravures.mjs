@@ -40,6 +40,29 @@ const LUM_ENCRE = 0.2126 * ENCRE[0] + 0.7152 * ENCRE[1] + 0.0722 * ENCRE[2]
 const AMPLITUDE = 255 - LUM_ENCRE
 const NETTETE = { sigma: 0.6, m1: 0, m2: 2 }
 
+/** ⛔ LE RATTRAPAGE SE RÈGLE SUR CE QUE LE NAVIGATEUR REND, NON SUR NOTRE FICHIER.
+ *
+ *  Nous servons au DOUBLE de la taille d'affichage. Sur un écran ordinaire le
+ *  navigateur réduit donc une seconde fois, avec son propre filtre et sans aucun
+ *  rattrapage : le lecteur ne voit jamais le fichier que nous écrivons, il voit
+ *  CETTE réduction-là. Or un rattrapage étroit renforce des fréquences que cette
+ *  seconde réduction jette aussitôt.
+ *
+ *  Mesuré sur les neuf gravures au trait, en énergie de bord APRÈS la seconde
+ *  réduction, 100 % valant ce que notre propre réduction rendrait :
+ *
+ *    σ 0,6 (m2 2)  83 %     σ 1,2 (m3)  92 %     σ 1,6 (m3)  99 %
+ *    σ 1,0 (m3)    90 %     σ 1,4 (m3)  97 %
+ *
+ *  ⚠️ Le remède n'est pas de rattraper plus FORT — m2 3 ou 4 à σ 0,6 ne rendent
+ *  qu'un point — mais plus LARGE. Contrôlé à l'œil aux deux échelles, fichier
+ *  servi compris : aucun halo.
+ *
+ *  ⛔ ET IL NE VAUT QUE POUR LE TRAIT. Sur une photogravure en ton continu, σ 1,6
+ *  fait BOUILLIR la feuillée et granule les ciels — le défaut déjà relevé du
+ *  contraste local. Les deux planches cadrées gardent donc `NETTETE`. */
+const NETTETE_TRAIT = { sigma: 1.6, m1: 0, m2: 3 }
+
 /** ⛔ LE RÉGIME SE DÉCIDE SUR LA LARGEUR IMPRIMÉE, non sur le sujet.
  *
  *  La page de Fillion est à DEUX colonnes. Une gravure qui tient dans une
@@ -276,21 +299,104 @@ function courber(a) {
     : 1 - 0.5 * Math.pow(2 * (1 - a), COURBE_ALPHA)
 }
 
-function versAlpha(gris, W, H, bornes) {
+/** ⛔ RECOUDRE UN TRAIT QUE LA RÉDUCTION A DILUÉ — ET RIEN D'AUTRE.
+ *
+ *  Un trait fin qui traverse un pixel en diagonale n'en couvre qu'une fraction :
+ *  la moyenne de la réduction rend un gris pâle, et la courbe achève de le
+ *  pousser au papier. Le trait est pourtant là, franc, dans le scan. On lui rend
+ *  donc son poids — et ce n'est PAS une restitution, puisque rien n'est dessiné :
+ *  on cesse seulement de retirer ce que le témoin porte.
+ *
+ *  ⛔ TROIS VERROUS, et il faut les trois :
+ *   1. ON NE COUD QU'UN CREUX — de l'encre des DEUX CÔTÉS sur un même axe, à un
+ *      ou deux pixels. Un trait qui s'arrête ne se prolonge jamais ; seul se
+ *      referme ce qui était déjà tenu aux deux bouts.
+ *   2. LE PLAFOND EST LE SCAN, par le gris le plus SOMBRE qu'il porte sous le
+ *      pixel. Là où aucun trait ne passe, ce minimum est clair et rien ne bouge.
+ *   3. ON NE DÉPASSE PAS LE TRAIT LUI-MÊME : jamais plus que le plus faible des
+ *      deux bords qui tiennent le creux.
+ *
+ *  ⚠️ UN PREMIER PLAFOND ÉTAIT LA RAMPE NUE — l'alpha d'avant la courbe. Il est
+ *  trop bas pour rien faire : la courbe ne mordant que sous 0,5, la rampe nue y
+ *  vaut au plus 0,47, et aucun creux ne pouvait se refermer. Mesuré : 1,15 % de
+ *  la surface touchée, ZÉRO trait rejoint. C'est le minimum du scan qu'il faut,
+ *  parce que c'est la RÉDUCTION, non la courbe, qui a dilué le trait.
+ *
+ *  Effet mesuré, en fragments du dessin (deux bouts séparés comptent pour deux) :
+ *  paralytique 604 → 559, hémorrhoïsse 740 → 611, médecin 179 → 164. Entre 0,09 %
+ *  et 3,37 % de la surface est touchée. */
+const COUTURE_TENU = 0.55
+const COUTURE_CREUX = 0.45
+const COUTURE_PORTEE = 2
+const COUTURE_AXES = [[1, 0], [0, 1], [1, 1], [1, -1]]
+
+/** Le plafond, mesuré : sous chaque pixel servi, le gris le plus sombre du scan. */
+function plafondDuScan(scan, W, H, bornes) {
   const { plancher, encre } = bornes
   const amplitude = plancher - encre
-  const rgba = Buffer.alloc(W * H * 4)
+  const sx = scan.W / W, sy = scan.H / H
+  const plafond = new Float32Array(W * H)
+  for (let y = 0; y < H; y++) {
+    const y0 = Math.floor(y * sy), y1 = Math.min(scan.H, Math.ceil((y + 1) * sy))
+    for (let x = 0; x < W; x++) {
+      const x0 = Math.floor(x * sx), x1 = Math.min(scan.W, Math.ceil((x + 1) * sx))
+      let mn = 255
+      for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) {
+        const v = scan.data[yy * scan.W + xx]; if (v < mn) mn = v
+      }
+      plafond[y * W + x] = Math.max(0, Math.min(1, (plancher - mn) / amplitude))
+    }
+  }
+  return plafond
+}
+
+function coudreLesCreux(alpha, W, H, plafond) {
+  const av = Float32Array.from(alpha)
+  let cousus = 0
+  for (let y = COUTURE_PORTEE; y < H - COUTURE_PORTEE; y++) {
+    for (let x = COUTURE_PORTEE; x < W - COUTURE_PORTEE; x++) {
+      const i = y * W + x
+      if (av[i] >= COUTURE_CREUX) continue
+      let bord = 0
+      for (const [dx, dy] of COUTURE_AXES) {
+        for (let d = 1; d <= COUTURE_PORTEE; d++) {
+          const p = (y - dy * d) * W + (x - dx * d), q = (y + dy * d) * W + (x + dx * d)
+          if (av[p] >= COUTURE_TENU && av[q] >= COUTURE_TENU) bord = Math.max(bord, Math.min(av[p], av[q]))
+        }
+      }
+      if (!bord) continue
+      const cible = Math.min(bord, plafond[i])
+      if (cible > av[i]) { alpha[i] = cible; cousus++ }
+    }
+  }
+  return cousus
+}
+
+function versAlpha(gris, W, H, bornes, scan) {
+  const { plancher, encre } = bornes
+  const amplitude = plancher - encre
+  const N = W * H
+  const alpha = new Float32Array(N)
+  for (let i = 0; i < N; i++) alpha[i] = courber(Math.max(0, Math.min(1, (plancher - gris[i]) / amplitude)))
+  const cousus = scan ? coudreLesCreux(alpha, W, H, plafondDuScan(scan, W, H, bornes)) : 0
+
+  const rgba = Buffer.alloc(N * 4)
   let vide = 0, partiels = 0, plein = 0
-  for (let i = 0; i < W * H; i++) {
-    const a = courber(Math.max(0, Math.min(1, (plancher - gris[i]) / amplitude)))
+  for (let i = 0; i < N; i++) {
+    const a = alpha[i]
     if (a < 0.004) { vide++; continue }
     const o = i * 4
     rgba[o] = ENCRE[0]; rgba[o + 1] = ENCRE[1]; rgba[o + 2] = ENCRE[2]
-    rgba[o + 3] = Math.round(a * 255)
+    rgba[o + 3] = Math.round(Math.min(1, a) * 255)
     if (rgba[o + 3] >= 235) plein++; else partiels++
   }
-  const N = W * H
-  return { rgba, profil: { vide: 100 * vide / N, partiels: 100 * partiels / N, plein: 100 * plein / N } }
+  return {
+    rgba,
+    profil: {
+      vide: 100 * vide / N, partiels: 100 * partiels / N, plein: 100 * plein / N,
+      cousus: 100 * cousus / N,
+    },
+  }
 }
 
 /** Rogner SUR L'ALPHA. ⛔ Le seuil ne peut pas être « alpha >= 1 » : sous le
@@ -417,13 +523,17 @@ export async function detourerDepuisJp2(feuillet, n, largeurServie) {
   const red = await monocanal(
     sharp(brut.data, brutRaw)
       .resize({ width: Math.min(largeurServie, brut.info.width), fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
-      .sharpen(NETTETE)
+      .sharpen(NETTETE_TRAIT)
   )
   // La rampe se mesure sur l'image RÉDUITE, celle qu'on sert : la réduction et le
   // rattrapage de netteté déplacent l'histogramme, et une rampe posée sur la
   // pleine résolution ne décrirait pas le fichier qu'on écrit.
   const bornes = bornesDeRampe(red.data, red.info.width * red.info.height)
-  const { rgba, profil } = versAlpha(red.data, red.info.width, red.info.height, bornes)
+  // ⛔ La couture a besoin du scan À SA RÉSOLUTION, non de l'image réduite : le
+  //    plafond est le gris le plus sombre que porte le feuillet sous le pixel,
+  //    et c'est justement ce que la réduction a moyenné.
+  const { rgba, profil } = versAlpha(red.data, red.info.width, red.info.height, bornes,
+    { data: brut.data, W: brut.info.width, H: brut.info.height })
   const boite = boiteUtile(rgba, red.info.width, red.info.height)
   const image = sharp(rgba, { raw: { width: red.info.width, height: red.info.height, channels: 4 } }).extract(boite)
   return {
@@ -600,7 +710,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '4.0.0',
+    processing_version: '4.1.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
