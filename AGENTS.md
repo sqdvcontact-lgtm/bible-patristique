@@ -2449,6 +2449,40 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   que la ligne se compose pareil partout tandis que chaque surface apporte sa seule
   police.
 
+## ⛔ Un titre PORTÉ par un bloc, et un titre qui vit dans son FLUX (2026-08-30)
+
+Deux objets que rien ne distingue dans le document — même balise, même classe de
+rang — et que la mise en page doit pourtant traiter à l'opposé.
+
+- **Le titre PORTÉ** ouvre le bloc et le nomme : rendu par `BlocEditorialBible`
+  avant `bloc.textBlocks`. Le bloc l'espace déjà, donc il n'ajoute pas sa marge.
+- **Le titre DU FLUX** vient de `text_features.editorial_normalization.blocks`
+  (`kind: 'heading'`). Il n'a QUE sa marge : rien d'autre ne le sépare de ce qui
+  le précède.
+
+⛔ **Le sélecteur `.cs-bible-bloc > .cs-bible-title--tN` ne fait pas la différence**,
+et c'est le piège : il visait les deux. Or une pièce liminaire normalisée met son
+flux ENTIER dans un seul bloc — l'introduction « Ancien Testament » y range dix
+titres, onze paragraphes et quatre listes. Chacun de ses titres perdait sa marge
+haute, et « 2. Les Prophètes ou Nəbî'im » se posait à **zéro pixel** de la dernière
+ligne de la liste qui le précède (relevé de l'auteur, 2026-08-30). ⚠️ Le blanc de
+**4 rem** qui sépare deux sections tombait avec le reste, et **à l'envers** : seul
+survivait le PREMIER titre d'une pièce, qu'une règle plus spécifique encore réduit
+à 2,5 rem — le seul qui gardait de l'air était celui à qui l'on voulait en ôter.
+
+Le titre porté reçoit donc une MARQUE, posée là où il est rendu
+(`CLASSE_TITRE_PORTE` = `cs-bible-title--porte`), et la règle ne vise que lui.
+
+- ⛔ **Pas de `:first-child`** : une illustration peut précéder le titre dans son
+  bloc, et la position ne dit rien de ce qu'un titre EST.
+- ⚠️ **Deux classes au sélecteur** (`.cs-bible-bloc > .cs-bible-title--porte`) :
+  `.cs-bible-titre--divise` pose 4 rem plus bas dans la feuille, et à spécificité
+  égale l'ordre d'écriture tranche.
+- **Portée mesurée** : 56 titres dans 28 blocs — les grandes introductions
+  (Ancien Testament, Luc, Jean) et une trentaine de blocs de péricope des Actes,
+  donc la lecture ordinaire d'un chapitre. Un test garde la distinction
+  (`BibleEditionParatext.test.tsx`).
+
 ## ⛔ Un SOUS-TITRE se compose comme SON titre (2026-08-29)
 
 Un sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
