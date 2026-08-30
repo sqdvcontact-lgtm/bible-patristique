@@ -604,9 +604,14 @@ button:focus-visible,
    seuil d’habillage. ⚠️ Le dégagement vaut des DEUX côtés : à droite aussi la
    manchette rognait la piste, de 502 à 222 px. */
 .cs-bible-gravure--flottante { clear: both; }
-@media (max-width: 620px) {
-  /* Sous cette mesure, il ne reste pas deux cents pixels de texte à côté d'une
-     vignette : l'habillage se défait et la gravure se centre. */
+/* ⛔ LE SEUIL DE REPLI EST CELUI DE LA MANCHETTE, 700 px, et non un seuil à lui.
+   Il valait 620, un NEUVIÈME seuil que le tableau de la charte ne connaissait
+   pas ; et entre les deux, la manchette reprenait déjà toute la mesure pendant
+   que la vignette flottait encore dans une colonne de 7 rem devenue vide. Les
+   deux se déplient donc ensemble : sous cette largeur, il ne reste pas deux
+   cents pixels de texte à côté d'une vignette, l'habillage se défait et la
+   gravure se centre. */
+@media (max-width: 700px) {
   .cs-bible-gravure--flottante { float: none !important; margin: 0.75rem auto !important; width: 60% !important; }
 }
 
