@@ -223,9 +223,31 @@ describe('hiérarchie de rendu', () => {
       <BlocEditorialBible bloc={bloc('introduction_pericope', { niveauHtml: 3 })} />,
     )
     // Deux éléments, jamais un paragraphe qui concatène l'un et l'autre.
-    expect(html).toContain('<h3 class="cs-bible-title--t6"')
+    expect(html).toContain('<h3 class="cs-bible-title--t6 cs-bible-title--porte"')
     expect(html).toContain('Le précurseur fait son apparition</h3>')
     expect(html).toContain('Le développement.')
+  })
+
+  // ⛔ Le titre PORTÉ par le bloc et un titre qui vit DANS son flux ne se
+  // marquent pas pareil, et la feuille de styles n’ôte la marge haute qu’au
+  // premier. Le sélecteur visait autrefois tout titre enfant d’un bloc : une
+  // introduction normalisée, qui met dix titres dans un seul bloc, les voyait
+  // tous se coller au texte qui les précède (2026-08-30).
+  it('ne marque « porté » que le titre du bloc, jamais ceux de son flux', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={bloc('introduction_pericope', {
+        niveauHtml: 3,
+        textBlocks: [
+          { id: 'b1:1', kind: 'heading' as const, form: 'prose' as const, text: 'La Loi ou Tôrah', headingLevel: 'T4' as const },
+          { id: 'b1:2', kind: 'commentary' as const, form: 'prose' as const, text: 'Le développement.' },
+        ],
+      })} />,
+    )
+    const titreDuBloc = html.match(/<h3 class="([^"]*)"/)?.[1] ?? ''
+    const titreDuFlux = html.match(/<h4 class="([^"]*)"/)?.[1] ?? ''
+    expect(titreDuBloc).toContain('cs-bible-title--porte')
+    expect(titreDuFlux).toContain('cs-bible-title--t4')
+    expect(titreDuFlux).not.toContain('cs-bible-title--porte')
   })
 
   it('laisse l’intitulé d’un commentaire hors des balises de titre', () => {

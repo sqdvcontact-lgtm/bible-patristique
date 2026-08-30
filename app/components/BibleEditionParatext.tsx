@@ -169,6 +169,14 @@ function envelopperSpan(
 // un `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit.
 const NOWRAP: CSSProperties = { whiteSpace: 'nowrap' }
 
+// ⛔ La marque du titre PORTÉ par le bloc — celui qui l'ouvre et le nomme —, par
+// opposition aux titres qui vivent DANS son flux (ceux que rend la normalisation
+// éditoriale). Les deux sortent de la même fonction de classe et se ressemblent à
+// s'y méprendre dans le document ; seul l'endroit où ils sont rendus les sépare,
+// et c'est ici. La feuille de styles s'en sert pour n'ôter la marge haute qu'au
+// premier : le bloc l'espace déjà, quand les autres n'ont qu'elle.
+const CLASSE_TITRE_PORTE = 'cs-bible-title--porte'
+
 /** L'appel prend la TAILLE et la TEINTE du texte qui l'accueille, jamais son
  *  italique : il est toujours en romain (voir `app/lib/appelsDeNote.ts`). Les
  *  trois rangs hauts sont composés large et centrés, où la teinte brune du corps
@@ -667,12 +675,12 @@ export function BlocEditorialBible({
       {intitule && (resolu.headingRole === 'title' && resolu.headingLevel ? (
         // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
         // du développement qui le suit. Les deux ne se concatènent jamais.
-        <Balise className={classeIntituleTitre(resolu.headingLevel)}>
+        <Balise className={classeIntituleTitre(resolu.headingLevel) + ' ' + CLASSE_TITRE_PORTE}>
           {rendreContenuAncre(intitule.titre, [], notesTitre, undefined, varianteIntitule)}
           {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre, undefined, varianteIntitule)}</span>}
         </Balise>
       ) : resolu.kind === 'title' ? (
-        <Balise className={classesDuStyle(resolu)[0]}>
+        <Balise className={classesDuStyle(resolu)[0] + ' ' + CLASSE_TITRE_PORTE}>
           {rendreContenuAncre(intitule.titre, [], notesTitre, undefined, varianteIntitule)}
           {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre, undefined, varianteIntitule)}</span>}
         </Balise>

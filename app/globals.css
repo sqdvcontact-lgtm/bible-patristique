@@ -1254,13 +1254,31 @@ button:focus-visible,
   }
 }
 
-/* Un titre porté par un bloc ne cumule pas sa marge avec celle du bloc. */
-.cs-bible-bloc > .cs-bible-title--t1,
-.cs-bible-bloc > .cs-bible-title--t2,
-.cs-bible-bloc > .cs-bible-title--t3,
-.cs-bible-bloc > .cs-bible-title--t4,
-.cs-bible-bloc > .cs-bible-title--t5,
-.cs-bible-bloc > .cs-bible-title--t6 { margin-top: 0; }
+/* Un titre PORTÉ par un bloc ne cumule pas sa marge avec celle du bloc.
+
+   ⛔ « PORTÉ », et non « contenu » : toute la règle tient dans cette nuance, et le
+   sélecteur ne la disait pas. Il visait n'importe quel titre ENFANT d'un bloc —
+   or une pièce liminaire normalisée met son flux ENTIER dans un seul bloc : dix
+   titres, onze paragraphes, quatre listes pour la seule « Ancien Testament ».
+   Chacun de ces titres y perdait sa marge haute, sans que rien d'autre ne
+   l'espace : « 2. Les Prophètes ou Nəbî'im » se posait à ZÉRO pixel de la
+   dernière ligne de la liste qui le précède, et se lisait comme une ligne de
+   cette liste (relevé de l'auteur, 2026-08-30). Le défaut touchait 56 titres
+   dans 28 blocs — les grandes introductions, mais aussi les péricopes des Actes.
+
+   ⚠️ Le blanc de QUATRE REM qui sépare deux sections (voir .cs-bible-titre--divise,
+   plus bas) tombait avec le reste, et à l'envers : seul survivait le PREMIER titre
+   d'une pièce, qu'une règle plus spécifique encore réduit à 2,5 rem. Le seul titre
+   qui gardait de l'air était donc celui à qui l'on voulait en ôter.
+
+   Le titre du bloc porte désormais une marque, posée là où il est rendu
+   (BibleEditionParatext, CLASSE_TITRE_PORTE) : la position ne pouvait pas servir
+   de critère, une illustration pouvant précéder le titre dans le bloc.
+
+   ⚠️ DEUX classes au sélecteur, non une : .cs-bible-titre--divise pose quatre rem
+   plus bas dans cette feuille, et à spécificité égale c'est l'ordre d'écriture qui
+   tranche — une seule classe lui céderait. */
+.cs-bible-bloc > .cs-bible-title--porte { margin-top: 0; }
 
 /* Le chapeau d'un titre : subordonné, donc sur sa propre ligne, en italique et
    plus clair — jamais accolé au titre par un tiret. */
