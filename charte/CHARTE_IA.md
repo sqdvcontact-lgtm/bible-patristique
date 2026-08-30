@@ -3370,6 +3370,20 @@ Le repère d'un commentaire est lui aussi un flottant de gauche, large de sept r
 
 Une épreuve dont la feuille est recopiée ment. Celle qui a servi ici ignorait que la manchette flotte, et le cas gauche y paraissait bon alors qu'il était mauvais. Une épreuve de mise en page lit la feuille du site telle quelle, et se photographie à la largeur d'un écran de bureau : sous sept cents pixels de fenêtre, les règles mobiles défont l'habillage et la manchette, ce qui n'a rien à voir avec ce que l'on veut juger.
 
+#### 35.16.5. Le flou d'une gravure réduite est sa hachure, et aucun traitement ne la rend
+
+Le trait est déjà mou dans la source. Mesurée sur les feuillets JP2, la largeur de transition d'un bord — le nombre de pixels pour passer de neuf dixièmes à un dixième de la plage locale — vaut quatre pixels ; dans le fichier servi elle vaut un pixel. Les bords sont donc aussi francs qu'une image matricielle le permet, et ce que l'on prend pour du flou n'en est pas.
+
+Ce que l'œil lit comme du flou est la hachure du graveur, moyennée par la réduction. Elle occupe environ un sixième de la surface d'une vignette sous forme d'alpha intermédiaire. Et la preuve qu'il s'agit bien de hachure et non d'un lavis étalé : une courbe pondérée par la platitude du voisinage, qui creuse ce qui est plat et respecte ce qui a du gradient, ne trouve presque rien à corriger. À la taille servie, plus rien n'est plat.
+
+Cinq voies ont été éprouvées et mesurées, et quatre sont à écarter définitivement. Le bruit ajouté ne fait pas reculer la bouillie de gris d'un point : il monte l'énergie de bord et la granularité, c'est-à-dire qu'il ajoute du haut de spectre là où il n'y a rien à articuler. Il simule la netteté, il ne la rend pas. Un accroissement de la netteté par masque flou augmente la part des gris intermédiaires au lieu de la réduire, ses halos étant eux-mêmes des gris intermédiaires. L'égalisation locale d'histogramme fait bouillir la matière et tache les ciels des photogravures. L'aplanissement du fond par maximum glissant ramène le voile et augmente la bouillie. La réduction en lumière linéaire n'a aucun effet mesurable, la rampe alpha étant mesurée image par image et absorbant le décalage global.
+
+Seule une courbe en S sur l'alpha fait reculer la bouillie, et elle a un prix : elle efface les partiels les plus faibles, dans une proportion qui croît avec sa fermeté. C'est un arbitrage d'auteur, non un réglage technique, et il se prend sur une planche montrant les états à la taille où le lecteur voit la gravure.
+
+Le vrai levier n'est pas le traitement mais la taille d'affichage. Une vignette posée à cent cinquante pixels ne peut pas porter plus de détail que cent cinquante pixels n'en autorisent, quelle que soit la finesse de la source. Fillion imprime ses petits objets à une part de sa colonne plus grande que celle que le site leur donne ; les agrandir rendrait à la fois la proportion imprimée et le détail.
+
+Enfin, la réduction d'une planche tournée se compte après sa rotation : sa largeur servie est celle de sa hauteur d'origine. Un relevé fait sur la découpe non tournée donne un rapport de réduction faux, et sous-estime de beaucoup ce que la mise à la taille servie retire.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.

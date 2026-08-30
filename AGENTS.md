@@ -2999,6 +2999,71 @@ qui s'arrête au ras du flottant a l'air de l'avoir subi.
 ⚠️ **Un bloc trop court ne reçoit rien** : la gravure garde son propre axe, et
 c'est le cas d'aucune des onze depuis que le seuil se calcule.
 
+### ⛔ LE « FLOU » D'UNE GRAVURE RÉDUITE EST SA HACHURE, ET AUCUN TRAITEMENT NE LA REND (2026-08-30)
+
+Question de l'auteur : ajouter un peu de bruit pour gagner de la netteté, et
+reprendre les zones molles du « Paralytique introduit par le toit ». Cinq voies
+éprouvées, mesurées sur les neuf vignettes et les deux photogravures. Une seule
+agit, et elle a un prix.
+
+⚠️ **Le trait est DÉJÀ MOU DANS LA SOURCE.** Mesurée, la largeur de transition
+d'un bord — le nombre de pixels pour passer de 90 % à 10 % de la plage locale —
+vaut **4 px dans le feuillet JP2** des gravures au trait. Dans le fichier servi
+elle vaut **1 px** : les bords sont donc aussi francs qu'un raster le permet, et
+le défaut n'est pas un défaut de netteté.
+
+⛔ **Ce qu'on prend pour du flou est la BOUILLIE DE GRIS**, c'est-à-dire la
+hachure du graveur moyennée par la réduction. Mesuré, 17,3 % de la surface d'une
+vignette porte un alpha intermédiaire (60 à 190). Et la preuve qu'il s'agit bien
+de hachure et non d'un lavis : une courbe pondérée par la PLATITUDE du voisinage
+— qui creuse ce qui est plat et laisse ce qui a du gradient — ne trouve presque
+rien à corriger, 17,3 % → 16,5 %. **À 301 px, plus rien n'est plat.**
+
+⚠️ **La réduction se compte APRÈS la rotation.** Une planche tournée voit sa
+LARGEUR devenir celle de sa hauteur d'origine : la synagogue est réduite de
+**3,80×** et non 2,76, le Jourdain de 3,75× et non 2,24. Un premier relevé donnait
+les mauvais chiffres pour les avoir mesurés sur la découpe non tournée.
+
+#### Ce qui ne marche pas, et qu'on ne refera pas
+
+| Voie | Ce qu'elle donne | Verdict |
+|---|---|---|
+| **Bruit** sur une vignette | bouillie 23,9 → 23,6 % ; granularité 10,6 → 12,5 | ⛔ il MASQUE, il ne dessine pas |
+| **Bruit** sur une photogravure | énergie de bord 60,6 → 61,9 (+2 %), poids +4 % | ⛔ invisible même au ×3 |
+| **Netteté forte** (σ 0,4, m2 3,5) | bouillie 23,9 → 24,3 % | ⛔ les halos SONT des gris intermédiaires |
+| **Contraste local** (CLAHE) | énergie 60,6 → 67 à 97 | ⛔ fait bouillir la pierre et TACHE le ciel |
+| **Fond local** (maximum glissant) | voile 14,8 → 25 ; bouillie jusqu'à 26,5 % | ⛔ pire sur les deux tableaux |
+| **Réduction en lumière linéaire** | bouillie 23,9 → 23,9 % | ⚠️ sans effet : la rampe, mesurée PAR IMAGE, annule le décalage global |
+
+⛔ **Le bruit ne rend pas de la netteté, il en simule.** Il monte l'énergie de
+bord et la granularité sans toucher à la bouillie : il ajoute du haut de spectre
+là où il n'y a rien à articuler. La mesure le sépare nettement d'une vraie
+correction, qui fait reculer la bouillie.
+
+#### Ce qui marche, et ce qu'il coûte
+
+Une **courbe en S sur l'alpha** — qui écarte les partiels vers les deux extrêmes —
+est la seule voie qui fasse reculer la bouillie. Elle efface en échange les
+partiels les plus faibles :
+
+| courbe | bouillie | voile | encre visible perdue |
+|---|---:|---:|---:|
+| 1 (en service) | 17,3 % | 14,76 | — |
+| 1,2 | 15,2 % | 14,39 | 6,0 % |
+| 1,3 | 14,0 % | 14,25 | 8,7 % |
+| 1,6 | 11,9 % | 13,89 | 16,0 % |
+
+⚠️ **À la taille où le lecteur voit la gravure — 151 px — l'écart entre ces trois
+états est mince.** La planche de décision est dans `tmp/decision-courbe-*.png`.
+C'est un arbitrage d'auteur, non un réglage technique, et rien n'est appliqué
+sans lui.
+
+⛔ **Le vrai levier n'est pas le traitement, c'est la TAILLE D'AFFICHAGE.** Une
+vignette posée à 151 px ne peut pas porter plus de détail que 151 px n'en
+autorise, quelle que soit la source. Fillion imprime le boisseau à environ 44 %
+de sa colonne ; le site le pose à 30 % de la sienne. Le monter rendrait à la fois
+la proportion imprimée et le détail — décision éditoriale.
+
 ### ⛔ UNE VIGNETTE FRANCHIT LA MANCHETTE, ET À GAUCHE ELLE PREND SA COLONNE (2026-08-30)
 
 Le repère d'un commentaire est LUI AUSSI un flottant de gauche, large de 7 rem
