@@ -144,83 +144,99 @@ const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
 
-// ── UN MENU DÉROULANT S'OUVRE SUR UNE INTENTION, JAMAIS SUR UN PASSAGE ───────
+// ── LE MENU PARAÎT AUSSITÔT ; IL NE SE FIXE QU'APRÈS UNE DEMI-SECONDE ────────
 //
 // La barre porte quatre menus au survol — les bibles, Patristique, Aller plus
-// loin, Administration. Ils étaient gouvernés par DEUX mécanismes étrangers l'un
-// à l'autre : trois par une règle `:hover` de la feuille de styles, le quatrième
-// par un état React. Ils n'avaient donc ni la même boîte, ni le même délai, ni
-// la même façon de se refermer, et le lecteur ne pouvait rien apprendre de l'un
-// qui lui servît pour l'autre. Ils passent tous par OngletMenu, ci-dessous.
+// loin, Administration. Ils étaient gouvernés par DEUX mécaniques étrangères
+// l'une à l'autre : trois par une règle :hover de la feuille de styles, le
+// quatrième par un état React. Ils n'avaient donc ni la même boîte, ni le même
+// délai, ni la même façon de se refermer, et le lecteur ne pouvait rien
+// apprendre de l'un qui lui servît pour l'autre. Ils passent tous par
+// OngletMenu, ci-dessous.
 //
-// ⛔ Un menu qui paraît au PREMIER PIXEL survolé s'ouvre surtout par accident.
-// Le curseur qui traverse la barre pour redescendre dans la page balaie un
-// onglet ; le menu se déploie SOUS lui ; le curseur poursuit sa route à
-// l'intérieur, et le menu reste ouvert sur une page qu'il couvre, alors qu'on ne
-// lui avait rien demandé.
+// ⛔ Deux gestes se ressemblent au premier instant et n'ont rien de commun : on
+// POSE son curseur sur un onglet pour en voir le menu, ou on le PASSE dessus en
+// allant ailleurs. Rien, à la première image, ne les distingue — d'où une règle
+// en DEUX TEMPS, plutôt qu'un délai avant de paraître.
 //
-// Ce qui sépare « je veux voir ce menu » de « je ne fais que passer » n'est pas
-// la position du curseur mais le TEMPS qu'il y reste : on s'arrête sur ce qu'on
-// veut ouvrir. D'où une seule règle, la même pour les quatre :
+//   1. Le menu s'ouvre AUSSITÔT, dans les deux cas. Un onglet qui se fait
+//      attendre est un onglet qui résiste, et rien n'oblige à faire payer la
+//      main sûre pour la main qui hésite.
 //
-//   • on s'attarde une demi-seconde sur l'onglet → le menu s'ouvre ;
-//   • on ne fait que passer → rien ne s'ouvre, donc rien à refermer ;
-//   • on quitte l'onglet ou son menu → il se referme aussitôt.
+//   2. Mais il ne se FIXE qu'après une demi-seconde de curseur posé sur
+//      l'onglet. Tant qu'il n'est pas fixé, il tombe dès que le curseur quitte
+//      l'onglet — ⛔ y compris quand celui-ci vient se poser SUR LE MENU, et
+//      c'est tout le propos : un menu ouvert au passage ne doit pas pouvoir
+//      capturer la main qui ne faisait que passer, ni rester en travers de la
+//      page qu'elle allait lire.
 //
-// ⚠️ Le délai est le MÊME partout et ne se raccourcit pour aucun menu, pas même
-// pour celui d'à côté quand un autre vient de se fermer : une barre où l'un
-// s'ouvre plus vite que son voisin n'apprend rien au lecteur.
-const DELAI_INTENTION_MS = 500;
-// La fermeture, elle, est immédiate — au sursis près que voici. Le menu est
-// collé sous l'onglet (`top: 100%`), il n'y a donc aucun vide à franchir pour
-// l'atteindre ; reste le COIN, qu'un mouvement rapide en diagonale traverse en
-// sortant du groupe par la droite de l'onglet, un pixel avant d'entrer dans le
-// menu qu'il visait. Ces quelques centièmes ne rattrapent que ce cas-là et ne se
-// voient pas : cinq images à soixante hertz.
-const DELAI_FERMETURE_MS = 90;
+// Une fois fixé, il se conduit comme n'importe quel menu : le curseur y descend,
+// y circule, et le menu ne se ferme qu'en quittant l'ensemble {onglet + menu}.
+//
+// ⚠️ La fermeture est IMMÉDIATE des deux côtés, sans le moindre sursis. Elle
+// rattrape donc parfois un mouvement en diagonale qui visait le menu et sort par
+// le coin de l'onglet ; le prix en est nul, l'ouverture ne coûtant plus rien —
+// on revient sur l'onglet et le menu reparaît dans l'instant. C'est ce qui
+// permet de renoncer aux sursis de quelques centièmes dont vivent les menus qui
+// s'ouvrent lentement.
+const DELAI_FIXATION_MS = 500;
 
 /**
- * Ouvre après une PAUSE sur l'onglet, ferme dès qu'on en sort. Rend l'état et les
- * gestionnaires à poser sur l'ensemble {onglet + menu} : c'est ce groupe entier,
- * et non le seul onglet, qui retient le menu ouvert — sans quoi on ne pourrait
- * jamais descendre dans la liste.
+ * Ouvre au premier instant, ne se fixe qu'après une pause, ferme aussitôt qu'on
+ * sort. Rend l'état et DEUX jeux de gestionnaires, qui ne surveillent pas la même
+ * chose :
  *
- * `auSurvol` est appelé dès l'entrée du curseur, avant même que le menu s'ouvre :
- * c'est là que « Patristique » relit ses dernières œuvres, pour que le menu
- * paraisse déjà rempli.
+ *   `onglet` — l'entrée ouvre et lance le compte ; la sortie ferme TANT QUE le
+ *              menu n'est pas fixé, le curseur fût-il en train d'entrer dans le
+ *              menu lui-même.
+ *   `groupe` — la sortie de l'ensemble {onglet + menu} ferme un menu fixé.
+ *
+ * `auSurvol` est appelé dès l'entrée du curseur, en même temps que l'ouverture :
+ * c'est là que « Patristique » relit ses dernières œuvres.
  */
-function useIntentionSurvol(auSurvol?: () => void) {
+function useMenuSurvol(auSurvol?: () => void) {
   const [ouvert, setOuvert] = useState(false);
+  // ⚠️ Une RÉFÉRENCE, non un état : la fixation ne change rien à ce qui est
+  // dessiné, elle ne fait que décider de ce qu'une sortie provoque. En faire un
+  // état ferait re-rendre la barre entière une demi-seconde après chaque survol.
+  const fixe = useRef(false);
   const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
   const arreter = () => {
     if (minuterie.current) { clearTimeout(minuterie.current); minuterie.current = null; }
   };
   useEffect(() => arreter, []);
+  const fermer = () => { arreter(); fixe.current = false; setOuvert(false); };
   // ⚠️ À la SOURIS seulement. Au doigt il n'y a pas de survol : l'onglet est un
   // lien qu'on suit, et un menu ouvert par le `pointerenter` que le navigateur
   // émet après la frappe viendrait couvrir la page qu'on vient d'appeler.
-  const entrer = (e: React.PointerEvent) => {
+  const surLOnglet = (e: React.PointerEvent) => {
     if (e.pointerType !== "mouse") return;
-    arreter();
     auSurvol?.();
-    // Revenu avant que la fermeture n'ait pris effet : le menu n'a pas bougé, il
-    // n'y a rien à rouvrir.
+    // Déjà ouvert : on remonte du menu vers l'onglet. Le compte est fait ou en
+    // cours, et le reprendre à zéro déferait une fixation déjà acquise.
     if (ouvert) return;
-    minuterie.current = setTimeout(() => setOuvert(true), DELAI_INTENTION_MS);
-  };
-  const sortir = (e: React.PointerEvent) => {
-    if (e.pointerType !== "mouse") return;
-    // Sorti avant la demi-seconde : la minuterie tombe, et le menu ne se sera
-    // jamais montré. C'est le cas ordinaire du curseur qui passe.
     arreter();
-    minuterie.current = setTimeout(() => setOuvert(false), DELAI_FERMETURE_MS);
+    fixe.current = false;
+    setOuvert(true);
+    minuterie.current = setTimeout(() => { fixe.current = true; }, DELAI_FIXATION_MS);
   };
-  const fermer = () => { arreter(); setOuvert(false); };
-  // Un clic dans le groupe emmène ailleurs : le menu n'a plus lieu d'être, et la
-  // barre survit à la navigation (elle n'est pas remontée d'une page à l'autre).
-  return { ouvert, gestionnaires: { onPointerEnter: entrer, onPointerLeave: sortir, onClick: fermer } };
+  const horsDeLOnglet = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    if (!fixe.current) fermer();
+  };
+  const horsDuGroupe = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    fermer();
+  };
+  return {
+    ouvert,
+    // Un clic dans le groupe emmène ailleurs : le menu n'a plus lieu d'être, et
+    // la barre survit à la navigation (elle n'est pas remontée d'une page à
+    // l'autre).
+    groupe: { onPointerLeave: horsDuGroupe, onClick: fermer },
+    onglet: { onPointerEnter: surLOnglet, onPointerLeave: horsDeLOnglet },
+  };
 }
-
 /**
  * Un onglet de la barre qui porte un menu déroulant : UNE boîte, UN chevron, UN
  * délai. Le libellé reste un LIEN — au doigt, où il n'y a pas de survol, il mène
@@ -229,6 +245,10 @@ function useIntentionSurvol(auSurvol?: () => void) {
  * Le menu demeure dans le document et ne fait que se cacher (`display: none`,
  * cf. la feuille de styles) : c'est ce qui permet au clavier de l'ouvrir par
  * `:focus-visible`, sans que la souris ait rien à faire.
+ *
+ * ⛔ Les gestionnaires du GROUPE et ceux de l'ONGLET ne sont pas
+ * interchangeables : le groupe englobe le menu, l'onglet non, et c'est
+ * précisément cet écart qui porte la règle de fixation (voir useMenuSurvol).
  */
 function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, children }: {
   href: string;
@@ -239,10 +259,10 @@ function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, children 
   auSurvol?: () => void;
   children?: React.ReactNode;
 }) {
-  const { ouvert, gestionnaires } = useIntentionSurvol(auSurvol);
+  const { ouvert, groupe, onglet } = useMenuSurvol(auSurvol);
   return (
-    <span className={ouvert ? "cs-plus cs-plus--ouvert" : "cs-plus"} {...gestionnaires}>
-      <Link href={href} className="cs-nav-onglet" aria-current={actif ? "page" : undefined}
+    <span className={ouvert ? "cs-plus cs-plus--ouvert" : "cs-plus"} {...groupe}>
+      <Link href={href} className="cs-nav-onglet" aria-current={actif ? "page" : undefined} {...onglet}
         style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
         {label}
         {/* Le chevron dit qu'il y a un menu là-dessous. Les quatre onglets le
@@ -1538,11 +1558,12 @@ export default function Navbar() {
              ombre, même rembourrage, même façon de s'ouvrir. Seule la LARGEUR les
              distingue, parce que leur contenu la commande (variantes plus bas).
 
-             ⛔ Le menu ne s'ouvre PLUS sur :hover : le survol ne dit pas l'intention
-             (voir DELAI_INTENTION_MS, plus haut). C'est OngletMenu qui pose
-             .cs-plus--ouvert après une pause du curseur sur l'onglet, et qui la retire
-             dès qu'on en sort. Le menu reste collé sous le déclencheur : aucun vide à
-             franchir pour l'atteindre.
+             ⛔ Le menu ne s'ouvre PLUS sur :hover, bien qu'il paraisse au même instant :
+             une règle de survol ne sait pas garder un menu ouvert quand le curseur a
+             quitté l'onglet, ni le laisser tomber quand il vient se poser sur le menu.
+             C'est OngletMenu qui pose .cs-plus--ouvert et qui l'ôte, selon que le menu
+             s'est FIXÉ ou non (voir DELAI_FIXATION_MS, plus haut). Le menu reste collé
+             sous le déclencheur : aucun vide à franchir pour l'atteindre.
 
              ⛔ Le menu ne peut PAS déborder de l'écran, et « Administration » en compte dix-sept
              entrées réparties en trois familles. Il était en overflow:hidden, donc ce qui
