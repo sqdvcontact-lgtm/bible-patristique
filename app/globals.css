@@ -748,12 +748,21 @@ button:focus-visible,
 .cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); margin-top: 1.15rem; margin-bottom: 0.2rem; }
 
 /* ⛔ Le blanc SOUS une sous-section se referme : ce qui suit lui appartient, comme
-   au rang T6. ⚠️ Et il ne suffit pas de raccourcir la marge du titre — les marges
-   verticales se fondent, et c'est la PLUS GRANDE qui l'emporte : celle du bloc
-   suivant, 1,25 rem pour un commentaire et 1,75 pour une péricope, rouvrait le
-   blanc qu'on venait de fermer. Le titre paraissait alors flotter loin de son
-   développement (relevé par l'auteur, 2026-08-29). On ferme donc des DEUX côtés. */
-.cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc {
+   au rang T6. ⚠️ Et il ne suffit pas de raccourcir la marge du titre — le bloc
+   suivant pose la sienne, 1,25 rem pour un commentaire et 1,75 pour une péricope,
+   et rouvrait le blanc qu'on venait de fermer. Le titre paraissait alors flotter
+   loin de son développement (relevé par l'auteur, 2026-08-29). On ferme donc des
+   DEUX côtés.
+   ⚠️ Rectification du 30 août 2026 : les deux marges ne se FONDENT pas, comme on
+   l'écrivait ici — l'axe de texte est une GRILLE, et les marges d'un enfant de
+   grille ne s'effondrent jamais hors d'elle. Elles s'additionnent, et le blanc
+   vaut donc bien 0,4 rem. La correction tient ; c'est son explication qui était
+   fausse, et le rang T6 l'a montré.
+   ⚠️ Le second sélecteur est celui de la mesure ÉTROITE, où l'axe disparaît et
+   les blocs redeviennent frères : là, les marges fusionnent pour de bon, et la
+   règle ne portait pas. Le blanc du T4 y restait ouvert. */
+.cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc,
+.cs-bible-bloc.cs-bible-title--t4 + .cs-bible-bloc {
   margin-top: 0.2rem;
 }
 /* ── LE PARAGRAPHE (« § I ») SE CENTRE ────────────────────────────────────────
@@ -792,6 +801,26 @@ button:focus-visible,
   color: var(--cs-encre);
   letter-spacing: 0;
   margin: 1.75rem 0 0.35rem;
+}
+
+/* ⛔ Le blanc SOUS un titre de péricope se referme, exactement comme au rang T4,
+   et pour une raison de plus. Le titre déclare 0,35 rem ; le bloc qui suit pose
+   la sienne — 1,25 rem pour l'introduction d'une section, 1 rem pour un
+   commentaire —, et ⚠️ ces deux marges ne FUSIONNENT même pas : l'axe de texte
+   est une GRILLE, et les marges d'un enfant de grille ne s'effondrent jamais
+   hors d'elle. Elles s'ADDITIONNENT. Sous « 1. Le premier jour (1, 3-5) », cela
+   faisait 25,6 px de marge là où le rang en annonce 5,6 (relevé de l'auteur,
+   2026-08-30).
+   ⚠️ Le blanc devient ainsi le MÊME quoi qu'il suive. Un titre de péricope suivi
+   directement de son texte n'avait déjà que sa marge propre, une rangée de verset
+   n'en portant aucune en tête : le même rang s'aérait donc de deux façons selon
+   qu'un commentaire s'intercalait ou non. */
+.cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t6) + .cs-bible-axe > .cs-bible-bloc,
+/* ⚠️ Sur une mesure étroite, l'axe disparaît et les blocs redeviennent frères :
+   là, les marges fusionnent, et poser zéro laisse valoir celle du titre — soit
+   le même blanc que sur la grille, ce qui est bien le but. */
+.cs-bible-bloc.cs-bible-title--t6 + .cs-bible-bloc {
+  margin-top: 0;
 }
 
 /* Le jeton d'information ne crie pas : il se lit au retrait et à la mesure. Une
