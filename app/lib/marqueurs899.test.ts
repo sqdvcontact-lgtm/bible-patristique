@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import { rendreMarqueurs899 } from './marqueurs899'
 
+const FINE = ' '   // espace fine insécable U+202F
+const NBSP = ' '   // espace insécable U+00A0
+
 // Réduit un nœud React (string | élément) à une forme comparable :
 //   texte normal → { t: 'texte', v }
 //   marqueur     → { t: 'marque', titre, texte }
@@ -65,5 +68,34 @@ describe('rendreMarqueurs899', () => {
       { t: 'texte', v: ' ' },
       { t: 'texte', v: 'er' },
     ])
+  })
+
+  // ── Typographie : la colonne du manuscrit n'est plus l'exception ────────────────────
+  // Toute la lecture du site passe par `normaliserEspaces` (à l'entrée de
+  // `rendreTexteEnrichi`), mais TR0009 ne passe pas par lui et arrivait donc brut : 556
+  // versets du témoin portaient une espace ORDINAIRE, sécable, devant leur deux-points.
+  it('harmonise les espaces du texte lisible — le deux-points prend son insécable', () => {
+    expect(rendreMarqueurs899('Et dist nostre sire : que as tu fait')).toBe(`Et dist nostre sire${NBSP}: que as tu fait`)
+    expect(rendreMarqueurs899('quoi ? uraiement !')).toBe(`quoi${FINE}? uraiement${FINE}!`)
+  })
+
+  // ⛔ La normalisation ne doit PAS aveugler l'automate : elle touche aussi l'espace qui
+  // précède le deux-points DU MARQUEUR. `\s` couvre l'insécable et la fine, le marqueur
+  // reste donc reconnu — et son motif reste masqué. Ce cas l'éprouve directement, en
+  // donnant au marqueur une insécable dès la source.
+  it('reconnaît un marqueur dont l’espace interne est déjà insécable', () => {
+    const out = reduireTout(rendreMarqueurs899(`a [lecture incertaine${NBSP}: b c] d`)) as ReturnType<typeof reduire>[]
+    expect(out).toEqual([
+      { t: 'texte', v: 'a ' },
+      { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: 'b c' },
+      { t: 'texte', v: ' d' },
+    ])
+  })
+
+  // Le tokeniseur se lit par INDICES : une normalisation qui changerait la longueur
+  // décalerait tout ce qui suit. Celle-ci est caractère pour caractère.
+  it('ne change pas la longueur du texte', () => {
+    const source = 'il dist : uien ; et il uint ! por quoi ?'
+    expect(rendreMarqueurs899(source)).toHaveLength(source.length)
   })
 })

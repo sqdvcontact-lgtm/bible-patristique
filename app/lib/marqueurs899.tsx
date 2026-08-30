@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { normaliserEspaces } from './typographie'
 
 // Rendu des marqueurs éditoriaux INLINE portés par le texte recomposé de TR0009
 // (Bible 899) : « lecture incertaine », « lacune », « ajout marginal ». Ce sont des
@@ -51,8 +52,21 @@ function infobulle(mode: Mode): string {
  * Tolère les marqueurs à cheval : un verset qui commence par une fermeture « … ] » est
  * réputé prolonger une lecture incertaine ouverte au verset précédent.
  */
-export function rendreMarqueurs899(texte: string): ReactNode {
-  if (!texte) return texte
+export function rendreMarqueurs899(texteBrut: string): ReactNode {
+  if (!texteBrut) return texteBrut
+
+  // ⚠️ LA COLONNE DU MANUSCRIT PASSE PAR LA MÊME TYPOGRAPHIE QUE LE RESTE DU SITE. Elle en
+  // était la seule exceptée : `rendreTexteEnrichi` appelle `normaliserEspaces` à son entrée,
+  // par où passe toute la lecture — mais TR0009 ne passe pas par lui, puisqu'il porte des
+  // marqueurs éditoriaux et non de l'enrichissement, et arrivait donc ici brut. Relevé le
+  // 2026-08-30 : 556 versets du témoin portent une espace ORDINAIRE, sécable, devant un
+  // deux-points, et pas un seul n'en porte d'insécable. Le deux-points de la Bible 899
+  // pouvait donc passer à la ligne quand celui des cinq autres colonnes ne le pouvait pas.
+  //
+  // ⛔ La normalisation est caractère pour caractère : les indices dont se sert l'automate
+  // ci-dessous restent valides. Ne jamais mettre ici une fonction qui change la longueur
+  // (`normaliserTypographieLecture`, par exemple, en change).
+  const texte = normaliserEspaces(texteBrut)
 
   // Le verset commence-t-il À L'INTÉRIEUR d'une portée ouverte au verset précédent ?
   // Signe : une fermeture « ] » apparaît avant toute ouverture « [type : ».

@@ -56,11 +56,20 @@ describe('normaliserEspaces (français, harmonisation du type d’espace)', () =
     expect(normaliserEspaces('«mot»')).toBe('«mot»')
   })
 
-  // Le deux-points garde l’insécable pleine chasse (Imprimerie nationale,
-  // charte §3.2) : il n’entre pas dans la conversion.
-  it('laisse le deux-points intact', () => {
+  // Le deux-points reçoit l’insécable PLEINE CHASSE (Imprimerie nationale, charte §3.2), et
+  // non la fine. Il était auparavant laissé intact ; mais l’AELF (10 954 versets) et la Bible
+  // 899 (556) ne portent dans la donnée qu’une espace ORDINAIRE, sécable, et « laisser
+  // intact » y laissait le deux-points passer à la ligne. On convertit donc son type, comme
+  // celui des autres signes.
+  it('donne au deux-points l’insécable pleine chasse, quelle que soit l’espace de départ', () => {
+    expect(normaliserEspaces('mot : suite')).toBe(`mot${NBSP}: suite`)
+    expect(normaliserEspaces(`mot${FINE}: suite`)).toBe(`mot${NBSP}: suite`)
     expect(normaliserEspaces(`mot${NBSP}: suite`)).toBe(`mot${NBSP}: suite`)
-    expect(normaliserEspaces('mot : suite')).toBe('mot : suite')
+  })
+
+  // Rien devant le deux-points : rien à convertir. La règle ne peut donc pas abîmer une URL.
+  it('ne touche pas au deux-points d’une adresse', () => {
+    expect(normaliserEspaces('voir https://exemple.fr/a')).toBe('voir https://exemple.fr/a')
   })
 })
 

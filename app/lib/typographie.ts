@@ -16,12 +16,26 @@ const INSECABLE = ' '
 // d'import successifs. On harmonise donc le TYPE d'espace au rendu, sans jamais
 // en ajouter là où l'édition n'en met pas, ni en retirer.
 //
-// Fine insécable avant ; ! ? et autour des guillemets. Le DEUX-POINTS est laissé
-// intact : la règle de l'Imprimerie nationale lui donne une insécable pleine
-// chasse, et la charte §3.2 la lui reconnaît.
+// Fine insécable avant ; ! ? et autour des guillemets ; insécable PLEINE CHASSE avant le
+// DEUX-POINTS, à qui la règle de l'Imprimerie nationale la réserve (charte §3.2).
+//
+// ⚠️ Le deux-points était auparavant LAISSÉ INTACT, au motif que sa place lui est reconnue.
+// Le motif valait tant que le corpus la lui donnait : Sacy (11 081 versets), Crampon (8 608),
+// Segond (7 578) et la Vulgate (18 211) portent bien l'insécable. Mais l'AELF n'en porte
+// AUCUNE — 10 954 versets à l'espace ordinaire, sécable — et la Bible 899 non plus (556).
+// « Laisser intact » y revenait donc à laisser le deux-points PASSER À LA LIGNE, ce que la
+// règle interdit précisément. Relevé le 2026-08-30 dans la Polyglotte, où les colonnes sont
+// étroites et le cas donc fréquent.
+//
+// ⛔ On CONVERTIT le type d'espace, on n'en AJOUTE jamais : « mot: suite » reste tel quel, et
+// « https:// » n'a pas d'espace devant son deux-points. C'est ce qui garde le remplacement
+// caractère pour caractère, dont dépend le surlignage de la page Recherche. Une fine déjà
+// posée devant un deux-points est ramenée à l'insécable (1 261 segments patristiques) : c'est
+// le même travail d'harmonisation du TYPE, et il va dans le sens de la règle.
 export function normaliserEspaces(texte: string): string {
   return texte
     .replace(new RegExp(`${ESPACES}([?!;])`, 'g'), `${FINE}$1`)
+    .replace(new RegExp(`${ESPACES}(:)`, 'g'), `${INSECABLE}$1`)
     .replace(new RegExp(`(«)${ESPACES}`, 'g'), `$1${FINE}`)
     .replace(new RegExp(`${ESPACES}(»)`, 'g'), `${FINE}$1`)
 }
