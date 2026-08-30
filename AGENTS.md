@@ -473,6 +473,20 @@ Le volet de droite de la page Bible (et de la page d'une péricope) est `Panneau
 
 ⚠️ **Trouvaille au passage, à traiter à part** : `A0047O0012` (« Discours 38-41 ») et `A0047O0034` (« Discours 38. Sur la Théophanie ») sont le MÊME texte importé deux fois — 84 segments et 29 556 signes de part et d'autre, mêmes numéros de segment. L'apparat de Jean 1, 1 montre donc les mêmes passages de Grégoire deux fois. C'est une correction de données, pas d'affichage.
 
+## Le volet SYMÉTRIQUE — l'apparat biblique d'une œuvre se classe AU CANON (2026-08-30)
+
+Le volet « Bible » de la page d'une œuvre (`OeuvreClient.tsx`) fait l'inverse : il montre les versets qu'un segment vise. Il portait exactement le même défaut, pour exactement la même raison — ⛔ **un regroupement d'entrées ADJACENTES exige un classement préalable.**
+
+`regrouperVersetsConsecutifs` ne réunit que des entrées voisines dans la liste. Or la liste arrivait rangée par TYPE de lien — citation, reprise, doctrine, écho (`extraireVersetsAvecNature`) — et, à l'intérieur d'un type, par ordre d'insertion (`liensDeSegments` trie `type` puis `id`). Un segment qui REPREND He 11, 24 et CITE He 11, 25 rendait donc « He 11, 25 » puis « He 11, 24 » : deux occurrences, à rebours, là où il n'y a qu'un seul passage.
+
+**Mesuré sur `liens_bibliques` le 2026-08-30 : 752 segments, 863 occurrences en trop.** Les pires sont des chapelets pris à l'envers — Ez 37, 8 à 4 en cinq cartes (segment 570845), 2 S 12, 23 à 20 en quatre (570876), Ex 3, 17-19 et Ex 5, 1-3 entrelacés en cinq (548339). Le défaut ne tient donc pas au seul cumul des types : il joue aussi À L'INTÉRIEUR d'un type, dès que les liens ont été insérés dans le désordre.
+
+`ordonnerAuCanon` classe au canon — rang du livre dans `LIVRES`, puis chapitre, puis verset — avant le regroupement. ⛔ Le classement ne vaut QUE pour l'affichage de ce volet : la liste portée par le segment garde son ordre de types, dont dépendent l'association et la suppression d'un lien. La page Bible n'est pas touchée.
+
+⚠️ **Les natures cumulées se disent dans l'ordre de la charte §9.1 à §9.4**, et non dans celui du verset qui ouvre le groupe : « He 11, 24-25 · citation · reprise », jamais « reprise · citation ».
+
+⚠️ **`parseInt` et non `Number` pour le TRI** : un verset suffixé (« 22a ») se range à sa place au lieu de tomber en `NaN` et de dériver en queue de liste. Le REGROUPEMENT, lui, garde son `Number` — un verset suffixé ne se fond pas dans une fourchette.
+
 # Page « Communauté » (ex-« Publications ») — couvertures de petit livre (2026-08-17)
 
 ⚠️ **Renommée « Communauté » le 2026-08-23. La route reste `/essais`.** Le nouveau libellé porte partout où la page est NOMMÉE : navbar (`LIENS_PRIMAIRES`, desktop et panneau mobile), carton d’accueil (`AccueilCards`), `h1` et `metadata.title` de `/essais`, fil d’Ariane de `/essais/[id]`, badge de lieu de la modération (`SectionModeration`), modèle de charte de l’admin. Le mot « publications » demeure là où il désigne les ÉCRITS et non la page : rubrique du profil, rubrique et réglage de visibilité du compte, onglets et catégories de la recherche. Le reste de cette section décrit la composition des couvertures, inchangée.
