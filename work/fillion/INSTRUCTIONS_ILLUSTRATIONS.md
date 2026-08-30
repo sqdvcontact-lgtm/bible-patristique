@@ -1,5 +1,18 @@
 # Illustrations Fillion — reprise du traitement
 
+> ⛔ **DOCUMENT HISTORIQUE, PÉRIMÉ AU 30 AOÛT 2026.** Il décrit un défaut de la
+> chaîne de nettoyage, qui a été corrigé : les 43 illustrations sont refaites
+> depuis les feuillets JP2 et servies en `processing_version` 4.3.0 (Marc) et
+> 4.5.0 (planches du tome I). Les mesures qu'il cite — « 67,9 % de blanc absolu »,
+> « il ne reste qu'un fantôme de contours brisés » — ne décrivent plus rien de ce
+> qui est en ligne.
+>
+> **Doctrine en vigueur** : charte `parametres.charte_ia`, § 35.16 à 35.16.16.
+> **Collecte du tome VII** : `COLLECTE_TOME_VII.md`, à côté.
+>
+> On le garde parce qu'il raconte POURQUOI la chaîne d'origine échouait, ce qui
+> reste utile ; on ne s'y fie plus pour agir.
+
 ## Ce qui ne va pas
 
 Les planches publiées sont inutilisables. Le défaut n'est ni dans le cadrage, qui est juste, ni dans la source, qui est excellente : il est dans l'étape de nettoyage de `scripts/fillion/process_illustrations.py`.
