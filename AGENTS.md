@@ -2424,6 +2424,32 @@ suivante ; c'est la règle qui décide, non la liste, et la liste la suit.
 - ⚠️ **Sans rang connu, on garde la composition des rangs HAUTS** : c'est celle que les
   201 sous-titres recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
 
+## ⛔ Dans l'AXE DE TEXTE, les marges ne fusionnent pas : elles s'ADDITIONNENT (2026-08-30)
+
+Doctrine : charte **§ 35.12**. `styleAxeTexte()` pose `display: grid`, et **les marges
+d'un enfant de grille ne s'effondrent jamais hors d'elle**. Deux blocs éditoriaux
+voisins, chacun dans son axe, cumulent donc la marge basse du premier et la marge
+haute du second.
+
+- ⚠️ **Le blanc sous un titre de péricope en valait 25,6 px pour 0,35 rem annoncés** :
+  0,35 du titre, plus 1,25 de l'introduction de section qui le suit (relevé de
+  l'auteur, « le blanc, après ce niveau de titre, est trop important »).
+- ⚠️ **La fusion ne joue que sur une mesure ÉTROITE**, où `surAxeTexte` rend le contenu
+  nu et les blocs redeviennent frères : 20 px pour le même cas, la plus grande valant
+  seule. Mesuré sur épreuve autonome — 25,59 · 20 · 5,59 après fermeture des deux
+  côtés, sur les deux surfaces.
+- ⛔ **Fermer un blanc demande donc DEUX sélecteurs**, un par surface : la règle
+  `:has(> .cs-bible-bloc > .cs-bible-title--tN) + .cs-bible-axe` pour la grille, et
+  `.cs-bible-bloc.cs-bible-title--tN + .cs-bible-bloc` pour la fratrie. Celle de T4
+  n'en portait qu'un depuis le 29 août : son blanc restait ouvert sur téléphone.
+- ⚠️ **Le blanc fermé vaut alors le MÊME quoi qu'il suive** — commentaire, introduction
+  ou première rangée de verset, laquelle ne porte aucune marge en tête
+  (`styleRangeeVerset` n'a qu'un `margin-bottom`). Sans cela, un même rang s'aère de
+  deux façons selon qu'un bloc s'intercale ou non.
+- ⛔ **La charte disait l'inverse**, et la correction du T4 tenait quand même : c'était
+  son explication qui était fausse, pas sa valeur. Une règle qui marche par accident
+  se relit avant d'être copiée sur un rang voisin.
+
 ## ⛔ Le PARAGRAPHE (T5) se centre, seul des rangs bas (2026-08-29)
 
 Doctrine : charte **§ 35.10**. « ce niveau de titre me paraît pas bien placé »
