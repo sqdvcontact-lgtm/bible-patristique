@@ -252,6 +252,14 @@
   --cs-ombre-flottante: 0 4px 16px rgba(45, 35, 25, 0.16);
   --cs-ombre-modale: 0 12px 40px rgba(0, 0, 0, 0.18);
   --cs-ombre-modale-haut: 0 -10px 28px rgba(45, 35, 25, 0.22);
+
+  /* ── Le corps de l'APPARAT ──
+     Le commentaire de Fillion se compose un cran sous le texte biblique. ⛔ Ce
+     nombre vit ICI et nulle part ailleurs : il gouverne à la fois les paragraphes
+     de l'apparat (BibleEditionParatext, STYLE_CORPS) et le rang de titre qui
+     s'aligne dessus (T4, plus bas). Recopié aux deux endroits, il n'y resterait
+     identique que par accident. */
+  --cs-corps-apparat: 0.78125rem;
 }
 
 /* ══ Confort de lecture — le seul thème alternatif (surcouche de tokens) ══
@@ -776,7 +784,25 @@ button:focus-visible,
 /* ⚠️ Une sous-section ouvre un développement qui LUI appartient : elle s'en approche,
    et prend un peu moins d'air au-dessus (décision de l'auteur, 2026-08-29). Le blanc du
    dessous se ferme des deux côtés — voir la règle de voisinage juste dessous. */
-.cs-bible-title--t4 { font-size: 1.0625rem; font-weight: 400; color: var(--cs-encre); margin-top: 1.15rem; margin-bottom: 0.2rem; }
+
+/* ⛔ UNE SOUS-SECTION NE GROSSIT PAS : elle prend le CORPS MÊME de l'apparat, et
+   c'est l'ITALIQUE qui la lève (décision de l'auteur, 2026-08-30 : « il devrait
+   être de la taille du texte ; normal ; pourquoi pas en italiques ? »).
+
+   À dix-sept pixels sur un corps de douze et demi, ce rang pesait presque autant
+   que la section centrée qui le domine — et il n'annonce le plus souvent qu'une
+   liste de six lignes. Le corps disait donc une importance que le contenu
+   dément.
+
+   ⚠️ Il ne se confond pas pour autant avec ce qu'il annonce : il en garde
+   l'ENCRE PLEINE quand l'apparat se compose en gris second, l'italique, et le
+   blanc qui l'ouvre. Trois signes, là où il n'y avait qu'un demi-corps.
+
+   ⚠️ L'italique appartient DÉSORMAIS AU RANG, non à la page imprimée. Les
+   dix-neuf sous-sections du corpus le portaient déjà, mais en style POSÉ par la
+   normalisation ; la vingtième, qui est un bloc-titre, ne le portait pas. Un
+   signal de rang ne se laisse pas au hasard de la donnée. */
+.cs-bible-title--t4 { font-size: var(--cs-corps-apparat); font-weight: 400; font-style: italic; color: var(--cs-encre); margin-top: 1.15rem; margin-bottom: 0.2rem; }
 
 /* ⛔ Le blanc SOUS une sous-section se referme : ce qui suit lui appartient, comme
    au rang T6. ⚠️ Et il ne suffit pas de raccourcir la marge du titre — le bloc

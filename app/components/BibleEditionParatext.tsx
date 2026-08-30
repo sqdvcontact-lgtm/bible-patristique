@@ -85,7 +85,10 @@ const STYLE_CORPS: CSSProperties = {
   // Un cran de plus sous le texte biblique (13 → 12,5 px, rang de l'échelle),
   // et l'interligne resserré avec lui : Fillion compose son commentaire dense,
   // et un apparat qui respire comme le texte qu'il commente lui dispute la page.
-  fontSize: '0.78125rem',
+  // ⛔ Le nombre lui-même vit dans la feuille de styles (`--cs-corps-apparat`) :
+  // le rang de titre T4 s'aligne dessus depuis le 30 août 2026, et deux valeurs
+  // recopiées ne restent identiques que par accident.
+  fontSize: 'var(--cs-corps-apparat)',
   lineHeight: 1.3,
   color: 'var(--cs-texte-second)',
   textAlign: 'justify',
