@@ -81,8 +81,35 @@ export type Traitement = {
   /** Porte la classe `.cs-ornement`, donc subit `invert(.88) sepia(.5) saturate(.6)`
    *  en thème Cuir. Sans elle, l'image reste telle quelle dans le sombre. */
   ornement?: boolean
-  /** Largeur réellement servie, telle que la page l'écrit. Sert à dire l'échelle. */
+  /** Ce que la page POSE vraiment, recopié de sa source. Voir `Pose`. */
+  pose?: Pose
+}
+
+/** Le SOL sous lequel une image paraît RÉELLEMENT. Toutes ne vivent pas sur le
+ *  papier : les silhouettes de la barre sont sur l'aplat vert, les icônes des
+ *  trois cartes d'accueil sur un cartonnage sombre, les logos de librairie sur
+ *  une surface blanche. Juger une image sur un fond qu'elle ne rencontre jamais
+ *  n'apprend rien. */
+export type CleSol = 'papier' | 'surface' | 'vert' | 'carte'
+
+/** LA POSE — les dimensions que la page écrit, telles qu'elle les écrit.
+ *
+ *  ⛔ Machine-lisible, et c'est tout le point. La prose qui la précédait avait
+ *  DÉRIVÉ sans que rien ne le dise : trois écrans d'attente y étaient donnés
+ *  pour « au plus 51rem » quand leur source pose `min(68rem, 96 %)`. Une valeur
+ *  qu'on peut APPLIQUER se compare à sa source et se rejoue à la taille réelle ;
+ *  une phrase, non.
+ *
+ *  ⚠️ On pose `largeur` OU `hauteur`, selon la dimension que la page fixe, et
+ *  l'autre reste automatique : c'est la règle de la charte, une illustration se
+ *  borne par des MAXIMA plutôt que par une largeur posée, faute de quoi elle
+ *  s'écrase quand la fenêtre est basse. */
+export type Pose = {
   largeur?: string
+  hauteur?: string
+  largeurMax?: string
+  hauteurMax?: string
+  sol: CleSol
 }
 
 export type Illustration = {
@@ -118,7 +145,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Tient la page de recherche avant qu’on ait lancé la moindre requête.',
     lieu: { href: '/recherche', label: 'Recherche', repere: 'Au centre, sous la barre de recherche, tant qu’aucune requête n’est lancée.' },
     source: 'app/recherche/RechercheClient.tsx',
-    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 51rem et 96 %, bornée en hauteur' },
+    traitement: { opacite: 0.92, ornement: true, pose: { largeurMax: 'min(68rem, 96%)', hauteurMax: 'calc(100dvh - 3.5rem - 15rem)', sol: 'papier' } },
     note: 'A remplacé les cristaux. Elle reprend la pose de la tour de Babel sur le Polyglotte, et pour la même raison : sur PC cette colonne fait TOUTE la hauteur sous la navbar et se trouve entièrement vide, l’intitulé, la recherche et les onglets vivant dans le volet de gauche. C’est donc un écran d’attente et non un blanc de pied de page — même mesure, même opacité, même encre, même invite en sérif italique. ⚠️ Le centrage vertical vient du flux, la zone étant de hauteur définie sur PC ; en mobile elle ne l’est pas et le groupe reprend des marges. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste.',
   },
 
@@ -129,7 +156,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Invite à cliquer sur un paragraphe, dans le volet resté vide d’une œuvre.',
     lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, tant qu’aucun paragraphe n’est choisi. Cliquer dans le texte la fait disparaître.' },
     source: 'app/oeuvre/[id]/OeuvreClient.tsx',
-    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 24rem et 88 %, bornée en hauteur' },
+    traitement: { opacite: 0.42, ornement: true, pose: { largeurMax: 'min(24rem, 88%)', hauteurMax: 'calc(100dvh - 3.5rem - 11.5rem)', sol: 'papier' } },
     note: 'A remplacé le buisson ardent le 2026-08-26 : celui-ci tenait 190 px dans un volet qui en fait de 200 à 560, et ornait un coin de la colonne au lieu de l’habiter. Écart moyen au papier, à la taille servie : 9,7 contre 4,0 — la présence vient de la mesure, l’opacité n’a pas bougé.',
   },
   {
@@ -139,7 +166,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Dit qu’un paragraphe ne porte aucun lien biblique, dans le volet de droite d’une œuvre.',
     lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Volet de droite, après avoir cliqué un paragraphe dépourvu de référence biblique.' },
     source: 'app/oeuvre/[id]/OeuvreClient.tsx',
-    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 24rem et 88 %, bornée en hauteur' },
+    traitement: { opacite: 0.42, ornement: true, pose: { largeurMax: 'min(24rem, 88%)', hauteurMax: 'calc(100dvh - 3.5rem - 13.5rem)', sol: 'papier' } },
     note: 'Répond à l’arbre ardent du même volet, dont elle reprend la mesure : les deux états du volet se ressemblent au lieu de se contredire. L’arbre est ici mort et le corbeau seul — l’absence se dit par l’image avant de se dire par la phrase. Le plafond de hauteur réserve 13,5 rem au lieu de 11,5 : le bouton de proposition se pose sous l’invite et sortirait de l’écran sur une fenêtre basse. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste.',
   },
   {
@@ -149,7 +176,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Dit qu’un passage n’a reçu ni commentaire ni apparat, dans le volet de droite d’une œuvre comme dans celui de la Bible.',
     lieu: { href: '/?livre=NUM&chapitre=7&trad=TR0001', label: 'Nombres 7', repere: 'Volet des Pères, à droite. Ce chapitre est le plus long du corpus à n’avoir reçu aucun apparat : la gravure y tient seule la colonne.' },
     source: 'app/components/PanneauPatristique.tsx',
-    traitement: { opacite: 0.42, ornement: true, largeur: 'au plus 20rem et 82 %, bornée en hauteur' },
+    traitement: { opacite: 0.42, ornement: true, pose: { largeurMax: 'min(20rem, 82%)', hauteurMax: 'calc(100% - 3.5rem)', sol: 'papier' } },
     note: 'Trois poses, une seule planche : les deux volets de commentaires — celui de la Bible et celui d’une œuvre, ce dernier dans app/oeuvre/[id]/OngletCommentaires.tsx — et le « Aucune occurrence » de l’apparat. Elle a remplacé la carapace couchée, qui disait la même absence sous un autre dessin selon la page où l’on se trouvait. Dans les deux volets de commentaires elle se pose au MILIEU de la zone défilante, en largeur comme en hauteur ; cette hauteur vient du flux, la zone étant déjà « flex: 1 ». Sur « Aucune occurrence » elle reste dans le flux, sous les sous-onglets. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste.',
   },
 
@@ -160,7 +187,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Dit qu’une traduction ne comporte pas le livre demandé. Des ruines plutôt qu’un fleuron : l’ornement devait dire « il n’y a rien ici », non « fin de chapitre ».',
     lieu: { href: '/?livre=MAT&chapitre=1&trad=TR0005', label: 'Matthieu 1 dans la Septante', repere: 'Au tiers supérieur de la colonne de lecture : la Septante ne comporte aucun livre du Nouveau Testament.' },
     source: 'app/components/TexteBible.tsx',
-    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 51rem et 96 %, bornée en hauteur' },
+    traitement: { opacite: 0.92, ornement: true, pose: { largeurMax: 'min(68rem, 96%)', hauteurMax: 'calc(100dvh - 3.5rem - 15rem)', sol: 'papier' } },
     note: 'Une cité basse sur un horizon vide, sa fumée seule montant dans le blanc : l’encre franche n’occupe que 1 510 sur 397 d’un cadre de 1 600 sur 1 194, et ce vide EST le propos. La marge négative sous la gravure revient pour cette raison, le quart inférieur du cadre étant un sol presque vide : le texte se pose à la lisière du sol plutôt que loin sous la planche. ⚠️ Une marge négative se règle sur la COMPOSITION et ne se reconduit pas d’un dessin à l’autre — la planche intermédiaire de colonnades descendait au ras des pierres et l’avait fait ôter. ⛔ Trois reprises que la charte réclamait sur cette pose : elle passait par Image de Next, dont l’optimiseur aplatit parfois l’alpha sur du blanc et fait reparaître le fond ; le mix-blend-mode était mort, la planche étant détourée ; et la largeur de 190 px, absolue, ne suivait pas la police racine. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, l’ALPHA étant calculé sur cette encre et non sur la médiane de la planche. Profil de gravure au trait : 87,1 % de transparents pour 11,1 % de partiels. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste. ⚠️ Son bloc SORT de la mesure de lecture, et il le faut : les trois grandes gravures du site — Babel sur le Polyglotte, le désert sur la recherche, la cité ici — partagent la même pose, mais celle-ci vivait dans une colonne de 620 px quand les deux autres ont toute la largeur. Elle s’affichait à 549 contre 816. La largeur du bloc est celle qui rend exactement 51rem une fois les 96 % du maximum appliqués, soit 53,125rem, et le débordement se centre sur l’axe du parent.',
   },
 
@@ -172,7 +199,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Ferme le message qui demande un écran large, sur la Polyglotte ouverte depuis un téléphone.',
     lieu: { href: '/polyglotte', label: 'Polyglotte', repere: 'En pied du message, sur un écran de moins de 820 px de large. À voir en réduisant la fenêtre.' },
     source: 'app/polyglotte/page.tsx',
-    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 16rem et 76 %, bornée en hauteur' },
+    traitement: { opacite: 0.92, ornement: true, pose: { largeurMax: 'min(16rem, 76%)', hauteurMax: '46dvh', sol: 'papier' } },
     note: 'A remplacé l’ordinateur de Pentecôte. Même propos : l’ordinateur sous les langues de feu, l’alpha et l’oméga sur le moniteur, la Polyglotte dite en une image. Intensité et encre sont celles de la tour de Babel, à l’autre bout de la même page : cet écran n’a lui non plus qu’une gravure pour tout contenu. ⚠️ La planche est en HAUTEUR là où la précédente était en largeur, d’où un plafond de hauteur qui n’est pas décoratif : sur un téléphone bas, elle chasserait le texte hors de l’écran. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste.',
   },
 
@@ -185,7 +212,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Occupe seule l’écran d’accueil du Polyglotte, sous l’invite « Ouvrez un livre ».',
     lieu: { href: '/polyglotte', label: 'Polyglotte', repere: 'Au centre, tant qu’aucun livre n’est ouvert, sous l’invite « Ouvrez un livre ».' },
     source: 'app/polyglotte/page.tsx',
-    traitement: { opacite: 0.92, ornement: true, largeur: 'au plus 51rem et 96 %, bornée en hauteur' },
+    traitement: { opacite: 0.92, ornement: true, pose: { largeurMax: 'min(68rem, 96%)', hauteurMax: 'calc(100dvh - 3.5rem - 15rem)', sol: 'papier' } },
     note: 'A remplacé la tour intacte, sans que la pose change : deux maxima, aucune largeur posée. Elle pèse le quart des 2 114 Ko de la précédente, qui était la plus lourde image servie du site pour un simple écran d’attente. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste.',
   },
 
@@ -196,7 +223,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Ouvre la page du don : une main confie un grain au sillon.',
     lieu: { href: '/soutenir', label: 'Soutenir', repere: 'En tête de page, au-dessus du titre.' },
     source: 'app/soutenir/page.tsx',
-    traitement: { opacite: 0.92, fusion: 'multiply', ornement: true, largeur: 'clamp(150px, 8vw + 8vh, 250px)' },
+    traitement: { opacite: 0.92, fusion: 'multiply', ornement: true, pose: { largeur: 'clamp(150px, 8vw + 8vh, 250px)', sol: 'papier' } },
   },
   {
     chemin: '/ornements/chantier.png',
@@ -205,7 +232,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Ouvre la page du chantier.',
     lieu: { href: '/chantier', label: 'Chantier', repere: 'Tout en haut, en ouverture de page. Mesurée à 2 % de la hauteur.' },
     source: 'app/chantier/page.tsx',
-    traitement: { ornement: true, largeur: '25rem' },
+    traitement: { ornement: true, pose: { largeur: '25rem', largeurMax: '100%', sol: 'papier' } },
   },
   {
     chemin: '/ornements/vigne-grappe.png',
@@ -214,7 +241,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Ponctue le bas de la page du chantier. Trois ornements sur cette page, jamais davantage : au-delà, ils l’encombrent.',
     lieu: { href: '/chantier', label: 'Chantier', repere: 'Tout en bas, juste avant le colophon. Mesurée à 96 % de la hauteur.' },
     source: 'app/chantier/page.tsx',
-    traitement: { opacite: 0.75, ornement: true, largeur: '11.25rem' },
+    traitement: { opacite: 0.75, ornement: true, pose: { largeur: '11.25rem', largeurMax: '100%', sol: 'papier' } },
   },
   {
     chemin: '/ornements/clochettes.png',
@@ -223,7 +250,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Sépare deux moments de la page du chantier.',
     lieu: { href: '/chantier', label: 'Chantier', repere: 'À mi-hauteur exactement, entre deux sections. Mesurée à 49 %.' },
     source: 'app/chantier/page.tsx',
-    traitement: { opacite: 0.7, ornement: true, largeur: '13.125rem' },
+    traitement: { opacite: 0.7, ornement: true, pose: { largeur: '13.125rem', largeurMax: '100%', sol: 'papier' } },
   },
 
   // ── Coiffer un titre ───────────────────────────────────────────────────────
@@ -234,7 +261,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Ferme le titre de l’accueil. La gravure EST le filet, elle ne l’accompagne pas.',
     lieu: { href: '/accueil', label: 'Accueil', repere: 'En tête, juste SOUS le titre du site, qu’elle ferme au lieu de l’annoncer.' },
     source: 'app/accueil/page.tsx',
-    traitement: { opacite: 0.72, largeur: 'min(265px, 48vw)' },
+    traitement: { opacite: 0.72, pose: { largeur: 'min(265px, 48vw)', sol: 'papier' } },
   },
 
   // ── Illustrer une carte ────────────────────────────────────────────────────
@@ -245,7 +272,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Carte « Bible » de l’accueil.',
     lieu: { href: '/accueil#cartes', label: 'Accueil, les trois cartes', repere: 'Première des trois cartes, sous le frontispice.' },
     source: 'app/components/AccueilCards.tsx',
-    traitement: { opacite: 0.86, fusion: 'screen', largeur: '4.75rem' },
+    traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
   {
     chemin: '/icons/home-patristique-buste.png',
@@ -254,7 +281,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Carte « Patristique » de l’accueil.',
     lieu: { href: '/accueil#cartes', label: 'Accueil, les trois cartes', repere: 'Deuxième des trois cartes, sous le frontispice.' },
     source: 'app/components/AccueilCards.tsx',
-    traitement: { opacite: 0.86, fusion: 'screen', largeur: '4.75rem' },
+    traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
   {
     chemin: '/icons/home-publications-writing.png',
@@ -263,7 +290,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Carte « Publications » de l’accueil.',
     lieu: { href: '/accueil#cartes', label: 'Accueil, les trois cartes', repere: 'Troisième des trois cartes, sous le frontispice.' },
     source: 'app/components/AccueilCards.tsx',
-    traitement: { opacite: 0.86, fusion: 'screen', largeur: '4.75rem' },
+    traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
 
   // ── Marquer un bouton ──────────────────────────────────────────────────────
@@ -274,7 +301,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Bouton des notifications, dans la barre de navigation.',
     lieu: { href: '/accueil', label: 'Barre du haut', repere: 'Dans la barre de navigation, à droite : le bouton des notifications. Elle est sur toutes les pages.' },
     source: 'app/components/Navbar.tsx',
-    traitement: { masque: true, largeur: '28 × 27 px' },
+    traitement: { masque: true, pose: { largeur: '28px', hauteur: '27px', sol: 'vert' } },
   },
   {
     chemin: '/icons/parchemin-message-silhouette.png',
@@ -283,7 +310,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Bouton de la messagerie, dans la barre de navigation.',
     lieu: { href: '/accueil', label: 'Barre du haut', repere: 'Dans la barre de navigation, à droite : le bouton de la messagerie. Elle est sur toutes les pages.' },
     source: 'app/components/Navbar.tsx',
-    traitement: { masque: true, largeur: '19 × 25 px' },
+    traitement: { masque: true, pose: { largeur: '19px', hauteur: '25px', sol: 'vert' } },
   },
 
   // ── Porter l'identité ──────────────────────────────────────────────────────
@@ -300,7 +327,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Le même tracé en crème. Sert de retour à l’accueil dans la barre de navigation, dans les deux thèmes. C’est désormais la seule pose de la marque sur le site.',
     lieu: { href: '/accueil', label: 'Accueil', repere: 'Dans la barre du haut, à gauche, contre le nom du site — sur toutes les pages.' },
     source: 'app/components/Navbar.tsx',
-    traitement: { opacite: 0.92, largeur: '1.875rem dans la barre' },
+    traitement: { opacite: 0.92, pose: { hauteur: '1.875rem', sol: 'vert' } },
   },
   {
     chemin: '/og-image.png',
@@ -336,7 +363,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Deux figures drapées adossées, épée en main, devant une cité et des flots. Se pose sur la page de titre de chaque œuvre, entre le titre et les mentions d’édition.',
     lieu: { href: '/oeuvre/A0010O0002', label: 'La Cité de Dieu', repere: 'Sur la page de titre, entre le titre et les mentions d’édition. C’est le premier écran, avant tout défilement.' },
     source: 'app/oeuvre/[id]/Ornements.tsx',
-    traitement: { opacite: 0.82, ornement: true, largeur: '150px de haut' },
+    traitement: { opacite: 0.82, ornement: true, pose: { hauteur: '150px', sol: 'papier' } },
   },
 
   // ── Signer un partenaire ───────────────────────────────────────────────────
@@ -347,7 +374,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Vignette de la librairie La Procure.',
     lieu: { href: '/librairies', label: 'Acheter des livres', repere: 'Première rangée, vignette de gauche.' },
     source: 'app/librairies/page.tsx',
-    traitement: { largeur: '52px' },
+    traitement: { pose: { largeur: '52px', hauteurMax: '48px', sol: 'surface' } },
   },
   {
     chemin: '/icons/librairies/pierre-brunet-livre.png',
@@ -356,7 +383,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Vignette de la librairie Pierre Brunet.',
     lieu: { href: '/librairies', label: 'Acheter des livres', repere: 'Deuxième rangée, vignette de gauche.' },
     source: 'app/librairies/page.tsx',
-    traitement: { largeur: '52px' },
+    traitement: { pose: { largeur: '52px', hauteurMax: '48px', sol: 'surface' } },
   },
   {
     chemin: '/icons/librairies/sources-chretiennes-chrisme.png',
@@ -365,7 +392,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Vignette de la collection Sources Chrétiennes.',
     lieu: { href: '/librairies', label: 'Acheter des livres', repere: 'Troisième rangée, vignette de gauche.' },
     source: 'app/librairies/page.tsx',
-    traitement: { largeur: '52px' },
+    traitement: { pose: { largeur: '52px', hauteurMax: '48px', sol: 'surface' } },
   },
 
   // ── Décorer le jeu ─────────────────────────────────────────────────────────
@@ -391,7 +418,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Le C et le S entrelacés, en capitales didones, qui ferment la page d’accueil sous le colophon. Y remplace le fleuron ❧ depuis le 27 août 2026 : un caractère dont le dessin dépendait de la police que le système voulait bien donner, et qui ne disait rien du site. ⚠️ À ne pas confondre avec le monogramme du frontispice, qui est une lettrine gothique : deux dessins, deux emplois, deux fichiers.',
     lieu: { href: '/accueil', label: 'Accueil', repere: 'Tout en bas, sous le colophon « en l’An de grâce MMXXVI », avant les liens légaux.' },
     source: 'app/accueil/page.tsx',
-    traitement: { masque: true, largeur: '1.75rem' },
+    traitement: { masque: true, pose: { hauteur: '1.75rem', sol: 'papier' } },
   },
 
   // ── En réserve ─────────────────────────────────────────────────────────────

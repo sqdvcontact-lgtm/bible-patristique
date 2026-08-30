@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-import { FONCTIONS, ICONES_ONGLET, ILLUSTRATIONS, type CleFonction, type Illustration } from './inventaire'
+import OngletsPage, { type OngletPage } from '@/app/components/OngletsPage'
+import { FONCTIONS, ICONES_ONGLET, ILLUSTRATIONS, type CleFonction, type CleSol, type Illustration, type Pose } from './inventaire'
 import {
   MESURE_COLONNE, ORDRE_REGIMES, REGIMES, SEUIL_TRAME, SPECIMEN_HABILLAGE,
   type CleRegime, type GravureFillion,
@@ -79,6 +80,26 @@ const TOUTES: Illustration[] = [
   })),
 ]
 
+/** Les trois PANNEAUX de la planche. Ils ne sont pas trois façons de trier une
+ *  même liste mais trois objets distincts, et trois jugements distincts : les
+ *  images qu'on a dessinées, celles qui viennent par milliers d'ailleurs, et la
+ *  composition proposée aux gravures d'une édition. D'où `panneaux` et non
+ *  `filtres` sur la barre. */
+const ONGLETS: readonly OngletPage<ClePanneau>[] = [
+  { cle: 'ornements', libelle: 'Ornements du site' },
+  { cle: 'familles', libelle: 'Familles nombreuses' },
+  { cle: 'fillion', libelle: 'Gravures de Fillion' },
+]
+type ClePanneau = 'ornements' | 'familles' | 'fillion'
+
+/** Deux façons de regarder les ornements, et elles ne se remplacent pas.
+ *  La PLANCHE met tout à la même échelle, sur un fond qu'on choisit : c'est ce
+ *  qu'il faut pour juger d'une harmonie. La vue EN CONTEXTE rend chaque image à
+ *  sa taille et sur son sol : c'est ce qu'il faut pour juger d'une pose. Un
+ *  cul-de-lampe de 1 088 px et une silhouette de 19 px ne se comparent pas côte
+ *  à côte, et une image jugée hors de sa mesure ne se juge pas. */
+type CleVue = 'planche' | 'contexte'
+
 const ORDRE_FONCTIONS = Object.keys(FONCTIONS) as CleFonction[]
 /** Repliés d'entrée : ils ne participent pas au jugement d'harmonie, et les
  *  tuiles du jeu pèsent à elles seules neuf mégaoctets. */
@@ -90,6 +111,8 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
   planches: number
   planche: { url: string; legende: string } | null
 }) {
+  const [panneau, setPanneau] = useState<ClePanneau>('ornements')
+  const [vue, setVue] = useState<CleVue>('planche')
   const [fond, setFond] = useState<CleFond>('papier')
   const [servi, setServi] = useState(true)
   const [taille, setTaille] = useState(2)
@@ -169,7 +192,7 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
         <div>
           <a href="/admin" className="ill-retour">← Administration</a>
           <h1 className="ill-titre">Illustrations</h1>
-          <p className="ill-sous-titre">Toutes les images dessinées du site, sur un même fond, à la même échelle.</p>
+          <p className="ill-sous-titre">Les images dessinées du site, les familles qui viennent d’ailleurs, et la composition proposée aux gravures de Fillion.</p>
         </div>
         <div className="ill-bilan">
           <span><strong>{bilan.nb}</strong> images recensées</span>
@@ -185,8 +208,28 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
         </div>
       </header>
 
+      {/* ── Les trois panneaux ──
+          ⛔ On prend le MODÈLE de barre du site, on ne le redessine pas : c'est
+          ainsi que six barres en étaient venues à six combinaisons de police, de
+          corps et de gris sans qu'aucune décision les sépare. */}
+      <OngletsPage
+        onglets={ONGLETS}
+        actif={panneau}
+        choisir={setPanneau}
+        intitule="Ce que la planche montre"
+        className="ill-onglets"
+      />
+
+      {panneau === 'ornements' && (
+      <>
       {/* ── Réglages ── */}
       <div className="ill-reglages">
+        <div className="ill-groupe-reglage">
+          <span className="ill-etiquette">Vue</span>
+          <button onClick={() => setVue('planche')} className={`ill-bouton${vue === 'planche' ? ' ill-bouton--actif' : ''}`}>Planche</button>
+          <button onClick={() => setVue('contexte')} className={`ill-bouton${vue === 'contexte' ? ' ill-bouton--actif' : ''}`}>En contexte</button>
+        </div>
+        {vue === 'planche' && <>
         <div className="ill-groupe-reglage">
           <span className="ill-etiquette">Fond</span>
           {(Object.keys(FONDS) as CleFond[]).map(c => (
@@ -206,7 +249,9 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
             <button key={nom} onClick={() => setTaille(i)} className={`ill-bouton${taille === i ? ' ill-bouton--actif' : ''}`}>{nom}</button>
           ))}
         </div>
+        </>}
       </div>
+      {vue === 'contexte' ? <VueEnContexte images={TOUTES} poids={poids} /> : <>
       <p className="ill-explication">
         {servi
           ? 'La planche reproduit le réglage de chaque page : opacité, fusion au papier, filtre du thème Cuir, découpe en masque. C’est ce que voit le lecteur, non ce que contient le fichier.'
@@ -243,8 +288,12 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
           </section>
         )
       })}
+      </>}
+      </>
+      )}
 
       {/* ── Familles nombreuses ── */}
+      {panneau === 'familles' && (
       <section className="ill-section">
         <div className="ill-section-tete ill-section-tete--fixe">
           <h2 className="ill-section-titre">Familles nombreuses</h2>
@@ -281,9 +330,12 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
           ))}
         </div>
       </section>
+      )}
 
       {/* ── Gravures de Fillion : les trois régimes ── */}
-      <SectionRegimes gravures={gravures} planches={planches} planche={planche} fond={fond} />
+      {panneau === 'fillion' && (
+        <SectionRegimes gravures={gravures} planches={planches} planche={planche} fond={fond} />
+      )}
 
       {agrandie && (
         <Agrandissement
@@ -365,7 +417,7 @@ function Vignette({
         <span className="ill-chiffres">
           {poids !== null && <span className={`ill-poids ill-poids--${tonPoids(poids)}`}>{poidsLisible(poids)}</span>}
           {dim && <span className="ill-dim">{dim.l} × {dim.h}</span>}
-          {t.largeur && <span className="ill-dim">servie à {t.largeur}</span>}
+          {t.pose && <span className="ill-dim">servie à {libellePose(t.pose)}</span>}
         </span>
         {illustration.note && <span className="ill-note">{illustration.note}</span>}
         {illustration.lieu
@@ -430,7 +482,8 @@ function Agrandissement({
             <dt>Fichier</dt><dd><code>{illustration.chemin}</code></dd>
             {dim && <><dt>Définition</dt><dd>{illustration.chemin.endsWith('.svg') ? `${dim.l} × ${dim.h}, vectorielle` : `${dim.l} × ${dim.h} px`}</dd></>}
             {poids !== null && <><dt>Poids</dt><dd className={`ill-poids--${tonPoids(poids)}`}>{poidsLisible(poids)}</dd></>}
-            {t.largeur && <><dt>Servie à</dt><dd>{t.largeur}</dd></>}
+            {t.pose && <><dt>Servie à</dt><dd>{libellePose(t.pose)}</dd></>}
+            {t.pose && <><dt>Sol</dt><dd>{SOLS[t.pose.sol].nom}</dd></>}
             {t.opacite !== undefined && <><dt>Opacité</dt><dd>{String(t.opacite).replace('.', ',')}</dd></>}
             {t.fusion && <><dt>Fusion</dt><dd>{t.fusion === 'multiply' ? 'multiply, le blanc se fond dans le papier' : 'screen, le noir se fond dans la carte'}</dd></>}
             {t.masque && <><dt>Emploi</dt><dd>découpée en masque, teintée par le texte</dd></>}
@@ -473,6 +526,152 @@ function Agrandissement({
 // Le lien « Voir en place » est le seul élément qui porte un cadre plein : c'est
 // la sortie de la planche vers le site, et il devait se distinguer du reste sans
 // discussion possible.
+// ── LES SOLS RÉELS ───────────────────────────────────────────────────────────
+//
+// Les FONDS d'épreuve, plus haut, sont un banc d'essai : on y pose n'importe
+// quelle image sur n'importe quel fond pour juger d'une harmonie. Les SOLS, eux,
+// disent où chaque image paraît VRAIMENT. Une silhouette de la barre ne
+// rencontre jamais le papier ; l'icône d'une carte d'accueil ne rencontre jamais
+// le blanc. Les juger là serait les juger ailleurs que chez elles.
+const SOLS: Record<CleSol, { nom: string; fond: string; sombre: boolean }> = {
+  papier: { nom: 'Papier du site', fond: 'var(--cs-fond)', sombre: false },
+  surface: { nom: 'Surface blanche', fond: 'var(--cs-surface)', sombre: false },
+  vert: { nom: 'Aplat de la barre', fond: 'var(--cs-vert-aplat)', sombre: true },
+  // ⚠️ La vraie carte porte des valeurs LITTÉRALES et son propre jeu pour le
+  // Cuir, parce qu'un dégradé composé de jetons d'ENCRE s'inverse avec le thème
+  // (charte, « un dégradé de CARTE composé avec des jetons d'ENCRE inverse ses
+  // valeurs »). Ici les jetons suffisent : la planche est servie en Clair.
+  carte: { nom: 'Carton de l’accueil', fond: 'linear-gradient(160deg, var(--cs-encre) 0%, var(--cs-encre-fonce) 100%)', sombre: true },
+}
+
+/** La pose, dite en clair. ⛔ Elle se COMPOSE de ce que la donnée porte, elle ne
+ *  se recopie pas d'une phrase : c'est la prose recopiée à la main qui avait
+ *  laissé trois écrans d'attente à « 51rem » quand leur source pose 68. */
+function libellePose(p: Pose): string {
+  const bouts: string[] = []
+  if (p.largeur) bouts.push(p.largeur)
+  if (p.hauteur) bouts.push(`${p.hauteur} de haut`)
+  if (p.largeurMax) bouts.push(`au plus ${p.largeurMax}`)
+  if (p.hauteurMax) bouts.push(`bornée à ${p.hauteurMax}`)
+  return bouts.join(', ')
+}
+
+/** Les dimensions que la page écrit, appliquées telles quelles.
+ *  ⚠️ `height: auto` n'est pas un ornement : sans lui, une image qui ne pose
+ *  qu'une largeur et deux maxima s'écrase au lieu de tenir son rapport. */
+function dimensionsPose(p: Pose): React.CSSProperties {
+  return {
+    width: p.largeur ?? 'auto',
+    height: p.hauteur ?? 'auto',
+    maxWidth: p.largeurMax ?? '100%',
+    maxHeight: p.hauteurMax,
+  }
+}
+
+// ── La vue EN CONTEXTE ───────────────────────────────────────────────────────
+
+/** Chaque image sur SON sol, à SA taille, avec SON traitement.
+ *
+ *  ⛔ Elle ne remplace pas la planche : celle-ci met tout à la même échelle pour
+ *  juger d'une harmonie, ce que la taille réelle rend impossible — un cul-de-lampe
+ *  de 1 088 px et une silhouette de 19 px ne se comparent pas côte à côte. Les
+ *  deux vues répondent à deux questions, et aucune ne dispense de l'autre.
+ *
+ *  ⚠️ Ce que cette vue ne peut PAS reproduire : les pourcentages se résolvent
+ *  contre la bande, les `vw` et `dvh` contre la fenêtre de la planche. Une
+ *  largeur en rem ou en pixels est juste au pixel près ; `min(68rem, 96 %)` ne
+ *  l'est que tant que la bande est plus large que 68rem. La bande porte donc sa
+ *  largeur mesurée, et l'on sait à quoi le pourcentage s'applique. */
+export function VueEnContexte({ images, poids }: { images: Illustration[]; poids: Poids }) {
+  const posees = images.filter(i => i.traitement?.pose)
+  const sansPose = images.filter(i => !i.traitement?.pose)
+
+  return (
+    <>
+      <p className="ill-explication">
+        Chaque image sur le sol où elle paraît vraiment, à la taille que sa page lui donne, avec son opacité et sa
+        fusion. Les largeurs en rem et en pixels sont justes au pixel près. Un pourcentage, lui, se résout contre la
+        bande et non contre la colonne de la vraie page, et les unités de fenêtre suivent celle de la planche.
+      </p>
+
+      {posees.map(img => {
+        const pose = img.traitement!.pose!
+        const sol = SOLS[pose.sol]
+        return (
+          <article key={img.chemin} className="ill-ctx">
+            <div className="ill-ctx-tete">
+              <h3 className="ill-ctx-nom">{img.nom}</h3>
+              <span className="ill-ctx-pose">{libellePose(pose)}</span>
+              <span className="ill-ctx-sol">{sol.nom}</span>
+            </div>
+            <div className="ill-ctx-bande" style={{ background: sol.fond }}>
+              {img.traitement?.masque ? (
+                // Le fichier ne s'affiche pas : il DÉCOUPE, et la couleur vient du
+                // texte alentour. La bande lui rend donc l'encre de son sol.
+                <span
+                  className="ill-ctx-masque"
+                  role="img"
+                  aria-label={img.nom}
+                  style={{
+                    ...dimensionsPose(pose),
+                    backgroundColor: sol.sombre ? 'var(--cs-sur-aplat)' : 'var(--cs-encre)',
+                    WebkitMaskImage: `url("${img.chemin}")`,
+                    maskImage: `url("${img.chemin}")`,
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskPosition: 'center',
+                  }}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={img.chemin}
+                  alt={img.nom}
+                  style={{
+                    ...dimensionsPose(pose),
+                    opacity: img.traitement?.opacite,
+                    mixBlendMode: img.traitement?.fusion,
+                    // ⚠️ Le filtre du Cuir ne s'applique qu'aux ornements, et seulement
+                    // sur un sol sombre : c'est là qu'il entre en jeu sur le vrai site.
+                    filter: sol.sombre && img.traitement?.ornement ? FILTRE_CUIR : undefined,
+                  }}
+                />
+              )}
+            </div>
+            <p className="ill-ctx-emploi">{img.emploi}</p>
+            {img.lieu && <p className="ill-ctx-repere">{img.lieu.repere}</p>}
+            <p className="ill-ctx-pied">
+              {poids[img.chemin] !== undefined && <span className={`ill-poids--${tonPoids(poids[img.chemin])}`}>{poidsLisible(poids[img.chemin])}</span>}
+              {img.traitement?.opacite !== undefined && <span>opacité {String(img.traitement.opacite).replace('.', ',')}</span>}
+              {img.traitement?.fusion && <span>fusion {img.traitement.fusion}</span>}
+              {img.traitement?.masque && <span>posée en masque</span>}
+              {img.source && <span><code className="ill-code">{img.source}</code></span>}
+              {img.lieu && <a href={img.lieu.href} target="_blank" rel="noreferrer">Voir en place ↗</a>}
+            </p>
+          </article>
+        )
+      })}
+
+      {sansPose.length > 0 && (
+        <div className="ill-ctx-reste">
+          <h3 className="ill-ctx-nom">Pose non relevée</h3>
+          <p className="ill-ctx-emploi">
+            {sansPose.length} images n’ont pas de pose au recensement, et la planche ne l’invente pas. Ce sont, pour
+            l’essentiel, celles qu’aucune page n’appelle : les variantes écartées, les résidus du gabarit et la frise du
+            jeu, dont la route est neutralisée. Une pose se relève sur la SOURCE, jamais de mémoire.
+          </p>
+          <ul className="ill-ctx-liste">
+            {sansPose.map(i => <li key={i.chemin}>{i.nom}<span>{FONCTIONS[i.fonction].titre}</span></li>)}
+          </ul>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ── Gravures de Fillion : les trois régimes proposés ─────────────────────────
 //
 // ⛔ Cette section montre une PROPOSITION, non le service. `IllustrationBible`
@@ -787,6 +986,31 @@ export const CSS = `
     .ill-reg-mesure { grid-template-columns: 3rem 1fr 1.5rem; }
     .ill-reg-verset { display: none; }
   }
+
+
+  /* ── Onglets et vue en contexte ─────────────────────────────────────────── */
+  .ill-onglets { max-width: 82rem; margin: 0 auto 1.25rem; }
+
+  /* ⚠️ La BANDE porte le sol réel de l'image et sa largeur mesurée : un
+     pourcentage se résout contre elle, et l'on doit savoir contre quoi. */
+  .ill-ctx { max-width: 82rem; margin: 0 auto 2.25rem; }
+  .ill-ctx-tete { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.4375rem; }
+  .ill-ctx-nom { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.1875rem; font-weight: normal; color: var(--cs-encre-fonce); margin: 0; }
+  .ill-ctx-pose { font-family: ui-monospace, monospace; font-size: 0.6875rem; color: var(--cs-texte); background: var(--cs-fond-doux); border-radius: 4px; padding: 0.125rem 0.4375rem; }
+  .ill-ctx-sol { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; margin-left: auto; }
+  .ill-ctx-bande { border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 1.5rem; display: flex; align-items: center; justify-content: center; min-height: 5rem; overflow: hidden; }
+  .ill-ctx-bande img { display: block; }
+  .ill-ctx-masque { display: block; }
+  .ill-ctx-emploi { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.8125rem; line-height: 1.55; color: var(--cs-texte-second); margin: 0.5rem 0 0; max-width: 52rem; }
+  .ill-ctx-repere { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.75rem; font-style: italic; line-height: 1.5; color: var(--cs-texte-doux); margin: 0.1875rem 0 0; max-width: 52rem; }
+  .ill-ctx-pied { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: baseline; margin: 0.4375rem 0 0; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-faible); }
+  .ill-ctx-pied a { color: var(--cs-vert); text-decoration: none; }
+  .ill-ctx-pied a:hover { text-decoration: underline; }
+
+  .ill-ctx-reste { max-width: 82rem; margin: 0 auto; border-top: 1px solid var(--cs-bord-clair); padding-top: 1.125rem; }
+  .ill-ctx-liste { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 0.1875rem 1rem; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.75rem; color: var(--cs-texte-second); }
+  .ill-ctx-liste li { display: flex; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid var(--cs-bord-clair); padding: 0.1875rem 0; }
+  .ill-ctx-liste span { color: var(--cs-texte-faible); font-size: 0.6875rem; }
 
   .ill-modale { position: fixed; top: ${HAUTEUR_NAVBAR}; left: 0; right: 0; bottom: 0; z-index: 200; overflow: hidden; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
   .ill-modale-corps { background: var(--cs-surface); border-radius: 12px; box-shadow: var(--cs-ombre-modale); display: flex; gap: 0; max-width: 78rem; width: 100%; max-height: 100%; overflow: hidden; }

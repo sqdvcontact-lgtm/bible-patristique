@@ -3093,6 +3093,45 @@ La pesée passe maintenant par une requête `HEAD` par fichier, faite au montage
 
 ⚠️ **`public/holy-guessr/` n'est pas versionné**, donc absent d'un `checkout` d'intégration continue alors qu'il est là sur le poste de travail. Le test saute un dossier manquant au lieu de l'exiger : sans quoi il serait vert ici et rouge là-bas, le piège d'outillage le plus coûteux du dépôt.
 
+### La planche se lit par ONGLETS, et la POSE est machine-lisible (2026-08-30)
+
+Trois panneaux, par le modèle de barre du site (`OngletsPage`) : **Ornements du
+site**, **Familles nombreuses**, **Gravures de Fillion**. ⛔ Ce sont trois objets
+et trois jugements distincts, non trois façons de trier une même liste : d'où
+`panneaux` et non `filtres`. ⚠️ Et l'on prend le MODÈLE, on ne le redessine pas.
+
+**Deux vues des ornements, et elles ne se remplacent pas.** La **planche** met tout
+à la même échelle sur un fond qu'on choisit : c'est ce qu'il faut pour juger d'une
+harmonie. La vue **en contexte** rend chaque image à sa taille et sur son sol :
+c'est ce qu'il faut pour juger d'une pose. Un cul-de-lampe de 1 088 px et une
+silhouette de 19 px ne se comparent pas côte à côte, et une image jugée hors de sa
+mesure ne se juge pas.
+
+⛔ **`Traitement.largeur` était de la PROSE, et elle avait dérivé.** Elle donnait
+trois écrans d'attente pour « au plus 51rem » quand leur source pose
+`min(68rem, 96 %)` : le désert et la fosse, la cité ruinée, la tour de Babel
+ruinée. Rien ne pouvait le dire, une phrase ne se comparant pas à son source.
+Elle est remplacée par **`Traitement.pose`**, machine-lisible et relevée SUR LES
+SOURCES : `largeur` ou `hauteur` selon la dimension que la page fixe, plus
+`largeurMax` / `hauteurMax`, plus le **sol**. La planche l'APPLIQUE, donc une
+dérive nouvelle se verrait à l'œil.
+
+⚠️ **Le SOL n'est pas le fond d'épreuve.** Les quatre fonds du haut de page sont
+un banc d'essai, où l'on pose n'importe quelle image sur n'importe quel fond. Le
+sol dit où l'image paraît VRAIMENT : `papier`, `surface`, `vert` (l'aplat de la
+barre) ou `carte` (le cartonnage de l'accueil). Une silhouette de la barre ne
+rencontre jamais le papier ; l'icône d'une carte ne rencontre jamais le blanc.
+
+⚠️ **Ce que la vue en contexte ne peut pas reproduire, et qu'elle dit :** un
+pourcentage se résout contre la bande et non contre la colonne de la vraie page,
+et `vw` / `dvh` suivent la fenêtre de la planche. Une largeur en rem ou en pixels
+est juste au pixel près.
+
+⚠️ **23 des 54 entrées portent une pose**, et la planche n'invente pas les autres :
+ce sont pour l'essentiel celles qu'aucune page n'appelle, les variantes écartées,
+les résidus du gabarit et la frise du jeu. Elle les liste à part, sous « Pose non
+relevée ». Une pose se relève sur la SOURCE, jamais de mémoire.
+
 ## ⛔ Le raccourci `background` mêlé aux propriétés détaillées — piège React
 
 Un style en ligne qui écrit `background` (raccourci) sur un état et `backgroundImage` sur l'autre PERD `background-size` et `background-position` au changement d'état. React met à jour le style en DIFF : il efface `background`, ce qui réinitialise du même coup toutes les propriétés que le raccourci englobe, puis ne repose que ce qui a changé — or la taille du motif, elle, n'a pas changé, donc elle n'est pas reposée.
