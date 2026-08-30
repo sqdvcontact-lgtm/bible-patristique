@@ -3428,6 +3428,33 @@ fait bouillir la feuillée et granule les ciels : le défaut déjà consigné du
 contraste local (§ 35.16.5), rencontré par une autre porte. Les planches cadrées
 gardent le rattrapage étroit.
 
+⛔ **ET LE RATTRAPAGE NE SERT JAMAIS À MESURER LA RAMPE.** La rampe est une mesure
+de TONS ; le rattrapage n'est qu'un conditionnement de SORTIE. Les mêler les fait
+interférer, et le défaut est retors : un rattrapage large creuse la queue sombre
+de l'histogramme, donc le point d'encre, pris au 2e centile, **tombe avec elle** —
+mesuré, de 119 à 77 sur le paralytique et de 104 à 62 sur le démoniaque — la rampe
+s'élargit d'autant, et **tous les demi-tons s'éclaircissent**. Les neuf gravures y
+perdaient de 5 à 19 % de leur densité d'encre. La rampe se mesure donc sur la
+réduction NON rattrapée, et ne s'applique qu'ensuite au gris rattrapé.
+
+⚠️ **Et la densité se mesure elle aussi APRÈS la seconde réduction**, rapportée au
+témoin — la source réduite d'un trait à la taille d'affichage, sur une échelle
+neutre. Prise sur le fichier servi, elle décrit une image que personne ne regarde
+et le rattrapage y paraît ajouter jusqu'à 46 % d'encre que la seconde réduction
+reprend aussitôt.
+
+| chaîne | densité VUE, rapportée au témoin |
+|---|---:|
+| rattrapage étroit (σ 0,6) | **×0,90** |
+| σ 1,6, rampe COUPLÉE | ×0,83 |
+| σ 1,6, rampe DÉCOUPLÉE | **×1,03** |
+| + la couture du § 35.16.8 | ×1,08 |
+
+⚠️ L'ancienne chaîne servait donc **10 % d'encre de moins que le témoin**, ce qui
+était une part de la mollesse relevée ; et la première version du rattrapage large,
+faute de découplage, en servait 17 % de moins — l'auteur a vu le démoniaque pâlir
+le jour même.
+
 #### 35.16.8. Recoudre un trait que la RÉDUCTION a dilué
 
 ⛔ **Ce n'est pas une exception au § 35.16.6, c'est son revers.** Deux choses très
@@ -3484,3 +3511,17 @@ Le style de composition `introduction` est réservé aux préambules brefs qui s
 
 
 **Numéros de verset hors guillemets.** Les numéros de verset éditoriaux notés entre parenthèses ne font pas partie du texte cité et doivent être placés hors des guillemets : `« texte » (7)`, jamais `« texte (7) »`. Si plusieurs numéros scandent une citation continue, fermer puis rouvrir les guillemets autour de chaque repère. Le point final ordinaire se place après le numéro : `« texte » (7).` Les signes `?` et `!` intrinsèques à la citation restent avant le guillemet fermant : `« texte ? » (7)`.
+
+### Contrôle de clôture après resegmentation ou projection
+
+Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après toute resegmentation, projection de titres ou reprise de liens, effectuer aussi les contrôles suivants :
+
+- **Ponctuation par paragraphe.** Vérifier l’équilibre des guillemets et des parenthèses à l’échelle de chaque paragraphe éditorial. Un équilibre global peut masquer deux paragraphes fautifs qui se compensent. Une référence biblique, une parenthèse ou une citation ne doit jamais être coupée par une frontière de paragraphe artificielle.
+- **Continuités inter-unités.** Une coupure de page, d’OCR ou d’unité source ne crée pas d’espace si elle tombe au milieu d’un mot, d’un nombre ou d’une plage de référence. Conserver chaque caractère dans son unité source ; employer `join_before = ''` lorsque le rendu doit concaténer les deux fragments. Ne jamais déplacer un caractère vers une autre unité uniquement pour embellir le segment.
+- **Analyses projetées en N2.** Reconstituer chaque item imprimé de l’ANALYSE avant de le projeter. Une ligne ou une unité source peut contenir la fin de l’item précédent et le début du suivant. La concordance du numéro seul ne suffit pas : contrôler le libellé complet et sa continuation matérielle.
+- **Majuscules accentuées.** Le contrôle porte sur toute la couche de lecture ET sur les titres projetés, non sur les seuls incipits. Les formes françaises `É`, `À`, `È`, `Ê`, `Î`, `Ô`, etc. sont obligatoires quand la minuscule correspondante est accentuée. Les sigles, translittérations et vrais noms non accentués sont exclus par contexte, jamais par une règle aveugle.
+- **Références `Ibid.`.** Dans la couche de lecture finale, développer `Ibid.` dès que sa cible a été résolue et vérifiée. Résoudre d’abord le livre, le chapitre et la versification par la source et le contenu ; n’expanser jamais un `Ibid.` encore ambigu. Le texte visible et le lien canonique doivent rester concordants.
+- **Unicité des liens.** Un couple `segment × cible biblique` reçoit un seul type. Si le segment est une citation autonome, T1 prévaut. Si le segment incorpore la citation dans une explication ou une application de ce même verset, T3 prévaut. Ne pas conserver T1 et T3 en parallèle pour la même cible.
+- **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.
+- **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
+- **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.

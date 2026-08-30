@@ -3140,6 +3140,18 @@ toutes dans `scripts/fillion/detourer-gravures.mjs`, `processing_version` 4.1.0 
   **99 %**. ⚠️ C'est le RAYON qui décide, non la force — à σ 0,6, monter
   l'amplitude de 2 à 4 ne rend qu'un point. Sur une photogravure en ton continu,
   σ 1,6 fait bouillir la feuillée : ne pas l'y étendre.
+- ⛔ **ET LA RAMPE NE SE MESURE JAMAIS SUR LE GRIS RATTRAPÉ** — régression poussée
+  puis corrigée le 30 août 2026, relevée par l'auteur (« le démoniaque a pâli »).
+  La rampe est une mesure de TONS, le rattrapage un conditionnement de SORTIE : un
+  rattrapage large creuse la queue sombre de l'histogramme, le point d'encre pris
+  au 2e centile tombe avec elle (119 → 77 sur le paralytique, 104 → 62 sur le
+  démoniaque), la rampe s'élargit et TOUS les demi-tons s'éclaircissent. D'où
+  `reduite` → `pourLaRampe` (σ 0,6, qui donne `bornes`) et `red` (σ 1,6, auquel la
+  rampe s'applique).
+- ⚠️ **La densité se mesure APRÈS la seconde réduction**, rapportée au témoin.
+  Prise sur le fichier servi, elle prête au rattrapage jusqu'à +46 % d'encre que
+  la réduction reprend aussitôt. Densité VUE : ancienne chaîne **×0,90**, rampe
+  couplée ×0,83, rampe découplée **×1,03**, + couture ×1,08.
 - ⛔ **`coudreLesCreux` ne dessine rien, et trois verrous le garantissent** : un
   creux tenu par de l'encre des DEUX côtés (`COUTURE_TENU`, `COUTURE_PORTEE`), un
   plafond pris sur le gris le plus SOMBRE du scan sous le pixel (`plafondDuScan`),
