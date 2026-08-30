@@ -3634,6 +3634,78 @@ du § 35.16.11 y serait posée sans avoir regardé chacune. **Question ouverte.*
 script, sans quoi la page composerait à une taille et le fichier serait fabriqué
 pour une autre.
 
+#### 35.16.15. L'EXPORT d'une illustration : deux exemplaires, et ce que la base en dit
+
+Tout ce qui précède décide de ce qu'une gravure DOIT être. Cette section dit
+comment elle sort de l'atelier — et chacune de ses règles a été payée.
+
+**Deux exemplaires, et ils ne servent pas la même chose.**
+
+| exemplaire | forme | ce qu'il porte |
+|---|---|---|
+| `master` | PNG, seau `bible-illustrations-master` | le tirage NEUTRE, à pleine définition |
+| `web` | WebP q90, seau `bible-illustrations-web` | ce qu'on SERT, avec tous les partis |
+
+⛔ **Le master ne porte AUCUN parti** : ni puissance de ton, ni rattrapage, ni
+réduction d'affichage. Il ne porte que ce qui est une remise à l'échelle — le
+recadrage et l'étalement des niveaux. C'est de lui qu'on repartira le jour où un
+réglage change, et un parti cuit dedans se composerait au suivant.
+
+⛔ **ON REDÉRIVE TOUJOURS DEPUIS LE MASTER, JAMAIS DEPUIS LE FICHIER SERVI.**
+Celui-ci porte déjà une réduction et un rattrapage : repartir de lui les
+EMPILE. C'est la règle qui a présidé à la reprise des 32 planches (§ 35.16.14).
+
+**⛔ LA BASE DOIT DIRE CE QUI EST SERVI.** `bible_edition_asset_files` porte, par
+exemplaire, les dimensions, le poids, l'empreinte, le profil et la version de
+traitement. Remplacer un fichier sans les reporter laisse la page composer sur les
+anciennes : l'épreuve du 30 août 2026 a rendu le Jourdain EN PORTRAIT, sa
+proportion étant lue dans une ligne périmée. **Le report se fait au même passage
+que le dépôt, jamais plus tard.**
+
+⛔ **Et la version de traitement BOUGE dès que la chaîne bouge.** Sans quoi deux
+fichiers faits différemment se donnent pour identiques, et l'on ne sait plus lequel
+porte quoi. Le 30 août 2026 elle est passée de 4.0.0 à 4.3.0 en une journée, à
+chaque changement de la chaîne. ⚠️ Les masters des planches sont restés en 1.2.0 :
+c'est juste, on ne les a pas refaits — **une version ne se hausse que sur ce qu'on
+a réellement rejoué.**
+
+**⚠️ LE SEAU POSE `no-cache`, LE NAVIGATEUR GARDE QUAND MÊME.** Remplacer un fichier
+à la même adresse laisse un lecteur sur l'ancien tant qu'il n'a pas rechargé de
+force. Pour juger sur épreuve, un profil de navigateur vidé ; pour PROUVER que le
+seau sert bien les octets neufs, comparer le `content-length` de la réponse au
+`byte_size` de la base. Deux nombres égaux, et la question est close.
+
+**⛔ UN EXPORT NE SE CROIT PAS SUR PAROLE : ON INTERROGE LE VRAI CHARGEUR.** Trouver
+les lignes en base ne prouve rien sur ce que le lecteur voit — c'est le défaut des
+« Opuscules », dont les neuf tests passaient pendant que la section restait
+invisible. On appelle donc la fonction que la page appelle.
+
+⚠️ **Et le contrôle lui-même se contrôle, PAR UN TÉMOIN dont on sait la réponse.**
+Le 30 août 2026, un contrôle des planches du Pentateuque a rendu ZÉRO illustration,
+et j'ai annoncé qu'on ne les voyait pas. Il passait un identifiant de créneau qui
+n'existe pas dans `versets_canon`, et rendait donc zéro partout — **y compris sur
+Marc, dont les gravures sont en ligne.** C'est ce témoin, et lui seul, qui a
+démasqué le contrôle. Un contrôle sans témoin ne se contrôle pas lui-même.
+
+⚠️ **Rejouer la chaîne quand une mesure d'AFFICHAGE change.** La taille servie vaut
+le double de la taille affichée (§ 35.16.5) : toucher aux bornes du § 35.16.12 sans
+refabriquer laisse la page composer à une taille et les fichiers faits pour une
+autre. C'est exactement le défaut que ces bornes existent pour empêcher.
+
+⚠️ **Ce qui n'est PAS exporté.** Les feuillets JP2 et le PDF de l'archive restent
+hors du dépôt, dans `tmp/` : ce sont des sources, l'archive en fait foi, et le
+dépôt n'a pas à porter des gigaoctets qu'un déploiement redéploierait. Voir la
+règle des fac-similés de la Bible 899, qui a coûté 1,89 Go et 404 sur 85 % des
+folios avant d'être posée.
+
+⛔ **UN OBJET DÉCLARÉ ESSAI TECHNIQUE NE SE SERT PAS AU LECTEUR.** Les 43
+illustrations de la famille Fillion portent toutes `metadata.test_only = true`,
+`validation_status = 'review'` et `requires_review = true` — et `is_public = true`.
+Elles sont donc servies. **C'est une contradiction, et elle attend un arbitrage :**
+ou bien ces objets sont publiables et les trois marques tombent, ou bien ils ne le
+sont pas et `is_public` tombe. Les deux à la fois ne veulent rien dire, et c'est le
+genre d'état où l'on finit par ne plus savoir ce qui est publié.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.

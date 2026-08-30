@@ -3185,6 +3185,30 @@ toutes dans `scripts/fillion/detourer-gravures.mjs`, `processing_version` 4.1.0 
 - ⚠️ **Une énergie de bord mesurée à travers un intermédiaire WebP est gonflée de
   huit points** par le bruit de compression, que l'opérateur de Sobel compte comme
   du dessin. Mesurer sur du PNG.
+
+### ⛔ L'EXPORT D'UNE ILLUSTRATION — LE CONTRÔLE PASSE PAR LE VRAI CHARGEUR (2026-08-30)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.16.15**, qui dit les deux
+exemplaires (`master` neutre / `web` servi), le report en base, la version de
+traitement et l'arbitrage en attente. Règles de code :
+
+- ⛔ **On appelle `loadBibleEditionChapter` et `canonDuChapitre`, jamais une requête
+  écrite pour l'occasion.** Trouver les lignes en base ne prouve rien sur ce que le
+  lecteur voit — le défaut des « Opuscules », dont les neuf tests passaient pendant
+  que la section restait invisible.
+- ⚠️ **`canonIds` attend l'`id` de `versets_canon`**, non un `canon_id` : cette
+  colonne n'existe pas. Un contrôle qui la demandait rendait ZÉRO illustration
+  partout, et j'ai annoncé que les planches du Pentateuque ne paraissaient pas.
+- ⛔ **TOUT CONTRÔLE PORTE UN TÉMOIN dont on connaît la réponse.** C'est Marc, dont
+  les gravures sont en ligne, qui a démasqué celui-là : il rendait zéro sur lui
+  aussi. Un contrôle sans témoin ne se contrôle pas lui-même. Harnais :
+  `tmp/verifier-planches.mts` (`npx tsx`).
+- **Preuve qu'un seau sert bien les octets neufs** : comparer le `content-length`
+  de la réponse au `byte_size` de `bible_edition_asset_files`. ⚠️ Le seau pose
+  `no-cache`, mais le NAVIGATEUR garde : une épreuve se juge sur un profil vidé.
+- **État au 30 août 2026** : 31 chapitres du Pentateuque portent une planche
+  (12 GEN, 7 EXO, 3 LEV, 5 NUM, 5 DEU ; Genèse 24 en porte deux), servies sous
+  `?trad=TR0010`. Vérifié par le chargeur, non par une requête.
 - ⛔ **ET LA RAMPE NE SE MESURE JAMAIS SUR LE GRIS RATTRAPÉ** — régression poussée
   puis corrigée le 30 août 2026, relevée par l'auteur (« le démoniaque a pâli »).
   La rampe est une mesure de TONS, le rattrapage un conditionnement de SORTIE : un
