@@ -3706,6 +3706,55 @@ ou bien ces objets sont publiables et les trois marques tombent, ou bien ils ne 
 sont pas et `is_public` tombe. Les deux à la fois ne veulent rien dire, et c'est le
 genre d'état où l'on finit par ne plus savoir ce qui est publié.
 
+#### 35.16.16. Le papier se nettoie par son PLANCHER, jamais par son pic
+
+« Les illustrations grandes de la Genèse sont un peu crasseuses » (l'auteur,
+30 août 2026). Elles l'étaient, et cela se mesure : les 32 planches du tome I
+viennent d'une chaîne qui ne posait **aucun étalement**. Leur pic de papier
+plafonne à 225-245 au lieu de 255, il n'est pas le MÊME d'une planche à l'autre, et
+— c'est le fait qui explique l'impression — **il est plus sombre que le
+passe-partout du site**, qui vaut 237. Un tirage plus sombre que son montage se lit
+comme sale, quelle que soit la qualité du dessin.
+
+⛔ **ET L'ÉTALEMENT ORDINAIRE NE SUFFIT PAS : IL AGGRAVE LA MOUCHETURE.** Le grain
+du papier est SOUS le pic ; porter le pic au blanc l'en écarte d'autant. C'est le
+PLANCHER qu'il faut — celui de la rampe alpha (§ 35.16.1), mesuré de la même façon,
+par la demi-largeur du pic prise de son côté CLAIR, le seul qu'aucune encre ne
+peuple. **Tout ce qui est plus clair que ce pied EST du papier**, et devient blanc ;
+la moucheture part avec lui.
+
+Mesuré en écart-type du papier, sur les douze planches de la Genèse :
+
+| | écart-type |
+|---|---:|
+| avant | 4,4 à 7,4 |
+| étalement au PIC | 1,5 à 3,1 |
+| **PLANCHER** | **0,3 à 1,3** |
+
+⚠️ **Ce que le plancher pourrait coûter se contrôle à l'ŒIL, sur les cas extrêmes**,
+et non par un compteur : un compteur de « clairs perdus » confond le dessin avec la
+queue basse du papier, et annonçait jusqu'à 61 % de perte là où l'œil n'en voit
+aucune. Les quatre cas à regarder sont la planche la plus SALE, la plus CLAIRE, la
+PHOTOGRAPHIQUE — dont le ciel est le seul endroit du corpus où le dessin frôle le
+plancher — et la COMPOSITE, qui mêle les genres. Le dessin reste entier dans les
+quatre.
+
+⚠️ **Le blanc de papier est une remise à l'ÉCHELLE, non un parti** : c'est ce qui
+l'autorise là où la puissance de ton du § 35.16.11 reste, elle, en attente. La
+distinction est celle du master (§ 35.16.15) : un master porte le recadrage et
+l'étalement, jamais un choix.
+
+⚠️ **Les masters des planches du tome I ne portent PAS cet étalement**, à la
+différence de ceux du tome VII, et l'on ne peut pas le leur donner : les feuillets
+JP2 de ce tome ne sont pas sur le disque. Dette connue ; le script étant
+déterministe, une redérivation le repose à l'identique.
+
+⚠️ **Un contrôle d'octets pris à l'instant du dépôt lit le CACHE DE BORD.** La
+vérification du § 35.16.15 a signalé une discordance sur une planche — 282 410
+octets en base contre 372 446 servis — qui n'existait pas : l'objet, relu par
+l'API de stockage, concordait au sha256 près. Le contrôle se refait **après** le
+dépôt, et une discordance isolée se confirme sur l'objet avant d'être crue.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.

@@ -3209,6 +3209,16 @@ traitement et l'arbitrage en attente. Règles de code :
 - **État au 30 août 2026** : 31 chapitres du Pentateuque portent une planche
   (12 GEN, 7 EXO, 3 LEV, 5 NUM, 5 DEU ; Genèse 24 en porte deux), servies sous
   `?trad=TR0010`. Vérifié par le chargeur, non par une requête.
+- ⛔ **LE PAPIER SE NETTOIE PAR SON PLANCHER, JAMAIS PAR SON PIC** (charte
+  § 35.16.16). `nettoyerLePapier` / `bornesDuPapier` dans `reduire-planches.mjs` :
+  même mesure que la rampe alpha, la demi-largeur du pic prise de son côté CLAIR.
+  Un étalement au pic **aggrave** la moucheture, le grain étant sous le pic — écart-
+  type du papier 4,4-7,4 avant, 1,5-3,1 au pic, **0,3-1,3** au plancher. Le
+  nettoyage se fait à PLEINE résolution, avant la réduction.
+- ⚠️ **Un contrôle d'octets pris à l'instant du dépôt lit le CACHE DE BORD** : il a
+  signalé une discordance qui n'existait pas (282 410 en base, 372 446 servis) et
+  que l'objet relu par l'API démentait au sha256 près. Confirmer sur l'objet avant
+  de croire une discordance isolée.
 - ⛔ **ET LA RAMPE NE SE MESURE JAMAIS SUR LE GRIS RATTRAPÉ** — régression poussée
   puis corrigée le 30 août 2026, relevée par l'auteur (« le démoniaque a pâli »).
   La rampe est une mesure de TONS, le rattrapage un conditionnement de SORTIE : un
