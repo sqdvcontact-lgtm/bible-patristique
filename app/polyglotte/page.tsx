@@ -15,7 +15,8 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from "@/app/lib/grec";
+import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
+import { cesurerLatin } from "@/app/lib/cesuresLatines";
 import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
 import IconeCrayon from "@/app/components/IconeCrayon";
@@ -107,10 +108,26 @@ function texteEnrichi(t: string | null) {
   return rendreTexteEnrichi(norm);
 }
 
-// Enrichit le texte APRÈS avoir posé les tirets conditionnels, mais seulement sur le grec
-// (colonne dont `lang === "grc"`). Les tirets sont invisibles ailleurs qu'aux coupes.
+// Enrichit le texte APRÈS avoir posé les tirets conditionnels. Un tiret conditionnel est
+// invisible ailleurs qu'au point de coupe.
+//
+// ⛔ LE LATIN AUSSI, et c'est lui qui en a le plus besoin. Les cellules sont justifiées avec
+// `hyphens: auto` (voir `.poly-texte-cell`) — or aucun navigateur ne livre de dictionnaire de
+// coupure pour le latin, si bien que la déclaration n'y fait RIEN : mesuré dans
+// `app/lib/cesuresLatines.ts`, 23 lignes avec, 23 sans, et 21 dès que les points de coupe
+// sont posés. La Vulgate clémentine (36 046 versets) était donc la seule colonne justifiée
+// sans aucun point de coupe — celle qui creuse les lézardes —, et cela dans la page où les
+// colonnes sont les plus étroites du site. Le français a son dictionnaire, le grec a
+// `cesurerGrec` ; il ne manquait que le latin.
+//
+// ⚠️ La césure vient AVANT l'enrichissement, et c'est sans danger : `cesurerLatin` comme
+// `cesurerGrec` ne touchent que des suites de LETTRES assez longues — jamais la ponctuation,
+// jamais les marques `**`, `++`, `^^` ni `<i>`, dont le nom de balise n'a qu'une lettre.
 function texteCesure(t: string | null, lang?: string) {
-  return texteEnrichi(t && lang === "grc" ? cesurerGrec(t) : t);
+  if (!t) return texteEnrichi(t);
+  if (lang === "grc") return texteEnrichi(cesurerGrec(t));
+  if (lang === "la") return texteEnrichi(cesurerLatin(t));
+  return texteEnrichi(t);
 }
 
 const VERT = "var(--cs-vert)";
@@ -1383,7 +1400,7 @@ export default function PolyglottePage() {
                 {slotCols.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
-                    <div key={i} className="poly-texte-cell" lang={sc.trad?.lang}
+                    <div key={i} className="poly-texte-cell" lang={sc.trad?.lang} onCopy={copierSansCesures}
                       style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)' }}>
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
                           la référence d'origine est ici la seule qui existe. */}
@@ -1507,7 +1524,7 @@ export default function PolyglottePage() {
                         const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
                         return (
-                          <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesuresGrecques}
+                          <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesures}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un

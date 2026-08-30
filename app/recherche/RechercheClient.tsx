@@ -9,7 +9,7 @@ import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { cesurerGrec, codeLangue, copierSansCesuresGrecques } from '@/app/lib/grec'
+import { cesurerGrec, codeLangue, copierSansCesures } from '@/app/lib/grec'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 
@@ -1359,7 +1359,7 @@ export default function RechercheClient() {
                                   const numOrig = String((v as any)['num_' + code] ?? '').trim()
                                   const absent = brut && lastQuery ? !contientTerme(brut, lastQuery, mode) : false
                                   return (
-                                    <div key={i} lang={lang} onCopy={copierSansCesuresGrecques} className={`poly-texte-cell${absent ? ' poly-texte-cell--absent' : ''}`}>
+                                    <div key={i} lang={lang} onCopy={copierSansCesures} className={`poly-texte-cell${absent ? ' poly-texte-cell--absent' : ''}`}>
                                       {/* Lettrine : référence(s) d'origine de l'édition (num_TRxxxx),
                                           « ch, v » séparées par « · » si plusieurs versets réunis. */}
                                       {brut && numOrig && (

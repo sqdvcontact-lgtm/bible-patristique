@@ -19,7 +19,13 @@ export function codeLangue(langue: string | null | undefined): string {
 }
 
 const SHY = "­";
-export function copierSansCesuresGrecques(e: { clipboardData: { setData(type: string, value: string): void }; preventDefault(): void }) {
+// ⛔ Ce garde-fou de copie ne connaît AUCUNE langue : il retire tout tiret conditionnel de la
+// sélection, d'où qu'il vienne — `cesurerGrec` ici, `cesurerLatin` dans la Polyglotte depuis
+// le 2026-08-30. Il s'appelait `copierSansCesuresGrecques` du temps où le grec était seul
+// césuré à l'écran, et ce nom laissait croire qu'une colonne latine césurée aurait besoin de
+// son propre garde-fou. Une césure est une affaire de mise en page : elle n'a rien à faire
+// dans un presse-papiers, quelle que soit la langue qui l'a posée.
+export function copierSansCesures(e: { clipboardData: { setData(type: string, value: string): void }; preventDefault(): void }) {
   if (typeof window === "undefined") return;
   const selection = window.getSelection()?.toString() ?? "";
   if (!selection.includes(SHY)) return;
