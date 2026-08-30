@@ -60,7 +60,13 @@ const NETTETE = { sigma: 0.6, m1: 0, m2: 2 }
  *
  *  ⛔ ET IL NE VAUT QUE POUR LE TRAIT. Sur une photogravure en ton continu, σ 1,6
  *  fait BOUILLIR la feuillée et granule les ciels — le défaut déjà relevé du
- *  contraste local. Les deux planches cadrées gardent donc `NETTETE`. */
+ *  contraste local. Les deux planches cadrées gardent donc `NETTETE`.
+ *
+ *  ⛔ ET IL NE DOIT JAMAIS SERVIR À MESURER LA RAMPE : voir le découplage, plus
+ *  bas. Mêlés, ils ont fait perdre aux neuf gravures de 5 à 19 % de leur encre,
+ *  et l'auteur a vu le démoniaque pâlir. La densité VUE — après la seconde
+ *  réduction, rapportée au témoin — dit le partage : ancienne chaîne ×0,90,
+ *  rattrapage large avec rampe couplée ×0,83, rampe découplée ×1,03. */
 const NETTETE_TRAIT = { sigma: 1.6, m1: 0, m2: 3 }
 
 /** ⛔ LE RÉGIME SE DÉCIDE SUR LA LARGEUR IMPRIMÉE, non sur le sujet.
@@ -520,15 +526,31 @@ export async function detourerDepuisJp2(feuillet, n, largeurServie) {
   //    mesure pour trouver son plancher. Mesuré, la demi-largeur retombait à 1 et
   //    le plancher à 254 : la rampe ne mordait plus, et le voile revenait intact.
   //    L'étalement reste sur le MASTER, qui est une image de ton continu à garder.
-  const red = await monocanal(
-    sharp(brut.data, brutRaw)
-      .resize({ width: Math.min(largeurServie, brut.info.width), fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
-      .sharpen(NETTETE_TRAIT)
-  )
-  // La rampe se mesure sur l'image RÉDUITE, celle qu'on sert : la réduction et le
-  // rattrapage de netteté déplacent l'histogramme, et une rampe posée sur la
-  // pleine résolution ne décrirait pas le fichier qu'on écrit.
-  const bornes = bornesDeRampe(red.data, red.info.width * red.info.height)
+  // ⛔ LA RAMPE ET LE RATTRAPAGE NE DOIVENT PAS SE MÊLER, et les mêler a coûté une
+  //    passe entière. La rampe est une mesure de TONS ; le rattrapage n'est qu'un
+  //    conditionnement de SORTIE, réglé sur ce que le navigateur laisse passer
+  //    (voir `NETTETE_TRAIT`). Or un rattrapage large creuse la queue sombre de
+  //    l'histogramme : le point d'encre, pris au 2e centile, tombe avec elle —
+  //    mesuré, de 119 à 77 sur le paralytique et de 104 à 62 sur le démoniaque —
+  //    la rampe s'élargit d'autant, et TOUS les demi-tons s'éclaircissent. Les
+  //    neuf gravures perdaient ainsi de 5 à 19 % de leur densité d'encre, et
+  //    l'auteur a vu le démoniaque pâlir.
+  //
+  //    La rampe se mesure donc sur la réduction NON rattrapée, et s'applique
+  //    ensuite au gris rattrapé : le rendu tonal ne bouge pas d'un pixel, et le
+  //    rattrapage n'ajoute que ce qu'on lui demande, de la définition de bord.
+  const reduite = await sharp(brut.data, brutRaw)
+    .resize({ width: Math.min(largeurServie, brut.info.width), fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
+    .removeAlpha().toColourspace('b-w').png().toBuffer()
+  const pourLaRampe = await monocanal(sharp(reduite).sharpen(NETTETE))
+  const red = await monocanal(sharp(reduite).sharpen(NETTETE_TRAIT))
+  if (pourLaRampe.info.width !== red.info.width || pourLaRampe.info.height !== red.info.height) {
+    throw new Error('les deux rattrapages ne rendent pas la même taille')
+  }
+  // La rampe se mesure sur l'image RÉDUITE, celle qu'on sert : la réduction
+  // déplace l'histogramme, et une rampe posée sur la pleine résolution ne
+  // décrirait pas le fichier qu'on écrit.
+  const bornes = bornesDeRampe(pourLaRampe.data, pourLaRampe.info.width * pourLaRampe.info.height)
   // ⛔ La couture a besoin du scan À SA RÉSOLUTION, non de l'image réduite : le
   //    plafond est le gris le plus sombre que porte le feuillet sous le pixel,
   //    et c'est justement ce que la réduction a moyenné.
@@ -710,7 +732,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '4.1.0',
+    processing_version: '4.1.1',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
