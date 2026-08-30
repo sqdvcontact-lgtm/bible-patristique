@@ -73,7 +73,7 @@ const LARGEUR_DEUX_COLONNES = 0.6
 const PLANCHER_VIGNETTE = 0.40
 const PLAFOND_VIGNETTE = 0.62
 const PART_AU_FIL = 0.90
-const MESURE_COLONNE = 502
+const MESURE_COLONNE = 500
 
 function partIllustration(regime, largeurImprimee) {
   if (regime === 'C') return 1

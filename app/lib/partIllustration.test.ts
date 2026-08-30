@@ -67,7 +67,7 @@ describe('la part de la colonne', () => {
 
   it('sert au DOUBLE de la taille d’affichage, jamais plus', () => {
     expect(largeurServie(0.40)).toBe(Math.round(2 * 0.40 * MESURE_COLONNE))
-    expect(largeurServie(0.575)).toBe(577)
-    expect(largeurServie(0.90)).toBe(904)
+    expect(largeurServie(0.575)).toBe(575)
+    expect(largeurServie(0.90)).toBe(900)
   })
 })

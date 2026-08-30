@@ -420,9 +420,22 @@ export function estDetouree(regime: RegimeIllustration): boolean {
   return regime === 'vignette'
 }
 
-/** La colonne de lecture d'un chapitre, en pixels, à la racine 16. C'est sur
- *  elle que se comptent les largeurs, non sur la fenêtre. */
-export const MESURE_COLONNE = 502
+/** ⛔ LE CONTENEUR D'UNE GRAVURE EST LE BLOC, 500 px, NON L'AXE.
+ *
+ *  L'axe de texte vaut `--mesure-ligne`, 538 px, mais il est une GRILLE :
+ *  `minmax(0, var(--mesure-bloc)) 2.375rem`, où la seconde colonne est la
+ *  gouttière d'actions. Ce qui borne une illustration est donc la PREMIÈRE
+ *  colonne, `--mesure-bloc` = 31,25 rem = 500 px.
+ *
+ *  ⚠️ La valeur a été 502 pendant une journée, prise sur la colonne de lecture
+ *  au lieu du bloc. L'écart est de 0,4 % et ne se voit pas ; il rendait pourtant
+ *  chaque fichier servi à 2,008× sa taille d'affichage au lieu de 2, et une
+ *  constante qui se donne pour une mesure doit être la mesure. Relevée à l'audit
+ *  du rendu, le navigateur interrogé sur la page composée.
+ *
+ *  ⛔ Ne pas la confondre avec l'axe : le TITRE du chapitre et les rangées de
+ *  verset se centrent sur le bloc, mais l'axe, lui, porte aussi la gouttière. */
+export const MESURE_COLONNE = 500
 
 /** ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, elle n'est pas une constante.
  *
