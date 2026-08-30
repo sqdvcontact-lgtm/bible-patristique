@@ -3121,6 +3121,57 @@ empreintes, pour qu'un essai ultérieur reparte du même fichier. ⛔ Ils ne son
 installés dans ComfyUI, et `1x_wtp_descreentone_compact` ne déclare **aucune
 licence** : il ne pourrait de toute façon pas servir une image publiée.
 
+### ⛔ LE CONTENEUR D'UNE ILLUSTRATION EST LE BLOC, 500 px, NON L'AXE (2026-08-30)
+
+Trouvé à l'audit du rendu, en interrogeant le navigateur sur la page composée.
+Trois mesures se ressemblent et ne valent pas la même chose :
+
+| | valeur | ce que c'est |
+|---|---:|---|
+| `--mesure-page` | 620 px | la colonne de lecture entière |
+| `--mesure-ligne` | 538 px | l'AXE de texte, `.cs-bible-axe` |
+| `--mesure-bloc` | **500 px** | le bloc, **ce qui borne une gravure** |
+| `--mesure-texte` | 480 px | la piste d'un verset |
+
+⛔ **L'axe est une GRILLE**, `minmax(0, var(--mesure-bloc)) 2.375rem`, dont la
+seconde colonne est la gouttière d'actions. Une illustration posée dedans est
+donc bornée par la PREMIÈRE colonne, jamais par les 538 de l'axe.
+`MESURE_COLONNE` a valu 502 une journée, pris sur la colonne de lecture : l'écart
+ne se voit pas, mais il servait chaque fichier à 2,008× sa taille d'affichage au
+lieu de 2, et une constante qui se donne pour une mesure doit être la mesure.
+
+⚠️ **ET UNE ÉPREUVE DONT LE CONTENEUR MENT MESURE AUTRE CHOSE QUE LA PAGE.**
+`tmp/epreuve-habillage.tsx` bornait sa page à 502 px : l'axe s'y resserrait à 502
+et le bloc à 464, si bien que toutes les gravures y paraissaient **8 % trop
+petites** et que le rapport fichier/affichage y semblait de 2,2× au lieu de 2.
+Une planche de contrôle se donne au moins `--mesure-ligne` de large, et l'on
+vérifie la largeur des CONTENEURS avant de croire ce qu'elle montre.
+
+⚠️ Corollaire du même ordre : une épreuve doit envelopper l'illustration dans son
+AXE (`styleAxeTexte`), comme la page le fait. Rendue nue, elle prend la largeur
+de la planche et tous les blancs qui l'entourent sont faux.
+
+#### Ce que l'audit a par ailleurs vérifié
+
+| point | mesure |
+|---|---|
+| axes | blocs et gravures centrées sur le MÊME axe, à 0,1 px près |
+| largeurs | 40 · 45 · 50 · 57 · 90 % du bloc, conformes au calcul |
+| fichier / affichage | **2,00×** partout |
+| piste laissée par un flottant | **286 px, environ 49 signes** |
+| contenance | six flottants, six blocs en `flow-root`, aucun débordement |
+| repli mobile | flottant au-dessus de 700 px, centré en dessous, **en même temps que la manchette** |
+| accessibilité | 11 gravures, 0 sans intitulé, 0 sans légende, masques en `role="img"` |
+| contraste de l'encre | 10,6 au Clair · 9,4 au Cuir |
+| contraste de la légende | 5,2 au Clair · 10,0 au Cuir, à 12,5 px |
+
+⚠️ **Une moyenne de piste ne se lit pas sans écarter la DERNIÈRE ligne de chaque
+paragraphe**, courte par nature : elle faisait tomber la moyenne de 286 à 212 px
+et crier à une piste étroite qui n'existe pas. Et la ligne la plus étroite d'un
+bloc n'est pas bornée par la gravure mais par la MANCHETTE, qui ne fait que
+7 rem : il faut ne retenir que les lignes dont la bande verticale recoupe celle
+du flottant.
+
 ### ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, ET C'EST ELLE QUI DÉCIDE DE LA RÉSOLUTION (2026-08-30)
 
 Relevé de l'auteur, gravure par gravure : « Médecin pansant un blessé a perdu en
