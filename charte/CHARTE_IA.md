@@ -3777,6 +3777,56 @@ octets en base contre 372 446 servis — qui n'existait pas : l'objet, relu par
 l'API de stockage, concordait au sha256 près. Le contrôle se refait **après** le
 dépôt, et une discordance isolée se confirme sur l'objet avant d'être crue.
 
+### 35.17. L'ÉCHELLE DES BLANCS — un blanc ne dit que son RAPPORT aux autres
+
+Mesurée dans la page rendue le 30 août 2026, la hiérarchie de la Bible commentée ne se lisait pas, et c'est le BLANC qui manquait à la dire. Les six rangs de titre tenaient tous entre 33 et 56 pixels, et l'ordre y était ROMPU deux fois : la sous-section (T4) recevait 33 px, c'est-à-dire exactement autant qu'un simple changement d'unité de commentaire et moins que la péricope (T6) qu'elle domine ; « Première partie », la plus haute division du livre, en recevait 53, moins que « Livre I » qui lui est subordonné. Six rangs dans un mouchoir, et deux inversés.
+
+⛔ **Le blanc d'un rang se NOMME, il ne se somme pas.** Chaque valeur naissait de la rencontre accidentelle de deux marges, celle du titre et celle du bloc qui le précède, si bien qu'un même rang s'ouvrait de deux façons selon ce qui tombait devant lui : un titre de péricope recevait 46 px après une introduction et 33 après une rangée de verset. L'échelle vit désormais dans des jetons (`--cs-blanc-*`), la marge de ce qui précède un titre se ferme, et le rang décide seul.
+
+**Elle se compte en LIGNES de l'apparat** (16,25 px), seule unité que la page donne à l'œil, et progresse d'environ un quart à chaque rang.
+
+| ce qui s'ouvre | blanc |
+|---|---:|
+| deux versets d'un même passage | 8 px |
+| la COUTURE — du commentaire aux versets qu'il commente | 9 px |
+| d'une unité de commentaire à la suivante | 41 px |
+| une péricope | 64 px |
+| un paragraphe, un chapitre | 80 px |
+| une sous-section | 100 px |
+| une section | 124 px |
+| une partie | 152 px |
+| le livre | 184 px |
+
+⛔ **Ne pas resserrer l'échelle** : deux rangs qui diffèrent de moins d'un cinquième ne se distinguent pas, et c'est ainsi qu'elle s'était aplatie. ⚠️ Le seul écart franc est celui qui sépare la coupure d'unité du premier rang de titre, 41 contre 64, et il est voulu : changer d'unité n'est pas changer de péricope, et les deux valaient 33 px l'un comme l'autre.
+
+⛔ **LA COUTURE ET LA COUPURE NE VALENT PAS LE MÊME CHIFFRE** (§ 35.12), et leur RAPPORT compte plus que leurs valeurs. Elles valaient 12 et 33, soit 2,75, dans une page où tout est du même sérif justifié au même corps et où 33 px ne font que deux lignes : la coupure ne se lisait pas, et le lecteur n'avait aucun moyen de voir où un commentaire finissait et où le suivant commençait. Elles valent 9 et 41, soit 4,5. La couture se ferme à peine au-dessus du blanc qui sépare deux versets : le commentaire et ses versets sont une seule unité de lecture, et il n'y a pas de raison qu'un change de nature s'aère plus qu'un change de verset.
+
+#### 35.17.1. Un bloc qui PORTE un titre s'ouvre au rang de ce titre
+
+Une péricope se dit de deux façons chez Fillion : par un bloc `titre_pericope`, qui EST un titre, et par un `introduction_titree`, bloc d'information qui porte son titre au-dedans. Le premier prenait le blanc de son rang, le second celui d'un simple changement d'unité — 64 px contre 41 pour la même chose. **268 blocs du corpus sont dans ce cas**, dont deux dans le seul Matthieu 5.
+
+⚠️ Le titre porté n'a pas de marge propre, le bloc l'espaçant déjà : c'est donc au BLOC de prendre le rang, et la règle ne fait que lui dire lequel.
+
+⛔ **Un bloc de TITRE en est exclu, et ce n'est pas une subtilité.** Il porte lui aussi son intitulé, et l'intitulé y répète la classe de rang du bloc : la règle l'attrapait donc, avec un rang qui se trouvait juste. Elle n'en était pas moins fausse — sa spécificité écrasait EN SILENCE la réduction mobile des rangs hauts, et « Première partie » gardait ses 152 px sur un téléphone. Un bloc de titre porte son rang dans ses propres classes ; il n'a pas besoin qu'on le lui dise.
+
+#### 35.17.2. Deux titres qui se suivent ne s'ouvrent pas deux fois
+
+Une pile de titres est UNE composition d'ouverture : le premier porte le blanc de son rang, les suivants s'y rangent. Sans cette règle, un chapitre qui ouvre à la fois une partie, une section et un paragraphe — c'est le cas de la Genèse 2 — empilait 356 px de blanc pur avant son premier mot. ⚠️ Un sous-titre y compte comme un titre : il est le chapeau de celui qu'il continue, et le rang qui le suit ne recommence pas davantage après lui.
+
+⚠️ **Et le PREMIER bloc d'un chapitre n'a rien à séparer.** Le blanc d'un rang dit qu'on quitte ce qui précède ; en tête de chapitre il n'y a rien à quitter, et la barre de navigation porte déjà son filet. Sans cette exception, Matthieu 5 s'ouvrait sur 120 px de vide.
+
+#### 35.17.3. Une règle de blanc porte sur TROIS surfaces, et l'oublier ne se voit pas
+
+Corollaire de la rectification du § 35.12, et il vaut pour toute règle de voisinage. La Bible commentée se rend de trois façons — pleine mesure, mesure étroite, lecture en regard — et les trois n'ont pas le même balisage : en pleine mesure un bloc vit dans une enveloppe d'axe, en mesure étroite il redevient le frère direct d'une rangée de verset, en lecture en regard il vit dans une boîte de créneau où il n'a ni axe ni rangée pour voisins.
+
+⛔ **La couture et la coupure ne portaient donc que sur la pleine mesure.** Sur un téléphone, c'est-à-dire là où l'on en a le plus besoin puisque la colonne y est la plus étroite, rien ne faisait voir un groupe ; il en allait de même de la lecture en regard. Rien ne le signalait : ni les types, ni les tests, ni la relecture de la feuille. **Une règle de blanc s'écrit pour les trois surfaces, ou elle n'est écrite pour aucune.**
+
+⚠️ L'échelle se resserre en revanche sur un TÉLÉPHONE, où elle se compte en écrans et non en lignes : les rangs hauts y prendraient jusqu'au quart d'un écran pour un blanc qu'on traverse au pouce. L'ORDRE des rangs, lui, ne bouge pas — c'est lui qui porte la hiérarchie, non les valeurs.
+
+#### 35.17.4. Une PIÈCE liminaire garde une échelle plus serrée
+
+Ses titres coiffent des sections de prose qui se suivent page après page — l'introduction « Ancien Testament » en range dix dans un seul bloc, avec onze paragraphes et quatre listes —, et non des divisions du livre. L'échelle du fil y ouvrirait un demi-écran entre deux paragraphes, et jusqu'à cent pixels avant « 3. Livres prophétiques (17 livres) », qui est le sous-titre d'une liste. ⛔ L'intertitre DIVISÉ y garde ses quatre rem : c'est lui qui sépare deux sections d'une pièce, et la règle resserrée, plus spécifique, les lui reprendrait en silence.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.

@@ -2602,6 +2602,52 @@ haute du second.
   son explication qui était fausse, pas sa valeur. Une règle qui marche par accident
   se relit avant d'être copiée sur un rang voisin.
 
+## ⛔ L'ÉCHELLE DES BLANCS de la page Bible — jetons `--cs-blanc-*` (2026-08-30, soir)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.17**. Règles de code, toutes dans
+`app/globals.css` :
+
+- ⛔ **Un blanc de rang s'écrit UNE fois, dans un jeton, et nulle part ailleurs.**
+  `--cs-blanc-couture`, `--cs-blanc-unite`, puis `--cs-blanc-t1` à `--cs-blanc-t6` et
+  `--cs-blanc-titres`. Le rang pose son `margin-top` depuis le jeton ; le bloc de tête
+  partagé ne pose plus que le blanc du DESSOUS (`margin: 0 0 0.5rem`), qu'un rang
+  resserre ou ouvre pour son compte.
+- ⛔ **Ce qui précède un titre rend sa marge** : sans cela le blanc d'un rang est une
+  SOMME, et le même rang s'ouvre de deux façons selon ce qui tombe devant lui. Deux
+  sélecteurs, un par surface — `:has(+ .cs-bible-axe > …--title)` pour la grille,
+  `:has(+ .cs-bible-bloc…--title)` pour la fratrie de la mesure étroite.
+- ⛔ **Trois surfaces, trois sélecteurs, ou rien.** Pleine mesure (enveloppe d'axe),
+  mesure étroite (le bloc est le frère direct d'une rangée de verset), lecture en
+  regard (`[data-lecture='bilingue']`, ni axe ni rangée). La coupure et la couture ne
+  portaient QUE sur la première — le groupe ne se voyait donc ni sur téléphone ni en
+  regard, et rien ne le signalait. Repérage : toute règle qui nomme `.verset-row` ou
+  `.cs-bible-axe` doit avoir ses deux jumelles.
+- ⛔ **Un bloc qui PORTE son titre prend le rang de ce titre**
+  (`:has(> .cs-bible-title--porte.cs-bible-title--tN)`), sans quoi une péricope ouverte
+  par un `introduction_titree` s'aère comme un changement d'unité. ⚠️ **En excluant
+  `.cs-bible-block--title`** : un bloc de titre porte lui aussi son intitulé, et
+  l'intitulé y répète la classe de rang du bloc — la règle l'attrapait, avec un rang
+  juste, et sa spécificité écrasait en silence la réduction mobile des rangs hauts.
+- ⛔ **`:first-of-type` ne dit PAS « le premier du flux » sur l'axe de texte.**
+  L'enveloppe d'axe ne porte que son bloc et une cellule vide : chaque bloc y est donc
+  le premier `div` de sa propre grille. Écrite sans garde, la règle de tête de chapitre
+  donnait ses 12 px à TOUS les blocs, avec une spécificité qui battait les six rangs —
+  mesuré, « 2. Les béatitudes » s'ouvrait sur 17 px au lieu de 69. La variante étroite
+  se garde donc derrière `@media (max-width: 900px)`, le seuil de `useEstMobile`.
+- ⚠️ **Une pièce liminaire garde une échelle plus serrée** (`.cs-bible-piece`), et
+  `:not(.cs-bible-titre--divise)` en écarte l'intertitre divisé, à qui la charte donne
+  quatre rem depuis le 28 août : la règle resserrée, plus spécifique, les lui
+  reprendrait sans bruit.
+- ⚠️ **Les valeurs sont MESURÉES dans la page rendue**, pas calculées sur la cascade —
+  Matthieu 5 et Genèse 2, en 1180 px, en 420 px et en lecture en regard. Le relevé se
+  fait sur les boîtes d'ENCRE (le bloc, le `[data-verse-text]`), jamais sur l'enveloppe
+  d'axe : celle-ci est une grille et contient les marges de son enfant, si bien que
+  tous les écarts s'y lisent à zéro.
+- ⚠️ **Et le défilement d'épreuve vise le scroller du TEXTE.** Le premier `div` en
+  `overflow-y: auto` de la page est la liste des livres du volet gauche : une capture
+  qui la fait défiler montre le haut du chapitre en croyant montrer son milieu. Remonter
+  depuis la cible jusqu'à son propre scroller.
+
 ## ⛔ Le PARAGRAPHE (T5) se centre, seul des rangs bas (2026-08-29)
 
 Doctrine : charte **§ 35.10**. « ce niveau de titre me paraît pas bien placé »
