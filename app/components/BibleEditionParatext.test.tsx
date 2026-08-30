@@ -254,6 +254,17 @@ describe('paratexte des éditions bibliques', () => {
     expect(gauche).toContain('cs-bible-gravure--gauche')
   })
 
+  it('⛔ à GAUCHE, la vignette prend la COLONNE DE LA MANCHETTE', () => {
+    // Le repère d’un commentaire est lui aussi un flottant de gauche, large de
+    // 7 rem. Une vignette plus large fait sauter le fer du texte d’un paragraphe
+    // à l’autre : mesuré sur épreuve, de 126 à 168 px dans le même bloc.
+    const gauche = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="gauche" />)
+    const droite = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="droite" />)
+    expect(gauche).toContain('width:var(--cs-manchette-colonne)')
+    expect(gauche).toContain('var(--cs-manchette-gouttiere)')
+    expect(droite).toContain('width:30%')
+  })
+
   it('⛔ une SCÈNE ne flotte jamais, même si on le lui demande', () => {
     const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} habillage cote="gauche" />)
     expect(html).not.toContain('float')

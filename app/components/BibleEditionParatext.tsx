@@ -560,11 +560,21 @@ export function IllustrationBible({ illustration, habillage, cote }: {
   const flotte = habillage === true && regime === 'vignette'
   const aGauche = flotte && cote === 'gauche'
 
+  // ⛔ À GAUCHE, LA VIGNETTE PREND LA COLONNE DE LA MANCHETTE, non sa part de la
+  //    colonne de lecture. Le repère d’un commentaire est lui aussi un flottant de
+  //    gauche : une vignette plus large que lui fait sauter le fer du texte d’un
+  //    paragraphe à l’autre : mesuré sur épreuve, de 126 à 168 px dans le même
+  //    bloc. Rangée dans la colonne du repère, elle appartient à la grille de la
+  //    page au lieu de la contrarier. ⚠️ La mesure vit dans la feuille, sous
+  //    la propriété --cs-manchette-colonne : un style en ligne ne se surcharge
+  //    pas en CSS, d’où la lecture par var() plutôt qu’une seconde déclaration.
   const cadre: CSSProperties = {
-    width: `${Math.round(part * 100)}%`,
+    width: aGauche ? 'var(--cs-manchette-colonne)' : `${Math.round(part * 100)}%`,
     maxWidth: `${illustration.width}px`,
     margin: flotte
-      ? (aGauche ? '0.15rem 1.1rem 0.55rem 0' : '0.15rem 0 0.55rem 1.1rem')
+      ? (aGauche
+          ? '0.15rem var(--cs-manchette-gouttiere) 0.55rem 0'
+          : '0.15rem 0 0.55rem 1.1rem')
       : '1.25rem auto',
     float: flotte ? (aGauche ? 'left' : 'right') : undefined,
     textAlign: 'center',

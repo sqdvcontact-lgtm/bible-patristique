@@ -275,6 +275,12 @@
      ⚠️ Le rang T4 s'y alignait le 30 août 2026 au matin ; il a repris son corps
      propre le soir même, la sous-section étant un titre et non du texte. */
   --cs-corps-apparat: 0.78125rem;
+  /* ⛔ LA COLONNE DE LA MANCHETTE, et sa gouttière. Elles se nomment parce que
+     DEUX choses s’y rangent : le repère d’un commentaire, et une vignette qui
+     flotte à gauche. Recopiées, elles divergent, et le fer du texte saute d’un
+     paragraphe à l’autre : mesuré, de 126 à 168 px dans le même bloc. */
+  --cs-manchette-colonne: 7rem;
+  --cs-manchette-gouttiere: 0.9rem;
 }
 
 /* ══ Confort de lecture — le seul thème alternatif (surcouche de tokens) ══
@@ -591,6 +597,13 @@ button:focus-visible,
    non celle du régime : une vignette posée sur son propre axe ne flotte pas, et
    un bloc qui n'en porte aucune n'a pas à changer de mode de mise en page. */
 .cs-bible-bloc:has(> .cs-bible-gravure--flottante) { display: flow-root; }
+/* ⛔ UNE VIGNETTE FRANCHIT LA MANCHETTE. Le repère d’un commentaire est LUI AUSSI
+   un flottant de gauche, large de 7 rem : posés côte à côte, les deux ne laissent
+   au texte que 215 px de piste, et le justifié s’y creuse de lézardes. Mesuré sur
+   épreuve, avant : 215 px ; après : 334, la mesure sur laquelle se calcule le
+   seuil d’habillage. ⚠️ Le dégagement vaut des DEUX côtés : à droite aussi la
+   manchette rognait la piste, de 502 à 222 px. */
+.cs-bible-gravure--flottante { clear: both; }
 @media (max-width: 620px) {
   /* Sous cette mesure, il ne reste pas deux cents pixels de texte à côté d'une
      vignette : l'habillage se défait et la gravure se centre. */
@@ -1074,7 +1087,7 @@ button:focus-visible,
      plomb : quand la largeur suivait le texte, le fer du commentaire sautait
      d'un bloc à l'autre et la page perdait son aplomb. La hauteur, elle, reste
      libre — ⛔ aucune taille imposée, c'est le texte qui la donne. */
-  width: 7rem;
+  width: var(--cs-manchette-colonne);
   /* ⛔ LE REPÈRE SE FERRE À GAUCHE (décision de l'auteur, 27 août 2026), sur le
      fer du commentaire ordinaire, et il en prend la police : le SÉRIF du texte,
      non le sans qui le détachait. Il se ferrait à droite jusque-là, contre la
@@ -1117,7 +1130,7 @@ button:focus-visible,
      ⚠️ Le blanc de DROITE est passé de 1,25 à 0,9 rem le 2026-08-29 : la gouttière
      entre le repère et son développement se lisait plus large que le retrait qui
      les sépare de la page, et la manchette s'en détachait au lieu de le coiffer. */
-  margin: 0.125rem 0.9rem 0.75rem 0;
+  margin: 0.125rem var(--cs-manchette-gouttiere) 0.75rem 0;
   padding: 0;
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
      place : le gris de l'apparat s'y lisait anémique. */

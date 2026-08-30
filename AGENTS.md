@@ -2999,6 +2999,30 @@ qui s'arrête au ras du flottant a l'air de l'avoir subi.
 ⚠️ **Un bloc trop court ne reçoit rien** : la gravure garde son propre axe, et
 c'est le cas d'aucune des onze depuis que le seuil se calcule.
 
+### ⛔ UNE VIGNETTE FRANCHIT LA MANCHETTE, ET À GAUCHE ELLE PREND SA COLONNE (2026-08-30)
+
+Le repère d'un commentaire est LUI AUSSI un flottant de gauche, large de 7 rem
+(§ 35.9). Une vignette qui flotte sans en tenir compte se range à côté de lui, et
+les deux ne laissent au texte que **215 px** de piste, où le justifié se creuse de
+lézardes. Elle se DÉGAGE donc des deux côtés — à droite aussi la manchette
+rognait la piste, de 502 à 222 px — et la piste revient à **334 px**, la mesure
+même sur laquelle se calcule le seuil d'habillage.
+
+⛔ **Et à GAUCHE, la vignette prend la COLONNE DE LA MANCHETTE**, non sa part de
+la colonne de lecture. Plus large que le repère, elle fait sauter le fer du texte
+d'un paragraphe à l'autre : mesuré sur épreuve, de 126 à 168 px dans le même
+bloc. Rangée dans la colonne du repère, elle appartient à la grille de la page au
+lieu de la contrarier, et le bord gauche du texte ne bouge plus. Les deux mesures
+se nomment (`--cs-manchette-colonne`, `--cs-manchette-gouttiere`) et se lisent des
+deux côtés : recopiées, elles divergeraient.
+
+⚠️ **Une épreuve dont la feuille est RECOPIÉE ment.** La mienne ignorait que la
+manchette flotte, et le cas gauche y paraissait bon alors qu'il était mauvais.
+L'épreuve lit désormais `app/globals.css` telle quelle, les deux directives
+Tailwind ôtées. ⚠️ Et elle se photographie à la largeur d'un BUREAU : sous 700 px
+de fenêtre, les règles mobiles de la vraie feuille défont l'habillage et la
+manchette, ce qui n'a rien à voir avec ce qu'on veut juger.
+
 ### Les trois régimes
 
 `app/admin/illustrations/regimesFillion.ts` est la SOURCE, sur le modèle du recensement
