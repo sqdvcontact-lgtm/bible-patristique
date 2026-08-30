@@ -3384,6 +3384,20 @@ Le vrai levier n'est pas le traitement mais la taille d'affichage. Une vignette 
 
 Enfin, la réduction d'une planche tournée se compte après sa rotation : sa largeur servie est celle de sa hauteur d'origine. Un relevé fait sur la découpe non tournée donne un rapport de réduction faux, et sous-estime de beaucoup ce que la mise à la taille servie retire.
 
+#### 35.16.6. Un fac-similé ne se complète pas : ce que deux modèles d'IA font vraiment d'une gravure
+
+Deux modèles ont été éprouvés sur les gravures de Fillion, à la demande de l'auteur : un détrameur à l'échelle un, et un agrandisseur génératif de la famille Real-ESRGAN. Les deux sont à écarter, et pour deux raisons différentes qu'il importe de ne pas confondre.
+
+Le détrameur ne transfère pas. Il est entraîné sur des trames d'impression régulières et mécaniques, alors que la hachure d'une gravure sur bois est tracée à la main : son pas varie du simple au triple, elle emprunte deux directions, et elle suit les formes du sujet. Sur une photogravure, le modèle transforme les lignes fines en gros traits ondulés ; sur un dessin au trait, il pâlit et lisse au point d'effacer des lignes. Mesuré à la taille servie, il rend moins de bords francs que la source et moins d'encre franche : il retire de la matière au lieu d'en dégager.
+
+L'agrandisseur génératif, lui, fonctionne — et c'est ce qui le rend dangereux. À la taille où le lecteur voit l'image, il rend un dessin nettement plus net et plus noir que le nôtre. Mais le compte des bords francs le condamne : il en produit près des trois quarts en plus de ce que le témoin porte. Ces bords-là, personne ne les a gravés. À l'agrandissement, le procédé donne un œil et sa pupille à un visage que la source n'esquisse qu'en trois traits pâles, et il installe un paysage là où le graveur n'avait mis qu'une masse hachurée.
+
+La distinction qui commande n'est donc pas « avec ou sans intelligence artificielle », mais retirer un porteur ou inventer du dessin. Retirer une trame et rendre le ton continu qu'elle encode reste une lecture du témoin, et c'est ce que faisait un atelier de photogravure. Rendre net un trait que la source ne porte pas, c'est choisir ce trait à la place du graveur, et le lecteur croira l'avoir lu de l'édition. Sur ce point la doctrine ne transige pas plus que sur un verset : on ne restitue pas ce qu'on n'a pas lu.
+
+Une réserve subsiste, et elle vaut même pour un détramage réussi : sur une gravure faite d'après une photographie, la hachure est la main du graveur, non un artefact d'impression. La retirer, c'est tenter de remonter à la photographie et effacer le graveur. C'est un arbitrage éditorial, et il ne se prend pas au nom de la netteté.
+
+Enfin, une remarque de méthode sur la sécurité. Un fichier de poids au format PyTorch est un pickle, dont la lecture peut exécuter du code. La bibliothèque que ComfyUI emploie pour charger ces modèles passe par un dépickleur restreint dont la liste blanche ne compte que les primitives de reconstruction de tenseurs ; tout autre appel est refusé. C'est la seule raison pour laquelle un modèle de provenance faible a pu être essayé sans risque. Un modèle sans licence déclarée ne peut de toute façon pas servir une image publiée.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.

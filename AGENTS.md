@@ -3064,6 +3064,63 @@ autorise, quelle que soit la source. Fillion imprime le boisseau à environ 44 %
 de sa colonne ; le site le pose à 30 % de la sienne. Le monter rendrait à la fois
 la proportion imprimée et le détail — décision éditoriale.
 
+### ⛔ DEUX MODÈLES D'IA ÉPROUVÉS SUR LES GRAVURES, ET CE QU'ILS FONT VRAIMENT (2026-08-30)
+
+Essai mené à la demande de l'auteur, sur le poste : Python embarqué de ComfyUI
+(`D:\ComfyUI_windows_portable`), torch 2.13 + CUDA, RTX 2060 SUPER 8 Go. ⛔ **Sans
+lancer ComfyUI** : `spandrel`, la bibliothèque qu'il emploie, reconnaît
+l'architecture depuis le state dict, et cinquante lignes de Python suffisent
+(`tmp/detramer-ia.py`, à reprendre au besoin).
+
+⚠️ **Charger un `.pth` par `spandrel` NE PEUT PAS exécuter de code.** Il passe par
+un dépickleur restreint dont la liste blanche ne compte que NEUF entrées, toutes
+des primitives de tenseur (`collections.OrderedDict`, `torch._utils._rebuild_tensor_v2`,
+les classes de stockage) ; tout le reste lève `UnpicklingError`. C'est la seule
+raison pour laquelle un modèle de provenance faible a pu être essayé.
+
+#### Ce que chacun fait
+
+| Modèle | Architecture | Verdict |
+|---|---|---|
+| `1x_wtp_descreentone_compact` | Compact 1× | ⛔ **ne détrame pas, il RESTYLE** |
+| `RealESRGAN_x4plus_anime_6B` | ESRGAN 4× | ⛔ **magnifique, et ce n'est plus Fillion** |
+
+⛔ **Le détrameur ne transfère pas.** Il est entraîné sur des trames de manga,
+régulières et mécaniques ; notre hachure est GRAVÉE À LA MAIN — pas de 4 à 13 px,
+deux directions, et elle suit les formes. Sur la photogravure il transforme les
+lignes fines en gros traits ondulés ; sur le trait il PÂLIT et lisse, au point
+d'effacer des lignes. Mesuré à la taille servie sur le paralytique : 995 bords
+francs contre 1 142 dans la source, et l'encre franche tombe de 1,3 à 1,0 %.
+
+⛔ **Real-ESRGAN INVENTE, et cela se compte.** À la taille servie, le paralytique
+passe de **1 142 à 1 962 bords francs, soit 820 bords que le témoin ne porte
+pas** — 72 % de plus — et l'encre franche est multipliée par 5,6. À
+l'agrandissement, le visage d'une figure gagne un œil avec sa pupille là où la
+source n'a que trois traits pâles, et la photogravure gagne un PAYSAGE en haut à
+droite, là où le graveur n'a mis qu'une masse hachurée.
+
+⚠️ **Et le gain est réel : c'est ce qui le rend dangereux.** À 214 px, l'image
+passée par Real-ESRGAN est franchement plus nette et plus noire que la nôtre. La
+tentation n'est pas théorique.
+
+#### La règle qu'on en tire
+
+⛔ **Un fac-similé ne se complète pas.** La distinction n'est pas « IA ou pas »,
+c'est **retirer un porteur ou inventer du dessin**. Un détramage qui retire une
+trame et rend le ton qu'elle encode reste une lecture du témoin ; un modèle
+génératif qui rend un trait net a CHOISI ce trait, et le lecteur croira l'avoir
+lu de Fillion. Sur ce point la charte ne transige pas plus que sur un verset :
+on ne restitue pas ce qu'on n'a pas.
+
+⚠️ Sur la PHOTOGRAVURE, la question ne se pose même pas : à la taille servie, les
+trois états rendent 1 423, 1 428 et 1 676 bords, c'est-à-dire rien qui vaille le
+risque.
+
+⚠️ Les deux modèles restent dans `tmp/modeles/` (hors dépôt), avec leurs
+empreintes, pour qu'un essai ultérieur reparte du même fichier. ⛔ Ils ne sont PAS
+installés dans ComfyUI, et `1x_wtp_descreentone_compact` ne déclare **aucune
+licence** : il ne pourrait de toute façon pas servir une image publiée.
+
 ### ⛔ UNE VIGNETTE FRANCHIT LA MANCHETTE, ET À GAUCHE ELLE PREND SA COLONNE (2026-08-30)
 
 Le repère d'un commentaire est LUI AUSSI un flottant de gauche, large de 7 rem
