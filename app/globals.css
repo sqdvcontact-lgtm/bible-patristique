@@ -275,10 +275,11 @@
      ⚠️ Le rang T4 s'y alignait le 30 août 2026 au matin ; il a repris son corps
      propre le soir même, la sous-section étant un titre et non du texte. */
   --cs-corps-apparat: 0.78125rem;
-  /* ⛔ LA COLONNE DE LA MANCHETTE, et sa gouttière. Elles se nomment parce que
-     DEUX choses s’y rangent : le repère d’un commentaire, et une vignette qui
-     flotte à gauche. Recopiées, elles divergent, et le fer du texte saute d’un
-     paragraphe à l’autre : mesuré, de 126 à 168 px dans le même bloc. */
+  /* La colonne du repère d’un commentaire, et sa gouttière. ⚠️ Une vignette a
+     partagé cette colonne le 30 août 2026 ; elle n’y tient plus depuis que sa
+     part suit la largeur imprimée — 112 px y serait plus petit que tout le
+     reste. Le repère y est désormais seul, et les deux mesures restent nommées
+     parce que le fer du commentaire en dépend. */
   --cs-manchette-colonne: 7rem;
   --cs-manchette-gouttiere: 0.9rem;
 }

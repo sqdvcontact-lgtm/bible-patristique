@@ -56,10 +56,36 @@ const LARGEUR_DEUX_COLONNES = 0.6
 /** ⛔ UN FICHIER SE SERT AU DOUBLE DE SA TAILLE D'AFFICHAGE, JAMAIS PLUS
  *  (charte). Au delà, le navigateur réduit une seconde fois derrière nous, et
  *  deux réductions successives moyennent les hachures fines en un gris mou. */
+/** ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, et c'est elle qui décide de
+ *  la TAILLE SERVIE, puisqu'un fichier se sert au double de sa taille
+ *  d'affichage (charte).
+ *
+ *  ⚠️ Le premier jet donnait 30 % à toutes les vignettes. Fillion les imprime de
+ *  19,8 % à 57,5 % de sa page : la part fixe aplatissait un rapport de 1 à 3 et
+ *  jetait, mesuré le 30 août 2026, de 1,6 à 4,7 fois la résolution linéaire de
+ *  chaque gravure. C'est la cause de tout ce que l'auteur a relevé.
+ *
+ *  ⛔ CES QUATRE NOMBRES SONT RECOPIÉS de `app/lib/bibleEdition.ts`, où la page
+ *  de lecture les lit. Un script `.mjs` ne peut pas importer le module TypeScript
+ *  du site, mais deux copies d'une mesure ne restent égales que par accident : le
+ *  test `app/lib/partIllustration.test.ts` compare les deux fichiers et refuse
+ *  qu'ils divergent. Même garde que celle qui tient `get_niv1_texte`. */
+const PLANCHER_VIGNETTE = 0.40
+const PLAFOND_VIGNETTE = 0.62
+const PART_AU_FIL = 0.90
 const MESURE_COLONNE = 502
-const REGIMES = {
-  A: { part: 0.30, servie: Math.round(2 * MESURE_COLONNE * 0.30) },
-  B: { part: 0.75, servie: Math.round(2 * MESURE_COLONNE * 0.75) },
+
+function partIllustration(regime, largeurImprimee) {
+  if (regime === 'C') return 1
+  if (regime === 'B') return PART_AU_FIL
+  if (typeof largeurImprimee !== 'number') return PLANCHER_VIGNETTE
+  return Math.min(PLAFOND_VIGNETTE, Math.max(PLANCHER_VIGNETTE, largeurImprimee))
+}
+
+/** Le DOUBLE de la taille d'affichage, jamais plus : au delà, le navigateur
+ *  réduit une seconde fois derrière nous et moyenne les hachures. */
+function largeurAServir(part) {
+  return Math.round(2 * part * MESURE_COLONNE)
 }
 
 /** Au-dessus de ce taux, les gris BORDENT le trait : ils sont de la structure,
@@ -574,7 +600,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '3.2.0',
+    processing_version: '4.0.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
@@ -613,14 +639,15 @@ async function principal() {
     if (FABRIQUER) {
       const feuillet = feuilletJp2(a.source_page_index)
       let r
+      const servie = largeurAServir(partIllustration(regime, largeurImprimee))
       if (feuillet && regime === 'B') {
         // ⛔ Une gravure qui ENJAMBE LES DEUX COLONNES imprimées est une
         //    photogravure en ton continu : elle se CADRE, elle ne se détoure pas.
         //    Les deux critères concordent, ce qui n'est pas un hasard — Fillion
         //    ne donne cette largeur qu'aux vues, jamais aux objets isolés.
-        r = await cadrerDepuisJp2(feuillet, n, REGIMES[regime].servie)
+        r = await cadrerDepuisJp2(feuillet, n, servie)
       } else if (feuillet) {
-        r = await detourerDepuisJp2(feuillet, n, REGIMES[regime].servie)
+        r = await detourerDepuisJp2(feuillet, n, servie)
       } else {
         const composee = Buffer.from(await (await fetch(a.public_uri)).arrayBuffer())
         const m = await partDesGrisAuBordDuTrait(composee)
@@ -629,7 +656,7 @@ async function principal() {
           rapport.push(ligne)
           continue
         }
-        r = await detourerDepuisMasque(await masqueDeTrait(a.source_page_index), n, REGIMES[regime].servie)
+        r = await detourerDepuisMasque(await masqueDeTrait(a.source_page_index), n, servie)
       }
       Object.assign(ligne, { source: r.source, largeur: r.largeur, hauteur: r.hauteur, profil: r.profil, tournee: r.tournee, cadree: r.cadree, rogne: r.rogne, bornes: r.bornes })
       writeFileSync(`${DOSSIER_LOCAL}/${a.asset_key}.png`, r.png)

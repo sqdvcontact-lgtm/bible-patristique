@@ -62,6 +62,7 @@ function gravure(
     noteId: null,
     materialOrder: 100,
     regime,
+    largeurImprimee: null,
   }
 }
 
@@ -84,14 +85,14 @@ describe('habillage des vignettes', () => {
     expect(h.absorbees.has('g1')).toBe(true)
   })
 
-  it('ALTERNE les côtés le long du chapitre', () => {
+  it('fond plusieurs vignettes du même chapitre, chacune dans SON bloc', () => {
     const h = composer(
       ['MRK.5.2', 'MRK.5.34', 'MRK.5.38'],
       [bloc('c-1', 'MRK.5.2', 2000), bloc('c-2', 'MRK.5.34', 2000), bloc('c-3', 'MRK.5.38', 2000)],
       [gravure('g1', 'MRK.5.2'), gravure('g2', 'MRK.5.34'), gravure('g3', 'MRK.5.38')],
     )
-    const cotes = [...h.parBloc.values()].flat().map((v) => v.cote)
-    expect(cotes).toEqual(['droite', 'gauche', 'droite'])
+    expect([...h.parBloc.keys()]).toEqual(['c-1', 'c-2', 'c-3'])
+    expect(h.absorbees.size).toBe(3)
   })
 
   it('⛔ n’habille PAS un bloc trop court pour contourner le flottant', () => {

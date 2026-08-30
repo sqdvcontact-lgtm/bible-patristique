@@ -8,7 +8,7 @@ import {
   MESURE_COLONNE, ORDRE_REGIMES, REGIMES, SPECIMEN_HABILLAGE,
   type GravureFillion,
 } from './regimesFillion'
-import { PART_DU_REGIME, type RegimeIllustration } from '@/app/lib/bibleEdition'
+import { partIllustration, type RegimeIllustration } from '@/app/lib/bibleEdition'
 import { STYLE_CORPS } from '@/app/lib/compositionBible'
 import { colorMix } from '@/app/lib/couleurs'
 
@@ -724,7 +724,13 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
       {/* ── Les trois régimes ── */}
       {ORDRE_REGIMES.map(cle => {
         const r = REGIMES[cle]
-        const part = PART_DU_REGIME[cle]
+        // ⚠️ Une vignette n'a plus UNE part mais une PLAGE : elle suit la
+        //    largeur imprimée. On montre donc ce que le corpus donne vraiment.
+        const parts = (cle === 'vignette' ? gravures : []).map(g => partIllustration(cle, g.largeurImprimee))
+        const part = parts.length ? Math.max(...parts) : partIllustration(cle, null)
+        const plage = parts.length && Math.min(...parts) !== part
+          ? `${Math.round(Math.min(...parts) * 100)} à ${Math.round(part * 100)} %`
+          : `${Math.round(part * 100)} %`
         return (
           <article key={cle} className="ill-reg">
             <div className="ill-reg-tete">
@@ -734,7 +740,7 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
             </div>
             <p className="ill-reg-texte">{r.propos}</p>
             <dl className="ill-reg-fiche">
-              <dt>Largeur</dt><dd>{Math.round(part * 100)} % de la colonne, soit {Math.round(MESURE_COLONNE * part)} px</dd>
+              <dt>Largeur</dt><dd>{plage} de la colonne, selon la largeur imprimée</dd>
               <dt>Détourage</dt><dd>{r.detourage ? 'oui, encre reposée au rendu' : 'jamais, elle garde son papier'}</dd>
               <dt>Habillage</dt><dd>{r.habillage ? 'oui, dans le commentaire qui couvre son verset, un bord après l’autre' : 'non'}</dd>
               <dt>Cadre</dt><dd>{r.cadre ? 'filet du site, rogné EN DEDANS du filet gravé' : cle === 'hors-texte' ? 'passe-partout' : 'aucun'}</dd>
@@ -829,7 +835,7 @@ function encree(url: string, encre: string): React.CSSProperties {
  *  est une décision éditoriale et non un réglage de rendu. */
 function SpecimenHabillage({ gravure, fond }: { gravure: GravureFillion; fond: CleFond }) {
   const f = FONDS[fond]
-  const largeur = Math.round(MESURE_COLONNE * PART_DU_REGIME['vignette'])
+  const largeur = Math.round(MESURE_COLONNE * partIllustration('vignette', gravure.largeurImprimee))
   return (
     <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
       <div className="ill-reg-colonne">

@@ -420,11 +420,66 @@ export function estDetouree(regime: RegimeIllustration): boolean {
   return regime === 'vignette'
 }
 
-/** Part de la colonne de lecture que prend chaque régime. */
-export const PART_DU_REGIME: Record<RegimeIllustration, number> = {
-  'vignette': 0.30,
-  'au-fil': 0.75,
-  'hors-texte': 1,
+/** La colonne de lecture d'un chapitre, en pixels, à la racine 16. C'est sur
+ *  elle que se comptent les largeurs, non sur la fenêtre. */
+export const MESURE_COLONNE = 502
+
+/** ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, elle n'est pas une constante.
+ *
+ *  Le premier jet donnait 30 % à TOUTES les vignettes. Or Fillion les imprime de
+ *  19,8 % (le boisseau) à 57,5 % de sa page (la scène de deuil) : une même part
+ *  aplatit un rapport de 1 à 3, et c'est l'auteur qui l'a vu, gravure par gravure.
+ *
+ *  ⛔ ET ELLE COMMANDE LA RÉSOLUTION SERVIE, puisqu'un fichier se sert au double
+ *  de sa taille d'affichage (charte). Mesuré le 30 août 2026, la part fixe avait
+ *  fait perdre à chaque gravure de 1,6 à 4,7 fois sa résolution linéaire :
+ *
+ *    scène de deuil  1408 → 301 px   4,68×      médecin      986 → 298   3,31×
+ *    on met le blé   1220 → 301      4,05×      démoniaque   856 → 297   2,88×
+ *    barque          1100 → 299      3,68×      paralytique  837 → 298   2,81×
+ *
+ *  C'est la cause de tout ce que l'auteur a relevé — « a perdu en qualité »,
+ *  « toujours flou », « mériterait d'être agrandi ». Aucun réglage de netteté ne
+ *  rend ce qu'une réduction a jeté ; seule la taille servie le rend.
+ *
+ *  ⚠️ Le PLANCHER n'est pas cosmétique : sous 40 %, une gravure dense cesse d'être
+ *  lisible, et la source du boisseau ne fait de toute façon que 486 px. Le PLAFOND
+ *  vient de la colonne : au delà, il ne reste plus de mesure au texte. */
+const PLANCHER_VIGNETTE = 0.40
+const PLAFOND_VIGNETTE = 0.62
+/** Une SCÈNE cadrée prend presque toute la colonne : rien ne se pose à côté
+ *  d'elle, et c'est la seule façon de lui rendre des pixels. */
+const PART_AU_FIL = 0.90
+
+export function partIllustration(
+  regime: RegimeIllustration,
+  largeurImprimee: number | null | undefined,
+): number {
+  if (regime === 'hors-texte') return 1
+  if (regime === 'au-fil') return PART_AU_FIL
+  if (typeof largeurImprimee !== 'number') return PLANCHER_VIGNETTE
+  return Math.min(PLAFOND_VIGNETTE, Math.max(PLANCHER_VIGNETTE, largeurImprimee))
+}
+
+/** ⛔ UNE VIGNETTE TROP LARGE NE PEUT PAS ÊTRE HABILLÉE : il ne resterait pas
+ *  deux cents pixels de texte à côté d'elle, et le justifié s'y creuse de
+ *  lézardes — la charte le dit déjà du repère en manchette. Au delà de ce seuil
+ *  elle se centre, comme une scène.
+ *
+ *  ⚠️ C'est un axe DISTINCT du détourage : « Scène de deuil » est une gravure au
+ *  TRAIT, donc détourée, et pourtant trop large pour être habillée. Les deux
+ *  questions ne se confondent pas, et les confondre est ce que faisait le régime
+ *  « au-fil », qui mêlait « large » et « photogravure ». */
+const SEUIL_HABILLAGE = 0.45
+
+export function estHabillable(part: number): boolean {
+  return part <= SEUIL_HABILLAGE
+}
+
+/** La largeur du fichier à servir : le DOUBLE de la taille d'affichage, jamais
+ *  plus (charte). Au delà, le navigateur réduit une seconde fois derrière nous. */
+export function largeurServie(part: number): number {
+  return Math.round(2 * part * MESURE_COLONNE)
 }
 
 export function regimeIllustration(
@@ -472,6 +527,9 @@ export type BibleEditionDisplayAsset = {
   noteId: string | null
   materialOrder: number
   regime: RegimeIllustration
+  /** Part de la PAGE imprimée qu'occupait la gravure, en largeur. C'est elle qui
+   *  décide de la part de colonne, donc de la taille servie. */
+  largeurImprimee: number | null
 }
 
 /** Contrat sérialisable entre la page serveur et le lecteur client. */
@@ -649,13 +707,20 @@ export function indexerIllustrations(
 
 // ── L'HABILLAGE des vignettes ────────────────────────────────────────────────
 
-/** De quel côté la vignette flotte. Elles ALTERNENT, faute de quoi une colonne
- *  de lecture qui en porte plusieurs se déséquilibre d'un seul côté. */
-export type CoteHabillage = 'gauche' | 'droite'
-
+/** ⛔ UNE VIGNETTE FLOTTE À DROITE, ET SEULEMENT À DROITE.
+ *
+ *  Elles ont alterné une journée, à la demande de l'auteur. La gauche est tombée
+ *  quand la part de la colonne est devenue proportionnelle : le repère d'un
+ *  commentaire occupe déjà une colonne de gauche de 7 rem, et une vignette posée
+ *  du même bord doit ou bien s'y ranger — 112 px, plus petit que tout le reste,
+ *  ce qui défait précisément ce qu'on venait de corriger — ou bien déborder, et
+ *  le fer du texte saute alors de 126 à 215 px dans le même bloc.
+ *
+ *  ⚠️ La variété se prend ailleurs : les gravures trop larges pour être habillées
+ *  se centrent, et le rythme de la page alterne de lui-même entre une gravure
+ *  contournée et une gravure posée sur son axe. */
 export type IllustrationHabillee = {
   illustration: BibleEditionDisplayAsset
-  cote: CoteHabillage
 }
 
 export type HabillageDesVignettes = {
@@ -688,12 +753,8 @@ const HAUTEUR_LEGENDE = 37
  *  qui s'arrête au ras du flottant a l'air de l'avoir subi. */
 const LIGNES_APRES_LE_FLOTTANT = 2
 
-/** La colonne de lecture d'un chapitre, en pixels, à la racine 16. C'est sur
- *  elle que se comptent les largeurs, non sur la fenêtre. */
-export const MESURE_COLONNE = 502
-
 function signesPourHabiller(illustration: BibleEditionDisplayAsset): number {
-  const largeur = PART_DU_REGIME[illustration.regime] * MESURE_COLONNE
+  const largeur = partIllustration(illustration.regime, illustration.largeurImprimee) * MESURE_COLONNE
   const hauteur = largeur * (illustration.height / illustration.width)
     + (illustration.caption ? HAUTEUR_LEGENDE : 0)
   const lignes = Math.ceil(hauteur / INTERLIGNE_APPARAT) + LIGNES_APRES_LE_FLOTTANT
@@ -739,7 +800,6 @@ export function habillerLesVignettes(
   const parBloc = new Map<string, IllustrationHabillee[]>()
   const absorbees = new Set<string>()
   let porteur: BibleEditionDisplayBodyBlock | null = null
-  let rang = 0
 
   const retenir = (candidats: readonly BibleEditionDisplayBodyBlock[] | undefined) => {
     for (const bloc of candidats ?? []) {
@@ -750,14 +810,15 @@ export function habillerLesVignettes(
     for (const illustration of candidats ?? []) {
       const hote = porteur
       if (illustration.regime !== 'vignette' || hote === null) continue
+      // ⛔ Trop large, elle ne laisse pas de mesure au texte : elle se centre.
+      if (!estHabillable(partIllustration(illustration.regime, illustration.largeurImprimee))) continue
       // ⛔ Un bloc trop court ne peut pas habiller : le flottant en sortirait par
       //    le bas au lieu d'être contourné. La gravure garde alors son propre axe.
       if (proseDuBloc(hote) < signesPourHabiller(illustration)) continue
       const groupe = parBloc.get(hote.id) ?? []
-      groupe.push({ illustration, cote: rang % 2 === 0 ? 'droite' : 'gauche' })
+      groupe.push({ illustration })
       parBloc.set(hote.id, groupe)
       absorbees.add(illustration.id)
-      rang += 1
     }
   }
 

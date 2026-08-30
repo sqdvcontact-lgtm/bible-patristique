@@ -182,7 +182,7 @@ describe('paratexte des éditions bibliques', () => {
    *  la couche alpha et l'encre se repose au rendu. Elle n'a donc ni <img> ni
    *  attribut alt, mais un rôle d'image et son intitulé accessible. Une PLANCHE,
    *  qui garde le papier de 1923, se rend en image. */
-  const gravure = (regime: 'vignette' | 'au-fil' | 'hors-texte') => ({
+  const gravure = (regime: 'vignette' | 'au-fil' | 'hors-texte', largeurImprimee: number | null = null) => ({
     id: 'asset-1',
     assetKey: 'fillion-t07-p0092-i01',
     assetKind: regime === 'hors-texte' ? 'plate' : 'illustration',
@@ -199,6 +199,7 @@ describe('paratexte des éditions bibliques', () => {
     noteId: null,
     materialOrder: 120,
     regime,
+    largeurImprimee,
   })
 
   it('découpe une gravure détourée au lieu de l’afficher, et repose l’encre', () => {
@@ -212,12 +213,29 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).not.toContain('<img')
   })
 
-  it('donne à chaque régime sa part de la colonne', () => {
-    const part = (regime: 'vignette' | 'au-fil' | 'hors-texte') =>
-      renderToStaticMarkup(<IllustrationBible illustration={gravure(regime)} />).match(/style="width:(\d+)%/)?.[1]
-    expect(part('vignette')).toBe('30')
-    expect(part('au-fil')).toBe('75')
+  it('⛔ la part de la colonne SUIT LA LARGEUR IMPRIMÉE', () => {
+    // Fillion imprime ses vignettes de 19,8 à 57,5 % de sa page. Une part fixe
+    // aplatissait ce rapport de 1 à 3 — et, la taille servie valant le double de
+    // la taille d'affichage, elle jetait jusqu'à 4,7 fois la résolution.
+    const part = (regime: 'vignette' | 'au-fil' | 'hors-texte', largeur: number | null = null) =>
+      renderToStaticMarkup(<IllustrationBible illustration={gravure(regime, largeur)} />).match(/style="width:(\d+)%/)?.[1]
+    expect(part('vignette', 0.198)).toBe('40')   // le boisseau : au PLANCHER
+    expect(part('vignette', 0.402)).toBe('40')   // le médecin
+    expect(part('vignette', 0.575)).toBe('57')   // la scène de deuil
+    expect(part('vignette', null)).toBe('40')    // largeur inconnue : le plancher
+    expect(part('au-fil')).toBe('90')
     expect(part('hors-texte')).toBe('100')
+  })
+
+  it('⛔ une vignette TROP LARGE ne flotte pas : le texte n’aurait plus de mesure', () => {
+    // À 57,5 % de la colonne il ne reste que 196 px de piste, où le justifié se
+    // creuse de lézardes. C'est un axe DISTINCT du détourage : cette gravure-là
+    // est au trait, donc détourée, et pourtant elle se centre.
+    const etroite = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.402)} habillage />)
+    const large = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.575)} habillage />)
+    expect(etroite).toContain('float:right')
+    expect(large).not.toContain('float')
+    expect(large).toContain('mask-image')
   })
 
   it('⛔ rend une SCÈNE en image OPAQUE, jamais en masque', () => {
@@ -244,29 +262,19 @@ describe('paratexte des éditions bibliques', () => {
     expect(dansUnBloc).toContain('float:right')
   })
 
-  it('⛔ ALTERNE les bords : le côté vient de la composition, non du régime', () => {
-    const droite = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="droite" />)
-    const gauche = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="gauche" />)
-    expect(droite).toContain('float:right')
-    expect(gauche).toContain('float:left')
-    // ⚠️ La marge suit le bord : posée du mauvais côté, elle colle la gravure au texte.
-    expect(gauche).toContain('data-cote="gauche"')
-    expect(gauche).toContain('cs-bible-gravure--gauche')
-  })
-
-  it('⛔ à GAUCHE, la vignette prend la COLONNE DE LA MANCHETTE', () => {
-    // Le repère d’un commentaire est lui aussi un flottant de gauche, large de
-    // 7 rem. Une vignette plus large fait sauter le fer du texte d’un paragraphe
-    // à l’autre : mesuré sur épreuve, de 126 à 168 px dans le même bloc.
-    const gauche = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="gauche" />)
-    const droite = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage cote="droite" />)
-    expect(gauche).toContain('width:var(--cs-manchette-colonne)')
-    expect(gauche).toContain('var(--cs-manchette-gouttiere)')
-    expect(droite).toContain('width:30%')
+  it('⛔ elle flotte à DROITE, et seulement à droite', () => {
+    // La colonne de GAUCHE appartient au repère du commentaire, un flottant de
+    // 7 rem : une vignette du même bord doit ou bien s'y ranger — 112 px, plus
+    // petit que tout le reste — ou bien faire sauter le fer du texte de 126 à
+    // 215 px dans le même bloc. Les deux ont été éprouvés et écartés.
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.402)} habillage />)
+    expect(html).toContain('float:right')
+    expect(html).not.toContain('float:left')
+    expect(html).toContain('cs-bible-gravure--flottante')
   })
 
   it('⛔ une SCÈNE ne flotte jamais, même si on le lui demande', () => {
-    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} habillage cote="gauche" />)
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} habillage />)
     expect(html).not.toContain('float')
   })
 })

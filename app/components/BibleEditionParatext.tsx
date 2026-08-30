@@ -8,9 +8,9 @@ import {
   type BibleEditionDisplayNote,
   type BibleEditionDisplayTextBlock,
   type StyleCompositionBloc,
-  PART_DU_REGIME,
+  partIllustration,
+  estHabillable,
   estDetouree,
-  type CoteHabillage,
   type IllustrationHabillee,
 } from '@/app/lib/bibleEdition'
 import { STYLE_CORPS } from '@/app/lib/compositionBible'
@@ -545,38 +545,26 @@ function citationSortieDuParagraphe(bloc: BlocTexteBiblique, resolu?: StyleResol
  * avec un seul fichier et sans filtre d'inversion. Une PLANCHE, elle, garde son
  * papier de 1923 et se rend en image.
  */
-export function IllustrationBible({ illustration, habillage, cote }: {
+export function IllustrationBible({ illustration, habillage }: {
   illustration: IllustrationBibliqueAffichable
   /** Le commentaire contourne la vignette. ⚠️ N'a de sens que DANS un bloc de
    *  prose : posée sur son propre axe, une illustration n'a rien à habiller. */
   habillage?: boolean
-  /** De quel côté elle flotte. Les vignettes ALTERNENT le long du chapitre :
-   *  toutes du même bord, la colonne se déséquilibre. */
-  cote?: CoteHabillage
 }) {
   const regime = illustration.regime
-  const part = PART_DU_REGIME[regime]
+  const part = partIllustration(regime, illustration.largeurImprimee)
   const detouree = estDetouree(regime)
-  const flotte = habillage === true && regime === 'vignette'
-  const aGauche = flotte && cote === 'gauche'
+  // ⛔ Une vignette trop large ne peut pas être habillée : il ne resterait pas
+  //    deux cents pixels de texte à côté d'elle. Elle se centre alors.
+  const flotte = habillage === true && regime === 'vignette' && estHabillable(part)
 
-  // ⛔ À GAUCHE, LA VIGNETTE PREND LA COLONNE DE LA MANCHETTE, non sa part de la
-  //    colonne de lecture. Le repère d’un commentaire est lui aussi un flottant de
-  //    gauche : une vignette plus large que lui fait sauter le fer du texte d’un
-  //    paragraphe à l’autre : mesuré sur épreuve, de 126 à 168 px dans le même
-  //    bloc. Rangée dans la colonne du repère, elle appartient à la grille de la
-  //    page au lieu de la contrarier. ⚠️ La mesure vit dans la feuille, sous
-  //    la propriété --cs-manchette-colonne : un style en ligne ne se surcharge
-  //    pas en CSS, d’où la lecture par var() plutôt qu’une seconde déclaration.
+  // ⛔ ELLE FLOTTE À DROITE, et seulement à droite : la colonne de gauche
+  //    appartient au repère du commentaire. Voir `IllustrationHabillee`.
   const cadre: CSSProperties = {
-    width: aGauche ? 'var(--cs-manchette-colonne)' : `${Math.round(part * 100)}%`,
+    width: `${Math.round(part * 100)}%`,
     maxWidth: `${illustration.width}px`,
-    margin: flotte
-      ? (aGauche
-          ? '0.15rem var(--cs-manchette-gouttiere) 0.55rem 0'
-          : '0.15rem 0 0.55rem 1.1rem')
-      : '1.25rem auto',
-    float: flotte ? (aGauche ? 'left' : 'right') : undefined,
+    margin: flotte ? '0.15rem 0 0.55rem 1.1rem' : '1.25rem auto',
+    float: flotte ? 'right' : undefined,
     textAlign: 'center',
   }
 
@@ -586,8 +574,7 @@ export function IllustrationBible({ illustration, habillage, cote }: {
       data-asset-kind={illustration.assetKind}
       data-placement={illustration.placement}
       data-regime={regime}
-      data-cote={flotte ? (aGauche ? 'gauche' : 'droite') : undefined}
-      className={`cs-bible-gravure cs-bible-gravure--${regime}${flotte ? ` cs-bible-gravure--flottante cs-bible-gravure--${aGauche ? 'gauche' : 'droite'}` : ''}`}
+      className={`cs-bible-gravure cs-bible-gravure--${regime}${flotte ? ' cs-bible-gravure--flottante' : ''}`}
       style={cadre}
     >
       {detouree ? (
@@ -642,8 +629,8 @@ function rendreIllustrations(
  *  ⚠️ Distinctes de celles que la DONNÉE pose dans le flux (`placement: inline`) :
  *  celles-ci sont ancrées sur un verset, et c'est la page qui les y fond. */
 function rendreHabillage(vignettes: readonly IllustrationHabillee[]) {
-  return vignettes.map(({ illustration, cote }) => (
-    <IllustrationBible key={illustration.id} illustration={illustration} habillage cote={cote} />
+  return vignettes.map(({ illustration }) => (
+    <IllustrationBible key={illustration.id} illustration={illustration} habillage />
   ))
 }
 

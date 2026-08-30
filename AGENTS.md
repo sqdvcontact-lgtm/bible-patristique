@@ -3121,6 +3121,71 @@ empreintes, pour qu'un essai ultérieur reparte du même fichier. ⛔ Ils ne son
 installés dans ComfyUI, et `1x_wtp_descreentone_compact` ne déclare **aucune
 licence** : il ne pourrait de toute façon pas servir une image publiée.
 
+### ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, ET C'EST ELLE QUI DÉCIDE DE LA RÉSOLUTION (2026-08-30)
+
+Relevé de l'auteur, gravure par gravure : « Médecin pansant un blessé a perdu en
+qualité », « le boisseau toujours flou », « Scène de deuil mériterait d'être
+agrandi », « Guérison d'un démoniaque, flou ». Il avait raison sur les six, et
+d'une seule cause.
+
+⛔ **UNE PART FIXE JETTE DE LA RÉSOLUTION, parce qu'un fichier se sert au DOUBLE
+de sa taille d'affichage.** Le premier jet donnait 30 % de la colonne à toutes
+les vignettes, donc 301 px de fichier à toutes. Or Fillion les imprime de
+**19,8 %** (le boisseau) à **57,5 %** de sa page (la scène de deuil) : la part
+fixe aplatissait un rapport de 1 à 3, et surtout elle réduisait chaque gravure
+bien plus que nécessaire. Mesuré :
+
+| gravure | source | servi | réduction |
+|---|---:|---:|---:|
+| Scène de deuil | 1411 px | 301 | **4,69×** |
+| On met le blé | 1220 | 301 | 4,05× |
+| Barque | 1113 | 299 | 3,70× |
+| Médecin | 988 | 301 | 3,28× |
+| Hémorrhoïsse | 944 | 301 | 3,14× |
+| Démoniaque | 857 | 301 | 2,85× |
+
+⚠️ **Et la comparaison qui condamne est celle d'AVANT le chantier** : ces mêmes
+gravures étaient servies à 468, 837, 986, 1100, 1220 et 1408 px. Le passage au
+régime leur avait fait perdre de **1,6 à 4,7 fois** leur résolution linéaire. Une
+règle juste — « on sert au double de la taille d'affichage » — appliquée avec une
+taille d'affichage fausse rend un résultat pire que pas de règle du tout.
+
+**La part se calcule donc**, par `partIllustration` (`app/lib/bibleEdition.ts`) :
+elle SUIT la largeur imprimée, entre un plancher de 40 % — sous quoi une gravure
+dense cesse d'être lisible — et un plafond de 62 %. Une scène cadrée prend 90 %.
+Les réductions retombent à 1,3 à 3,2×.
+
+⛔ **La chaîne d'image la recalcule, et une GARDE tient les deux copies.** Un
+script `.mjs` ne peut pas importer le module TypeScript du site ;
+`app/lib/partIllustration.test.ts` lit les constantes du script et éprouve la
+fonction du site contre elles. Sans quoi la page composerait à une taille et le
+fichier serait fabriqué pour une autre — le défaut même qu'on vient de corriger.
+Même garde que celle qui accorde `get_niv1_texte` à `NATURES_CORPS`.
+
+### ⛔ L'HABILLAGE et le DÉTOURAGE sont deux axes, et une vignette flotte à DROITE
+
+⛔ **Une vignette trop large ne peut pas être habillée**, quel que soit son
+régime : au delà de 45 % de la colonne il ne reste plus deux cents pixels de
+piste au texte, et le justifié s'y creuse de lézardes — la charte le dit déjà du
+repère en manchette. Au delà, elle se centre.
+
+⚠️ **C'est un axe DISTINCT du détourage**, et les confondre était le défaut du
+régime « au-fil », qui mêlait « large » et « photogravure ». « Scène de deuil »
+est une gravure au TRAIT, donc détourée, et pourtant trop large pour être
+habillée. Deux questions, deux réponses.
+
+⛔ **ET ELLE FLOTTE À DROITE, SEULEMENT À DROITE.** Les vignettes ont alterné une
+journée, à la demande de l'auteur. La gauche est tombée le jour même où la part
+est devenue proportionnelle : le repère d'un commentaire occupe déjà une colonne
+de gauche de 7 rem, et une vignette du même bord doit ou bien s'y ranger —
+**112 px, plus petit que tout le reste**, ce qui défait précisément ce qu'on
+venait de corriger — ou bien déborder, et le fer du texte saute alors de **126 à
+215 px dans le même bloc**. Les deux ont été éprouvés et écartés.
+
+⚠️ La variété se prend ailleurs : les gravures trop larges se centrent, et le
+rythme de la page alterne de lui-même entre une gravure contournée et une
+gravure posée sur son axe.
+
 ### ⛔ UNE VIGNETTE FRANCHIT LA MANCHETTE, ET À GAUCHE ELLE PREND SA COLONNE (2026-08-30)
 
 Le repère d'un commentaire est LUI AUSSI un flottant de gauche, large de 7 rem
