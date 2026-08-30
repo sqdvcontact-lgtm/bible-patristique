@@ -15,10 +15,22 @@
 // gardé pour cela : redériver depuis un fichier déjà réduit et rattrapé
 // empilerait deux rattrapages.
 //
-// ⚠️ CE SCRIPT NE TOUCHE PAS AU TON. Les 32 planches vont d'une moyenne de 119 à
-// 205 : ce sont des sujets différents sur un papier différent de celui du tome VII,
-// et la puissance de `creuserLesTons` y serait posée sans avoir regardé chacune.
-// La question du ton d'une planche reste ouverte.
+// ⛔ ET IL NETTOIE LE PAPIER, QUI NE L'AVAIT JAMAIS ÉTÉ. La chaîne 1.2.0 ne posait
+// aucun étalement : le pic de papier de ces planches plafonne à 225-245 au lieu de
+// 255, et il n'est pas le MÊME d'une planche à l'autre. Posées dans une page, elles
+// paraissent sales — relevé par l'auteur sur la Genèse — et pour une raison qui se
+// mesure : leur papier est plus SOMBRE que le passe-partout du site (237), quand un
+// tirage doit être plus clair que son montage.
+//
+// ⚠️ CE SCRIPT NE TOUCHE TOUJOURS PAS AU TON. Les 32 planches vont d'une moyenne de
+// 119 à 205 : ce sont des sujets différents, et la puissance de `creuserLesTons` y
+// serait posée sans avoir regardé chacune. Le blanc de papier est une remise à
+// l'échelle, pas un parti — c'est ce qui l'autorise ici.
+//
+// ⚠️ Le MASTER de ces planches ne porte pas cet étalement, à la différence de ceux
+// du tome VII, et l'on ne peut pas le lui donner : les feuillets JP2 du tome I ne
+// sont pas sur le disque. C'est une dette connue ; le script étant déterministe,
+// une redérivation le repose à l'identique.
 
 import { createHash } from 'node:crypto'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -37,10 +49,64 @@ const LARGEUR_SERVIE = Math.round(2 * PART_HORS_TEXTE * MESURE_COLONNE)   // 880
  *  mesure qui le fixe est écrite. Les deux fichiers doivent dire la même chose. */
 const NETTETE_TON = { sigma: 1.3, m1: 0, m2: 3, y2: 4, y3: 5 }
 
+/** ⛔ LE PAPIER SE NETTOIE PAR SON PLANCHER, JAMAIS PAR SON PIC.
+ *
+ *  Porter le PIC au blanc — l'étalement ordinaire — laisse la moucheture, et
+ *  l'AGGRAVE même : le grain du papier est SOUS le pic, et il s'écarte du blanc à
+ *  mesure que le pic y monte. Mesuré en écart-type du papier sur les douze
+ *  planches de la Genèse : 4,4 à 7,4 aujourd'hui, 1,5 à 3,1 après un étalement au
+ *  pic, **0,3 à 1,3** après le plancher.
+ *
+ *  Le plancher est celui de la rampe alpha (charte § 35.16.1), et il se mesure de
+ *  la même façon : la demi-largeur du pic prise de son côté CLAIR, le seul
+ *  qu'aucune encre ne peuple. Tout ce qui est plus clair que ce pied EST du papier
+ *  et devient blanc ; la moucheture part avec lui.
+ *
+ *  ⚠️ Contrôlé à l'œil sur les quatre cas extrêmes — la plus sale (p0215, pic 225),
+ *  la plus claire (p0201), la photographique (p0083, dont le ciel est le seul
+ *  endroit du corpus où le dessin frôle le plancher) et la composite (p0043) : le
+ *  dessin reste entier dans les quatre. */
+const FERMETE_DU_PIED = 0.2
+const PART_NOIR = 0.005
+
+function bornesDuPapier(gris, total) {
+  const hist = new Uint32Array(256)
+  for (const v of gris) hist[v]++
+  const lisse = (v) => (hist[Math.max(0, v - 1)] + hist[v] + hist[Math.min(255, v + 1)]) / 3
+  let pic = 150
+  for (let v = 150; v < 256; v++) if (lisse(v) > lisse(pic)) pic = v
+  let demi = 1
+  while (pic + demi < 255 && lisse(pic + demi) >= lisse(pic) * FERMETE_DU_PIED) demi++
+  let cum = 0, noir = 0
+  for (let v = 0; v < 256; v++) { cum += hist[v]; if (cum / total >= PART_NOIR) { noir = v; break } }
+  const plancher = Math.max(noir + 24, pic - demi)
+  if (plancher - noir < 24) throw new Error('plage tonale trop étroite, planche suspecte')
+  return { pic, plancher, noir }
+}
+
+/** Le nettoyage, sur le gris À PLEINE RÉSOLUTION : la moucheture s'efface AVANT la
+ *  réduction, sinon la moyenne l'étale au lieu de la retirer. */
+async function nettoyerLePapier(png) {
+  const r = await sharp(png).removeAlpha().toColourspace('b-w')
+    .raw().toBuffer({ resolveWithObject: true })
+  if (r.info.channels !== 1) throw new Error('canal unique attendu')
+  const total = r.info.width * r.info.height
+  const { pic, plancher, noir } = bornesDuPapier(r.data, total)
+  const amplitude = Math.max(1, plancher - noir)
+  const out = Buffer.alloc(total)
+  for (let i = 0; i < total; i++) {
+    out[i] = Math.max(0, Math.min(255, Math.round((r.data[i] - noir) * 255 / amplitude)))
+  }
+  return {
+    png: await sharp(out, { raw: { width: r.info.width, height: r.info.height, channels: 1 } }).png().toBuffer(),
+    pic, plancher, noir,
+  }
+}
+
 const SEAU_MASTER = 'bible-illustrations-master'
 const SEAU_WEB = 'bible-illustrations-web'
 const DOSSIER_LOCAL = 'tmp/fillion-planches'
-const VERSION = '4.3.0'
+const VERSION = '4.4.0'
 
 const FABRIQUER = process.argv.includes('--fabriquer')
 const TELEVERSER = process.argv.includes('--televerser')
@@ -80,9 +146,11 @@ async function principal() {
     if (e2) { console.log(nom.padEnd(16), '⛔ master illisible :', e2.message); continue }
     const src = Buffer.from(await blob.arrayBuffer())
 
+    // ⛔ Le papier se nettoie AVANT la réduction, à pleine résolution.
+    const propre = await nettoyerLePapier(src)
     // ⚠️ `withoutEnlargement` : un master plus étroit que la cible ne s'agrandit
     //    jamais — on servirait des pixels inventés par un rééchantillonnage.
-    const rendu = await sharp(src)
+    const rendu = await sharp(propre.png)
       .resize({ width: LARGEUR_SERVIE, fit: 'inside', withoutEnlargement: true, kernel: 'lanczos3' })
       .sharpen(NETTETE_TON)
       .png().toBuffer()
@@ -94,7 +162,8 @@ async function principal() {
       nom.replace('fillion-t01-', '').padEnd(16),
       String(w.width_px).padStart(6), ((w.width_px / (PART_HORS_TEXTE * MESURE_COLONNE)).toFixed(2) + '×').padStart(8), '→',
       String(meta.width).padStart(6),
-      (Math.round(w.byte_size / 1024) + ' → ' + Math.round(webp.length / 1024) + ' Ko').padStart(18))
+      (Math.round(w.byte_size / 1024) + ' → ' + Math.round(webp.length / 1024) + ' Ko').padStart(18),
+      '· papier', String(propre.pic).padStart(3), '→ plancher', String(propre.plancher).padStart(3))
 
     if (FABRIQUER || TELEVERSER) writeFileSync(`${DOSSIER_LOCAL}/${nom}.webp`, webp)
 
