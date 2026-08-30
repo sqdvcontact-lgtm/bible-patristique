@@ -40,14 +40,7 @@ export type TraductionEncart = {
   langue?: string | null
 }
 
-export default function EncartTraduction({ trad, filetBas = true }: {
-  trad: TraductionEncart
-  /** ⛔ Le filet du bas tombe quand la barre « Livres | Sommaire » suit la carte :
-   *  cette barre porte le sien, et deux filets à trente pixels l'un de l'autre en
-   *  font une bande posée en travers du volet. C'est `NavLivres` qui le sait, la
-   *  carte n'ayant pas à connaître ce qui la suit. */
-  filetBas?: boolean
-}) {
+export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
   return (
     // ⚠️ Plus de `minHeight` : la carte valait 6,75 rem pour ne jamais faire bouger
@@ -55,7 +48,7 @@ export default function EncartTraduction({ trad, filetBas = true }: {
     // s'efface. Elle prend maintenant la hauteur de ce qu'elle porte, et rien ne
     // bouge pour autant — la référence ne paraît ou ne disparaît qu'au geste
     // délibéré de redimensionner le volet.
-    <div className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: '7px 10px', borderBottom: filetBas ? '1px solid var(--cs-bord)' : 'none', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: '7px 10px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {/* ⚠️ Alignement sur la LIGNE DE BASE, non sur le milieu : l'étiquette pèse 8
           pixels et le lien 9,5, et deux boîtes centrées l'une sur l'autre feraient
           flotter le plus petit des deux au-dessus de la ligne de l'autre.

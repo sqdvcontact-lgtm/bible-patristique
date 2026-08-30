@@ -221,12 +221,12 @@ export default function NavLivres({
     if (pieceActive) setOngletVolet('sommaire')
   }
   const sommaireOuvert = sommaireEdition.length > 0 && ongletVolet === 'sommaire'
-  // ⛔ Ce que la barre « Livres | Sommaire » CLÔT, elle seule le clôt. Le bloc qui
-  // la précède rend donc son filet du bas : sinon la barre est enfermée entre deux
-  // filets à trente pixels l'un de l'autre et se lit comme une bande posée en
-  // travers du volet (relevé de l'auteur, 2026-08-30). ⚠️ Le bloc qui la précède
-  // n'est pas toujours le même — les axes quand l'édition en offre, la carte de
-  // traduction sinon — d'où les deux endroits où ce drapeau se lit.
+  // La barre « Livres | Sommaire » ne paraît que pour une édition qui porte un
+  // apparat général. ⚠️ Le bloc qui la précède garde son filet : c'est LUI la
+  // séparation entre la tête du volet et ce que la barre commande (décision de
+  // l'auteur, 2026-08-30, « une séparation plus nette avant le sommaire »). Il
+  // avait été retiré le matin même, la barre paraissant alors enfermée entre deux
+  // filets ; la cause était sa LARGEUR, non ce filet — voir `cs-onglets--volet`.
   const barreVolet = sommaireEdition.length > 0
   const polyMode = !!onChoisirChapitre
   const [atOuvert, setAtOuvert] = useState(true)
@@ -489,9 +489,7 @@ export default function NavLivres({
         />
       )}
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
-      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
-        <EncartTraduction trad={traductions[traductionIndex]} filetBas={!barreVolet || modesLecture.length > 0} />
-      )}
+      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && <EncartTraduction trad={traductions[traductionIndex]} />}
 
       {/* Menu OCCASIONNEL des manières de lire — entre la fiche de la traduction et la
           recherche des livres. Il ne paraît que lorsque le témoin qu'on lit offre
@@ -514,7 +512,7 @@ export default function NavLivres({
           — seuls les blancs se referment. Le rembourrage et l'écart entre les deux
           axes vivent ici, la rangée et sa rubrique dans `stylesVoletLecture`. */}
       {modesLecture.length > 0 && (
-        <div style={{ flexShrink: 0, padding: '6px 10px 7px', borderBottom: barreVolet ? 'none' : '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
+        <div style={{ flexShrink: 0, padding: '6px 10px 7px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
             <div key={groupe.cle} style={rang > 0 ? { marginTop: '6px' } : undefined}>
               <span style={RUBRIQUE_AXE}>{groupe.titre}</span>
