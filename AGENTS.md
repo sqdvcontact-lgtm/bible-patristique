@@ -618,6 +618,19 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 - **Bible 899 ne vit plus que sous Administration** (retiré d'« Aller plus loin »).
 - **Mobile** : le panneau déplié reconstruit ces groupes (helper `lienMobile`, intertitres `styleSectionMobile`) : lecture + Patristique/Publications, puis « Aller plus loin » déplié, puis, pour un admin, « Administration » (sections + Bible 899).
 
+## Les quatre menus déroulants s'ouvrent sur une INTENTION (2026-08-30)
+
+Doctrine à la charte, § 18 (« Un menu déroulant s'ouvre sur une INTENTION, jamais sur un passage »). Ce qui suit en est l'implémentation, dans `app/components/Navbar.tsx`.
+
+- **Un seul composant, `OngletMenu`**, pour les quatre menus au survol : les bibles (crans 2-3), Patristique, Aller plus loin, Administration. Ils étaient auparavant gouvernés par deux mécaniques — trois par `.cs-plus:hover`, le quatrième par un état React et un délai de fermeture de 160 ms —, et « Patristique » portait son propre cadre en styles en ligne, séparé de l'onglet par six pixels de vide.
+- **`useIntentionSurvol`** tient l'état : ouverture après `DELAI_INTENTION_MS` (500 ms) de survol de l'onglet, fermeture après `DELAI_FERMETURE_MS` (90 ms) dès qu'on quitte l'ensemble `{onglet + menu}`. ⚠️ Ces 90 ms ne sont PAS un confort de survol : le menu est collé sous l'onglet, mais un mouvement rapide en diagonale sort du groupe par le coin, un pixel avant d'entrer dans le menu qu'il visait. À l'œil, la fermeture est immédiate.
+- ⛔ **Souris seulement** : `e.pointerType !== 'mouse'` sort des deux gestionnaires. Au doigt il n'y a pas de survol, et le `pointerenter` émis après la frappe couvrirait la page qu'on vient d'appeler.
+- **Le menu reste dans le document** et ne fait que se cacher (`display: none`) : c'est ce qui permet au clavier de l'ouvrir. Deux règles CSS l'affichent, et ⛔ **elles sont SÉPARÉES** — `.cs-plus--ouvert > .cs-plus-menu` et `.cs-plus:has(:focus-visible) > .cs-plus-menu` : réunies en une liste de sélecteurs, un navigateur sans `:has()` jetterait la déclaration entière et plus aucun menu ne s'ouvrirait, souris comprise.
+- ⚠️ **`:focus-visible`, non `:focus-within`** : ce dernier gardait le menu ouvert après un clic de SOURIS sur l'onglet, qui laisse le lien focalisé — le menu survivait à la navigation, curseur parti depuis longtemps.
+- **Classes partagées** : `.cs-plus-titre` (l'intertitre, une seule mesure ; `.cs-admin-fam` n'en garde que l'opacité et reçoit sa couleur en ligne), `.cs-plus-vide` (le mot qui tient la place d'un menu sans contenu), et trois largeurs `.cs-plus-menu--bibles` / `--pages` / `--oeuvres` par-dessus `--riche`. Le chevron est porté par les quatre onglets, et `aria-current` avec lui.
+- ⛔ **La liste des œuvres récentes se lit AU SURVOL** (`auSurvol`), jamais dans un effet de montage : elle vit dans le stockage local, que le rendu serveur ne connaît pas, et la lire au montage ferait re-rendre la barre à chaque page ouverte. D'où le mot d'attente sous l'intertitre quand rien n'a été consulté : le chevron étant posé d'emblée comme sur les trois autres onglets, un menu vide serait une promesse en l'air.
+- **Hors du dispositif** : l'onglet des bibles au cran 1 (`.cs-bible`, qui se fend SUR PLACE au survol) reste en `:hover`. Ce n'est pas un menu — il ne couvre rien et ne capture pas le curseur.
+
 # Catalogue des péricopes (liste) — refonte du 2026-08-22
 
 `app/pericopes/PericopesCatalogueClient.tsx`, `app/lib/pericopesRecherche.ts` (logique pure, testée). La page est un **INDEX ANNOTÉ**, sur le modèle d'un index de fin d'ouvrage. Elle remplace la mise en forme « arrêtée » précédente, dont l'audit d'ergonomie a montré qu'elle rendait le catalogue illisible sur son point capital : **l'ordre canonique**.

@@ -1676,6 +1676,10 @@ Les préférences d’affichage, dont le mode texte intégral, ne modifient jama
 
 **Le blanc entre deux lignes** de cette liste est le même pour toutes — texte original, traduction, autre édition. Ce qui sépare les œuvres entre elles, c’est le filet et le retrait du groupe, non l’écart des lignes : un écart plus large ici que là ferait lire un groupement qui n’existe pas.
 
+**Un menu déroulant s’ouvre sur une INTENTION, jamais sur un passage** (décision de l’auteur, 30 août 2026 : « si l’utilisateur reste la moitié d’une seconde, avec son curseur, sur le menu déroulant, on peut considérer qu’il veut l’ouvrir ; s’il reste moins longtemps, c’est que le curseur ne fait que passer »). Un menu qui paraît au premier pixel survolé s’ouvre surtout par accident : le curseur qui traverse la barre pour redescendre dans la page balaie un onglet, le menu se déploie SOUS lui, et le curseur poursuit sa route à l’intérieur — le menu reste alors ouvert sur une page qu’il couvre, sans qu’on lui ait rien demandé. Ce qui sépare « je veux voir ce menu » de « je ne fais que passer » n’est pas la position du curseur mais le TEMPS qu’il y reste : on s’arrête sur ce qu’on veut ouvrir. Le menu s’ouvre donc après une DEMI-SECONDE de survol de l’onglet, et se referme dès que le curseur quitte l’ensemble formé par l’onglet et son menu. ⚠️ Le délai est le MÊME pour tous les menus d’une même barre et ne se raccourcit pour aucun, pas même pour le voisin de celui qui vient de se fermer : une barre où l’un s’ouvre plus vite que l’autre n’apprend rien au lecteur. ⛔ Au clavier, le menu s’ouvre SANS DÉLAI — et sur `:focus-visible`, non sur `:focus-within`, qui le gardait ouvert après un simple clic de souris sur l’onglet, lequel laisse le lien focalisé, le curseur parti depuis longtemps.
+
+**Les menus d’une même barre ne font qu’une seule forme.** Même cadre, même ombre, même intertitre, même chevron sur l’onglet qui les porte ; seule la LARGEUR varie, parce que le contenu la commande. ⛔ Et une seule mécanique : deux menus voisins gouvernés l’un par une règle `:hover` de la feuille de styles, l’autre par un état de composant, finissent toujours par diverger. La barre de navigation en portait quatre ainsi partagés, dont l’un avait son propre cadre, son propre délai de fermeture, et six pixels de vide entre l’onglet et sa boîte, que le curseur devait franchir sans les voir.
+
 ## 19. Modèle de données des œuvres et versions
 
 ### 19.1 `oeuvres`
@@ -1912,6 +1916,10 @@ La précision prime le rendement. Aucun lien, aucun paragraphe, aucun titre et a
 ### 25.1 Référence éditoriale
 
 Une référence fournie par l’édition est une piste privilégiée, mais elle peut comporter une abréviation ambiguë, une numérotation différente ou une coquille. Elle devient un lien vérifié seulement après confrontation.
+
+Lorsqu’une édition imprime une référence précise — livre, chapitre et verset — et que la confrontation confirme qu’elle vise bien le passage cité ou commenté, cette cible éditoriale est conservée comme lien principal. L’existence de parallèles scripturaires ne l’annule pas : ils sont signalés dans le motif ou reçoivent des liens distincts seulement s’ils sont eux-mêmes attestés. Il est interdit de remplacer une telle cible par `canon_id = null` au seul motif que la formule existe dans plusieurs passages.
+
+Toute correction d’un `canon_id` déjà renseigné vers une autre cible, ou vers `null`, exige une sauvegarde, un préflight, la confrontation de l’édition active, du texte original lorsqu’il existe et du verset local, puis un postcheck relisant l’état final. Le motif doit conserver la distinction entre la référence imprimée, la forme textuelle reconnue et les parallèles éventuels.
 
 ### 25.2 Numérotations divergentes
 
