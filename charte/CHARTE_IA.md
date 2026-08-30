@@ -3706,7 +3706,7 @@ ou bien ces objets sont publiables et les trois marques tombent, ou bien ils ne 
 sont pas et `is_public` tombe. Les deux à la fois ne veulent rien dire, et c'est le
 genre d'état où l'on finit par ne plus savoir ce qui est publié.
 
-#### 35.16.16. Le papier se nettoie par son PLANCHER, jamais par son pic
+#### 35.16.16. Le papier se nettoie CHIRURGICALEMENT
 
 « Les illustrations grandes de la Genèse sont un peu crasseuses » (l'auteur,
 30 août 2026). Elles l'étaient, et cela se mesure : les 32 planches du tome I
@@ -3716,28 +3716,50 @@ plafonne à 225-245 au lieu de 255, il n'est pas le MÊME d'une planche à l'aut
 passe-partout du site**, qui vaut 237. Un tirage plus sombre que son montage se lit
 comme sale, quelle que soit la qualité du dessin.
 
-⛔ **ET L'ÉTALEMENT ORDINAIRE NE SUFFIT PAS : IL AGGRAVE LA MOUCHETURE.** Le grain
-du papier est SOUS le pic ; porter le pic au blanc l'en écarte d'autant. C'est le
-PLANCHER qu'il faut — celui de la rampe alpha (§ 35.16.1), mesuré de la même façon,
-par la demi-largeur du pic prise de son côté CLAIR, le seul qu'aucune encre ne
-peuple. **Tout ce qui est plus clair que ce pied EST du papier**, et devient blanc ;
-la moucheture part avec lui.
+**⛔ AUCUNE DES DEUX BORNES NE SUFFIT SEULE.** L'étalement au PIC ne perd rien mais
+laisse la moucheture et l'AGGRAVE même : le grain du papier est SOUS le pic, et il
+s'en écarte à mesure que le pic monte au blanc. Le PLANCHER — celui de la rampe
+alpha (§ 35.16.1), la demi-largeur du pic prise de son côté CLAIR — nettoie
+parfaitement, et **mange le trait clair** : 11 % de l'encre en moyenne, jusqu'à 17 %
+sur les gravures au trait FIN, dont les traits minces ont justement des valeurs
+claires.
 
-Mesuré en écart-type du papier, sur les douze planches de la Genèse :
+⛔ **LA SORTIE EST DANS LE VOISINAGE, NON DANS LE NIVEAU.** Un trait clair est
+TOUJOURS bordé de trait plus sombre ; le papier ouvert, jamais. On part donc de
+l'étalement au pic, et l'on ne pousse au blanc que les pixels clairs **sans aucune
+encre alentour** — trois pixels suffisent. Le plancher garde son office, mais comme
+CRITÈRE : il dit ce qui est du papier, il ne dit pas ce qu'on blanchit.
 
-| | écart-type |
-|---|---:|
-| avant | 4,4 à 7,4 |
-| étalement au PIC | 1,5 à 3,1 |
-| **PLANCHER** | **0,3 à 1,3** |
+Mesuré sur les huit planches extrêmes, les deux critères ensemble :
 
-⚠️ **Ce que le plancher pourrait coûter se contrôle à l'ŒIL, sur les cas extrêmes**,
-et non par un compteur : un compteur de « clairs perdus » confond le dessin avec la
-queue basse du papier, et annonçait jusqu'à 61 % de perte là où l'œil n'en voit
-aucune. Les quatre cas à regarder sont la planche la plus SALE, la plus CLAIRE, la
-PHOTOGRAPHIQUE — dont le ciel est le seul endroit du corpus où le dessin frôle le
-plancher — et la COMPOSITE, qui mêle les genres. Le dessin reste entier dans les
-quatre.
+| | moucheture du papier | encre gardée |
+|---|---:|---:|
+| plancher DUR | 0,77 | ×0,87 |
+| plancher plus haut | 0,99 | ×0,91 |
+| **CHIRURGICAL** | **0,47** | **×0,95** |
+
+⛔ **Il gagne sur les DEUX à la fois, et c'est cela qui le choisit** — la même règle
+qu'au § 35.16.13. Une planche parfaitement propre dont le trait a fondu n'est pas un
+gain. Sur les 32 : moucheture moyenne 1,12 contre 4,4 à 7,4 avant traitement, encre
+à ×0,96 du témoin, de ×0,89 à ×1,03.
+
+⛔ **ET C'EST LE TÉMOIN QUI L'A DIT, PAS L'ŒIL.** Le plancher dur a été posé, servi,
+et contrôlé à l'œil sur les quatre cas extrêmes — la plus sale, la plus claire, la
+photographique, la composite : le dessin y paraissait entier dans les quatre. Il
+manquait pourtant un dixième de l'encre. **Une perte diffuse et proportionnelle ne
+se voit pas** ; elle se mesure en comparant la densité d'encre du fichier servi à
+celle du master réduit à la même taille, sur une échelle neutre.
+
+⚠️ Corollaire, et il vaut au delà des images : **l'œil tranche ce qui se voit — une
+teinte, un empâtement, un blanc crevé — et il ne tranche pas ce qui est
+PROPORTIONNEL.** Les deux contrôles sont nécessaires, et aucun ne remplace l'autre.
+
+⚠️ **Deux compteurs se sont trompés en chemin**, et pour la même raison : ils
+mêlaient le dessin au papier. Un compteur de « clairs perdus » annonçait jusqu'à
+61 % de perte là où l'œil n'en voyait aucune, et un drapeau de « planche lavée » en
+signalait onze sur trente-deux, alors qu'il mesurait le GENRE de la gravure — une
+gravure au trait fin a une encre claire parce que ses traits sont MINCES, et la
+noircir serait une falsification (§ 35.16.6).
 
 ⚠️ **Le blanc de papier est une remise à l'ÉCHELLE, non un parti** : c'est ce qui
 l'autorise là où la puissance de ton du § 35.16.11 reste, elle, en attente. La
