@@ -144,113 +144,197 @@ const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
 
-// Onglet \u00ab Patristique \u00bb : au survol, un menu d\u00e9roulant pr\u00e9sente les trois derni\u00e8res
-// \u0153uvres consult\u00e9es (suivi local, cf. oeuvresRecentes). S'il n'y en a aucune, l'onglet
-// se comporte comme un simple lien.
-function OngletPatristique({ href, label, style }: { href: string; label: string; style: React.CSSProperties }) {
+// ── UN MENU DÉROULANT S'OUVRE SUR UNE INTENTION, JAMAIS SUR UN PASSAGE ───────
+//
+// La barre porte quatre menus au survol — les bibles, Patristique, Aller plus
+// loin, Administration. Ils étaient gouvernés par DEUX mécanismes étrangers l'un
+// à l'autre : trois par une règle `:hover` de la feuille de styles, le quatrième
+// par un état React. Ils n'avaient donc ni la même boîte, ni le même délai, ni
+// la même façon de se refermer, et le lecteur ne pouvait rien apprendre de l'un
+// qui lui servît pour l'autre. Ils passent tous par OngletMenu, ci-dessous.
+//
+// ⛔ Un menu qui paraît au PREMIER PIXEL survolé s'ouvre surtout par accident.
+// Le curseur qui traverse la barre pour redescendre dans la page balaie un
+// onglet ; le menu se déploie SOUS lui ; le curseur poursuit sa route à
+// l'intérieur, et le menu reste ouvert sur une page qu'il couvre, alors qu'on ne
+// lui avait rien demandé.
+//
+// Ce qui sépare « je veux voir ce menu » de « je ne fais que passer » n'est pas
+// la position du curseur mais le TEMPS qu'il y reste : on s'arrête sur ce qu'on
+// veut ouvrir. D'où une seule règle, la même pour les quatre :
+//
+//   • on s'attarde une demi-seconde sur l'onglet → le menu s'ouvre ;
+//   • on ne fait que passer → rien ne s'ouvre, donc rien à refermer ;
+//   • on quitte l'onglet ou son menu → il se referme aussitôt.
+//
+// ⚠️ Le délai est le MÊME partout et ne se raccourcit pour aucun menu, pas même
+// pour celui d'à côté quand un autre vient de se fermer : une barre où l'un
+// s'ouvre plus vite que son voisin n'apprend rien au lecteur.
+const DELAI_INTENTION_MS = 500;
+// La fermeture, elle, est immédiate — au sursis près que voici. Le menu est
+// collé sous l'onglet (`top: 100%`), il n'y a donc aucun vide à franchir pour
+// l'atteindre ; reste le COIN, qu'un mouvement rapide en diagonale traverse en
+// sortant du groupe par la droite de l'onglet, un pixel avant d'entrer dans le
+// menu qu'il visait. Ces quelques centièmes ne rattrapent que ce cas-là et ne se
+// voient pas : cinq images à soixante hertz.
+const DELAI_FERMETURE_MS = 90;
+
+/**
+ * Ouvre après une PAUSE sur l'onglet, ferme dès qu'on en sort. Rend l'état et les
+ * gestionnaires à poser sur l'ensemble {onglet + menu} : c'est ce groupe entier,
+ * et non le seul onglet, qui retient le menu ouvert — sans quoi on ne pourrait
+ * jamais descendre dans la liste.
+ *
+ * `auSurvol` est appelé dès l'entrée du curseur, avant même que le menu s'ouvre :
+ * c'est là que « Patristique » relit ses dernières œuvres, pour que le menu
+ * paraisse déjà rempli.
+ */
+function useIntentionSurvol(auSurvol?: () => void) {
   const [ouvert, setOuvert] = useState(false);
-  const [recentes, setRecentes] = useState<OeuvreRecente[]>([]);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ouvrir = () => {
-    if (timer.current) clearTimeout(timer.current);
-    setRecentes(lireOeuvresRecentes());
-    setOuvert(true);
+  const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const arreter = () => {
+    if (minuterie.current) { clearTimeout(minuterie.current); minuterie.current = null; }
   };
-  const fermer = () => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setOuvert(false), 160);
+  useEffect(() => arreter, []);
+  // ⚠️ À la SOURIS seulement. Au doigt il n'y a pas de survol : l'onglet est un
+  // lien qu'on suit, et un menu ouvert par le `pointerenter` que le navigateur
+  // émet après la frappe viendrait couvrir la page qu'on vient d'appeler.
+  const entrer = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    arreter();
+    auSurvol?.();
+    // Revenu avant que la fermeture n'ait pris effet : le menu n'a pas bougé, il
+    // n'y a rien à rouvrir.
+    if (ouvert) return;
+    minuterie.current = setTimeout(() => setOuvert(true), DELAI_INTENTION_MS);
   };
+  const sortir = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    // Sorti avant la demi-seconde : la minuterie tombe, et le menu ne se sera
+    // jamais montré. C'est le cas ordinaire du curseur qui passe.
+    arreter();
+    minuterie.current = setTimeout(() => setOuvert(false), DELAI_FERMETURE_MS);
+  };
+  const fermer = () => { arreter(); setOuvert(false); };
+  // Un clic dans le groupe emmène ailleurs : le menu n'a plus lieu d'être, et la
+  // barre survit à la navigation (elle n'est pas remontée d'une page à l'autre).
+  return { ouvert, gestionnaires: { onPointerEnter: entrer, onPointerLeave: sortir, onClick: fermer } };
+}
+
+/**
+ * Un onglet de la barre qui porte un menu déroulant : UNE boîte, UN chevron, UN
+ * délai. Le libellé reste un LIEN — au doigt, où il n'y a pas de survol, il mène
+ * à la page principale de la rubrique.
+ *
+ * Le menu demeure dans le document et ne fait que se cacher (`display: none`,
+ * cf. la feuille de styles) : c'est ce qui permet au clavier de l'ouvrir par
+ * `:focus-visible`, sans que la souris ait rien à faire.
+ */
+function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, children }: {
+  href: string;
+  label: string;
+  style: React.CSSProperties;
+  actif?: boolean;
+  classeMenu?: string;
+  auSurvol?: () => void;
+  children?: React.ReactNode;
+}) {
+  const { ouvert, gestionnaires } = useIntentionSurvol(auSurvol);
   return (
-    <span style={{ position: "relative", display: "inline-flex" }}
-      onMouseEnter={ouvrir} onMouseLeave={fermer}
-      onFocus={ouvrir} onBlur={fermer}>
-      <Link href={href} className="cs-nav-onglet" style={style}>{label}</Link>
-      {ouvert && recentes.length > 0 && (
-        <div onMouseEnter={ouvrir} onMouseLeave={fermer} className="cs-defilement-discret"
-          style={{ position: "absolute", top: "100%", left: 0, marginTop: "6px", minWidth: "15rem", maxWidth: "20rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord-clair)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "7px", zIndex: 3000,
-            // ⛔ Un menu déroulant se borne à la hauteur de la fenêtre et DÉFILE :
-            // ce qui dépasse du bas n'est pas seulement invisible, il est
-            // inatteignable. `overscroll-behavior` va avec, et n'est pas une
-            // politesse — le menu se referme dès que le curseur en sort, et la
-            // molette poursuivie au bas de la liste emporterait la page sous un
-            // curseur immobile, fermant le menu au moment où l'on cherche à en
-            // atteindre le bas.
-            maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem)`, overflowY: "auto", overscrollBehavior: "contain" }}>
-          <p style={{ fontSize: "0.5625rem", fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--cs-texte-faible)", margin: "2px 8px 6px" }}>{"Derni\u00e8res \u0153uvres consult\u00e9es"}</p>
-          {recentes.map(o => (
-            <Link key={o.id} href={`/oeuvre/${o.id}`} onClick={() => setOuvert(false)}
-              style={{ display: "block", padding: "6px 8px", borderRadius: "4px", textDecoration: "none" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.07)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-              <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.75rem", color: "var(--cs-texte-second)", lineHeight: 1.2 }}>{o.titre}</span>
-              {o.auteur && <span style={{ display: "block", fontSize: "0.5625rem", color: "var(--cs-texte-faible)", fontStyle: "italic", marginTop: "1px" }}>{o.auteur}</span>}
-            </Link>
-          ))}
+    <span className={ouvert ? "cs-plus cs-plus--ouvert" : "cs-plus"} {...gestionnaires}>
+      <Link href={href} className="cs-nav-onglet" aria-current={actif ? "page" : undefined}
+        style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+        {label}
+        {/* Le chevron dit qu'il y a un menu là-dessous. Les quatre onglets le
+            portent — un seul qui s'en passerait ferait douter des trois autres. */}
+        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"
+          style={{ opacity: 0.55, flexShrink: 0 }}>
+          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
+      {children ? (
+        <div className={classeMenu ? `cs-plus-menu cs-defilement-discret ${classeMenu}` : "cs-plus-menu cs-defilement-discret"}>
+          {children}
         </div>
+      ) : null}
+    </span>
+  );
+}
+
+// Onglet « Patristique » : au survol, le menu présente les dernières œuvres
+// consultées (suivi local, cf. oeuvresRecentes).
+//
+// ⚠️ La liste est relue À CHAQUE SURVOL, et jamais au montage : elle vit dans le
+// stockage local, que le rendu serveur ne connaît pas, et la lire dans un effet
+// ferait re-rendre la barre à chaque page ouverte pour trois lignes que personne
+// ne regarde encore. Le chevron, lui, est posé d'emblée comme sur les trois
+// autres onglets — d'où le mot qui tient la place quand rien n'a été consulté :
+// un chevron qui n'ouvrirait rien serait une promesse en l'air.
+function OngletPatristique({ href, label, style, actif }: { href: string; label: string; style: React.CSSProperties; actif?: boolean }) {
+  const [recentes, setRecentes] = useState<OeuvreRecente[]>([]);
+  return (
+    <OngletMenu href={href} label={label} style={style} actif={actif}
+      classeMenu="cs-plus-menu--riche cs-plus-menu--oeuvres"
+      auSurvol={() => setRecentes(lireOeuvresRecentes())}>
+      <p className="cs-plus-titre">Dernières œuvres consultées</p>
+      {recentes.length > 0 ? recentes.map(o => (
+        <Link key={o.id} href={`/oeuvre/${o.id}`} className="cs-plus-riche">
+          <span className="cs-plus-riche-texte">
+            <span className="cs-plus-riche-nom cs-plus-riche-nom--oeuvre">{o.titre}</span>
+            {o.auteur && <span className="cs-plus-riche-dit">{o.auteur}</span>}
+          </span>
+        </Link>
+      )) : (
+        <p className="cs-plus-vide">Aucune encore : les œuvres ouvertes viendront se ranger ici.</p>
       )}
-    </span>
+    </OngletMenu>
   );
 }
 
-// \u00ab Aller plus loin \u00bb : un menu d\u00e9roulant (Traductions + Histoire de l'\u00c9glise).
-// Le clic sur le libell\u00e9 m\u00e8ne aux Traductions (utile au tactile, sans survol).
-function OngletAllerPlusLoin({ label, style }: { label: string; style: React.CSSProperties }) {
+// « Aller plus loin » : les pages qui prolongent la lecture. Le clic sur le
+// libellé mène aux Traductions (utile au tactile, sans survol).
+function OngletAllerPlusLoin({ label, style, actif }: { label: string; style: React.CSSProperties; actif?: boolean }) {
   return (
-    <span className="cs-plus" style={{ display: "inline-flex" }}>
-      <Link href="/traductions" className="cs-nav-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
-        {label}
-        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </Link>
-      {/* Le menu DIT ce que chaque page contient, et le montre d'un emblème.
-          « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
-          une liste de cinq mots laissait le lecteur ouvrir au hasard. */}
-      <div className="cs-plus-menu cs-plus-menu--riche cs-defilement-discret">
-        {LIENS_ALLER_PLUS_LOIN.map(l => (
-          <Link key={l.href} href={l.href} className="cs-plus-riche">
-            <span className="cs-plus-riche-emb" aria-hidden="true">
-              <EmblemeNavigation href={l.href} />
-            </span>
-            <span className="cs-plus-riche-texte">
-              <span className="cs-plus-riche-nom">{l.label}</span>
-              <span className="cs-plus-riche-dit">{l.dit}</span>
-            </span>
-          </Link>
-        ))}
-      </div>
-    </span>
+    // Le menu DIT ce que chaque page contient, et le montre d'un emblème.
+    // « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
+    // une liste de cinq mots laissait le lecteur ouvrir au hasard.
+    <OngletMenu href="/traductions" label={label} style={style} actif={actif}
+      classeMenu="cs-plus-menu--riche cs-plus-menu--pages">
+      {LIENS_ALLER_PLUS_LOIN.map(l => (
+        <Link key={l.href} href={l.href} className="cs-plus-riche">
+          <span className="cs-plus-riche-emb" aria-hidden="true">
+            <EmblemeNavigation href={l.href} />
+          </span>
+          <span className="cs-plus-riche-texte">
+            <span className="cs-plus-riche-nom">{l.label}</span>
+            <span className="cs-plus-riche-dit">{l.dit}</span>
+          </span>
+        </Link>
+      ))}
+    </OngletMenu>
   );
 }
 
-// « Administration » : onglet réservé aux admins ; au survol, le menu recense chaque
-// section d'admin (chacune ouvre /admin sur la bonne section), puis, après un filet,
+// « Administration » : onglet réservé aux admins ; le menu recense chaque section
+// d'admin (chacune ouvre /admin sur la bonne section), puis, après un filet,
 // l'outil « Bible 899 ». Le clic sur le libellé ouvre /admin (section par défaut).
-function OngletAdministration({ label, style }: { label: string; style: React.CSSProperties }) {
+function OngletAdministration({ label, style, actif }: { label: string; style: React.CSSProperties; actif?: boolean }) {
   return (
-    <span className="cs-plus" style={{ display: "inline-flex" }}>
-      <Link href="/admin" className="cs-nav-onglet" style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
-        {label}
-        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </Link>
-      <div className="cs-plus-menu cs-defilement-discret">
-        {FAMILLES_ADMIN.map((fam, i) => {
-          const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
-            .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
-          return (
-            <div key={fam.cle}>
-              {i > 0 && <div className="cs-plus-sep" />}
-              <div className="cs-admin-fam" style={{ color: fam.couleur }}>{fam.label}</div>
-              {liens.map(l => (
-                <Link key={l.href} href={l.href} className={`cs-plus-lien cs-admin-lien${l.principal ? " cs-plus-lien--fort" : ""}`} style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    </span>
+    <OngletMenu href="/admin" label={label} style={style} actif={actif}>
+      {FAMILLES_ADMIN.map((fam, i) => {
+        const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
+          .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
+        return (
+          <div key={fam.cle}>
+            {i > 0 && <div className="cs-plus-sep" />}
+            <div className="cs-plus-titre cs-admin-fam" style={{ color: fam.couleur }}>{fam.label}</div>
+            {liens.map(l => (
+              <Link key={l.href} href={l.href} className={`cs-plus-lien cs-admin-lien${l.principal ? " cs-plus-lien--fort" : ""}`} style={{ borderLeft: `2px solid ${fam.couleur}` }}>{l.label}</Link>
+            ))}
+          </div>
+        );
+      })}
+    </OngletMenu>
   );
 }
 
@@ -314,21 +398,13 @@ function OngletBibles({ etat, pathname, styleLien }: {
   // toutes deux, et rien d'autre ne dirait au lecteur qu'il est dans une bible.
   const styleFace = surPolyglotte ? styleLien("/polyglotte", undefined, true) : styleLien("/", true, true);
   return (
-    <span className="cs-plus" style={{ display: "inline-flex" }}>
-      <Link href={HREF_BIBLE_CLASSIQUE} className="cs-nav-onglet" aria-current={surClassique ? "page" : undefined}
-        style={{ ...styleFace, display: "inline-flex", alignItems: "center", gap: "3px" }}>
-        {etat === 'long' ? "La Bible" : "Bible"}
-        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.55, flexShrink: 0 }}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </Link>
-      {/* Deux entrées seulement : le menu se borne à sa mesure, au lieu des 13rem
-          qu'appellent « Aller plus loin » et « Administration ». */}
-      <div className="cs-plus-menu" style={{ minWidth: "9.5rem" }}>
-        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-plus-lien" aria-current={surClassique ? "page" : undefined}>Bible classique</Link>
-        <Link href="/polyglotte" className="cs-plus-lien" aria-current={surPolyglotte ? "page" : undefined}>Bible polyglotte</Link>
-      </div>
-    </span>
+    // Deux entrées seulement : le menu se borne à sa mesure, au lieu des 13rem
+    // qu'appellent « Aller plus loin » et « Administration ».
+    <OngletMenu href={HREF_BIBLE_CLASSIQUE} label={etat === 'long' ? "La Bible" : "Bible"}
+      style={styleFace} actif={surClassique} classeMenu="cs-plus-menu--bibles">
+      <Link href={HREF_BIBLE_CLASSIQUE} className="cs-plus-lien" aria-current={surClassique ? "page" : undefined}>Bible classique</Link>
+      <Link href="/polyglotte" className="cs-plus-lien" aria-current={surPolyglotte ? "page" : undefined}>Bible polyglotte</Link>
+    </OngletMenu>
   );
 }
 
@@ -1457,8 +1533,16 @@ export default function Navbar() {
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: var(--cs-sur-aplat); }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: var(--cs-sur-aplat); background: rgba(255,255,255,0.10); }
-          /* « Aller plus loin » : petit menu déroulant au survol (CSS :hover, sans gap
-             mort — le menu touche le déclencheur).
+          /* ── LA BOÎTE COMMUNE AUX QUATRE MENUS DÉROULANTS DE LA BARRE ──
+             Les bibles, Patristique, Aller plus loin, Administration : même cadre, même
+             ombre, même rembourrage, même façon de s'ouvrir. Seule la LARGEUR les
+             distingue, parce que leur contenu la commande (variantes plus bas).
+
+             ⛔ Le menu ne s'ouvre PLUS sur :hover : le survol ne dit pas l'intention
+             (voir DELAI_INTENTION_MS, plus haut). C'est OngletMenu qui pose
+             .cs-plus--ouvert après une pause du curseur sur l'onglet, et qui la retire
+             dès qu'on en sort. Le menu reste collé sous le déclencheur : aucun vide à
+             franchir pour l'atteindre.
 
              ⛔ Le menu ne peut PAS déborder de l'écran, et « Administration » en compte dix-sept
              entrées réparties en trois familles. Il était en overflow:hidden, donc ce qui
@@ -1470,9 +1554,19 @@ export default function Navbar() {
 
              overscroll-behavior:contain — sans lui, la molette poursuivie au bas de la liste
              emporte la PAGE, et le menu se ferme sous le curseur qui a bougé avec elle. */
-          .cs-plus { position: relative; }
+          .cs-plus { position: relative; display: inline-flex; }
           .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem); z-index: 3000; padding: 3px; display: none; }
-          .cs-plus:hover .cs-plus-menu, .cs-plus:focus-within .cs-plus-menu { display: block; }
+          /* ⚠️ DEUX RÈGLES, et non une seule à deux sélecteurs : un navigateur qui
+             ignore :has() jette la déclaration ENTIÈRE dès qu'un sélecteur inconnu
+             figure dans la même liste — les menus ne s'ouvriraient plus du tout, souris
+             comprise. Séparées, seule la seconde tombe.
+
+             :focus-visible et non :focus-within : au clavier le menu doit s'ouvrir
+             sans attendre, mais un clic de SOURIS sur l'onglet laisse lui aussi le lien
+             focalisé, et :focus-within gardait alors le menu ouvert sur la page qu'on
+             venait d'appeler, le curseur parti depuis longtemps. */
+          .cs-plus--ouvert > .cs-plus-menu { display: block; }
+          .cs-plus:has(:focus-visible) > .cs-plus-menu { display: block; }
              /* Interlignage POSÉ, et non hérité : c'est lui qui gouverne la hauteur d'une
              rangée, et sans lui le resserrement des rembourrages se serait fait manger par
              un interlignage de confort dont la valeur ne se lisait nulle part. */
@@ -1490,7 +1584,13 @@ export default function Navbar() {
              ⚠️ La phrase S'ENROULE, donc le menu se borne en largeur : sans
              maximum, il s'étirerait à la plus longue et couvrirait la moitié de
              la barre. */
-          .cs-plus-menu--riche { min-width: 21rem; max-width: 24rem; padding: 5px; }
+          .cs-plus-menu--riche { max-width: 24rem; padding: 5px; }
+          /* Seule la largeur MINIMALE sépare les deux menus qui glosent : cinq pages
+             décrites d'un côté, quelques titres d'œuvres de l'autre. */
+          .cs-plus-menu--pages { min-width: 21rem; }
+          .cs-plus-menu--oeuvres { min-width: 17rem; }
+          /* Deux entrées de deux mots : la boîte des bibles se borne à sa mesure. */
+          .cs-plus-menu--bibles { min-width: 9.5rem; }
           .cs-plus-riche {
             display: flex; align-items: flex-start; gap: 10px;
             padding: 7px 10px; border-radius: 4px; text-decoration: none;
@@ -1502,6 +1602,9 @@ export default function Navbar() {
           .cs-plus-riche:hover .cs-plus-riche-emb { color: var(--cs-vert-fonce); }
           .cs-plus-riche-texte { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
           .cs-plus-riche-nom { font-size: 0.8125rem; line-height: 1.3; color: var(--cs-encre); }
+          /* Un TITRE D'ŒUVRE, non un nom de page : il prend le romain à empattements du
+             site, comme partout ailleurs où une œuvre est nommée. */
+          .cs-plus-riche-nom--oeuvre { font-family: var(--font-source-serif), Georgia, serif; }
           /* ⚠️ La glose ne se met pas en italique : à onze pixels et sur deux
              lignes, l'italique se lit moins bien qu'un gris franc, et le site
              réserve l'italique aux titres cités. */
@@ -1510,9 +1613,17 @@ export default function Navbar() {
             white-space: normal;
           }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
-          /* Familles d'administration : intertitre coloré + filet coloré à gauche de
-             chaque entrée, pour différencier les catégories par domaine. */
-          .cs-admin-fam { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; padding: 6px 12px 2px; opacity: 0.9; }
+          /* Le mot qui tient la place quand un menu n'a encore rien à montrer. Ni
+             rembourrage de lien ni surbrillance : il ne se clique pas. */
+          .cs-plus-vide { padding: 4px 12px 8px; font-size: 0.6875rem; line-height: 1.35; color: var(--cs-texte-gris); margin: 0; }
+          /* Intertitre d'un menu — familles d'administration, « Dernières œuvres
+             consultées ». Les deux menus le portaient à deux tailles et deux approches
+             différentes ; une seule mesure désormais. La COULEUR, elle, reste au menu :
+             chaque famille d'administration a la sienne, quand les œuvres gardent le gris. */
+          .cs-plus-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--cs-texte-faible); padding: 6px 12px 2px; margin: 0; }
+          /* Familles d'administration : l'intertitre prend la couleur du domaine (posée
+             en ligne), et un filet de la même couleur borde chaque entrée. */
+          .cs-admin-fam { opacity: 0.9; }
           .cs-admin-lien { margin-left: 4px; padding-left: 10px; border-radius: 0 4px 4px 0; }
           @media (prefers-reduced-motion: reduce) {
             .cs-nav-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
@@ -1565,15 +1676,15 @@ export default function Navbar() {
             <OngletBibles etat={etatBible} pathname={pathname} styleLien={styleLien} />
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
               href === "/bibliotheque"
-                ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} />
+                ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
                 : href === "/traductions"
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
-                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} />
+                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
                 : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
-              <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} />
+              <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} actif={estCheminActif("/admin", false)} />
             )}
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {/* Le champ de recherche est le plus large des outils (13,75rem) : c'est lui
