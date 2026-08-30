@@ -10,6 +10,7 @@ import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesures } from '@/app/lib/grec'
+import { MENTION_ABSENT, MENTION_ABSENT_TITRE, STYLE_MENTION } from '@/app/lib/compositionBible'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 
@@ -1376,7 +1377,7 @@ export default function RechercheClient() {
                                           })}
                                         </span>
                                       )}
-                                      {!brut ? <span style={{ display:'block', textAlign:'center', textAlignLast:'center', color:'#8aa593', fontStyle:'italic', fontSize:'0.6875rem' }}>Absent dans cette traduction</span>
+                                      {!brut ? <span title={MENTION_ABSENT_TITRE} style={STYLE_MENTION}>{MENTION_ABSENT}</span>
                                         : lang === 'grc' ? (absent ? cesurerGrec(brut) : highlighter(cesurerGrec(brut), lastQuery, mode))
                                         : rendreEtSurligner(original, lastQuery, mode)}
                                     </div>

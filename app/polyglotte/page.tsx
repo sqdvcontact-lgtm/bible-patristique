@@ -33,6 +33,10 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import {
+  MENTION_ABSENT, MENTION_ABSENT_TITRE, MENTION_DEUTERO, MENTION_LACUNE, MENTION_LACUNE_TITRE,
+  STYLE_INVITE, STYLE_MENTION, STYLE_MENTION_LACUNE,
+} from '@/app/lib/compositionBible'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
@@ -383,15 +387,16 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   );
 }
 
-// Cellule sans texte : une mention centrée, en italique discrète, qui dit clairement
-// que la traduction ne porte pas ce verset (au lieu d'un simple tiret muet). Pour les
-// passages deutérocanoniques, une infobulle explique POURQUOI la case est vide.
+// Cellule sans texte : une mention centrée, de la voix commune aux deux grilles de
+// comparaison (`STYLE_MENTION`, `app/lib/compositionBible.ts`), qui dit clairement que la
+// traduction ne porte pas ce verset au lieu d'un tiret muet. Pour les passages
+// deutérocanoniques, l'infobulle explique POURQUOI la case est vide.
 function CelluleAbsente({ deutero }: { deutero?: boolean }) {
   return (
     <span
-      title={deutero ? "Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli." : undefined}
-      style={{ display: "block", textAlign: "center", fontStyle: "italic", color: "var(--cs-texte-faible)", fontSize: "0.71875rem", lineHeight: 1.35, padding: "3px 6px", cursor: deutero ? "help" : "default" }}>
-      {deutero ? "Absent des Bibles hébraïque et protestante" : "Cette traduction ne contient pas ce verset"}
+      title={deutero ? "Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli." : MENTION_ABSENT_TITRE}
+      style={{ ...STYLE_MENTION, cursor: "help" }}>
+      {deutero ? MENTION_DEUTERO : MENTION_ABSENT}
     </span>
   );
 }
@@ -408,10 +413,8 @@ function CelluleNote({ valeur, refLisible, onChange }: {
   if (vide && !focus) {
     return (
       <button onClick={() => { demarrer.current = true; setFocus(true); }}
-        style={{ width: "100%", minHeight: "1.9rem", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
-          background: "none", border: "none", borderRadius: 4, cursor: "text",
-          fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", fontSize: "0.65625rem",
-          color: "var(--cs-texte-faible)", padding: "3px 6px", lineHeight: 1.3 }}>
+        style={{ ...STYLE_INVITE, width: "100%", minHeight: "1.9rem", display: "flex", alignItems: "center", justifyContent: "center",
+          background: "none", border: "none", borderRadius: 4, cursor: "text", padding: "3px 6px" }}>
         Prendre une note sur {refLisible}
       </button>
     );
@@ -1269,7 +1272,7 @@ export default function PolyglottePage() {
                   après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
               <img className="cs-ornement" src="/ornements/tour-babel-ruinee.png" alt="" aria-hidden="true"
                 style={{ maxWidth: "min(68rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 15rem)", opacity: 0.72, marginBottom: "16px" }} />
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-texte-doux)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
+              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
             </div>
           </div>
         )}
@@ -1569,9 +1572,10 @@ export default function PolyglottePage() {
                             {cs.length === 0 ? (
                               <CelluleAbsente deutero={deuterocanonique(r.id)} />
                             ) : lacuneCell ? (
-                              // Même convention que la page Bible : « Lacune du manuscrit », en
-                              // serif italique effacé, sans crochets. Fait du témoin, discret.
-                              <span title="Lacune matérielle du manuscrit" style={{ display: "flex", height: "100%", minHeight: "1.6em", alignItems: "center", justifyContent: "center", textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", color: "var(--cs-lacune)", fontSize: "0.78125rem", lineHeight: 1.4 }}>Lacune du manuscrit</span>
+                              // Fait du témoin, et non défaut de traduction : la mention garde la
+                              // forme commune (STYLE_MENTION) et n'en change que la teinte, l'ocre des
+                              // lacunes. Même mot que la page Bible, sans crochets.
+                              <span title={MENTION_LACUNE_TITRE} style={STYLE_MENTION_LACUNE}>{MENTION_LACUNE}</span>
                             ) : cs.map((c, k) => (
                               // Colonne TR0009 : le texte porte des marqueurs éditoriaux inline
                               // (`[lecture incertaine : …]`, `[lacune : …]`, `[ajout marginal : …]`).
@@ -1588,7 +1592,7 @@ export default function PolyglottePage() {
                         {notesReduites ? null : userId ? (
                           <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
                         ) : (
-                          <span style={{ fontSize: "0.59375rem", fontStyle: "italic", color: "var(--cs-texte-faible)", alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
+                          <span style={{ ...STYLE_INVITE, alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
                         )}
                       </div>
                     </div>

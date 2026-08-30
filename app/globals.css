@@ -179,6 +179,31 @@
      texte fané. Distinct du gris des lectures incertaines (présent mais douteux). */
   --cs-lacune: #8a6a2c;
 
+  /* ── La MENTION : la voix de l'éditeur, quand elle tient la place d'un texte ──────
+     « Absent de cette traduction », « Prendre une note sur Gn 1, 6 » : ce ne sont ni du
+     texte de corpus, ni de l'interface. C'est l'éditeur qui parle à la place du texte
+     manquant, et cela n'avait pas de nom : la Polyglotte servait ces mentions en
+     --cs-texte-faible (le rang le plus ténu de l'échelle de texte, fait pour de l'ombre
+     d'interface), et la Polyglotte de la page Recherche en #8aa593, écrit en dur.
+
+     ⛔ Et c'était ILLISIBLE au sens de la charte. Mesuré le 2026-08-30 sur les six fonds
+     de la grille : --cs-texte-faible rend 2,14 sur --cs-fond, 1,87 sur --cs-vert-pale ;
+     le #8aa593 de la Recherche, 2,43 et 2,13. Le seuil est 4,5 — « 3,0 est le seuil du
+     GRAND texte, pas le seuil », et ces mentions se composent à 11 px.
+
+     La teinte est un SÉPIA, pris sur l'axe chaud du site : h 82°, exactement la teinte
+     de --cs-lacune, à MOINS DE LA MOITIÉ de sa chroma (18,1 contre 39,1) et un cran
+     plus sombre. C'est la même encre, diluée — elle ne peut donc pas jurer, et elle ne
+     peut pas non plus se confondre avec l'ocre du témoin lacunaire, qui garde sa
+     saturation parce qu'il énonce un fait et non une absence de travail.
+
+     Mesures : contraste 5,37 sur --cs-fond, 5,55 sur --cs-fond-clair, 4,87 sur
+     --cs-fond-doux (la ligne que personne ne porte, où la mention paraît le plus),
+     4,70 sur --cs-vert-pale, 5,29 sur --cs-vise-fond, 5,89 sur --cs-surface. Minimum
+     4,70, seuil tenu partout. Ce n'est pas un doublon : le jeton le plus proche est
+     --cs-texte-second à ΔE 14,3, puis --cs-original à 14,6 et --cs-texte-gris à 16,8. */
+  --cs-mention: #736247;
+
   /* ── Surnuméraire : les versets propres à la Septante, hors de l'ossature canonique
      (Polyglotte). Seule famille FROIDE du corpus après --cs-systeme, et la seule qui
      ne se rabatte sur rien : mesuré, le violet est à ΔE 36,7 de --cs-systeme, le jeton
@@ -314,6 +339,12 @@
      les appels de note à 0,60 em, c'est elle qui doit se voir le mieux), attente,
      or, étiquette, or-doux. */
   --cs-lacune: #dcbe7a;
+  /* La mention suit le renversement : au Cuir elle est plus CLAIRE que les rangs de
+     texte discrets, et reste bien en dessous de l'or de la lacune. Les distances y sont
+     nécessairement courtes — le Cuir est monochrome par décision, tout y vit dans la
+     même bande de teinte — mais le RANG, lui, est le même qu'au Clair. Mesuré : 5,78 sur
+     --cs-fond, 4,97 sur --cs-fond-doux, 4,85 sur --cs-vert-pale ; minimum 4,85. */
+  --cs-mention: #a8906d;
   --cs-attente:#d29a63;
   --cs-etiquette:#b8a179;
   /* « Système & doctrine » perd son bleu, seule teinte froide du site : un beige

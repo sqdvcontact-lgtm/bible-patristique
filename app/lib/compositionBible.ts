@@ -167,6 +167,83 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
   fontStyle: 'italic',
 }
 
+/* ── Les MENTIONS des grilles de comparaison ───────────────────────────────────────
+ * La Polyglotte et la Polyglotte de la page Recherche ne rendent pas que du texte :
+ * elles rendent aussi, dans la cellule même, ce qui tient la place du texte absent.
+ * Ces mentions vivaient en ligne, chacune pour soi, et le registre avait dérivé —
+ * relevé le 2026-08-30 : QUATRE corps pour une seule voix (9,5 · 10,5 · 11,5 · 12,5 px),
+ * DEUX polices dans la même colonne (l'invite des notes en sérif, le message de
+ * connexion en sans, hérité du `body`), TROIS teintes pour le même fait, et un libellé
+ * différent d'une grille à l'autre.
+ *
+ * ⛔ Elles sont ici, et non en ligne dans les pages, pour la raison que la charte donne
+ * déjà : « un spécimen qui rejoue une composition de mémoire dérive au premier réglage,
+ * et fait ensuite autorité contre la page qu'il décrit ». La planche des styles publiait
+ * `bible/verset vide` — un tiret cadratin — pendant que la Polyglotte rendait une phrase.
+ *
+ * ⚠️ Ne pas confondre avec STYLE_LACUNE et STYLE_VERSET_VIDE, juste au-dessus : ceux-là
+ * se posent DANS LE FIL d'un texte suivi et héritent du corps du verset. Ceux-ci
+ * REMPLISSENT une cellule de tableau et portent donc leur propre corps.
+ */
+
+/** Le corps de la mention : un cran fin, deux rangs sous le texte comparé (14 px). */
+export const CORPS_MENTION = '0.6875rem'
+/** L'invite est d'un rang encore plus fin : elle propose, elle ne constate pas. */
+export const CORPS_INVITE = '0.625rem'
+
+/** La voix commune : sérif italique, très légèrement espacée. Une mention n'est jamais
+ *  du texte de corpus, et l'italique le dit avant qu'on ait lu. */
+const VOIX_MENTION: CSSProperties = {
+  fontFamily: SERIF,
+  fontStyle: 'italic',
+  letterSpacing: '0.02em',
+  lineHeight: 1.35,
+}
+
+/** Une mention qui TIENT LA PLACE d'un texte : centrée dans sa cellule, en hauteur comme
+ *  en largeur. ⚠️ `textAlignLast` est indispensable — la cellule de comparaison est en
+ *  `text-align: justify`, et sans lui la dernière ligne d'une mention qui se replie
+ *  reste au fer à gauche. */
+export const STYLE_MENTION: CSSProperties = {
+  ...VOIX_MENTION,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: '100%',
+  minHeight: '1.6em',
+  padding: '3px 6px',
+  textAlign: 'center',
+  textAlignLast: 'center',
+  fontSize: CORPS_MENTION,
+  color: 'var(--cs-mention)',
+}
+
+/** La lacune garde SON ocre, et elle seule : la mention ordinaire dit qu'une traduction
+ *  ne porte pas le passage, la lacune dit qu'un manuscrit l'a perdu. Même forme, deux
+ *  teintes — la teinte seule fait la différence, comme pour les marqueurs du témoin. */
+export const STYLE_MENTION_LACUNE: CSSProperties = { ...STYLE_MENTION, color: 'var(--cs-lacune)' }
+
+/** Une INVITE : ce qu'on peut faire ici, non ce qui manque. Typographie seule — la boîte
+ *  appartient à l'appelant, qui est tantôt un bouton, tantôt une case de tableau. */
+export const STYLE_INVITE: CSSProperties = {
+  ...VOIX_MENTION,
+  textAlign: 'center',
+  fontSize: CORPS_INVITE,
+  color: 'var(--cs-mention)',
+}
+
+/* Les libellés, pour que le même fait se dise du même mot sur les deux grilles. La
+ * Polyglotte disait « Cette traduction ne contient pas ce verset » et la Recherche
+ * « Absent dans cette traduction ». La phrase longue tenait sur trois lignes dans une
+ * colonne de comparaison ; le sujet, lui, est donné par la grille — la ligne EST un
+ * verset, la colonne EST une traduction. La mention brève suffit donc, et la phrase
+ * entière passe à l'infobulle, pour qui la cherche. */
+export const MENTION_ABSENT = 'Absent de cette traduction'
+export const MENTION_ABSENT_TITRE = 'Cette traduction ne porte pas ce verset.'
+export const MENTION_DEUTERO = 'Absent des Bibles hébraïque et protestante'
+export const MENTION_LACUNE = 'Lacune du manuscrit'
+export const MENTION_LACUNE_TITRE = 'Lacune matérielle du manuscrit'
+
 /**
  * La composition d'un SOUS-TITRE, selon le rang du titre auquel il appartient.
  *

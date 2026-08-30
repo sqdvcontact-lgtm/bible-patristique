@@ -42,7 +42,9 @@ import { separateurAppels, styleAppelNote, styleSeparateurAppels } from '@/app/l
 import type { VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import type { OuvrageBibliographique } from '@/app/lib/bibleBibliographieOuvrages'
 import {
-  STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
+  MENTION_ABSENT, MENTION_LACUNE, MENTION_LACUNE_TITRE,
+  STYLE_INVITE, STYLE_LACUNE, STYLE_MENTION, STYLE_MENTION_LACUNE,
+  STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
 } from '@/app/lib/compositionBible'
 import {
@@ -178,6 +180,18 @@ const TitreOeuvre = ({ rang, titre, sousTitre }: {
 
 // ══ ÉPREUVE 1 — LE TEXTE BIBLIQUE ════════════════════════════════════════════
 
+// Une cellule de la grille de comparaison — le cadre où vivent les mentions de la
+// Polyglotte. Reprend la mesure et le fond réels d'une colonne de traduction, pour que
+// la mention se juge à sa taille et non isolée sur du blanc.
+const CellulePolyglotte = ({ children }: { children: ReactNode }) => (
+  <div style={{ display: 'grid', gridTemplateColumns: '11rem', justifyContent: 'center', margin: '0.6rem 0' }}>
+    <div style={{ minHeight: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--cs-fond)', border: '1px solid var(--cs-bord-clair)', borderRadius: 3 }}>
+      {children}
+    </div>
+  </div>
+)
+
 const Rangee = ({ n, alternatif, actif, children }: {
   n: string; alternatif?: string; actif?: boolean; children: ReactNode
 }) => (
@@ -257,6 +271,24 @@ const BIBLE: Unite[] = [
     note: 'La traduction ne porte rien pour ce créneau canonique — ce n’est pas une lacune du témoin mais un partage de versets qui diffère d’une édition à l’autre. Un tiret cadratin de la teinte des bords, et rien d’autre.',
     alerte: '⚠️ Ne pas confondre les deux : la LACUNE dit qu’un manuscrit ne porte pas le texte, le VIDE dit qu’une traduction ne le range pas dans ce créneau. Le premier est un fait du témoin, le second un fait d’alignement.',
     contenu: <Rangee n="10"><span style={STYLE_VERSET_VIDE}>—</span></Rangee>,
+  },
+  {
+    style: 'polyglotte/mention — absent de cette traduction',
+    note: 'Dans une grille de comparaison, une case vide ne se dit pas par un tiret : rien n’indiquerait de quoi il est le signe. La mention prend la parole à la place du texte, en sérif italique, dans la teinte propre des mentions — un sépia pris sur l’axe chaud du site, à moins de la moitié de la chroma de l’ocre des lacunes. Elle est centrée dans sa cellule, en hauteur comme en largeur.',
+    alerte: '⛔ La teinte est `--cs-mention`, et non `--cs-texte-faible`, qui est un rang d’INTERFACE. Mesuré le 2026-08-30 : l’ancienne teinte rendait 2,14 sur le fond de la grille et 1,87 sur celui d’une suscription, là où la charte demande 4,5 sous 24 px. La nouvelle tient 4,70 au pire des six fonds.',
+    contenu: <CellulePolyglotte><span style={STYLE_MENTION}>{MENTION_ABSENT}</span></CellulePolyglotte>,
+  },
+  {
+    style: 'polyglotte/mention — lacune du témoin',
+    note: 'Même forme, même corps, même italique : seule la teinte change, et elle porte tout le sens. L’ocre dit que le manuscrit a perdu le passage ; le sépia disait qu’une traduction ne le porte pas. C’est la règle des marqueurs du témoin, étendue à la grille : la teinte signale, l’infobulle explique.',
+    alerte: '⚠️ Ne pas confondre avec `bible/lacune`, plus haut : celle-là se pose DANS LE FIL d’un texte suivi et hérite du corps du verset ; celle-ci REMPLIT une cellule de tableau et porte donc son propre corps.',
+    contenu: <CellulePolyglotte><span title={MENTION_LACUNE_TITRE} style={STYLE_MENTION_LACUNE}>{MENTION_LACUNE}</span></CellulePolyglotte>,
+  },
+  {
+    style: 'polyglotte/invite — la colonne des notes',
+    note: 'Une invite n’est pas une mention : elle propose ce qu’on peut faire ici, elle ne constate pas ce qui manque. Elle en garde la voix — sérif italique, même sépia — et descend d’un rang de corps. C’est le seul écart que la famille s’autorise.',
+    alerte: '⛔ La police se POSE, elle ne s’hérite pas. « Connectez-vous pour noter » vivait dans la colonne des notes, qui n’est pas une cellule de texte : elle tombait donc sur le sans-sérif du `body` et se lisait en sans à côté d’une invite en sérif, dans la même colonne.',
+    contenu: <CellulePolyglotte><span style={STYLE_INVITE}>Prendre une note sur Gn 1, 6</span></CellulePolyglotte>,
   },
   {
     style: 'bible/marqueurs éditoriaux — Bible 899',
