@@ -520,14 +520,14 @@ export default function TexteBible({
   ) => {
     const illustrations = toutesIllustrations.filter((a) => !habillage.absorbees.has(a.id))
     return [
-    ...blocs.map((bloc) => ({ kind: 'block' as const, materialOrder: bloc.materialOrder, id: bloc.id, value: bloc })),
-    ...illustrations.map((illustration) => ({
-      kind: 'illustration' as const,
-      materialOrder: illustration.materialOrder,
-      id: illustration.id,
-      value: illustration,
-    })),
-  ]
+      ...blocs.map((bloc) => ({ kind: 'block' as const, materialOrder: bloc.materialOrder, id: bloc.id, value: bloc })),
+      ...illustrations.map((illustration) => ({
+        kind: 'illustration' as const,
+        materialOrder: illustration.materialOrder,
+        id: illustration.id,
+        value: illustration,
+      })),
+    ]
       .sort((a, b) => a.materialOrder - b.materialOrder || a.id.localeCompare(b.id, 'fr'))
       .map((item) => surAxeTexte(item.kind === 'block'
         ? (
