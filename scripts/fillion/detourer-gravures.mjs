@@ -195,13 +195,60 @@ function bornesDeRampe(gris, N) {
   return { papier: pic, plancher, encre }
 }
 
+/** ⛔ LA COURBE : ce qu'on prend pour du FLOU est de la HACHURE moyennée.
+ *
+ *  Mesurée sur le feuillet JP2, la largeur de transition d'un bord vaut 4 px ;
+ *  dans le fichier servi elle vaut 1. Les bords sont donc aussi francs qu'un
+ *  raster le permet, et le défaut n'est pas un défaut de netteté : c'est la
+ *  BOUILLIE DE GRIS, la hachure du graveur que la réduction de 2,8× moyenne en
+ *  alphas intermédiaires — 17,3 % de la surface d'une vignette.
+ *
+ *  La courbe en S écarte ces partiels vers les deux extrêmes. Mesuré sur les
+ *  neuf gravures au trait de Marc :
+ *
+ *    courbe  bouillie   voile   encre visible perdue
+ *      1      17,3 %    14,76          —
+ *      1,3    14,0 %    14,25        8,7 %
+ *      1,6    11,9 %    13,89       16,0 %
+ *
+ *  ⚠️ ELLE A UN PRIX, et c'est pourquoi on prend la fermeté MODESTE : elle efface
+ *  les partiels les plus faibles. Rien ne s'est vu manquer à l'agrandissement sur
+ *  les quatre gravures éprouvées, mais la mesure dit le risque, et 1,6 le double.
+ *
+ *  ⛔ QUATRE AUTRES VOIES ONT ÉTÉ ÉPROUVÉES ET ÉCARTÉES, ne pas les refaire :
+ *   · le BRUIT ne fait pas reculer la bouillie d'un point (23,9 → 23,6 % sur le
+ *     paralytique) et monte la granularité de 10,6 à 12,5. Il MASQUE la mollesse,
+ *     il ne dessine rien. Sur une photogravure : +2 % d'énergie de bord, +4 % de
+ *     poids, invisible même au ×3 ;
+ *   · la NETTETÉ forte (σ 0,4, m2 3,5) AUGMENTE la bouillie à 24,3 % : ses halos
+ *     sont eux-mêmes des gris intermédiaires ;
+ *   · le CONTRASTE LOCAL (CLAHE) fait bouillir la pierre et TACHE les ciels ;
+ *   · le FOND LOCAL par maximum glissant ramène le voile de 14,8 à 25 et porte la
+ *     bouillie à 26,5 % ;
+ *   · la réduction en LUMIÈRE LINÉAIRE est SANS EFFET, la rampe étant mesurée
+ *     image par image et absorbant le décalage global.
+ *
+ *  ⚠️ Et une courbe pondérée par la PLATITUDE du voisinage — qui ne creuserait
+ *  que le lavis, en respectant les traits — ne trouve presque rien à corriger :
+ *  17,3 → 16,5 %. À 301 px, PLUS RIEN N'EST PLAT. C'est la preuve que la bouillie
+ *  est de la hachure, non un lavis, et qu'aucun traitement ne la rendra : le vrai
+ *  levier est la TAILLE D'AFFICHAGE, pas le fichier. */
+const COURBE_ALPHA = 1.3
+
+function courber(a) {
+  if (COURBE_ALPHA === 1 || a <= 0 || a >= 1) return a
+  return a < 0.5
+    ? 0.5 * Math.pow(2 * a, COURBE_ALPHA)
+    : 1 - 0.5 * Math.pow(2 * (1 - a), COURBE_ALPHA)
+}
+
 function versAlpha(gris, W, H, bornes) {
   const { plancher, encre } = bornes
   const amplitude = plancher - encre
   const rgba = Buffer.alloc(W * H * 4)
   let vide = 0, partiels = 0, plein = 0
   for (let i = 0; i < W * H; i++) {
-    const a = Math.max(0, Math.min(1, (plancher - gris[i]) / amplitude))
+    const a = courber(Math.max(0, Math.min(1, (plancher - gris[i]) / amplitude)))
     if (a < 0.004) { vide++; continue }
     const o = i * 4
     rgba[o] = ENCRE[0]; rgba[o + 1] = ENCRE[1]; rgba[o + 2] = ENCRE[2]
@@ -519,7 +566,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '3.0.0',
+    processing_version: '3.1.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
