@@ -221,6 +221,13 @@ export default function NavLivres({
     if (pieceActive) setOngletVolet('sommaire')
   }
   const sommaireOuvert = sommaireEdition.length > 0 && ongletVolet === 'sommaire'
+  // ⛔ Ce que la barre « Livres | Sommaire » CLÔT, elle seule le clôt. Le bloc qui
+  // la précède rend donc son filet du bas : sinon la barre est enfermée entre deux
+  // filets à trente pixels l'un de l'autre et se lit comme une bande posée en
+  // travers du volet (relevé de l'auteur, 2026-08-30). ⚠️ Le bloc qui la précède
+  // n'est pas toujours le même — les axes quand l'édition en offre, la carte de
+  // traduction sinon — d'où les deux endroits où ce drapeau se lit.
+  const barreVolet = sommaireEdition.length > 0
   const polyMode = !!onChoisirChapitre
   const [atOuvert, setAtOuvert] = useState(true)
   const [ntOuvert, setNtOuvert] = useState(true)
@@ -482,7 +489,9 @@ export default function NavLivres({
         />
       )}
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
-      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && <EncartTraduction trad={traductions[traductionIndex]} />}
+      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
+        <EncartTraduction trad={traductions[traductionIndex]} filetBas={!barreVolet || modesLecture.length > 0} />
+      )}
 
       {/* Menu OCCASIONNEL des manières de lire — entre la fiche de la traduction et la
           recherche des livres. Il ne paraît que lorsque le témoin qu'on lit offre
@@ -505,7 +514,7 @@ export default function NavLivres({
           — seuls les blancs se referment. Le rembourrage et l'écart entre les deux
           axes vivent ici, la rangée et sa rubrique dans `stylesVoletLecture`. */}
       {modesLecture.length > 0 && (
-        <div style={{ flexShrink: 0, padding: '6px 10px 7px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
+        <div style={{ flexShrink: 0, padding: '6px 10px 7px', borderBottom: barreVolet ? 'none' : '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
             <div key={groupe.cle} style={rang > 0 ? { marginTop: '6px' } : undefined}>
               <span style={RUBRIQUE_AXE}>{groupe.titre}</span>
@@ -540,10 +549,16 @@ export default function NavLivres({
           quand aucune autre barre du site n'en porte. Le modèle donne le sans du
           site, la casse ordinaire, le trait vert sous l'onglet retenu, et la
           largeur réservée d'avance en graisse 600 pour que retenir un onglet ne
-          déplace jamais son voisin. */}
-      {sommaireEdition.length > 0 && (
+          déplace jamais son voisin.
+
+          ⚠️ Elle le prend à la MESURE D'UN VOLET depuis le 2026-08-30
+          (`cs-onglets--volet`, dans globals.css avec la raison de chacun de ses
+          traits) : le modèle est dessiné pour 46 rem, et posé tel quel dans 200 px
+          il devenait l'objet le plus aéré du volet. Rien n'y change d'identité. */}
+      {barreVolet && (
         <OngletsPage
           intitule="Ce que montre le volet"
+          className="cs-onglets--volet"
           actif={ongletVolet}
           /* ⛔ L'ONGLET « Livres » EST LE RETOUR (décision de l'auteur, 2026-08-28).
              Une pièce liminaire portait en pied un « Revenir à Luc 1 » ; il est

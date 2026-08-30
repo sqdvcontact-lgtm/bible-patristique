@@ -48,7 +48,12 @@ export default function OngletsPage<K extends string>({
   /** Ce que la barre nomme, pour qui ne la voit pas. */
   intitule: string
   /** La MESURE de la barre, quand la page en pose une : elle prend celle de ce
-   *  qu'elle commande, non celle de son conteneur. Voir `.cs-onglets`. */
+   *  qu'elle commande, non celle de son conteneur. Voir `.cs-onglets`.
+   *  ⚠️ Elle porte aussi la VARIANTE de mesure, quand il y en a une : le volet de
+   *  lecture passe `cs-onglets--volet`, le modèle étant dessiné pour une page de
+   *  46 rem et le volet valant 200 px au repos. ⛔ La variante ne se déclare que
+   *  dans `globals.css`, à côté du modèle : c'est encore le modèle, à une autre
+   *  mesure, et il ne doit jamais y en avoir un second. */
   className?: string
   /** Le PLACEMENT de la barre dans sa page — son blanc alentour, et rien d'autre.
    *  Le dessin appartient au modèle ; l'écart à ce qui suit appartient à la page. */

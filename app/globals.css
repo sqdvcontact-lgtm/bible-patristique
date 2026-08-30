@@ -1702,6 +1702,39 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   .cs-onglet { transition: none; }
 }
 
+/* ── La barre d'onglets dans un VOLET, non dans une page ──────────────────────
+   Le modèle ci-dessus est dessiné pour une mesure de PAGE — 46 à 52 rem. Posé
+   tel quel dans le volet de lecture, qui vaut 200 px au repos sur un portable,
+   il devenait l'objet le plus aéré du volet : 35 px de haut pour un mot de 11,5,
+   quand les rangées d'option à trois pixels de là en font 17. L'auteur l'a
+   relevé le 30 août 2026, la tête du volet venant d'être condensée : « revois
+   aussi Livres | Sommaire ; c'est pas gracieux ainsi ».
+
+   ⛔ La variante ne change NI l'identité, NI le dessin : mêmes libellés centrés à
+   parts égales, même sans du site, même trait vert sous l'onglet retenu, même
+   largeur réservée d'avance en graisse 600. Elle ne touche qu'à ce que la
+   mesure d'une page permettait et qu'un volet ne permet plus. ⛔ Ce n'est donc
+   pas une SIXIÈME barre recomposée à la main, ce que l'en-tête d'`OngletsPage`
+   proscrit : c'est le modèle, à une autre mesure, et il n'y en a toujours qu'un.
+
+   ⚠️ Le SÉPARATEUR s'en va. Il sépare des cases sur une barre qui en porte trois
+   ou quatre ; entre deux mots dans 200 px, un filet d'un pixel sur quatorze,
+   qui ne touche ni le haut ni le bas, est un détail qu'on voit avant de lire les
+   mots qu'il sépare.
+
+   ⚠️ Le rembourrage passe de 8 à 4 px, ce qui rapproche AUSSI le trait vert de
+   son mot : il courait douze pixels dessous, posé sur le filet de la barre, et
+   faisait dans la même bande un troisième trait horizontal.
+
+   ⛔ Et le filet du DESSUS tombe, dans `NavLivres` : la barre était enfermée
+   entre deux filets à trente pixels l'un de l'autre — celui qui fermait les axes
+   et le sien — et se lisait comme une bande posée en travers du volet. Un seul
+   filet ferme la tête, et c'est celui de la barre, qui la sépare de ce qu'elle
+   commande. La barre mesure alors 27 px au lieu de 35.
+   ───────────────────────────────────────────────────────────────────────────── */
+.cs-onglets--volet .cs-onglet { padding: 4px 6px; }
+.cs-onglets--volet .cs-onglets-sep { display: none; }
+
 /* ── Les OPTIONS d'un axe, dans le volet de lecture ───────────────────────────
    Une option par ligne, l'option retenue sur la pastille verte de la liste des
    livres (charte, « Le volet de lecture »). Le survol ESQUISSE cette pastille sous
