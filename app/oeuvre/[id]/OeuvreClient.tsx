@@ -25,7 +25,7 @@ import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, 
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
-  STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE, margeArgument,
+  STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE, accepteLaLettrine, margeArgument,
   styleArgument, styleBlocDeVers, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
@@ -827,10 +827,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     }, 80)
   }, [groupes, pages, pageActuelle, scrollNiveauDesYeux])
 
-  const premierSegmentId = pageActuelle === 0 && groupesFiltres.length > 0
-    ? (groupesFiltres[0].itemIds[0] ?? null)
-    : null
-
   const segmentsFiltres = useMemo(() => {
     const ids = new Set(groupesFiltres.flatMap(g => g.itemIds))
     return segments.filter(s => ids.has(s.id))
@@ -1237,6 +1233,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const trad = traductionsBible[tradIndex]?.code ?? 'TR0001'
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
+  // La LETTRINE ne se pose pas sur le premier segment venu : elle se pose sur le
+  // premier que sa nature autorise à la porter (`accepteLaLettrine`). Une division
+  // qui s'ouvre sur le verset commenté, un lemme ou une rubrique la reporte donc au
+  // premier paragraphe de l'auteur — ce que fait l'imprimé, qui n'orne jamais la
+  // parole d'un autre. ⛔ On ne cherche que dans le PREMIER groupe : plus loin, la
+  // capitale tomberait au milieu de la page, où elle n'ouvrirait plus rien.
+  // ⚠️ Ce calcul a besoin de `segMap` et vit donc ICI, non plus au-dessus des pages.
+  const premierSegmentId = pageActuelle === 0 && groupesFiltres.length > 0
+    ? (groupesFiltres[0].itemIds.find(id => accepteLaLettrine(segMap.get(id))) ?? null)
+    : null
   const segMapApparat = new Map(segmentsApparat.map(s => [s.id, s]))
   const segMapActive = vue === 'texte' ? segMap : segMapApparat
   // `segment_key` → groupe d'alignement, pour découper le bilingue. Bâtie sur les
@@ -1633,7 +1639,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const suite = chars.slice(li + 1).join('')
     return (
       <>
-        <span style={STYLE_LETTRINE}>
+        {/* La classe sert à la feuille, qui fait CONTENIR le flottant par son
+            paragraphe (`p:has(> .seg-inline > .cs-lettrine)`). Le style, lui, reste
+            dans `compositionOeuvre.ts` avec toute la composition de la lecture. */}
+        <span className="cs-lettrine" style={STYLE_LETTRINE}>
           {prefix && <span style={STYLE_PREFIXE_LETTRINE}>{rendreTexteAvecNotes(prefix, notes)}</span>}
           {lettre}
         </span>

@@ -16,6 +16,7 @@
  */
 
 import type { CSSProperties } from 'react'
+import { FORME_VERS } from './compositionVers'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
@@ -244,4 +245,41 @@ export const STYLE_PREFIXE_LETTRINE: CSSProperties = {
   verticalAlign: '0.72em',
   lineHeight: 1,
   paddingRight: '1px',
+}
+
+/**
+ * Les natures qui PEUVENT porter la lettrine — la parole de l'AUTEUR, et elle seule.
+ *
+ * ⛔ Liste CLOSE : une nature qui n'y figure pas ne prend pas l'ornement, et une
+ * nature nouvelle ne l'attrapera pas par distraction. Le drop cap dit « ici commence
+ * ce que cet homme a écrit » ; le poser ailleurs, c'est le faire mentir.
+ *
+ * ⛔ Ce qui en est exclu, et pourquoi : la `citation` et le `lemme` sont la parole
+ * d'un AUTRE, que l'auteur commente ; la `rubrique` est un intertitre, centré et en
+ * italique, où une capitale ornée n'a aucun sens ; le `verset` a déjà son bloc ; la
+ * `signature`, le `separateur` et le `texte absent` ne sont pas du texte suivi ; le
+ * VERS enfin l'interdit pour une raison mécanique, consignée plus haut avec le style.
+ */
+const NATURES_ORNABLES = new Set(['texte', 'dialogue', 'introduction', 'apparat_auteur'])
+
+/**
+ * Ce segment peut-il porter la LETTRINE ?
+ *
+ * ⚠️ Une division ne s'ouvre pas toujours sur la prose de son auteur : sur les 8 223
+ * divisions du corpus, 159 commencent par autre chose — 60 par un lemme, 55 par une
+ * citation, 41 par une rubrique, 2 par un verset, 1 par une lacune. Toutes recevaient
+ * la lettrine, et le défaut se voyait le mieux chez Chrysostome, où chaque psaume
+ * s'ouvre sur le verset commenté : la capitale ornait « 1. « Nations, louez le
+ * Seigneur… » », dont elle emportait le numéro de verset et le guillemet dans son
+ * flottant, en petit corps collé à sa gauche (relevé de l'auteur, 2026-08-30).
+ *
+ * ⚠️ Un segment sans nature déclarée est de la prose : c'est le cas ordinaire, et
+ * refuser l'ornement par défaut ferait disparaître la lettrine de tout le corpus.
+ */
+export function accepteLaLettrine(
+  segment: { nature?: string | null; forme?: string | null } | null | undefined,
+): boolean {
+  if (!segment) return false
+  if (segment.forme === FORME_VERS) return false
+  return NATURES_ORNABLES.has(segment.nature ?? 'texte')
 }

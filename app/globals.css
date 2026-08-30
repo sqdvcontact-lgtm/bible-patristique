@@ -1310,6 +1310,22 @@ button:focus-visible,
    Le retrait est porté par la marge MOINS le rembourrage, pour que le texte cité
    reste à 8 mm tout en laissant la surbrillance de survol — celle des œuvres —
    déborder autour de lui. */
+
+/* ── UN PARAGRAPHE ORNÉ CONTIENT SA LETTRINE ─────────────────────────────────
+   ⛔ Le drop cap est un FLOTTANT. Plus haut que le paragraphe qu'il ouvre, il
+   déborde sur le SUIVANT, dont la première ligne se décale alors dans son ombre.
+   Chez Chrysostome, les deux versets d'un psaume cités l'un sous l'autre ne
+   tombaient plus sur le même axe : le « 2. » partait à droite quand le « 1. »
+   était au fer (relevé de l'auteur, 2026-08-30).
+   `display: flow-root` ouvre un contexte de formatage de bloc, et le flottant
+   n'en sort plus. ⚠️ Un paragraphe orné plus COURT que sa lettrine gagne alors un
+   blanc dessous, au lieu de le prêter à son voisin : c'est le bon échange, un
+   ornement appartenant au paragraphe qu'il ouvre et à lui seul.
+   ⚠️ Cette règle ne peut pas vivre dans `compositionOeuvre.ts` avec le reste de la
+   composition : `:has()` ne s'écrit pas en style inline. Le style de la lettrine,
+   lui, y est resté. */
+p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
+
 .citation-sortie {
   display: block;
   margin: 0.5rem calc(8mm - 4px);
