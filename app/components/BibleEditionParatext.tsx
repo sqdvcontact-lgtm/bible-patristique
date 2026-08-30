@@ -1,5 +1,4 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
-import Image from 'next/image'
 import {
   ancreAppelNoteBible,
   type BibleEditionDisplayAsset,
@@ -9,6 +8,7 @@ import {
   type BibleEditionDisplayNote,
   type BibleEditionDisplayTextBlock,
   type StyleCompositionBloc,
+  PART_DU_REGIME,
 } from '@/app/lib/bibleEdition'
 import { STYLE_CORPS } from '@/app/lib/compositionBible'
 import {
@@ -527,28 +527,79 @@ function citationSortieDuParagraphe(bloc: BlocTexteBiblique, resolu?: StyleResol
   }
 }
 
-export function IllustrationBible({ illustration }: { illustration: IllustrationBibliqueAffichable }) {
-  const largeur = Math.min(illustration.width, 760)
+/**
+ * UNE ILLUSTRATION SE COMPOSE SELON SON RÉGIME — charte, « Les gravures de Fillion ».
+ *
+ * ⛔ Une seule composition servait les quarante-trois, à `min(fichier, 760 px)`,
+ * centrée et sans traitement de thème : un boisseau romain de trois centimètres
+ * y prenait la mesure d'une planche double page, et le Cuir recevait une dalle
+ * blanche. Trois régimes désormais, et la largeur imprimée les départage.
+ *
+ * ⛔ LE FICHIER NE S'AFFICHE PAS, IL DÉCOUPE. Les gravures détourées portent leur
+ * dessin dans la couche ALPHA, et la couleur se repose au rendu (charte : « le
+ * détourage ne sert que l'ALPHA : la couleur, on la repose »). C'est ce qui les
+ * fait paraître en encre sombre sur le papier et en encre claire sur le cuir,
+ * avec un seul fichier et sans filtre d'inversion. Une PLANCHE, elle, garde son
+ * papier de 1923 et se rend en image.
+ */
+export function IllustrationBible({ illustration, habillage }: {
+  illustration: IllustrationBibliqueAffichable
+  /** Le commentaire contourne la vignette. ⚠️ N'a de sens que DANS un bloc :
+   *  ancrée sur un verset, une illustration a son propre axe et n'a rien à
+   *  habiller. C'est la structure qui le dit, et la page ne le force pas. */
+  habillage?: boolean
+}) {
+  const regime = illustration.regime
+  const part = PART_DU_REGIME[regime]
+  const detouree = regime !== 'hors-texte'
+  const flotte = habillage === true && regime === 'vignette'
+
+  const cadre: CSSProperties = {
+    width: `${Math.round(part * 100)}%`,
+    maxWidth: `${illustration.width}px`,
+    margin: flotte ? '0.15rem 0 0.55rem 1.1rem' : '1.25rem auto',
+    float: flotte ? 'right' : undefined,
+    textAlign: 'center',
+  }
+
   return (
     <figure
       data-asset-key={illustration.assetKey}
       data-asset-kind={illustration.assetKind}
       data-placement={illustration.placement}
-      style={{ width: `min(100%, ${largeur}px)`, margin: '1.25rem auto', textAlign: 'center' }}
+      data-regime={regime}
+      className={`cs-bible-gravure cs-bible-gravure--${regime}`}
+      style={cadre}
     >
-      <Image
-        src={illustration.url}
-        alt={illustration.altText}
-        width={illustration.width}
-        height={illustration.height}
-        sizes="(max-width: 900px) calc(100vw - 3rem), 760px"
-        unoptimized
-        style={{ display: 'block', width: '100%', height: 'auto', objectFit: 'contain' }}
-      />
+      {detouree ? (
+        <span
+          className="cs-bible-gravure-encre"
+          role="img"
+          aria-label={illustration.altText}
+          style={{
+            display: 'block',
+            width: '100%',
+            aspectRatio: `${illustration.width} / ${illustration.height}`,
+            WebkitMaskImage: `url("${illustration.url}")`,
+            maskImage: `url("${illustration.url}")`,
+          }}
+        />
+      ) : (
+        <span className="cs-bible-gravure-passe">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={illustration.url}
+            alt={illustration.altText}
+            width={illustration.width}
+            height={illustration.height}
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          />
+        </span>
+      )}
       {/* La légende suit le corps du paratexte : plus grosse que le commentaire,
           elle passerait devant le texte qu'elle accompagne. */}
       {illustration.caption && (
-        <figcaption style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: '0.78125rem', lineHeight: 1.3 }}>
+        <figcaption style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: flotte ? '0.6875rem' : '0.78125rem', lineHeight: 1.3 }}>
           {illustration.caption}
         </figcaption>
       )}
@@ -556,9 +607,12 @@ export function IllustrationBible({ illustration }: { illustration: Illustration
   )
 }
 
-function rendreIllustrations(illustrations: readonly IllustrationBibliqueAffichable[]) {
+function rendreIllustrations(
+  illustrations: readonly IllustrationBibliqueAffichable[],
+  habillage = false,
+) {
   return illustrations.map((illustration) => (
-    <IllustrationBible key={illustration.id} illustration={illustration} />
+    <IllustrationBible key={illustration.id} illustration={illustration} habillage={habillage} />
   ))
 }
 
@@ -675,11 +729,14 @@ export function BlocEditorialBible({
           {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
         </p>
       ))}
+      {/* ⛔ Le flottant vient AVANT le texte qu'il doit faire contourner : posé
+          après, il n'a plus rien à habiller. Le bloc le CONTIENT par
+          `display: flow-root`, sans quoi il déborderait sur le titre suivant. */}
+      {rendreIllustrations(dansLeFlux, true)}
       {bloc.textBlocks.map((texte, rang) => rendreBlocTexte(
         texte, resolu, notesCorps, bloc.niveauHtml, compositionDuParagraphe(bloc, texte, rang),
         bloc.rangDuTitre,
       ))}
-      {rendreIllustrations(dansLeFlux)}
       {notesSansAppel.length > 0 && (
         <aside
           aria-label="Apparat propre à ce bloc"

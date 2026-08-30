@@ -387,6 +387,59 @@ export function ancreAppelNoteBible(noteId: string, memberId?: string): string {
   return memberId ? `appel-note-bible-${noteId}-${memberId}` : `appel-note-bible-${noteId}`
 }
 
+
+// ── Le RÉGIME de composition d'une illustration ──────────────────────────────
+
+/** Les trois façons dont une illustration se compose dans la page.
+ *
+ *  ⛔ Le régime se lit sur la LARGEUR IMPRIMÉE, non sur le sujet. La page de
+ *  Fillion est à DEUX colonnes : une gravure qui tient dans une colonne est une
+ *  vignette, une gravure qui les enjambe est une scène. Le seuil est donc
+ *  au-dessus d'une colonne et au-dessous de deux.
+ *
+ *  ⚠️ Il se DÉRIVE, il n'est pas encore une colonne de `bible_edition_assets` :
+ *  tant qu'aucun arbitrage humain ne le contredit, une donnée dérivée ne peut
+ *  pas mentir, quand une colonne recopiée le peut. La colonne viendra le jour où
+ *  l'on voudra forcer un cas contre la mesure. */
+export type RegimeIllustration = 'vignette' | 'au-fil' | 'hors-texte'
+
+const LARGEUR_DEUX_COLONNES = 0.6
+
+/** Part de la colonne de lecture que prend chaque régime. */
+export const PART_DU_REGIME: Record<RegimeIllustration, number> = {
+  'vignette': 0.30,
+  'au-fil': 0.75,
+  'hors-texte': 1,
+}
+
+export function regimeIllustration(
+  assetKind: string,
+  decoupe: { normalized?: unknown; left?: unknown; right?: unknown; page_width_px?: unknown } | null | undefined,
+): RegimeIllustration {
+  // ⛔ Une PLANCHE ne se compose jamais autrement : c'est une page entière du
+  //    volume, avec son filet gravé, sa légende imprimée et son papier.
+  if (assetKind === 'plate') return 'hors-texte'
+  const largeur = largeurImprimee(decoupe)
+  if (largeur === null) return 'vignette'
+  return largeur > LARGEUR_DEUX_COLONNES ? 'au-fil' : 'vignette'
+}
+
+/** La largeur de la découpe en fraction de la page. ⚠️ `normalized` manque sur
+ *  une découpe du corpus : elle se CALCULE des bornes absolues et de la largeur
+ *  de page, toutes deux présentes. Ce n'est pas deviner, c'est diviser. */
+export function largeurImprimee(decoupe: {
+  normalized?: unknown; left?: unknown; right?: unknown; page_width_px?: unknown
+} | null | undefined): number | null {
+  if (!decoupe) return null
+  const n = decoupe.normalized
+  if (Array.isArray(n) && n.length === 4 && typeof n[0] === 'number' && typeof n[2] === 'number') {
+    return n[2] - n[0]
+  }
+  const { left, right, page_width_px: page } = decoupe
+  if (typeof left !== 'number' || typeof right !== 'number' || typeof page !== 'number' || !page) return null
+  return (right - left) / page
+}
+
 export type BibleEditionDisplayAsset = {
   id: string
   assetKey: string
@@ -403,6 +456,7 @@ export type BibleEditionDisplayAsset = {
   bodyBlockId: string | null
   noteId: string | null
   materialOrder: number
+  regime: RegimeIllustration
 }
 
 /** Contrat sérialisable entre la page serveur et le lecteur client. */

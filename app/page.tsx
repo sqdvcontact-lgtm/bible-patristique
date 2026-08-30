@@ -16,7 +16,7 @@ import {
 } from '@/app/lib/bibleEditionServer'
 import { bibliographieDesBlocs } from '@/app/lib/bibleBibliographieOuvrages'
 import {
-  blocsTexteEditoriaux, presentationDeBloc, sousTypeNoticeValide, styleCompositionDeNote,
+  blocsTexteEditoriaux, presentationDeBloc, regimeIllustration, sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
 } from '@/app/lib/bibleEdition'
 import type {
@@ -385,6 +385,7 @@ export default async function Home({
         bodyBlockId: asset.body_block_id,
         noteId: asset.note_id,
         materialOrder: asset.material_order,
+        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1]),
       })),
     }
   }
@@ -500,6 +501,7 @@ export default async function Home({
           bodyBlockId: asset.body_block_id,
           noteId: asset.note_id,
           materialOrder: asset.material_order,
+        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1]),
           appliesTo: asset.applies_to,
           appliesToMemberId: asset.applies_to_member_id,
         })),

@@ -178,30 +178,60 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).not.toContain('note-bible-intro-note-1')
   })
 
-  it('rend le dérivé web avec ses dimensions, son texte alternatif et sa légende', () => {
-    const html = renderToStaticMarkup(
-      <IllustrationBible illustration={{
-        id: 'asset-1',
-        assetKey: 'fillion-t07-p0092-i01',
-        assetKind: 'illustration',
-        url: 'https://oucotpxcjalwgetylfbz.supabase.co/storage/v1/object/public/bible-illustrations-web/fillion/requin.webp',
-        width: 1600,
-        height: 555,
-        altText: 'Requin figurant le poisson de Jonas.',
-        caption: 'Le poisson de Jonas (le requin).',
-        printedPage: '90',
-        placement: 'after',
-        canonIdStart: 'MAT.12.40',
-        canonIdEnd: null,
-        bodyBlockId: null,
-        noteId: null,
-        materialOrder: 120,
-      }} />,
-    )
+  /** ⛔ Une gravure DÉTOURÉE ne s'affiche pas, elle DÉCOUPE : son dessin est dans
+   *  la couche alpha et l'encre se repose au rendu. Elle n'a donc ni <img> ni
+   *  attribut alt, mais un rôle d'image et son intitulé accessible. Une PLANCHE,
+   *  qui garde le papier de 1923, se rend en image. */
+  const gravure = (regime: 'vignette' | 'au-fil' | 'hors-texte') => ({
+    id: 'asset-1',
+    assetKey: 'fillion-t07-p0092-i01',
+    assetKind: regime === 'hors-texte' ? 'plate' : 'illustration',
+    url: 'https://exemple.test/gravure.webp',
+    width: 1600,
+    height: 555,
+    altText: 'Requin figurant le poisson de Jonas.',
+    caption: 'Le poisson de Jonas (le requin).',
+    printedPage: '90',
+    placement: 'after' as const,
+    canonIdStart: 'MAT.12.40',
+    canonIdEnd: null,
+    bodyBlockId: null,
+    noteId: null,
+    materialOrder: 120,
+    regime,
+  })
+
+  it('découpe une gravure détourée au lieu de l’afficher, et repose l’encre', () => {
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} />)
     expect(html).toContain('data-asset-key="fillion-t07-p0092-i01"')
-    expect(html).toContain('alt="Requin figurant le poisson de Jonas."')
-    expect(html).toContain('width="1600"')
+    expect(html).toContain('data-regime="vignette"')
+    expect(html).toContain('mask-image')
+    expect(html).toContain('aria-label="Requin figurant le poisson de Jonas."')
     expect(html).toContain('Le poisson de Jonas (le requin).')
+    // ⛔ Aucune image : le fichier est un masque, pas une illustration à poser.
+    expect(html).not.toContain('<img')
+  })
+
+  it('donne à chaque régime sa part de la colonne', () => {
+    const part = (regime: 'vignette' | 'au-fil' | 'hors-texte') =>
+      renderToStaticMarkup(<IllustrationBible illustration={gravure(regime)} />).match(/style="width:(\d+)%/)?.[1]
+    expect(part('vignette')).toBe('30')
+    expect(part('au-fil')).toBe('75')
+    expect(part('hors-texte')).toBe('100')
+  })
+
+  it('rend une PLANCHE en image, papier compris, et jamais en masque', () => {
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte')} />)
+    expect(html).toContain('<img')
+    expect(html).toContain('alt="Requin figurant le poisson de Jonas."')
+    expect(html).not.toContain('mask-image')
+  })
+
+  it('n’habille QUE dans un bloc : ancrée sur un verset, la vignette se centre', () => {
+    const seule = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} />)
+    const dansUnBloc = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette')} habillage />)
+    expect(seule).not.toContain('float')
+    expect(dansUnBloc).toContain('float:right')
   })
 })
 

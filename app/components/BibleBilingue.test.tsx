@@ -197,6 +197,7 @@ describe('lecture bilingue de la page Bible', () => {
           altText: 'Le Jourdain', caption: null, printedPage: null,
           placement: 'after', canonIdStart: 'MRK.1.1', canonIdEnd: null,
           bodyBlockId: null, noteId: null, materialOrder: 1,
+        regime: 'vignette' as const,
           appliesTo: 'member', appliesToMemberId: 'fr',
         }]}
       />,
@@ -219,6 +220,7 @@ describe('lecture bilingue de la page Bible', () => {
           altText: 'Passoire antique', caption: null, printedPage: null,
           placement: 'inline', canonIdStart: null, canonIdEnd: null,
           bodyBlockId: null, noteId: 'n5', materialOrder: 2,
+        regime: 'vignette' as const,
           appliesTo: 'member', appliesToMemberId: 'la',
         }]}
       />,

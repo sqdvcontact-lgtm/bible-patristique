@@ -13,7 +13,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { FAMILLES, type Famille } from './inventaire'
 import type { EchantillonFamille } from './PlancheIllustrations'
-import { GRAVURES_CLASSEES, cheminProposition, type GravureFillion } from './regimesFillion'
+import type { GravureFillion } from './regimesFillion'
+import { largeurImprimee, regimeIllustration } from '@/app/lib/bibleEdition'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,10 +92,10 @@ export async function releverFamilles(): Promise<EchantillonFamille[]> {
 
 // ── Les gravures de Fillion, rangées par régime de composition ───────────────
 
-/** ⚠️ Le classement vient de la SOURCE RÉDIGÉE (`regimesFillion.ts`), la base ne
- *  porte encore aucun régime. On ne lit ici que ce que la base sait dire : les
- *  adresses, les dimensions et le nombre de planches. Une gravure classée qui
- *  aurait disparu de la base est simplement écartée, sans faire tomber la page. */
+/** ⛔ Le régime se DÉRIVE, il n'est pas recopié :  est la
+ *  fonction que la page de lecture emploie, et la planche doit montrer ce que la
+ *  page FAIT. Un relevé recopié dérive au premier réglage et fait ensuite
+ *  autorité contre la page qu'il décrit. */
 export async function releverGravuresFillion(): Promise<{
   gravures: GravureFillion[]
   planches: number
@@ -102,26 +103,28 @@ export async function releverGravuresFillion(): Promise<{
 }> {
   const { data, error } = await supabaseAdmin
     .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,width_px,height_px,printed_caption,editorial_caption')
+    .select('asset_key,asset_kind,public_uri,width_px,height_px,source_crop_box,canon_id_start,printed_caption,editorial_caption')
   if (error) throw new Error(`Gravures de Fillion illisibles : ${error.message}`)
-  const parCle = new Map((data ?? []).map(a => [a.asset_key as string, a]))
+  const toutes = data ?? []
 
-  const gravures = GRAVURES_CLASSEES.flatMap((g): GravureFillion[] => {
-    const a = parCle.get(g.cle)
-    if (!a) return []
-    return [{
-      ...g,
+  const gravures: GravureFillion[] = toutes
+    .filter(a => a.asset_kind !== 'plate')
+    .map(a => ({
+      cle: a.asset_key as string,
+      legende: (a.editorial_caption ?? a.printed_caption ?? '') as string,
+      verset: (a.canon_id_start ?? '') as string,
       url: a.public_uri as string,
-      urlDetouree: g.regime === 'A'
-        ? `${URL_SUPABASE}/storage/v1/object/public/bible-illustrations-web/${cheminProposition(g.cle)}`
-        : null,
       largeur: a.width_px as number,
       hauteur: a.height_px as number,
-    }]
-  })
-  // Une planche TÉMOIN pour le régime C. Prise par son rang dans l'ordre des clés,
-  // non au hasard : la planche montrée doit être la même d'une visite à l'autre.
-  const lesPlanches = (data ?? []).filter(a => a.asset_kind === 'plate')
+      largeurImprimee: largeurImprimee(a.source_crop_box as Parameters<typeof largeurImprimee>[0]),
+      regime: regimeIllustration(a.asset_kind as string, a.source_crop_box as Parameters<typeof regimeIllustration>[1]),
+    }))
+    .sort((a, b) => (b.largeurImprimee ?? 0) - (a.largeurImprimee ?? 0))
+
+  // Une planche TÉMOIN pour le régime hors-texte. Prise par son rang dans l'ordre
+  // des clés, non au hasard : la planche montrée doit être la même d'une visite
+  // à l'autre.
+  const lesPlanches = toutes.filter(a => a.asset_kind === 'plate')
     .sort((a, b) => String(a.asset_key).localeCompare(String(b.asset_key)))
   const temoin = lesPlanches[Math.floor(lesPlanches.length / 2)] ?? null
   return {

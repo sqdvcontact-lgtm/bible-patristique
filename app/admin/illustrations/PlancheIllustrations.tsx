@@ -5,9 +5,10 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import OngletsPage, { type OngletPage } from '@/app/components/OngletsPage'
 import { FONCTIONS, ICONES_ONGLET, ILLUSTRATIONS, type CleFonction, type CleSol, type Illustration, type Pose } from './inventaire'
 import {
-  MESURE_COLONNE, ORDRE_REGIMES, REGIMES, SEUIL_TRAME, SPECIMEN_HABILLAGE,
-  type CleRegime, type GravureFillion,
+  MESURE_COLONNE, ORDRE_REGIMES, REGIMES, SPECIMEN_HABILLAGE,
+  type GravureFillion,
 } from './regimesFillion'
+import { PART_DU_REGIME, type RegimeIllustration } from '@/app/lib/bibleEdition'
 import { STYLE_CORPS } from '@/app/lib/compositionBible'
 import { colorMix } from '@/app/lib/couleurs'
 
@@ -672,17 +673,12 @@ export function VueEnContexte({ images, poids }: { images: Illustration[]; poids
   )
 }
 
-// ── Gravures de Fillion : les trois régimes proposés ─────────────────────────
-//
-// ⛔ Cette section montre une PROPOSITION, non le service. `IllustrationBible`
-// compose encore les 43 gravures de la même façon, à `min(fichier, 760 px)`,
-// centrées et sans traitement de thème. La section le dit en toutes lettres :
-// une planche qui laisserait croire le contraire ferait autorité contre la page.
+// ── Gravures de Fillion : les trois régimes ──────────────────────────────────
 //
 // ⚠️ Le spécimen d'habillage prend `STYLE_CORPS`, le style RÉEL du paratexte
-// biblique, sorti de `BibleEditionParatext` pour cela. Rejouer une composition
-// de mémoire dérive au premier réglage — c'est la règle de la planche des styles,
-// et elle vaut ici.
+// biblique, et le régime vient de `regimeIllustration`, la fonction que la page
+// de lecture emploie. Rejouer une composition de mémoire dérive au premier
+// réglage — c'est la règle de la planche des styles, et elle vaut ici.
 
 export function SectionRegimes({ gravures, planches, planche, fond }: {
   gravures: GravureFillion[]
@@ -691,43 +687,35 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
   fond: CleFond
 }) {
   const f = FONDS[fond]
-  const parRegime = (r: CleRegime) => gravures.filter(g => g.regime === r)
-  const compte = (r: CleRegime) => (r === 'C' ? planches : parRegime(r).length)
-  const boisseau = gravures.find(g => g.cle === 'fillion-t07-p0219-i01') ?? null
-  const scene = parRegime('B')[1] ?? parRegime('B')[0] ?? null
+  const parRegime = (r: RegimeIllustration) => gravures.filter(g => g.regime === r)
+  const compte = (r: RegimeIllustration) => (r === 'hors-texte' ? planches : parRegime(r).length)
+  const boisseau = gravures.find(g => g.cle === 'fillion-t07-p0219-i01') ?? parRegime('vignette')[0] ?? null
+  const scene = parRegime('au-fil')[0] ?? null
 
   return (
     <section className="ill-section">
       <div className="ill-section-tete ill-section-tete--fixe">
         <h2 className="ill-section-titre">Gravures de Fillion : trois régimes</h2>
-        <span className="ill-compte">proposition</span>
+        <span className="ill-compte">{gravures.length + planches}</span>
       </div>
       <p className="ill-section-propos">
-        Une seule composition sert aujourd’hui les quarante-trois, du boisseau romain de trois centimètres à la planche
-        double page. Trois régimes sont proposés à la place. Le classement ne se fait pas sur le sujet mais sur ce que
-        porte le fichier, et il se recalcule par <code className="ill-code">scripts/fillion/detourer-gravures.mjs</code>.
-      </p>
-      <p className="ill-reg-avis">
-        ⛔ Rien de ceci n’est en service. Les gravures détourées sont déposées à côté des fichiers servis, jamais à leur
-        place, et le lecteur reçoit toujours le fichier d’origine.
+        Une seule composition servait les quarante-trois, du boisseau romain de trois centimètres à la planche double
+        page. Trois régimes désormais, et c’est la LARGEUR IMPRIMÉE qui les départage : la page de Fillion est à deux
+        colonnes, une gravure qui tient dans une colonne est une vignette, une gravure qui les enjambe est une scène.
+        Le régime se dérive par <code className="ill-code">regimeIllustration</code>, la fonction que la page de lecture
+        emploie ; les fichiers se refont par <code className="ill-code">scripts/fillion/detourer-gravures.mjs</code>.
       </p>
 
-      {/* ── Le critère ── */}
+      {/* ── Ce que la mesure range ── */}
       <div className="ill-reg-critere">
-        <h3 className="ill-reg-titre3">Le critère, mesuré sur le fichier</h3>
-        <p className="ill-reg-texte">
-          Une planche pleine page ne se détoure jamais : sa nature suffit à la ranger. Pour les autres, on mesure la part
-          des gris qui BORDE un noyau de trait. Élevée, les gris sont les restes d’une trame, donc de la structure, et
-          l’on garde tout. Basse, ils flottent à l’écart du trait : ce sont les bavures du fond comprimé à 134 points par
-          pouce, et le détourage les éteint. Le seuil est à {Math.round(SEUIL_TRAME * 100)} %, et l’écart mesuré est net.
-        </p>
+        <h3 className="ill-reg-titre3">La largeur imprimée, et ce qu’elle range</h3>
         <ul className="ill-reg-mesures">
           {gravures.map(g => (
-            <li key={g.cle} className={`ill-reg-mesure ill-reg-mesure--${g.regime.toLowerCase()}`}>
-              <span className="ill-reg-part">{g.part === null ? '—' : `${Math.round(g.part * 100)} %`}</span>
+            <li key={g.cle} className={`ill-reg-mesure ill-reg-mesure--${g.regime}`}>
+              <span className="ill-reg-part">{g.largeurImprimee === null ? '—' : `${Math.round(g.largeurImprimee * 100)} %`}</span>
               <span className="ill-reg-nom">{g.legende}</span>
               <span className="ill-reg-verset">{g.verset}</span>
-              <span className="ill-reg-jeton">{g.regime}</span>
+              <span className="ill-reg-jeton">{REGIMES[g.regime].titre}</span>
             </li>
           ))}
         </ul>
@@ -736,31 +724,28 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
       {/* ── Les trois régimes ── */}
       {ORDRE_REGIMES.map(cle => {
         const r = REGIMES[cle]
+        const part = PART_DU_REGIME[cle]
         return (
           <article key={cle} className="ill-reg">
             <div className="ill-reg-tete">
-              <span className="ill-reg-lettre">{cle}</span>
               <h3 className="ill-reg-nom-regime">{r.titre}</h3>
               <span className="ill-reg-pour">{r.pour}</span>
               <span className="ill-reg-compte">{compte(cle)}</span>
             </div>
             <p className="ill-reg-texte">{r.propos}</p>
             <dl className="ill-reg-fiche">
-              <dt>Largeur</dt><dd>{r.largeur} % de la colonne, soit {Math.round(MESURE_COLONNE * r.largeur / 100)} px</dd>
+              <dt>Largeur</dt><dd>{Math.round(part * 100)} % de la colonne, soit {Math.round(MESURE_COLONNE * part)} px</dd>
               <dt>Détourage</dt><dd>{r.detourage ? 'oui, encre reposée au rendu' : 'jamais'}</dd>
-              <dt>Habillage</dt><dd>{r.habillage ? 'oui, au fer à droite' : 'non'}</dd>
-              <dt>Cadre</dt><dd>{r.cadre ? 'filet du site, rogné au filet gravé' : cle === 'C' ? 'passe-partout, agrandissable' : 'aucun'}</dd>
+              <dt>Habillage</dt><dd>{r.habillage ? 'oui, quand l’ancre la pose dans un bloc' : 'non'}</dd>
+              <dt>Cadre</dt><dd>{r.cadre ? 'filet du site, rogné au filet gravé' : cle === 'hors-texte' ? 'passe-partout' : 'aucun'}</dd>
             </dl>
 
-            {cle === 'A' && boisseau && (
-              <SpecimenHabillage gravure={boisseau} fond={fond} />
-            )}
-            {cle === 'B' && scene && (
+            {cle === 'vignette' && boisseau && <SpecimenHabillage gravure={boisseau} fond={fond} />}
+            {cle === 'au-fil' && scene && (
               <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
                 <div className="ill-reg-colonne">
-                  <figure className="ill-reg-cadre" style={{ width: `${REGIMES.B.largeur}%`, borderColor: colorMix(f.encre, 30) }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={scene.url} alt={scene.legende} />
+                  <figure className="ill-reg-cadre" style={{ width: `${Math.round(part * 100)}%`, borderColor: colorMix(f.encre, 30) }}>
+                    <span className="ill-reg-encree" style={{ ...encree(scene.url, f.encre), aspectRatio: `${scene.largeur} / ${scene.hauteur}` }} role="img" aria-label={scene.legende} />
                     <figcaption style={{ ...STYLE_CORPS, textAlign: 'center', color: colorMix(f.encre, 70), fontStyle: 'italic', marginTop: '0.375rem' }}>
                       {scene.legende}
                     </figcaption>
@@ -768,7 +753,7 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
                 </div>
               </div>
             )}
-            {cle === 'C' && planche && (
+            {cle === 'hors-texte' && planche && (
               <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
                 <div className="ill-reg-colonne">
                   <figure className="ill-reg-passe" style={{ backgroundColor: colorMix(f.encre, 6) }}>
@@ -785,25 +770,20 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
         )
       })}
 
-      {/* ── Le détourage : avant et après ── */}
+      {/* ── Les gravures détourées, à leur taille servie ── */}
       <div className="ill-reg-avant-apres">
-        <h3 className="ill-reg-titre3">Le détourage, avant et après</h3>
+        <h3 className="ill-reg-titre3">Les onze gravures de Marc, à leur taille servie</h3>
         <p className="ill-reg-texte">
-          À gauche le fichier servi, à droite la proposition. Le détourage ne rend pas la trame perdue : il rend un trait
-          franc au lieu d’un trait délavé, il éteint la bavure, et il donne au thème Cuir une encre claire au lieu d’une
-          dalle blanche. La trame, elle, demande l’archive JP2 du tome VII.
+          Toutes tirées du feuillet JP2 de l’archive, jamais de la page composée du PDF : le trait y est entier et la
+          taille de la gravure survit. L’encre est reposée au rendu, si bien qu’un seul fichier sert le papier et le cuir.
         </p>
         <div className="ill-reg-paires">
-          {parRegime('A').slice(0, 4).map(g => (
-            <div key={g.cle} className="ill-reg-paire">
+          {gravures.map(g => (
+            <div key={g.cle} className="ill-reg-servie">
               <div className="ill-reg-case" style={{ backgroundColor: f.fond }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={g.url} alt={`${g.legende} — fichier servi`} />
+                <span className="ill-reg-encree" style={{ ...encree(g.url, f.encre), aspectRatio: `${g.largeur} / ${g.hauteur}` }} role="img" aria-label={g.legende} />
               </div>
-              <div className="ill-reg-case" style={{ backgroundColor: f.fond }}>
-                {g.urlDetouree && <span className="ill-reg-encree" style={encree(g.urlDetouree, f.encre)} role="img" aria-label={`${g.legende} — détourée`} />}
-              </div>
-              <p className="ill-reg-paire-nom">{g.legende}</p>
+              <p className="ill-reg-paire-nom">{g.legende}<br /><span>{g.largeur} × {g.hauteur} px servis · {REGIMES[g.regime].titre.toLowerCase()}</span></p>
             </div>
           ))}
         </div>
@@ -831,37 +811,34 @@ function encree(url: string, encre: string): React.CSSProperties {
 
 /** Le spécimen d'habillage, sur le texte RÉEL de Fillion pour Marc 4, 21-25.
  *
- *  ⛔ La vignette n'est pas posée en tête du bloc, et c'est tout le point : la
- *  manchette occupe déjà sept rem à gauche, et une vignette posée en face ne
- *  laisserait que deux cents pixels de texte justifié entre les deux. Elle se
- *  pose à l'endroit du texte où elle tombe, une fois la manchette passée.
+ *  ⛔ La vignette n'est pas posée en tête du bloc : la manchette occupe déjà sept
+ *  rem à gauche, et une vignette posée en face ne laisserait que deux cents pixels
+ *  de texte justifié entre les deux. Elle se pose à l'endroit du texte où elle
+ *  tombe, une fois la manchette passée.
  *
- *  ⚠️ `display: flow-root` n'est pas décoratif : sans lui le flottant déborde du
- *  bloc et vient chevaucher le titre suivant. */
+ *  ⚠️ Ce spécimen montre ce que l'habillage DONNERAIT. Aucune des onze gravures
+ *  n'est aujourd'hui dans ce cas : elles sont ancrées sur un VERSET, donc posées
+ *  entre deux versets, où elles ont leur propre axe et n'ont rien à habiller.
+ *  L'habillage se gagne en déplaçant l'ancre vers le bloc de commentaire, ce qui
+ *  est une décision éditoriale et non un réglage de rendu. */
 function SpecimenHabillage({ gravure, fond }: { gravure: GravureFillion; fond: CleFond }) {
   const f = FONDS[fond]
-  const largeur = Math.round(MESURE_COLONNE * REGIMES.A.largeur / 100)
+  const largeur = Math.round(MESURE_COLONNE * PART_DU_REGIME['vignette'])
   return (
     <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
       <div className="ill-reg-colonne">
         <div style={{ ...STYLE_CORPS, display: 'flow-root', color: colorMix(f.encre, 85) }}>
-          <span className="ill-reg-manchette" style={{ color: f.encre }}>
-            {SPECIMEN_HABILLAGE.manchette}
-          </span>
+          <span className="ill-reg-manchette" style={{ color: f.encre }}>{SPECIMEN_HABILLAGE.manchette}</span>
           {SPECIMEN_HABILLAGE.avant}
-          {gravure.urlDetouree && (
-            <figure className="ill-reg-vignette" style={{ width: `${largeur}px` }}>
-              <span
-                className="ill-reg-encree"
-                style={{ ...encree(gravure.urlDetouree, f.encre), aspectRatio: `${gravure.largeur} / ${gravure.hauteur}` }}
-                role="img"
-                aria-label={gravure.legende}
-              />
-              <figcaption style={{ color: colorMix(f.encre, 62) }}>
-                {gravure.legende}
-              </figcaption>
-            </figure>
-          )}
+          <figure className="ill-reg-vignette" style={{ width: `${largeur}px` }}>
+            <span
+              className="ill-reg-encree"
+              style={{ ...encree(gravure.url, f.encre), aspectRatio: `${gravure.largeur} / ${gravure.hauteur}` }}
+              role="img"
+              aria-label={gravure.legende}
+            />
+            <figcaption style={{ color: colorMix(f.encre, 62) }}>{gravure.legende}</figcaption>
+          </figure>
           {' '}{SPECIMEN_HABILLAGE.apres}
         </div>
       </div>
@@ -944,12 +921,13 @@ export const CSS = `
 
   .ill-reg-critere { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 1rem 1.125rem; margin-bottom: 1.5rem; }
   .ill-reg-mesures { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--cs-bord-clair); border: 1px solid var(--cs-bord-clair); border-radius: 4px; overflow: hidden; }
-  .ill-reg-mesure { display: grid; grid-template-columns: 3.5rem 1fr auto 1.5rem; gap: 0.75rem; align-items: baseline; background: var(--cs-fond-clair); padding: 0.3125rem 0.6875rem; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.75rem; }
+  .ill-reg-mesure { display: grid; grid-template-columns: 3.5rem 1fr auto 9rem; gap: 0.75rem; align-items: baseline; background: var(--cs-fond-clair); padding: 0.3125rem 0.6875rem; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.75rem; }
   .ill-reg-part { font-variant-numeric: tabular-nums; text-align: right; color: var(--cs-texte); font-weight: 600; }
   .ill-reg-nom { color: var(--cs-texte-second); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ill-reg-verset { color: var(--cs-texte-faible); font-size: 0.6875rem; }
-  .ill-reg-jeton { text-align: center; font-weight: 700; color: var(--cs-vert); }
-  .ill-reg-mesure--b .ill-reg-part, .ill-reg-mesure--b .ill-reg-jeton { color: var(--cs-or); }
+  .ill-reg-jeton { text-align: right; font-weight: 600; color: var(--cs-vert); white-space: nowrap; }
+  .ill-reg-mesure--au-fil .ill-reg-part, .ill-reg-mesure--au-fil .ill-reg-jeton { color: var(--cs-or); }
+  .ill-reg-servie { display: flex; flex-direction: column; gap: 0.375rem; }
 
   .ill-reg { border-top: 1px solid var(--cs-bord-clair); padding-top: 1.125rem; margin-top: 1.5rem; }
   .ill-reg-tete { display: flex; align-items: baseline; gap: 0.625rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
@@ -983,7 +961,7 @@ export const CSS = `
   @media (max-width: 640px) {
     .ill-reg-manchette { float: none; width: auto; margin: 0 0 0.3rem; }
     .ill-reg-vignette { float: none; margin: 0.6rem auto; }
-    .ill-reg-mesure { grid-template-columns: 3rem 1fr 1.5rem; }
+    .ill-reg-mesure { grid-template-columns: 3rem 1fr 6rem; }
     .ill-reg-verset { display: none; }
   }
 
