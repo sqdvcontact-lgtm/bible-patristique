@@ -163,7 +163,7 @@ function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u
 //      attendre est un onglet qui résiste, et rien n'oblige à faire payer la
 //      main sûre pour la main qui hésite.
 //
-//   2. Mais il ne se FIXE qu'après une demi-seconde de curseur posé sur
+//   2. Mais il ne se FIXE qu'après un court moment de curseur posé sur
 //      l'onglet. Tant qu'il n'est pas fixé, il tombe dès que le curseur quitte
 //      l'onglet — ⛔ y compris quand celui-ci vient se poser SUR LE MENU, et
 //      c'est tout le propos : un menu ouvert au passage ne doit pas pouvoir
@@ -179,7 +179,24 @@ function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u
 // on revient sur l'onglet et le menu reparaît dans l'instant. C'est ce qui
 // permet de renoncer aux sursis de quelques centièmes dont vivent les menus qui
 // s'ouvrent lentement.
-const DELAI_FIXATION_MS = 500;
+
+// ⛔ CE SEUIL EST LA DURÉE D'UN PASSAGE, PAS UN TEMPS D'ATTENTE.
+//
+// Il ne se règle donc pas au confort mais sur la seule question qui compte :
+// combien de temps un curseur qui NE FAIT QUE PASSER reste-t-il sur l'onglet ?
+// Le cas dangereux est la traversée VERTICALE — la barre franchie pour
+// redescendre dans la page —, seule dont le trajet se poursuive dans le menu :
+// un onglet fait trente et un pixels de haut, et on le franchit en quinze à
+// quarante millisecondes à l'allure ordinaire, cent en flânant.
+//
+// ⚠️ Une DEMI-SECONDE, essayée d'abord, couvrait ce passage dix fois — mais elle
+// dépassait aussi le temps qu'une main décidée met à descendre de l'onglet vers
+// la première entrée, deux à quatre dixièmes : le menu tombait sous les doigts de
+// qui l'avait délibérément ouvert, et il fallait apprendre à s'arrêter pour s'en
+// servir. Deux cents millisecondes couvrent la traversée deux à dix fois selon
+// l'allure, et restent sous le geste délibéré. C'est le seul chiffre à toucher si
+// le réglage devait encore bouger.
+const DELAI_FIXATION_MS = 200;
 
 /**
  * Ouvre au premier instant, ne se fixe qu'après une pause, ferme aussitôt qu'on
@@ -198,7 +215,7 @@ function useMenuSurvol(auSurvol?: () => void) {
   const [ouvert, setOuvert] = useState(false);
   // ⚠️ Une RÉFÉRENCE, non un état : la fixation ne change rien à ce qui est
   // dessiné, elle ne fait que décider de ce qu'une sortie provoque. En faire un
-  // état ferait re-rendre la barre entière une demi-seconde après chaque survol.
+  // état ferait re-rendre la barre entière après chaque survol, pour rien.
   const fixe = useRef(false);
   const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
   const arreter = () => {
