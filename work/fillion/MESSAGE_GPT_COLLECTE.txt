@@ -1,0 +1,181 @@
+COLLECTE DES GRAVURES DU TOME VII DE FILLION — POUR GPT
+=======================================================
+
+Bonjour. On se partage ce chantier : tu collectes la matière et tu l'inscris en
+base, je reprends ensuite à l'optimisation des images. Voici ce qu'il faut savoir
+avant de commencer. Le détail complet est dans work/fillion/COLLECTE_TOME_VII.md,
+que ce message résume sans le remplacer.
+
+
+CE QU'IL Y A À FAIRE
+--------------------
+
+Cinq livres portent l'apparat de Fillion sans une seule gravure, alors que leur
+texte est publié : Matthieu, Luc, Jean, les Actes et Josué.
+
+191 pages du tome VII portent une illustration. La liste est dans
+work/fillion/COLLECTE_TOME_VII_PAGES.json : une entrée par page, avec son
+feuillet, sa page imprimée et son livre.
+
+    Matthieu   61 pages
+    Luc        72
+    Jean       52
+    indécises   6      (à trancher à l'oeil)
+
+⛔ LES ACTES NE SONT PAS DANS CE TOME. Il s'arrête à Jean XXI. Leurs gravures
+sont dans un autre volume, dont l'archive n'est pas sur le disque. Josué relève
+du tome II, absent lui aussi. Ces deux livres resteront sans gravures après cette
+collecte, et ce n'est pas un oubli.
+
+
+OÙ EST LA MATIÈRE
+-----------------
+
+    feuillets    tmp/pdfs/fillion/lasaintebibletex07fill_jp2.zip
+                 854 feuillets, 0000 à 0853, sans un trou. Rien à télécharger.
+    déjà extraits tmp/pdfs/fillion/jp2_t07/…_jp2/ — 230 seulement.
+    OCR          tmp/pdfs/fillion/lasaintebibletex07fill_djvu.xml (47 Mo)
+    PDF          tmp/pdfs/fillion/lasaintebibletex07fill.pdf
+
+Décodage d'un feuillet, par ImageMagick dans WSL, faute d'équivalent sous
+Windows :
+
+    wsl -e bash -lc 'convert <feuillet>.jp2 tmp/jp2-png/fNNN.png'
+
+⚠️ Un chemin accentué passe mal à travers WSL. Travailler sous un chemin ASCII.
+
+
+LES DEUX DÉCALAGES, À NE PAS CONFONDRE
+--------------------------------------
+
+    feuillet -> page OCR        + 1     le feuillet 0219 est la page OCR 220
+    feuillet -> page IMPRIMÉE   - 2     le feuillet 219 porte la page 217
+
+Le second est constant sur les onze pages de Marc, qui sont déjà en base et
+servent de témoin.
+
+⚠️ La page OCR fait exactement 2455 x 4088, comme le feuillet. Les boîtes de mots
+tombent donc dessus sans aucune mise à l'échelle.
+
+
+LE REPÉRAGE
+-----------
+
+    python scripts/fillion/reperer-gravures-en-texte.py 294 297 305 ...
+
+Le Python de ComfyUI a numpy et PIL :
+D:\ComfyUI_windows_portable\python_embeded\python.exe
+
+Il rend dans tmp/reperage2/ un boites.json de boîtes NORMALISÉES, en fractions de
+la page, et une planche de contrôle par page.
+
+Calibré sur les onze pages de Marc, dont les boîtes sont en base : la bonne
+gravure sort au RANG 1 sur les onze, et la boîte s'accorde à ±1 % de la page sur
+neuf. Les deux écarts restants portent sur l'étendue, quand un élément voisin se
+trouve juste au-dessus. Ils demandent un oeil.
+
+
+LES PIÈGES DÉJÀ PAYÉS
+---------------------
+
+⛔ N'EMPLOIE PAS process_illustrations.detect_candidates SUR CES PAGES.
+Il masque le texte reconnu par l'OCR et garde ce qui reste. C'est juste pour les
+planches hors-texte du tome I, où l'OCR ne lit rien. Sur une gravure EN PLEIN
+TEXTE, l'OCR pose de faux mots sur la hachure, de 24 à 511 par page, et le masque
+efface la gravure avec eux. Éprouvé sur le témoin : une seule page retrouvée sur
+onze, et c'est la seule où l'OCR ne pose aucun mot sur la gravure. La confiance
+ne sépare pas ces faux mots des vrais, médiane 30 des deux côtés.
+
+⛔ LE PDF N'EST PAS UNE SOURCE D'IMAGE. C'est une compression à contenu mixte :
+un fond à 134 points par pouce et un masque de trait à 1 bit. Il rend un fil de
+fer sans matière. Il sert à TROUVER, jamais à RENDRE. Le feuillet JP2 seul rend
+une gravure.
+
+⛔ LE LIVRE D'UNE PAGE SE LIT DANS SON TITRE COURANT, jamais dans son numéro. Le
+tome I et le tome VII partagent les mêmes pages imprimées : une page 211 est
+aussi bien la Genèse que saint Marc. Le relevé est déjà fait
+(scripts/fillion/livre-des-pages-illustrees.py) : 137 pages lues à leur titre, 48
+comblées par la continuité des livres, 6 indécises.
+
+
+CE QU'IL FAUT ÉCRIRE EN BASE
+----------------------------
+
+Dans bible_edition_assets, sur le modèle de fillion-t07-p0213-i01 :
+
+    asset_key            fillion-t07-pNNNN-iKK   NNNN = feuillet, KK = rang
+    asset_kind           illustration            (plate est réservé au hors-texte)
+    family_id            317d14e6-15f2-44ae-b6f6-39f7809a9c03
+    applies_to           family
+    source_page_index    le feuillet
+    printed_page         le feuillet moins 2, en texte
+    source_crop_box      { normalized: [g, h, d, b], … }
+    printed_caption      la légende transcrite, à la lettre
+    editorial_caption    null
+    alt_text             ce que la gravure MONTRE
+    semantic_scope_kind  verse
+    scope_book_code      MAT / LUK / JHN
+    canon_id_start       l'ancre, si elle est sûre
+    placement            after
+    detected_automatically  true
+    detection_profile    le nom et la version de l'outil
+    requires_review      true
+    validation_status    review
+    is_public            false
+
+⛔ La boîte s'écrit NORMALISÉE, en fractions de la page. C'est cette forme que la
+chaîne de rendu applique au feuillet.
+
+⛔ L'EMPLACEMENT MATÉRIEL EST LA DONNÉE PRIMAIRE ; l'ancre sémantique est
+facultative et relue. L'apparat de la même page imprimée est déjà en base avec
+ses bornes canoniques, il donne donc le verset de la page. Une gravure dont
+l'ancre reste douteuse s'inscrit SANS canon_id_start plutôt qu'avec un verset
+inventé. Elle ne paraîtra pas, et c'est le bon état d'attente.
+
+⛔ editorial_caption NE S'INVENTE PAS. C'est une écriture de l'auteur du site. La
+page affiche editorial_caption ?? printed_caption : laisser null ne prive de
+rien.
+
+
+CE QU'IL NE FAUT PAS FAIRE
+--------------------------
+
+    - fabriquer les fichiers master ou web : c'est detourer-gravures.mjs, après ;
+    - poser is_public = true ;
+    - toucher aux 43 actifs existants, à jour en processing_version 4.3.0 pour
+      Marc et 4.5.0 pour les planches du tome I ;
+    - rédiger une légende éditoriale ;
+    - rendre depuis le PDF.
+
+Sur is_public : les 43 actifs existants portent test_only, review et
+requires_review, ET is_public = true. Ils sont donc servis au lecteur alors
+qu'ils se déclarent essais techniques. La contradiction attend l'arbitrage de
+l'auteur. En attendant, toute ligne neuve s'inscrit is_public = false. On
+n'élargit pas un état qu'on n'a pas tranché.
+
+
+LE CONTRÔLE, AVANT DE DIRE QUE C'EST FAIT
+-----------------------------------------
+
+⛔ Trouver les lignes en base ne prouve rien sur ce que le lecteur voit. Appelle
+la fonction que la page appelle : loadBibleEditionChapter et canonDuChapitre, de
+app/lib/bibleEditionServer.ts, et compte les illustrations qu'elle rend.
+
+⚠️ ET PORTE UN TÉMOIN DONT TU CONNAIS LA RÉPONSE. Un contrôle des planches du
+Pentateuque a rendu zéro le 30 août : il demandait un canon_id qui n'existe pas
+dans versets_canon, et rendait donc zéro partout, y compris sur Marc, dont les
+gravures sont en ligne. C'est ce témoin qui l'a démasqué, et rien d'autre.
+canonIds attend l'id de versets_canon. Le harnais est tmp/verifier-planches.mts.
+
+
+CE QUE JE REPRENDS ENSUITE
+--------------------------
+
+La chaîne d'optimisation, écrite et éprouvée : rampe alpha mesurée aux deux
+bouts, courbe, couture des traits que la réduction a dilués, rattrapage réglé sur
+la seconde réduction du navigateur, bornes d'affichage, nettoyage chirurgical du
+papier, report des dimensions en base. La doctrine est dans la charte
+(parametres.charte_ia), sections 35.16 à 35.16.16.
+
+Tu n'as donc pas à te soucier du rendu. Une boîte juste, une légende transcrite,
+une page et un feuillet exacts : c'est tout ce dont j'ai besoin pour la suite.
