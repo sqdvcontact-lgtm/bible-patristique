@@ -458,20 +458,40 @@ export const MESURE_COLONNE = 500
  *  ⚠️ Le PLANCHER n'est pas cosmétique : sous 40 %, une gravure dense cesse d'être
  *  lisible, et la source du boisseau ne fait de toute façon que 486 px. Le PLAFOND
  *  vient de la colonne : au delà, il ne reste plus de mesure au texte. */
-const PLANCHER_VIGNETTE = 0.40
-const PLAFOND_VIGNETTE = 0.62
-/** Une SCÈNE cadrée prend presque toute la colonne : rien ne se pose à côté
+/** ⛔ DEUX BORNES POUR TOUTE ILLUSTRATION, QUEL QUE SOIT SON RÉGIME.
+ *
+ *  Jusqu'au 30 août 2026, seule la VIGNETTE en avait : une scène valait 0,90 et
+ *  une planche 1, deux valeurs fixes qui échappaient à toute borne. La colonne
+ *  portait donc des gravures de 200 à 500 px, et les plus grandes écrasaient le
+ *  texte qu'elles accompagnent. Le régime donne désormais une part NOMINALE, que
+ *  ces deux bornes rabattent — c'est le seul endroit où la taille se décide.
+ *
+ *  ⚠️ Entre les deux, la part suit toujours la largeur imprimée : ce que les
+ *  bornes réduisent, ce sont les extrêmes, non la proportion de Fillion. */
+const PLANCHER_ILLUSTRATION = 0.36
+const PLAFOND_ILLUSTRATION = 0.88
+
+/** Une VIGNETTE tient dans UNE colonne imprimée : elle ne peut pas prendre plus
+ *  de la moitié du bloc sans cesser d'être ce qu'elle est. */
+const PLAFOND_VIGNETTE = 0.56
+/** Une SCÈNE cadrée prend l'essentiel de la colonne : rien ne se pose à côté
  *  d'elle, et c'est la seule façon de lui rendre des pixels. */
-const PART_AU_FIL = 0.90
+const PART_AU_FIL = 0.78
+/** Une PLANCHE hors-texte est une page entière du volume : elle prend le plafond. */
+const PART_HORS_TEXTE = PLAFOND_ILLUSTRATION
+
+function borner(part: number): number {
+  return Math.min(PLAFOND_ILLUSTRATION, Math.max(PLANCHER_ILLUSTRATION, part))
+}
 
 export function partIllustration(
   regime: RegimeIllustration,
   largeurImprimee: number | null | undefined,
 ): number {
-  if (regime === 'hors-texte') return 1
-  if (regime === 'au-fil') return PART_AU_FIL
-  if (typeof largeurImprimee !== 'number') return PLANCHER_VIGNETTE
-  return Math.min(PLAFOND_VIGNETTE, Math.max(PLANCHER_VIGNETTE, largeurImprimee))
+  if (regime === 'hors-texte') return borner(PART_HORS_TEXTE)
+  if (regime === 'au-fil') return borner(PART_AU_FIL)
+  if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
+  return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
 }
 
 /** ⛔ UNE VIGNETTE TROP LARGE NE PEUT PAS ÊTRE HABILLÉE : il ne resterait pas

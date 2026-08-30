@@ -69,6 +69,44 @@ const NETTETE = { sigma: 0.6, m1: 0, m2: 2 }
  *  rattrapage large avec rampe couplée ×0,83, rampe découplée ×1,03. */
 const NETTETE_TRAIT = { sigma: 1.6, m1: 0, m2: 3 }
 
+/** ⛔ UNE PHOTOGRAVURE SE CREUSE, ELLE NE SE RECADRE PAS UNE SECONDE FOIS.
+ *
+ *  L'étalement porte déjà le papier au blanc et l'encre au noir : la plage est
+ *  entière, et pourtant le rendu reste GRIS — moyenne 143 sur le Jourdain, 127
+ *  sur la synagogue. C'est le propre d'une photogravure, dont l'essentiel du
+ *  dessin vit dans les demi-tons ; l'auteur l'a relevé, « il faudrait que les
+ *  tons soient plus noirs ».
+ *
+ *  Un second étalement ne rendrait rien, les deux bouts étant déjà pris : c'est
+ *  la COURBE qu'il faut, et une puissance suffit. Mesuré sur les deux planches :
+ *
+ *    γ      moyenne (Jourdain)   blanc pur   noir pur
+ *    1        142,6                2,45 %      4,14 %
+ *    1,2      131,5                2,45 %      4,25 %
+ *    1,4      122,1                2,45 %      4,33 %
+ *    1,6      113,8                2,45 %      4,61 %
+ *
+ *  ⚠️ Le blanc ne bouge PAS et le noir gagne deux dixièmes de point : on creuse
+ *  sans rien écrêter, ce qui est exactement ce qu'un étalement plus dur ferait
+ *  perdre. À 1,6 la feuillée la plus sombre commence à se fermer ; d'où 1,4.
+ *
+ *  ⛔ Elle ne vaut QUE pour la photogravure. Une gravure au trait n'a pas de
+ *  demi-tons à creuser : son alpha vient de la rampe, qui a déjà ses deux bornes
+ *  mesurées, et une courbe de plus l'empâterait. */
+const CREUX_DES_TONS = 1.4
+
+async function creuserLesTons(png) {
+  const r = await sharp(png).removeAlpha().toColourspace('b-w')
+    .raw().toBuffer({ resolveWithObject: true })
+  if (r.info.channels !== 1) throw new Error('canal unique attendu')
+  const out = Buffer.alloc(r.info.width * r.info.height)
+  for (let i = 0; i < out.length; i++) {
+    out[i] = Math.round(255 * Math.pow(r.data[i] / 255, CREUX_DES_TONS))
+  }
+  return sharp(out, { raw: { width: r.info.width, height: r.info.height, channels: 1 } })
+    .png().toBuffer()
+}
+
 /** ⛔ LE RÉGIME SE DÉCIDE SUR LA LARGEUR IMPRIMÉE, non sur le sujet.
  *
  *  La page de Fillion est à DEUX colonnes. Une gravure qui tient dans une
@@ -99,16 +137,20 @@ const LARGEUR_DEUX_COLONNES = 0.6
  *  du site, mais deux copies d'une mesure ne restent égales que par accident : le
  *  test `app/lib/partIllustration.test.ts` compare les deux fichiers et refuse
  *  qu'ils divergent. Même garde que celle qui tient `get_niv1_texte`. */
-const PLANCHER_VIGNETTE = 0.40
-const PLAFOND_VIGNETTE = 0.62
-const PART_AU_FIL = 0.90
+const PLANCHER_ILLUSTRATION = 0.36
+const PLAFOND_ILLUSTRATION = 0.88
+const PLAFOND_VIGNETTE = 0.56
+const PART_AU_FIL = 0.78
+const PART_HORS_TEXTE = PLAFOND_ILLUSTRATION
 const MESURE_COLONNE = 500
 
+const borner = (part) => Math.min(PLAFOND_ILLUSTRATION, Math.max(PLANCHER_ILLUSTRATION, part))
+
 function partIllustration(regime, largeurImprimee) {
-  if (regime === 'C') return 1
-  if (regime === 'B') return PART_AU_FIL
-  if (typeof largeurImprimee !== 'number') return PLANCHER_VIGNETTE
-  return Math.min(PLAFOND_VIGNETTE, Math.max(PLANCHER_VIGNETTE, largeurImprimee))
+  if (regime === 'C') return borner(PART_HORS_TEXTE)
+  if (regime === 'B') return borner(PART_AU_FIL)
+  if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
+  return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
 }
 
 /** Le DOUBLE de la taille d'affichage, jamais plus : au delà, le navigateur
@@ -698,8 +740,11 @@ export async function cadrerDepuisJp2(feuillet, n, largeurServie) {
     etale[i] = Math.max(0, Math.min(255, Math.round((brut.data[i] - noir) * 255 / (papier - noir))))
   }
   const cadre = sharp(etale, { raw: { width: W, height: H, channels: 1 } }).extract(dedans)
+  // ⛔ LE MASTER RESTE NEUTRE : il ne porte que l'étalement, qui est une remise à
+  //    l'échelle et non un parti. C'est de lui qu'on repartirait pour changer le
+  //    ton, et un ton cuit dans le master se composerait au suivant.
   const master = await cadre.clone().png({ compressionLevel: 9 }).toBuffer()
-  const image = sharp(await cadre.clone().png().toBuffer())
+  const image = sharp(await creuserLesTons(await cadre.clone().png().toBuffer()))
     .resize({ width: Math.min(largeurServie, dedans.width), kernel: 'lanczos3' })
     .sharpen(NETTETE)
   const rendu = await image.clone().png().toBuffer()
@@ -732,7 +777,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '4.1.1',
+    processing_version: '4.2.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }

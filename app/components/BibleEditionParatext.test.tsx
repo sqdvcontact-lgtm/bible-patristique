@@ -219,12 +219,14 @@ describe('paratexte des éditions bibliques', () => {
     // la taille d'affichage, elle jetait jusqu'à 4,7 fois la résolution.
     const part = (regime: 'vignette' | 'au-fil' | 'hors-texte', largeur: number | null = null) =>
       renderToStaticMarkup(<IllustrationBible illustration={gravure(regime, largeur)} />).match(/style="width:(\d+)%/)?.[1]
-    expect(part('vignette', 0.198)).toBe('40')   // le boisseau : au PLANCHER
+    expect(part('vignette', 0.198)).toBe('36')   // le boisseau : au PLANCHER
     expect(part('vignette', 0.402)).toBe('40')   // le médecin
-    expect(part('vignette', 0.575)).toBe('57')   // la scène de deuil
-    expect(part('vignette', null)).toBe('40')    // largeur inconnue : le plancher
-    expect(part('au-fil')).toBe('90')
-    expect(part('hors-texte')).toBe('100')
+    expect(part('vignette', 0.575)).toBe('56')   // la scène de deuil : au PLAFOND
+    expect(part('vignette', null)).toBe('36')    // largeur inconnue : le plancher
+    // ⛔ Une scène et une planche sont bornées comme le reste : ce sont elles qui
+    //    échappaient à toute borne, et qui écrasaient le texte.
+    expect(part('au-fil')).toBe('78')
+    expect(part('hors-texte')).toBe('88')
   })
 
   it('⛔ une vignette TROP LARGE ne flotte pas : le texte n’aurait plus de mesure', () => {

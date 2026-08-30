@@ -127,6 +127,15 @@
   /* Encre — verts des titres (deux valeurs, cf. §AGENTS) */
   --cs-encre: #2a3d30;
   --cs-encre-fonce: #1e2e24;
+  /* ⛔ L'ENCRE D'UNE GRAVURE N'EST PAS CELLE D'UN TITRE. Les vignettes détourées
+     sont peintes à travers un masque : la couleur vient donc de la page, et elle
+     prenait `--cs-encre`, c'est-à-dire le VERT des titres. Une gravure sur bois
+     n'a jamais été tirée en vert, et l'auteur l'a relevé. C'est l'encre de la
+     famille, celle des ornements du site, mesurée sur la tour de Babel ruinée et
+     déjà écrite dans les fichiers par `scripts/fillion/detourer-gravures.mjs`.
+     ⚠️ Elle n'est pas noire : un noir franc sur le crème fait un trait
+     d'imprimante, non une encre (charte). */
+  --cs-gravure: #22211e;
   /* Vert d'accent : teinte pâle pour encarts (l'aplat est au-dessus) */
   --cs-vert-pale: #dfe8e0;
   /* Danger & alerte (rouges-orangés d'action destructive) */
@@ -353,6 +362,11 @@
      encre, là où le Clair employait un vert. */
   --cs-encre: #cdbb98;
   --cs-encre-fonce: #ddc9a2;
+  /* L'encre d'une gravure, transposée : sur un sol brun, un trait sombre ne se
+     voit plus. C'est la valeur MESURÉE du filtre d'inversion des ornements
+     (`invert(0.88) sepia(0.5) saturate(0.6)` rend rgb(166,159,147)), de sorte
+     qu'une gravure détourée et un cul-de-lampe portent la même encre. */
+  --cs-gravure: #a69f93;
   /* Accent d'action (liens, états actifs, anneau de focus). Le plus doré du jeu,
      chroma 31 : c'est lui qui appelle. ⚠️ Le NOM reste « vert », comme au Clair —
      le renommer demanderait de toucher deux cents appels pour aucun gain. */
@@ -581,7 +595,7 @@ button:focus-visible,
    ⚠️ Pas d' sur ces éléments : elle crée un contexte d'empilement, et
    c'est le piège que la charte consigne déjà pour les ornements. */
 .cs-bible-gravure-encre {
-  background-color: var(--cs-encre);
+  background-color: var(--cs-gravure);
   -webkit-mask-size: contain; mask-size: contain;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
   -webkit-mask-position: center; mask-position: center;
@@ -1726,12 +1740,36 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    son mot : il courait douze pixels dessous, posé sur le filet de la barre, et
    faisait dans la même bande un troisième trait horizontal.
 
-   ⛔ Et le filet du DESSUS tombe, dans `NavLivres` : la barre était enfermée
-   entre deux filets à trente pixels l'un de l'autre — celui qui fermait les axes
-   et le sien — et se lisait comme une bande posée en travers du volet. Un seul
-   filet ferme la tête, et c'est celui de la barre, qui la sépare de ce qu'elle
-   commande. La barre mesure alors 27 px au lieu de 35.
+   La barre mesure alors 27 px au lieu de 35.
+
+   ⚠️ RECTIFICATION DU MÊME JOUR, et elle vaut d'être lue. Le premier remède avait
+   aussi RETIRÉ le filet qui ferme le bloc au-dessus, la barre paraissant enfermée
+   entre deux filets et se lisant comme une bande posée en travers du volet. Le
+   diagnostic prenait le symptôme pour la cause : ce qui faisait la bande n'était
+   pas le filet du dessus, c'était la LARGEUR — la barre ne faisait que 106 px et
+   son propre filet ne traversait pas la colonne, si bien que le seul trait plein
+   du voisinage était celui d'au-dessus. La largeur rendue (ci-dessous), le filet
+   revient et la séparation redevient franche : c'est ce que l'auteur demandait,
+   « une séparation plus nette avant le sommaire ». ⛔ Ne pas le retirer de
+   nouveau : il ne coûte qu'un pixel de hauteur.
    ───────────────────────────────────────────────────────────────────────────── */
+/* ⛔ ET LA BARRE REPREND LA LARGEUR DE LA COLONNE. Relevé de l'auteur le
+   2026-08-30, mesuré aussitôt : elle ne faisait que 106 px dans un volet de 200,
+   centrée, et ses deux onglets n'étaient même pas égaux — 43 px pour « Livres »,
+   63 pour « Sommaire ». Son filet, qui divise la tête du volet de ce qu'elle
+   commande, ne traversait donc pas la colonne, et la séparation ne se lisait pas.
+
+   ⚠️ La cause est dans `margin-left: auto` / `margin-right: auto` du modèle, qui
+   sert à CENTRER une barre de page sous le `max-width` de ce qu'elle commande.
+   Une marge automatique en axe TRANSVERSAL annule l'étirement d'un enfant de
+   flex : dans une page, dont le conteneur est un bloc ordinaire, elle centre ; le
+   volet, lui, est une colonne flex, et elle y réduisait la barre à son contenu.
+   Les quatre barres de page sont hors d'atteinte, vérifié une à une.
+
+   ⛔ On ne retire donc pas les marges du MODÈLE, qui en a besoin : la variante
+   les neutralise, et `flex: 1` rend alors aux deux onglets leurs parts égales.
+   ───────────────────────────────────────────────────────────────────────────── */
+.cs-onglets--volet { margin-left: 0; margin-right: 0; }
 .cs-onglets--volet .cs-onglet { padding: 4px 6px; }
 .cs-onglets--volet .cs-onglets-sep { display: none; }
 
