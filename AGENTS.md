@@ -3054,11 +3054,47 @@ ligne disgracieux, mais il faut des limites ». Règles de code :
   progressivement. Mesuré : 600 px de bloc en rend 106, 560 px en rend 251.
 
 ⛔ **Le parti du BLOC pleine largeur a été essayé et REFUSÉ** (commit `8b119065`, révoqué
-le jour même). Il fondait le poème en un seul bloc hors de la grille, ce qui supprimait
-tout enroulement mais aussi le texte en regard. ⚠️ Ne pas le reproposer : ce qu'il
-corrigeait, l'élargissement le corrige en gardant les deux colonnes. Ce qu'il apportait
-en plus — le poème cessant d'être haché en quatorze cadres, un par groupe d'alignement —
-reste une question OUVERTE, et elle est distincte de la largeur.
+le jour même). Il fondait le poème hors de la grille, ce qui supprimait les enroulements
+mais aussi le texte en regard. ⚠️ Ne pas le reproposer : ce qu'il corrigeait, la mesure
+de 42 rem le corrige en gardant les deux colonnes.
+
+### ⛔ Deux POÈMES ne s'alignent pas l'un sur l'autre (2026-08-30)
+
+Doctrine : charte `parametres.charte_ia`, **§ 12.2**, sous « DEUX POÈMES NE S'ALIGNENT PAS
+L'UN SUR L'AUTRE ». Relevé de l'auteur : « je ne veux pas que les textes poétiques soient
+alignés entre eux ; le latin, tout du long, doit respecter sa forme d'origine, sans gros
+blancs artificiels, et inversement ». Règles de code :
+
+- ⛔ **La prose s'apparie empan par empan, le vers ne s'apparie pas.** `fusionnerBlocsDeVers`
+  (`bilingueAlignement.ts`, pur, testé) réunit les blocs voisins entièrement composés de
+  vers, et le bloc rendu porte la LISTE de ses groupes dans l'ordre de lecture. Un mètre
+  de Boèce compte quatorze groupes d'alignement, donc quatorze rangs de grille.
+- ⚠️ **Le défaut n'était pas le hachage mais le BLANC, et il vaut la moitié de la page.**
+  `align-items: start` ne rogne rien, mais un rang prend la hauteur de la plus haute de
+  ses deux cellules : trois vers français en regard d'un distique creusent un trou au bas
+  de la colonne latine. Mesuré colonne par colonne sur le mètre I du Livre premier : le
+  français porte **437 px d'encre pour 406 px de blanc**, le latin **435 px de blanc pour
+  389 px d'encre**. Treize trous par colonne, jusqu'à 49 px. Fondu : **zéro**, et la
+  hauteur du poème tombe de 854 à 458 px.
+- ⚠️ **Le blanc de STROPHE s'y noyait** : 9,6 px de marque voulue au milieu de trous de
+  47 px. Après fusion il redevient le seul blanc de la colonne française, et il se voit.
+- ⛔ **C'est `fondreOriginaux` qui rend la fusion possible en regard.** Le latin d'une
+  strophe vit sur son vers de rang 1, si bien que fondre les blocs sans précaution n'en
+  garderait **qu'un** original et jetterait les autres. Ils se joignent tous, par un SAUT
+  de ligne et jamais par une espace, la colonne les recomposant ligne à ligne
+  (`lignesDeVers`). Éprouvé sur ce mètre : **22 lignes latines** conservées sur 22.
+- ⚠️ **Un poème fondu n'a plus d'empan à borner** : il réunit à lui seul tous ses groupes,
+  il porte donc son original et il se clôt. `bornesDesGroupes` est court-circuité quand
+  `chunk.poeme` est posé, sans quoi le bloc se déclarait « suite » et perdait son blanc.
+- ⚠️ **Un poème d'un SEUL groupe repasse par le cas ordinaire** (`poeme` remis à `null`) :
+  rien n'a été fondu, et rien ne doit changer là où il n'y avait rien à refaire.
+- ⛔ **La grille RESTE** : `.para-bilingue` ne passe pas en `display: block`. C'est ce qui
+  distingue ce parti de celui du 8b119065 : les deux colonnes demeurent, et le regard se
+  fait poème contre poème au lieu de vers contre vers.
+- ⚠️ **L'appariement vers à vers était de toute façon une illusion** : Mirandol traduit
+  dans un autre mètre et n'a pas le compte de lignes de Migne. Ce poème confronte 24 vers
+  français à 22 vers latins. Aligner ce qui ne se correspond pas ne fait pas une
+  correspondance, mais du blanc.
 
 # La planche des illustrations — /admin/illustrations (2026-08-24)
 

@@ -256,6 +256,32 @@ export function bornesDesGroupes(
   return bornes
 }
 
+/**
+ * Fond les originaux d'un POÈME refait, dans l'ordre de lecture.
+ *
+ * ⚠️ Les lignes se joignent par un SAUT, jamais par une espace : la colonne les
+ * recompose ligne à ligne (`lignesDeVers`), et deux strophes jointes par une espace
+ * couleraient en prose. C'est la même jonction qu'à l'intérieur d'un groupe.
+ *
+ * Rend `null` si aucun des groupes ne porte d'original : le poème se compose alors
+ * seul, sans ouvrir une colonne vide.
+ */
+export function fondreOriginaux(
+  groupes: readonly string[],
+  blocs: Record<string, BlocOriginal>,
+): BlocOriginal | null {
+  const presents = groupes.map(g => blocs[g]).filter((b): b is BlocOriginal => Boolean(b))
+  if (presents.length === 0) return null
+  if (presents.length === 1) return presents[0]
+  return {
+    alignmentId: presents[0].alignmentId,
+    texte: presents.map(b => b.texte).join('\n'),
+    texteAffichage: presents.map(b => b.texteAffichage).join('\n'),
+    notes: Object.assign({}, ...presents.map(b => b.notes)) as Record<string, NoteStructuree>,
+    toutVers: presents.every(b => b.toutVers),
+  }
+}
+
 /** Ce que la colonne de droite compose, d'où qu'il vienne. */
 export type OriginalEnRegard<N> = {
   texte: string
@@ -281,6 +307,9 @@ export type OriginalEnRegard<N> = {
  */
 export function originalEnRegard<N>(params: {
   groupe: string | null
+  /** Les groupes d'un POÈME refait, dans l'ordre de lecture. Leurs originaux se
+   *  suivent alors dans une seule colonne — voir `fusionnerBlocsDeVers`. */
+  groupes?: readonly string[] | null
   blocs: Record<string, BlocOriginal>
   /** Les segments TRADUITS du bloc, dans l'ordre de lecture — pour le seul repli. */
   segmentsDuBloc: readonly {
@@ -292,7 +321,14 @@ export function originalEnRegard<N>(params: {
   /** La table de notes vide, faute de savoir la fabriquer sur un type générique. */
   notesVides: N
 }): OriginalEnRegard<N> | null {
-  const { groupe, blocs, segmentsDuBloc, notesVides } = params
+  const { groupe, groupes, blocs, segmentsDuBloc, notesVides } = params
+  const fondu = groupes && groupes.length > 0 ? fondreOriginaux(groupes, blocs) : null
+  if (fondu) return {
+    texte: fondu.texte,
+    affichage: fondu.texteAffichage,
+    notes: fondu.notes as N,
+    toutVers: fondu.toutVers,
+  }
   if (groupe) {
     const bloc = blocs[groupe]
     if (bloc) return {
@@ -422,4 +458,47 @@ export function blocsBilingues<T>(
     else blocs.push({ ids: [item], groupe })
   }
   return blocs
+}
+
+/**
+ * Refait le POÈME dans la lecture en regard : les blocs voisins entièrement composés
+ * de vers n'en font plus qu'un.
+ *
+ * ⛔ L'empan est la bonne unité de la PROSE, et il ne l'est pas du vers. Un mètre de
+ * Boèce se découpe en quatorze groupes d'alignement : le lecteur recevait quatorze
+ * rangs de grille, séparés d'un blanc de strophe, pour un seul poème. Mesuré sur le
+ * mètre I du Livre premier, la colonne latine ne mesure que 209 px et 29 des 46 vers
+ * s'y enroulaient — le poème occupait 75 lignes au lieu de 46. Un vers ne se coupe
+ * pas, et aucune colonne étroite ne peut en tenir un.
+ *
+ * ⚠️ La lecture ORDINAIRE fondait déjà ses poèmes (`fusionnerBlocs`, employé hors
+ * regard), et ne pouvait pas le faire ici : le latin d'une strophe vit sur son vers de
+ * rang 1, si bien que fondre les blocs n'en gardait qu'un original et jetait les
+ * autres. C'est `fondreOriginaux` qui lève l'obstacle, en les faisant tous suivre.
+ *
+ * Le bloc rendu porte la LISTE de ses groupes, dans l'ordre de lecture : elle sert à
+ * composer l'original, et elle dit qu'un poème s'est refait — auquel cas les bornes
+ * d'empan n'ont plus rien à borner, le poème entier étant un seul bloc.
+ */
+export function fusionnerBlocsDeVers<T>(
+  blocs: readonly { ids: T[]; groupe: string | null }[],
+  toutEnVers: (ids: readonly T[]) => boolean,
+): { ids: T[]; groupe: string | null; poeme: string[] | null }[] {
+  const sortie: { ids: T[]; groupe: string | null; poeme: string[] | null }[] = []
+  let precedentEnVers = false
+  for (const bloc of blocs) {
+    const enVers = bloc.ids.length > 0 && toutEnVers(bloc.ids)
+    const dernier = sortie[sortie.length - 1]
+    if (enVers && precedentEnVers && dernier) {
+      dernier.ids.push(...bloc.ids)
+      if (bloc.groupe) (dernier.poeme ??= []).push(bloc.groupe)
+    } else {
+      sortie.push({ ids: [...bloc.ids], groupe: bloc.groupe, poeme: enVers && bloc.groupe ? [bloc.groupe] : null })
+    }
+    precedentEnVers = enVers
+  }
+  // Un poème d'un seul groupe n'a rien fondu : on le rend au cas ordinaire, pour que
+  // rien ne change là où il n'y avait rien à refaire.
+  for (const bloc of sortie) if (bloc.poeme && bloc.poeme.length < 2) bloc.poeme = null
+  return sortie
 }

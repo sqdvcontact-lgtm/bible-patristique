@@ -13,7 +13,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
+import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
@@ -1786,7 +1786,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
    * Les segments qu'aucun groupe ne couvre retombent sur `paragraphesDe`, leur
    * composition de toujours. Hors bilingue, ou faute d'alignement, rien ne change.
    */
-  const blocsDeLecture = (itemIds: number[]): { ids: number[]; groupe: string | null }[] => {
+  const blocsDeLecture = (itemIds: number[]): { ids: number[]; groupe: string | null; poeme?: string[] | null }[] => {
     const enRegard = affichageBilingue || afficherOriginalSeul
     // Hors lecture en regard, rien ne change : découpe par `paragraphe`, et le POÈME se
     // refait par-dessus (⚠️ on ne fond QUE là — le latin d'une strophe vit sur son vers
@@ -1806,17 +1806,27 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       ).map(c => ({ ids: c.ids, groupe: null as string | null }))
     }
     if (!blocsAlignes) return paragraphesDe(itemIds).map(c => ({ ids: c.ids, groupe: null as string | null }))
-    return blocsBilingues(itemIds, sid => segMap.get(sid)?.segmentKey, groupeParCle)
-      .flatMap(bloc => bloc.groupe
-        ? [{ ids: bloc.ids, groupe: bloc.groupe }]
-        : paragraphesDe(bloc.ids).map(c => ({ ids: c.ids, groupe: null as string | null })))
+    // ⛔ DEUX POÈMES NE S'ALIGNENT PAS L'UN SUR L'AUTRE (décision de l'auteur,
+    // 2026-08-30). Un rang de grille prend la hauteur de la plus haute de ses deux
+    // cellules : trois vers français en regard d'un distique creusaient donc un blanc
+    // au bas de la colonne latine, et le poème s'en trouvait scandé de silences que
+    // l'édition n'a pas écrits. Fondus, les deux poèmes coulent chacun dans SA colonne,
+    // avec ses strophes et son seul blanc de fin.
+    return fusionnerBlocsDeVers(
+      blocsBilingues(itemIds, sid => segMap.get(sid)?.segmentKey, groupeParCle)
+        .flatMap(bloc => bloc.groupe
+          ? [{ ids: bloc.ids, groupe: bloc.groupe }]
+          : paragraphesDe(bloc.ids).map(c => ({ ids: c.ids, groupe: null as string | null }))),
+      ids => estBlocDeVers(ids.map(sid => segMap.get(sid))),
+    )
   }
 
   /** L'original mis en regard d'un bloc. La règle vit dans `bilingueAlignement.ts`,
    *  avec ses tests ; ici on ne fait que lui présenter les segments du bloc. */
-  const originalDuBloc = (chunk: { ids: number[]; groupe: string | null }) =>
+  const originalDuBloc = (chunk: { ids: number[]; groupe: string | null; poeme?: string[] | null }) =>
     originalEnRegard<Record<string, NoteAffichee>>({
       groupe: chunk.groupe,
+      groupes: chunk.poeme,
       blocs: blocsOriginalEtat,
       segmentsDuBloc: chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
       notesVides: {},
@@ -2521,7 +2531,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const original = originalDuBloc(chunk)
                     // Le bloc PORTE-t-il l'original, ou le prolonge-t-il ? Un groupe qui
                     // enjambe deux sections ne le compose que dans la première.
-                    const bornes = chunk.groupe ? bornesGroupes.get(chunk.groupe) : undefined
+                    // ⚠️ Un POÈME fondu n'a plus d'empan à borner : il réunit à lui seul
+                    // tous ses groupes, il porte donc son original et il se clôt.
+                    const bornes = !chunk.poeme && chunk.groupe ? bornesGroupes.get(chunk.groupe) : undefined
                     const porteOriginal = !bornes || bornes.premier === chunk.ids[0]
                     // Le filet marque l'appariement empan par empan : il ne se tire qu'au
                     // BOUT du groupe, jamais entre deux blocs qu’un même empan réunit.
