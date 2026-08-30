@@ -3167,7 +3167,24 @@ toutes dans `scripts/fillion/detourer-gravures.mjs`, `processing_version` 4.1.0 
   ne rend que **83 %** de ce que notre propre réduction rendrait, σ 1,6 en rend
   **99 %**. ⚠️ C'est le RAYON qui décide, non la force — à σ 0,6, monter
   l'amplitude de 2 à 4 ne rend qu'un point. Sur une photogravure en ton continu,
-  σ 1,6 fait bouillir la feuillée : ne pas l'y étendre.
+  σ 1,6 fait bouillir la feuillée. ⚠️ Mais 0,6 y était trop prudent : la limite est
+  entre 1,3 et 1,6, et c'est `NETTETE_TON` (σ 1,3, **y2 4, y3 5**) qui la porte.
+  ⛔ **Les deux oscillations se BRIDENT** : sans `y3`, le noir pur du Jourdain
+  passe de 4,07 % à 12,44 % — un huitième de la feuillée crevé. Le réglage retenu
+  bat le témoin σ 0,6 sur les TROIS mesures (blanc 1,34 contre 2,01, noir 1,53
+  contre 4,07, bord 130,1 contre 127,8) ; c'est cela qui le choisit, non le bord
+  seul. ⛔ Et `creuserLesTons` passe EN DERNIER : avant le rattrapage, le noir pur
+  montait à 12,44 %.
+- ⛔ **UNE PLANCHE HORS-TEXTE SE SERT AU DOUBLE, ELLE AUSSI.** `detourer-gravures.mjs`
+  les SAUTE (`asset_kind === 'plate'`), si bien que les 32 planches du tome I sont
+  restées à 3,64× de leur affichage depuis leur chaîne d'origine.
+  `scripts/fillion/reduire-planches.mjs` les redérive à 880 px **depuis le MASTER**,
+  jamais depuis le fichier servi qui empilerait deux rattrapages : trait rendu de
+  78 % à 85 %, poids de 16,5 Mio à 6,1. ⚠️ Il ne touche pas au TON (moyennes de 119
+  à 205, question ouverte), et il est à REJOUER si `PLAFOND_ILLUSTRATION` change.
+- ⚠️ **Une énergie de bord mesurée à travers un intermédiaire WebP est gonflée de
+  huit points** par le bruit de compression, que l'opérateur de Sobel compte comme
+  du dessin. Mesurer sur du PNG.
 - ⛔ **ET LA RAMPE NE SE MESURE JAMAIS SUR LE GRIS RATTRAPÉ** — régression poussée
   puis corrigée le 30 août 2026, relevée par l'auteur (« le démoniaque a pâli »).
   La rampe est une mesure de TONS, le rattrapage un conditionnement de SORTIE : un

@@ -3577,6 +3577,63 @@ règle veut le double au plus. Le défaut est ANTÉRIEUR à ces bornes et tient 
 chaîne d'origine ; il se corrige en refabriquant ces trente-deux fichiers, ce qui
 est un chantier à part.
 
+#### 35.16.13. Le ton continu prend un rattrapage plus large, mais BRIDÉ
+
+Le § 35.16.7 réservait le rattrapage large au TRAIT et laissait le ton continu à
+σ 0,6, au motif que σ 1,6 fait bouillir la feuillée d'une photogravure. ⚠️ Seule la
+valeur qui DÉBORDE avait été éprouvée : **une borne se trouve en encadrant, non en
+refusant le premier essai qui rate.** La limite est entre 1,3 et 1,6.
+
+⛔ **ET LES DEUX OSCILLATIONS SE BRIDENT.** Un rattrapage large creuse de part et
+d'autre de chaque bord ; sur une masse de demi-tons ces creux butent sur zéro, et
+le gain se paie en **ombres crevées**. Mesuré sur le Jourdain, le noir pur passait
+de 4,07 % à 12,44 %, c'est-à-dire un huitième de la feuillée perdu.
+
+| réglage | blanc pur | noir pur | bord vu |
+|---|---:|---:|---:|
+| σ 0,6 (le témoin) | 2,01 % | 4,07 % | 127,8 |
+| σ 1,3 sans bride | 4,32 % | 6,89 % | 144,4 |
+| **σ 1,3 · y2 4 · y3 5** | **1,34 %** | **1,53 %** | **130,1** |
+
+⚠️ La bride reprend l'essentiel du gain de bord — il venait justement des
+oscillations qu'on écrête — et le réglage retenu reste **meilleur que le témoin sur
+les trois mesures à la fois**. C'est cela qui le fait choisir, non le chiffre de
+bord seul. ⛔ Un réglage qui gagne sur une mesure en perdant sur deux autres n'est
+pas un gain.
+
+⛔ **Et l'on creuse les tons EN DERNIER** (§ 35.16.11). La puissance passée AVANT
+le rattrapage portait le noir pur à 12,44 %, passée après à 6,89 %, bridée à
+1,53 % : le rattrapage doit travailler sur une image que la puissance n'a pas
+encore assombrie.
+
+⚠️ **Une énergie de bord mesurée à travers un intermédiaire WebP est FAUSSE**, et
+de huit points : le bruit de compression est du haut de spectre, que l'opérateur
+compte comme du dessin. Toute mesure de netteté se prend sur du PNG.
+
+#### 35.16.14. Une PLANCHE hors-texte se sert au double, elle aussi
+
+⛔ Les 32 planches du tome I étaient servies à **3,64×** leur taille d'affichage —
+1 273 à 1 600 px pour 440 —, parce que `detourer-gravures.mjs` les SAUTE (« une
+planche ne se détoure jamais ») et les laissait telles que leur chaîne d'origine
+les avait faites. C'est exactement le défaut que la règle du double existe pour
+empêcher : deux réductions successives moyennent le trait en un gris mou.
+
+**`scripts/fillion/reduire-planches.mjs`** les redérive à 880 px. Mesuré, le trait
+rendu passe de **78 % à 85 %** de ce que notre propre réduction donnerait, et le
+poids des 32 de **16,5 Mio à 6,1**.
+
+⛔ **On repart du MASTER, jamais du fichier servi** : celui-ci porte déjà une
+réduction et un rattrapage, et redériver depuis lui les empilerait. C'est ce à quoi
+sert un master, et c'est pourquoi il reste neutre (§ 35.16.11).
+
+⚠️ **Le ton des planches n'est PAS touché**, et c'est délibéré : leurs moyennes vont
+de 119 à 205 — sujets et papier différents de ceux du tome VII —, et la puissance
+du § 35.16.11 y serait posée sans avoir regardé chacune. **Question ouverte.**
+
+⚠️ Corollaire : tout changement du plafond du § 35.16.12 oblige à rejouer ce
+script, sans quoi la page composerait à une taille et le fichier serait fabriqué
+pour une autre.
+
 ### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
