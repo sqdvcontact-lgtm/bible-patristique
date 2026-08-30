@@ -749,6 +749,30 @@ indenter. C'est la même garde que sur l'intertitre divisé et sur la citation s
 ⛔ **Un vers ne prend jamais de lettrine.** Le drop cap est un flottant : posé dans la
 boîte d'une ligne, il déborde sur les suivantes, qui sont des boîtes sœurs.
 
+⛔ **Et la lettrine n’orne que la parole de l’AUTEUR** (décision du 30 août 2026). Elle
+se pose sur le premier segment de la division que sa NATURE autorise à la porter, et la
+liste en est CLOSE : `texte`, `dialogue`, `introduction`, `apparat_auteur`. La `citation`
+et le `lemme` sont la parole d’un autre, que l’auteur commente ; la `rubrique` est un
+intertitre centré en italique, où une capitale ornée ne veut rien dire ; le `verset` a
+déjà son bloc ; la `signature`, le `separateur` et le `texte absent` ne sont pas du texte
+suivi. Une nature qui ne figure pas dans la liste n’attrapera pas l’ornement par
+distraction. ⚠️ Sur les 8 223 divisions du corpus, 159 s’ouvraient sur autre chose que la
+prose de leur auteur — 60 sur un lemme, 55 sur une citation, 41 sur une rubrique, 2 sur un
+verset, 1 sur une lacune — et toutes recevaient la capitale.
+
+⚠️ Le défaut se lisait le mieux chez Chrysostome, où chaque psaume s’ouvre sur le verset
+commenté : la lettrine ornait « 1. « Nations, louez le Seigneur… » » et emportait dans son
+flottant le numéro de verset et le guillemet, en petit corps collé à sa gauche — ⛔ le
+préfixe de lettrine est fait pour la PONCTUATION d’ouverture, « «Vous… », jamais pour un
+numéro. Et le flottant débordait sur le paragraphe suivant, qui était le verset 2 : sa
+première ligne partait 63 px à droite quand le verset 1 restait au fer.
+
+⛔ **Un paragraphe orné CONTIENT sa lettrine** (`display: flow-root`). Sans cette garde, la
+règle précédente ne tient que par la longueur du paragraphe d’arrivée : un premier
+paragraphe d’une seule ligne pousse le suivant de 35 px, mesuré sur épreuve. ⚠️ Un
+paragraphe plus court que sa lettrine gagne alors un blanc dessous au lieu de le prêter à
+son voisin — c’est le bon échange, un ornement appartenant au paragraphe qu’il ouvre.
+
 #### Le texte biblique attend sa donnée
 
 Le Psautier est de la poésie, Job et les prophètes aussi. La page Bible les compose

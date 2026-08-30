@@ -2424,6 +2424,35 @@ suivante ; c'est la règle qui décide, non la liste, et la liste la suit.
 - ⚠️ **Sans rang connu, on garde la composition des rangs HAUTS** : c'est celle que les
   201 sous-titres recevaient tous, et l'on ne dégrade pas ce qu'on ne sait pas.
 
+## ⛔ La LETTRINE n'orne que la parole de l'auteur (2026-08-30)
+
+Doctrine : charte **§ 6** (la composition des œuvres). « je trouve la lettrine,
+précédée par ce "un", et le décalage du verset deux, particulièrement moche »
+(relevé de l'auteur sur le Psaume 116 de Chrysostome).
+
+- ⚠️ **Trois défauts, une seule cause** : la capitale ornait le premier segment VENU,
+  et ce segment était le verset commenté. D'où un flottant qui emportait « 1. « » à
+  sa gauche en petit corps — ⛔ le préfixe de lettrine est fait pour la PONCTUATION
+  d'ouverture, « «Vous… », jamais pour un numéro —, une capitale qui faisait commencer
+  l'œuvre sur ce qui n'est pas d'elle, et un ornement qui débordait sur le paragraphe
+  suivant, lequel se trouvait être le verset 2 : **sa première ligne partait 63 px à
+  droite** quand le verset 1 restait au fer.
+- ⛔ **La liste des natures ornables est CLOSE** : `texte`, `dialogue`, `introduction`,
+  `apparat_auteur` (`accepteLaLettrine`, `app/lib/compositionOeuvre.ts`). La citation
+  et le lemme sont la parole d'un autre ; la rubrique est un intertitre centré en
+  italique ; le verset a son bloc ; le vers l'interdit déjà, mécaniquement. Une nature
+  nouvelle n'attrapera pas l'ornement par distraction.
+- ⚠️ **159 divisions sur 8 223** s'ouvraient sur autre chose que la prose de leur
+  auteur — 60 sur un lemme, 55 sur une citation, 41 sur une rubrique, 2 sur un verset,
+  1 sur une lacune —, et toutes recevaient la capitale.
+- ⛔ **On ne cherche le premier segment ornable que dans le PREMIER groupe.** Plus
+  loin, la lettrine tomberait au milieu de la page, où elle n'ouvrirait plus rien.
+- ⛔ **Un paragraphe orné CONTIENT sa lettrine** — `p:has(> .seg-inline > .cs-lettrine)
+  { display: flow-root }`. Sans cette garde, la règle ci-dessus ne tient que par la
+  longueur du paragraphe d'arrivée : un premier paragraphe d'une seule ligne pousse le
+  suivant de 35 px, mesuré sur épreuve. ⚠️ La règle vit dans la feuille et non dans
+  `compositionOeuvre.ts` : `:has()` ne s'écrit pas en style inline.
+
 ## ⛔ Dans l'AXE DE TEXTE, les marges ne fusionnent pas : elles s'ADDITIONNENT (2026-08-30)
 
 Doctrine : charte **§ 35.12**. `styleAxeTexte()` pose `display: grid`, et **les marges
