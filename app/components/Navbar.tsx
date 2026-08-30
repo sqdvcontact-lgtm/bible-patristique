@@ -144,7 +144,7 @@ const TRADUCTIONS_RECHERCHE: { code: string; nom: string }[] = [
 ];
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() }
 
-// ── LE MENU PARAÎT AUSSITÔT ; IL NE SE FIXE QU'APRÈS UNE DEMI-SECONDE ────────
+// ── LE MENU NE PARAÎT QUE SI LA MAIN SE POSE ─────────────────────────────────
 //
 // La barre porte quatre menus au survol — les bibles, Patristique, Aller plus
 // loin, Administration. Ils étaient gouvernés par DEUX mécaniques étrangères
@@ -154,92 +154,120 @@ function sansAccents(s: string): string { return s.normalize('NFD').replace(/[\u
 // apprendre de l'un qui lui servît pour l'autre. Ils passent tous par
 // OngletMenu, ci-dessous.
 //
-// ⛔ Deux gestes se ressemblent au premier instant et n'ont rien de commun : on
-// POSE son curseur sur un onglet pour en voir le menu, ou on le PASSE dessus en
-// allant ailleurs. Rien, à la première image, ne les distingue — d'où une règle
-// en DEUX TEMPS, plutôt qu'un délai avant de paraître.
+// ⛔ Deux gestes se ressemblent et n'ont rien de commun : on POSE son curseur sur
+// un onglet pour en voir le menu, ou on le PASSE dessus en allant ailleurs. Les
+// distinguer PAR LA DURÉE mène à une impasse, et nous l'avons parcourue en
+// entier : attendre avant de montrer fait payer à la main sûre l'hésitation de
+// l'autre ; montrer aussitôt et retirer ensuite fait clignoter la barre à chaque
+// traversée — « inutile et peu élégant », et c'est exact.
 //
-//   1. Le menu s'ouvre AUSSITÔT, dans les deux cas. Un onglet qui se fait
-//      attendre est un onglet qui résiste, et rien n'oblige à faire payer la
-//      main sûre pour la main qui hésite.
+// ⚠️ Ce n'est pas dans la DURÉE que se lit l'intention, c'est dans la VITESSE.
+// Une main qui file ne demande rien ; une main qui se pose demande à voir. Et la
+// vitesse, elle, se connaît DÈS L'ENTRÉE, sans rien faire attendre — d'où une
+// règle qui n'a plus de délai du tout :
 //
-//   2. Mais il ne se FIXE qu'après un court moment de curseur posé sur
-//      l'onglet. Tant qu'il n'est pas fixé, il tombe dès que le curseur quitte
-//      l'onglet — ⛔ y compris quand celui-ci vient se poser SUR LE MENU, et
-//      c'est tout le propos : un menu ouvert au passage ne doit pas pouvoir
-//      capturer la main qui ne faisait que passer, ni rester en travers de la
-//      page qu'elle allait lire.
+//   • le curseur entre en filant → rien ne paraît, et l'on guette ;
+//   • il se calme sur l'onglet → le menu paraît à l'instant même ;
+//   • il quitte l'ensemble {onglet + menu} → le menu tombe, sans sursis.
 //
-// Une fois fixé, il se conduit comme n'importe quel menu : le curseur y descend,
-// y circule, et le menu ne se ferme qu'en quittant l'ensemble {onglet + menu}.
-//
-// ⚠️ La fermeture est IMMÉDIATE des deux côtés, sans le moindre sursis. Elle
-// rattrape donc parfois un mouvement en diagonale qui visait le menu et sort par
-// le coin de l'onglet ; le prix en est nul, l'ouverture ne coûtant plus rien —
-// on revient sur l'onglet et le menu reparaît dans l'instant. C'est ce qui
-// permet de renoncer aux sursis de quelques centièmes dont vivent les menus qui
-// s'ouvrent lentement.
+// Il n'y a donc plus de menu « ouvert par accident » à refermer : il ne s'ouvre
+// pas. Et rien n'attend celui qui vient le chercher — la main s'immobilise, le
+// menu est déjà là.
 
-// ⛔ CE SEUIL EST LA DURÉE D'UN PASSAGE, PAS UN TEMPS D'ATTENTE.
+// Seuil de POSE, en pixels par milliseconde (0,35 px/ms = 350 px/s environ).
+// ⛔ Ce n'est pas un réglage de confort mais une frontière de geste : un balayage
+// de barre court entre 800 et 3 000 px/s, tandis qu'une main qui vise un onglet
+// franchit ce seuil quelques centièmes de seconde avant de s'arrêter — le menu
+// paraît donc au moment où elle se pose, et non après.
+const VITESSE_POSE_PX_MS = 0.35;
+// Filet de sécurité, et rien d'autre : une souris qui arrive vite et s'ARRÊTE NET
+// n'émet plus aucun mouvement, si bien que le ralentissement ne peut plus se
+// lire. Au bout de ce silence, curseur toujours sur l'onglet, on conclut au
+// repos. ⚠️ Chaque mouvement le réarme : une traversée continue, si longue que
+// soit la cellule, ne le laisse jamais échoir.
+const DELAI_REPOS_MS = 90;
+
+// ── LE POULS DU CURSEUR ──────────────────────────────────────────────────────
+// Un seul écouteur pour toute la barre. Un onglet a besoin de savoir, à l'instant
+// où le curseur entre sur lui, s'il file ou s'il se pose — et cela ne se lit pas
+// dans l'entrée, qui n'est qu'un point, mais dans le mouvement qui la PRÉCÈDE.
 //
-// Il ne se règle donc pas au confort mais sur la seule question qui compte :
-// combien de temps un curseur qui NE FAIT QUE PASSER reste-t-il sur l'onglet ?
-// Le cas dangereux est la traversée VERTICALE — la barre franchie pour
-// redescendre dans la page —, seule dont le trajet se poursuive dans le menu :
-// un onglet fait trente et un pixels de haut, et on le franchit en quinze à
-// quarante millisecondes à l'allure ordinaire, cent en flânant.
-//
-// ⚠️ Une DEMI-SECONDE, essayée d'abord, couvrait ce passage dix fois — mais elle
-// dépassait aussi le temps qu'une main décidée met à descendre de l'onglet vers
-// la première entrée, deux à quatre dixièmes : le menu tombait sous les doigts de
-// qui l'avait délibérément ouvert, et il fallait apprendre à s'arrêter pour s'en
-// servir. Deux cents millisecondes couvrent la traversée deux à dix fois selon
-// l'allure, et restent sous le geste délibéré. C'est le seul chiffre à toucher si
-// le réglage devait encore bouger.
-const DELAI_FIXATION_MS = 200;
+// ⚠️ L'écouteur range la VITESSE, non le dernier point. Il est en capture sur la
+// fenêtre, donc il tourne avant les gestionnaires de React : un point rafraîchi
+// juste avant d'être lu donnerait toujours une distance nulle.
+let vitesseCurseur = 0;
+let dernierPoint: { x: number; y: number; t: number } | null = null;
+let ongletsAbonnes = 0;
+
+function noterLeMouvement(e: PointerEvent) {
+  const t = performance.now();
+  if (dernierPoint) {
+    const dt = t - dernierPoint.t;
+    if (dt > 0) vitesseCurseur = Math.hypot(e.clientX - dernierPoint.x, e.clientY - dernierPoint.y) / dt;
+  }
+  dernierPoint = { x: e.clientX, y: e.clientY, t };
+}
+
+/** Abonne un onglet au pouls ; le dernier parti éteint l'écouteur. */
+function suivreLeCurseur() {
+  if (ongletsAbonnes++ === 0) {
+    window.addEventListener("pointermove", noterLeMouvement, { passive: true, capture: true });
+  }
+  return () => {
+    if (--ongletsAbonnes === 0) {
+      window.removeEventListener("pointermove", noterLeMouvement, { capture: true });
+      dernierPoint = null;
+      vitesseCurseur = 0;
+    }
+  };
+}
 
 /**
- * Ouvre au premier instant, ne se fixe qu'après une pause, ferme aussitôt qu'on
- * sort. Rend l'état et DEUX jeux de gestionnaires, qui ne surveillent pas la même
- * chose :
+ * Ouvre dès que la main se pose sur l'onglet, ferme dès qu'elle quitte l'ensemble
+ * {onglet + menu}. Rend l'état et DEUX jeux de gestionnaires, qui ne surveillent
+ * pas la même chose :
  *
- *   `onglet` — l'entrée ouvre et lance le compte ; la sortie ferme TANT QUE le
- *              menu n'est pas fixé, le curseur fût-il en train d'entrer dans le
- *              menu lui-même.
- *   `groupe` — la sortie de l'ensemble {onglet + menu} ferme un menu fixé.
+ *   `onglet` — l'entrée et les mouvements, où se juge la POSE.
+ *   `groupe` — la sortie de l'ensemble {onglet + menu}, qui ferme.
  *
- * `auSurvol` est appelé dès l'entrée du curseur, en même temps que l'ouverture :
+ * ⛔ Tant que le menu est caché, la boîte du groupe est celle de l'onglet : sortir
+ * de l'un, c'est sortir de l'autre, et le guet en cours s'arrête avec lui. C'est
+ * ce qui garantit qu'une traversée ne laisse rien derrière elle.
+ *
+ * `auSurvol` est appelé dès l'entrée du curseur, avant même que le menu paraisse :
  * c'est là que « Patristique » relit ses dernières œuvres.
  */
 function useMenuSurvol(auSurvol?: () => void) {
   const [ouvert, setOuvert] = useState(false);
-  // ⚠️ Une RÉFÉRENCE, non un état : la fixation ne change rien à ce qui est
-  // dessiné, elle ne fait que décider de ce qu'une sortie provoque. En faire un
-  // état ferait re-rendre la barre entière après chaque survol, pour rien.
-  const fixe = useRef(false);
   const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
   const arreter = () => {
     if (minuterie.current) { clearTimeout(minuterie.current); minuterie.current = null; }
   };
+  useEffect(suivreLeCurseur, []);
   useEffect(() => arreter, []);
-  const fermer = () => { arreter(); fixe.current = false; setOuvert(false); };
+  const ouvrir = () => { arreter(); setOuvert(true); };
+  const fermer = () => { arreter(); setOuvert(false); };
+  // La main file encore : on ne montre rien, et l'on guette son immobilité.
+  const guetterLeRepos = () => {
+    arreter();
+    minuterie.current = setTimeout(() => setOuvert(true), DELAI_REPOS_MS);
+  };
+  // Le même jugement à l'entrée et à chaque mouvement : la main est-elle posée ?
+  const jugerLaMain = () => {
+    if (vitesseCurseur <= VITESSE_POSE_PX_MS) ouvrir(); else guetterLeRepos();
+  };
   // ⚠️ À la SOURIS seulement. Au doigt il n'y a pas de survol : l'onglet est un
   // lien qu'on suit, et un menu ouvert par le `pointerenter` que le navigateur
   // émet après la frappe viendrait couvrir la page qu'on vient d'appeler.
   const surLOnglet = (e: React.PointerEvent) => {
     if (e.pointerType !== "mouse") return;
     auSurvol?.();
-    // Déjà ouvert : on remonte du menu vers l'onglet. Le compte est fait ou en
-    // cours, et le reprendre à zéro déferait une fixation déjà acquise.
     if (ouvert) return;
-    arreter();
-    fixe.current = false;
-    setOuvert(true);
-    minuterie.current = setTimeout(() => { fixe.current = true; }, DELAI_FIXATION_MS);
+    jugerLaMain();
   };
-  const horsDeLOnglet = (e: React.PointerEvent) => {
-    if (e.pointerType !== "mouse") return;
-    if (!fixe.current) fermer();
+  const mouvementSurLOnglet = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || ouvert) return;
+    jugerLaMain();
   };
   const horsDuGroupe = (e: React.PointerEvent) => {
     if (e.pointerType !== "mouse") return;
@@ -251,7 +279,7 @@ function useMenuSurvol(auSurvol?: () => void) {
     // la barre survit à la navigation (elle n'est pas remontée d'une page à
     // l'autre).
     groupe: { onPointerLeave: horsDuGroupe, onClick: fermer },
-    onglet: { onPointerEnter: surLOnglet, onPointerLeave: horsDeLOnglet },
+    onglet: { onPointerEnter: surLOnglet, onPointerMove: mouvementSurLOnglet },
   };
 }
 /**
@@ -264,8 +292,8 @@ function useMenuSurvol(auSurvol?: () => void) {
  * `:focus-visible`, sans que la souris ait rien à faire.
  *
  * ⛔ Les gestionnaires du GROUPE et ceux de l'ONGLET ne sont pas
- * interchangeables : le groupe englobe le menu, l'onglet non, et c'est
- * précisément cet écart qui porte la règle de fixation (voir useMenuSurvol).
+ * interchangeables : le groupe englobe le menu, l'onglet non. Le premier ferme,
+ * le second guette la main qui se pose (voir useMenuSurvol).
  */
 function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, children }: {
   href: string;
@@ -1575,12 +1603,11 @@ export default function Navbar() {
              ombre, même rembourrage, même façon de s'ouvrir. Seule la LARGEUR les
              distingue, parce que leur contenu la commande (variantes plus bas).
 
-             ⛔ Le menu ne s'ouvre PLUS sur :hover, bien qu'il paraisse au même instant :
-             une règle de survol ne sait pas garder un menu ouvert quand le curseur a
-             quitté l'onglet, ni le laisser tomber quand il vient se poser sur le menu.
-             C'est OngletMenu qui pose .cs-plus--ouvert et qui l'ôte, selon que le menu
-             s'est FIXÉ ou non (voir DELAI_FIXATION_MS, plus haut). Le menu reste collé
-             sous le déclencheur : aucun vide à franchir pour l'atteindre.
+             ⛔ Le menu ne s'ouvre PLUS sur :hover : une règle de survol ne connaît que la
+             POSITION du curseur, quand tout se joue ici sur sa VITESSE — une main qui file
+             ne doit rien ouvrir, fût-elle sur l'onglet (voir VITESSE_POSE_PX_MS, plus
+             haut). C'est OngletMenu qui pose .cs-plus--ouvert et qui l'ôte. Le menu reste
+             collé sous le déclencheur : aucun vide à franchir pour l'atteindre.
 
              ⛔ Le menu ne peut PAS déborder de l'écran, et « Administration » en compte dix-sept
              entrées réparties en trois familles. Il était en overflow:hidden, donc ce qui
