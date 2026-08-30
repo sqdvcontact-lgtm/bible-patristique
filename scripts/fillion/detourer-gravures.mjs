@@ -58,9 +58,10 @@ const NETTETE = { sigma: 0.6, m1: 0, m2: 2 }
  *  qu'un point — mais plus LARGE. Contrôlé à l'œil aux deux échelles, fichier
  *  servi compris : aucun halo.
  *
- *  ⛔ ET IL NE VAUT QUE POUR LE TRAIT. Sur une photogravure en ton continu, σ 1,6
- *  fait BOUILLIR la feuillée et granule les ciels — le défaut déjà relevé du
- *  contraste local. Les deux planches cadrées gardent donc `NETTETE`.
+ *  ⛔ ET LE TON CONTINU N'EN PREND PAS AUTANT. Sur une photogravure, σ 1,6 fait
+ *  BOUILLIR la feuillée et granule les ciels — le défaut déjà relevé du contraste
+ *  local. Mais 0,6 y était trop prudent : la limite se trouve entre 1,3 et 1,6, et
+ *  c'est `NETTETE_TON` qui la porte.
  *
  *  ⛔ ET IL NE DOIT JAMAIS SERVIR À MESURER LA RAMPE : voir le découplage, plus
  *  bas. Mêlés, ils ont fait perdre aux neuf gravures de 5 à 19 % de leur encre,
@@ -68,6 +69,36 @@ const NETTETE = { sigma: 0.6, m1: 0, m2: 2 }
  *  réduction, rapportée au témoin — dit le partage : ancienne chaîne ×0,90,
  *  rattrapage large avec rampe couplée ×0,83, rampe découplée ×1,03. */
 const NETTETE_TRAIT = { sigma: 1.6, m1: 0, m2: 3 }
+
+/** Le même rattrapage, pour le TON CONTINU — photogravure et planche hors-texte.
+ *
+ *  Il obéit à la même raison que `NETTETE_TRAIT` : la seconde réduction du
+ *  navigateur jette ce qu'un rattrapage étroit renforce. Mais une masse de
+ *  demi-tons se fragmente là où un trait se raffermit, et le seuil est plus bas.
+ *  Contrôlé à l'œil sur la feuillée du Jourdain et sur les toits de Damas :
+ *  σ 1,0 gagne déjà beaucoup, σ 1,3 gagne encore, σ 1,6 GRANULE.
+ *
+ *  ⚠️ 0,6 y était trop prudent, et c'est une correction du 30 août 2026 : la règle
+ *  disait « les planches cadrées gardent le rattrapage étroit », alors que seul le
+ *  σ 1,6 avait été éprouvé sur elles. Une borne se trouve en encadrant, non en
+ *  refusant la première valeur qui déborde.
+ *
+ *  ⛔ ET LES DEUX OSCILLATIONS SE BRIDENT, sans quoi le gain se paie en ombres
+ *  CREVÉES. Un rattrapage large creuse de part et d'autre de chaque bord, et sur
+ *  une image en ton continu ces creux butent sur zéro : mesuré sur le Jourdain, le
+ *  noir pur passait de 4,07 % à 12,44 %, c'est-à-dire un huitième de la feuillée
+ *  perdu. `y3` plafonne l'assombrissement, `y2` l'éclaircissement.
+ *
+ *    réglage              blanc pur   noir pur   bord vu
+ *    σ 0,6 (le témoin)      2,01 %     4,07 %     127,8
+ *    σ 1,3 sans bride       4,32 %     6,89 %     144,4
+ *    σ 1,3 y2 4 y3 5        1,34 %     1,53 %     130,1
+ *
+ *  ⚠️ La bride reprend l'essentiel du gain de bord — le reste venait justement des
+ *  oscillations qu'on écrête — et le réglage retenu reste MEILLEUR que le témoin
+ *  sur les trois mesures à la fois. C'est ce qui le fait choisir, non le chiffre
+ *  de bord seul. */
+const NETTETE_TON = { sigma: 1.3, m1: 0, m2: 3, y2: 4, y3: 5 }
 
 /** ⛔ UNE PHOTOGRAVURE SE CREUSE, ELLE NE SE RECADRE PAS UNE SECONDE FOIS.
  *
@@ -744,10 +775,14 @@ export async function cadrerDepuisJp2(feuillet, n, largeurServie) {
   //    l'échelle et non un parti. C'est de lui qu'on repartirait pour changer le
   //    ton, et un ton cuit dans le master se composerait au suivant.
   const master = await cadre.clone().png({ compressionLevel: 9 }).toBuffer()
-  const image = sharp(await creuserLesTons(await cadre.clone().png().toBuffer()))
+  // ⛔ ON CREUSE LES TONS EN DERNIER. Le rattrapage creuse ses sous-oscillations
+  //    autour de chaque bord ; appliqué à une image DÉJÀ assombrie, elles butent
+  //    sur zéro. Mesuré sur le Jourdain : la puissance passée en premier portait
+  //    le noir pur à 12,44 %, passée en dernier à 6,89 %, et bridée à 1,53 %.
+  const rendu = await creuserLesTons(await sharp(await cadre.clone().png().toBuffer())
     .resize({ width: Math.min(largeurServie, dedans.width), kernel: 'lanczos3' })
-    .sharpen(NETTETE)
-  const rendu = await image.clone().png().toBuffer()
+    .sharpen(NETTETE_TON)
+    .png().toBuffer())
   const mm = await sharp(rendu).metadata()
   return {
     source: 'jp2',
@@ -777,7 +812,7 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '4.2.0',
+    processing_version: '4.3.0',
   }).eq('asset_id', actif.id).eq('variant_role', role)
   if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
 }
