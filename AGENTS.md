@@ -2748,67 +2748,70 @@ tome I portent une grande masse grise faiblement adjacente, qui est le grain du 
 et le critère les rangerait à tort. Il ne se lit qu'après avoir écarté les planches
 pleine page, que `asset_kind = 'plate'` suffit à désigner.
 
-### ⛔ Le TRAIT vient de la COUCHE DE TRAIT, jamais de la page composée (2026-08-30)
+### ⛔ TROIS SOURCES, ET ELLES NE SE VALENT PAS (2026-08-30)
 
-C'est la correction la plus importante du chantier, et elle rend caduque la
-recette qui occupait cette place le matin même.
+Une gravure se tire, dans cet ordre :
 
-`pdfimages -list` dit tout en trois lignes : **chaque page du tome VII porte
-TROIS images**. Un fond JPX de 819 × 1363 à **134 points par pouce**, une couche
-d'avant-plan, et un masque JBIG2 de 2455 × 4088 **à 1 bit**. Le masque EST le
-dessin, franc et continu. Le fond ne porte que du papier et les bavures de sa
-propre compression.
+1. **LE FEUILLET JP2** de l'archive Internet Archive. Un scan en ton continu : la
+   taille de la gravure y est entière. C'est la seule source qui rende une
+   GRAVURE, et c'est celle dont le tome I a été tiré.
+2. **LE MASQUE DE TRAIT** du PDF. Le PDF du tome VII est une compression à contenu
+   mixte : un fond JPX à **134 points par pouce**, et un masque JBIG2 **à 1 bit**
+   qui porte le trait, franc mais SANS demi-teinte. On n'en obtient qu'un dessin
+   au trait, jamais une gravure. Repli, faute de feuillet.
+3. ⛔ **LA PAGE COMPOSÉE, jamais.** C'est le trait déjà mêlé aux bavures du fond,
+   et tout le travail consiste ensuite à les séparer. Payé deux journées.
 
-⛔ **Tirer le trait de la page COMPOSÉE, c'est le tirer déjà mêlé à la bavure**,
-et passer ensuite sa vie à les séparer. Une première chaîne s'y est employée le
-30 août 2026 — papier au niveau dominant, champ plat, points noir et blanc,
-liseré — et elle marchait ; mais elle combattait un mal qu'il suffisait de ne
-pas lire. Mesuré sur le « Médecin pansant un blessé », en encre pleine :
+Mesuré sur le « Modius ou boisseau romain », page 219 : la page composée rend un
+fantôme, le masque un fil de fer sans matière, le JP2 un vase de bois avec ses
+deux poignées, ses cerclages, sa hachure et son pied. Ce n'est pas la même image
+mieux tirée, c'est un autre objet.
 
-| chaîne | encre pleine |
-|---|---:|
-| recette des ornements sur la page composée | 2,0 % |
-| la même, plus champ plat et liseré | 2,5 % |
-| **le masque de trait** | **5,1 %** |
+⚠️ **ET LES FEUILLETS ÉTAIENT DÉJÀ LÀ.** `tmp/pdfs/fillion/jp2_t07/` porte 230
+feuillets, qui sont **exactement les pages illustrées de Marc**. On les a cherchés
+ailleurs deux jours en croyant qu'il fallait les récupérer. ⛔ **Avant toute
+extraction, regarder ce que `tmp/pdfs/fillion/` contient déjà.**
 
-Et le masque n'a besoin d'AUCUNE de ces étapes : ni normalisation de papier, ni
-point noir, ni champ plat, ni liseré. Il est l'alpha.
-
-⛔ **Ce n'était pas qu'une affaire de netteté.** Sur « Le paralytique introduit
-par le toit », le registre SUPÉRIEUR — le toit qu'on découvre, c'est-à-dire le
-sujet que la légende nomme — était si pâle dans la page composée que le rognage
-l'ôtait. **La gravure servie n'en montrait que la moitié basse.** Le masque le
-rend entier : la hauteur passe de 517 à 726 pixels avant réduction. Une chaîne
-qui perd la moitié d'un sujet ne se corrige pas par un réglage.
-
-⚠️ **Le masque se reconnaît à ses PROPRIÉTÉS**, un seul canal et la plus grande
-définition des trois, jamais à son rang dans la sortie de `pdfimages`, que rien
-ne garantit.
-
-⚠️ **Une seule étape de forme demeure** : une fermeture morphologique 3 × 3, qui
-comble les entailles d'un pixel laissées par la substitution de symboles du
-JBIG2. ⛔ Dilatation PUIS érosion : l'ordre inverse amincirait le trait.
-
-⛔ **Ce chemin ne vaut QUE pour le trait.** Sur une photogravure la trame vit
-dans le FOND, et le masque ne porterait qu'un contour : c'est ce que mesure la
-part des gris au bord du trait, et le script refuse alors de détourer.
-
-⚠️ **`pdfimages` vient de poppler et n'est pas sur le PATH de Windows.** Il est
-dans le WSL Ubuntu qui sert déjà Kraken. Le script l'appelle s'il le trouve, et
-accepte sinon un dossier de couches déjà extraites (`tmp/fillion-couches`) :
+⚠️ Ni sharp ni libvips ne lisent le JPEG 2000 ici : le décodage passe par
+ImageMagick, dans le WSL qui sert déjà Kraken.
 
 ```
-wsl -e bash -lc 'cd "/mnt/c/Corpus Scriptura/bible-patristique/tmp/fillion-couches" && pdfimages -f 219 -l 219 -png "../pdfs/fillion/lasaintebibletex07fill.pdf" p219'
+wsl -e bash -lc 'convert <feuillet>.jp2 tmp/jp2-png/f<page>.png'
 ```
 
-⚠️ **Une découpe peut n'avoir pas de bornes normalisées** : celle de Marc 4, 8
-porte ses bornes absolues et les dimensions de page, et rien d'autre. Elles se
-CALCULENT, ce n'est pas deviner. ⛔ Ne jamais inventer un cadrage.
+**Corollaire de méthode, et il commande le chantier : le PDF suffit à TROUVER les
+illustrations, le JP2 seul permet de les RENDRE.** On repère sur le PDF, on tire
+les seuls feuillets JP2 correspondants, et l'on ne télécharge jamais un volume
+entier.
 
-⚠️ **La largeur servie est 300 px**, le double des 151 px qu'occupe une vignette
-de régime A dans la colonne de 502. C'est la règle de la charte, et elle vaut ici
-comme ailleurs : au-delà, le navigateur réduirait une seconde fois derrière nous.
-⛔ Le premier jet servait 600, soit quatre fois la taille d'affichage.
+### ⛔ Une PLANCHE TOURNÉE se redresse, et la verticalité se juge en PIXELS
+
+Fillion imprime en paysage, sur une page portrait, les vues qui ne tiendraient pas
+autrement : le lecteur du volume tourne le livre. La règle est celle de la chaîne
+des planches du tome I — couvrir au moins **30 %** de la page ET être nettement
+verticale — et la rotation est **horaire**.
+
+⚠️ Elle n'est écrite **NULLE PART** dans la provenance du tome VII : l'ancienne
+chaîne la posait sans la consigner, et c'est l'épreuve dans le corps du texte qui
+l'a rendue, le Jourdain paraissant debout. *Une transformation qu'on n'inscrit pas
+se perd à la première reprise.*
+
+⛔ **La verticalité se compare en PIXELS, jamais en fractions de page.** La page
+est elle-même portrait : une découpe plus large que haute y couvre une fraction de
+hauteur supérieure à sa fraction de largeur. Mesuré, le Jourdain ne basculait que
+par un cheveu et la synagogue pas du tout.
+
+### ⛔ La BASE doit dire ce qui est SERVI
+
+`bible_edition_asset_files` porte les dimensions, le poids et l'empreinte de chaque
+fichier. Remplacer un fichier sans les reporter laisse la page composer sur les
+anciennes : l'épreuve du 30 août a rendu le Jourdain en portrait, sa proportion
+étant lue dans une ligne périmée. **Le report se fait au même passage que le dépôt,
+jamais plus tard**, et la version de traitement bouge avec la source d'autorité.
+
+⚠️ **Le seau ne pose qu'un `Cache-Control: no-cache`, mais le NAVIGATEUR garde.**
+Remplacer un fichier à la même adresse laisse un client sur l'ancien : pour juger
+sur épreuve, vider le profil du navigateur de contrôle.
 
 ### Les trois régimes
 
@@ -2817,11 +2820,23 @@ des illustrations : il dit ce que chaque régime est, et le classement mesuré d
 La planche `/admin/illustrations` en porte une section, qui montre le spécimen d'habillage
 sur le **texte réel** de Fillion et sur les **deux sols**.
 
-| Régime | Pour | Largeur | Détourage | Habillage |
+| Régime | Ce qui le décide | Largeur | Détourage | Habillage |
 |---|---|---:|---|---|
-| **A** vignette | objet isolé, sans filet | 30 % | oui | oui, à droite |
-| **B** au fil du texte | scène à filet gravé | 75 % | jamais | non |
-| **C** planche hors-texte | page entière | 100 % | jamais | non, agrandissable |
+| **vignette** | tient dans une colonne imprimée | 30 % | oui | oui, dans un bloc |
+| **au-fil** | enjambe les deux colonnes | 75 % | oui | non |
+| **hors-texte** | page entière du volume | 100 % | jamais | non, agrandissable |
+
+⛔ **Le régime se DÉRIVE de la largeur imprimée**, par `regimeIllustration`
+(`app/lib/bibleEdition.ts`), et la même fonction sert la page de lecture ET la
+planche d'administration. ⚠️ Un premier jet classait sur la part des gris qui
+bordent le trait : il rendait le même partage, mais pour une mauvaise raison, en
+mesurant les dégâts de la compression au lieu de la composition de la page.
+
+⛔ **L'HABILLAGE ne se force pas.** Une illustration ancrée sur un VERSET est posée
+entre deux versets, où elle a son propre axe et n'a rien à contourner. Le flottant
+n'est posé que sur une illustration du FLUX d'un bloc. Gagner l'habillage demande
+de déplacer l'ANCRE vers le bloc de commentaire : décision éditoriale, non réglage
+de rendu.
 
 ⛔ **La vignette du régime A ne se pose PAS en tête du bloc.** La manchette occupe déjà
 sept rem à gauche du commentaire : une vignette posée en face ne laisse que deux cents
