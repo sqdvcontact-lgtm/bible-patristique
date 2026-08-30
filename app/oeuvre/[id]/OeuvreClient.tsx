@@ -1,5 +1,5 @@
 'use client'
-import { ABREV_FR } from '@/app/lib/bible'
+import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
@@ -89,6 +89,33 @@ function detailsRefBiblique(ref: string): { label: string; livre: string; chapit
   const cv = p[1].split(':')
   const label = cv[1] ? `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}, ${cv[1]}` : `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}`
   return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
+}
+
+// ⛔ ON CLASSE AVANT DE REGROUPER. Le regroupement ci-dessous ne réunit que des entrées
+// ADJACENTES dans la liste ; or la liste arrive rangée par TYPE de lien — citation, puis
+// reprise, puis doctrine, puis écho (voir `extraireVersetsAvecNature` et, en amont,
+// `hydraterLiensHerites`, qui trie par `type` puis par `id`). Un segment qui REPREND He 11, 24
+// et CITE He 11, 25 rendait donc « He 11, 25 » puis « He 11, 24 » : deux occurrences, à rebours,
+// là où il n'y a qu'un seul passage. Mesuré le 2026-08-30 sur `liens_bibliques` : 752 segments
+// du corpus, 863 occurrences en trop.
+//
+// Même accident et même remède que l'apparat patristique de la page Bible, où la concaténation
+// citations → doctrine → échos fabriquait elle aussi un ordre apparent : il y est classé par la
+// chronologie avant d'être regroupé (`PanneauPatristique`, « ET IL EST CLASSÉ »). Ici l'ordre qui
+// va de soi est celui du canon. ⛔ Le classement ne vaut QUE pour ce volet : la liste portée par
+// le segment garde son ordre de types, dont dépendent l'association et la suppression d'un lien.
+const RANG_LIVRE = new Map(LIVRES.map((l, i) => [l.code, i]))
+
+function ordonnerAuCanon<T extends { livre: string; chapitre: string; verset: string }>(versets: T[]): T[] {
+  const rang = (v: T) => RANG_LIVRE.get(v.livre) ?? Number.MAX_SAFE_INTEGER
+  // `parseInt` et non `Number` : un verset suffixé (« 22a ») se range à sa place au lieu de tomber
+  // en NaN. Le regroupement, lui, garde son `Number` — un verset suffixé ne se fond pas.
+  const nombre = (s: string) => { const n = parseInt(s, 10); return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER }
+  return [...versets].sort((a, b) =>
+    rang(a) - rang(b)
+    || (a.livre < b.livre ? -1 : a.livre > b.livre ? 1 : 0)
+    || nombre(a.chapitre) - nombre(b.chapitre)
+    || nombre(a.verset) - nombre(b.verset))
 }
 
 // REGROUPEMENTS (affichage seul, la base n'est pas modifiée) : quand un segment cite
@@ -2890,7 +2917,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        {regrouperVersetsConsecutifs(segActifData.versets).map(groupe => {
+                        {regrouperVersetsConsecutifs(ordonnerAuCanon(segActifData.versets)).map(groupe => {
                           const premier = groupe[0]
                           const dernier = groupe[groupe.length - 1]
                           const multiple = groupe.length > 1
@@ -2917,7 +2944,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           // La note éditoriale n'est portée que par un verset seul (sinon on fond
                           // simplement les corps).
                           const note = multiple ? null : extraireNoteVerset(premier.textes[trad] || premier.textes['TR0001'] || '').note
-                          const natures = Array.from(new Set(groupe.flatMap(v => (v as any).natures ?? []))) as string[]
+                          // Les natures se cumulent sur le groupe, et se disent dans l'ordre de la
+                          // charte (§9.1 à §9.4) : « citation · reprise », et non dans l'ordre du
+                          // verset qui ouvre le groupe.
+                          const portees = new Set(groupe.flatMap(v => (v as any).natures ?? []) as string[])
+                          const natures: string[] = NATURE_LIEN.filter(n => portees.has(n))
                           // Objet synthétique pour les actions (copie/enregistrement) sur le groupe :
                           // textes fondus par traduction, label en fourchette.
                           const versetAction: any = multiple
