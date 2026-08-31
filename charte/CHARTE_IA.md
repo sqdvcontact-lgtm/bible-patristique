@@ -773,6 +773,45 @@ paragraphe d’une seule ligne pousse le suivant de 35 px, mesuré sur épreuve.
 paragraphe plus court que sa lettrine gagne alors un blanc dessous au lieu de le prêter à
 son voisin — c’est le bon échange, un ornement appartenant au paragraphe qu’il ouvre.
 
+#### L'alinéa poétique se LIT, et l'échelle en compte CINQ
+
+⛔ **Il ne se DEVINE pas.** La règle d'avant le déduisait de la parité du rang — le
+second vers du distique est rentré —, et mesurée sur Boèce elle était juste pour un
+dixième des vers, fausse pour tout le reste. C'est l'océrisation qui le porte :
+`segment_metadata.indent_inches` donne la position du bord gauche de chaque ligne sur
+la page imprimée. ⚠️ C'est une MESURE, non un rang, et elle se rabat POÈME PAR POÈME —
+deux poèmes posés à des places différentes n'ont pas la même origine, et ce qui compte
+est l'écart de chaque ligne au bord gauche de SON poème.
+
+⛔ **L'échelle compte CINQ positions, et le plafond doit les admettre toutes** : le fer,
+puis `Em1` à `Em4`, un quart de pouce par cran. `RANG_MAX` a valu 3 jusqu'au
+31 août 2026, soit un rang de trop peu. ⚠️ **Un plafond ne borne pas une échelle, il
+ÉCRASE** : tout ce qui dépasse retombe sur le dernier rang, et deux niveaux que
+l'édition distingue se composent au même retrait.
+
+Le cas est le mètre XIV du Livre quatrième chez Mirandol, seul poème du corpus où les
+quatre rentrées coexistent — 16 vers au fer, 5 à 0,25 pouce, 10 à 0,50, 4 à 0,75 et 6 à
+1,00. Les six derniers se composaient comme les quatre précédents. ⛔ **Le remède n'est
+pas de rabattre les mesures** : les cinq niveaux sont attestés par le témoin, et les
+1 092 vers de Mirandol sont renseignés ligne à ligne depuis la recollation.
+
+⚠️ **Un plafond fait un SECOND travail, qu'il ne faut pas lui découvrir par surprise :
+il borne aussi le rabattage d'une océrisation bruitée.** Chez Ceriziers 1646, dont les
+mesures sont continues — 206 valeurs de 0,003 à 0,864 pouce —, la construction des
+paliers monte jusqu'au rang 6, et le passage de 3 à 4 y déplace **99 vers sur 1 213,
+dans 13 poèmes**, d'un pas vers la droite. Mirandol, dont les mesures sont propres, n'en
+déplace que les six vers du mètre en cause. **Un plafond plus haut ne se pose qu'après
+avoir compté ce qu'il libère.**
+
+⚠️ **La largeur se MESURE, elle ne se ressent pas** — comme celle des colonnes de la
+lecture en regard (§ 12.2). Le rang 4 vaut 7,5 em de retrait, base comprise. Les 3 231
+vers de Boèce rendus un par un sans enroulement : les six vers de rang 4 du mètre XIV
+demandent 221 à 243 px quand la plus étroite colonne française en offre 354. Le nouveau
+plafond n'ajoute aucun enroulement en lecture ordinaire ni en bilingue ; il en ajoute un
+en traductions parallèles et six sur mobile, tous chez Ceriziers. ⚠️ Ce n'est pas un
+hasard : une édition rentre les vers COURTS, et un retrait profond tombe donc sur une
+ligne brève.
+
 #### Le texte biblique attend sa donnée
 
 Le Psautier est de la poésie, Job et les prophètes aussi. La page Bible les compose
@@ -3847,3 +3886,8 @@ Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après to
 - **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.
 - **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
 - **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.
+
+
+## Césures de mots entre unités source — règle normative
+
+Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture. Les deux fragments lexicaux restent rattachés à leurs unités source respectives et sont réunis au rendu par `join_before = ''`. Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé. Les guillemets de continuation ajoutés par l’OCR ou par la mise en page ne sont pas réinjectés s’ils ne correspondent pas à un nouveau guillemet sémantique. Avant toute correction, contrôler les deux unités voisines ; ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante. Exemples validés : `représente-` + `t-il` → `représente-t-il` ; `mou-` + `vements` → `mouvements` ; `si-` + `gnalé` → `signalé`.
