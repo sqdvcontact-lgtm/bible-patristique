@@ -223,10 +223,18 @@ describe('paratexte des éditions bibliques', () => {
     expect(part('vignette', 0.402)).toBe('40')   // le médecin
     expect(part('vignette', 0.575)).toBe('56')   // la scène de deuil : au PLAFOND
     expect(part('vignette', null)).toBe('36')    // largeur inconnue : le plancher
-    // ⛔ Une scène et une planche sont bornées comme le reste : ce sont elles qui
-    //    échappaient à toute borne, et qui écrasaient le texte.
-    expect(part('au-fil')).toBe('78')
+    // ⛔ Une SCÈNE suit sa largeur imprimée elle aussi, depuis le 31 août 2026 :
+    //    sa part valait 0,78 quelle que soit celle-ci, et Fillion imprime ses
+    //    photogravures de 69 à 90 %. C'était la même part fixe, au même endroit,
+    //    pour la même raison, et le régime ne décide plus que du DÉTOURAGE.
+    expect(part('au-fil', 0.69)).toBe('69')
+    expect(part('au-fil', 0.847)).toBe('85')
+    expect(part('au-fil', 0.9)).toBe('88')      // au PLAFOND
+    expect(part('au-fil', 0.3)).toBe('36')      // au PLANCHER
+    // ⛔ Une PLANCHE, elle, prend le plafond sans regarder sa découpe : celle-ci
+    //    est la page entière du volume, et sa largeur ne dit rien.
     expect(part('hors-texte')).toBe('88')
+    expect(part('hors-texte', 0.2)).toBe('88')
   })
 
   it('⛔ une vignette TROP LARGE ne flotte pas : le texte n’aurait plus de mesure', () => {

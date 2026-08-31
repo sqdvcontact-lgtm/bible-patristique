@@ -488,9 +488,6 @@ const PLAFOND_ILLUSTRATION = 0.88
 /** Une VIGNETTE tient dans UNE colonne imprimée : elle ne peut pas prendre plus
  *  de la moitié du bloc sans cesser d'être ce qu'elle est. */
 const PLAFOND_VIGNETTE = 0.56
-/** Une SCÈNE cadrée prend l'essentiel de la colonne : rien ne se pose à côté
- *  d'elle, et c'est la seule façon de lui rendre des pixels. */
-const PART_AU_FIL = 0.78
 /** Une PLANCHE hors-texte est une page entière du volume : elle prend le plafond. */
 const PART_HORS_TEXTE = PLAFOND_ILLUSTRATION
 
@@ -502,16 +499,15 @@ export function partIllustration(
   regime: RegimeIllustration,
   largeurImprimee: number | null | undefined,
 ): number {
+  // ⛔ Une PLANCHE est une page entière du volume : elle prend le plafond, et sa
+  //    largeur imprimée ne veut rien dire, la découpe étant la page elle-même.
   if (regime === 'hors-texte') return borner(PART_HORS_TEXTE)
-  if (regime === 'au-fil') return borner(PART_AU_FIL)
   if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
   // ⛔ LE PLAFOND DE LA VIGNETTE SUPPOSE UNE GRAVURE QUI TIENT DANS UNE COLONNE,
-  //    et c'est ce que dit son commentaire. Une gravure au TRAIT qui enjambe les
-  //    deux — un ivoire, un bas-relief, le plan du temple d'Hérode — n'est pas
-  //    une vignette trop grande : c'est une scène, et elle est détourée parce que
-  //    Fillion ne l'annonce pas photographie. Lui appliquer ce plafond lui
-  //    retirerait la proportion qu'il lui donne, et la rendrait plus petite que
-  //    la photogravure d'à côté, imprimée de la même largeur.
+  //    et c'est ce que dit son commentaire. Une gravure qui enjambe les deux —
+  //    un ivoire, un bas-relief, le plan du temple d'Hérode, une vue photographiée
+  //    — n'est pas une vignette trop grande : c'est une scène, et elle garde la
+  //    proportion que Fillion lui donne.
   if (largeurImprimee > LARGEUR_DEUX_COLONNES) return borner(largeurImprimee)
   return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
 }
@@ -542,9 +538,8 @@ export function largeurServie(part: number): number {
  *  « (Bas-relief romain) », « (Peinture égyptienne) » sous ses dessins.
  *
  *  ⚠️ Deux gravures du tome VII n'ont AUCUNE légende, et une poignée nomment un
- *  lieu sans dire le procédé (« Tombeaux taillés dans le roc », « Intérieur de
- *  l'église la Nativité »). Elles retombent donc au trait, ce qui est le parti le
- *  moins coûteux : une photographie détourée se voit tout de suite, un dessin
+ *  lieu sans dire le procédé. Elles retombent donc au trait, ce qui est le parti
+ *  le moins coûteux : une photographie détourée se voit tout de suite, un dessin
  *  cadré passe inaperçu et laisse un rectangle de papier gris.
  *
  *  ⚠️ La règle est écrite ICI et dans `scripts/fillion/detourer-gravures.mjs`,
@@ -555,14 +550,42 @@ export function estPhotogravure(legendeImprimee: string | null | undefined): boo
   return /photograph/i.test(legendeImprimee ?? '')
 }
 
+/** ⛔ LE RÉGIME SE FORCE PAR LA DONNÉE, et c'est le jour annoncé plus haut.
+ *
+ *  Deux gravures du tome VII sont des photogravures en demi-teinte dont la
+ *  légende ne nomme qu'un lieu — « Intérieur de l'église la Nativité, à
+ *  Bethléem. » et « Cour d'une maison de l'Orient. » — si bien que la règle les
+ *  détourait. Le détourage d'une demi-teinte écrase ses tons, laisse un bord
+ *  rectangulaire et rend une image bruitée : il se VOIT, quand un dessin cadré
+ *  passe inaperçu.
+ *
+ *  ⚠️ Aucune mesure de pixel n'a pu remplacer la légende : ni la trame, ni la
+ *  part que le détourage rend transparente. La MASSE du pic de papier les sépare
+ *  bien — une demi-teinte rend de 2,7 à 9,2 % de sa surface à deux niveaux du
+ *  pic, un bois de 10,4 à 44 % — mais l'écart entre les deux familles n'est que
+ *  d'un point, ce qui est trop mince pour trancher seul un corpus qui grandit.
+ *  On garde donc la règle et l'on force le cas, ce qui est ce que la donnée sait
+ *  faire de mieux : dire ce qu'on a vu.
+ *
+ *  ⚠️ Une valeur inconnue est IGNORÉE, jamais appliquée : une coquille dans un
+ *  champ libre ne doit pas changer la composition d'une page. */
+export function regimeForce(metadata: unknown): RegimeIllustration | null {
+  const v = (metadata as { regime?: unknown } | null)?.regime
+  return v === 'vignette' || v === 'au-fil' || v === 'hors-texte' ? v : null
+}
+
 export function regimeIllustration(
   assetKind: string,
   decoupe: { normalized?: unknown; left?: unknown; right?: unknown; page_width_px?: unknown } | null | undefined,
   legendeImprimee?: string | null,
+  metadata?: unknown,
 ): RegimeIllustration {
   // ⛔ Une PLANCHE ne se compose jamais autrement : c'est une page entière du
-  //    volume, avec son filet gravé, sa légende imprimée et son papier.
+  //    volume, avec son filet gravé, sa légende imprimée et son papier. Aucune
+  //    donnée ne la force : ce n'est pas un jugement, c'est ce qu'elle EST.
   if (assetKind === 'plate') return 'hors-texte'
+  const force = regimeForce(metadata)
+  if (force) return force
   const largeur = largeurImprimee(decoupe)
   if (largeur === null) return 'vignette'
   return largeur > LARGEUR_DEUX_COLONNES && estPhotogravure(legendeImprimee) ? 'au-fil' : 'vignette'

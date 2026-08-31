@@ -103,7 +103,7 @@ export async function releverGravuresFillion(): Promise<{
 }> {
   const { data, error } = await supabaseAdmin
     .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,width_px,height_px,source_crop_box,canon_id_start,printed_caption,editorial_caption')
+    .select('asset_key,asset_kind,public_uri,width_px,height_px,source_crop_box,canon_id_start,printed_caption,editorial_caption,metadata')
   if (error) throw new Error(`Gravures de Fillion illisibles : ${error.message}`)
   const toutes = data ?? []
 
@@ -117,7 +117,7 @@ export async function releverGravuresFillion(): Promise<{
       largeur: a.width_px as number,
       hauteur: a.height_px as number,
       largeurImprimee: largeurImprimee(a.source_crop_box as Parameters<typeof largeurImprimee>[0]),
-      regime: regimeIllustration(a.asset_kind as string, a.source_crop_box as Parameters<typeof regimeIllustration>[1], a.printed_caption as string | null),
+      regime: regimeIllustration(a.asset_kind as string, a.source_crop_box as Parameters<typeof regimeIllustration>[1], a.printed_caption as string | null, a.metadata),
     }))
     .sort((a, b) => (b.largeurImprimee ?? 0) - (a.largeurImprimee ?? 0))
 

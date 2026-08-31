@@ -174,6 +174,10 @@ export type BibleEditionAssetRow = {
   note_id: string | null
   classification_confidence: string
   requires_review: boolean
+  /** ⛔ Les métadonnées de l'actif, telles quelles : c'est là que vit le régime
+   *  FORCÉ, quand la légende de Fillion ne dit pas le procédé. Elles sont
+   *  validées au rendu (`regimeForce`), pas ici. */
+  metadata: Record<string, unknown> | null
 }
 
 export type BibleEditionChapterPayload = {

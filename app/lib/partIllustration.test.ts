@@ -55,10 +55,9 @@ describe('la part de la colonne', () => {
     const PLANCHER = nombreDuScript('PLANCHER_ILLUSTRATION')
     const PLAFOND = nombreDuScript('PLAFOND_ILLUSTRATION')
     const PLAFOND_VIGNETTE = nombreDuScript('PLAFOND_VIGNETTE')
-    const AU_FIL = nombreDuScript('PART_AU_FIL')
     expect(partIllustration('vignette', 0.01)).toBe(PLANCHER)
     expect(partIllustration('vignette', 0.58)).toBe(PLAFOND_VIGNETTE)
-    expect(partIllustration('au-fil', 0.7)).toBe(AU_FIL)
+    expect(partIllustration('au-fil', 0.7)).toBeCloseTo(0.7, 6)
     expect(partIllustration('hors-texte', 0.7)).toBe(PLAFOND)
     expect(nombreDuScript('MESURE_COLONNE')).toBe(MESURE_COLONNE)
   })
@@ -106,9 +105,17 @@ describe('la part de la colonne', () => {
     expect(partIllustration('vignette', undefined)).toBe(0.36)
   })
 
-  it('une PLANCHE prend le plafond, une SCÈNE l’essentiel de la colonne', () => {
+  it('⛔ une PLANCHE prend le plafond ; TOUT LE RESTE suit sa largeur imprimée', () => {
+    // Une planche est une page entière du volume : sa découpe EST la page, et sa
+    // largeur imprimée ne dit donc rien.
     expect(partIllustration('hors-texte', 0.2)).toBe(0.88)
-    expect(partIllustration('au-fil', 0.847)).toBe(0.78)
+    // ⚠️ « au-fil » ne prend plus une part FIXE. Elle valait 0,78 pour toute
+    //    photogravure, et Fillion les imprime de 69 à 90 % : la part fixe
+    //    aplatissait ses proportions, ce que la charte reproche déjà au premier
+    //    jet des vignettes. Le régime ne décide plus que du DÉTOURAGE.
+    expect(partIllustration('au-fil', 0.847)).toBeCloseTo(0.847, 6)
+    expect(partIllustration('au-fil', 0.69)).toBeCloseTo(0.69, 6)
+    expect(partIllustration('au-fil', 0.9)).toBeCloseTo(0.88, 6)
   })
 
   it('⛔ l’habillage cesse au-delà du seuil, et c’est un axe DISTINCT du détourage', () => {

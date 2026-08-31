@@ -187,6 +187,18 @@ function estPhotographie(legende) {
   return /photograph/i.test(legende ?? '')
 }
 
+/** ⛔ LE RÉGIME SE FORCE PAR LA DONNÉE, dans `metadata.regime`. Deux gravures du
+ *  tome VII sont des demi-teintes dont la légende ne nomme qu'un lieu, et le
+ *  détourage y écrase les tons. Recopié d'`app/lib/bibleEdition.ts`, où la page
+ *  le lit ; `app/lib/partIllustration.test.ts` tient les deux accordés.
+ *
+ *  ⚠️ La page nomme les régimes, la chaîne les code : on traduit ici, une seule
+ *  fois. Une valeur inconnue est ignorée. */
+function regimeForce(metadata) {
+  const v = metadata?.regime
+  return v === 'vignette' ? 'A' : v === 'au-fil' ? 'B' : v === 'hors-texte' ? 'C' : null
+}
+
 /** ⛔ UN FICHIER SE SERT AU DOUBLE DE SA TAILLE D'AFFICHAGE, JAMAIS PLUS
  *  (charte). Au delà, le navigateur réduit une seconde fois derrière nous, et
  *  deux réductions successives moyennent les hachures fines en un gris mou. */
@@ -207,7 +219,6 @@ function estPhotographie(legende) {
 const PLANCHER_ILLUSTRATION = 0.36
 const PLAFOND_ILLUSTRATION = 0.88
 const PLAFOND_VIGNETTE = 0.56
-const PART_AU_FIL = 0.78
 const PART_HORS_TEXTE = PLAFOND_ILLUSTRATION
 const MESURE_COLONNE = 500
 
@@ -215,10 +226,9 @@ const borner = (part) => Math.min(PLAFOND_ILLUSTRATION, Math.max(PLANCHER_ILLUST
 
 function partIllustration(regime, largeurImprimee) {
   if (regime === 'C') return borner(PART_HORS_TEXTE)
-  if (regime === 'B') return borner(PART_AU_FIL)
   if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
   // ⛔ Le plafond de la vignette suppose une gravure qui TIENT DANS UNE COLONNE.
-  //    Une gravure au trait qui enjambe les deux garde sa proportion imprimée.
+  //    Celle qui enjambe les deux garde la proportion que Fillion lui donne.
   if (largeurImprimee > LARGEUR_DEUX_COLONNES) return borner(largeurImprimee)
   return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
 }
@@ -952,7 +962,7 @@ async function principal() {
 
   const { data, error } = await db
     .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,source_page_index,source_crop_box,web_storage_path,printed_caption,canon_id_start')
+    .select('asset_key,asset_kind,public_uri,source_page_index,source_crop_box,web_storage_path,printed_caption,canon_id_start,metadata')
     .order('source_page_index')
   if (error) throw new Error(`actifs illisibles : ${error.message}`)
 
@@ -970,10 +980,12 @@ async function principal() {
     if (!n) { rapport.push({ cle: a.asset_key, regime: '?', motif: 'découpe illisible' }); continue }
 
     // ⛔ LE RÉGIME NE SE LIT PLUS SUR LA SEULE LARGEUR : c'est FILLION qui dit ce
-    //    qu'il imprime. Voir `estPhotographie`.
+    //    qu'il imprime. Voir `estPhotographie`. Et la DONNÉE le force quand la
+    //    légende ne dit pas le procédé : voir `regimeForce`.
     const largeurImprimee = n[2] - n[0]
-    const regime = largeurImprimee > LARGEUR_DEUX_COLONNES && estPhotographie(a.printed_caption)
-      ? 'B' : 'A'
+    const force = regimeForce(a.metadata)
+    const regime = force ?? (largeurImprimee > LARGEUR_DEUX_COLONNES && estPhotographie(a.printed_caption)
+      ? 'B' : 'A')
     const ligne = { cle: a.asset_key, regime, largeurImprimee, tournee: null }
 
     if (FABRIQUER) {
