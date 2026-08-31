@@ -1,0 +1,110 @@
+REPRISE DE LA COLLECTE — TOME VII, IL RESTE JEAN
+================================================
+
+Merci, la livraison est propre. Les 155 gravures sont arrivées avec leur boîte
+normalisée, leur légende, leur texte alternatif et leur ancre : aucune ligne
+incomplète, aucun fichier déposé, aucune publiée. J'ai pu les rendre sans avoir à
+rien corriger de la donnée.
+
+Les 166 fichiers sont fabriqués et téléversés, master et web, en
+processing_version 4.6.0. Ils restent is_public = false, comme convenu.
+
+
+CE QU'IL RESTE
+--------------
+
+    livre   auditées   traitées   restent
+    Luc           73         73         0     terminé
+    Matthieu      64         63         1
+    Jean          54         18        36
+
+Matthieu — feuillet restant :
+
+    35
+
+Jean — feuillets restants (36) :
+
+    502 505 510 517 524 527 531 532 535 536 539 543 544 547 548 552 553 555
+    559 562 564 569 572 577 581 582 583 586 590 591 593 596 597 603 604 606
+
+Rien d'autre ne manque. La liste de travail complète reste
+work/fillion/COLLECTE_TOME_VII_PAGES.json, et la consigne
+work/fillion/COLLECTE_TOME_VII.md.
+
+
+UNE CHOSE A CHANGÉ, ET ELLE TE CONCERNE
+---------------------------------------
+
+⛔ LA LÉGENDE IMPRIMÉE DÉCIDE MAINTENANT DU TRAITEMENT DE L'IMAGE.
+
+Jusqu'ici je décidais sur la largeur : au delà de deux colonnes imprimées, je
+traitais la gravure comme une photogravure — je gardais son papier et je la
+cadrais. Cette règle valait tant que le corpus se réduisait aux onze gravures de
+Marc, où « large » et « photographie » coïncidaient. Avec les tiennes, le partage
+s'est défait : le massacre des saints Innocents d'après un ivoire, le plan du
+temple d'Hérode, une scène de deuil d'après une peinture grecque enjambent tous
+les deux colonnes et sont des DESSINS AU TRAIT. Les cadrer leur laissait un
+rectangle de papier gris là où la page attend de l'encre sur le sien. Dix-huit
+gravures larges sur trente-cinq étaient dans ce cas.
+
+Aucune mesure de pixel ne les sépare, j'ai essayé les deux qui semblaient
+prometteuses. La trame — la part des gris qui bordent le trait — met les
+photographies de paysage au milieu des dessins, faute de traits. Et ce que le
+détourage rend transparent laisse une bande trouble : les deux photogravures de
+Marc y rendent 34 %, le boisseau, qui est un dessin, 50 %, et quatre photographies
+de Luc et de Jean entre 50 et 59 %.
+
+C'est Fillion qui tranche. Il écrit « (D'après une photographie.) » sous ses
+photographies, et « (D'après un ivoire du Vᵉ siècle) », « (Bas-relief romain) »,
+« (Peinture égyptienne) » sous ses dessins. Je lis donc la légende.
+
+CONSÉQUENCE POUR TOI, ET C'EST LE POINT IMPORTANT DE CE MESSAGE :
+
+  - transcris la légende ENTIÈRE, la parenthèse finale comprise. C'est elle qui
+    porte le procédé, et c'est sur elle que je décide ;
+  - ne l'abrège pas, ne la normalise pas, ne la reformule pas ;
+  - si la page n'en porte aucune, laisse printed_caption à null plutôt que d'en
+    composer une : une légende inventée me ferait traiter l'image à l'envers.
+
+⚠️ Deux gravures déjà livrées sont sans légende : p0194-i01 et p0462-i01. Si la
+page en porte une, complète-la ; sinon dis-le, et je les laisserai au trait, qui
+est le parti le moins coûteux — une photographie détourée se voit tout de suite,
+un dessin cadré passe inaperçu et laisse son rectangle.
+
+
+CE QUI N'A PAS CHANGÉ
+---------------------
+
+    - le feuillet JP2 est la seule source d'image ; le PDF sert à trouver ;
+    - feuillet -> page OCR + 1, feuillet -> page imprimée - 2 ;
+    - la boîte s'écrit normalisée ;
+    - l'ancre sémantique se propose et ne se force pas : sans certitude, pas de
+      canon_id_start ;
+    - editorial_caption reste null ;
+    - is_public reste false ;
+    - tu ne fabriques aucun fichier : master et web sont ma part.
+
+
+DEUX PIÈGES QUE J'AI PAYÉS DE MON CÔTÉ, POUR MÉMOIRE
+----------------------------------------------------
+
+Ils étaient dans MA chaîne, pas dans ta donnée, mais ils disent quelque chose
+d'utile.
+
+⚠️ Le numéro de feuillet ne se complétait pas à trois chiffres. Les onze pages de
+Marc sont toutes au delà de la centième : le défaut est resté invisible jusqu'à
+Matthieu, qui commence au feuillet 25. Une convention qu'un seul jeu de données
+n'exerce pas n'est pas éprouvée.
+
+⚠️ Et mon premier contrôle visuel serrait chaque découpe dans un carré : un grand
+format portrait y devenait une bande sombre, et j'ai pris onze photographies
+pleine page pour des ombres de reliure. Une planche de contact ne déforme pas.
+
+
+LES ACTES ET JOSUÉ
+------------------
+
+Toujours hors de portée : le tome VII s'arrête à Jean XXI, et les Actes sont dans
+un autre volume dont l'archive n'est pas sur le disque. Josué relève du tome II,
+absent lui aussi. Ces deux livres resteront sans gravures après cette collecte, et
+ce n'est pas un oubli.
