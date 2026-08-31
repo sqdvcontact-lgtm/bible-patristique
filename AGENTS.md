@@ -3984,3 +3984,31 @@ La bascule du volet est donc **locale dans un sens et navigante dans l’autre**
 ⚠️ **Une seule chose ne revient pas : la lecture EN REGARD.** Ouvrir une pièce force `bilingue: false` (une pièce est commune aux deux membres, la mettre en face d’elle-même n’aurait pas de sens), et l’adresse perd donc l’information. Le retour rend une colonne. ⛔ Ce n’est pas une régression du présent changement — l’ancien lien de pied composait la même adresse — et le corriger demanderait d’apprendre à `LectureBilingueBible` à rendre une pièce, ce qui est un chantier, non un réglage.
 
 ⚠️ **`urlRetour` reste une propriété OPTIONNELLE de `PieceLiminaire`**, et son rendu est gardé par elle : ne rien passer suffit à ne rien rendre. ⛔ Ne pas retirer la propriété du composant en croyant faire le ménage.
+
+# La mesure d'audience est MAISON (2026-08-31)
+
+Google Analytics est retiré, son bandeau de consentement avec. Doctrine et motifs : charte `parametres.charte_ia`. Règles de code :
+
+⛔ **Deux pages de statistiques, et elles ne se recouvrent jamais.** `/admin/controle/statistiques` mesure le CORPUS (œuvres, qualité des segments, péricopes) : elle dit l'état du travail. `/admin/audience` mesure ce que le site REÇOIT (visites, comptes, lectures). Ajouter un chiffre au mauvais écran, c'est le rendre introuvable. Le lien de la navbar est dans la famille « Système », celui du centre de contrôle en pied de volet, à côté de son frère.
+
+⛔ **Rien de nominatif n'entre dans `vues_pages`, jamais.** L'adresse IP n'est pas écrite : elle entre dans un hachage avec un sel qui change chaque jour (`empreinteDuJour`, `app/api/audience/vue/route.ts`). La colonne `connecte` dit qu'une session était ouverte, elle ne dit pas laquelle. Ajouter une colonne qui rattacherait une vue à un compte ferait sortir la mesure de la dispense de consentement, et il faudrait remettre un bandeau. C'est ce qui est promis au point 8 de la page Confidentialité.
+
+⚠️ **La chaîne de requête est retirée du chemin** (`cheminNormalise`). Elle porte les termes tapés dans la recherche, donc ce que le visiteur n'a pas voulu publier, et elle éclaterait chaque page en autant de lignes qu'il y a de variantes. Du référent, on ne garde que **l'hôte** (`hoteDuReferent`), pour la même raison : une URL de résultats de recherche porte la requête.
+
+⚠️ **`/admin` n'est PAS mesuré** (`estCheminMesure`). L'auteur du site l'ouvre dix fois par jour, il n'est pas son propre public. Ni `/api`, ni `/auth`, ni `/_next`, ni `/chantier`. La mesure s'arrête aussi d'elle-même sur `localhost` : les chiffres ne disent que le site en ligne.
+
+⛔ **Un index sur `vu_le::date` est REFUSÉ par PostgreSQL** (42P17, « functions in index expression must be marked IMMUTABLE »). La conversion d'un `timestamptz` en `date` dépend du fuseau de la session, elle est donc STABLE. Ce n'est pas une perte : toutes les interrogations bornent d'abord par `vu_le >= depuis`, et c'est l'index sur `vu_le` qui les sert. Le regroupement par jour se fait ensuite sur les seules lignes retenues.
+
+⛔ **`service_role` n'a PAS le droit de lire `auth.users`** (vérifié le 2026-08-31 : `has_table_privilege` rend faux pour `service_role` comme pour `authenticated`). Les comptes se comptent donc dans `profils`, ce qui est de toute façon la notion de membre qu'emploie le site partout ailleurs. ⚠️ Ne pas ouvrir un `SECURITY DEFINER` pour contourner cela : on ouvrirait une fonction à privilèges pour un compteur.
+
+⚠️ **`audience_tableau_bord` est SECURITY INVOKER, délibérément.** La page appelle avec le rôle de service, qui contourne déjà la RLS : un `SECURITY DEFINER` n'apporterait rien et ouvrirait une fonction de plus. `EXECUTE` est retiré à PUBLIC sur elle comme sur `purger_vues_pages`, PostgreSQL l'accordant d'office (leçon du 2026-08-29).
+
+⛔ **`document.referrer` NE CHANGE PAS d'une page à l'autre.** Les navigations de Next ne rechargent pas la page : le référent garde la provenance externe pendant toute la visite. L'envoyer à chaque vue attribuerait la visite entière à cette seule provenance, et gonflerait le compte de la première page d'autant de fois qu'on tourne de pages. `MesureAudience` ne l'envoie donc qu'**une fois**, à la première vue, par un `useRef`.
+
+**Les robots se filtrent en DEUX temps, et le premier n'est pas la liste.** Le premier filtre est que la mesure part d'un script du navigateur : la grande majorité des robots n'exécute pas de JavaScript et n'arrive jamais jusqu'à la route. La liste de user-agents (`estRobot`) n'attrape que ceux qui en exécutent et qui s'annoncent. Un compteur maison n'est pas juste au dixième près, et il reste plus juste qu'une mesure amputée du consentement.
+
+**La borne de conservation est tenue par la BASE, pas par une intention.** `purger_vues_pages()` retire les vues de plus de vingt-cinq mois, appelée par le travail cron `purger_audience` le 1er de chaque mois. La page Confidentialité annonce cette durée : la promettre sans l'implémenter aurait été une dette juridique. ⚠️ Le travail ne trouve presque jamais rien à faire, et c'est voulu : un `delete` sur un index de date, une fois par mois, est le contraire du cron n° 4 qui reconstruisait une vue matérialisée toutes les minutes sans regarder si quelque chose avait changé.
+
+⚠️ **Le sel se dérive de `SUPABASE_SERVICE_ROLE_KEY` faute de `AUDIENCE_SEL`.** C'est un repli assumé : la clé est déjà secrète, déjà présente en production, et le hachage ne permet pas de la retrouver. Poser `AUDIENCE_SEL` reste préférable, ne serait-ce que pour faire tourner le sel sans toucher à l'accès à la base. Aucune configuration n'est nécessaire pour que la mesure fonctionne, et c'était le but.
+
+⚠️ **`@next/third-parties` reste dans `package.json` alors que plus rien ne l'importe.** Le retirer demande de faire tourner le gestionnaire de paquets dans un arbre qui porte à la fois `package-lock.json` (versionné) et `pnpm-lock.yaml` (non versionné) : le risque n'était pas payant pendant ce chantier. À faire au prochain passage sur les dépendances.

@@ -1151,7 +1151,7 @@ Les cardinalités `1:1`, `1:n`, `n:1`, `n:m`, `1:0` et `0:1` sont admises lorsqu
 
 **2. À défaut de paragraphage, on pose les frontières à la main.** Une édition qui ne paragraphe pas, ou dont l’importation n’a pas retenu les alinéas, n’autorise pas pour autant l’empan long. On constitue alors des frontières aux **jonctions sémantiques** de l’ouvrage : changement d’objet, de destinataire, de mouvement de l’argument. Elles sont éditoriales, se justifient dans `texte_alignements.justification`, et ne se déduisent ni d’un compte de signes ni d’une limite de page. Mais la première tâche reste de rendre au texte traduit les paragraphes de son édition lorsque c’est l’importation qui les a perdus : la règle 1 vaut toujours mieux que la règle 2.
 
-**3. L’empan reste bref.** Un groupe peut être plus petit qu’un paragraphe, jamais plus grand : la règle 1 pose le plafond, la règle 3 dit qu’on n’a pas à l’atteindre. Il faut que l’œil tienne les deux colonnes ensemble et qu’un empan se lise d’un seul regard. **Repère de contrôle : environ 900 signes, 1 500 en limite haute.** Au-delà, l’empan se subdivise à une jonction sémantique, à l’intérieur du paragraphe. Ce repère mesure, il ne tranche pas : c’est le sens qui place la coupe, jamais le compteur.
+**3. L’empan reste bref, mais la subdivision est un remède à la longueur, non une manière de faire.** Tant que le paragraphe de l’édition traduite reste sous la limite haute, le groupe l’épouse tout entier : ⛔ **un paragraphe de 1 500 signes ou moins ne se subdivise pas.** Le repère d’environ 900 signes sert à observer le confort de lecture ; il ne déclenche aucune coupe. Ce n’est qu’au-delà de la limite haute de 1 500 signes qu’une subdivision devient admissible, à une jonction sémantique située à l’intérieur du paragraphe. Le compteur autorise alors le remède ; le sens seul place la coupe. Le cas qui a révélé ce plancher est *De la vanité des idoles* de Cyprien dans la traduction Guillon de 1837 : 45 paragraphes, aucun au-delà de 547 signes, avaient été artificiellement détaillés en 128 groupes ; l’alignement a été repris en 45 empans paragraphaires le 31 août 2026.
 
 Le témoin est l’alignement des *Confessions* : 932 groupes pour 932 paragraphes, aucun chevauchement, 876 signes de médiane. ⛔ **Un ensemble déclaré `division` n’est pas une dispense.** Aligner question contre question ou chapitre contre chapitre est un point de départ, non un état publiable : c’est ainsi que les *Questions sur l’Heptateuque* mettent 56 585 signes en regard d’un seul bloc. Un ensemble reste `candidate` tant que son grain n’a pas été repris.
 
@@ -4167,3 +4167,45 @@ Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur inte
 **Les illustrations entrent dans la matrice de clôture.** Pour chaque asset : identité, ordre, ancrage, page imprimée, page source, crop, provenance, famille graphique, fichier dérivé, dimensions et SHA sont contrôlés. `alt_text` et légende éditoriale sont présents lorsqu’ils sont nécessaires. Un contrôle automatique de traitement d’image ou un `PASS` technique ne vaut pas validation visuelle du cadrage ni validation humaine de la planche.
 
 **La formule de clôture nomme exactement ce qui est clos.** On peut déclarer « apparat clos », « mapping canonique clos » ou « commentaire collationné » si ces matrices sont conformes. ⛔ On ne déclare pas un livre globalement « clos » tant qu’une surface applicable de la matrice demeure en attente — notamment texte biblique d’une langue, titres/sous-titres, typographie, vue de projection, assets ou confidentialité. Les dettes restantes sont chiffrées depuis la base et deviennent des tâches distinctes, sans réécrire l’historique de la mission déjà achevée.
+
+## 39. La mesure d’audience
+
+**Le site se mesure LUI-MÊME.** Depuis le 31 août 2026, la fréquentation est relevée par le site et enregistrée dans sa propre base. Aucun outil tiers n’intervient. Google Analytics, employé jusque-là, est retiré, et le bandeau de consentement qui l’accompagnait avec lui.
+
+### 39.1 Pourquoi la maison plutôt qu’un outil
+
+Trois raisons, dans l’ordre où elles pèsent.
+
+**La jointure.** Les seules statistiques qui servent à décider quelque chose ici sont celles que le modèle de données du site peut produire : quelles œuvres sont ouvertes puis abandonnées, quels versets sont lus alors qu’aucun lien patristique ne les porte encore, si ceux qui ouvrent un compte lisent davantage. Un outil externe range ses chiffres dans un silo qu’on ne croisera jamais avec `oeuvres`, `segments` ou `profils`. Il répond à des questions générales quand celles du site sont particulières.
+
+**L’exactitude.** Un outil tiers qui dépose un traceur exige le consentement, et ne compte donc que les visiteurs qui l’accordent. L’écart n’est ni connu ni corrigeable : aucune règle de trois ne reconstitue ceux qu’on n’a pas vus.
+
+**La durée.** Google Analytics efface ses données détaillées au bout de deux mois, quatorze au maximum. Une bibliothèque a vocation à durer plus que cela.
+
+### 39.2 Ce que la mesure s’interdit
+
+Une mesure d’audience anonyme, strictement limitée au site, non recoupée et non transmise est dispensée de consentement. C’est le régime que le site a choisi, et il oblige.
+
+- ⛔ L’adresse IP n’est jamais conservée. Elle sert à calculer une empreinte hachée dont le sel change chaque jour : un visiteur se reconnaît sur la journée et redevient inconnu le lendemain.
+- ⛔ Aucune vue n’est rattachée à un compte. On note qu’une session était ouverte, jamais laquelle.
+- ⛔ Les termes tapés dans la recherche ne sont pas consignés, ni par le chemin, ni par le référent, dont seul l’hôte est gardé.
+- ⛔ Rien n’est transmis à un tiers, et rien ne quitte l’hébergement du site.
+- ⛔ Les données sont supprimées au bout de vingt-cinq mois, et cette borne est tenue par un travail périodique en base, non par une intention.
+
+**Ajouter un traceur tiers, c’est remettre un bandeau.** La décision se prend alors comme telle, en pesant ce que le visiteur y perd, et la page Confidentialité se reprend le même jour. Ce n’est pas un réglage technique.
+
+### 39.3 Où l’on regarde
+
+Deux écrans, et ils ne disent pas la même chose.
+
+**« Statistiques du corpus »** (`/admin/controle/statistiques`) dit l’état du TRAVAIL : œuvres, qualité des segments, péricopes, bibliographie, chronologie. On l’ouvre pour savoir ce qui reste à faire.
+
+**« Audience »** (`/admin/audience`) dit ce que le site REÇOIT : visites, provenance, comptes, lectures. On l’ouvre pour savoir qui vient et ce qu’il lit.
+
+Un chiffre nouveau se pose sur l’un ou sur l’autre, jamais sur les deux, et jamais sur celui qui ne l’attend pas.
+
+### 39.4 Ce que la maison ne sait pas faire
+
+**Les mots tapés dans un moteur ne viennent pas de là.** Ils viennent de la Search Console, qui est gratuite, ne demande aucun consentement puisqu’elle ne relève rien chez le visiteur, et se consulte chez Google. Le jour où le référencement deviendra le sujet, on décidera s’il vaut la peine d’en rapatrier les chiffres dans la page. Tant que le site est fermé, non.
+
+**Le compteur maison n’est pas juste au dixième près.** Il attrape quelques robots et il en manque. Il reste plus juste qu’une mesure amputée du consentement, et il faut le dire plutôt que d’afficher une précision qu’on n’a pas.
