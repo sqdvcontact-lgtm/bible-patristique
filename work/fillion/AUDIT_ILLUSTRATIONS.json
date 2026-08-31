@@ -1,0 +1,5588 @@
+{
+ "releve": "2026-08-31",
+ "seuils": {
+  "traitFin": 1,
+  "traitTresFin": 0.8,
+  "rapportBas": 1.75,
+  "rapportHaut": 2.3,
+  "renduBas": 0.85,
+  "hauteurGrande": 480,
+  "hauteurTresGrande": 640,
+  "plancherFort": 2,
+  "massePapier": 10,
+  "voile": 3,
+  "encrePale": 3
+ },
+ "gravures": [
+  {
+   "cle": "fillion-t07-p0059-i01",
+   "livre": "MAT",
+   "feuillet": 59,
+   "regime": "vignette",
+   "legende": "La hache au pied de l’arbre. (Peinture égyptienne.)",
+   "part": 44,
+   "affichage": "218×163",
+   "fichier": "435×325",
+   "kio": 34,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 5.811,
+    "voile": 0.712,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.493,
+    "renduTrait": 0.981,
+    "massePapier": 49.394
+   },
+   "defauts": [
+    {
+     "code": "legende_emportee",
+     "gravite": "bloquant",
+     "detail": "la légende imprimée est dans la découpe ET COUPÉE EN DEUX : on n’en lit que le haut des lettres",
+     "vu": true
+    },
+    {
+     "code": "bande_en_pied",
+     "gravite": "signale",
+     "detail": "une bande d’encre isolée, 1.8 % de la hauteur, ferme la découpe : légende imprimée, ou filet"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0143-i01",
+   "livre": "GEN",
+   "feuillet": 143,
+   "regime": "hors-texte",
+   "legende": "Trois figures botaniques légendées ; planche tournée.",
+   "part": 88,
+   "affichage": "440×297",
+   "fichier": "880×593",
+   "kio": 116,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.549,
+    "voile": 0.048,
+    "voileAlpha": 30,
+    "facteurPlancher": 1.1,
+    "traitAffiche": 0.843,
+    "renduTrait": 0.909,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×297 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.84 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.5 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0185-i01",
+   "livre": "GEN",
+   "feuillet": 185,
+   "regime": "hors-texte",
+   "legende": "Épi d'Égypte et trois figures égyptiennes légendées ; planche tournée.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 132,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.538,
+    "voile": 0.056,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.735,
+    "renduTrait": 0.96,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.74 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.5 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0201-i01",
+   "livre": "GEN",
+   "feuillet": 201,
+   "regime": "hors-texte",
+   "legende": "Série d'objets et figures de l'Égypte ancienne ; planche tournée.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 99,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.144,
+    "voile": 0.039,
+    "voileAlpha": 35,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.854,
+    "renduTrait": 0.94,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.85 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.1 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0215-i01",
+   "livre": "GEN",
+   "feuillet": 215,
+   "regime": "hors-texte",
+   "legende": "Quatre figures égyptiennes légendées ; planche tournée.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 116,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.388,
+    "voile": 0.012,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.709,
+    "renduTrait": 0.943,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.71 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.4 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0237-i01",
+   "livre": "EXO",
+   "feuillet": 237,
+   "regime": "hors-texte",
+   "legende": "Deux bas-reliefs égyptiens légendés ; planche tournée.",
+   "part": 88,
+   "affichage": "440×249",
+   "fichier": "880×498",
+   "kio": 132,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.847,
+    "voile": 0.028,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.464,
+    "renduTrait": 0.962,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.46 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×249 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.8 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0259-i01",
+   "livre": "EXO",
+   "feuillet": 259,
+   "regime": "hors-texte",
+   "legende": "Mobilier, objets, paysage et sauterelle d’Égypte ; planche tournée.",
+   "part": 88,
+   "affichage": "440×270",
+   "fichier": "880×539",
+   "kio": 129,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.849,
+    "voile": 0.058,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.988,
+    "renduTrait": 0.979,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×270 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.99 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.8 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0283-i01",
+   "livre": "EXO",
+   "feuillet": 283,
+   "regime": "hors-texte",
+   "legende": "Plantes d’Égypte légendées ; planche tournée.",
+   "part": 88,
+   "affichage": "440×273",
+   "fichier": "880×545",
+   "kio": 104,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.373,
+    "voile": 0.013,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.702,
+    "renduTrait": 0.908,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.70 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×273 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.4 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0357-i01",
+   "livre": "EXO",
+   "feuillet": 357,
+   "regime": "hors-texte",
+   "legende": "Objets, métiers et tabernacle égyptiens légendés ; planche tournée.",
+   "part": 88,
+   "affichage": "440×282",
+   "fichier": "880×564",
+   "kio": 167,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.921,
+    "voile": 0.031,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.77,
+    "renduTrait": 0.973,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.77 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×282 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.9 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0443-i01",
+   "livre": "LEV",
+   "feuillet": 443,
+   "regime": "hors-texte",
+   "legende": "Planche composite tournée : Moloch, bouc émissaire, pesage, reconnaissance et scènes militaires égyptiennes.",
+   "part": 88,
+   "affichage": "440×273",
+   "fichier": "880×545",
+   "kio": 96,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.57,
+    "voile": 0.021,
+    "voileAlpha": 34,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.729,
+    "renduTrait": 0.948,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.73 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×273 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.6 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0485-i01",
+   "livre": "NUM",
+   "feuillet": 485,
+   "regime": "hors-texte",
+   "legende": "Planche composite tournée : instruments de musique égyptiens, grenadier et autels à encens.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×551",
+   "kio": 113,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.164,
+    "voile": 0.009,
+    "voileAlpha": 31,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.557,
+    "renduTrait": 0.911,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.56 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.2 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0533-i01",
+   "livre": "NUM",
+   "feuillet": 533,
+   "regime": "hors-texte",
+   "legende": "Vue tournée du désert de Cadès, gravure d’après une photographie.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×551",
+   "kio": 138,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.726,
+    "voile": 0.062,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.644,
+    "renduTrait": 0.955,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.64 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.7 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0577-i01",
+   "livre": "NUM",
+   "feuillet": 577,
+   "regime": "hors-texte",
+   "legende": "Planche composite tournée : navire, vêtement sacré, prisonniers, troupeau et victimes antiques.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 122,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.121,
+    "voile": 0.004,
+    "voileAlpha": 30,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.539,
+    "renduTrait": 0.904,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "a_revoir",
+     "detail": "le trait mesure 0.54 px à l’arrivée : la hachure ne peut plus être rendue"
+    },
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.1 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0651-i01",
+   "livre": "DEU",
+   "feuillet": 651,
+   "regime": "hors-texte",
+   "legende": "Planche composite tournée : moisson, porte à verrous, aigle pêcheur et scorpion.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 116,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.695,
+    "voile": 0.024,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.93,
+    "renduTrait": 0.923,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.93 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.7 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0691-i01",
+   "livre": "DEU",
+   "feuillet": 691,
+   "regime": "hors-texte",
+   "legende": "Planche composite tournée : pleureuses conduites en captivité, scène de deuil, puits à balancelle et bastonnade.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 114,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.823,
+    "voile": 0.05,
+    "voileAlpha": 34,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.912,
+    "renduTrait": 0.949,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.91 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.8 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0707-i01",
+   "livre": "DEU",
+   "feuillet": 707,
+   "regime": "hors-texte",
+   "legende": "Vue tournée du mont Garizim.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 150,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.686,
+    "voile": 0.028,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.876,
+    "renduTrait": 0.944,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.88 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.7 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0417-i01",
+   "livre": "LUK",
+   "feuillet": 417,
+   "regime": "vignette",
+   "legende": "Oiseau de proie dévorant un cadavre. (Bas-relief assyrien.)",
+   "part": 46,
+   "affichage": "230×129",
+   "fichier": "460×258",
+   "kio": 29,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.891,
+    "voile": 1.365,
+    "voileAlpha": 4,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.581,
+    "renduTrait": 0.947,
+    "massePapier": 36.759
+   },
+   "defauts": [
+    {
+     "code": "filet_de_page",
+     "gravite": "a_revoir",
+     "detail": "un filet de colonne de la page court le long du bord droit, séparé du dessin par du papier vide",
+     "vu": true
+    },
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "46 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0418-i01",
+   "livre": "LUK",
+   "feuillet": 418,
+   "regime": "vignette",
+   "legende": "Oriental priant debout.",
+   "part": 47,
+   "affichage": "233×273",
+   "fichier": "467×548",
+   "kio": 33,
+   "mesures": {
+    "rapportServi": 2.004,
+    "encreVue": 2.809,
+    "voile": 0.316,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.323,
+    "renduTrait": 0.876,
+    "massePapier": 36.334
+   },
+   "defauts": [
+    {
+     "code": "filet_de_page",
+     "gravite": "a_revoir",
+     "detail": "un filet de colonne court le long du bord gauche, sur du papier vide",
+     "vu": true
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.8 % d’encre vue à la taille d’affichage"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "47 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0043-i01",
+   "livre": "GEN",
+   "feuillet": 43,
+   "regime": "hors-texte",
+   "legende": "Planche de quatre gravures légendées ; orientation droite.",
+   "part": 88,
+   "affichage": "440×718",
+   "fichier": "880×1436",
+   "kio": 324,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 2.974,
+    "voile": 0.076,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.877,
+    "renduTrait": 0.949,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "a_revoir",
+     "detail": "440×718 px : plus haute qu’un écran de portable"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "3.0 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0323-i01",
+   "livre": "EXO",
+   "feuillet": 323,
+   "regime": "hors-texte",
+   "legende": "Métiers, table des pains et scènes égyptiennes légendés ; planche pleine page.",
+   "part": 88,
+   "affichage": "440×679",
+   "fichier": "880×1358",
+   "kio": 244,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.358,
+    "voile": 0.04,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.217,
+    "renduTrait": 0.906,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "a_revoir",
+     "detail": "440×679 px : plus haute qu’un écran de portable"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.4 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0379-i01",
+   "livre": "LEV",
+   "feuillet": 379,
+   "regime": "hors-texte",
+   "legende": "Planche composite tournée : costumes et objets égyptiens, palmier, daman et chasse assyrienne.",
+   "part": 88,
+   "affichage": "440×273",
+   "fichier": "880×545",
+   "kio": 115,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 2.844,
+    "voile": 0.089,
+    "voileAlpha": 30,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.106,
+    "renduTrait": 0.951,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×273 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.8 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0405-i01",
+   "livre": "LEV",
+   "feuillet": 405,
+   "regime": "hors-texte",
+   "legende": "Planche tournée : animaux représentés sur des peintures funéraires de Thèbes.",
+   "part": 88,
+   "affichage": "440×270",
+   "fichier": "880×540",
+   "kio": 101,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 0.488,
+    "voile": 0.015,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.021,
+    "renduTrait": 0.939,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×270 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "0.5 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0515-i01",
+   "livre": "NUM",
+   "feuillet": 515,
+   "regime": "hors-texte",
+   "legende": "Vue tournée du désert du Sinaï, gravure d’après une photographie.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×551",
+   "kio": 139,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.969,
+    "voile": 0.062,
+    "voileAlpha": 36,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.028,
+    "renduTrait": 0.955,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.0 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0529-i01",
+   "livre": "NUM",
+   "feuillet": 529,
+   "regime": "hors-texte",
+   "legende": "Vue tournée du désert de Pharan, gravure d’après une photographie.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×551",
+   "kio": 156,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 1.887,
+    "voile": 0.058,
+    "voileAlpha": 36,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.037,
+    "renduTrait": 0.966,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "1.9 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0098-i01",
+   "livre": "MAT",
+   "feuillet": 98,
+   "regime": "vignette",
+   "legende": "Épi d’ivraie.",
+   "part": 36,
+   "affichage": "180×864",
+   "fichier": "349×1675",
+   "kio": 149,
+   "mesures": {
+    "rapportServi": 1.939,
+    "encreVue": 8.202,
+    "voile": 0.424,
+    "voileAlpha": 3,
+    "facteurPlancher": 2.533,
+    "traitAffiche": 5.973,
+    "renduTrait": 1.037,
+    "massePapier": 43.855
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "a_revoir",
+     "detail": "180×864 px : plus haute qu’un écran de portable"
+    },
+    {
+     "code": "agrandie_par_le_plancher",
+     "gravite": "signale",
+     "detail": "montrée 2.53 fois plus large que Fillion ne l’imprime : 14 % de sa page contre 36 % de la colonne"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0059-i01",
+   "livre": "GEN",
+   "feuillet": 59,
+   "regime": "hors-texte",
+   "legende": "Vue de l'Ararat ; planche tournée.",
+   "part": 88,
+   "affichage": "440×269",
+   "fichier": "880×538",
+   "kio": 189,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 3.009,
+    "voile": 0.097,
+    "voileAlpha": 38,
+    "facteurPlancher": 1.114,
+    "traitAffiche": 1.012,
+    "renduTrait": 1.04,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×269 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0071-i01",
+   "livre": "GEN",
+   "feuillet": 71,
+   "regime": "hors-texte",
+   "legende": "Ruines de Mugheir, l'antique Ur ; planche tournée.",
+   "part": 88,
+   "affichage": "440×287",
+   "fichier": "880×574",
+   "kio": 154,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.945,
+    "voile": 0.133,
+    "voileAlpha": 38,
+    "facteurPlancher": 1.173,
+    "traitAffiche": 1.995,
+    "renduTrait": 0.994,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×287 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0083-i01",
+   "livre": "GEN",
+   "feuillet": 83,
+   "regime": "hors-texte",
+   "legende": "Vue photographique de Damas ; planche tournée.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×552",
+   "kio": 218,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 31.566,
+    "voile": 0.846,
+    "voileAlpha": 33,
+    "facteurPlancher": 1.114,
+    "traitAffiche": 4.006,
+    "renduTrait": 1.029,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0111-i01",
+   "livre": "GEN",
+   "feuillet": 111,
+   "regime": "hors-texte",
+   "legende": "Scène de caravane orientale ; planche tournée.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×552",
+   "kio": 217,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 13.878,
+    "voile": 0.376,
+    "voileAlpha": 14,
+    "facteurPlancher": 1.114,
+    "traitAffiche": 2.031,
+    "renduTrait": 1.024,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0115-i01",
+   "livre": "GEN",
+   "feuillet": 115,
+   "regime": "hors-texte",
+   "legende": "Deux gravures archéologiques légendées, dont un groupe d'amphores et un chasseur égyptien.",
+   "part": 88,
+   "affichage": "440×970",
+   "fichier": "880×1940",
+   "kio": 316,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.544,
+    "voile": 0.167,
+    "voileAlpha": 6,
+    "facteurPlancher": 1.294,
+    "traitAffiche": 5.354,
+    "renduTrait": 0.949,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "a_revoir",
+     "detail": "440×970 px : plus haute qu’un écran de portable"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0135-i01",
+   "livre": "GEN",
+   "feuillet": 135,
+   "regime": "hors-texte",
+   "legende": "Vue photographique de paysage ; planche tournée.",
+   "part": 88,
+   "affichage": "440×290",
+   "fichier": "880×580",
+   "kio": 233,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.676,
+    "voile": 0.175,
+    "voileAlpha": 37,
+    "facteurPlancher": 1.114,
+    "traitAffiche": 2.037,
+    "renduTrait": 1.015,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×290 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0163-i01",
+   "livre": "GEN",
+   "feuillet": 163,
+   "regime": "hors-texte",
+   "legende": "Tombeau de Rachel près de Bethléem ; vue photographique tournée.",
+   "part": 88,
+   "affichage": "440×276",
+   "fichier": "880×552",
+   "kio": 217,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 13.31,
+    "voile": 0.381,
+    "voileAlpha": 38,
+    "facteurPlancher": 1.114,
+    "traitAffiche": 2.048,
+    "renduTrait": 1.031,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×276 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0225-i01",
+   "livre": "EXO",
+   "feuillet": 225,
+   "regime": "hors-texte",
+   "legende": "Momies et antiquités égyptiennes ; planche pleine page encadrée.",
+   "part": 88,
+   "affichage": "440×680",
+   "fichier": "880×1360",
+   "kio": 643,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.811,
+    "voile": 0.199,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.417,
+    "renduTrait": 1.01,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "a_revoir",
+     "detail": "440×680 px : plus haute qu’un écran de portable"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0291-i01",
+   "livre": "EXO",
+   "feuillet": 291,
+   "regime": "hors-texte",
+   "legende": "Mont Sinaï vu de la plaine d’Er-Raha ; gravure de paysage tournée.",
+   "part": 88,
+   "affichage": "440×240",
+   "fichier": "880×480",
+   "kio": 167,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 3.275,
+    "voile": 0.098,
+    "voileAlpha": 38,
+    "facteurPlancher": 1.048,
+    "traitAffiche": 1.571,
+    "renduTrait": 1.004,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×240 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0725-i01",
+   "livre": "DEU",
+   "feuillet": 725,
+   "regime": "hors-texte",
+   "legende": "Photographie tournée encadrée : vallée du Jourdain près de l’embouchure du Jaboc, en face du mont Sartabeh.",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×557",
+   "kio": 159,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.839,
+    "voile": 0.221,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.736,
+    "renduTrait": 1.01,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t01-p0741-i01",
+   "livre": "DEU",
+   "feuillet": 741,
+   "regime": "hors-texte",
+   "legende": "Photographie tournée encadrée du mont Nébo.",
+   "part": 88,
+   "affichage": "440×274",
+   "fichier": "880×548",
+   "kio": 229,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.698,
+    "voile": 0.185,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.489,
+    "renduTrait": 1.066,
+    "massePapier": null
+   },
+   "defauts": [
+    {
+     "code": "planche_tournee_trop_petite",
+     "gravite": "a_revoir",
+     "detail": "planche redressée, 440×274 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0055-i01",
+   "livre": "MAT",
+   "feuillet": 55,
+   "regime": "vignette",
+   "legende": "La teigne des étoffes, à l’état de larve et de papillon. (À droite, la larve grossie.)",
+   "part": 44,
+   "affichage": "219×200",
+   "fichier": "439×400",
+   "kio": 82,
+   "mesures": {
+    "rapportServi": 2.005,
+    "encreVue": 10.872,
+    "voile": 0.619,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.582,
+    "renduTrait": 1.148,
+    "massePapier": 26.645
+   },
+   "defauts": [
+    {
+     "code": "legende_emportee",
+     "gravite": "a_revoir",
+     "detail": "la légende imprimée est dans la découpe, sur deux lignes, et la page la recompose dessous : elle paraît deux fois",
+     "vu": true
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0064-i01",
+   "livre": "MAT",
+   "feuillet": 64,
+   "regime": "vignette",
+   "legende": "Barque de pêcheurs. (Antique peinture romaine.)",
+   "part": 48,
+   "affichage": "239×104",
+   "fichier": "477×207",
+   "kio": 18,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 2.909,
+    "voile": 0.475,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.745,
+    "renduTrait": 0.934,
+    "massePapier": 57.748
+   },
+   "defauts": [
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.9 % d’encre vue à la taille d’affichage"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "48 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    },
+    {
+     "code": "decoupe_serree",
+     "gravite": "signale",
+     "detail": "les avirons sortent du cadre à gauche : la découpe les coupe",
+     "vu": true
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0217-composite-proposal",
+   "livre": "MRK",
+   "feuillet": 217,
+   "regime": "vignette",
+   "legende": "On met le blé sur l’aire. (Peinture égyptienne.)",
+   "part": 50,
+   "affichage": "249×157",
+   "fichier": "493×310",
+   "kio": 30,
+   "mesures": {
+    "rapportServi": 1.98,
+    "encreVue": 4.901,
+    "voile": 0.99,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.841,
+    "renduTrait": 0.995,
+    "massePapier": 44.443
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "cle_hors_convention",
+     "gravite": "signale",
+     "detail": "la clé ne suit pas p<feuillet>-i<rang>, et elle voyage jusque dans le chemin de stockage"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "50 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0056-i01",
+   "livre": "MAT",
+   "feuillet": 56,
+   "regime": "vignette",
+   "legende": "Fileuse. (D’après un vase grec.)",
+   "part": 40,
+   "affichage": "202×204",
+   "fichier": "404×407",
+   "kio": 24,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 2.805,
+    "voile": 0.265,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.937,
+    "renduTrait": 0.92,
+    "massePapier": 31.46
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.94 px à l’arrivée"
+    },
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.8 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0168-i01",
+   "livre": "MAT",
+   "feuillet": 168,
+   "regime": "vignette",
+   "legende": "Jésus séparant les brebis et les boucs. (Ancien bas-relief.)",
+   "part": 87,
+   "affichage": "437×97",
+   "fichier": "874×194",
+   "kio": 88,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.056,
+    "voile": 3.612,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.039,
+    "renduTrait": 1.014,
+    "massePapier": 15.371
+   },
+   "defauts": [
+    {
+     "code": "voile",
+     "gravite": "signale",
+     "detail": "3.6 % de la surface tient sur l’alpha 3 : un fond plat subsiste"
+    },
+    {
+     "code": "bande_en_pied",
+     "gravite": "signale",
+     "detail": "une bande d’encre isolée, 1.0 % de la hauteur, ferme la découpe : légende imprimée, ou filet"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0179-i01",
+   "livre": "MAT",
+   "feuillet": 179,
+   "regime": "au-fil",
+   "legende": "Cour d’une maison de l’Orient.",
+   "part": 36,
+   "affichage": "180×153",
+   "fichier": "360×306",
+   "kio": 35,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.028,
+    "voile": 0.214,
+    "voileAlpha": 38,
+    "facteurPlancher": 1.006,
+    "traitAffiche": 3.165,
+    "renduTrait": 1.05,
+    "massePapier": 7.686
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords droite et haut : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "regime_force",
+     "gravite": "signale",
+     "detail": "régime forcé à « au-fil » : demi-teinte : trame de points visible à l’agrandissement, légende sans mention de procédé"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0225-i01",
+   "livre": "MRK",
+   "feuillet": 225,
+   "regime": "vignette",
+   "legende": "Scène de deuil auprès d’un mort. (Bas-relief grec.)",
+   "part": 56,
+   "affichage": "280×166",
+   "fichier": "555×329",
+   "kio": 56,
+   "mesures": {
+    "rapportServi": 1.982,
+    "encreVue": 7.767,
+    "voile": 1.018,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.607,
+    "renduTrait": 1.004,
+    "massePapier": 36.199
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0343-i01",
+   "livre": "LUK",
+   "feuillet": 343,
+   "regime": "vignette",
+   "legende": "Personnage drapé dans son manteau. (Ancienne mosaïque.)",
+   "part": 36,
+   "affichage": "180×487",
+   "fichier": "360×974",
+   "kio": 124,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.342,
+    "voile": 0.956,
+    "voileAlpha": 3,
+    "facteurPlancher": 2.074,
+    "traitAffiche": 3.322,
+    "renduTrait": 1.038,
+    "massePapier": 37.259
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "signale",
+     "detail": "180×487 px"
+    },
+    {
+     "code": "agrandie_par_le_plancher",
+     "gravite": "signale",
+     "detail": "montrée 2.07 fois plus large que Fillion ne l’imprime : 17 % de sa page contre 36 % de la colonne"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0344-i01",
+   "livre": "LUK",
+   "feuillet": 344,
+   "regime": "vignette",
+   "legende": "La mesure comble. (Peinture des Catacombes.)",
+   "part": 48,
+   "affichage": "241×141",
+   "fichier": "481×281",
+   "kio": 23,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 2.966,
+    "voile": 0.456,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.345,
+    "renduTrait": 0.957,
+    "massePapier": 39.224
+   },
+   "defauts": [
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "3.0 % d’encre vue à la taille d’affichage"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "48 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0351-i01",
+   "livre": "LUK",
+   "feuillet": 351,
+   "regime": "vignette",
+   "legende": "Génies à table. (Peinture antique.)",
+   "part": 51,
+   "affichage": "256×195",
+   "fichier": "512×390",
+   "kio": 61,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.159,
+    "voile": 0.649,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.67,
+    "renduTrait": 1.013,
+    "massePapier": 37.084
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords haut et bas : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "51 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0388-i01",
+   "livre": "LUK",
+   "feuillet": 388,
+   "regime": "vignette",
+   "legende": "Cellier. (Peinture égyptienne.)",
+   "part": 53,
+   "affichage": "267×178",
+   "fichier": "534×356",
+   "kio": 35,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.772,
+    "voile": 0.332,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.289,
+    "renduTrait": 0.918,
+    "massePapier": 45.138
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "53 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0389-i01",
+   "livre": "LUK",
+   "feuillet": 389,
+   "regime": "vignette",
+   "legende": "Four oriental. (Peinture égyptienne.)",
+   "part": 48,
+   "affichage": "238×152",
+   "fichier": "476×303",
+   "kio": 33,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.539,
+    "voile": 0.558,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.904,
+    "renduTrait": 1.029,
+    "massePapier": 41.553
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "48 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0395-i01",
+   "livre": "LUK",
+   "feuillet": 395,
+   "regime": "vignette",
+   "legende": "Ancienne écurie. (Monument sicilien.)",
+   "part": 55,
+   "affichage": "276×190",
+   "fichier": "551×379",
+   "kio": 90,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 6.899,
+    "voile": 1.07,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.843,
+    "renduTrait": 1.069,
+    "massePapier": 24.155
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et droite et haut : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "55 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0408-i01",
+   "livre": "LUK",
+   "feuillet": 408,
+   "regime": "vignette",
+   "legende": "On mesure la récolte d’huile. (D’après un vase peint.)",
+   "part": 46,
+   "affichage": "230×165",
+   "fichier": "459×329",
+   "kio": 27,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 2.598,
+    "voile": 0.509,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.121,
+    "renduTrait": 0.931,
+    "massePapier": 28.361
+   },
+   "defauts": [
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.6 % d’encre vue à la taille d’affichage"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "46 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0439-i01",
+   "livre": "LUK",
+   "feuillet": 439,
+   "regime": "vignette",
+   "legende": "Égyptiens portant des amphores. (Peinture de tombeau.)",
+   "part": 47,
+   "affichage": "235×188",
+   "fichier": "469×375",
+   "kio": 36,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 4.658,
+    "voile": 1.082,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.696,
+    "renduTrait": 0.97,
+    "massePapier": 40.52
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "47 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0443-i01",
+   "livre": "LUK",
+   "feuillet": 443,
+   "regime": "au-fil",
+   "legende": "Olivier de Gethsémani. (D’après une photographie.)",
+   "part": 56,
+   "affichage": "280×413",
+   "fichier": "560×825",
+   "kio": 159,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 31.224,
+    "voile": 0.771,
+    "voileAlpha": 23,
+    "facteurPlancher": 1,
+    "traitAffiche": 7.479,
+    "renduTrait": 1.023,
+    "massePapier": 5.887
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "regime_force",
+     "gravite": "signale",
+     "detail": "régime forcé à « au-fil » : demi-teinte : trame de points visible à l’agrandissement, légende sans mention de procédé"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0452-i01",
+   "livre": "LUK",
+   "feuillet": 452,
+   "regime": "vignette",
+   "legende": "Jésus en croix. (D’après un ancien ivoire.)",
+   "part": 56,
+   "affichage": "280×211",
+   "fichier": "560×422",
+   "kio": 71,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.073,
+    "voile": 0.582,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.134,
+    "renduTrait": 0.942,
+    "massePapier": 36.459
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord gauche : filet de page, ou cadre gravé incomplet — à regarder"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0458-i01",
+   "livre": "LUK",
+   "feuillet": 458,
+   "regime": "vignette",
+   "legende": "Jésus et les disciples d’Emmaüs. (Ancien ivoire.)",
+   "part": 56,
+   "affichage": "280×160",
+   "fichier": "560×320",
+   "kio": 54,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.46,
+    "voile": 0.694,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.976,
+    "renduTrait": 0.96,
+    "massePapier": 43.008
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.98 px à l’arrivée"
+    },
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0033-i01",
+   "livre": "MAT",
+   "feuillet": 33,
+   "regime": "au-fil",
+   "legende": "Nazareth. (D’après une photographie.)",
+   "part": 83,
+   "affichage": "413×234",
+   "fichier": "826×468",
+   "kio": 175,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 29.652,
+    "voile": 0.776,
+    "voileAlpha": 36,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.956,
+    "renduTrait": 0.985,
+    "massePapier": 6.833
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0037-i01",
+   "livre": "MAT",
+   "feuillet": 37,
+   "regime": "vignette",
+   "legende": "Égyptienne vannant du blé. (Ancienne peinture.)",
+   "part": 36,
+   "affichage": "180×227",
+   "fichier": "360×453",
+   "kio": 24,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.823,
+    "voile": 0.671,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.626,
+    "traitAffiche": 2.563,
+    "renduTrait": 0.951,
+    "massePapier": 44.915
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0044-i01",
+   "livre": "MAT",
+   "feuillet": 44,
+   "regime": "au-fil",
+   "legende": "La montagne des Béatitudes. (D’après une photographie.)",
+   "part": 84,
+   "affichage": "418×248",
+   "fichier": "835×496",
+   "kio": 214,
+   "mesures": {
+    "rapportServi": 1.998,
+    "encreVue": 11.819,
+    "voile": 0.356,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.406,
+    "renduTrait": 1.016,
+    "massePapier": 5.671
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0054-i01",
+   "livre": "MAT",
+   "feuillet": 54,
+   "regime": "vignette",
+   "legende": "Esclave égyptien parfumant la tête de son maître. (Peinture de tombeau.)",
+   "part": 36,
+   "affichage": "180×208",
+   "fichier": "360×415",
+   "kio": 21,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.342,
+    "voile": 0.296,
+    "voileAlpha": 4,
+    "facteurPlancher": 1.33,
+    "traitAffiche": 1.794,
+    "renduTrait": 0.948,
+    "massePapier": 25.334
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0066-i01",
+   "livre": "MAT",
+   "feuillet": 66,
+   "regime": "au-fil",
+   "legende": "Gérasa. (D’après une photographie.)",
+   "part": 81,
+   "affichage": "407×280",
+   "fichier": "814×560",
+   "kio": 239,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 10.111,
+    "voile": 0.279,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.274,
+    "renduTrait": 1.263,
+    "massePapier": 7.049
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0072-i01",
+   "livre": "MAT",
+   "feuillet": 72,
+   "regime": "vignette",
+   "legende": "Guérison de deux aveugles. (Bas-relief d’un sarcophage.)",
+   "part": 36,
+   "affichage": "180×234",
+   "fichier": "360×467",
+   "kio": 47,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.415,
+    "voile": 0.814,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.351,
+    "traitAffiche": 1.547,
+    "renduTrait": 0.961,
+    "massePapier": 35.301
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord haut : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0078-i01",
+   "livre": "MAT",
+   "feuillet": 78,
+   "regime": "vignette",
+   "legende": "As romain.",
+   "part": 56,
+   "affichage": "279×125",
+   "fichier": "558×249",
+   "kio": 44,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.738,
+    "voile": 0.7,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.455,
+    "renduTrait": 0.994,
+    "massePapier": 32.119
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0085-i01",
+   "livre": "MAT",
+   "feuillet": 85,
+   "regime": "au-fil",
+   "legende": "Ruines de Corozaïn. (D’après une photographie.)",
+   "part": 72,
+   "affichage": "358×214",
+   "fichier": "716×427",
+   "kio": 137,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 55.075,
+    "voile": 1.667,
+    "voileAlpha": 13,
+    "facteurPlancher": 1,
+    "traitAffiche": 7.907,
+    "renduTrait": 0.961,
+    "massePapier": 2.909
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et droite et bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0087-i01",
+   "livre": "MAT",
+   "feuillet": 87,
+   "regime": "vignette",
+   "legende": "Pains sur une table d’offrandes. (Peinture égyptienne.)",
+   "part": 36,
+   "affichage": "180×237",
+   "fichier": "360×473",
+   "kio": 29,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.954,
+    "voile": 0.381,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.226,
+    "traitAffiche": 2.866,
+    "renduTrait": 0.981,
+    "massePapier": 48.461
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0092-i01",
+   "livre": "MAT",
+   "feuillet": 92,
+   "regime": "vignette",
+   "legende": "Le « poisson de Jonas » (le requin).",
+   "part": 80,
+   "affichage": "400×135",
+   "fichier": "800×269",
+   "kio": 70,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.159,
+    "voile": 3.073,
+    "voileAlpha": 7,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.216,
+    "renduTrait": 1.044,
+    "massePapier": 28.951
+   },
+   "defauts": [
+    {
+     "code": "voile",
+     "gravite": "signale",
+     "detail": "3.1 % de la surface tient sur l’alpha 7 : un fond plat subsiste"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0107-i01",
+   "livre": "MAT",
+   "feuillet": 107,
+   "regime": "au-fil",
+   "legende": "La plaine de Génésareth. (D’après une photographie.)",
+   "part": 69,
+   "affichage": "346×212",
+   "fichier": "691×423",
+   "kio": 126,
+   "mesures": {
+    "rapportServi": 1.997,
+    "encreVue": 26.425,
+    "voile": 0.748,
+    "voileAlpha": 6,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.293,
+    "renduTrait": 1.023,
+    "massePapier": 4.435
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0116-i01",
+   "livre": "MAT",
+   "feuillet": 116,
+   "regime": "au-fil",
+   "legende": "Source du Jourdain, à Banias. (D’après une photographie.)",
+   "part": 79,
+   "affichage": "395×266",
+   "fichier": "789×532",
+   "kio": 224,
+   "mesures": {
+    "rapportServi": 1.997,
+    "encreVue": 24.026,
+    "voile": 0.626,
+    "voileAlpha": 26,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.9,
+    "renduTrait": 1.015,
+    "massePapier": 5.334
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0124-i01",
+   "livre": "MAT",
+   "feuillet": 124,
+   "regime": "vignette",
+   "legende": "Tétradrachme ou statère.",
+   "part": 51,
+   "affichage": "255×118",
+   "fichier": "511×236",
+   "kio": 48,
+   "mesures": {
+    "rapportServi": 2.004,
+    "encreVue": 8.877,
+    "voile": 1.981,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.843,
+    "renduTrait": 1.013,
+    "massePapier": 26.958
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "51 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0139-i01",
+   "livre": "MAT",
+   "feuillet": 139,
+   "regime": "vignette",
+   "legende": "L’entrée triomphale à Jérusalem. (Sculpture ancienne.)",
+   "part": 44,
+   "affichage": "222×174",
+   "fichier": "444×348",
+   "kio": 82,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.465,
+    "voile": 1.248,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.867,
+    "renduTrait": 1.039,
+    "massePapier": 17.784
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords haut et bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0141-i01",
+   "livre": "MAT",
+   "feuillet": 141,
+   "regime": "vignette",
+   "legende": "Changeur assis auprès de sa table. (Antique bas-relief.)",
+   "part": 45,
+   "affichage": "225×146",
+   "fichier": "451×293",
+   "kio": 31,
+   "mesures": {
+    "rapportServi": 2.004,
+    "encreVue": 5.775,
+    "voile": 0.855,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.683,
+    "renduTrait": 1.009,
+    "massePapier": 41.718
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "45 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0152-i01",
+   "livre": "MAT",
+   "feuillet": 152,
+   "regime": "vignette",
+   "legende": "Phylactères de la tête (à gauche) et du bras (à droite).",
+   "part": 55,
+   "affichage": "277×144",
+   "fichier": "555×288",
+   "kio": 56,
+   "mesures": {
+    "rapportServi": 2.004,
+    "encreVue": 9.401,
+    "voile": 1.457,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.919,
+    "renduTrait": 1.031,
+    "massePapier": 28.984
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "55 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0154-i02",
+   "livre": "MAT",
+   "feuillet": 154,
+   "regime": "vignette",
+   "legende": "Passoire à filtrer le vin. (Bronze antique.)",
+   "part": 44,
+   "affichage": "220×71",
+   "fichier": "438×142",
+   "kio": 16,
+   "mesures": {
+    "rapportServi": 1.991,
+    "encreVue": 4.622,
+    "voile": 3.246,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.566,
+    "renduTrait": 0.987,
+    "massePapier": 30.846
+   },
+   "defauts": [
+    {
+     "code": "voile",
+     "gravite": "signale",
+     "detail": "3.2 % de la surface tient sur l’alpha 3 : un fond plat subsiste"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0163-i01",
+   "livre": "MAT",
+   "feuillet": 163,
+   "regime": "vignette",
+   "legende": "Femmes syriennes occupées à moudre. (D’après une photographie.)",
+   "part": 56,
+   "affichage": "280×157",
+   "fichier": "560×313",
+   "kio": 64,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.388,
+    "voile": 0.668,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.026,
+    "renduTrait": 1.079,
+    "massePapier": 32.567
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0173-i01",
+   "livre": "MAT",
+   "feuillet": 173,
+   "regime": "vignette",
+   "legende": "Repas. (Scène de l’Orient moderne.)",
+   "part": 51,
+   "affichage": "254×147",
+   "fichier": "507×294",
+   "kio": 57,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 7.748,
+    "voile": 1.267,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.245,
+    "renduTrait": 1.032,
+    "massePapier": 31.559
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "51 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0177-i01",
+   "livre": "MAT",
+   "feuillet": 177,
+   "regime": "vignette",
+   "legende": "Le baiser de Judas. (D’après une ancienne mosaïque.)",
+   "part": 56,
+   "affichage": "280×184",
+   "fichier": "560×367",
+   "kio": 63,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.679,
+    "voile": 1.054,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.693,
+    "renduTrait": 0.977,
+    "massePapier": 37.921
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0187-i01",
+   "livre": "MAT",
+   "feuillet": 187,
+   "regime": "vignette",
+   "legende": "Tablette à inscription. (Bas-relief de l’arc de triomphe de Titus.)",
+   "part": 36,
+   "affichage": "180×249",
+   "fichier": "360×498",
+   "kio": 44,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.033,
+    "voile": 4.922,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.762,
+    "traitAffiche": 3.555,
+    "renduTrait": 1.031,
+    "massePapier": 31.705
+   },
+   "defauts": [
+    {
+     "code": "voile",
+     "gravite": "signale",
+     "detail": "4.9 % de la surface tient sur l’alpha 3 : un fond plat subsiste"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0192-i01",
+   "livre": "MAT",
+   "feuillet": 192,
+   "regime": "vignette",
+   "legende": "Scènes de la résurrection de Jésus. (Sarcophage de Milan.)",
+   "part": 36,
+   "affichage": "180×139",
+   "fichier": "360×278",
+   "kio": 37,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.327,
+    "voile": 0.783,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.046,
+    "traitAffiche": 0.986,
+    "renduTrait": 0.973,
+    "massePapier": 22.247
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.99 px à l’arrivée"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0194-i01",
+   "livre": "MAT",
+   "feuillet": 194,
+   "regime": "vignette",
+   "legende": null,
+   "part": 67,
+   "affichage": "333×84",
+   "fichier": "666×167",
+   "kio": 26,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 11.436,
+    "voile": 0.229,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.976,
+    "renduTrait": 0.919,
+    "massePapier": 20.753
+   },
+   "defauts": [
+    {
+     "code": "sans_legende",
+     "gravite": "signale",
+     "detail": "aucune légende, ni imprimée ni éditoriale"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0202-i01",
+   "livre": "MRK",
+   "feuillet": 202,
+   "regime": "au-fil",
+   "legende": "Le Jourdain, à l’endroit présumé où saint Jean baptisait. (D’après une photographie.)",
+   "part": 69,
+   "affichage": "344×213",
+   "fichier": "689×427",
+   "kio": 165,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 15.792,
+    "voile": 0.521,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.572,
+    "renduTrait": 0.986,
+    "massePapier": 4.974
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0212-i01",
+   "livre": "MRK",
+   "feuillet": 212,
+   "regime": "au-fil",
+   "legende": "Restes de la synagogue de Kefr Bir’im. (D’après une photographie.)",
+   "part": 85,
+   "affichage": "423×295",
+   "fichier": "847×591",
+   "kio": 260,
+   "mesures": {
+    "rapportServi": 2.002,
+    "encreVue": 29.185,
+    "voile": 0.752,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.458,
+    "renduTrait": 0.985,
+    "massePapier": 3.721
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0213-i01",
+   "livre": "MRK",
+   "feuillet": 213,
+   "regime": "vignette",
+   "legende": "Jésus dans une barque avec les quatre évangélistes. (Bas-relief d’un tombeau.)",
+   "part": 45,
+   "affichage": "227×117",
+   "fichier": "448×230",
+   "kio": 33,
+   "mesures": {
+    "rapportServi": 1.974,
+    "encreVue": 6.8,
+    "voile": 1.137,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.911,
+    "renduTrait": 1.015,
+    "massePapier": 37.799
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "45 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0221-i01",
+   "livre": "MRK",
+   "feuillet": 221,
+   "regime": "vignette",
+   "legende": "Guérison d’un démoniaque. (D’après un ancien ivoire.)",
+   "part": 36,
+   "affichage": "180×224",
+   "fichier": "354×441",
+   "kio": 59,
+   "mesures": {
+    "rapportServi": 1.967,
+    "encreVue": 7.031,
+    "voile": 1.215,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.03,
+    "traitAffiche": 1.573,
+    "renduTrait": 1.023,
+    "massePapier": 29.981
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord haut : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0227-i01",
+   "livre": "MRK",
+   "feuillet": 227,
+   "regime": "vignette",
+   "legende": "Charpentier au travail. (D’après un vase antique.)",
+   "part": 36,
+   "affichage": "180×208",
+   "fichier": "355×410",
+   "kio": 21,
+   "mesures": {
+    "rapportServi": 1.972,
+    "encreVue": 3.643,
+    "voile": 0.783,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.063,
+    "traitAffiche": 2.252,
+    "renduTrait": 0.958,
+    "massePapier": 41.197
+   },
+   "defauts": [
+    {
+     "code": "bande_en_pied",
+     "gravite": "signale",
+     "detail": "une bande d’encre isolée, 0.5 % de la hauteur, ferme la découpe : légende imprimée, ou filet"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0305-i01",
+   "livre": "LUK",
+   "feuillet": 305,
+   "regime": "au-fil",
+   "legende": "Le couvent dit de Saint-Jean, à Aïn-Karim. (D’après une photographie.)",
+   "part": 80,
+   "affichage": "401×251",
+   "fichier": "803×502",
+   "kio": 169,
+   "mesures": {
+    "rapportServi": 2.002,
+    "encreVue": 21.755,
+    "voile": 0.579,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.791,
+    "renduTrait": 0.981,
+    "massePapier": 15.452
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0309-i01",
+   "livre": "LUK",
+   "feuillet": 309,
+   "regime": "au-fil",
+   "legende": "Intérieur de l’église la Nativité, à Bethléem.",
+   "part": 80,
+   "affichage": "397×290",
+   "fichier": "795×580",
+   "kio": 174,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 32.962,
+    "voile": 0.868,
+    "voileAlpha": 17,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.796,
+    "renduTrait": 1.033,
+    "massePapier": 3.572
+   },
+   "defauts": [
+    {
+     "code": "regime_force",
+     "gravite": "signale",
+     "detail": "régime forcé à « au-fil » : demi-teinte : trame de points visible à l’agrandissement, légende sans mention de procédé"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0310-i01",
+   "livre": "LUK",
+   "feuillet": 310,
+   "regime": "vignette",
+   "legende": "Les bergers à la crèche. (Ancien bas-relief.)",
+   "part": 39,
+   "affichage": "195×140",
+   "fichier": "390×280",
+   "kio": 34,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.821,
+    "voile": 0.571,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.508,
+    "renduTrait": 0.958,
+    "massePapier": 26.483
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord haut : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0321-i02",
+   "livre": "LUK",
+   "feuillet": 321,
+   "regime": "vignette",
+   "legende": "Paysan romain occupé à vanner. (Peinture antique.)",
+   "part": 48,
+   "affichage": "240×170",
+   "fichier": "446×316",
+   "kio": 21,
+   "mesures": {
+    "rapportServi": 1.858,
+    "encreVue": 4.635,
+    "voile": 0.574,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.496,
+    "renduTrait": 1.01,
+    "massePapier": 51.092
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "48 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0322-i01",
+   "livre": "LUK",
+   "feuillet": 322,
+   "regime": "vignette",
+   "legende": "Baptême de Jésus. (Ancienne mosaïque.)",
+   "part": 44,
+   "affichage": "220×214",
+   "fichier": "432×420",
+   "kio": 30,
+   "mesures": {
+    "rapportServi": 1.964,
+    "encreVue": 2.651,
+    "voile": 0.59,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.363,
+    "renduTrait": 0.978,
+    "massePapier": 27.01
+   },
+   "defauts": [
+    {
+     "code": "trop_pale",
+     "gravite": "signale",
+     "detail": "2.7 % d’encre vue à la taille d’affichage"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0326-i01",
+   "livre": "LUK",
+   "feuillet": 326,
+   "regime": "au-fil",
+   "legende": "La montagne de la Quarantaine. (D’après une photographie.)",
+   "part": 82,
+   "affichage": "410×241",
+   "fichier": "820×482",
+   "kio": 196,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 39.328,
+    "voile": 0.994,
+    "voileAlpha": 17,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.055,
+    "renduTrait": 0.975,
+    "massePapier": 4.715
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0333-i01",
+   "livre": "LUK",
+   "feuillet": 333,
+   "regime": "vignette",
+   "legende": "Barque du lac de Tibériade. (D’après une photographie.)",
+   "part": 47,
+   "affichage": "233×238",
+   "fichier": "466×476",
+   "kio": 68,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.721,
+    "voile": 0.819,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.167,
+    "renduTrait": 1.081,
+    "massePapier": 42.02
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "47 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0349-i01",
+   "livre": "LUK",
+   "feuillet": 349,
+   "regime": "vignette",
+   "legende": "Joueur de flûte. (Antique bas-relief.)",
+   "part": 36,
+   "affichage": "180×404",
+   "fichier": "360×807",
+   "kio": 75,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.331,
+    "voile": 0.888,
+    "voileAlpha": 3,
+    "facteurPlancher": 2.366,
+    "traitAffiche": 4.562,
+    "renduTrait": 0.995,
+    "massePapier": 30.328
+   },
+   "defauts": [
+    {
+     "code": "agrandie_par_le_plancher",
+     "gravite": "signale",
+     "detail": "montrée 2.37 fois plus large que Fillion ne l’imprime : 15 % de sa page contre 36 % de la colonne"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0354-i01",
+   "livre": "LUK",
+   "feuillet": 354,
+   "regime": "au-fil",
+   "legende": "Magdala. (D’après une photographie.)",
+   "part": 67,
+   "affichage": "335×194",
+   "fichier": "671×388",
+   "kio": 144,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 22.022,
+    "voile": 0.689,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.816,
+    "renduTrait": 1.012,
+    "massePapier": 4.029
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0357-i01",
+   "livre": "LUK",
+   "feuillet": 357,
+   "regime": "vignette",
+   "legende": "Prisonnier ayant les mains et les pieds enchaînés. (Bas-relief de Ninive.)",
+   "part": 36,
+   "affichage": "180×421",
+   "fichier": "360×841",
+   "kio": 88,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.054,
+    "voile": 0.808,
+    "voileAlpha": 3,
+    "facteurPlancher": 2.25,
+    "traitAffiche": 5.424,
+    "renduTrait": 1.029,
+    "massePapier": 38.67
+   },
+   "defauts": [
+    {
+     "code": "agrandie_par_le_plancher",
+     "gravite": "signale",
+     "detail": "montrée 2.25 fois plus large que Fillion ne l’imprime : 16 % de sa page contre 36 % de la colonne"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0359-i01",
+   "livre": "LUK",
+   "feuillet": 359,
+   "regime": "vignette",
+   "legende": "Guérison de l’hémorroïsse. (Ancien bas-relief.)",
+   "part": 36,
+   "affichage": "180×244",
+   "fichier": "360×487",
+   "kio": 55,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.207,
+    "voile": 1.195,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.169,
+    "traitAffiche": 1.955,
+    "renduTrait": 1.017,
+    "massePapier": 41.497
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0376-i01",
+   "livre": "LUK",
+   "feuillet": 376,
+   "regime": "vignette",
+   "legende": "Voyageur réglant ses comptes avant de quitter l’hôtellerie. (D’après un monument romain.)",
+   "part": 54,
+   "affichage": "269×133",
+   "fichier": "539×266",
+   "kio": 20,
+   "mesures": {
+    "rapportServi": 2.004,
+    "encreVue": 3.217,
+    "voile": 0.341,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.372,
+    "renduTrait": 0.953,
+    "massePapier": 55.161
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "54 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0383-i01",
+   "livre": "LUK",
+   "feuillet": 383,
+   "regime": "vignette",
+   "legende": "Le cumin. (Voyez saint Matth., XXIII, 23.)",
+   "part": 46,
+   "affichage": "230×316",
+   "fichier": "460×631",
+   "kio": 60,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.354,
+    "voile": 0.826,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.975,
+    "renduTrait": 0.982,
+    "massePapier": 33.854
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "46 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0386-i01",
+   "livre": "LUK",
+   "feuillet": 386,
+   "regime": "vignette",
+   "legende": "Marchand d’oiseaux. (Palestine moderne.)",
+   "part": 47,
+   "affichage": "235×208",
+   "fichier": "469×415",
+   "kio": 111,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 17.16,
+    "voile": 0.685,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.368,
+    "renduTrait": 1.044,
+    "massePapier": 15.315
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "47 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0399-i01",
+   "livre": "LUK",
+   "feuillet": 399,
+   "regime": "vignette",
+   "legende": "Un festin. (D’après une peinture grecque.)",
+   "part": 56,
+   "affichage": "279×127",
+   "fichier": "558×254",
+   "kio": 51,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.873,
+    "voile": 0.621,
+    "voileAlpha": 4,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.111,
+    "renduTrait": 1.033,
+    "massePapier": 33.18
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "56 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0402-i01",
+   "livre": "LUK",
+   "feuillet": 402,
+   "regime": "vignette",
+   "legende": "Bataillon d’infanterie héthéenne. (Peinture égyptienne.)",
+   "part": 40,
+   "affichage": "202×203",
+   "fichier": "404×406",
+   "kio": 52,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.151,
+    "voile": 0.449,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 0.861,
+    "renduTrait": 0.957,
+    "massePapier": 24.419
+   },
+   "defauts": [
+    {
+     "code": "trait_sous_le_pixel",
+     "gravite": "signale",
+     "detail": "le trait mesure 0.86 px à l’arrivée"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0403-i01",
+   "livre": "LUK",
+   "feuillet": 403,
+   "regime": "vignette",
+   "legende": "Statuette antique représentant le bon Pasteur. (Musée de Latran, à Rome.)",
+   "part": 36,
+   "affichage": "180×457",
+   "fichier": "360×913",
+   "kio": 114,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.92,
+    "voile": 1.143,
+    "voileAlpha": 3,
+    "facteurPlancher": 2.049,
+    "traitAffiche": 4.136,
+    "renduTrait": 1.046,
+    "massePapier": 33.282
+   },
+   "defauts": [
+    {
+     "code": "agrandie_par_le_plancher",
+     "gravite": "signale",
+     "detail": "montrée 2.05 fois plus large que Fillion ne l’imprime : 18 % de sa page contre 36 % de la colonne"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0424-i01",
+   "livre": "LUK",
+   "feuillet": 424,
+   "regime": "vignette",
+   "legende": "Personnage qui tient un mouchoir à la main. (Statue romaine.)",
+   "part": 36,
+   "affichage": "180×235",
+   "fichier": "360×469",
+   "kio": 63,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 14.406,
+    "voile": 1.406,
+    "voileAlpha": 3,
+    "facteurPlancher": 2.074,
+    "traitAffiche": 2.459,
+    "renduTrait": 1,
+    "massePapier": 26.61
+   },
+   "defauts": [
+    {
+     "code": "agrandie_par_le_plancher",
+     "gravite": "signale",
+     "detail": "montrée 2.07 fois plus large que Fillion ne l’imprime : 17 % de sa page contre 36 % de la colonne"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0434-i01",
+   "livre": "LUK",
+   "feuillet": 434,
+   "regime": "au-fil",
+   "legende": "Mur de Jérusalem auprès duquel les Juifs vont pleurer tous les vendredis. (D’après une photographie.)",
+   "part": 73,
+   "affichage": "367×220",
+   "fichier": "735×441",
+   "kio": 193,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 30.529,
+    "voile": 0.85,
+    "voileAlpha": 36,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.431,
+    "renduTrait": 0.962,
+    "massePapier": 2.73
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0436-i01",
+   "livre": "LUK",
+   "feuillet": 436,
+   "regime": "vignette",
+   "legende": "Soldats assiégeant une ville. (Bas-relief romain.)",
+   "part": 46,
+   "affichage": "228×149",
+   "fichier": "456×298",
+   "kio": 68,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.832,
+    "voile": 0.568,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.372,
+    "renduTrait": 1.019,
+    "massePapier": 21.354
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "46 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0446-i01",
+   "livre": "LUK",
+   "feuillet": 446,
+   "regime": "vignette",
+   "legende": "Reniement de saint Pierre. (Fresque ancienne.)",
+   "part": 37,
+   "affichage": "186×176",
+   "fichier": "372×351",
+   "kio": 29,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.393,
+    "voile": 0.437,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.101,
+    "renduTrait": 0.931,
+    "massePapier": 43.153
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et haut : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0449-i01",
+   "livre": "LUK",
+   "feuillet": 449,
+   "regime": "vignette",
+   "legende": "Ancien bas-relief, représentant plusieurs scènes de la Passion.",
+   "part": 39,
+   "affichage": "196×516",
+   "fichier": "391×1030",
+   "kio": 253,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 14.461,
+    "voile": 1.297,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.572,
+    "renduTrait": 1.056,
+    "massePapier": 10.406
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "signale",
+     "detail": "196×516 px"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0453-i01",
+   "livre": "LUK",
+   "feuillet": 453,
+   "regime": "vignette",
+   "legende": "Plan de l’intérieur du temple de Jérusalem. (1, l’arche d’alliance ; 2, la place du voile ; 3, l’autel des parfums ; 4, le chandelier à sept branches ; 5, la table des pains de proposition.)",
+   "part": 36,
+   "affichage": "180×354",
+   "fichier": "360×708",
+   "kio": 91,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.444,
+    "voile": 0.684,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.105,
+    "traitAffiche": 2.273,
+    "renduTrait": 1.096,
+    "massePapier": 31.67
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0461-i01",
+   "livre": "LUK",
+   "feuillet": 461,
+   "regime": "vignette",
+   "legende": "Abeilles de Palestine.",
+   "part": 48,
+   "affichage": "241×244",
+   "fichier": "481×486",
+   "kio": 43,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 6.173,
+    "voile": 0.5,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.161,
+    "renduTrait": 1.011,
+    "massePapier": 49.319
+   },
+   "defauts": [
+    {
+     "code": "trop_large_pour_habiller",
+     "gravite": "signale",
+     "detail": "48 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0462-i01",
+   "livre": "LUK",
+   "feuillet": 462,
+   "regime": "vignette",
+   "legende": null,
+   "part": 77,
+   "affichage": "385×97",
+   "fichier": "770×193",
+   "kio": 58,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 18.661,
+    "voile": 0.411,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.014,
+    "renduTrait": 0.996,
+    "massePapier": 17.851
+   },
+   "defauts": [
+    {
+     "code": "sans_legende",
+     "gravite": "signale",
+     "detail": "aucune légende, ni imprimée ni éditoriale"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0479-i01",
+   "livre": "JHN",
+   "feuillet": 479,
+   "regime": "vignette",
+   "legende": "Plan du temple d’Hérode. (D’après M. de Vogüé.)",
+   "part": 74,
+   "affichage": "370×283",
+   "fichier": "741×567",
+   "kio": 120,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 5.862,
+    "voile": 1.003,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.456,
+    "renduTrait": 1.037,
+    "massePapier": 28.948
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0490-i01",
+   "livre": "JHN",
+   "feuillet": 490,
+   "regime": "vignette",
+   "legende": "Ruines du temple des Samaritains, au sommet du mont Garizim.",
+   "part": 81,
+   "affichage": "405×239",
+   "fichier": "809×478",
+   "kio": 175,
+   "mesures": {
+    "rapportServi": 1.998,
+    "encreVue": 8.712,
+    "voile": 2.195,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.66,
+    "renduTrait": 1.002,
+    "massePapier": 20.666
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et droite : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0491-i01",
+   "livre": "JHN",
+   "feuillet": 491,
+   "regime": "au-fil",
+   "legende": "Le mont Garizim. (D’après une photographie.)",
+   "part": 85,
+   "affichage": "423×281",
+   "fichier": "846×561",
+   "kio": 205,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 19.71,
+    "voile": 0.55,
+    "voileAlpha": 40,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.551,
+    "renduTrait": 1.031,
+    "massePapier": 5.132
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0493-i01",
+   "livre": "JHN",
+   "feuillet": 493,
+   "regime": "vignette",
+   "legende": "Femme de Palestine portant une amphore. (Photographie.)",
+   "part": 36,
+   "affichage": "180×595",
+   "fichier": "360×1189",
+   "kio": 143,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.366,
+    "voile": 0.641,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.57,
+    "traitAffiche": 4.454,
+    "renduTrait": 1.091,
+    "massePapier": 36.711
+   },
+   "defauts": [
+    {
+     "code": "trop_haute",
+     "gravite": "signale",
+     "detail": "180×595 px"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0497-i01",
+   "livre": "JHN",
+   "feuillet": 497,
+   "regime": "au-fil",
+   "legende": "Le Birket Israïn, que divers auteurs identifient avec la piscine de Bethsaïda. (D’après une photographie.)",
+   "part": 82,
+   "affichage": "409×270",
+   "fichier": "817×540",
+   "kio": 198,
+   "mesures": {
+    "rapportServi": 1.998,
+    "encreVue": 28.775,
+    "voile": 0.762,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.889,
+    "renduTrait": 0.987,
+    "massePapier": 4.431
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0507-i01",
+   "livre": "JHN",
+   "feuillet": 507,
+   "regime": "au-fil",
+   "legende": "Tibériade. (D’après une photographie",
+   "part": 88,
+   "affichage": "440×279",
+   "fichier": "880×558",
+   "kio": 222,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 25.671,
+    "voile": 0.688,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.341,
+    "renduTrait": 1.029,
+    "massePapier": 5.235
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe les bords gauche et droite et haut : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0564-i01",
+   "livre": "JHN",
+   "feuillet": 564,
+   "regime": "vignette",
+   "legende": "Représentation allégorique du ciel. (Peinture des Catacombes.)",
+   "part": 38,
+   "affichage": "192×191",
+   "fichier": "384×382",
+   "kio": 34,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.832,
+    "voile": 0.333,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.138,
+    "renduTrait": 0.925,
+    "massePapier": 26.128
+   },
+   "defauts": [
+    {
+     "code": "filet_de_bord",
+     "gravite": "signale",
+     "detail": "une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder"
+    }
+   ]
+  },
+  {
+   "cle": "fillion-t07-p0025-i01",
+   "livre": "MAT",
+   "feuillet": 25,
+   "regime": "vignette",
+   "legende": "Marie et l’Enfant Jésus. (D’après une gemme antique.)",
+   "part": 36,
+   "affichage": "180×277",
+   "fichier": "360×553",
+   "kio": 57,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.461,
+    "voile": 1.115,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.853,
+    "traitAffiche": 3.154,
+    "renduTrait": 1.021,
+    "massePapier": 45.596
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0029-i01",
+   "livre": "MAT",
+   "feuillet": 29,
+   "regime": "vignette",
+   "legende": "Les Mages devant Hérode. (Peinture des Catacombes.)",
+   "part": 36,
+   "affichage": "180×150",
+   "fichier": "360×300",
+   "kio": 27,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.507,
+    "voile": 0.811,
+    "voileAlpha": 4,
+    "facteurPlancher": 1.077,
+    "traitAffiche": 1.635,
+    "renduTrait": 0.952,
+    "massePapier": 34.379
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0031-i01",
+   "livre": "MAT",
+   "feuillet": 31,
+   "regime": "vignette",
+   "legende": "Massacre des saints Innocents. (D’après un ivoire du Vᵉ siècle.)",
+   "part": 66,
+   "affichage": "329×132",
+   "fichier": "659×265",
+   "kio": 59,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 6.457,
+    "voile": 1.059,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.869,
+    "renduTrait": 1.002,
+    "massePapier": 30.882
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0032-i01",
+   "livre": "MAT",
+   "feuillet": 32,
+   "regime": "vignette",
+   "legende": "Monnaie d’Hérode Archélaüs.",
+   "part": 36,
+   "affichage": "180×84",
+   "fichier": "360×168",
+   "kio": 20,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 11.323,
+    "voile": 0.608,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.159,
+    "traitAffiche": 1.577,
+    "renduTrait": 0.958,
+    "massePapier": 25.71
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0041-i01",
+   "livre": "MAT",
+   "feuillet": 41,
+   "regime": "vignette",
+   "legende": "Pêcheur du lac de Tibériade jetant son filet. (D’après une photographie.)",
+   "part": 43,
+   "affichage": "215×146",
+   "fichier": "431×293",
+   "kio": 50,
+   "mesures": {
+    "rapportServi": 2.005,
+    "encreVue": 7.525,
+    "voile": 0.924,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.184,
+    "renduTrait": 1.049,
+    "massePapier": 34.286
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0043-i01",
+   "livre": "MAT",
+   "feuillet": 43,
+   "regime": "vignette",
+   "legende": "Jésus docteur. (Ancien bas-relief.)",
+   "part": 36,
+   "affichage": "180×286",
+   "fichier": "360×571",
+   "kio": 49,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.457,
+    "voile": 0.686,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.478,
+    "traitAffiche": 2.481,
+    "renduTrait": 1.021,
+    "massePapier": 45.241
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0046-i01",
+   "livre": "MAT",
+   "feuillet": 46,
+   "regime": "vignette",
+   "legende": "Lampe sur un candélabre. (Orient moderne.)",
+   "part": 36,
+   "affichage": "180×332",
+   "fichier": "360×663",
+   "kio": 51,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 13.129,
+    "voile": 0.254,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.881,
+    "traitAffiche": 4.255,
+    "renduTrait": 0.951,
+    "massePapier": 32.666
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0051-i01",
+   "livre": "MAT",
+   "feuillet": 51,
+   "regime": "vignette",
+   "legende": "Arabe vêtu de la tunique et du manteau.",
+   "part": 36,
+   "affichage": "180×387",
+   "fichier": "360×774",
+   "kio": 119,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 11.899,
+    "voile": 0.848,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.938,
+    "traitAffiche": 4.403,
+    "renduTrait": 1.068,
+    "massePapier": 25.919
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0052-i01",
+   "livre": "MAT",
+   "feuillet": 52,
+   "regime": "vignette",
+   "legende": "Égyptien priant debout. (Peinture de tombeau.)",
+   "part": 36,
+   "affichage": "180×384",
+   "fichier": "360×767",
+   "kio": 24,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 3.093,
+    "voile": 0.229,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.565,
+    "traitAffiche": 1.637,
+    "renduTrait": 0.89,
+    "massePapier": 37.84
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0058-i01",
+   "livre": "MAT",
+   "feuillet": 58,
+   "regime": "vignette",
+   "legende": "Huître à perle.",
+   "part": 36,
+   "affichage": "180×206",
+   "fichier": "360×411",
+   "kio": 57,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.994,
+    "voile": 0.758,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.381,
+    "traitAffiche": 1.953,
+    "renduTrait": 1.022,
+    "massePapier": 31.407
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0061-i01",
+   "livre": "MAT",
+   "feuillet": 61,
+   "regime": "vignette",
+   "legende": "Lépreux de Jérusalem. (D’après une photographie.)",
+   "part": 36,
+   "affichage": "180×199",
+   "fichier": "360×397",
+   "kio": 56,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 10.774,
+    "voile": 0.76,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.306,
+    "traitAffiche": 6.102,
+    "renduTrait": 1.091,
+    "massePapier": 22.727
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0067-i01",
+   "livre": "MAT",
+   "feuillet": 67,
+   "regime": "vignette",
+   "legende": "Troupeau de porcs. (Peinture égyptienne.)",
+   "part": 40,
+   "affichage": "198×133",
+   "fichier": "396×265",
+   "kio": 30,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.696,
+    "voile": 1.316,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.183,
+    "renduTrait": 0.989,
+    "massePapier": 29.518
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0070-i01",
+   "livre": "MAT",
+   "feuillet": 70,
+   "regime": "vignette",
+   "legende": "Outre pleine.",
+   "part": 36,
+   "affichage": "180×175",
+   "fichier": "360×349",
+   "kio": 25,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 11.673,
+    "voile": 0.188,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.541,
+    "traitAffiche": 2.778,
+    "renduTrait": 0.864,
+    "massePapier": 34.845
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0075-i01",
+   "livre": "MAT",
+   "feuillet": 75,
+   "regime": "vignette",
+   "legende": "Ouvrier forgeron qui porte sa bourse suspendue au cou. (D’après une lampe antique.)",
+   "part": 37,
+   "affichage": "183×150",
+   "fichier": "366×300",
+   "kio": 19,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.526,
+    "voile": 0.528,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.967,
+    "renduTrait": 0.952,
+    "massePapier": 41.749
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0083-i01",
+   "livre": "MAT",
+   "feuillet": 83,
+   "regime": "vignette",
+   "legende": "Égyptiens dansant deux à deux. (Peinture ancienne.)",
+   "part": 82,
+   "affichage": "410×129",
+   "fichier": "821×258",
+   "kio": 35,
+   "mesures": {
+    "rapportServi": 2.002,
+    "encreVue": 5.031,
+    "voile": 0.909,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.023,
+    "renduTrait": 0.963,
+    "massePapier": 39.356
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0093-i01",
+   "livre": "MAT",
+   "feuillet": 93,
+   "regime": "vignette",
+   "legende": "L’histoire de Jonas. (D’après une gemme antique.)",
+   "part": 36,
+   "affichage": "180×143",
+   "fichier": "360×285",
+   "kio": 34,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.019,
+    "voile": 0.978,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.251,
+    "traitAffiche": 2.376,
+    "renduTrait": 1.033,
+    "massePapier": 27.394
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0098-i02",
+   "livre": "MAT",
+   "feuillet": 98,
+   "regime": "vignette",
+   "legende": "Le sénevé.",
+   "part": 36,
+   "affichage": "180×253",
+   "fichier": "360×506",
+   "kio": 32,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.426,
+    "voile": 0.239,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.178,
+    "traitAffiche": 1.387,
+    "renduTrait": 0.955,
+    "massePapier": 25.476
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0099-i01",
+   "livre": "MAT",
+   "feuillet": 99,
+   "regime": "vignette",
+   "legende": "Personne occupée à pétrir. (Statuette égyptienne.)",
+   "part": 36,
+   "affichage": "180×197",
+   "fichier": "360×394",
+   "kio": 32,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.482,
+    "voile": 0.818,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.26,
+    "traitAffiche": 3.655,
+    "renduTrait": 0.95,
+    "massePapier": 45.135
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0104-i01",
+   "livre": "MAT",
+   "feuillet": 104,
+   "regime": "vignette",
+   "legende": "Danseuse. (D’après une peinture grecque.)",
+   "part": 44,
+   "affichage": "218×339",
+   "fichier": "428×666",
+   "kio": 44,
+   "mesures": {
+    "rapportServi": 1.963,
+    "encreVue": 4.598,
+    "voile": 0.379,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.94,
+    "renduTrait": 0.971,
+    "massePapier": 56.803
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0108-i01",
+   "livre": "MAT",
+   "feuillet": 108,
+   "regime": "vignette",
+   "legende": "Vêtement muni de franges sacrées (chez les Juifs contemporains).",
+   "part": 36,
+   "affichage": "180×359",
+   "fichier": "360×718",
+   "kio": 74,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.46,
+    "voile": 0.774,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.969,
+    "traitAffiche": 1.996,
+    "renduTrait": 1.007,
+    "massePapier": 44.097
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0109-i01",
+   "livre": "MAT",
+   "feuillet": 109,
+   "regime": "vignette",
+   "legende": "Bassin et aiguière. (Bas-relief romain.)",
+   "part": 36,
+   "affichage": "180×119",
+   "fichier": "360×237",
+   "kio": 21,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.153,
+    "voile": 0.41,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.194,
+    "traitAffiche": 3.571,
+    "renduTrait": 1.019,
+    "massePapier": 46.377
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0112-i01",
+   "livre": "MAT",
+   "feuillet": 112,
+   "regime": "vignette",
+   "legende": "Petit chien sous la table de famille. (D’après une peinture grecque.)",
+   "part": 45,
+   "affichage": "225×149",
+   "fichier": "449×298",
+   "kio": 38,
+   "mesures": {
+    "rapportServi": 1.996,
+    "encreVue": 7.168,
+    "voile": 0.817,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.841,
+    "renduTrait": 0.968,
+    "massePapier": 34.917
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0115-i01",
+   "livre": "MAT",
+   "feuillet": 115,
+   "regime": "vignette",
+   "legende": "La corbeille dite couffin. (Peinture de Pompéi.)",
+   "part": 36,
+   "affichage": "180×118",
+   "fichier": "360×235",
+   "kio": 25,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.497,
+    "voile": 0.782,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.448,
+    "traitAffiche": 2.757,
+    "renduTrait": 1.068,
+    "massePapier": 38.186
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0123-i01",
+   "livre": "MAT",
+   "feuillet": 123,
+   "regime": "vignette",
+   "legende": "Pêche à la ligne. (Peinture des Catacombes.)",
+   "part": 37,
+   "affichage": "183×101",
+   "fichier": "366×201",
+   "kio": 12,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.787,
+    "voile": 0.464,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.418,
+    "renduTrait": 0.965,
+    "massePapier": 57.812
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0126-i01",
+   "livre": "MAT",
+   "feuillet": 126,
+   "regime": "vignette",
+   "legende": "Le bon Pasteur. (D’après un ancien bas-relief.)",
+   "part": 36,
+   "affichage": "180×176",
+   "fichier": "360×352",
+   "kio": 20,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.225,
+    "voile": 0.234,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.344,
+    "traitAffiche": 2.127,
+    "renduTrait": 0.939,
+    "massePapier": 33.99
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0132-i01",
+   "livre": "MAT",
+   "feuillet": 132,
+   "regime": "vignette",
+   "legende": "Jésus bénit les petits enfants. (Ancien sarcophage.)",
+   "part": 36,
+   "affichage": "180×240",
+   "fichier": "360×479",
+   "kio": 57,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.741,
+    "voile": 1.164,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.091,
+    "traitAffiche": 1.178,
+    "renduTrait": 0.98,
+    "massePapier": 34.895
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0133-i01",
+   "livre": "MAT",
+   "feuillet": 133,
+   "regime": "vignette",
+   "legende": "Chameau chargé. (Bas-relief de la colonne de Théodose, à Constantinople.)",
+   "part": 36,
+   "affichage": "180×184",
+   "fichier": "360×367",
+   "kio": 26,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.477,
+    "voile": 0.525,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.01,
+    "traitAffiche": 1.709,
+    "renduTrait": 0.979,
+    "massePapier": 49.311
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0146-i01",
+   "livre": "MAT",
+   "feuillet": 146,
+   "regime": "vignette",
+   "legende": "Engraissage d’oies dans l’ancienne Égypte. (Peinture de tombeau.)",
+   "part": 37,
+   "affichage": "186×76",
+   "fichier": "371×151",
+   "kio": 13,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 4.188,
+    "voile": 0.877,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.666,
+    "renduTrait": 0.962,
+    "massePapier": 34.473
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0148-i01",
+   "livre": "MAT",
+   "feuillet": 148,
+   "regime": "vignette",
+   "legende": "Buste de Tibère. (D’après une ancienne statue.)",
+   "part": 36,
+   "affichage": "180×250",
+   "fichier": "360×499",
+   "kio": 56,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.164,
+    "voile": 0.924,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.726,
+    "traitAffiche": 2.418,
+    "renduTrait": 1.032,
+    "massePapier": 39.923
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0154-i01",
+   "livre": "MAT",
+   "feuillet": 154,
+   "regime": "vignette",
+   "legende": "L’aneth.",
+   "part": 40,
+   "affichage": "200×334",
+   "fichier": "400×667",
+   "kio": 56,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.557,
+    "voile": 1.701,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.57,
+    "renduTrait": 0.95,
+    "massePapier": 42.186
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0155-i01",
+   "livre": "MAT",
+   "feuillet": 155,
+   "regime": "vignette",
+   "legende": "Tombeaux taillés dans le roc, à Jérusalem. (Vallée du Cédron.)",
+   "part": 83,
+   "affichage": "415×227",
+   "fichier": "829×454",
+   "kio": 221,
+   "mesures": {
+    "rapportServi": 1.998,
+    "encreVue": 13.838,
+    "voile": 1.106,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.64,
+    "renduTrait": 1.092,
+    "massePapier": 13.326
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0160-i01",
+   "livre": "MAT",
+   "feuillet": 160,
+   "regime": "vignette",
+   "legende": "Enseignes romaines. (Bas-relief de l’arc de triomphe de Constantin, à Rome.)",
+   "part": 36,
+   "affichage": "180×225",
+   "fichier": "317×396",
+   "kio": 38,
+   "mesures": {
+    "rapportServi": 1.761,
+    "encreVue": 8.822,
+    "voile": 1.323,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.161,
+    "traitAffiche": 1.963,
+    "renduTrait": 1.077,
+    "massePapier": 45.151
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0165-i01",
+   "livre": "MAT",
+   "feuillet": 165,
+   "regime": "vignette",
+   "legende": "Les vierges sages et les vierges folles. (D’après une fresque antique.)",
+   "part": 60,
+   "affichage": "301×143",
+   "fichier": "603×287",
+   "kio": 40,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 4.626,
+    "voile": 1.018,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.764,
+    "renduTrait": 0.98,
+    "massePapier": 40.451
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0185-i01",
+   "livre": "MAT",
+   "feuillet": 185,
+   "regime": "vignette",
+   "legende": "Pilate se lave les mains. (Ancien bas-relief.)",
+   "part": 43,
+   "affichage": "217×186",
+   "fichier": "434×371",
+   "kio": 51,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.382,
+    "voile": 0.842,
+    "voileAlpha": 4,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.707,
+    "renduTrait": 1.017,
+    "massePapier": 22.566
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0190-i01",
+   "livre": "MAT",
+   "feuillet": 190,
+   "regime": "vignette",
+   "legende": "Pierre roulée et scellée en avant de l’ouverture d’un tombeau. (À gauche, on voit le sépulcre ouvert.)",
+   "part": 64,
+   "affichage": "322×118",
+   "fichier": "644×236",
+   "kio": 73,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.488,
+    "voile": 0.542,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.164,
+    "renduTrait": 0.989,
+    "massePapier": 15.422
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0207-i01",
+   "livre": "MRK",
+   "feuillet": 207,
+   "regime": "vignette",
+   "legende": "Le paralytique introduit par le toit. (Miniature du XIIIe siècle.)",
+   "part": 36,
+   "affichage": "180×222",
+   "fichier": "355×438",
+   "kio": 55,
+   "mesures": {
+    "rapportServi": 1.972,
+    "encreVue": 6.717,
+    "voile": 1.049,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.054,
+    "traitAffiche": 1.724,
+    "renduTrait": 1.02,
+    "massePapier": 36.075
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0209-i01",
+   "livre": "MRK",
+   "feuillet": 209,
+   "regime": "vignette",
+   "legende": "Médecin pansant un blessé. (Peinture de Pompéi.)",
+   "part": 40,
+   "affichage": "201×176",
+   "fichier": "395×345",
+   "kio": 27,
+   "mesures": {
+    "rapportServi": 1.965,
+    "encreVue": 4.729,
+    "voile": 0.775,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.782,
+    "renduTrait": 1.005,
+    "massePapier": 54.483
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0219-i01",
+   "livre": "MRK",
+   "feuillet": 219,
+   "regime": "vignette",
+   "legende": "Modius ou boisseau romain.",
+   "part": 36,
+   "affichage": "180×140",
+   "fichier": "343×267",
+   "kio": 33,
+   "mesures": {
+    "rapportServi": 1.906,
+    "encreVue": 7.448,
+    "voile": 1.06,
+    "voileAlpha": 4,
+    "facteurPlancher": 1.815,
+    "traitAffiche": 4.764,
+    "renduTrait": 1.08,
+    "massePapier": 37.919
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0224-i01",
+   "livre": "MRK",
+   "feuillet": 224,
+   "regime": "vignette",
+   "legende": "Guérison de l’hémorrhoïsse et résurrection de la fille de Jaïre. (Ancien bas-relief.)",
+   "part": 38,
+   "affichage": "192×133",
+   "fichier": "376×260",
+   "kio": 35,
+   "mesures": {
+    "rapportServi": 1.958,
+    "encreVue": 5.608,
+    "voile": 0.779,
+    "voileAlpha": 4,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.045,
+    "renduTrait": 1.011,
+    "massePapier": 22.706
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0294-i01",
+   "livre": "LUK",
+   "feuillet": 294,
+   "regime": "vignette",
+   "legende": "L’autel des parfums.",
+   "part": 36,
+   "affichage": "180×254",
+   "fichier": "360×507",
+   "kio": 91,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.821,
+    "voile": 2.2,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.674,
+    "traitAffiche": 1.918,
+    "renduTrait": 1.089,
+    "massePapier": 15.478
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0297-i01",
+   "livre": "LUK",
+   "feuillet": 297,
+   "regime": "vignette",
+   "legende": "L’annonciation de la sainte Vierge. (Peinture des Catacombes.)",
+   "part": 40,
+   "affichage": "198×172",
+   "fichier": "396×343",
+   "kio": 47,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.678,
+    "voile": 0.608,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.022,
+    "renduTrait": 1.051,
+    "massePapier": 33.484
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0308-i01",
+   "livre": "LUK",
+   "feuillet": 308,
+   "regime": "vignette",
+   "legende": "Naissance de l’enfant Jésus. (D’après une pierre gravée.)",
+   "part": 36,
+   "affichage": "180×194",
+   "fichier": "360×388",
+   "kio": 31,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.667,
+    "voile": 0.415,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.113,
+    "traitAffiche": 1.447,
+    "renduTrait": 0.979,
+    "massePapier": 28.254
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0318-i01",
+   "livre": "LUK",
+   "feuillet": 318,
+   "regime": "vignette",
+   "legende": "Monnaie du tétrarque Philippe.",
+   "part": 37,
+   "affichage": "183×80",
+   "fichier": "366×159",
+   "kio": 24,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.448,
+    "voile": 1.626,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.588,
+    "renduTrait": 1.011,
+    "massePapier": 26.427
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0321-i01",
+   "livre": "LUK",
+   "feuillet": 321,
+   "regime": "vignette",
+   "legende": "Esclave déliant les sandales de son maître. (Ancien bas-relief.)",
+   "part": 44,
+   "affichage": "220×214",
+   "fichier": "440×427",
+   "kio": 44,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.213,
+    "voile": 0.624,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.481,
+    "renduTrait": 0.983,
+    "massePapier": 42.043
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0327-i01",
+   "livre": "LUK",
+   "feuillet": 327,
+   "regime": "vignette",
+   "legende": "Plan cavalier du temple d’Hérode. (D’après la reconstitution de M. de Vogüé.)",
+   "part": 88,
+   "affichage": "438×218",
+   "fichier": "876×436",
+   "kio": 86,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.028,
+    "voile": 0.809,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.874,
+    "renduTrait": 0.995,
+    "massePapier": 31.159
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0329-i01",
+   "livre": "LUK",
+   "feuillet": 329,
+   "regime": "vignette",
+   "legende": "Personnage lisant sur un rouleau. (Antique peinture romaine.)",
+   "part": 41,
+   "affichage": "205×192",
+   "fichier": "411×385",
+   "kio": 33,
+   "mesures": {
+    "rapportServi": 2.005,
+    "encreVue": 6.354,
+    "voile": 0.483,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.295,
+    "renduTrait": 0.986,
+    "massePapier": 30.957
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0336-i01",
+   "livre": "LUK",
+   "feuillet": 336,
+   "regime": "vignette",
+   "legende": "Grabat. (D’après une terre cuite.)",
+   "part": 38,
+   "affichage": "191×248",
+   "fichier": "382×496",
+   "kio": 69,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.562,
+    "voile": 2.991,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.55,
+    "renduTrait": 0.971,
+    "massePapier": 24.506
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0338-i01",
+   "livre": "LUK",
+   "feuillet": 338,
+   "regime": "vignette",
+   "legende": "Chez le marchand d’étoffes. (Peinture de Pompéi.)",
+   "part": 44,
+   "affichage": "220×148",
+   "fichier": "440×295",
+   "kio": 24,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.502,
+    "voile": 0.424,
+    "voileAlpha": 4,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.147,
+    "renduTrait": 0.933,
+    "massePapier": 37.179
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0338-i02",
+   "livre": "LUK",
+   "feuillet": 338,
+   "regime": "vignette",
+   "legende": "Femme vidant une outre. (Peinture de Pompéi.)",
+   "part": 36,
+   "affichage": "180×230",
+   "fichier": "360×459",
+   "kio": 22,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.012,
+    "voile": 0.208,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.254,
+    "traitAffiche": 1.565,
+    "renduTrait": 0.903,
+    "massePapier": 36.298
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0340-i01",
+   "livre": "LUK",
+   "feuillet": 340,
+   "regime": "vignette",
+   "legende": "Les apôtres rangés autour de leur Maître. (D’après un fond de coupe.)",
+   "part": 41,
+   "affichage": "205×201",
+   "fichier": "411×403",
+   "kio": 48,
+   "mesures": {
+    "rapportServi": 2.005,
+    "encreVue": 3.757,
+    "voile": 0.663,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.123,
+    "renduTrait": 0.977,
+    "massePapier": 25.39
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0346-i01",
+   "livre": "LUK",
+   "feuillet": 346,
+   "regime": "vignette",
+   "legende": "Centurion romain. (D’après un ancien bas-relief.)",
+   "part": 36,
+   "affichage": "180×377",
+   "fichier": "360×754",
+   "kio": 62,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.933,
+    "voile": 0.299,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.396,
+    "traitAffiche": 1.55,
+    "renduTrait": 0.94,
+    "massePapier": 33.036
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0347-i01",
+   "livre": "LUK",
+   "feuillet": 347,
+   "regime": "vignette",
+   "legende": "Funérailles. (Peinture égyptienne.)",
+   "part": 77,
+   "affichage": "385×133",
+   "fichier": "771×266",
+   "kio": 36,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 5.289,
+    "voile": 0.539,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.647,
+    "renduTrait": 0.959,
+    "massePapier": 35.821
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0350-i01",
+   "livre": "LUK",
+   "feuillet": 350,
+   "regime": "vignette",
+   "legende": "Triclinium. (Bas-relief de Pompéi.)",
+   "part": 42,
+   "affichage": "208×142",
+   "fichier": "416×283",
+   "kio": 74,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 11.538,
+    "voile": 0.829,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.017,
+    "renduTrait": 1.058,
+    "massePapier": 10.653
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0356-i01",
+   "livre": "LUK",
+   "feuillet": 356,
+   "regime": "vignette",
+   "legende": "Candélabre à deux branches. (D’après un modèle antique.)",
+   "part": 40,
+   "affichage": "202×178",
+   "fichier": "404×356",
+   "kio": 17,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 3.613,
+    "voile": 0.234,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.662,
+    "renduTrait": 0.94,
+    "massePapier": 37.37
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0360-i01",
+   "livre": "LUK",
+   "feuillet": 360,
+   "regime": "vignette",
+   "legende": "Scène de deuil auprès d’un mort. (Peinture grecque.)",
+   "part": 72,
+   "affichage": "358×189",
+   "fichier": "716×378",
+   "kio": 102,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.256,
+    "voile": 0.813,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.061,
+    "renduTrait": 0.982,
+    "massePapier": 18.405
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0363-i01",
+   "livre": "LUK",
+   "feuillet": 363,
+   "regime": "vignette",
+   "legende": "Paysan portant deux couffins ou corbeilles. (D’après un vase antique.)",
+   "part": 36,
+   "affichage": "180×154",
+   "fichier": "360×307",
+   "kio": 22,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.105,
+    "voile": 0.429,
+    "voileAlpha": 4,
+    "facteurPlancher": 1.059,
+    "traitAffiche": 1.902,
+    "renduTrait": 1.033,
+    "massePapier": 40.743
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0370-i01",
+   "livre": "LUK",
+   "feuillet": 370,
+   "regime": "vignette",
+   "legende": "Voyageur muni d’un havresac et d’un bâton. (D’après un marbre antique.)",
+   "part": 36,
+   "affichage": "180×236",
+   "fichier": "360×471",
+   "kio": 28,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 4.8,
+    "voile": 0.268,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.206,
+    "traitAffiche": 1.388,
+    "renduTrait": 0.926,
+    "massePapier": 30.392
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0372-i01",
+   "livre": "LUK",
+   "feuillet": 372,
+   "regime": "au-fil",
+   "legende": "Tell-Houm. Emplacement probable de Capharnaüm. (D’après une photographie.)",
+   "part": 86,
+   "affichage": "430×316",
+   "fichier": "861×633",
+   "kio": 294,
+   "mesures": {
+    "rapportServi": 2.002,
+    "encreVue": 27.059,
+    "voile": 0.728,
+    "voileAlpha": 22,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.147,
+    "renduTrait": 1.059,
+    "massePapier": 7.64
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0379-i01",
+   "livre": "LUK",
+   "feuillet": 379,
+   "regime": "vignette",
+   "legende": "Le scorpion.",
+   "part": 38,
+   "affichage": "191×159",
+   "fichier": "381×318",
+   "kio": 53,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 7.356,
+    "voile": 1.057,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.709,
+    "renduTrait": 1.072,
+    "massePapier": 17.438
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0381-i01",
+   "livre": "LUK",
+   "feuillet": 381,
+   "regime": "vignette",
+   "legende": "Antique lampe chrétienne, trouvée en Palestine.",
+   "part": 38,
+   "affichage": "191×88",
+   "fichier": "381×175",
+   "kio": 23,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 7.449,
+    "voile": 0.559,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.549,
+    "renduTrait": 1.051,
+    "massePapier": 41.636
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0383-i02",
+   "livre": "LUK",
+   "feuillet": 383,
+   "regime": "vignette",
+   "legende": "La rue.",
+   "part": 38,
+   "affichage": "190×216",
+   "fichier": "372×422",
+   "kio": 39,
+   "mesures": {
+    "rapportServi": 1.958,
+    "encreVue": 6.187,
+    "voile": 0.57,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.308,
+    "renduTrait": 1.041,
+    "massePapier": 49.153
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0387-i01",
+   "livre": "LUK",
+   "feuillet": 387,
+   "regime": "vignette",
+   "legende": "Grenier à blé. (Monuments égyptiens.)",
+   "part": 68,
+   "affichage": "339×185",
+   "fichier": "678×370",
+   "kio": 111,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.122,
+    "voile": 0.639,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.427,
+    "renduTrait": 1.161,
+    "massePapier": 20.766
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0390-i01",
+   "livre": "LUK",
+   "feuillet": 390,
+   "regime": "vignette",
+   "legende": "La tunique retroussée dans la ceinture. (Sculpture antique.)",
+   "part": 36,
+   "affichage": "180×386",
+   "fichier": "360×772",
+   "kio": 63,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.478,
+    "voile": 1.018,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.916,
+    "traitAffiche": 1.857,
+    "renduTrait": 0.97,
+    "massePapier": 28.562
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0393-i01",
+   "livre": "LUK",
+   "feuillet": 393,
+   "regime": "vignette",
+   "legende": "La plus petite monnaie de bronze sous Auguste.",
+   "part": 40,
+   "affichage": "198×86",
+   "fichier": "396×171",
+   "kio": 30,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.332,
+    "voile": 1.063,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.239,
+    "renduTrait": 1.068,
+    "massePapier": 27.871
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0397-i01",
+   "livre": "LUK",
+   "feuillet": 397,
+   "regime": "vignette",
+   "legende": "Monnaie d’Hérode Antipas",
+   "part": 38,
+   "affichage": "190×86",
+   "fichier": "380×171",
+   "kio": 25,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 9.002,
+    "voile": 0.918,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.984,
+    "renduTrait": 1.047,
+    "massePapier": 36.317
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0404-i01",
+   "livre": "LUK",
+   "feuillet": 404,
+   "regime": "vignette",
+   "legende": "Drachme d’Athènes.",
+   "part": 36,
+   "affichage": "180×86",
+   "fichier": "360×171",
+   "kio": 27,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.831,
+    "voile": 0.866,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.091,
+    "traitAffiche": 1.565,
+    "renduTrait": 1.019,
+    "massePapier": 19.88
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0405-i01",
+   "livre": "LUK",
+   "feuillet": 405,
+   "regime": "vignette",
+   "legende": "Caroube.",
+   "part": 36,
+   "affichage": "180×305",
+   "fichier": "360×609",
+   "kio": 108,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 29.708,
+    "voile": 0.249,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.469,
+    "traitAffiche": 7.581,
+    "renduTrait": 1.128,
+    "massePapier": 25.278
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0406-i01",
+   "livre": "LUK",
+   "feuillet": 406,
+   "regime": "vignette",
+   "legende": "Musique associée à un festin. (D’après un vase peint.)",
+   "part": 68,
+   "affichage": "338×167",
+   "fichier": "676×334",
+   "kio": 69,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.401,
+    "voile": 0.524,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.568,
+    "renduTrait": 0.954,
+    "massePapier": 30.335
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0411-i01",
+   "livre": "LUK",
+   "feuillet": 411,
+   "regime": "vignette",
+   "legende": "Enfants jouant avec un chien. (Bas-relief romain.)",
+   "part": 36,
+   "affichage": "180×126",
+   "fichier": "360×251",
+   "kio": 26,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.535,
+    "voile": 0.802,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.093,
+    "traitAffiche": 2.161,
+    "renduTrait": 1.013,
+    "massePapier": 39.718
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0413-i01",
+   "livre": "LUK",
+   "feuillet": 413,
+   "regime": "vignette",
+   "legende": "Serviteur portant un plat. (Peinture romaine.)",
+   "part": 36,
+   "affichage": "180×315",
+   "fichier": "360×630",
+   "kio": 70,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.727,
+    "voile": 0.69,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.396,
+    "traitAffiche": 2.948,
+    "renduTrait": 1.062,
+    "massePapier": 41.472
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0414-i01",
+   "livre": "LUK",
+   "feuillet": 414,
+   "regime": "vignette",
+   "legende": "Main d’un lépreux. (D’après une photographie.)",
+   "part": 36,
+   "affichage": "180×279",
+   "fichier": "360×557",
+   "kio": 107,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 24.221,
+    "voile": 0.276,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.924,
+    "traitAffiche": 6.949,
+    "renduTrait": 1.052,
+    "massePapier": 20.46
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0422-i01",
+   "livre": "LUK",
+   "feuillet": 422,
+   "regime": "vignette",
+   "legende": "Branche de sycomore, munie de fruits.",
+   "part": 38,
+   "affichage": "188×179",
+   "fichier": "375×357",
+   "kio": 53,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 10.912,
+    "voile": 0.413,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.673,
+    "renduTrait": 0.981,
+    "massePapier": 21.519
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0427-i01",
+   "livre": "LUK",
+   "feuillet": 427,
+   "regime": "vignette",
+   "legende": "Construction d’un retranchement. (Bas-relief romain.)",
+   "part": 81,
+   "affichage": "406×158",
+   "fichier": "813×317",
+   "kio": 68,
+   "mesures": {
+    "rapportServi": 2.002,
+    "encreVue": 4.865,
+    "voile": 1.353,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.936,
+    "renduTrait": 1.015,
+    "massePapier": 41.425
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0430-i01",
+   "livre": "LUK",
+   "feuillet": 430,
+   "regime": "vignette",
+   "legende": "Denier de Tibère.",
+   "part": 36,
+   "affichage": "180×84",
+   "fichier": "360×168",
+   "kio": 20,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.439,
+    "voile": 0.397,
+    "voileAlpha": 5,
+    "facteurPlancher": 1.14,
+    "traitAffiche": 1.478,
+    "renduTrait": 0.959,
+    "massePapier": 22.058
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0432-i01",
+   "livre": "LUK",
+   "feuillet": 432,
+   "regime": "vignette",
+   "legende": "Tunique à longs pans, tombant jusqu’aux talons. (D’après une statue romaine.)",
+   "part": 36,
+   "affichage": "180×346",
+   "fichier": "360×692",
+   "kio": 83,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.561,
+    "voile": 2.203,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.159,
+    "traitAffiche": 1.059,
+    "renduTrait": 0.981,
+    "massePapier": 28.518
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0442-i01",
+   "livre": "LUK",
+   "feuillet": 442,
+   "regime": "vignette",
+   "legende": "Crible romain. (Bas-relief de la colonne Trajane.)",
+   "part": 36,
+   "affichage": "180×184",
+   "fichier": "360×368",
+   "kio": 40,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 10.7,
+    "voile": 0.399,
+    "voileAlpha": 6,
+    "facteurPlancher": 1.428,
+    "traitAffiche": 1.883,
+    "renduTrait": 0.943,
+    "massePapier": 40.924
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0442-i02",
+   "livre": "LUK",
+   "feuillet": 442,
+   "regime": "vignette",
+   "legende": "Sac et monceaux d’argent. (Peinture de Pompéi.)",
+   "part": 41,
+   "affichage": "204×41",
+   "fichier": "409×82",
+   "kio": 9,
+   "mesures": {
+    "rapportServi": 2.005,
+    "encreVue": 8.297,
+    "voile": 0.335,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.017,
+    "renduTrait": 0.953,
+    "massePapier": 25.495
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0457-i01",
+   "livre": "LUK",
+   "feuillet": 457,
+   "regime": "au-fil",
+   "legende": "Amouas. (D’après une photographie.)",
+   "part": 83,
+   "affichage": "413×286",
+   "fichier": "826×571",
+   "kio": 196,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 10.129,
+    "voile": 0.24,
+    "voileAlpha": 38,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.197,
+    "renduTrait": 1.112,
+    "massePapier": 8.423
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0471-i01",
+   "livre": "JHN",
+   "feuillet": 471,
+   "regime": "vignette",
+   "legende": "Un prêtre juif.",
+   "part": 36,
+   "affichage": "180×371",
+   "fichier": "360×742",
+   "kio": 76,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.52,
+    "voile": 0.848,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.642,
+    "traitAffiche": 3.215,
+    "renduTrait": 1.047,
+    "massePapier": 43.327
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0472-i01",
+   "livre": "JHN",
+   "feuillet": 472,
+   "regime": "vignette",
+   "legende": "Sandales orientales.",
+   "part": 36,
+   "affichage": "180×207",
+   "fichier": "360×413",
+   "kio": 49,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.718,
+    "voile": 0.669,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.226,
+    "traitAffiche": 2.173,
+    "renduTrait": 1.011,
+    "massePapier": 38.004
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0473-i01",
+   "livre": "JHN",
+   "feuillet": 473,
+   "regime": "vignette",
+   "legende": "L’agneau de Dieu. (Peinture des Catacombes.)",
+   "part": 36,
+   "affichage": "180×200",
+   "fichier": "360×399",
+   "kio": 43,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.125,
+    "voile": 0.689,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.098,
+    "traitAffiche": 2.934,
+    "renduTrait": 1.082,
+    "massePapier": 37.024
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0475-i01",
+   "livre": "JHN",
+   "feuillet": 475,
+   "regime": "au-fil",
+   "legende": "Khan Minyeh, une des localités avec lesquelles on a identifié Bethsaïda. (D’après une photographie.)",
+   "part": 73,
+   "affichage": "365×250",
+   "fichier": "729×500",
+   "kio": 146,
+   "mesures": {
+    "rapportServi": 1.997,
+    "encreVue": 18.584,
+    "voile": 0.439,
+    "voileAlpha": 19,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.792,
+    "renduTrait": 1.068,
+    "massePapier": 8.992
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0477-i01",
+   "livre": "JHN",
+   "feuillet": 477,
+   "regime": "au-fil",
+   "legende": "Cana en Galilée. (D’après une photographie.)",
+   "part": 87,
+   "affichage": "435×319",
+   "fichier": "869×637",
+   "kio": 224,
+   "mesures": {
+    "rapportServi": 1.998,
+    "encreVue": 13.503,
+    "voile": 0.342,
+    "voileAlpha": 36,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.864,
+    "renduTrait": 1.029,
+    "massePapier": 9.201
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0478-i01",
+   "livre": "JHN",
+   "feuillet": 478,
+   "regime": "vignette",
+   "legende": "Le changement de l’eau en vin à Cana. (D’après un ancien ivoire.)",
+   "part": 36,
+   "affichage": "180×274",
+   "fichier": "360×548",
+   "kio": 77,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.796,
+    "voile": 0.697,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.183,
+    "traitAffiche": 1.147,
+    "renduTrait": 0.953,
+    "massePapier": 24.671
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0483-i01",
+   "livre": "JHN",
+   "feuillet": 483,
+   "regime": "vignette",
+   "legende": "Le céraste, ou serpent à cornes.",
+   "part": 40,
+   "affichage": "199×92",
+   "fichier": "399×184",
+   "kio": 41,
+   "mesures": {
+    "rapportServi": 2.005,
+    "encreVue": 11.378,
+    "voile": 0.601,
+    "voileAlpha": 37,
+    "facteurPlancher": 1,
+    "traitAffiche": 4.477,
+    "renduTrait": 1.191,
+    "massePapier": 19.922
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0486-i01",
+   "livre": "JHN",
+   "feuillet": 486,
+   "regime": "vignette",
+   "legende": "Deux époux s’engageant l’un à l’autre. (Peinture des Catacombes.)",
+   "part": 37,
+   "affichage": "186×206",
+   "fichier": "371×410",
+   "kio": 42,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 4.398,
+    "voile": 0.569,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.11,
+    "renduTrait": 0.971,
+    "massePapier": 38.079
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0488-i01",
+   "livre": "JHN",
+   "feuillet": 488,
+   "regime": "vignette",
+   "legende": "Le puits de Jacob. (État actuel.)",
+   "part": 36,
+   "affichage": "180×171",
+   "fichier": "360×342",
+   "kio": 78,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 13.964,
+    "voile": 0.442,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.004,
+    "traitAffiche": 2.123,
+    "renduTrait": 1.086,
+    "massePapier": 14.874
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0494-i01",
+   "livre": "JHN",
+   "feuillet": 494,
+   "regime": "vignette",
+   "legende": "Groupe de Samaritains. (D’après une photographie.)",
+   "part": 43,
+   "affichage": "214×164",
+   "fichier": "427×328",
+   "kio": 63,
+   "mesures": {
+    "rapportServi": 1.995,
+    "encreVue": 9.625,
+    "voile": 0.322,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.256,
+    "renduTrait": 1.06,
+    "massePapier": 17.466
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0498-i01",
+   "livre": "JHN",
+   "feuillet": 498,
+   "regime": "vignette",
+   "legende": "Guérison du paralytique de la piscine. (Bas-relief de sarcophage.)",
+   "part": 42,
+   "affichage": "208×195",
+   "fichier": "416×389",
+   "kio": 87,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 14.738,
+    "voile": 0.605,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.769,
+    "renduTrait": 0.965,
+    "massePapier": 13.361
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0512-i01",
+   "livre": "JHN",
+   "feuillet": 512,
+   "regime": "vignette",
+   "legende": "L’urne qui contenait la manne. (D’après une ancienne monnaie juive.)",
+   "part": 36,
+   "affichage": "180×175",
+   "fichier": "360×350",
+   "kio": 23,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 8.089,
+    "voile": 0.403,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.487,
+    "traitAffiche": 2.4,
+    "renduTrait": 0.975,
+    "massePapier": 55.568
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0555-i01",
+   "livre": "JHN",
+   "feuillet": 555,
+   "regime": "vignette",
+   "legende": "Blé d’Égypte (réduit de moitié).",
+   "part": 36,
+   "affichage": "180×239",
+   "fichier": "360×478",
+   "kio": 64,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 10.119,
+    "voile": 0.702,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.424,
+    "traitAffiche": 5.04,
+    "renduTrait": 1.052,
+    "massePapier": 37.064
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0583-i01",
+   "livre": "JHN",
+   "feuillet": 583,
+   "regime": "vignette",
+   "legende": "Martyrs tenant des palmes et des couronnes. (Ancienne mosaïque.)",
+   "part": 40,
+   "affichage": "201×189",
+   "fichier": "402×377",
+   "kio": 52,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 7.211,
+    "voile": 1.125,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.666,
+    "renduTrait": 1.014,
+    "massePapier": 33.996
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0593-i01",
+   "livre": "JHN",
+   "feuillet": 593,
+   "regime": "vignette",
+   "legende": "Juge romain assis sur son tribunal. (Bas-relief de l’arc de triomphe de Trajan.)",
+   "part": 36,
+   "affichage": "180×344",
+   "fichier": "360×687",
+   "kio": 60,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 6.471,
+    "voile": 0.82,
+    "voileAlpha": 3,
+    "facteurPlancher": 1.478,
+    "traitAffiche": 3.598,
+    "renduTrait": 1.033,
+    "massePapier": 53.046
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0606-i01",
+   "livre": "JHN",
+   "feuillet": 606,
+   "regime": "vignette",
+   "legende": "Repas qui suivit la pêche miraculeuse. (Peinture des Catacombes.)",
+   "part": 72,
+   "affichage": "360×150",
+   "fichier": "721×300",
+   "kio": 61,
+   "mesures": {
+    "rapportServi": 2.003,
+    "encreVue": 5.333,
+    "voile": 0.552,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.406,
+    "renduTrait": 0.947,
+    "massePapier": 21.943
+   },
+   "defauts": []
+  }
+ ]
+}
