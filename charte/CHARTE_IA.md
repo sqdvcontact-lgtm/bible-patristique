@@ -1021,6 +1021,12 @@ Le passage explique, développe ou interprète un texte biblique déterminé. Le
 
 Le passage entretient un rapport plus diffus mais réel avec un texte biblique déterminé. Ce type exige une justification explicite et une prudence supérieure. Il ne sert pas à enregistrer une simple proximité thématique générale.
 
+### 9.4 bis. Coexistence fonctionnelle des types
+
+Un même couple `segment + cible biblique` peut porter plusieurs liens de types différents **uniquement lorsque le segment remplit réellement plusieurs fonctions distinctes**, chacune établie par lecture et motivée séparément. Le cas canonique est une citation explicite du verset (type 1) immédiatement suivie, dans le même segment, de son interprétation ou de son application argumentative (type 3). Dans ce cas, T1 et T3 coexistent : supprimer l’un des deux ferait perdre une information réelle.
+
+⛔ Un changement de type ne suffit jamais à justifier un second lien. Deux lignes de même type vers la même cible sont un doublon et sont interdites. Une coexistence inter-types n’est admise que si les motifs décrivent des fonctions distinctes et vérifiables dans le texte. Les postcontrôles de doublons groupent donc par `segment + cible + type` ; un couple inter-types explicitement justifié n’est pas compté comme doublon.
+
 ### 9.5 Numérotation et psaumes
 
 Le numéro imprimé est toujours un candidat à contrôler. Pour les psaumes et toute édition à numérotation divergente, reconnaître d’abord le passage par son contenu dans `versets_lecture`. Les tables de correspondance et la numérotation de l’édition orientent le voisinage de recherche, mais ne décident jamais seules.
@@ -3828,6 +3834,116 @@ octets en base contre 372 446 servis — qui n'existait pas : l'objet, relu par
 l'API de stockage, concordait au sha256 près. Le contrôle se refait **après** le
 dépôt, et une discordance isolée se confirme sur l'objet avant d'être crue.
 
+#### 35.16.17. LE RÉGIME EST ÉCRIT DEUX FOIS, ET LES DEUX ONT DIVERGÉ
+
+⛔ **Une règle recopiée dans deux fichiers ne reste la même que par accident, et
+c’est vrai d’une RÈGLE comme d’une mesure.** Le § 35.16.4 a fait lire la légende
+imprimée à la chaîne d’image le 30 août 2026. La page, elle, décidait encore sur la
+seule largeur, et l’a fait un jour de plus.
+
+Conséquence, mesurée le 31 août : **dix-neuf gravures larges AU TRAIT** — le massacre
+des Innocents d’après un ivoire du Vᵉ siècle, Jésus séparant les brebis et les boucs
+d’après un bas-relief, le plan cavalier du temple d’Hérode — étaient FABRIQUÉES
+détourées et COMPOSÉES comme des photogravures. Deux effets, tous deux invisibles au
+dépôt :
+
+- leur encre ne passait plus par `--cs-gravure`, la page les rendant en `<img>` au
+  lieu d’un masque : elles restaient **noires sur le cuir** ;
+- elles étaient servies à **1,43 fois** leur taille d’affichage au lieu de deux.
+
+⚠️ **Rien ne pouvait le dire.** Les deux écritures sont justes chacune de son côté,
+les types passent, les tests passent, et relire l’une ou l’autre ne montre rien.
+`app/lib/partIllustration.test.ts` tenait déjà les BORNES accordées ; il tient
+désormais la RÈGLE, motif de reconnaissance compris, **tiré de la source du script**
+et non recopié. Éprouvée dans les deux sens : la garde devient rouge sur le motif
+comme sur le seuil, et revient au vert la divergence défaite.
+
+#### 35.16.18. LA PART SUIT LA LARGEUR IMPRIMÉE, ET LE RÉGIME NE DÉCIDE QUE DU DÉTOURAGE
+
+⛔ **Deux parts FIXES restaient, et la seconde a survécu à la correction de la
+première.** Le § 35.16.13 a retiré la part fixe des vignettes le 30 août, parce
+qu’elle aplatissait un rapport de 1 à 3 et jetait jusqu’à 4,7 fois la résolution
+linéaire. `PART_AU_FIL` faisait exactement la même chose au même endroit : 78 % de
+la colonne pour toute photogravure, quand Fillion les imprime de **69 à 90 %**.
+
+Elle est retirée. **La part suit la largeur imprimée pour tout, bornée par le
+plancher et le plafond** ; seule une planche hors-texte prend le plafond sans
+regarder sa découpe, celle-ci étant la page entière du volume et ne disant donc
+rien. Le régime ne décide plus que du DÉTOURAGE, ce que le § 35.16.5 énonçait déjà
+sans que le code le suive.
+
+⛔ **Et le PLAFOND DE VIGNETTE suppose une gravure qui TIENT DANS UNE COLONNE**,
+comme son commentaire le dit. Les dix-neuf larges au trait redevenant des vignettes,
+il les aurait plafonnées à 56 % : un plan du temple imprimé sur 88 % se serait
+retrouvé plus petit que la photogravure d’à côté, imprimée aussi large. Il ne mord
+plus au-delà du seuil des deux colonnes.
+
+#### 35.16.19. LA LÉGENDE SE TROMPE TROIS FOIS, ET LE RÉGIME SE FORCE PAR LA DONNÉE
+
+Le § 35.16.4 annonçait que les gravures sans mention de procédé « retombent au
+trait, ce qui est le parti le moins coûteux ». Le contrôle intégral du 31 août 2026
+a regardé les cent soixante-seize une à une, et le parti coûte : **trois gravures
+sont des demi-teintes que la règle détourait.**
+
+| gravure | légende imprimée | pourquoi la règle échoue |
+|---|---|---|
+| Intérieur de l’église la Nativité | ne nomme qu’un lieu | pas de mention de procédé |
+| Cour d’une maison de l’Orient | ne nomme qu’un lieu | pas de mention de procédé |
+| Olivier de Gethsémani | « (D’après une photographie.) » | **58 % de large, sous le seuil de 60** |
+
+⚠️ La troisième est la plus instructive : sa légende est parfaite, et c’est la
+LARGEUR qui la manque, de deux points. La largeur est un bon indice du procédé —
+Fillion ne donne la pleine mesure qu’à ses vues — et elle n’en est pas la preuve.
+
+⛔ **Détourer une demi-teinte SE VOIT** : les tons s’écrasent, les clairs
+blanchissent, la trame de points crève, et le bord rectangulaire de la découpe
+apparaît. C’est l’inverse du pari du § 35.16.4, et il faut le corriger dans l’autre
+sens : un dessin cadré passe inaperçu, une photographie détourée saute aux yeux.
+
+**Le régime se force donc dans `metadata.regime`**, lu par `regimeIllustration` et
+par la chaîne. C’est le jour que le commentaire du type annonçait depuis l’origine :
+« la colonne viendra le jour où l’on voudra forcer un cas contre la mesure. » Le
+forçage porte sa provenance et son motif ; une valeur inconnue est ignorée, une
+coquille dans un champ libre ne devant pas changer la composition d’une page.
+
+⚠️ **`v_bible_edition_assets` n’exposait pas `metadata`** : le forçage n’aurait
+jamais atteint la page, qui lit les actifs par cette vue et par elle seule.
+Exactement le piège de `metadata.presentation` sur la vue des blocs de corps
+(§ 35.4). **Une métadonnée doit être EXPOSÉE pour être lue, et rien ne signale
+qu’elle ne l’est pas.**
+
+#### 35.16.20. LA MASSE DU PIC DE PAPIER — la mesure qui désigne, sans trancher
+
+Le § 35.16.4 dit qu’aucune mesure de pixel ne sépare la demi-teinte du bois gravé,
+et nomme les deux qui avaient échoué : la trame au bord du trait, et la part que le
+détourage rend transparente. Une troisième les sépare, et elle est simple.
+
+**Une gravure au trait est de l’encre POSÉE SUR DU PAPIER** : le pic clair de son
+histogramme est le papier lui-même, un plateau massif. **Une demi-teinte est une
+TRAME qui couvre tout le champ**, y compris les clairs : son pic se disperse. On
+mesure donc la part de la surface qui tient à deux niveaux du pic. Relevé sur les
+176 gravures du tome VII :
+
+| famille | masse du pic |
+|---|---|
+| demi-teintes | **2,7 à 9,2 %** |
+| bois gravés | **10,4 à 44 %** |
+
+Elle a désigné exactement les trois que la légende manquait, et aucune autre.
+
+⛔ **Elle ne remplace pas la légende pour autant, et l’écart dit pourquoi : un
+point.** Un corpus qui grandit le comblera. Elle sert à savoir OÙ REGARDER, la
+décision restant à l’œil et à la donnée. ⚠️ Le PIC seul, lui, ne sépare rien : les
+deux familles s’étendent de 148 à 205.
+
+⚠️ **Ni les coins ni la confrontation au scan ne mesurent un voile** sur un fichier
+détouré : il est ROGNÉ sur son dessin, l’encre touche donc souvent le bord, et les
+deux géométries ne coïncident plus. Deux mesures fausses avant la bonne — la
+première donnait 30 et 19 aux gravures de Marc, qui sont en ligne et contrôlées à
+l’œil depuis un mois. **Un voile est PLAT** : il se lit dans le seul histogramme
+d’alpha, à la plus forte concentration sur une valeur unique entre 3 et 40. Mesurée
+ainsi, elle vaut 0,53 % en médiane et ne dépasse 3 % que trois fois, à un alpha de
+3 à 7 : il n’y a **aucun voile** dans le corpus.
 ### 35.17. L'ÉCHELLE DES BLANCS — un blanc ne dit que son RAPPORT aux autres
 
 Mesurée dans la page rendue le 30 août 2026, la hiérarchie de la Bible commentée ne se lisait pas, et c'est le BLANC qui manquait à la dire. Les six rangs de titre tenaient tous entre 33 et 56 pixels, et l'ordre y était ROMPU deux fois : la sous-section (T4) recevait 33 px, c'est-à-dire exactement autant qu'un simple changement d'unité de commentaire et moins que la péricope (T6) qu'elle domine ; « Première partie », la plus haute division du livre, en recevait 53, moins que « Livre I » qui lui est subordonné. Six rangs dans un mouchoir, et deux inversés.
@@ -3894,7 +4010,7 @@ Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après to
 - **Analyses projetées en N2.** Reconstituer chaque item imprimé de l’ANALYSE avant de le projeter. Une ligne ou une unité source peut contenir la fin de l’item précédent et le début du suivant. La concordance du numéro seul ne suffit pas : contrôler le libellé complet et sa continuation matérielle.
 - **Majuscules accentuées.** Le contrôle porte sur toute la couche de lecture ET sur les titres projetés, non sur les seuls incipits. Les formes françaises `É`, `À`, `È`, `Ê`, `Î`, `Ô`, etc. sont obligatoires quand la minuscule correspondante est accentuée. Les sigles, translittérations et vrais noms non accentués sont exclus par contexte, jamais par une règle aveugle.
 - **Références `Ibid.`.** Dans la couche de lecture finale, développer `Ibid.` dès que sa cible a été résolue et vérifiée. Résoudre d’abord le livre, le chapitre et la versification par la source et le contenu ; n’expanser jamais un `Ibid.` encore ambigu. Le texte visible et le lien canonique doivent rester concordants.
-- **Unicité des liens.** Un couple `segment × cible biblique` reçoit un seul type. Si le segment est une citation autonome, T1 prévaut. Si le segment incorpore la citation dans une explication ou une application de ce même verset, T3 prévaut. Ne pas conserver T1 et T3 en parallèle pour la même cible.
+- **Unicité et coexistence fonctionnelle des liens.** Appliquer la règle du § 9.4 bis : pour un même couple `segment × cible biblique`, un seul lien est admis par type. La coexistence de types différents n’est admise que si le segment remplit réellement plusieurs fonctions distinctes, chacune motivée séparément. Une citation explicite du verset intégrée à son commentaire peut donc porter T1 + T3 ; sinon conserver seulement le type qui décrit la fonction réellement exercée.
 - **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.
 - **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
 - **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.
@@ -3910,3 +4026,10 @@ Lorsqu’une unité source OCR contient des lignes ou fragments matériellement 
 
 ### Règle — transposition de lignes OCR et provenance
 Lorsqu’une unité OCR présente des lignes ou fragments matériellement transposés, ne jamais fabriquer des offsets discontinus ni forcer un alignement sur le texte éditorial. Revenir au fac-similé, corriger d’abord l’unité source dans l’ordre attesté, documenter la correction, puis seulement recalculer les offsets des segments. La source corrigée devient la base de provenance ; le texte de lecture n’est pas réécrit s’il était déjà conforme au fac-similé.
+
+
+### 23.12. Validation humaine par couche
+
+La validation humaine est **attachée à la couche réellement vérifiée** et ne se propage jamais automatiquement entre objets. `oeuvre_texte_unites.metadata.validated_human=true` atteste la transcription ou l’unité source telle qu’elle a été contrôlée ; il ne vaut pas validation de la segmentation, des raccords, de la normalisation éditoriale ni du contenu de chaque `segments.segment_texte` dérivé. Inversement, `segments.controle_verifie=true` atteste le segment éditorial contrôlé et n’autorise pas à déclarer l’unité source entière validée si elle ne l’est pas déjà.
+
+Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur intersection. ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.\n\n`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi. Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre. Une divergence historique entre les deux champs doit être documentée ; elle n’autorise jamais une passe IA à créer ou retirer une validation humaine.
