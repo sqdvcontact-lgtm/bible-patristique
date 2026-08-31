@@ -917,7 +917,11 @@ async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, tr
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '4.6.0',
+    // ⚠️ 4.7.0 — le RÉGIME lit la légende ET se force par la donnée, et la PART
+    //    suit la largeur imprimée pour tout. Deux règles changées le 31 août 2026 :
+    //    un fichier de 4.6.0 ne vient donc pas de cette chaîne, même quand son
+    //    contenu se trouve identique.
+    processing_version: '4.7.0',
   }
   const { data: ligne, error: e1 } = await db.from('bible_edition_asset_files')
     .select('id').eq('asset_id', actif.id).eq('variant_role', role).maybeSingle()
