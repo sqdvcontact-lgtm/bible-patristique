@@ -319,30 +319,6 @@ export default async function AccueilPage() {
           letter-spacing: 0.02em;
           margin: 0 0 14px;
         }
-        /* La gravure qui FERME le titre « Un mot ». Elle prend la place du fleuron à
-           filets qui y tenait : c'est un filet, et c'en est un plus riche.
-           ⛔ En <img> et non en <Image> : elle porte une couche alpha, et l'optimiseur
-           l'aplatit par intermittence sur du blanc, si bien que le rectangle crème
-           reparaît (charte, « Les ornements se DÉTOURENT »).
-           ⛔ DEUX MAXIMA, AUCUNE LARGEUR POSÉE : une largeur absolue ne suit pas la
-           police racine fluide, et la gravure rapetisserait à mesure que l'écran
-           grandit — c'est le piège relevé sur la tour de Babel du Polyglotte.
-           ⚠️ L'opacité est celle du filet du frontispice, 0,72, et non celle des
-           culs-de-lampe (0,42 à 0,5) : ceux-là n'ornent qu'un vide, celle-ci coiffe un
-           titre et se regarde.
-           ⛔ 7 rem, et non 14 : à la première pose elle était deux fois trop grosse et
-           écrasait le titre qu'elle ferme (relevé de l'auteur). ⚠️ La planche a été
-           REFABRIQUÉE à cette taille, non pas seulement bornée en CSS : un fichier de
-           434 px servi pour 112 affichés ferait 3,9 fois, et le navigateur réduirait
-           une seconde fois derrière la nôtre, moyennant les hachures fines en un gris
-           mou. Elle est servie en 214 × 40, soit un rapport de 1,91. */
-        .filet-un-mot {
-          display: block;
-          max-width: min(7rem, 40%);
-          height: auto;
-          margin: 0 auto 26px;
-          opacity: 0.72;
-        }
 
         .accueil-mot-prose { display: flex; flex-direction: column; gap: 16px; }
         /* Le pied ne « descend » plus au bas d'une carte : il n'y a plus de carte, et
@@ -721,9 +697,9 @@ export default async function AccueilPage() {
  *  au-dessus de deux paragraphes, et le même blanc l'aurait détaché de ce qu'il
  *  coiffe. ⛔ Un ornement FERME un texte, il ne l'annonce pas (charte, « Une gravure
  *  se pose en pied ») : il vient donc SOUS le titre, comme sous « Le projet ». */
-function OrnementsTriple() {
+function OrnementsTriple({ serre = false }: { serre?: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "46px auto", maxWidth: "18.75rem" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: serre ? "0 auto 26px" : "46px auto", maxWidth: serre ? "13rem" : "18.75rem" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
       <span style={{ fontSize: "1.125rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
@@ -784,9 +760,7 @@ function VoletUnMot() {
   return (
     <section className="accueil-mot">
       <h2>Un mot</h2>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/ornements/filet-un-mot.png" alt="" aria-hidden="true"
-        className="cs-ornement filet-un-mot" />
+      <OrnementsTriple serre />
       <div className="accueil-mot-prose">
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l’Église, anciens ou difficiles d’accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>

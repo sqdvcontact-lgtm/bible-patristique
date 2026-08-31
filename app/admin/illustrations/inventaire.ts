@@ -268,12 +268,9 @@ export const ILLUSTRATIONS: Illustration[] = [
   {
     chemin: '/ornements/filet-un-mot.png',
     nom: 'Filet gravé du mot de l’auteur',
-    fonction: 'coiffer',
-    emploi: 'Ferme le titre « Un mot », sur l’accueil. Une hampe entre deux fers, un fleuron à gauche et une pointe à droite.',
-    lieu: { href: '/accueil', label: 'Accueil', repere: 'Dans la bande sous les portes, juste SOUS le titre « Un mot ».' },
-    source: 'app/accueil/page.tsx',
-    traitement: { opacite: 0.72, ornement: true, pose: { largeurMax: 'min(7rem, 40%)', sol: 'papier' } },
-    note: 'Entrée le 31 août 2026, à la place du fleuron « ❧ » entre deux filets dégradés qui coiffait ce titre : c’était un filet, et c’en est un plus riche. Fabriquée par la chaîne commune (scripts/ornements-detourer.mjs) : pourtour rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage par la luminance, puis encre reposée à 33, celle de la famille. Profil de gravure au TRAIT — 83 % de transparents, 9 % de partiels, les bords et eux seuls. Servie en 214 × 40 pour 112 px d’affichage, soit un rapport de 1,91 : au delà de deux, le navigateur réduit une seconde fois derrière la nôtre et les hachures fines moyennent en gris mou. ⚠️ Contrairement au filet du frontispice, son encre est SOMBRE : elle porte donc « cs-ornement » et se retourne au Cuir, où elle rend une gravure claire sur le cuir. Opacité 0,72, celle du filet du frontispice et non celle des culs-de-lampe (0,42 à 0,5) : ceux-là n’ornent qu’un vide, celle-ci coiffe un titre et se regarde. Les trois partis — 0,72, 0,52, et une reteinte en or — ont été rendus en place et dans les deux thèmes avant de trancher. ⚠️ Elle a d’abord été posée à 14 rem, deux fois trop grosse : elle écrasait le titre qu’elle ferme. Ramenée à 7 rem le jour même, la planche REFABRIQUÉE à cette taille et non seulement bornée en CSS.',
+    fonction: 'reserve',
+    emploi: 'A coiffé le titre « Un mot » de l’accueil le 31 août 2026, une soirée. Le fleuron à filets a repris sa place le soir même, sur décision de l’auteur.',
+    note: 'Planche fournie par l’auteur, fabriquée par la chaîne commune (scripts/ornements-detourer.mjs) : pourtour rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage par la luminance, encre reposée à 33, celle de la famille. Profil de gravure au TRAIT, 83 % de transparents. Servie en 214 × 40 pour 112 px d’affichage, rapport 1,91. ⚠️ Elle avait d’abord été posée à 14 rem, deux fois trop grosse : elle écrasait le titre qu’elle ferme. ⚠️ Et le défaut de fond était ailleurs : la gravure est DIRECTIONNELLE, elle pointe vers la droite, quand toute la grammaire ornementale du site est symétrique — le filet du frontispice, le fleuron, le quadrilobe. Un ornement qui ferme un titre ne va nulle part. Deux symétrisations ont été essayées, deux pointes et deux fleurons, avant que l’auteur ne revienne au fleuron. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
   },
 
   // ── Illustrer une carte ────────────────────────────────────────────────────
