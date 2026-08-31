@@ -576,7 +576,17 @@ export default function TexteBible({
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
             <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
-            <span style={{ fontSize: '1.0625rem', color: 'var(--cs-vert)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
+            {/* ⛔ PAS DE VERT DANS CE TITRE (décision de l'auteur, 2026-08-30). Le rang
+                de chapitre portait `--cs-vert`, qui jurait contre le fleuron chaud posé
+                juste avant. Il prend le DORÉ-GRIS du site : la teinte de l'or à moitié
+                chroma, celle-là même que le fleuron porte en plus pâle.
+                ⚠️ `--cs-or` ne peut pas servir ici : 3,67 sur le papier, quand un texte
+                de 17 px en demande 4,5. Le doré-gris rend 5,37 au Clair et 5,78 au Cuir.
+                ⚠️ Ce jeton est nommé pour la voix de l'ÉDITEUR (charte, `--cs-mention`) :
+                le site n'a qu'un doré-gris, et le partager vaut mieux que d'en dupliquer
+                la valeur sous un second nom. Qui le retouchera pour une cellule de
+                comparaison déplacera ce titre avec. */}
+            <span style={{ fontSize: '1.0625rem', color: 'var(--cs-mention)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
           <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={{ color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s' }} title="Chapitre suivant">›</button>
@@ -610,7 +620,8 @@ export default function TexteBible({
             .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
-            .nav-chap-arrow:hover { color: var(--cs-vert) !important; }
+            /* Les flèches encadrent le titre : elles prennent sa teinte, non le vert. */
+            .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
