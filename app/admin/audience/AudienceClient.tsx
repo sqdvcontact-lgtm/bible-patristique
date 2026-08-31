@@ -229,8 +229,9 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
             <div className="au-attente-tete">La collecte vient d’être posée</div>
             <p className="au-attente-txt">
               Aucune vue n’a encore été enregistrée. La mesure ne compte que le site en ligne : rien
-              n’est relevé depuis le poste de travail, et l’administration n’est jamais comptée. Les
-              chiffres de fréquentation resteront donc à zéro jusqu’à la première visite. Tout ce qui
+              n’est relevé depuis le poste de travail, ni des pages d’administration, ni de votre
+              propre lecture, un administrateur n’étant pas le public du site. Les chiffres de
+              fréquentation resteront donc à zéro jusqu’à la première visite d’un tiers. Tout ce qui
               vient de la base, dans les onglets Comptes et Lectures, est en revanche déjà juste.
             </p>
           </div>
@@ -417,8 +418,9 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
 
       <p className="cc-mention" style={{ maxWidth: '74rem', margin: '1.25rem auto 0' }}>
         Mesure maison, sans cookie et sans outil tiers. L’adresse IP n’est jamais écrite : elle sert à
-        calculer une empreinte dont le sel change chaque jour. L’administration et le poste de travail
-        ne sont pas comptés. Première vue enregistrée : {dateLongue(tb.premiere_vue)}.
+        calculer une empreinte dont le sel change chaque jour. Ne sont comptés ni le poste de travail,
+        ni les pages d’administration, ni la lecture d’un compte administrateur.
+        Première vue enregistrée : {dateLongue(tb.premiere_vue)}.
       </p>
     </main>
   )

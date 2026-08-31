@@ -3997,6 +3997,17 @@ Google Analytics est retiré, son bandeau de consentement avec. Doctrine et moti
 
 ⚠️ **`/admin` n'est PAS mesuré** (`estCheminMesure`). L'auteur du site l'ouvre dix fois par jour, il n'est pas son propre public. Ni `/api`, ni `/auth`, ni `/_next`, ni `/chantier`. La mesure s'arrête aussi d'elle-même sur `localhost` : les chiffres ne disent que le site en ligne.
 
+⛔ **UN COMPTE ADMINISTRATEUR N'EST PAS COMPTÉ NON PLUS, où qu'il lise** (2026-08-31, demande de l'auteur). Écarter `/admin` sans écarter celui qui l'ouvre ne tenait qu'à moitié : la règle est que l'auteur du site n'est pas son propre public, et elle vaut sur les pages publiques comme sur l'administration. Mesuré le jour même, la première ligne de `vues_pages` était la lecture d'une œuvre par l'auteur lui-même.
+
+⚠️ **Les DEUX définitions de l'administrateur doivent être couvertes**, et c'est tout l'objet d'`estLAuteurDuSite` (`app/lib/audience.ts`, pure, cinq tests) : le site en reconnaît deux, indépendantes et délibérément séparées (`app/lib/verifAdmin.ts`, charte § 15) — l'égalité exacte avec `ADMIN_EMAIL`, et `profils.est_admin`. Ne garder que la première laisserait compter un administrateur nommé en base ; ne garder que la seconde ferait dépendre l'exclusion d'une requête qui peut échouer.
+
+⛔ **La décision se prend AVANT d'envoyer, jamais après** : une vue écrite ne se reprend pas. `MesureAudience` attend donc `profilPret`. ⚠️ Ce n'est pas un délai pour le visiteur ordinaire : sans session, `profilPret` ne vaut que « la session est connue », ce que `getSession` rend depuis le stockage local, sans réseau.
+
+⚠️ **L'effet se rejoue quand on APPREND qui regarde, pas seulement quand la page change** : d'où le témoin `dernierEnvoye`, sans lequel la vue courante partirait deux fois. Il retient le dernier chemin ENVOYÉ, non le dernier vu — un aller-retour A → B → A compte bien deux fois A.
+
+⚠️ **Ici, et contrairement à la règle générale, une garde côté client SUFFIT.** Le verrou de bêta se contourne en désactivant JavaScript ; une balise, non : sans JavaScript elle ne part pas du tout. Et le seul gain qu'on tirerait d'un contournement serait de ne PAS être compté, ce que personne ne cherche. Une vérification serveur coûterait un aller-retour d'authentification à chaque page tournée pour une menace inexistante.
+
+⚠️ **Le compte de démonstration partagé (`ACCES_INVITES` / `NEXT_PUBLIC_EMAIL_INVITE`) et les invités `acces_beta` restent COMPTÉS**, faute d'une décision. Ce sont les seuls lecteurs que le site ait aujourd'hui, et les écarter viderait la mesure ; mais le compte de démonstration est aussi l'auteur sous un autre chapeau. À trancher avant l'ouverture, pas après.
 ⛔ **Un index sur `vu_le::date` est REFUSÉ par PostgreSQL** (42P17, « functions in index expression must be marked IMMUTABLE »). La conversion d'un `timestamptz` en `date` dépend du fuseau de la session, elle est donc STABLE. Ce n'est pas une perte : toutes les interrogations bornent d'abord par `vu_le >= depuis`, et c'est l'index sur `vu_le` qui les sert. Le regroupement par jour se fait ensuite sur les seules lignes retenues.
 
 ⛔ **`service_role` n'a PAS le droit de lire `auth.users`** (vérifié le 2026-08-31 : `has_table_privilege` rend faux pour `service_role` comme pour `authenticated`). Les comptes se comptent donc dans `profils`, ce qui est de toute façon la notion de membre qu'emploie le site partout ailleurs. ⚠️ Ne pas ouvrir un `SECURITY DEFINER` pour contourner cela : on ouvrirait une fonction à privilèges pour un compteur.

@@ -11,6 +11,28 @@
 /** Longueur au-delà de laquelle un chemin est tronqué avant écriture. */
 export const LONGUEUR_CHEMIN_MAX = 300
 
+/**
+ * L'auteur du site n'est pas son propre public, et cela ne vaut pas que pour
+ * `/admin` : sa lecture des pages publiques ne compte pas davantage.
+ *
+ * ⚠️ Les DEUX branches sont nécessaires, parce que le site reconnaît un
+ * administrateur de deux façons indépendantes (voir `app/lib/verifAdmin.ts`) :
+ * l'égalité exacte avec l'adresse d'administration, et `profils.est_admin`. Ne
+ * garder que la première laisserait compter un administrateur nommé en base ; ne
+ * garder que la seconde ferait dépendre l'exclusion d'une requête qui peut
+ * échouer.
+ */
+export function estLAuteurDuSite(
+  email: string | null | undefined,
+  estAdmin: boolean,
+  adminEmail: string | null | undefined
+): boolean {
+  if (estAdmin) return true
+  const attendue = (adminEmail ?? '').trim().toLowerCase()
+  if (!attendue) return false
+  return (email ?? '').trim().toLowerCase() === attendue
+}
+
 // Ce qu'on ne mesure pas. L'administration fausserait tout : c'est l'auteur du
 // site qui l'ouvre, dix fois par jour, et il n'est pas son propre public. Les
 // routes techniques ne sont pas des pages.

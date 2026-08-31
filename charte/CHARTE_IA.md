@@ -4192,6 +4192,10 @@ Une mesure d’audience anonyme, strictement limitée au site, non recoupée et 
 - ⛔ Rien n’est transmis à un tiers, et rien ne quitte l’hébergement du site.
 - ⛔ Les données sont supprimées au bout de vingt-cinq mois, et cette borne est tenue par un travail périodique en base, non par une intention.
 
+⛔ **Un compte ADMINISTRATEUR n’est pas compté non plus, où qu’il lise.** Écarter les pages d’administration sans écarter celui qui les ouvre ne tenait qu’à moitié : la règle est que l’auteur du site n’est pas son propre public, et elle vaut sur les pages publiques comme sur l’administration. Une mesure qui compte l’auteur mesure son travail, non son audience.
+
+⚠️ **Le compte de démonstration partagé et les invités de la bêta restent comptés**, faute d’une décision. Ce sont les seuls lecteurs que le site ait aujourd’hui, et les écarter viderait la mesure ; mais le compte de démonstration est aussi l’auteur sous un autre chapeau. À trancher avant l’ouverture, pas après.
+
 **Ajouter un traceur tiers, c’est remettre un bandeau.** La décision se prend alors comme telle, en pesant ce que le visiteur y perd, et la page Confidentialité se reprend le même jour. Ce n’est pas un réglage technique.
 
 ### 39.3 Où l’on regarde

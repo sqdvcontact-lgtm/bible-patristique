@@ -3,6 +3,7 @@ import {
   appareilDepuisUA,
   cheminNormalise,
   estCheminMesure,
+  estLAuteurDuSite,
   estRobot,
   hoteDuReferent,
   rubriqueDuChemin,
@@ -93,6 +94,33 @@ describe('appareilDepuisUA', () => {
     expect(appareilDepuisUA(IPHONE)).toBe('mobile')
     expect(appareilDepuisUA(CHROME)).toBe('bureau')
     expect(appareilDepuisUA(null)).toBe('bureau')
+  })
+})
+
+describe('estLAuteurDuSite', () => {
+  const ADMIN = 'sqdv.contact@gmail.com'
+
+  it('reconnaît l’administrateur par son adresse', () => {
+    expect(estLAuteurDuSite(ADMIN, false, ADMIN)).toBe(true)
+    expect(estLAuteurDuSite('  SQDV.Contact@Gmail.com ', false, ADMIN)).toBe(true)
+  })
+
+  it('reconnaît un administrateur nommé en base, quelle que soit son adresse', () => {
+    expect(estLAuteurDuSite('quelqun@ailleurs.fr', true, ADMIN)).toBe(true)
+    expect(estLAuteurDuSite(null, true, ADMIN)).toBe(true)
+  })
+
+  it('compte un lecteur ordinaire', () => {
+    expect(estLAuteurDuSite('lecteur@ailleurs.fr', false, ADMIN)).toBe(false)
+  })
+
+  it('compte un visiteur sans session', () => {
+    expect(estLAuteurDuSite(null, false, ADMIN)).toBe(false)
+  })
+
+  it('ne prend personne pour l’auteur si l’adresse n’est pas configurée', () => {
+    expect(estLAuteurDuSite('lecteur@ailleurs.fr', false, undefined)).toBe(false)
+    expect(estLAuteurDuSite(null, false, '')).toBe(false)
   })
 })
 
