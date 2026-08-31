@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import Navbar from "./components/Navbar";
-import Consentement from "./components/Consentement";
+import MesureAudience from "./components/MesureAudience";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import { SCRIPT_THEME, THEME_DEFAUT } from "./lib/theme";
 import { ProvisionCompte } from "./lib/contexteCompte";
@@ -91,7 +91,9 @@ export default function RootLayout({
             <Navbar />
             {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
             <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
-            <Consentement />
+            {/* Mesure d'audience maison, anonyme et sans cookie. N'affiche rien.
+                Elle a remplacé Google Analytics et son bandeau le 2026-08-31. */}
+            <MesureAudience />
           </ProvisionCompte>
         </ProvisionAffichageAdmin>
       </body>

@@ -96,6 +96,10 @@ const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: b
   { href: "/admin?onglet=constituer-liens", label: "Constituer liens", famille: "communaute" },
   { href: "/admin?onglet=moderation", label: "Modération", famille: "communaute" },
   { href: "/admin?onglet=propositions", label: "Propositions", famille: "communaute" },
+  // « Audience » dit ce que le site REÇOIT (visites, comptes, lectures). À ne pas
+  // confondre avec « Statistiques du corpus », dans le centre de contrôle, qui dit
+  // l'état du TRAVAIL. Les deux écrans sont frères et ne se recouvrent jamais.
+  { href: "/admin/audience", label: "Audience", famille: "systeme" },
   { href: "/admin?onglet=charte", label: "Charte IA", famille: "systeme" },
   { href: "/admin?onglet=charte-accentuation", label: "Accentuation", famille: "systeme" },
   { href: "/admin/illustrations", label: "Illustrations", famille: "systeme" },

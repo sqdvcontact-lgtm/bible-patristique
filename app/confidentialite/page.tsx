@@ -1,4 +1,3 @@
-import GestionConsentement from "../components/GestionConsentement";
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 export const metadata = {
@@ -129,8 +128,8 @@ export default function ConfidentialitePage() {
             <p>
               Vos données sont hébergées par <strong>Supabase Inc.</strong> (base de données et
               authentification) et le site lui-même est servi par <strong>Vercel Inc.</strong> La mesure
-              d&rsquo;audience, lorsque vous y consentez, fait intervenir <strong>Google Ireland Limited /
-              Google LLC</strong> (voir le point 8). Ces prestataires agissent en qualité de sous-traitants
+              d&rsquo;audience est réalisée par le site lui-même et ne fait intervenir aucun tiers (voir le
+              point 8). Ces prestataires agissent en qualité de sous-traitants
               au sens du RGPD et n&rsquo;accèdent à vos données que dans la mesure nécessaire à la fourniture de
               leurs services techniques.
             </p>
@@ -141,7 +140,7 @@ export default function ConfidentialitePage() {
 
           <Section titre="6. Transferts hors Union européenne">
             <p>
-              Supabase Inc., Vercel Inc. et Google LLC sont des sociétés dont les infrastructures peuvent impliquer un
+              Supabase Inc. et Vercel Inc. sont des sociétés dont les infrastructures peuvent impliquer un
               hébergement de données hors de l&rsquo;Union européenne (notamment aux États-Unis). Ces transferts
               sont encadrés par les clauses contractuelles types de la Commission européenne ou par un
               mécanisme équivalent garantissant un niveau de protection adéquat des données.
@@ -166,6 +165,10 @@ export default function ConfidentialitePage() {
                 Les compteurs de consultation sont conservés indéfiniment, étant agrégés et non
                 personnels.
               </li>
+              <li>
+                Les données de mesure d&rsquo;audience sont supprimées automatiquement au bout de
+                vingt-cinq mois (voir le point 8).
+              </li>
             </ul>
           </Section>
 
@@ -177,19 +180,29 @@ export default function ConfidentialitePage() {
               service demandé par l&rsquo;utilisateur.
             </p>
             <p>
-              Le site utilise <strong>Google Analytics 4</strong> (fourni par Google Ireland Limited /
-              Google LLC) pour mesurer son audience de façon agrégée : nombre de visites, pages consultées,
-              provenance approximative. Cet outil dépose des cookies non essentiels et n&rsquo;est chargé
-              <strong> qu&rsquo;après votre consentement explicite</strong>. Tant que vous n&rsquo;avez pas accepté,
-              aucun script ni cookie Google n&rsquo;est déposé ; si vous refusez, aucune mesure n&rsquo;a lieu.
+              La mesure d&rsquo;audience est réalisée par le site lui-même, sans aucun outil tiers. Elle ne
+              dépose ni cookie ni identifiant dans votre navigateur, et aucune donnée ne quitte
+              l&rsquo;hébergement du site. Google Analytics, employé jusqu&rsquo;au 31 août 2026, a été retiré,
+              de même que le bandeau de consentement qui l&rsquo;accompagnait.
             </p>
             <p>
-              La base légale de ce traitement est votre consentement (article 6.1.a du RGPD). Vous pouvez le
-              retirer à tout moment, aussi simplement que vous l&rsquo;avez donné, au moyen du bouton ci-dessous.
-              Ces données peuvent être transférées vers les États-Unis ; ce transfert est encadré par les
-              clauses contractuelles types de la Commission européenne (voir le point 6).
+              Pour chaque page consultée, le site enregistre l&rsquo;adresse de la page, la date et l&rsquo;heure,
+              le nom de domaine du site depuis lequel vous êtes arrivé le cas échéant, le pays, le fait que
+              la page ait été lue sur téléphone ou sur ordinateur, et le fait qu&rsquo;une session de connexion
+              ait été ouverte ou non. Le compte lui-même n&rsquo;est jamais consigné.
             </p>
-            <GestionConsentement />
+            <p>
+              Votre adresse IP n&rsquo;est enregistrée à aucun moment. Elle sert uniquement à calculer une
+              empreinte chiffrée, au moyen d&rsquo;une clé qui change chaque jour, afin de distinguer deux
+              visiteurs au cours d&rsquo;une même journée. Le lendemain, cette empreinte change, et plus rien
+              ne permet de rapprocher les deux visites.
+            </p>
+            <p>
+              Ce traitement relève de la mesure d&rsquo;audience strictement limitée au site, anonyme, non
+              recoupée avec d&rsquo;autres traitements et non transmise à des tiers. À ce titre il est dispensé
+              de consentement préalable, conformément aux lignes directrices de la CNIL, et aucun bandeau ne
+              vous est présenté. Ces données sont supprimées automatiquement au bout de vingt-cinq mois.
+            </p>
           </Section>
 
           <Section titre="9. Vos droits">

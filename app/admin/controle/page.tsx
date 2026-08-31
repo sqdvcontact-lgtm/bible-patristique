@@ -197,6 +197,7 @@ function Volet({ snapshot }: { snapshot: Snapshot }) {
           <div>Snapshot de {dateHeureFr(snapshot.generated_at).replace(/^.*à /, '')}</div>
           <div>Métriques calculées {ageLisible(snapshot.cache_age_seconds)}</div>
           <a href="/admin/controle/statistiques" className="cv-lien">Statistiques du corpus →</a>
+          <a href="/admin/audience" className="cv-lien">Audience du site →</a>
         </div>
       </div>
     </aside>
