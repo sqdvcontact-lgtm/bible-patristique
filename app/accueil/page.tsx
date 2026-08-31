@@ -4,6 +4,7 @@ import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
 import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/auteursDuCorpus";
+import { cssServi } from "@/app/lib/cssServi";
 
 export const metadata = {
   title: { absolute: "Corpus Scriptura" },
@@ -31,11 +32,10 @@ export const metadata = {
 // ⚠️ Plusieurs œuvres importées d'un même lot partagent leur date, et la liste répète
 // alors le même jour : c'est la vérité de l'ajout, et un chantier mené par lots ressemble
 // à cela.
-const NB_AJOUTS = 9;
+const NB_AJOUTS = 5;
 
-// Le journal posé sous les portes n'en montre que cinq : il PROUVE que la bibliothèque
-// vit, il ne la catalogue pas. La liste entière se lit à la bibliothèque.
-const NB_AJOUTS_SEUIL = 5;
+// ⚠️ Il en était tiré NEUF pour n'en montrer que cinq : quatre lignes parcouraient le
+// réseau à chaque visite pour être jetées. Les deux constantes n'en font plus qu'une.
 
 type OeuvreRecente = { id_oeuvre: string; titre: string; date_mise_en_ligne: string | null; auteur: string };
 
@@ -53,21 +53,24 @@ export default async function AccueilPage() {
   // environ 65 ms quoi qu'il transporte, et c'est leur mise en CASCADE qui se voit,
   // jamais leur nombre : celles-ci ne dépendent pas les unes des autres, elles
   // partent donc ensemble.
-  const [recentesRes, signaturesRes, coSignaturesRes] = await Promise.all([
+  const [oeuvresRes, coSignaturesRes] = await Promise.all([
+    // ⛔ UNE SEULE lecture d'« oeuvres » pour les DEUX blocs de la porte. Il y en avait
+    // deux, sur la même table et le même filtre : l'une prenait les neuf dernières mises
+    // en ligne, l'autre les quarante-huit œuvres offertes avec leur auteur. La seconde
+    // contenait déjà la première. Mesuré : 91 ms et 83 ms côte à côte, contre 69 ms
+    // fondues, pour 9,5 Ko au lieu de 6,8 — sur un lien serveur à serveur, ce sont les
+    // ALLERS-RETOURS qui coûtent, jamais les octets.
+    //
+    // ⚠️ L'ordre reste celui de la BASE, et c'est la condition pour que la fusion soit
+    // licite : on ne trie rien ici, on prend les premiers d'une liste déjà ordonnée. Un
+    // tri rejoué en JavaScript perdrait le départage des œuvres entrées le même jour,
+    // qui sont la majorité.
     supabase
       .from("oeuvres")
-      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
+      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, date_debut_annee)")
       .or(filtrePubliee)
       .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
-      .order("id_oeuvre", { ascending: false })
-      .limit(NB_AJOUTS),
-    // Les œuvres offertes et leur PREMIER auteur. Cette lecture sert deux fois : elle
-    // donne les noms de la galerie, et l'ensemble des œuvres publiées qui filtre les
-    // co-signatures — la table de liaison, elle, ignore la publication.
-    supabase
-      .from("oeuvres")
-      .select("id_oeuvre, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, date_debut_annee)")
-      .or(filtrePubliee),
+      .order("id_oeuvre", { ascending: false }),
     // Les CO-SIGNATAIRES. ⛔ Sans elles, Rufin d'Aquilée disparaît de la galerie : il
     // est le second auteur de l'Histoire ecclésiastique, et « oeuvres.id_auteur » ne
     // porte que le premier (AGENTS.md, « Une œuvre à plusieurs auteurs »).
@@ -82,8 +85,7 @@ export default async function AccueilPage() {
   // qu'à l'ouverture du site les deux blocs de cette porte se rendront vides. Au
   // moins le journal du serveur le dira.
   for (const lecture of [
-    { nom: "ajouts récents", erreur: recentesRes.error },
-    { nom: "auteurs du corpus", erreur: signaturesRes.error },
+    { nom: "œuvres offertes", erreur: oeuvresRes.error },
     { nom: "co-signatures", erreur: coSignaturesRes.error },
   ]) {
     if (lecture.erreur) console.error(`[accueil] lecture « ${lecture.nom} » : ${lecture.erreur.message}`);
@@ -92,17 +94,17 @@ export default async function AccueilPage() {
   // ⛔ L'ordre est celui de la base — date décroissante, puis identifiant — et il ne se
   // rejoue pas ici : un tri par la seule date perdrait le départage des œuvres entrées le
   // même jour, qui sont la majorité.
-  const recentes: OeuvreRecente[] = (recentesRes.data ?? []).map((o: Record<string, unknown>) => ({
+  // Les lignes servent DEUX fois, et c'est tout l'objet de la fusion : elles portent
+  // l'auteur de chaque œuvre offerte, et leur tête est le journal des ajouts.
+  const signatures = (oeuvresRes.data ?? []).map((o: Record<string, unknown>) => ({
+    id_oeuvre: o.id_oeuvre as string,
+    auteur: auteurDeLigne(o.auteurs),
+  }));
+  const recentes: OeuvreRecente[] = (oeuvresRes.data ?? []).slice(0, NB_AJOUTS).map((o: Record<string, unknown>) => ({
     id_oeuvre: o.id_oeuvre as string,
     titre: o.titre as string,
     date_mise_en_ligne: (o.date_mise_en_ligne as string | null) ?? null,
-    auteur: Array.isArray(o.auteurs) ? ((o.auteurs[0] as { nom?: string })?.nom ?? "") : (((o.auteurs as { nom?: string } | null)?.nom) ?? ""),
-  }));
-
-  // Les deux jeux de signatures, réunis par le module qui porte la règle.
-  const signatures = (signaturesRes.data ?? []).map((o: Record<string, unknown>) => ({
-    id_oeuvre: o.id_oeuvre as string,
-    auteur: auteurDeLigne(o.auteurs),
+    auteur: auteurDeLigne(o.auteurs)?.nom ?? "",
   }));
   const coSignatures = (coSignaturesRes.data ?? []).map((o: Record<string, unknown>) => ({
     id_oeuvre: o.id_oeuvre as string,
@@ -115,7 +117,10 @@ export default async function AccueilPage() {
 
   return (
     <div className="accueil">
-      <style>{`
+      {/* ⚠️ Les commentaires de ce bloc font partie du littéral, donc du HTML servi :
+          mesurés, ils y pesaient 12 Ko sur 19,3. On les retire au SERVICE, jamais de la
+          source — ils portent la doctrine du dessin, et c'est ici qu'on la relit. */}
+      <style>{cssServi(`
         html { scroll-behavior: smooth; }
         /* ── UNE SEULE MESURE pour toute la colonne d'accueil ────────────────
            Les cartes tenaient dans 42,5rem quand les volets et le bandeau en prenaient
@@ -457,7 +462,7 @@ export default async function AccueilPage() {
              qu'un bouton qui répond sans animation. */
           .cs-bouton-soutenir { transition-duration: 0.01ms !important; }
         }
-      `}</style>
+      `)}</style>
 
       {/* ══ LA PORTE ═════════════════════════════════════════════════════════ */}
       <main className="accueil-seuil">
@@ -573,7 +578,7 @@ export default async function AccueilPage() {
             <span>Ajouts récents</span>
             <i />
           </div>
-          <ListeAjouts recentes={recentes.slice(0, NB_AJOUTS_SEUIL)} />
+          <ListeAjouts recentes={recentes} />
         </div>
       </main>
 
