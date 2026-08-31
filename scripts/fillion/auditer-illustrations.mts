@@ -60,12 +60,14 @@ type Defaut = { code: string; gravite: Gravite; detail: string; vu?: boolean }
 /** ⚠️ Ce que j'ai VU à l'agrandissement, et que la mesure manque ou invente.
  *  L'œil tranche ; le relevé automatique ne fait que désigner. */
 const VUES: Record<string, Defaut[]> = {
-  'fillion-t07-p0055-i01': [{ code: 'legende_emportee', gravite: 'a_revoir', detail: 'la légende imprimée est dans la découpe, sur deux lignes, et la page la recompose dessous : elle paraît deux fois' }],
-  'fillion-t07-p0059-i01': [{ code: 'legende_emportee', gravite: 'bloquant', detail: 'la légende imprimée est dans la découpe ET COUPÉE EN DEUX : on n’en lit que le haut des lettres' }],
-  'fillion-t07-p0417-i01': [{ code: 'filet_de_page', gravite: 'a_revoir', detail: 'un filet de colonne de la page court le long du bord droit, séparé du dessin par du papier vide' }],
-  'fillion-t07-p0418-i01': [{ code: 'filet_de_page', gravite: 'a_revoir', detail: 'un filet de colonne court le long du bord gauche, sur du papier vide' }],
   'fillion-t07-p0064-i01': [{ code: 'decoupe_serree', gravite: 'signale', detail: 'les avirons sortent du cadre à gauche : la découpe les coupe' }],
 }
+
+/** ⚠️ Ce qui a été VU puis CORRIGÉ. On garde la trace, non le signalement : un
+ *  défaut réglé qui continue de paraître au registre finit par ne plus être lu.
+ *    p0055, p0059 — la légende imprimée était dans la découpe (corrigé le 31/08)
+ *    p0417, p0418 — un filet de colonne longeait un bord (corrigé le 31/08)
+ */
 
 function acutance(g: Buffer, L: number, H: number) {
   let s = 0, n = 0, moy = 0, v2 = 0

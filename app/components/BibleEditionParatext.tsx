@@ -1,4 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
+
+import { GravureAgrandissable } from './GravureAgrandissable'
 import {
   ancreAppelNoteBible,
   type BibleEditionDisplayAsset,
@@ -594,16 +596,37 @@ export function IllustrationBible({ illustration, habillage }: {
         // ⛔ Une PHOTOGRAVURE et une PLANCHE gardent leur papier : elles sont
         //    opaques, et le thème ne les retourne pas. La première est rognée au
         //    filet gravé et prend le filet du site ; la seconde son passe-partout.
-        <span className={regime === 'au-fil' ? 'cs-bible-gravure-cadre' : 'cs-bible-gravure-passe'}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={illustration.url}
-            alt={illustration.altText}
-            width={illustration.width}
-            height={illustration.height}
-            style={{ display: 'block', width: '100%', height: 'auto' }}
-          />
-        </span>
+        <GravureAgrandissable
+          alt={illustration.altText}
+          legende={illustration.caption}
+          enfant={(
+            <span className={regime === 'au-fil' ? 'cs-bible-gravure-cadre' : 'cs-bible-gravure-passe'}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={illustration.url}
+                alt={illustration.altText}
+                width={illustration.width}
+                height={illustration.height}
+                style={{ display: 'block', width: '100%', height: 'auto' }}
+              />
+            </span>
+          )}
+          agrandi={(
+            /* ⛔ Deux MAXIMA, aucune dimension posée : le navigateur les applique
+               l'un après l'autre en tenant le rapport. Une largeur posée, plus un
+               plafond de hauteur, écraserait la planche (charte, § Responsive). */
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={illustration.url}
+              alt={illustration.altText}
+              style={{
+                display: 'block', margin: '0 auto',
+                maxWidth: `min(100%, ${illustration.width}px)`,
+                maxHeight: '78vh', width: 'auto', height: 'auto',
+              }}
+            />
+          )}
+        />
       )}
       {/* La légende suit le corps du paratexte : plus grosse que le commentaire,
           elle passerait devant le texte qu'elle accompagne. */}

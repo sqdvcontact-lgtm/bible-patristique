@@ -237,6 +237,25 @@ describe('paratexte des éditions bibliques', () => {
     expect(part('hors-texte', 0.2)).toBe('88')
   })
 
+  it('⛔ une PLANCHE et une SCÈNE s’agrandissent ; un masque reste dans le fil', () => {
+    // Une planche est une page ENTIÈRE du volume, et elle ne se lit pas à 440 px :
+    // vingt-huit des trente-deux sont tournées, et leurs légendes gravées y
+    // tombent à trois pixels de haut. Le fichier servi faisant déjà le double de
+    // sa taille d'affichage, le montrer à sa taille naturelle suffit — aucun
+    // dérivé nouveau n'est nécessaire.
+    const planche = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte')} />)
+    const scene = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil', 0.847)} />)
+    for (const html of [planche, scene]) {
+      expect(html).toContain('aria-label="Agrandir')
+      expect(html).toContain('cursor:zoom-in')
+    }
+    // ⚠️ Une vignette est un MASQUE : son encre est reposée par le thème, et
+    //    elle reste dans le fil du texte.
+    const vignette = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.402)} />)
+    expect(vignette).not.toContain('Agrandir')
+    expect(vignette).toContain('mask-image')
+  })
+
   it('⛔ une vignette TROP LARGE ne flotte pas : le texte n’aurait plus de mesure', () => {
     // À 57,5 % de la colonne il ne reste que 196 px de piste, où le justifié se
     // creuse de lézardes. C'est un axe DISTINCT du détourage : cette gravure-là

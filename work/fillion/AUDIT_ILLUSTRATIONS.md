@@ -8,7 +8,7 @@ effacerait la décision au passage suivant.
 npx tsx --env-file=.env.local scripts/fillion/auditer-illustrations.mts
 ```
 
-Relevé du 2026-08-31 · **208 gravures**, dont **114** portent au moins un défaut.
+Relevé du 2026-08-31 · **208 gravures**, dont **111** portent au moins un défaut.
 
 ⚠️ **La mesure ne conclut pas : elle dit où REGARDER.** Trois mesures ont déjà
 accusé à tort — les coins d’un fichier rogné, la confrontation au scan, le filet
@@ -17,23 +17,24 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 
 | défaut | ⛔ | ⚠️ | · | état |
 |---|---:|---:|---:|---|
-| [`planche_tournee_trop_petite`](#planchetourneetroppetite) |  | 28 |  | à traiter |
-| [`legende_emportee`](#legendeemportee) | 1 | 1 |  | à traiter |
-| [`trait_sous_le_pixel`](#traitsouslepixel) |  | 9 | 10 | à traiter |
-| [`trop_haute`](#trophaute) |  | 5 | 3 | à traiter |
-| [`filet_de_bord`](#filetdebord) |  |  | 39 | à traiter |
-| [`trop_large_pour_habiller`](#troplargepourhabiller) |  |  | 30 | accepté |
-| [`trop_pale`](#troppale) |  |  | 27 | à traiter |
-| [`filet_de_page`](#filetdepage) |  | 2 |  | à traiter |
+| [`planche_tournee_trop_petite`](#planchetourneetroppetite) |  | 28 |  | réglé |
+| [`trait_sous_le_pixel`](#traitsouslepixel) |  | 9 | 10 | en cours |
+| [`trop_haute`](#trophaute) |  | 5 | 3 | en cours |
+| [`filet_de_bord`](#filetdebord) |  |  | 38 | à traiter |
+| [`trop_large_pour_habiller`](#troplargepourhabiller) |  |  | 29 | accepté |
+| [`trop_pale`](#troppale) |  |  | 27 | en cours |
+| [`trait_perdu`](#traitperdu) |  | 1 |  | accepté |
 | [`agrandie_par_le_plancher`](#agrandieparleplancher) |  |  | 6 | à traiter |
 | [`voile`](#voile) |  |  | 4 | accepté |
-| [`bande_en_pied`](#bandeenpied) |  |  | 3 | à traiter |
 | [`regime_force`](#regimeforce) |  |  | 3 | accepté |
+| [`bande_en_pied`](#bandeenpied) |  |  | 2 | à traiter |
 | [`sans_legende`](#sanslegende) |  |  | 2 | accepté |
 | [`decoupe_serree`](#decoupeserree) |  |  | 1 | à traiter |
 | [`cle_hors_convention`](#clehorsconvention) |  |  | 1 | à traiter |
 
-## `planche_tournee_trop_petite` — 28 gravures · à traiter
+## `planche_tournee_trop_petite` — 28 gravures · réglé
+
+> Réglé le 31 août 2026 par l’AGRANDISSEMENT, que la table des régimes annonçait depuis l’origine sans qu’il fût bâti. Aucun dérivé nouveau : le fichier servi fait déjà le double de sa taille d’affichage, et le montrer à sa taille naturelle porte le contenu d’une planche tournée à 0,313 — mieux que ce qu’une planche debout obtient dans le fil. Vérifié à l’œil sur p0577 : les cinq légendes gravées se lisent. ⚠️ La taille DANS LE FIL ne change pas, et c’est voulu : une planche ne doit pas prendre la colonne.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
@@ -66,14 +67,9 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t01-p0725-i01` | DEU | hors-texte | 440×279 | ⚠️ | planche redressée, 440×279 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus |
 | `t01-p0741-i01` | DEU | hors-texte | 440×274 | ⚠️ | planche redressée, 440×274 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus |
 
-## `legende_emportee` — 2 gravures · à traiter
+## `trait_sous_le_pixel` — 19 gravures · en cours
 
-| gravure | livre | régime | affiché | | détail |
-|---|---|---|---|---|---|
-| `t07-p0059-i01` | MAT | vignette | 218×163 | ⛔ **vu** | la légende imprimée est dans la découpe ET COUPÉE EN DEUX : on n’en lit que le haut des lettres |
-| `t07-p0055-i01` | MAT | vignette | 219×200 | ⚠️ **vu** | la légende imprimée est dans la découpe, sur deux lignes, et la page la recompose dessous : elle paraît deux fois |
-
-## `trait_sous_le_pixel` — 19 gravures · à traiter
+> Quinze des dix-neuf sont des planches, que l’agrandissement rend lisibles. Les quatre autres sont des vignettes dont la hachure est plus fine qu’un pixel affiché : les montrer plus grand est une décision de taille.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
@@ -97,7 +93,9 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0192-i01` | MAT | vignette | 180×139 | · | le trait mesure 0.99 px à l’arrivée |
 | `t07-p0402-i01` | LUK | vignette | 202×203 | · | le trait mesure 0.86 px à l’arrivée |
 
-## `trop_haute` — 8 gravures · à traiter
+## `trop_haute` — 8 gravures · en cours
+
+> Cinq des huit sont des PLANCHES, et une page entière du volume a le droit d’être haute — d’autant qu’elle s’agrandit maintenant. Reste p0098, l’épi, que le plancher relève de 2,53 fois : c’est une décision de taille, non un défaut de traitement.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
@@ -110,13 +108,12 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0449-i01` | LUK | vignette | 196×516 | · | 196×516 px |
 | `t07-p0493-i01` | JHN | vignette | 180×595 | · | 180×595 px |
 
-## `filet_de_bord` — 39 gravures · à traiter
+## `filet_de_bord` — 38 gravures · à traiter
 
 > La mesure confond un filet de page avec le cadre GRAVÉ d'un bas-relief : chaque cas se regarde avant d'être cru.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
-| `t07-p0417-i01` | LUK | vignette | 230×129 | · | une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder |
 | `t07-p0217-composite-proposal` | MRK | vignette | 249×157 | · | une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder |
 | `t07-p0179-i01` | MAT | au-fil | 180×153 | · | une règle droite longe les bords droite et haut : filet de page, ou cadre gravé incomplet — à regarder |
 | `t07-p0225-i01` | MRK | vignette | 280×166 | · | une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder |
@@ -156,14 +153,13 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0507-i01` | JHN | au-fil | 440×279 | · | une règle droite longe les bords gauche et droite et haut : filet de page, ou cadre gravé incomplet — à regarder |
 | `t07-p0564-i01` | JHN | vignette | 192×191 | · | une règle droite longe le bord bas : filet de page, ou cadre gravé incomplet — à regarder |
 
-## `trop_large_pour_habiller` — 30 gravures · accepté
+## `trop_large_pour_habiller` — 29 gravures · accepté
 
 > Décision du 30 août 2026 : au-delà de 45 % de la colonne il ne reste pas deux cents pixels de piste, et la gravure se centre. Ce n'est pas un défaut mais la règle.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
-| `t07-p0417-i01` | LUK | vignette | 230×129 | · | 46 % de la colonne : elle se centre au lieu d’être habillée par le texte |
-| `t07-p0418-i01` | LUK | vignette | 233×273 | · | 47 % de la colonne : elle se centre au lieu d’être habillée par le texte |
+| `t07-p0418-i01` | LUK | vignette | 225×270 | · | 45 % de la colonne : elle se centre au lieu d’être habillée par le texte |
 | `t07-p0064-i01` | MAT | vignette | 239×104 | · | 48 % de la colonne : elle se centre au lieu d’être habillée par le texte |
 | `t07-p0217-composite-proposal` | MRK | vignette | 249×157 | · | 50 % de la colonne : elle se centre au lieu d’être habillée par le texte |
 | `t07-p0225-i01` | MRK | vignette | 280×166 | · | 56 % de la colonne : elle se centre au lieu d’être habillée par le texte |
@@ -193,9 +189,9 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0436-i01` | LUK | vignette | 228×149 | · | 46 % de la colonne : elle se centre au lieu d’être habillée par le texte |
 | `t07-p0461-i01` | LUK | vignette | 241×244 | · | 48 % de la colonne : elle se centre au lieu d’être habillée par le texte |
 
-## `trop_pale` — 27 gravures · à traiter
+## `trop_pale` — 27 gravures · en cours
 
-> Recouvre en grande partie les planches tournées, dont tout le contenu est réduit.
+> Recouvre en grande partie les planches tournées, dont tout le contenu était réduit : l’agrandissement leur rend leur lisibilité. Ce qui reste après cela est à regarder gravure par gravure.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
@@ -214,7 +210,7 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t01-p0651-i01` | DEU | hors-texte | 440×279 | · | 0.7 % d’encre vue à la taille d’affichage |
 | `t01-p0691-i01` | DEU | hors-texte | 440×279 | · | 1.8 % d’encre vue à la taille d’affichage |
 | `t01-p0707-i01` | DEU | hors-texte | 440×279 | · | 0.7 % d’encre vue à la taille d’affichage |
-| `t07-p0418-i01` | LUK | vignette | 233×273 | · | 2.8 % d’encre vue à la taille d’affichage |
+| `t07-p0418-i01` | LUK | vignette | 225×270 | · | 2.9 % d’encre vue à la taille d’affichage |
 | `t01-p0043-i01` | GEN | hors-texte | 440×718 | · | 3.0 % d’encre vue à la taille d’affichage |
 | `t01-p0323-i01` | EXO | hors-texte | 440×679 | · | 1.4 % d’encre vue à la taille d’affichage |
 | `t01-p0379-i01` | LEV | hors-texte | 440×273 | · | 2.8 % d’encre vue à la taille d’affichage |
@@ -227,12 +223,13 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0408-i01` | LUK | vignette | 230×165 | · | 2.6 % d’encre vue à la taille d’affichage |
 | `t07-p0322-i01` | LUK | vignette | 220×214 | · | 2.7 % d’encre vue à la taille d’affichage |
 
-## `filet_de_page` — 2 gravures · à traiter
+## `trait_perdu` — 1 gravures · accepté
+
+> p0418, à 0,849 pour un seuil de 0,85 : le seuil mord au bord. Rien à corriger ; à reprendre si un relevé le voit descendre.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
-| `t07-p0417-i01` | LUK | vignette | 230×129 | ⚠️ **vu** | un filet de colonne de la page court le long du bord droit, séparé du dessin par du papier vide |
-| `t07-p0418-i01` | LUK | vignette | 233×273 | ⚠️ **vu** | un filet de colonne court le long du bord gauche, sur du papier vide |
+| `t07-p0418-i01` | LUK | vignette | 225×270 | ⚠️ | la chaîne ne rend que 85 % de ce que le master porte à cette taille |
 
 ## `agrandie_par_le_plancher` — 6 gravures · à traiter
 
@@ -256,14 +253,6 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0154-i02` | MAT | vignette | 220×71 | · | 3.2 % de la surface tient sur l’alpha 3 : un fond plat subsiste |
 | `t07-p0187-i01` | MAT | vignette | 180×249 | · | 4.9 % de la surface tient sur l’alpha 3 : un fond plat subsiste |
 
-## `bande_en_pied` — 3 gravures · à traiter
-
-| gravure | livre | régime | affiché | | détail |
-|---|---|---|---|---|---|
-| `t07-p0059-i01` | MAT | vignette | 218×163 | · | une bande d’encre isolée, 1.8 % de la hauteur, ferme la découpe : légende imprimée, ou filet |
-| `t07-p0168-i01` | MAT | vignette | 437×97 | · | une bande d’encre isolée, 1.0 % de la hauteur, ferme la découpe : légende imprimée, ou filet |
-| `t07-p0227-i01` | MRK | vignette | 180×208 | · | une bande d’encre isolée, 0.5 % de la hauteur, ferme la découpe : légende imprimée, ou filet |
-
 ## `regime_force` — 3 gravures · accepté
 
 > Trois demi-teintes que la légende ne déclare pas, forcées après contrôle visuel le 31 août 2026 (charte § 35.16.19). Le signalement existe pour qu'on les retrouve, non pour qu'on les corrige.
@@ -273,6 +262,13 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0179-i01` | MAT | au-fil | 180×153 | · | régime forcé à « au-fil » : demi-teinte : trame de points visible à l’agrandissement, légende sans mention de procédé |
 | `t07-p0443-i01` | LUK | au-fil | 280×413 | · | régime forcé à « au-fil » : demi-teinte : trame de points visible à l’agrandissement, légende sans mention de procédé |
 | `t07-p0309-i01` | LUK | au-fil | 397×290 | · | régime forcé à « au-fil » : demi-teinte : trame de points visible à l’agrandissement, légende sans mention de procédé |
+
+## `bande_en_pied` — 2 gravures · à traiter
+
+| gravure | livre | régime | affiché | | détail |
+|---|---|---|---|---|---|
+| `t07-p0168-i01` | MAT | vignette | 437×97 | · | une bande d’encre isolée, 1.0 % de la hauteur, ferme la découpe : légende imprimée, ou filet |
+| `t07-p0227-i01` | MRK | vignette | 180×208 | · | une bande d’encre isolée, 0.5 % de la hauteur, ferme la découpe : légende imprimée, ou filet |
 
 ## `sans_legende` — 2 gravures · accepté
 
@@ -284,6 +280,8 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 | `t07-p0462-i01` | LUK | vignette | 385×97 | · | aucune légende, ni imprimée ni éditoriale |
 
 ## `decoupe_serree` — 1 gravures · à traiter
+
+> p0064 : les avirons sortent du cadre. Élargir la découpe demande de savoir ce que le feuillet porte à gauche — à mesurer avant de trancher.
 
 | gravure | livre | régime | affiché | | détail |
 |---|---|---|---|---|---|
@@ -297,6 +295,6 @@ contrôlé à l’agrandissement ; les autres attendent l’œil.
 |---|---|---|---|---|---|
 | `t07-p0217-composite-proposal` | MRK | vignette | 249×157 | · | la clé ne suit pas p<feuillet>-i<rang>, et elle voyage jusque dans le chemin de stockage |
 
-## Sans défaut relevé — 94 gravures
+## Sans défaut relevé — 97 gravures
 
-`t07-p0025-i01` · `t07-p0029-i01` · `t07-p0031-i01` · `t07-p0032-i01` · `t07-p0041-i01` · `t07-p0043-i01` · `t07-p0046-i01` · `t07-p0051-i01` · `t07-p0052-i01` · `t07-p0058-i01` · `t07-p0061-i01` · `t07-p0067-i01` · `t07-p0070-i01` · `t07-p0075-i01` · `t07-p0083-i01` · `t07-p0093-i01` · `t07-p0098-i02` · `t07-p0099-i01` · `t07-p0104-i01` · `t07-p0108-i01` · `t07-p0109-i01` · `t07-p0112-i01` · `t07-p0115-i01` · `t07-p0123-i01` · `t07-p0126-i01` · `t07-p0132-i01` · `t07-p0133-i01` · `t07-p0146-i01` · `t07-p0148-i01` · `t07-p0154-i01` · `t07-p0155-i01` · `t07-p0160-i01` · `t07-p0165-i01` · `t07-p0185-i01` · `t07-p0190-i01` · `t07-p0207-i01` · `t07-p0209-i01` · `t07-p0219-i01` · `t07-p0224-i01` · `t07-p0294-i01` · `t07-p0297-i01` · `t07-p0308-i01` · `t07-p0318-i01` · `t07-p0321-i01` · `t07-p0327-i01` · `t07-p0329-i01` · `t07-p0336-i01` · `t07-p0338-i01` · `t07-p0338-i02` · `t07-p0340-i01` · `t07-p0346-i01` · `t07-p0347-i01` · `t07-p0350-i01` · `t07-p0356-i01` · `t07-p0360-i01` · `t07-p0363-i01` · `t07-p0370-i01` · `t07-p0372-i01` · `t07-p0379-i01` · `t07-p0381-i01` · `t07-p0383-i02` · `t07-p0387-i01` · `t07-p0390-i01` · `t07-p0393-i01` · `t07-p0397-i01` · `t07-p0404-i01` · `t07-p0405-i01` · `t07-p0406-i01` · `t07-p0411-i01` · `t07-p0413-i01` · `t07-p0414-i01` · `t07-p0422-i01` · `t07-p0427-i01` · `t07-p0430-i01` · `t07-p0432-i01` · `t07-p0442-i01` · `t07-p0442-i02` · `t07-p0457-i01` · `t07-p0471-i01` · `t07-p0472-i01` · `t07-p0473-i01` · `t07-p0475-i01` · `t07-p0477-i01` · `t07-p0478-i01` · `t07-p0483-i01` · `t07-p0486-i01` · `t07-p0488-i01` · `t07-p0494-i01` · `t07-p0498-i01` · `t07-p0512-i01` · `t07-p0555-i01` · `t07-p0583-i01` · `t07-p0593-i01` · `t07-p0606-i01`
+`t07-p0025-i01` · `t07-p0029-i01` · `t07-p0031-i01` · `t07-p0032-i01` · `t07-p0041-i01` · `t07-p0043-i01` · `t07-p0046-i01` · `t07-p0051-i01` · `t07-p0052-i01` · `t07-p0055-i01` · `t07-p0058-i01` · `t07-p0059-i01` · `t07-p0061-i01` · `t07-p0067-i01` · `t07-p0070-i01` · `t07-p0075-i01` · `t07-p0083-i01` · `t07-p0093-i01` · `t07-p0098-i02` · `t07-p0099-i01` · `t07-p0104-i01` · `t07-p0108-i01` · `t07-p0109-i01` · `t07-p0112-i01` · `t07-p0115-i01` · `t07-p0123-i01` · `t07-p0126-i01` · `t07-p0132-i01` · `t07-p0133-i01` · `t07-p0146-i01` · `t07-p0148-i01` · `t07-p0154-i01` · `t07-p0155-i01` · `t07-p0160-i01` · `t07-p0165-i01` · `t07-p0185-i01` · `t07-p0190-i01` · `t07-p0207-i01` · `t07-p0209-i01` · `t07-p0219-i01` · `t07-p0224-i01` · `t07-p0294-i01` · `t07-p0297-i01` · `t07-p0308-i01` · `t07-p0318-i01` · `t07-p0321-i01` · `t07-p0327-i01` · `t07-p0329-i01` · `t07-p0336-i01` · `t07-p0338-i01` · `t07-p0338-i02` · `t07-p0340-i01` · `t07-p0346-i01` · `t07-p0347-i01` · `t07-p0350-i01` · `t07-p0356-i01` · `t07-p0360-i01` · `t07-p0363-i01` · `t07-p0370-i01` · `t07-p0372-i01` · `t07-p0379-i01` · `t07-p0381-i01` · `t07-p0383-i02` · `t07-p0387-i01` · `t07-p0390-i01` · `t07-p0393-i01` · `t07-p0397-i01` · `t07-p0404-i01` · `t07-p0405-i01` · `t07-p0406-i01` · `t07-p0411-i01` · `t07-p0413-i01` · `t07-p0414-i01` · `t07-p0417-i01` · `t07-p0422-i01` · `t07-p0427-i01` · `t07-p0430-i01` · `t07-p0432-i01` · `t07-p0442-i01` · `t07-p0442-i02` · `t07-p0457-i01` · `t07-p0471-i01` · `t07-p0472-i01` · `t07-p0473-i01` · `t07-p0475-i01` · `t07-p0477-i01` · `t07-p0478-i01` · `t07-p0483-i01` · `t07-p0486-i01` · `t07-p0488-i01` · `t07-p0494-i01` · `t07-p0498-i01` · `t07-p0512-i01` · `t07-p0555-i01` · `t07-p0583-i01` · `t07-p0593-i01` · `t07-p0606-i01`

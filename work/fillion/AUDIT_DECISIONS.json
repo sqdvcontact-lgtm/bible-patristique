@@ -1,25 +1,91 @@
 {
   "_lisez_moi": "Les arbitrages, tenus À LA MAIN. Le relevé se rejoue et se réécrit ; ce fichier-ci ne se réécrit jamais tout seul, sinon une décision se perdrait au premier passage. Une clé est un code de défaut, ou « code#cle » pour une gravure. État : a_traiter · en_cours · regle · accepte.",
-  "planche_tournee_trop_petite": { "etat": "a_traiter", "note": "" },
-  "legende_emportee": { "etat": "a_traiter", "note": "" },
-  "trait_sous_le_pixel": { "etat": "a_traiter", "note": "" },
-  "trop_haute": { "etat": "a_traiter", "note": "" },
-  "filet_de_page": { "etat": "a_traiter", "note": "" },
-  "filet_de_bord": { "etat": "a_traiter", "note": "La mesure confond un filet de page avec le cadre GRAVÉ d'un bas-relief : chaque cas se regarde avant d'être cru." },
-  "trop_large_pour_habiller": { "etat": "accepte", "note": "Décision du 30 août 2026 : au-delà de 45 % de la colonne il ne reste pas deux cents pixels de piste, et la gravure se centre. Ce n'est pas un défaut mais la règle." },
-  "trop_pale": { "etat": "a_traiter", "note": "Recouvre en grande partie les planches tournées, dont tout le contenu est réduit." },
-  "agrandie_par_le_plancher": { "etat": "a_traiter", "note": "" },
-  "voile": { "etat": "accepte", "note": "Mesuré à un alpha de 3 à 7 sur 3 à 5 % de la surface : sous le seuil de l'œil. À reprendre si un relevé le voit monter." },
-  "bande_en_pied": { "etat": "a_traiter", "note": "" },
-  "regime_force": { "etat": "accepte", "note": "Trois demi-teintes que la légende ne déclare pas, forcées après contrôle visuel le 31 août 2026 (charte § 35.16.19). Le signalement existe pour qu'on les retrouve, non pour qu'on les corrige." },
-  "sans_legende": { "etat": "accepte", "note": "p0194 et p0462 sont des ORNEMENTS, un cul-de-lampe et un fleuron : un ornement ne porte pas de légende." },
-  "decoupe_serree": { "etat": "a_traiter", "note": "" },
-  "cle_hors_convention": { "etat": "a_traiter", "note": "p0217-composite-proposal, reste d'une manche abandonnée. La renommer déplace son chemin de stockage." },
-  "servi_trop_petit": { "etat": "a_traiter", "note": "" },
-  "servi_trop_grand": { "etat": "a_traiter", "note": "" },
-  "trait_perdu": { "etat": "a_traiter", "note": "" },
-  "demi_teinte_detouree": { "etat": "a_traiter", "note": "" },
-  "sans_texte_alternatif": { "etat": "a_traiter", "note": "" },
-  "sans_ancre": { "etat": "a_traiter", "note": "" },
-  "sans_fichier": { "etat": "a_traiter", "note": "" }
+  "planche_tournee_trop_petite": {
+    "etat": "regle",
+    "note": "Réglé le 31 août 2026 par l’AGRANDISSEMENT, que la table des régimes annonçait depuis l’origine sans qu’il fût bâti. Aucun dérivé nouveau : le fichier servi fait déjà le double de sa taille d’affichage, et le montrer à sa taille naturelle porte le contenu d’une planche tournée à 0,313 — mieux que ce qu’une planche debout obtient dans le fil. Vérifié à l’œil sur p0577 : les cinq légendes gravées se lisent. ⚠️ La taille DANS LE FIL ne change pas, et c’est voulu : une planche ne doit pas prendre la colonne."
+  },
+  "legende_emportee": {
+    "etat": "regle",
+    "note": "Réglé le 31 août 2026. Les deux découpes sont reprises sur le profil d’encre du feuillet, dans le blanc franc qui sépare le dessin de la légende : p0055 au rang 895 sur 981, p0059 au rang 765 sur 797. Refabriquées et vues."
+  },
+  "trait_sous_le_pixel": {
+    "etat": "en_cours",
+    "note": "Quinze des dix-neuf sont des planches, que l’agrandissement rend lisibles. Les quatre autres sont des vignettes dont la hachure est plus fine qu’un pixel affiché : les montrer plus grand est une décision de taille."
+  },
+  "trop_haute": {
+    "etat": "en_cours",
+    "note": "Cinq des huit sont des PLANCHES, et une page entière du volume a le droit d’être haute — d’autant qu’elle s’agrandit maintenant. Reste p0098, l’épi, que le plancher relève de 2,53 fois : c’est une décision de taille, non un défaut de traitement."
+  },
+  "filet_de_page": {
+    "etat": "regle",
+    "note": "Réglé le 31 août 2026 : p0417 à droite au pixel 1095 sur 1129, p0418 à gauche au pixel 40 sur 1146. Refabriquées et vues."
+  },
+  "filet_de_bord": {
+    "etat": "a_traiter",
+    "note": "La mesure confond un filet de page avec le cadre GRAVÉ d'un bas-relief : chaque cas se regarde avant d'être cru."
+  },
+  "trop_large_pour_habiller": {
+    "etat": "accepte",
+    "note": "Décision du 30 août 2026 : au-delà de 45 % de la colonne il ne reste pas deux cents pixels de piste, et la gravure se centre. Ce n'est pas un défaut mais la règle."
+  },
+  "trop_pale": {
+    "etat": "en_cours",
+    "note": "Recouvre en grande partie les planches tournées, dont tout le contenu était réduit : l’agrandissement leur rend leur lisibilité. Ce qui reste après cela est à regarder gravure par gravure."
+  },
+  "agrandie_par_le_plancher": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "voile": {
+    "etat": "accepte",
+    "note": "Mesuré à un alpha de 3 à 7 sur 3 à 5 % de la surface : sous le seuil de l'œil. À reprendre si un relevé le voit monter."
+  },
+  "bande_en_pied": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "regime_force": {
+    "etat": "accepte",
+    "note": "Trois demi-teintes que la légende ne déclare pas, forcées après contrôle visuel le 31 août 2026 (charte § 35.16.19). Le signalement existe pour qu'on les retrouve, non pour qu'on les corrige."
+  },
+  "sans_legende": {
+    "etat": "accepte",
+    "note": "p0194 et p0462 sont des ORNEMENTS, un cul-de-lampe et un fleuron : un ornement ne porte pas de légende."
+  },
+  "decoupe_serree": {
+    "etat": "a_traiter",
+    "note": "p0064 : les avirons sortent du cadre. Élargir la découpe demande de savoir ce que le feuillet porte à gauche — à mesurer avant de trancher."
+  },
+  "cle_hors_convention": {
+    "etat": "a_traiter",
+    "note": "p0217-composite-proposal, reste d'une manche abandonnée. La renommer déplace son chemin de stockage."
+  },
+  "servi_trop_petit": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "servi_trop_grand": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "trait_perdu": {
+    "etat": "accepte",
+    "note": "p0418, à 0,849 pour un seuil de 0,85 : le seuil mord au bord. Rien à corriger ; à reprendre si un relevé le voit descendre."
+  },
+  "demi_teinte_detouree": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "sans_texte_alternatif": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "sans_ancre": {
+    "etat": "a_traiter",
+    "note": ""
+  },
+  "sans_fichier": {
+    "etat": "a_traiter",
+    "note": ""
+  }
 }

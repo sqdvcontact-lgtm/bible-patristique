@@ -15,40 +15,6 @@
  },
  "gravures": [
   {
-   "cle": "fillion-t07-p0059-i01",
-   "livre": "MAT",
-   "feuillet": 59,
-   "regime": "vignette",
-   "legende": "La hache au pied de l’arbre. (Peinture égyptienne.)",
-   "part": 44,
-   "affichage": "218×163",
-   "fichier": "435×325",
-   "kio": 34,
-   "mesures": {
-    "rapportServi": 1.995,
-    "encreVue": 5.811,
-    "voile": 0.712,
-    "voileAlpha": 3,
-    "facteurPlancher": 1,
-    "traitAffiche": 1.493,
-    "renduTrait": 0.981,
-    "massePapier": 49.394
-   },
-   "defauts": [
-    {
-     "code": "legende_emportee",
-     "gravite": "bloquant",
-     "detail": "la légende imprimée est dans la découpe ET COUPÉE EN DEUX : on n’en lit que le haut des lettres",
-     "vu": true
-    },
-    {
-     "code": "bande_en_pied",
-     "gravite": "signale",
-     "detail": "une bande d’encre isolée, 1.8 % de la hauteur, ferme la découpe : légende imprimée, ou filet"
-    }
-   ]
-  },
-  {
    "cle": "fillion-t01-p0143-i01",
    "livre": "GEN",
    "feuillet": 143,
@@ -619,80 +585,40 @@
    ]
   },
   {
-   "cle": "fillion-t07-p0417-i01",
-   "livre": "LUK",
-   "feuillet": 417,
-   "regime": "vignette",
-   "legende": "Oiseau de proie dévorant un cadavre. (Bas-relief assyrien.)",
-   "part": 46,
-   "affichage": "230×129",
-   "fichier": "460×258",
-   "kio": 29,
-   "mesures": {
-    "rapportServi": 2,
-    "encreVue": 5.891,
-    "voile": 1.365,
-    "voileAlpha": 4,
-    "facteurPlancher": 1,
-    "traitAffiche": 2.581,
-    "renduTrait": 0.947,
-    "massePapier": 36.759
-   },
-   "defauts": [
-    {
-     "code": "filet_de_page",
-     "gravite": "a_revoir",
-     "detail": "un filet de colonne de la page court le long du bord droit, séparé du dessin par du papier vide",
-     "vu": true
-    },
-    {
-     "code": "filet_de_bord",
-     "gravite": "signale",
-     "detail": "une règle droite longe le bord droite : filet de page, ou cadre gravé incomplet — à regarder"
-    },
-    {
-     "code": "trop_large_pour_habiller",
-     "gravite": "signale",
-     "detail": "46 % de la colonne : elle se centre au lieu d’être habillée par le texte"
-    }
-   ]
-  },
-  {
    "cle": "fillion-t07-p0418-i01",
    "livre": "LUK",
    "feuillet": 418,
    "regime": "vignette",
    "legende": "Oriental priant debout.",
-   "part": 47,
-   "affichage": "233×273",
-   "fichier": "467×548",
-   "kio": 33,
+   "part": 45,
+   "affichage": "225×270",
+   "fichier": "451×541",
+   "kio": 31,
    "mesures": {
     "rapportServi": 2.004,
-    "encreVue": 2.809,
-    "voile": 0.316,
-    "voileAlpha": 3,
+    "encreVue": 2.905,
+    "voile": 0.247,
+    "voileAlpha": 4,
     "facteurPlancher": 1,
-    "traitAffiche": 1.323,
-    "renduTrait": 0.876,
-    "massePapier": 36.334
+    "traitAffiche": 1.277,
+    "renduTrait": 0.849,
+    "massePapier": 37.446
    },
    "defauts": [
     {
-     "code": "filet_de_page",
+     "code": "trait_perdu",
      "gravite": "a_revoir",
-     "detail": "un filet de colonne court le long du bord gauche, sur du papier vide",
-     "vu": true
+     "detail": "la chaîne ne rend que 85 % de ce que le master porte à cette taille"
     },
     {
      "code": "trop_pale",
      "gravite": "signale",
-     "detail": "2.8 % d’encre vue à la taille d’affichage"
+     "detail": "2.9 % d’encre vue à la taille d’affichage"
     },
     {
      "code": "trop_large_pour_habiller",
      "gravite": "signale",
-     "detail": "47 % de la colonne : elle se centre au lieu d’être habillée par le texte"
+     "detail": "45 % de la colonne : elle se centre au lieu d’être habillée par le texte"
     }
    ]
   },
@@ -1232,35 +1158,6 @@
      "code": "planche_tournee_trop_petite",
      "gravite": "a_revoir",
      "detail": "planche redressée, 440×274 px : son contenu est réduit de moitié en plus qu'une planche debout, et ses légendes imprimées ne se lisent plus"
-    }
-   ]
-  },
-  {
-   "cle": "fillion-t07-p0055-i01",
-   "livre": "MAT",
-   "feuillet": 55,
-   "regime": "vignette",
-   "legende": "La teigne des étoffes, à l’état de larve et de papillon. (À droite, la larve grossie.)",
-   "part": 44,
-   "affichage": "219×200",
-   "fichier": "439×400",
-   "kio": 82,
-   "mesures": {
-    "rapportServi": 2.005,
-    "encreVue": 10.872,
-    "voile": 0.619,
-    "voileAlpha": 3,
-    "facteurPlancher": 1,
-    "traitAffiche": 3.582,
-    "renduTrait": 1.148,
-    "massePapier": 26.645
-   },
-   "defauts": [
-    {
-     "code": "legende_emportee",
-     "gravite": "a_revoir",
-     "detail": "la légende imprimée est dans la découpe, sur deux lignes, et la page la recompose dessous : elle paraît deux fois",
-     "vu": true
     }
    ]
   },
@@ -3715,6 +3612,28 @@
    "defauts": []
   },
   {
+   "cle": "fillion-t07-p0055-i01",
+   "livre": "MAT",
+   "feuillet": 55,
+   "regime": "vignette",
+   "legende": "La teigne des étoffes, à l’état de larve et de papillon. (À droite, la larve grossie.)",
+   "part": 43,
+   "affichage": "214×183",
+   "fichier": "428×365",
+   "kio": 74,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 11.582,
+    "voile": 0.49,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 3.5,
+    "renduTrait": 1.105,
+    "massePapier": 27.06
+   },
+   "defauts": []
+  },
+  {
    "cle": "fillion-t07-p0058-i01",
    "livre": "MAT",
    "feuillet": 58,
@@ -3733,6 +3652,28 @@
     "traitAffiche": 1.953,
     "renduTrait": 1.022,
     "massePapier": 31.407
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0059-i01",
+   "livre": "MAT",
+   "feuillet": 59,
+   "regime": "vignette",
+   "legende": "La hache au pied de l’arbre. (Peinture égyptienne.)",
+   "part": 43,
+   "affichage": "213×155",
+   "fichier": "424×308",
+   "kio": 33,
+   "mesures": {
+    "rapportServi": 1.991,
+    "encreVue": 6.185,
+    "voile": 0.712,
+    "voileAlpha": 3,
+    "facteurPlancher": 1,
+    "traitAffiche": 1.458,
+    "renduTrait": 1.01,
+    "massePapier": 49.846
    },
    "defauts": []
   },
@@ -5075,6 +5016,28 @@
     "traitAffiche": 6.949,
     "renduTrait": 1.052,
     "massePapier": 20.46
+   },
+   "defauts": []
+  },
+  {
+   "cle": "fillion-t07-p0417-i01",
+   "livre": "LUK",
+   "feuillet": 417,
+   "regime": "vignette",
+   "legende": "Oiseau de proie dévorant un cadavre. (Bas-relief assyrien.)",
+   "part": 45,
+   "affichage": "223×129",
+   "fichier": "446×258",
+   "kio": 28,
+   "mesures": {
+    "rapportServi": 2,
+    "encreVue": 5.757,
+    "voile": 1.439,
+    "voileAlpha": 4,
+    "facteurPlancher": 1,
+    "traitAffiche": 2.503,
+    "renduTrait": 0.936,
+    "massePapier": 37.415
    },
    "defauts": []
   },
