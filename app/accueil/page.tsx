@@ -3,6 +3,7 @@ import AccueilCards from "../components/AccueilCards";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
+import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/auteursDuCorpus";
 
 export const metadata = {
   title: { absolute: "Corpus Scriptura" },
@@ -47,13 +48,46 @@ export default async function AccueilPage() {
   // ⚠️ C'est désormais la SEULE lecture de la page : le bandeau en coûtait deux de
   // plus, dont un appel de fonction qui agrège tout le corpus.
   const filtrePubliee = `note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`;
-  const recentesRes = await supabase
-    .from("oeuvres")
-    .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
-    .or(filtrePubliee)
-    .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
-    .order("id_oeuvre", { ascending: false })
-    .limit(NB_AJOUTS);
+
+  // ⚠️ TROIS lectures, mais UNE SEULE VAGUE. Un aller-retour vers Supabase coûte
+  // environ 65 ms quoi qu'il transporte, et c'est leur mise en CASCADE qui se voit,
+  // jamais leur nombre : celles-ci ne dépendent pas les unes des autres, elles
+  // partent donc ensemble.
+  const [recentesRes, signaturesRes, coSignaturesRes] = await Promise.all([
+    supabase
+      .from("oeuvres")
+      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
+      .or(filtrePubliee)
+      .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
+      .order("id_oeuvre", { ascending: false })
+      .limit(NB_AJOUTS),
+    // Les œuvres offertes et leur PREMIER auteur. Cette lecture sert deux fois : elle
+    // donne les noms de la galerie, et l'ensemble des œuvres publiées qui filtre les
+    // co-signatures — la table de liaison, elle, ignore la publication.
+    supabase
+      .from("oeuvres")
+      .select("id_oeuvre, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, date_debut_annee)")
+      .or(filtrePubliee),
+    // Les CO-SIGNATAIRES. ⛔ Sans elles, Rufin d'Aquilée disparaît de la galerie : il
+    // est le second auteur de l'Histoire ecclésiastique, et « oeuvres.id_auteur » ne
+    // porte que le premier (AGENTS.md, « Une œuvre à plusieurs auteurs »).
+    supabase
+      .from("oeuvres_auteurs")
+      .select("id_oeuvre, auteurs(id_auteur, nom, date_debut_annee)"),
+  ]);
+
+  // ⚠️ Un panneau qui se rend VIDE quand sa requête échoue ne se distingue pas d'un
+  // panneau qui n'a rien à montrer. Le cas n'est pas d'école : « anon » n'a
+  // aujourd'hui aucun droit de lecture sur « oeuvres » ni sur « auteurs », de sorte
+  // qu'à l'ouverture du site les deux blocs de cette porte se rendront vides. Au
+  // moins le journal du serveur le dira.
+  for (const lecture of [
+    { nom: "ajouts récents", erreur: recentesRes.error },
+    { nom: "auteurs du corpus", erreur: signaturesRes.error },
+    { nom: "co-signatures", erreur: coSignaturesRes.error },
+  ]) {
+    if (lecture.erreur) console.error(`[accueil] lecture « ${lecture.nom} » : ${lecture.erreur.message}`);
+  }
 
   // ⛔ L'ordre est celui de la base — date décroissante, puis identifiant — et il ne se
   // rejoue pas ici : un tri par la seule date perdrait le départage des œuvres entrées le
@@ -64,6 +98,20 @@ export default async function AccueilPage() {
     date_mise_en_ligne: (o.date_mise_en_ligne as string | null) ?? null,
     auteur: Array.isArray(o.auteurs) ? ((o.auteurs[0] as { nom?: string })?.nom ?? "") : (((o.auteurs as { nom?: string } | null)?.nom) ?? ""),
   }));
+
+  // Les deux jeux de signatures, réunis par le module qui porte la règle.
+  const signatures = (signaturesRes.data ?? []).map((o: Record<string, unknown>) => ({
+    id_oeuvre: o.id_oeuvre as string,
+    auteur: auteurDeLigne(o.auteurs),
+  }));
+  const coSignatures = (coSignaturesRes.data ?? []).map((o: Record<string, unknown>) => ({
+    id_oeuvre: o.id_oeuvre as string,
+    auteur: auteurDeLigne(o.auteurs),
+  }));
+  const auteurs = auteursDuCorpus(
+    [...signatures, ...coSignatures],
+    new Set(signatures.map(s => s.id_oeuvre)),
+  );
 
   return (
     <div className="accueil">
@@ -171,6 +219,65 @@ export default async function AccueilPage() {
           text-transform: uppercase; color: var(--cs-vert); white-space: nowrap;
         }
         .seuil-journal-titre i { flex: 1; height: 1px; background: var(--cs-bord); font-size: 0; }
+
+        /* ── La galerie de noms — ce que la porte CONTIENT ─────────────────────
+           Les deux cartes disent des CATÉGORIES, « Bible » et « Patristique », et
+           la page n'avait, hors les ajouts récents, aucun nom propre de contenu :
+           ni un Père, ni une œuvre, ni un livre. Un nom est un objet qu'on peut
+           vouloir, une catégorie ne l'est pas ; et un nom se BALAYE, là où un
+           paragraphe se lit ou, plus probablement, ne se lit pas.
+           Elle prend la grammaire des « Ajouts récents », dont elle est la SŒUR :
+           celle-ci dit l'ÉTENDUE du corpus, celle-là sa FRAÎCHEUR. Deux rubriques
+           à filets ne font pas une répétition, elles font un rythme. */
+        .seuil-noms {
+          width: 100%;
+          max-width: 52rem;
+          margin: clamp(22px, 3.2vh, 38px) auto 0;
+          text-align: center;
+        }
+        /* ⚠️ « text-wrap: balance » égalise les trois lignes : sans lui la dernière
+           reste courte et la bande paraît tomber. Au delà de la poignée de lignes
+           qu'un navigateur accepte d'équilibrer — le cas du téléphone, où la bande
+           en prend sept — il s'efface de lui-même et l'enroulement ordinaire
+           reprend, sans que rien ne casse. */
+        .seuil-noms p {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.8125rem;
+          line-height: 1.95;
+          letter-spacing: 0.015em;
+          color: var(--cs-texte-second);
+          text-wrap: balance;
+          margin: 0;
+        }
+        /* ⛔ UN NOM NE SE COUPE JAMAIS EN DEUX. Sans cette insécabilité, la bande
+           rendait « Cyrille / de Jérusalem » et « Augustin / d'Hippone ». */
+        .seuil-noms a {
+          white-space: nowrap;
+          color: inherit;
+          text-decoration: none;
+          border-bottom: 1px solid transparent;
+          padding-bottom: 1px;
+          transition: color 0.18s ease, border-color 0.18s ease;
+        }
+        .seuil-noms a:hover,
+        .seuil-noms a:focus-visible { color: var(--cs-vert); border-bottom-color: currentColor; }
+        /* ⛔ ET LE SÉPARATEUR EST COLLÉ AU NOM QUI LE PRÉCÈDE. Deux raisons, payées
+           l'une après l'autre. Les noms étant insécables, une ligne dont le
+           séparateur est lui aussi collé DES DEUX CÔTÉS n'a plus AUCUNE occasion de
+           coupure : elle déborde d'un seul tenant hors de l'écran. La coupure se
+           fait donc sur l'espace qui SUIT le séparateur. Et posé au contraire sur le
+           nom SUIVANT — ou sur la mention de queue — il ouvre sa ligne dès que le
+           texte se replie, ce qui se voit sur un téléphone.
+           ⚠️ Il suit AUSSI le dernier nom : la mention de queue le ferme toujours. */
+        .seuil-noms a::after {
+          content: '·';
+          color: var(--cs-or-doux);
+          margin-left: 0.5em;
+          font-size: 0.9em;
+        }
+        /* La mention de queue. Elle ferme la liste sans en être : l'italique et
+           l'encre d'un rang plus faible l'empêchent de se lire comme un nom. */
+        .seuil-noms-suite { font-style: italic; color: var(--cs-texte-doux); white-space: nowrap; }
 
         /* ── Le mot de l'auteur — HORS CADRE ─────────────────────────────────
            Il vivait dans une carte : fond clair, bordure, rayon, ombre portée. C'est
@@ -422,6 +529,8 @@ export default async function AccueilPage() {
           <AccueilCards />
         </div>
 
+        <GalerieAuteurs auteurs={auteurs} />
+
         {/* La preuve que la bibliothèque vit, dans l'écran d'entrée. Cinq lignes, pas de
             cadre, pas de chiffre. */}
         <div className="seuil-journal">
@@ -648,6 +757,31 @@ function VoletUnMot() {
       <p className="accueil-mot-sqdv" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em" }}>SQDV</p>
       <Link href="/soutenir" className="cs-bouton-soutenir">Soutenir le projet</Link>
     </section>
+  )
+}
+
+/* La galerie de noms. ⛔ L'ordre et le tri vivent dans « auteursDuCorpus », jamais
+   ici : une liste de noms recomposée dans un composant dérive au premier ajout. */
+function GalerieAuteurs({ auteurs }: { auteurs: AuteurDuCorpus[] }) {
+  if (auteurs.length === 0) return null
+  return (
+    <div className="seuil-noms">
+      <div className="seuil-journal-titre">
+        <i />
+        <span>Les auteurs du corpus</span>
+        <i />
+      </div>
+      {/* ⚠️ L'espace entre deux noms est une VRAIE espace, posée ici : React
+          n'en insère aucune entre les éléments d'un tableau, et c'est elle
+          — la seule du fil — qui autorise le retour à la ligne. */}
+      <p>
+        {auteurs.flatMap((a, i) => [
+          i > 0 ? " " : null,
+          <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`}>{a.nom}</Link>,
+        ])}{" "}
+        <span className="seuil-noms-suite">et d’autres en préparation</span>
+      </p>
+    </div>
   )
 }
 
