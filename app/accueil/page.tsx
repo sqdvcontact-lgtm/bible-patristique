@@ -602,12 +602,25 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
         <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
       ) : (
         // Liste centrée EN BLOC (largeur au contenu, marges automatiques), texte aligné à gauche.
-        <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "flex", flexDirection: "column", gap: "8px", flex: 1, width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
+        //
+        // ⛔ La colonne des dates se mesure sur les dates PRÉSENTES (`max-content`), elle ne
+        // se pose pas au pire cas. Elle valait 6,5rem, taillée pour « 28 septembre 2026 »
+        // (94,3 px mesurés) ; or les mois français vont de 53,6 px (« 1 mai 2026 ») à 94,3,
+        // et un août à 62,4 px laissait donc 53,6 px de vide entre la date et son titre,
+        // presque la largeur de la date elle-même. La colonne suit maintenant la plus large
+        // des dates affichées, et l'écart tombe à la seule gouttière.
+        //
+        // ⚠️ La grille est portée par la LISTE, non par la rangée : une grille par rangée
+        // mesurerait sa colonne pour elle seule et les titres cesseraient de s'aligner.
+        // La rangée reprend les colonnes de sa liste par `subgrid`. ⛔ Pas `display: contents`,
+        // qui la priverait de sa boîte : c'est elle qui porte le survol, et la gouttière
+        // entre la date et le titre cesserait d'y répondre.
+        <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", columnGap: "0.75rem", rowGap: "0.5rem", alignItems: "baseline", flex: 1, width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
           {recentes.map(o => (
-            /* Date à GAUCHE (colonne fixe) ; « lire » révélé à droite au survol. */
-            <li key={o.id_oeuvre} className="ajout-item" style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap", flexShrink: 0, minWidth: "6.5rem" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
-              <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", flex: 1, minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+            /* Date à GAUCHE (colonne commune à toutes les rangées) ; « lire » révélé à droite au survol. */
+            <li key={o.id_oeuvre} className="ajout-item" style={{ display: "grid", gridTemplateColumns: "subgrid", gridColumn: "1 / -1", alignItems: "baseline" }}>
+              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
+              <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
                 <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "var(--cs-texte-fort)", lineHeight: 1.32 }}>
                   {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
                 </span>
