@@ -249,10 +249,30 @@ export default async function AccueilPage() {
           text-wrap: balance;
           margin: 0;
         }
-        /* ⛔ UN NOM NE SE COUPE JAMAIS EN DEUX. Sans cette insécabilité, la bande
-           rendait « Cyrille / de Jérusalem » et « Augustin / d'Hippone ». */
+        /* ⛔ UN NOM NE SE COUPE JAMAIS EN DEUX, ET SON SÉPARATEUR RESTE AVEC LUI.
+           C'est l'enveloppe qui porte les deux, non le lien. Sans l'insécabilité, la
+           bande rendait « Cyrille / de Jérusalem » et « Augustin / d'Hippone ». */
+        .seuil-noms-nom { white-space: nowrap; }
+        /* ⛔ LE SÉPARATEUR EST COLLÉ AU NOM QUI LE PRÉCÈDE. Trois raisons, payées
+           l'une après l'autre. Les noms étant insécables, une ligne dont le
+           séparateur est lui aussi collé DES DEUX CÔTÉS n'a plus AUCUNE occasion de
+           coupure : elle déborde d'un seul tenant hors de l'écran. La coupure se
+           fait donc sur l'espace qui SUIT le séparateur. Posé au contraire sur le nom
+           SUIVANT — ou sur la mention de queue — il ouvre sa ligne dès que le texte
+           se replie, ce qui se voit sur un téléphone.
+           ⛔ Et il vit dans l'ENVELOPPE, jamais dans le lien : un « ::after » posé
+           sur le lien est peint DANS sa boîte en ligne, si bien que le filet du
+           survol courait dessous et qu'on soulignait un point médian. Le point
+           n'appartient pas au nom, c'est une ponctuation entre deux noms — il ne doit
+           donc être ni souligné ni cliquable.
+           ⚠️ Il suit AUSSI le dernier nom : la mention de queue le ferme toujours. */
+        .seuil-noms-nom::after {
+          content: '·';
+          color: var(--cs-or-doux);
+          margin-left: 0.5em;
+          font-size: 0.9em;
+        }
         .seuil-noms a {
-          white-space: nowrap;
           color: inherit;
           text-decoration: none;
           border-bottom: 1px solid transparent;
@@ -261,20 +281,6 @@ export default async function AccueilPage() {
         }
         .seuil-noms a:hover,
         .seuil-noms a:focus-visible { color: var(--cs-vert); border-bottom-color: currentColor; }
-        /* ⛔ ET LE SÉPARATEUR EST COLLÉ AU NOM QUI LE PRÉCÈDE. Deux raisons, payées
-           l'une après l'autre. Les noms étant insécables, une ligne dont le
-           séparateur est lui aussi collé DES DEUX CÔTÉS n'a plus AUCUNE occasion de
-           coupure : elle déborde d'un seul tenant hors de l'écran. La coupure se
-           fait donc sur l'espace qui SUIT le séparateur. Et posé au contraire sur le
-           nom SUIVANT — ou sur la mention de queue — il ouvre sa ligne dès que le
-           texte se replie, ce qui se voit sur un téléphone.
-           ⚠️ Il suit AUSSI le dernier nom : la mention de queue le ferme toujours. */
-        .seuil-noms a::after {
-          content: '·';
-          color: var(--cs-or-doux);
-          margin-left: 0.5em;
-          font-size: 0.9em;
-        }
         /* La mention de queue. Elle ferme la liste sans en être : l'italique et
            l'encre d'un rang plus faible l'empêchent de se lire comme un nom. */
         .seuil-noms-suite { font-style: italic; color: var(--cs-texte-doux); white-space: nowrap; }
@@ -476,7 +482,11 @@ export default async function AccueilPage() {
             fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: "clamp(1rem, 1.5vw, 1.1875rem)",
             fontStyle: "italic",
-            color: "var(--cs-vert)",
+            /* ⛔ PLUS DE VERT AU FRONTISPICE (décision de l'auteur, 2026-08-31). La
+               devise et le rang prennent l'encre chaude du texte : l'accent vert y
+               était la seule couleur de la porte, et il tirait l'œil sur deux lignes
+               qui n'ont pas à appeler — le nom les surmonte déjà. */
+            color: "var(--cs-texte-fort)",
             letterSpacing: "0.03em",
             lineHeight: 1.45,
             textWrap: "balance",
@@ -488,15 +498,16 @@ export default async function AccueilPage() {
           </p>
 
           {/* La ligne de rang. ⛔ PAS `--cs-etiquette` ici, malgré la forme d'étiquette :
-              ce jeton est un khaki doré, et sous le vert d'encre de la ligne qui précède
-              les deux lignes du frontispice tenaient deux familles de couleur étrangères
-              l'une à l'autre. Elles se tiennent dans le MÊME ton, à un pas d'écart, et le
-              pas se prend en MÊLANT l'accent au papier — au Cuir, où `--cs-vert` vire à
-              l'or et `--cs-fond` au brun, le même calcul rend le même rapport.
-              ⛔ Le mélange vaut 92 % et non 78 : mesuré, 78 % rendaient 3,61 sur le
-              papier et 88 % encore 4,38, tous deux sous le seuil — et c'est la ligne qui
-              NOMME la matière du site. À 92 % elle rend 4,78, et reste d'un cran sous la devise,
-              que le corps et l'italique séparent déjà.
+              ce jeton est un khaki doré, et il ouvrirait au frontispice une troisième
+              famille de couleur. La devise et le rang se tiennent dans la MÊME encre
+              chaude, à un pas d'écart, et le pas se prend sur l'échelle du texte —
+              `--cs-texte-fort` puis `--cs-texte-second` — que les deux thèmes portent
+              déjà. ⚠️ Mesuré : la devise rend 13,83 sur le papier et 14,4 sur le cuir, le
+              rang 5,24 et 10,01 — au-dessus du seuil de 4,5 que son corps de 12 px
+              lui impose.
+              ⛔ Le mélange `color-mix` d'avant, calculé sur `--cs-vert`, est retiré avec
+              le vert : il n'avait de sens que pour tenir la ligne dans le ton de la
+              devise verte qui la précédait.
               ⚠️ Les petites capitales sont SYNTHÉTISÉES, non gravées : mesuré,
               `font-feature-settings: "smcp"` ne change rien à la largeur du mot, la
               variable de Google ne portant pas la fonte de petites capitales. La graisse
@@ -509,7 +520,7 @@ export default async function AccueilPage() {
             fontWeight: 500,
             letterSpacing: "0.16em",
             fontVariationSettings: '"opsz" 10, "wght" 500',
-            color: "color-mix(in oklab, var(--cs-vert) 92%, var(--cs-fond))",
+            color: "var(--cs-texte-second)",
             margin: 0,
           }}>
             Sources bibliques et patristiques en ligne
@@ -777,7 +788,9 @@ function GalerieAuteurs({ auteurs }: { auteurs: AuteurDuCorpus[] }) {
       <p>
         {auteurs.flatMap((a, i) => [
           i > 0 ? " " : null,
-          <Link key={a.id_auteur} href={`/auteur/${a.id_auteur}`}>{a.nom}</Link>,
+          <span key={a.id_auteur} className="seuil-noms-nom">
+            <Link href={`/auteur/${a.id_auteur}`}>{a.nom}</Link>
+          </span>,
         ])}{" "}
         <span className="seuil-noms-suite">et d’autres en préparation</span>
       </p>
