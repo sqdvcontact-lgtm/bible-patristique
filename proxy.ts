@@ -53,8 +53,17 @@ const AUTORISES = [process.env.ADMIN_EMAIL, process.env.ACCES_INVITES]
 // l'on collecte la donnée ne vaut rien — ni en droit, ni pour le lecteur.
 // `/contact` (+ son API) : point de contact du site, que les mentions légales
 // invoquent pour l'exercice des droits — donc joignable même site fermé.
+//
+// `/api/audience/vue` : la balise de mesure d'audience. Elle n'a rien à voir avec
+// le verrou de bêta, et l'y soumettre coûterait deux fois. Aujourd'hui, la mesure
+// mourrait en silence le jour où le verrou changerait de forme à l'ouverture ;
+// et une balise redirigée en 307 vers /chantier ne dit rien à personne, pas même
+// dans le journal. Le risque est borné : la route n'écrit que des agrégats
+// anonymes, ne rend aucune donnée (204), est limitée en débit par empreinte, et
+// ses lignes sont purgées à vingt-cinq mois.
 const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres',
                 '/confidentialite', '/conditions-utilisation', '/contact', '/api/contact',
+                '/api/audience',
                 // Réservation TDM : doit rester lisible (y compris par les crawlers).
                 '/.well-known']
 
