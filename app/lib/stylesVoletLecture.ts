@@ -90,6 +90,12 @@ export const RUBRIQUE_AXE: CSSProperties = {
  * qu'une rangée de la liste des livres, à quelques pixels de là, qui en vaut 22
  * pour un texte de 13,5. ⛔ Ne pas descendre plus bas : la pastille cesserait de se
  * lire comme une cible, et cinq rangées d'affilée n'ont pas d'autre respiration.
+ *
+ * ⚠️ Ces deux pixels sont donc un PLANCHER, et non une mesure : depuis le
+ * 2026-08-31 la rangée les tient d'`--volet-air-fin`, l'échelle du volet, qui
+ * part exactement de là et s'ouvre avec l'écran et la poignée (globals.css,
+ * « L'échelle du volet »). Le repli `2px` sert la page Œuvre, hors du volet,
+ * où la variable n'existe pas.
  */
 export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   display: 'block',
@@ -97,7 +103,7 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   margin: '0 -7px',
   boxSizing: 'border-box',
   textAlign: 'left',
-  padding: '2px 7px',
+  padding: 'var(--volet-air-fin, 2px) 7px',
   borderRadius: '4px',
   border: 'none',
   background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',

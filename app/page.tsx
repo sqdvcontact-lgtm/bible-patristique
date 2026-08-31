@@ -137,12 +137,16 @@ export default async function Home({
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `source_edition` = référence complète de
-    // l'édition présentée (ville, éditeur, date), toutes deux pour l'encart Traduction.
+    // l'édition présentée (ville, éditeur, date) ; `bio_courte` = les deux phrases
+    // qui présentent le traducteur. Toutes trois pour l'encart Traduction, qui les
+    // découvre l'une après l'autre à mesure que le volet s'élargit. La notice ne
+    // pèse que 106 à 230 signes : elle voyage avec le reste, et l'on n'a pas à
+    // savoir dès le serveur quelle largeur aura le volet.
     // ⛔ `est_biblique` : la table tient aussi la notice bibliographique de la traduction
     // employée par une œuvre PATRISTIQUE (Jeannin pour Chrysostome, Barreau et Charpentier
     // pour la Cité de Dieu…), à laquelle renvoie `oeuvres.trad_id`. Un sélecteur de
     // traduction BIBLIQUE ne montre que ce qui en est.
-    supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, date_publication, confession, langue').eq('est_biblique', true).order('ordre', { ascending: true }),
+    supabase.from('traductions').select('trad_id, nom, auteur, dates, source_edition, bio_courte, date_publication, confession, langue').eq('est_biblique', true).order('ordre', { ascending: true }),
     // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
     // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
     // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.
@@ -165,7 +169,7 @@ export default async function Home({
     canonDuChapitre(supabase, livre, chapitre),
   ])
   const toutesTraductions = (rawTranslations || [])
-    .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, editionRef: t.source_edition ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))
+    .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, editionRef: t.source_edition ?? null, bio: t.bio_courte ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0

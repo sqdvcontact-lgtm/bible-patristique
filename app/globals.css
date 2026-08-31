@@ -2033,6 +2033,53 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    aucune spécificité, et la même règle écrite APRÈS elle l'emportait — les deux
    formes du lien étaient alors masquées, et le lien disparaissait tout à fait. */
 .cs-volet-lien-court { display: none; }
+.cs-volet-bio { display: none; }
+
+/* ── L'ÉCHELLE DU VOLET : l'aération suit l'écran, et la poignée ──────────────
+   ⛔ Le volet était dessiné en PIXELS FIXES pendant que tout ce qu'il porte est
+   en rem. Or la police racine est fluide (§ Agrandissement fluide, plus haut) :
+   elle passe de 16 px à 1440 de large à 22 px à 2400. Sur un grand moniteur, le
+   texte du volet grandissait donc d'un tiers pendant que ses blancs ne bougeaient
+   pas d'un pixel — le volet se SERRAIT à mesure qu'on lui donnait de la place.
+   C'est ce que l'auteur a relevé le 2026-08-31 : « l'écartement et l'aération
+   doivent être proportionnés à la taille de l'écran ».
+
+   Les mesures ci-dessous rendent cette proportion, et sur DEUX axes à la fois :
+   · le PLANCHER et le PLAFOND sont en rem, donc ils suivent la police racine,
+     donc l'écran. Le plancher vaut exactement ce que le volet portait avant
+     (8 px de gouttière, 6 px d'aération, 2 px de blanc fin) : rien ne bouge sur
+     un portable de 1280, tout s'ouvre d'un tiers sur un moniteur de 2400.
+   · le terme du MILIEU est en `cqi`, c'est-à-dire en centièmes de la largeur du
+     VOLET. Il ne sert que lorsqu'on traîne la poignée : à 400 px de volet, la
+     gouttière monte à 12,8 px sans que l'écran ait changé.
+   Le `clamp` prend le plus grand des deux tant qu'il reste sous le plafond : une
+   même écriture répond donc à l'écran ET au geste, ce qu'aucune des deux unités
+   ne faisait seule.
+
+   ⚠️ Le rapport 3,2 cqi n'est pas choisi au hasard : 8 px sur les 250 px d'un
+   volet moyen. Chaque mesure garde la proportion qu'elle avait, elle ne s'en
+   invente pas une.
+
+   ⚠️ MOBILE : le volet n'y est pas un conteneur (il est le tiroir pleine largeur,
+   et `container-type` en ferait le référent des positions fixes). Les `cqi` s'y
+   rabattent sur la fenêtre, où ils butent aussitôt sur le plafond : le tiroir
+   prend donc l'aération maximale, ce qui est exactement ce qu'il faut au doigt.
+   ⛔ Aucun SEUIL de contenu ne s'y déclenche pour autant : la carte « Traduction »,
+   seule à en porter, n'est pas rendue sur mobile. */
+.cs-volet-echelle {
+  /* Le blanc à gauche et à droite de ce que le volet porte. */
+  --volet-gouttiere: clamp(0.5rem, 3.2cqi, 0.875rem);
+  /* Le blanc vertical entre deux blocs, et entre deux axes d'un même bloc. */
+  --volet-air: clamp(0.375rem, 2.4cqi, 0.75rem);
+  /* Le blanc fin : celui d'une rangée de livre, d'une ligne de la carte. */
+  --volet-air-fin: clamp(0.125rem, 0.9cqi, 0.3125rem);
+  /* La case d'un chapitre, et l'écart entre deux colonnes de cases. */
+  --volet-case: clamp(1.45rem, 9cqi, 1.8rem);
+  --volet-case-ecart: clamp(0.125rem, 1cqi, 0.25rem);
+  /* Ce que la carte « Traduction » montre de ses deux textes longs. */
+  --volet-ref-lignes: 2;
+  --volet-bio-lignes: 6;
+}
 
 @container volet (max-width: 259px) {
   .cs-volet-ref { display: none; }
@@ -2040,4 +2087,38 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 @container volet (max-width: 229px) {
   .cs-volet-lien-long { display: none; }
   .cs-volet-lien-court { display: inline; }
+}
+
+/* ── Ce que le volet DIT DE PLUS quand il est large ───────────────────────────
+   ⛔ 260 px pour la NOTICE du traducteur (`bio_courte`) comme pour la référence
+   d'édition, et le seuil vient de la MESURE, non du goût. Les neuf notices
+   comptent de 106 à 230 signes. Les deux plus longues (Fillion 223, AELF 230),
+   composées à 10 px dans la largeur utile du volet, réclament : 6 lignes à 230 px
+   de volet, 5 à 250, 4 à 300. À partir de 250 px elles tiennent donc ENTIÈRES en
+   cinq lignes, et le compte est porté à six pour la marge d'une police un peu
+   plus large que celle de la mesure. Sous 250, la notice serait coupée en son
+   milieu, et une notice coupée ne vaut pas mieux que la référence tronquée du
+   28 août — c'est la même leçon.
+   Repères d'écran, le volet valant clamp(200px, 14vw, 320px) au repos : 1440 →
+   202 px (rien de plus), 1920 → 269 (référence ET notice), 2286 et au-delà → 320.
+   À la poignée, l'un et l'autre s'obtiennent dès 260 px sur n'importe quel écran.
+
+   ⚠️ La RÉFÉRENCE D'ÉDITION, elle, ne tient pas entière à 260 : elle compte de 163
+   à 348 signes, et c'est pourquoi son compte de lignes MONTE avec le volet — 2 à
+   260, 3 à 300, 4 à 350. Quatre lignes de 350 px en portent 224 : sept des neuf
+   éditions y tiennent alors entières, là où deux lignes n'en montraient qu'un
+   moignon. Le seuil de 260 ne dit pas où elle tient, il dit où elle cesse de ne
+   rien dire ; ceux qui suivent disent où elle redevient une phrase.
+
+   ⛔ Ces règles se posent APRÈS le repli et APRÈS `.cs-volet-echelle`, jamais
+   avant : une requête de conteneur n'ajoute aucune spécificité, et c'est l'ordre
+   d'écriture qui tranche. */
+@container volet (min-width: 260px) {
+  .cs-volet-bio { display: block; }
+}
+@container volet (min-width: 300px) {
+  .cs-volet-echelle { --volet-ref-lignes: 3; }
+}
+@container volet (min-width: 350px) {
+  .cs-volet-echelle { --volet-ref-lignes: 4; }
 }

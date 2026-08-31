@@ -336,7 +336,7 @@ export default function NavLivres({
       <div key={livre.code}>
         <button onClick={() => handleLivre(livre.code)} style={{
           width: '100%', textAlign: 'left',
-          padding: '2px 6px', borderRadius: '4px', fontSize: '0.84375rem',
+          padding: 'var(--volet-air-fin) 6px', borderRadius: '4px', fontSize: '0.84375rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: suggere ? 'rgba(var(--cs-vert-rgb),0.12)' : actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
           color: vide ? 'var(--cs-texte-faible)' : actif || suggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
@@ -350,7 +350,7 @@ export default function NavLivres({
         </button>
 
         {montrerOptions && polyMode && onChoisirLivreEntier && (
-          <div style={{ padding: '3px 6px 0' }}>
+          <div style={{ padding: 'calc(var(--volet-air-fin) + 1px) 6px 0' }}>
             {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = gris léger. */}
             <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
               style={{
@@ -368,8 +368,11 @@ export default function NavLivres({
         {montrerOptions && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(1.45rem, 1fr))',
-            gap: '2px', padding: '2px 6px 6px 6px', boxSizing: 'border-box',
+            /* ⚠️ La case et l'écart des colonnes viennent de l'échelle du volet :
+               le pas de auto-fill suit donc l'écran et la poignée, et la grille
+               gagne des colonnes en même temps qu'elle gagne de l'air. */
+            gridTemplateColumns: 'repeat(auto-fill, minmax(var(--volet-case), 1fr))',
+            gap: 'var(--volet-case-ecart)', padding: 'var(--volet-air-fin) 6px calc(var(--volet-air-fin) * 3) 6px', boxSizing: 'border-box',
           }}>
             {Array.from({ length: nb }, (_, i) => i + 1).map(ch => {
               const estChapSuggere = suggere && refParsee?.chapitre === ch
@@ -381,7 +384,7 @@ export default function NavLivres({
                     handleChapitre(livre.code, ch)
                   }
                 }} style={{
-                  fontSize: '0.6875rem', height: '1.45rem', borderRadius: '4px',
+                  fontSize: '0.6875rem', height: 'var(--volet-case)', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
                   cursor: 'pointer', padding: 0,
                   /* Cases plus petites, gris léger au repos (le vert reste l'accent du
@@ -488,6 +491,17 @@ export default function NavLivres({
           }}
         />
       )}
+      {/* ── L'ÉCHELLE DU VOLET ──────────────────────────────────────────────
+          Une enveloppe qui ne fait AUCUNE boîte (display: contents) et ne sert
+          qu'à porter les mesures du volet, lesquelles descendent ensuite par
+          héritage dans tout ce qu'il contient. Il en faut une : une requête de
+          conteneur ne peut pas styler le conteneur lui-même, seulement ce qu'il
+          porte. Les valeurs et leur raison vivent dans globals.css.
+          ⚠️ display: contents, et non un div ordinaire : les blocs du volet
+          restent alors les enfants FLEX du volet, et leurs flexShrink: 0,
+          flex: 1 et minHeight: 0 continuent de porter — un div de plus au
+          milieu aurait fait s'allonger le volet sous la liste des livres. */}
+      <div className="cs-volet-echelle" style={{ display: 'contents' }}>
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
       {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && <EncartTraduction trad={traductions[traductionIndex]} />}
 
@@ -512,9 +526,9 @@ export default function NavLivres({
           — seuls les blancs se referment. Le rembourrage et l'écart entre les deux
           axes vivent ici, la rangée et sa rubrique dans `stylesVoletLecture`. */}
       {modesLecture.length > 0 && (
-        <div style={{ flexShrink: 0, padding: '6px 10px 7px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
+        <div style={{ flexShrink: 0, padding: 'var(--volet-air) calc(var(--volet-gouttiere) + 2px) calc(var(--volet-air) + 1px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
-            <div key={groupe.cle} style={rang > 0 ? { marginTop: '6px' } : undefined}>
+            <div key={groupe.cle} style={rang > 0 ? { marginTop: 'var(--volet-air)' } : undefined}>
               <span style={RUBRIQUE_AXE}>{groupe.titre}</span>
               {groupe.choix.map((choix) => (
                 <button key={choix.cle} type="button" title={choix.description}
@@ -622,7 +636,7 @@ export default function NavLivres({
       {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
           et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}
       {!sommaireOuvert && (
-      <div style={{ flexShrink: 0, padding: '8px 8px 6px', borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ flexShrink: 0, padding: 'calc(var(--volet-air) + 2px) var(--volet-gouttiere) var(--volet-air)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', gap: 'var(--volet-air)' }}>
         <input
           type="text"
           placeholder="Rechercher un livre biblique"
@@ -647,7 +661,7 @@ export default function NavLivres({
 
       {/* Suggestion de ref parsée — remplace toute la liste tant qu'une référence est reconnue */}
       {!sommaireOuvert && refParsee && (
-        <div style={{ padding: '8px' }}>
+        <div style={{ padding: 'var(--volet-gouttiere)' }}>
           <button onClick={appliquerRefParsee} style={{
             width: '100%', textAlign: 'left',
             fontSize: '0.84375rem', padding: '8px 9px', borderRadius: '4px',
@@ -666,13 +680,13 @@ export default function NavLivres({
           s'enclenchait jamais. Le volet s'allongeait à la hauteur des soixante-treize livres
           et emportait la barre de recherche hors de l'écran dès qu'on descendait. */}
       {!sommaireOuvert && !refParsee && (
-      <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '4px 2px' }}>
+      <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
         {AT.length > 0 && (
           <>
             <button onClick={() => setAtOuvert(!atOuvert)} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              padding: '5px 6px 2px', textAlign: 'left',
+              padding: 'calc(var(--volet-air-fin) + 3px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Ancien Testament</span>
               <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{atOuvert ? '▲' : '▼'}</span>
@@ -686,7 +700,7 @@ export default function NavLivres({
             <button onClick={() => setNtOuvert(!ntOuvert)} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              padding: '7px 6px 2px', textAlign: 'left',
+              padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Nouveau Testament</span>
               <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{ntOuvert ? '▲' : '▼'}</span>
@@ -700,7 +714,7 @@ export default function NavLivres({
             <button onClick={() => setAutresOuvert(!autresOuvert)} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              padding: '7px 6px 2px', textAlign: 'left',
+              padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase' }}>Écrits non canoniques</span>
               <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{autresOuvert ? '▲' : '▼'}</span>
@@ -714,6 +728,7 @@ export default function NavLivres({
         )}
       </div>
       )}
+      </div>
     </div>
     </>
   )
