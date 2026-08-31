@@ -310,14 +310,29 @@ export default async function AccueilPage() {
           <img src="/icons/home-title-ornament.png" alt="" aria-hidden="true"
             className="hero-filet-grave" />
 
-          {/* Sous-titre */}
+          {/* Sous-titre — la première des deux lignes de la devise.
+              Elle se compose comme un TITRE et non comme une légende (décision de
+              l'auteur, 2026-08-31) : le corps monte de 14 à 17 px, la chasse rejoint
+              celle du titre (0,04em contre 0,02), et la coupe est forcée en TITRAGE.
+              ⚠️ La coupe optique se force, elle ne se devine pas : Source Serif porte
+              l'axe `opsz` (déclaré dans `app/layout.tsx`) et le navigateur le règle sur
+              la taille en pixels, donc sur la coupe de LABEUR, plus grasse et plus
+              large. Mesuré sur la ligne : 235,4 px sans forçage, 226,4 à `opsz` 26 —
+              le trait s'affine, comme il convient sous un frontispice.
+              ⛔ `font-variation-settings` écrase `font-weight` : toujours redonner
+              « wght » dans la même déclaration.
+              ⚠️ La ligne mesure alors 249,5 px et se range JUSTE en dedans de la
+              gravure, qui en fait 265. Le rapport ne tient qu'à la racine 16 : la
+              gravure est bornée en pixels quand la ligne suit la police fluide, et
+              la seconde dépasse la première dès la racine 18. */}
           <p style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: "0.875rem",
+            fontSize: "1.0625rem",
             fontStyle: "italic",
             color: "var(--cs-vert)",
-            letterSpacing: "0.02em",
-            marginBottom: "6px",
+            letterSpacing: "0.04em",
+            fontVariationSettings: '"opsz" 26, "wght" 400',
+            marginBottom: "8px",
           }}>
             Lectures bibliques et patristiques
           </p>
@@ -330,12 +345,29 @@ export default async function AccueilPage() {
               valeur : au Cuir, où `--cs-vert` vire à l'or et `--cs-fond` au brun, le
               même calcul rend le même rapport. La quantité de vert est réglée pour
               que la ligne garde EXACTEMENT le poids qu'elle avait — on change sa
-              famille, non sa place dans la hiérarchie. */}
+              famille, non sa place dans la hiérarchie.
+              ⛔ La COULEUR ne bouge pas ici : c'est elle qui tient le pas entre les
+              deux lignes, et elle a été réglée pour cela. Ce qui change, c'est la
+              composition.
+              ⚠️ Elle se composait en CAPITALES FORCÉES, dans le sans du site, en
+              graisse 600 : la coupe d'une étiquette d'interface, sous un frontispice
+              gravé. Elle passe au sérif et aux PETITES CAPITALES — « pour marquer un
+              rang sans crier », la règle que la charte pose déjà pour les titres
+              bibliques — et le corps monte de 10 à 12 px.
+              ⚠️ Elles sont SYNTHÉTISÉES, non gravées : mesuré, `font-feature-settings:
+              "smcp"` ne change rien à la largeur du mot dans Source Serif 4, la
+              variable de Google ne portant pas la fonte de petites capitales. C'est
+              déjà la forme qu'emploient le reste du site et l'enrichissement `++…++`.
+              La graisse 500 compense le trait plus fin qu'en résulte, et `opsz` 10
+              donne à ces capitales espacées la coupe de LABEUR, la seule qui les tienne
+              à ce corps (même règle que les couvertures de la Communauté). */}
           <p style={{
-            fontSize: "0.625rem",
-            fontWeight: 600,
-            letterSpacing: "0.20em",
-            textTransform: "uppercase",
+            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontSize: "0.75rem",
+            fontVariantCaps: "small-caps",
+            fontWeight: 500,
+            letterSpacing: "0.16em",
+            fontVariationSettings: '"opsz" 10, "wght" 500',
             color: "color-mix(in oklab, var(--cs-vert) 78%, var(--cs-fond))",
           }}>
             Somme collaborative
