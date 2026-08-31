@@ -362,9 +362,15 @@ export default async function AccueilPage() {
           pointer-events: none;
         }
         .ajout-item:hover .ajout-lire { opacity: 1; transform: translateX(0); }
-        /* ⚠️ Sans survol — un doigt — la mention n'a aucun sens : elle ne paraîtrait
-           jamais, et sa place réservée resserrerait les titres pour rien. */
-        @media (hover: none) {
+        /* ⛔ SOUS 640 PX, LA PLACE RÉSERVÉE N'EST PLUS TENABLE, et le seuil compte
+           autant que le survol. Sans survol — un doigt — la mention ne paraîtrait
+           jamais ; mais même AVEC survol, dans une fenêtre étroite, ses cinquante
+           pixels réservés font se replier des titres qui tiendraient sur une ligne.
+           Mesuré à 375 px : les CINQ titres se repliaient, et le journal passait de
+           184 à 243 px pour rien. Sous ce seuil la porte est déjà dans sa forme
+           compacte, les cartes empilées en bandes : une mention de survol n'y a plus
+           sa place. Même écriture que la quatrième de couverture des publications. */
+        @media (hover: none), (max-width: 640px) {
           .ajout-item .ajout-lire { display: none; }
         }
         .ajout-lire-mot {
@@ -433,6 +439,10 @@ export default async function AccueilPage() {
            tuiles tiennent encore leur rang à 640 px, où deux colonnes de prose ne
            tiendraient plus depuis longtemps. */
         @media (max-width: 640px) {
+          /* ⛔ LE PLANCHER TACTILE EST DE 44 PX, et le bouton n'en faisait que 35 :
+             c'est le seul appel à l'action de la page, et le plus petit objet qu'on
+             y touche. Le corps ne bouge pas, seul le rembourrage. Mesuré : 45 px. */
+          .cs-bouton-soutenir { padding: 13px 26px; }
           /* ⚠️ Le mot n'a plus de cadre à rembourrer, mais il lui faut une marge sur
              un téléphone : sans elle sa prose toucherait le bord de l'écran, ce que le
              rembourrage de la carte lui évitait. */
