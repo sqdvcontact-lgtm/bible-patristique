@@ -1808,6 +1808,8 @@ Le workflow des versions est :
 
 `is_default` désigne la version privilégiée à l’intérieur d’un `id_oeuvre`. Une œuvre disposant de versions doit en avoir exactement une avant clôture ou publication ; cette version ne peut jamais être `retired`. `is_public` reste un indicateur de visibilité de version et doit rester cohérent avec son statut, mais il ne remplace pas le marqueur de dépublication de l’œuvre défini au § 16.
 
+**Complétude documentaire et transmission lacunaire.** La complétude d’une version s’évalue sur le périmètre effectivement transmis par le témoin ou l’édition de référence et annoncé par la version, non sur l’intégralité hypothétique d’une œuvre antique dont une partie est perdue. Une version peut donc être cohérente, complète sur son périmètre et techniquement publiable lorsqu’elle restitue intégralement le corpus conservé, même si l’œuvre antique n’est plus transmise qu’en partie. La lacune historique est qualifiée dans les données d’authenticité ou de transmission et, lorsqu’elle est utile au lecteur, dans `commentaire_traduction` ou `note_editoriale_secondaire` ; elle ne transforme pas, à elle seule, la version en import incomplet. À l’inverse, des pages, divisions ou unités attendues dans le témoin choisi mais absentes de l’import constituent une incomplétude de version et interdisent le statut `published`. Les métadonnées legacy `complete_work` et `publication_target`, lorsqu’elles subsistent, ne commandent jamais la visibilité : elles doivent respecter cette distinction et ne jamais contredire `statut`, `is_public` ni le marqueur de dépublication de l’œuvre.
+
 Changer la version par défaut, publier, retirer ou remplacer une version est une opération explicite. Aucune version n’est supprimée ni retirée automatiquement du seul fait qu’une nouvelle version existe.
 
 **Menu commun des traductions.** Toutes les versions rattachées au même `id_oeuvre` reçoivent le même menu, quel que soit l’`id_texte` actif. La rubrique s’intitule « Traductions ». Une traduction française s’y donne sous la forme exacte `Nom du traducteur (dates de vie), édition de AAAA` ; les dates proviennent d’une donnée structurée et l’année de `oeuvre_textes.annee_edition`. Le texte original reste dans le menu de langue : lorsqu’il existe mais n’est pas aligné avec la portée affichée, son choix demeure visible et grisé. Le mode « Traductions parallèles » n’est pas proposé tant que son parcours de lecture n’est pas réactivé explicitement.
@@ -4007,6 +4009,47 @@ code de la famille et non par un identifiant recopié.
 ⚠️ Le `source_code` garde son suffixe `-test`, et c'est délibéré : c'est
 l'identifiant de la source, le renommer déplacerait ce à quoi elle est jointe. Il
 ne décidait de rien ; seul le drapeau décidait.
+#### 35.16.22. DEUX POLITIQUES PEUVENT EXIGER DU MÊME DRAPEAU DES VALEURS OPPOSÉES
+
+⛔ Le § 35.16.21 a levé `test_only` sur les sept sources, et les gravures sont
+parties. **Quelques heures plus tard, un livre s’annonçait disponible et
+n’ouvrait sur aucun texte.**
+
+`bible_canonical_alignments_public_read` ouvre une seconde branche pour les
+alignements encore en REVUE : elle les sert au lecteur quand l’édition est
+publiée techniquement, validation éditoriale non revendiquée. L’intention est la
+bonne, et c’est celle du § 35.16.21. Mais elle exigeait **en outre**
+`metadata->>'test_only' = 'true'` sur la source — quand
+`bible_technical_publication_allowed`, dont dépendent les illustrations, les
+blocs de corps et les sources elles-mêmes, refuse précisément un `test_only`.
+
+**Aucun état ne satisfaisait les deux.** Le drapeau posé, rien ne paraissait ; le
+drapeau retiré, les alignements en revue tombaient. La contradiction dormait tant
+que la porte du dessus était fermée : c’est l’ouverture qui l’a réveillée.
+
+⚠️ **C’est l’ÉCART ENTRE LES LIVRES qui a nommé la cause**, et c’est la bonne
+manière de chercher. Les Évangiles passaient, le Pentateuque et Josué tombaient.
+Les premiers portent 4 767 alignements **vérifiés**, les seconds 6 539 par membre
+**en revue**. Un même traitement, deux résultats : la différence est dans la
+donnée, et il suffit alors de la lire.
+
+⚠️ **Sans alignement canonique, la page rend ses rangées et n’a rien à y
+mettre** : le chapitre a ses créneaux, la liste des livres les déclare
+disponibles, et le texte manque. Un livre disponible et VIDE est donc le symptôme
+d’un défaut d’ALIGNEMENT, non de texte — le texte, lui, était lisible.
+
+**La règle.** Avant de changer un drapeau de publication, chercher **toutes** les
+politiques qui le lisent, et dans quel SENS :
+
+```sql
+select c.relname, p.polname, pg_get_expr(p.polqual, p.polrelid)
+from pg_policy p join pg_class c on c.oid = p.polrelid
+where pg_get_expr(p.polqual, p.polrelid) like '%<le drapeau>%';
+```
+
+Sur `test_only`, la requête rend trois lignes : deux le refusent, une l’exigeait.
+⛔ Une seule suffit pour qu’aucun état ne soit tenable, et rien ne le signale —
+ni erreur, ni ligne manquante, seulement du texte qui n’arrive pas.
 ### 35.17. L'ÉCHELLE DES BLANCS — un blanc ne dit que son RAPPORT aux autres
 
 Mesurée dans la page rendue le 30 août 2026, la hiérarchie de la Bible commentée ne se lisait pas, et c'est le BLANC qui manquait à la dire. Les six rangs de titre tenaient tous entre 33 et 56 pixels, et l'ordre y était ROMPU deux fois : la sous-section (T4) recevait 33 px, c'est-à-dire exactement autant qu'un simple changement d'unité de commentaire et moins que la péricope (T6) qu'elle domine ; « Première partie », la plus haute division du livre, en recevait 53, moins que « Livre I » qui lui est subordonné. Six rangs dans un mouchoir, et deux inversés.
