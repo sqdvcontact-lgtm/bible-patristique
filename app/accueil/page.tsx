@@ -405,7 +405,7 @@ export default async function AccueilPage() {
             color: "color-mix(in oklab, var(--cs-vert) 92%, var(--cs-fond))",
             margin: 0,
           }}>
-            Sources bibliques et patristiques
+            Sources bibliques et patristiques en ligne
           </p>
         </header>
 
