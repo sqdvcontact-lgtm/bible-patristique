@@ -2022,6 +2022,10 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    230, « En savoir plus » suffit et tient dès 120. Les deux formes sont écrites
    dans le balisage et l'on n'en montre qu'une ; ⛔ un libellé ne se coupe pas en
    JavaScript, il faudrait mesurer à chaque rendu.
+   ⚠️ Le 2026-08-31 le lien est tombé de 9,5 à 8,5 px, s'est mis en italique et s'est
+   collé à l'étiquette (l'écart passe de 8 à 5 px) : il demande donc MOINS que les
+   218 px mesurés, et le seuil de 230 n'est plus la limite mais une marge. On l'y
+   laisse — le baisser ne gagnerait qu'une largeur de volet où l'on n'a rien mesuré.
    ⚠️ Le lien ne se laisse pas comprimer, et la carte est en `overflow: hidden` :
    un seuil trop bas ne ferait donc pas déborder le libellé, il le COUPERAIT, et le
    défaut ne paraîtrait qu'entre deux largeurs de volet. */

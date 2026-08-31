@@ -23,8 +23,13 @@
 //
 // ⚠️ LE LIEN PARTAGE LA LIGNE DE L'ÉTIQUETTE (2026-08-30, condensation demandée par
 // l'auteur). Il occupait une ligne entière pour une action secondaire, alors que
-// « Traduction » laisse les deux tiers de la sienne libres. Le lien y monte, au fer
-// à droite, et la carte perd une ligne sans rien perdre de ce qu'elle porte.
+// « Traduction » laisse les deux tiers de la sienne libres. Le lien y monte, et la
+// carte perd une ligne sans rien perdre de ce qu'elle porte.
+//
+// ⚠️ IL SE TIENT CONTRE L'ÉTIQUETTE, plus petit, en italique et sans soulignement
+// (2026-08-31, demande de l'auteur). Au fer à droite il tenait le bord opposé de la
+// ligne et pesait autant que « Traduction » ; collé à elle, il en devient la suite.
+// L'italique et le filet retiré le rendent à son rang d'action secondaire.
 
 import { useState } from 'react'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
@@ -50,19 +55,20 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
     // délibéré de redimensionner le volet.
     <div className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: '7px 10px', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {/* ⚠️ Alignement sur la LIGNE DE BASE, non sur le milieu : l'étiquette pèse 8
-          pixels et le lien 9,5, et deux boîtes centrées l'une sur l'autre feraient
+          pixels et le lien 8,5, et deux boîtes centrées l'une sur l'autre feraient
           flotter le plus petit des deux au-dessus de la ligne de l'autre.
           ⚠️ Le lien ne se laisse PAS comprimer (`flexShrink: 0`) : la carte est en
           `overflow: hidden`, un lien rétréci s'y couperait au lieu de déborder, et
           le défaut ne se verrait donc que sur une largeur de volet particulière. */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
         <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)' }}>Traduction</span>
         {/* ⚠️ Le libellé se raccourcit avec le volet : « En savoir plus sur cette
-            traduction » réclame 218 pixels de volet pour tenir à côté de l'étiquette
-            (mesuré). Les deux formes sont écrites, et la requête de conteneur n'en
-            montre qu'une — un libellé ne se coupe pas en JavaScript, sinon il
-            faudrait mesurer à chaque rendu. */}
-        <button onClick={() => setModaleOuverte(true)} style={{ flexShrink: 0, fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', textDecoration: 'underline', textUnderlineOffset: '2px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', padding: 0 }}>
+            traduction » réclamait 218 pixels de volet pour tenir à côté de l'étiquette
+            (mesuré à 9,5 px ; il en demande moins depuis qu'il est tombé à 8,5, et le
+            seuil de 230 lui fait désormais une marge). Les deux formes sont écrites,
+            et la requête de conteneur n'en montre qu'une — un libellé ne se coupe pas
+            en JavaScript, sinon il faudrait mesurer à chaque rendu. */}
+        <button onClick={() => setModaleOuverte(true)} style={{ flexShrink: 0, fontSize: '0.53125rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', padding: 0 }}>
           <span className="cs-volet-lien-long">En savoir plus sur cette traduction</span>
           <span className="cs-volet-lien-court">En savoir plus</span>
         </button>
