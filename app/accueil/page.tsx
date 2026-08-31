@@ -150,6 +150,19 @@ export default async function AccueilPage() {
           padding: 18px 24px 18px;
           box-sizing: border-box;
         }
+        /* ── Le mot de l'auteur est le seul volet dont la PROSE remplit la carte ───
+           Sa voisine range une liste au fer, bornée à son contenu ; lui coule un
+           paragraphe centré d'un bord à l'autre, et 24 px de rembourrage ne faisaient
+           plus que 5,6 % de la carte : le bloc de texte touchait presque le cadre.
+           ⛔ Et le rembourrage était en PIXELS quand la carte suit la police racine
+           fluide : mesuré, le blanc latéral tombait de 5,6 % à 1440 px de large à
+           4,0 % à 2400, pendant que la ligne passait de 55 à 62 signes. En rem, il
+           vaut 9,3 % à toute taille et la ligne reste à 55 signes.
+           ⚠️ 2,5rem et non 3 : à 3rem la seconde ligne du mot gagne un rang et rejette
+           « ordre. » seul en dernière ligne. Le blanc double, la composition tient.
+           ⛔ La valeur ne touche QUE les côtés : le rembourrage du haut est ce qui
+           aligne « Un mot » et « Ajouts récents » sur la même ligne. */
+        .accueil-carte--mot { padding-left: 2.5rem; padding-right: 2.5rem; }
         .accueil-stats {
           display: flex;
           align-items: stretch;
@@ -217,6 +230,12 @@ export default async function AccueilPage() {
            Passé à 900 comme les volets, le bandeau ouvrait à 768 px deux colonnes de
            360 px pour y loger un nombre à deux chiffres. */
         @media (max-width: 640px) {
+          /* ⛔ Le mot reprend le rembourrage commun sur un téléphone. Mesuré sur une
+             carte de 327 px (écran de 375), 2,5rem ne laissent que 245 px au texte,
+             soit 38 signes par ligne et deux lignes de plus : un blanc qui aère une
+             carte de 429 px étrangle une carte de 327. Entre 640 et 900 px la borne
+             de 30rem gouverne déjà seule, et le rembourrage n'y change rien. */
+          .accueil-carte--mot { padding-left: 24px; padding-right: 24px; }
           .accueil-stats { flex-wrap: wrap; }
           /* Deux tuiles par rang, la cinquième prenant le rang entier : les filets
              passent de la verticale à l'horizontale, sinon les tuiles flottent sans
@@ -544,7 +563,7 @@ const boutonSoutenir: React.CSSProperties = {
 
 function VoletUnMot() {
   return (
-    <div className="accueil-carte" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
+    <div className="accueil-carte accueil-carte--mot" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
       <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
       {/* Le mot garde sa MESURE quand le volet passe à une colonne. En dessous de
           900 px les deux volets s'empilent et prennent toute la page : le texte,
