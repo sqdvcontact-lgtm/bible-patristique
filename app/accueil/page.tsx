@@ -187,13 +187,24 @@ export default async function AccueilPage() {
           margin: 0 auto;
           text-align: center;
         }
+        /* ⚠️ « Un mot » et « Le projet » sont les DEUX titres de section de la page,
+           tous deux en h2, et ils ne se composaient pas au même rang : 19 px pour
+           l'un, jusqu'à 24 pour l'autre. Deux frères sémantiques à deux corps
+           différents, cela se voit sans qu'on sache pourquoi. Ils prennent la même
+           mesure — le clamp du colophon — et le mot est enfin un titre, non une
+           étiquette posée sur un paragraphe.
+           ⛔ L'ENCRE, elle, ne s'aligne pas : le mot garde « --cs-encre-fonce », le vert
+           des titres du site, quand « Le projet » prend « --cs-texte-fort » parce qu'il
+           coiffe une prose qui est tout entière de cette encre. Chacun dans le ton de
+           sa bande ; c'est le CORPS qui dit le rang, pas la couleur. */
         .accueil-mot h2 {
           font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 1.1875rem;
+          font-size: clamp(1.1875rem, 2.8vw, 1.5rem);
           font-weight: normal;
           color: var(--cs-encre-fonce);
-          letter-spacing: 0.01em;
-          margin: 0 0 26px;
+          line-height: 1.3;
+          letter-spacing: 0.02em;
+          margin: 0 0 14px;
         }
         .accueil-mot-prose { display: flex; flex-direction: column; gap: 16px; }
         /* Le pied ne « descend » plus au bas d'une carte : il n'y a plus de carte, et
@@ -560,9 +571,14 @@ export default async function AccueilPage() {
 
 /* ── Composants ──────────────────────────────────────────────────────────── */
 
-function OrnementsTriple() {
+/** ⚠️ `serre` : le même fleuron, au blanc du MOT et non à celui du colophon. Là il
+ *  sépare huit sections et prend 46 px de chaque côté ; ici il ne ferme qu'un titre
+ *  au-dessus de deux paragraphes, et le même blanc l'aurait détaché de ce qu'il
+ *  coiffe. ⛔ Un ornement FERME un texte, il ne l'annonce pas (charte, « Une gravure
+ *  se pose en pied ») : il vient donc SOUS le titre, comme sous « Le projet ». */
+function OrnementsTriple({ serre = false }: { serre?: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: "46px auto", maxWidth: "18.75rem" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", margin: serre ? "0 auto 26px" : "46px auto", maxWidth: serre ? "13rem" : "18.75rem" }}>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
       <span style={{ fontSize: "1.125rem", color: "var(--cs-or)", lineHeight: 1 }}>❧</span>
       <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
@@ -623,6 +639,7 @@ function VoletUnMot() {
   return (
     <section className="accueil-mot">
       <h2>Un mot</h2>
+      <OrnementsTriple serre />
       <div className="accueil-mot-prose">
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l’Église, anciens ou difficiles d’accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>
