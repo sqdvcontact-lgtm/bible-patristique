@@ -1513,7 +1513,7 @@ export default function Navbar() {
       {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
           barre de navigation : rien à naviguer tant que le site est fermé. */}
       <header data-cs-navbar className="fixed top-0 left-0 right-0 border-b"
-        style={{ background: "var(--cs-vert-aplat)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
+        style={{ background: "var(--cs-barre-fond)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <style>{`
           /* Jauge de la vignette de notification : elle se vide de la droite vers la
              gauche pendant la durée d'affichage. On anime la transformation, pas la largeur :
@@ -1836,14 +1836,14 @@ export default function Navbar() {
 
         {/* ── Recherche dépliée sous la barre (palier étroit) ─────────────────── */}
         {rechercheRepliee && rechercheDeployee && (
-          <div className="hidden lg:block" style={{ background: "var(--cs-vert-aplat-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
+          <div className="hidden lg:block" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "10px 16px 12px" }}>
             {blocRecherche(true)}
           </div>
         )}
 
         {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
         {mobileOuvert && (
-          <div className="lg:hidden" style={{ background: "var(--cs-vert-aplat-fonce)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div className="lg:hidden" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}

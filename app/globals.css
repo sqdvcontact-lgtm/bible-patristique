@@ -76,6 +76,16 @@
      qui est une ENCRE : en Cuir elle est claire, et le bandeau servait du blanc sur
      du beige. Les trois rangs s écartent de 1,2 à 1,4, comme au Clair. */
   --cs-vert-aplat-profond: #24422f;
+  /* ⛔ LE SOL DE LA BARRE A SON PROPRE JETON, et il ne peut pas rester
+     `--cs-vert-aplat` : celui-ci sert aussi les boutons pleins, les états actifs,
+     les pions d'interrupteur et les trois bandeaux du Polyglotte. La barre est
+     désormais MAROQUIN au Cuir (décision de l'auteur, 2026-08-31) ; sans jeton
+     propre, tout ce qui précède le deviendrait avec elle.
+     ⚠️ C'est un SOL, non une couleur : au Cuir il porte un dégradé. Ne jamais
+     l'employer dans un `border-color` ni dans un `color-mix`. Au Clair, les deux
+     valeurs sont exactement celles d'avant : rien n'y change. */
+  --cs-barre-fond: #3d6b4f;
+  --cs-barre-fond-profond: #2e5440;
   /* ⛔ L'ENCRE POSÉE SUR UN APLAT (le libellé d'un bouton plein, le texte de la barre).
      Elle ne suit PAS le thème, comme les trois `-clair` du panneau mobile : un knockout
      n'est pas « la couleur du papier », c'est un blanc qui doit rester blanc quand le
@@ -415,6 +425,21 @@
   --cs-vert-aplat: #4a3c2c;
   --cs-vert-aplat-fonce: #3a2f22;
   --cs-vert-aplat-profond: #2e251b;
+  /* LE MAROQUIN DE LA BARRE, celui de la carte Patristique — le même dessin, tourné
+     à la verticale parce qu'une barre est une bande couchée et qu'une reliure prend
+     la lumière par le haut.
+     ⚠️ La palette du Cuir tient dans une bande de 30° à 105° de teinte, et ce
+     maroquin est à 30° : il en occupe le bord. Il n'ouvre pourtant AUCUNE famille
+     nouvelle — la carte Patristique le sert déjà sur la même page, et la barre le
+     rejoint au lieu de l'y ajouter.
+     ⛔ Les clartés sont APPARIÉES à celles qu'elles remplacent, et c'est ce qui rend
+     la substitution sûre : le milieu du dégradé rend L* 36,6 comme l'ancien
+     `#4a3c2c`, et le sol profond L* 31,7 comme l'ancien `#3a2f22`. Le poids de la
+     barre sur la page ne bouge donc pas, seule sa teinte. Blanc mesuré dessus :
+     10,89 et 13,10 ; les trois familles du panneau mobile y rendent 8,99, 7,17 et
+     7,19, à cinq centièmes de ce qu'elles rendaient sur le brun. */
+  --cs-barre-fond: linear-gradient(180deg, #6a3a31 0%, #4e2823 100%);
+  --cs-barre-fond-profond: #4a2721;
   --cs-sur-aplat: #fff;
   /* Apparat : un doré plus SOURD que l'accent, pour ne pas lui disputer l'œil. */
   --cs-or: #c0a065;
