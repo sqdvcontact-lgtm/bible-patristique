@@ -66,10 +66,32 @@ CONSÉQUENCE POUR TOI, ET C'EST LE POINT IMPORTANT DE CE MESSAGE :
   - si la page n'en porte aucune, laisse printed_caption à null plutôt que d'en
     composer une : une légende inventée me ferait traiter l'image à l'envers.
 
-⚠️ Deux gravures déjà livrées sont sans légende : p0194-i01 et p0462-i01. Si la
-page en porte une, complète-la ; sinon dis-le, et je les laisserai au trait, qui
-est le parti le moins coûteux — une photographie détourée se voit tout de suite,
-un dessin cadré passe inaperçu et laisse son rectangle.
+✅ Les deux gravures sans légende, p0194-i01 et p0462-i01, sont réglées : ce sont
+des ORNEMENTS, un cul-de-lampe à la croix et un fleuron portant la face du Christ.
+Ils n'ont pas de légende parce qu'un ornement n'en porte pas. Rien à compléter.
+
+⛔ MAIS LE PARI DU « MOINS COÛTEUX » ÉTAIT FAUX, ET JE LE RETIRE. Je t'écrivais
+qu'une photographie détourée se voit tout de suite quand un dessin cadré passe
+inaperçu, et que le trait était donc le repli prudent. J'ai regardé les cent
+soixante-seize gravures une à une : c'est l'inverse. Détourer une demi-teinte
+écrase ses tons, blanchit ses clairs, crève sa trame de points et laisse le bord
+rectangulaire de la découpe. Un dessin cadré, lui, ne laisse qu'un rectangle de
+papier un peu gris.
+
+Trois gravures étaient dans ce cas, et la troisième est la plus instructive :
+
+  - « Intérieur de l'église la Nativité, à Bethléem. » — ne nomme qu'un lieu
+  - « Cour d'une maison de l'Orient. » — ne nomme qu'un lieu
+  - « Olivier de Gethsémani. (D'après une photographie.) » — la mention EST là
+
+La dernière échappait à la règle par sa LARGEUR : imprimée sur 58 % de la page,
+quand le seuil des deux colonnes est à 60. Deux points.
+
+⚠️ Ce n'est pas un reproche à ta collecte : tu as transcrit ce que Fillion
+imprime, et c'est exactement ce qu'il fallait. C'est ma règle qui était trop
+confiante. Le régime se force désormais par la donnée, cas par cas, et j'ai posé
+les trois. Continue simplement à transcrire la légende entière : elle reste ce
+qui décide dans l'immense majorité des cas.
 
 
 CE QUI N'A PAS CHANGÉ
