@@ -76,6 +76,14 @@ describe('la LIGNE se compose pareil partout', () => {
     expect(styleLigneDeVers({ rang: 0, ouvreStrophe: true }).marginTop).toBe('0.6rem')
     expect(styleLigneDeVers({ rang: 0 }).marginTop).toBe(0)
   })
+
+  it('⛔ les CINQ rangs se distinguent, sur les quatre surfaces à la fois', () => {
+    // Le style est partagé : ce que ce test garde, la lecture ordinaire, le bilingue,
+    // les traductions parallèles et l'apparat le tiennent tous les quatre. Le plafond
+    // a valu 3 et confondait le rang 4 avec le rang 3 partout d'un coup.
+    const marges = [0, 1, 2, 3, 4].map(rang => styleLigneDeVers({ rang }).marginLeft)
+    expect(new Set(marges).size).toBe(5)
+  })
 })
 
 describe('chaque SURFACE apporte sa police, jamais la règle du vers', () => {

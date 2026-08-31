@@ -16,6 +16,13 @@ describe('alinéa de base', () => {
     expect(retraitVers(99)).toBe(RETRAIT_BASE + RANG_MAX * PAS_ALINEA)
     expect(retraitVers(-3)).toBe(RETRAIT_BASE)
   })
+
+  it('⛔ compose le rang 4, et ne le rabat pas sur le rang 3', () => {
+    // Le plafond a valu 3, et écrasait le quatrième cran d'une édition qui en a cinq.
+    expect(RANG_MAX).toBeGreaterThanOrEqual(4)
+    expect(retraitVers(4)).toBe(RETRAIT_BASE + 4 * PAS_ALINEA)
+    expect(retraitVers(4)).not.toBe(retraitVers(3))
+  })
 })
 
 describe('rabattage des mesures d’océrisation', () => {
@@ -56,6 +63,29 @@ describe('rabattage des mesures d’océrisation', () => {
   it('range une mesure intermédiaire au palier le PLUS PROCHE', () => {
     const rangs = niveauxAlinea([0, 0, 0.30, 0.28, 0.02])
     expect(rangs).toEqual([0, 0, 1, 1, 0])
+  })
+
+  it('⛔ rend CINQ rangs quand la source en porte cinq', () => {
+    // Le pas de l'édition est le quart de pouce : fer, Em1, Em2, Em3, Em4.
+    expect(niveauxAlinea([0, 0.25, 0.50, 0.75, 1.00])).toEqual([0, 1, 2, 3, 4])
+  })
+
+  it('retrouve les cinq niveaux du mètre XIV du Livre quatrième (Mirandol)', () => {
+    // Mesures réelles des 41 vers, dans l'ordre du poème (pages 271 et 273). C'est le
+    // seul poème du corpus où les quatre rentrées coexistent, et il prouve le défaut :
+    // ses 6 vers à 1,00 pouce se composaient comme les 4 vers à 0,75.
+    const mesures = [
+      0.50, 0.75, 0.50, 0.50, 0, 0.25, 0.50, 0.75, 0, 0.50,
+      0.25, 0, 0.50, 0.50, 0, 0.50, 0, 0, 0, 0, 0, 1.00, 0, 0.50, 0, 0.25,
+      0.75, 0.75, 0, 1.00, 0, 0.25, 0.50, 0.25, 1.00, 0, 1.00, 0, 1.00, 0, 1.00,
+    ]
+    const rangs = niveauxAlinea(mesures)
+    expect(rangs).toEqual(mesures.map(m => Math.round(m / 0.25)))
+    expect(rangs.filter(r => r === 4)).toHaveLength(6)
+    expect(rangs.filter(r => r === 3)).toHaveLength(4)
+    // ⚠️ Et l'ombre de la lettrine ne s'y invite pas : le poème ne revient pas
+    // plus à gauche après sa tête, il descend d'abord vers la droite.
+    expect(ombreDeLettrine(rangs)).toEqual(rangs)
   })
 
   it('laisse au rang 0 les lignes dont la source est muette', () => {

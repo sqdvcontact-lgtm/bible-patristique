@@ -26,7 +26,8 @@ import type { CSSProperties } from 'react'
  * bord gauche de chaque ligne sur la page. C'est une MESURE, non un rang — 206 valeurs
  * distinctes de 0,003 à 0,864 pouce pour le seul Ceriziers. Elle se rabat donc, comme
  * les 112 tailles de texte se sont rabattues sur 32 rangs et les rayons d'angle sur
- * cinq : `niveauxAlinea` groupe les valeurs voisines et rend un RANG par ligne.
+ * cinq : `niveauxAlinea` groupe les valeurs voisines et rend un RANG par ligne, du
+ * fer (0) au plus profond que l'échelle admette (`RANG_MAX`).
  *
  * ⚠️ Le rabattage se fait POÈME PAR POÈME, jamais sur tout l'ouvrage. Deux poèmes
  * posés à des places différentes sur la page n'ont pas la même origine : ce qui compte
@@ -50,8 +51,30 @@ export const RETRAIT_SUITE = 1.15
  *  le plus petit écart VOULU qu'on ait vu est de 0,25. Le seuil se pose entre les deux. */
 export const TOLERANCE_POUCES = 0.08
 
-/** Au-delà, on ne compose plus, on empile. Une page imprimée passe rarement trois rangs. */
-export const RANG_MAX = 3
+/**
+ * Au-delà, on ne compose plus, on empile.
+ *
+ * ⚠️ Il a valu 3 jusqu'au 31 août 2026, et c'était un rang de trop peu. Une édition
+ * qui rentre ses vers au quart de pouce dispose de CINQ positions — le fer, puis
+ * `Em1` à `Em4` —, et le plafond n'en admettait que quatre. ⛔ Un plafond ne borne
+ * pas une échelle, il ÉCRASE : tout ce qui dépasse retombe sur le dernier rang, et
+ * deux niveaux que l'édition distingue se composent au même retrait.
+ *
+ * Le cas qui l'a révélé est le mètre XIV du Livre quatrième chez Mirandol, seul
+ * poème du corpus où les quatre rentrées coexistent — 16 vers au fer, 5 à 0,25,
+ * 10 à 0,50, 4 à 0,75 et 6 à 1,00 pouce. Les six derniers se composaient comme les
+ * quatre précédents. ⛔ Le remède n'est pas de rabattre les mesures : les cinq
+ * niveaux sont attestés par le témoin, relevés ligne à ligne sur les 1 092 vers.
+ *
+ * ⚠️ Le plafond fait un SECOND travail, qu'il ne faut pas lui découvrir par surprise :
+ * il borne aussi le rabattage d'une océrisation bruitée. Chez Ceriziers 1646, dont les
+ * mesures sont continues (206 valeurs de 0,003 à 0,864 pouce), la construction des
+ * paliers monte jusqu'au rang 6 ; le passage de 3 à 4 y déplace **99 vers sur 1 213,
+ * dans 13 poèmes**, d'un pas vers la droite. Mirandol, dont les mesures sont propres
+ * (cinq valeurs exactes), n'en déplace que les 6 vers du mètre en cause. Un plafond
+ * plus haut ne se pose donc qu'après avoir compté ce qu'il libère.
+ */
+export const RANG_MAX = 4
 
 /**
  * Rabat une suite de mesures d'indentation sur des RANGS, poème par poème.
