@@ -329,10 +329,16 @@ export default async function AccueilPage() {
            grandit — c'est le piège relevé sur la tour de Babel du Polyglotte.
            ⚠️ L'opacité est celle du filet du frontispice, 0,72, et non celle des
            culs-de-lampe (0,42 à 0,5) : ceux-là n'ornent qu'un vide, celle-ci coiffe un
-           titre et se regarde. */
+           titre et se regarde.
+           ⛔ 7 rem, et non 14 : à la première pose elle était deux fois trop grosse et
+           écrasait le titre qu'elle ferme (relevé de l'auteur). ⚠️ La planche a été
+           REFABRIQUÉE à cette taille, non pas seulement bornée en CSS : un fichier de
+           434 px servi pour 112 affichés ferait 3,9 fois, et le navigateur réduirait
+           une seconde fois derrière la nôtre, moyennant les hachures fines en un gris
+           mou. Elle est servie en 214 × 40, soit un rapport de 1,91. */
         .filet-un-mot {
           display: block;
-          max-width: min(14rem, 60%);
+          max-width: min(7rem, 40%);
           height: auto;
           margin: 0 auto 26px;
           opacity: 0.72;
