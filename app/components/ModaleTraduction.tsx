@@ -221,12 +221,30 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
 
   return (
     <>
-      {/* En-tête : portrait, nom, repères. Le cadre est celui de la fiche
-          d'auteur, au format du portrait plutôt qu'à celui du bandeau. */}
+      {/* En-tête : portrait, nom, repères.
+          ⛔ LE CADRE EST CELUI DE L'ENCART, et non plus celui de la fiche d'auteur
+          (2026-08-31, l'auteur trouvant l'illustration trop étroite). Une notice de
+          traduction porte deux images, et son PORTRAIT est préparé pour un rapport
+          2/3 sur 8,75 rem : c'est la boîte de dépôt (`BOITE_TRADUCTION_ENCART`,
+          600 × 900), c'est le cadre de la page publique des traductions, et c'est
+          celui sur lequel l'administration règle le cadrage. La fiche, elle,
+          empruntait le cadre d'un portrait d'AUTEUR — 6,5 rem sur 130 px, soit une
+          zone d'image de 92 × 118 —, si bien qu'elle montrait de la peinture un tiers
+          moins large que partout ailleurs, et selon un rapport (0,78) que personne
+          n'avait cadré. Elle rend maintenant 140 × 210, comme /traductions.
+          ⚠️ Le rapport se pose sur la ZONE D'IMAGE et non sur le cadre : le
+          passe-partout et le filet sont dans la boîte (`box-sizing: border-box`), et
+          un rapport posé sur le cadre les aurait pris dedans — l'image y perdait
+          douze pixels de large et le cadrage n'aurait plus été celui qu'on a réglé.
+          ⚠️ Le passe-partout RESTE : c'est la langue de cette fiche, où les gravures
+          portent le même, « le cadre du portrait, en plus petit ».
+          ⛔ Plus de hauteur en PIXELS à côté d'une largeur en rem : la police racine
+          monte à 22 px sur un grand écran, et le cadre de 6,5 rem sur 130 px y
+          devenait un PAYSAGE de 143 sur 130. Un rapport ne connaît pas ce défaut. */}
       <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
         {portrait && portraitCasse !== portrait.url && (
-          <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
-            <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)' }}>
+          <div style={{ flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
+            <div style={{ width: '8.75rem', aspectRatio: '2 / 3', overflow: 'hidden', background: 'var(--cs-fond-doux)' }}>
               <img src={portrait.url} alt="" aria-hidden="true" onError={() => setPortraitCasse(portrait.url)}
                 style={styleImagePortrait(portrait)} />
             </div>
