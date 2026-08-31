@@ -40,13 +40,23 @@
 // Les blancs, eux, ne sautent pas de degré en degré : ils suivent l'échelle du
 // volet, qui est continue (voir globals.css, « L'échelle du volet »).
 //
-// ⚠️ IL SE TIENT CONTRE L'ÉTIQUETTE, plus petit, en italique et sans soulignement
-// (2026-08-31, demande de l'auteur). Au fer à droite il tenait le bord opposé de la
-// ligne et pesait autant que « Traduction » ; collé à elle, il en devient la suite.
-// L'italique et le filet retiré le rendent à son rang d'action secondaire.
+// ⛔ CE QUI SUIT L'ÉTIQUETTE EST LE NOM DE LA BIBLE, et c'est lui le lien (décision
+// de l'auteur, 2026-08-31 : « remplacer par le nom raccourci de la traduction, par
+// exemple “Bible Crampon” ; ne pas afficher “en savoir plus sur cette traduction”,
+// mais ouvrir la page quand on clique sur le nom »). La carte disait deux fois la
+// même chose et ne nommait jamais ce qu'on lit : « Traduction » en étiquette, un
+// lien qui redisait « cette traduction », et le seul nom porté était celui du
+// traducteur. Le nom de la bible tient les deux rôles à la fois — il nomme, et il
+// ouvre —, et le libellé qui ne faisait que désigner le geste disparaît.
+//
+// ⚠️ La forme est celle du nom d'AUTEUR dans le volet des pages patristiques, et
+// c'est le même composant (`NomVolet`) : un volet de gauche nomme ce qu'on lit,
+// d'un côté l'auteur, de l'autre la bible, et il n'y a pas deux façons de le dire.
+// ⛔ Rien ne paraît au survol, ni ici ni là (voir `NomVolet`).
 
 import { useState } from 'react'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
+import NomVolet from '@/app/components/NomVolet'
 // Les notices datent volontiers (« IVe siècle ») : elles passent par le composeur
 // commun, seul endroit du site qui sache poser un siècle.
 import { rendreSiecles } from '@/app/lib/siecles'
@@ -75,28 +85,29 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
     // délibéré de redimensionner le volet.
     <div className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: 'calc(var(--volet-air) + 1px) calc(var(--volet-gouttiere) + 2px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: 'var(--volet-air-fin)' }}>
       {/* ⚠️ Alignement sur la LIGNE DE BASE, non sur le milieu : l'étiquette pèse 8
-          pixels et le lien 8,5, et deux boîtes centrées l'une sur l'autre feraient
-          flotter le plus petit des deux au-dessus de la ligne de l'autre.
-          ⚠️ Le lien ne se laisse PAS comprimer (`flexShrink: 0`) : la carte est en
-          `overflow: hidden`, un lien rétréci s'y couperait au lieu de déborder, et
-          le défaut ne se verrait donc que sur une largeur de volet particulière. */}
+          pixels et le nom 13, et deux boîtes centrées l'une sur l'autre feraient
+          flotter la plus petite des deux au-dessus de la ligne de l'autre.
+          ⚠️ C'est L'ÉTIQUETTE qui ne se comprime pas, et le NOM qui s'écrête par la
+          fin — l'inverse de ce que la carte faisait quand elle portait un libellé
+          fixe. Un nom coupé reste lisible (« Traduction officielle liturgi… ») ;
+          une étiquette rognée ne dit plus de quoi il s'agit. */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'calc(var(--volet-air-fin) + 3px)' }}>
-        <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)' }}>Traduction</span>
-        {/* ⚠️ Le libellé se raccourcit avec le volet : « En savoir plus sur cette
-            traduction » réclamait 218 pixels de volet pour tenir à côté de l'étiquette
-            (mesuré à 9,5 px ; il en demande moins depuis qu'il est tombé à 8,5, et le
-            seuil de 230 lui fait désormais une marge). Les deux formes sont écrites,
-            et la requête de conteneur n'en montre qu'une — un libellé ne se coupe pas
-            en JavaScript, sinon il faudrait mesurer à chaque rendu. */}
-        <button onClick={() => setModaleOuverte(true)} style={{ flexShrink: 0, fontSize: '0.53125rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', padding: 0 }}>
-          <span className="cs-volet-lien-long">En savoir plus sur cette traduction</span>
-          <span className="cs-volet-lien-court">En savoir plus</span>
-        </button>
+        <span style={{ flexShrink: 0, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)' }}>Traduction</span>
+        {/* ⛔ Plus de libellé écrit en DEUX formes que la largeur choisissait : un nom
+            n'a pas de forme courte, et l'écrêtage par la fin le rend lisible à toute
+            largeur. C'est le libellé « En savoir plus sur cette traduction », mesuré
+            le 30 août à 218 pixels de volet, qui appelait ce dispositif ; il est parti
+            avec lui, et le seuil de 230 dans globals.css avec les deux. */}
+        <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{trad.label}</NomVolet>
       </div>
-      {/* Auteur avec ses dates de vie complètes, puis la référence complète de l'édition
-          présentée (ville, éditeur, date). La langue n'est pas indiquée ici. */}
+      {/* Le TRADUCTEUR, avec ses dates de vie complètes, puis la référence complète de
+          l'édition présentée (ville, éditeur, date). La langue n'est pas indiquée ici.
+          ⛔ Plus de repli sur `label` : le nom de la bible est écrit une ligne plus
+          haut depuis le 2026-08-31, et la ligne du traducteur le redisait alors mot
+          pour mot. Sans traducteur nommé, elle porte un tiret, qui dit au moins que
+          la place existe et qu'on ne l'a pas remplie. */}
       <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.22 }}>
-        {trad.auteur || trad.label || '—'}
+        {trad.auteur || '—'}
         {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> ({trad.auteurDates})</span>}
       </span>
       {/* Div BLOC volontaire : `-webkit-line-clamp` sur un enfant DIRECT du flex serait

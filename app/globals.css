@@ -2013,26 +2013,21 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    moignon de titre vaut moins que rien — c'est celui-là que l'auteur a relevé le
    28 août 2026. La fiche « En savoir plus » la donne entière, à toute largeur.
 
-   ⛔ 230 px pour le LIBELLÉ du lien, et le seuil a CHANGÉ le 2026-08-30 avec ce
-   que le lien fait. Il occupait une ligne à lui, où le libellé long passait à deux
-   lignes puis à trois sous 200 px ; il partage désormais la ligne de l'étiquette
-   « Traduction », qui lui en prend déjà 53. Mesuré : « En savoir plus sur cette
-   traduction » réclame 218 px de volet pour tenir à côté d'elle, et le seuil est
-   porté à 230 pour la douzaine de pixels qui sépare une mesure d'une marge. Sous
-   230, « En savoir plus » suffit et tient dès 120. Les deux formes sont écrites
-   dans le balisage et l'on n'en montre qu'une ; ⛔ un libellé ne se coupe pas en
-   JavaScript, il faudrait mesurer à chaque rendu.
-   ⚠️ Le 2026-08-31 le lien est tombé de 9,5 à 8,5 px, s'est mis en italique et s'est
-   collé à l'étiquette (l'écart passe de 8 à 5 px) : il demande donc MOINS que les
-   218 px mesurés, et le seuil de 230 n'est plus la limite mais une marge. On l'y
-   laisse — le baisser ne gagnerait qu'une largeur de volet où l'on n'a rien mesuré.
-   ⚠️ Le lien ne se laisse pas comprimer, et la carte est en `overflow: hidden` :
-   un seuil trop bas ne ferait donc pas déborder le libellé, il le COUPERAIT, et le
-   défaut ne paraîtrait qu'entre deux largeurs de volet. */
-/* ⚠️ Le repli se pose AVANT les requêtes : une requête de conteneur n'ajoute
-   aucune spécificité, et la même règle écrite APRÈS elle l'emportait — les deux
-   formes du lien étaient alors masquées, et le lien disparaissait tout à fait. */
-.cs-volet-lien-court { display: none; }
+   ⛔ IL N'Y A PLUS DE SEUIL POUR LE LIEN, et sa disparition vaut d'être gardée.
+   « En savoir plus sur cette traduction » était écrit en DEUX formes, longue et
+   courte, dont une requête à 230 px choisissait laquelle montrer — un libellé ne
+   se coupe pas en JavaScript, il faudrait le mesurer à chaque rendu. Le 31 août
+   2026 le libellé a cédé la place au NOM de la bible (« Bible Crampon »), qui est
+   désormais le lien lui-même : un nom n'a pas de forme courte, il s'écrête par la
+   fin, et le dispositif entier — deux formes, seuil, mesure de 218 px — est parti
+   avec le libellé qui l'avait appelé. ⚠️ La leçon reste : un LIBELLÉ à deux formes
+   se règle par la largeur, jamais en JavaScript ; mais on regarde d'abord s'il
+   faut un libellé.
+
+   ⚠️ Le repli se pose AVANT les requêtes : une requête de conteneur n'ajoute
+   aucune spécificité, et la même règle écrite APRÈS elle l'emporte. C'est ce qui
+   avait masqué les deux formes du lien à la fois, et c'est pourquoi la ligne
+   ci-dessous précède les blocs `@container`. */
 .cs-volet-bio { display: none; }
 
 /* ── L'ÉCHELLE DU VOLET : l'aération suit l'écran, et la poignée ──────────────
@@ -2083,10 +2078,6 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 
 @container volet (max-width: 259px) {
   .cs-volet-ref { display: none; }
-}
-@container volet (max-width: 229px) {
-  .cs-volet-lien-long { display: none; }
-  .cs-volet-lien-court { display: inline; }
 }
 
 /* ── Ce que le volet DIT DE PLUS quand il est large ───────────────────────────

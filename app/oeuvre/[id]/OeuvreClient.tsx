@@ -47,7 +47,7 @@ import FicheEdition from './FicheEdition'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
-import ApercuAuteur from '@/app/components/ApercuAuteur'
+import NomVolet from '@/app/components/NomVolet'
 import { FeuilleVigne } from './Ornements'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import { useFavoris } from '@/app/lib/useFavoris'
@@ -1399,6 +1399,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Chaque auteur porte son propre nom cliquable : sur une œuvre signée à deux,
   // le lecteur atteint la fiche de l'un ou de l'autre. Repli sur le nom composé
   // (non cliquable) si la liste n'a pas été fournie.
+  // ⛔ Le survol du nom N'OUVRE PLUS DE CARTE (décision de l'auteur, 2026-08-31) :
+  // `ApercuAuteur` montrait au bout de 220 ms un portrait, les dates et deux cents
+  // signes de la notice, c'est-à-dire un morceau de la page qu'un clic ouvre en
+  // entier. Le composant est retiré, sa forme de bouton conservée dans `NomVolet`,
+  // que la carte « Traduction » de la page Bible emploie désormais aussi.
   const auteursCliquables = useMemo(
     () => (auteursOeuvre.length > 0 ? auteursOeuvre : auteurId && auteur ? [{ id_auteur: auteurId, nom: auteur, rang: 1 }] : []),
     [auteursOeuvre, auteurId, auteur],
@@ -1408,7 +1413,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       {auteursCliquables.map((a, i) => (
         <Fragment key={a.id_auteur}>
           {i > 0 && separateurAuteurs(i, auteursCliquables.length)}
-          <ApercuAuteur auteurId={a.id_auteur} onOuvrirFiche={() => setAuteurModalId(a.id_auteur)}>{a.nom}</ApercuAuteur>
+          <NomVolet onOuvrir={() => setAuteurModalId(a.id_auteur)} inactif={!a.id_auteur}
+            titre="Voir la fiche de l’auteur">{a.nom}</NomVolet>
         </Fragment>
       ))}
     </span>

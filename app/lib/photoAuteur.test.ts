@@ -88,8 +88,8 @@ describe('glissé', () => {
 })
 
 describe('cadres des surfaces', () => {
-  it('décrit les trois surfaces qui montrent un portrait', () => {
-    expect(Object.keys(CADRES_PORTRAIT).sort()).toEqual(['apercu', 'carte', 'fiche'])
+  it('décrit les deux surfaces qui montrent un portrait', () => {
+    expect(Object.keys(CADRES_PORTRAIT).sort()).toEqual(['carte', 'fiche'])
   })
 
   it('donne à chacune des mesures et un réglage', () => {
@@ -101,10 +101,11 @@ describe('cadres des surfaces', () => {
     }
   })
 
-  // L'aperçu emprunte le réglage de la fiche : son cadre lui ressemble, et lui en
-  // donner un troisième à tenir n'apporterait rien.
-  it('fait emprunter à l’aperçu le réglage de la fiche', () => {
-    expect(CADRES_PORTRAIT.apercu.reglage).toBe('fiche')
+  // ⛔ La surface « aperçu au survol » a été retirée le 2026-08-31 avec la carte
+  // flottante qu'elle servait. Elle empruntait le réglage de la fiche ; la garde
+  // qui le vérifiait est partie avec elle, et celle du dessus compte les surfaces.
+  it('n’en laisse aucune sans réglage connu', () => {
+    for (const c of Object.values(CADRES_PORTRAIT)) expect(CADRES_PORTRAIT[c.reglage]).toBeDefined()
   })
 })
 

@@ -34,8 +34,12 @@ export const POS_FICHE_DEFAUT: AuteurPhotoPos = { x: 50, y: 24, scale: 1 }
 export const ZOOM_MIN = 1
 export const ZOOM_MAX = 3.5
 
-/** Nom d'une surface qui montre un portrait. */
-export type SurfacePortrait = 'carte' | 'fiche' | 'apercu'
+/** Nom d'une surface qui montre un portrait.
+ *  ⛔ `apercu` a existé jusqu'au 2026-08-31 : c'était la vignette de la carte que
+ *  le survol d'un nom d'auteur faisait paraître. La carte est retirée (voir
+ *  `NomVolet`), et la surface avec elle — un écran de cadrage qui propose de
+ *  régler une surface inexistante ment autant qu'un cadre aux mauvaises mesures. */
+export type SurfacePortrait = 'carte' | 'fiche'
 
 export type CadrePortrait = {
   libelle: string
@@ -60,8 +64,6 @@ export const CADRES_PORTRAIT: Record<SurfacePortrait, CadrePortrait> = {
   carte: { libelle: 'Carte de la bibliothèque', largeur: '7.5rem', hauteur: '200px', passePartout: '0', reglage: 'carte' },
   // app/components/ModaleAuteur.tsx : cadre 6.5rem × 130px, `padding: 5px`.
   fiche: { libelle: 'Fiche de l’auteur', largeur: '6.5rem', hauteur: '130px', passePartout: '5px', reglage: 'fiche' },
-  // app/components/ApercuAuteur.tsx : vignette au survol d'un nom.
-  apercu: { libelle: 'Aperçu au survol', largeur: '3.25rem', hauteur: '4.25rem', passePartout: '0', reglage: 'fiche' },
 }
 
 function normaliser(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
