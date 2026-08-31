@@ -15,24 +15,19 @@ export const metadata = {
 // penser à corriger, et qui vieillissaient donc en silence. Tout vient désormais de
 // la base, par la fonction `statistiques_accueil()` : voir `BandeauStats` plus bas.
 
-// « Ajouts récents » : on affiche jusqu'à NB_AJOUTS œuvres. Les NB_DATES_REELLES
-// premières gardent leur vraie date de mise en ligne ; les suivantes reçoivent une
-// date de juillet 2026 pseudo-aléatoire (à partir du 1er), STABLE car dérivée de l'id
-// de l'œuvre — pour donner à la liste l'allure d'un journal d'ajouts échelonné.
+// « Ajouts récents » : jusqu'à NB_AJOUTS œuvres, dans l'ordre où elles ont été mises en
+// ligne. Les six dernières lignes portaient jusqu'ici une date de juillet 2026 tirée d'un
+// hachage de l'identifiant de l'œuvre, pour donner à la liste l'allure d'un journal
+// d'ajouts échelonné. Le volet datait donc de juillet des œuvres parues à la mi-août, et
+// le trucage vieillissait à mesure que le mois s'éloignait. La date affichée est celle de
+// la base, comme les chiffres du bandeau depuis qu'ils ont cessé d'être des constantes.
+//
+// ⚠️ Plusieurs œuvres importées d'un même lot partagent leur date, et la liste répète
+// alors le même jour : c'est la vérité de l'ajout, et un chantier mené par lots ressemble
+// à cela.
 const NB_AJOUTS = 9;
-const NB_DATES_REELLES = 3;
 
 type OeuvreRecente = { id_oeuvre: string; titre: string; date_mise_en_ligne: string | null; auteur: string };
-
-function hashChaine(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function dateJuilletPseudo(id: string): string {
-  const jour = 1 + (hashChaine(id) % 27); // 1..27 juillet 2026
-  return new Date(Date.UTC(2026, 6, jour, 12)).toISOString();
-}
 
 // Chiffres du bandeau, tels que la base les rend. `pourcent_verifie` peut être nul
 // quand aucune œuvre n'a encore été contrôlée : la tuile se retire alors d'elle-même,
@@ -71,17 +66,15 @@ export default async function AccueilPage() {
     codesTraductionsLecture(supabase),
   ]);
 
-  const recentesBrut: OeuvreRecente[] = (recentesRes.data ?? []).map((o: Record<string, unknown>) => ({
+  // ⛔ L'ordre est celui de la base — date décroissante, puis identifiant — et il ne se
+  // rejoue pas ici : un tri par la seule date perdrait le départage des œuvres entrées le
+  // même jour, qui sont la majorité.
+  const recentes: OeuvreRecente[] = (recentesRes.data ?? []).map((o: Record<string, unknown>) => ({
     id_oeuvre: o.id_oeuvre as string,
     titre: o.titre as string,
     date_mise_en_ligne: (o.date_mise_en_ligne as string | null) ?? null,
     auteur: Array.isArray(o.auteurs) ? ((o.auteurs[0] as { nom?: string })?.nom ?? "") : (((o.auteurs as { nom?: string } | null)?.nom) ?? ""),
   }));
-  // Les plus récents gardent leur vraie date ; les autres reçoivent une date de juillet
-  // pseudo-aléatoire (stable), puis on retrie l'ensemble par date décroissante.
-  const recentes: OeuvreRecente[] = recentesBrut
-    .map((o, i) => (i < NB_DATES_REELLES && o.date_mise_en_ligne) ? o : { ...o, date_mise_en_ligne: dateJuilletPseudo(o.id_oeuvre) })
-    .sort((a, b) => (b.date_mise_en_ligne ?? "").localeCompare(a.date_mise_en_ligne ?? ""));
   const stats = statsRes.data;
   const nbTextes = stats?.textes ?? 0;
   const nbAuteurs = stats?.auteurs ?? 0;
