@@ -217,6 +217,9 @@ function partIllustration(regime, largeurImprimee) {
   if (regime === 'C') return borner(PART_HORS_TEXTE)
   if (regime === 'B') return borner(PART_AU_FIL)
   if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
+  // ⛔ Le plafond de la vignette suppose une gravure qui TIENT DANS UNE COLONNE.
+  //    Une gravure au trait qui enjambe les deux garde sa proportion imprimée.
+  if (largeurImprimee > LARGEUR_DEUX_COLONNES) return borner(largeurImprimee)
   return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
 }
 
@@ -263,6 +266,12 @@ const SEAU_MASTER = 'bible-illustrations-master'
 const args = process.argv.slice(2)
 const FABRIQUER = args.includes('--fabriquer') || args.includes('--televerser')
 const TELEVERSER = args.includes('--televerser')
+// ⚠️ `--seulement <motifs>` borne la passe aux clés qui contiennent l’un des motifs
+//    séparés par une virgule. La chaîne est idempotente et repasser tout le
+//    corpus ne fait aucun mal, mais cent soixante-seize gravures coûtent une
+//    demi-heure : quand la livraison n’en ajoute que dix, on ne refabrique pas
+//    les cent soixante-six autres.
+const SEULEMENT = args.includes('--seulement') ? args[args.indexOf('--seulement') + 1].split(',') : null
 
 // ── Outils ───────────────────────────────────────────────────────────────────
 
@@ -950,6 +959,7 @@ async function principal() {
   if (FABRIQUER) mkdirSync(DOSSIER_LOCAL, { recursive: true })
   const rapport = []
   for (const a of data) {
+    if (SEULEMENT && !SEULEMENT.some(m => a.asset_key.includes(m))) continue
     // ⛔ Une PLANCHE ne se détoure jamais : c'est une page entière du volume,
     //    avec son filet gravé, sa légende imprimée et son papier.
     if (a.asset_kind === 'plate') {

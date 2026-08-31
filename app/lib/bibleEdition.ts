@@ -392,10 +392,24 @@ export function ancreAppelNoteBible(noteId: string, memberId?: string): string {
 
 /** Les trois façons dont une illustration se compose dans la page.
  *
- *  ⛔ Le régime se lit sur la LARGEUR IMPRIMÉE, non sur le sujet. La page de
- *  Fillion est à DEUX colonnes : une gravure qui tient dans une colonne est une
- *  vignette, une gravure qui les enjambe est une scène. Le seuil est donc
- *  au-dessus d'une colonne et au-dessous de deux.
+ *  ⛔ Le régime se lit sur DEUX faits, et il les faut tous les deux : la LARGEUR
+ *  IMPRIMÉE et la LÉGENDE. La page de Fillion est à deux colonnes ; une gravure
+ *  qui tient dans une colonne est une vignette. Mais une gravure qui les ENJAMBE
+ *  n'est une scène que si Fillion l'annonce « (D'après une photographie.) » :
+ *  c'est alors une photogravure en ton continu, qui garde son papier et se cadre.
+ *  Les autres larges sont des DESSINS AU TRAIT, un ivoire, un bas-relief, un
+ *  plan, et se détourent comme n'importe quelle vignette.
+ *
+ *  ⚠️ La règle a lu la seule largeur jusqu'au 31 août 2026, quand la chaîne
+ *  d'image lisait déjà la légende depuis la veille. DIX-NEUF gravures larges au
+ *  trait étaient donc fabriquées détourées et composées par la page comme des
+ *  photogravures : leur encre ne suivait plus le thème, noire sur le cuir, et
+ *  elles étaient servies à 1,43 fois leur taille d'affichage au lieu de deux.
+ *
+ *  ⚠️ Et la largeur ne sort pas de la règle pour autant. HUIT gravures ÉTROITES
+ *  portent « (D'après une photographie.) » : ce sont des gravures sur bois faites
+ *  d'après un cliché, non des photogravures, et le détourage leur va. La légende
+ *  dit d'où vient le modèle, la largeur dit le procédé ; il faut les deux.
  *
  *  ⚠️ Il se DÉRIVE, il n'est pas encore une colonne de `bible_edition_assets` :
  *  tant qu'aucun arbitrage humain ne le contredit, une donnée dérivée ne peut
@@ -491,6 +505,14 @@ export function partIllustration(
   if (regime === 'hors-texte') return borner(PART_HORS_TEXTE)
   if (regime === 'au-fil') return borner(PART_AU_FIL)
   if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
+  // ⛔ LE PLAFOND DE LA VIGNETTE SUPPOSE UNE GRAVURE QUI TIENT DANS UNE COLONNE,
+  //    et c'est ce que dit son commentaire. Une gravure au TRAIT qui enjambe les
+  //    deux — un ivoire, un bas-relief, le plan du temple d'Hérode — n'est pas
+  //    une vignette trop grande : c'est une scène, et elle est détourée parce que
+  //    Fillion ne l'annonce pas photographie. Lui appliquer ce plafond lui
+  //    retirerait la proportion qu'il lui donne, et la rendrait plus petite que
+  //    la photogravure d'à côté, imprimée de la même largeur.
+  if (largeurImprimee > LARGEUR_DEUX_COLONNES) return borner(largeurImprimee)
   return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
 }
 
@@ -515,16 +537,35 @@ export function largeurServie(part: number): number {
   return Math.round(2 * part * MESURE_COLONNE)
 }
 
+/** ⛔ C'est FILLION qui dit ce qu'il imprime, non le pixel. Il écrit « (D'après
+ *  une photographie.) » sous ses photogravures, et « (D'après un ivoire) »,
+ *  « (Bas-relief romain) », « (Peinture égyptienne) » sous ses dessins.
+ *
+ *  ⚠️ Deux gravures du tome VII n'ont AUCUNE légende, et une poignée nomment un
+ *  lieu sans dire le procédé (« Tombeaux taillés dans le roc », « Intérieur de
+ *  l'église la Nativité »). Elles retombent donc au trait, ce qui est le parti le
+ *  moins coûteux : une photographie détourée se voit tout de suite, un dessin
+ *  cadré passe inaperçu et laisse un rectangle de papier gris.
+ *
+ *  ⚠️ La règle est écrite ICI et dans `scripts/fillion/detourer-gravures.mjs`,
+ *  qui ne peut pas importer ce module. `app/lib/partIllustration.test.ts` tient
+ *  les deux accordées : c'est leur divergence, du 30 au 31 août 2026, qui a
+ *  fabriqué le défaut décrit plus haut. */
+export function estPhotogravure(legendeImprimee: string | null | undefined): boolean {
+  return /photograph/i.test(legendeImprimee ?? '')
+}
+
 export function regimeIllustration(
   assetKind: string,
   decoupe: { normalized?: unknown; left?: unknown; right?: unknown; page_width_px?: unknown } | null | undefined,
+  legendeImprimee?: string | null,
 ): RegimeIllustration {
   // ⛔ Une PLANCHE ne se compose jamais autrement : c'est une page entière du
   //    volume, avec son filet gravé, sa légende imprimée et son papier.
   if (assetKind === 'plate') return 'hors-texte'
   const largeur = largeurImprimee(decoupe)
   if (largeur === null) return 'vignette'
-  return largeur > LARGEUR_DEUX_COLONNES ? 'au-fil' : 'vignette'
+  return largeur > LARGEUR_DEUX_COLONNES && estPhotogravure(legendeImprimee) ? 'au-fil' : 'vignette'
 }
 
 /** La largeur de la découpe en fraction de la page. ⚠️ `normalized` manque sur

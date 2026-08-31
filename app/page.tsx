@@ -389,7 +389,7 @@ export default async function Home({
         bodyBlockId: asset.body_block_id,
         noteId: asset.note_id,
         materialOrder: asset.material_order,
-        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1]),
+        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1], asset.printed_caption),
         largeurImprimee: largeurImprimee(asset.source_crop_box as Parameters<typeof largeurImprimee>[0]),
       })),
     }
@@ -506,7 +506,7 @@ export default async function Home({
           bodyBlockId: asset.body_block_id,
           noteId: asset.note_id,
           materialOrder: asset.material_order,
-        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1]),
+        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1], asset.printed_caption),
         largeurImprimee: largeurImprimee(asset.source_crop_box as Parameters<typeof largeurImprimee>[0]),
           appliesTo: asset.applies_to,
           appliesToMemberId: asset.applies_to_member_id,

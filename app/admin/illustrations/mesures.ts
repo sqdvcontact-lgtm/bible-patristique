@@ -117,7 +117,7 @@ export async function releverGravuresFillion(): Promise<{
       largeur: a.width_px as number,
       hauteur: a.height_px as number,
       largeurImprimee: largeurImprimee(a.source_crop_box as Parameters<typeof largeurImprimee>[0]),
-      regime: regimeIllustration(a.asset_kind as string, a.source_crop_box as Parameters<typeof regimeIllustration>[1]),
+      regime: regimeIllustration(a.asset_kind as string, a.source_crop_box as Parameters<typeof regimeIllustration>[1], a.printed_caption as string | null),
     }))
     .sort((a, b) => (b.largeurImprimee ?? 0) - (a.largeurImprimee ?? 0))
 
