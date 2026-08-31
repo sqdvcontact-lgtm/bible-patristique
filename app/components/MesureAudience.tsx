@@ -11,8 +11,8 @@
 // 20260831180000_audience_mesure_maison.sql et dans la page Confidentialité.
 
 import { useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
-import { estCheminMesure, estLAuteurDuSite } from '@/app/lib/audience'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { cheminNormalise, estCheminMesure, estLAuteurDuSite } from '@/app/lib/audience'
 import { useCompte } from '@/app/lib/contexteCompte'
 
 // Adresse d'administration, déjà exposée au navigateur ailleurs (ce n'est pas un
@@ -26,6 +26,13 @@ function estLocal(hote: string): boolean {
 
 export default function MesureAudience() {
   const pathname = usePathname()
+  // ⛔ `usePathname` NE SUFFIT PAS, et c'est propre à ce site : la page Bible est
+  // la racine, et l'on passe d'un chapitre à l'autre en ne changeant que la chaîne
+  // de requête. Sans ce second crochet, l'effet ne se rejouait pas, et toute la
+  // lecture biblique ne comptait qu'une vue par visite.
+  // ⚠️ Il oblige à une frontière `Suspense` dans le gabarit : sans elle, une page
+  // prérendue bascule en rendu client (documentation Next, « useSearchParams »).
+  const searchParams = useSearchParams()
   const { email, estAdmin, profilPret } = useCompte()
 
   // ⚠️ `document.referrer` garde la provenance EXTERNE pendant toute la visite,
@@ -48,10 +55,17 @@ export default function MesureAudience() {
 
     if (!pathname || !estCheminMesure(pathname)) return
     if (estLocal(window.location.hostname)) return
-    if (dernierEnvoye.current === pathname) return
-    dernierEnvoye.current = pathname
 
-    const charge: { chemin: string; referent?: string } = { chemin: pathname }
+    // Le chemin est normalisé ICI, avant l'envoi, pour que le témoin de doublon
+    // porte sur la forme RÉELLEMENT écrite : deux adresses qui ne diffèrent que
+    // par un paramètre écarté désignent la même page et ne doivent partir qu'une
+    // fois. Le serveur renormalise, la fonction étant idempotente.
+    const requete = searchParams.toString()
+    const chemin = cheminNormalise(requete ? `${pathname}?${requete}` : pathname)
+    if (dernierEnvoye.current === chemin) return
+    dernierEnvoye.current = chemin
+
+    const charge: { chemin: string; referent?: string } = { chemin }
     if (!referentEnvoye.current) {
       referentEnvoye.current = true
       if (document.referrer) charge.referent = document.referrer
@@ -63,7 +77,7 @@ export default function MesureAudience() {
     // `fetch` ne sert qu'aux navigateurs qui ne l'ont pas, et il est muet lui aussi.
     if (navigator.sendBeacon?.('/api/audience/vue', corps)) return
     fetch('/api/audience/vue', { method: 'POST', body: corps, keepalive: true }).catch(() => {})
-  }, [pathname, profilPret, email, estAdmin])
+  }, [pathname, searchParams, profilPret, email, estAdmin])
 
   return null
 }

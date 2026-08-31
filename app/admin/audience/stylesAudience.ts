@@ -56,6 +56,11 @@ export const CSS_AUDIENCE = `
   .au-attente-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-vert); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
   .au-attente-txt { font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.55; margin: 0; font-family: var(--font-source-serif), Georgia, serif; }
 
+  /* Témoin de panne. Il prend l'encre de l'ATTENTE et non celle du danger : le
+     silence n'est pas une panne établie, seulement une chose à aller voir. */
+  .au-alerte { grid-column: 1 / -1; background: var(--cs-danger-fond); border-left: 3px solid var(--cs-attente); border-radius: 0 8px 8px 0; padding: 0.875rem 1rem; }
+  .au-alerte-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-attente); font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin-bottom: 0.25rem; }
+
   /* — Variation d'un jour à l'autre — */
   .au-delta { font-size: 0.6875rem; font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.1875rem; }
   .au-delta-hausse { color: var(--cs-vert); }

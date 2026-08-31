@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CSS_CONTROLE } from '../controle/stylesControle'
 import { CSS_AUDIENCE } from './stylesAudience'
 import { formaterPlageCanonique, nomLivreReference } from '@/app/lib/referencesBibliques'
+import { libellePage } from '@/app/lib/audienceLibelles'
 import type { TableauAudience, SerieJour } from './types'
 
 // ── Présentation pure ────────────────────────────────────────────────────────
@@ -21,6 +22,23 @@ function dateLongue(iso: string | null): string {
 function horodatage(iso: string): string {
   return new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 }
+
+/**
+ * Depuis combien de temps, en clair. Sert le témoin de panne : une collecte
+ * interrompue et une absence de visiteurs rendent les mêmes zéros, et c'est la
+ * seule chose qui les sépare.
+ */
+function depuisQuand(iso: string): { jours: number; texte: string } {
+  const ms = Date.now() - new Date(iso).getTime()
+  const heures = Math.floor(ms / 3_600_000)
+  const jours = Math.floor(heures / 24)
+  if (heures < 1) return { jours: 0, texte: 'il y a moins d’une heure' }
+  if (heures < 24) return { jours: 0, texte: `il y a ${heures} heure${heures > 1 ? 's' : ''}` }
+  return { jours, texte: `il y a ${jours} jour${jours > 1 ? 's' : ''}` }
+}
+
+/** Au-delà de quoi le silence mérite qu'on aille voir si la balise part encore. */
+const JOURS_AVANT_SOUPCON = 3
 
 // Le pays arrive en code ISO à deux lettres, tel que l'hébergeur le donne. On le
 // nomme quand le navigateur sait le faire, ce qui évite d'entretenir une liste.
@@ -76,31 +94,32 @@ function Vide({ texte }: { texte: string }) {
 
 /** Classement : un nom, un nombre, une barre de proportion. */
 function Classement({
-  lignes, vide, lien,
+  lignes, vide,
 }: {
-  lignes: { nom: string; valeur: number; detail?: string }[]
+  // ⚠️ L'adresse est PORTÉE par la ligne, elle ne se déduit plus du nom : depuis
+  // que les pages se nomment (« Augustin, Les Confessions »), le nom n'est plus
+  // une adresse, et la déduire du nom aurait rendu tous les liens faux.
+  // `titre` porte l'infobulle quand le nom affiché ne suffit plus à savoir où mène
+  // la ligne : une page nommée « Augustin, Les Confessions » ne dit plus son adresse.
+  lignes: { nom: string; valeur: number; detail?: string; href?: string | null; titre?: string }[]
   vide: string
-  lien?: (nom: string) => string | null
 }) {
   if (lignes.length === 0) return <Vide texte={vide} />
   const sommet = Math.max(...lignes.map(l => l.valeur), 1)
   return (
     <ul className="au-liste">
-      {lignes.map((l, i) => {
-        const href = lien?.(l.nom) ?? null
-        return (
-          <li key={`${l.nom}-${i}`} className="au-ligne">
-            <span className="au-ligne-nom" title={l.nom}>
-              {href ? <Link href={href}>{l.nom}</Link> : l.nom}
-              {l.detail && <span className="au-ligne-detail">{l.detail}</span>}
-            </span>
-            <span className="au-ligne-val">{nb(l.valeur)}</span>
-            <span className="au-ligne-piste">
-              <span className="au-ligne-part" style={{ width: `${Math.max((l.valeur / sommet) * 100, l.valeur > 0 ? 2 : 0)}%` }} />
-            </span>
-          </li>
-        )
-      })}
+      {lignes.map((l, i) => (
+        <li key={`${l.nom}-${i}`} className="au-ligne">
+          <span className="au-ligne-nom" title={l.titre ?? (l.detail ? `${l.nom} — ${l.detail}` : l.nom)}>
+            {l.href ? <Link href={l.href}>{l.nom}</Link> : l.nom}
+            {l.detail && <span className="au-ligne-detail">{l.detail}</span>}
+          </span>
+          <span className="au-ligne-val">{nb(l.valeur)}</span>
+          <span className="au-ligne-piste">
+            <span className="au-ligne-part" style={{ width: `${Math.max((l.valeur / sommet) * 100, l.valeur > 0 ? 2 : 0)}%` }} />
+          </span>
+        </li>
+      ))}
     </ul>
   )
 }
@@ -189,6 +208,11 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
   // les zéros de la page ne veulent rien dire, et il faut le dire plutôt que de
   // laisser croire à une fréquentation nulle.
   const collecteVide = !tb.premiere_vue
+  // ⚠️ Le silence n'est PAS une panne, et le bandeau ne l'affirme pas : il dit que
+  // les deux se ressemblent et qu'il vaut d'aller voir. Crier à la panne sur un
+  // site qui n'a simplement reçu personne ferait cesser de le lire.
+  const derniere = tb.derniere_vue ? depuisQuand(tb.derniere_vue) : null
+  const silence = derniere !== null && derniere.jours >= JOURS_AVANT_SOUPCON
 
   return (
     <main className="cc-page">
@@ -237,6 +261,18 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
           </div>
         )}
 
+        {silence && derniere && (
+          <div className="au-alerte">
+            <div className="au-alerte-tete">Aucune vue depuis {derniere.jours} jours</div>
+            <p className="au-attente-txt">
+              La dernière vue a été enregistrée {derniere.texte}. Une collecte en panne et une absence
+              de visiteurs rendent exactement les mêmes zéros : si le site reçoit du monde, il vaut
+              d’ouvrir une page publique depuis un autre navigateur et de vérifier que le compteur
+              bouge.
+            </p>
+          </div>
+        )}
+
         {onglet === 'ensemble' && (
           <>
             <Carte titre="Aujourd’hui">
@@ -250,7 +286,7 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
             <Carte titre={`Sur ${tb.jours} jours`}>
               <div className="cc-tuiles">
                 <Tuile n={r.vues_periode} label={['page vue', 'pages vues']} />
-                <Tuile n={r.visiteurs_periode} label={['visiteur', 'visiteurs']} />
+                <Tuile n={r.visiteurs_moyens} label={['visiteur par jour en moyenne', 'visiteurs par jour en moyenne']} />
                 <Tuile n={r.comptes_periode} label={['compte créé', 'comptes créés']} />
                 <Tuile n={r.livres_periode} label={['livre marqué lu', 'livres marqués lus']} />
               </div>
@@ -289,12 +325,12 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
             <Carte titre="Les pages les plus vues">
               <Classement
                 lignes={tb.pages.map(p => ({
-                  nom: p.chemin,
+                  nom: libellePage(p.chemin, p.libelle),
                   valeur: p.vues,
-                  detail: p.visiteurs !== p.vues ? `${nb(p.visiteurs)} visiteur${p.visiteurs > 1 ? 's' : ''}` : undefined,
+                  href: p.chemin,
+                  titre: p.chemin,
                 }))}
                 vide="Aucune page vue sur la période."
-                lien={chemin => chemin}
               />
             </Carte>
 
@@ -420,7 +456,8 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
         Mesure maison, sans cookie et sans outil tiers. L’adresse IP n’est jamais écrite : elle sert à
         calculer une empreinte dont le sel change chaque jour. Ne sont comptés ni le poste de travail,
         ni les pages d’administration, ni la lecture d’un compte administrateur.
-        Première vue enregistrée : {dateLongue(tb.premiere_vue)}.
+        {' '}Première vue : {dateLongue(tb.premiere_vue)}.
+        {derniere && <> Dernière vue : {horodatage(tb.derniere_vue!)}, {derniere.texte}.</>}
       </p>
     </main>
   )

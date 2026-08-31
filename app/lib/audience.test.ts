@@ -40,6 +40,28 @@ describe('cheminNormalise', () => {
     expect(cheminNormalise('/recherche?q=augustin+trinite')).toBe('/recherche')
   })
 
+  it('garde les COORDONNÉES de la page Bible, qui n’a pas d’autre adresse', () => {
+    expect(cheminNormalise('/?livre=GEN&chapitre=1')).toBe('/?livre=GEN&chapitre=1')
+    expect(cheminNormalise('/?livre=GEN')).toBe('/?livre=GEN')
+  })
+
+  it('range les coordonnées dans un ORDRE fixe, pour ne pas dédoubler la page', () => {
+    expect(cheminNormalise('/?chapitre=1&livre=GEN')).toBe('/?livre=GEN&chapitre=1')
+  })
+
+  it('écarte de la page Bible tout ce qui n’est pas une coordonnée', () => {
+    // Traduction, graphie et lecture en regard sont des habits d’un même chapitre.
+    expect(cheminNormalise('/?livre=GEN&chapitre=1&trad=TR0002&bilingue=1')).toBe('/?livre=GEN&chapitre=1')
+  })
+
+  it('ne garde aucun paramètre ailleurs que sur la page Bible', () => {
+    expect(cheminNormalise('/essais?livre=GEN&chapitre=1')).toBe('/essais')
+  })
+
+  it('rend la racine nue quand elle ne porte aucune coordonnée', () => {
+    expect(cheminNormalise('/?bilingue=1')).toBe('/')
+  })
+
   it("retire l'ancre et la barre finale", () => {
     expect(cheminNormalise('/oeuvre/A1#segment-4')).toBe('/oeuvre/A1')
     expect(cheminNormalise('/essais/')).toBe('/essais')
@@ -55,8 +77,15 @@ describe('cheminNormalise', () => {
 })
 
 describe('rubriqueDuChemin', () => {
+  it('range la racine sous la BIBLE, non sous l’accueil', () => {
+    // `app/page.tsx` sert la lecture biblique ; « / » sans paramètre redirige vers
+    // `/accueil` avant tout rendu, une vue de « / » ne peut donc être qu’un chapitre.
+    expect(rubriqueDuChemin('/')).toBe('bible')
+    expect(rubriqueDuChemin('/?livre=GEN&chapitre=1')).toBe('bible')
+    expect(rubriqueDuChemin('/accueil')).toBe('accueil')
+  })
+
   it('nomme la famille de la page', () => {
-    expect(rubriqueDuChemin('/')).toBe('accueil')
     expect(rubriqueDuChemin('/oeuvre/A0010O0002')).toBe('œuvres')
     expect(rubriqueDuChemin('/pericopes/12')).toBe('péricopes')
     expect(rubriqueDuChemin('/confidentialite')).toBe('pages légales')

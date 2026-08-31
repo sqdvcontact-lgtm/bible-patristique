@@ -20,12 +20,24 @@ export type TableauAudience = {
   depuis: string
   /** Nul tant que la collecte n'a rien recueilli : la page le dit alors en clair. */
   premiere_vue: string | null
+  /**
+   * Horodatage complet, non une date : le témoin de panne se lit en heures autant
+   * qu'en jours. Une collecte en panne et une absence de visiteurs rendent les
+   * mêmes zéros, et c'est le seul champ qui les sépare.
+   */
+  derniere_vue: string | null
   resume: {
     vues_jour: number
     vues_veille: number
     vues_periode: number
     visiteurs_jour: number
-    visiteurs_periode: number
+    /**
+     * ⛔ PAS un compte de visiteurs distincts sur la période, qui serait faux :
+     * l'empreinte tournant chaque jour, un lecteur assidu compterait autant de fois
+     * qu'il revient. C'est la moyenne des visiteurs QUOTIDIENS, jours creux compris,
+     * et elle peut donc porter une décimale.
+     */
+    visiteurs_moyens: number
     part_connectee: number
     comptes_total: number
     comptes_periode: number
@@ -33,7 +45,14 @@ export type TableauAudience = {
     liste_attente: number
   }
   serie: SerieJour[]
-  pages: { chemin: string; vues: number; visiteurs: number }[]
+  /**
+   * `libelle` est nul quand la base n'a rien à nommer : le nom se compose alors
+   * côté page, par `app/lib/audienceLibelles.ts`.
+   *
+   * ⚠️ La colonne « visiteurs » a quitté ce classement : elle portait le même
+   * défaut que le total de la période, des visiteurs-jours sous un autre nom.
+   */
+  pages: { chemin: string; vues: number; libelle: string | null }[]
   rubriques: { rubrique: string; vues: number }[]
   referents: { referent: string; vues: number }[]
   pays: { pays: string; vues: number }[]

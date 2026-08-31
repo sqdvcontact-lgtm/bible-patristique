@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import Navbar from "./components/Navbar";
@@ -92,8 +93,16 @@ export default function RootLayout({
             {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
             <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
             {/* Mesure d'audience maison, anonyme et sans cookie. N'affiche rien.
-                Elle a remplacé Google Analytics et son bandeau le 2026-08-31. */}
-            <MesureAudience />
+                Elle a remplacé Google Analytics et son bandeau le 2026-08-31.
+                ⛔ La frontière Suspense est OBLIGATOIRE : le composant lit
+                `useSearchParams` (la page Bible n'a d'adresse que ses paramètres),
+                et sans elle toutes les pages prérendues du site basculeraient en
+                rendu client. Elle n'enveloppe qu'un composant qui rend `null`,
+                donc elle ne peut pas laisser de charge hors flux, à la différence
+                de celle qui avait dupliqué un chapitre entier le 2026-08-24. */}
+            <Suspense fallback={null}>
+              <MesureAudience />
+            </Suspense>
           </ProvisionCompte>
         </ProvisionAffichageAdmin>
       </body>
