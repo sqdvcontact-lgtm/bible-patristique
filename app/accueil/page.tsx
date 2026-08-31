@@ -142,11 +142,18 @@ export default async function AccueilPage() {
           max-width: var(--accueil-mesure);
           margin: 24px auto 0;
         }
+        /* ⛔ L'ombre est POSÉE, non flottante (décision de l'auteur, 2026-08-31 : « ne pas
+           fracasser l'œil dès l'ouverture du site »). Les jetons d'élévation nomment ce
+           qu'ils font : `--cs-ombre-flottante` est celle d'un objet qui QUITTE la page —
+           4 px de décalage, 16 de flou, 0,16 d'encre —, et trois cartes qui décollent
+           ensemble sont la première chose qu'on voit en arrivant. Une carte au repos
+           prend `--cs-ombre-posee` : 1 px, 4 de flou, 0,06. Elle se pose sur le papier
+           au lieu de planer dessus, et le frontispice reprend le premier rang. */
         .accueil-carte {
           background: var(--cs-fond-clair);
           border: 1px solid var(--cs-bord-clair);
           border-radius: 12px;
-          box-shadow: var(--cs-ombre-flottante);
+          box-shadow: var(--cs-ombre-posee);
           padding: 18px 24px 18px;
           box-sizing: border-box;
         }
@@ -596,7 +603,12 @@ const boutonSoutenir: React.CSSProperties = {
 function VoletUnMot() {
   return (
     <div className="accueil-carte accueil-carte--mot" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
+      {/* ⚠️ `--cs-encre` et non `--cs-encre-fonce` : le vert le plus profond appartient au
+          FRONTISPICE, qui doit rester le premier rang de la page. Un cran en dessous, le
+          titre d'une carte reste un titre (contraste mesuré 10,95 sur son papier, contre
+          13,45) et cesse de disputer le nom du site. Même cran sur « Ajouts récents » et
+          sur les chiffres du bandeau. */}
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
       {/* Le mot garde sa MESURE quand le volet passe à une colonne. En dessous de
           900 px les deux volets s'empilent et prennent toute la page : le texte,
           qui est CENTRÉ, y courait alors sur sept cents pixels, et l'œil perdait le
@@ -611,9 +623,14 @@ function VoletUnMot() {
           la signature restait accrochée au texte et le bouton flottait seul, quatre-vingts
           pixels plus bas. Le blanc se met maintenant là où une carte en veut, entre le
           corps et son pied. « Merci. » se tient juste au-dessus de SQDV. */}
+      {/* ⚠️ « Merci. » et « SQDV » se RESSERRENT : ce sont deux lignes d'une même
+          signature, non deux paragraphes. Elles héritaient de l'interligne du corps, et
+          les deux pixels de marge s'ajoutaient encore — 19 px de ligne de base à ligne de
+          base, mesurés. À 1,25, elles en font 16,3 et se lisent d'un bloc. ⛔ Le blanc de
+          16 px qui les sépare du bouton ne bouge pas : c'est lui qui fait le pied. */}
       <div style={{ marginTop: "auto", paddingTop: "20px" }}>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte)", margin: "0 0 2px" }}>Merci.</p>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-or)", letterSpacing: "0.14em", margin: "0 0 16px" }}>SQDV</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", lineHeight: 1.25, color: "var(--cs-texte)", margin: 0 }}>Merci.</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", lineHeight: 1.25, color: "var(--cs-or)", letterSpacing: "0.14em", margin: "0 0 16px" }}>SQDV</p>
         <Link href="/soutenir" style={boutonSoutenir}>Soutenir le projet</Link>
       </div>
     </div>
@@ -629,7 +646,7 @@ function formaterDateAjout(iso: string | null): string {
 function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   return (
     <div className="accueil-carte" style={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
       {recentes.length === 0 ? (
         <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
       ) : (
@@ -653,7 +670,7 @@ function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
             <li key={o.id_oeuvre} className="ajout-item" style={{ display: "grid", gridTemplateColumns: "subgrid", gridColumn: "1 / -1", alignItems: "baseline" }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
               <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
-                <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "var(--cs-texte-fort)", lineHeight: 1.32 }}>
+                <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "var(--cs-texte)", lineHeight: 1.32 }}>
                   {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
                 </span>
                 {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
@@ -693,7 +710,7 @@ function BandeauStats({ nbTextes, nbAuteurs, nbTraductions, pourcentVerifie, nbC
         <div key={i} className="accueil-stat">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
             <span style={{ color: "var(--cs-vert)", display: "inline-flex" }}>{s.icon}</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre-fonce)", lineHeight: 1 }}>{s.valeur}</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre)", lineHeight: 1 }}>{s.valeur}</span>
           </div>
           <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "var(--cs-texte-gris)", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
         </div>
