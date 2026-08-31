@@ -144,11 +144,17 @@ export default async function AccueilPage() {
         }
         /* ⛔ L'ombre est POSÉE, non flottante (décision de l'auteur, 2026-08-31 : « ne pas
            fracasser l'œil dès l'ouverture du site »). Les jetons d'élévation nomment ce
-           qu'ils font : `--cs-ombre-flottante` est celle d'un objet qui QUITTE la page —
+           qu'ils font : « --cs-ombre-flottante » est celle d'un objet qui QUITTE la page —
            4 px de décalage, 16 de flou, 0,16 d'encre —, et trois cartes qui décollent
            ensemble sont la première chose qu'on voit en arrivant. Une carte au repos
-           prend `--cs-ombre-posee` : 1 px, 4 de flou, 0,06. Elle se pose sur le papier
-           au lieu de planer dessus, et le frontispice reprend le premier rang. */
+           prend « --cs-ombre-posee » : 1 px, 4 de flou, 0,06. Elle se pose sur le papier
+           au lieu de planer dessus, et le frontispice reprend le premier rang.
+           ⛔ Aucun ACCENT GRAVE dans ce commentaire : il vit à l'intérieur du gabarit de
+           chaîne du bloc de style, et une paire d'accents graves le referme — la page
+           tombe alors à la compilation. Le dépôt le consigne, et je l'ai payé ici même
+           le 2026-08-31 : le déploiement a échoué, le site restant sur la version
+           précédente sans que rien ne le signale. On nomme une propriété entre
+           guillemets français. */
         .accueil-carte {
           background: var(--cs-fond-clair);
           border: 1px solid var(--cs-bord-clair);
