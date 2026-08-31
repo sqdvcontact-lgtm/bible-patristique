@@ -3,7 +3,6 @@ import AccueilCards from "../components/AccueilCards";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
-import { codesTraductionsLecture } from "@/app/lib/traductions";
 
 export const metadata = {
   title: { absolute: "Corpus Scriptura" },
@@ -13,9 +12,20 @@ export const metadata = {
   description: "La Bible à la lumière des Pères, les Pères à la lumière de la Bible.",
 };
 
+// ⛔ PLUS DE BANDEAU DE CHIFFRES (décision de l'auteur, 2026-08-31). Il annonçait
+// « 48 · 5 · 536 · 98 % · 1 », c'est-à-dire les cinq chiffres les plus faibles que
+// la base sache produire, et deux d'entre eux ne disaient pas ce qu'ils avaient
+// l'air de dire : sur les 536 auteurs répertoriés, 15 ont une œuvre publiée et 43
+// une notice biographique ; les 98 % de textes vérifiés étaient annoncés par un
+// seul contributeur, à côté d'un colophon qui dit que l'IA exige une vérification
+// humaine constante. Une page d'accueil se passe mieux d'un chiffre que d'un
+// chiffre qui promet plus qu'il ne tient.
+//
+// ⚠️ La fonction `statistiques_accueil()` demeure en base et sert encore
+// `/api/chiffres`, donc la page d'ouverture `/chantier` : ne pas la supprimer.
+
 // « Ajouts récents » : jusqu'à NB_AJOUTS œuvres, dans l'ordre où elles ont été mises en
-// ligne. La date affichée est celle de la base, comme les chiffres du bandeau depuis
-// qu'ils ont cessé d'être des constantes.
+// ligne. La date affichée est celle de la base.
 //
 // ⚠️ Plusieurs œuvres importées d'un même lot partagent leur date, et la liste répète
 // alors le même jour : c'est la vérité de l'ajout, et un chantier mené par lots ressemble
@@ -28,40 +38,22 @@ const NB_AJOUTS_SEUIL = 5;
 
 type OeuvreRecente = { id_oeuvre: string; titre: string; date_mise_en_ligne: string | null; auteur: string };
 
-// Chiffres du bandeau, tels que la base les rend. `pourcent_verifie` peut être nul
-// quand aucune œuvre n'a encore été contrôlée : la tuile se retire alors d'elle-même,
-// plutôt que d'annoncer « 0 % ».
-type StatistiquesAccueil = {
-  textes: number;
-  auteurs: number;
-  pourcent_verifie: number | null;
-  contributeurs: number;
-};
-
 export default async function AccueilPage() {
   const supabase = await creerSupabaseServeur();
   // Une œuvre est publiée tant que sa `note` n'est pas le marqueur de dépublication
   // (null compris). On filtre, trie et limite EN BASE — plutôt que de rapatrier toute
   // la table pour n'afficher que quelques ajouts récents.
+  //
+  // ⚠️ C'est désormais la SEULE lecture de la page : le bandeau en coûtait deux de
+  // plus, dont un appel de fonction qui agrège tout le corpus.
   const filtrePubliee = `note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`;
-  const [recentesRes, statsRes, codesTraductions] = await Promise.all([
-    supabase
-      .from("oeuvres")
-      .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
-      .or(filtrePubliee)
-      .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
-      .order("id_oeuvre", { ascending: false })
-      .limit(NB_AJOUTS),
-    // Compteurs du bandeau, calculés en base et IDENTIQUES pour tout visiteur. Les
-    // compter ici reviendrait à les soumettre aux droits du lecteur : l'administrateur
-    // voyait 52 œuvres là où le visiteur en voyait 35. Une annonce publique doit dire
-    // la même chose à tous.
-    supabase.rpc("statistiques_accueil").maybeSingle<StatistiquesAccueil>(),
-    // « Traductions disponibles » : on ne compte QUE les traductions réellement lisibles
-    // (enregistrées ET matérialisées dans `versets_lecture`), pas celles encore en cours
-    // de transcription. Même source de vérité que l'apparat biblique.
-    codesTraductionsLecture(supabase),
-  ]);
+  const recentesRes = await supabase
+    .from("oeuvres")
+    .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(nom)")
+    .or(filtrePubliee)
+    .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
+    .order("id_oeuvre", { ascending: false })
+    .limit(NB_AJOUTS);
 
   // ⛔ L'ordre est celui de la base — date décroissante, puis identifiant — et il ne se
   // rejoue pas ici : un tri par la seule date perdrait le départage des œuvres entrées le
@@ -72,12 +64,6 @@ export default async function AccueilPage() {
     date_mise_en_ligne: (o.date_mise_en_ligne as string | null) ?? null,
     auteur: Array.isArray(o.auteurs) ? ((o.auteurs[0] as { nom?: string })?.nom ?? "") : (((o.auteurs as { nom?: string } | null)?.nom) ?? ""),
   }));
-  const stats = statsRes.data;
-  const nbTextes = stats?.textes ?? 0;
-  const nbAuteurs = stats?.auteurs ?? 0;
-  const pourcentVerifie = stats?.pourcent_verifie ?? null;
-  const nbContributeurs = stats?.contributeurs ?? 0;
-  const nbTraductions = codesTraductions.length;
 
   return (
     <div className="accueil">
@@ -216,36 +202,6 @@ export default async function AccueilPage() {
         .accueil-mot-merci { margin: 38px 0 2px; }
         .accueil-mot-sqdv { margin: 0 0 24px; }
 
-        /* ⚠️ Le bandeau reste une CARTE, et c'est voulu : ce n'est pas de la prose mais
-           une barre de chiffres, et son cadre est ce qui la tient d'un seul tenant. Le
-           mot libéré, elle devient le seul objet borné de la bande, ce qui la désigne
-           au lieu de la noyer. Le blanc qui l'en sépare s'ouvre d'autant. */
-        .accueil-carte {
-          background: var(--cs-fond-clair);
-          border: 1px solid var(--cs-bord-clair);
-          border-radius: 12px;
-          box-shadow: var(--cs-ombre-flottante);
-          padding: 18px 24px 18px;
-          box-sizing: border-box;
-        }
-        .accueil-stats {
-          display: flex;
-          align-items: stretch;
-          width: 100%;
-          max-width: var(--accueil-mesure);
-          margin: clamp(38px, 5.5vh, 60px) auto 0;
-          padding: 18px 14px;
-        }
-        .accueil-stat {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 4px 8px;
-        }
-        .accueil-stat + .accueil-stat { border-left: 1px solid var(--cs-bord-clair); }
-
         /* Ajouts récents : au survol, « Lire » remplace TOUTE la ligne auteur-titre
            (la date, elle, reste). Fondu croisé : le titre s'efface, « Lire » — en
            lettres espacées, sobre et large — apparaît à sa place. */
@@ -331,12 +287,6 @@ export default async function AccueilPage() {
           .accueil-mot { padding: 0 8px; }
           .accueil-mot h2 { margin-bottom: 20px; }
           .accueil-mot-merci { margin-top: 30px; }
-          .accueil-stats { flex-wrap: wrap; }
-          /* Deux tuiles par rang, la cinquième prenant le rang entier : les filets
-             passent de la verticale à l'horizontale, sinon les tuiles flottent. */
-          .accueil-stat { flex: 1 0 44%; padding: 13px 8px; }
-          .accueil-stat + .accueil-stat { border-left: none; }
-          .accueil-stat:nth-child(n + 3) { border-top: 1px solid var(--cs-bord-clair); }
           .colophon-pyr-desktop { display: none; }
           .colophon-pyr-mobile { display: block; }
           .colophon-pyr-mobile p { margin: 0 auto; max-width: 90vw; }
@@ -473,16 +423,12 @@ export default async function AccueilPage() {
         </div>
       </main>
 
-      {/* ══ LA SUITE ═════════════════════════════════════════════════════════ */}
+      {/* ══ LA SUITE ═════════════════════════════════════════════════════════
+          Le mot y est seul depuis le retrait du bandeau. La bande demeure : c'est
+          le changement de papier qui dit qu'on a franchi la porte, et une bande
+          d'un seul bloc reste une bande. */}
       <div className="accueil-suite">
         <VoletUnMot />
-        <BandeauStats
-          nbTextes={nbTextes}
-          nbAuteurs={nbAuteurs}
-          nbTraductions={nbTraductions}
-          pourcentVerifie={pourcentVerifie}
-          nbContributeurs={nbContributeurs}
-        />
       </div>
 
       {/* ── Le projet — style colophon ────────────────────────────────────── */}
@@ -732,61 +678,4 @@ function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
       ))}
     </ul>
   )
-}
-
-function BandeauStats({ nbTextes, nbAuteurs, nbTraductions, pourcentVerifie, nbContributeurs }: {
-  nbTextes: number;
-  nbAuteurs: number;
-  nbTraductions: number;
-  pourcentVerifie: number | null;
-  nbContributeurs: number;
-}) {
-  // Une tuile ne paraît que si son chiffre a un sens : mieux vaut quatre tuiles que
-  // cinq dont une annonce « 0 % ». Les filets étant posés par la règle
-  // `.accueil-stat + .accueil-stat`, la barre se recompose quel qu’en soit le nombre.
-  const stats = [
-    { icon: <IconeLivre />, valeur: nbTextes.toLocaleString("fr-FR"), label: "Textes disponibles" },
-    { icon: <IconeTraductions />, valeur: nbTraductions.toLocaleString("fr-FR"), label: nbTraductions > 1 ? "Traductions bibliques" : "Traduction biblique" },
-    { icon: <IconeAuteurs />, valeur: nbAuteurs.toLocaleString("fr-FR"), label: "Auteurs répertoriés" },
-    pourcentVerifie === null ? null : { icon: <IconeCheck />, valeur: `${pourcentVerifie} %`, label: "Textes vérifiés" },
-    nbContributeurs < 1 ? null : { icon: <IconeContrib />, valeur: nbContributeurs.toLocaleString("fr-FR"), label: nbContributeurs > 1 ? "Contributeurs" : "Contributeur" },
-  ].filter((s) => s !== null)
-  return (
-    <div className="accueil-carte accueil-stats">
-      {stats.map((s, i) => (
-        <div key={i} className="accueil-stat">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-            <span style={{ color: "var(--cs-vert)", display: "inline-flex" }}>{s.icon}</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre-fonce)", lineHeight: 1 }}>{s.valeur}</span>
-          </div>
-          {/* ⛔ `--cs-texte-gris` rendait 3,57 : sous le seuil, et c'est lui qui NOMME le
-              chiffre. `--cs-texte-second` rend 5,42 et tient le même rang. */}
-          <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "var(--cs-texte-second)", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* Icônes des statistiques : contour fin, teinte verte (currentColor), plus grandes et
-   choisies au plus près de ce qu'elles désignent. */
-// Textes disponibles → un livre ouvert.
-function IconeLivre() {
-  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 6.2C10.1 4.9 7.7 4.3 5 4.3c-.7 0-1.2.5-1.2 1.2v11.8c0 .7.5 1.1 1.2 1.1 2.7 0 5.1.6 7 2 1.9-1.4 4.3-2 7-2 .7 0 1.2-.4 1.2-1.1V5.5c0-.7-.5-1.2-1.2-1.2-2.7 0-5.1.6-7 1.9Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M12 6.2v12.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
-}
-// Traductions bibliques → un globe (équateur + méridien), pour les langues et les versions.
-function IconeTraductions() {
-  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.3" stroke="currentColor" strokeWidth="1.4"/><path d="M3.7 12h16.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M12 3.7c2.25 2.3 3.5 5.2 3.5 8.3s-1.25 6-3.5 8.3c-2.25-2.3-3.5-5.2-3.5-8.3s1.25-6 3.5-8.3Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>)
-}
-// Auteurs répertoriés → une plume (calame), avec sa hampe et ses barbes.
-function IconeAuteurs() {
-  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M16 8 2 22" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M17.5 15H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
-}
-// Textes vérifiés → un écu avec une coche (fiabilité).
-function IconeCheck() {
-  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5 5.4 6v5.1c0 4 2.7 7.1 6.6 8.4 3.9-1.3 6.6-4.4 6.6-8.4V6L12 3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="m9 11.6 2 2 4.1-4.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>)
-}
-// Contributeur → une personne.
-function IconeContrib() {
-  return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.4"/><path d="M5.5 19.2c.6-3.5 3.1-5.4 6.5-5.4s5.9 1.9 6.5 5.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
 }
