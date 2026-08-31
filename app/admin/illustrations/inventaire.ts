@@ -34,7 +34,7 @@ export const FONCTIONS = {
   },
   'carte': {
     titre: 'Illustrer une carte',
-    propos: 'Les trois portes de l’accueil. Elles se lisent ensemble, à taille égale, dans la même rangée : leur désaccord se verrait immédiatement.',
+    propos: 'Les deux portes de l’accueil. Elles se lisent ensemble, à taille égale, dans la même rangée : leur désaccord se verrait immédiatement. Elles étaient trois jusqu’au 31 août 2026, la Communauté ayant été retirée de la page.',
   },
   'bouton': {
     titre: 'Marquer un bouton',
@@ -270,7 +270,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Livre ouvert',
     fonction: 'carte',
     emploi: 'Carte « Bible » de l’accueil.',
-    lieu: { href: '/accueil#cartes', label: 'Accueil, les trois cartes', repere: 'Première des trois cartes, sous le frontispice.' },
+    lieu: { href: '/accueil#cartes', label: 'Accueil, les deux cartes', repere: 'À gauche, sous le frontispice.' },
     source: 'app/components/AccueilCards.tsx',
     traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
@@ -279,16 +279,7 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Buste de Père',
     fonction: 'carte',
     emploi: 'Carte « Patristique » de l’accueil.',
-    lieu: { href: '/accueil#cartes', label: 'Accueil, les trois cartes', repere: 'Deuxième des trois cartes, sous le frontispice.' },
-    source: 'app/components/AccueilCards.tsx',
-    traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
-  },
-  {
-    chemin: '/icons/home-publications-writing.png',
-    nom: 'Main qui écrit',
-    fonction: 'carte',
-    emploi: 'Carte « Publications » de l’accueil.',
-    lieu: { href: '/accueil#cartes', label: 'Accueil, les trois cartes', repere: 'Troisième des trois cartes, sous le frontispice.' },
+    lieu: { href: '/accueil#cartes', label: 'Accueil, les deux cartes', repere: 'À droite, sous le frontispice.' },
     source: 'app/components/AccueilCards.tsx',
     traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
@@ -422,6 +413,12 @@ export const ILLUSTRATIONS: Illustration[] = [
   },
 
   // ── En réserve ─────────────────────────────────────────────────────────────
+  {
+    chemin: '/icons/home-publications-writing.png',
+    nom: 'Main qui écrit',
+    fonction: 'reserve',
+    emploi: 'Icône de la carte « Communauté » de l’accueil jusqu’au 31 août 2026 : la troisième porte a été retirée de la page (décision de l’auteur), et la Communauté ne s’atteint plus que par la barre de navigation. Aucune page ne l’appelle. La planche reste au dépôt, et retrouverait sa place le jour où une porte y reviendrait.',
+  },
   {
     chemin: '/ornements/fleuron-fleur-de-lys.png',
     nom: 'Fleuron — fleur de lys',

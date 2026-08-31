@@ -29,7 +29,6 @@
  * se transpose.
  */
 export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
-  'accueil/page.tsx': ['#a99a78', '#b08f48', '#b0a088', 'rgba(160,140,88,0.09)', 'rgba(160,140,88,0.5)', 'rgba(176,143,72,0.15)'],
   'admin/AdminClient.tsx': ['#6a8074', '#a2564a'],
   'admin/controleQualite.ts': ['#8a541d', '#c7832f'],
   // ⛔ Ces cinq valeurs NE PEUVENT PAS être des jetons, et c'est le principe même de
@@ -56,7 +55,13 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'bibliotheque/BibliothequeClient.tsx': ['#3d5a6b', '#4a4030', '#4a6070', '#7a6040', '#7a6a48', '#7a6a50', '#7a8a6a', '#8a7a5a', '#a2564a', '#b0442a', '#b07d1e', '#b87a30', '#b88a45', '#b8a888', '#c09050', '#cfe0d5', 'rgba(139,107,60,0.05)', 'rgba(139,107,60,0.07)', 'rgba(139,107,60,0.08)', 'rgba(139,107,60,0.22)', 'rgba(30,26,20,0.42)', 'rgba(30,26,20,0.55)', 'rgba(61,90,107,0.07)', 'rgba(61,90,107,0.22)'],
   'bienvenue/page.tsx': ['#7a7068'],
   'chantier/page.tsx': ['#bca877', 'rgba(180,50,40,0.06)', 'rgba(180,50,40,0.18)'],
-  'components/AccueilCards.tsx': ['#1e2e24', '#2a2520', '#2a3d30', '#3a3125', '#3a3530', '#4a3d2d', '#4a412f', '#52472c', '#5b5140', '#5f5138', '#736750', '#fff', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
+  // Les deux cartons de l'accueil sont une GAMME DESSINÉE, non des teintes
+  // d'interface : leur contraste est arrêté à la main, thème par thème, et un jeton
+  // s'y retournerait (charte, « Encre contre aplat »). Ils restent donc au registre,
+  // avec leur raison. ⚠️ La liste a DIMINUÉ le 2026-08-31 : trois teintes sont parties
+  // avec la carte « Communauté », et quatre autres ont été remplacées quand le bronze
+  // décoloré de la Patristique a cédé la place au maroquin rouge.
+  'components/AccueilCards.tsx': ['#1e2e24', '#2a3d30', '#3a3125', '#3e1a17', '#4a3d2d', '#4e2823', '#5a2a26', '#6a3a31', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
   'components/BibleLayout.tsx': ['#b0a088', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
   'components/EtoileFavori.tsx': ['#8a7a5e', '#a07028', '#c8933a'],

@@ -6,9 +6,14 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 
+// ⛔ PLUS DE TROISIÈME CARTE (décision de l'auteur, 2026-08-31). La Communauté est
+// retirée de l'accueil : les portes de la page sont la Bible et les Pères, et rien
+// d'autre. Elle reste dans la barre de navigation, où elle est atteignable de
+// partout. ⚠️ `cs_derniere_publication` continue d'être ÉCRIT par la lecture d'un
+// essai (`app/essais/[id]/EssaiClient.tsx`) ; plus personne ne le lit ici. On ne
+// touche pas à l'écriture : le jour où une porte y revient, la reprise est là.
 type DernierBible   = { livre: string; chapitre: number; trad: string; nomLivre: string }
 type DerniereOeuvre = { id: string; titre: string; auteur: string }
-type DernierePublication = { id: number; titre: string; auteur?: string | null }
 
 function abregerTexte(texte?: string, max = 30) {
   const propre = (texte ?? '').trim()
@@ -16,53 +21,16 @@ function abregerTexte(texte?: string, max = 30) {
   return `${propre.slice(0, Math.max(0, max - 3)).trimEnd()}...`
 }
 
+// ⚠️ Les deux icônes sont AU-DESSUS DU PLI : elles portent `priority`, non le
+// `loading="lazy"` que `next/image` pose par défaut. Les portes d'entrée du
+// site attendaient la mise en page pour se charger, et paraissaient l'une après
+// l'autre dans un carton vide.
 function IconBible() {
-  return <Image className="ac-icon-img ac-icon-bible" src="/icons/home-bible-book.png" width={1201} height={1310} sizes="160px" alt="" aria-hidden="true" />;
-}
-
-function IconPere() {
-  return (
-    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-      {/* Robe ample */}
-      <path d="M15 24Q7 27 6 38h30Q35 27 27 24" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.80)" strokeWidth="1.35" strokeLinejoin="round"/>
-      {/* Barbe */}
-      <path d="M16 14Q13.5 19 14.5 23Q17.5 27.5 21 27.5Q24.5 27.5 27.5 23Q28.5 19 26 14" fill="rgba(255,255,255,0.11)" stroke="rgba(255,255,255,0.78)" strokeWidth="1.35" strokeLinejoin="round"/>
-      {/* Tête */}
-      <circle cx="21" cy="10" r="5" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.85)" strokeWidth="1.35"/>
-      {/* Détails barbe */}
-      <path d="M18.5 18.5Q19.5 23.5 21 25.5M23.5 18.5Q22.5 23.5 21 25.5" stroke="rgba(255,255,255,0.36)" strokeWidth="0.9" strokeLinecap="round"/>
-      {/* Pli de la robe */}
-      <path d="M11.5 31Q21 28.5 30.5 31" stroke="rgba(255,255,255,0.38)" strokeWidth="1" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function IconCrayon() {
-  return (
-    <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-      <path d="M28.7 6.8 35.2 13 16.4 31.8 8.8 34l2.3-7.5L28.7 6.8Z" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.8)" strokeWidth="1.35" strokeLinejoin="round"/>
-      <path d="m25.8 9.9 6.3 6.3M11.1 26.5l5.2 5.2" stroke="#fff" strokeWidth="1.25" strokeLinecap="round"/>
-      <path d="M8.8 34 6.7 35.2" stroke="rgba(255,255,255,0.7)" strokeWidth="1.2" strokeLinecap="round"/>
-      <path d="M18.2 35.2h15.5" stroke="rgba(255,255,255,0.45)" strokeWidth="1.1" strokeLinecap="round"/>
-    </svg>
-  );
+  return <Image className="ac-icon-img ac-icon-bible" src="/icons/home-bible-book.png" width={1201} height={1310} sizes="160px" priority alt="" aria-hidden="true" />;
 }
 
 function IconPereImage() {
-  return <Image className="ac-icon-img ac-icon-pere" src="/icons/home-patristique-buste.png" width={1145} height={1374} sizes="160px" alt="" aria-hidden="true" />;
-}
-
-function IconPublicationsImage() {
-  return <Image className="ac-icon-img ac-icon-publications" src="/icons/home-publications-writing.png" width={1254} height={1254} sizes="160px" alt="" aria-hidden="true" />;
-}
-
-function IconDon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ opacity: 0.7 }}>
-      <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z"
-        stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinejoin="round"/>
-    </svg>
-  );
+  return <Image className="ac-icon-img ac-icon-pere" src="/icons/home-patristique-buste.png" width={1145} height={1374} sizes="160px" priority alt="" aria-hidden="true" />;
 }
 
 function CarteAccueil({
@@ -70,6 +38,7 @@ function CarteAccueil({
   className,
   icon,
   titre,
+  sousTitre,
   reprendreHref,
   reprendreLabel,
 }: {
@@ -77,6 +46,12 @@ function CarteAccueil({
   className: string
   icon: React.ReactNode
   titre: string
+  /** Ce que l'on va FAIRE derrière la porte, en toutes lettres. « Bible » et
+   *  « Patristique » sont des parapluies : ils nomment un rayon, non un geste, et
+   *  un libellé qui ne promet rien ne se clique pas (odeur d'information faible —
+   *  Pirolli et Card ; NN/g, « Reveal content through examples »). La ligne est
+   *  facultative : une carte qui n'en porte pas garde son groupe centré. */
+  sousTitre?: string
   reprendreHref?: string
   reprendreLabel?: string
 }) {
@@ -125,7 +100,14 @@ function CarteAccueil({
         aria-expanded={choixAuTap ? ouvert : undefined}
         onClick={e => { if (choixAuTap && !ouvert) { e.preventDefault(); setOuvert(true) } }}>
         {icon}
-        <span className="ac-title">{titre}</span>
+        {/* Titre et sous-titre voyagent DANS UNE MÊME BOÎTE : sur téléphone la carte
+            devient une bande et le groupe passe en ligne, l'icône à gauche ; sans
+            cette enveloppe, la ligne d'annonce se rangerait à côté du titre au lieu
+            de se ranger dessous. */}
+        <span className="ac-texte">
+          <span className="ac-title">{titre}</span>
+          {sousTitre ? <span className="ac-sous-titre">{sousTitre}</span> : null}
+        </span>
       </Link>
       <div className="ac-hover-panel">
         {reprendreHref ? (
@@ -150,16 +132,13 @@ function CarteAccueil({
 export default function AccueilCards() {
   const [bible, setBible]   = useState<DernierBible | null>(null)
   const [oeuvre, setOeuvre] = useState<DerniereOeuvre | null>(null)
-  const [publication, setPublication] = useState<DernierePublication | null>(null)
 
   useEffect(() => {
     try {
       const b = localStorage.getItem('cs_dernier_bible')
       const o = localStorage.getItem('cs_derniere_oeuvre')
-      const p = localStorage.getItem('cs_derniere_publication')
       if (b) setBible(JSON.parse(b))
       if (o) setOeuvre(JSON.parse(o))
-      if (p) setPublication(JSON.parse(p))
     } catch {}
   }, [])
 
@@ -171,6 +150,7 @@ export default function AccueilCards() {
           className="ac-bible"
           icon={<IconBible />}
           titre="Bible"
+          sousTitre="Lire et comparer les traductions"
           reprendreHref={bible ? `/?livre=${bible.livre}&chapitre=${bible.chapitre}&trad=${bible.trad}` : undefined}
           reprendreLabel={bible ? `${bible.nomLivre} ${bible.chapitre}` : undefined}
         />
@@ -180,17 +160,9 @@ export default function AccueilCards() {
           className="ac-patristique"
           icon={<IconPereImage />}
           titre="Patristique"
+          sousTitre="Lire les Pères de l’Église"
           reprendreHref={oeuvre ? `/oeuvre/${oeuvre.id}` : undefined}
           reprendreLabel={oeuvre ? oeuvre.titre : undefined}
-        />
-
-        <CarteAccueil
-          href="/essais"
-          className="ac-publications"
-          icon={<IconPublicationsImage />}
-          titre="Communauté"
-          reprendreHref={publication ? `/essais/${publication.id}` : undefined}
-          reprendreLabel={publication ? publication.titre : undefined}
         />
       </div>
 
@@ -204,7 +176,12 @@ export default function AccueilCards() {
         }
         .ac-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          /* DEUX portes depuis le retrait de la Communauté. ⛔ La mesure ne se
+             resserre PAS pour autant : elle est partagée avec les volets et le
+             bandeau, et la reprendre ici redessinerait le sablier que la passe du
+             27 août avait supprimé. Les cartes s'élargissent donc, et c'est leur
+             HAUTEUR qui les empêche de devenir des bandes (voir --ac-hauteur). */
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 1rem;
           width: 100%;
           /* La mesure vient de la page d'accueil, qui donne la même à ses volets et
@@ -222,7 +199,10 @@ export default function AccueilCards() {
           gap: 0.8125rem;
           border-radius: 8px;
           text-decoration: none;
-          min-height: 8.875rem;
+          /* La hauteur vient de la PAGE, qui sait combien d'air elle a devant elle :
+             une porte seule sur son écran ne se compose pas comme une porte suivie
+             d'autre chose. La valeur d'avant reste en repli. */
+          min-height: var(--ac-hauteur, 8.875rem);
           padding: 0;
           border: 1px solid rgba(255,255,255,0.10);
           box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
@@ -252,25 +232,24 @@ export default function AccueilCards() {
         .ac-card-main > svg,
         .ac-card-main > img,
         .ac-card-main > span { position: relative; z-index: 1; }
+        /* ⛔ Les icônes partagent une BOÎTE DE MÊME HAUTEUR ; seule leur
+           largeur diffère, pour que chacune garde sa taille optique. Elles avaient
+           chacune la sienne (4,375 et 4,625), et comme le groupe icône-titre est
+           centré dans la carte, un carton plus haut poussait son titre plus haut :
+           les titres se posaient sur des lignes différentes, ce qui, dans une
+           rangée de cartes, est la seule chose que l'œil voie.
+           ⚠️ Le commentaire vit DANS un gabarit de chaîne : nommer la propriété
+           entre guillemets français, jamais entre accents graves, qui la fermeraient.
+           La règle « object-fit: contain » garantit qu'aucune n'est déformée. */
         .ac-icon-img {
           width: 4.75rem;
-          height: 4.75rem;
+          height: 4.625rem;
           object-fit: contain;
           opacity: 0.86;
           mix-blend-mode: screen;
         }
-        .ac-icon-bible {
-          width: 5.375rem;
-          height: 4.375rem;
-        }
-        .ac-icon-pere {
-          width: 4.625rem;
-          height: 4.625rem;
-        }
-        .ac-icon-publications {
-          width: 5.75rem;
-          height: 4.625rem;
-        }
+        .ac-icon-bible { width: 5.375rem; }
+        .ac-icon-pere { width: 4.625rem; }
         .ac-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 14px 36px rgba(20,30,16,0.34), inset 0 1px 0 rgba(255,255,255,0.12);
@@ -280,37 +259,62 @@ export default function AccueilCards() {
           opacity: 0.12;
           transform: scale(0.99);
         }
-        /* Trois tons terreux SOBRES et coordonnés (assourdis) : vert sombre,
-           bronze doux, olive — distincts mais sans éclat.
+        /* DEUX tons terreux SOBRES et coordonnés : vert sombre pour l'Écriture,
+           bronze doux pour les Pères. Distincts, sans éclat.
 
-           ⛔ Ces trois cartons sont des APLATS, et leurs valeurs sont LITTÉRALES,
-           comme le jeu de couvertures des publications et pour la même raison : c'est
-           une gamme dessinée, dont le contraste est arrêté, non une teinte d'interface
+           ⛔ Ces cartons sont des APLATS, et leurs valeurs sont LITTÉRALES, comme le
+           jeu de couvertures des publications et pour la même raison : c'est une
+           gamme dessinée, dont le contraste est arrêté, non une teinte d'interface
            qui se rabat sur un rôle. Ils portaient jusqu'ici des jetons d'ENCRE
-           (--cs-encre, --cs-texte, --cs-texte-fort), lesquels s'éclaircissent sur
-           un sol sombre : mesuré en Cuir, la carte « Publications » rendait un carton
-           presque blanc sous un texte crème, et les trois avaient inversé leurs valeurs.
+           (--cs-encre, --cs-texte), lesquels s'éclaircissent sur un sol sombre :
+           mesuré en Cuir, les cartons avaient inversé leurs valeurs.
 
-           Le Cuir reçoit donc ses propres cartons, un cran PLUS CLAIRS que le sol au lieu
-           d'être plus sombres que lui : sur un fond brun, un carton se détache en montant.
-           Blanc mesuré dessus : 6,7 à 10,9. */
+           Le Cuir reçoit donc les siens, un cran PLUS CLAIRS que le sol au lieu d'être
+           plus sombres que lui : sur un fond brun, un carton se détache en montant.
+           Blanc mesuré dessus : 6,6 et 5,2 pour l'annonce, davantage pour le titre.
+
+           ⛔ UNE COULEUR TIENT SA CHROMA DU HAUT EN BAS, ou ce n'est pas une couleur.
+           Le carton de la Patristique valait « #52472c → #3a3530 » : mesuré, sa chroma
+           tombait de 38 à 10 et sa teinte glissait de 43° à 30°, si bien que son tiers
+           inférieur était un GRIS NEUTRE. Il ne se salissait pas, il se décolorait — et
+           c'est ce que l'œil lisait comme un marron sale. La carte Bible, elle, va de
+           19 à 16 sans bouger de teinte, et c'est pourquoi elle paraissait une couleur.
+
+           Le maroquin rouge remplace le bronze (décision de l'auteur, 2026-08-31) : c'est
+           la paire d'une bibliothèque ancienne, maroquin vert et maroquin rouge, les deux
+           reliures d'un même ensemble. Chroma 52 → 39, teinte tenue. ⚠️ Il se transpose
+           au Cuir SANS traduction, ce qu'un pourpre n'aurait pas permis : la charte y
+           impose le monochrome, et une teinte froide y serait devenue un châtaigne, donc
+           deux idées à entretenir pour un seul carton.
+
+           Contrastes mesurés sur la teinte HAUTE, la plus claire des deux : titre 9,79
+           au Clair et 7,88 au Cuir, annonce 7,16 et 5,92. */
         .ac-bible {
           background: linear-gradient(160deg, #2a3d30 0%, #1e2e24 100%);
         }
         .ac-patristique {
-          background: linear-gradient(160deg, #52472c 0%, #3a3530 100%);
-        }
-        .ac-publications {
-          background: linear-gradient(160deg, #3a3530 0%, #2a2520 100%);
+          background: linear-gradient(160deg, #5a2a26 0%, #3e1a17 100%);
         }
         :root[data-theme="sombre"] .ac-bible {
           background: linear-gradient(160deg, #4a3d2d 0%, #3a3125 100%);
         }
         :root[data-theme="sombre"] .ac-patristique {
-          background: linear-gradient(160deg, #5f5138 0%, #4a412f 100%);
+          background: linear-gradient(160deg, #6a3a31 0%, #4e2823 100%);
         }
-        :root[data-theme="sombre"] .ac-publications {
-          background: linear-gradient(160deg, #736750 0%, #5b5140 100%);
+        /* ⚠️ La boîte de texte réserve DEUX lignes d'annonce, même quand une seule
+           est écrite. Les deux annonces n'ont pas la même longueur : « Lire les
+           Pères de l'Église » tient sur une ligne à une largeur où « Lire et comparer
+           les traductions » en prend deux, et le groupe centré remontait alors le
+           titre de la carte la plus bavarde. Hauteur fixe, titres alignés à toute
+           largeur. Le blanc en trop se range sous l'annonce, où il ne se voit pas. */
+        .ac-texte {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 5px;
+          min-width: 0;
+          min-height: 3.9rem;
         }
         .ac-title {
           font-family: var(--font-source-serif), Georgia, serif;
@@ -318,6 +322,24 @@ export default function AccueilCards() {
           font-weight: normal;
           color: rgba(255,255,255,0.90);
           letter-spacing: 0.01em;
+        }
+        /* La ligne qui dit le GESTE. Elle se compose comme la mention « Lire » du
+           volet des ajouts — sérif, italique, discrète — pour que les deux se
+           reconnaissent comme la même voix.
+           ⚠️ Le blanc à 0,74 et non 0,62 : mesuré sur le carton le plus clair
+           (« Communauté » au Cuir), 0,62 tombait sous 4,5:1 à ce corps. */
+        .ac-sous-titre {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.78125rem;
+          font-style: italic;
+          line-height: 1.3;
+          letter-spacing: 0.01em;
+          color: rgba(255,255,255,0.74);
+          text-align: center;
+          text-wrap: balance;
+          max-width: 100%;
+          padding: 0 12px;
+          box-sizing: border-box;
         }
         .ac-hover-panel {
           position: absolute;
@@ -415,18 +437,41 @@ export default function AccueilCards() {
              cartes prenaient à elles seules le premier écran d'un téléphone.
              ⚠️ 6,25rem n'est pas un chiffre rond : le volet de choix qui s'ouvre au
              tap partage la carte en deux, et deux cibles de 50 px sont le plancher
-             de ce qu'un doigt vise sans se tromper. */
-          .ac-card { min-height: 6.25rem; }
+             de ce qu'un doigt vise sans se tromper.
+             ⚠️ 7rem depuis que la bande porte DEUX lignes : à 6,25 la ligne
+             d'annonce venait toucher le bord bas du carton. */
+          .ac-card { min-height: 7rem; }
           /* ⛔ Le groupe n'est pas CENTRÉ dans la bande, il part du fer à gauche, et
              l'icône reçoit une boîte de largeur FIXE. Centré, chaque titre se plaçait
-             selon sa propre longueur : « Bible », « Patristique » et « Communauté »
-             commençaient à trois abscisses différentes, et les trois icônes aussi.
-             Dans une pile de trois bandes, l'œil ne voit que ce désalignement. Ici,
-             une colonne d'icônes et une colonne de titres. */
-          .ac-card-main { flex-direction: row; justify-content: flex-start; gap: 1.125rem; padding-left: 1.75rem; }
-          .ac-icon-img, .ac-icon-bible, .ac-icon-pere, .ac-icon-publications {
+             selon sa propre longueur : « Bible » et « Patristique » commençaient à
+             deux abscisses différentes, et les icônes aussi. Dans une pile de
+             bandes, l'œil ne voit que ce désalignement. Ici, une colonne d'icônes
+             et une colonne de titres. */
+          .ac-card-main { flex-direction: row; justify-content: flex-start; gap: 1.125rem; padding-left: 1.75rem; padding-right: 1.25rem; }
+          /* Le groupe de texte se range AU FER dans la bande, comme l'icône : la
+             colonne d'icônes et la colonne de titres tiennent leur alignement, et la
+             ligne d'annonce se pose sous son titre au lieu de se centrer sous lui. */
+          /* ⛔ La hauteur réservée tombe : en bande, les deux annonces tiennent
+             chacune sur une ligne et le blanc réservé ferait un trou sous le titre. */
+          .ac-texte { align-items: flex-start; text-align: left; gap: 3px; min-height: 0; }
+          .ac-sous-titre { text-align: left; padding: 0; }
+          .ac-icon-img, .ac-icon-bible, .ac-icon-pere {
             width: 3.5rem; height: 3.25rem;
           }
+        }
+
+        /* ── Mouvement réduit ────────────────────────────────────────────────
+           Le dessin repose sur des fondus et des glissés ; réglage système
+           « moins d'animations », on garde les ÉTATS et l'on retire le trajet.
+           ⛔ Ne jamais éteindre l'opacité elle-même : le volet de choix doit
+           continuer de paraître, sans quoi la carte devient inutilisable. */
+        @media (prefers-reduced-motion: reduce) {
+          .ac-card, .ac-card-main, .ac-hover-panel, .ac-hover-choice {
+            transition-duration: 0.01ms !important;
+          }
+          .ac-card:hover { transform: none; }
+          .ac-card:hover .ac-card-main,
+          .ac-card:focus-within .ac-card-main { transform: none; }
         }
 
         /* ── Écran tactile : on ÉTEINT le survol, on ne le laisse pas clignoter ──

@@ -7,25 +7,24 @@ import { codesTraductionsLecture } from "@/app/lib/traductions";
 
 export const metadata = {
   title: { absolute: "Corpus Scriptura" },
-  description: "Lectures bibliques et patristiques.",
+  // La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
+  // décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
+  // nul autre ne fait.
+  description: "La Bible à la lumière des Pères, les Pères à la lumière de la Bible.",
 };
 
-// Le bandeau de statistiques ne porte plus aucun chiffre écrit à la main. Les
-// « textes vérifiés » et les « contributeurs » étaient des constantes qu'il fallait
-// penser à corriger, et qui vieillissaient donc en silence. Tout vient désormais de
-// la base, par la fonction `statistiques_accueil()` : voir `BandeauStats` plus bas.
-
 // « Ajouts récents » : jusqu'à NB_AJOUTS œuvres, dans l'ordre où elles ont été mises en
-// ligne. Les six dernières lignes portaient jusqu'ici une date de juillet 2026 tirée d'un
-// hachage de l'identifiant de l'œuvre, pour donner à la liste l'allure d'un journal
-// d'ajouts échelonné. Le volet datait donc de juillet des œuvres parues à la mi-août, et
-// le trucage vieillissait à mesure que le mois s'éloignait. La date affichée est celle de
-// la base, comme les chiffres du bandeau depuis qu'ils ont cessé d'être des constantes.
+// ligne. La date affichée est celle de la base, comme les chiffres du bandeau depuis
+// qu'ils ont cessé d'être des constantes.
 //
 // ⚠️ Plusieurs œuvres importées d'un même lot partagent leur date, et la liste répète
 // alors le même jour : c'est la vérité de l'ajout, et un chantier mené par lots ressemble
 // à cela.
 const NB_AJOUTS = 9;
+
+// Le journal posé sous les portes n'en montre que cinq : il PROUVE que la bibliothèque
+// vit, il ne la catalogue pas. La liste entière se lit à la bibliothèque.
+const NB_AJOUTS_SEUIL = 5;
 
 type OeuvreRecente = { id_oeuvre: string; titre: string; date_mise_en_ligne: string | null; auteur: string };
 
@@ -55,14 +54,12 @@ export default async function AccueilPage() {
       .limit(NB_AJOUTS),
     // Compteurs du bandeau, calculés en base et IDENTIQUES pour tout visiteur. Les
     // compter ici reviendrait à les soumettre aux droits du lecteur : l'administrateur
-    // voyait 52 œuvres là où le visiteur en voyait 35, et le pourcentage de textes
-    // vérifiés ne se lisait pas du tout sans droits d'administration. Une annonce
-    // publique doit dire la même chose à tous.
+    // voyait 52 œuvres là où le visiteur en voyait 35. Une annonce publique doit dire
+    // la même chose à tous.
     supabase.rpc("statistiques_accueil").maybeSingle<StatistiquesAccueil>(),
     // « Traductions disponibles » : on ne compte QUE les traductions réellement lisibles
     // (enregistrées ET matérialisées dans `versets_lecture`), pas celles encore en cours
-    // de transcription (ex. la Bible française du XIIIe siècle). Même source de vérité que
-    // l'apparat biblique, pour que le chiffre affiché corresponde à ce qu'on peut lire.
+    // de transcription. Même source de vérité que l'apparat biblique.
     codesTraductionsLecture(supabase),
   ]);
 
@@ -87,102 +84,130 @@ export default async function AccueilPage() {
       <style>{`
         html { scroll-behavior: smooth; }
         /* ── UNE SEULE MESURE pour toute la colonne d'accueil ────────────────
-           Les trois cartes tenaient dans 42,5rem quand les volets et le bandeau
-           en prenaient 58 : sur un grand écran, le bloc le plus important de la
-           page — celui par où l'on entre — était le plus étroit, en retrait de
-           124 px de chaque côté sur les autres. La page dessinait un sablier.
-           Tout se mesure désormais à la même justification, dont hérite la grille
-           des cartes d'AccueilCards (qui garde son ancienne valeur en repli, au cas
-           où ce composant servirait ailleurs un jour). ⛔ Changer cette valeur les
-           déplace TOUS ensemble : c'est le but, ne pas la redonner bloc par bloc. */
+           Les cartes tenaient dans 42,5rem quand les volets et le bandeau en prenaient
+           58 : sur un grand écran, le bloc le plus important de la page — celui par où
+           l'on entre — était le plus étroit, en retrait de 124 px de chaque côté sur
+           les autres. La page dessinait un sablier. Tout se mesure désormais à la même
+           justification, dont hérite la grille des cartes d'AccueilCards (qui garde son
+           ancienne valeur en repli, au cas où ce composant servirait ailleurs un jour).
+           ⛔ Changer cette valeur les déplace TOUS ensemble : c'est le but, ne pas la
+           redonner bloc par bloc. */
         .accueil { --accueil-mesure: 55rem; }
-        .colophon-body { font-family: var(--font-source-serif), Georgia, serif; }
+
+        /* ── L'or QU'ON PEUT LIRE ────────────────────────────────────────────
+           --cs-or rend 3,80 sur le papier : au-dessous du seuil, et c'est justement
+           lui qui portait le bouton de don, la signature et les dates des ajouts.
+           On ne change pas l'or de la page, on en tire une encre.
+           ⛔ Le pas se prend sur --cs-texte-fort, non sur une valeur écrite : au Clair
+           il fonce l'or, au Cuir il l'éclaircit, et le rapport tient dans les deux
+           thèmes sans qu'on ait deux règles à entretenir. Mesuré : 5,14 sur la carte. */
+        .accueil { --cs-or-lisible: color-mix(in oklab, var(--cs-or) 78%, var(--cs-texte-fort)); }
+
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
-        .colophon-regle { display: block; width: 36px; height: 1px; background: var(--cs-or-doux); margin: 0 auto; }
-        /* La marque qui ferme la page. C'était le fleuron ❧, un CARACTÈRE : son
-           dessin dépendait donc de la police que le système voulait bien lui donner,
-           et il ne disait rien du site. C'est maintenant le CHIFFRE de Corpus
-           Scriptura — le C et le S entrelacés, gravés pour lui.
-           ⛔ La planche ne sert que d'ALPHA : elle est posée en MASQUE, et c'est le
-           fond de l'élément qui peint. L'or est celui que portait le fleuron ; seul
-           le dessin change. Voir la charte, « Le monogramme CS ».
-           ⚠️ Ce chiffre n'est PAS le monogramme du frontispice : celui-là est une
-           lettrine gothique, celui-ci une capitale didone. Deux dessins, deux
-           emplois, deux fichiers. */
+        /* La marque qui ferme la page. C'était le fleuron ❧, un CARACTÈRE : son dessin
+           dépendait donc de la police que le système voulait bien lui donner, et il ne
+           disait rien du site. C'est maintenant le CHIFFRE de Corpus Scriptura, gravé
+           pour lui. ⛔ La planche ne sert que d'ALPHA : elle est posée en MASQUE, et
+           c'est le fond de l'élément qui peint.
+           ⚠️ Ce chiffre n'est PAS le monogramme de la barre de navigation : celui-là est
+           une lettrine gothique, celui-ci une capitale didone. */
         .colophon-marque {
           display: inline-block; height: 1.75rem; aspect-ratio: 535 / 512; width: auto;
           background-color: var(--cs-or);
           -webkit-mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
           mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
         }
-        /* ⛔ PLUS DE MONOGRAMME EN TÊTE (décision de l'auteur, 27 août 2026).
-           Le frontispice tenait en quatre temps — la marque, le nom, un filet
-           gravé, la devise ; il en tient trois. La marque reste à sa place dans
-           la barre de navigation, où elle est présente sur TOUTES les pages :
-           répétée juste dessous, elle ne disait rien de plus, et sa masse poussait
-           au second rang le titre, qui est l'enseigne véritable. La planche
-           « /logo/monogramme-encre.png » n'est donc plus appelée par aucune page.
-           ⚠️ Le commentaire vit DANS un gabarit de chaîne : un accent grave autour
-           d'un chemin la fermerait, et la page tomberait en 500.
-           Le titre porte seul, et se prend d'un cran plus haut en conséquence. */
-        /* La gravure ferme le titre au lieu de l'annoncer. Son intensité suit sa
-           place : 0,72, comme toute gravure qui porte encore le propos, et non
-           les 0,42 à 0,5 d'un cul-de-lampe qui n'orne qu'un vide. */
-        .hero-filet-grave { width: min(265px, 48vw); height: auto; display: block; margin: 2px auto 14px; opacity: .72; }
-        /* Colophon final : pyramide desktop calibrée en rem ; sur écran étroit,
-           les lignes longues débordaient (« soins » rejeté seul). On bascule alors
-           sur un découpage mobile en lignes plus courtes et plus nombreuses. */
+
+        /* ── La gravure suit la DEVISE, qui est une phrase ────────────────────
+           Elle valait 265 px, taillée pour « Lectures bibliques et patristiques »
+           (249,5 px mesurés) qu'elle fermait de justesse. La devise en fait le double :
+           un filet plus court que la ligne qu'il annonce ne ferme plus rien, il flotte.
+           La planche fait 2062 px de large, elle a la matière. */
+        .hero-filet-grave { width: min(26rem, 62vw); height: auto; display: block; margin: 4px auto 16px; opacity: .72; }
+
         .colophon-pyr-mobile { display: none; }
-        /* ── Trois volets d'accueil (mot · ajouts récents · statistiques) ──── */
-        .accueil-volets {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 22px;
+
+        /* ── LE SEUIL : la porte occupe l'écran, et rien n'y est coupé ────────
+           ⛔ 100dvh et non 100vh : sur téléphone la barre d'adresse se rétracte, et
+           100vh mesure l'écran SANS elle. La porte débordait donc d'une centaine de
+           pixels à l'arrivée, exactement là où elle doit tenir entière. Mesuré au
+           bureau : 844 px pour 844 disponibles, rien sous le pli. */
+        .accueil-seuil {
+          min-height: calc(100dvh - 3.5rem);
+          background: var(--cs-fond);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: clamp(24px, 4vh, 56px) 24px clamp(28px, 5vh, 64px);
+          box-sizing: border-box;
+        }
+        /* ⚠️ Ce qui suit la porte commence sur l'AUTRE papier, et la couture se voit :
+           c'est elle qui dit qu'il y a une suite. Sans ce changement de fond, la porte
+           n'a plus de bord et l'on ne sait pas qu'on la franchit. */
+        .accueil-suite {
+          background: var(--cs-fond-doux);
+          border-top: 1px solid var(--cs-bord);
+          padding: clamp(36px, 6vh, 72px) 24px clamp(40px, 6vh, 76px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        /* ⚠️ 184 px et non 176 : deux cartes sur la même justification font 432 px de
+           large au lieu de 282, et à hauteur inchangée elles se lisaient comme des
+           bandes couchées. Le rapport revient à 2,35. */
+        .ac-root { --ac-hauteur: 11.5rem; }
+
+        /* ── Le journal, dans l'écran, sous les portes ────────────────────────
+           Pas un carton : une simple colonne posée sur le papier. Un troisième cadre
+           sous deux cartons ferait une page de cadres. */
+        .seuil-journal {
           width: 100%;
           max-width: var(--accueil-mesure);
-          margin: 24px auto 0;
+          margin: clamp(22px, 3.2vh, 38px) auto 0;
         }
-        /* ⛔ L'ombre est POSÉE, non flottante (décision de l'auteur, 2026-08-31 : « ne pas
-           fracasser l'œil dès l'ouverture du site »). Les jetons d'élévation nomment ce
-           qu'ils font : « --cs-ombre-flottante » est celle d'un objet qui QUITTE la page —
-           4 px de décalage, 16 de flou, 0,16 d'encre —, et trois cartes qui décollent
-           ensemble sont la première chose qu'on voit en arrivant. Une carte au repos
-           prend « --cs-ombre-posee » : 1 px, 4 de flou, 0,06. Elle se pose sur le papier
-           au lieu de planer dessus, et le frontispice reprend le premier rang.
-           ⛔ Aucun ACCENT GRAVE dans ce commentaire : il vit à l'intérieur du gabarit de
-           chaîne du bloc de style, et une paire d'accents graves le referme — la page
-           tombe alors à la compilation. Le dépôt le consigne, et je l'ai payé ici même
-           le 2026-08-31 : le déploiement a échoué, le site restant sur la version
-           précédente sans que rien ne le signale. On nomme une propriété entre
-           guillemets français. */
+        .seuil-journal-titre {
+          display: flex; align-items: center; justify-content: center; gap: 12px;
+          margin: 0 0 14px;
+        }
+        .seuil-journal-titre span {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.2em;
+          text-transform: uppercase; color: var(--cs-vert); white-space: nowrap;
+        }
+        .seuil-journal-titre i { flex: 1; height: 1px; background: var(--cs-bord); font-size: 0; }
+
+        /* ── Les volets ──────────────────────────────────────────────────────
+           Le journal étant passé en tête, « Un mot » se tient SEUL. ⛔ Il ne prend pas
+           la justification entière : sa prose est CENTRÉE, et centrée sur huit cents
+           pixels l'œil perd le début de la ligne suivante. */
+        .accueil-volets {
+          display: grid;
+          grid-template-columns: minmax(0, 34rem);
+          justify-content: center;
+          width: 100%;
+          max-width: var(--accueil-mesure);
+          margin: 0 auto;
+        }
         .accueil-carte {
           background: var(--cs-fond-clair);
           border: 1px solid var(--cs-bord-clair);
           border-radius: 12px;
-          box-shadow: var(--cs-ombre-posee);
+          box-shadow: var(--cs-ombre-flottante);
           padding: 18px 24px 18px;
           box-sizing: border-box;
         }
-        /* ── Le mot de l'auteur est le seul volet dont la PROSE remplit la carte ───
-           Sa voisine range une liste au fer, bornée à son contenu ; lui coule un
-           paragraphe centré d'un bord à l'autre, et 24 px de rembourrage ne faisaient
-           plus que 5,6 % de la carte : le bloc de texte touchait presque le cadre.
-           ⛔ Et le rembourrage était en PIXELS quand la carte suit la police racine
-           fluide : mesuré, le blanc latéral tombait de 5,6 % à 1440 px de large à
-           4,0 % à 2400, pendant que la ligne passait de 55 à 62 signes. En rem, il
-           vaut 9,3 % à toute taille et la ligne reste à 55 signes.
-           ⚠️ 2,5rem et non 3 : à 3rem la seconde ligne du mot gagne un rang et rejette
-           « ordre. » seul en dernière ligne. Le blanc double, la composition tient.
-           ⛔ La valeur ne touche QUE les côtés : le rembourrage du haut est ce qui
-           aligne « Un mot » et « Ajouts récents » sur la même ligne. */
+        /* Le mot est le seul volet dont la PROSE remplit la carte : 24 px de rembourrage
+           ne faisaient plus que 5,6 % de la carte, et le bloc de texte touchait presque
+           le cadre. ⛔ En PIXELS, le blanc latéral tombait de 5,6 % à 1440 px de large
+           à 4,0 % à 2400 pendant que la ligne passait de 55 à 62 signes ; en rem il vaut
+           9,3 % à toute taille. */
         .accueil-carte--mot { padding-left: 2.5rem; padding-right: 2.5rem; }
         .accueil-stats {
           display: flex;
           align-items: stretch;
           width: 100%;
           max-width: var(--accueil-mesure);
-          /* Écart minimal garanti au-dessus du bandeau ; sur grand écran, le space-between
-             du conteneur y ajoute sa part du blanc réparti. */
           margin: 24px auto 0;
           padding: 18px 14px;
         }
@@ -195,13 +220,12 @@ export default async function AccueilPage() {
           padding: 4px 8px;
         }
         .accueil-stat + .accueil-stat { border-left: 1px solid var(--cs-bord-clair); }
+
         /* Ajouts récents : au survol, « Lire » remplace TOUTE la ligne auteur-titre
            (la date, elle, reste). Fondu croisé : le titre s'efface, « Lire » — en
            lettres espacées, sobre et large — apparaît à sa place. */
         .ajout-item .ajout-titre { transition: opacity 0.2s ease; }
         .ajout-item:hover .ajout-titre { opacity: 0; }
-        /* « Lire » : entrée en glissé, mot en italique serif, filet doré qui se trace
-           dessous, et fine flèche dorée qui avance — sobre et soigné. */
         .ajout-item .ajout-lire {
           position: absolute; inset: 0;
           display: flex; align-items: center; gap: 9px;
@@ -221,159 +245,125 @@ export default async function AccueilPage() {
         .ajout-lire-mot::after {
           content: "";
           position: absolute; left: 0; right: 0; bottom: -2px; height: 1px;
-          background: linear-gradient(to right, #b08f48, rgba(176,143,72,0.15));
+          background: linear-gradient(to right, var(--cs-or), rgba(var(--cs-or-rgb),0.15));
           transform: scaleX(0); transform-origin: left;
           transition: transform 0.36s cubic-bezier(0.22,0.61,0.36,1) 0.05s;
         }
         .ajout-item:hover .ajout-lire-mot::after { transform: scaleX(1); }
-        .ajout-lire .fleche { color: #b08f48; transition: transform 0.28s cubic-bezier(0.22,0.61,0.36,1); }
+        .ajout-lire .fleche { color: var(--cs-or-lisible); transition: transform 0.28s cubic-bezier(0.22,0.61,0.36,1); }
         .ajout-item:hover .ajout-lire .fleche { transform: translateX(4px); }
-        /* ⚠️ 900 et non plus 760, et c'est le seuil de la charte (celui de
-           useEstMobile). Entre les deux, les volets tenaient bien deux colonnes,
-           mais de 365 px : la liste des ajouts y cassait tous ses titres sur deux
-           ou trois lignes, et le mot de l'auteur, plus court, se creusait d'autant.
-           Deux colonnes qu'on doit lire en escalier n'en valent pas une. */
+
+        /* ⚠️ Le bandeau ne suit PAS le seuil des volets. Un volet de texte devient
+           illisible bien avant qu'une tuile de chiffre ne manque de place : les cinq
+           tuiles tiennent encore leur rang à 640 px, où deux colonnes de prose ne
+           tiendraient plus depuis longtemps. */
         @media (max-width: 900px) {
           .accueil-volets { grid-template-columns: 1fr; }
         }
-        /* ⚠️ Le bandeau ne suit PAS les volets, et il ne faut pas les fondre en un
-           seul seuil. Un volet de texte devient illisible bien avant qu'une tuile de
-           chiffre ne manque de place : les cinq tuiles tiennent encore leur rang à
-           640 px, où deux colonnes de prose ne tiendraient plus depuis longtemps.
-           Passé à 900 comme les volets, le bandeau ouvrait à 768 px deux colonnes de
-           360 px pour y loger un nombre à deux chiffres. */
         @media (max-width: 640px) {
-          /* ⛔ Le mot reprend le rembourrage commun sur un téléphone. Mesuré sur une
-             carte de 327 px (écran de 375), 2,5rem ne laissent que 245 px au texte,
-             soit 38 signes par ligne et deux lignes de plus : un blanc qui aère une
-             carte de 429 px étrangle une carte de 327. Entre 640 et 900 px la borne
-             de 30rem gouverne déjà seule, et le rembourrage n'y change rien. */
+          /* ⛔ Le mot reprend le rembourrage commun sur un téléphone : mesuré sur une
+             carte de 327 px, 2,5rem ne laissent que 245 px au texte, soit 38 signes par
+             ligne. Un blanc qui aère une carte de 429 px étrangle une carte de 327. */
           .accueil-carte--mot { padding-left: 24px; padding-right: 24px; }
           .accueil-stats { flex-wrap: wrap; }
           /* Deux tuiles par rang, la cinquième prenant le rang entier : les filets
-             passent de la verticale à l'horizontale, sinon les tuiles flottent sans
-             rien qui les tienne. */
+             passent de la verticale à l'horizontale, sinon les tuiles flottent. */
           .accueil-stat { flex: 1 0 44%; padding: 13px 8px; }
           .accueil-stat + .accueil-stat { border-left: none; }
           .accueil-stat:nth-child(n + 3) { border-top: 1px solid var(--cs-bord-clair); }
-        }
-        @media (max-width: 640px) {
           .colophon-pyr-desktop { display: none; }
           .colophon-pyr-mobile { display: block; }
           .colophon-pyr-mobile p { margin: 0 auto; max-width: 90vw; }
           /* Liens légaux empilés, chacun entier sur sa ligne. */
           .liens-legaux { display: flex; flex-direction: column; align-items: center; gap: 9px; }
           .liens-legaux .sep-legal { display: none; }
+          .accueil-seuil { min-height: 0; padding-top: 30px; padding-bottom: 40px; }
+        }
+
+        /* ── Mouvement réduit ────────────────────────────────────────────────
+           Réglage système « moins d'animations » : on garde les ÉTATS et l'on retire
+           le trajet. ⛔ Ne jamais éteindre l'opacité elle-même. */
+        @media (prefers-reduced-motion: reduce) {
+          html { scroll-behavior: auto; }
+          .ajout-item .ajout-titre, .ajout-item .ajout-lire,
+          .ajout-lire-mot::after, .ajout-lire .fleche { transition-duration: 0.01ms !important; }
+          .ajout-item .ajout-lire { transform: none; }
+          .ajout-item:hover .ajout-lire .fleche { transform: none; }
         }
       `}</style>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <main style={{
-        minHeight: "calc(100vh - 3.5rem)",
-        background: "var(--cs-fond)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "0 24px 22px",
-      }}>
-        {/* Contenu centré, RÉPARTI sur toute la hauteur : `space-between` distribue le blanc
-            entre les quatre blocs (titre, cartes, volets, statistiques) plutôt que de le
-            laisser s'accumuler en un seul trou. Les marges de base garantissent un écart
-            minimal sur petit écran, où le contenu déborde et où le blanc à répartir est nul. */}
-        <div style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "100%",
-          padding: "clamp(30px, 5vh, 64px) 0 0",
-        }}>
-        {/* Le frontispice tient en TROIS temps : le nom, un filet gravé, la devise.
-            Il en comptait sept jusqu'au 2026-08-19, puis quatre, la marque ouvrant
-            la page ; elle en est retirée le 2026-08-27 (voir la note du bloc de
-            style). La gravure fait à elle seule le travail du filet, et elle le fait
-            EN PIED, où sa place est (charte, « Une gravure se pose en pied »).
-            ⚠️ Le blanc au-dessus est monté d'un cran, le titre ayant pris la tête :
-            une page de titre respire au-dessus de son premier mot. */}
-        <header style={{ textAlign: "center", marginBottom: "24px" }}>
-          {/* Titre principal — il ouvre la page, sans marque au-dessus de lui. */}
+      {/* ══ LA PORTE ═════════════════════════════════════════════════════════ */}
+      <main className="accueil-seuil">
+        {/* Le frontispice tient en quatre temps : le nom, la gravure qui le ferme, la
+            devise, le rang. Il en comptait sept jusqu'au 2026-08-19, puis quatre, la
+            marque ouvrant la page ; elle en est retirée le 2026-08-27, la barre de
+            navigation la portant déjà sur toutes les pages.
+            ⚠️ La devise n'est plus une étiquette de catégorie — « Lectures bibliques et
+            patristiques » décrivait un rayon — mais la THÈSE du site. La ligne de rang,
+            dessous, dit à quelle sorte d'ouvrage on a affaire. */}
+        <header style={{ textAlign: "center", maxWidth: "40rem" }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            /* Un cran plus haut depuis le retrait de la marque : le titre est seul à
-               ouvrir la page, et la masse qu'elle portait lui revient. Bornes en rem,
-               jamais en px : elles suivent la police racine fluide. */
+            /* Bornes en rem, jamais en px : celles d'un clamp sont ABSOLUES et ne
+               suivent pas la police racine fluide, si bien qu'un titre en px se fige
+               pendant que le corps du texte grandit autour de lui. */
             fontSize: "clamp(2rem, 4.8vw, 3.625rem)",
             fontWeight: "normal",
             color: "var(--cs-encre-fonce)",
             lineHeight: 1.2,
             letterSpacing: "0.04em",
             paddingLeft: "0.04em",
-            marginBottom: "10px",
+            margin: "0 0 10px",
           }}>
             Corpus Scriptura
           </h1>
 
           {/* Le filet du frontispice : la gravure elle-même, qui EST un filet.
-              En <img> et non en <Image> — elle porte une couche alpha, et
-              l'optimiseur l'aplatit par intermittence sur du blanc, si bien que
-              le rectangle crème reparaît (charte, « Les ornements se DÉTOURENT »).
-              Elle était justement rendue en <Image> jusqu'ici. */}
+              ⛔ En <img> et non en <Image> — elle porte une couche alpha, et
+              l'optimiseur l'aplatit par intermittence sur du blanc, si bien que le
+              rectangle crème reparaît (charte, « Les ornements se DÉTOURENT »). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/home-title-ornament.png" alt="" aria-hidden="true"
             className="hero-filet-grave" />
 
-          {/* Sous-titre — la première des deux lignes de la devise.
-              Elle se compose comme un TITRE et non comme une légende (décision de
-              l'auteur, 2026-08-31) : le corps monte de 14 à 17 px, la chasse rejoint
-              celle du titre (0,04em contre 0,02), et la coupe est forcée en TITRAGE.
-              ⚠️ La coupe optique se force, elle ne se devine pas : Source Serif porte
-              l'axe `opsz` (déclaré dans `app/layout.tsx`) et le navigateur le règle sur
-              la taille en pixels, donc sur la coupe de LABEUR, plus grasse et plus
-              large. Mesuré sur la ligne : 235,4 px sans forçage, 226,4 à `opsz` 26 —
-              le trait s'affine, comme il convient sous un frontispice.
-              ⛔ `font-variation-settings` écrase `font-weight` : toujours redonner
-              « wght » dans la même déclaration.
-              ⚠️ La ligne mesure alors 249,5 px et se range JUSTE en dedans de la
-              gravure, qui en fait 265. Le rapport ne tient qu'à la racine 16 : la
-              gravure est bornée en pixels quand la ligne suit la police fluide, et
-              la seconde dépasse la première dès la racine 18. */}
+          {/* La devise. ⚠️ Elle est une PHRASE, et une phrase se coupe : `text-wrap:
+              balance` répartit les deux membres de part et d'autre de la virgule au lieu
+              de laisser « de la Bible. » tomber seul.
+              ⚠️ La coupe optique se FORCE, elle ne se devine pas : Source Serif porte
+              l'axe `opsz` et le navigateur le règle sur la taille en pixels, donc sur la
+              coupe de LABEUR, plus grasse et plus large. Sous un frontispice gravé, il
+              faut celle de TITRAGE. ⛔ `font-variation-settings` écrase `font-weight` :
+              toujours redonner « wght » dans la même déclaration. */}
           <p style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
-            fontSize: "1.0625rem",
+            fontSize: "clamp(1rem, 1.5vw, 1.1875rem)",
             fontStyle: "italic",
             color: "var(--cs-vert)",
-            letterSpacing: "0.04em",
+            letterSpacing: "0.03em",
+            lineHeight: 1.45,
+            textWrap: "balance",
             fontVariationSettings: '"opsz" 26, "wght" 400',
-            marginBottom: "8px",
+            margin: "0 auto 10px",
+            maxWidth: "34rem",
           }}>
-            Lectures bibliques et patristiques
+            La Bible à la lumière des Pères, les Pères à la lumière de la Bible.
           </p>
-          {/* ⛔ PAS `--cs-etiquette` ici, malgré la forme d'étiquette. Ce jeton est un
-              khaki doré, #9e8e6a au Clair : sous le vert d'encre de la ligne qui
-              précède, les deux lignes du frontispice tenaient deux familles de couleur
-              étrangères l'une à l'autre, et le couple sonnait faux. Elles se tiennent
-              maintenant dans le MÊME ton, à un pas d'écart.
-              ⚠️ Le pas se prend en MÊLANT l'accent au papier, non en écrivant une
-              valeur : au Cuir, où `--cs-vert` vire à l'or et `--cs-fond` au brun, le
-              même calcul rend le même rapport. La quantité de vert est réglée pour
-              que la ligne garde EXACTEMENT le poids qu'elle avait — on change sa
-              famille, non sa place dans la hiérarchie.
-              ⛔ La COULEUR ne bouge pas ici : c'est elle qui tient le pas entre les
-              deux lignes, et elle a été réglée pour cela. Ce qui change, c'est la
-              composition.
-              ⚠️ Elle se composait en CAPITALES FORCÉES, dans le sans du site, en
-              graisse 600 : la coupe d'une étiquette d'interface, sous un frontispice
-              gravé. Elle passe au sérif et aux PETITES CAPITALES — « pour marquer un
-              rang sans crier », la règle que la charte pose déjà pour les titres
-              bibliques — et le corps monte de 10 à 12 px.
-              ⚠️ Elles sont SYNTHÉTISÉES, non gravées : mesuré, `font-feature-settings:
-              "smcp"` ne change rien à la largeur du mot dans Source Serif 4, la
-              variable de Google ne portant pas la fonte de petites capitales. C'est
-              déjà la forme qu'emploient le reste du site et l'enrichissement `++…++`.
-              La graisse 500 compense le trait plus fin qu'en résulte, et `opsz` 10
-              donne à ces capitales espacées la coupe de LABEUR, la seule qui les tienne
-              à ce corps (même règle que les couvertures de la Communauté). */}
+
+          {/* La ligne de rang. ⛔ PAS `--cs-etiquette` ici, malgré la forme d'étiquette :
+              ce jeton est un khaki doré, et sous le vert d'encre de la ligne qui précède
+              les deux lignes du frontispice tenaient deux familles de couleur étrangères
+              l'une à l'autre. Elles se tiennent dans le MÊME ton, à un pas d'écart, et le
+              pas se prend en MÊLANT l'accent au papier — au Cuir, où `--cs-vert` vire à
+              l'or et `--cs-fond` au brun, le même calcul rend le même rapport.
+              ⛔ Le mélange vaut 92 % et non 78 : mesuré, 78 % rendaient 3,61 sur le
+              papier et 88 % encore 4,38, tous deux sous le seuil — et c'est la ligne qui
+              NOMME l'ouvrage. À 92 % elle rend 4,78, et reste d'un cran sous la devise,
+              que le corps et l'italique séparent déjà.
+              ⚠️ Les petites capitales sont SYNTHÉTISÉES, non gravées : mesuré,
+              `font-feature-settings: "smcp"` ne change rien à la largeur du mot, la
+              variable de Google ne portant pas la fonte de petites capitales. La graisse
+              500 compense le trait plus fin qui en résulte, et `opsz` 10 donne à ces
+              capitales espacées la coupe de LABEUR, la seule qui les tienne à ce corps. */}
           <p style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
             fontSize: "0.75rem",
@@ -381,34 +371,42 @@ export default async function AccueilPage() {
             fontWeight: 500,
             letterSpacing: "0.16em",
             fontVariationSettings: '"opsz" 10, "wght" 500',
-            color: "color-mix(in oklab, var(--cs-vert) 78%, var(--cs-fond))",
+            color: "color-mix(in oklab, var(--cs-vert) 92%, var(--cs-fond))",
+            margin: 0,
           }}>
-            Somme collaborative
+            Bibliothèque biblique et patristique
           </p>
         </header>
 
-        {/* L'ancre sert la planche des illustrations, qui renvoie ici pour montrer
-            les trois icônes de carte en place.
+        {/* L'ancre sert la planche des illustrations, qui renvoie ici pour montrer les
+            icônes de carte en place.
 
-            ⛔ `width: 100%` N'EST PAS UN ORNEMENT : sans lui les trois cartes
-            disparaissent, et c'est cette ancre qui les a fait disparaître le
-            2026-08-24. Ce conteneur est un enfant de flex en colonne réglé sur
-            `align-items: center` : sa largeur se calcule donc sur son contenu. Or
-            tout ce qui garnit une carte est en `position: absolute`, si bien que la
-            grille ne réclame pour elle-même que ses bordures — trois cartes de 2 px,
-            invisibles à l'œil. Le `width: 100%` d'`.ac-root` se mesurait alors sur ce
-            presque-rien. Tant que `<AccueilCards />` était l'enfant direct du flex,
-            son 100 % portait sur la largeur de `<main>`, qui est définie ; l'ancre
-            glissée au milieu a rompu la chaîne. Toute enveloppe posée ici doit donc
-            porter une largeur. */}
-        <div id="cartes" style={{ width: "100%", scrollMarginTop: "3.5rem" }}>
+            ⛔ `width: 100%` N'EST PAS UN ORNEMENT : sans lui les cartes disparaissent, et
+            c'est cette ancre qui les a fait disparaître le 2026-08-24. Ce conteneur est un
+            enfant de flex en colonne réglé sur `align-items: center` : sa largeur se
+            calcule donc sur son contenu. Or tout ce qui garnit une carte est en
+            `position: absolute`, si bien que la grille ne réclame pour elle-même que ses
+            bordures. Toute enveloppe posée ici doit porter une largeur. */}
+        <div id="cartes" style={{ width: "100%", scrollMarginTop: "3.5rem", marginTop: "clamp(26px, 4.5vh, 52px)" }}>
           <AccueilCards />
         </div>
 
-        {/* ── Trois volets : un mot · ajouts récents · statistiques ─────────── */}
+        {/* La preuve que la bibliothèque vit, dans l'écran d'entrée. Cinq lignes, pas de
+            cadre, pas de chiffre. */}
+        <div className="seuil-journal">
+          <div className="seuil-journal-titre">
+            <i />
+            <span>Ajouts récents</span>
+            <i />
+          </div>
+          <ListeAjouts recentes={recentes.slice(0, NB_AJOUTS_SEUIL)} />
+        </div>
+      </main>
+
+      {/* ══ LA SUITE ═════════════════════════════════════════════════════════ */}
+      <div className="accueil-suite">
         <div className="accueil-volets">
           <VoletUnMot />
-          <VoletAjouts recentes={recentes} />
         </div>
         <BandeauStats
           nbTextes={nbTextes}
@@ -417,11 +415,10 @@ export default async function AccueilPage() {
           pourcentVerifie={pourcentVerifie}
           nbContributeurs={nbContributeurs}
         />
-        </div>
-      </main>
+      </div>
 
-      {/* ── À propos — style colophon ─────────────────────────────────────── */}
-      <div id="apropos" style={{ background: "var(--cs-fond-doux)", scrollMarginTop: "3.5rem", borderTop: "1px solid var(--cs-bord)" }}>
+      {/* ── Le projet — style colophon ────────────────────────────────────── */}
+      <div id="apropos" style={{ background: "var(--cs-fond)", scrollMarginTop: "3.5rem", borderTop: "1px solid var(--cs-bord)" }}>
         <div style={{
           maxWidth: "35rem",
           margin: "0 auto",
@@ -430,14 +427,10 @@ export default async function AccueilPage() {
           fontFamily: "var(--font-source-serif), Georgia, serif",
           color: "var(--cs-texte-fort)",
         }}>
-
-          {/* En-tête colophon. ⛔ PLUS DE FLEURON AU-DESSUS DU TITRE (décision de
-              l'auteur, 27 août 2026). Un ❧ l'annonçait, un second le fermait juste
-              dessous avec ses filets : deux ornements pour un seul titre, et le
-              premier butait devant le nom de la section avant qu'on sache de quoi
-              il retourne. Le fleuron à filets qui SUIT le titre demeure, comme sous
-              chaque section — un ornement ferme un texte, il ne l'annonce pas
-              (charte, « Une gravure se pose en pied »). */}
+          {/* En-tête colophon. ⛔ PAS DE FLEURON AU-DESSUS DU TITRE (décision de
+              l'auteur, 27 août 2026) : un ornement ferme un texte, il ne l'annonce pas
+              (charte, « Une gravure se pose en pied »). Le fleuron à filets qui SUIT le
+              titre demeure, comme sous chaque section. */}
           <div style={{ marginBottom: "46px" }}>
             <h2 style={{
               fontSize: "clamp(1.1875rem, 2.8vw, 1.5rem)",
@@ -452,41 +445,62 @@ export default async function AccueilPage() {
             <OrnementsTriple />
           </div>
 
-          {/* Sections */}
           <ColophonSection titre="Origine">
-            <p style={paraStyle}><em>Corpus Scriptura</em> est né en 2026. Son objet est d&rsquo;offrir un accès libre aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne. Il s&rsquo;adresse aux chercheurs comme aux simples lecteurs, à tous ceux qui veulent entrer plus avant dans l&rsquo;intelligence des Écritures.</p>
+            <p style={paraStyle}><em>Corpus Scriptura</em> est né en 2026. Son objet est d’offrir un accès libre aux textes bibliques, aux œuvres patristiques et aux grands témoins de la tradition chrétienne. Il s’adresse aux chercheurs comme aux simples lecteurs, à tous ceux qui veulent entrer plus avant dans l’intelligence des Écritures.</p>
           </ColophonSection>
 
           <ColophonSection titre="Les textes">
-            <p style={paraStyle}>Chaque texte proposé appartient au domaine public. <em>Corpus Scriptura</em> puise dans des éditions classiques et des bases ouvertes, avec le constant souci de rendre ces sources plus lisibles, plus sûres et plus facilement consultables.</p>
-            <p style={paraStyle}>Les éditeurs, institutions et ayants droit engagés dans la transmission de la foi et de la culture chrétienne sont également sollicités : chaque autorisation d&rsquo;utilisation contribue à l&rsquo;enrichissement du corpus, à sa diffusion et à sa conservation.</p>
+            <p style={paraStyle}>Chaque source proposée dans <em>Corpus Scriptura</em> appartient au domaine public.</p>
+            <p style={paraStyle}>Le corpus s’appuie notamment sur des éditions anciennes qui ont fait date, sur des ressources numériques librement accessibles et sur des ouvrages ou reproductions qu’il faut parfois acquérir pour retrouver des textes rares ou difficilement disponibles. Certaines de ces éditions restent précieuses par leur histoire et leur diffusion, même lorsque leurs traductions paraissent datées ou maladroites.</p>
+            <p style={paraStyle}>Il existe, pour nombre de ces œuvres, d’excellentes éditions critiques contemporaines, fondées sur un travail philologique, historique et documentaire que <em>Corpus Scriptura</em> n’a pas vocation à remplacer dans l’immédiat. Le lecteur qui souhaite approfondir l’étude d’un texte est vivement encouragé à les consulter ou à se les procurer : leurs introductions, apparats critiques, notes et bibliographies demeurent des instruments essentiels.</p>
+            <p style={paraStyle}>Le caractère public des sources ne s’étend pas nécessairement au travail éditorial réalisé pour <em>Corpus Scriptura</em>. L’océrisation et la transcription des ouvrages, la correction des erreurs de reconnaissance, la relecture et la confrontation aux sources, l’établissement et la préparation des textes, les choix de découpage et de structuration, les normalisations ou transformations éditoriales originales, les notices, notes, appareils, métadonnées, alignements et rapprochements entre textes bibliques et patristiques constituent un travail propre au projet. La base de données elle-même résulte d’un important travail de constitution, de vérification, d’organisation et de présentation.</p>
+            <p style={paraStyle}>Dans un souci de partage et de circulation des textes, une œuvre océrisée par <em>Corpus Scriptura</em> peut, sur demande écrite, être mise à disposition au format Word lorsque les conditions de sa diffusion le permettent. Cette communication est examinée au cas par cas et n’emporte pas cession des droits attachés au travail éditorial propre au projet.</p>
           </ColophonSection>
 
-          <ColophonSection titre="L&rsquo;intelligence artificielle">
-            <p style={paraStyle}>L&rsquo;intelligence artificielle est employée comme outil d&rsquo;assistance : transcription des documents, nettoyage des textes, découpage, structuration, établissement de rapprochements entre les versets bibliques et les œuvres patristiques.</p>
-            <p style={paraStyle}>Ce travail exige une vérification humaine constante. Les textes, les correspondances et les références doivent être relus, corrigés et confirmés. L&rsquo;IA ne remplace ni le jugement, ni la science, ni la prudence du lecteur.</p>
+          <ColophonSection titre="Méthode">
+            <p style={paraStyle}>Chaque texte est rattaché à une édition ou à une source précisément identifiée. Sa préparation suit une charte éditoriale commune : fidélité au texte transmis, contrôle des corrections, respect de la structure de l’œuvre, conservation des particularités significatives et traçabilité des interventions. Les outils automatiques facilitent ce travail, mais ne dispensent jamais de revenir aux sources lorsqu’une difficulté subsiste.</p>
+          </ColophonSection>
+
+          <ColophonSection titre="L’intelligence artificielle">
+            <p style={paraStyle}>L’intelligence artificielle occupe une place importante dans la constitution de <em>Corpus Scriptura</em>. Elle est employée pour transcrire et océriser des documents, repérer des erreurs, préparer et structurer les textes, assister leur découpage, effectuer des contrôles de cohérence et proposer des rapprochements entre les textes bibliques et patristiques.</p>
+            <p style={paraStyle}>Son usage est encadré par une charte éditoriale et technique stricte, qui fixe les règles de fidélité aux sources, de transcription, de correction, de structuration, de citation et de vérification. L’IA ne peut notamment ni combler une lacune par conjecture, ni moderniser arbitrairement un texte, ni présenter comme certaine une lecture qui demeure douteuse.</p>
+            <p style={paraStyle}>Ses résultats sont contrôlés selon la nature du travail : confrontation aux sources, vérifications automatiques, relectures ciblées, sondages et examen humain lorsque la décision l’exige. Les incertitudes sont conservées comme telles et les corrections importantes doivent pouvoir être justifiées et retracées.</p>
+            <p style={paraStyle}>L’IA permet ainsi d’accomplir à grande échelle un travail qui serait difficilement réalisable par une seule personne, sans supprimer l’intervention humaine. La méthode, les choix éditoriaux, les critères de qualité et les décisions de publication restent sous responsabilité humaine.</p>
+          </ColophonSection>
+
+          <ColophonSection titre="Les rapprochements bibliques">
+            <p style={paraStyle}>L’un des principaux objets de <em>Corpus Scriptura</em> est de mettre en relation les textes des Pères avec les passages bibliques qu’ils citent, commentent ou auxquels ils font écho. Ces liens ne reposent pas sur la seule ressemblance des mots : ils sont établis en tenant compte du contexte, de l’argumentation et des différentes traditions de numérotation biblique. Le degré de certitude d’un rapprochement est conservé lorsqu’il ne peut être établi avec assurance.</p>
           </ColophonSection>
 
           <ColophonSection titre="Contributions">
-            <p style={paraStyle}>Cette bibliothèque n&rsquo;est pas un monument clos, mais un chantier ouvert à la communauté de ses lecteurs. Elle s&rsquo;enrichit progressivement grâce à la transmission de textes patristiques du domaine public, soigneusement établis, ainsi qu&rsquo;au signalement des corrections, références et erreurs à relever.</p>
-            <p style={paraStyle}>Si vous êtes artiste (peintre, graveur, illustrateur), des acquisitions d&rsquo;œuvres destinées à illustrer les Pères de l&rsquo;Église sont possibles.</p>
+            <p style={paraStyle}>Cette bibliothèque n’est pas un monument clos, mais un chantier ouvert à ses lecteurs. Elle s’enrichit grâce à la transmission de textes patristiques du domaine public, au signalement de corrections, de références ou de lacunes, ainsi qu’au partage de documents difficiles d’accès.</p>
+            <p style={paraStyle}>Les compétences en langues anciennes, philologie, théologie, histoire ou bibliographie sont particulièrement bienvenues. Les dons, prêts ou signalements d’ouvrages peuvent également contribuer à l’enrichissement du corpus.</p>
+            {/* ⚠️ « Si vous êtes artiste (peintre, graveur ou illustrateur) » : l'auteur
+                avait écrit l'énumération en incise entre tirets. La charte du style
+                rédactionnel les proscrit dans les textes du site, et la parenthèse est
+                déjà la solution que cette phrase employait. */}
+            <p style={paraStyle}>Si vous êtes artiste (peintre, graveur ou illustrateur), <em>Corpus Scriptura</em> peut aussi acquérir ou commander des œuvres originales destinées à illustrer les Pères de l’Église et les textes du corpus.</p>
+          </ColophonSection>
+
+          <ColophonSection titre="Un projet indépendant">
+            <p style={paraStyle}><em>Corpus Scriptura</em> est un projet indépendant, développé sans rattachement institutionnel et sans publicité. Sa constitution demande du temps, mais aussi des moyens matériels : acquisition ou reproduction d’ouvrages rares, numérisation, hébergement, outils de traitement et conservation des données. Le projet est principalement financé sur fonds propres ; les soutiens reçus permettent d’en poursuivre et d’en accélérer le développement.</p>
+          </ColophonSection>
+
+          <ColophonSection titre="Pérennité">
+            <p style={paraStyle}>L’un des objectifs de <em>Corpus Scriptura</em> est aussi de remettre en circulation des textes devenus difficiles d’accès et de conserver le travail accompli sur eux sous une forme structurée et réutilisable. Les sources, les références bibliographiques et les différentes étapes de préparation sont autant que possible documentées afin que le corpus puisse continuer à être corrigé, enrichi et transmis.</p>
           </ColophonSection>
 
           {/* ── Colophon final — pyramide ─────────────────────────────────── */}
-          {/* Un seul séparateur : celui qui clôt la section « Soutenir » ci-dessus
-              suffit (on a retiré le second, qui faisait doublon). */}
           <div style={{ marginTop: "44px" }}>
-            {/* La pyramide garde un interligne PLUS LARGE que la prose : ses lignes
-                sont des lignes de colophon, chacune se lisant pour elle-même. Elle
-                suit tout de même le resserrement du 27 août, de 2,1 à 1,85, sans quoi
-                elle aurait paru deux fois plus aérée que le texte qu'elle ferme. */}
+            {/* La pyramide garde un interligne PLUS LARGE que la prose : ses lignes sont
+                des lignes de colophon, chacune se lisant pour elle-même. */}
             <div style={{ fontSize: "0.8125rem", lineHeight: "1.85", color: "var(--cs-texte-second)", letterSpacing: "0.01em" }}>
               <div className="colophon-pyr-desktop">
                 <p style={{ maxWidth: "28.75rem", margin: "0 auto" }}>Publié pour navigateur et mobile par les soins</p>
                 <p style={{ maxWidth: "23.75rem", margin: "0 auto" }}>de <em>Corpus Scriptura</em>, somme ouverte dédiée</p>
                 <p style={{ maxWidth: "18.75rem", margin: "0 auto" }}>à la lecture des Saintes Écritures</p>
-                <p style={{ maxWidth: "14.375rem", margin: "0 auto" }}>et des Pères de l&rsquo;Église,</p>
-                <p style={{ maxWidth: "10.625rem", margin: "0 auto" }}>en l&rsquo;An de grâce</p>
+                <p style={{ maxWidth: "14.375rem", margin: "0 auto" }}>et des Pères de l’Église,</p>
+                <p style={{ maxWidth: "10.625rem", margin: "0 auto" }}>en l’An de grâce</p>
                 <p style={{ maxWidth: "6.875rem", margin: "0 auto" }}>MMXXVI.</p>
               </div>
               <div className="colophon-pyr-mobile">
@@ -494,8 +508,8 @@ export default async function AccueilPage() {
                 <p>par les soins de <em>Corpus Scriptura</em>,</p>
                 <p>somme ouverte dédiée</p>
                 <p>à la lecture des Saintes Écritures</p>
-                <p>et des Pères de l&rsquo;Église,</p>
-                <p>en l&rsquo;An de grâce</p>
+                <p>et des Pères de l’Église,</p>
+                <p>en l’An de grâce</p>
                 <p>MMXXVI.</p>
               </div>
             </div>
@@ -505,17 +519,20 @@ export default async function AccueilPage() {
               <span className="colophon-marque" aria-hidden="true" />
             </div>
 
-            {/* Liens légaux — en ligne sur desktop, empilés (sans coupure) sur mobile */}
-            <div className="liens-legaux" style={{ marginTop: "42px", fontSize: "0.65625rem", color: "#b0a088", letterSpacing: "0.06em" }}>
-              <Link href="/conditions-utilisation" className="lien-legal" style={{ color: "var(--cs-texte-doux)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
-                Conditions d&rsquo;utilisation
+            {/* ⛔ Les liens légaux rendaient 2,46 : la plus mauvaise encre de la page
+                était sur les seules lignes qui doivent être lisibles en droit.
+                `--cs-original` est le jeton fait pour ce rang (5,37 sur le papier, 4,87
+                sur le papier doux), et le corps monte de 10,5 à 12 px. Mesuré : 7,23. */}
+            <div className="liens-legaux" style={{ marginTop: "42px", fontSize: "0.75rem", letterSpacing: "0.06em" }}>
+              <Link href="/conditions-utilisation" className="lien-legal" style={{ color: "var(--cs-original)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
+                Conditions d’utilisation
               </Link>
               <span className="sep-legal" style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
-              <Link href="/confidentialite" className="lien-legal" style={{ color: "var(--cs-texte-doux)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
+              <Link href="/confidentialite" className="lien-legal" style={{ color: "var(--cs-original)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
                 Politique de confidentialité
               </Link>
               <span className="sep-legal" style={{ margin: "0 14px", opacity: 0.4 }}>·</span>
-              <Link href="/contact" className="lien-legal" style={{ color: "var(--cs-texte-doux)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
+              <Link href="/contact" className="lien-legal" style={{ color: "var(--cs-original)", textDecoration: "none", borderBottom: "1px dotted var(--cs-or-doux)", whiteSpace: "nowrap" }}>
                 Contact
               </Link>
             </div>
@@ -543,7 +560,7 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
   return (
     <section>
       <h3 style={{
-        fontSize: "0.625rem",
+        fontSize: "0.6875rem",
         fontWeight: 600,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
@@ -564,26 +581,23 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
 
 // Prose du colophon. L'interligne est RESSERRÉ (décision de l'auteur, 27 août 2026) :
 // il valait 1,75, c'est-à-dire le double de la hauteur d'œil d'un sérif à ce corps, et
-// les paragraphes s'y délitaient en lignes indépendantes. À 1,55 le bloc redevient un
-// paragraphe. ⚠️ C'est la seule mesure qui bouge : le corps, l'encre et le blanc entre
-// les sections ne changent pas, sans quoi l'on ne saurait plus ce qui a produit l'effet.
+// les paragraphes s'y délitaient en lignes indépendantes.
+// ⚠️ Le corps monte de 14 à 15 px : la prose du colophon est le texte le plus long de
+// la page, et 14 px de sérif centré est petit pour un lecteur qui n'a pas vingt ans.
 const paraStyle: React.CSSProperties = {
-  fontSize: "0.875rem",
-  lineHeight: "1.55",
+  fontSize: "0.9375rem",
+  lineHeight: "1.6",
   color: "var(--cs-texte-fort)",
   margin: 0,
 }
 
-/* ── Trois volets d'accueil ───────────────────────────────────────────────── */
+/* ── Le mot de l'auteur ───────────────────────────────────────────────────── */
 
-// Texte du « mot » : condensé (interligne, approche des lettres et des mots réduites),
-// centré.
 const motStyle: React.CSSProperties = {
   fontFamily: "var(--font-source-serif), Georgia, serif",
-  fontSize: "0.78125rem",
-  lineHeight: 1.38,
-  letterSpacing: "-0.006em",
-  wordSpacing: "-0.03em",
+  fontSize: "0.875rem",
+  lineHeight: 1.45,
+  letterSpacing: "-0.004em",
   color: "var(--cs-texte)",
   margin: 0,
   textAlign: "center",
@@ -596,47 +610,33 @@ const boutonSoutenir: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   fontFamily: "var(--font-source-serif), Georgia, serif",
-  fontSize: "0.78125rem",
-  color: "var(--cs-or)",
+  fontSize: "0.8125rem",
+  color: "var(--cs-or-lisible)",
   textDecoration: "none",
   letterSpacing: "0.03em",
-  padding: "6px 18px",
-  border: "1px solid rgba(160,140,88,0.5)",
+  padding: "7px 18px",
+  border: "1px solid rgba(var(--cs-or-rgb),0.6)",
   borderRadius: "999px",
-  background: "rgba(160,140,88,0.09)",
+  background: "rgba(var(--cs-or-rgb),0.09)",
 }
 
 function VoletUnMot() {
   return (
     <div className="accueil-carte accueil-carte--mot" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
-      {/* ⚠️ `--cs-encre` et non `--cs-encre-fonce` : le vert le plus profond appartient au
-          FRONTISPICE, qui doit rester le premier rang de la page. Un cran en dessous, le
-          titre d'une carte reste un titre (contraste mesuré 10,95 sur son papier, contre
-          13,45) et cesse de disputer le nom du site. Même cran sur « Ajouts récents » et
-          sur les chiffres du bandeau. */}
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
-      {/* Le mot garde sa MESURE quand le volet passe à une colonne. En dessous de
-          900 px les deux volets s'empilent et prennent toute la page : le texte,
-          qui est CENTRÉ, y courait alors sur sept cents pixels, et l'œil perdait le
-          début de la ligne suivante. Le bloc se borne et reste centré dans sa carte. */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "30rem", width: "100%", margin: "0 auto" }}>
-        <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l&rsquo;Église, anciens ou difficiles d&rsquo;accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
-        <p style={motStyle}>L&rsquo;accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l&rsquo;édition des textes, à leur vérification et à leur mise en ordre.</p>
+      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
+      {/* Le mot garde sa MESURE : le texte est CENTRÉ, et centré sur sept cents pixels
+          l'œil perd le début de la ligne suivante. */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "30rem", width: "100%", margin: "0 auto" }}>
+        <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l’Église, anciens ou difficiles d’accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
+        <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
       {/* PIED SOLIDAIRE : signature et bouton descendent ENSEMBLE au bas de la carte.
-          Le bouton seul y descendait, et le blanc que lui laisse le volet voisin,
-          toujours plus haut, s'ouvrait alors ENTRE « SQDV » et « Soutenir le projet » :
-          la signature restait accrochée au texte et le bouton flottait seul, quatre-vingts
-          pixels plus bas. Le blanc se met maintenant là où une carte en veut, entre le
-          corps et son pied. « Merci. » se tient juste au-dessus de SQDV. */}
-      {/* ⚠️ « Merci. » et « SQDV » se RESSERRENT : ce sont deux lignes d'une même
-          signature, non deux paragraphes. Elles héritaient de l'interligne du corps, et
-          les deux pixels de marge s'ajoutaient encore — 19 px de ligne de base à ligne de
-          base, mesurés. À 1,25, elles en font 16,3 et se lisent d'un bloc. ⛔ Le blanc de
-          16 px qui les sépare du bouton ne bouge pas : c'est lui qui fait le pied. */}
+          Le bouton seul y descendait, et le blanc que lui laissait le volet voisin
+          s'ouvrait alors ENTRE « SQDV » et « Soutenir le projet ». Le blanc se met là
+          où une carte en veut, entre le corps et son pied. */}
       <div style={{ marginTop: "auto", paddingTop: "20px" }}>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", lineHeight: 1.25, color: "var(--cs-texte)", margin: 0 }}>Merci.</p>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", lineHeight: 1.25, color: "var(--cs-or)", letterSpacing: "0.14em", margin: "0 0 16px" }}>SQDV</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte)", margin: "0 0 2px" }}>Merci.</p>
+        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em", margin: "0 0 16px" }}>SQDV</p>
         <Link href="/soutenir" style={boutonSoutenir}>Soutenir le projet</Link>
       </div>
     </div>
@@ -645,51 +645,47 @@ function VoletUnMot() {
 
 function formaterDateAjout(iso: string | null): string {
   if (!iso) return ""
-  const d = new Date(iso)
+  // ⚠️ `T12:00:00` et non la chaîne nue : une date seule se lit en UTC, et sur un
+  // serveur en fuseau négatif toute la colonne reculerait d'un jour. Midi met la
+  // valeur hors d'atteinte des deux bords.
+  const d = new Date(`${iso.slice(0, 10)}T12:00:00`)
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
 }
 
-function VoletAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
+/* La liste des ajouts, sans son cadre.
+   ⛔ La colonne des dates se mesure sur les dates PRÉSENTES (`max-content`), elle ne se
+   pose pas au pire cas : elle valait 6,5rem, taillée pour « 28 septembre 2026 », or les
+   mois français vont de 53,6 px à 94,3, et un août laissait donc 53,6 px de vide entre
+   la date et son titre.
+   ⚠️ La grille est portée par la LISTE, non par la rangée : une grille par rangée
+   mesurerait sa colonne pour elle seule et les titres cesseraient de s'aligner. La
+   rangée reprend les colonnes de sa liste par `subgrid`. ⛔ Pas `display: contents`,
+   qui la priverait de sa boîte : c'est elle qui porte le survol. */
+function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
+  if (recentes.length === 0) {
+    return <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-second)", fontStyle: "italic", margin: 0, textAlign: "center" }}>Aucun ajout pour l’instant.</p>
+  }
   return (
-    <div className="accueil-carte" style={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Ajouts récents</h2>
-      {recentes.length === 0 ? (
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", margin: 0 }}>Aucun ajout pour l&rsquo;instant.</p>
-      ) : (
-        // Liste centrée EN BLOC (largeur au contenu, marges automatiques), texte aligné à gauche.
-        //
-        // ⛔ La colonne des dates se mesure sur les dates PRÉSENTES (`max-content`), elle ne
-        // se pose pas au pire cas. Elle valait 6,5rem, taillée pour « 28 septembre 2026 »
-        // (94,3 px mesurés) ; or les mois français vont de 53,6 px (« 1 mai 2026 ») à 94,3,
-        // et un août à 62,4 px laissait donc 53,6 px de vide entre la date et son titre,
-        // presque la largeur de la date elle-même. La colonne suit maintenant la plus large
-        // des dates affichées, et l'écart tombe à la seule gouttière.
-        //
-        // ⚠️ La grille est portée par la LISTE, non par la rangée : une grille par rangée
-        // mesurerait sa colonne pour elle seule et les titres cesseraient de s'aligner.
-        // La rangée reprend les colonnes de sa liste par `subgrid`. ⛔ Pas `display: contents`,
-        // qui la priverait de sa boîte : c'est elle qui porte le survol, et la gouttière
-        // entre la date et le titre cesserait d'y répondre.
-        <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", columnGap: "0.75rem", rowGap: "0.5rem", alignItems: "baseline", flex: 1, width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
-          {recentes.map(o => (
-            /* Date à GAUCHE (colonne commune à toutes les rangées) ; « lire » révélé à droite au survol. */
-            <li key={o.id_oeuvre} className="ajout-item" style={{ display: "grid", gridTemplateColumns: "subgrid", gridColumn: "1 / -1", alignItems: "baseline" }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.65625rem", color: "#a99a78", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
-              <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
-                <span className="ajout-titre" style={{ display: "block", fontSize: "0.78125rem", color: "var(--cs-texte)", lineHeight: 1.32 }}>
-                  {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
-                </span>
-                {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
-                <span className="ajout-lire" aria-hidden="true">
-                  <span className="ajout-lire-mot">Lire</span>
-                  <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", columnGap: "0.75rem", rowGap: "0.5rem", alignItems: "baseline", width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
+      {recentes.map(o => (
+        <li key={o.id_oeuvre} className="ajout-item" style={{ display: "grid", gridTemplateColumns: "subgrid", gridColumn: "1 / -1", alignItems: "baseline" }}>
+          {/* ⛔ La date rendait 2,61 sur le papier — la plus mauvaise encre du volet sur
+              la seule information qui date l'ajout. On garde sa chaleur, on la fonce :
+              `--cs-or-lisible`, et 11 px au lieu de 10,5. Mesuré : 5,14. */}
+          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.6875rem", color: "var(--cs-or-lisible)", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
+          <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+            <span className="ajout-titre" style={{ display: "block", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.35 }}>
+              {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
+            </span>
+            {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
+            <span className="ajout-lire" aria-hidden="true">
+              <span className="ajout-lire-mot">Lire</span>
+              <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -707,7 +703,7 @@ function BandeauStats({ nbTextes, nbAuteurs, nbTraductions, pourcentVerifie, nbC
     { icon: <IconeLivre />, valeur: nbTextes.toLocaleString("fr-FR"), label: "Textes disponibles" },
     { icon: <IconeTraductions />, valeur: nbTraductions.toLocaleString("fr-FR"), label: nbTraductions > 1 ? "Traductions bibliques" : "Traduction biblique" },
     { icon: <IconeAuteurs />, valeur: nbAuteurs.toLocaleString("fr-FR"), label: "Auteurs répertoriés" },
-    pourcentVerifie === null ? null : { icon: <IconeCheck />, valeur: `${pourcentVerifie} %`, label: "Textes vérifiés" },
+    pourcentVerifie === null ? null : { icon: <IconeCheck />, valeur: `${pourcentVerifie} %`, label: "Textes vérifiés" },
     nbContributeurs < 1 ? null : { icon: <IconeContrib />, valeur: nbContributeurs.toLocaleString("fr-FR"), label: nbContributeurs > 1 ? "Contributeurs" : "Contributeur" },
   ].filter((s) => s !== null)
   return (
@@ -716,9 +712,11 @@ function BandeauStats({ nbTextes, nbAuteurs, nbTraductions, pourcentVerifie, nbC
         <div key={i} className="accueil-stat">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
             <span style={{ color: "var(--cs-vert)", display: "inline-flex" }}>{s.icon}</span>
-            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre)", lineHeight: 1 }}>{s.valeur}</span>
+            <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.5rem", color: "var(--cs-encre-fonce)", lineHeight: 1 }}>{s.valeur}</span>
           </div>
-          <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "var(--cs-texte-gris)", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
+          {/* ⛔ `--cs-texte-gris` rendait 3,57 : sous le seuil, et c'est lui qui NOMME le
+              chiffre. `--cs-texte-second` rend 5,42 et tient le même rang. */}
+          <div style={{ fontSize: "0.6875rem", letterSpacing: "0.03em", color: "var(--cs-texte-second)", marginTop: "6px", textAlign: "center", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{s.label}</div>
         </div>
       ))}
     </div>
@@ -747,4 +745,3 @@ function IconeCheck() {
 function IconeContrib() {
   return (<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.4"/><path d="M5.5 19.2c.6-3.5 3.1-5.4 6.5-5.4s5.9 1.9 6.5 5.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>)
 }
-
