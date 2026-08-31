@@ -31,11 +31,27 @@ function nomPays(code: string): string {
 }
 
 // ── Briques d'affichage ──────────────────────────────────────────────────────
-function Tuile({ valeur, label, delta }: { valeur: string; label: string; delta?: number | null }) {
+/**
+ * Un libellé de tuile est soit invariable (« sur la liste d'attente »), soit un
+ * couple singulier/pluriel.
+ *
+ * ⚠️ La tuile accorde elle-même. Écrire « 1 actifs sur 7 jours » est le défaut le
+ * plus visible d'un tableau de bord, parce qu'un compteur passe par 1 tous les
+ * jours. Le zéro prend le SINGULIER, comme le veut l'usage français : « 0 compte
+ * créé », non « 0 comptes créés ».
+ */
+type Libelle = string | [singulier: string, pluriel: string]
+
+function accorder(n: number, label: Libelle): string {
+  if (typeof label === 'string') return label
+  return Math.abs(n) < 2 ? label[0] : label[1]
+}
+
+function Tuile({ n, label, delta }: { n: number; label: Libelle; delta?: number | null }) {
   return (
     <div className="cc-tuile">
-      <div className="cc-tuile-val" style={{ color: 'var(--cs-encre-fonce)' }}>{valeur}</div>
-      <div className="cc-tuile-lbl">{label}</div>
+      <div className="cc-tuile-val" style={{ color: 'var(--cs-encre-fonce)' }}>{nb(n)}</div>
+      <div className="cc-tuile-lbl">{accorder(n, label)}</div>
       {delta != null && (
         <div className={`au-delta ${delta > 0 ? 'au-delta-hausse' : delta < 0 ? 'au-delta-baisse' : 'au-delta-plat'}`}>
           {delta > 0 ? `+${nb(delta)}` : delta < 0 ? nb(delta) : 'inchangé'} depuis la veille
@@ -224,18 +240,18 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
           <>
             <Carte titre="Aujourd’hui">
               <div className="cc-tuiles">
-                <Tuile valeur={nb(r.vues_jour)} label="pages vues" delta={r.vues_jour - r.vues_veille} />
-                <Tuile valeur={nb(r.visiteurs_jour)} label="visiteurs" />
-                <Tuile valeur={nb(r.vues_veille)} label="vues la veille" />
+                <Tuile n={r.vues_jour} label={['page vue', 'pages vues']} delta={r.vues_jour - r.vues_veille} />
+                <Tuile n={r.visiteurs_jour} label={['visiteur', 'visiteurs']} />
+                <Tuile n={r.vues_veille} label={['vue la veille', 'vues la veille']} />
               </div>
             </Carte>
 
             <Carte titre={`Sur ${tb.jours} jours`}>
               <div className="cc-tuiles">
-                <Tuile valeur={nb(r.vues_periode)} label="pages vues" />
-                <Tuile valeur={nb(r.visiteurs_periode)} label="visiteurs" />
-                <Tuile valeur={nb(r.comptes_periode)} label="comptes créés" />
-                <Tuile valeur={nb(r.livres_periode)} label="livres marqués lus" />
+                <Tuile n={r.vues_periode} label={['page vue', 'pages vues']} />
+                <Tuile n={r.visiteurs_periode} label={['visiteur', 'visiteurs']} />
+                <Tuile n={r.comptes_periode} label={['compte créé', 'comptes créés']} />
+                <Tuile n={r.livres_periode} label={['livre marqué lu', 'livres marqués lus']} />
               </div>
             </Carte>
 
@@ -253,10 +269,10 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
 
             <Carte titre="Le site en un coup d’œil">
               <div className="cc-tuiles">
-                <Tuile valeur={nb(r.comptes_total)} label="comptes" />
-                <Tuile valeur={nb(tb.comptes.actifs_30j)} label="actifs sur 30 jours" />
-                <Tuile valeur={nb(tb.lectures.essais_publies)} label="essais publiés" />
-                <Tuile valeur={nb(r.liste_attente)} label="sur la liste d’attente" />
+                <Tuile n={r.comptes_total} label={['compte', 'comptes']} />
+                <Tuile n={tb.comptes.actifs_30j} label={['actif sur 30 jours', 'actifs sur 30 jours']} />
+                <Tuile n={tb.lectures.essais_publies} label={['essai publié', 'essais publiés']} />
+                <Tuile n={r.liste_attente} label="sur la liste d’attente" />
               </div>
             </Carte>
           </>
@@ -315,12 +331,12 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
           <>
             <Carte titre="L’état des comptes">
               <div className="cc-tuiles">
-                <Tuile valeur={nb(tb.comptes.total)} label="comptes en tout" />
-                <Tuile valeur={nb(r.comptes_periode)} label={`créés sur ${tb.jours} jours`} />
-                <Tuile valeur={nb(tb.comptes.actifs_7j)} label="actifs sur 7 jours" />
-                <Tuile valeur={nb(tb.comptes.actifs_30j)} label="actifs sur 30 jours" />
-                <Tuile valeur={nb(tb.comptes.avec_essai)} label="ont écrit un essai" />
-                <Tuile valeur={nb(tb.comptes.liste_attente_a_prevenir)} label="à prévenir de l’ouverture" />
+                <Tuile n={tb.comptes.total} label={['compte en tout', 'comptes en tout']} />
+                <Tuile n={r.comptes_periode} label={[`créé sur ${tb.jours} jours`, `créés sur ${tb.jours} jours`]} />
+                <Tuile n={tb.comptes.actifs_7j} label={['actif sur 7 jours', 'actifs sur 7 jours']} />
+                <Tuile n={tb.comptes.actifs_30j} label={['actif sur 30 jours', 'actifs sur 30 jours']} />
+                <Tuile n={tb.comptes.avec_essai} label={['a écrit un essai', 'ont écrit un essai']} />
+                <Tuile n={tb.comptes.liste_attente_a_prevenir} label="à prévenir de l’ouverture" />
               </div>
               <p className="cc-mention">
                 Un compte est dit actif s’il a laissé une trace datée sur la période : un livre marqué lu,
@@ -341,7 +357,7 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
                     {tb.comptes.derniers.map(c => (
                       <li key={`${c.pseudo}-${c.created_at}`} className="au-ligne">
                         <span className="au-ligne-nom">{c.pseudo || 'sans pseudonyme'}</span>
-                        <span className="au-ligne-detail">{dateLongue(c.created_at)}</span>
+                        <span className="au-ligne-date">{dateLongue(c.created_at)}</span>
                       </li>
                     ))}
                   </ul>
@@ -354,12 +370,12 @@ export default function AudienceClient({ tb, ongletInitial }: { tb: TableauAudie
           <>
             <Carte titre="Ce qu’on y fait">
               <div className="cc-tuiles">
-                <Tuile valeur={nb(r.livres_periode)} label={`livres marqués lus sur ${tb.jours} j`} />
-                <Tuile valeur={nb(tb.lectures.livres_total)} label="depuis toujours" />
-                <Tuile valeur={nb(tb.lectures.prelevements_periode)} label="prélèvements" />
-                <Tuile valeur={nb(tb.lectures.favoris_periode)} label="favoris" />
-                <Tuile valeur={nb(tb.lectures.commentaires_periode)} label="commentaires" />
-                <Tuile valeur={nb(tb.lectures.essais_publies)} label="essais publiés" />
+                <Tuile n={r.livres_periode} label={[`livre marqué lu sur ${tb.jours} j`, `livres marqués lus sur ${tb.jours} j`]} />
+                <Tuile n={tb.lectures.livres_total} label="depuis toujours" />
+                <Tuile n={tb.lectures.prelevements_periode} label={['prélèvement', 'prélèvements']} />
+                <Tuile n={tb.lectures.favoris_periode} label={['favori', 'favoris']} />
+                <Tuile n={tb.lectures.commentaires_periode} label={['commentaire', 'commentaires']} />
+                <Tuile n={tb.lectures.essais_publies} label={['essai publié', 'essais publiés']} />
               </div>
             </Carte>
 

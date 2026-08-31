@@ -37,6 +37,10 @@ export const CSS_AUDIENCE = `
   .au-ligne-nom a:hover { color: var(--cs-vert); text-decoration: underline; }
   .au-ligne-val { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.9375rem; color: var(--cs-encre-fonce); font-variant-numeric: tabular-nums; }
   .au-ligne-detail { font-size: 0.6875rem; color: var(--cs-texte-faible); margin-left: 0.375rem; font-family: var(--font-source-sans), Arial, sans-serif; }
+  /* Une DATE n'est pas une glose : elle occupe la colonne du nombre, et prend donc
+     son corps. En « détail », elle tombait à 11 px dans l'encre la plus ténue du
+     site, pour la seule information que la ligne apporte. */
+  .au-ligne-date { font-size: 0.75rem; color: var(--cs-texte-second); font-family: var(--font-source-sans), Arial, sans-serif; font-variant-numeric: tabular-nums; }
 
   /* Barre de proportion, posée derrière le nom : on lit un classement d'un coup
      d'œil sans avoir à comparer des nombres. */
