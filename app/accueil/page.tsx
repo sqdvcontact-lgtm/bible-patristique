@@ -330,16 +330,38 @@ export default async function AccueilPage() {
         /* Ajouts récents : au survol, « Lire » remplace TOUTE la ligne auteur-titre
            (la date, elle, reste). Fondu croisé : le titre s'efface, « Lire » — en
            lettres espacées, sobre et large — apparaît à sa place. */
-        .ajout-item .ajout-titre { transition: opacity 0.2s ease; }
-        .ajout-item:hover .ajout-titre { opacity: 0; }
+        /* ⛔ « LIRE » SE POSE À DROITE DU TEXTE, IL NE LE REMPLACE PLUS (décision de
+           l'auteur, 2026-08-31). Le titre restait invisible pendant tout le survol :
+           on désignait une ligne pour la voir disparaître, et l'on ne savait plus ce
+           qu'on s'apprêtait à ouvrir.
+           ⛔ ET LA LISTE NE BOUGE PAS D'UN PIXEL. Elle est en « width: fit-content »
+           et centrée : une mention qui n'occuperait sa place qu'au survol élargirait
+           la grille et décalerait la colonne entière à chaque passage du curseur. La
+           place est donc RÉSERVÉE D'AVANCE, visible ou non — c'est le procédé du
+           chevron doublé de la barre de navigation, et pour la même raison. Le blanc
+           qu'elle laisse au repos ne se voit pas : le bloc est centré et son bord
+           droit est déjà ragué.
+           ⚠️ Elle reste dans le FIL du texte, en « inline-flex » sur la ligne de base :
+           aucune position absolue n'a ainsi à deviner où le texte s'arrête, et la
+           mention suit le dernier mot même quand un titre se replie sur deux lignes. */
         .ajout-item .ajout-lire {
-          position: absolute; inset: 0;
-          display: flex; align-items: center; gap: 9px;
-          opacity: 0; transform: translateX(-7px);
+          /* ⚠️ « center » et non « baseline » : le chevron est un inline-flex qui ne
+             porte aucun texte, sa ligne de base est donc SYNTHÉTISÉE sur son bord
+             inférieur, et il flottait au-dessus du mot. Centré, il retrouve la ligne
+             optique de « Lire ». */
+          display: inline-flex; align-items: center; gap: 5px;
+          margin-left: 0.85em;
+          white-space: nowrap;
+          opacity: 0; transform: translateX(-5px);
           transition: opacity 0.24s ease, transform 0.34s cubic-bezier(0.22,0.61,0.36,1);
           pointer-events: none;
         }
         .ajout-item:hover .ajout-lire { opacity: 1; transform: translateX(0); }
+        /* ⚠️ Sans survol — un doigt — la mention n'a aucun sens : elle ne paraîtrait
+           jamais, et sa place réservée resserrerait les titres pour rien. */
+        @media (hover: none) {
+          .ajout-item .ajout-lire { display: none; }
+        }
         .ajout-lire-mot {
           position: relative;
           font-family: var(--font-source-serif), Georgia, serif;
@@ -830,13 +852,16 @@ function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
               `--cs-or-lisible`, et 11 px au lieu de 10,5. Mesuré : 5,14. */}
           <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.6875rem", color: "var(--cs-or-lisible)", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
           <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+            {/* « Lire » vit DANS le titre, à la suite du texte : c'est ce qui le pose à
+                sa droite quelle que soit la longueur de la ligne, et sur la même ligne
+                de base, sans qu'aucune position absolue ait à deviner où le texte
+                s'arrête. */}
             <span className="ajout-titre" style={{ display: "block", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.35 }}>
               {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
-            </span>
-            {/* « Lire » : au survol, remplace toute la ligne auteur-titre. */}
-            <span className="ajout-lire" aria-hidden="true">
-              <span className="ajout-lire-mot">Lire</span>
-              <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
+              <span className="ajout-lire" aria-hidden="true">
+                <span className="ajout-lire-mot">Lire</span>
+                <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
+              </span>
             </span>
           </Link>
         </li>
