@@ -370,7 +370,7 @@ export default async function AccueilPage() {
             navigation la portant déjà sur toutes les pages.
             ⚠️ La devise n'est plus une étiquette de catégorie — « Lectures bibliques et
             patristiques » décrivait un rayon — mais la THÈSE du site. La ligne de rang,
-            dessous, dit à quelle sorte d'ouvrage on a affaire. */}
+            dessous, dit de quoi le site est fait : des SOURCES, non des commentaires. */}
         <header style={{ textAlign: "center", maxWidth: "40rem" }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
@@ -427,7 +427,7 @@ export default async function AccueilPage() {
               l'or et `--cs-fond` au brun, le même calcul rend le même rapport.
               ⛔ Le mélange vaut 92 % et non 78 : mesuré, 78 % rendaient 3,61 sur le
               papier et 88 % encore 4,38, tous deux sous le seuil — et c'est la ligne qui
-              NOMME l'ouvrage. À 92 % elle rend 4,78, et reste d'un cran sous la devise,
+              NOMME la matière du site. À 92 % elle rend 4,78, et reste d'un cran sous la devise,
               que le corps et l'italique séparent déjà.
               ⚠️ Les petites capitales sont SYNTHÉTISÉES, non gravées : mesuré,
               `font-feature-settings: "smcp"` ne change rien à la largeur du mot, la
@@ -444,7 +444,7 @@ export default async function AccueilPage() {
             color: "color-mix(in oklab, var(--cs-vert) 92%, var(--cs-fond))",
             margin: 0,
           }}>
-            Bibliothèque biblique et patristique
+            Sources bibliques et patristiques
           </p>
         </header>
 
