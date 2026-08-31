@@ -262,6 +262,18 @@ export const ILLUSTRATIONS: Illustration[] = [
     lieu: { href: '/accueil', label: 'Accueil', repere: 'En tête, juste SOUS le titre du site, qu’elle ferme au lieu de l’annoncer.' },
     source: 'app/accueil/page.tsx',
     traitement: { opacite: 0.72, pose: { largeur: 'min(265px, 48vw)', sol: 'papier' } },
+    note: '⚠️ Son encre est CLAIRE — luminance 186, un or pâle — et non les 33 de la famille. C’est pourquoi elle ne porte pas la classe « cs-ornement » et ne se retourne pas au Cuir : elle y est déjà lisible. Elle fait exception, et l’exception est ici écrite plutôt que devinée.',
+  },
+
+  {
+    chemin: '/ornements/filet-un-mot.png',
+    nom: 'Filet gravé du mot de l’auteur',
+    fonction: 'coiffer',
+    emploi: 'Ferme le titre « Un mot », sur l’accueil. Une hampe entre deux fers, un fleuron à gauche et une pointe à droite.',
+    lieu: { href: '/accueil', label: 'Accueil', repere: 'Dans la bande sous les portes, juste SOUS le titre « Un mot ».' },
+    source: 'app/accueil/page.tsx',
+    traitement: { opacite: 0.72, ornement: true, pose: { largeurMax: 'min(14rem, 60%)', sol: 'papier' } },
+    note: 'Entrée le 31 août 2026, à la place du fleuron « ❧ » entre deux filets dégradés qui coiffait ce titre : c’était un filet, et c’en est un plus riche. Fabriquée par la chaîne commune (scripts/ornements-detourer.mjs) : pourtour rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage par la luminance, puis encre reposée à 33, celle de la famille. Profil de gravure au TRAIT — 83 % de transparents, 9 % de partiels, les bords et eux seuls. Servie en 434 × 75 pour 224 px d’affichage, soit un rapport de 1,94 : au delà de deux, le navigateur réduit une seconde fois derrière la nôtre et les hachures fines moyennent en gris mou. ⚠️ Contrairement au filet du frontispice, son encre est SOMBRE : elle porte donc « cs-ornement » et se retourne au Cuir, où elle rend une gravure claire sur le cuir. Opacité 0,72, celle du filet du frontispice et non celle des culs-de-lampe (0,42 à 0,5) : ceux-là n’ornent qu’un vide, celle-ci coiffe un titre et se regarde. Les trois partis — 0,72, 0,52, et une reteinte en or — ont été rendus en place et dans les deux thèmes avant de trancher.',
   },
 
   // ── Illustrer une carte ────────────────────────────────────────────────────
