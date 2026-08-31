@@ -100,8 +100,17 @@ export default async function AccueilPage() {
            On ne change pas l'or de la page, on en tire une encre.
            ⛔ Le pas se prend sur --cs-texte-fort, non sur une valeur écrite : au Clair
            il fonce l'or, au Cuir il l'éclaircit, et le rapport tient dans les deux
-           thèmes sans qu'on ait deux règles à entretenir. Mesuré : 5,14 sur la carte. */
-        .accueil { --cs-or-lisible: color-mix(in oklab, var(--cs-or) 78%, var(--cs-texte-fort)); }
+           thèmes sans qu'on ait deux règles à entretenir.
+
+           ⚠️ 74 % et non 78. C'est le RETRAIT DU CADRE du mot qui l'a imposé : à 78 %,
+           l'or rendait bien 5,14 sur --cs-fond-clair, le fond de la carte, mais la
+           carte n'existe plus et le bouton comme la signature se posent maintenant sur
+           --cs-fond-doux, plus sombre d'un cran. Mesuré là : 4,49, un centième sous le
+           seuil. À 74 % il rend 4,75 sur le papier doux et 5,24 sur le papier du seuil,
+           7,51 et 8,74 au Cuir. C'est la règle de la charte prise en défaut : une encre
+           se mesure contre TOUS les fonds qu'un thème peut lui donner, jamais contre
+           le seul sol — et retirer un cadre CHANGE le fond de ce qu'il contenait. */
+        .accueil { --cs-or-lisible: color-mix(in oklab, var(--cs-or) 74%, var(--cs-texte-fort)); }
 
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
         /* La marque qui ferme la page. C'était le fleuron ❧, un CARACTÈRE : son dessin
@@ -177,18 +186,40 @@ export default async function AccueilPage() {
         }
         .seuil-journal-titre i { flex: 1; height: 1px; background: var(--cs-bord); font-size: 0; }
 
-        /* ── Les volets ──────────────────────────────────────────────────────
-           Le journal étant passé en tête, « Un mot » se tient SEUL. ⛔ Il ne prend pas
-           la justification entière : sa prose est CENTRÉE, et centrée sur huit cents
-           pixels l'œil perd le début de la ligne suivante. */
-        .accueil-volets {
-          display: grid;
-          grid-template-columns: minmax(0, 34rem);
-          justify-content: center;
+        /* ── Le mot de l'auteur — HORS CADRE ─────────────────────────────────
+           Il vivait dans une carte : fond clair, bordure, rayon, ombre portée. C'est
+           la forme d'un objet qu'on POSE sur une page ; or ce n'est pas un objet, c'est
+           un passage de la prose du site, comme les sections du colophon plus bas. Il
+           se compose donc à même le papier (décision de l'auteur, 2026-08-31), et ce
+           qui le tenait — le cadre — est rendu par le BLANC.
+           ⛔ Il garde sa MESURE : sa prose est CENTRÉE, et centrée sur toute la
+           justification l'œil perdrait le début de la ligne suivante. 32rem font 58
+           signes par ligne, à un cheveu des 35rem du colophon. */
+        .accueil-mot {
           width: 100%;
-          max-width: var(--accueil-mesure);
+          max-width: 32rem;
           margin: 0 auto;
+          text-align: center;
         }
+        .accueil-mot h2 {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 1.1875rem;
+          font-weight: normal;
+          color: var(--cs-encre-fonce);
+          letter-spacing: 0.01em;
+          margin: 0 0 26px;
+        }
+        .accueil-mot-prose { display: flex; flex-direction: column; gap: 16px; }
+        /* Le pied ne « descend » plus au bas d'une carte : il n'y a plus de carte, et
+           c'est le blanc qui l'en sépare. ⚠️ « Merci. » se tient juste au-dessus de la
+           signature — deux lignes d'un même souffle — et le blanc s'ouvre AVANT elles. */
+        .accueil-mot-merci { margin: 38px 0 2px; }
+        .accueil-mot-sqdv { margin: 0 0 24px; }
+
+        /* ⚠️ Le bandeau reste une CARTE, et c'est voulu : ce n'est pas de la prose mais
+           une barre de chiffres, et son cadre est ce qui la tient d'un seul tenant. Le
+           mot libéré, elle devient le seul objet borné de la bande, ce qui la désigne
+           au lieu de la noyer. Le blanc qui l'en sépare s'ouvre d'autant. */
         .accueil-carte {
           background: var(--cs-fond-clair);
           border: 1px solid var(--cs-bord-clair);
@@ -197,18 +228,12 @@ export default async function AccueilPage() {
           padding: 18px 24px 18px;
           box-sizing: border-box;
         }
-        /* Le mot est le seul volet dont la PROSE remplit la carte : 24 px de rembourrage
-           ne faisaient plus que 5,6 % de la carte, et le bloc de texte touchait presque
-           le cadre. ⛔ En PIXELS, le blanc latéral tombait de 5,6 % à 1440 px de large
-           à 4,0 % à 2400 pendant que la ligne passait de 55 à 62 signes ; en rem il vaut
-           9,3 % à toute taille. */
-        .accueil-carte--mot { padding-left: 2.5rem; padding-right: 2.5rem; }
         .accueil-stats {
           display: flex;
           align-items: stretch;
           width: 100%;
           max-width: var(--accueil-mesure);
-          margin: 24px auto 0;
+          margin: clamp(38px, 5.5vh, 60px) auto 0;
           padding: 18px 14px;
         }
         .accueil-stat {
@@ -253,18 +278,59 @@ export default async function AccueilPage() {
         .ajout-lire .fleche { color: var(--cs-or-lisible); transition: transform 0.28s cubic-bezier(0.22,0.61,0.36,1); }
         .ajout-item:hover .ajout-lire .fleche { transform: translateX(4px); }
 
+        /* ── « Soutenir le projet » — l'or MONTE dans la pastille ─────────────
+           Le bouton n'avait AUCUN état de survol, et il ne pouvait pas en avoir : il
+           était composé en style EN LIGNE, où « :hover » n'existe pas. D'où cette classe.
+
+           L'effet : un aplat d'or qui monte du bas jusqu'à remplir la pastille, pendant
+           que l'encre passe au papier. C'est le geste d'un tampon qui s'encre, non un
+           bouton qui s'allume, et il appartient à la page — même courbe et même durée
+           que le filet doré qui se trace sous « Lire », deux blocs plus haut.
+
+           ⛔ L'aplat est « --cs-or-lisible », jamais « --cs-or » : mesuré, le papier sur
+           l'or du site ne rend que 3,66, sous le seuil, quand il rend 5,08 sur l'or
+           foncé. Un bouton qu'on ne peut plus lire une fois désigné serait le comble.
+           ⚠️ Il est posé en IMAGE de fond, non en couleur : c'est sa HAUTEUR qu'on
+           anime (« background-size »), et une couleur ne s'anime pas en hauteur. La
+           couleur de fond du repos reste dessous, dans « background-color ». */
+        .cs-bouton-soutenir {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.8125rem;
+          letter-spacing: 0.03em;
+          color: var(--cs-or-lisible);
+          text-decoration: none;
+          padding: 8px 22px;
+          border: 1px solid rgba(var(--cs-or-rgb), 0.55);
+          border-radius: 999px;
+          background-color: rgba(var(--cs-or-rgb), 0.09);
+          background-image: linear-gradient(var(--cs-or-lisible), var(--cs-or-lisible));
+          background-repeat: no-repeat;
+          background-position: 50% 100%;
+          background-size: 100% 0;
+          transition: background-size 0.3s cubic-bezier(0.22,0.61,0.36,1),
+                      color 0.22s ease, border-color 0.3s ease;
+        }
+        .cs-bouton-soutenir:hover,
+        .cs-bouton-soutenir:focus-visible {
+          background-size: 100% 100%;
+          border-color: var(--cs-or-lisible);
+          color: var(--cs-fond);
+        }
+
         /* ⚠️ Le bandeau ne suit PAS le seuil des volets. Un volet de texte devient
            illisible bien avant qu'une tuile de chiffre ne manque de place : les cinq
            tuiles tiennent encore leur rang à 640 px, où deux colonnes de prose ne
            tiendraient plus depuis longtemps. */
-        @media (max-width: 900px) {
-          .accueil-volets { grid-template-columns: 1fr; }
-        }
         @media (max-width: 640px) {
-          /* ⛔ Le mot reprend le rembourrage commun sur un téléphone : mesuré sur une
-             carte de 327 px, 2,5rem ne laissent que 245 px au texte, soit 38 signes par
-             ligne. Un blanc qui aère une carte de 429 px étrangle une carte de 327. */
-          .accueil-carte--mot { padding-left: 24px; padding-right: 24px; }
+          /* ⚠️ Le mot n'a plus de cadre à rembourrer, mais il lui faut une marge sur
+             un téléphone : sans elle sa prose toucherait le bord de l'écran, ce que le
+             rembourrage de la carte lui évitait. */
+          .accueil-mot { padding: 0 8px; }
+          .accueil-mot h2 { margin-bottom: 20px; }
+          .accueil-mot-merci { margin-top: 30px; }
           .accueil-stats { flex-wrap: wrap; }
           /* Deux tuiles par rang, la cinquième prenant le rang entier : les filets
              passent de la verticale à l'horizontale, sinon les tuiles flottent. */
@@ -289,6 +355,10 @@ export default async function AccueilPage() {
           .ajout-lire-mot::after, .ajout-lire .fleche { transition-duration: 0.01ms !important; }
           .ajout-item .ajout-lire { transform: none; }
           .ajout-item:hover .ajout-lire .fleche { transform: none; }
+          /* ⛔ L'or MONTE toujours, il n'est que posé d'un coup : on retire le trajet,
+             jamais l'état. Un bouton qui ne répondrait plus au survol serait pire
+             qu'un bouton qui répond sans animation. */
+          .cs-bouton-soutenir { transition-duration: 0.01ms !important; }
         }
       `}</style>
 
@@ -405,9 +475,7 @@ export default async function AccueilPage() {
 
       {/* ══ LA SUITE ═════════════════════════════════════════════════════════ */}
       <div className="accueil-suite">
-        <div className="accueil-volets">
-          <VoletUnMot />
-        </div>
+        <VoletUnMot />
         <BandeauStats
           nbTextes={nbTextes}
           nbAuteurs={nbAuteurs}
@@ -593,53 +661,30 @@ const paraStyle: React.CSSProperties = {
 
 /* ── Le mot de l'auteur ───────────────────────────────────────────────────── */
 
+// ⚠️ La prose du mot rejoint le CORPS du colophon : 15 px, interligne 1,6. Les deux
+// sont la prose du même auteur, et elles se lisaient à deux corps différents parce
+// que l'une était serrée dans une carte. Le resserrement de chasse qui allait avec
+// (-0,004em) tombe avec le cadre : rien ne l'étrangle plus.
 const motStyle: React.CSSProperties = {
   fontFamily: "var(--font-source-serif), Georgia, serif",
-  fontSize: "0.875rem",
-  lineHeight: 1.45,
-  letterSpacing: "-0.004em",
+  fontSize: "0.9375rem",
+  lineHeight: 1.6,
   color: "var(--cs-texte)",
   margin: 0,
-  textAlign: "center",
-}
-
-// Bouton « Soutenir le projet » — pastille dorée, sans flèche, accordée aux ornements
-// dorés de la page (❧, filets, signature).
-const boutonSoutenir: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontFamily: "var(--font-source-serif), Georgia, serif",
-  fontSize: "0.8125rem",
-  color: "var(--cs-or-lisible)",
-  textDecoration: "none",
-  letterSpacing: "0.03em",
-  padding: "7px 18px",
-  border: "1px solid rgba(var(--cs-or-rgb),0.6)",
-  borderRadius: "999px",
-  background: "rgba(var(--cs-or-rgb),0.09)",
 }
 
 function VoletUnMot() {
   return (
-    <div className="accueil-carte accueil-carte--mot" style={{ textAlign: "center", display: "flex", flexDirection: "column" }}>
-      <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: "normal", color: "var(--cs-encre-fonce)", margin: "0 0 12px", letterSpacing: "0.01em" }}>Un mot</h2>
-      {/* Le mot garde sa MESURE : le texte est CENTRÉ, et centré sur sept cents pixels
-          l'œil perd le début de la ligne suivante. */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "30rem", width: "100%", margin: "0 auto" }}>
+    <section className="accueil-mot">
+      <h2>Un mot</h2>
+      <div className="accueil-mot-prose">
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l’Église, anciens ou difficiles d’accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
-      {/* PIED SOLIDAIRE : signature et bouton descendent ENSEMBLE au bas de la carte.
-          Le bouton seul y descendait, et le blanc que lui laissait le volet voisin
-          s'ouvrait alors ENTRE « SQDV » et « Soutenir le projet ». Le blanc se met là
-          où une carte en veut, entre le corps et son pied. */}
-      <div style={{ marginTop: "auto", paddingTop: "20px" }}>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte)", margin: "0 0 2px" }}>Merci.</p>
-        <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em", margin: "0 0 16px" }}>SQDV</p>
-        <Link href="/soutenir" style={boutonSoutenir}>Soutenir le projet</Link>
-      </div>
-    </div>
+      <p className="accueil-mot-merci" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-texte)" }}>Merci.</p>
+      <p className="accueil-mot-sqdv" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em" }}>SQDV</p>
+      <Link href="/soutenir" className="cs-bouton-soutenir">Soutenir le projet</Link>
+    </section>
   )
 }
 
