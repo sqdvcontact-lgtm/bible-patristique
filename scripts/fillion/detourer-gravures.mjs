@@ -27,7 +27,7 @@
 
 import { createHash } from 'node:crypto'
 import sharp from 'sharp'
-import { mkdirSync, writeFileSync, existsSync, readdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
 
@@ -138,18 +138,54 @@ async function creuserLesTons(png) {
     .png().toBuffer()
 }
 
-/** ⛔ LE RÉGIME SE DÉCIDE SUR LA LARGEUR IMPRIMÉE, non sur le sujet.
+/** La largeur imprimée : une colonne, ou les deux.
  *
  *  La page de Fillion est à DEUX colonnes. Une gravure qui tient dans une
  *  colonne est une vignette, que le commentaire habille ; une gravure qui les
- *  enjambe est une scène, qui se pose au fil du texte et que rien n'habille. Le
- *  seuil est donc au-dessus d'une colonne et au-dessous de deux.
+ *  enjambe se pose au fil du texte et rien ne l'habille. Le seuil est donc
+ *  au-dessus d'une colonne et au-dessous de deux.
+ *
+ *  ⛔ MAIS ELLE NE DÉCIDE PLUS SEULE DU RÉGIME. Elle dit la MISE EN PAGE — ce qui
+ *  s'habille et ce qui ne s'habille pas — non la NATURE de l'image. Une gravure
+ *  large peut être un dessin au trait : voir `estPhotographie`, juste après.
  *
  *  ⚠️ Un premier jet classait sur la part des gris qui bordent le trait. Il
  *  rendait le MÊME partage, mais pour une mauvaise raison : il mesurait les
  *  dégâts de la compression, non la composition de la page. Il sert encore, mais
  *  à ce qu'il sait dire : choisir la source. */
 const LARGEUR_DEUX_COLONNES = 0.6
+
+/** ⛔ C'EST FILLION QUI DIT CE QU'IL IMPRIME.
+ *
+ *  La largeur seule ne suffit plus. Elle a valu tant que le corpus se réduisait aux
+ *  onze gravures de Marc, où « enjambe les deux colonnes » et « photogravure »
+ *  coïncidaient. À 155 gravures le partage se défait : le massacre des saints
+ *  Innocents d'après un ivoire, un plan du temple d'Hérode, une scène de deuil
+ *  d'après une peinture grecque enjambent tous les deux colonnes et sont des
+ *  DESSINS AU TRAIT. Les cadrer leur laisse un rectangle de papier gris là où la
+ *  page attend de l'encre sur le sien. Sur 35 gravures larges, 18 étaient dans ce
+ *  cas.
+ *
+ *  ⚠️ Aucune mesure de pixel ne les sépare proprement. La TRAME — la part des gris
+ *  qui bordent le trait — met les photographies de paysage au milieu des dessins,
+ *  faute de traits. Et ce que le détourage rend TRANSPARENT laisse une bande
+ *  trouble : les deux photogravures de Marc y rendent 34 %, le boisseau, qui est un
+ *  dessin, 50 %, et quatre photographies de Luc et de Jean entre 50 et 59 %.
+ *
+ *  ⛔ La légende IMPRIMÉE, elle, le dit : Fillion écrit « (D'après une
+ *  photographie.) » sous ses photographies, et « (D'après un ivoire) »,
+ *  « (Bas-relief romain) », « (Peinture égyptienne) » sous ses dessins. C'est la
+ *  source qui tranche, non le pixel — et c'est ce que la charte demande partout
+ *  ailleurs.
+ *
+ *  ⚠️ DEUX gravures du tome VII n'ont aucune légende, et une poignée nomment un
+ *  lieu sans dire le procédé (« Tombeaux taillés dans le roc », « Intérieur de
+ *  l'église la Nativité »). Elles retombent donc au trait, ce qui est le parti le
+ *  moins coûteux : une photographie détourée se voit tout de suite, un dessin cadré
+ *  passe inaperçu et laisse un rectangle. */
+function estPhotographie(legende) {
+  return /photograph/i.test(legende ?? '')
+}
 
 /** ⛔ UN FICHIER SE SERT AU DOUBLE DE SA TAILLE D'AFFICHAGE, JAMAIS PLUS
  *  (charte). Au delà, le navigateur réduit une seconde fois derrière nous, et
@@ -509,8 +545,14 @@ function boiteUtile(rgba, W, H, marge = 4) {
  *  sert déjà Kraken, et le PNG obtenu est gardé en cache.
  *
  *  wsl -e bash -lc 'convert <feuillet>.jp2 tmp/jp2-png/f<page>.png' */
+/** ⚠️ LE NUMÉRO DE FEUILLET SE COMPLÈTE À TROIS CHIFFRES. Les onze pages de Marc
+ *  sont toutes au-delà de la centième, si bien que `f202.png` tombait juste et que
+ *  le défaut est resté caché jusqu'à l'arrivée de Matthieu, qui commence au
+ *  feuillet 25 : la chaîne cherchait `f25.png` là où le fichier est `f025.png`,
+ *  ne le trouvait pas, et retombait sur une branche de repli qui va chercher la
+ *  page composée par son adresse — nulle pour un actif sans fichier. */
 function feuilletJp2(page) {
-  const f = `${DOSSIER_JP2}/f${page}.png`
+  const f = `${DOSSIER_JP2}/f${String(page).padStart(3, '0')}.png`
   return existsSync(f) ? f : null
 }
 
@@ -801,20 +843,94 @@ export async function cadrerDepuisJp2(feuillet, n, largeurServie) {
  *  vraiment : dimensions, poids, empreinte, profil et version du traitement.
  *  ⚠️ Le profil passe à 2.0.0 : la source d'autorité a changé, et une version
  *  qui ne bougerait pas ferait croire au même traitement. */
-async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, traitement = null) {
+/** ⛔ ET IL CRÉE LA LIGNE QUAND ELLE N'EXISTE PAS.
+ *
+ *  La fonction ne faisait qu'un `update`, ce qui suffisait tant que les actifs
+ *  venaient d'une chaîne qui posait déjà leurs deux lignes de fichier. Les 155
+ *  gravures collectées pour Matthieu, Luc et Jean n'en ont AUCUNE : l'`update`
+ *  aurait touché zéro ligne, **sans erreur**, et la base n'aurait rien su des
+ *  fichiers déposés. Le seau aurait porté des images que la page ne pouvait pas
+ *  nommer.
+ *
+ *  ⚠️ Le chemin suit la convention déjà en place, relevée sur les onze de Marc :
+ *  `fillion/<tome>/<livre>/<chapitre>/<clé>/<rôle>`. Il se dérive de l'ancre
+ *  canonique, et rien n'est inventé.
+ *
+ *  ⚠️ La ligne prend la publication de son ACTIF, jamais `true` par défaut : les
+ *  gravures neuves sont privées tant que l'arbitrage des 43 anciennes n'est pas
+ *  rendu (charte § 35.16.15), et un fichier public sous un actif privé serait un
+ *  état que personne n'a voulu. */
+const DOSSIER_TOME = { t01: 'pentateuch', t07: null }
+
+function cheminDuFichier(cle, canonIdStart, role) {
+  const tome = cle.match(/^fillion-(t\d+)-/)?.[1]
+  if (!tome) throw new Error(`clé sans tome : ${cle}`)
+  const [livre, chapitre] = String(canonIdStart ?? '').split('.')
+  if (!livre) throw new Error(`${cle} : pas d'ancre canonique, le chemin ne se dérive pas`)
+  const section = DOSSIER_TOME[tome] ?? livre.toLowerCase()
+  const rang = DOSSIER_TOME[tome] ? livre.toLowerCase() : (chapitre ?? '0')
+  const nom = role === 'master' ? 'master.png' : 'web.webp'
+  return `fillion/${tome}/${section}/${rang}/${cle}/${nom}`
+}
+
+/** ⛔ `source_sha256` est OBLIGATOIRE, et c'est bien vu : une ligne de fichier doit
+ *  dire de quoi elle dérive. On empreinte le feuillet RÉELLEMENT LU — celui que la
+ *  chaîne a ouvert pour produire l'image —, jamais le PDF, qui n'a servi qu'à
+ *  trouver la gravure. */
+const empreintesSource = new Map()
+function empreinteDuFeuillet(chemin) {
+  if (!chemin) return null
+  if (!empreintesSource.has(chemin)) {
+    empreintesSource.set(chemin, createHash('sha256').update(readFileSync(chemin)).digest('hex'))
+  }
+  return empreintesSource.get(chemin)
+}
+
+async function reporterFichier(db, cle, role, buffer, mime, largeur, hauteur, traitement = null, sourceSha = null) {
   const { data: actif, error: e0 } = await db
-    .from('bible_edition_assets').select('id').eq('asset_key', cle).single()
+    .from('bible_edition_assets').select('id,family_id,is_public,canon_id_start').eq('asset_key', cle).single()
   if (e0) throw new Error(`actif ${cle} introuvable : ${e0.message}`)
-  const { error } = await db.from('bible_edition_asset_files').update({
+
+  const champs = {
     width_px: largeur,
     height_px: hauteur,
     byte_size: buffer.length,
     mime_type: mime,
     sha256: createHash('sha256').update(buffer).digest('hex'),
     processing_profile: traitement ? `fillion-illustration-${traitement}` : 'fillion-illustration',
-    processing_version: '4.3.0',
-  }).eq('asset_id', actif.id).eq('variant_role', role)
-  if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
+    processing_version: '4.6.0',
+  }
+  const { data: ligne, error: e1 } = await db.from('bible_edition_asset_files')
+    .select('id').eq('asset_id', actif.id).eq('variant_role', role).maybeSingle()
+  if (e1) throw new Error(`lecture refusée pour ${cle} (${role}) : ${e1.message}`)
+
+  if (ligne) {
+    const { error } = await db.from('bible_edition_asset_files').update(champs).eq('id', ligne.id)
+    if (error) throw new Error(`report refusé pour ${cle} (${role}) : ${error.message}`)
+    return
+  }
+  const seau = role === 'master' ? SEAU_MASTER : SEAU_WEB
+  const chemin = cheminDuFichier(cle, actif.canon_id_start, role)
+  const { error } = await db.from('bible_edition_asset_files').insert({
+    ...champs,
+    family_id: actif.family_id,
+    asset_id: actif.id,
+    variant_role: role,
+    storage_bucket: seau,
+    storage_path: chemin,
+    // ⛔ UN MASTER N'A PAS D'ADRESSE PUBLIQUE : son seau est privé, et la base le
+    //    refuse — c'est bien vu, une adresse publique sur un fichier qui ne l'est
+    //    pas serait une promesse en l'air. Le web, lui, la porte.
+    public_uri: role === 'master'
+      ? null
+      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${seau}/${chemin}`,
+    color_space: role === 'master' ? 'gray' : 'srgb',
+    bit_depth: 8,
+    source_sha256: sourceSha,
+    validation_status: 'review',
+    is_public: role === 'master' ? false : actif.is_public,
+  })
+  if (error) throw new Error(`création refusée pour ${cle} (${role}) : ${error.message}`)
 }
 
 // ── Passe ────────────────────────────────────────────────────────────────────
@@ -827,7 +943,7 @@ async function principal() {
 
   const { data, error } = await db
     .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,source_page_index,source_crop_box,web_storage_path')
+    .select('asset_key,asset_kind,public_uri,source_page_index,source_crop_box,web_storage_path,printed_caption,canon_id_start')
     .order('source_page_index')
   if (error) throw new Error(`actifs illisibles : ${error.message}`)
 
@@ -843,9 +959,11 @@ async function principal() {
     const n = normaliserDecoupe(a.source_crop_box)
     if (!n) { rapport.push({ cle: a.asset_key, regime: '?', motif: 'découpe illisible' }); continue }
 
-    // LE RÉGIME se lit sur la largeur imprimée : une colonne, ou les deux.
+    // ⛔ LE RÉGIME NE SE LIT PLUS SUR LA SEULE LARGEUR : c'est FILLION qui dit ce
+    //    qu'il imprime. Voir `estPhotographie`.
     const largeurImprimee = n[2] - n[0]
-    const regime = largeurImprimee > LARGEUR_DEUX_COLONNES ? 'B' : 'A'
+    const regime = largeurImprimee > LARGEUR_DEUX_COLONNES && estPhotographie(a.printed_caption)
+      ? 'B' : 'A'
     const ligne = { cle: a.asset_key, regime, largeurImprimee, tournee: null }
 
     if (FABRIQUER) {
@@ -860,6 +978,13 @@ async function principal() {
         r = await cadrerDepuisJp2(feuillet, n, servie)
       } else if (feuillet) {
         r = await detourerDepuisJp2(feuillet, n, servie)
+      } else if (!a.public_uri) {
+        // ⛔ Sans feuillet ET sans page déjà servie, il n'y a rien à traiter. On le
+        //    DIT au lieu d'aller chercher une adresse nulle, qui arrête la passe
+        //    entière sur un message que rien ne rattache à l'actif fautif.
+        ligne.motif = '⛔ ni feuillet JP2 décodé ni fichier servi : rien à traiter'
+        rapport.push(ligne)
+        continue
       } else {
         const composee = Buffer.from(await (await fetch(a.public_uri)).arrayBuffer())
         const m = await partDesGrisAuBordDuTrait(composee)
@@ -873,12 +998,19 @@ async function principal() {
       Object.assign(ligne, { source: r.source, largeur: r.largeur, hauteur: r.hauteur, profil: r.profil, tournee: r.tournee, cadree: r.cadree, rogne: r.rogne, bornes: r.bornes })
       writeFileSync(`${DOSSIER_LOCAL}/${a.asset_key}.png`, r.png)
       if (TELEVERSER) {
+        // ⚠️ `web_storage_path` est NUL pour un actif qui n'a pas encore de
+        //    fichier : le chemin se dérive alors de l'ancre, selon la convention
+        //    déjà en place. Voir `cheminDuFichier`.
+        const cheminWeb = a.web_storage_path ?? cheminDuFichier(a.asset_key, a.canon_id_start, 'web')
         const { error: e1 } = await db.storage.from(SEAU_WEB)
-          .upload(a.web_storage_path, r.webp, { contentType: 'image/webp', upsert: true })
+          .upload(cheminWeb, r.webp, { contentType: 'image/webp', upsert: true })
         if (e1) throw new Error(`web refusé pour ${a.asset_key} : ${e1.message}`)
         if (r.master) {
+          const cheminMaster = a.web_storage_path
+            ? a.web_storage_path.replace(/web\.webp$/, 'master.png')
+            : cheminDuFichier(a.asset_key, a.canon_id_start, 'master')
           const { error: e2 } = await db.storage.from(SEAU_MASTER)
-            .upload(a.web_storage_path.replace(/web\.webp$/, 'master.png'), r.master, { contentType: 'image/png', upsert: true })
+            .upload(cheminMaster, r.master, { contentType: 'image/png', upsert: true })
           if (e2) throw new Error(`master refusé pour ${a.asset_key} : ${e2.message}`)
         }
         // ⛔ LA BASE DOIT DIRE CE QUI EST SERVI. Remplacer un fichier sans
@@ -886,10 +1018,11 @@ async function principal() {
         //    l'épreuve du 30 août a rendu le Jourdain en portrait, sa proportion
         //    étant lue dans une ligne périmée. Dimensions, poids et empreinte se
         //    reportent au même passage que le dépôt, jamais plus tard.
-        await reporterFichier(db, a.asset_key, 'web', r.webp, 'image/webp', r.largeur, r.hauteur, r.cadree ? 'cadree' : 'detouree')
+        const sourceSha = empreinteDuFeuillet(feuilletJp2(a.source_page_index))
+        await reporterFichier(db, a.asset_key, 'web', r.webp, 'image/webp', r.largeur, r.hauteur, r.cadree ? 'cadree' : 'detouree', sourceSha)
         if (r.master) {
           const mm = await sharp(r.master).metadata()
-          await reporterFichier(db, a.asset_key, 'master', r.master, 'image/png', mm.width, mm.height)
+          await reporterFichier(db, a.asset_key, 'master', r.master, 'image/png', mm.width, mm.height, null, sourceSha)
         }
         ligne.depose = true
       }
