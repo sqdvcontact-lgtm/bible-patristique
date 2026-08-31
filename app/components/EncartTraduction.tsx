@@ -21,16 +21,20 @@
 // CONTENEUR, dans `globals.css` (`@container volet`), le volet portant
 // `container-type: inline-size`.
 //
-// ⚠️ LE LIEN PARTAGE LA LIGNE DE L'ÉTIQUETTE (2026-08-30, condensation demandée par
-// l'auteur). Il occupait une ligne entière pour une action secondaire, alors que
-// « Traduction » laisse les deux tiers de la sienne libres. Le lien y monte, et la
-// carte perd une ligne sans rien perdre de ce qu'elle porte.
+// ⛔ IL N'Y A PLUS D'ÉTIQUETTE « TRADUCTION » (2026-08-31, demande de l'auteur :
+// « supprime le mot “Traduction” »). Elle a coûté deux chantiers avant de partir :
+// le 30 août on y avait fait monter le lien, qui occupait une ligne entière pour
+// une action secondaire quand elle en laissait les deux tiers libres ; le 31 le
+// lien est devenu le NOM de la bible, et l'étiquette s'est mise à annoncer ce que
+// le nom disait déjà. ⚠️ La leçon vaut d'être gardée : on condense une ligne avant
+// d'avoir demandé si elle doit exister. Le volet des pages patristiques n'a jamais
+// écrit « Auteur » au-dessus du nom de l'auteur ; celui-ci n'écrit plus
+// « Traduction » au-dessus du nom de la bible, et les deux se ressemblent enfin.
 //
 // ⚠️ LA CARTE EN DIT PLUS À MESURE QUE LE VOLET S'ÉLARGIT (2026-08-31, demande de
 // l'auteur : « plus de texte sur grand écran, aucun sur petit »). Elle porte quatre
 // degrés, tous commandés par la largeur du VOLET dans globals.css :
-//   · sous 230 px : le nom du traducteur, ses dates, un lien abrégé ;
-//   · 230 : le lien reprend son libellé entier ;
+//   · sous 260 px : le nom de la bible, le nom du traducteur et ses dates ;
 //   · 260 : la référence de l'édition paraît, bornée à deux lignes, et la NOTICE
 //     du traducteur avec elle — entière, six lignes lui suffisant à toute largeur ;
 //   · 300 : la référence passe à trois lignes ;
@@ -40,14 +44,15 @@
 // Les blancs, eux, ne sautent pas de degré en degré : ils suivent l'échelle du
 // volet, qui est continue (voir globals.css, « L'échelle du volet »).
 //
-// ⛔ CE QUI SUIT L'ÉTIQUETTE EST LE NOM DE LA BIBLE, et c'est lui le lien (décision
+// ⛔ LA CARTE S'OUVRE SUR LE NOM DE LA BIBLE, et c'est lui le lien (décision
 // de l'auteur, 2026-08-31 : « remplacer par le nom raccourci de la traduction, par
 // exemple “Bible Crampon” ; ne pas afficher “en savoir plus sur cette traduction”,
 // mais ouvrir la page quand on clique sur le nom »). La carte disait deux fois la
 // même chose et ne nommait jamais ce qu'on lit : « Traduction » en étiquette, un
 // lien qui redisait « cette traduction », et le seul nom porté était celui du
 // traducteur. Le nom de la bible tient les deux rôles à la fois — il nomme, et il
-// ouvre —, et le libellé qui ne faisait que désigner le geste disparaît.
+// ouvre —, et le libellé qui ne faisait que désigner le geste est parti, l'étiquette
+// qui ne faisait que l'annoncer avec lui.
 //
 // ⚠️ La forme est celle du nom d'AUTEUR dans le volet des pages patristiques, et
 // c'est le même composant (`NomVolet`) : un volet de gauche nomme ce qu'on lit,
@@ -84,22 +89,18 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
     // bouge pour autant — la référence ne paraît ou ne disparaît qu'au geste
     // délibéré de redimensionner le volet.
     <div className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: 'calc(var(--volet-air) + 1px) calc(var(--volet-gouttiere) + 2px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: 'var(--volet-air-fin)' }}>
-      {/* ⚠️ Alignement sur la LIGNE DE BASE, non sur le milieu : l'étiquette pèse 8
-          pixels et le nom 13, et deux boîtes centrées l'une sur l'autre feraient
-          flotter la plus petite des deux au-dessus de la ligne de l'autre.
-          ⚠️ C'est L'ÉTIQUETTE qui ne se comprime pas, et le NOM qui s'écrête par la
-          fin — l'inverse de ce que la carte faisait quand elle portait un libellé
-          fixe. Un nom coupé reste lisible (« Traduction officielle liturgi… ») ;
-          une étiquette rognée ne dit plus de quoi il s'agit. */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 'calc(var(--volet-air-fin) + 3px)' }}>
-        <span style={{ flexShrink: 0, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)' }}>Traduction</span>
-        {/* ⛔ Plus de libellé écrit en DEUX formes que la largeur choisissait : un nom
-            n'a pas de forme courte, et l'écrêtage par la fin le rend lisible à toute
-            largeur. C'est le libellé « En savoir plus sur cette traduction », mesuré
-            le 30 août à 218 pixels de volet, qui appelait ce dispositif ; il est parti
-            avec lui, et le seuil de 230 dans globals.css avec les deux. */}
-        <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{trad.label}</NomVolet>
-      </div>
+      {/* Le NOM de la bible ouvre la carte, et il en est la première ligne — plus de
+          rangée partagée avec une étiquette, puisqu'il n'y a plus d'étiquette.
+          ⚠️ Le nom est donc un enfant DIRECT du flex en colonne : il s'y étire sur la
+          largeur de la carte et s'écrête par la fin quand elle ne suffit pas (« Traduction
+          officielle liturgi… »), ce qui vaut mieux qu'un nom qui déborde une carte en
+          `overflow: hidden`, où il serait coupé net, sans point de suspension.
+          ⛔ Plus de libellé écrit en DEUX formes que la largeur choisissait : un nom
+          n'a pas de forme courte. C'est le libellé « En savoir plus sur cette
+          traduction », mesuré le 30 août à 218 pixels de volet, qui appelait ce
+          dispositif ; il est parti avec lui, et le seuil de 230 dans globals.css
+          avec les deux. */}
+      <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{trad.label}</NomVolet>
       {/* Le TRADUCTEUR, avec ses dates de vie complètes, puis la référence complète de
           l'édition présentée (ville, éditeur, date). La langue n'est pas indiquée ici.
           ⛔ Plus de repli sur `label` : le nom de la bible est écrit une ligne plus
