@@ -3755,13 +3755,15 @@ dépôt n'a pas à porter des gigaoctets qu'un déploiement redéploierait. Voir
 règle des fac-similés de la Bible 899, qui a coûté 1,89 Go et 404 sur 85 % des
 folios avant d'être posée.
 
-⛔ **UN OBJET DÉCLARÉ ESSAI TECHNIQUE NE SE SERT PAS AU LECTEUR.** Les 43
-illustrations de la famille Fillion portent toutes `metadata.test_only = true`,
-`validation_status = 'review'` et `requires_review = true` — et `is_public = true`.
-Elles sont donc servies. **C'est une contradiction, et elle attend un arbitrage :**
-ou bien ces objets sont publiables et les trois marques tombent, ou bien ils ne le
-sont pas et `is_public` tombe. Les deux à la fois ne veulent rien dire, et c'est le
-genre d'état où l'on finit par ne plus savoir ce qui est publié.
+⛔ **UN OBJET DÉCLARÉ ESSAI TECHNIQUE NE SE SERT PAS AU LECTEUR, et il ne SE
+SERVAIT PAS.** Les 43 illustrations de la famille Fillion portaient toutes
+`metadata.test_only = true`, `validation_status = 'review'` et
+`requires_review = true` — et `is_public = true`. J'en ai conclu qu'elles étaient
+servies, et que la contradiction attendait un arbitrage. **C'était faux, et le
+§ 35.16.21 dit comment on l'a su** : `is_public` est nécessaire et ne suffit pas,
+`bible_technical_publication_allowed` refusant précisément un `test_only`. Il n'y
+avait pas de contradiction : le drapeau faisait son office, et aucune gravure
+n'atteignait personne.
 
 #### 35.16.16. Le papier se nettoie CHIRURGICALEMENT
 
@@ -3944,6 +3946,67 @@ l’œil depuis un mois. **Un voile est PLAT** : il se lit dans le seul histogra
 d’alpha, à la plus forte concentration sur une valeur unique entre 3 et 40. Mesurée
 ainsi, elle vaut 0,53 % en médiane et ne dépasse 3 % que trois fois, à un alpha de
 3 à 7 : il n’y a **aucun voile** dans le corpus.
+#### 35.16.21. RIEN N'ATTEIGNAIT LE LECTEUR, ET LA CLÉ DE SERVICE LE CACHAIT
+
+⛔ **UN CONTRÔLE MENÉ AVEC LA CLÉ DE SERVICE NE DIT RIEN DE CE QUE LE LECTEUR
+REÇOIT.** Le § 35.16.15 pose déjà la règle pour le RENDU ; elle vaut un cran plus
+haut, pour la PUBLICATION, et je l'ai manquée là. Relevé le 31 août 2026, après
+un audit intégral mené la veille : **aucune illustration de Fillion n'a jamais
+atteint un lecteur**, et son commentaire non plus.
+
+La chaîne des politiques tombait sur un seul fait, deux crans au-dessus de ce
+qu'on regardait. Les **sept `bible_text_sources` de la famille** portaient
+`metadata.test_only = true`, et leurs codes le disaient sans détour :
+`fillion-t01-pentateuch-test`, `fillion-t07-gospels-acts-test`,
+`fillion-t02-joshua-test`. Elles étaient donc invisibles ; sans elles
+`bible_edition_member_sources` l'était aussi ; et les politiques des
+illustrations comme des blocs de corps ont toutes besoin de lire un
+`member_source`.
+
+⚠️ **LA RLS S'APPLIQUE DANS LE SOUS-SELECT D'UNE POLITIQUE.** Une table que
+l'appelant ne peut pas lire rend le `EXISTS` vide, et la politique échoue **sans
+rien dire** : aucune erreur, zéro ligne, et le rôle de service qui voit tout.
+C'est ce qui rend ce défaut si difficile à voir, et c'est pourquoi il faut
+l'éprouver au lieu de le lire.
+
+⚠️ **Et la charte le prescrivait déjà**, sous « Tout périmètre déclaré privé ou
+`test_only` reçoit un test RLS réel » : *exécuter une lecture sous le rôle `anon`
+sur les sources, segments, blocs, notes, assets et fichiers concernés.* Je ne
+l'avais pas fait, et j'ai rapporté à l'auteur une contradiction là où il y avait
+une porte fermée.
+
+**La bonne épreuve, et elle tient en deux gestes.** D'abord compter table par
+table ce que voit la CLÉ ANONYME contre ce que voit le service — un écart nomme
+le maillon. Puis appeler le VRAI chargeur (`loadBibleEditionChapter`) avec la clé
+anonyme, sur des chapitres dont on connaît la réponse. ⛔ Un compteur ne suffit
+pas : un `count` sur une vue peut mentir là où une lecture de lignes dit vrai.
+
+⚠️ **Et le relevé se PAGINE.** `versets_canon` compte 1 533 versets pour la
+Genèse, 1 151 pour Luc ; PostgREST en rend mille. Un balayage non paginé perd les
+derniers chapitres de chaque livre **sans rien dire**, et déclare orphelines les
+vingt et une gravures qui s'y trouvent. C'est le même piège que sur les tables de
+notes (§ 13.6), et il n'est pas réservé à celles-là.
+
+**Ouverture du 31 août 2026** (décision de l'auteur). Le drapeau levé sur les sept
+sources, le lecteur reçoit : **208 illustrations sur 99 chapitres**, 5 431 blocs
+de commentaire, 37 notes de verset, sur ACT DEU EXO GEN JHN JOS LEV LUK MAT MRK
+NUM. Les masters restent privés, et le seau refuse leur adresse publique.
+
+⚠️ **Les deux affirmations posées ne sont pas de même nature, et le schéma le
+sait.** Le FICHIER passe en `validated` : c'est technique, et c'est vérifié. Un
+ACTIF reste en `review` et passe par la voie que la base ouvre pour cela,
+`technical_publication_override` avec `editorial_validation_claimed = false`. Les
+ancres et les légendes sont le travail d'un autre ; on n'écrit pas qu'on a validé
+ce qu'on n'a pas relu (§ 11.7).
+
+⚠️ Une garde SQL impose l'ordre : **le dérivé web d'abord, l'actif ensuite.** Bien
+vu — une illustration déclarée publique sans fichier servi serait une promesse en
+l'air. Et la base refuse un `UPDATE` sans `WHERE` : la portée se NOMME, par le
+code de la famille et non par un identifiant recopié.
+
+⚠️ Le `source_code` garde son suffixe `-test`, et c'est délibéré : c'est
+l'identifiant de la source, le renommer déplacerait ce à quoi elle est jointe. Il
+ne décidait de rien ; seul le drapeau décidait.
 ### 35.17. L'ÉCHELLE DES BLANCS — un blanc ne dit que son RAPPORT aux autres
 
 Mesurée dans la page rendue le 30 août 2026, la hiérarchie de la Bible commentée ne se lisait pas, et c'est le BLANC qui manquait à la dire. Les six rangs de titre tenaient tous entre 33 et 56 pixels, et l'ordre y était ROMPU deux fois : la sous-section (T4) recevait 33 px, c'est-à-dire exactement autant qu'un simple changement d'unité de commentaire et moins que la péricope (T6) qu'elle domine ; « Première partie », la plus haute division du livre, en recevait 53, moins que « Livre I » qui lui est subordonné. Six rangs dans un mouchoir, et deux inversés.
@@ -4033,3 +4096,31 @@ Lorsqu’une unité OCR présente des lignes ou fragments matériellement transp
 La validation humaine est **attachée à la couche réellement vérifiée** et ne se propage jamais automatiquement entre objets. `oeuvre_texte_unites.metadata.validated_human=true` atteste la transcription ou l’unité source telle qu’elle a été contrôlée ; il ne vaut pas validation de la segmentation, des raccords, de la normalisation éditoriale ni du contenu de chaque `segments.segment_texte` dérivé. Inversement, `segments.controle_verifie=true` atteste le segment éditorial contrôlé et n’autorise pas à déclarer l’unité source entière validée si elle ne l’est pas déjà.
 
 Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur intersection. ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.\n\n`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi. Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre. Une divergence historique entre les deux champs doit être documentée ; elle n’autorise jamais une passe IA à créer ou retirer une validation humaine.
+
+#### 35.8.7. Matrice de clôture et contrôles transversaux obligatoires
+
+**Le dénominateur de clôture vient toujours de l’état live.** Avant tout bilan `n/n`, la passe finale reconstruit depuis la base l’inventaire courant du périmètre, par source, membre d’édition, livre, langue, `block_kind`, statut public/source-only et surface effectivement rendue. Un sous-lot ciblé doit être nommé comme tel : quatre chapeaux contrôlés ne deviennent jamais « 4/4 introductions » si l’inventaire live comporte d’autres blocs d’introduction. Aucun compteur historique, staging ancien ou todo antérieur ne remplace ce dénominateur.
+
+**La clôture utilise une matrice de surfaces.** Le rapport final distingue au minimum, lorsqu’ils existent : témoin/source ; texte biblique par langue ; titres et sous-titres ; corps racine ; sous-blocs de lecture ; notes, blocs et ancres ; illustrations et fichiers ; bibliographie structurée ; alignements canoniques ; vues/projections réellement consommées par le lecteur. Chaque ligne de la matrice donne son dénominateur live, le nombre contrôlé et les réserves. Une mission portant seulement sur l’apparat ou le commentaire ne clôt pas par implication le texte biblique, les images, l’alignement ou une langue parallèle.
+
+**Égalité obligatoire des projections dérivées.** Après toute mutation d’un texte ou d’une normalisation, le `reading_text` racine doit être exactement la recomposition ordonnée des `reading_text` de ses sous-blocs avec de vrais séparateurs de paragraphes ; les séquences littérales d’échappement `\\n`, `\\r` ou `\\t` sont interdites dans toute surface rendue. Les transformations et enrichissements doivent rester dans leurs bornes et viser exactement leur chaîne source ou leur chaîne de lecture. Dans la même micro-passe, recalculer depuis l’état live toutes les métadonnées dérivées applicables : SHA, `source_characters`, `paragraph_count`, dernier offset, empreintes de correction et compteurs analogues. Un SHA exact n’excuse jamais une longueur ou une recomposition périmée.
+
+**Titre, repère et sous-titre forment une seule fonction structurelle.** Lorsqu’un titre imprimé associe un repère (`Livre I`, `Section I`, `§ I`, etc.) à un intitulé descriptif et éventuellement à une portée, le modèle de lecture ne crée jamais un titre amputé suivi d’un faux bloc de commentaire contenant le sous-titre. Le témoin complet est conservé dans `facsimile_heading` ou une provenance équivalente ; la tête éditoriale porte le repère normalisé et son intitulé selon les §§ 35.5.2–35.5.3. Un bloc autonome qui ne fait que répéter le sous-titre est une dette structurelle à supprimer du rendu après vérification des dépendances.
+
+**Les marqueurs imprimés résiduels sont recherchés après toute fusion ou reconstruction.** Le postcontrôle balaie le corps racine et les sous-blocs à la recherche de `Chap.`, numéros de versets ou de plages, lettres de sous-verset et autres repères susceptibles d’avoir été absorbés au milieu d’un paragraphe. Chaque candidat est comparé à la structure source : un vrai repère de commentaire est extrait ou documenté ; une énumération sémantique réelle reste dans la prose. ⛔ Aucune suppression par expression régulière sans classification contextuelle.
+
+**La clôture typographique est une matrice de codepoints et de langues.** Pour chaque catégorie rendue — texte biblique, commentaire, introduction, heading et note — compter séparément les U+0020, U+00A0 et U+202F aux positions normées, ainsi que les apostrophes ASCII, guillemets non conformes, ellipses ASCII et ordinaux numériques. Les compteurs doivent être à zéro sauf exception explicitement motivée. La passe langues produit en outre un inventaire des `inline_spans` par langue et fonction et vérifie la couverture des lemmes, locutions, translittérations et titres d’œuvres réellement étrangers ; le grec en caractères grecs reste en romain et ne doit chevaucher aucun span italique. Une simple lecture visuelle ne remplace pas ces contrôles.
+
+**Un crosswalk vérifié est une preuve, jamais une autorité absolue sur un autre témoin.** L’alignement canonique du témoin courant est confronté au texte et aux frontières réellement imprimées. Si un témoin distribue sur un même verset une matière que le crosswalk de référence sépare ailleurs, la correspondance propre au témoin peut différer, à condition d’être justifiée et de préserver la couverture. ⛔ Ne jamais copier en masse des cibles ou un statut `verified` depuis un crosswalk sans contrôle des frontières du témoin courant.
+
+**Vérification du mapping et collation textuelle sont deux statuts distincts.** La couverture complète de l’ossature canonique, même vérifiée, ne prouve ni l’exactitude lexicale ni la collation visuelle du texte biblique. Pour chaque langue du témoin, le bilan sépare : unités présentes, unités alignées, unités collationnées au fac-similé, unités encore candidates et mappings vérifiés. Une colonne parallèle — notamment latin/français — est auditée comme un témoin à part entière ; l’achèvement du commentaire ne la valide pas.
+
+**Le contrat des vues et du lecteur fait partie de l’intégrité.** La passe 9 vérifie non seulement les métadonnées stockées, mais aussi les champs réellement lus par les vues/RPC/composants servant le corpus. Une valeur correcte rangée sous une clé que la vue ne consulte pas est une donnée fonctionnellement absente. Les clés de statut, niveau, parenté, présentation et collation exposées par la projection doivent être comparées à leur source normative avant clôture.
+
+**Tout périmètre déclaré privé ou `test_only` reçoit un test RLS réel.** Depuis un contexte privilégié, exécuter une lecture sous le rôle `anon` sur les sources, segments/blocs, notes, assets et fichiers concernés. Si une ligne interdite au public est visible, la mention « privé », une route applicative protégée ou un champ `test_only=true` ne suffisent pas : la clôture de confidentialité est refusée jusqu’à correction de la politique ou des statuts. Une correction RLS transversale qui toucherait d’autres livres ou missions est isolée et ne se fait jamais par ricochet depuis un audit local.
+
+**Réserve de transcription et anomalie du témoin sont comptées séparément.** Une leçon imprimée fautive mais confirmée, une attribution patristique douteuse ou un renvoi source impossible peut être textuellement clos tout en conservant un `source_integrity_note`. Le rapport distingue donc : réserves encore ouvertes sur la transcription ; anomalies du témoin confirmées et conservées ; notes critiques d’attribution. `requires_review=false` ne doit jamais effacer cette information critique.
+
+**Les illustrations entrent dans la matrice de clôture.** Pour chaque asset : identité, ordre, ancrage, page imprimée, page source, crop, provenance, famille graphique, fichier dérivé, dimensions et SHA sont contrôlés. `alt_text` et légende éditoriale sont présents lorsqu’ils sont nécessaires. Un contrôle automatique de traitement d’image ou un `PASS` technique ne vaut pas validation visuelle du cadrage ni validation humaine de la planche.
+
+**La formule de clôture nomme exactement ce qui est clos.** On peut déclarer « apparat clos », « mapping canonique clos » ou « commentaire collationné » si ces matrices sont conformes. ⛔ On ne déclare pas un livre globalement « clos » tant qu’une surface applicable de la matrice demeure en attente — notamment texte biblique d’une langue, titres/sous-titres, typographie, vue de projection, assets ou confidentialité. Les dettes restantes sont chiffrées depuis la base et deviennent des tâches distinctes, sans réécrire l’historique de la mission déjà achevée.
