@@ -47,6 +47,15 @@ const TOTAL_DE_LA_MESURE: Partial<Record<Mesure, keyof Corpus>> = {
   siecles_retenus: 'siecles',
 }
 
+/** Le TON d'une case. Ce sont les trois familles de corpus déjà chartées — on
+ *  n'invente aucune teinte (charte § 40). */
+export const FAMILLES = ['ecriture', 'peres', 'communaute'] as const
+export type FamilleCorpus = (typeof FAMILLES)[number]
+
+export function familleConnue(nom: string): nom is FamilleCorpus {
+  return (FAMILLES as readonly string[]).includes(nom)
+}
+
 export type HautFait = {
   code: string
   serie: string
@@ -58,6 +67,10 @@ export type HautFait = {
   seuil: number | null
   seuil_part: number | null
   ordre: number
+  /** Ce que la case vaut. ⛔ Ne s'échange contre RIEN : c'est une mesure, jamais une
+   *  monnaie. Voir la migration hauts_faits_points. */
+  points: number
+  famille: string
 }
 
 /** Le seuil réellement à atteindre.
@@ -85,6 +98,13 @@ export type DegreEtat = HautFait & {
   seuilAtteindre: number
   obtenu: boolean
   obtenuLe: string | null
+  /** Où en est le compteur de cette case. La grille en fait « 31 / 50 ».
+   *  ⚠️ Il est BORNÉ au seuil : une case obtenue affiche « 50 / 50 », jamais « 200 / 50 »,
+   *  et une case dont le compteur a redescendu reste pleine, l'obtention étant acquise. */
+  valeur: number
+  restant: number
+  /** De 0 à 1 : la barre de la case. */
+  part: number
 }
 
 export type SerieEtat = {
@@ -122,15 +142,25 @@ export function etatDesSeries(
       .map(hf => ({ hf, seuilAtteindre: seuilEffectif(hf, corpus) }))
       .filter((d): d is { hf: HautFait; seuilAtteindre: number } => d.seuilAtteindre != null)
       .sort((a, b) => a.seuilAtteindre - b.seuilAtteindre || a.hf.degre - b.hf.degre)
-      .map(({ hf, seuilAtteindre }) => ({
-        ...hf,
-        seuilAtteindre,
+      .map(({ hf, seuilAtteindre }) => {
         // ⛔ Un degré obtenu le RESTE, même si le compteur redescend : c'est le journal
         // qui fait foi, jamais le compteur du jour. Une perte démotive plus qu'un gain
         // ne motive, et l'on ne retire pas ce qui a été acquis.
-        obtenu: obtenus.has(hf.code) || valeur >= seuilAtteindre,
-        obtenuLe: obtenus.get(hf.code) ?? null,
-      }))
+        const obtenu = obtenus.has(hf.code) || valeur >= seuilAtteindre
+        // ⚠️ La valeur affichée est BORNÉE au seuil, et une case acquise est PLEINE :
+        // « 50 / 50 » et non « 200 / 50 » quand on a dépassé, « 50 / 50 » et non
+        // « 3 / 50 » quand le compteur a redescendu sous un degré déjà obtenu.
+        const atteint = obtenu ? seuilAtteindre : Math.min(valeur, seuilAtteindre)
+        return {
+          ...hf,
+          seuilAtteindre,
+          obtenu,
+          obtenuLe: obtenus.get(hf.code) ?? null,
+          valeur: atteint,
+          restant: Math.max(0, seuilAtteindre - atteint),
+          part: seuilAtteindre > 0 ? atteint / seuilAtteindre : 1,
+        }
+      })
 
     if (!degres.length) continue
     const prochain = degres.find(d => !d.obtenu) ?? null
@@ -175,4 +205,71 @@ export function libelleRestant(serie: SerieEtat): string | null {
   if (!serie.prochain || serie.restant == null) return null
   if (serie.restant === 0) return 'Atteint.'
   return serie.restant === 1 ? 'Encore un.' : `Encore ${serie.restant}.`
+}
+
+// ── Le tableau de cases ──────────────────────────────────────────────────────
+//
+// Décision de l'auteur, 1er septembre 2026 : « un grand tableau de cases à
+// collectionner, dans différents tons harmonieux ; deux états, validé et non validé ;
+// les non validées sobres, avec un indice de progression ». La carte « Ce que j'ai
+// retenu » est retirée : elle montrait un ÉTAT, elle ne donnait rien à remplir.
+
+/** Toutes les cases, à plat et dans l'ordre du référentiel — la grille les range
+ *  ensuite par série, chaque série tenant sa ligne et son ton. */
+export function casesDuTableau(series: SerieEtat[]): DegreEtat[] {
+  return series.flatMap(s => s.degres)
+}
+
+export type Score = { obtenus: number; possibles: number; cases: number; total: number }
+
+/** Le score. ⛔ Il ne s'échange contre RIEN — ni droit, ni accès, ni fonction. C'est
+ *  la mesure agrégée d'un parcours, jamais une monnaie (charte § 40). */
+export function score(series: SerieEtat[]): Score {
+  const cases = casesDuTableau(series)
+  const acquises = cases.filter(c => c.obtenu)
+  return {
+    obtenus: acquises.reduce((n, c) => n + (c.points ?? 0), 0),
+    possibles: cases.reduce((n, c) => n + (c.points ?? 0), 0),
+    cases: acquises.length,
+    total: cases.length,
+  }
+}
+
+// ── Les paliers de progression ───────────────────────────────────────────────
+//
+// ⛔ ON NE NOTIFIE PAS CHAQUE PAS. Une vignette à chaque prélèvement serait
+// insupportable, et une notification qu'on subit cesse d'être lue — c'est la règle
+// déjà payée sur les gardes rouges en permanence. Deux paliers par case au plus :
+// la moitié du chemin, puis le dernier pas.
+export const PALIER_MOITIE = 0.5
+
+/** Un palier ne se dit que s'il APPREND quelque chose.
+ *
+ *  ⚠️ Sous quatre, « la moitié » n'a pas de sens : sur un seuil de 2, elle tombe au
+ *  premier geste, en même temps que le début. Et « il ne reste qu'un » ne se dit pas
+ *  sur un seuil de 1, où ce serait annoncer qu'on n'a rien fait. */
+export const SEUIL_MINIMAL_MOITIE = 4
+export const SEUIL_MINIMAL_DERNIER_PAS = 2
+
+export type Palier = 'moitie' | 'dernier-pas'
+
+/** Où en est une case sur l'échelle des paliers, ou `null` si elle n'y est pas encore.
+ *  Une case obtenue n'a plus de palier : elle a sa propre notification. */
+export function palierAtteint(c: DegreEtat): Palier | null {
+  if (c.obtenu) return null
+  if (c.restant === 1 && c.seuilAtteindre >= SEUIL_MINIMAL_DERNIER_PAS) return 'dernier-pas'
+  if (c.part >= PALIER_MOITIE && c.seuilAtteindre >= SEUIL_MINIMAL_MOITIE) return 'moitie'
+  return null
+}
+
+/** Ce qu'on annonce dans une petite notification de progression. */
+export function libellePalier(c: DegreEtat, palier: Palier): string {
+  return palier === 'dernier-pas'
+    ? `Plus qu’un pas avant « ${c.nom} ».`
+    : `À mi-chemin de « ${c.nom} » — ${c.valeur} sur ${c.seuilAtteindre}.`
+}
+
+/** L'indice de progression d'une case non acquise, tel qu'il s'écrit dessus. */
+export function libelleProgression(c: DegreEtat): string {
+  return `${c.valeur} / ${c.seuilAtteindre}`
 }

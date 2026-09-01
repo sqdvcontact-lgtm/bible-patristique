@@ -51,17 +51,9 @@ export function entreesEspace(pseudo: string | null): EntreeEspace[] {
       groupe: 'parcours',
     },
     {
-      href: '/compte/retenu',
-      label: 'Ce que j’ai retenu',
-      // ⛔ Jamais « ce que j'ai lu » : la carte compte les marques volontaires, et
-      // le site ne trace pas la lecture. Voir app/api/compte/retenu/route.ts.
-      glose: 'Les Pères dont vous avez gardé quelque chose.',
-      groupe: 'parcours',
-    },
-    {
       href: '/compte/hauts-faits',
       label: 'Hauts faits',
-      glose: 'Six séries, et ce qu’elles vous apprennent.',
+      glose: 'Le tableau des cases à remplir, et ce qu’elles apprennent.',
       groupe: 'parcours',
     },
     ...(pseudo ? [{

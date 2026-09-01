@@ -16,8 +16,8 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { erreur500 } from '@/app/lib/apiErreur'
 import { calculerRetenu } from '@/app/lib/retenuServeur'
 import {
-  etatDesSeries, obtentionsNouvelles, serieLaPlusProche,
-  type Compteurs, type HautFait, type SerieEtat,
+  etatDesSeries, obtentionsNouvelles, score, serieLaPlusProche,
+  type Compteurs, type HautFait, type Score, type SerieEtat,
 } from '@/app/lib/hautsFaits'
 
 const supabaseAdmin = createClient(
@@ -39,6 +39,8 @@ export type ReponseHautsFaits = {
   nouveaux: string[]
   /** Part des lecteurs qui ont chaque haut fait, ou null tant que c'est trop tôt. */
   rarete: Record<string, number> | null
+  /** ⛔ Ne s'échange contre rien : une mesure, jamais une monnaie (charte § 40). */
+  score: Score
   corpus: { auteurs: number; siecles: number }
 }
 
@@ -57,7 +59,7 @@ export async function GET() {
     const [retenu, referentiel, journal, passages, oeuvres, commentaires, essais] = await Promise.all([
       calculerRetenu(supabaseAdmin, user.id),
       supabaseAdmin.from('hauts_faits')
-        .select('code, serie, serie_nom, degre, nom, notice, mesure, seuil, seuil_part, ordre')
+        .select('code, serie, serie_nom, degre, nom, notice, mesure, seuil, seuil_part, ordre, points, famille')
         .eq('actif', true).order('ordre', { ascending: true }),
       supabaseAdmin.from('hauts_faits_obtenus').select('code, obtenu_le').eq('user_id', user.id),
       compte('prelevements'),
@@ -115,6 +117,7 @@ export async function GET() {
       enVue: serieLaPlusProche(series)?.serie ?? null,
       nouveaux,
       rarete,
+      score: score(series),
       corpus,
     }
     return NextResponse.json(reponse, { headers: { 'Cache-Control': 'private, no-store' } })
