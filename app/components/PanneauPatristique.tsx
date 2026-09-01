@@ -20,6 +20,7 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -230,7 +231,7 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
       texte: segment.segment_texte,
     }).select('id').single()
     setLoading(false)
-    if (data) setIdPrelev(data.id)
+    if (data) { setIdPrelev(data.id); signalerProgression() }
   }
 
   const supprimer = async (e: React.MouseEvent) => {

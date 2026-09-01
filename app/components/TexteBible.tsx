@@ -26,6 +26,7 @@ import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre, PieceLiminai
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
   indexerBlocsDeCorps,
   habillerLesVignettes,
@@ -258,7 +259,7 @@ function BoutonEnregistrer({
       texte, traduction: traductionLabel,
     }).select('id').single()
     setLoading(false)
-    if (!error && data) onSauvegarde(data.id)
+    if (!error && data) { onSauvegarde(data.id); signalerProgression() }
   }
 
   return (

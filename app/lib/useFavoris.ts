@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 type Type = 'oeuvre' | 'essai'
 
@@ -80,6 +81,10 @@ export function useFavoris(type: Type) {
       } else {
         await supabase.from('favoris').insert({ user_id: uid, type, ref_id: refId })
         setFavoris(prev => new Set([...prev, refId]))
+        // Une œuvre mise en bibliothèque fait avancer deux séries — « La bibliothèque »
+        // et « Les Pères ». ⛔ On signale seulement l'AJOUT : un retrait ne fait
+        // reculer aucune case, une obtention étant acquise pour de bon.
+        signalerProgression()
       }
     } else {
       setFavoris(prev => {

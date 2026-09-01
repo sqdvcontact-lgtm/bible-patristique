@@ -11,6 +11,7 @@ import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { citationBiblique, copierCitation } from '@/app/lib/citation'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 
 export function BoutonCopieVerset({ texte, label }: { texte: string; label: string }) {
@@ -67,7 +68,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
       texte, traduction: trad,
     }).select('id').single()
     setLoading(false)
-    if (!error && data) setIdPrelev(data.id)
+    if (!error && data) { setIdPrelev(data.id); signalerProgression() }
   }
 
   return (

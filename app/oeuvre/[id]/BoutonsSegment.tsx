@@ -11,6 +11,7 @@ import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 // Style partagé par tous les petits boutons d'action (segment ET verset)
 export const BTN_STYLE: React.CSSProperties = {
@@ -78,7 +79,7 @@ export function BoutonEnregistrerSegment({
       segment_numero: seg.numeroSource, texte: texteSansEnrichissement(seg.texte),
     }).select('id').single()
     setLoading(false)
-    if (!error && data) { setIdPrelev(data.id); onSauvegarde() }
+    if (!error && data) { setIdPrelev(data.id); onSauvegarde(); signalerProgression() }
   }
 
   return (

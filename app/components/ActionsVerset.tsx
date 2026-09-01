@@ -12,6 +12,7 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 const BTN: React.CSSProperties = {
   background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px',
@@ -103,6 +104,7 @@ export default function ActionsVerset({
           return
         }
         onPreleve(cle, data.id)
+        signalerProgression()
       }
     } finally {
       setChargement(false)

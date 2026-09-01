@@ -6,6 +6,7 @@ import MesureAudience from "./components/MesureAudience";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import { SCRIPT_THEME, THEME_DEFAUT } from "./lib/theme";
 import { ProvisionCompte } from "./lib/contexteCompte";
+import AnnonceHautsFaits from "./components/AnnonceHautsFaits";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import { JsonLd, donneesSite } from "./lib/donneesStructurees";
 import "./globals.css";
@@ -103,6 +104,10 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <MesureAudience />
             </Suspense>
+            {/* Les annonces de haut fait. Elles ne rendent rien tant qu'il n'y a rien
+                à dire, et ne partent en vérification qu'une fois par session — puis
+                sur le geste d'un lecteur, jamais à chaque page tournée. */}
+            <AnnonceHautsFaits />
           </ProvisionCompte>
         </ProvisionAffichageAdmin>
       </body>

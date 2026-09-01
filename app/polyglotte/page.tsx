@@ -33,6 +33,7 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
   MENTION_ABSENT, MENTION_ABSENT_TITRE, MENTION_DEUTERO, MENTION_LACUNE, MENTION_LACUNE_TITRE,
   STYLE_INVITE, STYLE_MENTION, STYLE_MENTION_LACUNE,
@@ -347,7 +348,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
         ref_chapitre: chapitre, ref_verset: verset,
         texte: texteSansEnrichissement(texte), traduction: traductionLabel,
       }).select("id").single();
-      if (!error && data) onSaved(cle, data.id);
+      if (!error && data) { onSaved(cle, data.id); signalerProgression(); }
     }
     setBusy(false);
   };
