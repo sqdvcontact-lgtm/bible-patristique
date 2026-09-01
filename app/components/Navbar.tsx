@@ -16,6 +16,8 @@ import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
+import { entreesEspace } from "@/app/lib/espaceLecteurNavigation";
+import PortraitLecteur from "@/app/components/PortraitLecteur";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
 const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
@@ -613,7 +615,7 @@ export default function Navbar() {
   // Session et profil viennent du contexte partagé, jamais d'une requête à soi : la
   // barre tenait son propre abonnement et sa propre lecture de `profils`, qui partait
   // en double (`getSession` puis l'événement de session initiale). Voir contexteCompte.
-  const { userId, email: emailCompte, pseudo, estAdmin, theme, changerTheme } = useCompte();
+  const { userId, email: emailCompte, pseudo, estAdmin, portrait, cadragePortrait, theme, changerTheme } = useCompte();
   const user = useMemo(
     () => (userId ? { id: userId, email: emailCompte ?? '' } : null),
     [userId, emailCompte],
@@ -1380,12 +1382,26 @@ export default function Navbar() {
   );
 
   // ── Bloc compte, réutilisé en version desktop et mobile ──────────────────────
+  // La page publique est nommée par la table des rubriques de l'espace du lecteur,
+  // celle-là même que sert la colonne de /compte : les deux listes ne peuvent donc
+  // plus se contredire sur son nom ni sur son adresse.
+  const pagePublique = entreesEspace(pseudo).find(e => e.sortant);
+
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
         <button onClick={() => setMenuOuvert(!menuOuvert)} aria-label={`Compte de ${pseudo ?? user.email.split("@")[0]}`} aria-expanded={menuOuvert}
-          style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "8px", padding: "0 0.5rem 0 0.4375rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84375rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
+          style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "8px", padding: "0 0.5rem 0 0.25rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84375rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+          {/* Le visage choisi tient lieu de silhouette dès qu'il y en a un. Il ne coûte
+              aucune requête de plus : le contexte rapporte la référence avec le
+              pseudonyme, d'une seule lecture (voir contexteCompte). */}
+          {portrait ? (
+            <span style={{ display: "inline-flex", width: "1.375rem", height: "1.375rem" }}>
+              <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={22} />
+            </span>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ marginLeft: "0.1875rem" }}><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
+          )}
           {/* Le pseudonyme est le SEUL élément de la barre dont la largeur ne se connaît
               pas d'avance (jusqu'à 6rem). À l'étroit il s'efface : c'est ce qui rend la
               tenue de la barre calculable, et non dépendante de la longueur d'un nom. */}
@@ -1395,25 +1411,42 @@ export default function Navbar() {
       )}
       <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
-          <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
-            <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
-            <p style={{ fontSize: "0.8125rem", color: "var(--cs-encre)", fontWeight: 500, margin: "2px 0 0", wordBreak: "break-all" }}>{pseudo ?? user.email}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "9px", padding: "10px 14px 9px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+            <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={30} />
+            <div style={{ minWidth: 0 }}>
+              <p style={{ fontSize: "0.6875rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
+              <p style={{ fontSize: "0.8125rem", color: "var(--cs-encre)", fontWeight: 500, margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email}</p>
+            </div>
           </div>
         )}
         {[
-          { href: "/compte", label: "Mon compte", badge: 0, icone: null },
-          ...(pseudo ? [{ href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page", badge: 0, icone: null }] : []),
+          // ⚠️ La page publique vient EN PREMIER, et son nom vient de la table des
+          // rubriques (app/lib/espaceLecteurNavigation.ts) : le menu et la colonne de
+          // /compte la nomment donc pareil, quoi qu'il advienne de l'une ou de l'autre.
+          // Elle s'appelait « Ma page », entre « Mon compte » et « Mes citations », et
+          // rien ne disait qu'elle menait à ce que les autres voient.
+          ...(pagePublique ? [{ href: pagePublique.href, label: pagePublique.label, badge: 0, icone: "sortant" }] : []),
+          { href: "/compte", label: "Réglages du compte", badge: 0, icone: null },
           { href: "/prelevements", label: "Mes citations", badge: 0, icone: null },
           // Le lien Administration reste toujours accessible à un vrai admin, quel que
           // soit l'état de l'interrupteur d'affichage « mode utilisateur standard ».
           ...((estAdmin || estAdminEmail) ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
+            {...(item.icone === "sortant" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             style={mobile
               ? { display: "flex", alignItems: "center", gap: "7px", padding: "10px 12px", fontSize: "0.9375rem", color: "rgba(255,255,255,0.85)", textDecoration: "none" }
               : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
             <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
+            {/* ⚠️ La page publique s'ouvre à part, et l'icône le DIT : sans elle, un
+                onglet qui surgit passe pour une bizarrerie. Même dessin que dans la
+                colonne de /compte, pour que la même entrée se reconnaisse. */}
+            {item.icone === "sortant" && (
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.55 }}>
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
             {item.badge > 0 && (
               <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}

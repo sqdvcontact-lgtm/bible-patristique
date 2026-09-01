@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { supabase } from './supabase'
 import { appliquerTheme, lireTheme, themeValide, type Theme } from './theme'
+import { CADRAGE_PAR_DEFAUT, type Cadrage } from './portraits'
 import ModaleCompteRequis from '@/app/components/ModaleCompteRequis'
 
 // Adresse du compte de démonstration partagé (bêta), exposée au navigateur comme
@@ -22,6 +23,11 @@ type ContexteCompte = {
   // (mesuré le 2026-08-24). `pseudo` vaut null tant que `profilPret` est faux.
   pseudo: string | null
   estAdmin: boolean
+  // Le PORTRAIT choisi, sous forme de référence, et son cadrage : la barre les montre
+  // sur toutes les pages. Voir app/lib/portraits.ts — c'est une référence, jamais une
+  // adresse.
+  portrait: string | null
+  cadragePortrait: Cadrage | null
   profilPret: boolean
   /** Après une modification du profil (pseudonyme, droits) : relire la ligne. */
   rafraichirProfil: () => void
@@ -41,7 +47,8 @@ type ContexteCompte = {
 
 const Contexte = createContext<ContexteCompte>({
   userId: null, email: null, pret: false,
-  pseudo: null, estAdmin: false, profilPret: false, rafraichirProfil: () => {},
+  pseudo: null, estAdmin: false, portrait: null, cadragePortrait: null,
+  profilPret: false, rafraichirProfil: () => {},
   theme: 'clair', changerTheme: async () => {},
   aUnCompte: false, exigerCompte: () => false,
 })
@@ -53,7 +60,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   // Le profil est gardé AVEC l'identifiant auquel il appartient : c'est ce qui permet
   // d'en dériver `pseudo`, `estAdmin` et `profilPret` pendant le rendu, sans poser
   // d'état dans le corps de l'effet (cascade de rendus, cf. AGENTS.md).
-  const [profil, setProfil] = useState<{ pour: string; pseudo: string | null; estAdmin: boolean } | null>(null)
+  const [profil, setProfil] = useState<{ pour: string; pseudo: string | null; estAdmin: boolean; portrait: string | null; cadrage: Cadrage | null } | null>(null)
   // Incrémenté par `rafraichirProfil` : c'est la seule façon de redemander la ligne.
   const [relecture, setRelecture] = useState(0)
   // Contexte affiché dans la modale ; null = modale fermée.
@@ -131,10 +138,27 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) return
     let vivant = true
-    supabase.from('profils').select('pseudo, est_admin, theme_lecture').eq('id', userId).maybeSingle()
+    // ⚠️ Le PORTRAIT vient avec le reste, et non d'une seconde lecture. La barre le
+    // montre sur toutes les pages : demandé à part, il aurait ajouté une requête par
+    // chargement pour quatre colonnes que celle-ci rapporte sans rien coûter de plus.
+    supabase.from('profils')
+      .select('pseudo, est_admin, theme_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom')
+      .eq('id', userId).maybeSingle()
       .then(({ data }) => {
         if (!vivant) return
-        setProfil({ pour: userId, pseudo: data?.pseudo ?? null, estAdmin: data?.est_admin === true })
+        setProfil({
+          pour: userId,
+          pseudo: data?.pseudo ?? null,
+          estAdmin: data?.est_admin === true,
+          portrait: data?.avatar_ref ?? null,
+          cadrage: data?.avatar_ref
+            ? {
+                posX: data.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
+                posY: data.avatar_pos_y ?? CADRAGE_PAR_DEFAUT.posY,
+                zoom: data.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
+              }
+            : null,
+        })
         accorderTheme(userId, themeValide(data?.theme_lecture))
       })
     return () => { vivant = false }
@@ -145,6 +169,8 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   const profilCourant = profil && profil.pour === userId ? profil : null
   const pseudo = profilCourant?.pseudo ?? null
   const estAdmin = profilCourant?.estAdmin ?? false
+  const portrait = profilCourant?.portrait ?? null
+  const cadragePortrait = profilCourant?.cadrage ?? null
   // « Prêt » veut dire « on sait à quoi s'en tenir » : soit personne n'est connecté,
   // soit la ligne est arrivée. C'est ce qui permet à un panneau de ne pas se peindre
   // deux fois, une première comme anonyme puis une seconde comme lecteur connecté.
@@ -163,7 +189,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   }, [aUnCompte])
 
   return (
-    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, profilPret, rafraichirProfil, theme, changerTheme, aUnCompte, exigerCompte }}>
+    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, profilPret, rafraichirProfil, theme, changerTheme, aUnCompte, exigerCompte }}>
       {children}
       {invitation !== null && (
         <ModaleCompteRequis contexte={invitation} onClose={() => setInvitation(null)} />

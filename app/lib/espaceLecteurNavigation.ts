@@ -1,7 +1,8 @@
 // ── LA TABLE UNIQUE DES ENTRÉES DE L'ESPACE DU LECTEUR ───────────────────────
 //
-// Elle sert DEUX listes : la colonne de la page /compte et le menu déroulant du
-// compte, dans la barre du haut.
+// Elle sert la colonne de la page /compte, et le menu déroulant du compte y prend les
+// entrées qu'il montre — aujourd'hui « Ma page publique », qui s'y appelait « Ma page »
+// sans que rien ne dise où elle menait.
 //
 // ⛔ C'est la leçon déjà tirée pour l'administration (app/lib/adminNavigation.ts) :
 // deux listes écrites séparément divergent, et une rubrique qui n'est nommée qu'à
