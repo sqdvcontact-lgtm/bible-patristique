@@ -14,14 +14,15 @@ import PortraitLecteur from '@/app/components/PortraitLecteur'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { useEspace } from '@/app/compte/EspaceCompte'
 import { Carte } from '@/app/compte/champsCompte'
+import type { MarquesLecteur } from '@/app/lib/parcoursLecteur'
+import ParcoursDecouverte from './ParcoursDecouverte'
 
 type Classement = { score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number; nb_essais_publies: number }
-type Comptes = { essais: number; passages: number; oeuvres: number }
 
 export default function ApercuCompte() {
   const { user, profil } = useEspace()
   const [classement, setClassement] = useState<Classement | null>(null)
-  const [comptes, setComptes] = useState<Comptes | null>(null)
+  const [marques, setMarques] = useState<MarquesLecteur | null>(null)
 
   useEffect(() => {
     supabase.from('classement_utilisateurs')
@@ -32,17 +33,38 @@ export default function ApercuCompte() {
         setClassement(data ?? { score: 0, nb_commentaires: 0, nb_valides: 0, nb_likes_recus: 0, nb_essais_publies: 0 })
       })
 
+    // ⚠️ Cinq comptages, et rien de plus : le parcours se DÉDUIT entièrement de ce
+    // que le lecteur a déjà marqué. Rien n'est stocké, donc rien ne peut se
+    // désynchroniser — la liste précédente se refermait dans le stockage local, si
+    // bien qu'elle disparaissait sur un navigateur et revenait sur un autre.
+    //
+    // ⛔ On compte les commentaires SANS filtrer sur `valide` : le parcours coche un
+    // GESTE, il n'a pas à dépendre du délai d'une modération. C'est le rang, lui, qui
+    // ne comptera que le validé.
+    const compte = (table: string, filtres: Record<string, string> = {}) => {
+      let q = supabase.from(table).select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+      for (const [col, val] of Object.entries(filtres)) q = q.eq(col, val)
+      return q
+    }
     Promise.all([
-      supabase.from('essais').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('statut', 'publie'),
-      supabase.from('prelevements').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-      supabase.from('favoris').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('type', 'oeuvre'),
-    ]).then(([e, p, o]) => {
-      // ⚠️ Un comptage qui échoue rend `count` nul, ce qui se lit comme « rien encore
-      // fait » : sans ce signalement, une étape ne se cocherait jamais sans qu'on sache
-      // pourquoi. C'est ce qui masquait le décalage de `essais.auteur_id`.
-      const erreur = e.error ?? p.error ?? o.error
+      compte('prelevements', { type: 'biblique' }),
+      compte('prelevements', { type: 'patristique' }),
+      compte('favoris', { type: 'oeuvre' }),
+      compte('commentaires'),
+      compte('essais', { statut: 'publie' }),
+    ]).then(([bibliques, patristiques, oeuvres, commentaires, essais]) => {
+      // Un comptage qui échoue rend `count` nul, ce qui se lit comme « pas encore
+      // fait » : sans ce signalement, une étape ne se cocherait jamais sans qu'on
+      // sache pourquoi. C'est ce qui masquait le décalage de `essais.auteur_id`.
+      const erreur = bibliques.error ?? patristiques.error ?? oeuvres.error ?? commentaires.error ?? essais.error
       if (erreur) console.error('Où j’en suis : l’avancement n’a pas pu être compté.', erreur)
-      setComptes({ essais: e.count ?? 0, passages: p.count ?? 0, oeuvres: o.count ?? 0 })
+      setMarques({
+        versets: bibliques.count ?? 0,
+        peres: patristiques.count ?? 0,
+        oeuvres: oeuvres.count ?? 0,
+        commentaires: commentaires.count ?? 0,
+        essais: essais.count ?? 0,
+      })
     })
   }, [user.id])
 
@@ -89,16 +111,22 @@ export default function ApercuCompte() {
         )}
       </Carte>
 
-      {/* ── Pour commencer ── */}
-      {comptes && <PourCommencer profilBio={profil.bio} comptes={comptes} nbCommentaires={classement?.nb_commentaires ?? 0} />}
+      {/* ── Les premiers pas ── */}
+      {marques && (
+        <ParcoursDecouverte
+          marques={marques}
+          aUnPortrait={!!profil.avatar_ref}
+          aUneBio={!!profil.bio?.trim()}
+        />
+      )}
 
       {/* ── Ce que je garde ── */}
-      {comptes && (
+      {marques && (marques.versets + marques.peres + marques.oeuvres + marques.essais > 0) && (
         <Carte titre="Ce que je garde">
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <LigneComptee nombre={comptes.oeuvres} singulier="œuvre en bibliothèque" pluriel="œuvres en bibliothèque" href={hrefPublic} />
-            <LigneComptee nombre={comptes.passages} singulier="passage enregistré" pluriel="passages enregistrés" href="/prelevements" dernier={comptes.essais === 0} />
-            {comptes.essais > 0 && <LigneComptee nombre={comptes.essais} singulier="publication" pluriel="publications" href={hrefPublic} dernier />}
+            {marques.oeuvres > 0 && <LigneComptee nombre={marques.oeuvres} singulier="œuvre en bibliothèque" pluriel="œuvres en bibliothèque" href={hrefPublic} />}
+            {marques.versets + marques.peres > 0 && <LigneComptee nombre={marques.versets + marques.peres} singulier="passage retenu" pluriel="passages retenus" href="/prelevements" />}
+            {marques.essais > 0 && <LigneComptee nombre={marques.essais} singulier="publication" pluriel="publications" href={hrefPublic} dernier />}
           </div>
         </Carte>
       )}
@@ -164,59 +192,5 @@ function BarreRang({ score }: { score: number }) {
         </p>
       )}
     </>
-  )
-}
-
-// ── Pour commencer ───────────────────────────────────────────────────────────
-// ⛔ PLUS AUCUNE MENTION DE POINTS ICI. La liste annonçait « +2 pts » pour la
-// présentation, « +1 pt » pour un passage enregistré et « +1 pt » pour un favori :
-// aucun des trois n'existe dans la formule du rang (vue `classement_utilisateurs`),
-// qui ne compte que les commentaires, leur validation, les mentions reçues et les
-// essais. Trois promesses sur cinq étaient fausses.
-//
-// ⚠️ Elles ne reviendront pas sous une autre forme : une étape de découverte ne
-// s'achète pas. Deci, Koestner et Ryan (1999) mesurent sur 128 expériences que la
-// récompense tangible et attendue MINE la motivation qu'elle prétend soutenir. Ce
-// qui remplacera cette liste est un parcours qui ENSEIGNE, non qui paie. Voir la
-// tâche [compte-parcours] du centre de contrôle.
-function PourCommencer({ profilBio, comptes, nbCommentaires }: { profilBio: string | null; comptes: Comptes; nbCommentaires: number }) {
-  const etapes = [
-    { fait: !!profilBio?.trim(), label: 'Vous présenter en deux lignes', href: '/compte/presentation' },
-    { fait: comptes.passages > 0, label: 'Enregistrer un passage qui vous arrête', href: '/bible' },
-    { fait: comptes.oeuvres > 0, label: 'Mettre une œuvre dans votre bibliothèque', href: '/bibliotheque' },
-    { fait: nbCommentaires >= 3, label: 'Commenter trois passages', href: '/bible' },
-    { fait: comptes.essais > 0, label: 'Publier un premier essai', href: '/essais/nouveau' },
-  ]
-  const restantes = etapes.filter(e => !e.fait).length
-  if (restantes === 0) return null
-
-  // ⚠️ On affiche le PLUS PETIT des deux nombres : ce qui est fait tant qu'on
-  // commence, ce qui reste dès qu'on approche (Koo et Fishbach, « small-area
-  // hypothesis »). « Il vous en reste deux » porte quand « 3 sur 5 » n'apprend rien.
-  const faites = etapes.length - restantes
-  const entete = restantes <= faites
-    ? `Il vous en reste ${restantes === 1 ? 'une' : restantes}`
-    : `${faites} sur ${etapes.length}`
-
-  return (
-    <Carte titre="Pour commencer">
-      <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: '-8px 0 16px', lineHeight: 1.6 }}>
-        Cinq gestes qui font le tour du site. {entete}.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-        {etapes.map(({ fait, label, href }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span aria-hidden="true" style={{ width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.625rem', background: 'var(--cs-fond)', border: `1.5px solid ${fait ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, color: fait ? 'var(--cs-vert)' : 'transparent' }}>
-              {fait ? '✓' : ''}
-            </span>
-            {fait ? (
-              <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', textDecoration: 'line-through' }}>{label}</span>
-            ) : (
-              <a href={href} style={{ fontSize: '0.8125rem', color: 'var(--cs-vert)', textDecoration: 'none' }}>{label}</a>
-            )}
-          </div>
-        ))}
-      </div>
-    </Carte>
   )
 }
