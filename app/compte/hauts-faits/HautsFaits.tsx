@@ -58,7 +58,6 @@ function familleDe(nom: string): FamilleCorpus {
 export default function HautsFaits() {
   const [etat, setEtat] = useState<Reponse | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
-  const [ouverte, setOuverte] = useState<string | null>(null)
 
   useEffect(() => {
     let annule = false
@@ -77,9 +76,10 @@ export default function HautsFaits() {
 
   return (
     <>
+      {/* ⛔ Le chapeau ne promet plus de leçon : « chacune vous apprend quelque
+          chose » annonçait une récompense didactique que la carte ne porte plus. */}
       <EnTeteRubrique titre="Hauts faits">
         Des cases à remplir, six séries qui se comptent sur ce que vous gardez et sur ce que vous publiez.
-        Chacune vous apprend quelque chose au moment où elle tombe.
       </EnTeteRubrique>
 
       {erreur && <Carte><p style={{ fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', margin: 0 }}>{erreur}</p></Carte>}
@@ -87,13 +87,7 @@ export default function HautsFaits() {
         <Carte><p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement…</p></Carte>
       )}
 
-      {etat && (
-        <ContenuHautsFaits
-          etat={etat}
-          ouverte={ouverte}
-          onOuvrir={code => setOuverte(ouverte === code ? null : code)}
-        />
-      )}
+      {etat && <ContenuHautsFaits etat={etat} />}
     </>
   )
 }
@@ -111,11 +105,7 @@ export default function HautsFaits() {
  *  rendu ferait paraître la reliure dans une teinte puis sauter dans l'autre après
  *  l'hydratation — c'est la règle que la charte pose déjà pour les couvertures
  *  d'essai, et c'est aussi ce qui permet à une planche de rendre les deux thèmes. */
-export function ContenuHautsFaits({ etat, ouverte, onOuvrir }: {
-  etat: Reponse
-  ouverte: string | null
-  onOuvrir: (code: string) => void
-}) {
+export function ContenuHautsFaits({ etat }: { etat: Reponse }) {
   const nouveaux = new Set(etat.nouveaux ?? [])
   // ⛔ UNE SEULE case est désignée comme la plus proche. Sur une planche de vingt et
   // un creux identiques, c'est elle qui donne le premier geste ; deux marques n'en
@@ -141,17 +131,9 @@ export function ContenuHautsFaits({ etat, ouverte, onOuvrir }: {
                 dernier={c.degre === serie.degres.length}
                 nouveau={nouveaux.has(c.code)}
                 proche={c.code === proche}
-                ouverte={ouverte === c.code}
-                onOuvrir={() => onOuvrir(c.code)}
               />
             ))}
           </div>
-          {/* ⛔ La NOTICE ne tient pas dans une case : elle fait deux cents signes,
-              et c'est la récompense elle-même. Elle se déplie SOUS la série, une
-              à la fois, plutôt que d'ouvrir une fenêtre de plus. */}
-          {serie.degres.filter(c => c.code === ouverte).map(c => (
-            <Notice key={c.code} c={c} part={etat.rarete?.[c.code]} />
-          ))}
         </section>
       ))}
     </>
@@ -185,25 +167,23 @@ function Tableau({ score, series, enVue }: { score: Score; series: SerieEtat[]; 
 }
 
 // ── Une case ─────────────────────────────────────────────────────────────────
-function CaseHautFait({ c, dernier, nouveau, proche, ouverte, onOuvrir }: {
+function CaseHautFait({ c, dernier, nouveau, proche }: {
   c: DegreEtat
   dernier: boolean
   nouveau: boolean
   proche: boolean
-  ouverte: boolean
-  onOuvrir: () => void
 }) {
   const famille = familleDe(c.famille)
 
+  // ⛔ UNE CARTE NE S'OUVRE PAS, et ce n'est pas un composant qu'on a simplifié :
+  // c'est une décision de l'auteur du 1er septembre 2026 — « ne pas ajouter un texte
+  // caché ; ou une leçon ». La carte se suffit. Ce n'est donc plus un bouton : un
+  // survol qui soulève et un curseur en main promettaient une action qui n'existe
+  // pas. Ce qu'un haut fait a de savant à dire, il le dit UNE fois, dans l'annonce,
+  // au moment où il tombe — pas en attendant qu'on vienne le déplier.
   return (
-    <button
-      type="button"
-      className={`hf-jeton ${c.obtenu ? 'hf-jeton--relie' : 'hf-jeton--creux'}${proche ? ' hf-jeton--proche' : ''}${ouverte ? ' hf-jeton--ouverte' : ''}`}
-      onClick={onOuvrir}
-      aria-expanded={ouverte}
-      aria-label={c.obtenu
-        ? `${c.nom}, obtenu, ${c.points} points`
-        : `${c.nom}, en attente, ${libelleProgression(c)}`}
+    <div
+      className={`hf-jeton ${c.obtenu ? 'hf-jeton--relie' : 'hf-jeton--creux'}${proche ? ' hf-jeton--proche' : ''}`}
       style={c.obtenu
         // ⛔ Les DEUX cuirs voyagent ensemble ; c'est la feuille qui tranche selon
         // le thème posé sur la racine. Aucun choix en JavaScript (charte).
@@ -236,38 +216,6 @@ function CaseHautFait({ c, dernier, nouveau, proche, ouverte, onOuvrir }: {
           </span>
         </>
       )}
-    </button>
-  )
-}
-
-// ── La notice, dépliée sous sa série ─────────────────────────────────────────
-function Notice({ c, part }: { c: DegreEtat; part?: number }) {
-  const famille = familleDe(c.famille)
-  return (
-    <div
-      className="hf-notice"
-      style={{ borderLeft: `3px solid ${c.obtenu ? `var(--cs-${famille})` : 'var(--cs-bord)'}` }}
-    >
-      <p className="hf-notice-tete">
-        <span className="hf-notice-nom" style={{ color: c.obtenu ? 'var(--cs-encre)' : 'var(--cs-texte-doux)' }}>
-          {c.nom}
-        </span>
-        <span className="hf-notice-etat">
-          {c.obtenu ? `${c.points} point${c.points !== 1 ? 's' : ''}` : libelleProgression(c)}
-        </span>
-      </p>
-
-      {/* ⛔ La notice ne se lit QUE si la case est acquise : c'est la récompense
-          elle-même, et la donner d'avance la dépenserait. */}
-      {c.obtenu ? (
-        <p className="hf-notice-texte">{c.notice}</p>
-      ) : (
-        <p className="hf-notice-attente">Cette case vous apprendra quelque chose le jour où elle tombera.</p>
-      )}
-
-      {c.obtenu && part != null && (
-        <p className="hf-notice-rarete">Obtenu par {Math.round(part * 100)} lecteurs sur cent.</p>
-      )}
     </div>
   )
 }
@@ -292,15 +240,20 @@ const DESSIN = `
 /* ⛔ QUATRE COLONNES FIXES, jamais «auto-fill». Toutes les séries n'ont pas quatre
    degrés : sous auto-fill, un rayon de trois s'étire et ses cases n'ont plus la
    largeur de celles du rayon voisin. Une collection se lit en colonnes. */
-.hf-rayon { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+.hf-rayon { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 @media (max-width: 30rem) { .hf-rayon { grid-template-columns: repeat(2, 1fr); } }
 
+/* ⛔ LE TEXTE EST CENTRÉ, sur les deux axes (auteur, 1er septembre 2026 : « centrer
+   le texte, le faire élégant »). C'est la composition du carton de l'accueil, dont
+   le groupe icône-titre est centré dans la carte ; et sur une boîte de dix rem, un
+   nom de deux lignes au fer laisse un blanc qu'on lit comme un défaut.
+   ⛔ NI CURSEUR NI SOULÈVEMENT : la carte ne s'ouvre plus, et un survol qui la
+   soulève promettrait une action qui n'existe pas. */
 .hf-jeton { position: relative; border-radius: 8px; min-height: 7.5rem;
-  padding: 12px 12px 11px; display: flex; flex-direction: column;
-  justify-content: flex-end; gap: 4px; overflow: hidden; width: 100%;
-  text-align: left; cursor: pointer; font-family: inherit; border: 1px solid transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease; }
-.hf-jeton:hover { transform: translateY(-2px); }
+  padding: 14px 12px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  overflow: hidden; width: 100%; text-align: center;
+  border: 1px solid transparent; }
 
 /* Une case gagnée est une RELIURE : le vocabulaire du carton de l'accueil — filet
    clair, ombre portée, liseré de lumière en tête, vignette.
@@ -310,14 +263,16 @@ const DESSIN = `
    cela (charte, «Élévations»). */
 .hf-jeton--relie { background: var(--hf-cuir-clair); border-color: rgba(255,255,255,0.10);
   box-shadow: var(--cs-ombre-flottante), inset 0 1px 0 rgba(255,255,255,0.09); }
-.hf-jeton--relie:hover { box-shadow: var(--cs-ombre-modale), inset 0 1px 0 rgba(255,255,255,0.12); }
 :root[data-theme="sombre"] .hf-jeton--relie { background: var(--hf-cuir-sombre); }
 .hf-jeton--relie::after { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(to bottom, rgba(255,255,255,0.07) 0%, transparent 45%); }
 .hf-jeton--relie .hf-nom, .hf-jeton--relie .hf-pts { position: relative; z-index: 1; }
 .hf-jeton--relie .hf-nom { color: inherit; }
-.hf-fleuron { position: absolute; top: 9px; right: 10px; font-size: 0.75rem;
-  color: ${OR_FLEURON}; z-index: 1; line-height: 1; }
+/* Le fleuron du dernier degré coiffe le nom, comme l'icône coiffe le titre d'un
+   carton de l'accueil. ⚠️ Il était posé en absolu dans un coin, où il ne se voyait
+   pas et où il rompait le centrage qu'on vient de poser. */
+.hf-fleuron { font-size: 0.75rem; color: ${OR_FLEURON}; z-index: 1;
+  position: relative; line-height: 1; margin-bottom: 2px; }
 
 /* ⛔ Une case en attente n'est pas un rectangle plus pâle : c'est un EMPLACEMENT
    VIDE sur le rayon. Elle se CREUSE au lieu de se poser. */
@@ -325,11 +280,9 @@ const DESSIN = `
   border-color: color-mix(in srgb, var(--cs-texte) 9%, var(--cs-fond));
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.07); }
 .hf-jeton--creux .hf-nom { color: var(--cs-texte-faible); }
-.hf-jeton--creux:hover { box-shadow: inset 0 2px 5px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.06); }
 /* La seule case désignée du rayon vide : son filet prend l'encre de sa famille. */
 .hf-jeton--proche { border-color: currentColor; }
 .hf-jeton--proche .hf-nom { color: var(--cs-texte-second); }
-.hf-jeton--ouverte { outline: 2px solid currentColor; outline-offset: 1px; }
 
 .hf-nom { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.84375rem;
   line-height: 1.25; }
@@ -337,21 +290,10 @@ const DESSIN = `
   font-style: italic; }
 .hf-mesure { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.6875rem;
   font-style: italic; color: var(--cs-texte-gris); }
-.hf-filet { display: block; height: 2px; border-radius: 999px; margin-top: 3px;
-  background: color-mix(in srgb, var(--cs-texte) 10%, transparent); }
+/* ⚠️ Le filet ne court plus d'un bord à l'autre : sur une carte centrée, un trait
+   qui touche les deux marges tire l'œil hors du groupe. Il en prend la moitié. */
+.hf-filet { display: block; height: 2px; border-radius: 999px; margin-top: 4px;
+  width: 52%; background: color-mix(in srgb, var(--cs-texte) 10%, transparent); }
 .hf-filet i { display: block; height: 100%; border-radius: 999px; background: var(--cs-texte-faible); }
 
-.hf-notice { margin-top: 10px; padding: 13px 15px; border-radius: 8px;
-  background: var(--cs-fond-clair); }
-.hf-notice-tete { margin: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.hf-notice-nom { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.875rem; }
-.hf-notice-etat { font-size: 0.625rem; color: var(--cs-texte-faible); }
-.hf-notice-texte { font-size: 0.78125rem; color: var(--cs-texte-second); margin: 7px 0 0; line-height: 1.65; }
-.hf-notice-attente { font-size: 0.75rem; color: var(--cs-texte-faible); margin: 7px 0 0;
-  line-height: 1.6; font-style: italic; }
-.hf-notice-rarete { font-size: 0.625rem; color: var(--cs-texte-faible); margin: 6px 0 0; font-style: italic; }
-
-@media (prefers-reduced-motion: reduce) {
-  .hf-jeton, .hf-jeton:hover { transition: none; transform: none; }
-}
 `
