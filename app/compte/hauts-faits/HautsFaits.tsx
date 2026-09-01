@@ -199,16 +199,29 @@ function CaseHautFait({ c, dernier, nouveau, proche }: {
     >
       {c.obtenu ? (
         <>
-          {/* Le dernier degré d'une série porte un fleuron, comme un dos poussé à
-              l'or. C'est la seule marque de rareté, et elle ne compte rien. */}
-          {dernier && <span className="hf-fleuron" aria-hidden="true">❧</span>}
-          <span className="hf-nom">{c.nom}</span>
-          <span className="hf-pts" style={{ color: ENCRE_RELIURE_DOUCE }}>
-            {nouveau ? 'Nouveau' : `${c.points} points`}
+          {/* ⛔ LA FACE S'EFFACE AU SURVOL et l'explication vient à sa place (auteur,
+              1er septembre 2026). C'est la mécanique des cartons de l'accueil, où
+              `.ac-card-main` tombe à 0,12 d'opacité pour laisser paraître son volet.
+              ⚠️ Ce n'est PAS le texte caché qu'il avait refusé la veille : la notice
+              se dépliait alors SOUS la série et poussait tout le tableau ; ici elle
+              tient dans la carte, sans rien déplacer, et se lit d'un mouvement. */}
+          <span className="hf-face">
+            {/* Le dernier degré d'une série porte un fleuron, comme un dos poussé à
+                l'or. C'est la seule marque de rareté, et elle ne compte rien. */}
+            {dernier && <span className="hf-fleuron" aria-hidden="true">❧</span>}
+            <span className="hf-nom">{c.nom}</span>
+            <span className="hf-pts" style={{ color: ENCRE_RELIURE_DOUCE }}>
+              {nouveau ? 'Nouveau' : `${c.points} points`}
+            </span>
           </span>
+          {/* ⚠️ Elle reste dans le DOCUMENT, à opacité nulle : un lecteur d'écran la
+              lit, et c'est le seul moyen qu'elle soit atteignable sans souris. */}
+          <span className="hf-explication">{c.notice}</span>
         </>
       ) : (
         <>
+          {/* ⛔ Une case en ATTENTE ne montre rien au survol : la notice est la
+              récompense, et la donner d'avance la dépenserait. */}
           <span className="hf-nom">{c.nom}</span>
           {/* ⛔ Une case à FAIT UNIQUE — « Au commencement », « Tolle, lege » — ne
               porte ni indice ni filet : il n'y a pas de chemin à mesurer, seulement
@@ -291,6 +304,30 @@ const DESSIN = `
 /* La seule case désignée du rayon vide : son filet prend l'encre de sa famille. */
 .hf-jeton--proche { border-color: currentColor; }
 .hf-jeton--proche .hf-nom { color: var(--cs-texte-second); }
+
+/* ⛔ L'ÉCHANGE DE FACE AU SURVOL, sur le patron des cartons de l'accueil. La face
+   tient le flux — c'est elle qui donne sa hauteur à la carte —, l'explication se
+   pose PAR-DESSUS en absolu : deux blocs en flux se pousseraient l'un l'autre, et
+   la grille se réagencerait au passage du curseur. */
+.hf-face { display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px; position: relative; z-index: 1;
+  transition: opacity 0.16s ease; }
+.hf-explication { position: absolute; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  padding: 6px 8px; text-align: center;
+  font-family: var(--font-source-serif), Georgia, serif; font-size: 0.625rem;
+  line-height: 1.35; color: ${ENCRE_RELIURE_DOUCE};
+  opacity: 0; transition: opacity 0.16s ease; pointer-events: none; }
+/* ⚠️ Sous «(hover: hover)» seulement : au doigt il n'y a pas de survol, et la face
+   reste. C'est la règle déjà posée pour la quatrième d'une couverture de
+   publication, qui n'est pas même rendue sur un écran tactile. */
+@media (hover: hover) {
+  .hf-jeton--relie:hover .hf-face { opacity: 0.06; }
+  .hf-jeton--relie:hover .hf-explication { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hf-face, .hf-explication { transition: none; }
+}
 
 .hf-nom { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.84375rem;
   line-height: 1.25; }
