@@ -7,13 +7,13 @@
 export const CSS_AUDIENCE = `
   /* — Barre d'onglets — */
   .au-onglets { max-width: 74rem; margin: 0 auto 1.25rem; display: flex; gap: 0.25rem; flex-wrap: wrap; border-bottom: 1px solid var(--cs-bord-clair); }
-  .au-onglet { appearance: none; border: none; background: transparent; cursor: pointer; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.875rem; color: var(--cs-texte-second); padding: 0.5rem 0.875rem; border-bottom: 2px solid transparent; margin-bottom: -1px; border-radius: 6px 6px 0 0; transition: color .12s, background .12s; }
+  .au-onglet { appearance: none; border: none; background: transparent; cursor: pointer; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.875rem; color: var(--cs-texte-second); padding: 0.5rem 0.875rem; border-bottom: 2px solid transparent; margin-bottom: -1px; border-radius: 4px 4px 0 0; transition: color .12s, background .12s; }
   .au-onglet:hover { color: var(--cs-vert-fonce); background: rgba(var(--cs-vert-rgb), 0.05); }
   .au-onglet-actif { color: var(--cs-encre-fonce); border-bottom-color: var(--cs-vert-aplat); font-weight: 600; }
 
   /* — Choix de la période — */
   .au-periodes { display: inline-flex; gap: 0.25rem; align-items: center; }
-  .au-periode { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.75rem; color: var(--cs-texte-doux); text-decoration: none; padding: 0.25rem 0.5rem; border: 1px solid var(--cs-bord-clair); border-radius: 6px; background: var(--cs-surface); }
+  .au-periode { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.75rem; color: var(--cs-texte-doux); text-decoration: none; padding: 0.25rem 0.5rem; border: 1px solid var(--cs-bord-clair); border-radius: 4px; background: var(--cs-surface); }
   .au-periode:hover { color: var(--cs-vert); border-color: var(--cs-vert); }
   .au-periode-active { color: var(--cs-sur-aplat); background: var(--cs-vert-aplat); border-color: var(--cs-vert-aplat); font-weight: 600; }
 
@@ -25,7 +25,7 @@ export const CSS_AUDIENCE = `
   .au-courbe-grille { stroke: var(--cs-bord-clair); stroke-width: 0.6; }
   .au-courbe-legende { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.6875rem; color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.5rem; }
   .au-courbe-cle { display: inline-flex; align-items: center; gap: 0.375rem; }
-  .au-courbe-pastille { width: 0.75rem; height: 0.1875rem; border-radius: 2px; display: inline-block; }
+  .au-courbe-pastille { width: 0.75rem; height: 0.1875rem; border-radius: 999px; display: inline-block; }
   .au-courbe-bornes { display: flex; justify-content: space-between; font-size: 0.6875rem; color: var(--cs-texte-faible); font-family: var(--font-source-sans), Arial, sans-serif; margin-top: 0.25rem; }
 
   /* — Classements — */
@@ -44,8 +44,8 @@ export const CSS_AUDIENCE = `
 
   /* Barre de proportion, posée derrière le nom : on lit un classement d'un coup
      d'œil sans avoir à comparer des nombres. */
-  .au-ligne-piste { grid-column: 1 / -1; height: 3px; background: var(--cs-fond-doux); border-radius: 2px; overflow: hidden; margin-top: 0.125rem; }
-  .au-ligne-part { height: 100%; background: rgba(var(--cs-vert-rgb), 0.45); border-radius: 2px; }
+  .au-ligne-piste { grid-column: 1 / -1; height: 3px; background: var(--cs-fond-doux); border-radius: 999px; overflow: hidden; margin-top: 0.125rem; }
+  .au-ligne-part { height: 100%; background: rgba(var(--cs-vert-rgb), 0.45); border-radius: 999px; }
 
   /* — État vide — */
   .au-vide { font-size: 0.8125rem; color: var(--cs-texte-doux); font-family: var(--font-source-serif), Georgia, serif; font-style: italic; line-height: 1.55; margin: 0; padding: 0.75rem 0; }

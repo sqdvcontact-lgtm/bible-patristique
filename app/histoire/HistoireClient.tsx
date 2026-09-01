@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { rendreSiecles, decouperSiecles, Siecle } from '@/app/lib/siecles'
+import { rendreSiecles, decouperSiecles, Siecle, STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
   type RangFrise, type Densite, DENSITES, coulFamille, passeDensite,
@@ -95,8 +95,10 @@ function rendreTexteLibre(v: string, cle: string, q: string): React.ReactNode[] 
 // ordinaux de souverains, et surlignage du terme recherché.
 function rendreSegment(texte: string, cle: string, q: string): React.ReactNode[] {
   return decouperSiecles(texte).map((fr, i) =>
-    fr.t === 'romain' ? <span key={`${cle}-r${i}`} style={{ fontVariantCaps: 'all-small-caps' }}>{fr.v}</span>
-    : fr.t === 'ordinal' ? <sup key={`${cle}-o${i}`} style={{ fontSize: '0.6em', lineHeight: 1, verticalAlign: 'baseline', position: 'relative', top: '-0.5em' }}>{fr.v}</sup>
+    // ⛔ Les styles viennent de la source unique, ils ne se recopient pas : l'ordinal
+    // valait ici 0,6 em contre 0,62 dans `siecles.tsx`, et la dérive était déjà là.
+    fr.t === 'romain' ? <span key={`${cle}-r${i}`} style={STYLE_ROMAIN}>{fr.v}</span>
+    : fr.t === 'ordinal' ? <sup key={`${cle}-o${i}`} style={STYLE_ORDINAL}>{fr.v}</sup>
     : <React.Fragment key={`${cle}-t${i}`}>{rendreTexteLibre(fr.v, `${cle}-${i}`, q)}</React.Fragment>,
   )
 }

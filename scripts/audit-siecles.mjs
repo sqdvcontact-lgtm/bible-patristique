@@ -16,8 +16,14 @@
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const RACINE = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+// ⛔ `URL.pathname` rend un chemin PERCENT-ENCODÉ : l'espace de « Corpus Scriptura »
+// y devient « %20 », et le script tombait sur ENOENT en cherchant un dossier nommé
+// « Corpus%20Scriptura ». Il n'a donc jamais tourné depuis ce poste. `fileURLToPath`
+// décode et rend au passage la lettre de lecteur, ce que le retrait manuel du « / »
+// initial ne faisait qu'à moitié.
+const RACINE = fileURLToPath(new URL('..', import.meta.url))
 const SOURCE_UNIQUE = 'app/lib/siecles.tsx'
 const TOUT = process.argv.includes('--tout')
 
@@ -34,8 +40,17 @@ const SONDES = [
   {
     nom: 'small-caps sans effet',
     // `small-caps` (sans `all-`) ne touche pas les capitales : sur « IV », il ne
-    // fait rien. Signalé partout, car le défaut est invisible à la relecture.
-    re: /font-?[Vv]ariant(?!-?[Cc]aps)\s*[:=]\s*['"]?small-caps/g,
+    // fait rien.
+    //
+    // ⛔ MAIS IL NE VAUT QUE POUR UN SIÈCLE, et la sonde doit le dire. Le site
+    // emploie les petites capitales pour tout autre chose — l'enrichissement
+    // `++texte++`, son bouton d'éditeur, une locution du paratexte — sur du texte
+    // en BAS DE CASSE, où `small-caps` fonctionne parfaitement et est l'écriture
+    // juste. Non bornée, la sonde rendait onze cas dont dix étaient corrects, et
+    // un vérificateur qui crie sur du bruit n'est plus lu (AGENTS.md : « une suite
+    // durablement rouge cesse d'être un signal »). Elle exige donc, dans le même
+    // voisinage, un indice de siècle.
+    re: /(?:(?=[\s\S]{0,240}?(?:siècle|siecle|[Rr]omain|[Oo]rdinal|<sup))|(?<=(?:siècle|siecle|[Rr]omain|[Oo]rdinal)[\s\S]{0,240}?))font-?[Vv]ariant(?!-?[Cc]aps)\s*[:=]\s*['"]?small-caps/g,
     remede: 'employer all-small-caps (fontVariantCaps), sans quoi les capitales restent pleines',
   },
   {
@@ -50,6 +65,11 @@ const SONDES = [
 
 // Les éditeurs de texte enrichi ont un bouton « petites capitales » qui n'a rien
 // à voir avec les siècles : c'est une mise en forme demandée par l'utilisateur.
+//
+// ⚠️ Cette liste n'avait JAMAIS été éprouvée : le script ne tournait pas depuis un
+// poste dont le chemin porte une espace (voir RACINE plus haut), et l'on ne pouvait
+// donc pas savoir ce qu'il lui manquait. Les fichiers ajoutés le 1er septembre 2026
+// rendent l'enrichissement du corpus, non des siècles.
 const HORS_SUJET = [
   'app/components/EditeurCommentaire.tsx',
   'app/lib/serialisationEssai.ts',
@@ -58,12 +78,35 @@ const HORS_SUJET = [
   'app/admin/SectionTraductions.tsx',
 ]
 
+// ⛔ Le GESTE plutôt que le fichier. Exempter TexteBible.tsx en entier renoncerait à
+// y voir un vrai siècle mal composé ; on n'écarte donc qu'une occurrence dont le
+// voisinage IMMÉDIAT parle d'enrichissement — les marqueurs ++ ^^ du corpus, ou le
+// libellé du bouton d'éditeur. C'est ce qui met côte à côte, dans une même fonction,
+// des petites capitales et un <sup> sans qu'aucun siècle soit en jeu.
+// ⚠️ Les marqueurs sont ÉCHAPPÉS dans le source : le rendu de `++texte++` s'écrit
+// `/\+\+(.+?)\+\+/`, où deux « + » ne se suivent jamais. Chercher « ++ » à la lettre
+// ne trouvait donc rien là où le geste est précisément une expression régulière.
+//
+// ⚠️ Le libellé se cherche ENTRE GUILLEMETS, jamais en prose : à l'épreuve, un
+// commentaire qui écrivait « petites capitales » pour décrire un défaut désarmait la
+// sonde et le défaut passait. Une exemption qu'un commentaire peut poser n'en est pas
+// une.
+const ENRICHISSEMENT = /(\\?\+){2}|(\\?\^){2}|['"][Pp]etites capitales|petitesCap/
+const PORTEE_VOISINAGE = 160
+
+function estEnrichissement(texte, index) {
+  return ENRICHISSEMENT.test(texte.slice(Math.max(0, index - PORTEE_VOISINAGE), index + PORTEE_VOISINAGE))
+}
+
 function fichiers(dir, acc = []) {
   for (const nom of readdirSync(dir)) {
     if (nom === 'node_modules' || nom === '.next' || nom.startsWith('.')) continue
     const chemin = join(dir, nom)
     if (statSync(chemin).isDirectory()) fichiers(chemin, acc)
-    else if (/\.tsx?$/.test(nom)) acc.push(chemin)
+    // ⚠️ Les fichiers de TEST sont hors sujet, comme pour la garde chromatique : un
+    // test qui vérifie la sortie de `siecles.tsx` en cite forcément la composition,
+    // et c'est son office. `HistoricalDate.test.tsx` était signalé pour cela.
+    else if (/\.tsx?$/.test(nom) && !/\.test\.tsx?$/.test(nom)) acc.push(chemin)
   }
   return acc
 }
@@ -87,6 +130,7 @@ for (const chemin of fichiers(join(RACINE, 'app'))) {
     sonde.re.lastIndex = 0
     let m
     while ((m = sonde.re.exec(texte))) {
+      if (estEnrichissement(texte, m.index)) continue
       ecarts.push({ rel, ligne: ligneDe(texte, m.index), sonde })
     }
   }

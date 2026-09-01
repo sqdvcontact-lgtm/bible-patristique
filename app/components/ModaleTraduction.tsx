@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
-import { rendreSiecles } from '@/app/lib/siecles'
+import { rendreSiecles, sieclesEnHtml } from '@/app/lib/siecles'
 import { FriseAuteur, TitreSection, LigneTech, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
 import { type RangChrono } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -109,9 +109,10 @@ function formaterProse(html: string): string {
     .replace(/[\s  ]*:/g, INSEC + ":")
     .replace(/«[\s  ]*/g, "«" + FINE)
     .replace(/[\s  ]*»/g, FINE + "»")
-  // Siecles : petites capitales + exposant, uniquement devant « siecle ».
-  s = s.replace(/\b([IVXLCDM]+)(er|re|es|e)\b(?=\s+siècles?\b)/g,
-    (_m, rom, ord) => `<span style="font-variant:all-small-caps;letter-spacing:0.02em">${rom}</span><sup style="font-size:0.62em;line-height:0;vertical-align:baseline;position:relative;top:-0.5em">${ord}</sup>`)
+  // ⛔ Les siècles se composent par la SOURCE UNIQUE, jamais par une regex maison :
+  // celle-ci ignorait l’abréviation « s. » que sieclesEnHtml traite, et posait un
+  // letter-spacing que ni STYLE_ROMAIN ni sieclesEnHtml ne portent.
+  s = sieclesEnHtml(s)
   return s
 }
 
