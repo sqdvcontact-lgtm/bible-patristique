@@ -46,7 +46,7 @@ export type Reponse = {
   nouveaux: string[]
   rarete: Record<string, number> | null
   score: Score
-  corpus: { auteurs: number; siecles: number }
+  corpus: { auteurs: number; siecles: number; oeuvres: number }
 }
 
 /** ⚠️ La famille vient de la base et peut donc être inconnue du code : on retombe
@@ -210,10 +210,18 @@ function CaseHautFait({ c, dernier, nouveau, proche }: {
       ) : (
         <>
           <span className="hf-nom">{c.nom}</span>
-          <span className="hf-mesure">{libelleProgression(c)}</span>
-          <span className="hf-filet" aria-hidden="true">
-            <i style={{ width: `${Math.round(c.part * 100)}%` }} />
-          </span>
+          {/* ⛔ Une case à FAIT UNIQUE — « Au commencement », « Tolle, lege » — ne
+              porte ni indice ni filet : il n'y a pas de chemin à mesurer, seulement
+              un geste à faire, et une jauge à zéro ou à plein ne dirait rien. Elle
+              se reconnaît à ce que `libelleProgression` rend vide. */}
+          {libelleProgression(c) && (
+            <>
+              <span className="hf-mesure">{libelleProgression(c)}</span>
+              <span className="hf-filet" aria-hidden="true">
+                <i style={{ width: `${Math.round(c.part * 100)}%` }} />
+              </span>
+            </>
+          )}
         </>
       )}
     </div>

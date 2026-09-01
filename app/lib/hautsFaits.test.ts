@@ -1,19 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import {
-  etatDesSeries, libelleRestant, mesureConnue, obtentionsNouvelles,
+  etatDesSeries, hautsFaitsEcartes, libelleRestant, mesureConnue, obtentionsNouvelles,
   serieLaPlusProche, seuilEffectif, casesDuTableau, score, palierAtteint, libellePalier,
-  libelleProgression, type Compteurs, type Corpus, type HautFait,
+  libelleProgression, MESURES, type Compteurs, type Corpus, type HautFait,
 } from './hautsFaits'
 
 // La garde des HAUTS FAITS. Elle tient trois règles qui ont chacune une raison mesurée
 // derrière elles, et qu'un réglage du référentiel pourrait défaire sans qu'on le voie.
 
-const CORPUS: Corpus = { auteurs: 15, siecles: 7 }
+const CORPUS: Corpus = { auteurs: 15, siecles: 7, oeuvres: 47 }
 
-const VIDE: Compteurs = {
-  passages_retenus: 0, oeuvres_bibliotheque: 0, peres_retenus: 0,
-  siecles_retenus: 0, commentaires_valides: 0, essais_publies: 0,
-}
+// ⚠️ Le compteur vide se DÉRIVE de `MESURES`, il ne les recopie pas : le référentiel
+// en compte une trentaine depuis le 1er septembre 2026, et une liste tenue à la main
+// aurait fait échouer la garde à chaque mesure ouverte — pour une raison qui n'a rien
+// à voir avec ce qu'elle éprouve.
+const VIDE = Object.fromEntries(MESURES.map(m => [m, 0])) as Compteurs
 
 function hf(p: Partial<HautFait> & Pick<HautFait, 'code' | 'serie' | 'degre' | 'mesure'>): HautFait {
   return {
@@ -46,7 +47,29 @@ describe('un seuil exprimé en part du corpus', () => {
   it('refuse de deviner plutôt que de poser un but faux', () => {
     // Une part sans total auquel se rapporter, ou un corpus vide.
     expect(seuilEffectif(hf({ code: 'x', serie: 's', degre: 1, mesure: 'essais_publies', seuil_part: 0.5 }), CORPUS)).toBeNull()
-    expect(seuilEffectif(REFERENTIEL[4], { auteurs: 0, siecles: 0 })).toBeNull()
+    expect(seuilEffectif(REFERENTIEL[4], { auteurs: 0, siecles: 0, oeuvres: 0 })).toBeNull()
+  })
+})
+
+describe('ce qui est ÉCARTÉ du tableau', () => {
+  // ⛔ Le défaut du 1er septembre 2026 : « Grand lecteur » portait un seuil en part
+  // sur , qui n'avait pas de total de corpus. Sa case a
+  // simplement disparu du tableau, et seul un compte (43 cases au lieu de 44) l'a
+  // trahi. Un rejet doit se DIRE.
+  it('nomme un seuil en part que rien ne peut résoudre', () => {
+    const orphelin = hf({ code: 'x', serie: 's', degre: 1, mesure: 'essais_publies', seuil_part: 0.5 })
+    expect(hautsFaitsEcartes([orphelin], CORPUS)).toEqual([
+      { code: 'x', raison: 'seuil en part sur « essais_publies », qui n’a pas de total de corpus' },
+    ])
+  })
+
+  it('nomme une mesure que le code ne connaît pas', () => {
+    const inconnu = hf({ code: 'z', serie: 's', degre: 1, mesure: 'pages_tournees', seuil: 1 })
+    expect(hautsFaitsEcartes([inconnu], CORPUS)[0].raison).toContain('pages_tournees')
+  })
+
+  it('ne se plaint de rien quand tout se résout', () => {
+    expect(hautsFaitsEcartes(REFERENTIEL, CORPUS)).toEqual([])
   })
 })
 

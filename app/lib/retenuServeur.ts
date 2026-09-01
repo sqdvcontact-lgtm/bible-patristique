@@ -28,6 +28,9 @@ export type Retenu = {
   totalAuteurs: number
   /** Les siècles qu'ils couvrent. */
   totalSiecles: number
+  /** ⚠️ Les ŒUVRES que la bibliothèque donne réellement à lire. « Grand lecteur »
+   *  s'exprime en part de ce total, et sans lui le haut fait était écarté EN SILENCE. */
+  totalOeuvres: number
   auteursRetenus: number
   sieclesRetenus: number
   siecles: SiecleRetenu[]
@@ -64,10 +67,14 @@ export async function calculerRetenu(sb: SupabaseClient, userId: string): Promis
   // ramener une marque à son auteur, et une marque posée avant une dépublication reste
   // une marque. C'est le DÉNOMINATEUR qui se restreint, non le numérateur.
   const auteurParOeuvre = new Map<string, string>()
+  // ⚠️ Le MÊME critère que pour les auteurs — publiée et pourvue de texte — sinon
+  // « Grand lecteur » se rapporterait à un fonds que le lecteur ne peut pas ouvrir.
+  const oeuvresLisibles = new Set<string>()
   for (const o of oeuvres) {
     auteurParOeuvre.set(o.id_oeuvre, o.id_auteur)
     if (o.note === MARQUEUR_OEUVRE_DEPUBLIEE) continue
     if ((o.nb_signes ?? 0) <= 0) continue
+    oeuvresLisibles.add(o.id_oeuvre)
     if (o.auteurs) auteursLisibles.set(o.id_auteur, { nom: o.auteurs.nom, siecle: o.auteurs.siecle })
   }
 
@@ -102,6 +109,7 @@ export async function calculerRetenu(sb: SupabaseClient, userId: string): Promis
   return {
     totalAuteurs: auteursLisibles.size,
     totalSiecles: siecles.length,
+    totalOeuvres: oeuvresLisibles.size,
     auteursRetenus: retenus.size,
     sieclesRetenus: siecles.filter(s => s.auteurs.some(a => a.retenu)).length,
     siecles,

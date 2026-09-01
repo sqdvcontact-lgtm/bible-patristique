@@ -25,6 +25,35 @@ export const MESURES = [
   'siecles_retenus',
   'commentaires_valides',
   'essais_publies',
+  // ── Ouvertes le 1er septembre 2026, sur la table des hauts faits proposée par
+  // l'auteur. ⛔ TOUTES se dérivent de marques VOLONTAIRES (voir mesuresLecteur.ts) :
+  // pas une ne lit ce que le lecteur a seulement regardé.
+  'versets_retenus',
+  'passages_patristiques',
+  'favoris_poses',
+  'livres_bibliques',
+  'testaments_touches',
+  'evangiles_touches',
+  'epitres_pauliniennes',
+  'psaumes_retenus',
+  'deuterocanoniques',
+  'genese_ouverte',
+  'exode_et_nombres',
+  'passages_anciens',
+  'passages_grecs',
+  'passages_latins',
+  'traductions_retenues',
+  'traductions_dun_verset',
+  'peres_sur_un_verset',
+  'augustin_en_un_jour',
+  'confessions_ouvertes',
+  'jours_marques',
+  'prelevements_nuit',
+  'prelevements_aurore',
+  'mois_ecoules',
+  'commentaires_poses',
+  'reponses_posees',
+  'signalements_poses',
 ] as const
 
 export type Mesure = (typeof MESURES)[number]
@@ -38,13 +67,14 @@ export type Compteurs = Record<Mesure, number>
 
 /** Ce que la bibliothèque donne à lire aujourd'hui : le dénominateur des seuils
  *  exprimés en part. Il monte avec le corpus, et les derniers degrés avec lui. */
-export type Corpus = { auteurs: number; siecles: number }
+export type Corpus = { auteurs: number; siecles: number; oeuvres: number }
 
 /** À quel total se rapporte une part. Une mesure qui n'a pas de total ne peut pas
  *  porter de seuil relatif : `seuilEffectif` le refuse plutôt que de deviner. */
 const TOTAL_DE_LA_MESURE: Partial<Record<Mesure, keyof Corpus>> = {
   peres_retenus: 'auteurs',
   siecles_retenus: 'siecles',
+  oeuvres_bibliotheque: 'oeuvres',
 }
 
 /** Le TON d'une case. Ce sont les trois familles de corpus déjà chartées — on
@@ -92,6 +122,33 @@ export function seuilEffectif(hf: HautFait, corpus: Corpus): number | null {
   if (!total || total <= 0) return null
   // On arrondit vers le HAUT : « les trois quarts de quinze » font onze, non dix.
   return Math.max(1, Math.ceil(total * hf.seuil_part))
+}
+
+/** Les hauts faits que `etatDesSeries` va ÉCARTER, et pourquoi.
+ *
+ *  ⛔ Un haut fait écarté ne se signale par RIEN : sa case disparaît du tableau, le
+ *  total de points baisse, et personne ne s'en aperçoit. C'est ce qui est arrivé à
+ *  « Grand lecteur » le 1er septembre 2026 — un seuil en part sur une mesure sans
+ *  total —, et seul un compte de cases (43 au lieu de 44) l'a trahi. La route
+ *  journalise donc ce que cette fonction rend : c'est la règle déjà posée pour les
+ *  panneaux discrets, « rien ne distingue vide de cassé ». */
+export function hautsFaitsEcartes(hautsFaits: HautFait[], corpus: Corpus): { code: string; raison: string }[] {
+  const ecartes: { code: string; raison: string }[] = []
+  for (const hf of hautsFaits) {
+    if (!mesureConnue(hf.mesure)) {
+      ecartes.push({ code: hf.code, raison: `mesure inconnue du code : ${hf.mesure}` })
+      continue
+    }
+    if (seuilEffectif(hf, corpus) == null) {
+      ecartes.push({
+        code: hf.code,
+        raison: hf.seuil_part != null && !TOTAL_DE_LA_MESURE[hf.mesure]
+          ? `seuil en part sur « ${hf.mesure} », qui n’a pas de total de corpus`
+          : 'seuil irrésoluble',
+      })
+    }
+  }
+  return ecartes
 }
 
 export type DegreEtat = HautFait & {
@@ -277,12 +334,41 @@ export function libellePalier(c: DegreEtat, palier: Palier): string {
  *  (« le 2/4 est tellement formel ! »). ⚠️ Le nom vient d'ici et non de la base : le
  *  référentiel dit CE QU'ON COMPTE, la langue appartient au code. */
 const NOM_MESURE: Record<Mesure, readonly [string, string]> = {
-  passages_retenus:     ['passage', 'passages'],
-  oeuvres_bibliotheque: ['œuvre', 'œuvres'],
-  peres_retenus:        ['Père', 'Pères'],
-  siecles_retenus:      ['siècle', 'siècles'],
-  commentaires_valides: ['commentaire', 'commentaires'],
-  essais_publies:       ['publication', 'publications'],
+  passages_retenus:      ['passage', 'passages'],
+  oeuvres_bibliotheque:  ['œuvre', 'œuvres'],
+  peres_retenus:         ['Père', 'Pères'],
+  siecles_retenus:       ['siècle', 'siècles'],
+  commentaires_valides:  ['commentaire validé', 'commentaires validés'],
+  essais_publies:        ['publication', 'publications'],
+  versets_retenus:       ['verset', 'versets'],
+  passages_patristiques: ['passage des Pères', 'passages des Pères'],
+  favoris_poses:         ['favori', 'favoris'],
+  livres_bibliques:      ['livre', 'livres'],
+  testaments_touches:    ['Testament', 'Testaments'],
+  evangiles_touches:     ['Évangile', 'Évangiles'],
+  epitres_pauliniennes:  ['épître', 'épîtres'],
+  psaumes_retenus:       ['psaume', 'psaumes'],
+  deuterocanoniques:     ['livre deutérocanonique', 'livres deutérocanoniques'],
+  passages_anciens:      ['passage en langue ancienne', 'passages en langue ancienne'],
+  passages_grecs:        ['passage grec', 'passages grecs'],
+  passages_latins:       ['passage latin', 'passages latins'],
+  traductions_retenues:  ['traduction', 'traductions'],
+  traductions_dun_verset:['traduction d’un même verset', 'traductions d’un même verset'],
+  peres_sur_un_verset:   ['Père sur un même verset', 'Pères sur un même verset'],
+  augustin_en_un_jour:   ['passage d’Augustin en un jour', 'passages d’Augustin en un jour'],
+  jours_marques:         ['jour', 'jours'],
+  prelevements_nuit:     ['passage retenu la nuit', 'passages retenus la nuit'],
+  prelevements_aurore:   ['passage retenu avant l’aurore', 'passages retenus avant l’aurore'],
+  mois_ecoules:          ['mois', 'mois'],
+  commentaires_poses:    ['commentaire', 'commentaires'],
+  reponses_posees:       ['réponse', 'réponses'],
+  signalements_poses:    ['coquille signalée', 'coquilles signalées'],
+  // ⛔ Les mesures BOOLÉENNES n'ont pas de nom : « 0 Genèse ouverte sur 1 » ne se
+  // lit pas. Une case à seuil 1 sur un fait unique se passe d'indice — le nom du
+  // haut fait dit déjà tout ce qu'il y a à faire.
+  genese_ouverte:        ['', ''],
+  exode_et_nombres:      ['', ''],
+  confessions_ouvertes:  ['', ''],
 }
 
 /** L'indice de progression d'une case non acquise, tel qu'il s'écrit dessus.
@@ -293,6 +379,9 @@ const NOM_MESURE: Record<Mesure, readonly [string, string]> = {
  *  se justifie au lieu de se compter. */
 export function libelleProgression(c: DegreEtat): string {
   const noms = mesureConnue(c.mesure) ? NOM_MESURE[c.mesure] : null
+  // ⛔ Une mesure SANS NOM est un fait unique, non un compte : « Au commencement »
+  // ne s'annonce pas « 0 sur 1 ». La carte reste muette et son nom suffit.
+  if (noms && !noms[0]) return ''
   if (!noms) return c.valeur <= 0 ? `${c.seuilAtteindre}` : `${c.valeur} sur ${c.seuilAtteindre}`
   const [sing, plur] = noms
   if (c.valeur <= 0) return `${c.seuilAtteindre} ${c.seuilAtteindre > 1 ? plur : sing}`
@@ -315,8 +404,13 @@ export function enLettres(n: number): string {
  *  sur vingt et une », qui accueille un nouveau venu par un échec : il annonce ce
  *  qu'il y a à faire. */
 export function libelleCollection(score: Score): string {
-  if (score.cases === 0) return `${majuscule(enLettres(score.total))} cases à remplir.`
-  return `${majuscule(enLettres(score.cases))} case${score.cases > 1 ? 's' : ''} sur ${enLettres(score.total)}.`
+  // ⛔ Les lettres ou les chiffres, jamais les DEUX dans la même phrase : « Dix-neuf
+  // cases sur 44 » se lit comme une coquille. Au-delà de ce que la table sait écrire,
+  // toute la phrase passe au chiffre.
+  const enToutesLettres = score.cases < EN_LETTRES.length && score.total < EN_LETTRES.length
+  const dire = (n: number) => (enToutesLettres ? enLettres(n) : String(n))
+  if (score.cases === 0) return `${majuscule(dire(score.total))} cases à remplir.`
+  return `${majuscule(dire(score.cases))} case${score.cases > 1 ? 's' : ''} sur ${dire(score.total)}.`
 }
 
 function majuscule(mot: string): string {
