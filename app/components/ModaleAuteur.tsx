@@ -7,7 +7,7 @@
 // (à gauche la vie, à droite la chronologie), liste d'œuvres compacte incluant les œuvres
 // répertoriées mais non encore présentes.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
@@ -89,6 +89,10 @@ export function TitreSection({ children, centre }: { children: ReactNode; centre
 // et le lien de consultation. Trois copies d'un même cadre finissent toujours par
 // diverger, et c'est exactement ce qu'on venait de défaire.
 
+// Une mesure qui doit précéder la PEINTURE : le portrait s'allonge d'après les lignes
+// qu'il habille, et l'on ne doit jamais voir le premier état, celui d'avant la rallonge.
+const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
 /** Le portrait d'un auteur dans le cadre de la fiche : 6,5 rem × 130 px, passe-partout
  *  de 5 px, ombre posée. Repli sur les initiales quand l'image manque.
  *
@@ -104,11 +108,100 @@ export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
   const [casse, setCasse] = useState<string | null>(null)
   const url = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg`
   const initiales = nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
+  const cadreRef = useRef<HTMLDivElement>(null)
+
+  // ── LE BORD BAS DU PORTRAIT SE POSE SUR LA DERNIÈRE LIGNE QU'IL HABILLE ──────
+  //
+  // Un flottant ne connaît pas la grille du texte : ses 200 px tombaient où ils
+  // tombaient, c'est-à-dire au milieu d'une ligne, et le cadre se fermait à mi-hauteur
+  // de la dernière ligne qui le longeait. Quelques pixels, mais que l'œil relève
+  // aussitôt : le bord est droit, la ligne aussi, et rien ne rachète deux droites
+  // presque alignées. Le cadre s'allonge donc jusqu'au bas de cette ligne.
+  //
+  // ⛔ LA RALLONGE NE PEUT PAS ÊTRE UN NOMBRE ÉCRIT UNE FOIS POUR TOUTES. Le cadre est
+  // en pixels POSÉS (128 × 200, cf. le registre) quand la prose suit la police racine,
+  // qui va de 16 à 22 px : l'interligne passe de 18 à 24,75 px et l'écart à combler
+  // change avec la largeur de l'écran. Il change aussi d'un auteur à l'autre, puisque
+  // c'est l'en-tête qui décale la grille — un nom sur deux lignes, un nom original
+  // absent, et tout se déplace. On mesure donc, à chaque disposition.
+  //
+  // LA MESURE : `getClientRects` sur une PLAGE rend un rectangle PAR LIGNE, ce qu'aucune
+  // mesure d'élément ne donne. On retient les lignes qui habillent le portrait — celles
+  // qui commencent à sa droite et qui n'ont pas dépassé son bord bas — et l'on allonge
+  // le cadre jusqu'au bas de la dernière.
+  //
+  // ⚠️ La mesure met elle-même la MARGE BASSE du flottant à zéro, et ce n'est pas un
+  // détail : une marge repousserait la limite d'habillage sous le bord du cadre, la
+  // ligne suivante viendrait s'y ranger à son tour, et le calcul n'aurait plus de point
+  // fixe — le portrait gagnerait une ligne à chaque passe, sans fin. La marge de la
+  // feuille reste en place dans le seul cas où l'on n'allonge pas.
+  //
+  // ⚠️ On ALLONGE seulement, jamais on ne raccourcit, et jamais de plus d'une ligne :
+  // sur une biographie plus courte que le portrait, il n'y a aucune ligne à rejoindre,
+  // le cadre garde la mesure du registre et retrouve l'air que la feuille lui donne.
+  useMesureAvantPeinture(() => {
+    if (!flottant) return
+    const cadre = cadreRef.current
+    const colonne = cadre?.parentElement
+    if (!cadre || !colonne) return
+    let vivant = true
+
+    const poser = () => {
+      if (!vivant) return
+      // On repart TOUJOURS de la mesure de la feuille : sans cette remise à zéro,
+      // chaque passe s'ajouterait à la précédente. C'est elle aussi qui rend au
+      // portrait ses 160 px du téléphone quand l'écran se resserre. La marge basse
+      // tombe AVANT la mesure : c'est le bord du cadre, et non la marge, qui doit
+      // borner l'habillage pour que le calcul ait un point fixe.
+      cadre.style.height = ''
+      cadre.style.marginBottom = '0px'
+      const cadreRect = cadre.getBoundingClientRect()
+      const hauteurPosee = cadreRect.height
+      const bordNu = cadreRect.bottom
+
+      let basDerniereLigne = 0
+      const marcheur = document.createTreeWalker(colonne, NodeFilter.SHOW_TEXT)
+      const plage = document.createRange()
+      for (let n = marcheur.nextNode(); n; n = marcheur.nextNode()) {
+        if (cadre.contains(n)) continue          // les initiales du repli
+        if (!n.nodeValue || !n.nodeValue.trim()) continue
+        plage.selectNodeContents(n)
+        for (const r of Array.from(plage.getClientRects())) {
+          if (r.width < 1) continue
+          if (r.left < cadreRect.right - 0.5) continue   // ligne pleine largeur : passée sous le cadre
+          if (r.top >= bordNu - 0.5) continue            // ligne postérieure au cadre
+          if (r.bottom > basDerniereLigne) basDerniereLigne = r.bottom
+        }
+      }
+
+      const rallonge = basDerniereLigne > 0 ? Math.max(0, Math.round(basDerniereLigne - bordNu)) : 0
+      if (rallonge > 0) {
+        cadre.style.height = `${Math.round(hauteurPosee) + rallonge}px`
+      } else {
+        // Aucune ligne à rejoindre : le cadre garde sa mesure et reprend l'air de la
+        // feuille, qui sépare son bord bas de ce qui vient dessous.
+        cadre.style.marginBottom = ''
+      }
+    }
+
+    poser()
+    // La colonne change de largeur (fenêtre redimensionnée, deux colonnes qui se
+    // replient en une) comme de hauteur (les œuvres arrivent après coup) : les deux
+    // déplacent la grille du texte. La remise à zéro puis la repose se font dans le
+    // MÊME appel, si bien que l'observateur ne se rappelle pas lui-même.
+    const ro = new ResizeObserver(poser)
+    ro.observe(colonne)
+    // Les polices arrivent après le premier calcul : elles ne changent pas
+    // l'interligne, fixé par la feuille, mais bien les COUPURES de ligne.
+    if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(poser).catch(() => {})
+    return () => { vivant = false; ro.disconnect() }
+  }, [flottant, idAuteur, nom])
+
   // ⚠️ Les mesures du portrait FLOTTANT vivent dans la FEUILLE, non ici : une
   // media-query ne bat pas un style en ligne sans « !important », et le portrait doit
   // se resserrer sur un téléphone, où 128 px ne laisseraient que 183 px à la prose.
   return (
-    <div className={flottant ? 'auteur-portrait-flottant' : undefined}
+    <div ref={cadreRef} className={flottant ? 'auteur-portrait-flottant' : undefined}
       style={flottant
         ? { padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }
         : { width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
@@ -437,7 +530,16 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
              le nombre ici, c'est faire mentir l'aperçu au premier réglage.
              128 × 200, soit un rapport de 0,64 : un vrai format portrait, là où les
              104 × 130 d'avant tenaient du timbre. Mesures POSÉES et non calculées :
-             c'est un cadre de chrome, non une mesure de lecture (charte, § Responsive). */
+             c'est un cadre de chrome, non une mesure de lecture (charte, § Responsive).
+             ⚠️ La HAUTEUR d'ici est un PLANCHER : « PortraitAuteur » l'allonge, de moins
+             d'une ligne, pour que le bord bas se pose sur la dernière ligne qui habille
+             le portrait (voir la mesure, plus haut). Le registre garde donc la mesure de
+             RÉFÉRENCE, celle sur laquelle l'administration règle les cadrages.
+             ⚠️ La marge BASSE de 10 px ne vaut que pour les fiches où il n'y a RIEN à
+             rejoindre — une biographie plus courte que le portrait. Dès que la mesure
+             allonge le cadre, elle passe cette marge à zéro : la laisser repousserait la
+             limite d'habillage sous le bord du cadre, la ligne suivante viendrait s'y
+             ranger, et le calcul n'aurait plus de point fixe. */
           .auteur-portrait-flottant { width: ${CADRES_PORTRAIT.fiche.largeur}; height: ${CADRES_PORTRAIT.fiche.hauteur}; float: left; margin: 2px 18px 10px 0; }
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(var(--cs-vert-rgb),0.06); }
