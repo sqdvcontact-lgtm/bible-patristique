@@ -130,15 +130,29 @@ export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
   // qui commencent à sa droite et qui n'ont pas dépassé son bord bas — et l'on allonge
   // le cadre jusqu'au bas de la dernière.
   //
-  // ⚠️ La mesure met elle-même la MARGE BASSE du flottant à zéro, et ce n'est pas un
-  // détail : une marge repousserait la limite d'habillage sous le bord du cadre, la
-  // ligne suivante viendrait s'y ranger à son tour, et le calcul n'aurait plus de point
-  // fixe — le portrait gagnerait une ligne à chaque passe, sans fin. La marge de la
-  // feuille reste en place dans le seul cas où l'on n'allonge pas.
+  // ⛔ CE RECTANGLE CERNE LES GLYPHES, NON LA LIGNE. Il est plus court que la boîte de
+  // ligne d'un DEMI-INTERLIGNE en haut et autant en bas — mesuré 20,8 px pour un
+  // interligne de 22,17. Or c'est la boîte de ligne, elle, que le navigateur consulte
+  // pour décider si une ligne longe le flottant. Comparer les glyphes au bord du cadre
+  // faisait donc manquer la dernière ligne, d'un demi-interligne, et le portrait
+  // s'arrêtait une ligne trop haut — le défaut même qu'on voulait corriger. On rend
+  // donc au rectangle ses deux demi-interlignes avant toute comparaison, et l'on vise
+  // le bas de la BOÎTE : la ligne suivante commence exactement là, elle ne peut donc
+  // pas venir s'ajouter à l'habillage. C'est ce qui donne au calcul son point fixe.
+  //
+  // ⛔ LA MARGE BASSE DU FLOTTANT RESTE À ZÉRO, toujours, y compris quand on n'allonge
+  // pas. Elle avait d'abord été rendue dans ce cas, pour l'air : dix pixels de marge
+  // font entrer dans l'habillage une ligne de plus — celle que la mesure venait
+  // d'écarter — et cette ligne pend alors sous le cadre, une pleine ligne plus bas.
+  // Le cas « rien à rallonger » fabriquait le défaut.
   //
   // ⚠️ On ALLONGE seulement, jamais on ne raccourcit, et jamais de plus d'une ligne :
-  // sur une biographie plus courte que le portrait, il n'y a aucune ligne à rejoindre,
-  // le cadre garde la mesure du registre et retrouve l'air que la feuille lui donne.
+  // sur une biographie plus courte que le portrait, il n'y a aucune ligne à rejoindre
+  // et le cadre garde la mesure du registre.
+  //
+  // Éprouvé dans le navigateur sur la fiche de Cyprien, de 760 à 1 180 px de fenêtre :
+  // deux passes donnent le même nombre (point fixe) et l'écart qui reste entre le bord
+  // du cadre et le bas de la dernière ligne tient dans ±0,4 px.
   useMesureAvantPeinture(() => {
     if (!flottant) return
     const cadre = cadreRef.current
@@ -160,28 +174,35 @@ export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
       const bordNu = cadreRect.bottom
 
       let basDerniereLigne = 0
+      // L'interligne se lit sur l'ÉLÉMENT, une fois par élément : c'est lui qui donne
+      // les demi-interlignes à rendre au rectangle des glyphes. « normal » ne se laisse
+      // pas lire en pixels ; on s'en tient alors au rectangle, ce qui suffit pour
+      // l'en-tête, dont les lignes sont loin du bord bas.
+      const interlignes = new Map<Element, number>()
       const marcheur = document.createTreeWalker(colonne, NodeFilter.SHOW_TEXT)
       const plage = document.createRange()
       for (let n = marcheur.nextNode(); n; n = marcheur.nextNode()) {
         if (cadre.contains(n)) continue          // les initiales du repli
         if (!n.nodeValue || !n.nodeValue.trim()) continue
+        const parent = n.parentElement
+        if (!parent) continue
+        if (!interlignes.has(parent)) interlignes.set(parent, parseFloat(getComputedStyle(parent).lineHeight))
+        const interligne = interlignes.get(parent) as number
         plage.selectNodeContents(n)
         for (const r of Array.from(plage.getClientRects())) {
           if (r.width < 1) continue
           if (r.left < cadreRect.right - 0.5) continue   // ligne pleine largeur : passée sous le cadre
-          if (r.top >= bordNu - 0.5) continue            // ligne postérieure au cadre
-          if (r.bottom > basDerniereLigne) basDerniereLigne = r.bottom
+          const demi = interligne > 0 && interligne > r.height ? (interligne - r.height) / 2 : 0
+          if (r.top - demi >= bordNu - 0.5) continue     // boîte de ligne postérieure au cadre
+          const basBoite = r.bottom + demi
+          if (basBoite > basDerniereLigne) basDerniereLigne = basBoite
         }
       }
 
       const rallonge = basDerniereLigne > 0 ? Math.max(0, Math.round(basDerniereLigne - bordNu)) : 0
-      if (rallonge > 0) {
-        cadre.style.height = `${Math.round(hauteurPosee) + rallonge}px`
-      } else {
-        // Aucune ligne à rejoindre : le cadre garde sa mesure et reprend l'air de la
-        // feuille, qui sépare son bord bas de ce qui vient dessous.
-        cadre.style.marginBottom = ''
-      }
+      // Rien à rejoindre : le cadre garde la mesure du registre. La marge basse, elle,
+      // reste à zéro dans tous les cas (voir le préambule).
+      cadre.style.height = rallonge > 0 ? `${Math.round(hauteurPosee) + rallonge}px` : ''
     }
 
     poser()
@@ -535,12 +556,12 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
              d'une ligne, pour que le bord bas se pose sur la dernière ligne qui habille
              le portrait (voir la mesure, plus haut). Le registre garde donc la mesure de
              RÉFÉRENCE, celle sur laquelle l'administration règle les cadrages.
-             ⚠️ La marge BASSE de 10 px ne vaut que pour les fiches où il n'y a RIEN à
-             rejoindre — une biographie plus courte que le portrait. Dès que la mesure
-             allonge le cadre, elle passe cette marge à zéro : la laisser repousserait la
-             limite d'habillage sous le bord du cadre, la ligne suivante viendrait s'y
-             ranger, et le calcul n'aurait plus de point fixe. */
-          .auteur-portrait-flottant { width: ${CADRES_PORTRAIT.fiche.largeur}; height: ${CADRES_PORTRAIT.fiche.hauteur}; float: left; margin: 2px 18px 10px 0; }
+             ⛔ La marge BASSE est à ZÉRO, et il ne faut pas la rétablir « pour l'air » :
+             elle repousse la limite d'habillage SOUS le bord du cadre, une ligne de plus
+             vient alors s'y ranger, et cette ligne pend sous le portrait. L'air ne manque
+             pas pour autant : le bord du cadre se pose sur le bas d'une boîte de ligne,
+             et la ligne suivante commence exactement là — c'est l'habillage classique. */
+          .auteur-portrait-flottant { width: ${CADRES_PORTRAIT.fiche.largeur}; height: ${CADRES_PORTRAIT.fiche.hauteur}; float: left; margin: 2px 18px 0 0; }
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(var(--cs-vert-rgb),0.06); }
           .auteur-oeuvre--absente { cursor: default; }
