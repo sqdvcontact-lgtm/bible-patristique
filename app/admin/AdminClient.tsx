@@ -21,6 +21,7 @@ import SectionConstituerLiens from './SectionConstituerLiens'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 import { colorMix } from '@/app/lib/couleurs'
+import { FAMILLES_ADMIN, ENTREES_ADMIN, ONGLETS_VALIDES, type FamilleAdmin } from '@/app/lib/adminNavigation'
 
 export default function AdminClient({
   commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, traductions,
@@ -75,11 +76,7 @@ export default function AdminClient({
   // section. Toute clé d'onglet valide est acceptée (pas seulement « controle-oeuvres »).
   useEffect(() => {
     const cle = new URLSearchParams(window.location.search).get('onglet') as Onglet | null
-    const valides: Onglet[] = [
-      'bibliotheque', 'controle-oeuvres', 'ouvrages', 'validation-notices', 'traductions', 'editeurs', 'fiabilite', 'evenements', 'essais',
-      'verifications', 'constituer-liens', 'moderation', 'propositions', 'charte', 'charte-accentuation',
-    ]
-    if (cle && valides.includes(cle)) setOnglet(cle)
+    if (cle && ONGLETS_VALIDES.includes(cle)) setOnglet(cle)
   }, [])
 
   useEffect(() => {
@@ -103,46 +100,29 @@ export default function AdminClient({
 
   const decrMod = async (fn: () => Promise<void>) => { await fn(); setNbMod(n => Math.max(0, n - 1)) }
 
-  // Familles d'administration, chacune sa couleur (division visuelle) :
-  // Corpus & catalogue (vert), Communauté & modération (or), Système & doctrine (ardoise).
-  const COUL_FAMILLE: Record<string, string> = { corpus: 'var(--cs-vert)', communaute: 'var(--cs-or)', systeme: 'var(--cs-systeme)' }
-  const LABEL_FAMILLE: Record<'corpus' | 'communaute' | 'systeme', string> = { corpus: 'Corpus & catalogue', communaute: 'Communauté', systeme: 'Système & doctrine' }
-  const ONGLETS: { key: Onglet; label: string; famille: 'corpus' | 'communaute' | 'systeme'; badge?: number; separateur?: boolean }[] = [
-    { key: 'bibliotheque',        label: 'Bibliothèque',      famille: 'corpus' },
-    { key: 'controle-oeuvres',    label: 'Contrôle œuvres',   famille: 'corpus' },
-    { key: 'validation-notices',  label: 'Validation notices', famille: 'corpus' },
-    { key: 'traductions',         label: 'Traductions',       famille: 'corpus' },
-    { key: 'evenements',          label: 'Chronologie',       famille: 'corpus' },
-    // ── Bibliographie ────────────────────────────────────────────────────────
-    // Trois écrans d'un même travail : les ouvrages cités, les maisons d'édition
-    // répertoriées, et le rang académique des éditeurs et des chercheurs. Ils se
-    // tiennent CÔTE À CÔTE, après un filet, sans se fondre en un seul onglet : on passe
-    // de l'un à l'autre en corrigeant la même notice, mais chacun garde sa table, sa
-    // liste et son geste. Ils étaient jusqu'ici dispersés dans la famille « Corpus »,
-    // séparés par la validation des notices et par les traductions.
-    { key: 'ouvrages',            label: 'Ouvrages',          famille: 'corpus', separateur: true },
-    { key: 'editeurs',            label: 'Éditeurs',          famille: 'corpus' },
-    { key: 'fiabilite',           label: 'Valeur académique', famille: 'corpus' },
-    { key: 'essais',              label: 'Essais',            famille: 'communaute', badge: nbEssais, separateur: true },
-    { key: 'verifications',       label: 'Vérifications',     famille: 'communaute', badge: nbVerif },
-    { key: 'constituer-liens',    label: 'Constituer liens',  famille: 'communaute' },
-    { key: 'moderation',          label: 'Modération',        famille: 'communaute', badge: nbMod },
-    { key: 'propositions',        label: 'Propositions',      famille: 'communaute' },
-    { key: 'charte',              label: 'Charte IA',         famille: 'systeme', separateur: true },
-    { key: 'charte-accentuation', label: 'Accentuation',      famille: 'systeme' },
-  ]
-  // Pages d'administration AUTONOMES. Elles ne s'ouvrent pas dans cette page :
-  // elles la quittent. La planche des illustrations mesure des fichiers sur le
-  // disque au rendu serveur, elle ne peut donc pas vivre dans un onglet client.
+  // ── LA BARRE D'ONGLETS SE LIT DANS LA TABLE PARTAGÉE ────────────────────────
   //
-  // ⚠️ Elles figurent tout de même ICI, et c'est le fond de l'affaire : quand on
-  // est SUR l'administration, on cherche dans sa barre d'onglets, pas dans un
-  // menu déroulant de la barre du haut. Une page d'admin qui n'est nommée que
-  // par la navbar est une page qu'on ne trouve pas. Même patron que « Bible 899 »
-  // dans le menu de la navbar : rattachée à sa famille, après un filet.
-  const PAGES_ADMIN: { href: string; label: string; famille: 'corpus' | 'communaute' | 'systeme' }[] = [
-    { href: '/admin/illustrations', label: 'Illustrations', famille: 'systeme' },
-  ]
+  // ⛔ Elle avait sa propre liste, et le menu « Administration » de la barre du haut
+  // la sienne : les deux avaient divergé de cinq entrées — Centre de contrôle,
+  // Audience, Planche des styles, Propositions de GPT et Bible 899 — que le menu
+  // nommait et que la barre taisait. Or quand on est DÉJÀ dans l'administration, on
+  // cherche dans la barre, pas dans un menu du haut : ces pages n'existaient donc
+  // pas pour qui travaille ici. Les deux listes viennent maintenant de
+  // `app/lib/adminNavigation.ts` et ne peuvent plus se contredire, ni sur les
+  // entrées, ni sur leur ordre.
+  //
+  // Ce que la barre ajoute à la table, et qui ne pouvait pas y tenir :
+  //   — le COMPTEUR de chaque section (relevé toutes les trente secondes) ;
+  //   — le filet de CHANGEMENT DE FAMILLE, déduit de l'ordre. La table n'écrit que
+  //     les filets de sous-groupe, comme celui de la bibliographie.
+  const COUL_FAMILLE: Record<FamilleAdmin, string> = { corpus: 'var(--cs-vert)', communaute: 'var(--cs-or)', systeme: 'var(--cs-systeme)' }
+  const LABEL_FAMILLE = Object.fromEntries(FAMILLES_ADMIN.map(f => [f.cle, f.label])) as Record<FamilleAdmin, string>
+  const BADGES: Partial<Record<Onglet, number>> = { essais: nbEssais, verifications: nbVerif, moderation: nbMod }
+  const ENTREES = ENTREES_ADMIN.map((e, i) => ({
+    ...e,
+    badge: e.onglet ? BADGES[e.onglet] : undefined,
+    separateur: !!e.filet || (i > 0 && ENTREES_ADMIN[i - 1].famille !== e.famille),
+  }))
 
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
@@ -179,8 +159,8 @@ export default function AdminClient({
       )}
 
       {/* Navigation des sections. Sticky sous la navbar. Sur mobile, la barre d'onglets
-          (15 entrées) s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace
-          par un menu déroulant groupé par famille (compact, natif).
+          s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace par un menu
+          déroulant groupé par famille (compact, natif).
 
           Sur desktop, elle tient sur UNE SEULE LIGNE. Elle était en flex-wrap et se
           repliait sur deux ou trois rangées, ce qui coûtait deux fois : la hauteur, prise
@@ -194,12 +174,14 @@ export default function AdminClient({
           overflow-y reste HIDDEN, sans quoi le conteneur de défilement horizontal se
           donnerait aussi une barre verticale pour trois pixels de soulignement.
 
+          ⚠️ La mesure qui suit DATE d'avant la fusion des deux listes : elle portait sur
+          quinze onglets, la barre en compte vingt et un depuis que les pages autonomes y
+          ont pris leur rang (cf. la table partagée, plus haut). Elle défile donc sur la
+          plupart des écrans — ce qu'elle est faite pour faire. La remesurer avant de s'en
+          servir pour décider quoi que ce soit.
+
           MESURÉ sur les quinze onglets, à racine 16 : 2 042 px avant, 1 399 après, soit
-          un tiers rendu. La barre tient donc d'une pièce dès 1 440 px, la largeur où la
-          police racine commence à croître ; au-delà, les deux grandissent ensemble et
-          l'écart ne se referme jamais (1 676 px de barre pour 1 920 d'écran, 1 940 pour
-          2 400). En dessous de 1 440 elle défile, ce qui vaut mieux que de se replier.
-          Le tiers vient de trois postes : le corps passe de 1rem à 0,8125 (le rang de
+          un tiers rendu. Le tiers vient de trois postes : le corps passe de 1rem à 0,8125 (le rang de
           l'échelle qui tient sans être illisible ; 0,75 aurait gagné 80 px de plus pour
           un intitulé de douze pixels, marché refusé), les rembourrages de 12/14 à 9/8,
           et la pastille de famille disparaît.
@@ -216,14 +198,13 @@ export default function AdminClient({
             if (choix.startsWith('/')) { window.location.href = choix; return }
             setOnglet(choix as Onglet)
           }} aria-label="Section d’administration"
-            style={{ width: '100%', font: 'inherit', fontSize: '0.9375rem', padding: '9px 10px', border: `1px solid ${COUL_FAMILLE[ONGLETS.find(o => o.key === onglet)?.famille ?? 'corpus']}`, borderRadius: '8px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)' }}>
-            {(['corpus', 'communaute', 'systeme'] as const).map(fam => (
-              <optgroup key={fam} label={LABEL_FAMILLE[fam]}>
-                {ONGLETS.filter(o => o.famille === fam).map(o => (
-                  <option key={o.key} value={o.key}>{o.label}{o.badge ? ` (${o.badge})` : ''}</option>
-                ))}
-                {PAGES_ADMIN.filter(p => p.famille === fam).map(p => (
-                  <option key={p.href} value={p.href}>{p.label}</option>
+            style={{ width: '100%', font: 'inherit', fontSize: '0.9375rem', padding: '9px 10px', border: `1px solid ${COUL_FAMILLE[ENTREES.find(e => e.onglet === onglet)?.famille ?? 'corpus']}`, borderRadius: '8px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)' }}>
+            {FAMILLES_ADMIN.map(fam => (
+              <optgroup key={fam.cle} label={LABEL_FAMILLE[fam.cle]}>
+                {/* Une section porte sa CLÉ ; une page autonome porte son ADRESSE, qui
+                    commence par une barre oblique — c'est à cela qu'on les distingue. */}
+                {ENTREES.filter(e => e.famille === fam.cle).map(e => (
+                  <option key={e.href} value={e.onglet ?? e.href}>{e.label}{e.badge ? ` (${e.badge})` : ''}</option>
                 ))}
               </optgroup>
             ))}
@@ -231,43 +212,54 @@ export default function AdminClient({
         </div>
       ) : (
         <div ref={refOnglets} className="cs-defilement-discret" style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', overscrollBehaviorX: 'contain', padding: '2px 14px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
-          {ONGLETS.map((o) => {
-            const actif = onglet === o.key
-            const coul = COUL_FAMILLE[o.famille]
+          {ENTREES.map((e) => {
+            const cle = e.onglet
+            const actif = cle !== undefined && onglet === cle
+            const coul = COUL_FAMILLE[e.famille]
+            // Le DESSIN est le même pour une section et pour une page autonome : au repos,
+            // rien ne les sépare, et c'est bien ainsi — la barre dit d'abord ce qu'on peut
+            // faire ici, non par quel mécanisme. Deux différences, et deux seulement : la
+            // page est un LIEN (elle quitte l'écran, le clavier et le clic droit doivent le
+            // savoir), et elle porte une flèche, qui dit qu'on s'en va.
+            const dessin: React.CSSProperties = {
+              padding: '6px 8px', fontSize: '0.8125rem',
+              fontWeight: actif ? 600 : 500,
+              color: actif ? coul : '#6a8074',
+              background: actif ? colorMix(coul, 8) : 'transparent',
+              border: 'none',
+              borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent',
+              borderRadius: '4px 4px 0 0',
+              textDecoration: 'none',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              whiteSpace: 'nowrap', flexShrink: 0,
+              transition: 'color 0.12s, background 0.12s',
+            }
             return (
-              <React.Fragment key={o.key}>
-                {o.separateur && (
+              <React.Fragment key={e.href}>
+                {e.separateur && (
                   <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '16px', margin: '0 5px 9px', background: 'var(--cs-vert-pale)', flexShrink: 0 }} />
                 )}
                 {/* `flexShrink: 0` : en nowrap, un onglet se laisserait comprimer et son
                     intitulé serait coupé par le `whiteSpace: nowrap` sans que rien ne le
                     dise. Les onglets gardent donc leur largeur et c'est la barre qui défile.
                     Plus de pastille de famille devant l'intitulé : sept pixels et leur
-                    gouttière sur quinze onglets, pour une couleur que l'onglet actif porte
+                    gouttière sur chaque onglet, pour une couleur que l'onglet actif porte
                     déjà dans son texte et son soulignement, et que les filets de séparation
                     disent pour les autres. */}
-                <button onClick={() => setOnglet(o.key)} className="adm-onglet"
-                  style={{ padding: '6px 8px', fontSize: '0.8125rem', fontWeight: actif ? 600 : 500, color: actif ? coul : '#6a8074', background: actif ? `${colorMix(coul, 8)}` : 'transparent', border: 'none', borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent', borderRadius: '4px 4px 0 0', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
-                  {o.label}
-                  {o.badge !== undefined && o.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{o.badge}</span>}
-                </button>
+                {cle !== undefined ? (
+                  <button onClick={() => setOnglet(cle)} className="adm-onglet" style={{ ...dessin, cursor: 'pointer' }}>
+                    {e.label}
+                    {e.badge !== undefined && e.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{e.badge}</span>}
+                  </button>
+                ) : (
+                  <Link href={e.href} className="adm-onglet" style={dessin}>
+                    {e.label}
+                    <span aria-hidden style={{ fontSize: '0.71875rem', opacity: 0.6 }}>→</span>
+                  </Link>
+                )}
               </React.Fragment>
             )
           })}
-          {/* Les pages autonomes ferment la barre. Un lien, non un bouton : il
-              quitte la page, et le clavier comme le clic droit doivent le savoir.
-              Le dessin est celui d'un onglet au repos, à la flèche près, qui dit
-              qu'on s'en va. */}
-          {PAGES_ADMIN.map(p => (
-            <React.Fragment key={p.href}>
-              <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '16px', margin: '0 5px 9px', background: 'var(--cs-vert-pale)', flexShrink: 0 }} />
-              <Link href={p.href} className="adm-onglet"
-                style={{ padding: '6px 8px', fontSize: '0.8125rem', fontWeight: 500, color: '#6a8074', background: 'transparent', borderBottom: '3px solid transparent', borderRadius: '4px 4px 0 0', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', flexShrink: 0, transition: 'color 0.12s, background 0.12s' }}>
-                {p.label}
-                <span aria-hidden style={{ fontSize: '0.71875rem', opacity: 0.6 }}>→</span>
-              </Link>
-            </React.Fragment>
-          ))}
         </div>
       )}
 

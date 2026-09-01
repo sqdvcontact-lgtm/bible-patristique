@@ -237,9 +237,17 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 
   return (
     <div
-      style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cs-vert-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-surface)'; e.currentTarget.style.transform = 'none' }}>
+      // Le survol NE POSE PLUS de filet vert clair. Sur le parchemin de la page, ce
+      // #a7d3b6 franc — la seule couleur saturée de la carte — cerclait le bloc d'un
+      // trait qui criait plus fort que tout ce qu'il entourait. La carte se détache
+      // maintenant par l'OMBRE, qui va de pair avec les deux pixels dont elle monte :
+      // c'est le relief qui dit qu'on la survole, non un cadre de couleur. Le filet
+      // reste, mais posé — l'accent de la maison à 34 %, qui se fond dans le fond au
+      // lieu de s'en détacher, et qui suit les deux thèmes puisqu'il se compose sur
+      // --cs-vert-rgb (vert sur clair, or sur le Cuir).
+      style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: 'none', transition: 'border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--cs-vert-rgb),0.34)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.boxShadow = 'var(--cs-ombre-flottante)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-surface)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}>
 
       {/* Hauteur d'en-tête CONSTANTE pour toutes les cartes (notice longue rognée) :
           la liste dépliée s'ajoute ensuite en dessous, hors de ce bloc. */}

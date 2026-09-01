@@ -15,6 +15,7 @@ import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
 import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
+import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
 const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
@@ -45,9 +46,14 @@ const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
   { href: HREF_BIBLE_CLASSIQUE, label: "Bible", exact: true },
   { href: "/polyglotte", label: "Polyglotte" },
 ];
-const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
+// `discret` : encre plus pâle ET graisse ordinaire (« Aller plus loin »).
+// `maigre`  : l'encre des onglets primaires, mais la graisse ordinaire. « Communauté »
+//   est le seul onglet de la barre qui n'ouvre sur rien d'autre que lui-même — ni bible
+//   qui se fend, ni menu déroulant — et le demi-gras l'y faisait peser plus lourd que
+//   les rubriques qui en contiennent dix.
+const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean; maigre?: boolean }[] = [
   { href: "/bibliotheque", label: "Patristique" },
-  { href: "/essais", label: "Communauté" },
+  { href: "/essais", label: "Communauté", maigre: true },
   { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
 // Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,
@@ -63,51 +69,10 @@ const LIENS_ALLER_PLUS_LOIN: { href: string; label: string; dit: string }[] = [
   { href: "/pericopes", label: "Péricopes", dit: "Les passages nommés de l’Écriture, et ce que les Pères en disent." },
   { href: "/histoire", label: "Histoire de l’Église", dit: "La frise des Pères, de leurs œuvres et des grands événements." },
 ];
-// Sections d'administration (menu déroulant « Administration », réservé aux admins) :
-// chaque entrée ouvre /admin sur la section voulue. Bible 899 est un outil d'atelier
-// rattaché à ce menu, ajouté après un séparateur.
-// Familles d'administration, chacune sa couleur (division visuelle du menu).
-const FAMILLES_ADMIN = [
-  // `couleur` : menu déroulant (fond clair). `couleurMobile` : variante claire,
-  // lisible sur le fond vert foncé du panneau mobile.
-  { cle: "corpus",     label: "Corpus & catalogue",  couleur: "var(--cs-vert)", couleurMobile: "var(--cs-vert-clair)" },
-  { cle: "communaute", label: "Communauté",           couleur: "var(--cs-or)", couleurMobile: "var(--cs-or-clair)" },
-  { cle: "systeme",    label: "Système & doctrine",   couleur: "var(--cs-systeme)", couleurMobile: "var(--cs-systeme-clair)" },
-] as const;
-// `principal` : les deux entrées par lesquelles on entre presque toujours dans
-// l'administration. Elles se distinguent par la GRAISSE, non par une place à part :
-// l'ordre des familles reste celui du travail, et l'œil trouve seul ses deux portes
-// dans une liste qui en compte dix-huit.
-const LIENS_ADMIN: { href: string; label: string; famille: string; principal?: boolean }[] = [
-  { href: "/admin/controle", label: "Centre de contrôle", famille: "corpus", principal: true },
-  { href: "/admin?onglet=bibliotheque", label: "Bibliothèque", famille: "corpus", principal: true },
-  { href: "/admin?onglet=controle-oeuvres", label: "Contrôle œuvres", famille: "corpus" },
-  { href: "/admin?onglet=validation-notices", label: "Validation notices", famille: "corpus" },
-  { href: "/admin?onglet=traductions", label: "Traductions", famille: "corpus" },
-  { href: "/admin?onglet=evenements", label: "Chronologie", famille: "corpus" },
-  // Les trois écrans de bibliographie se suivent, comme dans la barre d'onglets de
-  // l'administration : le menu et la barre doivent donner le même ordre, sinon l'un
-  // dément l'autre.
-  { href: "/admin?onglet=ouvrages", label: "Ouvrages", famille: "corpus" },
-  { href: "/admin?onglet=editeurs", label: "Éditeurs", famille: "corpus" },
-  { href: "/admin?onglet=fiabilite", label: "Valeur académique", famille: "corpus" },
-  { href: "/admin?onglet=essais", label: "Essais", famille: "communaute" },
-  { href: "/admin?onglet=verifications", label: "Vérifications", famille: "communaute" },
-  { href: "/admin?onglet=constituer-liens", label: "Constituer liens", famille: "communaute" },
-  { href: "/admin?onglet=moderation", label: "Modération", famille: "communaute" },
-  { href: "/admin?onglet=propositions", label: "Propositions", famille: "communaute" },
-  // « Audience » dit ce que le site REÇOIT (visites, comptes, lectures). À ne pas
-  // confondre avec « Statistiques du corpus », dans le centre de contrôle, qui dit
-  // l'état du TRAVAIL. Les deux écrans sont frères et ne se recouvrent jamais.
-  { href: "/admin/audience", label: "Audience", famille: "systeme" },
-  { href: "/admin?onglet=charte", label: "Charte IA", famille: "systeme" },
-  { href: "/admin?onglet=charte-accentuation", label: "Accentuation", famille: "systeme" },
-  { href: "/admin/illustrations", label: "Illustrations", famille: "systeme" },
-  { href: "/admin/styles", label: "Planche des styles", famille: "systeme" },
-  { href: "/admin/propositions-gpt", label: "Propositions de GPT", famille: "systeme" },
-];
-// Bible 899 : outil d'atelier, rattaché à la famille « Système ».
-const LIEN_BIBLE_899 = { href: "/manuscrits/bible-899", label: "Bible 899", famille: "systeme" };
+// ⛔ Les entrées d'administration NE SONT PLUS ÉCRITES ICI. Elles vivent dans
+// `app/lib/adminNavigation.ts`, avec celles de la barre d'onglets de /admin : le menu
+// et la barre disaient deux listes différentes, et l'on ne trouvait plus dans l'une ce
+// que l'autre nommait. Une seule table, un seul ordre (voir le préambule du module).
 
 // ── Les FAMILLES DE CORPUS, dans la liste déroulante de la barre ─────────────
 //
@@ -398,15 +363,15 @@ function OngletAllerPlusLoin({ label, style, actif }: { label: string; style: Re
   );
 }
 
-// « Administration » : onglet réservé aux admins ; le menu recense chaque section
-// d'admin (chacune ouvre /admin sur la bonne section), puis, après un filet,
-// l'outil « Bible 899 ». Le clic sur le libellé ouvre /admin (section par défaut).
+// « Administration » : onglet réservé aux admins. Le menu recense, famille par famille,
+// TOUTE l'administration — les sections de /admin comme les pages qui vivent à part —
+// dans l'ordre exact de la barre d'onglets de /admin, puisque les deux se lisent dans la
+// même table (`app/lib/adminNavigation.ts`). Le clic sur le libellé ouvre /admin.
 function OngletAdministration({ label, style, actif }: { label: string; style: React.CSSProperties; actif?: boolean }) {
   return (
     <OngletMenu href="/admin" label={label} style={style} actif={actif}>
       {FAMILLES_ADMIN.map((fam, i) => {
-        const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
-          .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
+        const liens = entreesDeFamille(fam.cle);
         return (
           <div key={fam.cle}>
             {i > 0 && <div className="cs-plus-sep" />}
@@ -1761,14 +1726,15 @@ export default function Navbar() {
             {/* Les deux bibles, en quatre états selon la place : deux onglets, un onglet
                 qui se fend au survol, puis « La Bible » et « Bible » avec menu déroulant. */}
             <OngletBibles etat={etatBible} pathname={pathname} styleLien={styleLien} />
-            {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
+            {LIENS_PRIMAIRES.map(({ href, label, exact, discret, maigre }) => (
               href === "/bibliotheque"
                 ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
                 : href === "/traductions"
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
                 ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
-                : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
+                // « maigre » : primaire par la couleur, ordinaire par la graisse (cf. LIENS_PRIMAIRES).
+                : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={maigre ? { ...styleLien(href, exact, !discret), fontWeight: 400 } : styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} actif={estCheminActif("/admin", false)} />
@@ -1887,8 +1853,7 @@ export default function Navbar() {
                   {adminMobileOuvert && (
                     <div id="cs-admin-mobile">
                       {FAMILLES_ADMIN.map(fam => {
-                        const liens = LIENS_ADMIN.filter(l => l.famille === fam.cle)
-                          .concat(fam.cle === "systeme" ? [LIEN_BIBLE_899] : []);
+                        const liens = entreesDeFamille(fam.cle);
                         return (
                           <div key={fam.cle}>
                             <p style={{ ...styleSectionMobile, color: fam.couleurMobile, fontSize: "0.5rem", marginTop: "9px" }}>{fam.label}</p>
