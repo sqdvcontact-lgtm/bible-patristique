@@ -26,9 +26,20 @@ import {
 import { ENCRE_RELIURE, degradeReliure } from '@/app/lib/reliuresHautsFaits'
 
 /** La petite vignette dure ce que dure celle de la barre. La belle annonce reste
- *  plus longtemps : elle porte une notice à lire, non une ligne à voir passer. */
+ *  plus longtemps : elle porte une notice à lire, non une ligne à voir passer.
+ *
+ *  ⚠️ Elle a duré NEUF secondes, et c'était trop (auteur, 1er septembre 2026). Le
+ *  calcul qui donne cinq : une notice fait 82 signes en moyenne, soit une quinzaine
+ *  de mots — trois secondes et demie de lecture à deux cent quarante mots par
+ *  minute —, plus une demi-seconde pour s'apercevoir qu'elle est là.
+ *
+ *  ⛔ Et surtout, ce n'est PAS une notification ordinaire : ce qu'elle annonce reste
+ *  sur le rayon, et l'explication s'y relit au survol. Elle n'a donc pas à être
+ *  lisible jusqu'au dernier mot — il lui suffit d'être REMARQUÉE. C'est ce qui
+ *  autorise à la raccourcir sans rien perdre, et ce qui distingue cette durée de
+ *  celle d'un message qu'on ne reverra jamais. */
 const DUREE_VIGNETTE_MS = 3600
-const DUREE_ANNONCE_MS = 9000
+const DUREE_ANNONCE_MS = 5000
 
 /** L'événement que tout geste marquant peut émettre pour faire vérifier la
  *  progression. ⚠️ Sans lui, l'annonce n'arrive qu'à l'ouverture d'une session : le
