@@ -105,6 +105,9 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
  * seule fiche d'auteur, a demandé deux corrections avant de tomber juste.
  */
 export function useBordSurDerniereLigne(cadreRef: RefObject<HTMLDivElement | null>, actif: boolean, cle?: string) {
+  // La pose se range dans une référence pour que le FILET, plus bas, puisse la
+  // rejouer sans reconstruire l'observateur.
+  const poseRef = useRef<() => void>(() => {})
   // ── LE BORD BAS DU PORTRAIT SE POSE SUR LA DERNIÈRE LIGNE QU'IL HABILLE ──────
   //
   // Un flottant ne connaît pas la grille du texte : ses 200 px tombaient où ils
@@ -152,7 +155,7 @@ export function useBordSurDerniereLigne(cadreRef: RefObject<HTMLDivElement | nul
     if (!actif) return
     const cadre = cadreRef.current
     const colonne = cadre?.parentElement
-    if (!cadre || !colonne) return
+    if (!cadre || !colonne) { poseRef.current = () => {}; return }
     let vivant = true
 
     const poser = () => {
@@ -197,21 +200,44 @@ export function useBordSurDerniereLigne(cadreRef: RefObject<HTMLDivElement | nul
       const rallonge = basDerniereLigne > 0 ? Math.max(0, Math.round(basDerniereLigne - bordNu)) : 0
       // Rien à rejoindre : le cadre garde la mesure du registre. La marge basse, elle,
       // reste à zéro dans tous les cas (voir le préambule).
-      cadre.style.height = rallonge > 0 ? `${Math.round(hauteurPosee) + rallonge}px` : ''
+      const voulue = rallonge > 0 ? `${Math.round(hauteurPosee) + rallonge}px` : ''
+      if (cadre.style.height !== voulue) cadre.style.height = voulue
     }
 
+    poseRef.current = poser
     poser()
-    // La colonne change de largeur (fenêtre redimensionnée, deux colonnes qui se
-    // replient en une) comme de hauteur (les œuvres arrivent après coup) : les deux
-    // déplacent la grille du texte. La remise à zéro puis la repose se font dans le
-    // MÊME appel, si bien que l'observateur ne se rappelle pas lui-même.
+    // La colonne change de largeur (fenêtre redimensionnée) sans que rien ne soit
+    // re-rendu : c'est le seul cas que le FILET ci-dessous ne couvre pas, et c'est
+    // celui-là que l'observateur garde. La remise à zéro puis la repose se font dans
+    // le MÊME appel, si bien qu'il ne se rappelle pas lui-même.
     const ro = new ResizeObserver(poser)
     ro.observe(colonne)
     // Les polices arrivent après le premier calcul : elles ne changent pas
     // l'interligne, fixé par la feuille, mais bien les COUPURES de ligne.
     if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(poser).catch(() => {})
-    return () => { vivant = false; ro.disconnect() }
+    return () => { vivant = false; poseRef.current = () => {}; ro.disconnect() }
   }, [actif, cle])
+
+  // ── LE FILET : toute peinture nouvelle repose la mesure ──────────────────────
+  //
+  // ⛔ UN OBSERVATEUR DE TAILLE NE SE DÉLIVRE QU'AVEC UNE IMAGE, et un onglet qui
+  // n'est pas à l'écran n'en produit aucune : ses notifications attendent alors le
+  // retour du lecteur. Or la disposition d'une fiche change APRÈS le premier calcul
+  // — les gravures et la chronologie arrivent par leurs propres requêtes, la grille
+  // passe d'une colonne à deux, et la colonne de la notice perd la moitié de sa
+  // largeur. Mesuré sur la fiche de la Bible Fillion : la rallonge est posée à
+  // 208 ms sur une colonne de 1 054 px, et la colonne en fait 582 une seconde plus
+  // tard. Le cadre gardait une rallonge calculée sur une mise en page qui n'existe
+  // plus, et rien ne le disait.
+  //
+  // Chacun de ces changements passe par un RENDU. Un effet sans dépendances se
+  // rejoue à chaque peinture : la mesure suit donc la disposition sans rien devoir
+  // au navigateur. L'observateur garde le seul cas qui n'entraîne aucun rendu, le
+  // redimensionnement de la fenêtre.
+  //
+  // ⚠️ La repose est IDEMPOTENTE — elle repart toujours de la mesure de la feuille —
+  // et ne pose la hauteur que si elle change. Elle ne peut donc pas boucler.
+  useMesureAvantPeinture(() => { poseRef.current() })
 }
 
 /** Le portrait d'un auteur dans le cadre de la fiche : 6,5 rem × 130 px, passe-partout
