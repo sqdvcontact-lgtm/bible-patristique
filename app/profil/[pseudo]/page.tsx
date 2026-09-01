@@ -92,8 +92,12 @@ export default function ProfilPublicPage() {
               // que si l'API n'a rien renvoyé).
               const savedCitation = localStorage.getItem('cs_citation_preferee')
               if (savedCitation) setCitationPreferee(prev => prev ?? JSON.parse(savedCitation))
-              const savedPhoto = localStorage.getItem('cs_photo_profil')
-              if (savedPhoto) setPhotoProfil(prev => prev ?? JSON.parse(savedPhoto))
+              // ⛔ PLUS DE REPLI SUR `cs_photo_profil`. Le stockage local portait une
+              // URL complète, écrite par le navigateur : c'est précisément ce que le
+              // passage aux références a supprimé (app/lib/portraits.ts). Le lire
+              // encore ferait reparaître une adresse périmée sur la seule page où
+              // elle n'a rien à faire. L'API sert le portrait à tous les visiteurs.
+              localStorage.removeItem('cs_photo_profil')
             } catch {}
           }
         }

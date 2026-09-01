@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import IconeCrayon from '@/app/components/IconeCrayon'
+import PortraitLecteur from '@/app/components/PortraitLecteur'
+import { CADRAGE_PAR_DEFAUT, type Cadrage } from '@/app/lib/portraits'
 import { useEspace } from '@/app/compte/EspaceCompte'
 import { Carte, EnTeteRubrique, inputStyle, Interrupteur, labelStyle, LigneEnregistrer, type Statut } from '@/app/compte/champsCompte'
-import { ModaleCadrage, ModalePortrait, type PhotoProfil } from './ModalesPortrait'
+import { ModaleCadrage, ModalePortrait, type PortraitChoisi } from './ModalesPortrait'
 
 const BIO_MAX = 500
 
@@ -24,47 +25,59 @@ export default function RubriquePresentation() {
   const [statut, setStatut] = useState<Statut>(null)
   const [enregistrement, setEnregistrement] = useState(false)
 
-  // ⛔ Le portrait se lit du PROFIL, non du stockage local. Il y avait sa source de
+  // ⛔ Le portrait se lit du PROFIL, non du stockage local, qui en était la source de
   // vérité jusqu'ici : sur un second appareil, la page du compte se croyait donc sans
-  // portrait quand la page publique en affichait un. Le stockage local reste écrit,
-  // le temps que la page publique cesse de s'en servir en repli.
-  const [portrait, setPortrait] = useState<PhotoProfil | null>(
-    profil.avatar_url
-      ? {
-          id_auteur: '', nom: profil.avatar_nom ?? '', imageUrl: profil.avatar_url,
-          posX: profil.avatar_pos_x ?? undefined, posY: profil.avatar_pos_y ?? undefined, zoom: profil.avatar_zoom ?? undefined,
-        }
-      : null,
-  )
+  // portrait quand la page publique en affichait un.
+  const cadrage: Cadrage = {
+    posX: profil.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
+    posY: profil.avatar_pos_y ?? CADRAGE_PAR_DEFAUT.posY,
+    zoom: profil.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
+  }
+  const [nomPortrait, setNomPortrait] = useState('')
   const [choixOuvert, setChoixOuvert] = useState(false)
   const [cadrageOuvert, setCadrageOuvert] = useState(false)
 
-  const ecrirePortrait = (photo: PhotoProfil | null) => {
-    setPortrait(photo)
-    try {
-      if (photo) localStorage.setItem('cs_photo_profil', JSON.stringify(photo))
-      else localStorage.removeItem('cs_photo_profil')
-    } catch {}
+  // Le nom du visage choisi ne se garde PAS en base : il se résout de la référence.
+  // Une copie du nom y serait aussi falsifiable que l'ancienne adresse, et paraîtrait
+  // telle quelle sur la page publique. La liste est en cache cinq minutes côté
+  // navigateur, si bien que l'ouverture de la modale ne la redemande pas.
+  useEffect(() => {
+    if (!profil.avatar_ref) { setNomPortrait(''); return }
+    let annule = false
+    fetch('/api/compte/portraits')
+      .then(res => res.ok ? res.json() : null)
+      .then((j: { familles?: { portraits: { ref: string; nom: string }[] }[] } | null) => {
+        if (annule || !j?.familles) return
+        const trouve = j.familles.flatMap(f => f.portraits).find(p => p.ref === profil.avatar_ref)
+        setNomPortrait(trouve?.nom ?? '')
+      })
+      .catch(() => {})
+    return () => { annule = true }
+  }, [profil.avatar_ref])
+
+  const ecrirePortrait = (ref: string | null, cadre: Cadrage | null) => {
     const champs = {
-      avatar_url: photo?.imageUrl ?? null,
-      avatar_nom: photo?.nom ?? null,
-      avatar_pos_x: photo?.posX ?? null,
-      avatar_pos_y: photo?.posY ?? null,
-      avatar_zoom: photo?.zoom ?? null,
+      avatar_ref: ref,
+      avatar_pos_x: cadre?.posX ?? null,
+      avatar_pos_y: cadre?.posY ?? null,
+      avatar_zoom: cadre?.zoom ?? null,
     }
     majProfil(champs)
     supabase.from('profils').update(champs).eq('id', user.id)
       .then(({ error }) => { if (error) console.error('Présentation : le portrait n’a pas pu être enregistré.', error) })
   }
 
-  const choisirPortrait = (photo: PhotoProfil) => {
-    ecrirePortrait(photo)
+  const choisirPortrait = (choix: PortraitChoisi) => {
+    // Le cadrage arrive avec le visage : c'est celui que la bibliothèque a déjà réglé
+    // pour la fiche de cet auteur. Personne n'a à recadrer ce qui l'a été.
+    setNomPortrait(choix.nom)
+    ecrirePortrait(choix.ref, choix.cadrage)
     setChoixOuvert(false); setCadrageOuvert(false)
   }
 
-  const cadrerPortrait = (posX: number, posY: number, zoom: number) => {
-    if (!portrait) return
-    ecrirePortrait({ ...portrait, posX, posY, zoom })
+  const cadrerPortrait = (cadre: Cadrage) => {
+    if (!profil.avatar_ref) return
+    ecrirePortrait(profil.avatar_ref, cadre)
     setCadrageOuvert(false)
   }
 
@@ -120,36 +133,25 @@ export default function RubriquePresentation() {
       <Carte titre="Portrait">
         <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            {portrait ? (
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', position: 'relative', border: '2px solid var(--cs-bord)' }}>
-                <Image src={portrait.imageUrl} alt={portrait.nom} fill sizes="80px" unoptimized
-                  style={{ objectFit: 'cover', objectPosition: `${portrait.posX ?? 50}% ${portrait.posY ?? 20}%`, transform: `scale(${portrait.zoom ?? 1})`, transformOrigin: 'center center' }} />
-              </div>
-            ) : (
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg,var(--cs-vert-aplat),var(--cs-vert-aplat-profond))', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--cs-bord)' }}>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.75rem', color: 'var(--cs-fond-doux)' }}>
-                  {profil.pseudo.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
+            <PortraitLecteur refPortrait={profil.avatar_ref} cadrage={cadrage} initiale={profil.pseudo} taille={80} />
             <button
-              onClick={() => portrait ? setCadrageOuvert(true) : setChoixOuvert(true)}
-              title={portrait ? 'Recadrer le portrait' : 'Choisir une illustration'}
-              aria-label={portrait ? 'Recadrer le portrait' : 'Choisir une illustration'}
+              onClick={() => profil.avatar_ref ? setCadrageOuvert(true) : setChoixOuvert(true)}
+              title={profil.avatar_ref ? 'Recadrer le portrait' : 'Choisir un visage'}
+              aria-label={profil.avatar_ref ? 'Recadrer le portrait' : 'Choisir un visage'}
               style={{ position: 'absolute', bottom: '-4px', right: '-4px', width: '22px', height: '22px', borderRadius: '50%', border: '1.5px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cs-texte-gris)' }}>
               <IconeCrayon size={11} />
             </button>
           </div>
           <div style={{ flex: 1, minWidth: '12rem' }}>
-            {portrait ? (
+            {profil.avatar_ref ? (
               <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', margin: 0, lineHeight: 1.6 }}>
-                {portrait.nom || 'Illustration choisie'}
+                {nomPortrait || 'Visage choisi'}
                 {' · '}
-                <button onClick={() => ecrirePortrait(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.78125rem', color: 'var(--cs-danger)', padding: 0 }}>retirer</button>
+                <button onClick={() => { setNomPortrait(''); ecrirePortrait(null, null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.78125rem', color: 'var(--cs-danger)', padding: 0 }}>retirer</button>
               </p>
             ) : (
               <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: 0, lineHeight: 1.6 }}>
-                Choisissez le visage d’un Père de l’Église. À défaut, l’initiale de votre pseudonyme en tient lieu.
+                Prenez le visage d’un Père de l’Église ou d’un traducteur du corpus. À défaut, l’initiale de votre pseudonyme en tient lieu.
               </p>
             )}
           </div>
@@ -192,8 +194,8 @@ export default function RubriquePresentation() {
         <LigneEnregistrer onClick={enregistrer} occupe={enregistrement} statut={statut} />
       </Carte>
 
-      {cadrageOuvert && portrait && (
-        <ModaleCadrage photo={portrait} onSauvegarder={cadrerPortrait}
+      {cadrageOuvert && profil.avatar_ref && (
+        <ModaleCadrage refPortrait={profil.avatar_ref} nom={nomPortrait} cadrage={cadrage} onSauvegarder={cadrerPortrait}
           onChanger={() => { setCadrageOuvert(false); setChoixOuvert(true) }}
           onClose={() => setCadrageOuvert(false)} />
       )}

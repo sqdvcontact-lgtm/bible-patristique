@@ -7,9 +7,10 @@
 // ici deux lignes comptées qui mènent à la page publique, laquelle les montre déjà.
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { supabase } from '@/app/lib/supabase'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
+import { CADRAGE_PAR_DEFAUT } from '@/app/lib/portraits'
+import PortraitLecteur from '@/app/components/PortraitLecteur'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { useEspace } from '@/app/compte/EspaceCompte'
 import { Carte } from '@/app/compte/champsCompte'
@@ -53,18 +54,15 @@ export default function ApercuCompte() {
       {/* ── Qui je suis ── */}
       <Carte>
         <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
-          {profil.avatar_url ? (
-            <div style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', position: 'relative', border: '2px solid var(--cs-bord)', flexShrink: 0 }}>
-              <Image src={profil.avatar_url} alt={profil.avatar_nom ?? ''} fill sizes="72px" unoptimized
-                style={{ objectFit: 'cover', objectPosition: `${profil.avatar_pos_x ?? 50}% ${profil.avatar_pos_y ?? 20}%`, transform: `scale(${profil.avatar_zoom ?? 1})`, transformOrigin: 'center center' }} />
-            </div>
-          ) : (
-            <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'linear-gradient(135deg,var(--cs-vert-aplat),var(--cs-vert-aplat-profond))', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--cs-bord)', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', color: 'var(--cs-fond-doux)' }}>
-                {profil.pseudo.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+          <PortraitLecteur
+            refPortrait={profil.avatar_ref}
+            cadrage={{
+              posX: profil.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
+              posY: profil.avatar_pos_y ?? CADRAGE_PAR_DEFAUT.posY,
+              zoom: profil.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
+            }}
+            initiale={profil.pseudo}
+            taille={72} />
           <div style={{ flex: 1, minWidth: '11rem' }}>
             <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, letterSpacing: '-0.01em' }}>
               {profil.pseudo}

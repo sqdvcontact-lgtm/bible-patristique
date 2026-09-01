@@ -2,11 +2,28 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { estRefOriginal, idOeuvreDeRef } from '@/app/lib/refsFavoris'
+import { familleDeRef, identifiantDeRef, refPortraitValide, urlPortrait } from '@/app/lib/portraits'
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+/** Le nom du visage choisi, lu de la table qui fait autorité.
+ *
+ *  Une seule ligne, et seulement si un portrait a été choisi : la page publique d'un
+ *  lecteur sans portrait ne paie rien pour cette résolution. */
+async function nomDuPortrait(ref: string): Promise<string> {
+  const famille = familleDeRef(ref)
+  const identifiant = identifiantDeRef(ref)
+  if (!famille || !identifiant) return ''
+  if (famille === 'auteur') {
+    const { data } = await sb.from('auteurs').select('nom').eq('id_auteur', identifiant).maybeSingle()
+    return (data?.nom as string) ?? ''
+  }
+  const { data } = await sb.from('traductions').select('nom, auteur').eq('trad_id', identifiant).maybeSingle()
+  return ((data?.auteur as string) || (data?.nom as string)) ?? ''
+}
 
 export async function GET(_req: Request, { params }: { params: Promise<{ pseudo: string }> }) {
   const { pseudo } = await params
@@ -17,19 +34,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   // sensibilité) : le profil public a toujours été censé les afficher.
   const { data: profil, error } = await sb
     .from('profils')
-    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, avatar_url, avatar_nom, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_preferee')
+    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_preferee')
     .eq('pseudo', pseudo)
     .maybeSingle()
 
   if (error || !profil) return NextResponse.json({ error: 'Profil introuvable.' }, { status: 404 })
 
+  // ⛔ L'adresse du portrait se FABRIQUE ici, elle ne se lit pas. La table ne porte
+  // qu'une référence — « auteur:A0010 » —, précisément pour qu'aucune adresse venue
+  // du navigateur d'un lecteur ne puisse être servie aux visiteurs de sa page. Le
+  // NOM se résout de même, pour la même raison : une copie du nom en base serait
+  // aussi falsifiable que l'ancienne adresse. Voir app/lib/portraits.ts.
+  const avatar = refPortraitValide(profil.avatar_ref)
+    ? {
+        imageUrl: urlPortrait(profil.avatar_ref) ?? '',
+        nom: await nomDuPortrait(profil.avatar_ref),
+        posX: profil.avatar_pos_x, posY: profil.avatar_pos_y, zoom: profil.avatar_zoom,
+      }
+    : null
+
   const rep: Record<string, unknown> = {
     pseudo: profil.pseudo,
     bio: profil.bio ?? null,
     membre_depuis: profil.created_at,
-    avatar: profil.avatar_url
-      ? { imageUrl: profil.avatar_url, nom: profil.avatar_nom ?? '', posX: profil.avatar_pos_x, posY: profil.avatar_pos_y, zoom: profil.avatar_zoom }
-      : null,
+    avatar,
     citation_preferee: profil.citation_preferee ?? null,
   }
 

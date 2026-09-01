@@ -40,8 +40,9 @@ export type ProfilLecteur = {
   // ⛔ `membre_depuis` n'existe pas dans `profils` : c'est `created_at`, renommé à
   // la lecture, comme le fait déjà l'API de la page publique.
   membre_depuis: string | null
-  avatar_url: string | null
-  avatar_nom: string | null
+  // Le portrait est une RÉFÉRENCE — « auteur:A0010 » —, jamais une adresse : voir
+  // app/lib/portraits.ts. Les trois autres champs portent son cadrage.
+  avatar_ref: string | null
   avatar_pos_x: number | null
   avatar_pos_y: number | null
   avatar_zoom: number | null
@@ -50,7 +51,7 @@ export type ProfilLecteur = {
 const CHAMPS_PROFIL =
   'id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, ' +
   'pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu, ' +
-  'avatar_url, avatar_nom, avatar_pos_x, avatar_pos_y, avatar_zoom, membre_depuis:created_at'
+  'avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, membre_depuis:created_at'
 
 export type UtilisateurEspace = { id: string; email: string; email_confirmed_at: string | null }
 
@@ -222,7 +223,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
       theme_lecture: null, bio: null, contact_email: null,
       pub_rang: true, pub_essais: true, pub_favoris_oeuvre: false, pub_favoris_versets: false,
       onboarding_vu: false, membre_depuis: null,
-      avatar_url: null, avatar_nom: null, avatar_pos_x: null, avatar_pos_y: null, avatar_zoom: null,
+      avatar_ref: null, avatar_pos_x: null, avatar_pos_y: null, avatar_zoom: null,
     })
   }
 
