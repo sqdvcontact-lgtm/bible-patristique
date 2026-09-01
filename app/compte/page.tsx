@@ -94,19 +94,15 @@ function MonCompte({ user, router }: { user: { id: string; email: string; email_
   const [chargement, setChargement] = useState(true);
 
   useEffect(() => {
-    supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu, membre_depuis")
+    // ⛔ `membre_depuis` N'EXISTE PAS dans `profils` : la date d'inscription est
+    // `created_at`, et on la renomme ici comme le fait déjà l'API de la page
+    // publique. Le code demandait la colonne absente, échouait, puis relisait la
+    // ligne sans elle : la requête partait deux fois, et « Lecteur depuis … » ne
+    // paraissait jamais. Un repli qui rattrape une erreur de nom la rend muette.
+    supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu, membre_depuis:created_at")
       .eq("id", user.id).maybeSingle()
       .then(({ data, error }) => {
-        if (error) {
-          // membre_depuis absent de la table : retenter sans ce champ
-          supabase.from("profils").select("id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, onboarding_vu")
-            .eq("id", user.id).maybeSingle()
-            .then(({ data: d2 }) => {
-              if (d2 && !d2.onboarding_vu) { router.replace("/bienvenue"); return; }
-              setProfil(d2 ?? null); setChargement(false);
-            });
-          return;
-        }
+        if (error) console.error("Mon compte : le profil n’a pas pu être lu.", error);
         if (data && !data.onboarding_vu) { router.replace("/bienvenue"); return; }
         setProfil(data ?? null); setChargement(false);
       });
@@ -217,17 +213,26 @@ function SectionRang({ score }: { score: number }) {
 }
 
 // ── Publications ─────────────────────────────────────────────────────────────
-type Essai = { id: number; titre: string; cree_le: string }
+type Essai = { id: number; titre: string; created_at: string }
 
+// ⚠️ Cette carte interrogeait `essais.auteur_id` et `essais.cree_le`, deux colonnes
+// qui N'EXISTENT PAS : ce sont `user_id` et `created_at`. Elle est donc restée vide
+// depuis toujours, et l'échec ne se voyait pas, faute de lire `error` — exactement
+// le défaut consigné dix lignes plus haut pour `favoris_oeuvres`, reproduit ici.
+// La leçon vaut au-delà de ce fichier : un `.then(({ data }) => …)` qui laisse
+// tomber `error` transforme une requête fautive en carte muette.
 function SectionPublications({ userId }: { userId: string }) {
   const [essais, setEssais] = useState<Essai[]>([]);
   const [charge, setCharge] = useState(true);
 
   useEffect(() => {
-    supabase.from("essais").select("id, titre, cree_le")
-      .eq("auteur_id", userId).eq("statut", "publie")
-      .order("cree_le", { ascending: true })
-      .then(({ data }) => { setEssais(data ?? []); setCharge(false); });
+    supabase.from("essais").select("id, titre, created_at")
+      .eq("user_id", userId).eq("statut", "publie")
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) console.error("Mon compte : les essais publiés n’ont pas pu être lus.", error);
+        setEssais(data ?? []); setCharge(false);
+      });
   }, [userId]);
 
   if (charge || essais.length === 0) return null;
@@ -240,7 +245,7 @@ function SectionPublications({ userId }: { userId: string }) {
           <a key={e.id} href={`/essais/${e.id}`}
             style={{ display: "flex", alignItems: "baseline", gap: "10px", padding: "8px 0", textDecoration: "none", borderBottom: i < essais.length - 1 ? "1px solid var(--cs-fond-doux)" : "none" }}>
             <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.84375rem", fontStyle: "italic", color: "var(--cs-encre)", flex: 1, lineHeight: 1.4 }}>{e.titre}</span>
-            <span style={{ fontSize: "0.625rem", color: "var(--cs-texte-faible)", flexShrink: 0 }}>{new Date(e.cree_le).getFullYear()}</span>
+            <span style={{ fontSize: "0.625rem", color: "var(--cs-texte-faible)", flexShrink: 0 }}>{new Date(e.created_at).getFullYear()}</span>
           </a>
         ))}
       </div>
@@ -518,10 +523,14 @@ function FormulaireCompte({ user, profilInit, router }: { user: { id: string; em
 
     // Checklist DB
     Promise.all([
-      supabase.from("essais").select("id", { count: "exact", head: true }).eq("auteur_id", user.id).eq("statut", "publie"),
+      supabase.from("essais").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("statut", "publie"),
       supabase.from("prelevements").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("favoris").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("type", "oeuvre"),
-    ]).then(([{ count: ce }, { count: cp }, { count: cf }]) => {
+    ]).then(([{ count: ce, error: ee }, { count: cp, error: ep }, { count: cf, error: ef }]) => {
+      // Un comptage qui échoue rend `count` nul, ce qui se lit comme « pas encore
+      // fait » : une étape ne se cochait donc jamais, sans que rien ne le signale.
+      const erreur = ee ?? ep ?? ef;
+      if (erreur) console.error("Mon compte : l’avancement n’a pas pu être compté.", erreur);
       setChecklistDB({ essai: (ce ?? 0) > 0, passage: (cp ?? 0) > 0, favoriOeuvre: (cf ?? 0) > 0, nbCommentaires: 0 });
     });
 
