@@ -1,97 +1,80 @@
-// ── LA TABLE UNIQUE DES ENTRÉES DE L'ESPACE DU LECTEUR ───────────────────────
+// ── LE SOMMAIRE DE L'ESPACE DU LECTEUR ───────────────────────────────────────
 //
-// Elle sert la colonne de la page /compte, et le menu déroulant du compte y prend les
-// entrées qu'il montre — aujourd'hui « Ma page publique », qui s'y appelait « Ma page »
-// sans que rien ne dise où elle menait.
+// Refonte du 1er septembre 2026, sur six consignes de l'auteur : deux pages
+// distinctes — « Mon compte » et « Mon parcours » —, tout affiché sur une seule
+// page, un sommaire FIXE à gauche qui ne sert qu'à CIRCULER, et « oublie les
+// bandeaux sur le côté à gauche ; reprendre le modèle de sommaire de la page Bible ».
 //
-// ⛔ C'est la leçon déjà tirée pour l'administration (app/lib/adminNavigation.ts) :
-// deux listes écrites séparément divergent, et une rubrique qui n'est nommée qu'à
-// un endroit est une rubrique qu'on ne trouve pas depuis l'autre. Il n'y a donc
-// qu'une table, et l'ordre y fait foi pour les deux.
+// ⛔ CE SOMMAIRE N'EST PLUS UN MENU. Il ne mène nulle part ailleurs : ses entrées
+// sautent à une ancre de la page qu'on lit déjà. La version d'avant était une
+// colonne de navigation — six rubriques, six chargements, une glose de deux lignes
+// sous chacune, 504 px de haut pour 340 px de contenu sur la page « Lecture ». On
+// n'a plus que DEUX destinations, et le reste est du défilement.
 //
-// ⚠️ Chaque entrée porte une GLOSE, et ce n'est pas un ornement : la charte § 36.2
-// veut qu'un menu DISE ce qu'il ouvre. « Présentation » ou « Lecture » ne
-// s'expliquent pas d'eux-mêmes pour qui arrive.
+// ⛔ Les GLOSES sont retirées avec elle. Elles répétaient mot pour mot le sous-titre
+// de la page qu'elles ouvraient, à quatre centimètres de distance ; et une entrée
+// qui saute à une ancre de la page courante n'a rien à expliquer, puisque la section
+// est sous les yeux.
 
-/** Les deux groupes, dans leur ordre de lecture. Un filet les sépare.
- *
- *  Ils ne se distinguent pas par sujet mais par FRÉQUENCE et par nature : on revient
- *  voir où l'on en est, on ne revient pas régler son mot de passe. Les études de
- *  Restivo et van de Rijt (PLoS ONE, 2012) disent la même chose autrement : ce qui
- *  retient un lecteur fidèle et ce qui accueille un nouveau venu ne sont pas le même
- *  objet, et ne se rangent donc pas au même rayon. */
-export type GroupeEspace = 'parcours' | 'reglages'
+/** Les deux pages de l'espace. ⛔ Deux, et pas une de plus : ce qu'on REGARDE et ce
+ *  qu'on RÈGLE ne se visitent ni à la même heure ni pour la même raison. */
+export type PageEspace = 'compte' | 'parcours'
 
-export const GROUPES_ESPACE: { cle: GroupeEspace; label: string }[] = [
-  { cle: 'parcours', label: 'Mon parcours' },
-  { cle: 'reglages', label: 'Réglages' },
+export const PAGES_ESPACE: { cle: PageEspace; href: string; label: string }[] = [
+  { cle: 'compte', href: '/compte', label: 'Mon compte' },
+  { cle: 'parcours', href: '/compte/parcours', label: 'Mon parcours' },
 ]
 
-export type EntreeEspace = {
-  href: string
-  label: string
-  /** La ligne qui dit ce que la rubrique contient (charte § 36.2). */
-  glose: string
-  groupe: GroupeEspace
-  /** Quitte l'espace : la page publique s'ouvre dans un onglet à part. */
-  sortant?: boolean
+/** Une entrée du sommaire : le titre d'une section, et l'ancre où elle se trouve. */
+export type AncreEspace = { id: string; label: string }
+
+/** Un groupe d'ancres, sous sa rubrique. */
+export type GroupeAncres = { rubrique: string; ancres: AncreEspace[] }
+
+/** ⛔ Les ancres de « Mon compte » sont FIXES : la page les porte toutes, toujours,
+ *  et le sommaire ne peut donc pas mentir. Celles de « Mon parcours » se déduisent
+ *  au contraire des séries que la base porte — voir `ancresParcours`. */
+export const ANCRES_COMPTE: GroupeAncres[] = [
+  {
+    rubrique: 'Vous',
+    ancres: [
+      { id: 'identite', label: 'Identité' },
+      { id: 'page-publique', label: 'Page publique' },
+    ],
+  },
+  {
+    rubrique: 'Réglages',
+    ancres: [
+      { id: 'lecture', label: 'Lecture' },
+      { id: 'connexion', label: 'Connexion' },
+    ],
+  },
+]
+
+/** Le sommaire de « Mon parcours ». ⚠️ Les séries viennent de la BASE et non d'une
+ *  liste écrite ici : elles ont été dix, elles étaient six la veille, et un sommaire
+ *  qui nommerait des séries disparues renverrait à des ancres absentes. */
+export function ancresParcours(series: { serie: string; nom: string }[]): GroupeAncres[] {
+  const groupes: GroupeAncres[] = [{
+    rubrique: 'Où j’en suis',
+    ancres: [
+      { id: 'rang', label: 'Rang' },
+      { id: 'premiers-pas', label: 'Premiers pas' },
+    ],
+  }]
+  if (series.length) {
+    groupes.push({
+      rubrique: 'Hauts faits',
+      ancres: series.map(s => ({ id: `serie-${s.serie}`, label: s.nom })),
+    })
+  }
+  return groupes
 }
 
-/** Les entrées, pour un lecteur dont on connaît le pseudonyme.
+/** Quelle page on regarde, d'après le chemin.
  *
- *  ⚠️ Sans pseudonyme, la page publique n'a pas d'adresse : l'entrée disparaît au
- *  lieu de mener à une page introuvable. Cela n'arrive qu'entre la création du
- *  compte et le choix du pseudonyme. */
-export function entreesEspace(pseudo: string | null): EntreeEspace[] {
-  return [
-    {
-      href: '/compte',
-      label: 'Où j’en suis',
-      glose: 'Votre rang, vos premiers pas, ce qu’il reste à découvrir.',
-      groupe: 'parcours',
-    },
-    {
-      href: '/compte/hauts-faits',
-      label: 'Hauts faits',
-      glose: 'Le tableau des cases à remplir, et ce qu’elles apprennent.',
-      groupe: 'parcours',
-    },
-    ...(pseudo ? [{
-      href: `/profil/${encodeURIComponent(pseudo)}`,
-      label: 'Ma page publique',
-      glose: 'Ce que les autres lecteurs voient de vous.',
-      groupe: 'parcours' as const,
-      sortant: true,
-    }] : []),
-    {
-      href: '/compte/presentation',
-      label: 'Présentation',
-      glose: 'Votre portrait, votre nom, ce que vous laissez paraître.',
-      groupe: 'reglages',
-    },
-    {
-      href: '/compte/lecture',
-      label: 'Lecture',
-      glose: 'La traduction que vous lisez par défaut, et le thème.',
-      groupe: 'reglages',
-    },
-    {
-      href: '/compte/connexion',
-      label: 'Connexion',
-      glose: 'Votre adresse, votre mot de passe, la suppression du compte.',
-      groupe: 'reglages',
-    },
-  ]
-}
-
-/** L'entrée qui correspond au chemin courant, pour la marquer dans la colonne.
- *
- *  ⛔ Ne pas se contenter d'un `startsWith` : « /compte » est le préfixe de toutes
- *  les autres rubriques, et resterait donc allumé partout. On compare le chemin
- *  exact, et l'on n'admet le préfixe que pour les rubriques qui ont des sous-pages. */
-export function entreeCourante(chemin: string, pseudo: string | null): EntreeEspace | null {
-  const entrees = entreesEspace(pseudo).filter(e => !e.sortant)
-  return entrees.find(e => e.href === chemin)
-    ?? entrees.find(e => e.href !== '/compte' && chemin.startsWith(`${e.href}/`))
-    ?? null
+ *  ⛔ Ne pas se contenter d'un `startsWith` : « /compte » est le préfixe de
+ *  « /compte/parcours », et l'onglet resterait allumé sur les deux. */
+export function pageCourante(chemin: string): PageEspace {
+  return chemin.startsWith('/compte/parcours') ? 'parcours' : 'compte'
 }

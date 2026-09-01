@@ -1,17 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useEspace } from '@/app/compte/EspaceCompte'
-import { Carte, EnTeteRubrique, inputStyle, labelStyle, type Statut } from '@/app/compte/champsCompte'
+import { inputStyle, type Statut } from '@/app/compte/champsCompte'
+import { Rangee } from '@/app/compte/piecesEspace'
+
+/** Le bouton d'une action secondaire, à côté d'un champ. */
+const BTN_DISCRET: React.CSSProperties = {
+  padding: '6px 13px', borderRadius: '4px', border: '1px solid var(--cs-bord)',
+  background: 'var(--cs-surface)', color: 'var(--cs-vert)', fontSize: '0.71875rem',
+  cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit',
+}
 
 function urlCompte(): string {
   if (typeof window !== 'undefined') return `${window.location.origin}/compte`
   return '/compte'
 }
 
-export default function RubriqueConnexion() {
+/** Le bloc Connexion : adresse, mot de passe, et la modale de suppression que le
+ *  pied de page ouvre. ⛔ Plus de cartes ni d'en-tête : il est une SECTION d'une
+ *  page unique depuis la refonte du 1er septembre 2026. */
+export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte }: {
+  ouvrirSuppression: boolean
+  onSuppressionOuverte: (v: boolean) => void
+}) {
   const router = useRouter()
   const { user } = useEspace()
 
@@ -24,8 +38,10 @@ export default function RubriqueConnexion() {
   const [statutMdp, setStatutMdp] = useState<Statut>(null)
   const [envoiMdp, setEnvoiMdp] = useState(false)
 
-  const [modaleSuppression, setModaleSuppression] = useState(false)
+  const modaleSuppression = ouvrirSuppression
+  const setModaleSuppression = onSuppressionOuverte
   const [consentSuppression, setConsentSuppression] = useState(false)
+  useEffect(() => { if (ouvrirSuppression) { setConsentSuppression(false); setErreurSuppression(null) } }, [ouvrirSuppression])
   const [suppressionEnCours, setSuppressionEnCours] = useState(false)
   const [erreurSuppression, setErreurSuppression] = useState<string | null>(null)
 
@@ -66,45 +82,32 @@ export default function RubriqueConnexion() {
 
   return (
     <>
-      <EnTeteRubrique titre="Connexion">
-        L’adresse et le mot de passe qui ouvrent votre compte. La suppression se règle au bas de cette page.
-      </EnTeteRubrique>
-
-      <Carte titre="Adresse électronique">
-        <label htmlFor="courriel" style={labelStyle}>ADRESSE E-MAIL</label>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
-          <input id="courriel" type="email" value={nouvelEmail} onChange={e => { setNouvelEmail(e.target.value); setStatutEmail(null) }} style={{ ...inputStyle, flex: 1 }} />
+      <Rangee label="Adresse" pour="courriel"
+        note={statutEmail ? <span style={{ color: statutEmail.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutEmail.msg}</span>
+          : user.email_confirmed_at ? 'Adresse vérifiée.' : 'Adresse non confirmée.'}>
+        <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input id="courriel" type="email" className="esp-moyen" style={inputStyle} value={nouvelEmail}
+            onChange={e => { setNouvelEmail(e.target.value); setStatutEmail(null) }} />
           <button onClick={modifierEmail} disabled={envoiEmail || !nouvelEmail.trim() || nouvelEmail.trim() === user.email}
-            style={{ padding: '9px 14px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', fontSize: '0.78125rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            {envoiEmail ? 'Envoi…' : 'Modifier'}
+            style={BTN_DISCRET}>{envoiEmail ? 'Envoi…' : 'Modifier'}</button>
+        </span>
+      </Rangee>
+
+      {/* ⚠️ Le mot de passe garde SON bouton : ce n'est pas un champ du profil mais
+          une action d'authentification, qui part chez Supabase et non dans la même
+          écriture. Un seul « Enregistrer » ne peut pas couvrir les deux. */}
+      <Rangee label="Mot de passe"
+        note={statutMdp ? <span style={{ color: statutMdp.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutMdp.msg}</span> : 'Six caractères au moins.'}>
+        <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
+            value={nouveauMdp} onChange={e => { setNouveauMdp(e.target.value); setStatutMdp(null) }} placeholder="Nouveau" />
+          <input type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
+            value={confirmationMdp} onChange={e => { setConfirmationMdp(e.target.value); setStatutMdp(null) }} placeholder="Confirmer" />
+          <button onClick={modifierMotDePasse} disabled={envoiMdp || !nouveauMdp || !confirmationMdp} style={BTN_DISCRET}>
+            {envoiMdp ? 'Modification…' : 'Changer'}
           </button>
-        </div>
-        {user.email_confirmed_at && !statutEmail && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', margin: '5px 0 0' }}>✓ adresse vérifiée</p>}
-        {statutEmail && <p style={{ fontSize: '0.71875rem', color: statutEmail.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)', margin: '5px 0 0', lineHeight: 1.5 }}>{statutEmail.msg}</p>}
-      </Carte>
-
-      <Carte titre="Mot de passe">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <input type="password" autoComplete="new-password" value={nouveauMdp} onChange={e => { setNouveauMdp(e.target.value); setStatutMdp(null) }} placeholder="Nouveau mot de passe" style={inputStyle} />
-          <input type="password" autoComplete="new-password" value={confirmationMdp} onChange={e => { setConfirmationMdp(e.target.value); setStatutMdp(null) }} placeholder="Confirmer" style={inputStyle} />
-        </div>
-        <button onClick={modifierMotDePasse} disabled={envoiMdp || !nouveauMdp || !confirmationMdp}
-          style={{ marginTop: '10px', padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', fontSize: '0.78125rem', fontWeight: 500, cursor: 'pointer' }}>
-          {envoiMdp ? 'Modification…' : 'Changer le mot de passe'}
-        </button>
-        {statutMdp && <p style={{ fontSize: '0.71875rem', color: statutMdp.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)', margin: '8px 0 0', lineHeight: 1.5 }}>{statutMdp.msg}</p>}
-      </Carte>
-
-      <Carte titre="Suppression du compte" danger>
-        <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', margin: '0 0 14px', lineHeight: 1.55 }}>
-          Pour toute question avant suppression, écrivez à{' '}
-          <a href="mailto:sqdv.contact@gmail.com" style={{ color: 'var(--cs-or)', textDecoration: 'none' }}>sqdv.contact@gmail.com</a>.
-        </p>
-        <button onClick={() => { setModaleSuppression(true); setConsentSuppression(false); setErreurSuppression(null) }}
-          style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '4px', border: '1px solid var(--cs-danger-bord)', background: 'var(--cs-surface)', color: 'var(--cs-danger)', cursor: 'pointer' }}>
-          Supprimer mon compte
-        </button>
-      </Carte>
+        </span>
+      </Rangee>
 
       {modaleSuppression && (
         <div onClick={() => !suppressionEnCours && setModaleSuppression(false)}

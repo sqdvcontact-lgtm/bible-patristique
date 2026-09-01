@@ -74,7 +74,7 @@ export function etapesParcours({ marques, aUnPortrait, aUneBio }: EtatLecteur): 
       cle: 'portrait', fait: aUnPortrait,
       libelle: 'Choisir un visage',
       glose: 'Un Père de l’Église ou un traducteur du corpus vous représentera.',
-      href: '/compte/presentation',
+      href: '/compte#identite',
     },
     {
       cle: 'verset', fait: marques.versets > 0,
@@ -98,7 +98,7 @@ export function etapesParcours({ marques, aUnPortrait, aUneBio }: EtatLecteur): 
       cle: 'bio', fait: aUneBio,
       libelle: 'Vous présenter en deux lignes',
       glose: 'C’est ce que les autres lecteurs liront de vous sur votre page.',
-      href: '/compte/presentation',
+      href: '/compte#identite',
     },
     {
       cle: 'commentaire', fait: marques.commentaires > 0,

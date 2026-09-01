@@ -33,10 +33,14 @@ const PAGES_NOMMEES: Record<string, string> = {
   '/compte': 'Mon compte',
   // Les rubriques de l'espace du lecteur. Sans elles, l'audience les rangerait toutes
   // sous « Mon compte » et l'on ne saurait pas laquelle se visite.
-  '/compte/hauts-faits': 'Mon compte — Hauts faits',
-  '/compte/presentation': 'Mon compte — Présentation',
-  '/compte/lecture': 'Mon compte — Lecture',
-  '/compte/connexion': 'Mon compte — Connexion',
+  // ⚠️ Les quatre rubriques de l'espace ont fondu en deux pages le 1er septembre
+  // 2026. Les anciens chemins RESTENT nommés : les vues déjà comptées portent leur
+  // libellé, et une ligne d'audience sans nom ne se lit plus.
+  '/compte/parcours': 'Mon parcours',
+  '/compte/hauts-faits': 'Mon compte — Hauts faits (retiré)',
+  '/compte/presentation': 'Mon compte — Présentation (retiré)',
+  '/compte/lecture': 'Mon compte — Lecture (retiré)',
+  '/compte/connexion': 'Mon compte — Connexion (retiré)',
   '/prelevements': 'Mes prélèvements',
   '/notifications': 'Notifications',
   '/messagerie': 'Messagerie',

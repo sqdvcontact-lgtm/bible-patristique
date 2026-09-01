@@ -1,6 +1,10 @@
 'use client'
 
-// Le CADRE de l'espace du lecteur : la session, le profil, la colonne.
+// Le CADRE de l'espace du lecteur : la session, le profil, la feuille.
+//
+// ⛔ IL NE PORTE PLUS DE COLONNE DE NAVIGATION. Chaque page pose son propre
+// sommaire — les ancres n'étant pas les mêmes des deux côtés — et le cadre ne
+// garde que ce qui est commun : la session, le profil lu une fois, et la feuille.
 //
 // ⛔ Chaque rubrique NE relit PAS le profil. La page du compte tenait ses sept blocs
 // dans un seul fichier de 978 lignes ; découpés en rubriques, ils auraient chacun
@@ -14,12 +18,12 @@
 // pour un visiteur qui lit un chapitre de la Genèse.
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
-import { entreeCourante, entreesEspace, GROUPES_ESPACE } from '@/app/lib/espaceLecteurNavigation'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { FEUILLE_ESPACE } from '@/app/compte/piecesEspace'
 
 export type ProfilLecteur = {
   id: string
@@ -127,77 +131,11 @@ export default function CadreEspace({ children }: { children: React.ReactNode })
 
   return (
     <Contexte.Provider value={{ user, profil, majProfil }}>
-      <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '40px 20px 100px' }}>
-        <style>{`
-          .esp-cadre { display: flex; gap: 30px; width: 100%; max-width: 60rem; margin: 0 auto; align-items: flex-start; }
-          .esp-colonne { width: 15rem; flex-shrink: 0; position: sticky; top: 5rem; }
-          .esp-contenu { flex: 1; min-width: 0; }
-          /* ⚠️ Sous 60rem la colonne ne peut plus tenir à gauche : elle passe au-dessus,
-             et ses gloses s'effacent. C'est la règle déjà posée pour le panneau mobile
-             de la barre (charte § 36.2) : une ligne par entrée, sinon c'est un rouleau. */
-          @media (max-width: 60rem) {
-            .esp-cadre { flex-direction: column; gap: 20px; }
-            .esp-colonne { width: 100%; position: static; }
-            .esp-glose { display: none; }
-          }
-        `}</style>
-        <div className="esp-cadre">
-          <nav className="esp-colonne" aria-label="Mon espace">
-            <ColonneEspace pseudo={profil.pseudo} />
-          </nav>
-          <div className="esp-contenu">{children}</div>
-        </div>
+      <main style={{ minHeight: `calc(100vh - ${HAUTEUR_NAVBAR})`, background: 'var(--cs-fond)' }}>
+        <style>{FEUILLE_ESPACE}</style>
+        {children}
       </main>
     </Contexte.Provider>
-  )
-}
-
-// ── La colonne ───────────────────────────────────────────────────────────────
-function ColonneEspace({ pseudo }: { pseudo: string }) {
-  const chemin = usePathname() ?? '/compte'
-  const courante = entreeCourante(chemin, pseudo)
-  const entrees = entreesEspace(pseudo)
-
-  return (
-    <>
-      {GROUPES_ESPACE.map(({ cle, label }, rang) => (
-        <div key={cle} style={rang > 0 ? { marginTop: '22px', paddingTop: '18px', borderTop: '1px solid var(--cs-bord-clair)' } : undefined}>
-          <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 8px', paddingLeft: '12px' }}>
-            {label}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {entrees.filter(e => e.groupe === cle).map(entree => {
-              const actif = courante?.href === entree.href
-              return (
-                <Link
-                  key={entree.href}
-                  href={entree.href}
-                  {...(entree.sortant ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  aria-current={actif ? 'page' : undefined}
-                  style={{
-                    display: 'block', padding: '9px 12px', borderRadius: '8px', textDecoration: 'none',
-                    background: actif ? 'var(--cs-surface)' : 'transparent',
-                    border: `1px solid ${actif ? 'var(--cs-bord-clair)' : 'transparent'}`,
-                    borderLeft: `3px solid ${actif ? 'var(--cs-vert)' : 'transparent'}`,
-                  }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84375rem', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte)', fontWeight: actif ? 600 : 400 }}>
-                    {entree.label}
-                    {entree.sortant && (
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.6 }}>
-                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </span>
-                  <span className="esp-glose" style={{ display: 'block', fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.45, marginTop: '2px' }}>
-                    {entree.glose}
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      ))}
-    </>
   )
 }
 

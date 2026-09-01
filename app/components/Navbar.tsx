@@ -16,7 +16,6 @@ import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
-import { entreesEspace } from "@/app/lib/espaceLecteurNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
@@ -1382,10 +1381,13 @@ export default function Navbar() {
   );
 
   // ── Bloc compte, réutilisé en version desktop et mobile ──────────────────────
-  // La page publique est nommée par la table des rubriques de l'espace du lecteur,
-  // celle-là même que sert la colonne de /compte : les deux listes ne peuvent donc
-  // plus se contredire sur son nom ni sur son adresse.
-  const pagePublique = entreesEspace(pseudo).find(e => e.sortant);
+  // ⚠️ La page publique se nomme ICI depuis la refonte du 1er septembre 2026 : le
+  // sommaire de l'espace ne porte plus de destinations, seulement des ancres, et il
+  // n'y a donc plus de table où la prendre. Le nom et l'adresse ne vivent plus qu'à
+  // un endroit — celui-ci.
+  const pagePublique = pseudo
+    ? { href: `/profil/${encodeURIComponent(pseudo)}`, label: "Ma page publique" }
+    : null;
 
   const blocCompte = (mobile: boolean) => user ? (
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>

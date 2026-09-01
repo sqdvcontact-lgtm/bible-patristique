@@ -30,8 +30,6 @@
 // `libelleCollection`, sous garde.
 
 import type React from 'react'
-import { useEffect, useState } from 'react'
-import { Carte, EnTeteRubrique } from '@/app/compte/champsCompte'
 import {
   familleConnue, libelleCollection, libelleProgression, libelleRestant,
   type DegreEtat, type FamilleCorpus, type Score, type SerieEtat,
@@ -53,43 +51,6 @@ export type Reponse = {
  *  sur l'Écriture plutôt que de rendre une case sans reliure. */
 function familleDe(nom: string): FamilleCorpus {
   return familleConnue(nom) ? nom : 'ecriture'
-}
-
-export default function HautsFaits() {
-  const [etat, setEtat] = useState<Reponse | null>(null)
-  const [erreur, setErreur] = useState<string | null>(null)
-
-  useEffect(() => {
-    let annule = false
-    fetch('/api/compte/hauts-faits')
-      .then(async res => {
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? 'Indisponible.')
-        return res.json()
-      })
-      .then((r: Reponse) => { if (!annule) setEtat(r) })
-      .catch((e: Error) => {
-        console.error('Hauts faits : la liste n’a pas pu être établie.', e)
-        if (!annule) setErreur('Les hauts faits n’ont pas pu être chargés. Réessayez.')
-      })
-    return () => { annule = true }
-  }, [])
-
-  return (
-    <>
-      {/* ⛔ Le chapeau ne promet plus de leçon : « chacune vous apprend quelque
-          chose » annonçait une récompense didactique que la carte ne porte plus. */}
-      <EnTeteRubrique titre="Hauts faits">
-        Des cases à remplir, six séries qui se comptent sur ce que vous gardez et sur ce que vous publiez.
-      </EnTeteRubrique>
-
-      {erreur && <Carte><p style={{ fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', margin: 0 }}>{erreur}</p></Carte>}
-      {!etat && !erreur && (
-        <Carte><p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement…</p></Carte>
-      )}
-
-      {etat && <ContenuHautsFaits etat={etat} />}
-    </>
-  )
 }
 
 /** Le contenu du tableau, séparé de la requête qui l'alimente.
@@ -119,10 +80,10 @@ export function ContenuHautsFaits({ etat }: { etat: Reponse }) {
       <Tableau score={etat.score} series={etat.series} enVue={etat.enVue} />
 
       {etat.series.map(serie => (
-        <section key={serie.serie} className="hf-serie">
+        <section key={serie.serie} id={`serie-${serie.serie}`} className="esp-section hf-serie">
           {/* ⛔ La rubrique porte le NOM et rien d'autre : le rayon montre déjà
               combien de reliures y sont posées, et « 2 / 4 » est un tableur. */}
-          <p className="hf-rubrique">{serie.nom}</p>
+          <h2>{serie.nom}</h2>
           <div className="hf-rayon">
             {serie.degres.map(c => (
               <CaseHautFait
