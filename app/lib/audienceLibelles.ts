@@ -31,6 +31,11 @@ const PAGES_NOMMEES: Record<string, string> = {
   '/confidentialite': 'Confidentialité',
   '/conditions-utilisation': 'Conditions d’utilisation',
   '/compte': 'Mon compte',
+  // Les rubriques de l'espace du lecteur. Sans elles, l'audience les rangerait toutes
+  // sous « Mon compte » et l'on ne saurait pas laquelle se visite.
+  '/compte/presentation': 'Mon compte — Présentation',
+  '/compte/lecture': 'Mon compte — Lecture',
+  '/compte/connexion': 'Mon compte — Connexion',
   '/prelevements': 'Mes prélèvements',
   '/notifications': 'Notifications',
   '/messagerie': 'Messagerie',

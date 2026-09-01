@@ -81,7 +81,9 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'components/NavLivres.tsx': ['#a9b6a6', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
   'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(154,126,61,0.16)', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)', 'rgba(198,184,158,0.08)'],
   'components/TexteBible.tsx': ['#b0a088'],
-  'compte/page.tsx': ['#3d7a3d', '#c8c0b8', '#c8d8cc'],
+  // 'compte/page.tsx' : retiré le 2026-09-01. La page unique de 978 lignes a été
+  // découpée en rubriques, et ses trois teintes ont été transposées au passage :
+  // #3d7a3d → --cs-vert-aplat-fonce, #c8c0b8 → --cs-texte-faible, #c8d8cc → --cs-bord.
   'conditions-utilisation/page.tsx': ['#4133'],
   'contact/page.tsx': ['#566150'],
   'essais/[id]/EssaiClient.tsx': ['#e4c4a0'],
