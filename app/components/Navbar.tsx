@@ -345,6 +345,20 @@ function OngletPatristique({ href, label, style, actif }: { href: string; label:
     <OngletMenu href={href} label={label} style={style} actif={actif}
       classeMenu="cs-plus-menu--riche cs-plus-menu--oeuvres"
       auSurvol={() => setRecentes(lireOeuvresRecentes())}>
+      {/* ⛔ LA PORTE DE LA RUBRIQUE, EN TÊTE DE SON PROPRE MENU. Le libellé de
+          l'onglet y mène déjà, mais rien ne le dit : un menu qui s'ouvre au survol
+          capture l'œil, et l'on cherche dedans ce qu'on est venu chercher. Les trois
+          autres menus nomment tous leurs pages ; celui-ci ne montrait qu'un journal
+          de lecture, et la bibliothèque n'y figurait nulle part.
+          ⚠️ Elle prend « href », celui de l'onglet, jamais une adresse recopiée :
+          les deux ne peuvent pas diverger. */}
+      <Link href={href} className="cs-plus-riche">
+        <span className="cs-plus-riche-texte">
+          <span className="cs-plus-riche-nom cs-plus-riche-nom--fort">Les Pères de l’Église</span>
+          <span className="cs-plus-riche-dit">La bibliothèque, auteur par auteur.</span>
+        </span>
+      </Link>
+      <div className="cs-plus-sep" />
       <p className="cs-plus-titre">Dernières œuvres consultées</p>
       {recentes.length > 0 ? recentes.map(o => (
         <Link key={o.id} href={`/oeuvre/${o.id}`} className="cs-plus-riche">
@@ -1674,6 +1688,10 @@ export default function Navbar() {
           /* Un TITRE D'ŒUVRE, non un nom de page : il prend le romain à empattements du
              site, comme partout ailleurs où une œuvre est nommée. */
           .cs-plus-riche-nom--oeuvre { font-family: var(--font-source-serif), Georgia, serif; }
+          /* L'entrée par laquelle on entre presque toujours. ⛔ Ni couleur, ni puce,
+             ni place à part : la graisse SEULE la lève, comme les deux entrées fortes
+             du menu d'administration. Un menu ne fabrique pas de bouton. */
+          .cs-plus-riche-nom--fort { font-weight: 600; }
           /* ⚠️ La glose ne se met pas en italique : à onze pixels et sur deux
              lignes, l'italique se lit moins bien qu'un gris franc, et le site
              réserve l'italique aux titres cités. */
