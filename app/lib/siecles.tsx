@@ -142,6 +142,39 @@ export function siecleEnTexte(n: number): string {
   return `${enChiffresRomains(abs)}${abs === 1 ? 'er' : 'e'} siècle${n < 0 ? ' av. J.-C.' : ''}`
 }
 
+// ── Classer par siècle ───────────────────────────────────────────────────────
+//
+// ⚠️ `auteurs.siecle` est du TEXTE LIBRE, et porte souvent une fourchette :
+// « IVe siècle-Ve siècle ». Rien ne le normalise en base. Tout classement par siècle
+// passe donc par ici, et jamais par un tri écrit sur place : trié comme du texte,
+// « IXe » passe avant « Ve », et Boèce se rangerait avant Origène.
+
+/** Le rang d'un champ vide ou illisible : il se range en dernier, sans jamais faire
+ *  échouer un tri. */
+export const SIECLE_INCONNU = 99
+
+/** Le siècle où l'auteur ENTRE EN SCÈNE, tiré du champ libre. Un Père né au IVe et
+ *  mort au Ve appartient au IVe : c'est là qu'on le cherche.
+ *
+ *  ⚠️ On s'appuie sur `UN_SIECLE`, l'expression qui sert déjà à composer le texte :
+ *  deux motifs concurrents finiraient par ne plus lire le même champ de la même façon. */
+export function rangDuSiecle(texte: string | null | undefined): number {
+  if (!texte) return SIECLE_INCONNU
+  // ⚠️ `UN_SIECLE` porte le drapeau `g` et retient donc son index d'une passe à
+  // l'autre : on le remet à zéro, sans quoi un appel sur deux repartirait du milieu.
+  UN_SIECLE.lastIndex = 0
+  const trouve = UN_SIECLE.exec(texte)
+  if (!trouve) return SIECLE_INCONNU
+  return romainVersNombre(trouve[1]) ?? SIECLE_INCONNU
+}
+
+/** Le libellé du siècle d'entrée en scène. Nomme l'indéterminé plutôt que de rendre
+ *  un blanc, ou pire, un « XCIXe siècle » né du rang de secours. */
+export function siecleNormalise(texte: string | null | undefined): string {
+  const rang = rangDuSiecle(texte)
+  return rang === SIECLE_INCONNU ? 'Siècle indéterminé' : siecleEnTexte(rang)
+}
+
 /** Siècle donné par son numéro, composé. Négatif pour « av. J.-C. ». */
 export function Siecle({ n }: { n: number }) {
   const abs = Math.abs(n)

@@ -50,6 +50,14 @@ export function entreesEspace(pseudo: string | null): EntreeEspace[] {
       glose: 'Votre rang, vos premiers pas, ce qu’il reste à découvrir.',
       groupe: 'parcours',
     },
+    {
+      href: '/compte/retenu',
+      label: 'Ce que j’ai retenu',
+      // ⛔ Jamais « ce que j'ai lu » : la carte compte les marques volontaires, et
+      // le site ne trace pas la lecture. Voir app/api/compte/retenu/route.ts.
+      glose: 'Les Pères dont vous avez gardé quelque chose.',
+      groupe: 'parcours',
+    },
     ...(pseudo ? [{
       href: `/profil/${encodeURIComponent(pseudo)}`,
       label: 'Ma page publique',
