@@ -62,8 +62,11 @@ export const CADRES_PORTRAIT: Record<SurfacePortrait, CadrePortrait> = {
   // photo `width: 7.5rem`. La photo est étirée par la rangée, elle fait donc
   // toute la hauteur du bandeau.
   carte: { libelle: 'Carte de la bibliothèque', largeur: '7.5rem', hauteur: '200px', passePartout: '0', reglage: 'carte' },
-  // app/components/ModaleAuteur.tsx : cadre 6.5rem × 130px, `padding: 5px`.
-  fiche: { libelle: 'Fiche de l’auteur', largeur: '6.5rem', hauteur: '130px', passePartout: '5px', reglage: 'fiche' },
+  // app/components/ModaleAuteur.tsx : cadre 128 × 200 px, `padding: 5px`. Le portrait
+  // y FLOTTE depuis le 1er septembre 2026 et la prose de « Vie » l'habille ; il est
+  // passé du timbre (104 × 130) au vrai format portrait, rapport 0,64.
+  // ⚠️ Ces deux mesures ne sont plus recopiées dans le composant : il les LIT ici.
+  fiche: { libelle: 'Fiche de l’auteur', largeur: '128px', hauteur: '200px', passePartout: '5px', reglage: 'fiche' },
 }
 
 function normaliser(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {

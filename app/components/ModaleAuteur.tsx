@@ -17,6 +17,7 @@ import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rendreSiecles } from '@/app/lib/siecles'
+import { CADRES_PORTRAIT } from '@/app/lib/photoAuteur'
 import { type RangChrono, coulType, LIB_TYPE, estUrl } from '@/app/lib/frise'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -430,10 +431,14 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
              reste du portrait au-dessus : sans cela, une fiche a courte biographie les
              rentrerait de cent trente pixels. */
           .auteur-grid-vie > section:last-child { clear: left; }
-          /* ⛔ 128 × 200, soit un rapport de 0,64 : un vrai format portrait, là où les
+          /* ⛔ LES MESURES VIENNENT DU REGISTRE, elles ne sont pas écrites ici. C'est
+             « CADRES_PORTRAIT » (app/lib/photoAuteur.ts) qui les porte, et l'écran de
+             cadrage de l'administration compose ses aperçus avec les mêmes : recopier
+             le nombre ici, c'est faire mentir l'aperçu au premier réglage.
+             128 × 200, soit un rapport de 0,64 : un vrai format portrait, là où les
              104 × 130 d'avant tenaient du timbre. Mesures POSÉES et non calculées :
              c'est un cadre de chrome, non une mesure de lecture (charte, § Responsive). */
-          .auteur-portrait-flottant { width: 128px; height: 200px; float: left; margin: 2px 18px 10px 0; }
+          .auteur-portrait-flottant { width: ${CADRES_PORTRAIT.fiche.largeur}; height: ${CADRES_PORTRAIT.fiche.hauteur}; float: left; margin: 2px 18px 10px 0; }
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(var(--cs-vert-rgb),0.06); }
           .auteur-oeuvre--absente { cursor: default; }
@@ -445,7 +450,10 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
             .auteur-grid-vie { border-right: none !important; padding-right: 0 !important; }
             /* ⚠️ Le portrait se resserre : à 375 px le cadre intérieur fait 329 px, et
                un flottant de 128 ne laisserait que 183 px à la prose. À 104, elle en
-               garde 211. */
+               garde 211.
+               ⛔ Ces deux mesures-là ne vont PAS au registre, et c'est délibéré : le
+               registre décrit le cadre de RÉFÉRENCE, celui sur lequel on règle un
+               cadrage. On ne cadre pas un portrait sur un téléphone. */
             .auteur-portrait-flottant { width: 104px; height: 160px; margin-right: 14px; }
           }
         `}</style>
