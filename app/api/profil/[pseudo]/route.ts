@@ -63,9 +63,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
 
   // Toutes les sections conditionnelles exécutées en parallèle (réduction de N requêtes séquentielles → 1 batch)
   const [classementRes, essaisRes, favsRes, versetsRes, nomReelRes] = await Promise.all([
+    // ⛔ Le rang se lit dans `lecture_utilisateurs`, et non plus dans le classement :
+    // il mesure la LECTURE et non la conversation depuis le 1er septembre 2026.
+    // Voir app/lib/classement.ts.
     profil.pub_rang
-      ? sb.from('classement_utilisateurs')
-          .select('score, nb_commentaires, nb_valides, nb_likes_recus, nb_essais_publies')
+      ? sb.from('lecture_utilisateurs')
+          .select('nb_auteurs, total_auteurs')
           .eq('user_id', profil.id).maybeSingle()
       : null,
     profil.pub_essais
@@ -91,7 +94,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   ])
 
   if (profil.pub_rang) {
-    rep.classement = classementRes?.data ?? { score: 0, nb_commentaires: 0, nb_valides: 0, nb_likes_recus: 0, nb_essais_publies: 0 }
+    rep.lecture = classementRes?.data ?? { nb_auteurs: 0, total_auteurs: 0 }
   }
 
   if (profil.pub_essais) {

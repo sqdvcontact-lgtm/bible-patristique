@@ -17,20 +17,23 @@ import { Carte } from '@/app/compte/champsCompte'
 import type { MarquesLecteur } from '@/app/lib/parcoursLecteur'
 import ParcoursDecouverte from './ParcoursDecouverte'
 
-type Classement = { score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number; nb_essais_publies: number }
+type Lecture = { nb_auteurs: number; total_auteurs: number }
 
 export default function ApercuCompte() {
   const { user, profil } = useEspace()
-  const [classement, setClassement] = useState<Classement | null>(null)
+  const [lecture, setLecture] = useState<Lecture | null>(null)
   const [marques, setMarques] = useState<MarquesLecteur | null>(null)
 
   useEffect(() => {
-    supabase.from('classement_utilisateurs')
-      .select('score, nb_commentaires, nb_valides, nb_likes_recus, nb_essais_publies')
+    // ⛔ Le rang ne se lit plus dans `classement_utilisateurs`, qui compte les
+    // commentaires et les essais : il mesure la LECTURE depuis le 1er septembre 2026.
+    // Voir app/lib/classement.ts.
+    supabase.from('lecture_utilisateurs')
+      .select('nb_auteurs, total_auteurs')
       .eq('user_id', user.id).maybeSingle()
       .then(({ data, error }) => {
         if (error) console.error('Où j’en suis : le rang n’a pas pu être lu.', error)
-        setClassement(data ?? { score: 0, nb_commentaires: 0, nb_valides: 0, nb_likes_recus: 0, nb_essais_publies: 0 })
+        setLecture(data ?? { nb_auteurs: 0, total_auteurs: 0 })
       })
 
     // ⚠️ Cinq comptages, et rien de plus : le parcours se DÉDUIT entièrement de ce
@@ -104,9 +107,9 @@ export default function ApercuCompte() {
           </a>
         </div>
 
-        {classement && (
+        {lecture && (
           <div style={{ marginTop: '22px', paddingTop: '18px', borderTop: '1px solid var(--cs-fond-doux)' }}>
-            <BarreRang score={classement.score} />
+            <BarreRang nbAuteurs={lecture.nb_auteurs} totalAuteurs={lecture.total_auteurs} />
           </div>
         )}
       </Carte>
@@ -145,13 +148,18 @@ function LigneComptee({ nombre, singulier, pluriel, href, dernier }: { nombre: n
 }
 
 // ── Le rang ──────────────────────────────────────────────────────────────────
-function BarreRang({ score }: { score: number }) {
-  const { rang, rangSuivant, seuilSuivant, seuilPrecedent } = calculerRang(score)
+//
+// ⛔ PLUS D'ÉCHELLE COMPLÈTE SOUS LA BARRE. Elle portait les trois degrés d'autrefois ;
+// ils sont six désormais, et six noms alignés sur la largeur d'une carte ne se lisent
+// plus. On montre le degré tenu, le chemin vers le suivant, et ce qu'il demande — ce
+// que l'échelle entière ne disait pas mieux.
+function BarreRang({ nbAuteurs, totalAuteurs }: { nbAuteurs: number; totalAuteurs: number }) {
+  const { rang, rangSuivant, seuilSuivant, seuilPrecedent } = calculerRang(nbAuteurs, totalAuteurs)
   const couleurs = couleurRang(rang)
   const [largeur, setLargeur] = useState(0)
 
-  const pourcentage = rangSuivant
-    ? Math.min(((score - seuilPrecedent) / (seuilSuivant! - seuilPrecedent)) * 100, 100)
+  const pourcentage = rangSuivant && seuilSuivant
+    ? Math.min(Math.max(((nbAuteurs - seuilPrecedent) / (seuilSuivant - seuilPrecedent)) * 100, 0), 100)
     : 100
 
   useEffect(() => {
@@ -159,36 +167,34 @@ function BarreRang({ score }: { score: number }) {
     return () => clearTimeout(t)
   }, [pourcentage])
 
-  const RANGS = ['Catéchumène', 'Disciple', 'Docteur']
-  const barreColor = rang === 'Catéchumène' ? 'var(--cs-vert-clair)' : rang === 'Disciple' ? 'var(--cs-vert-aplat-fonce)' : 'var(--cs-attente)'
-  const barreWidth = rang === 'Catéchumène' ? `${largeur / 3}%` : rang === 'Disciple' ? `${33.33 + largeur / 3}%` : '100%'
+  const manquent = rangSuivant && seuilSuivant ? seuilSuivant - nbAuteurs : 0
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.875rem', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '4px 13px', borderRadius: '8px', letterSpacing: '0.01em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           {rang}
         </span>
         <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-          {score} point{score !== 1 ? 's' : ''}
+          {nbAuteurs} Père{nbAuteurs !== 1 ? 's' : ''} retenu{nbAuteurs !== 1 ? 's' : ''}
+          {totalAuteurs > 0 && <> sur {totalAuteurs}</>}
         </span>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-        {RANGS.map((r, i) => (
-          <span key={r} style={{ fontSize: '0.53125rem', fontWeight: r === rang ? 700 : 400, color: r === rang ? couleurs.texte : 'var(--cs-texte-faible)', letterSpacing: '0.06em', textTransform: 'uppercase', flex: 1, textAlign: i === 0 ? 'left' : i === 2 ? 'right' : 'center' }}>
-            {r}
-          </span>
-        ))}
-      </div>
       <div style={{ position: 'relative', height: '5px', background: 'var(--cs-fond-doux)', borderRadius: '999px', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: barreWidth, background: barreColor, borderRadius: '999px', transition: 'width 1s cubic-bezier(0.4,0,0.2,1), background 0.4s ease' }} />
-        <div style={{ position: 'absolute', left: '33.3%', top: 0, bottom: 0, width: '2px', background: 'var(--cs-fond)', zIndex: 1 }} />
-        <div style={{ position: 'absolute', left: '66.6%', top: 0, bottom: 0, width: '2px', background: 'var(--cs-fond)', zIndex: 1 }} />
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${largeur}%`, background: couleurs.texte, borderRadius: '999px', transition: 'width 1s cubic-bezier(0.4,0,0.2,1), background 0.4s ease' }} />
       </div>
-      {rangSuivant && (
-        <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', margin: '4px 0 0', fontStyle: 'italic', textAlign: 'right' }}>
-          {seuilSuivant! - score} point{seuilSuivant! - score > 1 ? 's' : ''} avant <em>{rangSuivant}</em>
+
+      {/* ⚠️ Ce qui RESTE, jamais le chemin parcouru : le lecteur est déjà engagé, et
+          c'est le petit reste qui porte (Koo et Fishbach). */}
+      {rangSuivant && manquent > 0 && (
+        <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', margin: '6px 0 0', fontStyle: 'italic' }}>
+          Encore {manquent} Père{manquent > 1 ? 's' : ''} à retenir avant <em>{rangSuivant}</em>.
+        </p>
+      )}
+      {!rangSuivant && (
+        <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', margin: '6px 0 0', fontStyle: 'italic' }}>
+          Le dernier degré. Il se déplacera quand la bibliothèque s’élargira.
         </p>
       )}
     </>

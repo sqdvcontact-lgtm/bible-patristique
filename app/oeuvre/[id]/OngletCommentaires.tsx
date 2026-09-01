@@ -21,7 +21,7 @@ type CommentaireAvecAuteur = {
   user_id: string | null
   reponse_a: number | null
   pseudo: string | null
-  score: number | null
+  lecture: { nb_auteurs: number; total_auteurs: number } | null
   nbLikes: number
   nbDislikes: number
   monVote: 1 | -1 | null
@@ -108,7 +108,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
 
     const [classementRes, likesRes] = await Promise.all([
       idsUtilisateurs.length > 0
-        ? supabase.from('classement_utilisateurs').select('user_id, pseudo, score').in('user_id', idsUtilisateurs)
+        ? supabase.from('lecture_utilisateurs').select('user_id, pseudo, nb_auteurs, total_auteurs').in('user_id', idsUtilisateurs)
         : Promise.resolve({ data: [] as any[] }),
       idsCommentaires.length > 0
         ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', idsCommentaires)
@@ -126,7 +126,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     setCommentaires(lignes.map(c => ({
       ...c,
       pseudo: c.user_id ? classementMap.get(c.user_id)?.pseudo ?? null : null,
-      score: c.user_id ? classementMap.get(c.user_id)?.score ?? 0 : null,
+      lecture: c.user_id ? classementMap.get(c.user_id) ?? null : null,
       nbLikes: parCommentaire.get(c.id)?.likes ?? 0,
       nbDislikes: parCommentaire.get(c.id)?.dislikes ?? 0,
       monVote: parCommentaire.get(c.id)?.mon ?? null,
@@ -204,7 +204,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     setStatut('idle')
     if (error || !data) { setStatut('err'); return }
     // Affichage immédiat, sans recharger.
-    setCommentaires(prev => [...prev, { ...data, pseudo: null, score: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
+    setCommentaires(prev => [...prev, { ...data, pseudo: null, lecture: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
     setTexte(''); setCibleReponse(null); setDemandeValidation(false)
     // Le pseudo réel sera affiché après le prochain chargement complet ;
     // on relance silencieusement pour le récupérer.
@@ -246,7 +246,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
         </div>
       )
     }
-    const rangInfo = c.score !== null ? calculerRang(c.score) : null
+    const rangInfo = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs) : null
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     const estCertifie = !!c.certifie
     const estRevision = !c.valide

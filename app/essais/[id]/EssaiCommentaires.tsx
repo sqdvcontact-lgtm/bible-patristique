@@ -11,7 +11,7 @@ import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
   user_id: string | null; auteur_nom: string | null; valide: boolean; created_at: string; supprime: boolean
-  score?: number | null
+  lecture?: { nb_auteurs: number; total_auteurs: number } | null
 }
 
 export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
@@ -35,8 +35,8 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         const { data: scores } = ids.length
           ? await supabase.from('classement_utilisateurs').select('user_id, score').in('user_id', ids)
           : { data: [] as any[] }
-        const scoreMap = new Map((scores ?? []).map((s: any) => [s.user_id, s.score]))
-        setCommentaires(lignes.map(c => ({ ...c, score: c.user_id ? scoreMap.get(c.user_id) ?? 0 : null })))
+        const scoreMap = new Map((scores ?? []).map((s: any) => [s.user_id, s]))
+        setCommentaires(lignes.map(c => ({ ...c, lecture: c.user_id ? scoreMap.get(c.user_id) ?? null : null })))
       })
     supabase.auth.getSession().then(async ({ data }) => {
       const uid = data.session?.user.id ?? null
@@ -129,7 +129,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     const styleCarte: React.CSSProperties = c.valide
       ? { border: '1px solid var(--cs-bord-clair)', borderLeft: '4px solid var(--cs-bord)', background: 'var(--cs-surface)' }
       : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid var(--cs-danger)', background: 'rgba(176,58,42,0.07)' }
-    const rang = c.score !== null && c.score !== undefined ? calculerRang(c.score).rang : null
+    const rang = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
 
     return (
@@ -162,7 +162,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
 
         {reponses.map(r => (
           (() => {
-            const rangR = r.score !== null && r.score !== undefined ? calculerRang(r.score).rang : null
+            const rangR = r.lecture ? calculerRang(r.lecture.nb_auteurs, r.lecture.total_auteurs).rang : null
             const rangCouleurR = rangR ? couleurRang(rangR) : null
             const cacheReponse = !r.supprime && !r.valide && !revelees.has(r.id)
             return (

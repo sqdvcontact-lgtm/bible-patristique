@@ -424,7 +424,7 @@ function GroupeTags({ titre, children }: { titre: string; children: React.ReactN
 }
 
 function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Verset; userId: string | null; isAdmin: boolean; onCount?: (n: number) => void }) {
-  type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; score: number | null; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null; demande_validation: boolean; certifie?: boolean | null; supprime: boolean }
+  type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; lecture: { nb_auteurs: number; total_auteurs: number } | null; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null; demande_validation: boolean; certifie?: boolean | null; supprime: boolean }
   const [commentaires, setCommentaires] = useState<Commentaire2[]>([])
   const [loading, setLoading] = useState(true)
   const [texte, setTexte] = useState('')
@@ -451,7 +451,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         const idsUtilisateurs = [...new Set(base.map(c => c.user_id).filter((id): id is string => !!id))]
         const [likesRes, classementRes] = await Promise.all([
           ids.length > 0 ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', ids) : Promise.resolve({ data: [] as any[] }),
-          idsUtilisateurs.length > 0 ? supabase.from('classement_utilisateurs').select('user_id, pseudo, score').in('user_id', idsUtilisateurs) : Promise.resolve({ data: [] as any[] }),
+          idsUtilisateurs.length > 0 ? supabase.from('lecture_utilisateurs').select('user_id, pseudo, nb_auteurs, total_auteurs').in('user_id', idsUtilisateurs) : Promise.resolve({ data: [] as any[] }),
         ])
         const classementMap = new Map((classementRes.data ?? []).map((c: any) => [c.user_id, c]))
         const parCommentaire = new Map<number, { likes: number; dislikes: number; mon: 1 | -1 | null }>()
@@ -464,7 +464,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         setCommentaires(base.map(c => ({
           ...c,
           pseudo: c.user_id ? classementMap.get(c.user_id)?.pseudo ?? null : null,
-          score: c.user_id ? classementMap.get(c.user_id)?.score ?? 0 : null,
+          lecture: c.user_id ? classementMap.get(c.user_id) ?? null : null,
           nbLikes: parCommentaire.get(c.id)?.likes ?? 0,
           nbDislikes: parCommentaire.get(c.id)?.dislikes ?? 0,
           monVote: parCommentaire.get(c.id)?.mon ?? null,
@@ -565,7 +565,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     setEnvoi(false)
     if (!error && data) {
       // Affichage immédiat, sans recharger ni attendre la validation.
-      setCommentaires(prev => [...prev, { ...data, pseudo: userId ? pseudoMoi : null, score: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
+      setCommentaires(prev => [...prev, { ...data, pseudo: userId ? pseudoMoi : null, lecture: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
       setTexte(''); setNom(''); setMail(''); setCibleReponse(null); setDemandeValidation(false)
     } else setErreur(`Erreur : ${error?.message}`)
   }
@@ -584,7 +584,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         </div>
       )
     }
-    const rangInfo = c.score !== null ? calculerRang(c.score) : null
+    const rangInfo = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs) : null
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     const estCertifie = !!c.certifie
     const estRevision = !c.valide

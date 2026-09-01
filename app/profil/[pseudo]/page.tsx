@@ -15,7 +15,7 @@ type ProfilPublic = {
   bio: string | null
   contact_email?: string | null
   membre_depuis: string
-  classement?: { score: number; nb_commentaires: number; nb_valides: number; nb_likes_recus: number; nb_essais_publies: number }
+  lecture?: { nb_auteurs: number; total_auteurs: number }
   bibliotheque?: { id: string; mt?: 'la'; titre: string; auteur: string }[]
   essais?: { id: number; titre: string; sous_titre: string | null; categories: string[]; publie_at: string | null; nb_vues: number }[]
   oeuvre_favorite?: { titre: string; auteur: string; id: string; n: number } | null
@@ -121,13 +121,13 @@ export default function ProfilPublicPage() {
     </main>
   )
 
-  const rang = profil.classement ? calculerRang(profil.classement.score) : null
+  const rang = profil.lecture ? calculerRang(profil.lecture.nb_auteurs, profil.lecture.total_auteurs) : null
   const couleurs = rang ? couleurRang(rang.rang) : null
   const annee = new Date(profil.membre_depuis).getFullYear()
   const aVersets = profil.versets_favoris && profil.versets_favoris.length > 0
   const aBibliotheque = profil.bibliotheque && profil.bibliotheque.length > 0
   const aEssais = profil.essais && profil.essais.length > 0
-  const rienDePublic = !profil.classement && !aEssais && !aVersets && !profil.bio && !profil.contact_email && !aBibliotheque
+  const rienDePublic = !profil.lecture && !aEssais && !aVersets && !profil.bio && !profil.contact_email && !aBibliotheque
 
   const envoyerSignalementProfil = async (message: string) => {
     const { supabase } = await import('@/app/lib/supabase')
@@ -277,7 +277,7 @@ export default function ProfilPublicPage() {
                 {rang.rang}
               </span>
               <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                · {profil.classement!.score} pt{profil.classement!.score !== 1 ? 's' : ''}
+                · {profil.lecture!.nb_auteurs} Père{profil.lecture!.nb_auteurs !== 1 ? 's' : ''} retenu{profil.lecture!.nb_auteurs !== 1 ? 's' : ''}
               </span>
             </div>
           )}

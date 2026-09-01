@@ -1,48 +1,85 @@
 import { describe, expect, it } from 'vitest'
-import { calculerScore, calculerRang, couleurRang, SEUIL_DISCIPLE, SEUIL_DOCTEUR } from './classement'
+import { calculerRang, couleurRang, DEGRES, NOMS_DEGRES, seuilDuDegre } from './classement'
 
-// Score et rangs de la communauté : pondération et seuils figés, plus la garantie
-// que la couleur du rang « Disciple » passe bien par le token d'accent (point 1 de
-// l'audit) et non par un vert en dur.
+// La garde du RANG. Il mesure la LECTURE depuis le 1er septembre 2026 : combien
+// d'auteurs le lecteur a marqués, sur combien la bibliothèque en donne à lire.
 
-describe('calculerScore', () => {
-  it('pondère chaque contribution (+1 · +4 · +2 · +15)', () => {
-    expect(calculerScore(0, 0, 0)).toBe(0)
-    expect(calculerScore(3, 2, 5, 1)).toBe(3 + 4 * 2 + 2 * 5 + 15 * 1)
+const CORPUS = 15 // les auteurs lisibles au 1er septembre 2026
+
+describe('les degrés', () => {
+  it('en compte six, du premier au dernier', () => {
+    // ⚠️ SIX et non trois : les anciens seuils laissaient un désert de 250 points
+    // entre Disciple et Docteur, où le gradient ne joue plus.
+    expect(NOMS_DEGRES).toEqual(['Catéchumène', 'Auditeur', 'Disciple', 'Familier', 'Lettré', 'Docteur'])
   })
-  it('le paramètre essais est optionnel (défaut 0)', () => {
-    expect(calculerScore(1, 0, 0)).toBe(1)
+
+  it('n’emprunte rien aux ordres sacrés, ni au mot que le site donne à tous', () => {
+    // ⛔ Ce sont des états d'étude, non des degrés de cléricature. « Lecteur » est
+    // écarté aussi : le site appelle déjà tout le monde ainsi (« Lecteur depuis 2026 »).
+    for (const interdit of ['Lecteur', 'Acolyte', 'Sous-diacre', 'Diacre', 'Prêtre', 'Exorciste', 'Portier']) {
+      expect(NOMS_DEGRES).not.toContain(interdit)
+    }
+  })
+
+  it('tombe sur des paliers rapprochés, jamais plus de quatre pas', () => {
+    // C'est la condition pour que le gradient de Kivetz joue : on n'accélère qu'à
+    // l'approche, et un but à deux cent cinquante pas n'est pas une approche.
+    const seuils = DEGRES.map(d => seuilDuDegre(d, CORPUS))
+    expect(seuils).toEqual([0, 1, 3, 5, 8, 12])
+    for (let i = 1; i < seuils.length; i++) {
+      expect(seuils[i] - seuils[i - 1], `de ${DEGRES[i - 1].rang} à ${DEGRES[i].rang}`).toBeLessThanOrEqual(4)
+    }
+  })
+
+  it('monte avec le corpus, et ne vieillit donc pas', () => {
+    // ⛔ Un rang exprimé en nombre fixe deviendrait trivial à mesure que la
+    // bibliothèque grandit. Exprimé en part, il garde la même exigence relative.
+    expect(DEGRES.map(d => seuilDuDegre(d, 60))).toEqual([0, 1, 9, 18, 30, 45])
+  })
+
+  it('compte le premier pas en auteurs, non en pourcentage', () => {
+    // Sans ce minimum, il faudrait déjà trois auteurs pour quitter le premier degré,
+    // et le premier pas serait le plus long de tous.
+    expect(seuilDuDegre(DEGRES[1], CORPUS)).toBe(1)
+    expect(seuilDuDegre(DEGRES[1], 200)).toBe(1)
   })
 })
 
-describe('calculerRang', () => {
-  it('Catéchumène sous le seuil Disciple', () => {
-    expect(calculerRang(0).rang).toBe('Catéchumène')
-    expect(calculerRang(SEUIL_DISCIPLE - 1).rang).toBe('Catéchumène')
+describe('le rang d’un lecteur', () => {
+  const rang = (n: number) => calculerRang(n, CORPUS).rang
+
+  it('suit ce qu’il a retenu', () => {
+    expect(rang(0)).toBe('Catéchumène')
+    expect(rang(1)).toBe('Auditeur')
+    expect(rang(2)).toBe('Auditeur')
+    expect(rang(3)).toBe('Disciple')
+    expect(rang(5)).toBe('Familier')
+    expect(rang(8)).toBe('Lettré')
+    expect(rang(12)).toBe('Docteur')
+    expect(rang(15)).toBe('Docteur')
   })
-  it('Disciple du seuil Disciple (inclus) au seuil Docteur (exclu)', () => {
-    expect(calculerRang(SEUIL_DISCIPLE).rang).toBe('Disciple')
-    expect(calculerRang(SEUIL_DOCTEUR - 1).rang).toBe('Disciple')
+
+  it('annonce le degré suivant et ce qu’il demande', () => {
+    expect(calculerRang(0, CORPUS)).toMatchObject({ rangSuivant: 'Auditeur', seuilSuivant: 1, seuilPrecedent: 0 })
+    expect(calculerRang(3, CORPUS)).toMatchObject({ rang: 'Disciple', rangSuivant: 'Familier', seuilSuivant: 5 })
+    expect(calculerRang(12, CORPUS)).toMatchObject({ rang: 'Docteur', rangSuivant: null, seuilSuivant: null })
   })
-  it('Docteur au seuil Docteur et au-delà', () => {
-    expect(calculerRang(SEUIL_DOCTEUR).rang).toBe('Docteur')
-    expect(calculerRang(9999).rang).toBe('Docteur')
-  })
-  it('expose le rang suivant et les seuils', () => {
-    expect(calculerRang(0)).toMatchObject({ rangSuivant: 'Disciple', seuilSuivant: SEUIL_DISCIPLE, seuilPrecedent: 0 })
-    expect(calculerRang(SEUIL_DOCTEUR)).toMatchObject({ rangSuivant: null, seuilSuivant: null, seuilPrecedent: SEUIL_DOCTEUR })
+
+  it('ne casse pas sur un corpus vide ou inconnu', () => {
+    // ⚠️ Mieux vaut un rang modeste qu'une division par zéro sous un commentaire.
+    for (const total of [0, -1, Number.NaN]) {
+      expect(calculerRang(5, total).rang).toBe('Catéchumène')
+      expect(calculerRang(5, total).rangSuivant).toBeNull()
+    }
   })
 })
 
-describe('couleurRang', () => {
-  it('le rang Disciple utilise le token d’accent, pas un vert en dur', () => {
-    expect(couleurRang('Disciple').texte).toBe('var(--cs-vert)')
-    expect(couleurRang('Disciple').fond).toContain('var(--cs-vert-rgb)')
-  })
-  it('chaque rang a un fond et une couleur de texte', () => {
-    for (const r of ['Catéchumène', 'Disciple', 'Docteur'] as const) {
-      expect(couleurRang(r).fond).toBeTruthy()
-      expect(couleurRang(r).texte).toBeTruthy()
+describe('les couleurs', () => {
+  it('donne une paire à chacun des six, sans teinte écrite en dur', () => {
+    for (const nom of NOMS_DEGRES) {
+      const c = couleurRang(nom)
+      expect(c.fond, nom).toMatch(/var\(--cs-/)
+      expect(c.texte, nom).toMatch(/^var\(--cs-/)
     }
   })
 })
