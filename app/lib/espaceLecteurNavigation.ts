@@ -58,6 +58,12 @@ export function entreesEspace(pseudo: string | null): EntreeEspace[] {
       glose: 'Les Pères dont vous avez gardé quelque chose.',
       groupe: 'parcours',
     },
+    {
+      href: '/compte/hauts-faits',
+      label: 'Hauts faits',
+      glose: 'Six séries, et ce qu’elles vous apprennent.',
+      groupe: 'parcours',
+    },
     ...(pseudo ? [{
       href: `/profil/${encodeURIComponent(pseudo)}`,
       label: 'Ma page publique',

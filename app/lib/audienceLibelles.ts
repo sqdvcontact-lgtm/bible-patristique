@@ -34,6 +34,7 @@ const PAGES_NOMMEES: Record<string, string> = {
   // Les rubriques de l'espace du lecteur. Sans elles, l'audience les rangerait toutes
   // sous « Mon compte » et l'on ne saurait pas laquelle se visite.
   '/compte/retenu': 'Mon compte — Ce que j’ai retenu',
+  '/compte/hauts-faits': 'Mon compte — Hauts faits',
   '/compte/presentation': 'Mon compte — Présentation',
   '/compte/lecture': 'Mon compte — Lecture',
   '/compte/connexion': 'Mon compte — Connexion',
