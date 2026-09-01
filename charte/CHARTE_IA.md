@@ -4219,3 +4219,72 @@ Un chiffre nouveau se pose sur l’un ou sur l’autre, jamais sur les deux, et 
 ⚠️ **Elle ne distingue pas une page OUVERTE d’une page LUE**, et c’est pourtant le seul signal qui compte vraiment sur une bibliothèque : cent ouvertures quittées en dix secondes ne disent pas ce que disent cent lectures. Un second signal envoyé au bout d’un moment suffirait à les séparer. Écarté pour l’instant, la mesure devant rester sobre ; à rouvrir si la question se pose à l’ouverture.
 
 **Le compteur maison n’est pas juste au dixième près.** Il attrape quelques robots et il en manque. Il reste plus juste qu’une mesure amputée du consentement, et il faut le dire plutôt que d’afficher une précision qu’on n’a pas.
+
+
+## 40. L’espace du lecteur — ce qui se RÈGLE, ce qui se GAGNE
+
+Refonte du 1er septembre 2026, à la demande de l’auteur. La page du compte tenait en un seul rouleau de 978 lignes qui mêlait trois natures : la vitrine, les préférences de lecture et l’administration du compte. Elle se lit maintenant sous une colonne, et la colonne se coupe en DEUX groupes — « Mon parcours », qu’on revient voir, et « Réglages », qu’on n’ouvre que trois fois dans la vie d’un compte. ⛔ La séparation n’est pas un rangement : Restivo et van de Rijt (PLoS ONE, 2012) ont distribué au hasard des récompenses purement symboliques à des contributeurs de Wikipédia, et mesuré +60 % de productivité, effet encore sensible trois mois après, mais **uniquement chez les déjà très actifs**. Ce qui retient un lecteur fidèle et ce qui accueille un nouveau venu ne sont pas le même objet, et ne se rangent donc pas au même rayon.
+
+⚠️ Trois requêtes de cette page visaient des colonnes qui n’existent pas — `essais.auteur_id`, `essais.cree_le`, `profils.membre_depuis` — et échouaient EN SILENCE, faute de lire `error` : la carte « Publications » était vide en production depuis toujours. C’est le défaut déjà consigné pour `favoris_oeuvres`, reproduit dix lignes plus bas dans le même fichier. **Un panneau discret journalise son erreur**, sans quoi rien ne distingue « vide » de « cassé ».
+
+### 40.1 Le PORTRAIT est une référence, jamais une adresse
+
+Le lecteur prend pour visage un Père de l’Église ou un traducteur du corpus, choisi parmi les illustrations que la bibliothèque porte déjà. ⛔ On ne retient qu’une RÉFÉRENCE — « auteur:A0010 », « traduction:TR0002 » — et l’adresse se fabrique à la lecture. La page écrivait auparavant une URL complète depuis le navigateur : la politique RLS borne la LIGNE qu’un lecteur modifie, jamais la VALEUR qu’il y écrit, si bien que n’importe quelle adresse extérieure y passait et que la page publique la servait ensuite à tous ses visiteurs, lesquels allaient chercher une image sur un serveur tiers sans le savoir. Le format est borné en base par une contrainte, et le NOM du visage se résout de même : une copie du nom serait aussi falsifiable que l’ancienne adresse.
+
+⛔ **On ne DEVINE pas le stock.** La modale demandait les soixante premiers auteurs et tentait « A####.jpg » pour chacun en masquant les 404 : le seau n’en porte que dix-neuf, donc quarante et une requêtes tombaient à chaque ouverture. Une route serveur liste le stock réel — le listage d’un seau n’est ouvert qu’aux administrateurs, quand bien même les fichiers se téléchargent librement.
+
+⚠️ Un traducteur prend son ENCART, jamais son bandeau : le bandeau est couché (§ 37), il ne donnerait dans un rond qu’une bande de ciel. Une traduction sans encart n’est donc pas proposée. Et le cadrage de départ est celui que la bibliothèque a déjà réglé pour la fiche de l’auteur (`auteurs.photo_position`), borné à la course du curseur : personne n’a à recadrer ce qui l’a été.
+
+### 40.2 Le PARCOURS D’ENTRÉE enseigne, il ne paie pas
+
+Dix gestes qui font le tour du site, et qui apprennent les gestes par lesquels un lecteur garde ce qu’il lit. ⛔ **Aucun point.** La liste qu’il remplace annonçait « +2 pts » pour la présentation, « +1 pt » pour un passage et « +1 pt » pour un favori : aucun de ces trois points n’existait dans la formule du rang, soit trois promesses fausses sur cinq. Elles ne reviendront pas sous une autre forme — Deci, Koestner et Ryan (Psychological Bulletin, 1999) mesurent sur 128 expériences que la récompense tangible et attendue MINE la motivation qu’elle prétend soutenir (d ≈ −0,36 pour celles conditionnées à l’achèvement), quand le retour purement informationnel la soutient.
+
+**Trois étapes sont acquises à l’arrivée, et le motif se DIT.** Nunes et Drèze (2006) ont distribué 300 cartes de fidélité : une carte de dix cases dont deux sont déjà tamponnées obtient 34 % de complétion contre 19 % pour une carte de huit cases vierges, à effort rigoureusement égal. ⚠️ L’effet DISPARAÎT quand l’avance n’est pas justifiée : le motif affiché n’est donc pas une politesse, c’est la condition pour qu’elle porte.
+
+⚠️ **On annonce le plus petit des deux nombres** (Koo et Fishbach) : « 3 sur 10 » tant qu’on est loin, « il vous en reste deux » dès qu’on approche. C’est précisément le moment où le lecteur décide d’aller au bout.
+
+⛔ **Tout se DÉDUIT de la base** : rien n’est stocké, donc rien ne peut se désynchroniser. L’ancienne liste se refermait dans le stockage local, si bien qu’elle disparaissait sur un navigateur et reparaissait sur un autre.
+
+### 40.3 La carte dit ce qui est RETENU, jamais ce qui est lu
+
+⛔ **On ne trace RIEN** (décision de l’auteur, 1er septembre 2026). La carte se bâtit sur ce que le lecteur MARQUE de lui-même : un passage prélevé, une œuvre mise en bibliothèque. Quatre raisons, dans l’ordre où elles pèsent. Une ouverture de page ne prouve pas une lecture, et une carte qu’on sait imméritée dévalue tout le reste ; un geste volontaire, lui, prouve. Une carte remplie toute seule se comble sans qu’on ait creusé aucun écart, et la curiosité s’éteint avec eux. Une trace automatique fait qu’on se sait observé, et l’on finit par lire pour la carte — sur un corpus religieux, le temps passé sur un passage est en outre une donnée intime. Enfin elle ne coûte rien : aucune table, aucune écriture, aucun chantier préalable.
+
+⛔ **ELLE SE NOMME « CE QUE J’AI RETENU », jamais « ce que j’ai lu ».** Ainsi nommée elle ne ment jamais, et elle dit mieux : retenir vaut plus que parcourir. Un lecteur qui lit sans rien marquer a une carte vide, et c’est juste.
+
+⚠️ **Elle ne montre JAMAIS l’immensité de ce qui reste**, mais le siècle où il manque le moins d’auteurs. Loewenstein (1994) : la curiosité naît d’un écart perçu entre ce qu’on sait et ce qu’on veut savoir, et les PETITS écarts l’excitent quand les grands l’éteignent. « Il vous en manque un » ouvre ; « il vous en manque douze » ferme.
+
+⚠️ Le choix ne ferme aucune porte : si une vraie mesure de lecture devient nécessaire, on ajoutera la trace et la carte se nourrira des deux sources.
+
+### 40.4 Les HAUTS FAITS : des séries décalées, jamais une liste finie
+
+Six séries, vingt et un degrés. Chacun rend une NOTICE de trois lignes qui apprend quelque chose de vrai sur le corpus — les florilèges, la chaîne exégétique, la Glossa ordinaria — et jamais un décompte. C’est le seul retour qui soit de la même étoffe que la lecture, donc le seul qui ne s’y substitue pas. ⛔ Aucun degré n’ouvre de droit, d’accès ni de fonction : un haut fait est un nom, pas une monnaie.
+
+⛔ **La page met en avant la série dont le degré suivant est le PLUS PROCHE**, jamais le degré supérieur de celle qu’on vient d’achever. Anderson, Huttenlocher, Kleinberg et Leskovec (WWW 2013) ont mesuré sur plusieurs millions de comptes Stack Overflow que l’activité s’accélère fortement à l’approche d’un badge, puis s’effondre après l’obtention et retourne au niveau de base. ⚠️ Le remède n’est PAS un palier lointain : le gradient de Kivetz est nul à distance jugée infinie, et un degré hors de portée masque la clôture au lieu de l’éviter. Ce sont des séries DÉCALÉES qu’il faut, dont l’une est toujours à un ou deux pas. Un dernier degré rare se calibre pour qu’une poignée l’atteigne, jamais personne.
+
+⛔ **Le corpus PLAFONNE les collections.** Quarante-cinq œuvres publiées, quinze auteurs, une dizaine de siècles au 1er septembre 2026 : un palier écrit « cinquante Pères » n’est pas rare, il est IMPOSSIBLE, et un haut fait impossible est un défaut, non un défi. Les derniers degrés s’expriment donc en PART du corpus et se recalculent seuls quand le fonds grandit.
+
+⚠️ **Les paliers extrêmes vont sur la LECTURE, jamais sur la production.** Un dernier degré à deux cents commentaires pousse au volume, et sur un site savant c’est le mauvais incitatif — le seul danger réel du système. Un dernier degré sur l’exploration du corpus ne pousse qu’à lire davantage.
+
+⛔ **Les seuils et les notices vivent en BASE, jamais dans le code** : c’est la condition pour les recalibrer après l’ouverture, sur la distribution réelle. Le code ne sait que compter. La rareté ne s’affiche qu’au-delà de cinquante lecteurs : « obtenu par un lecteur sur six » ne dit rien de la difficulté, seulement de la jeunesse du site.
+
+⛔ **Une obtention ne se REPREND jamais**, même si le compteur redescend : une perte démotive plus qu’un gain ne motive. Elle se constate côté serveur, la table n’ayant aucune politique d’écriture pour un compte ordinaire — c’est la leçon du portrait, prise par l’autre bout.
+
+### 40.5 Le RANG mesure la lecture, non la conversation
+
+Il se gagnait en commentant : un point par commentaire, quatre s’il était validé, deux par mention reçue, quinze par essai. Sur un site dont l’objet est la lecture des Pères, c’est un contresens — le lecteur silencieux qui a parcouru quarante œuvres en sait plus que le commentateur prolixe — et c’était du même coup le seul danger sérieux du système : le commentaire creux posté pour faire monter un compteur. ⚠️ La modération existe : ce qui se compte encore ne compte que le VALIDÉ.
+
+Il se lit désormais sur une PART : combien d’auteurs le lecteur a retenus, sur combien la bibliothèque en donne à lire. Un rapport et non un total, donc un rang qui monte avec le corpus et ne vieillit pas.
+
+⚠️ **SIX degrés et non trois** — Catéchumène, Auditeur, Disciple, Familier, Lettré, Docteur. Les anciens seuils, Disciple à 50 points et Docteur à 300, laissaient un désert de 250 points où le gradient ne joue plus : on n’accélère qu’à l’approche, et un but à deux cent cinquante pas n’est pas une approche. Rapportés à quinze auteurs, les degrés tombent à 1, 3, 5, 8 et 12 : jamais plus de quatre pas de l’un à l’autre.
+
+⛔ **Aucun n’emprunte aux ordres sacrés** : ce sont des états d’étude, non des degrés de cléricature. « Lecteur » est écarté pour la même raison, et parce que le site appelle déjà tout le monde ainsi.
+
+⛔ **Le remplacement se fait PARTOUT d’un coup**, commentaires publics compris : deux rangs concurrents sur deux pages voisines ne diraient plus rien ni l’un ni l’autre.
+
+### 40.6 Ce que la gratification doit être
+
+⛔ **Elle est INTELLECTUELLE, jamais une monnaie** (décision de l’auteur, 1er septembre 2026). Gruber, Gelman et Ranganath (Neuron, 2014) ont montré que l’état de curiosité active le circuit dopaminergique de la récompense et l’hippocampe, et que ce qui s’y apprend se retient mieux, y compris ce qui n’était pas visé : l’information EST une récompense, au sens le plus littéral. On n’a donc pas besoin de points pour gratifier ; il faut produire de la curiosité, c’est-à-dire ouvrir de petits écarts de savoir et les combler.
+
+Le collectionnable est le CORPUS lui-même, non le point. Le lecteur ne collectionne pas des jetons : il collectionne des Pères, et il sait à la fin lesquels il connaît.
+
+⚠️ Sailer et Homner (2020) mesurent des effets réels mais modestes de la ludification (g = 0,49 sur le cognitif, 0,36 sur le motivationnel, 0,25 sur le comportemental), et les deux éléments qui ressortent sont la FICTION — l’univers narratif — et l’association de l’émulation et de la collaboration. Ici la fiction est déjà là, et meilleure que celle d’aucun autre site : les Pères, les siècles, les degrés d’étude. C’est le facteur actif, pas l’ornement — un haut fait se nomme « La chaîne » ou « Le concert », jamais « Lecture niveau 3 ».
