@@ -8,7 +8,7 @@
 // répertoriées mais non encore présentes.
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
@@ -93,23 +93,18 @@ export function TitreSection({ children, centre }: { children: ReactNode; centre
 // qu'il habille, et l'on ne doit jamais voir le premier état, celui d'avant la rallonge.
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
-/** Le portrait d'un auteur dans le cadre de la fiche : 6,5 rem × 130 px, passe-partout
- *  de 5 px, ombre posée. Repli sur les initiales quand l'image manque.
+/**
+ * Pose le bord bas d'un portrait FLOTTANT sur la dernière ligne qui l'habille.
  *
- *  ⚠️ On retient l'ADRESSE qui a manqué, et non un booléen : la même fiche peut
- *  changer d'auteur sans être remontée, et un booléen resterait alors à « cassé ». */
-export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
-  idAuteur: string; nom: string; photoPosition?: unknown
-  /** Le portrait quitte l'en-tête, passe au format portrait, et la prose l'habille.
-   *  ⚠️ Sans ce drapeau, la pose ne change PAS : la fiche d'édition emploie le même
-   *  composant et n'a aucune prose à faire couler autour. */
-  flottant?: boolean
-}) {
-  const [casse, setCasse] = useState<string | null>(null)
-  const url = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg`
-  const initiales = nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
-  const cadreRef = useRef<HTMLDivElement>(null)
-
+ * `cadreRef` va sur le CADRE lui-même — le flottant —, dont le PARENT doit être le
+ * bloc qui porte la prose : c'est lui qu'on parcourt. `cle` change quand le contenu
+ * change (un autre auteur, une autre traduction), pour que la mesure se rejoue.
+ *
+ * Les deux fiches s'en servent : celle de l'auteur et celle de la traduction. Une
+ * mesure de cette finesse ne se recopie pas — la première version, écrite pour la
+ * seule fiche d'auteur, a demandé deux corrections avant de tomber juste.
+ */
+export function useBordSurDerniereLigne(cadreRef: RefObject<HTMLDivElement | null>, actif: boolean, cle?: string) {
   // ── LE BORD BAS DU PORTRAIT SE POSE SUR LA DERNIÈRE LIGNE QU'IL HABILLE ──────
   //
   // Un flottant ne connaît pas la grille du texte : ses 200 px tombaient où ils
@@ -154,7 +149,7 @@ export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
   // deux passes donnent le même nombre (point fixe) et l'écart qui reste entre le bord
   // du cadre et le bas de la dernière ligne tient dans ±0,4 px.
   useMesureAvantPeinture(() => {
-    if (!flottant) return
+    if (!actif) return
     const cadre = cadreRef.current
     const colonne = cadre?.parentElement
     if (!cadre || !colonne) return
@@ -216,7 +211,26 @@ export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
     // l'interligne, fixé par la feuille, mais bien les COUPURES de ligne.
     if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(poser).catch(() => {})
     return () => { vivant = false; ro.disconnect() }
-  }, [flottant, idAuteur, nom])
+  }, [actif, cle])
+}
+
+/** Le portrait d'un auteur dans le cadre de la fiche : 6,5 rem × 130 px, passe-partout
+ *  de 5 px, ombre posée. Repli sur les initiales quand l'image manque.
+ *
+ *  ⚠️ On retient l'ADRESSE qui a manqué, et non un booléen : la même fiche peut
+ *  changer d'auteur sans être remontée, et un booléen resterait alors à « cassé ». */
+export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
+  idAuteur: string; nom: string; photoPosition?: unknown
+  /** Le portrait quitte l'en-tête, passe au format portrait, et la prose l'habille.
+   *  ⚠️ Sans ce drapeau, la pose ne change PAS : la fiche d'édition emploie le même
+   *  composant et n'a aucune prose à faire couler autour. */
+  flottant?: boolean
+}) {
+  const [casse, setCasse] = useState<string | null>(null)
+  const url = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg`
+  const initiales = nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
+  const cadreRef = useRef<HTMLDivElement>(null)
+  useBordSurDerniereLigne(cadreRef, !!flottant, `${idAuteur}·${nom}`)
 
   // ⚠️ Les mesures du portrait FLOTTANT vivent dans la FEUILLE, non ici : une
   // media-query ne bat pas un style en ligne sans « !important », et le portrait doit

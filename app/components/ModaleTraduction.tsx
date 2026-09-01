@@ -17,12 +17,12 @@
 // n'existe pas au rendu serveur, et une planche de contrôle hors session ne pourrait
 // pas rendre la fiche si tout tenait dans un seul composant.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { rendreSiecles } from '@/app/lib/siecles'
-import { FriseAuteur, TitreSection, LigneTech, Consulter } from '@/app/components/ModaleAuteur'
+import { FriseAuteur, TitreSection, LigneTech, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
 import { type RangChrono } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
@@ -140,6 +140,29 @@ const STYLES_FICHE = `
   .trad-tech[open] .trad-tech-fleche { transform: rotate(90deg); }
   .trad-gravure { transition: box-shadow 0.15s, border-color 0.15s; }
   .trad-gravure:hover { border-color: var(--cs-or-doux); box-shadow: var(--cs-ombre-nette); }
+  /* ── LE PORTRAIT FLOTTE, ET LA NOTICE L'HABILLE ──
+     Même parti que la fiche d'auteur, et pour la même raison : il ouvrait un en-tête
+     à part, où son vis-à-vis — un titre, deux lignes de repères — laissait un grand
+     vide à sa droite sur toute sa hauteur. Le nom se pose maintenant à côté de lui et
+     la prose le contourne.
+     ⛔ Le cadre n'a NI largeur NI hauteur ici : un flottant se dimensionne sur son
+     contenu, et c'est la zone d'image (8,75 rem, rapport 2/3) qui doit commander, comme
+     partout ailleurs — le passe-partout et le filet sont DANS la boîte. Écrire une
+     mesure ici, c'est refaire le défaut que la fiche a corrigé le 2026-08-31.
+     ⛔ La marge BASSE est à zéro : elle repousserait la limite d'habillage sous le bord
+     du cadre et une ligne de plus viendrait pendre dessous (cf. useBordSurDerniereLigne). */
+  .trad-portrait-flottant { float: left; margin: 2px 18px 0 0; padding: 5px; background: var(--cs-surface); border: 1px solid var(--cs-bord); box-shadow: var(--cs-ombre-posee); }
+  /* La colonne de la notice est un BLOC, jamais un flex : un flottant n'existe pas dans
+     un conteneur flex, ses enfants devenant des éléments de flex. L'écart que portait
+     le « gap » se reprend donc en marge — et PAS sur l'en-tête, qui suit le portrait et
+     doit ouvrir la colonne à sa hauteur. */
+  .trad-bloc { margin-top: 13px; }
+  /* Téléphone : le cadre se resserre, sans quoi 140 px de portrait ne laisseraient
+     presque rien à la prose. La zone d'image garde son rapport. */
+  @media (max-width: 640px) {
+    .trad-portrait-fenetre { width: 6.5rem !important; }
+    .trad-portrait-flottant { margin-right: 14px; }
+  }
 `
 
 /**
@@ -160,6 +183,10 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
   // vrai depuis un effet : la règle des hooks refuse un `setState` synchrone dans
   // un effet, et la fiche peut changer de traduction sans être remontée.
   const [portraitCasse, setPortraitCasse] = useState<string | null>(null)
+  // Le portrait FLOTTE dans la colonne de la notice, et son bord bas se pose sur la
+  // dernière ligne qui l'habille — même mesure que la fiche d'auteur, même code.
+  const cadreRef = useRef<HTMLDivElement>(null)
+  useBordSurDerniereLigne(cadreRef, true, info?.trad_id ?? nomFallback)
 
   const i = info ?? ({} as InfoTrad)
 
@@ -241,53 +268,59 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
           ⛔ Plus de hauteur en PIXELS à côté d'une largeur en rem : la police racine
           monte à 22 px sur un grand écran, et le cadre de 6,5 rem sur 130 px y
           devenait un PAYSAGE de 143 sur 130. Un rapport ne connaît pas ce défaut. */}
-      <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
-        {portrait && portraitCasse !== portrait.url && (
-          <div style={{ flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
-            <div style={{ width: '8.75rem', aspectRatio: '2 / 3', overflow: 'hidden', background: 'var(--cs-fond-doux)' }}>
-              <img src={portrait.url} alt="" aria-hidden="true" onError={() => setPortraitCasse(portrait.url)}
-                style={styleImagePortrait(portrait)} />
+      {/* Deux colonnes : à gauche le portrait, le nom et la notice ; à droite ce qui
+          la documente. L'en-tête est DANS la colonne de gauche, et non plus au-dessus
+          des deux : c'est ce qui permet au nom de se poser à côté du portrait et à la
+          prose de le contourner. Il reste hors du « Chargement… », pour que la fenêtre
+          dise tout de suite de quelle traduction elle parle. */}
+      <div style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
+        <div style={{ borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+          {portrait && portraitCasse !== portrait.url && (
+            <div ref={cadreRef} className="trad-portrait-flottant">
+              <div className="trad-portrait-fenetre" style={{ width: '8.75rem', aspectRatio: '2 / 3', overflow: 'hidden', background: 'var(--cs-fond-doux)' }}>
+                <img src={portrait.url} alt="" aria-hidden="true" onError={() => setPortraitCasse(portrait.url)}
+                  style={styleImagePortrait(portrait)} />
+              </div>
             </div>
-          </div>
-        )}
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
-          <h2 id="trad-fiche-titre" style={{ fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{i.nom || nomFallback}</h2>
-          {intitule && (
-            <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.3 }}>
-              {rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}
-            </p>
           )}
-          {reperes && (
-            <p style={{ fontFamily: SANS, fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0', lineHeight: 1.4 }}>
-              {rendreSiecles(reperes)}
-            </p>
-          )}
-        </div>
-      </header>
-
-      {info === null ? (
-        <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '30px 0', textAlign: 'center' }}>Chargement…</p>
-      ) : (
-        <>
-          {/* Deux colonnes : à gauche la notice, à droite ce qui la documente. */}
-          <div style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '13px', borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+          <header>
+            <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
+            <h2 id="trad-fiche-titre" style={{ fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{i.nom || nomFallback}</h2>
+            {intitule && (
+              <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.3 }}>
+                {rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}
+              </p>
+            )}
+            {reperes && (
+              <p style={{ fontFamily: SANS, fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0', lineHeight: 1.4 }}>
+                {rendreSiecles(reperes)}
+              </p>
+            )}
+          </header>
+          {info === null ? (
+            <p className="trad-bloc" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '30px 0', textAlign: 'center' }}>Chargement…</p>
+          ) : (
+            <>
               {i.bio_courte && (
-                <p style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0 }}>{rendreSiecles(i.bio_courte)}</p>
+                <p className="trad-bloc" style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0 }}>{rendreSiecles(i.bio_courte)}</p>
               )}
               {/* Notice éditoriale : HTML (h2/p) rendu tel quel, aux styles de la
                   fiche d'auteur — titres de section en sérif italique, prose en
                   sans justifiée. */}
               {i.commentaire_editorial && (
-                <div className="trad-notice"
+                <div className="trad-notice trad-bloc"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formaterProse(i.commentaire_editorial)) }} />
               )}
-            </div>
-            {aColonnes
-              ? <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>{colonneDroite}</div>
-              : colonneDroite}
-          </div>
+            </>
+          )}
+        </div>
+        {info !== null && (aColonnes
+          ? <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>{colonneDroite}</div>
+          : colonneDroite)}
+      </div>
+
+      {info !== null && (
+        <>
 
           {/* L'édition : section secondaire, repliable (natif, accessible), et
               pleine mesure — ses rangées portent une colonne d'étiquettes de
