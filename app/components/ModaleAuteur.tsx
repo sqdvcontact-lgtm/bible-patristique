@@ -93,14 +93,24 @@ export function TitreSection({ children, centre }: { children: ReactNode; centre
  *
  *  ⚠️ On retient l'ADRESSE qui a manqué, et non un booléen : la même fiche peut
  *  changer d'auteur sans être remontée, et un booléen resterait alors à « cassé ». */
-export function PortraitAuteur({ idAuteur, nom, photoPosition }: {
+export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
   idAuteur: string; nom: string; photoPosition?: unknown
+  /** Le portrait quitte l'en-tête, passe au format portrait, et la prose l'habille.
+   *  ⚠️ Sans ce drapeau, la pose ne change PAS : la fiche d'édition emploie le même
+   *  composant et n'a aucune prose à faire couler autour. */
+  flottant?: boolean
 }) {
   const [casse, setCasse] = useState<string | null>(null)
   const url = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg`
   const initiales = nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
+  // ⚠️ Les mesures du portrait FLOTTANT vivent dans la FEUILLE, non ici : une
+  // media-query ne bat pas un style en ligne sans « !important », et le portrait doit
+  // se resserrer sur un téléphone, où 128 px ne laisseraient que 183 px à la prose.
   return (
-    <div style={{ width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
+    <div className={flottant ? 'auteur-portrait-flottant' : undefined}
+      style={flottant
+        ? { padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }
+        : { width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
       <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {casse !== url ? (
           <img src={url} alt={nom} onError={() => setCasse(url)}
@@ -295,23 +305,29 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
 
   return (
     <>
-      {/* En-tête : portrait, nom, contexte */}
-      <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
-        <PortraitAuteur idAuteur={auteur.id_auteur} nom={auteur.nom} photoPosition={auteur.photo_position} />
-        <div style={{ minWidth: 0 }}>
-          <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{auteur.nom}</h2>
-          {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
-          {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0' }}>{meta}</p>}
-        </div>
-      </header>
 
       {/* Deux colonnes : à gauche la vie, à droite la chronologie. Repliées en une
           seule colonne sur mobile (voir media-query .auteur-grid). */}
       <div className="auteur-grid" style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-        <div className="auteur-grid-vie" style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+        {/* EN BLOC, non plus en colonne de flex : un flottant n'existe pas dans un
+            conteneur flex, ses enfants devenant des elements de flex. C'est la
+            condition pour que la prose habille le portrait ; l'ecart entre sections se
+            reprend en marge (voir « .auteur-grid-vie > section » plus bas). */}
+        <div className="auteur-grid-vie" style={{ borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+          {/* Le portrait ouvre la colonne et FLOTTE : le nom se pose a sa droite, la
+              prose de « Vie » vient ensuite et le contourne. Il devait entrer dans le
+              MEME flux que le nom — les biographies font quelque six cents signes, et
+              laisse dans la seule section « Vie » le texte n'aurait pas eu le temps de
+              le contourner avant de finir. */}
+          <PortraitAuteur idAuteur={auteur.id_auteur} nom={auteur.nom} photoPosition={auteur.photo_position} flottant />
+          <header>
+            <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{auteur.nom}</h2>
+            {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
+            {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0' }}>{meta}</p>}
+          </header>
           {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_biographique)}</p></section>}
           {auteur.anecdotes?.trim() && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)' }} className="cs-notice-italique">{rendreEnrichi(auteur.anecdotes)}</p>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)' }} className="cs-notice-italique auteur-bloc">{rendreEnrichi(auteur.anecdotes)}</p>
           )}
           {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_theologique)}</p></section>}
           {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.influence)}</p></section>}
@@ -406,6 +422,18 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
 
         <style>{`
           .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; }
+          /* L'ecart entre sections, que la colonne portait en « gap » du temps ou elle
+             etait un flex. Pas sur l'en-tete, qui suit le portrait flottant : il doit
+             ouvrir la colonne a sa hauteur. */
+          .auteur-grid-vie > section, .auteur-grid-vie > .auteur-bloc { margin-top: 14px; }
+          /* Les oeuvres ferment la colonne et reprennent la PLEINE mesure, quoi qu'il
+             reste du portrait au-dessus : sans cela, une fiche a courte biographie les
+             rentrerait de cent trente pixels. */
+          .auteur-grid-vie > section:last-child { clear: left; }
+          /* ⛔ 128 × 200, soit un rapport de 0,64 : un vrai format portrait, là où les
+             104 × 130 d'avant tenaient du timbre. Mesures POSÉES et non calculées :
+             c'est un cadre de chrome, non une mesure de lecture (charte, § Responsive). */
+          .auteur-portrait-flottant { width: 128px; height: 200px; float: left; margin: 2px 18px 10px 0; }
           .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
           a.auteur-oeuvre:hover { background: rgba(var(--cs-vert-rgb),0.06); }
           .auteur-oeuvre--absente { cursor: default; }
@@ -415,6 +443,10 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
             .auteur-modale-inner { padding: 22px 15px 20px !important; border-radius: 8px !important; }
             .auteur-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
             .auteur-grid-vie { border-right: none !important; padding-right: 0 !important; }
+            /* ⚠️ Le portrait se resserre : à 375 px le cadre intérieur fait 329 px, et
+               un flottant de 128 ne laisserait que 183 px à la prose. À 104, elle en
+               garde 211. */
+            .auteur-portrait-flottant { width: 104px; height: 160px; margin-right: 14px; }
           }
         `}</style>
       </div>
