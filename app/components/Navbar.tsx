@@ -46,14 +46,18 @@ const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
   { href: HREF_BIBLE_CLASSIQUE, label: "Bible", exact: true },
   { href: "/polyglotte", label: "Polyglotte" },
 ];
-// `discret` : encre plus pâle ET graisse ordinaire (« Aller plus loin »).
-// `maigre`  : l'encre des onglets primaires, mais la graisse ordinaire. « Communauté »
-//   est le seul onglet de la barre qui n'ouvre sur rien d'autre que lui-même — ni bible
-//   qui se fend, ni menu déroulant — et le demi-gras l'y faisait peser plus lourd que
-//   les rubriques qui en contiennent dix.
-const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean; maigre?: boolean }[] = [
+// `discret` : encre plus pâle ET graisse ordinaire. Deux onglets le portent, et
+//   la barre n'a donc que deux rangs : les entrées de LECTURE, qui ouvrent le corpus
+//   (les bibles, Patristique), et celles qui l'accompagnent (Communauté, Aller plus
+//   loin).
+// ⚠️ Un état INTERMÉDIAIRE a existé une journée — l'encre des primaires et la graisse
+//   ordinaire — pour retirer à « Communauté » son demi-gras sans la pâlir. Il ne se
+//   voyait pas : à graisse égale, c'est l'encre qui fait le poids, et blanc à 85 %
+//   contre 60 % se lit comme une graisse de plus. Un rang qui ne se distingue que par
+//   une valeur que personne ne mesure n'est pas un rang.
+const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
   { href: "/bibliotheque", label: "Patristique" },
-  { href: "/essais", label: "Communauté", maigre: true },
+  { href: "/essais", label: "Communauté", discret: true },
   { href: "/traductions", label: "Aller plus loin", discret: true },
 ];
 // Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,
@@ -1726,15 +1730,14 @@ export default function Navbar() {
             {/* Les deux bibles, en quatre états selon la place : deux onglets, un onglet
                 qui se fend au survol, puis « La Bible » et « Bible » avec menu déroulant. */}
             <OngletBibles etat={etatBible} pathname={pathname} styleLien={styleLien} />
-            {LIENS_PRIMAIRES.map(({ href, label, exact, discret, maigre }) => (
+            {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
               href === "/bibliotheque"
                 ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
                 : href === "/traductions"
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
                 ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
-                // « maigre » : primaire par la couleur, ordinaire par la graisse (cf. LIENS_PRIMAIRES).
-                : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={maigre ? { ...styleLien(href, exact, !discret), fontWeight: 400 } : styleLien(href, exact, !discret)}>{label}</Link>
+                : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} actif={estCheminActif("/admin", false)} />
