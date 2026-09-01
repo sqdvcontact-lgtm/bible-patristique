@@ -1,9 +1,11 @@
 // CE QUE LE LECTEUR A RETENU — le calcul, une seule fois.
 //
-// ⛔ Il sert DEUX routes : la carte (/api/compte/retenu) et les hauts faits
-// (/api/compte/hauts-faits), dont deux séries se comptent sur les mêmes chiffres.
-// Écrit deux fois, il aurait fini par ne plus dire la même chose aux deux pages, et
-// un lecteur y aurait lu douze Pères d'un côté, onze de l'autre.
+// ⛔ Il ne sert plus qu'UNE route, /api/compte/hauts-faits, dont deux séries se
+// comptent sur ces chiffres. Il en servait deux : la carte /api/compte/retenu est
+// retirée avec elle (charte § 40.3). ⚠️ Il RESTE malgré tout un module à part et
+// ne se replie pas dans la route qui l'appelle : `peres_retenus` et
+// `siecles_retenus` sont la même mesure que le rang lit ailleurs, et une seconde
+// écriture ferait lire douze Pères d'un côté, onze de l'autre.
 //
 // ⛔ Il ne dit PAS ce que le lecteur a LU, et ne le prétend pas. Décision de l'auteur
 // du 1er septembre 2026 : on ne trace rien. Ce sont les marques volontaires qui
