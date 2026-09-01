@@ -269,7 +269,56 @@ export function libellePalier(c: DegreEtat, palier: Palier): string {
     : `À mi-chemin de « ${c.nom} » — ${c.valeur} sur ${c.seuilAtteindre}.`
 }
 
-/** L'indice de progression d'une case non acquise, tel qu'il s'écrit dessus. */
+/** Ce que chaque mesure compte, au singulier et au pluriel.
+ *
+ *  ⛔ Il sert à écrire l'avancement EN TOUTES LETTRES — « 31 passages sur 50 », le
+ *  mot même de l'auteur (« 55 versets commentés sur 100 »). Une fraction « 31 / 50 »
+ *  est un tableur, pas une étagère ; c'est ce qu'il a refusé le 1er septembre 2026
+ *  (« le 2/4 est tellement formel ! »). ⚠️ Le nom vient d'ici et non de la base : le
+ *  référentiel dit CE QU'ON COMPTE, la langue appartient au code. */
+const NOM_MESURE: Record<Mesure, readonly [string, string]> = {
+  passages_retenus:     ['passage', 'passages'],
+  oeuvres_bibliotheque: ['œuvre', 'œuvres'],
+  peres_retenus:        ['Père', 'Pères'],
+  siecles_retenus:      ['siècle', 'siècles'],
+  commentaires_valides: ['commentaire', 'commentaires'],
+  essais_publies:       ['publication', 'publications'],
+}
+
+/** L'indice de progression d'une case non acquise, tel qu'il s'écrit dessus.
+ *
+ *  ⛔ À ZÉRO on ne dit pas « 0 passage sur 1 », qui est un constat d'échec posé sur
+ *  chacune des vingt et une cases d'un nouveau venu : on dit le BUT seul, qui est
+ *  une invitation. C'est la même règle que le parcours d'entrée, où l'avance donnée
+ *  se justifie au lieu de se compter. */
 export function libelleProgression(c: DegreEtat): string {
-  return `${c.valeur} / ${c.seuilAtteindre}`
+  const noms = mesureConnue(c.mesure) ? NOM_MESURE[c.mesure] : null
+  if (!noms) return c.valeur <= 0 ? `${c.seuilAtteindre}` : `${c.valeur} sur ${c.seuilAtteindre}`
+  const [sing, plur] = noms
+  if (c.valeur <= 0) return `${c.seuilAtteindre} ${c.seuilAtteindre > 1 ? plur : sing}`
+  return `${c.valeur} ${c.valeur > 1 ? plur : sing} sur ${c.seuilAtteindre}`
+}
+
+/** Les petits nombres s'écrivent en toutes lettres dans la PHRASE de tête — pas dans
+ *  une case, où la place manque et où le chiffre se lit mieux. Au-delà, le chiffre. */
+const EN_LETTRES = [
+  'aucune', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
+  'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit',
+  'dix-neuf', 'vingt', 'vingt et une', 'vingt-deux', 'vingt-trois', 'vingt-quatre',
+] as const
+
+export function enLettres(n: number): string {
+  return EN_LETTRES[n] ?? String(n)
+}
+
+/** La phrase qui coiffe le tableau. ⛔ Un tableau vide ne s'annonce pas « aucune case
+ *  sur vingt et une », qui accueille un nouveau venu par un échec : il annonce ce
+ *  qu'il y a à faire. */
+export function libelleCollection(score: Score): string {
+  if (score.cases === 0) return `${majuscule(enLettres(score.total))} cases à remplir.`
+  return `${majuscule(enLettres(score.cases))} case${score.cases > 1 ? 's' : ''} sur ${enLettres(score.total)}.`
+}
+
+function majuscule(mot: string): string {
+  return mot.charAt(0).toUpperCase() + mot.slice(1)
 }

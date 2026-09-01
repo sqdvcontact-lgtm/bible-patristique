@@ -125,8 +125,16 @@ describe('le tableau de cases', () => {
     // qui ne dit pas où l'on en est ne tracte rien.
     const [serie] = etatDesSeries(AVEC_POINTS, { ...VIDE, passages_retenus: 31 }, CORPUS, new Map())
     const cases = casesDuTableau([serie])
-    expect(cases.map(c => libelleProgression(c))).toEqual(['1 / 1', '10 / 10', '31 / 50'])
+    expect(cases.map(c => libelleProgression(c))).toEqual(['1 passage sur 1', '10 passages sur 10', '31 passages sur 50'])
     expect(cases.map(c => c.obtenu)).toEqual([true, true, false])
+  })
+
+  it('dit le BUT seul tant que le compteur est à zéro', () => {
+    // ⛔ « 0 passage sur 1 » est un constat d'échec, et un nouveau venu le lirait sur
+    // ses vingt et une cases. On annonce ce qu'il y a à faire.
+    const [serie] = etatDesSeries(AVEC_POINTS, VIDE, CORPUS, new Map())
+    expect(casesDuTableau([serie]).map(c => libelleProgression(c)))
+      .toEqual(['1 passage', '10 passages', '50 passages'])
   })
 
   it('borne la valeur au seuil, et garde pleine une case acquise', () => {
@@ -139,7 +147,7 @@ describe('le tableau de cases', () => {
     const [redescendu] = etatDesSeries(AVEC_POINTS, { ...VIDE, passages_retenus: 3 }, CORPUS, journal)
     const troisieme = redescendu.degres.find(c => c.code === 'g-3')!
     expect(troisieme.obtenu).toBe(true)
-    expect(libelleProgression(troisieme)).toBe('50 / 50')
+    expect(libelleProgression(troisieme)).toBe('50 passages sur 50')
   })
 
   it('compte les points des seules cases acquises', () => {

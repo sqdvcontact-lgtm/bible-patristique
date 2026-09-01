@@ -19,7 +19,11 @@ import { COULEURS_EN_DUR } from './couleursEnDurInventaire'
 
 const RACINE = join(import.meta.dirname, '..')
 
-const EXEMPTS = ['globals.css', 'EssaiPDF.tsx', 'couverturesEssai.ts', 'couleursEnDurInventaire.ts']
+// ⚠️ 'reliuresHautsFaits.ts' rejoint l'exemption le 2026-09-01, pour la RAISON de
+// 'couverturesEssai.ts' et pas une autre : c'est une gamme DESSINÉE — trois cuirs pris
+// dans les deux gammes littérales du site — dont le contraste est éprouvé par sa
+// propre garde ('reliuresHautsFaits.test.ts'). Un jeton y rendrait le calcul impossible.
+const EXEMPTS = ['globals.css', 'EssaiPDF.tsx', 'couverturesEssai.ts', 'couleursEnDurInventaire.ts', 'reliuresHautsFaits.ts']
 const DOSSIERS_EXEMPTS = ['quiz']
 
 // ⚠️ Le `#` ne doit PAS être précédé d'un `&` : `&#8239;`, l'espace fine insécable que
