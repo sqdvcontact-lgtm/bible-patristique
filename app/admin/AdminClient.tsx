@@ -216,11 +216,14 @@ export default function AdminClient({
             const cle = e.onglet
             const actif = cle !== undefined && onglet === cle
             const coul = COUL_FAMILLE[e.famille]
-            // Le DESSIN est le même pour une section et pour une page autonome : au repos,
-            // rien ne les sépare, et c'est bien ainsi — la barre dit d'abord ce qu'on peut
-            // faire ici, non par quel mécanisme. Deux différences, et deux seulement : la
-            // page est un LIEN (elle quitte l'écran, le clavier et le clic droit doivent le
-            // savoir), et elle porte une flèche, qui dit qu'on s'en va.
+            // Le DESSIN est le même pour une section et pour une page autonome : rien ne
+            // les sépare à l'œil, et c'est bien ainsi — la barre dit ce qu'on peut faire
+            // ici, non par quel mécanisme. Une seule différence, et elle est invisible :
+            // la page est un LIEN, parce qu'elle quitte l'écran et que le clavier comme le
+            // clic droit doivent le savoir.
+            // ⛔ Pas de flèche « → » sur les pages autonomes : elle en marquait sept sur
+            // vingt et une, ce qui rendait la barre bigarrée pour dire une distinction de
+            // plomberie dont le lecteur n'a que faire.
             const dessin: React.CSSProperties = {
               padding: '6px 8px', fontSize: '0.8125rem',
               fontWeight: actif ? 600 : 500,
@@ -254,7 +257,6 @@ export default function AdminClient({
                 ) : (
                   <Link href={e.href} className="adm-onglet" style={dessin}>
                     {e.label}
-                    <span aria-hidden style={{ fontSize: '0.71875rem', opacity: 0.6 }}>→</span>
                   </Link>
                 )}
               </React.Fragment>
