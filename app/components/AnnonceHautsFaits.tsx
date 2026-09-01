@@ -53,7 +53,7 @@ function ecrireAnnonces(uid: string, valeurs: Set<string>) {
   try { localStorage.setItem(cleAnnonces(uid), JSON.stringify([...valeurs])) } catch {}
 }
 
-type Annonce =
+export type Annonce =
   | { forme: 'obtention'; cle: string; c: DegreEtat }
   | { forme: 'palier'; cle: string; c: DegreEtat; texte: string }
 
@@ -133,7 +133,17 @@ export default function AnnonceHautsFaits() {
   }, [courante])
 
   if (!courante) return null
+  return <CorpsAnnonce annonce={courante} onFermer={() => setCourante(null)} />
+}
 
+/** Le corps de l'annonce, séparé de la mécanique qui décide quand la montrer.
+ *
+ *  ⛔ Même coupure que pour `ContenuHautsFaits`, et pour la même raison : le site
+ *  étant fermé, une composition ne se juge qu'en la rendant hors session, sur une
+ *  planche. Sans cette séparation, l'annonce ne se regarde qu'en gagnant un haut
+ *  fait — c'est-à-dire jamais, quand on veut l'éprouver. */
+export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer?: () => void }) {
+  const courante = annonce
   const encre = `var(--cs-${courante.c.famille === 'peres' || courante.c.famille === 'communaute' ? courante.c.famille : 'ecriture'})`
   const grande = courante.forme === 'obtention'
 
@@ -142,7 +152,7 @@ export default function AnnonceHautsFaits() {
       key={courante.cle}
       role="status"
       aria-live="polite"
-      onClick={() => setCourante(null)}
+      onClick={onFermer}
       style={{
         position: 'fixed',
         // Sous la barre, comme la vignette de notification : c'est la place que le
