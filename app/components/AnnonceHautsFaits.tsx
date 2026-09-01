@@ -18,10 +18,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useCompte } from '@/app/lib/contexteCompte'
+import type React from 'react'
 import {
-  casesDuTableau, libellePalier, palierAtteint,
+  casesDuTableau, familleConnue, libellePalier, palierAtteint,
   type DegreEtat, type SerieEtat,
 } from '@/app/lib/hautsFaits'
+import { ENCRE_RELIURE, degradeReliure } from '@/app/lib/reliuresHautsFaits'
 
 /** La petite vignette dure ce que dure celle de la barre. La belle annonce reste
  *  plus longtemps : elle porte une notice à lire, non une ligne à voir passer. */
@@ -144,7 +146,8 @@ export default function AnnonceHautsFaits() {
  *  fait — c'est-à-dire jamais, quand on veut l'éprouver. */
 export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer?: () => void }) {
   const courante = annonce
-  const encre = `var(--cs-${courante.c.famille === 'peres' || courante.c.famille === 'communaute' ? courante.c.famille : 'ecriture'})`
+  const famille = familleConnue(courante.c.famille) ? courante.c.famille : 'ecriture'
+  const encre = `var(--cs-${famille})`
   const grande = courante.forme === 'obtention'
 
   return (
@@ -159,14 +162,17 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
         // lecteur connaît déjà pour ce genre d'annonce.
         top: 'calc(3.5rem + 0.75rem)',
         right: '18px',
-        width: grande ? '21rem' : '17.5rem',
+        width: grande ? '22rem' : '18.5rem',
         maxWidth: 'calc(100vw - 36px)',
         background: 'var(--cs-surface)',
+        // ⛔ PLUS DE BANDEAU À GAUCHE (auteur, 1er septembre 2026 : « j'aime pas le
+        // bandeau sur la gauche »). Il tenait lieu de lien avec la case qui venait de
+        // tomber, et le faisait mal : un filet de trois pixels pour dire une reliure.
+        // C'est la CARTE ELLE-MÊME qui vient à sa place, ci-dessous.
         border: '1px solid var(--cs-bord)',
-        borderLeft: `3px solid ${grande ? encre : 'var(--cs-bord)'}`,
         borderRadius: '8px',
         boxShadow: 'var(--cs-ombre-modale)',
-        padding: grande ? '14px 16px 16px' : '11px 13px 13px',
+        padding: grande ? '14px 16px 16px' : '12px 13px 14px',
         zIndex: 4000,
         cursor: 'pointer',
         overflow: 'hidden',
@@ -175,36 +181,79 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
         @keyframes cs-annonce-jauge { from { transform: scaleX(1) } to { transform: scaleX(0) } }
         .cs-annonce-jauge { transform-origin: left center; animation-name: cs-annonce-jauge; animation-timing-function: linear; animation-fill-mode: forwards; }
         @media (prefers-reduced-motion: reduce) { .cs-annonce-jauge { animation: none; transform: scaleX(1) } }
+        /* ⛔ Les DEUX cuirs voyagent ensemble, la feuille tranche : décider du thème
+           en JavaScript ferait sauter la teinte après l'hydratation (charte). */
+        .cs-annonce-carte { background: var(--hf-cuir-clair); }
+        :root[data-theme="sombre"] .cs-annonce-carte { background: var(--hf-cuir-sombre); }
       `}</style>
 
-      {grande ? (
-        <>
-          <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: encre, margin: '0 0 5px' }}>
-            Haut fait obtenu
-          </p>
-          <p style={{ margin: '0 0 6px', display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', color: 'var(--cs-encre-fonce)' }}>
-              {courante.c.nom}
-            </span>
-            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: encre }}>+{courante.c.points}</span>
-          </p>
-          {/* ⛔ La notice EST la récompense : elle paraît ici, au moment où la case
-              tombe, et non seulement dans le tableau. C'est le seul retour qui soit de
-              la même étoffe que la lecture (charte § 40). */}
-          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: 0 }}>
-            {courante.c.notice}
-          </p>
-        </>
-      ) : (
-        <>
-          <p style={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 3px' }}>
-            {courante.c.serie_nom}
-          </p>
-          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.4, margin: 0 }}>
-            {courante.texte}
-          </p>
-        </>
-      )}
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: grande ? '13px' : '11px' }}>
+        {/* ⛔ LA CARTE QUI VIENT DE TOMBER, à sa vraie étoffe. C'est elle qui relie
+            l'annonce au tableau : le lecteur reconnaîtra sur son rayon l'objet qu'il
+            vient de voir passer. Une case en attente garde son creux — on ne pose pas
+            une reliure sur ce qui n'est pas encore gagné. */}
+        <div
+          aria-hidden
+          className={grande ? 'cs-annonce-carte' : undefined}
+          style={{
+            flexShrink: 0,
+            width: grande ? '4.75rem' : '3.5rem',
+            borderRadius: '8px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: grande ? '10px 8px' : '8px 6px',
+            textAlign: 'center',
+            ...(grande
+              ? {
+                  '--hf-cuir-clair': degradeReliure(famille, false),
+                  '--hf-cuir-sombre': degradeReliure(famille, true),
+                  color: ENCRE_RELIURE,
+                  border: '1px solid rgba(255,255,255,0.10)',
+                  boxShadow: 'var(--cs-ombre-posee), inset 0 1px 0 rgba(255,255,255,0.09)',
+                } as React.CSSProperties
+              : {
+                  background: 'color-mix(in srgb, var(--cs-texte) 5%, var(--cs-fond))',
+                  border: '1px solid color-mix(in srgb, var(--cs-texte) 9%, var(--cs-fond))',
+                  boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.07)',
+                  color: 'var(--cs-texte-faible)',
+                }),
+          }}>
+          <span style={{
+            fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontSize: grande ? '0.75rem' : '0.625rem',
+            lineHeight: 1.25, color: 'inherit',
+          }}>
+            {courante.c.nom}
+          </span>
+        </div>
+
+        <div style={{ minWidth: 0 }}>
+          {grande ? (
+            <>
+              <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: encre, margin: '0 0 2px' }}>
+                Haut fait obtenu
+              </p>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '0 0 7px' }}>
+                {courante.c.points} points
+              </p>
+              {/* ⛔ La notice EST la récompense : elle paraît ici, au moment où la case
+                  tombe, et non seulement dans le tableau. ⚠️ Le NOM ne se répète pas —
+                  il est sur la carte, à trois centimètres de là. */}
+              <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: 0 }}>
+                {courante.c.notice}
+              </p>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 3px' }}>
+                {courante.c.serie_nom}
+              </p>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.4, margin: 0 }}>
+                {courante.texte}
+              </p>
+            </>
+          )}
+        </div>
+      </div>
 
       <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '2px', background: 'var(--cs-fond-doux)' }}>
         <div
