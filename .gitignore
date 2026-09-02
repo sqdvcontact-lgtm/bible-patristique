@@ -80,3 +80,9 @@ __pycache__/
 # `manuscrits` et non plus par le dépôt. Le dossier reste le MIROIR DE TRAVAIL local,
 # où tournent les scripts d'atelier. Empreintes contrôlées par `npm run bible899:verifier`.
 /public/manuscrits/bible-899/*.png
+
+# Un seul gestionnaire de paquets : npm (Vercel, CI et verrou versionné). Un pnpm
+# lancé par mégarde le 2026-09-02 avait laissé un magasin sans liens.
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.pnpm-store/
