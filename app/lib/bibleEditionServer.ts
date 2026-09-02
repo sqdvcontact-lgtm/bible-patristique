@@ -9,7 +9,7 @@ import {
   type BibleEditorialScopeKind,
   type BibleSourceFragment,
 } from './bibleEdition'
-import { chargerVersetsEditoriaux, type CanonRow } from './bibleEditorialServer'
+import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux, type CanonRow } from './bibleEditorialServer'
 
 export type BibleEditionCatalogRow = {
   family_id: string
@@ -594,9 +594,17 @@ export async function chargerLectureBilingue(
     familyRows: readonly BibleEditionCatalogRow[]
     livre: string
     chapitre: number
+    /**
+     * Les membres dont le texte vit dans `versets_v2` par le canon, sans segmentation
+     * éditoriale (la traduction moderne de la Bible du XIIIe siècle). Ils se chargent
+     * par `chargerVersetsCanoniquesV2` ; l'axe canonique reste le même, et c'est lui
+     * qui aligne les deux colonnes. Voir `withCanonicalV2Capability`.
+     */
+    membresCanoniquesV2?: ReadonlySet<string>
   },
 ): Promise<LectureBilingueChargee | null> {
   const { familyRows, livre, chapitre } = options
+  const canoniquesV2 = options.membresCanoniquesV2 ?? new Set<string>()
   if (familyRows.length === 0) return null
 
   const sourcesParMembre = new Map<string, Set<string>>()
@@ -621,12 +629,14 @@ export async function chargerLectureBilingue(
   if (membres.size < 2) return null
 
   const colonnes = await Promise.all([...membres.values()].map(async (membre) => {
-    const lignes = await chargerVersetsEditoriaux(client, {
-      sourceIds: [...(sourcesParMembre.get(membre.id) ?? [])],
-      translationId: membre.translationId,
-      livre,
-      chapitre,
-    })
+    const lignes = canoniquesV2.has(membre.translationId)
+      ? await chargerVersetsCanoniquesV2(client, { translationId: membre.translationId, livre, chapitre })
+      : await chargerVersetsEditoriaux(client, {
+        sourceIds: [...(sourcesParMembre.get(membre.id) ?? [])],
+        translationId: membre.translationId,
+        livre,
+        chapitre,
+      })
     const cellules = lignes.flatMap((ligne) => {
       const texte = ligne[membre.translationId]
       if (typeof texte !== 'string' || texte.length === 0) return []

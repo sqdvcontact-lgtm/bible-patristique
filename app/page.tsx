@@ -6,10 +6,10 @@ import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
-import { estVerseEditorial } from '@/app/lib/bibleMultimode'
+import { estVerseEditorial, withCanonicalV2Capability } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
-import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
+import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import {
   canonDuChapitre, chargerBibliographiesEdition, chargerLectureBilingue, chargerLiminairesEdition,
   chargerPieceLiminaire, loadBibleEditionCatalog, loadBibleEditionChapter,
@@ -174,10 +174,27 @@ export default async function Home({
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0
+  // ── Les traductions lues dans `versets_v2` par le canon ────────────────────
+  // Un membre de famille que le catalogue ne sait pas lire (ni colonne de la vue
+  // large, ni segmentation éditoriale) mais que `livres_par_traduction` porte : la
+  // traduction moderne de la Bible du XIIIe siècle (TR0013), en famille avec le
+  // témoin 899. ⛔ La découverte se fait ICI, sous la RLS du lecteur, et jamais
+  // dans le catalogue mis en cache pour tous : une traduction privée n'existe que
+  // pour l'administrateur, et un cache la promettrait à tout le monde.
+  // ⚠️ La promesse part maintenant et ne s'attend que là où elle sert : tout de
+  // suite si c'est cette traduction qu'on demande, avec la vague des versets sinon.
+  const candidatsV2 = [...new Set(editionCatalog.map((row) => row.trad_id))].filter((code) => !estLisible(code))
+  const tradsV2Promis: Promise<string[]> = candidatsV2.length === 0
+    ? Promise.resolve([])
+    : Promise.resolve(supabase.from('livres_par_traduction').select('trad_id').in('trad_id', candidatsV2))
+      .then(({ data }) => [...new Set(((data ?? []) as { trad_id: string }[]).map((row) => row.trad_id))])
+      .catch(() => [] as string[])
   const tradSouhaitee = tradDemandee ?? tradProfil
-  const trad = tradSouhaitee && catalog.capabilities[tradSouhaitee]
+  const souhaiteeV2 = !!tradSouhaitee && candidatsV2.includes(tradSouhaitee) && (await tradsV2Promis).includes(tradSouhaitee)
+  const trad = tradSouhaitee && (catalog.capabilities[tradSouhaitee] || souhaiteeV2)
     ? tradSouhaitee
     : toutesTraductions.find((t) => estLisible(t.code))?.code
+  const canoniqueV2 = souhaiteeV2 && trad === tradSouhaitee
   if (!trad) redirect('/accueil')
   // Le menu ne liste que des bibles lisibles, MAIS il liste toujours celle qu'on lit.
   // Sans cette seconde condition, une traduction que le catalogue n'annonce pas encore
@@ -186,7 +203,7 @@ export default async function Home({
   // conservé : la bible lue reste à sa place, elle n'est pas poussée en tête.
   const translations = toutesTraductions.filter((t) => estLisible(t.code) || t.code === trad)
 
-  const modes = selectableReadingModes(catalog.capabilities[trad])
+  const modes = selectableReadingModes(catalog.capabilities[trad] ?? { translationId: trad, modes: [] })
   const requestedMode = params.mode as BibleReadingMode | undefined
   const mode = modes.some((item) => item.value === requestedMode)
     ? requestedMode!
@@ -242,6 +259,10 @@ export default async function Home({
     if (bible899) {
       const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
       return adapterVersets899(lignes, trad, livre, chapitre, couche)
+    }
+    if (canoniqueV2) {
+      // Le texte est dans `versets_v2`, un verset par créneau : rien à recomposer.
+      return chargerVersetsCanoniquesV2(supabase, { translationId: trad, livre, chapitre, canonRows: canonChapitre.lignes })
     }
     if (editorial) {
       const sourceIds = catalog.rows
@@ -440,7 +461,7 @@ export default async function Home({
     // regard coûtait le double d'une colonne (mesuré en ligne le 2026-09-02 : 3,7 s
     // contre 2,0). Même règle qu'en une colonne : sans les commentaires, l'appareil
     // n'est pas chargé du tout, les trois listes vides suffisent.
-    const chargeePromise = chargerLectureBilingue(supabase, { familyRows, livre, chapitre })
+    const chargeePromise = chargerLectureBilingue(supabase, { familyRows, livre, chapitre, membresCanoniquesV2: new Set(await tradsV2Promis) })
     const [chargee, payload] = await Promise.all([
       chargeePromise,
       texteSeul
@@ -549,10 +570,15 @@ export default async function Home({
       versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
     )
     : null
-  const [versetsCharges, liminaires] = await Promise.all([
+  const [versetsCharges, liminaires, tradsV2] = await Promise.all([
     versetsPromis,
     editionMember ? chargerLiminairesEdition(supabase, editionMember.family_id) : Promise.resolve([]),
+    tradsV2Promis,
   ])
+  // Les traductions lues dans `versets_v2` rejoignent le catalogue de CETTE page,
+  // et le menu avec elles (voir plus haut, « Les traductions lues dans versets_v2 »).
+  const capabilitiesLecture = withCanonicalV2Capability(catalog.capabilities, tradsV2)
+  const traductionsLecture = toutesTraductions.filter((t) => estLisible(t.code) || tradsV2.includes(t.code) || t.code === trad)
   const piecesLiminaires = grouperPiecesLiminaires(liminaires.map((bloc) => ({
     id: bloc.id,
     blockKey: bloc.block_key,
@@ -641,12 +667,12 @@ export default async function Home({
       <BibleLayout
         livres={LIVRES}
         versets={versets}
-        traductions={translations}
+        traductions={traductionsLecture}
         livreActif={livre}
         chapitreActif={chapitre}
         nomLivre={NOMS_LIVRES[livre] || livre}
         tradInitiale={trad}
-        readingCapabilities={catalog.capabilities}
+        readingCapabilities={capabilitiesLecture}
         couche={bible899 ? couche : undefined}
         couchesDisponibles={couchesBible}
         editionChapter={editionChapter}

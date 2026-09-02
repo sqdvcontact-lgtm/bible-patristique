@@ -3,6 +3,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
+import { lotsPourClauseIn } from './paginationSupabase'
 
 export type CanonRow = {
   id: string
@@ -235,4 +236,90 @@ function adapterCanonSansTexte(canon: CanonRow, translationId: string): VersetEd
     [translationId]: null,
     [`num_${translationId}`]: null,
   }
+}
+
+// ── Une traduction lue dans `versets_v2` par le canon ─────────────────────────
+//
+// La traduction moderne de la Bible du XIIIe siècle (TR0013, 2026-09-03) n'a ni
+// colonne dans `versets_lecture` ni segmentation éditoriale : son texte est dans
+// `versets_v2`, un verset par ligne, chaque ligne portant son `canon_id`. Elle se
+// lit donc par le canon, comme une édition éditoriale, mais sans rien recomposer.
+// La forme rendue est celle de `chargerVersetsEditoriaux`, si bien que la page,
+// la lecture en regard et le volet des livres n'ont rien à apprendre de plus.
+//
+// ⚠️ La RLS de `versets_v2` décide qui lit (une traduction `est_privee` n'existe que
+// pour l'administrateur) : une lecture vide ici n'est pas une erreur.
+
+type VersetV2Row = {
+  canon_id: string | null
+  ch_orig: number | null
+  v_orig: number | null
+  v_orig_suffixe: string | null
+  texte: string | null
+  ordre_slot: number | null
+}
+
+export async function chargerVersetsCanoniquesV2(
+  client: SupabaseClient,
+  options: {
+    translationId: string
+    livre: string
+    chapitre: number
+    canonRows?: readonly CanonRow[] | null
+  },
+): Promise<VersetEditorialAdapte[]> {
+  const canonDejaLu = options.canonRows && options.canonRows.length > 0 ? options.canonRows : null
+  const { data: canonData, error: canonError } = canonDejaLu
+    ? { data: canonDejaLu, error: null }
+    : await client
+      .from('versets_canon')
+      .select('id,livre,ch_canon,v_canon,ordre')
+      .eq('livre', options.livre)
+      .eq('ch_canon', options.chapitre)
+      .order('ordre')
+  if (canonError) throw new Error(`Créneaux canoniques illisibles : ${canonError.message}`)
+  const canonRows = (canonData ?? []) as CanonRow[]
+  if (canonRows.length === 0) return []
+
+  // Un chapitre tient sous le plafond de lignes, mais pas toujours sous celui de
+  // l'ADRESSE : les Psaumes 119 comptent 176 créneaux. Lots par octets, jamais par
+  // nombre (voir `lotsPourClauseIn`).
+  const lignes: VersetV2Row[] = []
+  await Promise.all(lotsPourClauseIn(canonRows.map((row) => row.id)).map(async (lot) => {
+    const { data, error } = await client
+      .from('versets_v2')
+      .select('canon_id,ch_orig,v_orig,v_orig_suffixe,texte,ordre_slot')
+      .eq('trad_id', options.translationId)
+      .in('canon_id', lot)
+    if (error) throw new Error(`Versets de ${options.translationId} illisibles : ${error.message}`)
+    lignes.push(...((data ?? []) as VersetV2Row[]))
+  }))
+
+  // Plusieurs lignes peuvent viser le même créneau (un verset scindé) : elles se
+  // suivent par `ordre_slot`, puis par numérotation native.
+  const parCanon = new Map<string, VersetV2Row[]>()
+  for (const ligne of lignes) {
+    if (!ligne.canon_id) continue
+    const groupe = parCanon.get(ligne.canon_id) ?? []
+    groupe.push(ligne)
+    parCanon.set(ligne.canon_id, groupe)
+  }
+  const nativeDe = (ligne: VersetV2Row): string | null =>
+    ligne.ch_orig != null && ligne.v_orig != null ? `${ligne.ch_orig}, ${ligne.v_orig}${ligne.v_orig_suffixe ?? ''}` : null
+
+  return canonRows.map((canon) => {
+    const groupe = (parCanon.get(canon.id) ?? []).sort((a, b) =>
+      (a.ordre_slot ?? 0) - (b.ordre_slot ?? 0) || (a.v_orig ?? 0) - (b.v_orig ?? 0))
+    const texte = groupe.map((ligne) => ligne.texte?.trim() ?? '').filter(Boolean).join(' ')
+    // La numérotation native ne se dit que lorsqu'elle DIFFÈRE du canon : sur une
+    // traduction alignée sur le même schéma, elle redirait le numéro du verset.
+    const natives = [...new Set(groupe.map(nativeDe).filter((n): n is string => !!n))]
+    const canonNative = `${canon.ch_canon}, ${canon.v_canon}`
+    const differentes = natives.filter((n) => n !== canonNative)
+    return {
+      ...adapterCanonSansTexte(canon, options.translationId),
+      [options.translationId]: texte.length > 0 ? texte : null,
+      [`num_${options.translationId}`]: differentes.length > 0 ? differentes.join(' · ') : null,
+    }
+  })
 }

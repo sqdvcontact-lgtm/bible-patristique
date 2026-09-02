@@ -12,7 +12,7 @@ import { ABREV_FR } from '@/app/lib/bible'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
-import { estVerseEditorial } from '@/app/lib/bibleMultimode'
+import { estVerseEditorial, estVerseSurColonnes } from '@/app/lib/bibleMultimode'
 import { livresDisponibles899, TRAD_ID_BIBLE899, type Couche899 } from '@/app/lib/bible899'
 import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
@@ -408,7 +408,9 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     // ou depuis l'une d'elles montrait « cette traduction ne comporte pas ce livre »,
     // ruines fumantes comprises, le temps que le serveur réponde. La règle était déjà
     // écrite pour la préférence enregistrée ; elle vaut aussi pour le menu.
-    if (!estVerseEditorial(readingCapabilities[code]) && !estVerseEditorial(readingCapabilities[traduction])) {
+    // ⚠️ Même règle pour une traduction lue dans `versets_v2` par le canon (TR0013) :
+    // seule une COLONNE de la vue large est déjà en mémoire.
+    if (estVerseSurColonnes(readingCapabilities[code]) && estVerseSurColonnes(readingCapabilities[traduction])) {
       setTraductionIndex(idx)
       // La colonne change tout de suite : le passage n'a rien à effacer (voir plus haut).
       echangeEnMemoireRef.current = true

@@ -95,6 +95,9 @@ export type FaitsLectureBible = {
 // ligne (« Latin ») tandis qu'en regard elle suit un tiret (« Latin-français »).
 const NOM_LANGUE: Record<string, { seule: string; suivante: string }> = {
   fr: { seule: 'Français', suivante: 'français' },
+  // La langue d'oïl du témoin BnF fr. 899 : « Ancien français-français » en regard
+  // de sa traduction moderne (TR0013), sur le modèle de « Latin-français ».
+  fro: { seule: 'Ancien français', suivante: 'ancien français' },
   la: { seule: 'Latin', suivante: 'latin' },
   grc: { seule: 'Grec', suivante: 'grec' },
   el: { seule: 'Grec', suivante: 'grec' },

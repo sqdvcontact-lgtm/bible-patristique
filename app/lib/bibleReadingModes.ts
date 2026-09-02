@@ -14,7 +14,10 @@ export type BibleReadingModeCapability = {
   mode: BibleReadingMode
   availability: BibleReadingModeAvailability
   /** Identifie le contrat de données, sans imposer une table au composant. */
-  source: 'canonical-verses' | 'source-units' | 'native-divisions' | 'editorial-segments'
+  /** `versets-v2` : le texte vit dans `versets_v2`, aligné sur `canon_id`, sans colonne
+   *  dans `versets_lecture` ni segmentation éditoriale (la traduction moderne de la
+   *  Bible du XIIIe siècle, TR0013, est la première). Voir `withCanonicalV2Capability`. */
+  source: 'canonical-verses' | 'source-units' | 'native-divisions' | 'editorial-segments' | 'versets-v2'
   /** Une modernisation n'est publique que si elle est explicitement validée. */
   validation?: 'validated' | 'legacy-unverified' | 'not-applicable'
 }

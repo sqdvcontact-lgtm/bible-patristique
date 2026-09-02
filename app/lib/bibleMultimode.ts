@@ -168,6 +168,57 @@ export function estVerseEditorial(
   ) ?? false
 }
 
+/**
+ * Une traduction dont le texte vit dans `versets_v2`, aligné sur `canon_id`, sans
+ * colonne dans `versets_lecture` ni segmentation éditoriale. C'est le cas de la
+ * traduction moderne de la Bible du XIIIe siècle (TR0013, 2026-09-03), membre d'une
+ * famille avec le témoin 899 : ni la vue large, qui ne la connaît pas, ni la
+ * cascade éditoriale, qui n'a rien à recomposer, ne peuvent la servir.
+ *
+ * ⛔ La liste ne s'écrit pas ici : la page la DÉCOUVRE, par les membres de famille
+ * que le catalogue ne sait pas lire et que `livres_par_traduction` porte pourtant.
+ * Cette découverte est faite sous la RLS du lecteur (une traduction privée n'existe
+ * que pour l'administrateur), et c'est pourquoi elle ne peut pas entrer dans le
+ * catalogue mis en cache pour tous.
+ */
+export function withCanonicalV2Capability(
+  capabilities: Record<string, TranslationReadingCapabilities>,
+  translationIds: readonly string[],
+): Record<string, TranslationReadingCapabilities> {
+  if (translationIds.length === 0) return capabilities
+  const result = { ...capabilities }
+  for (const translationId of translationIds) {
+    result[translationId] = {
+      translationId,
+      modes: [{ mode: 'verse', availability: 'available', source: 'versets-v2' }],
+    }
+  }
+  return result
+}
+
+/** Ses versets viennent de `versets_v2` par le canon (voir `withCanonicalV2Capability`). */
+export function estVerseCanoniqueV2(
+  capabilities: TranslationReadingCapabilities | undefined,
+): boolean {
+  return capabilities?.modes.some(
+    (mode) => mode.mode === 'verse' && mode.source === 'versets-v2',
+  ) ?? false
+}
+
+/**
+ * Ses versets sont une COLONNE de `versets_lecture`, déjà chargée avec le chapitre :
+ * c'est la seule condition sous laquelle le menu peut changer de bible EN MÉMOIRE,
+ * sans repasser par le serveur. Une segmentation éditoriale comme une traduction de
+ * `versets_v2` ne portent pas ces colonnes, et réciproquement.
+ */
+export function estVerseSurColonnes(
+  capabilities: TranslationReadingCapabilities | undefined,
+): boolean {
+  return capabilities?.modes.some(
+    (mode) => mode.mode === 'verse' && mode.source === 'canonical-verses',
+  ) ?? false
+}
+
 export function preferredLayerForMode(
   mode: BibleReadingMode,
   availableLayerCodes: readonly string[],
