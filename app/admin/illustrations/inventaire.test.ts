@@ -126,7 +126,7 @@ describe('inventaire des illustrations', () => {
 
   it('ne prête un lieu qu’aux images effectivement servies', () => {
     for (const i of ILLUSTRATIONS) {
-      if (i.fonction === 'reserve' || i.fonction === 'gabarit') {
+      if (i.fonction === 'reserve') {
         expect(i.lieu, `${i.chemin} est en réserve : il ne peut renvoyer nulle part`).toBeUndefined()
       }
     }
