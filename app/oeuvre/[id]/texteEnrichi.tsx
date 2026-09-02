@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import { STYLE_ROMAIN, STYLE_ORDINAL, sieclesEnHtml } from '@/app/lib/siecles'
 import { normaliserEspaces } from '@/app/lib/typographie'
+import { hrefSur } from '@/app/lib/liensSurs'
 
 // Espaces typographiques (français + langue originale) : logique pure, testée, dans
 // app/lib/typographie.ts. Ré-exportée ici pour les nombreux appelants historiques.
@@ -50,9 +51,15 @@ export function rendreTexteEnrichi(
     else if (m[2] !== undefined) { const key = k++; noeuds.push(<span key={key} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteEnrichi(m[2], transform)}</span>) }
     else if (m[3] !== undefined) { const key = k++; noeuds.push(<sup key={key}>{rendreTexteEnrichi(m[3], transform)}</sup>) }
     else if (m[4] !== undefined) { const key = k++; noeuds.push(<em key={key}>{rendreTexteEnrichi(m[4], transform)}</em>) }
-    else if (m[5] !== undefined) { const key = k++; noeuds.push(
-      <a key={key} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteEnrichi(m[5], transform)}</a>
-    ) }
+    else if (m[5] !== undefined) {
+      const key = k++
+      // ⛔ Une adresse écrite par un lecteur ne devient un lien que si `hrefSur` l'admet
+      // (`javascript:` s'exécutait au clic) ; sinon le libellé reste du texte.
+      const href = hrefSur(m[6])
+      noeuds.push(href
+        ? <a key={key} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteEnrichi(m[5], transform)}</a>
+        : <Fragment key={key}>{rendreTexteEnrichi(m[5], transform)}</Fragment>)
+    }
     else if (m[7] !== undefined) {
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
       noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)

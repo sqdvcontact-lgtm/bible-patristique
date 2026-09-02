@@ -1,6 +1,7 @@
 import React from 'react'
 import NoteTooltip from './NoteTooltip'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { hrefSur } from '@/app/lib/liensSurs'
 
 export type ElementPanneau =
   | { type: 'note'; texte: string }
@@ -77,7 +78,12 @@ function rendreInline(s: string, cleNote: { n: number }, options: RenduOptions):
         const id = cible.slice('segment:'.length)
         noeuds.push(<NoteTooltip key={k++} lettre={label} el={{ type: 'segment', id, label }} isRef />)
       } else {
-        noeuds.push(<a key={k++} href={cible} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{label}</a>)
+        // ⛔ Même garde que `texteEnrichi.tsx` : une adresse de lecteur ne fait un lien
+        // que si `hrefSur` l'admet ; sinon le libellé reste du texte.
+        const href = hrefSur(cible)
+        noeuds.push(href
+          ? <a key={k++} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{label}</a>
+          : <React.Fragment key={k++}>{label}</React.Fragment>)
       }
     }
     dernier = regex.lastIndex
