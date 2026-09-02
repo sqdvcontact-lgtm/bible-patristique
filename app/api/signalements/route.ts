@@ -56,10 +56,13 @@ export async function POST(request: Request) {
       const { data } = await supabaseAdmin.auth.getUser(token)
       userId = data.user?.id ?? null
     }
+    // Un signalement se fait à visage connu : toute écriture de lecteur exige un compte
+    // (charte, « Compte requis pour interagir »). La garde côté client ne suffit pas,
+    // n'importe qui pouvait appeler la route sans session et remplir la file.
+    if (!userId) return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 })
 
     let referenceStockee = reference
     if (profilPseudo) {
-      if (!userId) return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 })
       const { data: profilCible } = await supabaseAdmin
         .from('profils')
         .select('id, pseudo')
