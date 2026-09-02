@@ -1064,3 +1064,19 @@ export function recomposerFragmentsMateriels(fragments: readonly BibleSourceFrag
     return index === 0 ? texte : liantSymbolique(fragment.joinBefore) + texte
   }).join('')
 }
+
+/**
+ * L'adresse d'un fichier servi, VERSIONNÉE par son empreinte.
+ *
+ * Le seau sert les gravures avec un cache d'un an : une adresse qui ne change
+ * pas garderait l'ancienne image après un réimport. L'empreinte du fichier
+ * (`sha256`, reportée en base à chaque dépôt) entre donc dans l'adresse : un
+ * fichier changé est une adresse neuve, et le cache long ne coûte rien.
+ * Douze caractères suffisent à distinguer deux versions ; sans empreinte,
+ * l'adresse reste nue.
+ */
+export function adresseVersionnee(uri: string, empreinte: string | null | undefined): string {
+  if (!empreinte) return uri
+  const separateur = uri.includes('?') ? '&' : '?'
+  return `${uri}${separateur}v=${empreinte.slice(0, 12)}`
+}

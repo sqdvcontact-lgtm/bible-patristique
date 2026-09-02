@@ -570,6 +570,44 @@ export function IllustrationBible({ illustration, habillage }: {
     textAlign: 'center',
   }
 
+  // ── Le NOM de la figure (2026-09-02) ──────────────────────────────────────
+  // La légende visible nomme la figure : c'est elle que porte `aria-labelledby`,
+  // et le texte alternatif ne la répète plus (un lecteur d'écran l'entendait deux
+  // fois). Il ne reste sur l'image que s'il en dit PLUS qu'elle, c'est-à-dire
+  // s'il décrit la scène. Sans légende, il reprend son office.
+  const idLegende = `legende-${illustration.assetKey}`
+  const altDistinct = illustration.altText && illustration.altText !== illustration.caption ? illustration.altText : ''
+  // Un texte alternatif qui DÉCRIT (« Un souverain assis regarde… ») reste le nom
+  // de l'image, et la légende la décrit en second ; un texte alternatif qui ne
+  // fait que répéter la légende s'efface, et la légende nomme.
+  const lien = illustration.caption
+    ? (altDistinct ? { 'aria-describedby': idLegende } : { 'aria-labelledby': idLegende })
+    : {}
+  const nom = { ...lien, ...(altDistinct || !illustration.caption ? { 'aria-label': altDistinct || illustration.altText } : {}) }
+  const nomDuBouton = illustration.altText || illustration.caption || ''
+  const masque = `url("${illustration.url}")`
+  // ⛔ AGRANDIE, UNE VIGNETTE NE DÉPASSE JAMAIS SA TAILLE DE FICHIER : le fichier
+  //    fait 1,7 fois la taille d'affichage, l'agrandissement est donc modeste, et
+  //    c'est voulu — on ne montre pas en grand une image dont la définition ne
+  //    le justifie pas (décision de l'auteur, 2026-09-02).
+  const encre = (largeur: string, plafond?: string) => (
+    <span
+      className="cs-bible-gravure-encre"
+      role="img"
+      {...nom}
+      style={{
+        display: 'block',
+        width: largeur,
+        maxWidth: plafond,
+        maxHeight: plafond ? '78vh' : undefined,
+        margin: plafond ? '0 auto' : undefined,
+        aspectRatio: `${illustration.width} / ${illustration.height}`,
+        WebkitMaskImage: masque,
+        maskImage: masque,
+      }}
+    />
+  )
+
   return (
     <figure
       data-asset-key={illustration.assetKey}
@@ -580,33 +618,37 @@ export function IllustrationBible({ illustration, habillage }: {
       style={cadre}
     >
       {detouree ? (
-        <span
-          className="cs-bible-gravure-encre"
-          role="img"
-          aria-label={illustration.altText}
-          style={{
-            display: 'block',
-            width: '100%',
-            aspectRatio: `${illustration.width} / ${illustration.height}`,
-            WebkitMaskImage: `url("${illustration.url}")`,
-            maskImage: `url("${illustration.url}")`,
-          }}
+        // ⚠️ Le masque se charge d'emblée : une image de masque CSS ne connaît pas
+        //    le chargement différé, et un différé par script laisserait la vignette
+        //    vide au premier écran le temps de l'hydratation. Elles pèsent 30 à
+        //    55 Ko, trois par chapitre au plus : le différé n'y gagnerait rien.
+        <GravureAgrandissable
+          alt={nomDuBouton}
+          legende={illustration.caption}
+          enfant={encre('100%')}
+          agrandi={encre('100%', `${illustration.width}px`)}
         />
       ) : (
         // ⛔ Une PHOTOGRAVURE et une PLANCHE gardent leur papier : elles sont
         //    opaques, et le thème ne les retourne pas. La première est rognée au
         //    filet gravé et prend le filet du site ; la seconde son passe-partout.
         <GravureAgrandissable
-          alt={illustration.altText}
+          alt={nomDuBouton}
           legende={illustration.caption}
           enfant={(
             <span className={regime === 'au-fil' ? 'cs-bible-gravure-cadre' : 'cs-bible-gravure-passe'}>
+              {/* Chargement DIFFÉRÉ, natif : une planche pèse 200 à 300 Ko et vit
+                  souvent trois écrans plus bas. `width` et `height` sont posés, la
+                  place est réservée avant que l'image n'arrive. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={illustration.url}
-                alt={illustration.altText}
+                alt={altDistinct}
+                {...lien}
                 width={illustration.width}
                 height={illustration.height}
+                loading="lazy"
+                decoding="async"
                 style={{ display: 'block', width: '100%', height: 'auto' }}
               />
             </span>
@@ -618,7 +660,8 @@ export function IllustrationBible({ illustration, habillage }: {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={illustration.url}
-              alt={illustration.altText}
+              alt={altDistinct}
+              {...lien}
               style={{
                 display: 'block', margin: '0 auto',
                 maxWidth: `min(100%, ${illustration.width}px)`,
@@ -631,7 +674,7 @@ export function IllustrationBible({ illustration, habillage }: {
       {/* La légende suit le corps du paratexte : plus grosse que le commentaire,
           elle passerait devant le texte qu'elle accompagne. */}
       {illustration.caption && (
-        <figcaption style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: flotte ? '0.6875rem' : '0.78125rem', lineHeight: 1.3 }}>
+        <figcaption id={idLegende} style={{ marginTop: '0.5rem', fontFamily: SERIF, fontStyle: 'italic', color: 'var(--cs-texte-second)', fontSize: flotte ? '0.6875rem' : '0.78125rem', lineHeight: 1.3 }}>
           {illustration.caption}
         </figcaption>
       )}

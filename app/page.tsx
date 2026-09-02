@@ -18,6 +18,7 @@ import { bibliographieDesBlocs } from '@/app/lib/bibleBibliographieOuvrages'
 import {
   blocsTexteEditoriaux, largeurImprimee, presentationDeBloc, regimeIllustration, sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
+  adresseVersionnee,
 } from '@/app/lib/bibleEdition'
 import type {
   BibleEditionBodyBlockRow, BibleEditionChapterPayload, BibleEditionNoteBlockRow,
@@ -377,11 +378,15 @@ export default async function Home({
         id: asset.id,
         assetKey: asset.asset_key,
         assetKind: asset.asset_kind,
-        url: asset.public_uri,
+        url: adresseVersionnee(asset.public_uri, asset.web_sha256),
         width: asset.width_px,
         height: asset.height_px,
         altText: asset.alt_text,
-        caption: asset.editorial_caption ?? asset.printed_caption,
+        // La légende IMPRIMÉE d'abord : c'est celle de Fillion. La légende
+        // éditoriale ne la supplée qu'à son défaut (les planches du tome I, dont
+        // l'imprimée n'est pas transcrite), et elle porte encore des notes
+        // d'atelier (« planche tournée ») qui relèvent de la donnée.
+        caption: asset.printed_caption ?? asset.editorial_caption,
         printedPage: asset.printed_page,
         placement: asset.placement,
         canonIdStart: asset.canon_id_start,
@@ -500,11 +505,11 @@ export default async function Home({
           id: asset.id,
           assetKey: asset.asset_key,
           assetKind: asset.asset_kind,
-          url: asset.public_uri,
+          url: adresseVersionnee(asset.public_uri, asset.web_sha256),
           width: asset.width_px,
           height: asset.height_px,
           altText: asset.alt_text,
-          caption: asset.editorial_caption ?? asset.printed_caption,
+          caption: asset.printed_caption ?? asset.editorial_caption,
           printedPage: asset.printed_page,
           placement: asset.placement,
           canonIdStart: asset.canon_id_start,

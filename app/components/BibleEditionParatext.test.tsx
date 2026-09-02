@@ -237,7 +237,7 @@ describe('paratexte des éditions bibliques', () => {
     expect(part('hors-texte', 0.2)).toBe('88')
   })
 
-  it('⛔ une PLANCHE et une SCÈNE s’agrandissent ; un masque reste dans le fil', () => {
+  it('⛔ une PLANCHE, une SCÈNE et une VIGNETTE s’agrandissent', () => {
     // Une planche est une page ENTIÈRE du volume, et elle ne se lit pas à 440 px :
     // vingt-huit des trente-deux sont tournées, et leurs légendes gravées y
     // tombent à trois pixels de haut. Le fichier servi faisant déjà le double de
@@ -249,10 +249,11 @@ describe('paratexte des éditions bibliques', () => {
       expect(html).toContain('aria-label="Agrandir')
       expect(html).toContain('cursor:zoom-in')
     }
-    // ⚠️ Une vignette est un MASQUE : son encre est reposée par le thème, et
-    //    elle reste dans le fil du texte.
+    // ⚠️ Une vignette est un MASQUE, et elle s'agrandit AUSSI depuis le 2 septembre
+    //    2026 (décision de l'auteur) : le masque se rend en grand comme en petit,
+    //    l'encre reposée par le thème. ⛔ Jamais au-delà de sa taille de fichier.
     const vignette = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.402)} />)
-    expect(vignette).not.toContain('Agrandir')
+    expect(vignette).toContain('aria-label="Agrandir')
     expect(vignette).toContain('mask-image')
   })
 
