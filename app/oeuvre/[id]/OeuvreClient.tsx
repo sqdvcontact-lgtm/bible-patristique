@@ -1021,11 +1021,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const reprise = reprendreBascule()
     if (!reprise) return
     window.scrollTo(0, reprise.defilement)
+    // Le défilement qu'on a posé en dernier : s'il a bougé sans nous, c'est le lecteur
+    // qui a repris la main, et l'on ne se mêle plus de rien.
+    let defilementPose = window.scrollY
+    const lecteurABouge = () => Math.abs(window.scrollY - defilementPose) > 1
     const poser = () => {
       if (!cibleReprise || !segmentCibleId || reprise.hauteurTete === null) return true
       const el = document.getElementById(`segment-${segmentCibleId}`)
       if (!el) return false
       window.scrollBy(0, el.getBoundingClientRect().top - reprise.hauteurTete)
+      defilementPose = window.scrollY
       return true
     }
     // Le segment peut être sur une autre page de pagination, que l'effet ci-dessus ne
@@ -1033,10 +1038,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     let arret = false
     let essais = 0
     const reessayer = () => {
-      if (arret || poser() || essais++ >= 15) return
+      if (arret || lecteurABouge() || poser() || essais++ >= 15) return
       window.setTimeout(reessayer, 200)
     }
     reessayer()
+    // ⚠️ Et l'on REPOSE pendant la première seconde. Le frontispice change de hauteur
+    // après le montage, quand les effets rapportent les éditeurs et les œuvres sœurs :
+    // mesuré en ligne le 2026-09-02, le paragraphe posé au pixel dérivait ensuite de
+    // cinquante à cent pixels. Chaque repose s'abstient dès que le lecteur a bougé.
+    for (const delai of [120, 350, 700, 1200]) {
+      window.setTimeout(() => { if (!arret && !lecteurABouge()) poser() }, delai)
+    }
     const main = mainRef.current
     if (main) ordonnerBlocsVisibles(main, hauteurNavbarPx())
     const fin = window.setTimeout(() => setEntree(false), DUREE_ENTREE_MS)
