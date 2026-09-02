@@ -5,7 +5,7 @@ import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 
-import { useState, useEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
@@ -67,6 +67,17 @@ import ModalLienBiblique, { libelleTypeLien, type ChampLienBiblique, type Verset
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { allerAAncre, allerAElement } from '@/app/lib/defilement'
+import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
+import {
+  DUREE_ENTREE_MS,
+  DUREE_SORTIE_MS,
+  adresseAvecPosition,
+  annoncerBascule,
+  basculeEnAttente,
+  ordonnerBlocsVisibles,
+  reprendreBascule,
+  segmentEnTeteDeFenetre,
+} from './passageTexte'
 import ComparaisonTraductions from './ComparaisonTraductions'
 import {
   choisirAlignement,
@@ -337,13 +348,13 @@ const AUCUN_BLOC: Record<string, BlocOriginal> = {}
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
   useEditeursCharges()
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
-  const [segActif, setSegActif] = useState<number | null>(segmentCibleId)
+  const [segActif, setSegActif] = useState<number | null>(cibleReprise ? null : segmentCibleId)
   const [tradIndex, setTradIndex] = useState(0)
   const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
   const [tradOuverte, setTradOuverte] = useState(false)
@@ -709,10 +720,60 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const requete = params.toString()
     return `/oeuvre/${cibleOeuvre}${requete ? `?${requete}` : ''}`
   }
+  // ── Le passage d'un texte à l'autre est FLUIDE (2026-09-02) ───────────────
+  // Trois choses, et `passageTexte.ts` porte ce qui n'est pas propre à ce composant :
+  //  1. on ne revient pas au début. L'adresse emporte le niveau qu'on lisait et le
+  //     paragraphe en tête de fenêtre (par son groupe d'alignement ou sa clé), et le
+  //     serveur ouvre l'autre texte au même endroit ; le défilement est conservé, et
+  //     le paragraphe repris se pose à la hauteur exacte où était l'ancien ;
+  //  2. le texte qu'on quitte s'efface paragraphe par paragraphe, de haut en bas, et
+  //     celui qui arrive paraît de même (classes `lecture-sortie` / `lecture-entree`
+  //     sur `<main>`, animations dans `globals.css`) ;
+  //  3. rien de tout cela ne coûte une requête de plus.
+  const mainRef = useRef<HTMLElement>(null)
+  const [sortie, setSortie] = useState(false)
+  // Vrai dès le PREMIER rendu quand on arrive d'un autre texte : la classe doit être là
+  // avant la première peinture, sinon la page paraît entière, s'efface, et reparaît.
+  // Au rendu serveur comme au chargement d'une adresse, aucune bascule n'est en
+  // attente, et les deux rendus s'accordent.
+  const [entree, setEntree] = useState(() => basculeEnAttente())
   const naviguer = (url: string) => {
+    const main = mainRef.current
+    const haut = hauteurNavbarPx()
+    const memeOeuvre = new URL(url, window.location.origin).pathname === window.location.pathname
+    // Le paragraphe en tête de fenêtre, et ce qu'on sait de lui pour le retrouver dans
+    // l'autre texte. Un groupe d'alignement ne vaut qu'entre deux textes de la MÊME
+    // œuvre ; une œuvre sœur ne reçoit que le niveau.
+    const tete = main && vue === 'texte' && !modeComparaisonActif ? segmentEnTeteDeFenetre(main, haut) : null
+    const seg = tete ? segments.find(s => s.id === tete.id) : undefined
+    const cible = adresseAvecPosition(url, {
+      niv1: vue === 'texte' && niv1Actif ? niv1Actif : null,
+      groupe: memeOeuvre ? seg?.groupeOriginal ?? null : null,
+      cle: memeOeuvre ? seg?.cleOriginal ?? seg?.segmentKey ?? null : null,
+    })
+    annoncerBascule({ defilement: window.scrollY, hauteurTete: tete?.y ?? null })
+    if (main) ordonnerBlocsVisibles(main, haut)
+    setSortie(true)
     setCibleEnCours(url)
-    demarrerNavigation(() => router.push(url))
+    // `scroll: false` : le routeur ne remonte pas en haut de page. Une œuvre SŒUR change
+    // de route, et le `loading.tsx` remplace alors la page d'un coup : on lui laisse le
+    // temps de l'effacement, que rien ne verrait sinon. Le même texte, lui, part tout
+    // de suite : le routeur garde la page jusqu'à ce que l'autre soit prête.
+    const partir = () => demarrerNavigation(() => router.push(cible, { scroll: false }))
+    if (memeOeuvre) partir()
+    else window.setTimeout(partir, DUREE_SORTIE_MS)
   }
+  // Une navigation qui n'aboutit pas (retour arrière pendant l'attente, autre clic)
+  // laisse ce composant en place : on lui rend son texte.
+  const aTransite = useRef(false)
+  useEffect(() => {
+    if (navigation) { aTransite.current = true; return }
+    if (aTransite.current && sortie) {
+      aTransite.current = false
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSortie(false)
+    }
+  }, [navigation, sortie])
   /** Demande la page au survol, une fois par adresse.
    *
    *  ⚠️ `kind: 'full'` n'est pas un ornement : un préchargement ordinaire s'arrête au
@@ -934,7 +995,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }, [segmentCibleId, pages])
 
   useEffect(() => {
-    if (!segmentCibleId) return
+    // Une reprise se pose autrement, juste en dessous : à la hauteur qu'avait le
+    // paragraphe qu'on lisait, et non au niveau des yeux.
+    if (!segmentCibleId || cibleReprise) return
     let stopped = false
     const tryScroll = (attempt = 0) => {
       if (stopped) return
@@ -946,6 +1009,41 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const timer = window.setTimeout(() => tryScroll(), 100)
     return () => { stopped = true; window.clearTimeout(timer) }
   }, [segmentCibleId, pageActuelle])
+
+  // Arrivée depuis un autre texte. On rend d'abord au lecteur son défilement (une
+  // œuvre sœur est passée par l'écran d'attente, qui l'a ramené en haut), puis on pose
+  // le paragraphe repris à la hauteur exacte où était celui qu'il lisait, et l'on
+  // ordonne les blocs visibles pour qu'ils paraissent l'un après l'autre. Tout cela
+  // AVANT la première peinture, d'où `useLayoutEffect`. La bascule se consomme ICI, et
+  // non dans un initialiseur : le composant qu'on quitte se rend encore pendant
+  // l'attente, et il ne doit pas reprendre ce qu'il vient d'annoncer.
+  useLayoutEffect(() => {
+    const reprise = reprendreBascule()
+    if (!reprise) return
+    window.scrollTo(0, reprise.defilement)
+    const poser = () => {
+      if (!cibleReprise || !segmentCibleId || reprise.hauteurTete === null) return true
+      const el = document.getElementById(`segment-${segmentCibleId}`)
+      if (!el) return false
+      window.scrollBy(0, el.getBoundingClientRect().top - reprise.hauteurTete)
+      return true
+    }
+    // Le segment peut être sur une autre page de pagination, que l'effet ci-dessus ne
+    // demande qu'après la première peinture : on réessaie, comme le lien profond.
+    let arret = false
+    let essais = 0
+    const reessayer = () => {
+      if (arret || poser() || essais++ >= 15) return
+      window.setTimeout(reessayer, 200)
+    }
+    reessayer()
+    const main = mainRef.current
+    if (main) ordonnerBlocsVisibles(main, hauteurNavbarPx())
+    const fin = window.setTimeout(() => setEntree(false), DUREE_ENTREE_MS)
+    return () => { arret = true; window.clearTimeout(fin) }
+    // Une seule fois, au montage : l'arrivée ne se rejoue pas.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const allerAuNiv2 = (n2: string | null) => {
     setNiv2Actif(n2)
@@ -2305,7 +2403,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         )}
 
         {/* ── TEXTE CENTRAL ── */}
-        <main lang="fr" style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+        <main ref={mainRef} lang="fr" className={sortie ? 'lecture-sortie' : entree ? 'lecture-entree' : undefined} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
           {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles) : même
               composant, même rembourrage symétrique, le titre centré sur toute la largeur
               du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus

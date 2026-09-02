@@ -193,6 +193,9 @@ export type Props = {
   groupesApparat: GroupeData[]
   segmentsApparat: SegData[]
   segmentCibleId?: number | null
+  /** Le segment visé est une REPRISE (on arrive d'un autre texte de l'œuvre, au même
+   *  passage) : on s'y pose sans le sélectionner. Voir `passageTexte.ts`. */
+  cibleReprise?: boolean
   niv1Initial?: string | null
   vueInitiale?: 'texte' | 'apparat'
   comparaisonInitiale?: boolean

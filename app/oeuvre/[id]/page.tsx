@@ -296,7 +296,9 @@ export default async function OeuvrePage({
   searchParams,
 }:{
   params:Promise<{id:string}>
-  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string;mt?:string}>
+  // `niv1`, `groupe` et `cle` sont la POSITION DE LECTURE emportée d'un texte à
+  // l'autre de la même œuvre : voir `passageTexte.ts` et `resoudrePassage` plus bas.
+  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string;mt?:string;niv1?:string;groupe?:string;cle?:string}>
 }) {
   const {id}=await params
   const sp = searchParams ? await searchParams : {}
@@ -355,6 +357,7 @@ export default async function OeuvrePage({
   }
 
   const idTexte = texteActif.id_texte as string
+  const lectureTexteEntier = oeuvre.lecture_texte_entier === true
   const versionsTextuelles = textesAccessibles.map((t) => construireVersionTextuelle(t, indexEditeurs))
   const versionParId = new Map(versionsTextuelles.map(version => [version.idTexte, version]))
   const alignementsDisponibles = ((alignementsResult.data ?? []) as AlignementRow[])
@@ -450,13 +453,20 @@ export default async function OeuvrePage({
       }
       return q
     }
+    // ⚠️ Pas de `count: 'exact'` : le compte coûtait un second travail à la base pour
+    // ne dire qu'une chose, « en reste-t-il ». On demande le plafond entier et l'on
+    // regarde s'il est atteint : atteint, la tranche est partielle, et l'on en retire
+    // la dernière ligne pour que ce qui part reste un vrai PRÉFIXE de ce que le client
+    // complètera. ⛔ Ne pas demander PLAFOND + 1 lignes : PostgREST plafonne ce qu'il
+    // rend, et une réponse tronquée à mille dirait « complet ».
     const premier = await appliquer(
-      supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
+      supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, PLAFOND_TRANCHE - 1)
-    const acc: any[] = [...((premier.data as any[]) ?? [])]
-    const total = premier.count ?? acc.length
+    const lignes: any[] = (premier.data as any[]) ?? []
+    const partiel = lignes.length >= PLAFOND_TRANCHE
+    const acc: any[] = partiel ? lignes.slice(0, PLAFOND_TRANCHE - 1) : lignes
     await hydraterLiensHerites(acc, supabase)
-    return { segments: acc as Segment[], partiel: total > acc.length }
+    return { segments: acc as Segment[], partiel }
   }
 
   // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
@@ -593,12 +603,82 @@ export default async function OeuvrePage({
         || (a.referenceTextId === idTexteEnRegard && a.alignedTextId === idTexte))
     : []
 
-  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, { data: segmentCibleData }, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, donneesNotesEnRegard, { count: nbSegmentsLiminaires }, granularites] = await Promise.all([
+  // ── Le passage visé, et ce qu'on en tire AVANT la vague 2 ─────────────────
+  // Trois façons de viser un passage : `?segment=` (un lien profond : le segment sera
+  // SÉLECTIONNÉ), `?groupe=` (le groupe d'alignement du paragraphe qu'on lisait dans
+  // l'autre texte de l'œuvre) et `?cle=` (une clé de segment du texte original, ou la
+  // sienne propre pour le chemin inverse). Les deux derniers sont une REPRISE : changer
+  // de texte ne ramène pas au début, on retombe sur le même passage, sans le
+  // sélectionner. Le client compose ces adresses dans `passageTexte.ts`.
+  type PassageVise = { id: number; ref_niv1: string | null; nature: string | null; reprise: boolean }
+  async function resoudrePassage(): Promise<PassageVise | null> {
+    const colonnes = 'id,ref_niv1,nature'
+    if (Number.isFinite(segmentCibleId) && segmentCibleId > 0) {
+      const { data } = await supabase.from('segments').select(colonnes)
+        .eq('id_oeuvre', id).eq('id_texte', idTexte).eq('id', segmentCibleId).maybeSingle()
+      return data ? { ...(data as Omit<PassageVise, 'reprise'>), reprise: false } : null
+    }
+    const groupe = sp.groupe?.trim()
+    const cle = sp.cle?.trim()
+    if (!groupe && !cle) return null
+    // Une reprise ne vise que le CORPS : retomber dans l'apparat, où le texte ne se
+    // lit pas, serait pire que retomber au début.
+    const corps = () => supabase.from('segments').select(colonnes)
+      .eq('id_oeuvre', id).eq('id_texte', idTexte).in('nature', NATURES_CORPS)
+    if (groupe) {
+      const { data: membre } = await supabase.from('texte_alignement_membres').select('segment_key')
+        .eq('alignment_id', groupe).eq('id_texte', idTexte).order('member_order').limit(1).maybeSingle()
+      if (membre?.segment_key) {
+        const { data } = await corps().eq('segment_key', membre.segment_key).limit(1).maybeSingle()
+        if (data) return { ...(data as Omit<PassageVise, 'reprise'>), reprise: true }
+      }
+    }
+    if (cle) {
+      // La clé désigne un segment du texte ORIGINAL : ou bien c'est ce texte qu'on
+      // ouvre, et la clé est la sienne ; ou bien c'est la traduction, dont un segment
+      // porte la copie de ce segment-là (`segment_metadata.original_segment_key`).
+      const [propre, copie] = await Promise.all([
+        corps().eq('segment_key', cle).limit(1).maybeSingle(),
+        corps().eq('segment_metadata->>original_segment_key', cle).order('segment_numero').limit(1).maybeSingle(),
+      ])
+      const data = propre.data ?? copie.data
+      if (data) return { ...(data as Omit<PassageVise, 'reprise'>), reprise: true }
+    }
+    return null
+  }
+  // ⚠️ Les promesses ci-dessous partent AVANT la vague 2 et sont attendues APRÈS :
+  // chacune porte un `catch` posé tout de suite, sans quoi un rejet survenu pendant
+  // l'attente de la vague ferait tomber le processus (rejet non traité) avant même
+  // qu'on le lise.
+  const promessePassage = resoudrePassage().catch((error): PassageVise | null => {
+    console.error('Résolution du passage visé impossible :', error)
+    return null
+  })
+  // En texte entier, le corps se charge d'un seul tenant et ne dépend d'aucun niveau :
+  // il n'a donc pas à attendre la vague 2. Son rejet éventuel remonte plus bas, à
+  // l'endroit où on le lit.
+  const promesseTexteEntier = lectureTexteEntier ? chargerTousSegments({ nature: 'texte' }) : null
+  promesseTexteEntier?.catch(() => {})
+  // La première tranche du niveau 1 part elle aussi dès qu'on sait lequel : le niveau
+  // du passage repris, sinon celui que l'adresse nomme (`?niv1=`). La vague 2 dira si
+  // ce niveau existe ; s'il ne correspond pas, la tranche est abandonnée et l'on
+  // charge la bonne. C'est ce qui fait que changer de texte ne coûte plus une vague
+  // de plus que d'ouvrir l'œuvre.
+  const promesseTranche: Promise<{ niv1: string; tranche: { segments: Segment[]; partiel: boolean } } | null> =
+    lectureTexteEntier ? Promise.resolve(null) : (async () => {
+      const passage = await promessePassage
+      const niv1 = passage?.ref_niv1 ?? sp.niv1?.trim() ?? ''
+      if (!niv1) return null
+      return { niv1, tranche: await chargerTrancheTexte({ ref_niv1: niv1, nature: 'texte' }) }
+    })().catch((error): null => {
+      console.error('Tranche anticipée du niveau 1 impossible :', error)
+      return null
+    })
+
+  const [{ data: niv1Raw, error: rpcError }, { data: niv1TexteRaw }, passage, segmentsApparatRaw, codesTraductions, donneesNotesStructurees, donneesNotesEnRegard, { count: nbSegmentsLiminaires }, granularites] = await Promise.all([
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id, p_id_texte: idTexte }),
     supabase.rpc('get_niv1_texte', { p_id_oeuvre: id, p_id_texte: idTexte }),
-    Number.isFinite(segmentCibleId) && segmentCibleId > 0
-      ? supabase.from('segments').select('id,ref_niv1,nature').eq('id_oeuvre', id).eq('id_texte', idTexte).eq('id', segmentCibleId).maybeSingle()
-      : Promise.resolve({ data: null }),
+    promessePassage,
     chargerTousSegments({ nature: 'apparat' }),
     chargerCodesTraductions(supabase),
     chargerNotesStructurees(idTexte),
@@ -647,26 +727,35 @@ export default async function OeuvrePage({
   ]
   if ((nbSegmentsLiminaires ?? 0) > 0) niv1TexteMap[NIV1_LIMINAIRES] = 'LIMINAIRES'
 
-  const segmentCible = segmentCibleData
+  const segmentCible = passage
   // Un lien vers un segment d'apparat ouvre la page SUR l'apparat. Les deux natures
   // y donnent droit : viser un paragraphe du « Sommaire général » ne doit pas ouvrir
   // le texte suivi, où il ne se lit pas.
   const vueInitiale = NATURES_APPARAT.includes(segmentCible?.nature as never) ? 'apparat' : 'texte'
   const texteSansNiveaux = niv1List.length === 0
-  const lectureTexteEntier = oeuvre.lecture_texte_entier === true
+  // Le niveau nommé par l'adresse ne vaut que s'il existe dans CE texte : deux textes
+  // d'une même œuvre ne partagent leurs clés de niveau qu'une fois sur deux (« Liber I »
+  // d'un côté, « Livre premier » de l'autre). Sinon, le premier, comme avant.
+  const niv1Nomme = sp.niv1?.trim() ?? ''
+  const niv1Demande = niv1Nomme && niv1List.includes(niv1Nomme) ? niv1Nomme : null
   const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
     ? segmentCible.ref_niv1
-    : niv1List[0] ?? null
+    : niv1Demande ?? niv1List[0] ?? null
 
   // ── Vague 2 : PREMIÈRE TRANCHE du texte du premier niv1 (apparat exclus) ──
   // On ne charge plus tout le niv1 avant le premier rendu : seule la 1re tranche
   // (~1000 segments) part du serveur ; le client complète le reste en tâche de fond.
-  const trancheInitiale = lectureTexteEntier
-    ? { segments: await chargerTousSegments({ nature: 'texte' }) as Segment[], partiel: false }
+  // La tranche partie avant la vague 2 sert si elle visait le bon niveau ; sinon on
+  // charge celui-là, comme avant.
+  const trancheAnticipee = await promesseTranche
+  const trancheInitiale = promesseTexteEntier
+    ? { segments: await promesseTexteEntier as Segment[], partiel: false }
     : texteSansNiveaux
       ? await chargerTrancheTexte({ nature: 'texte' })
       : premierNiv1
-        ? await chargerTrancheTexte({ ref_niv1: premierNiv1, nature: 'texte' })
+        ? (trancheAnticipee?.niv1 === premierNiv1
+            ? trancheAnticipee.tranche
+            : await chargerTrancheTexte({ ref_niv1: premierNiv1, nature: 'texte' }))
         : { segments: [] as Segment[], partiel: false }
   const segmentsTexteRaw = trancheInitiale.segments
   const niv1InitialPartiel = trancheInitiale.partiel
@@ -674,26 +763,29 @@ export default async function OeuvrePage({
   const segmentsTexte = segmentsTexteRaw as Segment[]
   const segmentsApparat = segmentsApparatRaw as Segment[]
 
-  // 4. Versets pour le premier livre seulement
-  const versetMap = await enrichirAvecVersets(supabase, segmentsTexte, codesTraductions)
-
   // Lecture bilingue : l'original en regard vient de SES PROPRES segments, retrouvés par
   // l'alignement. Rien n'est recopié dans la traduction (voir `bilingueAlignement.ts`).
   const ensembleBilingue = idTexteEnRegard
     ? choisirEnsembleBilingue(alignementsDisponibles, idTexte, idTexteEnRegard)
     : null
-  const projectionBilingue = ensembleBilingue && idTexteEnRegard
-    ? await chargerProjectionBilingue(supabase, {
-        alignmentSetId: ensembleBilingue.alignmentSetId,
-        idTexteTraduit: idTexte,
-        idTexteOriginal: idTexteEnRegard,
-        clesTraduites: [...segmentsTexte, ...segmentsApparat]
-          .map(s => s.segment_key)
-          .filter((cle): cle is string => Boolean(cle)),
-        notesOriginales,
-        ancresOriginales: ancresNotesOriginales,
-      })
-    : { groupeParCle: new Map<string, string>(), blocParGroupe: new Map<string, BlocOriginal>() }
+  // Les versets du premier niveau et la projection bilingue ne dépendent que de la
+  // tranche, jamais l'un de l'autre : ils partent ensemble. Ils se suivaient, une
+  // vague pour rien.
+  const [versetMap, projectionBilingue] = await Promise.all([
+    enrichirAvecVersets(supabase, segmentsTexte, codesTraductions),
+    ensembleBilingue && idTexteEnRegard
+      ? chargerProjectionBilingue(supabase, {
+          alignmentSetId: ensembleBilingue.alignmentSetId,
+          idTexteTraduit: idTexte,
+          idTexteOriginal: idTexteEnRegard,
+          clesTraduites: [...segmentsTexte, ...segmentsApparat]
+            .map(s => s.segment_key)
+            .filter((cle): cle is string => Boolean(cle)),
+          notesOriginales,
+          ancresOriginales: ancresNotesOriginales,
+        })
+      : Promise.resolve({ groupeParCle: new Map<string, string>(), blocParGroupe: new Map<string, BlocOriginal>() }),
+  ])
   const blocsOriginal = Object.fromEntries(projectionBilingue.blocParGroupe)
 
   const versetParSegment: Record<number, any[]> = {}
@@ -831,7 +923,8 @@ export default async function OeuvrePage({
       oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,note_editoriale_secondaire:oeuvre.note_editoriale_secondaire,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source,nb_signes:oeuvre.nb_signes}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
-      segmentCibleId={Number.isFinite(segmentCibleId) && segmentCibleId > 0 ? segmentCibleId : null}
+      segmentCibleId={segmentCible?.id ?? null}
+      cibleReprise={segmentCible?.reprise === true}
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}
       vueInitiale={vueInitiale}
       niv1InitialPartiel={niv1InitialPartiel}

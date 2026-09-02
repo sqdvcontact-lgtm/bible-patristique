@@ -2138,3 +2138,55 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 @container volet (min-width: 350px) {
   .cs-volet-echelle { --volet-ref-lignes: 4; }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PASSAGE D'UN TEXTE À L'AUTRE (page d'œuvre)
+
+   Le texte qu'on quitte s'efface paragraphe par paragraphe, de haut en bas ;
+   celui qui arrive paraît de même. Les blocs VISIBLES reçoivent leur rang
+   (`data-cs-bloc`, `--cs-ordre`) au départ et à l'arrivée, par
+   `ordonnerBlocsVisibles` (`app/oeuvre/[id]/passageTexte.ts`) : ce qui est hors
+   de l'écran n'a pas à jouer. La colonne entière s'efface ensuite, pour emporter
+   ce que le rang n'a pas atteint. Les durées s'accordent à `passageTexte.ts` :
+   les changer ici, c'est les changer là-bas.
+   ⛔ Aucune transformation sur `<main>` lui-même : il deviendrait le bloc
+   conteneur des cellules d'actions posées en `fixed`. Les blocs, eux, finissent
+   sans transformation (`both` garde l'état final, qui est `none`). */
+main.lecture-sortie [data-cs-bloc] {
+  animation: cs-lecture-effacer 0.26s ease-in both;
+  animation-delay: calc(var(--cs-ordre, 0) * 28ms);
+}
+main.lecture-sortie {
+  animation: cs-lecture-effacer-colonne 0.22s ease-in both;
+  animation-delay: 0.32s;
+}
+main.lecture-entree [data-cs-bloc] {
+  animation: cs-lecture-paraitre 0.38s ease-out both;
+  animation-delay: calc(var(--cs-ordre, 0) * 30ms);
+}
+@keyframes cs-lecture-effacer {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes cs-lecture-effacer-colonne {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes cs-lecture-paraitre {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+/* Le mot de l'écran d'attente d'une œuvre (`app/oeuvre/[id]/loading.tsx`) : il ne
+   vient qu'au bout d'un instant, une arrivée rapide ne montrant rien. */
+@keyframes cs-attente-paraitre {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  main.lecture-sortie [data-cs-bloc],
+  main.lecture-sortie,
+  main.lecture-entree [data-cs-bloc] {
+    animation-duration: 0.01ms;
+    animation-delay: 0s;
+  }
+}
