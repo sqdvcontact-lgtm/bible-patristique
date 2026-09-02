@@ -1250,6 +1250,34 @@ Le module tient l'attente pour une page entière : `ProvisionAttente` l'ouvre (e
 
 **Ce qui reste** : le chargement d'un chapitre éditorial est encore une cascade de trois vagues (alignements, puis segments et sources, puis texte des unités), chacune entre 63 et 91 ms. Aucune n'est lente ; les fondre demanderait une vue SQL qui rende le texte recomposé d'un chapitre en une fois, ce qui est un travail de BASE, non de dépôt. Les scripts d'atelier de cet audit sont dans `tmp/` (`audit-bible-perf.mjs`, `audit-bible-perf2.mjs`, `audit-versets.mjs`, `audit-bible-equivalence.mjs`).
 
+## Audit du passage d'un texte à l'autre sur la page Bible (2026-09-02) — RIEN N'EST CORRIGÉ
+
+Même question que pour la page d'œuvre (voir « Le passage d'un texte à l'autre est FLUIDE »), posée à la Bible, Fillion en tête. Mesuré **en ligne**, depuis le navigateur de l'auteur, sur Matthieu 5 à 8 : durée de la charge RSC et poids décodé, et ce que devient la POSITION de lecture (`scrollTop` du défileur `.overflow-y-auto.flex-1`, verset en tête de fenêtre).
+
+| Geste | RSC | Ko | Position après |
+|---|---:|---:|---|
+| Fillion, « Latin-français » | 3,7 s | 110 | **haut du chapitre** (défileur remonté) |
+| retour « Français » | 2,2 s | 104 | **haut du chapitre** |
+| Fillion, « Latin » (TR0011) | 2,0 s | 103 | tenue au pixel (verset 19 à −60 avant et après) |
+| Fillion, « Sans les commentaires » | 2,1 s | 36 | tenue (verset 19 à −60) |
+| Fillion, chapitre suivant | 2,2 s | 61 | **`scrollTop` conservé** : Mt 7 s'ouvre avec le verset 1 à 4 249 px au-dessus de l'écran |
+| Fillion → Sacy | 1,0 s | 44 | `scrollTop` conservé puis borné : verset 14 au lieu de 18 |
+| Sacy → Segond | 1,5 s | 44 | à peu près tenue (verset 13 pour 14) |
+| Segond, chapitre suivant | 1,1 s | 48 | **`scrollTop` conservé** : Mt 8 s'ouvre au verset 9 |
+| Segond → Fillion | 2,0 s | 73 | perdue (verset 2, dans l'introduction) |
+
+**Ce que ces chiffres disent.**
+
+- ⛔ **Changer de chapitre ne remonte pas en haut, sur AUCUNE bible.** `BibleLayout` n'a pas de `key`, `TexteBible` reste monté, et son défileur interne garde son `scrollTop` d'un chapitre à l'autre : le lecteur qui a lu Matthieu 5 jusqu'au bout ouvre Matthieu 6 par sa fin. Rien ne le remet à zéro (`grep scrollTop app/components/TexteBible.tsx` ne rend rien). Le lien profond `?verset=` fait son défilement à part, et `?bilingue=1` remonte de lui-même, parce qu'il REMONTE le composant. C'est le défaut le plus visible, et il ne demande qu'une remise à zéro du défileur quand livre ou chapitre change.
+- ⚠️ **Quand la position tient, c'est par ACCIDENT, et il faut le savoir avant d'y toucher.** Latin ↔ Français de Fillion tiennent parce que les deux membres composent les mêmes blocs à la même hauteur ; « Sans les commentaires » tient grâce à l'**ancrage de défilement du navigateur**, les rangées de verset étant réutilisées par `key={v.id_verset}`. Une clé de rangée changée, ou un ordre de rendu différent, défait tout cela sans qu'aucun test ne le voie.
+- ⛔ **Le passage à la lecture EN REGARD perd la place dans les deux sens.** `LectureBilingueBible` remplace `TexteBible` : nouveau défileur, `scrollTop` à zéro. L'inverse aussi. C'est exactement le « retour au début » que la page d'œuvre vient de perdre ; le remède est le même, et il est plus simple ici, l'axe canonique étant commun aux deux vues (`data-canon-id` en regard, `id="verset-N"` en une colonne) : porter le verset en tête de fenêtre dans l'adresse (`?verset=` existe, mais il SÉLECTIONNE et interdit le regard — il faudrait une cible qui ne fasse ni l'un ni l'autre) et s'y poser au montage.
+- ⚠️ **Changer de bible ne tient pas la place non plus**, sauf entre deux bibles canoniques de même longueur, et là encore par ancrage : Fillion → Sacy borne le `scrollTop` sur un chapitre trois fois plus court et tombe quatre versets plus haut. Le verset canonique est pourtant le même des deux côtés.
+- ⚠️ **Rien ne s'efface ni ne paraît progressivement.** La page d'avant reste, l'anneau d'attente vient au bout de 160 ms sur toute la lecture, puis le contenu est REMPLACÉ d'un coup. Sur Fillion cela dure de deux à quatre secondes mesurées en ligne, bien plus que les 773 ms mesurés en local le 2026-08-27 : la différence est le réseau et la fonction Vercel, pas le code, mais c'est ce que le lecteur subit.
+- ⚠️ **La lecture en regard coûte le double d'une colonne** (3,7 s, 110 Ko) : elle charge les deux membres par `chargerLectureBilingue` PUIS l'appareil, en séquence (`app/page.tsx`, autour de `chargerLectureBilingue`). Les deux ne dépendent l'un de l'autre que par l'axe canonique, qu'on connaît dès `canonPromis`.
+- ⚠️ **Au chargement de la page, la barre de navigation précharge 29 fois** les routes de ses liens (`/admin`, `/soutenir`, `/recherche`, `/traductions`, `/essais`, `/bibliotheque`, `/polyglotte`, `/accueil`), sous des clés `_rsc` différentes : ce sont les `<Link>` de la barre, dont aucun ne porte `prefetch={false}`, et qui se remontent avec elle. Réponses de 0 à 4 Ko, donc peu de poids, mais autant d'allers-retours sur une page qui en attend déjà huit.
+
+**Ce qu'il faudrait faire, dans l'ordre**, si l'on décide de traiter la Bible comme l'œuvre : (1) remettre le défileur en haut quand livre ou chapitre change, et LUI SEUL ; (2) porter le verset canonique en tête de fenêtre d'une vue à l'autre (colonne ↔ regard, bible ↔ bible) et s'y poser, sans le sélectionner ; (3) effacer et faire paraître par blocs, avec le module `passageTexte.ts` de l'œuvre, dont la moitié DOM est déjà générique ; (4) paralléliser les deux membres et l'appareil en regard. ⛔ Le point (2) demande une décision : `?verset=` sélectionne et sort du regard, et il ne faut pas lui faire dire autre chose.
+
 # Page Bible — UN SEUL axe de lecture (2026-08-28)
 
 ⛔ La page en portait **trois**, mesurés au navigateur sur sa structure exacte : le titre du chapitre à **503 px**, le texte des versets à **495,5**, les blocs éditoriaux et les pièces liminaires à **514,5**. L'auteur l'a vu sur « Du même auteur », qui ne tombait pas sous « Genèse ». Deux causes indépendantes, qui s'additionnaient.
