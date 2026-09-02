@@ -60,10 +60,6 @@ export const FONCTIONS = {
     titre: 'En réserve',
     propos: 'Présentes dans le dépôt, appelées par aucune page. Ce sont des variantes écartées, des dessins mis de côté et des restes d’un ancien mode de service. Elles pèsent pourtant dans le dépôt, et elles pèseront dans le jugement du jour où on les emploiera.',
   },
-  'gabarit': {
-    titre: 'Résidus du gabarit',
-    propos: 'Livrées par le gabarit de création Next, sans rapport avec le site. Elles ne paraissent nulle part et n’ont aucune raison de rester.',
-  },
 } as const
 
 export type CleFonction = keyof typeof FONCTIONS
@@ -576,12 +572,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Second reste du même temps. Le seau Supabase porte déjà ce portrait.',
   },
 
-  // ── Résidus du gabarit ─────────────────────────────────────────────────────
-  { chemin: '/file.svg', nom: 'file.svg', fonction: 'gabarit', emploi: 'Livrée par le gabarit de création Next.' },
-  { chemin: '/globe.svg', nom: 'globe.svg', fonction: 'gabarit', emploi: 'Livrée par le gabarit de création Next.' },
-  { chemin: '/next.svg', nom: 'next.svg', fonction: 'gabarit', emploi: 'Livrée par le gabarit de création Next.' },
-  { chemin: '/vercel.svg', nom: 'vercel.svg', fonction: 'gabarit', emploi: 'Livrée par le gabarit de création Next.' },
-  { chemin: '/window.svg', nom: 'window.svg', fonction: 'gabarit', emploi: 'Livrée par le gabarit de création Next.' },
 ]
 
 /** Les icônes d'onglet vivent dans `app/`, pas dans `public/` : Next les sert par

@@ -104,7 +104,7 @@ type CleVue = 'planche' | 'contexte'
 const ORDRE_FONCTIONS = Object.keys(FONCTIONS) as CleFonction[]
 /** Repliés d'entrée : ils ne participent pas au jugement d'harmonie, et les
  *  tuiles du jeu pèsent à elles seules neuf mégaoctets. */
-const REPLIES_AU_DEPART: CleFonction[] = ['jeu', 'gabarit']
+const REPLIES_AU_DEPART: CleFonction[] = ['jeu']
 
 export default function PlancheIllustrations({ familles, gravures, planches, planche }: {
   familles: EchantillonFamille[]
@@ -167,7 +167,7 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
   const bilan = useMemo(() => {
     const pesees = TOUTES.filter(i => poids[i.chemin])
     const total = pesees.reduce((s, i) => s + poids[i.chemin], 0)
-    const dormant = TOUTES.filter(i => i.fonction === 'reserve' || i.fonction === 'gabarit')
+    const dormant = TOUTES.filter(i => i.fonction === 'reserve')
     const poidsDormant = dormant.reduce((s, i) => s + (poids[i.chemin] ?? 0), 0)
     const lourdes = pesees.filter(i => poids[i.chemin] > 500_000).length
     return { nb: TOUTES.length, pesees: pesees.length, total, nbDormant: dormant.length, poidsDormant, lourdes }
@@ -661,7 +661,7 @@ export function VueEnContexte({ images, poids }: { images: Illustration[]; poids
           <h3 className="ill-ctx-nom">Pose non relevée</h3>
           <p className="ill-ctx-emploi">
             {sansPose.length} images n’ont pas de pose au recensement, et la planche ne l’invente pas. Ce sont, pour
-            l’essentiel, celles qu’aucune page n’appelle : les variantes écartées, les résidus du gabarit et la frise du
+            l’essentiel, celles qu’aucune page n’appelle : les variantes écartées et la frise du
             jeu, dont la route est neutralisée. Une pose se relève sur la SOURCE, jamais de mémoire.
           </p>
           <ul className="ill-ctx-liste">
