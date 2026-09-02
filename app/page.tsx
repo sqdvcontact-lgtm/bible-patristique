@@ -337,7 +337,18 @@ export default async function Home({
   // On le tient de la FAMILLE, non du chapitre affiché — sans quoi le menu
   // disparaîtrait sur un chapitre sans commentaire, laissant le lecteur enfermé dans
   // le texte nu sans moyen d'en sortir.
-  const paratexteDisponible = !!editionMember
+  // ⛔ Mais une famille SANS appareil n'offre pas le choix (demande de l'auteur,
+  // 2026-09-03 : « Avec et Sans commentaires doit apparaître seulement si les
+  // commentaires existent »). La Bible du XIIIe siècle et sa traduction moderne
+  // forment une famille dont les notes sont encore en brouillon : le menu leur
+  // proposait d'écarter un appareil qui n'existe pas. Deux comptes en tête, sous la
+  // RLS du lecteur — elle ne rend que ce qui est publié —, dans la vague des versets.
+  const paratexteDisponiblePromis: Promise<boolean> = editionMember
+    ? Promise.all([
+      supabase.from('bible_editorial_body_blocks').select('id', { count: 'exact', head: true }).eq('family_id', editionMember.family_id),
+      supabase.from('bible_verse_notes').select('id', { count: 'exact', head: true }).eq('family_id', editionMember.family_id),
+    ]).then(([blocs, notes]) => (blocs.count ?? 0) + (notes.count ?? 0) > 0).catch(() => false)
+    : Promise.resolve(false)
   // Même raison que ci-dessus : en regard, cet appareil n'est jamais rendu (c'est
   // `lectureBilingue` qui porte le sien), et le charger d'office coûtait cinq
   // allers-retours pour rien.
@@ -570,10 +581,11 @@ export default async function Home({
       versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
     )
     : null
-  const [versetsCharges, liminaires, tradsV2] = await Promise.all([
+  const [versetsCharges, liminaires, tradsV2, paratexteDisponible] = await Promise.all([
     versetsPromis,
     editionMember ? chargerLiminairesEdition(supabase, editionMember.family_id) : Promise.resolve([]),
     tradsV2Promis,
+    paratexteDisponiblePromis,
   ])
   // Les traductions lues dans `versets_v2` rejoignent le catalogue de CETTE page,
   // et le menu avec elles (voir plus haut, « Les traductions lues dans versets_v2 »).
