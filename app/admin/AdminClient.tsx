@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import SectionBibliotheque from './SectionBibliotheque'
@@ -39,40 +39,6 @@ export default function AdminClient({
   const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
 
-  // ── La roulette fait circuler la barre d'onglets ──────────────────────────
-  // La barre défile horizontalement, mais une roulette de souris n'émet que du deltaY :
-  // sans cela, il faudrait attraper le pouce, ou connaître Maj+roulette. On traduit donc
-  // le mouvement vertical en déplacement horizontal tant que le curseur survole la barre.
-  //
-  // ⛔ Le listener est posé À LA MAIN, en `passive: false`. React attache `wheel` sur la
-  // racine en PASSIF : un `onWheel={...}` en JSX ne pourrait pas appeler preventDefault,
-  // et la page défilerait sous la barre en même temps qu'elle. Le défaut serait discret
-  // et permanent — deux mouvements pour un seul geste.
-  //
-  // Deux gardes, et chacune rend la main au navigateur plutôt que de la prendre :
-  // quand la barre tient tout entière, rien à faire circuler, donc la page défile comme
-  // toujours ; et quand le geste porte DÉJÀ de l'horizontal (pavé tactile, roulette
-  // inclinable), on ne s'en mêle pas, le navigateur le fait mieux et plus doucement.
-  const refOnglets = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    const barre = refOnglets.current
-    if (!barre) return
-    const surRoulette = (e: WheelEvent) => {
-      if (barre.scrollWidth <= barre.clientWidth) return
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
-      e.preventDefault()
-      // ⚠️ deltaY n'est PAS toujours en pixels : `deltaMode` vaut 1 pour des LIGNES
-      // (cas courant de Firefox sous Windows, où une crantée vaut 3) et 2 pour des
-      // PAGES. Pris tel quel, un cran de roulette ferait alors glisser la barre de trois
-      // pixels et l'on croirait le geste inopérant. Le rapport de comparaison avec deltaX
-      // reste juste, lui : les deux axes partagent la même unité.
-      const pas = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? barre.clientWidth : 1
-      barre.scrollLeft += e.deltaY * pas
-    }
-    barre.addEventListener('wheel', surRoulette, { passive: false })
-    return () => barre.removeEventListener('wheel', surRoulette)
-  }, [mobile])
-
   // Arrivée via ?onglet=<clé> : le menu Administration de la navbar renvoie à chaque
   // section. Toute clé d'onglet valide est acceptée (pas seulement « controle-oeuvres »).
   useEffect(() => {
@@ -101,29 +67,49 @@ export default function AdminClient({
 
   const decrMod = async (fn: () => Promise<void>) => { await fn(); setNbMod(n => Math.max(0, n - 1)) }
 
-  // ── LA BARRE D'ONGLETS SE LIT DANS LA TABLE PARTAGÉE ────────────────────────
+  // ── LE SOMMAIRE SE LIT DANS LA TABLE PARTAGÉE ───────────────────────────────
   //
-  // ⛔ Elle avait sa propre liste, et le menu « Administration » de la barre du haut
-  // la sienne : les deux avaient divergé de cinq entrées — Centre de contrôle,
-  // Audience, Planche des styles, Propositions de GPT et Bible 899 — que le menu
-  // nommait et que la barre taisait. Or quand on est DÉJÀ dans l'administration, on
-  // cherche dans la barre, pas dans un menu du haut : ces pages n'existaient donc
-  // pas pour qui travaille ici. Les deux listes viennent maintenant de
-  // `app/lib/adminNavigation.ts` et ne peuvent plus se contredire, ni sur les
-  // entrées, ni sur leur ordre.
+  // ⛔ La navigation de cette page avait sa propre liste, et le menu « Administration »
+  // de la barre du haut la sienne : les deux avaient divergé de cinq entrées — Centre
+  // de contrôle, Audience, Planche des styles, Propositions de GPT et Bible 899 — que
+  // le menu nommait et que la page taisait. Or quand on est DÉJÀ dans l'administration,
+  // on cherche sur place, pas dans un menu du haut : ces pages n'existaient donc pas
+  // pour qui travaille ici. Les deux listes viennent maintenant de
+  // `app/lib/adminNavigation.ts` et ne peuvent plus se contredire, ni sur les entrées,
+  // ni sur leur ordre.
   //
-  // Ce que la barre ajoute à la table, et qui ne pouvait pas y tenir :
-  //   — le COMPTEUR de chaque section (relevé toutes les trente secondes) ;
-  //   — le filet de CHANGEMENT DE FAMILLE, déduit de l'ordre. La table n'écrit que
-  //     les filets de sous-groupe, comme celui de la bibliographie.
+  // Ce que le sommaire ajoute à la table, et qui ne pouvait pas y tenir : le COMPTEUR
+  // de chaque section, relevé toutes les trente secondes. Les familles, elles, se
+  // lisent dans la table : chacune fait un chapitre du sommaire, sous son propre titre.
+  // Il n'y a donc plus de filet de changement de famille à déduire de l'ordre ; seul
+  // reste le filet de sous-groupe, que la table écrit (celui de la bibliographie).
   const COUL_FAMILLE: Record<FamilleAdmin, string> = { corpus: 'var(--cs-vert)', communaute: 'var(--cs-or)', systeme: 'var(--cs-systeme)' }
   const LABEL_FAMILLE = Object.fromEntries(FAMILLES_ADMIN.map(f => [f.cle, f.label])) as Record<FamilleAdmin, string>
   const BADGES: Partial<Record<Onglet, number>> = { essais: nbEssais, verifications: nbVerif, moderation: nbMod }
-  const ENTREES = ENTREES_ADMIN.map((e, i) => ({
-    ...e,
-    badge: e.onglet ? BADGES[e.onglet] : undefined,
-    separateur: !!e.filet || (i > 0 && ENTREES_ADMIN[i - 1].famille !== e.famille),
-  }))
+  const ENTREES = ENTREES_ADMIN.map(e => ({ ...e, badge: e.onglet ? BADGES[e.onglet] : undefined }))
+
+  // Le contenu garde une largeur propre à chaque section ; le sommaire, lui, a la
+  // sienne, fixe, et le contenu se centre dans ce qui reste (marges automatiques).
+  const largeurContenu: React.CSSProperties = mobile
+    // Mobile : pleine largeur, padding resserré (les maxWidth/gouttières desktop
+    // ne servent à rien sur téléphone et rognaient la place utile).
+    ? { maxWidth: 'none', margin: 0, padding: '14px 10px 40px' }
+    : onglet === 'controle-oeuvres'
+    // Le contrôle des œuvres prend toute la largeur : on y lit du texte suivi en
+    // regard d'un volet d'analyse, et l'un comme l'autre étouffaient à 1320 px.
+    ? { maxWidth: 'none', margin: 0, padding: '20px 14px 48px' }
+    // Essais : tableaux larges (colonne d'actions à boutons de largeur fixe).
+    : onglet === 'essais'
+    ? { maxWidth: '74rem', margin: '0 auto', padding: '28px 24px 64px' }
+    // Bibliothèque : les lignes-œuvres publiées portent une longue rangée de
+    // boutons (⚙, Modifier, Import/Export, Score, statut, URL/Notice/Fichier,
+    // Détails, Contrôle, Dépublier, Supprimer) qui étouffaient à 60 rem.
+    : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices'
+    ? { maxWidth: '90rem', margin: '0 auto', padding: '28px 24px 64px' }
+    // Éditeurs : mise en page à deux colonnes (formulaire + liste), plus large.
+    : onglet === 'editeurs'
+    ? { maxWidth: '72rem', margin: '0 auto', padding: '28px 24px 64px' }
+    : { maxWidth: '60rem', margin: '0 auto', padding: '28px 24px 64px' }
 
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
@@ -159,37 +145,22 @@ export default function AdminClient({
         </div>
       )}
 
-      {/* Navigation des sections. Sticky sous la navbar. Sur mobile, la barre d'onglets
-          s'empilait sur ~6 rangées et mangeait tout l'écran : on la remplace par un menu
-          déroulant groupé par famille (compact, natif).
+      {/* Navigation des sections. Sur mobile, un menu déroulant groupé par famille
+          (compact, natif) : la liste s'empilait sur ~6 rangées et mangeait tout l'écran.
 
-          Sur desktop, elle tient sur UNE SEULE LIGNE. Elle était en flex-wrap et se
-          repliait sur deux ou trois rangées, ce qui coûtait deux fois : la hauteur, prise
-          à un bandeau collant qui suit tout le défilement, et surtout la lecture, car une
-          barre d'onglets sur trois rangées n'est plus une barre mais une grille, où l'œil
-          ne sait plus si l'ordre se lit en lignes ou en colonnes. Le repliement est donc
-          refusé (nowrap) et le trop-plein défile horizontalement. C'est le même parti que
-          le menu « Administration » de la navbar : borner et faire défiler, jamais rogner
-          ni replier.
+          Sur desktop, un VOLET DE SOMMAIRE à gauche, collé sous la barre du haut, où
+          les vingt et une entrées se lisent par famille, chacune sous son titre.
 
-          overflow-y reste HIDDEN, sans quoi le conteneur de défilement horizontal se
-          donnerait aussi une barre verticale pour trois pixels de soulignement.
-
-          ⚠️ La mesure qui suit DATE d'avant la fusion des deux listes : elle portait sur
-          quinze onglets, la barre en compte vingt et un depuis que les pages autonomes y
-          ont pris leur rang (cf. la table partagée, plus haut). Elle défile donc sur la
-          plupart des écrans — ce qu'elle est faite pour faire. La remesurer avant de s'en
-          servir pour décider quoi que ce soit.
-
-          MESURÉ sur les quinze onglets, à racine 16 : 2 042 px avant, 1 399 après, soit
-          un tiers rendu. Le tiers vient de trois postes : le corps passe de 1rem à 0,8125 (le rang de
-          l'échelle qui tient sans être illisible ; 0,75 aurait gagné 80 px de plus pour
-          un intitulé de douze pixels, marché refusé), les rembourrages de 12/14 à 9/8,
-          et la pastille de famille disparaît.
-
-          Rembourrage vertical ramené à 6px après coup : la barre rendait 42,5px de haut
-          et l'on ne demandait pas de la remplir, seulement de la traverser. */}
-      {mobile ? (
+          ⛔ C'était une barre d'onglets horizontale sur une seule ligne. Elle avait été
+          mesurée pour quinze onglets ; depuis que les pages autonomes y ont pris leur
+          rang, elle en comptait vingt et un et défilait sur la plupart des écrans : la
+          fin de la liste n'existait que pour qui savait la faire circuler (roulette
+          traduite en horizontal, à la main). Et un filet entre deux onglets disait qu'on
+          changeait de famille sans jamais dire laquelle. Le sommaire dit tout d'un coup :
+          la famille est nommée, et la liste tient entière sans défiler, ou défile
+          verticalement, ce que tout le monde sait faire. Le contenu se centre dans la
+          place qui reste. */}
+      {mobile && (
         <div style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', padding: '8px 12px', boxShadow: 'var(--cs-ombre-posee)' }}>
           <label style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 2px 4px' }}>Section d’administration</label>
           {/* Une valeur qui commence par une barre oblique est une PAGE, pas une
@@ -211,82 +182,72 @@ export default function AdminClient({
             ))}
           </select>
         </div>
-      ) : (
-        <div ref={refOnglets} className="cs-defilement-discret" style={{ position: 'sticky', top: '3.5rem', zIndex: 40, background: 'var(--cs-surface)', borderBottom: '1px solid var(--cs-vert-pale)', display: 'flex', alignItems: 'flex-end', flexWrap: 'nowrap', overflowX: 'auto', overflowY: 'hidden', overscrollBehaviorX: 'contain', padding: '2px 14px 0', boxShadow: 'var(--cs-ombre-posee)' }}>
-          {ENTREES.map((e) => {
-            const cle = e.onglet
-            const actif = cle !== undefined && onglet === cle
-            const coul = COUL_FAMILLE[e.famille]
-            // Le DESSIN est le même pour une section et pour une page autonome : rien ne
-            // les sépare à l'œil, et c'est bien ainsi — la barre dit ce qu'on peut faire
-            // ici, non par quel mécanisme. Une seule différence, et elle est invisible :
-            // la page est un LIEN, parce qu'elle quitte l'écran et que le clavier comme le
-            // clic droit doivent le savoir.
-            // ⛔ Pas de flèche « → » sur les pages autonomes : elle en marquait sept sur
-            // vingt et une, ce qui rendait la barre bigarrée pour dire une distinction de
-            // plomberie dont le lecteur n'a que faire.
-            const dessin: React.CSSProperties = {
-              padding: '6px 8px', fontSize: '0.8125rem',
-              fontWeight: actif ? 600 : 500,
-              color: actif ? coul : '#6a8074',
-              background: actif ? colorMix(coul, 8) : 'transparent',
-              border: 'none',
-              borderBottom: actif ? `3px solid ${coul}` : '3px solid transparent',
-              borderRadius: '4px 4px 0 0',
-              textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: '5px',
-              whiteSpace: 'nowrap', flexShrink: 0,
-              transition: 'color 0.12s, background 0.12s',
-            }
-            return (
-              <React.Fragment key={e.href}>
-                {e.separateur && (
-                  <span aria-hidden style={{ alignSelf: 'center', width: '1px', height: '16px', margin: '0 5px 9px', background: 'var(--cs-vert-pale)', flexShrink: 0 }} />
-                )}
-                {/* `flexShrink: 0` : en nowrap, un onglet se laisserait comprimer et son
-                    intitulé serait coupé par le `whiteSpace: nowrap` sans que rien ne le
-                    dise. Les onglets gardent donc leur largeur et c'est la barre qui défile.
-                    Plus de pastille de famille devant l'intitulé : sept pixels et leur
-                    gouttière sur chaque onglet, pour une couleur que l'onglet actif porte
-                    déjà dans son texte et son soulignement, et que les filets de séparation
-                    disent pour les autres. */}
-                {cle !== undefined ? (
-                  <button onClick={() => setOnglet(cle)} className="adm-onglet" style={{ ...dessin, cursor: 'pointer' }}>
-                    {e.label}
-                    {e.badge !== undefined && e.badge > 0 && <span style={{ fontSize: '0.71875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{e.badge}</span>}
-                  </button>
-                ) : (
-                  <Link href={e.href} className="adm-onglet" style={dessin}>
-                    {e.label}
-                  </Link>
-                )}
-              </React.Fragment>
-            )
-          })}
-        </div>
       )}
 
-      {/* Contenu */}
-      <div className="adm-contenu" style={mobile
-        // Mobile : pleine largeur, padding resserré (les maxWidth/gouttières desktop
-        // ne servent à rien sur téléphone et rognaient la place utile).
-        ? { maxWidth: 'none', margin: 0, padding: '14px 10px 40px' }
-        : onglet === 'controle-oeuvres'
-        // Le contrôle des œuvres prend toute la largeur : on y lit du texte suivi en
-        // regard d'un volet d'analyse, et l'un comme l'autre étouffaient à 1320 px.
-        ? { maxWidth: 'none', margin: 0, padding: '20px 14px 48px' }
-        // Essais : tableaux larges (colonne d'actions à boutons de largeur fixe).
-        : onglet === 'essais'
-        ? { maxWidth: '74rem', margin: '0 auto', padding: '28px 24px 64px' }
-        // Bibliothèque : les lignes-œuvres publiées portent une longue rangée de
-        // boutons (⚙, Modifier, Import/Export, Score, statut, URL/Notice/Fichier,
-        // Détails, Contrôle, Dépublier, Supprimer) qui étouffaient à 60 rem.
-        : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices'
-        ? { maxWidth: '90rem', margin: '0 auto', padding: '28px 24px 64px' }
-        // Éditeurs : mise en page à deux colonnes (formulaire + liste), plus large.
-        : onglet === 'editeurs'
-        ? { maxWidth: '72rem', margin: '0 auto', padding: '28px 24px 64px' }
-        : { maxWidth: '60rem', margin: '0 auto', padding: '28px 24px 64px' }}>
+      <div style={mobile ? undefined : { display: 'flex', alignItems: 'flex-start' }}>
+        {!mobile && (
+          /* Le volet est COLLANT et fait au moins la hauteur de la fenêtre : il se lit
+             comme une colonne, quelle que soit la longueur du contenu à sa droite. Quand
+             la fenêtre est plus basse que lui, il défile de lui-même, discrètement. */
+          <nav aria-label="Sommaire de l’administration" className="cs-defilement-discret"
+            style={{ position: 'sticky', top: '3.5rem', flex: '0 0 14.5rem', minHeight: 'calc(100vh - 3.5rem)', maxHeight: 'calc(100vh - 3.5rem)', overflowY: 'auto', boxSizing: 'border-box', background: 'var(--cs-surface)', borderRight: '1px solid var(--cs-vert-pale)', padding: '18px 10px 28px 12px' }}>
+            {FAMILLES_ADMIN.map(fam => {
+              const coul = COUL_FAMILLE[fam.cle]
+              return (
+                <div key={fam.cle} style={{ marginBottom: '18px' }}>
+                  {/* Le titre de famille, dans la couleur du domaine, à la mesure des
+                      intertitres du menu « Administration » (cf. .cs-plus-titre). Il
+                      s'aligne sur le texte des entrées : trois pixels de filet, dix de
+                      rembourrage. */}
+                  <div style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: coul, opacity: 0.9, padding: '0 8px 0 13px', margin: '0 0 5px' }}>{fam.label}</div>
+                  {ENTREES.filter(e => e.famille === fam.cle).map(e => {
+                    const cle = e.onglet
+                    const actif = cle !== undefined && onglet === cle
+                    // Le DESSIN est le même pour une section et pour une page autonome :
+                    // rien ne les sépare à l'œil, et c'est bien ainsi — le sommaire dit ce
+                    // qu'on peut faire ici, non par quel mécanisme. Une seule différence,
+                    // et elle est invisible : la page est un LIEN, parce qu'elle quitte
+                    // l'écran et que le clavier comme le clic droit doivent le savoir.
+                    const dessin: React.CSSProperties = {
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      width: '100%', boxSizing: 'border-box', textAlign: 'left',
+                      padding: '5px 8px 5px 10px', fontSize: '0.8125rem', lineHeight: 1.3,
+                      fontWeight: actif ? 600 : 500,
+                      color: actif ? coul : '#6a8074',
+                      background: actif ? colorMix(coul, 8) : 'transparent',
+                      border: 'none',
+                      borderLeft: actif ? `3px solid ${coul}` : '3px solid transparent',
+                      borderRadius: '0 4px 4px 0',
+                      textDecoration: 'none',
+                      transition: 'color 0.12s, background 0.12s',
+                    }
+                    return (
+                      <React.Fragment key={e.href}>
+                        {e.filet && (
+                          <div aria-hidden style={{ height: '1px', background: 'var(--cs-vert-pale)', margin: '6px 8px 6px 13px' }} />
+                        )}
+                        {cle !== undefined ? (
+                          <button onClick={() => setOnglet(cle)} className="adm-onglet" aria-current={actif ? 'true' : undefined} style={{ ...dessin, cursor: 'pointer' }}>
+                            {e.label}
+                            {e.badge !== undefined && e.badge > 0 && <span style={{ marginLeft: 'auto', fontSize: '0.71875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 600, lineHeight: 1.4 }}>{e.badge}</span>}
+                          </button>
+                        ) : (
+                          <Link href={e.href} className="adm-onglet" style={dessin}>
+                            {e.label}
+                          </Link>
+                        )}
+                      </React.Fragment>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </nav>
+        )}
+
+        {/* Contenu. `minWidth: 0` : sans lui, un tableau large forcerait la colonne à
+            s'élargir au lieu de défiler dans son cadre. */}
+        <div className="adm-contenu" style={mobile ? largeurContenu : { ...largeurContenu, flex: 1, minWidth: 0 }}>
         {onglet === 'charte'               && <SectionCharte />}
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
@@ -336,6 +297,7 @@ export default function AdminClient({
             actionRenvoyerBrouillonEssai={actionRenvoyerBrouillonEssai}
           />
         )}
+        </div>
       </div>
     </main>
   )
