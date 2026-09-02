@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { MESSAGE_COMMENTAIRE_INTERDIT, termesInterditsDansTexte } from '@/app/lib/moderationLexique'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -24,6 +25,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const [pseudo, setPseudo] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [envoi, setEnvoi] = useState(false)
+  const [erreur, setErreur] = useState('')
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
   const { aUnCompte, exigerCompte } = useCompte()
 
@@ -70,6 +72,8 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const envoyer = async () => {
     if (!exigerCompte('commenter cette publication')) return
     if (!texte.trim() || !userId) return
+    if (termesInterditsDansTexte(texte).length) { setErreur(MESSAGE_COMMENTAIRE_INTERDIT); return }
+    setErreur('')
     setEnvoi(true)
     const { data, error } = await supabase.from('essais_commentaires').insert({
       id_essai: idEssai,
@@ -81,7 +85,8 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       valide: false,
     }).select().single()
     setEnvoi(false)
-    if (!error && data) {
+    if (error) { setErreur(error.code === 'ZL001' ? error.message : 'L’envoi a échoué.'); return }
+    if (data) {
       setCommentaires(prev => [...prev, data])
       setTexte('')
       setPassageCite('')
@@ -270,6 +275,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <textarea value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
               style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
+          {erreur && <p style={{ margin: 0, fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{erreur}</p>}
           <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Publier'}
           </button>

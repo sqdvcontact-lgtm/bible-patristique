@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { MESSAGE_COMMENTAIRE_INTERDIT, termesInterditsDansTexte } from '@/app/lib/moderationLexique'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -76,6 +77,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const [commentaires, setCommentaires] = useState<CommentaireAvecAuteur[]>([])
   const [texte, setTexte] = useState('')
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
+  const [motifErreur, setMotifErreur] = useState('')
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
@@ -195,14 +197,16 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const soumettre = async () => {
     if (!exigerCompte('commenter ce passage')) return
     if (!texte.trim() || segActif === null || !userId) return
+    setMotifErreur('')
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setStatut('err'); return }
+    if (termesInterditsDansTexte(texte).length) { setMotifErreur(MESSAGE_COMMENTAIRE_INTERDIT); setStatut('err'); return }
     setStatut('sending')
     const { data, error } = await supabase.from('commentaires').insert({
       id_segment: segActif, texte: texte.trim(), valide: false, user_id: userId,
       reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation,
     }).select().single()
     setStatut('idle')
-    if (error || !data) { setStatut('err'); return }
+    if (error || !data) { if (error?.code === 'ZL001') setMotifErreur(error.message); setStatut('err'); return }
     // Affichage immédiat, sans recharger.
     setCommentaires(prev => [...prev, { ...data, pseudo: null, lecture: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
     setTexte(''); setCibleReponse(null); setDemandeValidation(false)
@@ -401,7 +405,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
               <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && <span style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>Erreur — vérifiez qu’il n’y a pas plus de 5 capitales à la suite.</span>}
+              {statut === 'err' && <span style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{motifErreur || 'Erreur — vérifiez qu’il n’y a pas plus de 5 capitales à la suite.'}</span>}
               <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}
                 style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Soumettre'}

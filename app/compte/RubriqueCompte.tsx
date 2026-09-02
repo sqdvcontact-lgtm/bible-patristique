@@ -20,6 +20,7 @@
 // depuis le menu de la barre, et deux façons de poser le même réglage divergeraient.
 
 import React, { useEffect, useState } from 'react'
+import { MESSAGE_PSEUDO_INTERDIT, termeInterditDansPseudo } from '@/app/lib/moderationLexique'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { themeValide, type Theme } from '@/app/lib/theme'
@@ -102,6 +103,7 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
   }
 
   const enregistrer = async () => {
+    if (termeInterditDansPseudo(pseudo)) { setStatut({ ok: false, msg: MESSAGE_PSEUDO_INTERDIT }); return }
     setOccupe(true); setStatut(null)
     const champs = {
       pseudo: pseudo.trim(), prenom: prenom.trim() || null, nom: nom.trim() || null,
@@ -114,7 +116,10 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
       // ⚠️ Le pseudonyme est unique en base : c'est la seule erreur qu'un lecteur
       // puisse provoquer sans se tromper, et elle mérite son mot à elle.
       console.error('Mon compte : l’enregistrement a échoué.', error)
-      setStatut({ ok: false, msg: error.code === '23505' ? 'Ce pseudonyme est déjà pris.' : 'L’enregistrement a échoué.' })
+      // 23514 et ZL001 : la base refuse le pseudonyme (format, nom réservé, lexique)
+      // et dit pourquoi ; son message est écrit pour être lu.
+      const refus = error.code === '23514' || error.code === 'ZL001'
+      setStatut({ ok: false, msg: error.code === '23505' ? 'Ce pseudonyme est déjà pris.' : refus ? error.message : 'L’enregistrement a échoué.' })
       return
     }
     majProfil(champs)

@@ -4186,3 +4186,17 @@ Audit mené sur la base (politiques, droits, vues, fonctions) et sur les routes 
 - **`--politiques` réécrit `sql/politiques_utilisateurs.sql`**, miroir des politiques, de l'état RLS et des GRANT des vingt-deux tables d'utilisateurs, tels que la base les applique. ⛔ On ne l'édite pas : on migre, puis on relève. Un diff sur ce fichier dit ce qui a changé en base sans passer par une migration.
 - **`messages_contact` se purge à douze mois** (`purger_messages_contact`, cron `purger_contact` le 1er du mois, migration `20260903090000`), la durée se changeant en un seul endroit. `purger_vues_pages` perd au passage son EXECUTE pour `authenticated`, qu'elle avait encore.
 - **`/api/signalements` exige une session** : la garde « compte requis » n'était que côté client, et la route acceptait un signalement sans jeton.
+
+## Le lexique de modération : pseudonymes et commentaires (2026-09-03)
+
+Décision de l'auteur : une liste noire pour le pseudonyme, une autre pour les commentaires, « assez permissive ; simplement les insultes ». Tout vit dans **`app/lib/moderationLexique.ts`** (49 termes, 8 tests) et dans la table **`moderation_lexique`** (migration `20260903120000`), et les deux exemplaires sont tenus d'accord par `moderationLexique.test.ts`, qui relit la migration mot pour mot.
+
+- ⛔ **La liste est COURTE et doit le rester** : injures, insultes sexuelles, racistes, homophobes. Ni « merde », ni « putain », ni « débile » : le registre familier passe, la modération humaine fait le reste. Un mot s'ajoute des DEUX côtés, par une migration neuve qui refait l'insert.
+- **Deux régimes par terme**. `entier` : mot entier seulement (« pute » ne condamne pas « député », « pédé » ne condamne pas « pédestre », « nique » ne condamne pas « Dominique »). Sans `entier` : sous-chaîne dans un PSEUDONYME (« connard42 »), mot entier dans un commentaire, pluriel compris.
+- **Le repli** (`replierTexte` / `public.replier_texte`) : bas de casse, sans accent, séparateurs en espaces, et une lettre répétée trois fois ou plus ramenée à DEUX. ⛔ Pas à une : « nigger » replié à « niger » condamnerait le Niger. ⚠️ Pour un pseudonyme, les séparateurs s'ôtent AVANT ce repli, sinon « Con-NNNard » donne « con nnard » et passe.
+- **En base, deux déclencheurs** (`trg_garde_lexique` sur `commentaires` et `essais_commentaires`, et la garde de `profils` complétée), pour tout écrivain qui n'est ni la clé de service ni un administrateur. Code **ZL001**, message écrit pour être lu : les composeurs et la page du compte l'affichent tel quel.
+- ⛔ **`terme_interdit` est SECURITY DEFINER, et ce n'est pas un choix** : le déclencheur s'exécute avec les droits de l'écrivain et la table est fermée à `authenticated`. Sans cela, tout pseudonyme et tout commentaire tombaient en 42501 : c'est l'épreuve des droits qui l'a montré, à sa première exécution.
+- **La clé de service contourne le déclencheur** : `creer-profil` vérifie donc par le module. Les composeurs (`PanneauPatristique`, `OngletCommentaires`, `EssaiCommentaires`) et `RubriqueCompte` vérifient AVANT d'envoyer, pour le message, et lisent ZL001 au retour, pour le cas où la base en sait plus.
+- Mesuré à la pose : aucun pseudonyme ni commentaire existant n'est atteint.
+
+⚠️ **Piège d'atelier payé deux fois ce jour** : un `\1` écrit dans une commande Bash (heredoc ou `node -`) arrive dans le fichier comme le caractère U+0001, invisible à l'affichage et à `git diff`, et une expression `(.)\1{2,}` devient `(.){2,}`. Passer par l'outil d'écriture pour toute suite antislash-chiffre, et contrôler par `cat -v`.

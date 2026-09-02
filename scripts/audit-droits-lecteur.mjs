@@ -117,6 +117,8 @@ begin
     ${ligne('profils : se donner est_admin, acces_beta, points', 'figé', `case when b then 'ÉCRIT' else 'figé' end`, 'not b')}`)}
   ${epRefus('profils : prendre le pseudo « admin »', `update profils set pseudo = 'admin' where id = moi;`, ['23514'])}
   ${epRefus('profils : un pseudo hors format', `update profils set pseudo = 'a b' where id = moi;`, ['23514'])}
+  ${epRefus('profils : un pseudo injurieux', `update profils set pseudo = 'connard42' where id = moi;`, ['ZL001'])}
+  ${epRefus('commentaires : une injure dans le texte', `insert into commentaires (user_id, auteur_nom, texte, valide, id_verset) select moi, 'audit', 'Quel connard.', false, id_verset from commentaires where id_verset is not null limit 1;`, ['ZL001'])}
   ${compte('profils : lignes lisibles (la mienne seule)', 1, 'select 1 from profils')}
   ${zeroLigne('profils : modifier la bio d’un autre', `update profils set bio = 'pirate' where id = autre;`)}
   ${compte('lecture_utilisateurs : le rang d’un compte qui le cache', 0, 'select 1 from lecture_utilisateurs where user_id = autre')}
