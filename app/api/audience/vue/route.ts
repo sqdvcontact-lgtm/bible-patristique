@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createHash } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { erreur500 } from '@/app/lib/apiErreur'
+import { empreinteAnonyme } from '@/app/lib/empreinteAnonyme'
 import { checkRateLimit } from '@/app/lib/rateLimiter'
 import {
   appareilDepuisUA,
@@ -26,17 +26,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Le sel du jour se dérive d'un secret qui ne quitte jamais le serveur. À défaut
-// d'AUDIENCE_SEL, la clé de service fait l'affaire : elle est déjà secrète, déjà
-// présente en production, et le hachage ne permet pas de la retrouver. Poser
-// AUDIENCE_SEL reste préférable, ne serait-ce que pour pouvoir la faire tourner
-// sans toucher à l'accès à la base.
-const SECRET_SEL = process.env.AUDIENCE_SEL ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'sel-absent'
-
-function empreinteDuJour(ip: string, userAgent: string): string {
-  const jour = new Date().toISOString().slice(0, 10)
-  return createHash('sha256').update(`${SECRET_SEL}|${jour}|${ip}|${userAgent}`).digest('hex').slice(0, 32)
-}
+// L'empreinte du jour vient d'app/lib/empreinteAnonyme.ts, partagé avec le
+// formulaire de contact et les propositions d'œuvre : un seul sel, une seule règle.
 
 // Une session ouverte se reconnaît à la présence du cookie d'authentification
 // Supabase. On ne le lit pas, on ne le déchiffre pas : sa seule présence suffit,
@@ -61,7 +52,7 @@ export async function POST(req: Request) {
   const chemin = cheminNormalise(corps.chemin)
   if (!estCheminMesure(chemin)) return new NextResponse(null, { status: 204 })
 
-  const empreinte = empreinteDuJour(ip, userAgent ?? '')
+  const empreinte = empreinteAnonyme(ip, userAgent ?? '')
 
   // Généreux à dessein : un lecteur qui parcourt une œuvre tourne beaucoup de
   // pages en peu de temps. Le seuil n'est là que contre une boucle.

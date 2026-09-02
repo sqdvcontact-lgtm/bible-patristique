@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/app/lib/rateLimiter'
 
 function admin() {
   return createClient(
@@ -65,6 +66,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ pse
   const { pseudo } = await params
   const user = await resolveAuth(request)
   if (!user) return NextResponse.json({ error: 'Non connecté' }, { status: 401 })
+  // Trente messages par dix minutes et par compte : assez pour une conversation,
+  // trop peu pour une rafale. En mémoire du processus, comme /api/contact.
+  if (!checkRateLimit(`messagerie:${user.id}`, 30, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Trop de messages envoyés. Réessayez dans quelques minutes.' }, { status: 429, headers: { 'Retry-After': '600' } })
+  }
 
   const body = await request.json().catch(() => ({}))
   const contenu = typeof body?.contenu === 'string' ? body.contenu.trim() : ''

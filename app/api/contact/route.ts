@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { adresseDuClient, empreinteAnonyme } from '@/app/lib/empreinteAnonyme'
 
 // Formulaire de contact. Deux garanties, dans cet ordre :
 //   1. le message est ENREGISTRÉ en base (table fermée par RLS, clé de service) —
@@ -32,8 +33,10 @@ function tropDeRequetes(cle: string): boolean {
 const propre = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 
 export async function POST(request: Request) {
-  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'inconnue'
-  if (tropDeRequetes(ip)) {
+  // L'adresse ne s'écrit nulle part : une empreinte salée du jour la remplace,
+  // pour le débit comme pour la trace (voir app/lib/empreinteAnonyme.ts).
+  const empreinte = empreinteAnonyme(adresseDuClient(request), request.headers.get('user-agent') ?? '')
+  if (tropDeRequetes(empreinte)) {
     return NextResponse.json({ error: 'Trop de messages envoyés. Réessayez dans quelques minutes.' },
       { status: 429, headers: { 'Retry-After': String(FENETRE_MS / 1000) } })
   }
@@ -51,7 +54,7 @@ export async function POST(request: Request) {
 
   // 1. Enregistrement — le filet qui ne perd rien.
   const { error } = await supabaseAdmin.from('messages_contact').insert({
-    message, nom: nom || null, sujet: sujet || null, courriel: courriel || null, ip,
+    message, nom: nom || null, sujet: sujet || null, courriel: courriel || null, empreinte,
   })
   if (error) return NextResponse.json({ error: 'L’enregistrement a échoué. Réessayez plus tard.' }, { status: 500 })
 
