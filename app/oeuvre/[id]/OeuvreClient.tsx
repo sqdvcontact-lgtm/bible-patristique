@@ -2528,7 +2528,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
             <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
-              <button onClick={() => niv1Prev && changerNiv1(niv1Prev, { conserverPosition: true })} disabled={!niv1Prev}
+              <button onClick={() => niv1Prev && changerNiv1(niv1Prev)} disabled={!niv1Prev}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
@@ -2572,7 +2572,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   </>
                 )}
               </span>
-              <button onClick={() => niv1Next && changerNiv1(niv1Next, { conserverPosition: true })} disabled={!niv1Next}
+              <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>
