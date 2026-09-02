@@ -1188,6 +1188,23 @@ Relevé de l'auteur dans la foulée : « peut-être mettre une séparation plus 
 
 # Bible classique — le coût, c'est le NOMBRE d'allers-retours (audit du 2026-08-22)
 
+## ⛔ Et chaque aller-retour traversait l'ATLANTIQUE (2026-09-02)
+
+Tout ce qui suit a été mesuré depuis le poste de travail, à 65 ms de la base. **Le site en ligne, lui, ne les payait pas à ce prix** : la fonction Vercel tournait dans la région par défaut, **`iad1` (Washington)**, pour une base Supabase en **`eu-west-1` (Irlande)**. Lu dans l'en-tête `x-vercel-id` d'une réponse (`cdg1::iad1::…` : l'arête de Paris, puis la fonction). Chaque aller-retour vers la base traversait donc l'Atlantique, et la Bible commentée en enchaîne huit.
+
+**`vercel.json` fixe désormais `regions: ["dub1"]`**, Dublin, la même région AWS que la base. Mesuré depuis Paris, corps de la réponse, fonction chaude :
+
+| Page | avant (`iad1`) | après (`dub1`) |
+|---|---:|---:|
+| Fillion, Matthieu 5 | 1 737 ms | **520 ms** |
+| Fillion en regard | 2 330 ms | **539 ms** |
+| Fillion sans commentaires | 1 487 ms | 474 ms |
+| Bible 899, Genèse 1 | 1 514 ms | 618 ms |
+| Sacy, Matthieu 5 | 662 ms | 536 ms |
+| Accueil | 169 ms | 74 ms |
+
+⚠️ **Ce qui reste, et pourquoi.** Le DÉPART À FROID : la première réponse d'une fonction endormie coûte encore 1,5 à 2,5 s, quelle que soit la région, et un site à faible trafic s'endort souvent ; c'est le prix de l'hébergement gratuit, et il ne se code pas. La Polyglotte, elle, est PRÉRENDUE et servie par l'arête en un instant : ce qui y est long est le chargement de sa portion par le NAVIGATEUR, directement depuis la base, et non le serveur. ⛔ Ne pas revenir à `iad1` « par défaut » : une région se choisit, et elle se choisit à côté de la base.
+
 Mesuré depuis le poste de travail : **un aller-retour vers Supabase coûte ~65 ms, quoi qu'il transporte** (`select` d'une ligne : 60 ms min, 74 méd). Le chapitre le plus lourd de `versets_lecture` en coûte 70. Aucune requête de la page n'est lente : c'est leur mise en CASCADE qui se voit.
 
 | Lecture | Vagues avant | Vagues après | Local |
