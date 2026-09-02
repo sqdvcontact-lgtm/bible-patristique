@@ -133,6 +133,14 @@ function dilater(masque, W, H, rayon) {
   return out
 }
 
+/** ⛔ ON NE ROGNE PAS LES PLANCHES : ELLES LE SONT DÉJÀ (mesuré le 2026-09-02).
+ *  Un rognage à la boîte de l'encre a été écrit puis retiré le jour même : sur les
+ *  trente-deux planches du tome I, l'encre occupe 96 à 100 % du fichier servi, les
+ *  marges de papier ayant été ôtées à la fabrication du master. Ce qui fait paraître
+ *  une planche petite, c'est son format PAYSAGE dans une colonne de 500 px, et cela
+ *  se règle au rendu (la planche hors-texte prend la mesure de la page, voir
+ *  `.cs-bible-gravure--hors-texte` dans globals.css), pas dans le fichier. */
+
 /** Le nettoyage, sur le gris À PLEINE RÉSOLUTION : la moucheture s'efface AVANT la
  *  réduction, sinon la moyenne l'étale au lieu de la retirer. */
 async function nettoyerLePapier(png) {
@@ -168,10 +176,15 @@ async function nettoyerLePapier(png) {
 const SEAU_MASTER = 'bible-illustrations-master'
 const SEAU_WEB = 'bible-illustrations-web'
 const DOSSIER_LOCAL = 'tmp/fillion-planches'
-const VERSION = '4.5.0'
+const VERSION = '4.5.1'
 
 const FABRIQUER = process.argv.includes('--fabriquer')
 const TELEVERSER = process.argv.includes('--televerser')
+// ⛔ `--seulement t01` : les « planches » du tome II (1 Samuel) sont servies par la
+//    chaîne des vignettes (`detourer-gravures.mjs`, 4.8.0) à leur largeur imprimée ;
+//    les repasser ici les regonflerait à 880 px. Sans filtre, on refuse de téléverser.
+const SEULEMENT = process.argv.includes('--seulement') ? process.argv[process.argv.indexOf('--seulement') + 1] : null
+if (TELEVERSER && !SEULEMENT) throw new Error('--televerser exige --seulement <préfixe de clé>, par exemple t01')
 
 async function principal() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -196,7 +209,7 @@ async function principal() {
   if (FABRIQUER || TELEVERSER) mkdirSync(DOSSIER_LOCAL, { recursive: true })
 
   let avant = 0, apres = 0, faits = 0
-  const lignes = [...web.keys()].sort((a, b) => (parId.get(a) ?? '').localeCompare(parId.get(b) ?? ''))
+  const lignes = [...web.keys()].filter((id) => !SEULEMENT || (parId.get(id) ?? '').startsWith(`fillion-${SEULEMENT}-`)).sort((a, b) => (parId.get(a) ?? '').localeCompare(parId.get(b) ?? ''))
   console.log('planche'.padEnd(16), 'servi'.padStart(6), 'rapport'.padStart(8), '→', 'neuf'.padStart(6), 'poids'.padStart(18))
 
   for (const id of lignes) {
@@ -232,7 +245,7 @@ async function principal() {
 
     if (TELEVERSER) {
       const { error: e3 } = await db.storage.from(SEAU_WEB)
-        .upload(w.storage_path, webp, { contentType: 'image/webp', upsert: true })
+        .upload(w.storage_path, webp, { contentType: 'image/webp', upsert: true, cacheControl: '31536000' })
       if (e3) throw new Error(`web refusé pour ${nom} : ${e3.message}`)
       // ⛔ LA BASE DOIT DIRE CE QUI EST SERVI : la page compose sur ces dimensions.
       const { error: e4 } = await db.from('bible_edition_asset_files').update({
@@ -243,6 +256,7 @@ async function principal() {
         sha256: createHash('sha256').update(webp).digest('hex'),
         processing_profile: 'fillion-planche-hors-texte',
         processing_version: VERSION,
+        updated_at: new Date().toISOString(),
       }).eq('asset_id', id).eq('variant_role', 'web')
       if (e4) throw new Error(`report refusé pour ${nom} : ${e4.message}`)
     }

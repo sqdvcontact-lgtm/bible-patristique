@@ -667,6 +667,24 @@ button:focus-visible,
 /* Une PLANCHE hors-texte garde le papier de 1923 : elle se pose dans un
    passe-partout qui l'assume, au lieu de le subir. */
 .cs-bible-gravure-passe { display: block; padding: 10px; background: var(--cs-fond-doux); }
+/* ⛔ UNE PLANCHE HORS-TEXTE PREND LA MESURE DE LA PAGE, NON CELLE DU BLOC (2026-09-02).
+   Vingt-huit planches sur trente-deux sont en PAYSAGE : posées dans les 500 px du
+   bloc de texte, elles tombent à 314 px de haut et leurs légendes gravées ne se
+   lisent plus. Le fichier, lui, est déjà rogné à son contenu (mesuré : 96 à 100 %
+   d'encre utile), il n'y a rien à lui reprendre. La planche déborde donc le bloc
+   de part et d'autre, symétriquement, jusqu'à la mesure de la page, et reste
+   centrée sur l'axe du texte : c'est la pose des trois grandes gravures du site.
+   ⚠️ Sur un écran large seulement : en mobile la figure est dans le flux, à la
+   largeur de l'écran, et un débordement sortirait de la fenêtre. ⚠️ Les valeurs en
+   ligne du composant (part, plafond du fichier) cèdent ici, d'où `!important`. */
+@media (min-width: 901px) {
+  .cs-bible-axe > .cs-bible-gravure--hors-texte {
+    width: var(--mesure-page) !important;
+    max-width: var(--mesure-page) !important;
+    margin-left: calc((var(--mesure-bloc) - var(--mesure-page)) / 2) !important;
+    margin-right: calc((var(--mesure-bloc) - var(--mesure-page)) / 2) !important;
+  }
+}
 /* ⛔ Un BLOC qui porte un flottant doit le CONTENIR, sans quoi la vignette
    déborde sur le titre suivant. ⚠️ Le sélecteur vise la classe du FLOTTANT et
    non celle du régime : une vignette posée sur son propre axe ne flotte pas, et
