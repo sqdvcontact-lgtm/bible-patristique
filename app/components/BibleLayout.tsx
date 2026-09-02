@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { MarqueAttente, ProvisionAttente, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
+import { useEffect, useLayoutEffect, useState, useRef } from 'react'
+import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
+import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
+import { DUREE_ENTREE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
 import NavLivres, { type PieceSommaireBible } from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
@@ -109,6 +111,120 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   const naviguer = useNaviguer()
   const enAttente = useEnAttente()
   const precharger = usePrecharger()
+
+  // ── Le passage d'un texte à l'autre est FLUIDE, ici aussi (2026-09-02) ─────
+  // Même dispositif que la page d'œuvre (`app/lib/passageTexte.ts`), à une différence
+  // près : ce composant RESTE MONTÉ d'une adresse à l'autre (même route, seule la
+  // requête change), si bien que le départ et l'arrivée se jouent tous deux ici.
+  //  - au DÉPART (toute navigation passée par la provision d'attente : volet des
+  //    livres, flèches de chapitre, menus), le verset en tête de fenêtre et sa hauteur
+  //    sont retenus, et les blocs visibles reçoivent leur rang pour s'effacer l'un
+  //    après l'autre ;
+  //  - à l'ARRIVÉE (la clé de lecture a changé), le défileur remonte si le CHAPITRE
+  //    a changé, et dans ce seul cas ; sinon le verset retenu se pose à la hauteur
+  //    qu'il avait, quelle que soit la vue (une colonne, en regard, autre bible),
+  //    l'axe canonique étant commun à toutes ; puis les blocs paraissent.
+  // ⛔ Avant cela, le défileur interne gardait son `scrollTop` d'un chapitre à
+  // l'autre (Matthieu 7 s'ouvrait par sa fin), et le passage en regard remontait
+  // tout, le composant changeant. Mesuré en ligne le 2026-09-02 (AGENTS.md).
+  const lectureRef = useRef<HTMLDivElement>(null)
+  const [passage, setPassage] = useState<'sortie' | 'entree' | null>(null)
+  const repriseRef = useRef<{ livre: string; chapitre: number; verset: number | null; hauteur: number | null } | null>(null)
+  const arriveeRef = useRef(true)
+  // Un échange de bible EN MÉMOIRE (deux bibles canoniques déjà chargées) montre la
+  // nouvelle colonne avant même que l'adresse ne change : rien ne s'efface ni ne
+  // paraît, la position tient par l'ancrage du navigateur.
+  const echangeEnMemoireRef = useRef(false)
+  // Le défileur de la lecture : le bloc interne sur un écran large, la fenêtre sur
+  // un téléphone, où la page entière défile.
+  const defileur = () => {
+    const interne = lectureRef.current?.querySelector<HTMLElement>('.overflow-y-auto.flex-1')
+    return interne && interne.scrollHeight > interne.clientHeight ? interne : null
+  }
+  const hautDeLecture = () => defileur()?.getBoundingClientRect().top ?? hauteurNavbarPx()
+  const colonne = () => lectureRef.current?.querySelector<HTMLElement>('.cs-lecture-colonne') ?? lectureRef.current
+  // Le verset en tête de fenêtre : `verset-N` en une colonne, `data-canon-id` en
+  // regard. Le numéro canonique est le même des deux côtés.
+  const versetEnTete = (haut: number) => {
+    const racine = lectureRef.current
+    if (!racine) return null
+    const el = elementEnTete(racine, '[id^="verset-"], [data-canon-id]', haut)
+    if (!el) return null
+    const brut = el.id.startsWith('verset-') ? el.id.slice('verset-'.length) : (el.getAttribute('data-canon-id') ?? '').split('.').pop() ?? ''
+    const verset = Number.parseInt(brut, 10)
+    return Number.isFinite(verset) ? { verset, y: el.getBoundingClientRect().top } : null
+  }
+  const elementDuVerset = (verset: number) => lectureRef.current?.querySelector<HTMLElement>(`#verset-${verset}`)
+    ?? lectureRef.current?.querySelector<HTMLElement>(`[data-canon-id="${livreActif}.${chapitreActif}.${verset}"]`)
+    ?? null
+  useAvantDeNaviguer(() => {
+    const bloc = colonne()
+    if (!bloc) return
+    if (echangeEnMemoireRef.current) { repriseRef.current = null; return }
+    const haut = hautDeLecture()
+    const tete = versetEnTete(haut)
+    repriseRef.current = { livre: livreActif, chapitre: chapitreActif, verset: tete?.verset ?? null, hauteur: tete?.y ?? null }
+    arriveeRef.current = false
+    ordonnerBlocsVisibles(bloc, haut, SELECTEUR_BLOCS_BIBLE)
+    setPassage('sortie')
+  })
+  // La clé de lecture : tout ce qui, en changeant, rend un autre texte.
+  const clefDeLecture = [livreActif, chapitreActif, tradInitiale, lectureBilingue ? 1 : 0, texteSeul ? 1 : 0, couche ?? '', pieceAffichee?.cle ?? ''].join('|')
+  const clefPrecedente = useRef(clefDeLecture)
+  useLayoutEffect(() => {
+    if (clefPrecedente.current === clefDeLecture) return
+    clefPrecedente.current = clefDeLecture
+    arriveeRef.current = true
+    const reprise = repriseRef.current
+    repriseRef.current = null
+    const enMemoire = echangeEnMemoireRef.current
+    echangeEnMemoireRef.current = false
+    const bloc = colonne()
+    if (!bloc) return
+    const def = defileur()
+    const memeChapitre = reprise !== null && reprise.livre === livreActif && reprise.chapitre === chapitreActif && !pieceAffichee
+    // Un verset visé (`?verset=`) a son propre défilement, dans `TexteBible`.
+    const versetVise = /[?&]verset=/.test(window.location.search)
+    let arret = false
+    if (!memeChapitre && !versetVise) {
+      if (def) def.scrollTop = 0
+      else window.scrollTo(0, 0)
+    } else if (memeChapitre && !versetVise && !enMemoire && reprise.verset !== null && reprise.hauteur !== null) {
+      const { verset, hauteur } = reprise
+      const lu = () => (def ? def.scrollTop : window.scrollY)
+      let defilementPose = lu()
+      const poser = () => {
+        const el = elementDuVerset(verset)
+        if (!el) return
+        const delta = el.getBoundingClientRect().top - hauteur
+        if (def) def.scrollTop += delta
+        else window.scrollBy(0, delta)
+        defilementPose = lu()
+      }
+      poser()
+      // ⚠️ Et l'on REPOSE pendant la première seconde, tant que le lecteur n'a pas
+      // bougé : les gravures et les polices arrivent après la première peinture et
+      // déplacent ce qui les suit. Même remède que sur la page d'œuvre.
+      for (const delai of [120, 350, 700, 1200]) {
+        window.setTimeout(() => { if (!arret && Math.abs(lu() - defilementPose) <= 1) poser() }, delai)
+      }
+    }
+    if (enMemoire) return
+    ordonnerBlocsVisibles(bloc, hautDeLecture(), SELECTEUR_BLOCS_BIBLE)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPassage('entree')
+    const fin = window.setTimeout(() => setPassage(null), DUREE_ENTREE_MS)
+    return () => { arret = true; window.clearTimeout(fin) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clefDeLecture])
+  // Une navigation qui n'aboutit à aucune arrivée (adresse au même texte, retour
+  // arrière pendant l'attente) rend son texte à la page.
+  useEffect(() => {
+    if (enAttente || passage !== 'sortie' || arriveeRef.current) return
+    arriveeRef.current = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPassage(null)
+  }, [enAttente, passage])
 
   // Mobile : un seul des trois volets ouvert à la fois (accordéon). Les barres
   // restent visibles ; ouvrir l'un referme l'autre.
@@ -294,6 +410,8 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     // écrite pour la préférence enregistrée ; elle vaut aussi pour le menu.
     if (!estVerseEditorial(readingCapabilities[code]) && !estVerseEditorial(readingCapabilities[traduction])) {
       setTraductionIndex(idx)
+      // La colonne change tout de suite : le passage n'a rien à effacer (voir plus haut).
+      echangeEnMemoireRef.current = true
     }
     naviguer(urlLectureBible({ livre: livreActif, chapitre: chapitreActif, trad: code, mode }))
   }
@@ -380,7 +498,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       {/* Onglet « Texte » : masqué (et non démonté, pour préserver le défilement)
           quand un autre onglet est actif sur mobile. `display: contents` en desktop
           pour que TexteBible reste enfant direct du flex (largeur `flex-1`). */}
-      <div style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%' } : { display: 'contents' }}>
+      <div ref={lectureRef} data-passage={passage ?? undefined} style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%' } : { display: 'contents' }}>
         {lectureBilingue ? (
           <LectureBilingueBible
             {...lectureBilingue}

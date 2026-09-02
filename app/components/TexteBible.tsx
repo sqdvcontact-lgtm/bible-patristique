@@ -616,7 +616,9 @@ export default function TexteBible({
           7,5 px à gauche du titre. Réservée des DEUX côtés, la gouttière laisse le
           contenu centré sur le même axe que l'en-tête, barre visible ou non. */}
       <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px', ...(mobile ? {} : { scrollbarGutter: 'stable both-edges' }) }}>
-        <div style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
+        {/* `cs-lecture-colonne` : ce qui s'efface et paraît quand on passe d'un texte à
+            l'autre (voir `BibleLayout`, « passage »). L'en-tête, lui, ne bouge pas. */}
+        <div className="cs-lecture-colonne" style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
             .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }

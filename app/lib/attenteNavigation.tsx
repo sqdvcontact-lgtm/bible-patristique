@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type MutableRefObject, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
@@ -28,6 +28,9 @@ type Attente = {
   naviguer: (url: string) => void
   /** Demande la page AVANT le clic, au survol. Une fois par adresse. */
   precharger: (url: string) => void
+  /** Ce que la page fait AU DÉPART, avant que l'adresse ne change : retenir où
+   *  l'on en était, commencer l'effacement. Posé par `useAvantDeNaviguer`. */
+  surDepart: MutableRefObject<((url: string) => void) | null>
 }
 
 const ContexteAttente = createContext<Attente | null>(null)
@@ -36,9 +39,13 @@ export function ProvisionAttente({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [enAttente, demarrer] = useTransition()
   const dejaPrechargees = useRef<Set<string>>(new Set())
+  const surDepart = useRef<((url: string) => void) | null>(null)
 
   const naviguer = useCallback((url: string) => {
-    demarrer(() => router.push(url))
+    surDepart.current?.(url)
+    // `scroll: false` : c'est la page qui décide de son défilement à l'arrivée
+    // (voir `BibleLayout`), pas le routeur, qui remonterait tout en haut.
+    demarrer(() => router.push(url, { scroll: false }))
   }, [router])
 
   const precharger = useCallback((url: string) => {
@@ -51,8 +58,20 @@ export function ProvisionAttente({ children }: { children: ReactNode }) {
     router.prefetch(url, { kind: 'full' } as Parameters<typeof router.prefetch>[1])
   }, [router])
 
-  const valeur = useMemo(() => ({ enAttente, naviguer, precharger }), [enAttente, naviguer, precharger])
+  const valeur = useMemo(() => ({ enAttente, naviguer, precharger, surDepart }), [enAttente, naviguer, precharger])
   return <ContexteAttente.Provider value={valeur}>{children}</ContexteAttente.Provider>
+}
+
+/** Pose ce que la page fait au départ de TOUTE navigation passée par la provision,
+ *  d'où qu'elle vienne (volet des livres, flèches de chapitre, menus). La fonction
+ *  est reprise à chaque rendu, pour lire l'état courant. Hors provision : rien. */
+export function useAvantDeNaviguer(fn: (url: string) => void) {
+  const contexte = useContext(ContexteAttente)
+  useEffect(() => {
+    if (!contexte) return
+    contexte.surDepart.current = fn
+    return () => { contexte.surDepart.current = null }
+  })
 }
 
 export function useNaviguer(): (url: string) => void {

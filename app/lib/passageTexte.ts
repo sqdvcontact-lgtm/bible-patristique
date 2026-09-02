@@ -40,11 +40,16 @@ const PEREMPTION_MS = 20_000
  *  suite mais comme une lenteur. */
 const RANG_MAX = 10
 
-/** Les blocs qui s'effacent et paraissent un par un. Un paragraphe de texte, un
- *  titre, une entrée de liste, le paragraphe d'argument (`.seg-wrapper`) et la
- *  barre du niveau 1. On ne retient que les FEUILLES : un bloc qui en contient un
- *  autre ne joue pas, sinon les deux s'effaceraient l'un dans l'autre. */
-const SELECTEUR_BLOCS = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, figure, .seg-wrapper, #barre-nav-niv1'
+/** Les blocs qui s'effacent et paraissent un par un, sur la page d'ŒUVRE. Un
+ *  paragraphe de texte, un titre, une entrée de liste, le paragraphe d'argument
+ *  (`.seg-wrapper`) et la barre du niveau 1. Quand deux candidats s'emboîtent,
+ *  c'est l'ENVELOPPANT qui joue, et lui seul : les deux s'effaceraient sinon l'un
+ *  dans l'autre. */
+export const SELECTEUR_BLOCS_OEUVRE = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, figure, .seg-wrapper, #barre-nav-niv1'
+
+/** Les blocs de la page BIBLE : une rangée de verset, un bloc éditorial sur son
+ *  axe, une rangée de la lecture en regard (`data-canon-id`), et les pièces. */
+export const SELECTEUR_BLOCS_BIBLE = '.verset-row, .cs-bible-axe, .cs-bible-bloc, [data-canon-id], .cs-bible-piece > *, h1, h2, h3, h4, p, figure'
 
 export type PositionDeLecture = {
   /** Le niveau 1 qu'on lisait, tel que le sommaire le nomme. */
@@ -100,10 +105,10 @@ export function reprendreBascule(maintenant = Date.now()): Bascule | null {
   return estValide(bascule, maintenant) ? bascule : null
 }
 
-/** Les blocs feuilles qui croisent la bande [haut, bas] de la fenêtre, dans
- *  l'ordre de leur hauteur. */
-export function blocsVisibles(racine: ParentNode, haut: number, bas: number): HTMLElement[] {
-  const visibles = Array.from(racine.querySelectorAll<HTMLElement>(SELECTEUR_BLOCS))
+/** Les blocs qui croisent la bande [haut, bas] de la fenêtre, dans l'ordre de
+ *  leur hauteur ; un bloc contenu dans un autre candidat est écarté. */
+export function blocsVisibles(racine: ParentNode, haut: number, bas: number, selecteur = SELECTEUR_BLOCS_OEUVRE): HTMLElement[] {
+  const visibles = Array.from(racine.querySelectorAll<HTMLElement>(selecteur))
     .map(el => ({ el, boite: el.getBoundingClientRect() }))
     .filter(({ boite }) => boite.height > 0 && boite.bottom > haut && boite.top < bas)
   return visibles
@@ -114,12 +119,12 @@ export function blocsVisibles(racine: ParentNode, haut: number, bas: number): HT
 
 /** Donne leur rang aux blocs visibles (`data-cs-bloc`, `--cs-ordre`) et retire
  *  celui des autres. Rend le nombre de blocs marqués. */
-export function ordonnerBlocsVisibles(racine: HTMLElement, haut: number): number {
+export function ordonnerBlocsVisibles(racine: HTMLElement, haut: number, selecteur = SELECTEUR_BLOCS_OEUVRE): number {
   racine.querySelectorAll<HTMLElement>('[data-cs-bloc]').forEach(el => {
     delete el.dataset.csBloc
     el.style.removeProperty('--cs-ordre')
   })
-  const blocs = blocsVisibles(racine, haut, window.innerHeight)
+  const blocs = blocsVisibles(racine, haut, window.innerHeight, selecteur)
   blocs.forEach((el, rang) => {
     el.dataset.csBloc = ''
     el.style.setProperty('--cs-ordre', String(Math.min(rang, RANG_MAX)))
@@ -127,8 +132,18 @@ export function ordonnerBlocsVisibles(racine: HTMLElement, haut: number): number
   return blocs.length
 }
 
-/** Le premier segment dont une part est encore sous la barre de navigation,
- *  avec la hauteur de son sommet dans la fenêtre. */
+/** Le premier élément du sélecteur dont une part est encore sous la ligne `haut`
+ *  (la barre de navigation, ou le bord d'un défileur), dans l'ordre du document. */
+export function elementEnTete(racine: ParentNode, selecteur: string, haut: number): HTMLElement | null {
+  for (const el of Array.from(racine.querySelectorAll<HTMLElement>(selecteur))) {
+    const boite = el.getBoundingClientRect()
+    if (boite.height > 0 && boite.bottom > haut) return el
+  }
+  return null
+}
+
+/** Le premier segment d'une ŒUVRE encore sous la barre de navigation, avec la
+ *  hauteur de son sommet dans la fenêtre. */
 export function segmentEnTeteDeFenetre(racine: ParentNode, haut: number): { id: number; y: number } | null {
   for (const el of Array.from(racine.querySelectorAll<HTMLElement>('[id^="segment-"]'))) {
     const boite = el.getBoundingClientRect()

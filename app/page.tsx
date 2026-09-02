@@ -429,20 +429,26 @@ export default async function Home({
 
   let lectureBilingue: ComponentProps<typeof BibleLayout>['lectureBilingue'] = null
   if (editionMember && bilingueDisponible && params.bilingue === '1') {
-    const chargee = await chargerLectureBilingue(supabase, { familyRows, livre, chapitre })
-    if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
-      // Même règle qu'en une colonne : sans les commentaires, l'appareil n'est pas
-      // chargé du tout. Les trois listes vides suffisent, `BibleBilingue` ne rendant
-      // alors ni bloc, ni note, ni illustration.
-      const payload: BibleEditionChapterPayload = texteSeul
-        ? { bodyBlocks: [], notes: [], assets: [] }
-        : await loadBibleEditionChapter(supabase, {
+    // Les deux membres et l'appareil partent ENSEMBLE : l'appareil ne tient des
+    // membres que l'axe canonique, qu'il accepte en promesse (même dispositif qu'en
+    // une colonne, `chargerAppareilDuChapitre`). Ils se suivaient, et la lecture en
+    // regard coûtait le double d'une colonne (mesuré en ligne le 2026-09-02 : 3,7 s
+    // contre 2,0). Même règle qu'en une colonne : sans les commentaires, l'appareil
+    // n'est pas chargé du tout, les trois listes vides suffisent.
+    const chargeePromise = chargerLectureBilingue(supabase, { familyRows, livre, chapitre })
+    const [chargee, payload] = await Promise.all([
+      chargeePromise,
+      texteSeul
+        ? Promise.resolve<BibleEditionChapterPayload>({ bodyBlocks: [], notes: [], assets: [] })
+        : loadBibleEditionChapter(supabase, {
           familyId: editionMember.family_id,
           bookCode: livre,
-          canonIds: chargee.axeCanonique,
+          canonIds: chargeePromise.then((c) => c?.axeCanonique ?? []),
           bornesChapitre: canonChapitre.bornes,
           includeBookFrontMatter: chapitre === 1,
-        })
+        }),
+    ])
+    if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
       const balisesBilingue = baliserPayload(payload.bodyBlocks)
       const rangsBilingue = rangerSousTitres(payload.bodyBlocks)
       lectureBilingue = {

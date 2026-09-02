@@ -2145,22 +2145,28 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    Le texte qu'on quitte s'efface paragraphe par paragraphe, de haut en bas ;
    celui qui arrive paraît de même. Les blocs VISIBLES reçoivent leur rang
    (`data-cs-bloc`, `--cs-ordre`) au départ et à l'arrivée, par
-   `ordonnerBlocsVisibles` (`app/oeuvre/[id]/passageTexte.ts`) : ce qui est hors
+   `ordonnerBlocsVisibles` (`app/lib/passageTexte.ts`) : ce qui est hors
    de l'écran n'a pas à jouer. La colonne entière s'efface ensuite, pour emporter
    ce que le rang n'a pas atteint. Les durées s'accordent à `passageTexte.ts` :
    les changer ici, c'est les changer là-bas.
    ⛔ Aucune transformation sur `<main>` lui-même : il deviendrait le bloc
    conteneur des cellules d'actions posées en `fixed`. Les blocs, eux, finissent
    sans transformation (`both` garde l'état final, qui est `none`). */
-main.lecture-sortie [data-cs-bloc] {
+/* Deux surfaces, un dispositif : la page d'œuvre porte la classe sur `<main>`, la
+   page Bible porte `data-passage` sur l'enveloppe de sa lecture et nomme sa colonne
+   `.cs-lecture-colonne` (son en-tête, titre et menu des bibles, ne bouge pas). */
+main.lecture-sortie [data-cs-bloc],
+[data-passage="sortie"] [data-cs-bloc] {
   animation: cs-lecture-effacer 0.26s ease-in both;
   animation-delay: calc(var(--cs-ordre, 0) * 28ms);
 }
-main.lecture-sortie {
+main.lecture-sortie,
+[data-passage="sortie"] .cs-lecture-colonne {
   animation: cs-lecture-effacer-colonne 0.22s ease-in both;
   animation-delay: 0.32s;
 }
-main.lecture-entree [data-cs-bloc] {
+main.lecture-entree [data-cs-bloc],
+[data-passage="entree"] [data-cs-bloc] {
   animation: cs-lecture-paraitre 0.38s ease-out both;
   animation-delay: calc(var(--cs-ordre, 0) * 30ms);
 }
@@ -2185,7 +2191,10 @@ main.lecture-entree [data-cs-bloc] {
 @media (prefers-reduced-motion: reduce) {
   main.lecture-sortie [data-cs-bloc],
   main.lecture-sortie,
-  main.lecture-entree [data-cs-bloc] {
+  main.lecture-entree [data-cs-bloc],
+  [data-passage="sortie"] [data-cs-bloc],
+  [data-passage="sortie"] .cs-lecture-colonne,
+  [data-passage="entree"] [data-cs-bloc] {
     animation-duration: 0.01ms;
     animation-delay: 0s;
   }

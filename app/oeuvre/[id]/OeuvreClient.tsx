@@ -77,7 +77,7 @@ import {
   ordonnerBlocsVisibles,
   reprendreBascule,
   segmentEnTeteDeFenetre,
-} from './passageTexte'
+} from '@/app/lib/passageTexte'
 import ComparaisonTraductions from './ComparaisonTraductions'
 import {
   choisirAlignement,
