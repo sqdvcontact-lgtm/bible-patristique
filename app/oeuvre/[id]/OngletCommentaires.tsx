@@ -1,7 +1,6 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import { MESSAGE_COMMENTAIRE_INTERDIT, termesInterditsDansTexte } from '@/app/lib/moderationLexique'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -199,7 +198,6 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     if (!texte.trim() || segActif === null || !userId) return
     setMotifErreur('')
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setStatut('err'); return }
-    if (termesInterditsDansTexte(texte).length) { setMotifErreur(MESSAGE_COMMENTAIRE_INTERDIT); setStatut('err'); return }
     setStatut('sending')
     const { data, error } = await supabase.from('commentaires').insert({
       id_segment: segActif, texte: texte.trim(), valide: false, user_id: userId,

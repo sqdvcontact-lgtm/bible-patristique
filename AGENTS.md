@@ -4204,3 +4204,11 @@ Décision de l'auteur : une liste noire pour le pseudonyme, une autre pour les c
 ### ⛔ La sonde seule ne suffit pas : on observe AUSSI la carte (2026-09-03)
 
 Relevé de l'auteur, sur Fillion : la référence d'édition paraissait sur NEUF lignes dans un volet de 300 px, quand le budget y est de sept. Mesuré dans la page servie : la sonde comptait sept lignes, le budget disait cinq, et le texte restait visible. Le `ResizeObserver` ne regardait que la sonde ; or le budget suit la LARGEUR du volet (5 lignes sous 300 px, 7 au-dessus) et la hauteur de la sonde ne bouge pas au même rythme. Le volet peut passer sous 300 px sans que le texte gagne une ligne : la sonde ne change pas, personne n'est réveillé, et l'état `tient` reste celui d'avant. `useReferenceEntiere` observe désormais la carte (`.cs-volet-carte`) en plus de la sonde. ⚠️ Règle générale : quand une décision dépend de DEUX mesures, on observe les deux, pas celle qui a l'air de contenir l'autre.
+
+### ⛔ Rectification du jour même : le lexique vit EN BASE, et nulle part ailleurs (2026-09-03)
+
+Demande de l'auteur : « Intègre à la page Admin cette liste de termes, pour que je puisse en ajouter ou en supprimer. » Une liste que l'auteur tient ne peut pas avoir de copie dans le code : `app/lib/moderationLexique.ts` et son test sont RETIRÉS le jour de leur naissance, et la table `moderation_lexique` est la seule source. Onglet **Lexique** de l'administration (famille Communauté, `app/admin/SectionLexique.tsx`), route `app/api/admin/lexique` (GET, POST en upsert, DELETE, vérification admin par jeton), la table restant fermée à l'API.
+
+- **Un mot ajouté agit à l'instant**, sans déploiement : les déclencheurs relisent la table à chaque écriture d'un lecteur, et `creer-profil` (clé de service, donc hors déclencheur) interroge `terme_interdit` par RPC.
+- ⛔ **Plus aucun contrôle avant l'envoi dans les composeurs** : c'est la base qui refuse, en ZL001, avec un message écrit pour être lu, que les trois composeurs et la page du compte affichent tel quel. Un contrôle côté site aurait exigé une copie de la liste, et c'est précisément ce qu'on vient de défaire.
+- **Le régime d'un terme se bascule d'un clic** (« mot entier » / « partout »), et la migration `20260903120000` ne fait plus que POSER la liste de départ : elle ne fait plus autorité, et aucune garde ne la compare à quoi que ce soit.

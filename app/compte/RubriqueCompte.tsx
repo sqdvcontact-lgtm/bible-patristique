@@ -20,7 +20,6 @@
 // depuis le menu de la barre, et deux façons de poser le même réglage divergeraient.
 
 import React, { useEffect, useState } from 'react'
-import { MESSAGE_PSEUDO_INTERDIT, termeInterditDansPseudo } from '@/app/lib/moderationLexique'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { themeValide, type Theme } from '@/app/lib/theme'
@@ -103,7 +102,6 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
   }
 
   const enregistrer = async () => {
-    if (termeInterditDansPseudo(pseudo)) { setStatut({ ok: false, msg: MESSAGE_PSEUDO_INTERDIT }); return }
     setOccupe(true); setStatut(null)
     const champs = {
       pseudo: pseudo.trim(), prenom: prenom.trim() || null, nom: nom.trim() || null,

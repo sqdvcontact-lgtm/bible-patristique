@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MESSAGE_COMMENTAIRE_INTERDIT, termesInterditsDansTexte } from '@/app/lib/moderationLexique'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -72,7 +71,6 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const envoyer = async () => {
     if (!exigerCompte('commenter cette publication')) return
     if (!texte.trim() || !userId) return
-    if (termesInterditsDansTexte(texte).length) { setErreur(MESSAGE_COMMENTAIRE_INTERDIT); return }
     setErreur('')
     setEnvoi(true)
     const { data, error } = await supabase.from('essais_commentaires').insert({

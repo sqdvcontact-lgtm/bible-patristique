@@ -62,6 +62,7 @@ export const ENTREES_ADMIN: EntreeAdmin[] = [
   { href: '/admin?onglet=verifications',        label: 'Vérifications',       famille: 'communaute', onglet: 'verifications' },
   { href: '/admin?onglet=constituer-liens',     label: 'Constituer liens',    famille: 'communaute', onglet: 'constituer-liens' },
   { href: '/admin?onglet=moderation',           label: 'Modération',          famille: 'communaute', onglet: 'moderation' },
+  { href: '/admin?onglet=lexique',              label: 'Lexique',             famille: 'communaute', onglet: 'lexique' },
   { href: '/admin?onglet=propositions',         label: 'Propositions',        famille: 'communaute', onglet: 'propositions' },
   // ── Système & doctrine ──────────────────────────────────────────────────────
   // « Audience » dit ce que le site REÇOIT (visites, comptes, lectures). À ne pas

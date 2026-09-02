@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { MESSAGE_PSEUDO_INTERDIT, termeInterditDansPseudo } from '@/app/lib/moderationLexique'
 import { createClient } from '@supabase/supabase-js'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 
@@ -28,9 +27,11 @@ export async function POST(request: Request) {
   if (PSEUDO_RESERVES.has(pseudoTrimmed.toLowerCase())) {
     return NextResponse.json({ error: 'Ce pseudo est réservé.' }, { status: 400 })
   }
-  // La clé de service contourne le déclencheur de la base : le lexique se vérifie ici.
-  if (termeInterditDansPseudo(pseudoTrimmed)) {
-    return NextResponse.json({ error: MESSAGE_PSEUDO_INTERDIT }, { status: 400 })
+  // La clé de service contourne le déclencheur de la base : on interroge le lexique
+  // (table `moderation_lexique`, tenue depuis l'administration) par la même fonction.
+  const { data: interdit } = await supabaseAdmin.rpc('terme_interdit', { t: pseudoTrimmed, pour_pseudo: true })
+  if (interdit) {
+    return NextResponse.json({ error: 'Ce pseudonyme n’est pas admis.' }, { status: 400 })
   }
 
   // On exige une session dont l'identifiant correspond à `user_id` : nul ne peut

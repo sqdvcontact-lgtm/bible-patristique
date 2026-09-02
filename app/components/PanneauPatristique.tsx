@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { MESSAGE_COMMENTAIRE_INTERDIT, termesInterditsDansTexte } from '@/app/lib/moderationLexique'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { parseNotes } from '@/app/lib/notes'
@@ -550,7 +549,6 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     if (!exigerCompte('commenter ce passage')) return
     if (!texte.trim()) { setErreur('Le commentaire est vide.'); return }
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setErreur('Pas plus de cinq lettres capitales à la suite.'); return }
-    if (termesInterditsDansTexte(texte).length) { setErreur(MESSAGE_COMMENTAIRE_INTERDIT); return }
     if (!userId) {
       if (!nom.trim())   { setErreur('Le nom est requis.'); return }
       if (!mailValide(mail)) { setErreur('Adresse e-mail invalide.'); return }
