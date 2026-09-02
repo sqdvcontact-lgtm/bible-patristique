@@ -774,6 +774,49 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       setSortie(false)
     }
   }, [navigation, sortie])
+  // ── Le même passage pour les changements INTERNES de la page (2026-09-02) ───
+  // Changer de niveau 1 (flèches, sommaire), tourner une page de pagination : le texte
+  // ne change pas d'adresse, mais il change tout entier. Il s'efface donc de même, et
+  // ce qui le remplace paraît de même. Le départ marque et efface ; le remplacement
+  // n'est appliqué qu'à la FIN de l'effacement (une division en cache arriverait sinon
+  // avant qu'on ait rien vu) ; l'arrivée se joue dans un effet de mise en page, dès que
+  // le contenu neuf est là et avant sa première peinture.
+  const [arrivee, setArrivee] = useState(0)
+  const departLocal = () => {
+    const main = mainRef.current
+    if (main) ordonnerBlocsVisibles(main, hauteurNavbarPx())
+    setSortie(true)
+    return Date.now()
+  }
+  const finDeSortie = (depart: number) => new Promise<void>(resolve => {
+    window.setTimeout(resolve, Math.max(0, depart + DUREE_SORTIE_MS - Date.now()))
+  })
+  useLayoutEffect(() => {
+    if (arrivee === 0) return
+    // Le retour en haut d'une division neuve se fait ICI, avant de marquer : sinon on
+    // marquerait les blocs d'un endroit qu'on va quitter dans l'instant. L'effet qui
+    // le faisait après la peinture trouve alors le témoin déjà rembobiné.
+    if (pendingScrollTopRef.current && vue === 'texte') {
+      pendingScrollTopRef.current = false
+      document.getElementById('barre-nav-niv1')?.scrollIntoView({ block: 'start' })
+    }
+    const main = mainRef.current
+    if (main) ordonnerBlocsVisibles(main, hauteurNavbarPx())
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSortie(false)
+    setEntree(true)
+    const fin = window.setTimeout(() => setEntree(false), DUREE_ENTREE_MS)
+    return () => window.clearTimeout(fin)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arrivee])
+  /** Tourne une page de pagination, avec le passage. */
+  const changerPage = async (idx: number) => {
+    const depart = departLocal()
+    await finDeSortie(depart)
+    setPageActuelle(idx)
+    pendingScrollTopRef.current = true
+    setArrivee(n => n + 1)
+  }
   /** Demande la page au survol, une fois par adresse.
    *
    *  ⚠️ `kind: 'full'` n'est pas un ornement : un préchargement ordinaire s'arrête au
@@ -1311,31 +1354,42 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       if (ancre) naviguerVersAncre(ancre)
       return
     }
-    if (!opts?.conserverPosition) {
-      setSegActif(null)
-      setNiv2Actif(null)
-      setVue('texte')
-      setPageActuelle(0)
-      pendingScrollTopRef.current = true
+    // Le texte s'efface d'abord ; ce qui suit ne s'applique qu'à la fin de
+    // l'effacement, d'un seul tenant, pour que rien de l'ancienne division ne
+    // reparaisse entre-temps (sa première page, la vue du texte…).
+    const depart = departLocal()
+    const appliquer = (donnees: { groupes: GroupeData[]; segments: SegData[] }) => {
+      if (!opts?.conserverPosition) {
+        setSegActif(null)
+        setNiv2Actif(null)
+        setVue('texte')
+        setPageActuelle(0)
+        pendingScrollTopRef.current = true
+      }
+      setGroupes(donnees.groupes)
+      setSegments(donnees.segments)
+      setArrivee(n => n + 1)
     }
 
     const enCache = !opts?.forceRefresh ? cacheNiv1Ref.current.get(n1) : undefined
     if (enCache) {
-      setGroupes(enCache.groupes)
-      setSegments(enCache.segments)
       setNiv1Loading(false)
       setNiv1Erreur(null)
+      await finDeSortie(depart)
+      appliquer(enCache)
     } else {
       setNiv1Loading(true)
       setNiv1Erreur(null)
       try {
         const donnees = await chargerNiv1Data(n1)
         cacheNiv1Ref.current.set(n1, donnees)
-        setGroupes(donnees.groupes)
-        setSegments(donnees.segments)
+        await finDeSortie(depart)
+        appliquer(donnees)
       } catch (error) {
         console.error(`Chargement du niveau ${n1} impossible :`, error)
         setNiv1Erreur(n1)
+        // L'erreur se lit dans la barre du niveau : on rend son texte à la page.
+        setSortie(false)
       } finally {
         setNiv1Loading(false)
       }
@@ -2829,7 +2883,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
           {/* Navigation de pages — bas de page */}
           {vue === 'texte' && !modeComparaisonActif && pages.length > 1 && (
-            <NavPages pages={pages} pageActuelle={pageActuelle} setPageActuelle={setPageActuelle} bas />
+            <NavPages pages={pages} pageActuelle={pageActuelle} setPageActuelle={changerPage} bas />
           )}
 
           {/* Vue apparat critique */}
