@@ -2030,13 +2030,15 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    la carte n'est plus rendue du tout, si bien qu'un seuil du tableau des
    média-queries (700, 640…) ne se déclencherait JAMAIS ici.
 
-   ⛔ 260 px pour la RÉFÉRENCE D'ÉDITION. Elle compte de 163 à 348 signes, et deux
-   lignes ne la portent jamais en entier : le seuil ne dit donc pas où elle tient,
-   mais où elle cesse de dire quelque chose. Mesuré sur la plus longue (Fillion,
-   348 signes) : 76 signes à 200 px, soit le titre coupé en son milieu ; 100 à 240 ;
-   115 à 280. Sous 260 la phrase s'arrête avant d'avoir nommé l'ouvrage, et un
-   moignon de titre vaut moins que rien — c'est celui-là que l'auteur a relevé le
-   28 août 2026. La fiche « En savoir plus » la donne entière, à toute largeur.
+   ⛔ 260 px pour la RÉFÉRENCE D'ÉDITION, et c'est un PLANCHER, non le seuil où
+   elle paraît. Elle compte de 93 à 348 signes. Mesuré sur la plus longue (Fillion,
+   348 signes) : 76 signes à 200 px sur deux lignes, soit le titre coupé en son
+   milieu ; sous 260 la phrase s'arrêtait avant d'avoir nommé l'ouvrage, et c'est
+   ce moignon que l'auteur a relevé le 28 août 2026. Depuis le 2 septembre 2026
+   elle ne se coupe plus du tout (« ne pas tronquer le premier texte ») : au-dessus
+   du plancher, la carte la MESURE et ne la montre que si elle tient entière dans
+   le compte de lignes que le volet lui accorde (voir plus bas, « Ce que le volet
+   dit de plus »). La fiche « En savoir plus » la donne entière, à toute largeur.
 
    ⛔ IL N'Y A PLUS DE SEUIL POUR LE LIEN, et sa disparition vaut d'être gardée.
    « En savoir plus sur cette traduction » était écrit en DEUX formes, longue et
@@ -2049,11 +2051,12 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    se règle par la largeur, jamais en JavaScript ; mais on regarde d'abord s'il
    faut un libellé.
 
-   ⚠️ Le repli se pose AVANT les requêtes : une requête de conteneur n'ajoute
-   aucune spécificité, et la même règle écrite APRÈS elle l'emporte. C'est ce qui
-   avait masqué les deux formes du lien à la fois, et c'est pourquoi la ligne
-   ci-dessous précède les blocs `@container`. */
-.cs-volet-bio { display: none; }
+   ⚠️ Le repli d'une forme se pose AVANT les requêtes : une requête de conteneur
+   n'ajoute aucune spécificité, et la même règle écrite APRÈS elle l'emporte. C'est
+   ce qui avait masqué les deux formes du lien à la fois, puis ce qui a réglé la
+   place de la notice du traducteur tant qu'elle a existé (retirée le 2 septembre
+   2026). Il n'y a plus de repli à écrire ici ; s'il en revient un, il précède les
+   blocs `@container`. */
 
 /* ── L'ÉCHELLE DU VOLET : l'aération suit l'écran, et la poignée ──────────────
    ⛔ Le volet était dessiné en PIXELS FIXES pendant que tout ce qu'il porte est
@@ -2096,9 +2099,10 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   /* La case d'un chapitre, et l'écart entre deux colonnes de cases. */
   --volet-case: clamp(1.45rem, 9cqi, 1.8rem);
   --volet-case-ecart: clamp(0.125rem, 1cqi, 0.25rem);
-  /* Ce que la carte « Traduction » montre de ses deux textes longs. */
-  --volet-ref-lignes: 2;
-  --volet-bio-lignes: 6;
+  /* Ce que la carte « Traduction » accorde à la référence d'édition : un compte
+     de lignes, dans lequel elle paraît ENTIÈRE ou pas du tout (voir plus bas,
+     « Ce que le volet dit de plus »). */
+  --volet-ref-lignes: 5;
 }
 
 @container volet (max-width: 259px) {
@@ -2106,37 +2110,41 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 }
 
 /* ── Ce que le volet DIT DE PLUS quand il est large ───────────────────────────
-   ⛔ 260 px pour la NOTICE du traducteur (`bio_courte`) comme pour la référence
-   d'édition, et le seuil vient de la MESURE, non du goût. Les neuf notices
-   comptent de 106 à 230 signes. Les deux plus longues (Fillion 223, AELF 230),
-   composées à 10 px dans la largeur utile du volet, réclament : 6 lignes à 230 px
-   de volet, 5 à 250, 4 à 300. À partir de 250 px elles tiennent donc ENTIÈRES en
-   cinq lignes, et le compte est porté à six pour la marge d'une police un peu
-   plus large que celle de la mesure. Sous 250, la notice serait coupée en son
-   milieu, et une notice coupée ne vaut pas mieux que la référence tronquée du
-   28 août — c'est la même leçon.
-   Repères d'écran, le volet valant clamp(200px, 14vw, 320px) au repos : 1440 →
-   202 px (rien de plus), 1920 → 269 (référence ET notice), 2286 et au-delà → 320.
-   À la poignée, l'un et l'autre s'obtiennent dès 260 px sur n'importe quel écran.
+   ⛔ LA RÉFÉRENCE D'ÉDITION PARAÎT ENTIÈRE OU PAS DU TOUT (2026-09-02, demande de
+   l'auteur : « ne pas tronquer le premier texte ; limiter le nombre de caractères
+   affichés, ou même si ce paragraphe s'affiche, en fonction de la taille de
+   l'écran »). La feuille ne fixe plus un nombre de lignes VISIBLES, elle fixe un
+   BUDGET : `--volet-ref-lignes` est le compte de lignes que le volet accorde à la
+   référence, et la carte (`EncartTraduction`) compose la référence dans une sonde
+   invisible, à la largeur du volet, et compte ses lignes ; si elle tient dans le
+   budget, elle paraît sans coupure ; sinon elle s'efface, et la fiche « En savoir
+   plus » la donne entière. Une requête de conteneur ne sait pas compter les
+   signes d'un texte, et une référence tronquée est une phrase cassée : la MESURE
+   est donc en JavaScript, et la POLITIQUE reste ici, avec les autres seuils.
 
-   ⚠️ La RÉFÉRENCE D'ÉDITION, elle, ne tient pas entière à 260 : elle compte de 163
-   à 348 signes, et c'est pourquoi son compte de lignes MONTE avec le volet — 2 à
-   260, 3 à 300, 4 à 350. Quatre lignes de 350 px en portent 224 : sept des neuf
-   éditions y tiennent alors entières, là où deux lignes n'en montraient qu'un
-   moignon. Le seuil de 260 ne dit pas où elle tient, il dit où elle cesse de ne
-   rien dire ; ceux qui suivent disent où elle redevient une phrase.
+   Le budget monte avec le volet : 5 lignes dès 260 px, 7 à 300, 8 à 350. Les dix
+   références comptent de 93 à 348 signes, et le budget est taillé pour que la
+   plus longue (Fillion, 348) tienne dès qu'on tire le volet à 350 px, et qu'un
+   écran de 2286 et au-delà (volet au repos à 320 px) montre au moins les
+   références moyennes. ⚠️ Le compte plafonne à 8 : à 10,5 px d'œil, cela fait
+   109 px de carte, et la liste des livres vit dessous — élargir encore le volet
+   ne lui rend rien de plus. Ce que chaque écran montre découle du budget et de
+   la mesure, non d'une liste tenue à la main : ajouter une bible n'oblige à rien.
 
-   ⛔ Ces règles se posent APRÈS le repli et APRÈS `.cs-volet-echelle`, jamais
-   avant : une requête de conteneur n'ajoute aucune spécificité, et c'est l'ordre
-   d'écriture qui tranche. */
-@container volet (min-width: 260px) {
-  .cs-volet-bio { display: block; }
-}
+   ⛔ IL N'Y A PLUS DE NOTICE DU TRADUCTEUR DANS LA CARTE (2026-09-02, demande de
+   l'auteur : « n'afficher que le premier texte »). Elle y était entrée le 31 août
+   au-dessus de 260 px, entière en six lignes ; elle vit dans la fiche « En savoir
+   plus », et la carte ne porte plus qu'un texte long, la référence. Le repli
+   `.cs-volet-bio { display: none }` et le compte `--volet-bio-lignes` sont partis
+   avec elle.
+
+   ⛔ Ces règles se posent APRÈS `.cs-volet-echelle`, jamais avant : une requête de
+   conteneur n'ajoute aucune spécificité, et c'est l'ordre d'écriture qui tranche. */
 @container volet (min-width: 300px) {
-  .cs-volet-echelle { --volet-ref-lignes: 3; }
+  .cs-volet-echelle { --volet-ref-lignes: 7; }
 }
 @container volet (min-width: 350px) {
-  .cs-volet-echelle { --volet-ref-lignes: 4; }
+  .cs-volet-echelle { --volet-ref-lignes: 8; }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

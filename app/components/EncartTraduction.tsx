@@ -7,12 +7,28 @@
 // la page Bible (`NavLivres`), en desktop seulement — sur téléphone le volet est
 // un tiroir, et la carte n'y est pas rendue.
 //
-// ⛔ LA RÉFÉRENCE D'ÉDITION S'EFFACE SUR UN VOLET ÉTROIT (décision de l'auteur,
-// 2026-08-28). Elle compte de 163 à 348 signes selon la traduction ; bornée à deux
-// lignes dans une colonne de 180 pixels, elle n'en montrait qu'un cinquième, coupé
-// au milieu d'un titre, et c'est ce moignon que l'auteur a relevé : « Texte latin
-// en regard dans Louis-Claude Fillion, La Sainte Bible (texte latin… ». Une
-// référence tronquée n'est pas une référence courte, c'est une phrase cassée.
+// ⛔ LA RÉFÉRENCE D'ÉDITION NE SE COUPE JAMAIS : ELLE PARAÎT ENTIÈRE OU PAS DU TOUT
+// (décision de l'auteur, 2026-09-02 : « ne pas tronquer le premier texte ; limiter
+// le nombre de caractères affichés, ou même si ce paragraphe s'affiche, en fonction
+// de la taille de l'écran »). Elle compte de 93 à 348 signes selon la traduction.
+// Le 28 août, bornée à deux lignes dans une colonne de 180 pixels, elle n'en
+// montrait qu'un cinquième, coupé au milieu d'un titre : « Texte latin en regard
+// dans Louis-Claude Fillion, La Sainte Bible (texte latin… ». Le 31 août, son
+// compte de lignes montait avec le volet (2, 3, 4), ce qui laissait toujours les
+// plus longues coupées. Une référence tronquée n'est pas une référence courte,
+// c'est une phrase cassée ; elle ne l'est plus.
+//
+// ⚠️ COMMENT ELLE DÉCIDE. La feuille (`globals.css`, « Ce que le volet dit de
+// plus ») accorde à la référence un BUDGET de lignes qui monte avec la largeur du
+// volet, `--volet-ref-lignes`. La carte compose la référence dans une SONDE
+// invisible, de la largeur et de la police du texte visible, compte les lignes
+// qu'elle occupe et ne rend le texte visible que s'il tient dans le budget. Une
+// requête de conteneur ne sait pas compter les signes d'un texte : la mesure est
+// donc ici, en JavaScript, mais la POLITIQUE (le budget, les seuils) reste dans la
+// feuille, avec les autres seuils du volet. La sonde est observée
+// (`ResizeObserver`) : elle change de hauteur quand le volet change de largeur,
+// quand la police finit de se charger, et quand la feuille cesse de la cacher
+// sous 260 px — trois cas, une seule mesure.
 //
 // ⚠️ Le seuil porte sur la largeur du VOLET, non sur celle de l'écran, et c'est ce
 // qui rend la carte vraiment adaptable : le volet se traîne de 120 à 400 pixels à
@@ -20,6 +36,11 @@
 // média-query n'aurait vu que le second cas. La règle est donc une REQUÊTE DE
 // CONTENEUR, dans `globals.css` (`@container volet`), le volet portant
 // `container-type: inline-size`.
+//
+// ⛔ LA CARTE NE PORTE PLUS LA NOTICE DU TRADUCTEUR (2026-09-02, demande de
+// l'auteur : « n'afficher que le premier texte »). Entrée le 31 août au-dessus de
+// 260 px de volet, elle vit dans la fiche « En savoir plus », d'où elle venait, et
+// la carte ne porte plus qu'un texte long : la référence.
 //
 // ⛔ IL N'Y A PLUS D'ÉTIQUETTE « TRADUCTION » (2026-08-31, demande de l'auteur :
 // « supprime le mot “Traduction” »). Elle a coûté deux chantiers avant de partir :
@@ -31,18 +52,11 @@
 // écrit « Auteur » au-dessus du nom de l'auteur ; celui-ci n'écrit plus
 // « Traduction » au-dessus du nom de la bible, et les deux se ressemblent enfin.
 //
-// ⚠️ LA CARTE EN DIT PLUS À MESURE QUE LE VOLET S'ÉLARGIT (2026-08-31, demande de
-// l'auteur : « plus de texte sur grand écran, aucun sur petit »). Elle porte quatre
-// degrés, tous commandés par la largeur du VOLET dans globals.css :
-//   · sous 260 px : le nom de la bible, le nom du traducteur et ses dates ;
-//   · 260 : la référence de l'édition paraît, bornée à deux lignes, et la NOTICE
-//     du traducteur avec elle — entière, six lignes lui suffisant à toute largeur ;
-//   · 300 : la référence passe à trois lignes ;
-//   · 350 : elle en prend quatre, et sept éditions sur neuf y tiennent entières.
 // ⛔ Aucun degré ne RETRANCHE quoi que ce soit à ce que la carte montrait avant :
-// l'état de départ est celui du volet le plus étroit, et tout le reste s'y ajoute.
-// Les blancs, eux, ne sautent pas de degré en degré : ils suivent l'échelle du
-// volet, qui est continue (voir globals.css, « L'échelle du volet »).
+// l'état de départ est celui du volet le plus étroit (le nom de la bible, le nom
+// du traducteur et ses dates), et la référence s'y ajoute quand elle tient. Les
+// blancs, eux, ne sautent pas de degré en degré : ils suivent l'échelle du volet,
+// qui est continue (voir globals.css, « L'échelle du volet »).
 //
 // ⛔ LA CARTE S'OUVRE SUR LE NOM DE LA BIBLE, et c'est lui le lien (décision
 // de l'auteur, 2026-08-31 : « remplacer par le nom raccourci de la traduction, par
@@ -59,12 +73,9 @@
 // d'un côté l'auteur, de l'autre la bible, et il n'y a pas deux façons de le dire.
 // ⛔ Rien ne paraît au survol, ni ici ni là (voir `NomVolet`).
 
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
 import NomVolet from '@/app/components/NomVolet'
-// Les notices datent volontiers (« IVe siècle ») : elles passent par le composeur
-// commun, seul endroit du site qui sache poser un siècle.
-import { rendreSiecles } from '@/app/lib/siecles'
 
 export type TraductionEncart = {
   code: string
@@ -72,16 +83,55 @@ export type TraductionEncart = {
   auteur?: string | null
   auteurDates?: string | null
   editionRef?: string | null
-  // `traductions.bio_courte` : deux phrases sur le traducteur. Elle ne paraît que
-  // sur un volet large, où elle tient entière (voir l'en-tête).
-  bio?: string | null
   datePublication?: string | null
   confession?: string | null
   langue?: string | null
 }
 
+// La composition de la référence : la sonde et le texte visible la partagent, sans
+// quoi la mesure ne dirait rien du texte. ⛔ Pas de `-webkit-line-clamp` : le texte
+// visible n'est jamais coupé, c'est toute la règle.
+const STYLE_REF: CSSProperties = { fontSize: '0.65625rem', color: 'var(--cs-texte-second)', lineHeight: 1.3 }
+
+/**
+ * Dit si la référence tient ENTIÈRE dans le budget de lignes que la feuille accorde
+ * au volet (`--volet-ref-lignes`). `sonde` se pose sur un bloc invisible qui porte
+ * le même texte, dans la même police et la même largeur que le texte visible.
+ *
+ * ⚠️ `false` au départ, donc au rendu serveur : la référence paraît après la
+ * première mesure, sous `useLayoutEffect`, avant que l'écran ne soit peint. Un
+ * départ à `true` aurait montré la référence entière puis l'aurait retirée, et la
+ * liste des livres aurait sauté sous l'œil du lecteur.
+ * ⚠️ Sous 260 px la feuille cache tout le bloc (`display: none`) : la sonde mesure
+ * 0 et la réponse est `false`, ce qui ne change rien à ce qu'on voit ; quand le
+ * volet repasse le seuil, la sonde reprend une hauteur, l'observateur le voit, et
+ * la mesure se refait.
+ */
+function useReferenceEntiere(texte: string | null | undefined) {
+  const sonde = useRef<HTMLSpanElement>(null)
+  const [tient, setTient] = useState(false)
+  useLayoutEffect(() => {
+    const el = sonde.current
+    if (!el) return
+    const mesurer = () => {
+      const hauteur = el.getBoundingClientRect().height
+      if (hauteur === 0) { setTient(false); return }
+      const style = getComputedStyle(el)
+      const interligne = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.3
+      const budget = parseInt(style.getPropertyValue('--volet-ref-lignes'), 10) || 0
+      setTient(Math.round(hauteur / interligne) <= budget)
+    }
+    mesurer()
+    const observateur = new ResizeObserver(mesurer)
+    observateur.observe(el)
+    return () => observateur.disconnect()
+  }, [texte])
+  return { sonde, tient }
+}
+
 export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
+  const { sonde, tient: referenceTient } = useReferenceEntiere(trad.editionRef)
   return (
     // ⚠️ Plus de `minHeight` : la carte valait 6,75 rem pour ne jamais faire bouger
     // la mise en page, ce qui laissait un blanc de deux lignes dès que la référence
@@ -111,27 +161,17 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
         {trad.auteur || '—'}
         {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> ({trad.auteurDates})</span>}
       </span>
-      {/* Div BLOC volontaire : `-webkit-line-clamp` sur un enfant DIRECT du flex serait
-          neutralisé (blockification). Sur un volet large, la référence est bornée à
-          deux lignes ; sur un volet étroit, elle s'efface tout à fait, et la fiche
-          « En savoir plus » la donne entière dans les deux cas. */}
+      {/* La RÉFÉRENCE D'ÉDITION, entière ou absente (voir l'en-tête). Le bloc porte
+          deux fois le texte : la SONDE, toujours rendue mais sans hauteur ni
+          visibilité, que la mesure lit ; et le texte VISIBLE, rendu seulement quand
+          la mesure a dit qu'il tient. Sous 260 px de volet, la feuille cache le
+          bloc entier (`cs-volet-ref`), sonde comprise. */}
       {trad.editionRef && (
         <div className="cs-volet-ref">
-          <span style={{ display: '-webkit-box', WebkitLineClamp: 'var(--volet-ref-lignes, 2)', WebkitBoxOrient: 'vertical', overflow: 'hidden', fontSize: '0.65625rem', color: 'var(--cs-texte-second)', lineHeight: 1.3 }}>{trad.editionRef}</span>
-        </div>
-      )}
-      {/* La NOTICE du traducteur — deux phrases, en italique comme dans la fiche
-          « En savoir plus », d'où elle vient. Elle ne paraît qu'au-dessus de 260 px
-          de volet (`cs-volet-bio`, éteinte par défaut dans globals.css) : c'est la
-          largeur au-dessous de laquelle la plus longue des neuf ne tient plus en
-          six lignes, et une notice coupée en son milieu vaut moins que pas de
-          notice du tout. La mesure est dans globals.css, avec le seuil.
-          ⚠️ Même construction que la référence, et pour la même raison : la boîte
-          extérieure est un BLOC, car `-webkit-line-clamp` posé sur un enfant direct
-          du flex serait neutralisé (blockification). */}
-      {trad.bio && (
-        <div className="cs-volet-bio">
-          <span style={{ display: '-webkit-box', WebkitLineClamp: 'var(--volet-bio-lignes, 4)', WebkitBoxOrient: 'vertical', overflow: 'hidden', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>{rendreSiecles(trad.bio)}</span>
+          {referenceTient && <span style={STYLE_REF}>{trad.editionRef}</span>}
+          <div aria-hidden style={{ height: 0, overflow: 'hidden', visibility: 'hidden' }}>
+            <span ref={sonde} style={{ ...STYLE_REF, display: 'block' }}>{trad.editionRef}</span>
+          </div>
         </div>
       )}
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
