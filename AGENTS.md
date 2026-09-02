@@ -4200,3 +4200,7 @@ Décision de l'auteur : une liste noire pour le pseudonyme, une autre pour les c
 - Mesuré à la pose : aucun pseudonyme ni commentaire existant n'est atteint.
 
 ⚠️ **Piège d'atelier payé deux fois ce jour** : un `\1` écrit dans une commande Bash (heredoc ou `node -`) arrive dans le fichier comme le caractère U+0001, invisible à l'affichage et à `git diff`, et une expression `(.)\1{2,}` devient `(.){2,}`. Passer par l'outil d'écriture pour toute suite antislash-chiffre, et contrôler par `cat -v`.
+
+### ⛔ La sonde seule ne suffit pas : on observe AUSSI la carte (2026-09-03)
+
+Relevé de l'auteur, sur Fillion : la référence d'édition paraissait sur NEUF lignes dans un volet de 300 px, quand le budget y est de sept. Mesuré dans la page servie : la sonde comptait sept lignes, le budget disait cinq, et le texte restait visible. Le `ResizeObserver` ne regardait que la sonde ; or le budget suit la LARGEUR du volet (5 lignes sous 300 px, 7 au-dessus) et la hauteur de la sonde ne bouge pas au même rythme. Le volet peut passer sous 300 px sans que le texte gagne une ligne : la sonde ne change pas, personne n'est réveillé, et l'état `tient` reste celui d'avant. `useReferenceEntiere` observe désormais la carte (`.cs-volet-carte`) en plus de la sonde. ⚠️ Règle générale : quand une décision dépend de DEUX mesures, on observe les deux, pas celle qui a l'air de contenir l'autre.

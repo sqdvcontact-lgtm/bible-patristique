@@ -124,6 +124,14 @@ function useReferenceEntiere(texte: string | null | undefined) {
     mesurer()
     const observateur = new ResizeObserver(mesurer)
     observateur.observe(el)
+    // ⛔ La sonde seule ne suffit PAS, et c'est ainsi que la référence de Fillion est
+    // restée à l'écran sur neuf lignes (relevé de l'auteur, 2026-09-03). Le BUDGET
+    // dépend de la largeur du volet, la HAUTEUR de la sonde aussi, mais pas au même
+    // rythme : le volet peut passer sous 300 px (budget 7 → 5) sans que le texte
+    // gagne une ligne, et la sonde, immobile, ne réveille alors personne. On observe
+    // donc aussi la carte, qui change de largeur avec le volet.
+    const carte = el.closest('.cs-volet-carte')
+    if (carte) observateur.observe(carte)
     return () => observateur.disconnect()
   }, [texte])
   return { sonde, tient }
