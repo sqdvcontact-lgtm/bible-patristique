@@ -108,7 +108,7 @@ describe('lecture bilingue de la page Bible', () => {
 
   // Quatre régressions à empêcher : un contenu propre à une langue ne doit
   // jamais disparaître faute d'une place dans la grille.
-  it('rend un bloc propre à une langue sur TOUTE la largeur, hors des colonnes', () => {
+  it('rend un bloc propre à une langue hors des colonnes, à la mesure du bloc de lecture', () => {
     const html = renderToStaticMarkup(
       <BibleBilingue
         {...COMMUN}
@@ -130,9 +130,34 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html.split('Propre au français, sans ancre.')).toHaveLength(2)
     // Une introduction de Fillion n'a pas d'équivalent latin : l'enfermer dans
     // la colonne française laisserait en face une colonne vide de sa hauteur.
-    // Elle passe donc sur toute la largeur, hors de toute cellule de membre.
+    // Elle sort donc des colonnes, hors de toute cellule de membre.
     const avant = html.slice(0, html.indexOf('Propre au français, sans ancre.'))
     expect(avant.lastIndexOf('data-membre=')).toBe(-1)
+    // ⛔ Mais pas sur TOUTE leur largeur (2026-09-03) : l'enveloppe `.cs-bible-regard`
+    // la borne à la mesure du bloc de lecture. Sur mobile, où les colonnes sont
+    // empilées à la largeur de l'écran, l'enveloppe n'est pas rendue.
+    expect(avant.lastIndexOf('class="cs-bible-regard"')).toBeGreaterThan(-1)
+    const mobile = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        mobile
+        blocs={[{
+          id: 'intro-fr',
+          semanticStyleCode: 'introduction_livre',
+          heading: null,
+          placement: 'before',
+          canonIdStart: null,
+          canonIdEnd: null,
+          materialOrder: 1,
+          appliesTo: 'member',
+          appliesToMemberId: 'fr',
+          textBlocks: [{ id: 'i:1', kind: 'commentary', form: 'prose', text: 'Propre au français, sans ancre.' }],
+          internalNotes: [],
+        }]}
+      />,
+    )
+    expect(mobile).toContain('Propre au français, sans ancre.')
+    expect(mobile).not.toContain('cs-bible-regard')
   })
 
   it('rend une conclusion propre à une langue ancrée sur un verset', () => {

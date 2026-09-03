@@ -2,11 +2,19 @@
 //
 // Deux colonnes sur grand écran, empilées par verset sur mobile, synchronisées
 // par l'axe canonique. Ce qui appartient à l'ensemble éditorial — introductions,
-// commentaires de péricope, conclusions — se rend PLEINE LARGEUR, hors des
-// colonnes et une seule fois : le dupliquer dans chaque langue ferait lire deux
-// fois le même commentaire. Un bloc propre à une langue passe LUI AUSSI pleine
-// largeur : les commentaires de Fillion n’ont pas d’équivalent latin, et les
-// enfermer dans une colonne laissait en face un vide de leur hauteur.
+// commentaires de péricope, conclusions — se rend HORS DES COLONNES et une seule
+// fois : le dupliquer dans chaque langue ferait lire deux fois le même
+// commentaire. Un bloc propre à une langue sort LUI AUSSI des colonnes : les
+// commentaires de Fillion n’ont pas d’équivalent latin, et les enfermer dans une
+// colonne laissait en face un vide de leur hauteur.
+//
+// ⛔ MAIS PAS SUR TOUTE LEUR LARGEUR (2026-09-03, décision de l'auteur revenant sur
+// celle du 20 août : « toute la largeur, c'est trop, pas naturel pour un corps de
+// texte ; il faut, pour ces styles-là, réduire la largeur maximale »). L'appareil
+// garde la MESURE du bloc de lecture simple, 31,25 rem, centrée sur la colonne :
+// mesuré sur un écran de 2 560 px, le paragraphe d'introduction de la Genèse
+// faisait 124 signes par ligne sur les 52 rem des deux colonnes, contre 83 sur
+// 31,25 — les coupures mêmes de la lecture simple. Voir `surMesure`.
 //
 // ⚠️ Une illustration matériellement attachée à un bloc ou à une note suit CE
 // bloc ou CETTE note, quel que soit le membre à qui elle appartient : la charte
@@ -141,9 +149,10 @@ export default function BibleBilingue({
   // ⛔ Un bloc du corps IGNORE les colonnes, qu'il soit commun à l'édition ou
   // propre à une langue. Les introductions et les commentaires de Fillion n’ont
   // pas d’équivalent latin : les enfermer dans la colonne française laissait en
-  // face une colonne vide de la hauteur du commentaire. Ils passent donc sur
-  // toute la largeur, et l’appartenance reste une donnée de provenance, non une
-  // consigne de mise en page.
+  // face une colonne vide de la hauteur du commentaire. Ils sortent donc des
+  // colonnes, et l’appartenance reste une donnée de provenance, non une
+  // consigne de mise en page. ⚠️ Ils ne prennent pas pour autant toute la
+  // largeur des colonnes : voir `surMesure`, plus bas.
   const commun: ApparatColonne = {
     blocs: indexerBlocsDeCorps([
       ...blocsRepartis.communs,
@@ -169,15 +178,32 @@ export default function BibleBilingue({
     if (premier) ancresRetour.set(note.id, ancreAppelNoteBible(note.id, premier.membre.id))
   }
 
-  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc) => (
+  // ── L'appareil garde la MESURE de la lecture simple ─────────────────────────
+  // ⛔ Hors des colonnes, mais PAS sur toute leur largeur (décision de l'auteur,
+  // 2026-09-03, revenant sur celle du 20 août — voir l'en-tête). Chaque bloc,
+  // chaque gravure et la série des notes prennent l'enveloppe `.cs-bible-regard`
+  // (globals.css), qui les borne au bloc de lecture, 31,25 rem, et les centre sur
+  // la colonne : c'est le pendant de l'axe de texte de la lecture simple
+  // (`surAxeTexte`, TexteBible), sans sa gouttière d'actions, que la lecture en
+  // regard n'a pas. ⚠️ Une gravure y retrouve aussi sa taille : sa part se
+  // calcule sur son conteneur, et sur 52 rem une planche hors-texte dépassait la
+  // taille de son fichier. ⛔ Pas sur mobile : les colonnes y sont empilées à la
+  // largeur de l'écran, et une enveloppe n'y bornerait rien.
+  const surMesure = (contenu: ReactNode, cle: string) => mobile ? contenu : (
+    <div key={cle} className="cs-bible-regard">{contenu}</div>
+  )
+
+  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc) => surMesure(
     <BlocEditorialBible
       key={bloc.id}
       bloc={bloc}
       illustrations={imagesParBloc.get(bloc.id) ?? []}
-    />
+    />,
+    bloc.id,
   ))
-  const rendreImages = (liste: readonly BibleEditionDisplayAsset[]) => liste.map((illustration) => (
-    <IllustrationBible key={illustration.id} illustration={illustration} />
+  const rendreImages = (liste: readonly BibleEditionDisplayAsset[]) => liste.map((illustration) => surMesure(
+    <IllustrationBible key={illustration.id} illustration={illustration} />,
+    illustration.id,
   ))
 
   const styleGrille = mobile
@@ -187,7 +213,10 @@ export default function BibleBilingue({
       // Colonnes de largeurs INÉGALES, comme en traductions parallèles : le texte
       // original est plus dense que sa traduction et demande moins de place. La
       // mesure totale est celle des œuvres, 52 rem, pour que les deux lectures en
-      // regard du site se ressemblent.
+      // regard du site se ressemblent. ⚠️ La lecture en regard des ŒUVRES est
+      // passée à 42 rem le 2026-08-30, mesurée sur les vers de Boèce ; la Bible
+      // garde 52, ses colonnes portant de la prose. ⛔ L'appareil ne prend pas
+      // cette mesure, mais celle du bloc de lecture : voir `surMesure`.
       gridTemplateColumns: colonnesOrdonnees
         .map((colonne) => (colonne.membre.memberRole === 'source_text' ? 'minmax(0, 0.88fr)' : 'minmax(0, 1.12fr)'))
         .join(' '),
@@ -249,11 +278,14 @@ export default function BibleBilingue({
 
       {rendreImages(commun.images.closing)}
       {rendreBlocs(commun.blocs.closing)}
-      <NotesBibleChapitre
-        notes={notesRetenues}
-        illustrationsByNote={imagesParNote}
-        ancresRetour={ancresRetour}
-      />
+      {notesRetenues.length > 0 && surMesure(
+        <NotesBibleChapitre
+          notes={notesRetenues}
+          illustrationsByNote={imagesParNote}
+          ancresRetour={ancresRetour}
+        />,
+        'notes',
+      )}
     </div>
   )
 }

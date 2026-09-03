@@ -678,7 +678,8 @@ button:focus-visible,
    largeur de l'écran, et un débordement sortirait de la fenêtre. ⚠️ Les valeurs en
    ligne du composant (part, plafond du fichier) cèdent ici, d'où `!important`. */
 @media (min-width: 901px) {
-  .cs-bible-axe > .cs-bible-gravure--hors-texte {
+  .cs-bible-axe > .cs-bible-gravure--hors-texte,
+  .cs-bible-regard > .cs-bible-gravure--hors-texte {
     width: var(--mesure-page) !important;
     max-width: var(--mesure-page) !important;
     margin-left: calc((var(--mesure-bloc) - var(--mesure-page)) / 2) !important;
@@ -1466,6 +1467,24 @@ button:focus-visible,
 [data-lecture='bilingue'] .cs-bible-block--commentary {
   margin-top: var(--cs-blanc-unite);
   margin-bottom: var(--cs-blanc-couture);
+}
+/* ── L'APPAREIL EN REGARD GARDE LA MESURE DE LA LECTURE SIMPLE (2026-09-03) ──
+   Décision de l'auteur, revenant sur celle du 20 août 2026 : « toute la largeur,
+   c'est trop, pas naturel pour un corps de texte ; il faut, pour ces styles-là,
+   réduire la largeur maximale ». Un bloc éditorial, une gravure ou la série des
+   notes restent HORS des colonnes, rendus une seule fois, mais dans une enveloppe
+   qui les borne au bloc de lecture et les centre sur la colonne. Mesuré sur un
+   écran de 2 560 px (racine 22) : le paragraphe d'introduction de la Genèse
+   faisait 124 signes par ligne sur les 52 rem des deux colonnes, 83 sur les
+   31,25 rem du bloc — la mesure même de la lecture simple, et ses coupures.
+   ⚠️ C'est le pendant de `.cs-bible-axe`, sans la gouttière d'actions : la lecture
+   en regard n'en a pas. ⚠️ L'enveloppe n'est pas rendue sur mobile (`BibleBilingue`),
+   où les colonnes sont empilées à la largeur de l'écran. ⚠️ Une planche hors-texte
+   y déborde jusqu'à la mesure de la page, comme dans l'axe (règle plus haut). */
+[data-lecture='bilingue'] .cs-bible-regard {
+  max-width: var(--mesure-bloc);
+  margin-left: auto;
+  margin-right: auto;
 }
 /* ⛔ Et le rang d'un titre PORTÉ ne l'atteignait pas non plus, pour la raison
    symétrique : la règle générale s'écarte du premier bloc par `:not(:first-of-type)`,
