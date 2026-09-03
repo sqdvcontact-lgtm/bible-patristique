@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NATURE_VALIDES, declarationDeSegment, normaliserNatureSegment } from './naturesSegments'
+import { LIBELLE_NATURE } from './stylesLibelles'
 
 describe('vocabulaire des importateurs génériques', () => {
   it('contient exactement les natures autorisées', () => {
@@ -69,11 +70,9 @@ describe('le menu de l’administration ne peut offrir que ce qui existe', () =>
     // `note`, que `chk_segments_nature` refuse : les choisir écrivait une erreur en
     // base. Une liste offerte est une promesse ; offrir ce que la base refuse est
     // une promesse fausse.
-    const source = await import('node:fs').then(fs =>
-      fs.readFileSync('app/admin/SectionControleOeuvres.tsx', 'utf8'))
-    const bloc = source.slice(source.indexOf('const LIBELLE_NATURE'), source.indexOf('type SegmentAfficheControle'))
-    const libelles = [...bloc.matchAll(/^\s{2}'?([a-z_ ]+)'?:\s/gm)].map(m => m[1].trim())
-    expect([...libelles].sort()).toEqual([...NATURE_VALIDES].sort())
+    // Depuis le 2026-09-03 la table des noms vit dans `stylesLibelles.ts`, partagée
+    // avec le module « Styles » ; le contrôle des œuvres l'importe.
+    expect(Object.keys(LIBELLE_NATURE).sort()).toEqual([...NATURE_VALIDES].sort())
   })
 })
 

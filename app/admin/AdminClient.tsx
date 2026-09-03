@@ -20,6 +20,7 @@ import SectionValidationNotices from './SectionValidationNotices'
 import SectionConstituerLiens from './SectionConstituerLiens'
 import SectionLexique from './SectionLexique'
 import SectionMecenes from './SectionMecenes'
+import SectionStyles from './SectionStyles'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 import { colorMix } from '@/app/lib/couleurs'
@@ -105,7 +106,7 @@ export default function AdminClient({
     // Bibliothèque : les lignes-œuvres publiées portent une longue rangée de
     // boutons (⚙, Modifier, Import/Export, Score, statut, URL/Notice/Fichier,
     // Détails, Contrôle, Dépublier, Supprimer) qui étouffaient à 60 rem.
-    : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices'
+    : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices' || onglet === 'styles'
     ? { maxWidth: '90rem', margin: '0 auto', padding: '28px 24px 64px' }
     // Éditeurs : mise en page à deux colonnes (formulaire + liste), plus large.
     : onglet === 'editeurs'
@@ -253,6 +254,7 @@ export default function AdminClient({
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'lexique'        && <SectionLexique />}
+        {onglet === 'styles'         && <SectionStyles />}
         {onglet === 'mecenes'        && <SectionMecenes />}
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}

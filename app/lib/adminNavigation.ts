@@ -47,6 +47,10 @@ export const ENTREES_ADMIN: EntreeAdmin[] = [
   { href: '/admin/controle',                    label: 'Centre de contrôle',  famille: 'corpus', principal: true },
   { href: '/admin?onglet=bibliotheque',         label: 'Bibliothèque',        famille: 'corpus', principal: true, onglet: 'bibliotheque' },
   { href: '/admin?onglet=controle-oeuvres',     label: 'Contrôle œuvres',     famille: 'corpus', onglet: 'controle-oeuvres' },
+  // Les styles sous leur nom propre, et l'attribution d'un style à un segment ou à un
+  // bloc biblique (2026-09-03). Il vit dans le corpus, avec ce qu'il modifie ; la
+  // « Planche des styles », dans le Système, montre chacun d'eux composé.
+  { href: '/admin?onglet=styles',               label: 'Styles',              famille: 'corpus', onglet: 'styles' },
   { href: '/admin?onglet=validation-notices',   label: 'Validation notices',  famille: 'corpus', onglet: 'validation-notices' },
   { href: '/admin?onglet=traductions',          label: 'Traductions',         famille: 'corpus', onglet: 'traductions' },
   { href: '/admin?onglet=evenements',           label: 'Chronologie',         famille: 'corpus', onglet: 'evenements' },

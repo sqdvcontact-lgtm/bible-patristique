@@ -9,6 +9,7 @@ import ModalLienBiblique, { type ChampLienBiblique, type VersetLienBiblique } fr
 import { analyserCorpus, analyserPerso, RANGS, type Rang, type Verdict } from './controleQualite'
 import type { Auteur } from './adminTypes'
 import { NATURE_VALIDES } from '@/app/lib/naturesSegments'
+import { LIBELLE_NATURE as LIBELLE_NATURE_REGISTRE } from '@/app/lib/stylesLibelles'
 
 type SegmentControle = {
   id: number
@@ -60,28 +61,11 @@ const versStatutPerso = (r: Rang): string => (r === 'moyen' ? 'revoir' : r)
 const canonNature = (n: string | null | undefined): string => (n === 'apparat' ? 'apparat_critique' : (n ?? 'texte'))
 // ⚠️ Un libellé POUR CHAQUE nature du vocabulaire, et rien de plus : une entrée
 // sans nature offrirait au menu une valeur que la base refuse, une nature sans
-// libellé s'y afficherait sous son nom technique. `naturesSegments.test.ts` tient
-// les deux listes en regard.
-const LIBELLE_NATURE: Record<string, string> = {
-  texte: 'Texte',
-  // Une citation longue ou un bloc cité, quand une distinction d'affichage sert.
-  citation: 'Citation',
-  // Un verset d'une citation biblique posée verset par verset (compositionVersets.ts).
-  verset: 'Verset',
-  lemme: 'Lemme',
-  // ⛔ Plus de « Vers » : la poésie n'est pas une nature mais une FORME, posée dans
-  // `segment_metadata.forme`. Sortie du vocabulaire le 29 août 2026.
-  rubrique: 'Rubrique',
-  dialogue: 'Dialogue',
-  introduction: 'Introduction (argument)',
-  signature: 'Signature',
-  apparat_critique: 'Apparat critique',
-  apparat_auteur: 'Apparat d’auteur',
-  apparat_editeur: 'Apparat d’éditeur',
-  'texte absent': 'Texte absent',
-  // Héritage : plus jamais créé, conservé pour les anciens exports.
-  separateur: 'Séparateur (hérité)',
-}
+// libellé s'y afficherait sous son nom technique. ⛔ La table vit dans
+// `app/lib/stylesLibelles.ts` depuis le 2026-09-03, partagée avec le module
+// « Styles » : deux listes de noms divergeraient au premier ajout.
+// `stylesLibelles.test.ts` la tient en regard du vocabulaire.
+const LIBELLE_NATURE: Record<string, string> = LIBELLE_NATURE_REGISTRE
 type SegmentAfficheControle = { segment: SegmentControle; contexte?: boolean }
 type ChampLien = ChampLienBiblique
 type LienBibliqueControle = { champ: ChampLien; id: string }
