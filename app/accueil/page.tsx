@@ -2,7 +2,6 @@ import Link from "next/link";
 import AccueilCards from "../components/AccueilCards";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
-import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication";
 import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/auteursDuCorpus";
 import { cssServi } from "@/app/lib/cssServi";
 
@@ -41,13 +40,13 @@ type OeuvreRecente = { id_oeuvre: string; titre: string; date_mise_en_ligne: str
 
 export default async function AccueilPage() {
   const supabase = await creerSupabaseServeur();
-  // Une œuvre est publiée tant que sa `note` n'est pas le marqueur de dépublication
-  // (null compris). On filtre, trie et limite EN BASE — plutôt que de rapatrier toute
-  // la table pour n'afficher que quelques ajouts récents.
+  // Une œuvre est publiée quand elle porte `acces_public` — le drapeau que lisent
+  // aussi les politiques RLS (app/lib/oeuvresPublication.ts). On filtre, trie et
+  // limite EN BASE, plutôt que de rapatrier toute la table pour n'afficher que
+  // quelques ajouts récents.
   //
   // ⚠️ C'est désormais la SEULE lecture de la page : le bandeau en coûtait deux de
   // plus, dont un appel de fonction qui agrège tout le corpus.
-  const filtrePubliee = `note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`;
 
   // ⚠️ TROIS lectures, mais UNE SEULE VAGUE. Un aller-retour vers Supabase coûte
   // environ 65 ms quoi qu'il transporte, et c'est leur mise en CASCADE qui se voit,
@@ -68,7 +67,7 @@ export default async function AccueilPage() {
     supabase
       .from("oeuvres")
       .select("id_oeuvre, titre, date_mise_en_ligne, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, date_debut_annee)")
-      .or(filtrePubliee)
+      .eq("acces_public", true)
       .order("date_mise_en_ligne", { ascending: false, nullsFirst: false })
       .order("id_oeuvre", { ascending: false }),
     // Les CO-SIGNATAIRES. ⛔ Sans elles, Rufin d'Aquilée disparaît de la galerie : il

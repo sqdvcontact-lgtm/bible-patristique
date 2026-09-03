@@ -110,7 +110,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
       // du profil public faute de correspondance.
       const ids = [...new Set(favs.map(f => idOeuvreDeRef(f.ref_id)))]
       const { data: oeuvreRows } = await sb
-        .from('oeuvres').select('id_oeuvre, titre, id_auteur, note, langue_originale').in('id_oeuvre', ids)
+        .from('oeuvres').select('id_oeuvre, titre, id_auteur, acces_public, langue_originale').in('id_oeuvre', ids)
 
       const oeuvresPubliees = ((oeuvreRows ?? []) as any[]).filter(estOeuvrePubliee)
       const auteurIds = [...new Set(oeuvresPubliees.map(o => o.id_auteur).filter(Boolean))]

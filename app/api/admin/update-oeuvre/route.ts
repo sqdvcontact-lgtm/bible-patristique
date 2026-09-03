@@ -35,8 +35,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  // PUBLICATION. ⛔ Elle ne passe pas par la RPC : celle-ci coupe les triggers
+  // (session_replication_role = replica), et `acces_public` est gardé par
+  // `oeuvres_depublication_textes`, qui refuse de retirer une œuvre dont un texte est
+  // encore public. On écrit donc la colonne DIRECTEMENT, sous la clé de service (qui
+  // passe la RLS mais pas les triggers), et le refus de la base remonte tel quel — son
+  // message dit ce qu'il reste à faire.
+  // ⚠️ La date de mise en ligne s'estampille à la PREMIÈRE publication seulement,
+  // comme avant, quand elle suivait l'effacement du marqueur dans `note`.
+  if (champ === 'acces_public') {
+    const ouvrir = valeur === true
+    const { error: erreurAcces } = await supabaseAdmin
+      .from('oeuvres')
+      .update({ acces_public: ouvrir, acces_public_modifie_le: new Date().toISOString() })
+      .eq('id_oeuvre', id_oeuvre)
+    if (erreurAcces) return NextResponse.json({ error: erreurAcces.message }, { status: 409 })
+    if (ouvrir) {
+      const { error: dateError } = await supabaseAdmin
+        .from('oeuvres')
+        .update({ date_mise_en_ligne: new Date().toISOString() })
+        .eq('id_oeuvre', id_oeuvre)
+        .is('date_mise_en_ligne', null)
+      if (dateError) return NextResponse.json({ error: dateError.message }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true })
+  }
+
   const CHAMPS_AUTORISES = new Set([
-    'titre', 'sous_titre', 'note', 'note_traduction', 'statut', 'id_auteur',
+    'titre', 'sous_titre', 'note_traduction', 'statut', 'id_auteur',
     'langue_originale', 'date_composition', 'date_publication', 'trad_date',
     'lien_source', 'couverture', 'categories', 'description', 'sous_genre',
     'fiabilite', 'tags', 'nb_segments', 'traditions', 'ordre',
@@ -49,6 +75,9 @@ export async function POST(req: NextRequest) {
     // « Commentaires » du formulaire (colonne `commentaire_traduction`) : jusqu'ici la
     // note ne se lisait qu'en pastille, sans moyen de la corriger.
     'commentaire_traduction',
+    // Les trois notes éditoriales de l'œuvre (3 septembre 2026). `note`, qui portait
+    // la prose ET le marqueur de dépublication, n'existe plus.
+    'note_editoriale_complete', 'note_editoriale_complement', 'note_editoriale_titre',
     // Composition du titre pour le frontispice (sauts de ligne éditoriaux). Elle
     // était LUE par la page de titre mais éditable par aucune interface : une
     // correction du titre restait donc invisible sur toute œuvre qui la portait.
@@ -71,17 +100,6 @@ export async function POST(req: NextRequest) {
     })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  // Publication (effacement du marqueur dans `note`) : on estampille la date de
-  // mise en ligne à la PREMIÈRE publication seulement (ne pas écraser si déjà fixée).
-  if (champ === 'note' && (valeurNormalisee === null || valeurNormalisee === '')) {
-    const { error: dateError } = await supabaseAdmin
-      .from('oeuvres')
-      .update({ date_mise_en_ligne: new Date().toISOString() })
-      .eq('id_oeuvre', id_oeuvre)
-      .is('date_mise_en_ligne', null)
-    if (dateError) return NextResponse.json({ error: dateError.message }, { status: 500 })
-  }
 
   if (champ === 'date_publication' || champ === 'date_composition') {
     const prefixe = champ === 'date_publication' ? 'publication' : 'composition'

@@ -1,6 +1,5 @@
 import { Suspense, type ComponentProps } from "react"
 import BibliothequeClient from "./BibliothequeClient"
-import { MARQUEUR_OEUVRE_DEPUBLIEE } from "@/app/lib/oeuvresPublication"
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur"
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from "@/app/lib/auteursOeuvre"
 import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from "@/app/lib/bibliothequeSelects"
@@ -29,7 +28,7 @@ export default async function BibliothequePage() {
     supabase
       .from("v_oeuvres_dates")
       .select(SELECT_OEUVRES_BIBLIOTHEQUE)
-      .or(`note.is.null,note.neq.${MARQUEUR_OEUVRE_DEPUBLIEE}`),
+      .eq("acces_public", true),
     chargerAuteursParOeuvre(supabase),
   ])
 

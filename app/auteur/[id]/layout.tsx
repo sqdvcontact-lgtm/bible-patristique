@@ -34,11 +34,11 @@ const chargerFicheAuteur = cache(async (id: string) => {
       .select("nom, nom_original, note_biographique, dates")
       .eq("id_auteur", id).maybeSingle(),
     supabase.from("v_oeuvres_auteurs").select("id_oeuvre").eq("id_auteur", id),
-    supabase.from("oeuvres").select("id_oeuvre, note"),
+    supabase.from("oeuvres").select("id_oeuvre, acces_public"),
   ]);
 
   const publiees = new Set(
-    ((catalogue.data ?? []) as { id_oeuvre: string; note: string | null }[])
+    ((catalogue.data ?? []) as { id_oeuvre: string; acces_public: boolean | null }[])
       .filter(estOeuvrePubliee).map(o => o.id_oeuvre),
   );
   const oeuvres = [...new Set(((signatures.data ?? []) as { id_oeuvre: string }[])

@@ -13,7 +13,7 @@ import {
 import { preparerPortrait } from '@/app/lib/preparerPortrait'
 import CadreAuteur from '@/app/components/CadreAuteur'
 import { revaliderBibliotheque } from '@/app/actions/revalider'
-import { estOeuvrePubliee, MARQUEUR_OEUVRE_DEPUBLIEE } from '@/app/lib/oeuvresPublication'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { chargerAuteursDOeuvre, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
@@ -1177,6 +1177,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     { key: 'date_composition', label: 'Date de composition originale' },
     { key: 'url_source', label: 'URL source' },
     { key: 'commentaire_traduction', label: 'Commentaires publics' },
+    // Les trois notes éditoriales de l'œuvre (3 septembre 2026) : sa substance, ses
+    // points de détail, et le résumé de la page de titre.
+    { key: 'note_editoriale_complete', label: 'Note éditoriale : l’œuvre' },
+    { key: 'note_editoriale_complement', label: 'Note éditoriale : compléments' },
+    { key: 'note_editoriale_titre', label: 'Note de la page de titre' },
     // Enregistré par la même route, mais dans une table à part (voir l'API).
     { key: 'commentaire_prive', label: 'Commentaires privés' },
   ]
@@ -1191,6 +1196,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',
       langue_originale: o.langue_originale ?? '',
       commentaire_traduction: o.commentaire_traduction ?? '',
+      note_editoriale_complete: o.note_editoriale_complete ?? '',
+      note_editoriale_complement: o.note_editoriale_complement ?? '',
+      note_editoriale_titre: o.note_editoriale_titre ?? '',
       commentaire_prive: o.commentaire_prive ?? '',
     })
     setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
@@ -1308,24 +1316,32 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     return null
   }
 
-  // Publier / dépublier une œuvre : le drapeau est le marqueur dans `note`
-  // (cf. oeuvresPublication.ts). Dépublier écrit le marqueur, publier efface la note.
+  // Publier / dépublier une œuvre : le drapeau est `acces_public`, celui de la RLS
+  // (cf. oeuvresPublication.ts). ⛔ Il n'écrit plus dans `note` : le marqueur qu'on y
+  // posait écrasait la note éditoriale, et l'effacer à la republication la perdait.
+  // ⚠️ La base peut REFUSER de dépublier : le trigger `oeuvres_depublication_textes`
+  // exige qu'aucun texte de l'œuvre ne soit encore public. Son message dit quoi faire ;
+  // on le montre tel quel plutôt qu'un « échec » qui ne dit rien.
   const [bascule, setBascule] = useState<string | null>(null)
   const basculerPublication = async (o: Oeuvre) => {
     const publiee = estOeuvrePubliee(o)
     if (publiee && !confirm(`Dépublier « ${o.titre} » ?\n\nElle restera au catalogue mais disparaîtra de la lecture (bibliothèque, recherche, navigation).`)) return
-    const nouvelleNote = publiee ? MARQUEUR_OEUVRE_DEPUBLIEE : null
+    const nouvelAcces = !publiee
     setBascule(o.id_oeuvre)
     try {
       const res = await fetch('/api/admin/update-oeuvre', {
         method: 'POST',
         headers: await headersAdmin({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ id_oeuvre: o.id_oeuvre, champ: 'note', valeur: nouvelleNote }),
+        body: JSON.stringify({ id_oeuvre: o.id_oeuvre, champ: 'acces_public', valeur: nouvelAcces }),
       })
-      if (!res.ok) { alert('Échec de la mise à jour.'); return }
+      if (!res.ok) {
+        const corps = await res.json().catch(() => null) as { error?: string } | null
+        alert(corps?.error || 'Échec de la mise à jour.')
+        return
+      }
       setAuteurs(prev => prev.map(a => ({
         ...a,
-        oeuvres: a.oeuvres.map(x => x.id_oeuvre === o.id_oeuvre ? { ...x, note: nouvelleNote } : x),
+        oeuvres: a.oeuvres.map(x => x.id_oeuvre === o.id_oeuvre ? { ...x, acces_public: nouvelAcces } : x),
       })))
       await revaliderBibliotheque()
     } catch {
@@ -2012,6 +2028,39 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           <textarea value={formOeuvre.commentaire_traduction ?? ''}
                             onChange={e => setFormOeuvre(p => ({ ...p, commentaire_traduction: e.target.value }))}
                             rows={2} style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+                        </div>
+
+                        {/* Les TROIS NOTES ÉDITORIALES de l'œuvre (décision de l'auteur,
+                            3 septembre 2026). Toutes publiques, chacune à sa place :
+                            — l'œuvre : ce qu'elle est, son intérêt, sa substance
+                              (fiche « À propos de cette édition ») ;
+                            — compléments : les points de détail de l'œuvre parcourue, un
+                              chapitre déplacé ou refondu, une attribution discutée, une
+                              transmission lacunaire (même fiche) ;
+                            — page de titre : un résumé, sur le frontispice seulement, et
+                              vide le plus souvent.
+                            ⛔ Aucune n'est un commentaire sur l'ÉDITION : cela reste le
+                            champ « Commentaires publics », au-dessus. */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Note éditoriale : l’œuvre</label>
+                          <textarea value={formOeuvre.note_editoriale_complete ?? ''}
+                            onChange={e => setFormOeuvre(p => ({ ...p, note_editoriale_complete: e.target.value }))}
+                            rows={4} placeholder="Ce que l’œuvre est, son intérêt, sa substance. Paraît dans « À propos de cette édition »."
+                            style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Note éditoriale : compléments</label>
+                          <textarea value={formOeuvre.note_editoriale_complement ?? ''}
+                            onChange={e => setFormOeuvre(p => ({ ...p, note_editoriale_complement: e.target.value }))}
+                            rows={3} placeholder="Points de détail de l’œuvre parcourue : chapitre déplacé ou refondu, attribution discutée, transmission lacunaire. Paraît dans « À propos de cette édition »."
+                            style={{ ...inputStyleAuteur, resize: 'vertical' }} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Note de la page de titre</label>
+                          <textarea value={formOeuvre.note_editoriale_titre ?? ''}
+                            onChange={e => setFormOeuvre(p => ({ ...p, note_editoriale_titre: e.target.value }))}
+                            rows={2} placeholder="Un résumé, sur la page de titre seulement. Vide le plus souvent."
+                            style={{ ...inputStyleAuteur, resize: 'vertical' }} />
                         </div>
 
                         {/* Commentaires privés (table `oeuvres_commentaires_prives`) : le

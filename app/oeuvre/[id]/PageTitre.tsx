@@ -171,6 +171,18 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
         </div>
       )}
 
+      {/* La NOTE DE LA PAGE DE TITRE (note_editoriale_titre) : un résumé de l'œuvre, qui
+          ne paraît qu'ici — ni dans la fiche, ni ailleurs — et qui est vide le plus
+          souvent (décision de l'auteur, 2026-09-03). Elle suit le groupe des titres et
+          précède ce qui relève de l'édition : elle parle de l'œuvre, pas du livre. En
+          romain, sous le titre original en italique, pour ne pas s'y confondre ; et à la
+          mesure d'un paragraphe, non d'un titre. */}
+      {oeuvre.note_editoriale_titre?.trim() && (
+        <p style={{ fontFamily: SERIF, fontSize: 'clamp(0.875rem, 1.6vw, 1rem)', color: 'var(--cs-texte-second)', maxWidth: '30rem', lineHeight: 1.5, margin: '0 0 1.4em', whiteSpace: 'pre-line' }}>
+          {rendreIntitule(sansPointFinal(oeuvre.note_editoriale_titre))}
+        </p>
+      )}
+
       {/* Traducteur — vient AVANT la marque d'imprimeur */}
       {(traducteur || estAdmin) && (
         <div style={{ position: 'relative' }}>

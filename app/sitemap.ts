@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [auteurs, oeuvres, pericopes, essais] = await Promise.all([
     supabaseAdmin.from("auteurs").select("id_auteur"),
-    supabaseAdmin.from("oeuvres").select("id_oeuvre, note"),
+    supabaseAdmin.from("oeuvres").select("id_oeuvre, acces_public"),
     supabaseAdmin.from("pericopes").select("id"),
     supabaseAdmin.from("essais").select("id, updated_at").eq("statut", "publie"),
   ]);
@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...((auteurs.data ?? []) as { id_auteur: string }[]).map(a => ({
       url: `${BASE}/auteur/${a.id_auteur}`, changeFrequency: "monthly" as const, priority: 0.6,
     })),
-    ...((oeuvres.data ?? []) as { id_oeuvre: string; note: string | null }[])
+    ...((oeuvres.data ?? []) as { id_oeuvre: string; acces_public: boolean | null }[])
       .filter(estOeuvrePubliee)
       .map(o => ({ url: `${BASE}/oeuvre/${o.id_oeuvre}`, changeFrequency: "monthly" as const, priority: 0.7 })),
     ...((pericopes.data ?? []) as { id: string }[]).map(p => ({

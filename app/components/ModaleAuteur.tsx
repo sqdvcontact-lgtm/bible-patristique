@@ -29,7 +29,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 type OeuvreResumee = {
   id_oeuvre: string; titre: string; sous_titre: string | null
   trad_auteur: string | null; editeur: string | null
-  ville: string | null; note?: string | null
+  ville: string | null; acces_public?: boolean | null
   date_composition_affichage_courte: string | null
   date_composition_precision_affichage: string | null
   composition_debut_annee: number | null
@@ -518,7 +518,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       const idsDeLAuteur = Object.entries(auteursParOeuvre)
         .filter(([, auteurs]) => auteurs.some(a => a.id_auteur === id))
         .map(([idOeuvre]) => idOeuvre)
-      const COLONNES = 'id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, note, date_composition_affichage_courte, date_composition_precision_affichage, composition_debut_annee'
+      const COLONNES = 'id_oeuvre, titre, sous_titre, trad_auteur, editeur, ville, acces_public, date_composition_affichage_courte, date_composition_precision_affichage, composition_debut_annee'
       const requeteOeuvres = idsDeLAuteur.length > 0
         ? supabase.from('v_oeuvres_dates').select(COLONNES).in('id_oeuvre', idsDeLAuteur)
         : supabase.from('v_oeuvres_dates').select(COLONNES).eq('id_auteur', id)

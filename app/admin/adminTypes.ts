@@ -26,8 +26,15 @@ export type Oeuvre = {
   texte_sommaire?: string | null
   texte_corps?: string | null
   afficher_numeros?: boolean | null
-  note?: string | null
+  // Le seul drapeau de publication (app/lib/oeuvresPublication.ts) et son motif.
+  acces_public?: boolean | null
+  acces_public_note?: string | null
   commentaire_traduction?: string | null
+  // Les trois notes éditoriales publiques : l'œuvre (sa substance), ses points de
+  // détail, et le résumé de la page de titre. Voir la migration du 3 septembre 2026.
+  note_editoriale_complete?: string | null
+  note_editoriale_complement?: string | null
+  note_editoriale_titre?: string | null
   // Notes de travail réservées à l'administration : elles ne viennent pas de la
   // table `oeuvres` mais de `oeuvres_commentaires_prives`, lue par la clé de service.
   commentaire_prive?: string | null

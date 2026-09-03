@@ -838,7 +838,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   // Traductions sœurs : œuvres du MÊME auteur au MÊME titre normalisé (comme le
   // regroupement de la Bibliothèque). Sert au sélecteur de traduction du volet gauche.
-  type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; note: string | null; langue_originale: string | null; langue_trad: string | null }
+  type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; acces_public: boolean | null; langue_originale: string | null; langue_trad: string | null }
   const [versions, setVersions] = useState<VersionTrad[]>([])
   const [auteurOuvert, setAuteurOuvert] = useState(false)
   const [apparatOuvert, setApparatOuvert] = useState(false)
@@ -1600,7 +1600,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   useEffect(() => {
     if (!auteurId) return
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, note, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad')
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, acces_public, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad')
     // Repli sur le premier auteur tant que les couples ne sont pas chargés (ou
     // s'ils n'ont pas pu l'être) : la liste reste peuplée, simplement sans les
     // co-signatures.
@@ -1622,7 +1622,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (!auteurId) return
     const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
     const cible = norm(oeuvre?.titre || '')
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, note, langue_originale, langue_trad')
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, acces_public, langue_originale, langue_trad')
     const requete = oeuvresDesAuteurs.length > 0 ? base.in('id_oeuvre', oeuvresDesAuteurs) : base.eq('id_auteur', auteurId)
     requete
       .order('date_publication', { ascending: true, nullsFirst: true })

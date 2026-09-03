@@ -35,7 +35,7 @@ type Oeuvre = {
   editeur: string | null; ville: string | null
   date_publication_affichage_courte: string | null
   date_publication_precision_affichage: string | null
-  genre: string | null; note?: string | null
+  genre: string | null; acces_public?: boolean | null
   // Langue de l'original, et langue de la traduction — vide sur une édition en
   // langue originale, ce qui la distingue d'une traduction.
   langue_originale?: string | null; langue_trad?: string | null

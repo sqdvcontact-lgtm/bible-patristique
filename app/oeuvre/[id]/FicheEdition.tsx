@@ -128,8 +128,13 @@ export function ContenuFicheEdition({ donnees, photoPosition, onOuvrirAuteur }: 
 
   const aEdition = !!(traducteur || versionActive?.editionDescription || oeuvre.editeur || oeuvre.ville
     || oeuvre.date_publication || oeuvre.collection || sourceUrl
-    || oeuvre.commentaire_traduction?.trim() || oeuvre.note_editoriale_secondaire?.trim())
-  const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length))
+    || oeuvre.commentaire_traduction?.trim())
+  // Les deux notes éditoriales parlent de l'ŒUVRE, non de l'édition : elles vivent
+  // dans la colonne de droite, sous « L'œuvre ». La substance d'abord, les points de
+  // détail ensuite, sous leur propre titre.
+  const noteComplete = oeuvre.note_editoriale_complete?.trim() || null
+  const noteComplement = oeuvre.note_editoriale_complement?.trim() || null
+  const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete || noteComplement)
   const aSite = !!(enLigne || etendue || autresVersions.length || aTexteOriginal)
   const aColonnes = aEdition && (aOeuvre || aSite)
 
@@ -142,6 +147,19 @@ export function ContenuFicheEdition({ donnees, photoPosition, onOuvrirAuteur }: 
           <RangeeEmpilee c={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
             {oeuvre.genres?.length ? oeuvre.genres.join(', ') : null}
           </RangeeEmpilee>
+          {/* Ce que l'œuvre EST : son intérêt, sa substance (note_editoriale_complete). */}
+          {noteComplete && (
+            <div className="fiche-edition-prose" style={{ marginTop: '8px' }}>{rendreTexteEnrichi(noteComplete)}</div>
+          )}
+        </section>
+      )}
+      {/* Les points de détail de l'œuvre parcourue (note_editoriale_complement) : un
+          chapitre déplacé ou refondu, une attribution discutée, une transmission
+          lacunaire. Rubrique à part : on la cherche quand quelque chose étonne. */}
+      {noteComplement && (
+        <section>
+          <TitreSection>Notes éditoriales</TitreSection>
+          <div className="fiche-edition-prose">{rendreTexteEnrichi(noteComplement)}</div>
         </section>
       )}
       {aSite && (
@@ -235,15 +253,6 @@ export function ContenuFicheEdition({ donnees, photoPosition, onOuvrirAuteur }: 
               </section>
             )}
 
-            {/* Notes éditoriales secondaires : rubrique DISTINCTE de la page de titre.
-                Le frontispice reste réservé aux informations éditoriales factuelles ;
-                les remarques secondaires vivent ici. */}
-            {oeuvre.note_editoriale_secondaire?.trim() && (
-              <section>
-                <TitreSection>Notes éditoriales</TitreSection>
-                <div className="fiche-edition-prose">{rendreTexteEnrichi(oeuvre.note_editoriale_secondaire)}</div>
-              </section>
-            )}
           </div>
         )}
         {aColonnes

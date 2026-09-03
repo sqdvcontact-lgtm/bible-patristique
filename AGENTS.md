@@ -3694,11 +3694,15 @@ Tous les chiffres du bandeau viennent désormais de **`statistiques_accueil()`**
 - **« Contributeurs »** réunit les administrateurs et les auteurs d'un essai publié. ⚠️ `profils` ne se lit que « soi-même » : compter les administrateurs depuis une page est impossible sans passer par la fonction.
 - **Une tuile dont le chiffre n'a pas de sens se retire** au lieu d'annoncer « 0 % ». Les filets venant de `.accueil-stat + .accueil-stat`, la barre se recompose d'elle-même.
 
-## Deux verrous, pas un, pour retenir une œuvre — et un TROISIÈME sur le texte
+## Un seul verrou pour retenir une œuvre — et un SECOND sur le texte
 
-Une œuvre retenue porte **le marqueur `[Corpus Scriptura:depublie]` dans `note`** ET **`acces_public = false`**. Les deux sont indépendants : le premier filtre les listes du site, le second est la RLS. Juger de la publication sur un seul, c'est se tromper une fois sur deux.
+Une œuvre retenue porte **`acces_public = false`**, et rien d'autre. C'est le drapeau que lisent les politiques RLS, le trigger `oeuvres_depublication_textes` et, depuis le 3 septembre 2026, toutes les listes du site (`app/lib/oeuvresPublication.ts`).
 
-⛔ **Un troisième verrou est porté par le TEXTE, non par l'œuvre** : `oeuvre_textes.is_public`. La politique de lecture de `segments` exige **les deux à la fois** — `o.acces_public AND t.is_public` — si bien qu'une œuvre ouverte dont aucun texte n'est public s'annonce au catalogue, ouvre sa page… et **ne rend pas une ligne** au lecteur qui n'est pas admin. L'admin, lui, passe par la branche `is_admin()` de la politique et ne voit jamais rien manquer : le défaut est **invisible depuis le compte qui publie**. Le contrôle se fait donc en se mettant à la place du lecteur, jamais en regardant la page :
+⛔ Il y en avait deux, et c'était le défaut. Le site jugeait sur un **marqueur** `[Corpus Scriptura:depublie]` écrit dans `oeuvres.note` quand la base jugeait sur `acces_public` — « juger sur un seul, c'est se tromper une fois sur deux », disait cette page, ce qui décrivait le problème sans le résoudre. Le pire était ailleurs : `note` portait AUSSI dix-neuf notes éditoriales rédigées, que dépublier écrasait du marqueur et que republier effaçait. La colonne `note` n'existe plus ; les notes vivent dans `note_editoriale_complement`, et le motif d'une suspension dans `acces_public_note`.
+
+⚠️ `acces_public` doit être **demandé** par toute lecture qui filtre par `estOeuvrePubliee` : une colonne absente rend `undefined`, et `undefined` n'est pas publié. Une liste qui se vide sans raison se cherche là.
+
+⛔ **Le second verrou est porté par le TEXTE, non par l'œuvre** : `oeuvre_textes.is_public`. La politique de lecture de `segments` exige **les deux à la fois** — `o.acces_public AND t.is_public` — si bien qu'une œuvre ouverte dont aucun texte n'est public s'annonce au catalogue, ouvre sa page… et **ne rend pas une ligne** au lecteur qui n'est pas admin. L'admin, lui, passe par la branche `is_admin()` de la politique et ne voit jamais rien manquer : le défaut est **invisible depuis le compte qui publie**. Le contrôle se fait donc en se mettant à la place du lecteur, jamais en regardant la page :
 
 ```sql
 set local role authenticated;

@@ -677,7 +677,7 @@ export default function Navbar() {
   const [rechercheOuverte, setRechercheOuverte] = useState(false);
   const [auteursTrouves, setAuteursTrouves] = useState<{ id_auteur: string; nom: string }[]>([]);
   const [essaisTrouves, setEssaisTrouves] = useState<{ id: number; titre: string }[]>([]);
-  const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null; note?: string | null }[]>([]);
+  const [oeuvresTrouvees, setOeuvresTrouvees] = useState<{ id_oeuvre: string; titre: string; auteurs: { nom: string } | null }[]>([]);
   // L'ÉDITION de chaque œuvre montrée, chargée juste après les titres (voir plus bas) :
   // un même titre du même auteur paraît plusieurs fois, une ligne par édition, et rien
   // ne disait laquelle on allait ouvrir. Une carte à part, pour que les titres

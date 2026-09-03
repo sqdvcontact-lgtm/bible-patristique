@@ -17,7 +17,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { idOeuvreDeRef } from './refsFavoris'
-import { MARQUEUR_OEUVRE_DEPUBLIEE } from './oeuvresPublication'
+import { estOeuvrePubliee } from './oeuvresPublication'
 import { rangDuSiecle, siecleNormalise } from './siecles'
 
 export type AuteurRetenu = { id: string; nom: string; retenu: boolean }
@@ -39,7 +39,7 @@ export type Retenu = {
 type LigneOeuvre = {
   id_oeuvre: string
   id_auteur: string
-  note: string | null
+  acces_public: boolean | null
   nb_signes: number | null
   auteurs: { nom: string; siecle: string | null } | null
 }
@@ -51,7 +51,7 @@ export async function calculerRetenu(sb: SupabaseClient, userId: string): Promis
     // critères désignent les mêmes 45 œuvres et les mêmes 15 auteurs au 1er septembre
     // 2026, l'écart tenant à trois titres de Jérôme dont le texte n'est pas encore
     // posé, et qui ont d'autres œuvres pour le représenter.
-    sb.from('oeuvres').select('id_oeuvre, id_auteur, note, nb_signes, auteurs!oeuvres_id_auteur_fkey(nom, siecle)'),
+    sb.from('oeuvres').select('id_oeuvre, id_auteur, acces_public, nb_signes, auteurs!oeuvres_id_auteur_fkey(nom, siecle)'),
     sb.from('prelevements').select('id_oeuvre')
       .eq('user_id', userId).eq('type', 'patristique').not('id_oeuvre', 'is', null),
     sb.from('favoris').select('ref_id').eq('user_id', userId).eq('type', 'oeuvre'),
@@ -72,7 +72,7 @@ export async function calculerRetenu(sb: SupabaseClient, userId: string): Promis
   const oeuvresLisibles = new Set<string>()
   for (const o of oeuvres) {
     auteurParOeuvre.set(o.id_oeuvre, o.id_auteur)
-    if (o.note === MARQUEUR_OEUVRE_DEPUBLIEE) continue
+    if (!estOeuvrePubliee(o)) continue
     if ((o.nb_signes ?? 0) <= 0) continue
     oeuvresLisibles.add(o.id_oeuvre)
     if (o.auteurs) auteursLisibles.set(o.id_auteur, { nom: o.auteurs.nom, siecle: o.auteurs.siecle })

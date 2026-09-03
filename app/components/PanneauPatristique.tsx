@@ -871,7 +871,7 @@ export default function PanneauPatristique({
   // Charger les infos des oeuvres une seule fois
   useEffect(() => {
     supabase.from('oeuvres')
-      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, date_composition, genre, note')
+      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, date_composition, genre, acces_public')
       .then(async ({ data: od }) => {
         if (!od) return
         const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle, date_mort')

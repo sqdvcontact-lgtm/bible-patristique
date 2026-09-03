@@ -250,11 +250,11 @@ export async function chargerReferencesPatristiquesPericope(
     for (const s of (data ?? []) as { id: number; id_oeuvre: string }[]) segOeuvre.set(s.id, s.id_oeuvre)
   }
   const oeuvreIds = [...new Set(segOeuvre.values())]
-  const oeuvreInfo = new Map<string, { titre: string; id_auteur: string | null; note: string | null }>()
+  const oeuvreInfo = new Map<string, { titre: string; id_auteur: string | null; acces_public: boolean | null }>()
   for (let i = 0; i < oeuvreIds.length; i += 300) {
-    const { data } = await supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur, note').in('id_oeuvre', oeuvreIds.slice(i, i + 300))
-    for (const o of (data ?? []) as { id_oeuvre: string; titre: string | null; id_auteur: string | null; note: string | null }[]) {
-      oeuvreInfo.set(o.id_oeuvre, { titre: o.titre || o.id_oeuvre, id_auteur: o.id_auteur, note: o.note })
+    const { data } = await supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur, acces_public').in('id_oeuvre', oeuvreIds.slice(i, i + 300))
+    for (const o of (data ?? []) as { id_oeuvre: string; titre: string | null; id_auteur: string | null; acces_public: boolean | null }[]) {
+      oeuvreInfo.set(o.id_oeuvre, { titre: o.titre || o.id_oeuvre, id_auteur: o.id_auteur, acces_public: o.acces_public })
     }
   }
   const auteurIds = [...new Set([...oeuvreInfo.values()].map(o => o.id_auteur).filter((x): x is string => !!x))]
@@ -269,7 +269,7 @@ export async function chargerReferencesPatristiquesPericope(
     const idO = segOeuvre.get(segId)
     if (!idO) continue
     const info = oeuvreInfo.get(idO)
-    if (!info || !estOeuvrePubliee({ note: info.note })) continue
+    if (!info || !estOeuvrePubliee(info)) continue
     let ref = parOeuvre.get(idO)
     if (!ref) {
       ref = { id_oeuvre: idO, oeuvre_titre: info.titre, auteur_nom: info.id_auteur ? (auteurNom.get(info.id_auteur) || '') : '', natures: [], natSet: new Set(), nbSegments: 0 }

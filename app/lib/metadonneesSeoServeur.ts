@@ -47,11 +47,11 @@ type Catalogue = Map<string, { nom: string; annee: number | null }>
  *  nomme pas dans un titre un auteur que la page ne montrera pas. */
 async function lireCatalogue(client: Client): Promise<Catalogue | null> {
   type LigneCatalogue = {
-    id_oeuvre: string; note: string | null; date_composition: string | null
+    id_oeuvre: string; acces_public: boolean | null; date_composition: string | null
     auteurs: { nom: string; date_mort: string | null; siecle: string | null } | null
   }
   const { data, error } = await client.from('oeuvres')
-    .select('id_oeuvre, note, date_composition, auteurs!oeuvres_id_auteur_fkey(nom, date_mort, siecle)')
+    .select('id_oeuvre, acces_public, date_composition, auteurs!oeuvres_id_auteur_fkey(nom, date_mort, siecle)')
   if (error) return null
   const parOeuvre: Catalogue = new Map()
   for (const o of (data ?? []) as unknown as LigneCatalogue[]) {
