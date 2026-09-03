@@ -48,11 +48,12 @@ describe('adresse de lecture de la page Bible', () => {
       .toBe('/?livre=1SA&chapitre=3&trad=TR0001&mode=native')
   })
 
-  it('ne fabrique jamais un chapitre au-delà de la borne canonique', () => {
+  it('ne fabrique jamais Gn 51 depuis une navigation interne', () => {
     expect(urlLectureBible({ livre: 'GEN', chapitre: 51, trad: 'TR0010' }))
       .toBe('/?livre=GEN&chapitre=50&trad=TR0010')
+    // Hors du périmètre certifié, l'URL n'est pas corrigée par supposition.
     expect(urlLectureBible({ livre: 'REV', chapitre: 23, trad: 'TR0001' }))
-      .toBe('/?livre=REV&chapitre=22&trad=TR0001')
+      .toBe('/?livre=REV&chapitre=23&trad=TR0001')
   })
 })
 
@@ -88,24 +89,24 @@ describe('numéro de chapitre reçu de l’adresse', () => {
     expect(normaliserChapitreBible('4.7')).toBe(4)
   })
 
-  it('borne aussi le maximum quand le livre est connu', () => {
+  it('borne le maximum seulement pour le livre explicitement certifié', () => {
     expect(normaliserChapitreBible('50', 'GEN')).toBe(50)
     expect(normaliserChapitreBible('51', 'GEN')).toBe(50)
-    expect(normaliserChapitreBible('999', 'PSA')).toBe(150)
+    expect(normaliserChapitreBible('999', 'PSA')).toBe(999)
   })
 })
 
-describe('borne terminale d’un livre', () => {
-  it('expose la borne canonique vérifiée', () => {
+describe('borne terminale certifiée de la Genèse', () => {
+  it('expose 50 sans extrapoler aux autres livres', () => {
     expect(dernierChapitreBible('GEN')).toBe(50)
-    expect(dernierChapitreBible('REV')).toBe(22)
+    expect(dernierChapitreBible('REV')).toBeNull()
     expect(dernierChapitreBible('INCONNU')).toBeNull()
   })
 
-  it('ferme la flèche suivante au dernier chapitre seulement', () => {
+  it('ferme la flèche suivante à Gn 50 seulement', () => {
     expect(chapitreSuivantDisponible('GEN', 49)).toBe(true)
     expect(chapitreSuivantDisponible('GEN', 50)).toBe(false)
-    // Un livre hors table n'est pas condamné par défaut : le serveur garde la main.
+    // Hors périmètre, le serveur garde la main.
     expect(chapitreSuivantDisponible('INCONNU', 1)).toBe(true)
   })
 })
