@@ -42,29 +42,17 @@ export type CibleLectureBible = {
 }
 
 /**
- * Dernier chapitre de l'axe canonique public.
+ * Borne terminale explicitement certifiée pendant le chantier en cours.
  *
- * Ces bornes ont été relues contre `versets_canon` le 2026-09-03. Elles pilotent
- * uniquement la NAVIGATION : elles ne réécrivent ni la numérotation native d'une
- * édition ni son texte. Un livre inconnu de cette table n'est jamais borné ici ;
- * le serveur reste alors seul juge de son existence.
+ * ⛔ Ne pas généraliser cette table depuis `versets_canon` sans audit du modèle de
+ * navigation : certains livres ont des additions ou des découpages éditoriaux
+ * distincts de l'axe canonique. Ici, seule la Genèse est dans le périmètre et sa
+ * borne 50/50 a été vérifiée directement en base le 2026-09-03.
  */
-const DERNIER_CHAPITRE_CANONIQUE: Readonly<Record<string, number>> = Object.freeze({
-  GEN: 50, EXO: 40, LEV: 27, NUM: 36, DEU: 34,
-  JOS: 24, JDG: 21, RUT: 4, '1SA': 31, '2SA': 24, '1KI': 22, '2KI': 25,
-  '1CH': 29, '2CH': 36, EZR: 10, NEH: 13, TOB: 14, JDT: 16, EST: 16,
-  '1MA': 16, '2MA': 15, JOB: 42, PSA: 150, PRO: 31, ECC: 12, SNG: 8,
-  WIS: 19, SIR: 51, ISA: 66, JER: 52, LAM: 5, BAR: 6, EZK: 48, DAN: 12,
-  HOS: 14, JOL: 4, AMO: 9, OBA: 1, JON: 4, MIC: 7, NAM: 3, HAB: 3,
-  ZEP: 3, HAG: 2, ZEC: 14, MAL: 3,
-  MAT: 28, MRK: 16, LUK: 24, JHN: 21, ACT: 28, ROM: 16, '1CO': 16,
-  '2CO': 13, GAL: 6, EPH: 6, PHP: 4, COL: 4, '1TH': 5, '2TH': 3,
-  '1TI': 6, '2TI': 4, TIT: 3, PHM: 1, HEB: 13, JAS: 5, '1PE': 5,
-  '2PE': 3, '1JN': 5, '2JN': 1, '3JN': 1, JUD: 1, REV: 22,
-})
+const DERNIER_CHAPITRE_CERTIFIE: Readonly<Record<string, number>> = Object.freeze({ GEN: 50 })
 
 export function dernierChapitreBible(livre: string): number | null {
-  return DERNIER_CHAPITRE_CANONIQUE[livre] ?? null
+  return DERNIER_CHAPITRE_CERTIFIE[livre] ?? null
 }
 
 export function chapitreSuivantDisponible(livre: string, chapitre: number): boolean {
@@ -83,16 +71,15 @@ export type ManiereDeLireBible = Pick<CibleLectureBible, 'couche' | 'bilingue' |
 
 /**
  * Le numéro de chapitre demandé par l'adresse, ramené à un ENTIER d'au moins 1.
- * Quand le livre est connu, le même garde-fou borne aussi le maximum : une
- * flèche terminale ne peut donc jamais fabriquer « Gn 51 » même si un appelant
- * oublie de la désactiver visuellement.
+ * Pour un livre dont la borne a été explicitement certifiée, le même garde-fou
+ * borne aussi le maximum : une flèche terminale ne peut donc jamais fabriquer
+ * « Gn 51 » même si un appelant oublie de la désactiver visuellement.
  *
  * ⛔ `parseInt` rend `NaN` sur « abc », et un `NaN` ne se contente pas de mal
  * s'afficher : il descend jusqu'au recalage en phase de rendu de `NavLivres`, dont
  * la comparaison est un `!==`. Or NaN n'est jamais égal à lui-même, la condition
- * est donc vraie à chaque rendu, l'état se repose sans fin, et React coupe la page
- * entière (erreur 301, « Too many re-renders »). Une adresse tordue ne doit pas
- * pouvoir sortir le lecteur du site : elle se borne ici, à l'entrée.
+ * est donc vraie à chaque rendu et React coupe la page entière. Une adresse tordue
+ * ne doit pas pouvoir sortir le lecteur du site : elle se borne ici, à l'entrée.
  */
 export function normaliserChapitreBible(
   valeur: string | null | undefined,
