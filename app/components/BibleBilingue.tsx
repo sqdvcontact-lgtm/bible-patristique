@@ -1,4 +1,4 @@
-// Lecture « Latin-français » d'une édition biblique commentée.
+// Lecture « Latin & Français » d'une édition biblique commentée.
 //
 // Deux colonnes sur grand écran, empilées par verset sur mobile, synchronisées
 // par l'axe canonique. Ce qui appartient à l'ensemble éditorial — introductions,

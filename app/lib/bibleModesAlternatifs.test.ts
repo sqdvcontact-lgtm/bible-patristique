@@ -23,23 +23,23 @@ describe('modes de lecture alternatifs de la page Bible', () => {
   it('ouvre deux axes indépendants pour une édition commentée à deux membres', () => {
     expect(groupes({ membresFamille: FILLION, tradActive: 'TR0010', paratexteDisponible: true }))
       .toEqual([
-        ['texte', ['Français', 'Latin-français', 'Latin']],
+        ['texte', ['Français', 'Latin & Français', 'Latin']],
         ['commentaires', ['Avec les commentaires', 'Sans les commentaires']],
       ])
   })
 
   it('nomme la lecture en regard par la langue d’ORIGINE, pas par l’ordre des colonnes', () => {
     // Le français est à gauche chez Fillion, et le mode s'appelle pourtant
-    // « Latin-français » : c'est le rôle des membres qui commande, si bien qu'une
-    // édition grecque se nommera « Grec-français » sans qu'on y touche.
+    // « Latin & Français » : c'est le rôle des membres qui commande, si bien qu'une
+    // édition grecque se nommera « Grec & Français » sans qu'on y touche.
     const grec = [
       { tradId: 'TRxx', langue: 'fr', role: 'translation' },
       { tradId: 'TRyy', langue: 'grc', role: 'source_text' },
     ]
     const libelle = (m: FaitsLectureBible['membresFamille']) =>
       modesLectureAlternatifs({ membresFamille: m })[0].choix[1].label
-    expect(libelle(FILLION)).toBe('Latin-français')
-    expect(libelle(grec)).toBe('Grec-français')
+    expect(libelle(FILLION)).toBe('Latin & Français')
+    expect(libelle(grec)).toBe('Grec & Français')
   })
 
   it('désigne un seul choix actif par axe', () => {
@@ -68,7 +68,7 @@ describe('modes de lecture alternatifs de la page Bible', () => {
 
   it('n’offre les commentaires que là où il y en a', () => {
     expect(groupes({ membresFamille: FILLION, tradActive: 'TR0010' }))
-      .toEqual([['texte', ['Français', 'Latin-français', 'Latin']]])
+      .toEqual([['texte', ['Français', 'Latin & Français', 'Latin']]])
   })
 
   it('n’ouvre pas un menu de graphie pour une seule graphie', () => {

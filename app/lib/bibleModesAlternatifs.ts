@@ -91,39 +91,50 @@ export type FaitsLectureBible = {
   texteSeulActif?: boolean
 }
 
-// Vocabulaire des langues. Deux formes, parce qu'une langue nommée SEULE ouvre la
-// ligne (« Latin ») tandis qu'en regard elle suit un tiret (« Latin-français »).
-const NOM_LANGUE: Record<string, { seule: string; suivante: string }> = {
-  fr: { seule: 'Français', suivante: 'français' },
-  // La langue d'oïl du témoin BnF fr. 899 : « Ancien français-français » en regard
-  // de sa traduction moderne (TR0013), sur le modèle de « Latin-français ».
-  fro: { seule: 'Ancien français', suivante: 'ancien français' },
-  la: { seule: 'Latin', suivante: 'latin' },
-  grc: { seule: 'Grec', suivante: 'grec' },
-  el: { seule: 'Grec', suivante: 'grec' },
-  he: { seule: 'Hébreu', suivante: 'hébreu' },
-  hbo: { seule: 'Hébreu', suivante: 'hébreu' },
+// Vocabulaire des langues. UNE seule forme : une langue porte son nom, qu'elle
+// ouvre la ligne (« Latin ») ou qu'elle en accompagne une autre (« Latin & Français »).
+// ⛔ Il y en avait deux, la seconde en bas de casse, parce que le libellé en regard
+// s'écrivait avec un tiret (« Latin-français »). Le tiret est parti (voir
+// `libelleEnRegard`), et la minuscule avec lui.
+const NOM_LANGUE: Record<string, string> = {
+  fr: 'Français',
+  // La langue d'oïl du témoin BnF fr. 899 : « Ancien français & Français » en regard
+  // de sa traduction moderne (TR0013).
+  fro: 'Ancien français',
+  la: 'Latin',
+  grc: 'Grec',
+  el: 'Grec',
+  he: 'Hébreu',
+  hbo: 'Hébreu',
 }
 
-function nomLangue(code: string): { seule: string; suivante: string } {
+function nomLangue(code: string): string {
   const connu = NOM_LANGUE[code?.toLowerCase()]
   if (connu) return connu
   // Langue non répertoriée : on rend le code tel quel plutôt qu'un nom inventé.
   const brut = (code || '').trim() || '—'
-  return { seule: brut.charAt(0).toUpperCase() + brut.slice(1), suivante: brut.toLowerCase() }
+  return brut.charAt(0).toUpperCase() + brut.slice(1)
 }
 
 /**
- * « Latin-français » : la langue d'ORIGINE ouvre, la traduction suit. L'ordre ne
+ * « Latin & Français » : la langue d'ORIGINE ouvre, la traduction suit. L'ordre ne
  * vient pas de l'affichage des colonnes (le français est à gauche chez Fillion)
  * mais du rôle des membres, si bien qu'une future édition grecque se nommera
- * « Grec-français » sans qu'on y touche.
+ * « Grec & Français » sans qu'on y touche.
+ *
+ * ⛔ L'esperluette, et deux noms de langue en capitale (2026-09-03, demande de
+ * l'auteur). Le libellé s'écrivait « Latin-français » : un trait d'union soude deux
+ * mots en un, quand ce mode donne DEUX textes à lire côte à côte. La page Œuvre
+ * l'écrivait déjà ainsi (« Français & Latin ») ; les deux pages nomment désormais
+ * la même chose de la même façon. ⚠️ L'ORDRE, lui, reste propre à chaque page : la
+ * page Œuvre part du français, la page Bible de la langue d'origine — c'est là ce
+ * que chacune fait lire d'abord.
  */
 function libelleEnRegard(membres: readonly MembreFamilleLecture[]): string {
   const original = membres.find((m) => m.role !== 'translation') ?? membres[0]
   const traduction = membres.find((m) => m !== original) ?? membres[1]
   if (!original || !traduction) return 'Les deux en regard'
-  return `${nomLangue(original.langue).seule}-${nomLangue(traduction.langue).suivante}`
+  return `${nomLangue(original.langue)} & ${nomLangue(traduction.langue)}`
 }
 
 /** Ordre de présentation : de la lecture la plus aisée à la plus fidèle au témoin. */
@@ -179,7 +190,7 @@ function groupeTexte(faits: FaitsLectureBible): GroupeLectureBible | null {
   const bilingueActif = faits.bilingueActif === true
   const choix: ChoixLectureBible[] = membres.map((membre) => ({
     cle: `membre:${membre.tradId}`,
-    label: nomLangue(membre.langue).seule,
+    label: nomLangue(membre.langue),
     description: 'Ce seul texte de l’édition, en une colonne',
     actif: !bilingueActif && faits.tradActive === membre.tradId,
     // `bilingue: false` est EXPLICITE : choisir un membre quitte la lecture en

@@ -448,14 +448,14 @@ export default async function Home({
     includeBookFrontMatter: chapitre === 1,
   }))
 
-  // Lecture « Latin-français » : demandée par l'URL, et servie seulement si la
+  // Lecture « Latin & Français » : demandée par l'URL, et servie seulement si la
   // famille éditoriale porte réellement deux membres pour ce chapitre. À défaut,
   // la page rend la lecture ordinaire plutôt qu'un écran d'erreur.
   const familyRows = editionMember
     ? editionCatalog.filter((row) => row.family_id === editionMember.family_id)
     : []
   // Les membres de la famille, dédoublonnés et dans l'ordre du catalogue : ils
-  // composent le menu « Lecture » du volet de gauche (Français · Latin-français ·
+  // composent le menu « Lecture » du volet de gauche (Français · Latin & Français ·
   // Latin). Deux membres ou plus ouvrent la lecture en regard ; une famille à un
   // seul texte se lit comme une traduction ordinaire.
   const membresFamille = [...new Map(familyRows.map((row) => [row.member_id, {

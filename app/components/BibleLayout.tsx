@@ -49,7 +49,7 @@ type Props = {
   couchesDisponibles?: Couche899[]
   /** Introductions, commentaires de plage, notes et illustrations de l’édition. */
   editionChapter?: BibleEditionChapterDisplay | null
-  /** Lecture « Latin-français » : deux membres d’une même famille en regard. */
+  /** Lecture « Latin & Français » : deux membres d’une même famille en regard. */
   lectureBilingue?: LectureBilingueProps | null
   /** Membres de la famille éditoriale (langue et rôle), dans l'ordre du catalogue.
    *  Deux membres ou plus ouvrent le menu « Lecture » du volet de gauche. */

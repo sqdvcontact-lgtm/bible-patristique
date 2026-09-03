@@ -2,7 +2,7 @@
  * L'URL de lecture de la page Bible, en un seul endroit.
  *
  * Elle était composée à la main en six endroits, dans trois fichiers. C'est
- * ainsi que la lecture « Latin-français » se perdait : le volet des livres
+ * ainsi que la lecture « Latin & Français » se perdait : le volet des livres
  * reconstruisait l'adresse sans reporter le mode, et changer de chapitre
  * ramenait le lecteur à une colonne sans qu'il l'ait demandé.
  *
@@ -24,7 +24,7 @@ export type CibleLectureBible = {
   couche?: string
   /** Verset à désigner. Sa présence exclut la lecture en regard. */
   verset?: number
-  /** Lecture « Latin-français » de l'édition. */
+  /** Lecture « Latin & Français » de l'édition. */
   bilingue?: boolean
   /** Lecture « Texte biblique seul » : l'appareil éditorial de l'édition est écarté. */
   texteSeul?: boolean

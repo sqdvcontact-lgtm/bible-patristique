@@ -1,6 +1,6 @@
 'use client'
 
-// Enveloppe de la lecture « Latin-français » : même châssis que la lecture
+// Enveloppe de la lecture « Latin & Français » : même châssis que la lecture
 // ordinaire — en-tête, navigation de chapitre, zone de défilement — pour que le
 // passage d'un mode à l'autre ne déplace rien à l'écran. Le corps est rendu par
 // `BibleBilingue`, et la logique d'appariement par `bibleEditionBilingue.ts`.
