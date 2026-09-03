@@ -138,18 +138,20 @@ export default async function Home({
   const [catalog, editionCatalog, { data: rawTranslations }, tradProfil] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
-    // `dates` = vie et mort de l'auteur ; `langue`, `confession` et
-    // `date_publication` = les trois repères de l'encart Traduction.
+    // `dates` = vie et mort de l'auteur ; `date_publication` = la ligne d'édition
+    // de l'encart Traduction (« D'après l'édition de 1888-1904 »).
     // ⛔ Plus de `source_edition` ni de `bio_courte` : la carte du volet portait la
     // référence de l'édition, puis la notice du traducteur, et ne porte plus ni
     // l'une ni l'autre (2026-09-02 et 2026-09-03). Les deux sont dans la fiche
     // « En savoir plus », qui les charge elle-même quand on l'ouvre ; les demander
     // ici, c'était les faire voyager à chaque chapitre lu pour personne.
+    // ⛔ Plus de `confession` ni de `langue` non plus : elles servaient les trois
+    // repères de la carte, remplacés le 2026-09-03 par la seule ligne d'édition.
     // ⛔ `est_biblique` : la table tient aussi la notice bibliographique de la traduction
     // employée par une œuvre PATRISTIQUE (Jeannin pour Chrysostome, Barreau et Charpentier
     // pour la Cité de Dieu…), à laquelle renvoie `oeuvres.trad_id`. Un sélecteur de
     // traduction BIBLIQUE ne montre que ce qui en est.
-    supabase.from('traductions').select('trad_id, nom, auteur, dates, date_publication, confession, langue').eq('est_biblique', true).order('ordre', { ascending: true }),
+    supabase.from('traductions').select('trad_id, nom, auteur, dates, date_publication').eq('est_biblique', true).order('ordre', { ascending: true }),
     // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
     // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
     // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.
@@ -172,7 +174,7 @@ export default async function Home({
     canonDuChapitre(supabase, livre, chapitre),
   ])
   const toutesTraductions = (rawTranslations || [])
-    .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, datePublication: t.date_publication, confession: t.confession, langue: t.langue }))
+    .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, datePublication: t.date_publication }))
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0
