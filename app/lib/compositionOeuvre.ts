@@ -153,25 +153,36 @@ export function margeArgument({ memeParagraphe }: { memeParagraphe?: boolean } =
  */
 export type RangTitreOeuvre = 1 | 2 | 3 | 4
 
+/** Comment un intitulé de division s'ENROULE, aux trois rangs qui ont leur ligne.
+ *
+ *  `pre-line` fait voir le saut saisi par l'éditeur ; `balance` égalise les lignes
+ *  d'un intitulé qui en prend plusieurs, au lieu de rejeter deux syllabes seules à la
+ *  dernière (« … un commerce / impur ? », « … et leur / nourriture »). C'est le réglage
+ *  du sommaire (`COMPOSITION_INTITULE`), porté dans la colonne de lecture le
+ *  2026-09-03 après essai sur les Questions sur l'Heptateuque. Le texte suivi,
+ *  justifié, n'est pas concerné. ⛔ Le rang 4 reste hors de portée : son sous-titre
+ *  vit sur la ligne du titre, et un équilibrage y déplacerait la coupe entre les deux. */
+const ENROULEMENT_INTITULE = { whiteSpace: 'pre-line', textWrap: 'balance' } as const
+
 /** Le TITRE d'un rang. Les deux hauts sont en sérif, les deux bas en sans. */
 export function styleTitreNiveau(rang: RangTitreOeuvre): CSSProperties {
   if (rang === 1) {
     return {
       fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 500,
-      color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, whiteSpace: 'pre-line',
+      color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0, ...ENROULEMENT_INTITULE,
     } as CSSProperties
   }
   if (rang === 2) {
     return {
       fontFamily: SERIF, fontSize: '1.125rem', fontWeight: 400,
       color: 'var(--cs-encre)', lineHeight: 1.3, margin: 0,
-      letterSpacing: '0.01em', whiteSpace: 'pre-line',
+      letterSpacing: '0.01em', ...ENROULEMENT_INTITULE,
     } as CSSProperties
   }
   if (rang === 3) {
     return {
       fontSize: '0.78125rem', fontWeight: 600, color: 'var(--cs-texte)',
-      lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', whiteSpace: 'pre-line',
+      lineHeight: 1.3, margin: 0, letterSpacing: '0.02em', ...ENROULEMENT_INTITULE,
     } as CSSProperties
   }
   // Rang 4 : le seul qui prenne la capitale, et le seul dont le sous-titre reste
@@ -196,13 +207,13 @@ export function styleSousTitreNiveau(rang: RangTitreOeuvre): CSSProperties {
     return {
       fontFamily: SERIF, fontSize: '0.9375rem', fontWeight: 400,
       color: 'var(--cs-texte-second)', fontStyle: 'italic', lineHeight: 1.4,
-      margin: '5px 0 0', whiteSpace: 'pre-line',
+      margin: '5px 0 0', ...ENROULEMENT_INTITULE,
     } as CSSProperties
   }
   if (rang === 3) {
     return {
       fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)',
-      lineHeight: 1.3, margin: '2px 0 0', whiteSpace: 'pre-line',
+      lineHeight: 1.3, margin: '2px 0 0', ...ENROULEMENT_INTITULE,
     } as CSSProperties
   }
   return {

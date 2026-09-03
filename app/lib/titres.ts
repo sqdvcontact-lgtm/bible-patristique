@@ -107,10 +107,19 @@ export function complementDeTitre(
  *
  *  ⛔ On avait craint que le second ne défasse le premier, et prévu de l'interdire dès
  *  qu'un saut manuel était présent. MESURÉ, ce n'est pas le cas : un saut forcé est une
- *  frontière que l'équilibrage ne franchit pas, et chaque tronçon s'équilibre seul. Sur
- *  « Comment les Anges … impur ?⏎Genèse 6, 4 », « Genèse 6, 4 » reste sur sa ligne à
- *  toutes les largeurs, et l'écart entre les lignes de la QUESTION tombe de 13 caractères
- *  à 3 sur une colonne de 130 px, de 18 à 10 sur 150, de 6 à 2 sur 170.
+ *  frontière que l'équilibrage ne franchit pas. Sur « Comment les Anges … impur ?⏎Genèse
+ *  6, 4 », « Genèse 6, 4 » reste sur sa ligne à toutes les largeurs, et l'écart entre les
+ *  lignes de la QUESTION tombe de 13 caractères à 3 sur une colonne de 130 px, de 18 à
+ *  10 sur 150, de 6 à 2 sur 170.
+ *
+ *  ⚠️ Mais chaque tronçon ne s'équilibre PAS seul, contrairement à ce qu'on avait écrit
+ *  ici (corrigé le 2026-09-03). Le navigateur équilibre en réduisant UNE largeur commune
+ *  à toutes les lignes : dès qu'un tronçon forcé occupe une ligne entière, il ne peut
+ *  plus rien réduire sans la casser, et les tronçons suivants retombent dans
+ *  l'enroulement ordinaire. Mesuré sur « On demande aussi comment, avec ses dimensions
+ *  telles qu'elles sont décrites,⏎l'arche de Noé put contenir … et leur nourriture » :
+ *  la première ligne remplie, « nourriture » retombe seul. Un saut saisi ne rend donc
+ *  service que si ce qui le suit tient sur sa ligne ou s'équilibre de lui-même.
  *
  *  L'interdiction aurait donc coûté sans rien protéger : elle aurait laissé sans remède
  *  les intitulés qui portent une référence en seconde ligne, c'est-à-dire précisément

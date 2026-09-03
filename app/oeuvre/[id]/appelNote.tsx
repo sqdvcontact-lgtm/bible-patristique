@@ -36,12 +36,51 @@ const FINE_TITRE_COLOPHON = ' '
 // un choix de composition, il ne se rattrape pas. Même précaution que dans
 // `titreSansAppelsDeNote` ci-dessous.
 export function preparerTitreColophon(texte: string) {
-  return normaliserTitreTechnique(texte)
+  const texteEspace = normaliserTitreTechnique(texte)
     .trim()
     .replace(/[ \t  ]+([;!?»])/g, `${FINE_TITRE_COLOPHON}$1`)
     .replace(/[ \t  ]+(:)/g, `${NBSP_TITRE_COLOPHON}$1`)
     .replace(/([«])[ \t  ]+/g, `$1${FINE_TITRE_COLOPHON}`)
     .replace(/[ \t  ]+([,.])/g, '$1')
+  return collerMotsCourts(texteEspace.replace(/(\p{L})-(?=\p{L})/gu, `$1-${GLUON_TITRE}`))
+}
+
+// ── Ce qu'un titre ne coupe pas ───────────────────────────────────────────────
+// Le navigateur coupe librement APRÈS un trait d'union : sur les Questions sur
+// l'Heptateuque, « a-t-elle » se rendait « a- / t-elle » dans la colonne de lecture
+// comme au téléphone, et `text-wrap: balance` n'y pouvait rien, la coupe étant
+// licite à ses yeux. Le GLUON est U+2060 (WORD JOINER) : sans chasse, il interdit
+// la coupe de part et d'autre de lui, et il se pose après tout trait d'union placé
+// entre deux lettres. ⛔ Pas le trait d'union insécable U+2011 : Source Serif 4 et
+// Source Sans 3, tels que Google les sert, n'en ont pas le glyphe, et le navigateur
+// l'emprunte à une police de secours (mesuré le 2026-09-03 : 5 px dans les quatre
+// familles essayées, contre 4,7 px pour le trait d'union propre). Le gluon, lui,
+// est un « ignorable par défaut » : il ne se dessine jamais, glyphe ou non.
+const GLUON_TITRE = String.fromCharCode(0x2060)
+
+// Les mots d'une ou deux lettres qu'on ne laisse pas seuls en fin de ligne : l'espace
+// qui les SUIT devient insécable, et « fabrication de / l'arche » ne se voit plus.
+// Liste close, français et latin ; la casse est ignorée pour le mot initial. On ne
+// travaille qu'entre deux ESPACES ORDINAIRES et sur une même ligne : le saut saisi
+// par l'éditeur reste un saut, et une espace déjà fine ou insécable reste ce qu'elle
+// est. Le mot suivant doit commencer par une lettre ou un guillemet ouvrant, jamais
+// par un appel de note ni par une ponctuation.
+const MOTS_COLLES_TITRE = new Set([
+  'à', 'a', 'y', 'de', 'du', 'et', 'ou', 'en', 'le', 'la', 'un', 'au', 'ne', 'se', 'ce', 'si', 'où', 'es', 'on', 'il', 'je', 'tu', 'ni',
+  'in', 'ad', 'ex', 'ab', 'ut', 'ac', 'an', 'id', 'ob',
+])
+const DEBUT_DE_MOT = /^[\p{L}«’']/u
+function collerMotsCourts(texte: string) {
+  return texte.split('\n').map(ligne => {
+    const mots = ligne.split(' ')
+    let resultat = mots[0]
+    for (let i = 1; i < mots.length; i++) {
+      const precedent = mots[i - 1].replace(/^[«(]/, '').toLocaleLowerCase('fr-FR')
+      const colle = MOTS_COLLES_TITRE.has(precedent) && DEBUT_DE_MOT.test(mots[i])
+      resultat += (colle ? NBSP_TITRE_COLOPHON : ' ') + mots[i]
+    }
+    return resultat
+  }).join('\n')
 }
 
 // Le sommaire est une navigation compacte : la note y serait un appel qu'on ne

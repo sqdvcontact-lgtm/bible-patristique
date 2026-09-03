@@ -8,21 +8,48 @@ const INSECABLE = ' '
 
 describe('espacement typographique d’un titre', () => {
   it('pose l’espace insécable devant la ponctuation haute', () => {
-    expect(preparerTitreColophon('Livre premier : la cité')).toBe(`Livre premier${INSECABLE}: la cité`)
+    expect(preparerTitreColophon('Livre premier : la cité')).toBe(`Livre premier${INSECABLE}: la${INSECABLE}cité`)
   })
 
   it('resserre l’espace qui précède une virgule ou un point', () => {
-    expect(preparerTitreColophon('Livre premier , la cité')).toBe('Livre premier, la cité')
+    expect(preparerTitreColophon('Livre premier , la cité')).toBe(`Livre premier, la${INSECABLE}cité`)
   })
 
   it('garde le saut de ligne quand la seconde ligne s’ouvre sur une ponctuation haute', () => {
     expect(preparerTitreColophon('Livre premier\n: la cité de Dieu'))
-      .toBe('Livre premier\n: la cité de Dieu')
+      .toBe(`Livre premier\n: la${INSECABLE}cité de${INSECABLE}Dieu`)
   })
 
   it('garde le saut de ligne quand la seconde ligne s’ouvre sur une virgule ou un point', () => {
     expect(preparerTitreColophon('Sur la Cité de Dieu\n. Dessein de cet ouvrage'))
-      .toBe('Sur la Cité de Dieu\n. Dessein de cet ouvrage')
+      .toBe(`Sur la${INSECABLE}Cité de${INSECABLE}Dieu\n. Dessein de${INSECABLE}cet ouvrage`)
+  })
+})
+
+// Le gluon U+2060 se pose après tout trait d'union entre deux lettres ; l'espace qui suit
+// un mot d'une ou deux lettres devient insécable. Voir `preparerTitreColophon`.
+const GLUON = String.fromCharCode(0x2060)
+const FINE = String.fromCharCode(0x202f)
+
+describe('ce qu’un titre ne coupe pas', () => {
+  it('interdit la coupe après le trait d’union des formes composées', () => {
+    expect(preparerTitreColophon('Comment une arche a-t-elle pu être construite, c’est-à-dire par Noé'))
+      .toBe(`Comment une arche a-${GLUON}t-${GLUON}elle pu être construite, c’est-${GLUON}à-${GLUON}dire par Noé`)
+  })
+
+  it('laisse le trait d’union d’un intervalle de chiffres', () => {
+    expect(preparerTitreColophon('Genèse 7, 8-9')).toBe('Genèse 7, 8-9')
+  })
+
+  it('colle un mot d’une ou deux lettres au mot qui le suit, casse du mot initial comprise', () => {
+    expect(preparerTitreColophon('De l’élévation de l’eau au-dessus des montagnes'))
+      .toBe(`De${INSECABLE}l’élévation de${INSECABLE}l’eau au-${GLUON}dessus des montagnes`)
+  })
+
+  it('ne colle ni à un appel de note ni à une ponctuation, et ne franchit pas le saut saisi', () => {
+    expect(preparerTitreColophon('Que signifie : Esprit de vie ?\nGenèse 7, 15'))
+      .toBe(`Que signifie${INSECABLE}: Esprit de${INSECABLE}vie${FINE}?\nGenèse 7, 15`)
+    expect(preparerTitreColophon('Sur la [[A1]] cité')).toBe('Sur la [[A1]] cité')
   })
 })
 
