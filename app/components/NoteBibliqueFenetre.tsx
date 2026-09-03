@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import { hauteurNavbarPx, MARGE_FENETRE, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { composerBibliographie } from '@/app/lib/bibleBibliographie'
@@ -147,7 +147,13 @@ export default function AppelNoteBiblique({
           onMouseDown={(e) => e.stopPropagation()}
           style={{
             position: 'fixed', left: placement.left, top: placement.top,
-            width: LARGEUR, maxWidth: 'calc(100vw - 16px)',
+            width: LARGEUR,
+            // Le placeur promet MARGE_FENETRE de chaque côté. Sur un écran plus
+            // étroit que 460 px, `100vw - 16px` ne laissait pourtant que 4 px à
+            // droite : la largeur CSS et le calcul de placement ne parlaient pas
+            // de la même marge. La fenêtre prend désormais exactement la bande
+            // horizontale que le placeur lui réserve.
+            maxWidth: `calc(100vw - ${MARGE_FENETRE * 2}px)`,
             maxHeight: placement.hauteurMax, overflowY: 'auto',
             background: 'var(--cs-fond)', border: '1px solid var(--cs-or-doux)',
             borderRadius: '4px', boxShadow: 'var(--cs-ombre-flottante)',
