@@ -61,9 +61,16 @@ const AUTORISES = [process.env.ADMIN_EMAIL, process.env.ACCES_INVITES]
 // dans le journal. Le risque est borné : la route n'écrit que des agrégats
 // anonymes, ne rend aucune donnée (204), est limitée en débit par empreinte, et
 // ses lignes sont purgées à vingt-cinq mois.
+//
+// `/api/paypal` : la notification de don. PayPal doit pouvoir l'atteindre, et une
+// notification redirigée en 307 vers /chantier mourrait en silence — PayPal renoncerait
+// au bout de ses tentatives sans que rien ne le dise ici, et les dons cesseraient de
+// s'inscrire sans qu'on l'apprenne. Le risque est borné : la route ne rend aucune
+// donnée, n'écrit rien avant que PayPal ait confirmé sa propre signature, et sans les
+// trois clés de l'environnement elle ne fait rien du tout.
 const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres',
                 '/confidentialite', '/conditions-utilisation', '/contact', '/api/contact',
-                '/api/audience',
+                '/api/audience', '/api/paypal',
                 // Réservation TDM : doit rester lisible (y compris par les crawlers).
                 '/.well-known']
 

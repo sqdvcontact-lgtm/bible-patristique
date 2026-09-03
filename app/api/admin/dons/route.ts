@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
+import { lireEtatReception, recalculerMarque } from '@/app/lib/mecenesServeur'
 
 // LE REGISTRE DES DONS — et, par voie de conséquence, la marque de mécène.
 //
@@ -11,9 +12,11 @@ import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 // ailleurs sur le site — deux surfaces qui décrivent le même fait divergent au premier
 // réglage.
 //
-// ⛔ La table `dons` n'a AUCUNE politique RLS : elle ne se lit et ne s'écrit que d'ici,
-// avec la clé de service. Un registre nominatif de dons n'a rien à faire dans un
-// navigateur, fût-ce celui de l'administrateur — et cette route vérifie l'admin.
+// ⛔ La table `dons` n'a AUCUNE politique RLS : elle ne se lit et ne s'écrit qu'avec la
+// clé de service, par cette route et par la notification de PayPal
+// (`/api/paypal/webhook`), et par rien d'autre. Un registre nominatif de dons n'a rien
+// à faire dans un navigateur, fût-ce celui de l'administrateur — et cette route vérifie
+// l'admin.
 //
 // ⛔ AUCUN MONTANT n'est jamais reçu ni gardé : PayPal tient ce livre-là. Le site n'a
 // besoin que du FAIT du don, et c'est aussi ce qui rend la marque indivisible.
@@ -34,19 +37,10 @@ type Don = {
   note: string | null
 }
 
-/** La marque, recalculée sur le registre : la date du plus ancien don, ou rien.
- *
- *  ⚠️ Appelée pour l'ANCIEN comme pour le NOUVEAU compte quand un don change de
- *  mains : sans quoi l'ancien garderait une marque que plus aucun don ne soutient. */
-async function recalculerMarque(userId: string | null): Promise<void> {
-  if (!userId) return
-  const { data } = await supabaseAdmin
-    .from('dons').select('recu_le').eq('user_id', userId)
-    .order('recu_le', { ascending: true }).limit(1)
-  await supabaseAdmin.from('profils')
-    .update({ mecene_depuis: data?.[0]?.recu_le ?? null })
-    .eq('id', userId)
-}
+// ⛔ `recalculerMarque` vit dans `app/lib/mecenesServeur.ts`, partagée avec la
+// notification de PayPal : les deux portes du registre doivent poser la marque de la
+// même façon, sinon un don rattaché à la main et un don reçu automatiquement ne
+// donneraient pas le même résultat, et il faudrait deviner lequel a raison.
 
 /** Une date au format du jour (« 2026-09-03 »), ou aujourd'hui. */
 function dateDon(v: unknown): string | null {
@@ -98,7 +92,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    return NextResponse.json({ dons: await lireRegistre() })
+    // ⚠️ L'état de la réception part AVEC le registre, et non sur demande : une
+    // liaison rompue ne se voit pas — plus aucun don n'arrive, ce que rend aussi bien
+    // un site où personne ne donne. Il faut donc que l'écran le dise sans qu'on
+    // l'ait cherché.
+    const [dons, reception] = await Promise.all([lireRegistre(), lireEtatReception(supabaseAdmin)])
+    return NextResponse.json({ dons, reception })
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 })
   }
@@ -131,7 +130,7 @@ export async function POST(request: Request) {
     { error: error.code === '23505' ? 'Ce don est déjà inscrit (même référence de transaction).' : error.message },
     { status: error.code === '23505' ? 409 : 500 })
 
-  await recalculerMarque(ligne.user_id)
+  await recalculerMarque(supabaseAdmin, ligne.user_id)
   return NextResponse.json({ ok: true, dons: await lireRegistre() })
 }
 
@@ -149,8 +148,8 @@ export async function PATCH(request: Request) {
   const { error } = await supabaseAdmin.from('dons').update({ user_id: nouveau }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  await recalculerMarque(avant.user_id as string | null)
-  await recalculerMarque(nouveau)
+  await recalculerMarque(supabaseAdmin, avant.user_id as string | null)
+  await recalculerMarque(supabaseAdmin, nouveau)
   return NextResponse.json({ ok: true, dons: await lireRegistre() })
 }
 
@@ -165,6 +164,6 @@ export async function DELETE(request: Request) {
   const { error } = await supabaseAdmin.from('dons').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  await recalculerMarque((avant?.user_id as string | null) ?? null)
+  await recalculerMarque(supabaseAdmin, (avant?.user_id as string | null) ?? null)
   return NextResponse.json({ ok: true, dons: await lireRegistre() })
 }

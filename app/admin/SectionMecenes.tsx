@@ -6,13 +6,14 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 
 // LE REGISTRE DES DONS — et le rattachement d'un don à un compte.
 //
-// PayPal ne rend qu'un nom et une adresse électronique, et rien qui pointe vers un
-// compte du site. Le rapprochement se fait donc ICI, à la main : on inscrit le don tel
-// que PayPal le donne, on cherche le compte sur l'une de ses trois adresses, on
-// rattache. ⚠️ C'est un travail de trente secondes par don, et c'est le prix de ne pas
-// dépendre d'une notification automatique de PayPal, qui retomberait de toute façon sur
-// une comparaison d'adresses approximative. Le jour où le flux le justifiera, la
-// colonne `reference` est déjà là pour empêcher de compter deux fois le même don.
+// ⚠️ Depuis le 3 septembre 2026, cet écran n'est plus le chemin ORDINAIRE : la
+// notification de PayPal (`/api/paypal/webhook`) inscrit le don seule et le rattache
+// dès que l'adresse du paiement est celle d'un compte du site. Il reste la main qu'il
+// faut pour ce que l'automatique ne peut pas faire, et qui est un cas et non une
+// exception : le donateur qui paie depuis une TROISIÈME adresse, que le site n'a jamais
+// vue. Rien ne peut deviner qu'elle est la sienne ; son don s'inscrit tout de même,
+// sans compte, et attend ici. ⛔ On ne referme donc pas cet écran sous prétexte que la
+// réception est automatique.
 //
 // ⛔ LA MARQUE SE DÉDUIT DU REGISTRE : `profils.mecene_depuis` se recalcule côté serveur
 // sur la date du plus ancien don rattaché. Aucun bouton, ici, ne la pose ni ne la
@@ -43,6 +44,14 @@ type Compte = {
   mecene_depuis: string | null
 }
 
+/** Ce que la route dit de la liaison avec PayPal. Voir app/lib/mecenesServeur.ts. */
+type Reception = {
+  configuree: boolean
+  derniereLe: string | null
+  joursDepuis: number | null
+  dernierType: string | null
+}
+
 async function jeton(): Promise<string | undefined> {
   const { data } = await supabase.auth.getSession()
   return data.session?.access_token
@@ -52,6 +61,7 @@ const AUJOURDHUI = () => new Date().toISOString().slice(0, 10)
 
 export default function SectionMecenes() {
   const [dons, setDons] = useState<Don[] | null>(null)
+  const [reception, setReception] = useState<Reception | null>(null)
   const [erreur, setErreur] = useState('')
   const [occupe, setOccupe] = useState(false)
 
@@ -73,8 +83,9 @@ export default function SectionMecenes() {
   const charger = useCallback(async () => {
     const res = await fetch('/api/admin/dons', { headers: { Authorization: `Bearer ${await jeton()}` } })
     if (!res.ok || res.redirected) { setErreur('Le registre n’a pas pu être chargé.'); setDons([]); return }
-    const { dons } = await res.json()
+    const { dons, reception } = await res.json()
     setDons(dons)
+    if (reception) setReception(reception)
   }, [])
 
   // Le registre est un état EXTÉRIEUR, lu au réseau une fois à l'ouverture de la
@@ -148,11 +159,17 @@ export default function SectionMecenes() {
         du donateur sur son pseudonyme ou sur l’une de ses adresses, et on rattache. La marque de
         mécène se pose alors d’elle-même sur ce compte, à la date du plus ancien don rattaché.
       </p>
-      <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 18px', maxWidth: '46rem' }}>
+      <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 14px', maxWidth: '46rem' }}>
         Aucun montant n’est demandé ni conservé : PayPal tient ce livre. La marque ne se gradue pas,
         n’entre dans aucun haut fait et n’ouvre aucun droit. Un don sans compte reste au registre,
         sans marque, jusqu’à ce qu’un compte lui soit trouvé.
       </p>
+
+      {/* ⚠️ L'ÉTAT DE LA LIAISON, dit sans qu'on l'ait cherché. Une réception qui
+          s'arrête ne se voit pas : plus aucun don n'arrive, et c'est exactement ce
+          que rend un site où personne ne donne. Le dépôt a déjà payé ce défaut deux
+          fois, avec la sauvegarde quotidienne et la balise d'audience. */}
+      {reception && <BandeauReception etat={reception} />}
 
       {erreur && (
         <p role="alert" style={{ fontSize: '0.8125rem', color: 'var(--cs-danger)', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '4px', padding: '8px 10px', margin: '0 0 14px' }}>
@@ -290,5 +307,60 @@ export default function SectionMecenes() {
         </table>
       )}
     </section>
+  )
+}
+
+// L'ÉTAT DE LA LIAISON AVEC PAYPAL.
+//
+// ⛔ Trois états, et le troisième est le seul qu'on veut lire d'ordinaire. Ne PAS crier
+// à la panne sur un silence : un site qui ne reçoit aucun don rend exactement le même
+// silence qu'une liaison rompue, et une alerte qui se trompe cesse d'être lue. On dit
+// ce qu'on sait — la date de la dernière notification — et on laisse juger.
+function BandeauReception({ etat }: { etat: Reception }) {
+  // ⛔ L'ancienneté est comptée par le SERVEUR (`lireEtatReception`), jamais ici : une
+  // horloge lue pendant un rendu rend un composant instable, et la règle de pureté de
+  // React le refuse à juste titre.
+  const jours = etat.joursDepuis
+
+  const cadre: React.CSSProperties = {
+    fontSize: '0.75rem', lineHeight: 1.5, borderRadius: '4px',
+    padding: '8px 10px', margin: '0 0 18px', maxWidth: '46rem',
+  }
+
+  if (!etat.configuree) {
+    return (
+      <p style={{
+        ...cadre,
+        color: 'var(--cs-attente)',
+        background: 'rgba(var(--cs-or-rgb),0.10)',
+        border: '1px solid var(--cs-bord)',
+      }}>
+        <strong>Réception automatique éteinte.</strong> Les dons ne s’inscrivent pas seuls : il faut
+        les porter à la main ci-dessous. Pour l’allumer, posez dans l’hébergeur les trois clés de
+        votre application PayPal (<code>PAYPAL_CLIENT_ID</code>, <code>PAYPAL_CLIENT_SECRET</code>,
+        <code>PAYPAL_WEBHOOK_ID</code>) et déclarez chez PayPal l’adresse de notification
+        <code> /api/paypal/webhook</code>.
+      </p>
+    )
+  }
+
+  return (
+    <p style={{
+      ...cadre,
+      color: 'var(--cs-texte-second)',
+      background: 'rgba(var(--cs-vert-rgb),0.07)',
+      border: '1px solid var(--cs-vert-pale)',
+    }}>
+      <strong style={{ color: 'var(--cs-vert-fonce)' }}>Réception automatique branchée.</strong>{' '}
+      {etat.derniereLe ? (
+        <>
+          Dernière notification de PayPal le {etat.derniereLe}
+          {jours !== null && jours > 0 && `, il y a ${jours} jour${jours > 1 ? 's' : ''}`}
+          {etat.dernierType && ` (${etat.dernierType})`}.
+        </>
+      ) : (
+        <>Aucune notification n’est encore venue. Le premier don le dira.</>
+      )}
+    </p>
   )
 }
