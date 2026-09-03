@@ -2,12 +2,13 @@
 
 // ────────────────────────────────────────────────────────────────────────────
 // Page « Polyglotte » — comparaison des traductions, outil de suivi de la refonte.
-// Quatre onglets (Ancien Testament / Psaumes / Nouveau Testament / Écrits non
-// canoniques) ; la page s'ouvre vide, un onglet charge TOUTE sa portion sur une
-// seule page défilante. Rendu par livre avec content-visibility:auto (seules les
-// sections visibles sont calculées). Jusqu'à 4 traductions en parallèle, choisies
-// directement dans l'en-tête du tableau ; numérotation propre de chaque édition collée
-// au texte, lignes problématiques en rouge, zébrage une ligne sur deux.
+// La page s'ouvre vide ; on choisit un livre dans le volet de gauche, le même que
+// celui de la page Bible, et l'on lit UN chapitre à la fois (le livre entier et
+// « tout afficher » restent des options explicites). Jusqu'à cinq traductions en
+// regard, choisies dans l'en-tête du tableau ; numérotation propre de chaque
+// édition en lettrine, zébrage une ligne sur deux, lignes problématiques en rouge
+// pour l'administrateur. Ce qui est chargé reste en CACHE par traduction et par
+// chapitre, et le chapitre suivant se met en cache d'avance (voir « Le cache »).
 // En mode admin, un crayon paraît au survol d'une cellule et ouvre une petite fenêtre
 // pour corriger le verset (route serveur).
 // Écran large requis : la page est signalée indisponible sous 820 px.
@@ -18,7 +19,7 @@ import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
 import { cesurerLatin } from "@/app/lib/cesuresLatines";
 import { supabase } from "@/app/lib/supabase";
-import NavLivres from "@/app/components/NavLivres";
+import NavLivres, { NB_CHAPITRES } from "@/app/components/NavLivres";
 import IconeCrayon from "@/app/components/IconeCrayon";
 import IconeDrapeau from "@/app/components/IconeDrapeau";
 import IconeChevron from "@/app/components/IconeChevron";
@@ -43,24 +44,13 @@ import {
 } from '@/app/lib/compositionBible'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
-type Trad = { trad_id: string; nom: string; ordre: number | null; label: string; edition: string | null; lang: string };
+type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string };
 
-
-// Libellé daté d'une traduction : « Bible de Sacy, édition de 1730 ». L'année retenue est
-// celle de l'édition-source (dernier millésime qu'elle cite), à défaut la fin de la période
-// de publication de la traduction.
-function libelleTrad(t: { nom: string; source_edition?: string | null; publication_fin_annee?: number | null }): string {
-  let annee: string | null = null;
-  if (t.source_edition) { const m = t.source_edition.match(/\d{4}/g); if (m?.length) annee = m[m.length - 1]; }
-  if (!annee && t.publication_fin_annee) annee = String(t.publication_fin_annee);
-  // « Bible de Sacy · 1730 » : le point médian sépare sans commenter, là où « — édition
-  // de » alourdissait chaque ligne de la liste.
-  return annee ? `${t.nom} · ${annee}` : t.nom;
-}
 
 // Le millésime SEUL, sans « Édition de » ni ponctuation : posé sous le nom de la
 // traduction, en petites capitales espacées, il se lit pour ce qu'il est. Une date sous
-// un titre n'a pas besoin qu'on la présente.
+// un titre n'a pas besoin qu'on la présente. L'année retenue est celle de l'édition-source
+// (dernier millésime qu'elle cite), à défaut la fin de la période de publication.
 function editionTrad(t: { source_edition?: string | null; publication_fin_annee?: number | null }): string | null {
   let annee: string | null = null;
   if (t.source_edition) {
@@ -274,29 +264,51 @@ function couvre(chargee: Portee | null, demande: Portee): boolean {
     && (chargee.chScope === null || chargee.chScope === demande.chScope);
 }
 
-// Le chargement d'une portée : canon et texte ensemble, et la colonne synthétique de
-// la Bible 899 dans la MÊME vague (elle suivait, en cascade). Fonction de module :
-// elle ne lit aucun état, et l'effet qui l'appelle décide seul de ce qu'il en fait.
-async function chargerPortee(demande: Portee, ordreDe: Map<string, number>): Promise<{ canon: CanonRow[]; lignes: V2Row[] }> {
-  const { codes, tradIds, chScope, couche } = demande;
-  // Les identifiants du canon ont la forme « LIVRE.chapitre.verset », d'où le filtre
-  // `like` sur `canon_id` quand on ne veut qu'un chapitre. Les surnuméraires (sans
-  // créneau du canon) ne paraissent donc qu'en vue « Livre entier » — cas rares.
-  const [c, vv, parLivre899] = await Promise.all([
-    fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription",
-      q => { const x = q.in("livre", codes); return chScope != null ? x.eq("ch_canon", chScope) : x; }),
-    fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
-      q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
-    // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
-    // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
-    // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon
-    // (MANUSCRIPT_EXTRA) n'ont pas de canon_id et sont écartées par `chargerVersets899`.
-    tradIds.includes(TRAD_ID_BIBLE899)
-      ? Promise.all(codes.map(code => chargerVersets899(supabase, { livre: code, chapitre: chScope })))
-      : Promise.resolve([]),
-  ]);
-  c.sort((a, b) => ((ordreDe.get(a.livre) ?? 0) - (ordreDe.get(b.livre) ?? 0)) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
-  const rows899: V2Row[] = parLivre899.flat().map(l => {
+// ── Le CACHE : par traduction et par chapitre ─────────────────────────────────
+// Ce qui est venu de la base reste en mémoire, rangé par traduction ET par chapitre
+// (2026-09-03). Changer une colonne ne charge que la colonne ; revenir à un chapitre
+// ne coûte rien ; et le chapitre suivant se met en cache d'avance (voir la page). Le
+// livre entier se range sous « * » et couvre chacun de ses chapitres. La Bible 899 se
+// garde BRUTE : la couche (développée, diplomatique) s'applique à la lecture, si bien
+// qu'en changer ne recharge rien.
+// ⚠️ Au niveau du module, et non dans un état : le cache survit aux rendus et aux
+// allers et retours sur la page, et il est BORNÉ, les entrées les plus anciennes
+// partant les premières. Un chapitre à cinq colonnes pèse quelques dizaines de Ko.
+type Scope = number | "*";
+type Brutes899 = Awaited<ReturnType<typeof chargerVersets899>>;
+const cacheCanon = new Map<string, CanonRow[]>();   // « livre|scope »
+const cacheTexte = new Map<string, V2Row[]>();      // « trad|livre|scope »
+const cache899 = new Map<string, Brutes899>();      // « livre|scope »
+const CACHE_MAX = 60;
+function retenir<T>(cache: Map<string, T>, cle: string, valeur: T) {
+  cache.delete(cle);
+  cache.set(cle, valeur);
+  while (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value as string);
+}
+const scopeDe = (chScope: number | null): Scope => chScope ?? "*";
+const cleLivre = (livre: string, scope: Scope) => `${livre}|${scope}`;
+// Un chapitre se lit dans son entrée, ou dans celle du livre entier quand elle y est.
+function lireCanon(livre: string, scope: Scope): CanonRow[] | undefined {
+  return cacheCanon.get(cleLivre(livre, scope))
+    ?? (scope === "*" ? undefined : cacheCanon.get(cleLivre(livre, "*"))?.filter(r => r.ch_canon === scope));
+}
+// Le même partage que la base : un chapitre, ce sont les lignes dont le créneau du
+// canon est dans ce chapitre ; les surnuméraires, sans créneau, restent au livre entier.
+function lireTexte(trad: string, livre: string, scope: Scope): V2Row[] | undefined {
+  return cacheTexte.get(`${trad}|${cleLivre(livre, scope)}`)
+    ?? (scope === "*" ? undefined : cacheTexte.get(`${trad}|${cleLivre(livre, "*")}`)?.filter(r => r.canon_id?.startsWith(`${livre}.${scope}.`)));
+}
+function lire899(livre: string, scope: Scope): Brutes899 | undefined {
+  return cache899.get(cleLivre(livre, scope))
+    ?? (scope === "*" ? undefined : cache899.get(cleLivre(livre, "*"))?.filter(l => l.chapitre === scope));
+}
+
+// Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
+// éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
+// manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon
+// (MANUSCRIPT_EXTRA) n'ont pas de canon_id et sont écartées par `chargerVersets899`.
+function lignes899(brutes: Brutes899, couche: Couche899): V2Row[] {
+  return brutes.map(l => {
     const lacune = rendu899(l) === "lacune";
     return {
       id: `899:${l.canon_id}`,
@@ -311,8 +323,125 @@ async function chargerPortee(demande: Portee, ordreDe: Map<string, number>): Pro
       estLacune899: lacune,
     };
   });
-  return { canon: c, lignes: rows899.length ? [...vv, ...rows899] : vv };
 }
+
+function trierCanon(c: CanonRow[], ordreDe: Map<string, number>) {
+  c.sort((a, b) => ((ordreDe.get(a.livre) ?? 0) - (ordreDe.get(b.livre) ?? 0)) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
+}
+
+// Assemble une demande depuis le cache, ou rend null s'il y manque quelque chose.
+// SYNCHRONE : c'est ce qui permet de servir un chapitre sans passer par l'attente.
+function assemblerDepuisCache(demande: Portee, ordreDe: Map<string, number>): { canon: CanonRow[]; lignes: V2Row[] } | null {
+  const scope = scopeDe(demande.chScope);
+  const canon: CanonRow[] = [];
+  const lignes: V2Row[] = [];
+  for (const code of demande.codes) {
+    const c = lireCanon(code, scope);
+    if (!c) return null;
+    canon.push(...c);
+    for (const trad of demande.tradIds) {
+      if (trad === TRAD_ID_BIBLE899) {
+        const b = lire899(code, scope);
+        if (!b) return null;
+        lignes.push(...lignes899(b, demande.couche));
+      } else {
+        const t = lireTexte(trad, code, scope);
+        if (!t) return null;
+        lignes.push(...t);
+      }
+    }
+  }
+  trierCanon(canon, ordreDe);
+  return { canon, lignes };
+}
+
+// Une même requête ne part pas deux fois : le chapitre demandé au clic et le même
+// chapitre mis en cache d'avance partagent leur promesse.
+const enVol = new Map<string, Promise<void>>();
+function partager(cle: string, lancer: () => Promise<void>): Promise<void> {
+  const deja = enVol.get(cle);
+  if (deja) return deja;
+  const p = lancer().finally(() => { enVol.delete(cle); });
+  enVol.set(cle, p);
+  return p;
+}
+
+// Charge ce qui MANQUE au cache pour une demande, et rien d'autre. Une requête par
+// groupe de traductions auxquelles il manque les mêmes livres : au changement de
+// chapitre toutes en manquent, et c'est UN aller-retour, comme avant ; au changement
+// d'une colonne, une seule traduction part. Le canon et la Bible 899 partent dans la
+// même vague. Les identifiants du canon ont la forme « LIVRE.chapitre.verset », d'où le
+// filtre `like` sur `canon_id` pour un chapitre — servi par l'index à préfixe de la
+// migration `versets_v2_index_chapitre_canonique` (sans lui, la base lisait tout le
+// livre pour en garder un chapitre : 391 ms pour Genèse 1, 4 ms avec).
+// ⚠️ Une erreur est LEVÉE, non rendue en liste vide, et rien n'entre alors au cache.
+async function completerCache(demande: Portee): Promise<void> {
+  const { codes, tradIds, chScope } = demande;
+  const scope = scopeDe(chScope);
+  const canonManquant = codes.filter(code => !lireCanon(code, scope));
+  const groupes = new Map<string, { trads: string[]; livres: string[] }>();
+  for (const trad of tradIds) {
+    if (trad === TRAD_ID_BIBLE899) continue;
+    const livres = codes.filter(code => !lireTexte(trad, code, scope));
+    if (!livres.length) continue;
+    const g = groupes.get(livres.join(",")) ?? { trads: [], livres };
+    g.trads.push(trad);
+    groupes.set(livres.join(","), g);
+  }
+  const manquant899 = tradIds.includes(TRAD_ID_BIBLE899) ? codes.filter(code => !lire899(code, scope)) : [];
+
+  const taches: Promise<void>[] = [];
+  if (canonManquant.length) {
+    taches.push(partager(`canon|${canonManquant.join(",")}|${scope}`, () =>
+      fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription",
+        q => { const x = q.in("livre", canonManquant); return scope !== "*" ? x.eq("ch_canon", scope) : x; })
+        .then(rows => { for (const code of canonManquant) retenir(cacheCanon, cleLivre(code, scope), rows.filter(r => r.livre === code)); })));
+  }
+  for (const g of groupes.values()) {
+    // Un chapitre ne se demande que pour un livre à la fois (le préfixe du `like` ne
+    // sait nommer qu'un livre) ; le livre entier, lui, peut en réunir plusieurs.
+    const lots = scope === "*" ? [g.livres] : g.livres.map(l => [l]);
+    for (const livres of lots) {
+      taches.push(partager(`texte|${g.trads.join(",")}|${livres.join(",")}|${scope}`, () =>
+        fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
+          q => { const x = q.in("livre", livres).in("trad_id", g.trads); return scope !== "*" ? x.like("canon_id", `${livres[0]}.${scope}.%`) : x; })
+          .then(rows => {
+            for (const trad of g.trads) for (const livre of livres) {
+              retenir(cacheTexte, `${trad}|${cleLivre(livre, scope)}`, rows.filter(r => r.trad_id === trad && r.livre === livre));
+            }
+          })));
+    }
+  }
+  for (const code of manquant899) {
+    taches.push(partager(`899|${code}|${scope}`, () =>
+      chargerVersets899(supabase, { livre: code, chapitre: chScope }).then(b => { retenir(cache899, cleLivre(code, scope), b); })));
+  }
+  await Promise.all(taches);
+}
+
+// Le chargement d'une portée : complète le cache, puis assemble. Fonction de module :
+// elle ne lit aucun état, et l'effet qui l'appelle décide seul de ce qu'il en fait.
+async function chargerPortee(demande: Portee, ordreDe: Map<string, number>): Promise<{ canon: CanonRow[]; lignes: V2Row[] }> {
+  await completerCache(demande);
+  const r = assemblerDepuisCache(demande, ordreDe);
+  if (!r) throw new Error("Le cache ne couvre pas la demande après chargement.");
+  return r;
+}
+
+// Mise en cache d'AVANCE : la même chose, sans rien attendre et sans rien dire. Un
+// échec n'alarme pas : la demande réelle le redira, si elle vient.
+function precharger(demande: Portee): Promise<void> {
+  return completerCache(demande).catch((e: unknown) => { console.debug("Polyglotte : préchargement abandonné.", e); });
+}
+
+// Un verset corrigé par l'administration se corrige aussi dans le cache : sinon le
+// chapitre reviendrait de mémoire avec l'ancien texte.
+function corrigerTexteEnCache(id: string, texte: string) {
+  for (const [cle, rows] of cacheTexte) {
+    if (rows.some(r => r.id === id)) cacheTexte.set(cle, rows.map(r => (r.id === id ? { ...r, texte } : r)));
+  }
+}
+
 
 // Les blocs qui s'effacent et paraissent un par un : une ligne de verset, une ligne
 // surnuméraire, un bandeau de livre. Le haut de la lecture est le bas de l'en-tête
@@ -321,7 +450,6 @@ const SELECTEUR_BLOCS_POLYGLOTTE = ".poly-row, .poly-surnum-row, h2";
 const hautDeLecture = (entete: HTMLElement | null) => entete?.getBoundingClientRect().bottom ?? hauteurNavbarPx();
 
 type Onglet = "AT" | "PSA" | "NT" | "AUTRES";
-const ONGLETS: Onglet[] = ["AT", "PSA", "NT", "AUTRES"];
 const LIBELLE_ONGLET: Record<Onglet, string> = {
   AT: "Ancien Testament", PSA: "Psaumes", NT: "Nouveau Testament", AUTRES: "Écrits non canoniques",
 };
@@ -765,7 +893,7 @@ export default function PolyglottePage() {
       supabase.from("polyglotte_notes").upsert(
         { user_id: userId, canon_id: canonId, texte, updated_at: new Date().toISOString() },
         { onConflict: "user_id,canon_id" },
-      ).then(() => {});
+      ).then(({ error }) => { if (error) console.error("Polyglotte : la note n’a pas été enregistrée.", error); });
     }, 700));
   }, [userId]);
   // Choix d'une traduction dans une colonne : si elle est déjà affichée ailleurs,
@@ -811,7 +939,11 @@ export default function PolyglottePage() {
 
   // Chargement initial (livres, points, traductions migrées)
   useEffect(() => {
-    supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data }) => setLivres((data ?? []).filter(l => !LIVRES_FONDUS_DANS_DANIEL.has(l.code))));
+    supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data, error }) => {
+      // ⚠️ Lire l'erreur : un volet vide se lit « rien à comparer », ce qui ment sur une panne.
+      if (error) console.error("Polyglotte : les livres n’ont pas pu être lus.", error);
+      setLivres((data ?? []).filter(l => !LIVRES_FONDUS_DANS_DANIEL.has(l.code)));
+    });
     // Désignation des livres propre à chaque édition, quand elle diffère du canon : la
     // Sacy de 1730 compte quatre livres des Rois là où le canon en compte deux de Samuel
     // et deux des Rois. Seuls les écarts sont enregistrés (voir scripts/livres-editions.mjs).
@@ -821,7 +953,8 @@ export default function PolyglottePage() {
     (async () => {
       // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx — la table tient aussi
       // les notices des traductions patristiques, qui n'ont rien à faire ici.
-      const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").eq("est_biblique", true).order("ordre");
+      const { data: tr, error: erreurTr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").eq("est_biblique", true).order("ordre");
+      if (erreurTr) console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr);
       const liste = tr ?? [];
       // Une SONDE par traduction pour savoir laquelle est migrée dans versets_v2, toutes
       // en parallèle. Une ligne suffit : le compte exact d'avant parcourait l'index
@@ -832,18 +965,23 @@ export default function PolyglottePage() {
       // privée (TR0013) ne répond qu'à l'administrateur, et n'entre que chez lui.
       const presentes = await Promise.all(liste.map(t =>
         supabase.from("versets_v2").select("trad_id").eq("trad_id", t.trad_id).limit(1)
-          .then(({ data }) => (data?.length ?? 0) > 0)
+          .then(({ data, error }) => {
+            // ⚠️ Une sonde qui ÉCHOUE ne fait pas disparaître la traduction du menu : on la
+            // tient pour présente, et c'est le chargement du texte qui dira l'erreur.
+            if (error) { console.error(`Polyglotte : sonde impossible pour ${t.trad_id}.`, error); return true; }
+            return (data?.length ?? 0) > 0;
+          })
       ));
       const migres: Trad[] = [];
       liste.forEach((t, i) => {
-        if (presentes[i]) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
+        if (presentes[i]) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
       });
       // TR0009 (Bible 899) n'est pas migrée dans `versets_v2` : son texte est recomposé
       // à la volée depuis les tables éditoriales (colonne synthétique). On l'ajoute donc
       // explicitement, comme n'importe quelle autre traduction comparable.
       const t899 = liste.find(t => t.trad_id === TRAD_ID_BIBLE899);
       if (t899 && !migres.some(m => m.trad_id === TRAD_ID_BIBLE899)) {
-        migres.push({ trad_id: TRAD_ID_BIBLE899, nom: t899.nom, ordre: t899.ordre, label: libelleTrad(t899), edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) });
+        migres.push({ trad_id: TRAD_ID_BIBLE899, nom: t899.nom, ordre: t899.ordre, edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) });
       }
       setTrads(migres);
       // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
@@ -889,6 +1027,7 @@ export default function PolyglottePage() {
     });
     if (res.ok) {
       setV2(rows => rows.map(r => (r.id === id ? { ...r, texte } : r)));   // mise à jour locale
+      corrigerTexteEnCache(id, texte);
       setEnregistre("ok"); setCibleEdition(null);
       setTimeout(() => setEnregistre("idle"), 1500);
     } else setEnregistre("erreur");
@@ -948,6 +1087,13 @@ export default function PolyglottePage() {
   // est jetée (deux chapitres cliqués coup sur coup, le premier répondant en second).
   const numeroDemandeRef = useRef(0);
   const demandeVide = !demande.codes.length || !demande.tradIds.length;
+  // Servi du CACHE sans attendre. L'ajustement se fait PENDANT le rendu, comme le retour
+  // à la première page de la Bibliothèque : l'attente n'est jamais vraie, rien ne
+  // s'efface pour reparaître aussitôt, et le tableau change avant la peinture.
+  if (!demandeVide && !couvre(porteeChargee, demande)) {
+    const enCache = assemblerDepuisCache(demande, ordreDe);
+    if (enCache) { setCanon(enCache.canon); setV2(enCache.lignes); setPorteeChargee(demande); }
+  }
   const enChargement = !demandeVide && !couvre(porteeChargee, demande) && erreurChargement !== demande;
   useEffect(() => {
     if (demandeVide || couvre(porteeChargee, demande) || erreurRef.current === demande) return;
@@ -963,6 +1109,34 @@ export default function PolyglottePage() {
     });
   }, [demande, demandeVide, porteeChargee, ordreDe, relance]);
   const reessayer = () => { erreurRef.current = null; setErreurChargement(null); setRelance(n => n + 1); };
+
+  // ── Le chapitre SUIVANT se met en cache d'avance ────────────────────────────
+  // Une lecture est une suite : une fois le chapitre courant rendu, le suivant part en
+  // tâche de fond, dans le même cache. Tourner la page ne coûte alors plus rien, et la
+  // Bible 899, qui charge en trois vagues, y gagne le plus. Seulement le suivant, et
+  // seulement en vue d'un chapitre : le livre entier des Psaumes à chaque lecteur qui
+  // n'en lit qu'un serait de l'égress pour rien. Jamais pendant qu'on attend.
+  useEffect(() => {
+    if (enChargement || demandeVide || demande.chScope == null || demande.codes.length !== 1) return;
+    const suivant = demande.chScope + 1;
+    if (suivant > (NB_CHAPITRES[demande.codes[0]] ?? 1)) return;
+    const t = window.setTimeout(() => { void precharger({ ...demande, chScope: suivant }); }, 400);
+    return () => window.clearTimeout(t);
+  }, [enChargement, demandeVide, demande]);
+  // Et le chapitre qu'on SURVOLE dans le sommaire, avec un court délai pour ne pas tirer
+  // sur tout ce que le curseur traverse (même patron que les modes de lecture de la Bible).
+  const demandeRef = useRef(demande);
+  demandeRef.current = demande;
+  const timerPreparation = useRef<number | null>(null);
+  const preparerChapitre = useCallback((code: string, ch: number) => {
+    if (timerPreparation.current) window.clearTimeout(timerPreparation.current);
+    timerPreparation.current = window.setTimeout(() => {
+      timerPreparation.current = null;
+      const d = demandeRef.current;
+      if (!d.tradIds.length) return;
+      void precharger({ codes: [code], tradIds: d.tradIds, chScope: ch, couche: d.couche });
+    }, 150);
+  }, []);
 
   // ── Le passage d'un texte à l'autre est FLUIDE, ici aussi (2026-09-03) ─────
   // Même dispositif que la page d'œuvre et la page Bible (`app/lib/passageTexte.ts`,
@@ -986,7 +1160,7 @@ export default function PolyglottePage() {
   useLayoutEffect(() => {
     const precedente = porteeRendueRef.current;
     porteeRendueRef.current = porteeChargee;
-    if (!porteeChargee || passage !== "sortie") return;
+    if (!porteeChargee) return;
     const corps = corpsRef.current;
     if (!corps) return;
     // Un autre chapitre ou un autre livre s'ouvre en tête ; la même portée rechargée
@@ -996,6 +1170,9 @@ export default function PolyglottePage() {
       const haut = corps.getBoundingClientRect().top + window.scrollY - hautDeLecture(enteteRef.current);
       if (window.scrollY > haut) window.scrollTo(0, Math.max(0, haut));
     }
+    // Venu du cache, rien ne s'est effacé : rien ne paraît non plus, même parti que
+    // l'échange de bible en mémoire sur la page Bible. Le défilement dit qu'on a tourné.
+    if (passage !== "sortie") return;
     ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE);
     setPassage("entree");
     const fin = window.setTimeout(() => setPassage(null), DUREE_ENTREE_MS);
@@ -1366,6 +1543,7 @@ export default function PolyglottePage() {
               onChoisirLivreEntier={(code) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(null); setToutAfficher(false); setVersetCible(null); }}
               onChoisirVerset={(code, ch, v) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible({ ch, v }); }}
               entierActif={chapitreChoisi === null && !toutAfficher}
+              onPreparerChapitre={preparerChapitre}
               titre="Livres à comparer"
               sansReduire
             />

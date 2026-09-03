@@ -15,7 +15,7 @@ import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibl
 // bouger la mise en page. Données passées en prop (chargées côté serveur avec la
 // session du visiteur), et lien « En savoir plus » sur le modèle de la page Œuvre.
 
-const NB_CHAPITRES: Record<string, number> = {
+export const NB_CHAPITRES: Record<string, number> = {
   GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
   '1SA':31,'2SA':24,'1KI':22,'2KI':25,'1CH':29,'2CH':36,
   EZR:10,NEH:13,EST:16,JOB:42,PSA:150,PRO:31,ECC:12,SNG:8,
@@ -124,6 +124,8 @@ type Props = {
   onChoisirChapitre?: (code: string, chapitre: number) => void
   onChoisirLivreEntier?: (code: string) => void
   onChoisirVerset?: (code: string, chapitre: number, verset: number) => void
+  /** Polyglotte : met un chapitre en cache au SURVOL de sa case, avant le clic. */
+  onPreparerChapitre?: (code: string, chapitre: number) => void
   entierActif?: boolean                     // le livre actif est-il montré EN ENTIER (bouton allumé)
   mobile?: boolean                          // empilé pleine largeur (téléphone/tablette)
   // Mobile : accordéon des trois volets piloté par le parent (un seul ouvert à la fois).
@@ -187,7 +189,7 @@ export default function NavLivres({
   traductionIndex, traductions,
   panelWidth = null, onWidthChange,
   livresVides, onChoisirLivre, sansChapitres, titre,
-  onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, entierActif,
+  onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire,
   modesLecture = [], onChoisirModeLecture, onPreparerModeLecture,
@@ -383,7 +385,11 @@ export default function NavLivres({
                   } else {
                     handleChapitre(livre.code, ch)
                   }
-                }} style={{
+                }}
+                  // Polyglotte : le chapitre survolé se met en cache avant le clic.
+                  onMouseEnter={() => onPreparerChapitre?.(livre.code, ch)}
+                  onFocus={() => onPreparerChapitre?.(livre.code, ch)}
+                  style={{
                   fontSize: '0.6875rem', height: 'var(--volet-case)', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
                   cursor: 'pointer', padding: 0,
