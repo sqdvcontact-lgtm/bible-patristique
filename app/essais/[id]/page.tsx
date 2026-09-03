@@ -59,7 +59,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  const { data: profil } = await supabaseAdmin.from('profils').select('pseudo, nom, prenom').eq('id', essai.user_id).maybeSingle()
+  const { data: profil } = await supabaseAdmin.from('profils').select('pseudo, nom, prenom, mecene_depuis, pub_mecene').eq('id', essai.user_id).maybeSingle()
   const nomAffiche = (essai.afficher_nom_reel && profil?.nom)
     ? `${profil.prenom ? profil.prenom + ' ' : ''}${profil.nom}`
     : (profil?.pseudo ?? null)
@@ -85,6 +85,9 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
         categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
         nb_vues: essai.nb_vues, user_id: essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
         auteur_pseudo: nomAffiche, verset_en_tete: essai.verset_en_tete ?? null,
+        // ⚠️ `pub_mecene` compte ICI : cette page lit `profils` avec la clé de service
+        // et n'a donc pas le filtre de la vue `mecenes_publics` derrière elle.
+        auteur_mecene: !!profil?.mecene_depuis && profil.pub_mecene !== false,
       }} />
     </>
   )

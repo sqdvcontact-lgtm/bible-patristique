@@ -13,6 +13,7 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import MarqueMecene from '@/app/components/MarqueMecene'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
   Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
@@ -28,6 +29,8 @@ type Essai = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
   categories: string[]; contenu: string; statut: string; nb_vues: number
   user_id: string; created_at: string; publie_at: string | null; auteur_pseudo: string | null
+  /** L'auteur porte-t-il la marque de mécène. Voir app/components/MarqueMecene.tsx. */
+  auteur_mecene?: boolean
   verset_en_tete?: string | null
 }
 
@@ -278,7 +281,10 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <aside style={{ width: '15rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{essai.auteur_pseudo}</p>
+              <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                {essai.auteur_pseudo}
+                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="0.9em" /></>}
+              </p>
             )}
             <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
             {essai.sous_titre && (
@@ -330,6 +336,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             {essai.auteur_pseudo && (
               <p style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
+                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="0.9em" /></>}
               </p>
             )}
             <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(1.625rem, 4vw, 2.375rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>

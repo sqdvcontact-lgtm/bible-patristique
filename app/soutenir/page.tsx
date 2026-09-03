@@ -107,6 +107,30 @@ export default function SoutenirPage() {
         Vous serez redirigé vers le site sécurisé de PayPal.
       </p>
 
+      {/* LA MARQUE DE MÉCÈNE, annoncée ici et nulle part ailleurs.
+          ⛔ Elle est nommée APRÈS le bouton, en petit, et jamais avant : une page qui
+          annonce sa récompense avant son objet vend un badge au lieu de demander un
+          soutien, et Deci, Koestner et Ryan (1999) mesurent que la récompense attendue
+          mine précisément le geste qu'elle prétend soutenir. Elle se dit donc comme ce
+          qu'elle est, une gratitude constatée après coup.
+          ⚠️ Le mot sur les deux adresses n'est pas une politesse : PayPal ne rend que
+          l'adresse du paiement, et c'est le seul fil qui mène à un compte. Sans cette
+          phrase, le donateur dont les deux adresses diffèrent n'est jamais retrouvé. */}
+      <p style={{
+        fontFamily: "var(--font-source-serif), Georgia, serif",
+        fontSize: "clamp(0.65625rem, 0.55rem + 0.18vw, 0.8rem)",
+        color: "var(--cs-texte-doux)",
+        lineHeight: 1.6,
+        maxWidth: "26rem",
+        marginTop: "clamp(18px, 2.4vh, 30px)",
+        flexShrink: 0,
+      }}>
+        Les lecteurs qui ont soutenu le corpus portent un grain auprès de leur nom.
+        Il ne donne aucun droit et ne dit aucune somme. Si l’adresse de votre don n’est
+        pas celle de votre compte, dites-le-nous par la <a href="/contact" style={{ color: "var(--cs-vert-fonce)" }}>page de contact</a> et nous
+        ferons le rapprochement.
+      </p>
+
     </section>
   );
 }

@@ -9,6 +9,7 @@ import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
+import MarqueMecene from '@/app/components/MarqueMecene'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -22,6 +23,7 @@ type CommentaireAvecAuteur = {
   reponse_a: number | null
   pseudo: string | null
   lecture: { nb_auteurs: number; total_auteurs: number } | null
+  mecene: boolean
   nbLikes: number
   nbDislikes: number
   monVote: 1 | -1 | null
@@ -107,15 +109,22 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const idsUtilisateurs = [...new Set(lignes.map(c => c.user_id).filter((id): id is string => !!id))]
     const idsCommentaires = lignes.map(c => c.id)
 
-    const [classementRes, likesRes] = await Promise.all([
+    // ⛔ La marque de mécène se lit dans `mecenes_publics`, jamais dans `profils` : la
+    // vue ne rend que des identifiants, et elle filtre déjà sur le choix du lecteur de
+    // la montrer ou non. Voir app/components/MarqueMecene.tsx.
+    const [classementRes, likesRes, mecenesRes] = await Promise.all([
       idsUtilisateurs.length > 0
         ? supabase.from('lecture_utilisateurs').select('user_id, pseudo, nb_auteurs, total_auteurs').in('user_id', idsUtilisateurs)
         : Promise.resolve({ data: [] as any[] }),
       idsCommentaires.length > 0
         ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', idsCommentaires)
         : Promise.resolve({ data: [] as any[] }),
+      idsUtilisateurs.length > 0
+        ? supabase.from('mecenes_publics').select('user_id').in('user_id', idsUtilisateurs)
+        : Promise.resolve({ data: [] as { user_id: string }[] }),
     ])
     const classementMap = new Map((classementRes.data ?? []).map((c: any) => [c.user_id, c]))
+    const mecenes = new Set((mecenesRes.data ?? []).map((m: { user_id: string }) => m.user_id))
     const parCommentaire = new Map<number, { likes: number; dislikes: number; mon: 1 | -1 | null }>()
     ;(likesRes.data ?? []).forEach((l: any) => {
       const cur = parCommentaire.get(l.id_commentaire) ?? { likes: 0, dislikes: 0, mon: null }
@@ -128,6 +137,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
       ...c,
       pseudo: c.user_id ? classementMap.get(c.user_id)?.pseudo ?? null : null,
       lecture: c.user_id ? classementMap.get(c.user_id) ?? null : null,
+      mecene: !!c.user_id && mecenes.has(c.user_id),
       nbLikes: parCommentaire.get(c.id)?.likes ?? 0,
       nbDislikes: parCommentaire.get(c.id)?.dislikes ?? 0,
       monVote: parCommentaire.get(c.id)?.mon ?? null,
@@ -206,7 +216,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     setStatut('idle')
     if (error || !data) { if (error?.code === 'ZL001') setMotifErreur(error.message); setStatut('err'); return }
     // Affichage immédiat, sans recharger.
-    setCommentaires(prev => [...prev, { ...data, pseudo: null, lecture: null, nbLikes: 0, nbDislikes: 0, monVote: null }])
+    setCommentaires(prev => [...prev, { ...data, pseudo: null, lecture: null, mecene: false, nbLikes: 0, nbDislikes: 0, monVote: null }])
     setTexte(''); setCibleReponse(null); setDemandeValidation(false)
     // Le pseudo réel sera affiché après le prochain chargement complet ;
     // on relance silencieusement pour le récupérer.
@@ -267,7 +277,10 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
         <>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
-            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{c.pseudo ?? 'Anonyme'}</span>
+            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)' }}>
+              {c.pseudo ?? 'Anonyme'}
+              {c.mecene && <>{' '}<MarqueMecene /></>}
+            </span>
             {couleurs && rangInfo && (
               <span style={{ fontSize: '0.5625rem', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '4px', letterSpacing: '0.02em' }}>
                 {rangInfo.rang}

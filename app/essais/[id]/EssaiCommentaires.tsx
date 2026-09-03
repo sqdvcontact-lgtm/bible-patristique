@@ -7,11 +7,13 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
+import MarqueMecene from '@/app/components/MarqueMecene'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
   user_id: string | null; auteur_nom: string | null; valide: boolean; created_at: string; supprime: boolean
   lecture?: { nb_auteurs: number; total_auteurs: number } | null
+  mecene?: boolean
 }
 
 export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
@@ -33,11 +35,22 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       .then(async ({ data }) => {
         const lignes = data ?? []
         const ids = [...new Set(lignes.map(c => c.user_id).filter((id): id is string => !!id))]
-        const { data: scores } = ids.length
-          ? await supabase.from('classement_utilisateurs').select('user_id, score').in('user_id', ids)
-          : { data: [] as any[] }
+        // ⛔ La marque de mécène se lit dans `mecenes_publics`, jamais dans `profils` :
+        // la vue ne rend que des identifiants, et elle filtre déjà sur le choix du
+        // lecteur de la montrer ou non. Voir app/components/MarqueMecene.tsx.
+        const [{ data: scores }, { data: lignesMecenes }] = ids.length
+          ? await Promise.all([
+              supabase.from('classement_utilisateurs').select('user_id, score').in('user_id', ids),
+              supabase.from('mecenes_publics').select('user_id').in('user_id', ids),
+            ])
+          : [{ data: [] as any[] }, { data: [] as { user_id: string }[] }]
         const scoreMap = new Map((scores ?? []).map((s: any) => [s.user_id, s]))
-        setCommentaires(lignes.map(c => ({ ...c, lecture: c.user_id ? scoreMap.get(c.user_id) ?? null : null })))
+        const mecenes = new Set((lignesMecenes ?? []).map((m: { user_id: string }) => m.user_id))
+        setCommentaires(lignes.map(c => ({
+          ...c,
+          lecture: c.user_id ? scoreMap.get(c.user_id) ?? null : null,
+          mecene: !!c.user_id && mecenes.has(c.user_id),
+        })))
       })
     supabase.auth.getSession().then(async ({ data }) => {
       const uid = data.session?.user.id ?? null
@@ -148,6 +161,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px', gap: '8px' }}>
               <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
                 {c.auteur_nom ?? 'Anonyme'}
+                {c.mecene && <>{' '}<MarqueMecene /></>}
                 {rang && rangCouleur && <span style={{ marginLeft: '6px', fontSize: '0.53125rem', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '4px', padding: '1px 5px' }}>{rang}</span>}
                 {!c.valide && <span style={{ marginLeft: '6px', fontSize: '0.46875rem', fontWeight: 700, color: 'var(--cs-danger)', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
               </p>
@@ -181,6 +195,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
                   <p style={{ fontSize: '0.65625rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
                     {r.auteur_nom ?? 'Anonyme'}
+                    {r.mecene && <>{' '}<MarqueMecene /></>}
                     {rangR && rangCouleurR && <span style={{ marginLeft: '5px', fontSize: '0.5rem', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '4px', padding: '1px 4px' }}>{rangR}</span>}
                     {!r.valide && <span style={{ marginLeft: '5px', fontSize: '0.4375rem', fontWeight: 700, color: 'var(--cs-danger)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
                   </p>

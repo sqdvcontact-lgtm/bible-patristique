@@ -64,6 +64,10 @@ export const ENTREES_ADMIN: EntreeAdmin[] = [
   { href: '/admin?onglet=moderation',           label: 'Modération',          famille: 'communaute', onglet: 'moderation' },
   { href: '/admin?onglet=lexique',              label: 'Lexique',             famille: 'communaute', onglet: 'lexique' },
   { href: '/admin?onglet=propositions',         label: 'Propositions',        famille: 'communaute', onglet: 'propositions' },
+  // Le registre des dons et la marque qui en découle. Il vit dans la Communauté, avec
+  // les lecteurs, et non dans le Système : ce qu'on y tient est une gratitude, pas un
+  // réglage. ⛔ Ce n'est PAS un haut fait (charte § 40.4).
+  { href: '/admin?onglet=mecenes',              label: 'Mécènes',             famille: 'communaute', onglet: 'mecenes' },
   // ── Système & doctrine ──────────────────────────────────────────────────────
   // « Audience » dit ce que le site REÇOIT (visites, comptes, lectures). À ne pas
   // confondre avec « Statistiques du corpus », dans le centre de contrôle, qui dit

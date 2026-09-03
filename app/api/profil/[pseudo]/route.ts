@@ -34,7 +34,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   // sensibilité) : le profil public a toujours été censé les afficher.
   const { data: profil, error } = await sb
     .from('profils')
-    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_preferee')
+    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_preferee, mecene_depuis, pub_mecene')
     .eq('pseudo', pseudo)
     .maybeSingle()
 
@@ -59,6 +59,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
     membre_depuis: profil.created_at,
     avatar,
     citation_preferee: profil.citation_preferee ?? null,
+    // ⛔ On ne rend que l'ANNÉE, et seulement si le lecteur laisse paraître sa marque.
+    // La date pleine dirait le jour du don, ce qui, croisé avec un relevé, le nomme ;
+    // et le montant, lui, n'existe nulle part en base.
+    mecene_depuis: profil.pub_mecene && profil.mecene_depuis
+      ? new Date(profil.mecene_depuis as string).getFullYear()
+      : null,
   }
 
   // Toutes les sections conditionnelles exécutées en parallèle (réduction de N requêtes séquentielles → 1 batch)

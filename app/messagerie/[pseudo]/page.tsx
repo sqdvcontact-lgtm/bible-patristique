@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
+import MarqueMecene from '@/app/components/MarqueMecene'
 
 type Message = {
   id: string
@@ -29,6 +30,7 @@ export default function ConversationPage() {
   const [connecte, setConnecte] = useState<boolean | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[] | null>(null)
+  const [mecene, setMecene] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
@@ -45,6 +47,7 @@ export default function ConversationPage() {
     }
     const data = await res.json()
     setMessages(data.messages)
+    setMecene(data.partenaire_mecene === true)
   }, [pseudo])
 
   useEffect(() => {
@@ -112,6 +115,7 @@ export default function ConversationPage() {
           <Link href={`/profil/${encodeURIComponent(pseudo)}`}
             style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 400 }}>
             {pseudo}
+            {mecene && <>{' '}<MarqueMecene /></>}
           </Link>
           <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', margin: '1px 0 0', letterSpacing: '0.04em' }}>
             Conversation privée

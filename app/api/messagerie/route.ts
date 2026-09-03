@@ -48,14 +48,18 @@ export async function GET(request: Request) {
 
   const { data: profils } = await db
     .from('profils')
-    .select('id, pseudo')
+    .select('id, pseudo, mecene_depuis, pub_mecene')
     .in('id', convs.map(c => c.partenaire_id))
 
   const pm = new Map((profils ?? []).map(p => [p.id, p.pseudo]))
+  // ⚠️ `pub_mecene` compte ICI : cette route lit `profils` avec la clé de service et
+  // n'a donc pas le filtre de la vue `mecenes_publics` derrière elle.
+  const mecenes = new Set((profils ?? []).filter(p => p.mecene_depuis && p.pub_mecene !== false).map(p => p.id))
 
   return NextResponse.json(
     convs.map(c => ({
       partenaire_pseudo: pm.get(c.partenaire_id) ?? '?',
+      partenaire_mecene: mecenes.has(c.partenaire_id),
       dernier_message: c.dernier_message,
       dernier_at: c.dernier_at,
       nb_non_lus: c.nb_non_lus,

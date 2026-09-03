@@ -24,6 +24,10 @@ export async function POST(req: Request) {
   if ('pub_essais' in body)            champs.pub_essais = Boolean(body.pub_essais)
   if ('pub_favoris_oeuvre' in body)    champs.pub_favoris_oeuvre = Boolean(body.pub_favoris_oeuvre)
   if ('pub_favoris_versets' in body)   champs.pub_favoris_versets = Boolean(body.pub_favoris_versets)
+  // ⚠️ `pub_mecene` s'écrit librement, `mecene_depuis` JAMAIS : le lecteur décide s'il
+  // porte sa marque, il ne décide pas qu'il l'a. Le trigger `profils_garde_colonnes`
+  // retient la seconde colonne quoi qu'on lui envoie, ici comme ailleurs.
+  if ('pub_mecene' in body)            champs.pub_mecene = Boolean(body.pub_mecene)
 
   if (Object.keys(champs).length === 0)
     return NextResponse.json({ error: 'Aucun champ à mettre à jour.' }, { status: 400 })

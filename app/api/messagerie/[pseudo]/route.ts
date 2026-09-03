@@ -26,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ pseu
 
   const { data: partenaire } = await db
     .from('profils')
-    .select('id, pseudo')
+    .select('id, pseudo, mecene_depuis, pub_mecene')
     .eq('pseudo', decodeURIComponent(pseudo))
     .maybeSingle()
 
@@ -52,6 +52,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ pseu
 
   return NextResponse.json({
     partenaire_pseudo: partenaire.pseudo,
+    // ⚠️ `pub_mecene` compte ICI : cette route lit `profils` avec la clé de service et
+    // n'a donc pas le filtre de la vue `mecenes_publics` derrière elle.
+    partenaire_mecene: !!partenaire.mecene_depuis && partenaire.pub_mecene !== false,
     messages: (msgs ?? []).map(m => ({
       id: m.id,
       de_moi: m.expediteur_id === uid,

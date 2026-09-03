@@ -49,7 +49,12 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
     pub_essais: profil.pub_essais ?? true,
     pub_favoris_oeuvre: profil.pub_favoris_oeuvre ?? false,
     pub_favoris_versets: profil.pub_favoris_versets ?? false,
+    pub_mecene: profil.pub_mecene ?? true,
   })
+  // ⛔ L'interrupteur de la marque ne paraît QU'AUX MÉCÈNES. Montré à tous, il
+  // annoncerait une distinction que le lecteur n'a pas, et transformerait la page du
+  // compte en catalogue de ce qui lui manque. Voir app/components/MarqueMecene.tsx.
+  const estMecene = !!profil.mecene_depuis
   const [nomPortrait, setNomPortrait] = useState('')
   const [choixOuvert, setChoixOuvert] = useState(false)
   const [cadrageOuvert, setCadrageOuvert] = useState(false)
@@ -200,7 +205,8 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
                 ['pub_essais', 'Publications'],
                 ['pub_favoris_oeuvre', 'Œuvres favorites'],
                 ['pub_favoris_versets', 'Versets enregistrés'],
-              ] as const).map(([cle, libelle]) => (
+                ['pub_mecene', 'Marque de mécène'],
+              ] as const).filter(([cle]) => cle !== 'pub_mecene' || estMecene).map(([cle, libelle]) => (
                 <Interrupteur key={cle} libelle={libelle} actif={vis[cle]}
                   onChange={v => { setVis(x => ({ ...x, [cle]: v })); setStatut(null) }} />
               ))}

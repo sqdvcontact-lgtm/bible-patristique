@@ -19,6 +19,7 @@ import SectionOuvrages from './SectionOuvrages'
 import SectionValidationNotices from './SectionValidationNotices'
 import SectionConstituerLiens from './SectionConstituerLiens'
 import SectionLexique from './SectionLexique'
+import SectionMecenes from './SectionMecenes'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import type { AdminProps as Props, Onglet } from './adminTypes'
 import { colorMix } from '@/app/lib/couleurs'
@@ -252,6 +253,7 @@ export default function AdminClient({
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'lexique'        && <SectionLexique />}
+        {onglet === 'mecenes'        && <SectionMecenes />}
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
         {onglet === 'evenements'     && <SectionEvenements auteurs={auteurs} />}

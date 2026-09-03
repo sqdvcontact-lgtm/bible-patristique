@@ -31,15 +31,15 @@ export default async function EssaisPage() {
   const ids = essais.map(e => e.id)
   const [profilsRes, appreciationsRes] = await Promise.all([
     idsAuteurs.length > 0
-      ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteurs)
-      : Promise.resolve({ data: [] as { id: string; pseudo: string | null; nom: string | null; prenom: string | null }[] }),
+      ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom, mecene_depuis, pub_mecene').in('id', idsAuteurs)
+      : Promise.resolve({ data: [] as { id: string; pseudo: string | null; nom: string | null; prenom: string | null; mecene_depuis: string | null; pub_mecene: boolean }[] }),
     ids.length > 0
       ? supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', ids)
       : Promise.resolve({ data: [] as { id_essai: number }[] }),
   ])
   const profils = profilsRes.data
   const appreciations = appreciationsRes.data
-  const profilMap: Record<string, { pseudo: string | null; nom: string | null; prenom: string | null }> = {}
+  const profilMap: Record<string, { pseudo: string | null; nom: string | null; prenom: string | null; mecene_depuis: string | null; pub_mecene: boolean }> = {}
   profils?.forEach(p => { profilMap[p.id] = p })
   const likesParEssai = new Map<number, number>()
   ;(appreciations ?? []).forEach((l: { id_essai: number }) => likesParEssai.set(l.id_essai, (likesParEssai.get(l.id_essai) ?? 0) + 1))
@@ -51,6 +51,9 @@ export default async function EssaisPage() {
       id: e.id, titre: e.titre, sous_titre: e.sous_titre, resume: e.resume,
       categories: e.categories ?? [], nb_vues: e.nb_vues, nb_likes: likesParEssai.get(e.id) ?? 0,
       publie_at: e.publie_at, auteur: nomAffiche, user_id: e.user_id,
+      // ⚠️ `pub_mecene` compte ICI, comme dans la vue `mecenes_publics` : cette page
+      // lit `profils` avec la clé de service et n'a donc aucun filtre derrière elle.
+      mecene: !!p?.mecene_depuis && p.pub_mecene !== false,
     }
   })
 

@@ -28,6 +28,11 @@ type ContexteCompte = {
   // adresse.
   portrait: string | null
   cadragePortrait: Cadrage | null
+  // La MARQUE DE MÉCÈNE du compte connecté, pour que le commentaire qu'on vient de
+  // poser la porte aussitôt, sans attendre le prochain chargement complet. Elle vient
+  // avec le reste : deux colonnes de plus sur une requête qui part déjà.
+  // ⛔ Ce n'est PAS un droit. Voir app/components/MarqueMecene.tsx.
+  estMecene: boolean
   profilPret: boolean
   /** Après une modification du profil (pseudonyme, droits) : relire la ligne. */
   rafraichirProfil: () => void
@@ -47,7 +52,7 @@ type ContexteCompte = {
 
 const Contexte = createContext<ContexteCompte>({
   userId: null, email: null, pret: false,
-  pseudo: null, estAdmin: false, portrait: null, cadragePortrait: null,
+  pseudo: null, estAdmin: false, portrait: null, cadragePortrait: null, estMecene: false,
   profilPret: false, rafraichirProfil: () => {},
   theme: 'clair', changerTheme: async () => {},
   aUnCompte: false, exigerCompte: () => false,
@@ -60,7 +65,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   // Le profil est gardé AVEC l'identifiant auquel il appartient : c'est ce qui permet
   // d'en dériver `pseudo`, `estAdmin` et `profilPret` pendant le rendu, sans poser
   // d'état dans le corps de l'effet (cascade de rendus, cf. AGENTS.md).
-  const [profil, setProfil] = useState<{ pour: string; pseudo: string | null; estAdmin: boolean; portrait: string | null; cadrage: Cadrage | null } | null>(null)
+  const [profil, setProfil] = useState<{ pour: string; pseudo: string | null; estAdmin: boolean; portrait: string | null; cadrage: Cadrage | null; estMecene: boolean } | null>(null)
   // Incrémenté par `rafraichirProfil` : c'est la seule façon de redemander la ligne.
   const [relecture, setRelecture] = useState(0)
   // Contexte affiché dans la modale ; null = modale fermée.
@@ -142,7 +147,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     // montre sur toutes les pages : demandé à part, il aurait ajouté une requête par
     // chargement pour quatre colonnes que celle-ci rapporte sans rien coûter de plus.
     supabase.from('profils')
-      .select('pseudo, est_admin, theme_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom')
+      .select('pseudo, est_admin, theme_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, mecene_depuis, pub_mecene')
       .eq('id', userId).maybeSingle()
       .then(({ data }) => {
         if (!vivant) return
@@ -150,6 +155,9 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
           pour: userId,
           pseudo: data?.pseudo ?? null,
           estAdmin: data?.est_admin === true,
+          // ⚠️ `pub_mecene` compte ICI comme partout : un lecteur qui retire sa marque
+          // ne doit pas la voir reparaître sur ses propres commentaires.
+          estMecene: !!data?.mecene_depuis && data?.pub_mecene !== false,
           portrait: data?.avatar_ref ?? null,
           cadrage: data?.avatar_ref
             ? {
@@ -171,6 +179,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   const estAdmin = profilCourant?.estAdmin ?? false
   const portrait = profilCourant?.portrait ?? null
   const cadragePortrait = profilCourant?.cadrage ?? null
+  const estMecene = profilCourant?.estMecene ?? false
   // « Prêt » veut dire « on sait à quoi s'en tenir » : soit personne n'est connecté,
   // soit la ligne est arrivée. C'est ce qui permet à un panneau de ne pas se peindre
   // deux fois, une première comme anonyme puis une seconde comme lecteur connecté.
@@ -189,7 +198,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   }, [aUnCompte])
 
   return (
-    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, profilPret, rafraichirProfil, theme, changerTheme, aUnCompte, exigerCompte }}>
+    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, aUnCompte, exigerCompte }}>
       {children}
       {invitation !== null && (
         <ModaleCompteRequis contexte={invitation} onClose={() => setInvitation(null)} />

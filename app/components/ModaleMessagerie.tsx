@@ -11,8 +11,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import MarqueMecene from '@/app/components/MarqueMecene'
 
-type Conversation = { partenaire_pseudo: string; dernier_message: string; dernier_at: string; nb_non_lus: number }
+type Conversation = { partenaire_pseudo: string; partenaire_mecene?: boolean; dernier_message: string; dernier_at: string; nb_non_lus: number }
 type Message = { id: string; de_moi: boolean; contenu: string; lu: boolean; created_at: string }
 
 // Retire toute émoticône / pictogramme (et sélecteurs de variante, ZWJ, drapeaux).
@@ -269,7 +270,10 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                       style={{ textAlign: 'left', background: c.nb_non_lus > 0 ? 'var(--cs-fond-clair)' : 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderLeft: `3px solid ${c.nb_non_lus > 0 ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`, borderRadius: '8px', padding: '10px 13px', cursor: 'pointer' }}>
                       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>{c.partenaire_pseudo}</span>
+                          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', fontWeight: c.nb_non_lus > 0 ? 600 : 400 }}>
+                            {c.partenaire_pseudo}
+                            {c.partenaire_mecene && <>{' '}<MarqueMecene /></>}
+                          </span>
                           {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '8px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
                         </span>
                         <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', flexShrink: 0 }}>{dateRelative(c.dernier_at)}</span>

@@ -13,6 +13,7 @@ import { categorieEmblemeDe, emblemeDe } from '@/app/lib/emblemesCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import MarqueMecene from '@/app/components/MarqueMecene'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -22,6 +23,8 @@ type EssaiResume = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
   categories: string[]; nb_vues: number; nb_likes: number; publie_at: string | null; auteur: string
   user_id?: string | null
+  /** L'auteur porte-t-il la marque de mécène. Voir app/components/MarqueMecene.tsx. */
+  mecene?: boolean
   /** Clé de la couleur de couverture choisie par l'auteur (voir couverturesEssai.ts). */
   couverture?: string | null
   /** Registre dont l'emblème illustre la couverture, quand il y en a plusieurs. */
@@ -512,7 +515,13 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           bougent pas d'un pixel quand la couverture se retourne. */}
       <span className="couverture-cadre" style={{ borderColor: "var(--couv-filet)" }} aria-hidden="true" />
       <span className="couverture-tete">
-        <span className="couverture-auteur">{e.auteur}</span>
+        {/* ⚠️ Le grain prend ici l'ENCRE DE LA COUVERTURE, non l'or de la charte : le
+            carton n'a qu'une encre, celle que l'auteur a choisie, et une seconde
+            couleur y ferait tache. La marque se reconnaît à sa forme. */}
+        <span className="couverture-auteur">
+          {e.auteur}
+          {e.mecene && <>{' '}<MarqueMecene couleur="currentColor" taille="0.8em" /></>}
+        </span>
         <span className="couverture-etoile">
           <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />
         </span>

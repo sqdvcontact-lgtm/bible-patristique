@@ -4342,3 +4342,26 @@ Il se lit désormais sur une PART : combien d’auteurs le lecteur a retenus, su
 Le collectionnable est le CORPUS lui-même, non le point. Le lecteur ne collectionne pas des jetons : il collectionne des Pères, et il sait à la fin lesquels il connaît.
 
 ⚠️ Sailer et Homner (2020) mesurent des effets réels mais modestes de la ludification (g = 0,49 sur le cognitif, 0,36 sur le motivationnel, 0,25 sur le comportemental), et les deux éléments qui ressortent sont la FICTION — l’univers narratif — et l’association de l’émulation et de la collaboration. Ici la fiction est déjà là, et meilleure que celle d’aucun autre site : les Pères, les siècles, les degrés d’étude. C’est le facteur actif, pas l’ornement — un haut fait se nomme « La chaîne » ou « Le concert », jamais « Lecture niveau 3 ».
+
+
+### 40.7 La MARQUE DE MÉCÈNE : une gratitude, jamais un grade
+
+⛔ **ELLE N’EST PAS UN HAUT FAIT, et elle n’entrera jamais dans le tableau** (décision de l’auteur, 3 septembre 2026). Les vingt et un degrés du § 40.4 se déduisent tous de marques de LECTURE, et il y est écrit qu’un haut fait est un nom, pas une monnaie. Une case qui s’achète ferait perdre au tableau entier ce qui le rend lisible : plus personne ne saurait dire quelles cases se lisent et quelles cases se paient, et le doute porterait sur les vingt et une. La marque vit donc À CÔTÉ : aucun point, aucune série, aucune rareté, aucun effet sur le rang.
+
+⛔ **Elle n’ouvre NI DROIT, NI ACCÈS, NI FONCTION.** C’est déjà la règle des hauts faits, et elle vaut ici à plus forte raison : la page « Soutenir le projet » promet un site « ouvert à tous, sans abonnement ni registre », et un don qui ouvrirait une porte ferait de cette promesse une réclame. Le mécène lit ce que lit le visiteur.
+
+**Sa forme est celle du COLOPHON DU BIENFAITEUR.** Les manuscrits nomment qui a payé la copie, et c’est le registre du site. Le signe est un GRAIN, celui que le semeur de la page « Soutenir » confie au sillon : le donateur est le semeur, et le corpus est ce qui germe.
+
+⛔ **IL N’Y A QU’UN SEUL SIGNE, et il ne se gradue pas.** Un signe qui suivrait le montant afficherait publiquement le prix de chacun : il gênerait les grands dons autant qu’il découragerait les petits, et il rendrait une page de profil lisible comme un relevé. ⚠️ Corollaire, et c’est ce qui rend la règle tenable : **AUCUN MONTANT N’EST JAMAIS CONSERVÉ.** PayPal tient ce livre-là ; le site ne retient que le FAIT du don. Une donnée financière qu’on ne garde pas est une donnée qu’on n’a pas à protéger.
+
+**La marque paraît PARTOUT OÙ LE PSEUDONYME PARAÎT** (décision de l’auteur, 3 septembre 2026) : commentaires d’un verset, d’une œuvre ou d’un essai, couverture d’une publication, page de profil, messagerie. ⚠️ Elle n’est NOMMÉE en toutes lettres qu’à un seul endroit, sur la page de profil, sous le millésime : « Lecteur depuis 2026 · Mécène depuis 2026 ». Une infobulle suffit à la souris et n’existe pas sur un téléphone ; lue une fois, la marque se reconnaît ensuite partout.
+
+⚠️ **Elle prend l’encre de la surface qui la porte.** L’or de la charte est mesuré pour un fond clair : sur l’en-tête vert sombre d’un profil, c’est sa version pâle qui sert, et sur la couverture d’une publication c’est l’encre du carton, qui n’a qu’une seule encre. La marque se reconnaît à sa FORME, non à sa couleur.
+
+⚠️ **Le lecteur peut la retirer** (`pub_mecene`), comme il retire son rang ou ses favoris. Un don n’oblige personne à être vu donnant.
+
+**Elle SE DÉDUIT du registre des dons**, à la date du plus ancien don rattaché, et ne se pose jamais à la main. Rattacher, détacher ou effacer un don suffit, et les deux tables ne peuvent pas se contredire. ⛔ Elle ne s’écrit pas depuis un navigateur : la politique RLS borne la LIGNE qu’un lecteur modifie, jamais la VALEUR qu’il y écrit, si bien qu’un lecteur se décernerait la marque par un simple `update` sur sa propre ligne. C’est le déclencheur `profils_garde_colonnes` qui la retient, comme il retient déjà `est_admin`, `acces_beta` et `points`.
+
+⚠️ **Le rattachement se fait À LA MAIN, et c’est un choix.** PayPal ne rend qu’un nom et une adresse électronique : rien qui pointe vers un compte du site. La notification automatique demande un réglage dont on n’a pas besoin pour quelques dons, et elle retomberait de toute façon sur une comparaison d’adresses approximative. On inscrit le don tel que PayPal le donne, on cherche le compte sur son pseudonyme ou sur l’une de ses adresses, on rattache : trente secondes. La référence de transaction est déjà en base pour le jour où le flux justifiera d’automatiser, et son unicité empêchera de compter deux fois le même don.
+
+⚠️ **Le donateur dont l’adresse de paiement diffère de celle de son compte est INTROUVABLE**, et il faut donc le lui dire : la page « Soutenir » l’invite à se signaler par la page de contact. ⛔ Ce mot vient APRÈS le bouton, en petit, et jamais avant : une page qui annonce sa récompense avant son objet vend un badge au lieu de demander un soutien, et Deci, Koestner et Ryan (1999) mesurent que la récompense attendue mine le geste même qu’elle prétend soutenir. La gratitude se constate après coup, elle ne se promet pas.
