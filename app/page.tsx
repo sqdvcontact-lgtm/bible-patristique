@@ -23,7 +23,8 @@ import {
 import type {
   BibleEditionBodyBlockRow, BibleEditionChapterPayload, BibleEditionNoteBlockRow,
 } from '@/app/lib/bibleEditionServer'
-import { baliserBlocs, rangDesSousTitres } from '@/app/lib/bibleHierarchieSemantique'
+import { baliserBlocsDuChapitre, type BornesOrdreChapitre } from '@/app/lib/bibleAxeChapitre'
+import { rangDesSousTitres } from '@/app/lib/bibleHierarchieSemantique'
 import { grouperPiecesLiminaires, pieceParCle } from '@/app/lib/bibleSommaireEdition'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
 import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
@@ -284,21 +285,25 @@ export default async function Home({
     return data || []
   }
 
-  // Les balises de titre se calculent d'un seul passage sur l'ordre matériel :
-  // elles dépendent des titres déjà ouverts, et le mode bilingue éclate ensuite
-  // les blocs en deux colonnes.
-  // ⚠️ La balise se calcule sur les DEUX axes : le chapitre paraît dans le fil
-  // sans commander l'axe analytique, et un titre qui nomme son parent le reprend
-  // au lieu de le déduire du jeton. Voir `bibleHierarchieSemantique.ts`.
-  const baliserPayload = (blocs: readonly BibleEditionBodyBlockRow[]) =>
-    baliserBlocs(blocs.map((b) => ({
-      id: b.id,
-      semanticStyle: b.semantic_style_code,
-      intitule: b.heading,
-      blockKey: b.block_key,
-      semanticParentKey: b.semantic_parent_key,
-      axeHierarchie: presentationDeBloc(b.presentation)?.hierarchyAxis ?? null,
-    })))
+  // Les balises de titre se calculent sur les seuls blocs qui atteignent l'axe
+  // de lecture du chapitre. Un parent chargé parce que sa plage recouvre le
+  // chapitre, mais inséré plusieurs chapitres plus tôt, reste utile au payload
+  // et aux sous-titres ; il n'existe pas dans le DOM courant et ne doit donc pas
+  // y creuser un niveau HTML invisible.
+  const baliserPayload = (
+    blocs: readonly BibleEditionBodyBlockRow[],
+    bornes: BornesOrdreChapitre = null,
+  ) => baliserBlocsDuChapitre(blocs.map((b) => ({
+    id: b.id,
+    semanticStyle: b.semantic_style_code,
+    intitule: b.heading,
+    blockKey: b.block_key,
+    semanticParentKey: b.semantic_parent_key,
+    axeHierarchie: presentationDeBloc(b.presentation)?.hierarchyAxis ?? null,
+    placement: b.placement,
+    canonOrderStart: b.canon_order_start,
+    canonOrderEnd: b.canon_order_end,
+  })), bornes)
 
   // Le rang du TITRE auquel chaque sous-titre s'accroche, du même passage : un
   // sous-titre est le CHAPEAU de son titre, tombé dans un bloc voisin par l'ordre
@@ -361,11 +366,12 @@ export default async function Home({
   const composerAffichage = (
     membre: NonNullable<typeof editionMember>,
     payload: BibleEditionChapterPayload,
+    bornesAffichage: BornesOrdreChapitre = null,
   ): BibleEditionChapterDisplay => {
     const appartientAuMembre = (row: { applies_to: 'family' | 'member'; applies_to_member_id: string | null }) => (
       row.applies_to === 'family' || row.applies_to_member_id === membre.member_id
     )
-    const balises = baliserPayload(payload.bodyBlocks)
+    const balises = baliserPayload(payload.bodyBlocks, bornesAffichage)
     const rangs = rangerSousTitres(payload.bodyBlocks)
     return {
       familyId: membre.family_id,
@@ -446,7 +452,7 @@ export default async function Home({
     // appelée qu'après, la constante est déjà posée quand elle s'exécute.
     bornesChapitre: canonChapitre.bornes,
     includeBookFrontMatter: chapitre === 1,
-  }))
+  }), canonChapitre.bornes)
 
   // Lecture « Latin & Français » : demandée par l'URL, et servie seulement si la
   // famille éditoriale porte réellement deux membres pour ce chapitre. À défaut,
@@ -487,7 +493,7 @@ export default async function Home({
         }),
     ])
     if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
-      const balisesBilingue = baliserPayload(payload.bodyBlocks)
+      const balisesBilingue = baliserPayload(payload.bodyBlocks, canonChapitre.bornes)
       const rangsBilingue = rangerSousTitres(payload.bodyBlocks)
       lectureBilingue = {
         membres: chargee.colonnes.map((colonne) => colonne.membre),

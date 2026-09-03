@@ -298,10 +298,18 @@ export function construirePlan(blocs: readonly BlocAPlan[]): EntreePlan[] {
  * MATÉRIEL. Le calcul ne peut pas se faire bloc par bloc au rendu : la balise
  * dépend des titres déjà ouverts, et la lecture bilingue éclate ensuite les
  * blocs en deux colonnes, ce qui perdrait la suite.
+ *
+ * ⛔ Un titre PORTÉ par un bloc d'information ouvre son propre sous-arbre, pas
+ * celui qui vient après lui. L'introduction d'un livre peut ainsi porter T2 et
+ * ses intertitres T4 sans faire du premier T3 du corps un enfant de
+ * « Introduction ». Les descendants qui la nomment par `semantic_parent_key`
+ * retrouvent bien sa pile dans `pileApres`; seule la pile implicite du flux
+ * extérieur reste à l'endroit où elle était avant cette branche.
  */
 export function baliserBlocs(blocs: readonly BlocAPlan[]): Map<string, 1 | 2 | 3 | 4 | 5 | 6> {
   const balises = new Map<string, 1 | 2 | 3 | 4 | 5 | 6>()
   const pileApres = new Map<string, JetonTitre[]>()
+  const brancheInformation = new Set<string>()
   let pile: JetonTitre[] = []
   for (const bloc of blocs) {
     const resolu = resoudreStyleSemantique(bloc.semanticStyle)
@@ -310,8 +318,14 @@ export function baliserBlocs(blocs: readonly BlocAPlan[]): Map<string, 1 | 2 | 3
       ? (resolu.level as JetonTitre)
       : (resolu.headingRole === 'title' ? resolu.headingLevel : null)
     if (!jeton || !bloc.intitule) continue
+    const dansBrancheInformation = (resolu.kind !== 'title' && resolu.headingRole === 'title')
+      || Boolean(bloc.semanticParentKey && brancheInformation.has(bloc.semanticParentKey))
     const etape = empilerSelonAxe(bloc, resolu, jeton, pile, pileApres)
-    pile = etape.pile
+    if (dansBrancheInformation) {
+      if (bloc.blockKey) brancheInformation.add(bloc.blockKey)
+    } else {
+      pile = etape.pile
+    }
     balises.set(bloc.id, etape.niveauHtml)
   }
   return balises
