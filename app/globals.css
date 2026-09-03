@@ -1510,6 +1510,25 @@ button:focus-visible,
   margin-left: auto;
   margin-right: auto;
 }
+/* ⛔ UN BLOC PORTE LA MESURE LUI-MÊME, il n'est PAS enveloppé (2026-09-03, le soir).
+   Les blocs restent frères dans la boîte de leur créneau, et les règles de
+   voisinage de la mesure ÉTROITE — le blanc sous un titre qui se referme, deux
+   titres qui ne s'ouvrent pas deux fois — font leurs blancs en regard comme
+   depuis toujours. L'enveloppe posée le même jour autour de chaque bloc les avait
+   coupées en silence : 1,5 rem sous « 1. Le premier jour (1, 3-5) » au lieu de
+   0,5, 4 rem sous « 2. L'œuvre des six jours » au lieu de 2,25 (relevé de
+   l'auteur). C'est le piège du § 35.17.3, pris par un quatrième bout : une
+   enveloppe est une surface de plus, et aucune règle de blanc ne la nomme.
+   ⚠️ Les marges horizontales AUTO tiennent parce qu'aucune règle à deux classes
+   n'écrit `margin` en raccourci sur un bloc ; celles à une classe qui le font
+   (`.cs-bible-info--i5`) passent dessous. ⚠️ Seules une gravure et la série des
+   notes gardent l'enveloppe `.cs-bible-regard`, de même mesure : aucune règle de
+   voisinage ne les nomme, et la part d'une gravure se calcule sur son conteneur. */
+[data-lecture='bilingue'] .cs-bible-bloc {
+  max-width: calc(var(--mesure-page) - 2 * (var(--regard-numero) + var(--regard-numero-gouttiere)));
+  margin-left: auto;
+  margin-right: auto;
+}
 /* ⛔ Et le rang d'un titre PORTÉ ne l'atteignait pas non plus, pour la raison
    symétrique : la règle générale s'écarte du premier bloc par `:not(:first-of-type)`,
    or en lecture en regard CHAQUE bloc est le premier de sa boîte de créneau. Une

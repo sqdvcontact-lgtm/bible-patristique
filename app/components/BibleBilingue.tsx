@@ -192,27 +192,35 @@ export default function BibleBilingue({
 
   // ── L'appareil est bordé par le fer des versets ─────────────────────────────
   // ⛔ Hors des colonnes, mais PAS sur toute leur largeur (décisions de l'auteur,
-  // 2026-09-03 — voir l'en-tête). Chaque bloc, chaque gravure et la série des
-  // notes prennent l'enveloppe `.cs-bible-regard` (globals.css), qui vaut la mesure
-  // de la page moins, de chaque côté, la colonne du numéro et sa gouttière, et se
-  // centre sur l'axe : son fer est celui du TEXTE des versets, les numéros pendent
-  // dans la marge. C'est le pendant de l'axe de texte de la lecture simple
-  // (`surAxeTexte`, TexteBible), où le retrait du numéro désigne déjà le verset.
-  // ⚠️ Une gravure y retrouve aussi sa taille : sa part se calcule sur son
-  // conteneur, et sur 52 rem une planche hors-texte dépassait la taille de son
-  // fichier. ⛔ Pas sur mobile : les colonnes y sont empilées à la largeur de
-  // l'écran, et une enveloppe n'y bornerait rien.
+  // 2026-09-03 — voir l'en-tête). La mesure vaut la page moins, de chaque côté, la
+  // colonne du numéro et sa gouttière, centrée sur l'axe : son fer est celui du
+  // TEXTE des versets, les numéros pendent dans la marge. C'est le pendant de
+  // l'axe de texte de la lecture simple (`surAxeTexte`, TexteBible), où le retrait
+  // du numéro désigne déjà le verset.
+  // ⛔ UN BLOC LA PORTE LUI-MÊME (`[data-lecture='bilingue'] .cs-bible-bloc`,
+  // globals.css), il n'est PAS enveloppé : les blocs restent FRÈRES dans la boîte
+  // de leur créneau, et ce sont les règles de voisinage de la mesure étroite —
+  // « ce qui suit un titre lui appartient », « deux titres ne s'ouvrent pas deux
+  // fois » — qui font leurs blancs, comme depuis toujours en regard. Le 2026-09-03,
+  // une enveloppe posée autour de chaque bloc les a coupées en silence : sous
+  // « 1. Le premier jour » le blanc est passé de 0,5 à 1,5 rem, sous « 2. L'œuvre
+  // des six jours » de 2,25 à 4 (relevé de l'auteur le soir même). Une enveloppe
+  // est une surface de plus, et une règle de blanc ne la connaît pas.
+  // ⚠️ Une GRAVURE et la série des NOTES, elles, prennent l'enveloppe
+  // `.cs-bible-regard` : la part d'une gravure se calcule sur son conteneur, et sur
+  // 52 rem une planche hors-texte dépassait la taille de son fichier ; aucune règle
+  // de voisinage ne les nomme, l'enveloppe n'y coupe rien. ⛔ Pas sur mobile : les
+  // colonnes y sont empilées à la largeur de l'écran, et rien n'y est borné.
   const surMesure = (contenu: ReactNode, cle: string) => mobile ? contenu : (
     <div key={cle} className="cs-bible-regard">{contenu}</div>
   )
 
-  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc) => surMesure(
+  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc) => (
     <BlocEditorialBible
       key={bloc.id}
       bloc={bloc}
       illustrations={imagesParBloc.get(bloc.id) ?? []}
-    />,
-    bloc.id,
+    />
   ))
   const rendreImages = (liste: readonly BibleEditionDisplayAsset[]) => liste.map((illustration) => surMesure(
     <IllustrationBible key={illustration.id} illustration={illustration} />,

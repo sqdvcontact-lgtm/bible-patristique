@@ -133,10 +133,11 @@ describe('lecture bilingue de la page Bible', () => {
     // Elle sort donc des colonnes, hors de toute cellule de membre.
     const avant = html.slice(0, html.indexOf('Propre au français, sans ancre.'))
     expect(avant.lastIndexOf('data-membre=')).toBe(-1)
-    // ⛔ Mais pas sur TOUTE leur largeur (2026-09-03) : l'enveloppe `.cs-bible-regard`
-    // la borne à la mesure du bloc de lecture. Sur mobile, où les colonnes sont
-    // empilées à la largeur de l'écran, l'enveloppe n'est pas rendue.
-    expect(avant.lastIndexOf('class="cs-bible-regard"')).toBeGreaterThan(-1)
+    // ⛔ Mais pas sur TOUTE leur largeur (2026-09-03) : `.cs-bible-bloc` porte sa
+    // mesure en regard (globals.css) SANS enveloppe — les blocs restent frères, et
+    // les règles de voisinage des titres font leurs blancs. Une enveloppe posée le
+    // même jour les avait coupées (1,5 rem sous un titre de péricope au lieu de 0,5).
+    expect(avant.lastIndexOf('class="cs-bible-regard"')).toBe(-1)
     const mobile = renderToStaticMarkup(
       <BibleBilingue
         {...COMMUN}
@@ -229,6 +230,9 @@ describe('lecture bilingue de la page Bible', () => {
       />,
     )
     expect(html).toContain('data-asset-key="jourdain"')
+    // Une gravure, elle, prend l'enveloppe `.cs-bible-regard` : sa part se calcule
+    // sur son conteneur, et aucune règle de voisinage ne la nomme.
+    expect(html).toMatch(/<div class="cs-bible-regard"><figure /)
   })
 
   it('garde dans sa note une illustration propre à une langue', () => {
