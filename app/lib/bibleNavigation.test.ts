@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { normaliserChapitreBible, urlLectureBible } from './bibleNavigation'
+import {
+  chapitreSuivantDisponible,
+  dernierChapitreBible,
+  normaliserChapitreBible,
+  urlLectureBible,
+} from './bibleNavigation'
 
 describe('adresse de lecture de la page Bible', () => {
   it('compose l’adresse ordinaire d’un chapitre', () => {
@@ -42,6 +47,13 @@ describe('adresse de lecture de la page Bible', () => {
     expect(urlLectureBible({ livre: '1SA', chapitre: 3, trad: 'TR0001', mode: 'native' }))
       .toBe('/?livre=1SA&chapitre=3&trad=TR0001&mode=native')
   })
+
+  it('ne fabrique jamais un chapitre au-delà de la borne canonique', () => {
+    expect(urlLectureBible({ livre: 'GEN', chapitre: 51, trad: 'TR0010' }))
+      .toBe('/?livre=GEN&chapitre=50&trad=TR0010')
+    expect(urlLectureBible({ livre: 'REV', chapitre: 23, trad: 'TR0001' }))
+      .toBe('/?livre=REV&chapitre=22&trad=TR0001')
+  })
 })
 
 describe('numéro de chapitre reçu de l’adresse', () => {
@@ -74,5 +86,26 @@ describe('numéro de chapitre reçu de l’adresse', () => {
   it('retient la partie entière de tête, comme le faisait parseInt', () => {
     expect(normaliserChapitreBible('12abc')).toBe(12)
     expect(normaliserChapitreBible('4.7')).toBe(4)
+  })
+
+  it('borne aussi le maximum quand le livre est connu', () => {
+    expect(normaliserChapitreBible('50', 'GEN')).toBe(50)
+    expect(normaliserChapitreBible('51', 'GEN')).toBe(50)
+    expect(normaliserChapitreBible('999', 'PSA')).toBe(150)
+  })
+})
+
+describe('borne terminale d’un livre', () => {
+  it('expose la borne canonique vérifiée', () => {
+    expect(dernierChapitreBible('GEN')).toBe(50)
+    expect(dernierChapitreBible('REV')).toBe(22)
+    expect(dernierChapitreBible('INCONNU')).toBeNull()
+  })
+
+  it('ferme la flèche suivante au dernier chapitre seulement', () => {
+    expect(chapitreSuivantDisponible('GEN', 49)).toBe(true)
+    expect(chapitreSuivantDisponible('GEN', 50)).toBe(false)
+    // Un livre hors table n'est pas condamné par défaut : le serveur garde la main.
+    expect(chapitreSuivantDisponible('INCONNU', 1)).toBe(true)
   })
 })
