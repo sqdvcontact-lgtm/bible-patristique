@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Message } from './registre'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 type Question = {
   id: string
@@ -113,11 +114,11 @@ function ColonneMessages({
         onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); ajouter() } }}
         rows={3}
         placeholder={placeholder}
-        style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', border: '1px solid var(--cs-bord)', borderRadius: '6px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)', padding: '9px 10px', font: 'inherit', fontSize: '0.8125rem', lineHeight: 1.5 }}
+        style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)', padding: '9px 10px', font: 'inherit', fontSize: '0.8125rem', lineHeight: 1.5 }}
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
         <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>Ctrl + Entrée</span>
-        <button type="button" onClick={ajouter} disabled={envoi || !brouillon.trim()} style={{ border: 'none', borderRadius: '5px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', padding: '5px 11px', fontSize: '0.75rem', cursor: 'pointer', opacity: envoi || !brouillon.trim() ? 0.5 : 1 }}>Ajouter</button>
+        <button type="button" onClick={ajouter} disabled={envoi || !brouillon.trim()} style={{ border: 'none', borderRadius: '4px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', padding: '5px 11px', fontSize: '0.75rem', cursor: 'pointer', opacity: envoi || !brouillon.trim() ? 0.5 : 1 }}>Ajouter</button>
       </div>
     </section>
   )
@@ -179,7 +180,7 @@ export default function RegistreNotes({
   return (
     <main style={{ maxWidth: '56rem', margin: '0 auto', padding: '28px 24px 64px', minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <header style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '2rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 8px' }}>Propositions de GPT</h1>
+        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 8px' }}>Propositions de GPT</h1>
         <p style={{ maxWidth: '44rem', margin: '0 0 12px', fontSize: '0.875rem', lineHeight: 1.6, color: 'var(--cs-texte-second)' }}>Questions éditoriales à instruire avant de les transformer en normes de Corpus Scriptura.</p>
         <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', fontSize: '0.8125rem', color: 'var(--cs-texte-second)' }}>
           <span><strong style={{ color: 'var(--cs-texte-fort)' }}>{QUESTIONS.length}</strong> propositions</span>
@@ -188,7 +189,7 @@ export default function RegistreNotes({
           <span><strong style={{ color: 'var(--cs-texte-fort)' }}>{reponses.length}</strong> réponse{reponses.length > 1 ? 's' : ''} de GPT</span>
           <span style={{ marginLeft: 'auto', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{envoi ? 'Enregistrement…' : majLe ? `Enregistré le ${dateHeure(majLe)}` : 'Rien d’enregistré'}</span>
         </div>
-        {erreur && <p role="alert" style={{ margin: '12px 0 0', padding: '9px 12px', border: '1px solid var(--cs-danger-bord)', borderRadius: '5px', background: 'var(--cs-danger-fond)', color: 'var(--cs-danger)', fontSize: '0.8125rem' }}>{erreur}</p>}
+        {erreur && <p role="alert" style={{ margin: '12px 0 0', padding: '9px 12px', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', background: 'var(--cs-danger-fond)', color: 'var(--cs-danger)', fontSize: '0.8125rem' }}>{erreur}</p>}
       </header>
 
       <section>
