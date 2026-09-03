@@ -80,7 +80,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
     profil.pub_essais
       ? sb.from('essais')
           .select('id, titre, sous_titre, categories, publie_at, nb_vues')
-          .eq('user_id', profil.id).eq('statut', 'publie')
+          // ⛔ Une publication anonyme ne paraît pas sur la page de son auteur.
+          .eq('user_id', profil.id).eq('statut', 'publie').eq('anonyme', false)
           .order('publie_at', { ascending: false }).limit(10)
       : null,
     profil.pub_favoris_oeuvre

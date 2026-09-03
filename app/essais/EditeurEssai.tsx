@@ -15,6 +15,7 @@ import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees
 import { COUVERTURES, COUVERTURE_PAR_DEFAUT, couvertureDe } from '@/app/lib/couverturesEssai'
 import { categorieEmblemeDe, emblemeDe, emblemesAuChoix } from '@/app/lib/emblemesCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -24,7 +25,7 @@ const ROUGE_COMPTE = '#a8564d'
 const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 type Props = {
-  essaiExistant?: { couverture?: string | null; embleme?: string | null; id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
+  essaiExistant?: { couverture?: string | null; embleme?: string | null; id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; anonyme?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
   modeAdmin?: boolean
   metadonneesInitiales?: Metadonnees | null
   versetEnTeteInitial?: { ref: string; texte: string } | null
@@ -55,7 +56,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const [embleme, setEmbleme] = useState<string>(essaiExistant?.embleme ?? '')
   const [userId, setUserId] = useState<string | null>(null)
   const [profil, setProfil] = useState<{ pseudo: string | null; nom: string | null; prenom: string | null } | null>(null)
-  const [afficherNomReel, setAfficherNomReel] = useState(essaiExistant?.afficher_nom_reel ?? false)
+  // La signature : le pseudonyme (la règle), le nom réel, ou rien. Un seul état, écrit
+  // en deux colonnes qui ne sont jamais vraies ensemble (app/lib/signatureEssai.ts).
+  const [signature, setSignature] = useState<Signature>(() => signatureDe(essaiExistant ?? {}))
   const [versetEnTete] = useState<{ ref: string; texte: string } | null>(() => {
     if (versetEnTeteInitial) return versetEnTeteInitial
     if (essaiExistant?.verset_en_tete) {
@@ -85,8 +88,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   contenuTexteRef.current = contenuTexte
   const metaRef = useRef(meta)
   metaRef.current = meta
-  const afficherNomReelRef = useRef(afficherNomReel)
-  afficherNomReelRef.current = afficherNomReel
+  const signatureRef = useRef(signature)
+  signatureRef.current = signature
   const derniereCleSauvegardeeRef = useRef('')
   const [derniereSauvegardeAt, setDerniereSauvegardeAt] = useState<Date | null>(null)
 
@@ -114,7 +117,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     })
   }, [userId, metadonneesInitiales])
 
-  const nomAffiche = (afficherNomReel && profil?.nom) ? `${profil.prenom ?? ''} ${profil.nom}`.trim() : (profil?.pseudo ?? 'Anonyme')
+  const nomAffiche = nomSigne(colonnesSignature(signature), profil) ?? NOM_ANONYME
+  // Les signatures offertes : le nom réel ne se propose que si le profil en porte un.
+  const choixSignature: { valeur: Signature; libelle: string }[] = [
+    { valeur: 'pseudonyme', libelle: `Sous mon pseudonyme${profil?.pseudo ? `, ${profil.pseudo}` : ''}` },
+    ...(nomReel(profil) ? [{ valeur: 'nom_reel' as const, libelle: `Sous mon nom, ${nomReel(profil)}` }] : []),
+    { valeur: 'anonyme', libelle: 'Anonymement' },
+  ]
 
   // ── Sauvegarde automatique ────────────────────────────────────────────────
   const sauvegarder = useCallback(async (statutForce?: 'brouillon' | 'en_attente') => {
@@ -127,7 +136,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     setStatutEnr('enregistrement')
     const payload: any = {
       titre, sous_titre: meta.sousTitre.trim() || null, resume: meta.resume.trim(),
-      categories: meta.categories, contenu: contenuTexte, afficher_nom_reel: afficherNomReel,
+      categories: meta.categories, contenu: contenuTexte, ...colonnesSignature(signature),
       couverture: couverture || null,
       embleme: embleme || null,
       verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
@@ -150,7 +159,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     setStatutEnr(error ? 'erreur' : 'enregistre')
     setTimeout(() => setStatutEnr('idle'), 1500)
     return !error
-  }, [userId, meta, contenuTexte, afficherNomReel, versetEnTete, modeAdmin, essaiExistant?.publie_at])
+  }, [userId, meta, contenuTexte, signature, couverture, embleme, versetEnTete, modeAdmin, essaiExistant?.publie_at])
 
   useEffect(() => {
     if (!contenuTexte.trim()) return
@@ -163,13 +172,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     if (!userId) return
     const sauvegarderAuto = async () => {
       if (!idRef.current) return
-      const cle = `${contenuTexteRef.current}:::${afficherNomReelRef.current}:::${JSON.stringify(metaRef.current)}`
+      const cle = `${contenuTexteRef.current}:::${signatureRef.current}:::${JSON.stringify(metaRef.current)}`
       if (!contenuTexteRef.current.trim() || cle === derniereCleSauvegardeeRef.current) return
       setStatutEnr('enregistrement')
       const payload: Record<string, unknown> = {
         titre: metaRef.current.titre, sous_titre: metaRef.current.sousTitre || null,
         resume: metaRef.current.resume, categories: metaRef.current.categories,
-        contenu: contenuTexteRef.current, afficher_nom_reel: afficherNomReelRef.current,
+        contenu: contenuTexteRef.current, ...colonnesSignature(signatureRef.current),
         verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
         updated_at: new Date().toISOString(),
       }
@@ -865,6 +874,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.5, margin: '0 0 4px' }}>
               Votre texte «&nbsp;<em style={{ color: 'var(--cs-texte)', fontStyle: 'italic' }}>{meta.titre}</em>&nbsp;» part en modération ; il reste figé tant qu&apos;il est en attente.
+              {' '}{signature === 'anonyme' ? 'Il paraîtra sans nom d’auteur.' : `Il paraîtra signé ${nomAffiche}.`}
             </p>
             <div style={{ maxHeight: '170px', overflowY: 'auto', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', padding: '9px 11px', margin: '10px 0' }}>
               {CONDITIONS}
@@ -906,15 +916,23 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {selecteurOuvert && <SelecteurCitation onChoisir={inserrerCitation} onFermer={() => setSelecteurOuvert(false)} />}
       <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible editionNote={editionNote ? { actif: true, mode: editionNote.mode } : undefined} onEnregistrerNote={enregistrerNoteDepuisVolet} enTete={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {profil?.nom && (
+          {profil && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', lineHeight: 1.4 }}>
-                <input type="checkbox" checked={afficherNomReel} onChange={e => setAfficherNomReel(e.target.checked)} style={{ marginTop: '2px' }} />
-                Publier sous mon nom réel ({profil.prenom ? `${profil.prenom} ` : ''}{profil.nom}) plutôt que mon pseudonyme
-              </label>
-              {afficherNomReel && (
+              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: 0 }}>Signature</p>
+              {choixSignature.map(c => (
+                <label key={c.valeur} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', lineHeight: 1.4 }}>
+                  <input type="radio" name="signature" value={c.valeur} checked={signature === c.valeur} onChange={() => setSignature(c.valeur)} style={{ marginTop: '2px' }} />
+                  {c.libelle}
+                </label>
+              ))}
+              {signature === 'nom_reel' && (
                 <p style={{ fontSize: '0.625rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
                   Votre nom réel apparaîtra sur cet essai et sur votre profil public.
+                </p>
+              )}
+              {signature === 'anonyme' && (
+                <p style={{ fontSize: '0.625rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
+                  Rien ne reliera cette publication à votre compte : ni la liste, ni la page, ni votre page publique ne porteront votre nom. Seule l’administration sait qui écrit, pour la modération.
                 </p>
               )}
             </div>

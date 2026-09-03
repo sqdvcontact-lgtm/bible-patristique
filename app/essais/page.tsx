@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import EssaisListeClient from './EssaisListeClient'
+import { NOM_ANONYME, nomSigne } from '@/app/lib/signatureEssai'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +23,7 @@ export const metadata = {
 export default async function EssaisPage() {
   const { data: essaisRaw } = await supabaseAdmin
     .from('essais')
-    .select('id, titre, sous_titre, resume, categories, nb_vues, created_at, publie_at, user_id, afficher_nom_reel, couverture, embleme')
+    .select('id, titre, sous_titre, resume, categories, nb_vues, created_at, publie_at, user_id, afficher_nom_reel, anonyme, couverture, embleme')
     .eq('statut', 'publie')
     .order('publie_at', { ascending: false })
 
@@ -46,14 +47,19 @@ export default async function EssaisPage() {
 
   const essaisResolus = essais.map(e => {
     const p = profilMap[e.user_id]
-    const nomAffiche = (e.afficher_nom_reel && p?.nom) ? `${p.prenom ? p.prenom + ' ' : ''}${p.nom}` : (p?.pseudo ?? 'Anonyme')
+    // ⛔ Une publication anonyme ne laisse RIEN partir vers le navigateur qui la relie
+    // au compte : ni l'identifiant, ni la marque de mécène (app/lib/signatureEssai.ts).
+    const anonyme = !!e.anonyme
     return {
       id: e.id, titre: e.titre, sous_titre: e.sous_titre, resume: e.resume,
       categories: e.categories ?? [], nb_vues: e.nb_vues, nb_likes: likesParEssai.get(e.id) ?? 0,
-      publie_at: e.publie_at, auteur: nomAffiche, user_id: e.user_id,
+      publie_at: e.publie_at, auteur: nomSigne(e, p) ?? NOM_ANONYME, user_id: anonyme ? null : e.user_id,
+      // ⚠️ La couverture et l'emblème étaient LUS en base et jamais passés au carton :
+      // toute couverture choisie retombait sur la couleur tirée de l'identifiant.
+      couverture: e.couverture ?? null, embleme: e.embleme ?? null,
       // ⚠️ `pub_mecene` compte ICI, comme dans la vue `mecenes_publics` : cette page
       // lit `profils` avec la clé de service et n'a donc aucun filtre derrière elle.
-      mecene: !!p?.mecene_depuis && p.pub_mecene !== false,
+      mecene: !anonyme && !!p?.mecene_depuis && p.pub_mecene !== false,
     }
   })
 

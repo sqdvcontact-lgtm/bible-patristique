@@ -28,7 +28,9 @@ function expanderRef(ref: string): string {
 type Essai = {
   id: number; titre: string; sous_titre: string | null; resume: string | null
   categories: string[]; contenu: string; statut: string; nb_vues: number
-  user_id: string; created_at: string; publie_at: string | null; auteur_pseudo: string | null
+  user_id: string | null; created_at: string; publie_at: string | null; auteur_pseudo: string | null
+  /** Signée « Anonyme » : le nom paraît en tête, mais rien ne renvoie à un compte. */
+  anonyme?: boolean
   /** L'auteur porte-t-il la marque de mécène. Voir app/components/MarqueMecene.tsx. */
   auteur_mecene?: boolean
   verset_en_tete?: string | null
@@ -139,7 +141,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
   // Un message clair accompagne le lien partagé (le lien redirige vers la lecture).
   const texteInvitation = () =>
-    `« ${essai.titre} »${essai.auteur_pseudo ? `, par ${essai.auteur_pseudo}` : ''} — à lire sur Corpus Scriptura`
+    `« ${essai.titre} »${essai.auteur_pseudo && !essai.anonyme ? `, par ${essai.auteur_pseudo}` : ''} — à lire sur Corpus Scriptura`
 
   const copierLien = () => {
     navigator.clipboard.writeText(`${texteInvitation()} :\n${window.location.href}`).catch(() => {})

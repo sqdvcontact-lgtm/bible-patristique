@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { nomSigne } from '@/app/lib/signatureEssai'
 import AdminClient from './AdminClient'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
@@ -114,6 +115,12 @@ async function actionRenvoyerBrouillonEssai(id: number, note: string, refus = fa
   }).eq('id', id)
 }
 
+/** L'administration voit l'auteur d'une publication anonyme, marqué comme tel : la
+ *  modération doit savoir à qui elle parle, et savoir ne pas le nommer en public. */
+function marqueAnonyme<T extends string | null>(nom: T, e: { anonyme?: boolean | null }): T {
+  return (nom && e.anonyme ? `${nom} (anonyme)` : nom) as T
+}
+
 function compterSignes(contenu: string | null | undefined): number {
   return (contenu ?? '').replace(/\s+/g, ' ').trim().length
 }
@@ -154,10 +161,10 @@ export default async function AdminPage() {
     supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie, reponse_a').eq('demande_validation', true).order('created_at', { ascending: false }),
-    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'en_attente').order('created_at', { ascending: false }),
-    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id').eq('statut', 'a_reviser').order('created_at', { ascending: false }),
-    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
-    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id, anonyme').eq('statut', 'en_attente').order('created_at', { ascending: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id, anonyme').eq('statut', 'a_reviser').order('created_at', { ascending: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, anonyme, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, anonyme, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false }),
     supabaseAdmin.from('signalements').select('message'),
     supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres!oeuvres_id_auteur_fkey(id_oeuvre, titre, titre_affichage, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros, acces_public, acces_public_note, commentaire_traduction, note_editoriale_complete, note_editoriale_complement, note_editoriale_titre)').order('siecle', { ascending: true, nullsFirst: false }),
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
@@ -298,11 +305,11 @@ export default async function AdminPage() {
 
   const pseudoMap: Record<string, string> = {}
   profilsEssais?.forEach(p => { pseudoMap[p.id] = p.pseudo })
-  const essaisEnAttente = essaisValidationRaw.map(e => ({ ...e, auteur_pseudo: pseudoMap[e.user_id] ?? null }))
+  const essaisEnAttente = essaisValidationRaw.map(e => ({ ...e, auteur_pseudo: marqueAnonyme(pseudoMap[e.user_id] ?? null, e) }))
 
   const pseudoMapModification: Record<string, string> = {}
   profilsModification?.forEach(p => { pseudoMapModification[p.id] = p.pseudo })
-  const essaisModification = essaisModificationRaw.map(e => ({ ...e, auteur_pseudo: pseudoMapModification[e.user_id] ?? null }))
+  const essaisModification = essaisModificationRaw.map(e => ({ ...e, auteur_pseudo: marqueAnonyme(pseudoMapModification[e.user_id] ?? null, e) }))
 
   const likesParEssai = new Map<number, number>()
   ;(appreciationsEssais ?? []).forEach((a: any) => likesParEssai.set(a.id_essai, (likesParEssai.get(a.id_essai) ?? 0) + 1))
@@ -312,7 +319,7 @@ export default async function AdminPage() {
   profilsPublies?.forEach(p => { profilMapPublies[p.id] = p })
   const resoudreEssaiListe = (e: any) => {
     const p = profilMapPublies[e.user_id]
-    const auteur = (e.afficher_nom_reel && p?.nom) ? `${p.prenom ? p.prenom + ' ' : ''}${p.nom}` : (p?.pseudo ?? 'Anonyme')
+    const auteur = marqueAnonyme(nomSigne({ afficher_nom_reel: e.afficher_nom_reel }, p) ?? 'profil introuvable', e)
     return {
       id: e.id, titre: e.titre, sous_titre: e.sous_titre, auteur,
       created_at: e.created_at, updated_at: e.updated_at ?? null, publie_at: e.publie_at ?? null,

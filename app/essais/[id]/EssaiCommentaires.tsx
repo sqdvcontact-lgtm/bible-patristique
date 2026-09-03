@@ -40,7 +40,10 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         // lecteur de la montrer ou non. Voir app/components/MarqueMecene.tsx.
         const [{ data: scores }, { data: lignesMecenes }] = ids.length
           ? await Promise.all([
-              supabase.from('classement_utilisateurs').select('user_id, score').in('user_id', ids),
+              // ⛔ Le rang mesure la LECTURE (charte § 40.5) et se lit dans `lecture_utilisateurs`,
+              // comme au panneau patristique. `classement_utilisateurs` n'a pas ces colonnes :
+              // tout commentateur paraissait « Catéchumène » ici depuis le 1er septembre.
+              supabase.from('lecture_utilisateurs').select('user_id, nb_auteurs, total_auteurs').in('user_id', ids),
               supabase.from('mecenes_publics').select('user_id').in('user_id', ids),
             ])
           : [{ data: [] as any[] }, { data: [] as { user_id: string }[] }]

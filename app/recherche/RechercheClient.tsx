@@ -431,7 +431,9 @@ export default function RechercheClient() {
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
-        let r = supabase.from('essais').select('id, titre, sous_titre, resume, contenu, categories').eq('statut', 'publie')
+        // La table ne se lit plus qu'en propriétaire : le public passe par la vue
+        // `essais_publies`, qui tait l'auteur d'une publication anonyme.
+        let r = supabase.from('essais_publies').select('id, titre, sous_titre, resume, contenu, categories')
         if (fragments) {
           for (const t of termes) r = r.or(`titre.ilike.%${t}%,sous_titre.ilike.%${t}%,resume.ilike.%${t}%,contenu.ilike.%${t}%`)
           r = r.limit(500)

@@ -34,6 +34,7 @@ type EssaiResume = {
 type EssaiPerso = {
   id: number; titre: string; sous_titre: string | null; statut: string
   updated_at: string | null; publie_at: string | null; nb_vues: number | null; nb_likes: number
+  anonyme?: boolean
 }
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
@@ -69,7 +70,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     if (!id) return
     const { data } = await supabase
       .from('essais')
-      .select('id, titre, sous_titre, statut, updated_at, publie_at, nb_vues')
+      .select('id, titre, sous_titre, statut, updated_at, publie_at, nb_vues, anonyme')
       .eq('user_id', id)
       .order('updated_at', { ascending: false })
     const lignes = data ?? []
@@ -92,7 +93,10 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
   const supprimer = async (id: number) => {
     if (!confirm('Supprimer définitivement cet écrit ?')) return
-    await supabase.from('essais').delete().eq('id', id)
+    // ⚠️ Lire l'erreur : la RLS refuse en SILENCE, et « supprimé » sans rien de
+    // supprimé s'est vu (aucune politique DELETE jusqu'au 2026-09-03).
+    const { error } = await supabase.from('essais').delete().eq('id', id)
+    if (error) { alert(`La suppression a échoué : ${error.message}`); return }
     await chargerMesEcrits()
   }
 
@@ -703,6 +707,7 @@ function OngletMesEcrits({
                     <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
                     <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
                     <span>♥ {e.nb_likes ?? 0}</span>
+                    {e.anonyme && <span style={{ fontStyle: 'italic' }}>anonyme</span>}
                     {e.statut === 'en_attente' && (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cs-attente)', fontWeight: 600 }}>
                         <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden="true">

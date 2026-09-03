@@ -5,6 +5,7 @@ import { couperDescription, enTetesPartage } from '@/app/lib/metadonneesSeo'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { JsonLd, donneesArticle, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import EssaiClient from './EssaiClient'
+import { nomSigne } from '@/app/lib/signatureEssai'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, couverture, embleme, verset_en_tete').eq('id', id).single()
+  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, anonyme, couverture, embleme, verset_en_tete').eq('id', id).single()
   if (!essai) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -59,10 +60,13 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  const { data: profil } = await supabaseAdmin.from('profils').select('pseudo, nom, prenom, mecene_depuis, pub_mecene').eq('id', essai.user_id).maybeSingle()
-  const nomAffiche = (essai.afficher_nom_reel && profil?.nom)
-    ? `${profil.prenom ? profil.prenom + ' ' : ''}${profil.nom}`
-    : (profil?.pseudo ?? null)
+  // ⛔ Une publication anonyme ne va pas chercher son auteur : rien de son profil ne
+  // doit partir au navigateur, ni le nom, ni la marque de mécène, ni l'identifiant.
+  const anonyme = !!essai.anonyme
+  const { data: profil } = anonyme
+    ? { data: null }
+    : await supabaseAdmin.from('profils').select('pseudo, nom, prenom, mecene_depuis, pub_mecene').eq('id', essai.user_id).maybeSingle()
+  const nomAffiche = nomSigne(essai, profil)
 
   return (
     <>
@@ -71,7 +75,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
         <>
           <JsonLd donnees={donneesArticle({
             id: essai.id, titre: essai.titre, sousTitre: essai.sous_titre,
-            resume: essai.resume, auteur: nomAffiche, publieAt: essai.publie_at,
+            resume: essai.resume, auteur: anonyme ? null : nomAffiche, publieAt: essai.publie_at,
           })} />
           <JsonLd donnees={donneesFilAriane([
             { nom: 'Accueil', url: '/accueil' },
@@ -83,8 +87,8 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
       <EssaiClient essai={{
         id: essai.id, titre: essai.titre, sous_titre: essai.sous_titre, resume: essai.resume,
         categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
-        nb_vues: essai.nb_vues, user_id: essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
-        auteur_pseudo: nomAffiche, verset_en_tete: essai.verset_en_tete ?? null,
+        nb_vues: essai.nb_vues, user_id: anonyme ? null : essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
+        auteur_pseudo: nomAffiche, anonyme, verset_en_tete: essai.verset_en_tete ?? null,
         // ⚠️ `pub_mecene` compte ICI : cette page lit `profils` avec la clé de service
         // et n'a donc pas le filtre de la vue `mecenes_publics` derrière elle.
         auteur_mecene: !!profil?.mecene_depuis && profil.pub_mecene !== false,
