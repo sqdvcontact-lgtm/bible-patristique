@@ -282,6 +282,20 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html).not.toContain('id="appel-note-bible-n2-la"')
   })
 
+  it('marque un bloc de SUITE — même rang, même nature, sans intitulé — et lui seul', () => {
+    const para = (id: string, heading: string | null) => ({
+      id, semanticStyleCode: 'commentaire_pericope', heading, placement: 'before' as const,
+      canonIdStart: 'MRK.1.1', canonIdEnd: 'MRK.1.8', materialOrder: id === 'c1' ? 1 : 2,
+      appliesTo: 'family' as const, appliesToMemberId: null,
+      textBlocks: [{ id: `${id}:1`, kind: 'commentary' as const, form: 'prose' as const, text: `Paragraphe ${id}.` }],
+      internalNotes: [],
+    })
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} blocs={[para('c1', '1-8'), para('c2', null)]} />)
+    // Le premier ouvre le développement (il porte son repère) ; le second le continue.
+    expect(html.split('data-suite')).toHaveLength(2)
+    expect(html.indexOf('data-suite')).toBeGreaterThan(html.indexOf('Paragraphe c1.'))
+  })
+
   it('compose la rangée sur les mesures nommées du numéro, dont la feuille déduit le fer de l’appareil', () => {
     // ⛔ Une seule écriture : la colonne du numéro et sa gouttière vivent dans
     // globals.css, et `.cs-bible-regard` s'en déduit. Recopier 1,6 rem ici

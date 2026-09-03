@@ -6,6 +6,7 @@ import {
   construirePlan,
   diviserIntitule,
   empilerTitre,
+  estSuiteDuBloc,
   intituleDeRendu,
   JETONS_INFO,
   JETONS_TITRE,
@@ -360,5 +361,26 @@ describe('intitulé en deux temps', () => {
   it('ne rend rien d’un intitulé vide', () => {
     expect(diviserIntitule(null)).toBeNull()
     expect(diviserIntitule('   ')).toBeNull()
+  })
+})
+
+describe('estSuiteDuBloc — le paragraphe suivant d’un même développement', () => {
+  const p = (code: string, niveau: string | null, heading: string | null = null) => (
+    { semanticStyleCode: code, semanticLevel: niveau, embeddedTitleLevel: null, heading }
+  )
+  it('reconnaît deux blocs de même rang et de même nature, le second sans intitulé', () => {
+    expect(estSuiteDuBloc(p('commentaire', 'I3'), p('commentaire', 'I3'))).toBe(true)
+    expect(estSuiteDuBloc(p('introduction', 'I3'), p('introduction', 'I3', ''))).toBe(true)
+    // Un nom hérité et son canonique se valent : `commentaire_pericope` EST un
+    // `commentaire` de rang I5.
+    expect(estSuiteDuBloc(p('commentaire_pericope', null), p('commentaire', 'I5'))).toBe(true)
+  })
+  it('refuse un intitulé, un autre rang, une autre nature, un titre, un style inconnu', () => {
+    expect(estSuiteDuBloc(p('commentaire', 'I3'), p('commentaire', 'I3', '1-3'))).toBe(false)
+    expect(estSuiteDuBloc(p('commentaire', 'I3'), p('commentaire', 'I4'))).toBe(false)
+    expect(estSuiteDuBloc(p('commentaire', 'I3'), p('introduction', 'I3'))).toBe(false)
+    expect(estSuiteDuBloc(p('titre_sous_section', null), p('commentaire', 'I3'))).toBe(false)
+    expect(estSuiteDuBloc(p('commentaire', 'I3'), p('titre_sous_section', null))).toBe(false)
+    expect(estSuiteDuBloc(p('inconnu', 'I3'), p('commentaire', 'I3'))).toBe(false)
   })
 })

@@ -496,3 +496,42 @@ export function rangDesSousTitres(blocs: readonly BlocASousTitre[]): Map<string,
   }
   return rangs
 }
+
+/** Ce qu'un bloc doit dire de lui-même pour qu'on sache s'il CONTINUE le précédent. */
+export type BlocDeSuite = {
+  semanticStyleCode: string
+  semanticLevel?: string | null
+  embeddedTitleLevel?: string | null
+  heading?: string | null
+}
+
+/**
+ * Un bloc de SUITE : le paragraphe suivant d'un même développement, que la donnée
+ * a coupé en blocs.
+ *
+ * Fillion range une introduction ou un commentaire en autant de blocs que de
+ * paragraphes, et chacun rouvrait le blanc de son RANG : 2,25 rem en regard, près
+ * de 3 en lecture simple, là où deux paragraphes composés dans un même bloc ne
+ * s'écartent que de 0,25 rem — le blanc que l'auteur a fixé le 29 août 2026 pour
+ * « deux paragraphes d'un même style » (relevé de l'auteur, 3 septembre 2026, sur
+ * l'introduction de la Genèse : « les blancs entre les paragraphes de même style
+ * sont trop importants »). Mesuré dans le corpus public : 1 517 paires de
+ * commentaires de péricope, 152 de commentaires de verset, 70 de paragraphes
+ * d'introduction.
+ *
+ * ⛔ La suite se reconnaît à la DONNÉE, jamais au texte : même rang, même nature,
+ * et le second bloc sans intitulé. Un intitulé, une manchette ouvrent un
+ * développement ; un titre n'est jamais une suite, ni suivi d'une. Un nom hérité
+ * et son canonique se valent, la résolution du registre faisant foi.
+ * ⚠️ Le rendu la porte sur le bloc (`data-suite`), et la feuille fait le reste :
+ * plus de marge haute au bloc de suite, plus de marge basse à son prédécesseur,
+ * sur les trois surfaces (§ 35.17.5).
+ */
+export function estSuiteDuBloc(precedent: BlocDeSuite, bloc: BlocDeSuite): boolean {
+  if (bloc.heading && bloc.heading.trim() !== '') return false
+  const a = resoudreStyleSemantique(precedent.semanticStyleCode, { niveau: precedent.semanticLevel, titre: precedent.embeddedTitleLevel })
+  const b = resoudreStyleSemantique(bloc.semanticStyleCode, { niveau: bloc.semanticLevel, titre: bloc.embeddedTitleLevel })
+  if (!a || !b) return false
+  if (a.kind !== 'info' || b.kind !== 'info') return false
+  return a.level === b.level && a.nature === b.nature
+}

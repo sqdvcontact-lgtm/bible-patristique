@@ -55,6 +55,7 @@ import {
 } from '@/app/lib/bibleEditionBilingue'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import { ancreAppelNoteBible } from '@/app/lib/bibleEdition'
+import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import {
   BlocEditorialBible,
   IllustrationBible,
@@ -215,11 +216,14 @@ export default function BibleBilingue({
     <div key={cle} className="cs-bible-regard">{contenu}</div>
   )
 
-  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc) => (
+  // Un bloc de SUITE — le paragraphe suivant d'un même développement, que la
+  // donnée a coupé en blocs — ne rouvre pas le blanc de son rang (`estSuiteDuBloc`).
+  const rendreBlocs = (liste: readonly BibleEditionDisplayBodyBlock[]) => liste.map((bloc, i) => (
     <BlocEditorialBible
       key={bloc.id}
       bloc={bloc}
       illustrations={imagesParBloc.get(bloc.id) ?? []}
+      suite={i > 0 && estSuiteDuBloc(liste[i - 1], bloc)}
     />
   ))
   const rendreImages = (liste: readonly BibleEditionDisplayAsset[]) => liste.map((illustration) => surMesure(

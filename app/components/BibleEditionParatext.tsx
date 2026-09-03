@@ -730,11 +730,16 @@ export function BlocEditorialBible({
   bloc,
   illustrations = [],
   habillage = [],
+  suite = false,
 }: {
   bloc: BlocEditorialBiblique
   illustrations?: IllustrationBibliqueAffichable[]
   /** Vignettes ancrées sur un verset que la page fond dans ce commentaire. */
   habillage?: readonly IllustrationHabillee[]
+  /** Le bloc CONTINUE le précédent — même rang, même nature, sans intitulé — et
+   *  ne rouvre pas le blanc de son rang (`estSuiteDuBloc`, § 35.17.5). Décidé par
+   *  l'appelant, qui seul connaît le bloc d'avant. */
+  suite?: boolean
 }) {
   const avant = illustrations.filter((illustration) => illustration.placement === 'before')
   const dansLeFlux = illustrations.filter((illustration) => illustration.placement === 'inline')
@@ -864,6 +869,9 @@ export function BlocEditorialBible({
     // rien d'autre, que la feuille lui donne la pose de son titre — centrée sous
     // un titre centré, au fer sous un titre au fer.
     'data-titre-rang': bloc.rangDuTitre ?? undefined,
+    // Un bloc de SUITE : la feuille lui retire sa marge haute, et sa marge basse
+    // au bloc qui le précède. L'attribut est vide : c'est un drapeau.
+    'data-suite': suite ? '' : undefined,
   }
   // Une notice se tient à côté du fil de lecture. ⚠️ `excursus` figurait ici : le
   // regroupement du 29 août 2026 l'a fondu dans `notice`, dont il ne se distinguait

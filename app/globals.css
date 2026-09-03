@@ -1111,9 +1111,18 @@ button:focus-visible,
    ⚠️ Le second sélecteur est celui de la mesure ÉTROITE, où l'axe disparaît et
    les blocs redeviennent frères : là, les marges fusionnent pour de bon, et la
    règle ne portait pas. Le blanc du T4 y restait ouvert. */
-.cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc,
-.cs-bible-bloc.cs-bible-title--t4 + .cs-bible-bloc {
+.cs-bible-axe:has(> .cs-bible-bloc > .cs-bible-title--t4) + .cs-bible-axe > .cs-bible-bloc {
   margin-top: 0.2rem;
+}
+/* ⚠️ Rectification du 3 septembre 2026, et c'est une MESURE : sur la grille, le
+   blanc sous une sous-section vaut 0,6 rem et non 0,4 — le titre ET le bloc qui
+   le porte reçoivent tous deux la marge basse du rang (0,2), et un bloc de grille
+   étant un contexte à lui, rien n'y fusionne : 0,2 + 0,2 + 0,2. Dans la fratrie,
+   tout fusionne, et le blanc tombait à 0,2 rem : 4 px sur l'écran de l'auteur,
+   sous « Les sources de la Genèse » en regard (« il faut plus de blanc après ce
+   style »). La fratrie reçoit donc 0,6 rem, et les deux surfaces se valent. */
+.cs-bible-bloc.cs-bible-title--t4 + .cs-bible-bloc {
+  margin-top: 0.6rem;
 }
 /* ── LE PARAGRAPHE (« § I ») SE CENTRE ────────────────────────────────────────
    Ce rang ne porte JAMAIS un titre en prose. Sur les 35 blocs visibles du corpus
@@ -1528,6 +1537,35 @@ button:focus-visible,
   max-width: calc(var(--mesure-page) - 2 * (var(--regard-numero) + var(--regard-numero-gouttiere)));
   margin-left: auto;
   margin-right: auto;
+}
+
+/* ── UN BLOC DE SUITE NE ROUVRE PAS LE BLANC DE SON RANG (2026-09-03) ────────────
+   Fillion range une introduction ou un commentaire en autant de blocs que de
+   paragraphes ; chacun rouvrait le blanc de son rang — 2,25 rem en regard (le
+   « changement d'unité » de la règle ci-dessus), près de 3 en lecture simple —
+   là où deux paragraphes composés dans un MÊME bloc ne s'écartent que de 0,25 rem,
+   le blanc que l'auteur a fixé le 29 août pour deux paragraphes d'un même style.
+   Relevé de l'auteur sur l'introduction de la Genèse : « les blancs entre les
+   paragraphes de même style sont trop importants ». Mesuré avant : 50 px en
+   regard, 63 en lecture simple, sous « La création, l'introduction du péché… ».
+   ⛔ La suite est un fait de DONNÉE, porté par le rendu (`data-suite`, posé par
+   `estSuiteDuBloc` : même rang, même nature, second bloc sans intitulé). La feuille
+   ne devine rien : elle retire au bloc de suite sa marge haute, et à celui qui le
+   précède sa marge basse. Le blanc qui reste est celui du dernier paragraphe du
+   bloc d'avant — 0,25 rem, le même que dans un bloc —, contenu par la grille ou
+   fusionné dans la fratrie, ce qui revient au même. ⚠️ TROIS surfaces, trois
+   sélecteurs (§ 35.17.3) : la grille de l'axe, la fratrie de la mesure étroite, la
+   lecture en regard — où la spécificité doit passer au-dessus du « changement
+   d'unité » de `.cs-bible-block--commentary`. */
+.cs-bible-axe > .cs-bible-bloc[data-suite],
+.cs-bible-bloc[data-suite],
+[data-lecture='bilingue'] .cs-bible-bloc[data-suite] {
+  margin-top: 0;
+}
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-suite]) > .cs-bible-bloc,
+.cs-bible-bloc:has(+ .cs-bible-bloc[data-suite]),
+[data-lecture='bilingue'] .cs-bible-bloc:has(+ .cs-bible-bloc[data-suite]) {
+  margin-bottom: 0;
 }
 /* ⛔ Et le rang d'un titre PORTÉ ne l'atteignait pas non plus, pour la raison
    symétrique : la règle générale s'écarte du premier bloc par `:not(:first-of-type)`,

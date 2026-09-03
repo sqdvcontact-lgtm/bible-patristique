@@ -24,6 +24,7 @@ import {
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import FlecheChapitre from '@/app/components/FlecheChapitre'
 import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre, PieceLiminaire } from '@/app/components/BibleEditionParatext'
+import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
@@ -531,16 +532,25 @@ export default function TexteBible({
       })),
     ]
       .sort((a, b) => a.materialOrder - b.materialOrder || a.id.localeCompare(b.id, 'fr'))
-      .map((item) => surAxeTexte(item.kind === 'block'
-        ? (
-            <BlocEditorialBible
-              key={`bloc:${item.id}`}
-              bloc={item.value}
-              illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
-              habillage={habillage.parBloc.get(item.id) ?? []}
-            />
-          )
-        : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`))
+      .map((item, i, items) => {
+        // Un bloc de SUITE — le paragraphe suivant d'un même développement, que
+        // la donnée a coupé en blocs — ne rouvre pas le blanc de son rang
+        // (`estSuiteDuBloc`). Une gravure entre deux blocs rompt la suite : elle
+        // rompt déjà leur voisinage.
+        const precedent = i > 0 ? items[i - 1] : null
+        const suite = item.kind === 'block' && precedent?.kind === 'block' && estSuiteDuBloc(precedent.value, item.value)
+        return surAxeTexte(item.kind === 'block'
+          ? (
+              <BlocEditorialBible
+                key={`bloc:${item.id}`}
+                bloc={item.value}
+                illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
+                habillage={habillage.parBloc.get(item.id) ?? []}
+                suite={suite}
+              />
+            )
+          : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`)
+      })
   }
   const notesParCanon = new Map<string, NonNullable<typeof editionChapter>['notes']>()
   for (const note of editionChapter?.notes ?? []) {
