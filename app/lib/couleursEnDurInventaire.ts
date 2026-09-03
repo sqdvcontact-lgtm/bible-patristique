@@ -89,7 +89,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'essais/[id]/EssaiClient.tsx': ['#e4c4a0'],
   'essais/[id]/EssaiCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
   'essais/EditeurEssai.tsx': ['#5b544c', '#7a5a30', '#a8564d', '#e8d5a0'],
-  'essais/EssaisListeClient.tsx': ['#9a5a2a', '#a02d2d', '#c8d8cc', '#fff', 'rgba(0,0,0,0)', 'rgba(120,110,96,0.06)', 'rgba(154,90,42,0.075)', 'rgba(154,90,42,0.24)', 'rgba(160,45,45,0.08)', 'rgba(160,45,45,0.25)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
+  'essais/EssaisListeClient.tsx': ['#c8d8cc', '#fff', 'rgba(0,0,0,0)', 'rgba(120,110,96,0.06)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
   'histoire/HistoireClient.tsx': ['#5a5044', '#7a6f61', '#7a746d', '#b0a088', '#b7a06a', 'rgba(183,160,106,0.38)'],
   // ⛔ Un dégradé et une encre posés SUR UNE PHOTOGRAPHIE, non sur le sol du site.
   // Un jeton se retourne avec le thème ; une image, non. `var(--cs-fond)` valait le

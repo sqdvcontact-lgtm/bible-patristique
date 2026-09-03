@@ -14,6 +14,7 @@ import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -595,13 +596,75 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   )
 }
 
+// ── Mes écrits ───────────────────────────────────────────────────────────────
+// La liste se range comme l'étagère de la Bibliothèque : une ligne par écrit, le
+// titre en italique à empattements, et sous lui une ligne de sans qui dit l'état,
+// la date et l'audience. Les cartons de couleur qui la précédaient (un fond et un
+// filet teintés par état) disaient trois fois la même chose ; l'état se lit au mot,
+// et à la pastille qui tient lieu de puce.
+//
+// Le volet de gauche trie et filtre, sur le modèle du volet de lecture : un axe se
+// donne en entier, une option par ligne, l'option retenue sur la pastille verte
+// (charte, « Le volet de lecture »). Sous 700 px il passe au-dessus de la liste,
+// ses deux axes côte à côte.
+
+type TriEcrits = 'modification' | 'publication' | 'titre' | 'lectures'
+type FiltreEcrits = 'tous' | 'brouillon' | 'en_attente' | 'publie'
+
+const TRIS_ECRITS: { cle: TriEcrits; libelle: string }[] = [
+  { cle: 'modification', libelle: 'Dernière modification' },
+  { cle: 'publication', libelle: 'Date de publication' },
+  { cle: 'titre', libelle: 'Titre' },
+  { cle: 'lectures', libelle: 'Lectures' },
+]
+
+// ⚠️ Quatre états, et non six : « à réviser » et « refusé » ne peuvent pas exister
+// en base, la contrainte de `essais.statut` ne les admettant pas. Un écrit d'un
+// état inconnu ne paraît que sous « Tous ».
+const FILTRES_ECRITS: { cle: FiltreEcrits; libelle: string; test: (e: EssaiPerso) => boolean }[] = [
+  { cle: 'tous', libelle: 'Tous', test: () => true },
+  { cle: 'brouillon', libelle: 'Brouillons', test: e => e.statut === 'brouillon' },
+  { cle: 'en_attente', libelle: 'En vérification', test: e => e.statut === 'en_attente' },
+  { cle: 'publie', libelle: 'Publiés', test: e => e.statut === 'publie' },
+]
+
+function comparerEcrits(tri: TriEcrits): (a: EssaiPerso, b: EssaiPerso) => number {
+  const date = (x: string | null) => x ?? ''
+  switch (tri) {
+    case 'publication':
+      // Du plus récemment publié au plus ancien ; ce qui n'a jamais paru suit, par
+      // date de modification.
+      return (a, b) => date(b.publie_at).localeCompare(date(a.publie_at)) || date(b.updated_at).localeCompare(date(a.updated_at))
+    case 'titre':
+      return (a, b) => a.titre.localeCompare(b.titre, 'fr', { sensitivity: 'base' })
+    case 'lectures':
+      return (a, b) => ((b.nb_vues ?? 0) - (a.nb_vues ?? 0)) || ((b.nb_likes ?? 0) - (a.nb_likes ?? 0))
+    default:
+      return (a, b) => date(b.updated_at).localeCompare(date(a.updated_at))
+  }
+}
+
+function OptionVolet({ actif, onClick, libelle, nombre }: { actif: boolean; onClick: () => void; libelle: string; nombre?: number }) {
+  return (
+    <button type="button" className="cs-option-volet" aria-pressed={actif} onClick={onClick} style={OPTION_VOLET(actif)}>
+      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
+        <span>{libelle}</span>
+        {nombre !== undefined && (
+          <span style={{ fontSize: '0.625rem', color: actif ? 'var(--cs-texte-second)' : 'var(--cs-texte-faible)', fontVariantNumeric: 'tabular-nums' }}>{nombre}</span>
+        )}
+      </span>
+    </button>
+  )
+}
+
 function OngletMesEcrits({
   connecte, essais, changerStatut, supprimer,
 }: {
   connecte: boolean | null; essais: EssaiPerso[] | null
   changerStatut: (id: number, statut: string) => Promise<void>; supprimer: (id: number) => Promise<void>
 }) {
-  const [filtre, setFiltre] = useState<'tous' | 'brouillon' | 'verification' | 'publie' | 'a_reviser' | 'refuse'>('tous')
+  const [filtre, setFiltre] = useState<FiltreEcrits>('tous')
+  const [tri, setTri] = useState<TriEcrits>('modification')
   const [toggles, setToggles] = useState<Record<number, number>>({})
   const [maintenant, setMaintenant] = useState(Date.now())
 
@@ -624,16 +687,8 @@ function OngletMesEcrits({
   if (essais === null) return <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
   if (essais.length === 0) return <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun écrit pour l&apos;instant.</p>
 
-  const groupes = [
-    { key: 'tous' as const, label: 'Tous', test: (_: EssaiPerso) => true },
-    { key: 'brouillon' as const, label: 'Brouillons', test: (e: EssaiPerso) => e.statut === 'brouillon' },
-    { key: 'verification' as const, label: 'En vérification', test: (e: EssaiPerso) => e.statut === 'en_attente' },
-    { key: 'publie' as const, label: 'Publiés', test: (e: EssaiPerso) => e.statut === 'publie' },
-    { key: 'a_reviser' as const, label: 'À réviser', test: (e: EssaiPerso) => e.statut === 'a_reviser' },
-    { key: 'refuse' as const, label: 'Refusés', test: (e: EssaiPerso) => e.statut === 'refuse' },
-  ]
-  const groupeActif = groupes.find(g => g.key === filtre) ?? groupes[0]
-  const essaisFiltres = essais.filter(groupeActif.test)
+  const filtreActif = FILTRES_ECRITS.find(f => f.cle === filtre) ?? FILTRES_ECRITS[0]
+  const visibles = essais.filter(filtreActif.test).sort(comparerEcrits(tri))
 
   const derniereAction = (id: number) => {
     if (toggles[id]) return toggles[id]
@@ -661,81 +716,101 @@ function OngletMesEcrits({
   }
 
   return (
-    <div style={{ maxWidth: '42.5rem', margin: '0 auto' }}>
-      {/* Filtres — puces discrètes ; le compteur ne s'affiche que s'il y a des écrits. */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', flexWrap: 'wrap', marginBottom: '14px' }}>
-        {groupes.map(g => {
-          const actif = filtre === g.key
-          const nb = essais.filter(g.test).length
+    <div className="mes-ecrits">
+      <style>{`
+        /* Le volet prend 12,5 rem, la liste la mesure de l'ancienne colonne (42,5 rem) ;
+           l'ensemble se centre dans les 71 rem de la page, comme le rayon. */
+        .mes-ecrits { display: grid; grid-template-columns: 12.5rem minmax(0, 42.5rem); justify-content: center; column-gap: 2.25rem; }
+        .mes-ecrits-volet { align-self: start; position: sticky; top: calc(3.5rem + 14px); border-right: 1px solid var(--cs-bord-clair); padding: 2px 1.25rem 4px 7px; }
+        .mes-ecrits-axe { margin-top: 12px; }
+        .mes-ecrits-liste { min-width: 0; }
+
+        /* Une ligne par écrit : la puce d'état, le titre et sa ligne de sans, les actions. */
+        .ecrit-ligne { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; column-gap: 6px; align-items: start; padding: 7px 0 8px; border-top: 1px solid var(--cs-fond); }
+        .ecrit-ligne:first-child { border-top: none; }
+        .ecrit-etat { display: block; width: 7px; height: 7px; border-radius: 50%; margin: 6px 0 0 3px; }
+        .ecrit-titre { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
+        .ecrit-titre:hover { color: var(--cs-vert-fonce); }
+        .ecrit-sous-titre { margin-left: 6px; font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.75rem; color: var(--cs-texte-gris); }
+        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-faible); }
+        .ecrit-meta > span + span::before { content: "·"; margin: 0 6px; color: var(--cs-bord); }
+
+        /* Les actions se tiennent en retrait tant qu'on ne les regarde pas, comme le
+           « Lire » de l'étagère ; au doigt, sans survol, elles restent pleines. */
+        .ecrit-actions { display: flex; align-items: center; gap: 10px; padding-top: 2px; opacity: 0.6; transition: opacity 0.18s; }
+        .ecrit-ligne:hover .ecrit-actions, .ecrit-ligne:focus-within .ecrit-actions { opacity: 1; }
+        @media (hover: none) { .ecrit-actions { opacity: 1; } }
+
+        @media (max-width: 700px) {
+          .mes-ecrits { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
+          .mes-ecrits-volet { position: static; border-right: none; border-bottom: 1px solid var(--cs-bord-clair); padding: 0 7px 10px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+          .mes-ecrits-axe { margin-top: 0; }
+        }
+        @media (max-width: 520px) {
+          .ecrit-ligne { grid-template-columns: 14px minmax(0, 1fr); }
+          .ecrit-actions { grid-column: 2; padding-top: 4px; }
+        }
+      `}</style>
+
+      <aside className="mes-ecrits-volet" aria-label="Afficher et trier mes écrits">
+        <div>
+          <span style={RUBRIQUE_AXE}>Afficher</span>
+          {FILTRES_ECRITS.map(f => (
+            <OptionVolet key={f.cle} actif={filtre === f.cle} onClick={() => setFiltre(f.cle)} libelle={f.libelle} nombre={essais.filter(f.test).length} />
+          ))}
+        </div>
+        <div className="mes-ecrits-axe">
+          <span style={RUBRIQUE_AXE}>Trier par</span>
+          {TRIS_ECRITS.map(t => (
+            <OptionVolet key={t.cle} actif={tri === t.cle} onClick={() => setTri(t.cle)} libelle={t.libelle} />
+          ))}
+        </div>
+      </aside>
+
+      <div className="mes-ecrits-liste">
+        {visibles.length === 0 ? (
+          <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '6px 0' }}>Aucun écrit dans cette vue.</p>
+        ) : visibles.map(e => {
+          const st = STATUTS[e.statut] ?? { label: e.statut, couleur: 'var(--cs-texte-doux)' }
+          const date = e.publie_at ?? e.updated_at
+          const dernier = derniereAction(e.id)
+          const restant = Math.max(0, 60 * 60 * 1000 - (maintenant - dernier))
+          const verrouille = restant > 0
+          const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at)
+          const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
+          const timer = verrouille ? formatTimer(restant) : ''
+          const nbVues = e.nb_vues ?? 0
           return (
-            <button key={g.key} onClick={() => setFiltre(g.key)}
-              style={{ fontSize: '0.625rem', padding: '3px 10px', borderRadius: '999px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : 'transparent', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', cursor: 'pointer', fontWeight: actif ? 700 : 500, letterSpacing: '0.01em' }}>
-              {g.label}{nb > 0 ? <span style={{ opacity: 0.55, marginLeft: '4px' }}>{nb}</span> : null}
-            </button>
+            <div key={e.id} className="ecrit-ligne">
+              <span aria-hidden className="ecrit-etat" style={{ background: st.couleur }} />
+              <div style={{ minWidth: 0 }}>
+                <Link href={`/essais/${e.id}`} className="ecrit-titre">{e.titre}</Link>
+                {e.sous_titre && <span className="ecrit-sous-titre">{e.sous_titre}</span>}
+                <div className="ecrit-meta">
+                  <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
+                  <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
+                  <span>{nbVues} vue{nbVues > 1 ? 's' : ''}</span>
+                  <span>♥ {e.nb_likes ?? 0}</span>
+                  {e.anonyme && <span style={{ fontStyle: 'italic' }}>anonyme</span>}
+                  {e.statut === 'en_attente' && <span style={{ color: 'var(--cs-attente)', fontWeight: 600 }}>révision en cours</span>}
+                </div>
+              </div>
+              <div className="ecrit-actions">
+                <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
+                  title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
+                  {timer && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{timer}</span>}
+                  <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
+                    <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
+                  </span>
+                </button>
+                <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
+                <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
+              </div>
+            </div>
           )
         })}
       </div>
-      {essaisFiltres.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun écrit dans cet onglet.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {essaisFiltres.map(e => {
-            const st = STATUTS[e.statut] ?? { label: e.statut, couleur: 'var(--cs-texte-doux)' }
-            const date = e.publie_at ?? e.updated_at
-            const statutStyle = styleStatut(e.statut)
-            const dernier = derniereAction(e.id)
-            const restant = Math.max(0, 60 * 60 * 1000 - (maintenant - dernier))
-            const verrouille = restant > 0
-            // « Déjà validée » = possède un publie_at (validée au moins une fois). On ne compare
-    // plus updated_at à publie_at : publie_at est figé à la 1re publication alors que
-    // updated_at avance à chaque édition, ce qui désactivait à tort la republication. Le
-    // serveur (trigger forcer_statut_essai) reste seul juge : contenu modifié → en_attente.
-    const dejaValide = e.statut === 'publie' || (e.statut === 'brouillon' && !!e.publie_at)
-            const peutBasculer = dejaValide && (e.statut === 'publie' || e.statut === 'brouillon')
-            const timer = verrouille ? formatTimer(restant) : ''
-            return (
-              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', alignItems: 'center', background: statutStyle.fond, border: `1px solid ${statutStyle.bordure}`, borderLeft: `3px solid ${statutStyle.accent}`, borderRadius: '8px', padding: '8px 12px' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-encre-fonce)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.titre}</span>
-                    {e.sous_titre && <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>{e.sous_titre}</span>}
-                  </div>
-                  {/* Méta sur UNE seule ligne : statut · date · vues · cœurs. La révision en
-                      cours est signalée là, sans encart séparé. */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', marginTop: '2px' }}>
-                    <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
-                    <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
-                    <span>{e.nb_vues ?? 0} vue{(e.nb_vues ?? 0) > 1 ? 's' : ''}</span>
-                    <span>♥ {e.nb_likes ?? 0}</span>
-                    {e.anonyme && <span style={{ fontStyle: 'italic' }}>anonyme</span>}
-                    {e.statut === 'en_attente' && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--cs-attente)', fontWeight: 600 }}>
-                        <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                          <circle cx="8" cy="8" r="6.2" stroke="#9a5a2a" strokeWidth="1.4"/>
-                          <path d="M8 4.6V8l2.4 1.6" stroke="#9a5a2a" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        révision en cours
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-                  <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
-                    title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
-                    {timer && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{timer}</span>}
-                    <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                      <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
-                    </span>
-                  </button>
-                  <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
-                  <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 }
@@ -888,11 +963,4 @@ function formatTimer(ms: number): string {
   const minutes = Math.floor(total / 60)
   const secondes = total % 60
   return `${minutes}:${String(secondes).padStart(2, '0')}`
-}
-function styleStatut(statut: string): { fond: string; bordure: string; accent: string } {
-  if (statut === 'publie') return { fond: 'rgba(var(--cs-vert-rgb),0.075)', bordure: 'rgba(var(--cs-vert-rgb),0.24)', accent: 'var(--cs-vert)' }
-  if (statut === 'en_attente') return { fond: 'rgba(154,90,42,0.075)', bordure: 'rgba(154,90,42,0.24)', accent: 'var(--cs-attente)' }
-  if (statut === 'a_reviser') return { fond: 'rgba(var(--cs-danger-rgb),0.08)', bordure: 'rgba(var(--cs-danger-rgb),0.25)', accent: 'var(--cs-danger)' }
-  if (statut === 'refuse') return { fond: 'rgba(160,45,45,0.08)', bordure: 'rgba(160,45,45,0.25)', accent: '#a02d2d' }
-  return { fond: '#fff', bordure: 'var(--cs-bord-clair)', accent: 'var(--cs-bord)' }
 }
