@@ -13,7 +13,7 @@
 // Écran large requis : la page est signalée indisponible sous 820 px.
 // ────────────────────────────────────────────────────────────────────────────
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
 import { cesurerLatin } from "@/app/lib/cesuresLatines";
@@ -24,6 +24,8 @@ import IconeDrapeau from "@/app/components/IconeDrapeau";
 import IconeChevron from "@/app/components/IconeChevron";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
+import { DUREE_ENTREE_MS, ordonnerBlocsVisibles } from "@/app/lib/passageTexte";
+import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
@@ -311,6 +313,12 @@ async function chargerPortee(demande: Portee, ordreDe: Map<string, number>): Pro
   });
   return { canon: c, lignes: rows899.length ? [...vv, ...rows899] : vv };
 }
+
+// Les blocs qui s'effacent et paraissent un par un : une ligne de verset, une ligne
+// surnuméraire, un bandeau de livre. Le haut de la lecture est le bas de l'en-tête
+// collant, sinon la barre.
+const SELECTEUR_BLOCS_POLYGLOTTE = ".poly-row, .poly-surnum-row, h2";
+const hautDeLecture = (entete: HTMLElement | null) => entete?.getBoundingClientRect().bottom ?? hauteurNavbarPx();
 
 type Onglet = "AT" | "PSA" | "NT" | "AUTRES";
 const ONGLETS: Onglet[] = ["AT", "PSA", "NT", "AUTRES"];
@@ -956,6 +964,45 @@ export default function PolyglottePage() {
   }, [demande, demandeVide, porteeChargee, ordreDe, relance]);
   const reessayer = () => { erreurRef.current = null; setErreurChargement(null); setRelance(n => n + 1); };
 
+  // ── Le passage d'un texte à l'autre est FLUIDE, ici aussi (2026-09-03) ─────
+  // Même dispositif que la page d'œuvre et la page Bible (`app/lib/passageTexte.ts`,
+  // animations dans `globals.css`) : au DÉPART, les lignes visibles reçoivent leur
+  // rang et s'effacent l'une après l'autre, puis le corps entier ; à l'ARRIVÉE, le
+  // corps remonte en tête si le chapitre ou le livre a changé, et les lignes
+  // paraissent de même. Le départ, c'est le moment où l'attente commence
+  // (`enChargement` passe à vrai) ; l'arrivée, celui où les données la couvrent.
+  // ⛔ Les lignes de l'ancien chapitre restent dans le document jusqu'à l'arrivée
+  // (voir `livresRendus`) : c'est ce qui donne à l'effacement quelque chose à effacer.
+  const [passage, setPassage] = useState<"sortie" | "entree" | null>(null);
+  const corpsRef = useRef<HTMLDivElement>(null);
+  const enteteRef = useRef<HTMLDivElement>(null);
+  const porteeRendueRef = useRef<Portee | null>(null);
+  useLayoutEffect(() => {
+    if (!enChargement || passage === "sortie") return;
+    const corps = corpsRef.current;
+    if (!corps || ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE) === 0) return;
+    setPassage("sortie");
+  }, [enChargement, passage]);
+  useLayoutEffect(() => {
+    const precedente = porteeRendueRef.current;
+    porteeRendueRef.current = porteeChargee;
+    if (!porteeChargee || passage !== "sortie") return;
+    const corps = corpsRef.current;
+    if (!corps) return;
+    // Un autre chapitre ou un autre livre s'ouvre en tête ; la même portée rechargée
+    // (une colonne changée) garde sa place. Un verset visé fait son propre défilement.
+    const autreTexte = precedente !== null && (precedente.chScope !== porteeChargee.chScope || !memeListe(precedente.codes, porteeChargee.codes));
+    if (autreTexte && !versetCible) {
+      const haut = corps.getBoundingClientRect().top + window.scrollY - hautDeLecture(enteteRef.current);
+      if (window.scrollY > haut) window.scrollTo(0, Math.max(0, haut));
+    }
+    ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE);
+    setPassage("entree");
+    const fin = window.setTimeout(() => setPassage(null), DUREE_ENTREE_MS);
+    return () => window.clearTimeout(fin);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [porteeChargee]);
+
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
   // afin que le signet apparaisse plein sur les versets favoris et qu'un clic les retire.
   useEffect(() => {
@@ -1384,7 +1431,7 @@ export default function PolyglottePage() {
                 Le `paddingTop` porte le blanc de séparation dans le bloc collant lui-même,
                 sur un fond opaque : le texte du tableau ne défile donc jamais dans
                 l'interstice entre la navbar et l'en-tête. */}
-            <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, zIndex: 5, background: FOND, paddingTop: HAUT_NAV }}>
+            <div ref={enteteRef} style={{ position: "sticky", top: HAUTEUR_NAVBAR, zIndex: 5, background: FOND, paddingTop: HAUT_NAV }}>
               <div style={{ borderRadius: "8px 8px 0 0", overflow: "hidden", boxShadow: "var(--cs-ombre-posee)" }}>
               {/* Barre de titre, calée sur LA MÊME grille que le tableau. Le nom du livre
                   s'étend de la deuxième piste à la dernière (`2 / -1`) : il se centre donc
@@ -1474,8 +1521,10 @@ export default function PolyglottePage() {
                 porte la marque d'attente, centrée sur le corps du tableau — sur ce qu'on
                 lit, et non sur l'écran ; un plancher de hauteur lui laisse la place
                 quand rien n'est encore chargé. */}
-            <div style={{ position: "relative" }}>
-            <div style={{ border: "1px solid var(--cs-bord-clair)", borderTop: "none", borderRadius: "0 0 8px 8px", background: "var(--cs-surface)", minHeight: enChargement ? "12rem" : undefined }}>
+            <div data-passage={passage ?? undefined} style={{ position: "relative" }}>
+            {/* `cs-lecture-colonne` : ce qui s'efface et paraît quand on passe d'un texte
+                à l'autre (voir « passage » plus haut). L'en-tête collant, lui, ne bouge pas. */}
+            <div ref={corpsRef} className="cs-lecture-colonne" style={{ border: "1px solid var(--cs-bord-clair)", borderTop: "none", borderRadius: "0 0 8px 8px", background: "var(--cs-surface)", minHeight: enChargement ? "12rem" : undefined }}>
               {colonnes.length === 0 && <div style={{ padding: 20, color: "var(--cs-texte-doux)" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
               {erreurChargement && !enChargement && (
                 <div role="alert" style={{ padding: 20, display: "flex", alignItems: "center", gap: 12, fontSize: "0.8125rem", color: "var(--cs-danger)" }}>
