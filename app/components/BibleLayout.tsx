@@ -32,7 +32,7 @@ type Verset = {
   _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
   [traduction: string]: string | number | boolean | null | undefined
 }
-type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; editionRef?: string | null; bio?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
+type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; datePublication?: string | null; confession?: string | null; langue?: string | null }
 
 type Props = {
   livres: Livre[]

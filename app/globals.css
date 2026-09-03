@@ -2117,53 +2117,24 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   /* La case d'un chapitre, et l'écart entre deux colonnes de cases. */
   --volet-case: clamp(1.45rem, 9cqi, 1.8rem);
   --volet-case-ecart: clamp(0.125rem, 1cqi, 0.25rem);
-  /* Ce que la carte « Traduction » accorde à la référence d'édition : un compte
-     de lignes, dans lequel elle paraît ENTIÈRE ou pas du tout (voir plus bas,
-     « Ce que le volet dit de plus »). */
-  --volet-ref-lignes: 5;
-}
-
-@container volet (max-width: 259px) {
-  .cs-volet-ref { display: none; }
 }
 
 /* ── Ce que le volet DIT DE PLUS quand il est large ───────────────────────────
-   ⛔ LA RÉFÉRENCE D'ÉDITION PARAÎT ENTIÈRE OU PAS DU TOUT (2026-09-02, demande de
-   l'auteur : « ne pas tronquer le premier texte ; limiter le nombre de caractères
-   affichés, ou même si ce paragraphe s'affiche, en fonction de la taille de
-   l'écran »). La feuille ne fixe plus un nombre de lignes VISIBLES, elle fixe un
-   BUDGET : `--volet-ref-lignes` est le compte de lignes que le volet accorde à la
-   référence, et la carte (`EncartTraduction`) compose la référence dans une sonde
-   invisible, à la largeur du volet, et compte ses lignes ; si elle tient dans le
-   budget, elle paraît sans coupure ; sinon elle s'efface, et la fiche « En savoir
-   plus » la donne entière. Une requête de conteneur ne sait pas compter les
-   signes d'un texte, et une référence tronquée est une phrase cassée : la MESURE
-   est donc en JavaScript, et la POLITIQUE reste ici, avec les autres seuils.
+   ⛔ PLUS RIEN, ET C'EST LE POINT (2026-09-03). La carte « Traduction » portait la
+   référence de l'édition utilisée, longue de 93 à 348 signes, et la feuille lui
+   accordait un BUDGET de lignes qui montait avec la largeur du volet
+   (`--volet-ref-lignes` : 5 dès 260 px, 7 à 300, 8 à 350) ; la carte composait le
+   texte dans une sonde invisible, comptait ses lignes, et ne le montrait que s'il
+   tenait dans le budget. Trois seuils, une mesure en JavaScript et un observateur,
+   pour loger un relevé de tomes dans un volet de lecture. L'auteur l'a tranché : la
+   carte ne dit plus que la langue, la confession et l'année, qui tiennent toujours,
+   et le relevé est dans la fiche « En savoir plus ». Le budget, la règle qui cachait
+   le bloc sous 260 px et les deux seuils qui le relevaient sont partis avec lui —
+   voir `EncartTraduction.tsx`.
 
-   Le budget monte avec le volet : 5 lignes dès 260 px, 7 à 300, 8 à 350. Les dix
-   références comptent de 93 à 348 signes, et le budget est taillé pour que la
-   plus longue (Fillion, 348) tienne dès qu'on tire le volet à 350 px, et qu'un
-   écran de 2286 et au-delà (volet au repos à 320 px) montre au moins les
-   références moyennes. ⚠️ Le compte plafonne à 8 : à 10,5 px d'œil, cela fait
-   109 px de carte, et la liste des livres vit dessous — élargir encore le volet
-   ne lui rend rien de plus. Ce que chaque écran montre découle du budget et de
-   la mesure, non d'une liste tenue à la main : ajouter une bible n'oblige à rien.
-
-   ⛔ IL N'Y A PLUS DE NOTICE DU TRADUCTEUR DANS LA CARTE (2026-09-02, demande de
-   l'auteur : « n'afficher que le premier texte »). Elle y était entrée le 31 août
-   au-dessus de 260 px, entière en six lignes ; elle vit dans la fiche « En savoir
-   plus », et la carte ne porte plus qu'un texte long, la référence. Le repli
-   `.cs-volet-bio { display: none }` et le compte `--volet-bio-lignes` sont partis
-   avec elle.
-
-   ⛔ Ces règles se posent APRÈS `.cs-volet-echelle`, jamais avant : une requête de
-   conteneur n'ajoute aucune spécificité, et c'est l'ordre d'écriture qui tranche. */
-@container volet (min-width: 300px) {
-  .cs-volet-echelle { --volet-ref-lignes: 7; }
-}
-@container volet (min-width: 350px) {
-  .cs-volet-echelle { --volet-ref-lignes: 8; }
-}
+   ⚠️ La leçon vaut d'être gardée : on mesure un texte long avant de s'être demandé
+   s'il doit paraître. C'est la seconde fois dans cette carte (l'étiquette
+   « Traduction » avait été condensée le 2026-08-30, puis supprimée le lendemain). */
 
 /* ─────────────────────────────────────────────────────────────────────────────
    PASSAGE D'UN TEXTE À L'AUTRE (page d'œuvre)
