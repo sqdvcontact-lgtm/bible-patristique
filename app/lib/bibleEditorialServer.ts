@@ -3,6 +3,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
+import { numerotationAlternative, referenceNativeDuSegment } from './bibleReferenceNative'
 import { lotsPourClauseIn } from './paginationSupabase'
 
 export type CanonRow = {
@@ -69,12 +70,6 @@ const LAYER_KIND_PRIORITY: Record<string, number> = {
 
 function sourceUnitKey(sourceId: string, unitId: string): string {
   return `${sourceId}:${unitId}`
-}
-
-function nativeLabel(segment: EditorialSegmentRow): string | null {
-  if (segment.editorial_label?.trim()) return segment.editorial_label.trim()
-  const metadataLabel = segment.metadata?.native_reference
-  return typeof metadataLabel === 'string' && metadataLabel.trim() ? metadataLabel.trim() : null
 }
 
 export async function chargerVersetsEditoriaux(
@@ -211,11 +206,13 @@ export async function chargerVersetsEditoriaux(
       const text = textBySegment.get(alignment.segment_id)
       if (text) textParts.push(text)
       const segment = segmentById.get(alignment.segment_id)
-      const label = segment ? nativeLabel(segment) : null
+      const label = segment ? referenceNativeDuSegment(segment.metadata, segment.editorial_label) : null
       if (label && labels.at(-1) !== label) labels.push(label)
     }
+    const alternative = numerotationAlternative(canon.ch_canon, canon.v_canon, labels)
     return {
       ...adapterCanonSansTexte(canon, options.translationId),
+      ...(alternative ?? {}),
       [options.translationId]: textParts.length > 0 ? textParts.join(' ') : null,
       [`num_${options.translationId}`]: labels.length > 0 ? labels.join(' · ') : null,
     }
