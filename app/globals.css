@@ -49,6 +49,12 @@
   --mesure-bloc:  31.25rem;  /* 500px  bloc de sélection         */
   --mesure-ligne: 33.625rem; /* 538px  largeur de ligne          */
   --mesure-page:  38.75rem;  /* 620px  conteneur de lecture      */
+  /* La lecture EN REGARD : la colonne du numéro de verset et sa gouttière. Une
+     seule écriture, que `BibleBilingue` emploie pour composer la rangée et dont la
+     feuille déduit la mesure de l'appareil (la page moins deux fois leur somme) :
+     le fer de l'appareil doit tomber sur celui du texte des versets. */
+  --regard-numero: 1.6rem;
+  --regard-numero-gouttiere: 0.3125rem;
 
   /* ── Couleur d'accent : le vert du site ──
      Source unique de la teinte verte, jusqu'ici répétée en dur (~470 fois pour
@@ -678,12 +684,20 @@ button:focus-visible,
    largeur de l'écran, et un débordement sortirait de la fenêtre. ⚠️ Les valeurs en
    ligne du composant (part, plafond du fichier) cèdent ici, d'où `!important`. */
 @media (min-width: 901px) {
-  .cs-bible-axe > .cs-bible-gravure--hors-texte,
-  .cs-bible-regard > .cs-bible-gravure--hors-texte {
+  .cs-bible-axe > .cs-bible-gravure--hors-texte {
     width: var(--mesure-page) !important;
     max-width: var(--mesure-page) !important;
     margin-left: calc((var(--mesure-bloc) - var(--mesure-page)) / 2) !important;
     margin-right: calc((var(--mesure-bloc) - var(--mesure-page)) / 2) !important;
+  }
+  /* En regard, l'enveloppe de l'appareil est bordée par le fer des versets, et la
+     planche rejoint LEUR mesure — la page — en débordant de la colonne du numéro
+     et de sa gouttière, de chaque côté (voir `.cs-bible-regard`, plus bas). */
+  .cs-bible-regard > .cs-bible-gravure--hors-texte {
+    width: var(--mesure-page) !important;
+    max-width: var(--mesure-page) !important;
+    margin-left: calc(-1 * (var(--regard-numero) + var(--regard-numero-gouttiere))) !important;
+    margin-right: calc(-1 * (var(--regard-numero) + var(--regard-numero-gouttiere))) !important;
   }
 }
 /* ⛔ Un BLOC qui porte un flottant doit le CONTENIR, sans quoi la vignette
@@ -1468,21 +1482,31 @@ button:focus-visible,
   margin-top: var(--cs-blanc-unite);
   margin-bottom: var(--cs-blanc-couture);
 }
-/* ── L'APPAREIL EN REGARD GARDE LA MESURE DE LA LECTURE SIMPLE (2026-09-03) ──
-   Décision de l'auteur, revenant sur celle du 20 août 2026 : « toute la largeur,
-   c'est trop, pas naturel pour un corps de texte ; il faut, pour ces styles-là,
-   réduire la largeur maximale ». Un bloc éditorial, une gravure ou la série des
-   notes restent HORS des colonnes, rendus une seule fois, mais dans une enveloppe
-   qui les borne au bloc de lecture et les centre sur la colonne. Mesuré sur un
-   écran de 2 560 px (racine 22) : le paragraphe d'introduction de la Genèse
-   faisait 124 signes par ligne sur les 52 rem des deux colonnes, 83 sur les
-   31,25 rem du bloc — la mesure même de la lecture simple, et ses coupures.
-   ⚠️ C'est le pendant de `.cs-bible-axe`, sans la gouttière d'actions : la lecture
-   en regard n'en a pas. ⚠️ L'enveloppe n'est pas rendue sur mobile (`BibleBilingue`),
-   où les colonnes sont empilées à la largeur de l'écran. ⚠️ Une planche hors-texte
-   y déborde jusqu'à la mesure de la page, comme dans l'axe (règle plus haut). */
+/* ── L'APPAREIL EN REGARD EST BORDÉ PAR LE FER DES VERSETS (2026-09-03) ────────
+   Deux décisions de l'auteur le même jour. D'abord, revenant sur la pleine largeur
+   du 20 août 2026 : « toute la largeur, c'est trop, pas naturel pour un corps de
+   texte ; il faut, pour ces styles-là, réduire la largeur maximale » — l'appareil
+   a d'abord pris la mesure du bloc de lecture simple, 31,25 rem. Puis, devant le
+   résultat : « les versets dépassent trop ; élargir le corps du texte, et réduire
+   la largeur des versets bibliques, harmonieusement ». La règle est celle de la
+   lecture simple, où LE RETRAIT DÉSIGNE LE VERSET : les versets prennent la mesure
+   de la PAGE (`LectureBilingueBible`), et l'appareil est bordé par le fer de leur
+   TEXTE — la page moins, de chaque côté, la colonne du numéro et sa gouttière
+   (`--regard-numero`, `--regard-numero-gouttiere`, les mesures mêmes dont
+   `BibleBilingue` compose la rangée). Les numéros pendent dans la marge de
+   l'appareil, à gauche comme à droite, et la page n'a qu'UN fer.
+   Mesuré sur un écran de 2 560 px (racine 22) : versets 1 144 → 853 px, appareil
+   688 → 768 px (34,9 rem), fer du texte français et fer de l'appareil confondus
+   au pixel ; le paragraphe d'introduction de la Genèse, qui faisait 124 signes
+   par ligne sur 52 rem, en fait 90.
+   ⚠️ Un bloc éditorial, une gravure ou la série des notes restent HORS des
+   colonnes, rendus une seule fois : c'est la place, et elle n'a pas bougé.
+   ⚠️ L'enveloppe n'est pas rendue sur mobile (`BibleBilingue`), où les colonnes
+   sont empilées à la largeur de l'écran. ⚠️ Une planche hors-texte y déborde
+   jusqu'à la mesure de la page (règle plus haut) : c'est la largeur des versets,
+   elle ne dépasse rien. */
 [data-lecture='bilingue'] .cs-bible-regard {
-  max-width: var(--mesure-bloc);
+  max-width: calc(var(--mesure-page) - 2 * (var(--regard-numero) + var(--regard-numero-gouttiere)));
   margin-left: auto;
   margin-right: auto;
 }

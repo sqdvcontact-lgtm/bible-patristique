@@ -103,7 +103,24 @@ export default function LectureBilingueBible({
           ...(mobile ? {} : { scrollbarGutter: 'stable both-edges' }),
         }}
       >
-        <div className="cs-lecture-colonne" style={{ maxWidth: mobile ? '100%' : '52rem', margin: '0 auto' }}>
+        {/* ── L'AXE ET LA MESURE DU CORPS (2026-09-03) ──────────────────────────
+            Le corps prend la mesure de la PAGE de la lecture simple, 38,75 rem, et
+            non plus 52 : décision de l'auteur, « les versets dépassent trop ;
+            réduire la largeur des versets bibliques, harmonieusement ». Et il se
+            pose sur l'AXE DU TEXTE, celui de l'en-tête ci-dessus et de la lecture
+            simple : la grille réserve à droite la gouttière d'actions de 2,375 rem
+            que la lecture en regard n'a pas, pour que le corps se centre sur le
+            bloc, gouttière exclue, comme le titre. Mesuré avant, sur un écran de
+            2 560 px : le titre à 1 176, le corps à 1 203 — vingt-sept pixels
+            d'écart, et le passage simple ↔ bilingue déplaçait le texte sans
+            déplacer le titre. ⚠️ L'appareil, lui, est bordé par le fer des versets :
+            voir `surMesure` (BibleBilingue) et `.cs-bible-regard` (globals.css). */}
+        <div
+          className="cs-lecture-colonne"
+          style={mobile
+            ? { maxWidth: '100%', margin: '0 auto' }
+            : { width: 'min(calc(var(--mesure-page) + 2.375rem), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-page)) 2.375rem' }}
+        >
           <BibleBilingue {...contenu} mobile={mobile} />
         </div>
       </div>

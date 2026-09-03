@@ -10,11 +10,17 @@
 //
 // ⛔ MAIS PAS SUR TOUTE LEUR LARGEUR (2026-09-03, décision de l'auteur revenant sur
 // celle du 20 août : « toute la largeur, c'est trop, pas naturel pour un corps de
-// texte ; il faut, pour ces styles-là, réduire la largeur maximale »). L'appareil
-// garde la MESURE du bloc de lecture simple, 31,25 rem, centrée sur la colonne :
-// mesuré sur un écran de 2 560 px, le paragraphe d'introduction de la Genèse
-// faisait 124 signes par ligne sur les 52 rem des deux colonnes, contre 83 sur
-// 31,25 — les coupures mêmes de la lecture simple. Voir `surMesure`.
+// texte ; il faut, pour ces styles-là, réduire la largeur maximale »). Mesuré sur
+// un écran de 2 560 px, le paragraphe d'introduction de la Genèse faisait 124
+// signes par ligne sur les 52 rem des deux colonnes, contre 83 sur les 31,25 rem
+// de la lecture simple. L'appareil a d'abord pris cette mesure-là ; puis, devant
+// le résultat, le même jour : « les versets dépassent trop ; élargir le corps du
+// texte, et réduire la largeur des versets bibliques, harmonieusement ». La règle
+// est désormais celle de la lecture simple, où LE RETRAIT DÉSIGNE LE VERSET : les
+// versets prennent la mesure de la PAGE (`LectureBilingueBible`), et l'appareil est
+// bordé par le fer de leur TEXTE — les numéros pendent dans la marge, et la page
+// n'a qu'un fer. Mesuré : versets 1 144 → 853 px, appareil 688 → 768. Voir
+// `surMesure`.
 //
 // ⚠️ Une illustration matériellement attachée à un bloc ou à une note suit CE
 // bloc ou CETTE note, quel que soit le membre à qui elle appartient : la charte
@@ -91,15 +97,21 @@ const STYLE_VERSET_ORIGINAL = {
 // La référence occupe sa propre colonne, étroite et alignée à droite, comme le
 // numéro de verset de la page Bible. Sans cela, chaque ligne commençait après
 // une référence de longueur variable et les deux colonnes ne s’alignaient pas.
+// ⚠️ La colonne et sa gouttière sont NOMMÉES dans globals.css (`--regard-numero`,
+// `--regard-numero-gouttiere`) : c'est d'elles que la feuille déduit la mesure de
+// l'appareil, bordé par le fer du texte des versets (voir `surMesure`). Une seule
+// écriture, sans quoi les deux fers se séparent au premier réglage. ⚠️ La colonne
+// reste `auto` : un numéro plus large qu'elle (« 27, 58 », « 150, 6 ») pousse le
+// texte de sa rangée de quelques pixels plutôt que de se couper.
 const STYLE_LIGNE_VERSET = {
   display: 'grid',
   gridTemplateColumns: 'auto minmax(0, 1fr)',
-  columnGap: '0.3125rem',
+  columnGap: 'var(--regard-numero-gouttiere)',
   alignItems: 'baseline' as const,
 }
 
 const STYLE_REFERENCE = {
-  minWidth: '1.6rem',
+  minWidth: 'var(--regard-numero)',
   textAlign: 'right' as const,
   fontSize: '0.625rem',
   fontWeight: 600,
@@ -178,17 +190,18 @@ export default function BibleBilingue({
     if (premier) ancresRetour.set(note.id, ancreAppelNoteBible(note.id, premier.membre.id))
   }
 
-  // ── L'appareil garde la MESURE de la lecture simple ─────────────────────────
-  // ⛔ Hors des colonnes, mais PAS sur toute leur largeur (décision de l'auteur,
-  // 2026-09-03, revenant sur celle du 20 août — voir l'en-tête). Chaque bloc,
-  // chaque gravure et la série des notes prennent l'enveloppe `.cs-bible-regard`
-  // (globals.css), qui les borne au bloc de lecture, 31,25 rem, et les centre sur
-  // la colonne : c'est le pendant de l'axe de texte de la lecture simple
-  // (`surAxeTexte`, TexteBible), sans sa gouttière d'actions, que la lecture en
-  // regard n'a pas. ⚠️ Une gravure y retrouve aussi sa taille : sa part se
-  // calcule sur son conteneur, et sur 52 rem une planche hors-texte dépassait la
-  // taille de son fichier. ⛔ Pas sur mobile : les colonnes y sont empilées à la
-  // largeur de l'écran, et une enveloppe n'y bornerait rien.
+  // ── L'appareil est bordé par le fer des versets ─────────────────────────────
+  // ⛔ Hors des colonnes, mais PAS sur toute leur largeur (décisions de l'auteur,
+  // 2026-09-03 — voir l'en-tête). Chaque bloc, chaque gravure et la série des
+  // notes prennent l'enveloppe `.cs-bible-regard` (globals.css), qui vaut la mesure
+  // de la page moins, de chaque côté, la colonne du numéro et sa gouttière, et se
+  // centre sur l'axe : son fer est celui du TEXTE des versets, les numéros pendent
+  // dans la marge. C'est le pendant de l'axe de texte de la lecture simple
+  // (`surAxeTexte`, TexteBible), où le retrait du numéro désigne déjà le verset.
+  // ⚠️ Une gravure y retrouve aussi sa taille : sa part se calcule sur son
+  // conteneur, et sur 52 rem une planche hors-texte dépassait la taille de son
+  // fichier. ⛔ Pas sur mobile : les colonnes y sont empilées à la largeur de
+  // l'écran, et une enveloppe n'y bornerait rien.
   const surMesure = (contenu: ReactNode, cle: string) => mobile ? contenu : (
     <div key={cle} className="cs-bible-regard">{contenu}</div>
   )
@@ -212,11 +225,12 @@ export default function BibleBilingue({
       display: 'grid',
       // Colonnes de largeurs INÉGALES, comme en traductions parallèles : le texte
       // original est plus dense que sa traduction et demande moins de place. La
-      // mesure totale est celle des œuvres, 52 rem, pour que les deux lectures en
-      // regard du site se ressemblent. ⚠️ La lecture en regard des ŒUVRES est
-      // passée à 42 rem le 2026-08-30, mesurée sur les vers de Boèce ; la Bible
-      // garde 52, ses colonnes portant de la prose. ⛔ L'appareil ne prend pas
-      // cette mesure, mais celle du bloc de lecture : voir `surMesure`.
+      // mesure totale fut celle des œuvres, 52 rem, jusqu'au 2026-09-03 ; c'est
+      // désormais celle de la PAGE de la lecture simple, 38,75 rem, posée par
+      // `LectureBilingueBible` sur l'axe du texte — et l'appareil est bordé par
+      // le fer des versets (`surMesure`). ⚠️ Les œuvres en regard sont à 42 rem
+      // depuis le 2026-08-30, mesurées sur les vers de Boèce ; la Bible pose des
+      // commentaires entre ses versets, elle n'a pas la même contrainte.
       gridTemplateColumns: colonnesOrdonnees
         .map((colonne) => (colonne.membre.memberRole === 'source_text' ? 'minmax(0, 0.88fr)' : 'minmax(0, 1.12fr)'))
         .join(' '),

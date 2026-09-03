@@ -278,6 +278,15 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html).not.toContain('id="appel-note-bible-n2-la"')
   })
 
+  it('compose la rangée sur les mesures nommées du numéro, dont la feuille déduit le fer de l’appareil', () => {
+    // ⛔ Une seule écriture : la colonne du numéro et sa gouttière vivent dans
+    // globals.css, et `.cs-bible-regard` s'en déduit. Recopier 1,6 rem ici
+    // séparerait les deux fers au premier réglage.
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} />)
+    expect(html).toContain('min-width:var(--regard-numero)')
+    expect(html).toContain('column-gap:var(--regard-numero-gouttiere)')
+  })
+
   it('compose le latin en regard : sans empattements, plus petit, grisé', () => {
     // Reprise de la colonne originale des œuvres : c’est le change de
     // caractère qui sépare les deux colonnes, mieux qu’un filet.
