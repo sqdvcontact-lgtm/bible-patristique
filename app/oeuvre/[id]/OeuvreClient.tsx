@@ -2133,6 +2133,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           .para-bilingue > .texte-original { padding-left: 0.85rem; border-left: 2px solid var(--cs-bord); }
         }
         .toc-lien-n1:hover, .toc-lien-n2:hover { color: var(--cs-vert) !important; }
+        .lien-fiche:hover { color: var(--cs-vert) !important; text-decoration: underline; }
         .ref-lien:hover { color: var(--cs-vert) !important; }
         .onglet-btn { transition: color 0.12s, border-color 0.12s; }
         .onglet-btn:hover { color: var(--cs-vert) !important; }
@@ -2199,11 +2200,30 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             </p>
             {/* La fiche dit désormais aussi l'œuvre (genres, composition) et son édition
                 en ligne (millésime, étendue, autres éditions) : la garde compte donc
-                CE QU'ELLE SAIT DIRE, et non les seuls champs de l'édition imprimée. */}
+                CE QU'ELLE SAIT DIRE, et non les seuls champs de l'édition imprimée.
+
+                ⚠️ LE LIEN PORTE LE NOM DE CE QU'IL OUVRE (2026-09-03, demande de
+                l'auteur). Il disait « En savoir plus sur cette édition » quand la fiche
+                s'intitule « À propos de cette édition » : un lien nomme sa destination,
+                il n'annonce pas le geste qui y mène. C'est la règle déjà appliquée au
+                volet de la Bible, où le libellé « en savoir plus » a cédé la place au
+                nom de la bible.
+
+                ⚠️ IL SE SERRE CONTRE LE TITRE, parce qu'il en dépend : il ouvre la fiche
+                de CETTE œuvre-là, et six pixels le faisaient flotter entre le titre et le
+                menu « Lecture », à mi-chemin de deux blocs sans appartenir à aucun. Deux
+                pixels, et il se lit comme la suite du titre.
+
+                ⚠️ Plus de soulignement PERMANENT : dans un volet où rien d'autre n'en
+                porte, il tirait l'œil plus que le titre au-dessus de lui. Le survol le
+                souligne et le fait verdir, comme le nom d'auteur (`NomVolet`) et comme
+                les rangs du sommaire. La ligne se compose en serif italique : elle est du
+                même corps de texte que le titre qu'elle suit, et l'italique dit qu'elle en
+                parle au lieu de le continuer. */}
             {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.date_composition || oeuvreAffichee.genres?.length || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1) && (
-              <button onClick={() => setInfoEditionOuverte(true)}
-                style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '6px', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
-                En savoir plus sur cette édition
+              <button onClick={() => setInfoEditionOuverte(true)} className="lien-fiche"
+                style={{ display: 'block', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.6875rem', lineHeight: 1.35, color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '2px', textAlign: 'left', textUnderlineOffset: '2px' }}>
+                À propos de cette édition
               </button>
             )}
             {/* ── Menu 1 : mode de lecture (LANGUE) ──────────────────────────
