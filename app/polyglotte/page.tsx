@@ -23,6 +23,7 @@ import IconeCrayon from "@/app/components/IconeCrayon";
 import IconeDrapeau from "@/app/components/IconeDrapeau";
 import IconeChevron from "@/app/components/IconeChevron";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
+import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
@@ -230,13 +231,85 @@ function construireSensibilite(points: Point[]) {
   return { estSensible, resiste, libelle };
 }
 
-// Chargement paginé parallèle (1000 lignes/requête)
+// Chargement paginé (1000 lignes par requête). La PREMIÈRE page part seule et
+// rapporte le compte avec elle (`count: 'exact'` sur une requête qui rend des
+// lignes) ; les suivantes, s'il en faut, partent ensemble. Un chapitre — quelques
+// dizaines à quelques centaines de lignes — tient dans la première page : il ne
+// coûte donc qu'UN aller-retour, là où le compte préalable en faisait deux en
+// cascade (mesuré : ~65 ms l'aller-retour, quoi qu'il transporte). Un livre entier
+// en coûte deux — les Psaumes : 2 461 lignes du canon, jusqu'à 12 000 de texte.
+// ⚠️ Une erreur est LEVÉE, non rendue en liste vide : une liste vide se lit
+// « absent de cette traduction », ce qui est un mensonge sur une panne.
+const PAGE = 1000;
 async function fetchPaged<T>(table: string, cols: string, addFilters: (q: any) => any): Promise<T[]> {
-  const { count } = await addFilters(supabase.from(table).select(cols, { count: "exact", head: true }));
-  const pages = Math.max(1, Math.ceil((count || 0) / 1000));
-  const reqs = Array.from({ length: pages }, (_, p) => addFilters(supabase.from(table).select(cols)).order("id").range(p * 1000, p * 1000 + 999));
-  const res = await Promise.all(reqs);
-  return res.flatMap(r => (r.data ?? []) as T[]);
+  const page = (p: number) =>
+    addFilters(supabase.from(table).select(cols, p === 0 ? { count: "exact" } : undefined)).order("id").range(p * PAGE, p * PAGE + PAGE - 1);
+  const premiere = await page(0);
+  if (premiere.error) throw premiere.error;
+  const lignes = (premiere.data ?? []) as T[];
+  const total = premiere.count ?? lignes.length;
+  if (total <= lignes.length) return lignes;
+  const suite = await Promise.all(Array.from({ length: Math.ceil(total / PAGE) - 1 }, (_, i) => page(i + 1)));
+  for (const r of suite) if (r.error) throw r.error;
+  return [...lignes, ...suite.flatMap(r => (r.data ?? []) as T[])];
+}
+
+// Ce que le tableau demande à la base, d'un bloc : les livres, les traductions, le
+// chapitre (ou `null` pour le livre entier), et la couche de la Bible 899. C'est la
+// clé qui dit si ce qui est chargé RÉPOND à ce qui est demandé — et donc si l'on
+// attend, et si l'on doit repartir.
+type Portee = { codes: string[]; tradIds: string[]; chScope: number | null; couche: Couche899 };
+const memeListe = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+// Ce qui est chargé couvre la demande quand ce sont les mêmes livres et les mêmes
+// traductions, et que le chapitre demandé est celui qu'on a — ou que l'on a le livre
+// entier, qui contient tous ses chapitres : revenir du livre entier à un chapitre ne
+// coûte alors rien.
+function couvre(chargee: Portee | null, demande: Portee): boolean {
+  return chargee !== null
+    && memeListe(chargee.codes, demande.codes)
+    && memeListe([...chargee.tradIds].sort(), [...demande.tradIds].sort())
+    && chargee.couche === demande.couche
+    && (chargee.chScope === null || chargee.chScope === demande.chScope);
+}
+
+// Le chargement d'une portée : canon et texte ensemble, et la colonne synthétique de
+// la Bible 899 dans la MÊME vague (elle suivait, en cascade). Fonction de module :
+// elle ne lit aucun état, et l'effet qui l'appelle décide seul de ce qu'il en fait.
+async function chargerPortee(demande: Portee, ordreDe: Map<string, number>): Promise<{ canon: CanonRow[]; lignes: V2Row[] }> {
+  const { codes, tradIds, chScope, couche } = demande;
+  // Les identifiants du canon ont la forme « LIVRE.chapitre.verset », d'où le filtre
+  // `like` sur `canon_id` quand on ne veut qu'un chapitre. Les surnuméraires (sans
+  // créneau du canon) ne paraissent donc qu'en vue « Livre entier » — cas rares.
+  const [c, vv, parLivre899] = await Promise.all([
+    fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription",
+      q => { const x = q.in("livre", codes); return chScope != null ? x.eq("ch_canon", chScope) : x; }),
+    fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
+      q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
+    // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
+    // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
+    // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon
+    // (MANUSCRIPT_EXTRA) n'ont pas de canon_id et sont écartées par `chargerVersets899`.
+    tradIds.includes(TRAD_ID_BIBLE899)
+      ? Promise.all(codes.map(code => chargerVersets899(supabase, { livre: code, chapitre: chScope })))
+      : Promise.resolve([]),
+  ]);
+  c.sort((a, b) => ((ordreDe.get(a.livre) ?? 0) - (ordreDe.get(b.livre) ?? 0)) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
+  const rows899: V2Row[] = parLivre899.flat().map(l => {
+    const lacune = rendu899(l) === "lacune";
+    return {
+      id: `899:${l.canon_id}`,
+      canon_id: l.canon_id,
+      livre: l.livre ?? "",
+      trad_id: TRAD_ID_BIBLE899,
+      ch_orig: l.chapitre ?? 0,
+      v_orig: l.verset ?? 0,
+      v_orig_suffixe: null,
+      texte: lacune ? null : texteCouche899(l, couche),
+      notes: aRevoir899(l) ? "Alignement à revoir" : null,
+      estLacune899: lacune,
+    };
+  });
+  return { canon: c, lignes: rows899.length ? [...vv, ...rows899] : vv };
 }
 
 type Onglet = "AT" | "PSA" | "NT" | "AUTRES";
@@ -737,21 +810,25 @@ export default function PolyglottePage() {
     // Passe par une route serveur : la table `parametres` est protégée par RLS et le client
     // public n'y voit rien — elle contient aussi la charte éditoriale, qui doit le rester.
     fetch("/api/livres-editions").then(r => r.json()).then(setLivresEd).catch(() => setLivresEd({}));
-    supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
     (async () => {
       // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx — la table tient aussi
       // les notices des traductions patristiques, qui n'ont rien à faire ici.
       const { data: tr } = await supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").eq("est_biblique", true).order("ordre");
       const liste = tr ?? [];
-      // Un count par traduction pour savoir laquelle est migrée dans versets_v2 —
-      // mais TOUS EN PARALLÈLE (auparavant : un await par traduction, en cascade).
-      const comptes = await Promise.all(liste.map(t =>
-        supabase.from("versets_v2").select("trad_id", { count: "exact", head: true }).eq("trad_id", t.trad_id)
-          .then(({ count }) => count ?? 0)
+      // Une SONDE par traduction pour savoir laquelle est migrée dans versets_v2, toutes
+      // en parallèle. Une ligne suffit : le compte exact d'avant parcourait l'index
+      // entier de la traduction (36 000 lignes pour la Vulgate, 13 ms chacune, mesuré),
+      // pour n'en retenir que « plus de zéro ». La vue `livres_par_traduction` ferait
+      // une seule requête, mais elle balaie la table entière (487 ms) : dix sondes
+      // parallèles coûtent moins qu'elle. ⚠️ Sous la RLS du lecteur : une traduction
+      // privée (TR0013) ne répond qu'à l'administrateur, et n'entre que chez lui.
+      const presentes = await Promise.all(liste.map(t =>
+        supabase.from("versets_v2").select("trad_id").eq("trad_id", t.trad_id).limit(1)
+          .then(({ data }) => (data?.length ?? 0) > 0)
       ));
       const migres: Trad[] = [];
       liste.forEach((t, i) => {
-        if (comptes[i] > 0) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
+        if (presentes[i]) migres.push({ trad_id: t.trad_id, nom: t.nom, ordre: t.ordre, label: libelleTrad(t), edition: editionTrad(t), lang: codeLangue((t as { langue?: string | null }).langue) });
       });
       // TR0009 (Bible 899) n'est pas migrée dans `versets_v2` : son texte est recomposé
       // à la volée depuis les tables éditoriales (colonne synthétique). On l'ajoute donc
@@ -783,6 +860,12 @@ export default function PolyglottePage() {
       if (!uid) return;
       const { data: p } = await supabase.from("profils").select("est_admin").eq("id", uid).maybeSingle();
       setEstAdmin(p?.est_admin === true);
+      // Les points sensibles ne servent qu'à la RELECTURE (lignes en rouge, en rose,
+      // filtre « Lignes problématiques »), c'est-à-dire à l'administrateur : le lecteur
+      // n'a pas à les charger.
+      if (p?.est_admin === true) {
+        supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
+      }
     })();
   }, []);
 
@@ -825,58 +908,53 @@ export default function PolyglottePage() {
     [livresOnglet, livreChoisi, toutAfficher]
   );
 
-  // Chargement de tout l'onglet (canon + traductions migrées)
+  // Chargement de ce qui est affiché (canon + traductions migrées).
   // On ne charge QUE les traductions réellement affichées. Auparavant la requête
   // ramenait le texte de toutes les éditions en base pour n'en montrer trois ou
   // quatre : sur les Psaumes, cela faisait deux fois plus de lignes que nécessaire,
   // et autant de pages de 1 000 à parcourir. Changer une colonne relance le
   // chargement, mais sur un volume bien moindre.
-  const charger = useCallback(async () => {
-    const tradIds = slots.filter(Boolean);
-    if (!livresAffiches.length || !tradIds.length) return;
-    const codes = livresAffiches.map(l => l.code);
-    // AFFICHAGE PLUS RAPIDE : dans la vue par défaut (un seul chapitre d'un seul livre), on ne
-    // charge QUE ce chapitre — quelques dizaines de lignes au lieu du livre entier. Les
-    // identifiants du canon ont la forme « LIVRE.chapitre.verset », d'où le filtre `like` sur
-    // `canon_id`. Les modes qui ont besoin de tout le livre (livre entier, tout afficher,
-    // lignes problématiques, surnuméraires) désactivent ce filtre. Les surnuméraires (sans
-    // créneau du canon) ne paraissent donc qu'en vue « Livre entier » — ce sont des cas rares.
+  //
+  // LA DEMANDE est une valeur (`Portee`), et l'attente s'en DÉDUIT : on attend tant
+  // que ce qui est chargé (`porteeChargee`) ne couvre pas ce qui est demandé. Aucun
+  // témoin « en cours » à allumer et à éteindre, donc rien qui puisse rester allumé
+  // sur une réponse perdue, ni s'éteindre sur la réponse d'une demande périmée.
+  const demande = useMemo<Portee>(() => {
+    // AFFICHAGE PLUS RAPIDE : dans la vue par défaut (un seul chapitre d'un seul livre),
+    // on ne charge QUE ce chapitre — quelques dizaines de lignes au lieu du livre
+    // entier. Les modes qui ont besoin de tout le livre (livre entier, tout afficher,
+    // lignes problématiques, surnuméraires) lèvent ce filtre.
     const monoLivre = livresAffiches.length === 1;
     const chScope = (!toutAfficher && !sensiblesOnly && !surnumOnly && monoLivre && chapitreChoisi != null) ? chapitreChoisi : null;
-    const [c, vv] = await Promise.all([
-      fetchPaged<CanonRow>("versets_canon", "id, livre, ch_canon, v_canon, est_suscription",
-        q => { const x = q.in("livre", codes); return chScope != null ? x.eq("ch_canon", chScope) : x; }),
-      fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
-        q => { const x = q.in("livre", codes).in("trad_id", tradIds); return chScope != null ? x.like("canon_id", `${codes[0]}.${chScope}.%`) : x; }),
-    ]);
-    c.sort((a, b) => (ordreDe.get(a.livre)! - ordreDe.get(b.livre)!) || (a.ch_canon - b.ch_canon) || (a.v_canon - b.v_canon));
-    // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
-    // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
-    // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon (MANUSCRIPT_EXTRA)
-    // n'ont pas de canon_id et sont naturellement écartées par `chargerVersets899`.
-    let toutesLignes = vv;
-    if (tradIds.includes(TRAD_ID_BIBLE899)) {
-      const parLivre899 = await Promise.all(codes.map(code => chargerVersets899(supabase, { livre: code, chapitre: chScope })));
-      const rows899: V2Row[] = parLivre899.flat().map(l => {
-        const lacune = rendu899(l) === "lacune";
-        return {
-          id: `899:${l.canon_id}`,
-          canon_id: l.canon_id,
-          livre: l.livre ?? "",
-          trad_id: TRAD_ID_BIBLE899,
-          ch_orig: l.chapitre ?? 0,
-          v_orig: l.verset ?? 0,
-          v_orig_suffixe: null,
-          texte: lacune ? null : texteCouche899(l, couche899),
-          notes: aRevoir899(l) ? "Alignement à revoir" : null,
-          estLacune899: lacune,
-        };
-      });
-      toutesLignes = [...vv, ...rows899];
-    }
-    setCanon(c); setV2(toutesLignes);
-  }, [livresAffiches, slots, ordreDe, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
-  useEffect(() => { charger(); }, [charger]);
+    return { codes: livresAffiches.map(l => l.code), tradIds: slots.filter(Boolean), chScope, couche: couche899 };
+  }, [livresAffiches, slots, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
+  // Ce que `canon` et `v2` portent réellement. Posé AVEC les données, jamais avant.
+  const [porteeChargee, setPorteeChargee] = useState<Portee | null>(null);
+  // La demande dont le chargement a échoué, pour ne pas la rejouer sans fin ; le
+  // bouton « Réessayer » la lève. Une référence, et non un état dans les dépendances
+  // de l'effet : un échec qui relancerait l'effet relancerait la requête, en boucle.
+  const [erreurChargement, setErreurChargement] = useState<Portee | null>(null);
+  const erreurRef = useRef<Portee | null>(null);
+  const [relance, setRelance] = useState(0);
+  // Le numéro de la dernière demande partie : une réponse qui n'est plus la dernière
+  // est jetée (deux chapitres cliqués coup sur coup, le premier répondant en second).
+  const numeroDemandeRef = useRef(0);
+  const demandeVide = !demande.codes.length || !demande.tradIds.length;
+  const enChargement = !demandeVide && !couvre(porteeChargee, demande) && erreurChargement !== demande;
+  useEffect(() => {
+    if (demandeVide || couvre(porteeChargee, demande) || erreurRef.current === demande) return;
+    const numero = ++numeroDemandeRef.current;
+    chargerPortee(demande, ordreDe).then(({ canon, lignes }) => {
+      if (numero !== numeroDemandeRef.current) return;
+      setCanon(canon); setV2(lignes); setPorteeChargee(demande);
+    }).catch((e: unknown) => {
+      if (numero !== numeroDemandeRef.current) return;
+      console.error("Chargement de la Polyglotte impossible :", e);
+      erreurRef.current = demande;
+      setErreurChargement(demande);
+    });
+  }, [demande, demandeVide, porteeChargee, ordreDe, relance]);
+  const reessayer = () => { erreurRef.current = null; setErreurChargement(null); setRelance(n => n + 1); };
 
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
   // afin que le signet apparaisse plein sur les versets favoris et qu'un clic les retire.
@@ -930,6 +1008,12 @@ export default function PolyglottePage() {
     for (const r of canon) m.set(r.livre, [...(m.get(r.livre) ?? []), r]);
     return m;
   }, [canon]);
+  // Le chapitre à montrer quand les données portent le livre ENTIER : le chapitre
+  // choisi. Quand elles ne portent qu'un chapitre, on montre ce qu'elles portent —
+  // y compris le chapitre d'AVANT, sous la marque d'attente, le temps que le suivant
+  // arrive : le tableau ne se vide pas, la lecture reste sous les yeux (même parti
+  // que la page Bible, `attenteNavigation.tsx`).
+  const chFiltre = (!toutAfficher && !sensiblesOnly && chapitreChoisi != null && porteeChargee?.chScope == null) ? chapitreChoisi : null;
 
   // Surnuméraires (versets sans slot canon) ancrés à leur position logique : après le
   // dernier verset mappé de la MÊME traduction (ordre livre → chapitre → verset d'origine).
@@ -967,6 +1051,13 @@ export default function PolyglottePage() {
     }
     return { surnumApres: apres, surnumStart: start, surnumCount: count, surnumParLivre: parLiv };
   }, [v2, ordreDe]);
+  // Les livres RENDUS sont ceux que les données portent, non ceux qu'on demande : le
+  // temps d'un chargement, c'est le livre d'avant qui reste à l'écran, sous la marque
+  // d'attente, au lieu d'un tableau vide. `livres` est dans l'ordre canonique.
+  const livresRendus = useMemo(
+    () => livres.filter(l => parLivre.has(l.code) || surnumParLivre.has(l.code)),
+    [livres, parLivre, surnumParLivre]
+  );
 
   // Une colonne par SLOT (toujours NB_SLOTS) : un slot vidé (« — aucune — ») garde sa
   // place, colonne vide, au lieu de disparaître. `colonnes` = seulement les slots pourvus
@@ -1379,13 +1470,28 @@ export default function PolyglottePage() {
               </div>
             </div>
 
-            {/* Corps : un bloc par livre, rendu paresseux (content-visibility) */}
-            <div style={{ border: "1px solid var(--cs-bord-clair)", borderTop: "none", borderRadius: "0 0 8px 8px", background: "var(--cs-surface)" }}>
+            {/* Corps : un bloc par livre, rendu paresseux (content-visibility). L'enveloppe
+                porte la marque d'attente, centrée sur le corps du tableau — sur ce qu'on
+                lit, et non sur l'écran ; un plancher de hauteur lui laisse la place
+                quand rien n'est encore chargé. */}
+            <div style={{ position: "relative" }}>
+            <div style={{ border: "1px solid var(--cs-bord-clair)", borderTop: "none", borderRadius: "0 0 8px 8px", background: "var(--cs-surface)", minHeight: enChargement ? "12rem" : undefined }}>
               {colonnes.length === 0 && <div style={{ padding: 20, color: "var(--cs-texte-doux)" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
+              {erreurChargement && !enChargement && (
+                <div role="alert" style={{ padding: 20, display: "flex", alignItems: "center", gap: 12, fontSize: "0.8125rem", color: "var(--cs-danger)" }}>
+                  Le chargement a échoué.
+                  <button onClick={reessayer}
+                    style={{ fontSize: "0.6875rem", padding: "2px 8px", borderRadius: 4, border: "1px solid var(--cs-danger-bord)", background: "var(--cs-surface)", color: "var(--cs-danger)", cursor: "pointer", fontFamily: "inherit" }}>
+                    Réessayer
+                  </button>
+                </div>
+              )}
         {/* On NE démonte PAS le corps pendant un rechargement : changer de traduction ne
             fait que remplacer le texte des cellules, la structure (lignes du canon) reste
-            en place — la position de lecture ne bouge donc pas et la transition est fluide. */}
-        {colonnes.length > 0 && livresAffiches.map(l => {
+            en place — la position de lecture ne bouge donc pas et la transition est fluide.
+            Changer de chapitre ou de livre garde de même l'ancien à l'écran, sous la
+            marque, jusqu'à l'arrivée du nouveau (`livresRendus`, `chFiltre`). */}
+        {colonnes.length > 0 && livresRendus.map(l => {
           // Ligne d'un verset surnuméraire — hors ossature canonique, en violet.
           // Plusieurs éditions peuvent porter le même verset au même numéro d'origine : elles
           // partagent alors cette ligne, chacune dans sa colonne. Une édition qui ne l'a pas
@@ -1456,9 +1562,8 @@ export default function PolyglottePage() {
           }
 
           const rows0 = parLivre.get(l.code) ?? [];
-          // Filtre chapitre : par défaut on ne montre qu'un chapitre (le livre entier est trop
-          // lourd). `chapitreChoisi === null` OU « tout afficher » lèvent le filtre.
-          const chFiltre = (!toutAfficher && !sensiblesOnly && chapitreChoisi != null) ? chapitreChoisi : null;
+          // Filtre chapitre (`chFiltre`, plus haut) : par défaut on ne montre qu'un
+          // chapitre, le livre entier étant trop lourd.
           const rowsCh = chFiltre != null ? rows0.filter(r => r.ch_canon === chFiltre) : rows0;
           const rows = sensiblesOnly ? rowsCh.filter(r => sens.estSensible(l.code, r.ch_canon, r.v_canon)) : rowsCh;
           // Les surnuméraires de tête de livre ne s'affichent qu'au chapitre 1 (ou en livre entier).
@@ -1604,6 +1709,8 @@ export default function PolyglottePage() {
             </section>
           );
         })}
+            </div>
+            <MarqueAttente enAttente={enChargement} />
             </div>
 
           </>

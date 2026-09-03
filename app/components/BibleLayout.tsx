@@ -107,7 +107,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     ? versetSelectionne
     : null
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
-  // allume la marque au centre de la lecture tant que la page se prépare.
+  // allume la marque au centre du bloc de texte tant que la page se prépare.
   const naviguer = useNaviguer()
   const enAttente = useEnAttente()
   const precharger = usePrecharger()
@@ -498,9 +498,12 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         pieceActive={pieceAffichee?.cle ?? null}
       />
       {/* Onglet « Texte » : masqué (et non démonté, pour préserver le défilement)
-          quand un autre onglet est actif sur mobile. `display: contents` en desktop
-          pour que TexteBible reste enfant direct du flex (largeur `flex-1`). */}
-      <div ref={lectureRef} data-passage={passage ?? undefined} style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%' } : { display: 'contents' }}>
+          quand un autre onglet est actif sur mobile. En desktop, l'enveloppe prend
+          la place de la colonne (`flex: 1`) et TexteBible la remplit ; elle était en
+          `display: contents` jusqu'au 2026-09-03, mais une boîte sans dimensions ne
+          peut pas porter la marque d'attente, qui se centre sur ELLE — c'est-à-dire
+          sur le bloc de texte, et non plus sur l'écran entier. */}
+      <div ref={lectureRef} data-passage={passage ?? undefined} style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%', position: 'relative' } : { flex: 1, minWidth: 0, display: 'flex', position: 'relative' }}>
         {lectureBilingue ? (
           <LectureBilingueBible
             {...lectureBilingue}
@@ -531,6 +534,10 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           pieceAffichee={pieceAffichee}
         />
         )}
+        {/* La réponse au clic : un anneau qui tourne au centre du bloc de texte, sur
+            la lecture qui reste lisible dessous. Il ne paraît qu'au bout de 160 ms,
+            une navigation préchargée revenant plus vite qu'on ne le verrait. */}
+        <MarqueAttente enAttente={enAttente} />
       </div>
       <PanneauPatristique
         verset={versetSelectionneCourant}
@@ -585,10 +592,6 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         </button>
       )}
 
-      {/* La réponse au clic : un anneau qui tourne au centre, sur la lecture qui
-          reste lisible dessous. Il ne paraît qu'au bout de 160 ms, une navigation
-          préchargée revenant plus vite qu'on ne le verrait. */}
-      <MarqueAttente enAttente={enAttente} />
     </div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { Barre, Blanc, MOT_ATTENTE, StyleVoletsEnCreux, VoletEnCreux } from '@/app/lib/attenteEnCreux'
 
 /**
  * L'écran d'attente des pages qui n'en ont pas de propre (l'œuvre et la publication
@@ -16,41 +17,42 @@ import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
  * arrive. ⚠️ Un tel écran fait aussi que le routeur PRÉCHARGE la page jusqu'à lui
  * au survol du lien : le châssis paraît alors sans attendre le serveur.
  *
+ * Les pièces (barres, volets, le mot et son délai) vivent dans
+ * `app/lib/attenteEnCreux.tsx`, partagées avec l'écran de l'œuvre.
+ *
  * ⛔ Pas de rembourrage sous la barre : `#cs-corps` le pose déjà (AGENTS.md).
- * Les mots ne viennent qu'au bout d'un instant : une arrivée rapide ne montre que
- * le châssis, et rien ne clignote.
  */
-const MOT = { fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', animation: 'cs-attente-paraitre 0.3s ease-out 0.45s both' } as const
-
 function AttenteBible() {
-  const barre = (largeur: string) => (
-    <div style={{ height: '9px', width: largeur, borderRadius: '4px', background: 'var(--cs-fond-doux)' }} />
-  )
   return (
-    <main className="cs-attente-bible" aria-busy="true" style={{ display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden', background: 'var(--cs-fond)' }}>
-      <style>{`
-        .cs-attente-bible__volet { display: flex; }
-        @media (max-width: 900px) { .cs-attente-bible__volet { display: none; } }
-      `}</style>
-      <div className="cs-attente-bible__volet" style={{ width: 'clamp(200px, 14vw, 320px)', flexShrink: 0, flexDirection: 'column', gap: '12px', padding: '18px 16px', background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)' }}>
-        {barre('58%')}{barre('84%')}{barre('72%')}
-        <div style={{ height: '18px' }} />
-        {barre('40%')}{barre('46%')}{barre('36%')}{barre('50%')}{barre('42%')}
-      </div>
+    <main aria-busy="true" style={{ display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden', background: 'var(--cs-fond)' }}>
+      <StyleVoletsEnCreux />
+      <VoletEnCreux largeur="clamp(200px, 14vw, 320px)" fond="var(--cs-fond-clair)" cote="gauche">
+        <Barre largeur="58%" />
+        <Barre largeur="84%" />
+        <Barre largeur="72%" />
+        <Blanc />
+        <Barre largeur="40%" />
+        <Barre largeur="46%" />
+        <Barre largeur="36%" />
+        <Barre largeur="50%" />
+        <Barre largeur="42%" />
+      </VoletEnCreux>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <div style={{ borderBottom: '1px solid var(--cs-bord)', padding: '18px 32px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-          {barre('11rem')}
-          {barre('7rem')}
+          <Barre largeur="11rem" />
+          <Barre largeur="7rem" />
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={MOT}>Chargement…</p>
+          <p style={MOT_ATTENTE}>Chargement…</p>
         </div>
       </div>
-      <div className="cs-attente-bible__volet" style={{ width: 'clamp(260px, 20vw, 460px)', flexShrink: 0, flexDirection: 'column', gap: '12px', padding: '18px 16px', background: 'var(--cs-surface)', borderLeft: '1px solid var(--cs-bord)' }}>
-        {barre('48%')}
-        <div style={{ height: '10px' }} />
-        {barre('90%')}{barre('76%')}{barre('84%')}
-      </div>
+      <VoletEnCreux largeur="clamp(260px, 20vw, 460px)" fond="var(--cs-surface)" cote="droite">
+        <Barre largeur="48%" />
+        <Blanc hauteur="10px" />
+        <Barre largeur="90%" />
+        <Barre largeur="76%" />
+        <Barre largeur="84%" />
+      </VoletEnCreux>
     </main>
   )
 }
@@ -59,8 +61,8 @@ export default function AttentePage() {
   const chemin = usePathname()
   if (chemin === '/') return <AttenteBible />
   return (
-    <main aria-busy="true" style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={MOT}>Chargement…</p>
+    <main aria-busy="true" style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={MOT_ATTENTE}>Chargement…</p>
     </main>
   )
 }

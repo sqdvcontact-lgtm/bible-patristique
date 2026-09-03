@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type MutableRefObject, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 /**
  * Le clic est ACQUITTÉ.
@@ -90,7 +90,7 @@ export function useEnAttente(): boolean {
 }
 
 /**
- * La marque d'attente : un anneau qui tourne, au centre de la lecture.
+ * La marque d'attente : un anneau qui tourne, au centre du BLOC DE TEXTE.
  *
  * ⚠️ Elle ne paraît qu'au bout d'un DEMI-INSTANT (160 ms). Une navigation déjà
  * préchargée revient en moins de temps qu'il n'en faut pour la voir, et une
@@ -101,6 +101,20 @@ export function useEnAttente(): boolean {
  * ⛔ Elle ne masque pas la page : le texte reste lisible dessous, à peine voilé.
  * On sait alors deux choses au lieu d'une — que le clic a porté, et ce qu'on
  * était en train de lire.
+ *
+ * ⛔ Elle se pose DANS le bloc de lecture, jamais sur l'écran entier (demande de
+ * l'auteur, 2026-09-03) : elle couvrait tout ce qui est sous la barre, volets
+ * compris, et l'anneau tombait au milieu de l'écran, à côté du texte qu'il
+ * concernait. Elle couvre donc son PARENT (`position: absolute; inset: 0`), qui
+ * doit porter `position: relative` : la colonne de lecture de la Bible, le
+ * `<main>` de l'œuvre, le corps du tableau de la Polyglotte.
+ *
+ * ⚠️ L'anneau se centre dans la part VISIBLE du bloc, non dans sa hauteur
+ * entière. Un bloc qui défile avec la page (l'œuvre, la Polyglotte) peut faire
+ * dix écrans, et un anneau centré sur dix écrans tombe hors de vue. D'où l'enfant
+ * COLLANT (`position: sticky`), haut d'un écran au plus, qui suit le défilement ;
+ * dans un bloc qui tient à l'écran (la colonne de la Bible), il remplit le bloc
+ * et ne bouge pas.
  */
 export function MarqueAttente({ enAttente }: { enAttente: boolean }) {
   const [allume, setAllume] = useState(false)
@@ -122,17 +136,10 @@ export function MarqueAttente({ enAttente }: { enAttente: boolean }) {
     <div
       aria-hidden="true"
       style={{
-        // ⚠️ Sous la BARRE, jamais dessus : elle ne change pas, elle n'a pas à
-        // s'assombrir. Le reste de l'écran est couvert, volets compris, parce
-        // que c'est la page entière qui se prépare.
-        position: 'fixed',
-        top: HAUTEUR_NAVBAR,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        // Le voile couvre le BLOC, et lui seul : les volets, qui ne changent
+        // pas, n'ont pas à s'assombrir.
+        position: 'absolute',
+        inset: 0,
         // Un voile assez léger pour qu'on lise à travers : la page ne disparaît
         // pas, elle attend. ⛔ Jamais un jeton d'ENCRE ici — sur le Cuir il est
         // presque blanc, et le voile deviendrait un rideau (charte).
@@ -141,19 +148,32 @@ export function MarqueAttente({ enAttente }: { enAttente: boolean }) {
         pointerEvents: 'none',
       }}
     >
-      <span
+      <div
         style={{
-          display: 'block',
-          width: '2.25rem',
-          height: '2.25rem',
-          borderRadius: '50%',
-          border: '2px solid var(--cs-bord)',
-          borderTopColor: 'var(--cs-vert)',
-          animation: 'spin 0.7s linear infinite',
-          background: 'var(--cs-surface)',
-          boxShadow: 'var(--cs-ombre-flottante)',
+          // ⚠️ Sous la BARRE, qui est fixe : un bloc qui défile avec la page passe
+          // dessous, l'anneau ne doit pas y passer avec lui.
+          position: 'sticky',
+          top: HAUTEUR_NAVBAR,
+          height: `min(100%, ${HAUTEUR_SOUS_NAVBAR})`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
-      />
+      >
+        <span
+          style={{
+            display: 'block',
+            width: '2.25rem',
+            height: '2.25rem',
+            borderRadius: '50%',
+            border: '2px solid var(--cs-bord)',
+            borderTopColor: 'var(--cs-vert)',
+            animation: 'spin 0.7s linear infinite',
+            background: 'var(--cs-surface)',
+            boxShadow: 'var(--cs-ombre-flottante)',
+          }}
+        />
+      </div>
     </div>
   )
 }
