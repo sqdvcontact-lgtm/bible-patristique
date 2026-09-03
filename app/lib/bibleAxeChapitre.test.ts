@@ -49,6 +49,16 @@ describe('axe réel du chapitre biblique', () => {
     }, bornes)).toBe(true)
   })
 
+  it('réserve h1 au titre du chapitre déjà rendu par la page', () => {
+    const h = baliserBlocsDuChapitre([
+      titre('racine', 'titre_section_livre', 2501, 2534),
+      titre('enfant', 'titre_sous_section', 2501, 2534, 'racine'),
+    ], bornes)
+    expect(h.get('racine')).toBe(2)
+    expect(h.get('enfant')).toBe(3)
+    expect([...h.values()]).not.toContain(1)
+  })
+
   it('rebâtit Gn 25 depuis les titres visibles, pas depuis quatre ancêtres hors écran', () => {
     const blocs = [
       titre('partie', 'titre_partie_livre', 1127, 5026),
@@ -66,13 +76,13 @@ describe('axe réel du chapitre biblique', () => {
     expect(h.get('partie')).toBeUndefined()
     expect(h.get('livre-vi')).toBeUndefined()
     expect(h.get('section-v')).toBeUndefined()
-    expect(h.get('iv')).toBe(1)
-    expect(h.get('abraham-cetura')).toBe(2)
-    expect(h.get('livre-vii')).toBe(1)
-    expect(h.get('livre-viii')).toBe(1)
-    expect(h.get('section-i')).toBe(2)
-    expect(h.get('i')).toBe(3)
-    expect(h.get('naissance')).toBe(4)
+    expect(h.get('iv')).toBe(2)
+    expect(h.get('abraham-cetura')).toBe(3)
+    expect(h.get('livre-vii')).toBe(2)
+    expect(h.get('livre-viii')).toBe(2)
+    expect(h.get('section-i')).toBe(3)
+    expect(h.get('i')).toBe(4)
+    expect(h.get('naissance')).toBe(5)
   })
 
   it('rebâtit Gn 49 : une péricope visible n’hérite pas de quatre titres absents du DOM', () => {
@@ -85,7 +95,7 @@ describe('axe réel du chapitre biblique', () => {
       titre('mort-jacob', 'titre_pericope', 4929, 4933, 'iii'),
     ]
     const h = baliserBlocsDuChapitre(blocs, { premier: 4901, dernier: 4933 })
-    expect(h.get('benediction')).toBe(1)
-    expect(h.get('mort-jacob')).toBe(1)
+    expect(h.get('benediction')).toBe(2)
+    expect(h.get('mort-jacob')).toBe(2)
   })
 })
