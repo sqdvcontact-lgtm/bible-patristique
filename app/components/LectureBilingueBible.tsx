@@ -8,7 +8,8 @@
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { chapitreSuivantDisponible, urlLectureBible } from '@/app/lib/bibleNavigation'
+import { urlLectureBible } from '@/app/lib/bibleNavigation'
+import FlecheChapitre from './FlecheChapitre'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 import SelecteurTraductionBible from './SelecteurTraductionBible'
 
@@ -40,11 +41,6 @@ export default function LectureBilingueBible({
   const allerAuChapitre = (chapitre: number) => {
     naviguer(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
   }
-  const aChapitreSuivant = chapitreSuivantDisponible(livreActif, chapitreActif)
-  const fleche = {
-    color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none',
-    border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s',
-  } as const
 
   return (
     <div
@@ -68,11 +64,8 @@ export default function LectureBilingueBible({
 
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
-            {chapitreActif > 1 ? (
-              <button onClick={() => allerAuChapitre(chapitreActif - 1)} className="nav-chap-arrow" style={fleche} title="Chapitre précédent">‹</button>
-            ) : (
-              <span style={{ color: 'var(--cs-bord)', fontSize: '1.25rem', lineHeight: 1 }}>‹</span>
-            )}
+            {/* Mêmes flèches qu'en lecture simple : à une borne, chevron en place, grisé, inerte. */}
+            <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="entete" onAller={allerAuChapitre} />
             <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
               <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
               <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
@@ -80,11 +73,7 @@ export default function LectureBilingueBible({
                   redevient pas vert parce que le texte passe en deux colonnes. */}
               <span style={{ fontSize: '1.0625rem', color: 'var(--cs-mention)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
             </h1>
-            {aChapitreSuivant ? (
-              <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={fleche} title="Chapitre suivant">›</button>
-            ) : (
-              <span aria-hidden style={{ color: 'var(--cs-bord)', fontSize: '1.25rem', lineHeight: 1 }}>›</span>
-            )}
+            <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="suivant" variante="entete" onAller={allerAuChapitre} />
           </div>
           <div />
         </div>

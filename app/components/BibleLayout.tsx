@@ -18,6 +18,7 @@ import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import type { BibliographiePiece } from '@/app/lib/bibleBibliographieOuvrages'
 import LectureBilingueBible from './LectureBilingueBible'
+import FlecheChapitre from './FlecheChapitre'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
@@ -557,15 +558,18 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
       {mobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
-          <button onClick={() => chapitreActif > 1 && naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif - 1, trad: traduction }))}
-            aria-label="Chapitre précédent" style={{ background: 'none', border: 'none', cursor: chapitreActif > 1 ? 'pointer' : 'default', fontSize: '1.375rem', lineHeight: 1, color: chapitreActif > 1 ? 'var(--cs-texte-gris)' : 'var(--cs-bord)', padding: '0 8px' }}>‹</button>
+          {/* Mêmes flèches que les en-têtes de lecture (`FlecheChapitre`, gabarit
+              `bandeau` : même boîte qu'avant). À Gn 1 comme à Gn 50 le chevron
+              reste à sa place, grisé et inerte : ni navigation, ni marque d'attente. */}
+          <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="bandeau"
+            onAller={(n) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: traduction }))} />
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: 'var(--cs-vert)' }}>{chapitreActif}</span>
           </span>
-          <button onClick={() => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif + 1, trad: traduction }))}
-            aria-label="Chapitre suivant" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.375rem', lineHeight: 1, color: 'var(--cs-texte-gris)', padding: '0 8px' }}>›</button>
+          <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="suivant" variante="bandeau"
+            onAller={(n) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: traduction }))} />
         </div>
       )}
       {!mobile && isDirty && (

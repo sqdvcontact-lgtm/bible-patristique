@@ -106,6 +106,10 @@ describe('borne terminale certifiée de la Genèse', () => {
   it('ferme la flèche suivante à Gn 50 seulement', () => {
     expect(chapitreSuivantDisponible('GEN', 49)).toBe(true)
     expect(chapitreSuivantDisponible('GEN', 50)).toBe(false)
+    // Gn 1 et les chapitres intermédiaires restent ouverts.
+    for (const chapitre of [1, 2, 25, 48]) {
+      expect(chapitreSuivantDisponible('GEN', chapitre)).toBe(true)
+    }
     // Hors périmètre, le serveur garde la main.
     expect(chapitreSuivantDisponible('INCONNU', 1)).toBe(true)
   })
