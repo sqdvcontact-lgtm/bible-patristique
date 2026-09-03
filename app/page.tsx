@@ -16,7 +16,7 @@ import {
 } from '@/app/lib/bibleEditionServer'
 import { bibliographieDesBlocs } from '@/app/lib/bibleBibliographieOuvrages'
 import {
-  blocsTexteEditoriaux, largeurImprimee, presentationDeBloc, regimeIllustration, sousTypeNoticeValide, styleCompositionDeNote,
+  blocsTexteEditoriaux, presentationDeBloc, regimeEtPartDeLActif, sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
   adresseVersionnee,
 } from '@/app/lib/bibleEdition'
@@ -435,8 +435,7 @@ export default async function Home({
         bodyBlockId: asset.body_block_id,
         noteId: asset.note_id,
         materialOrder: asset.material_order,
-        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1], asset.printed_caption, asset.metadata),
-        largeurImprimee: largeurImprimee(asset.source_crop_box as Parameters<typeof largeurImprimee>[0]),
+          ...regimeEtPartDeLActif(asset),
       })),
     }
   }
@@ -558,8 +557,7 @@ export default async function Home({
           bodyBlockId: asset.body_block_id,
           noteId: asset.note_id,
           materialOrder: asset.material_order,
-        regime: regimeIllustration(asset.asset_kind, asset.source_crop_box as Parameters<typeof regimeIllustration>[1], asset.printed_caption, asset.metadata),
-        largeurImprimee: largeurImprimee(asset.source_crop_box as Parameters<typeof largeurImprimee>[0]),
+          ...regimeEtPartDeLActif(asset),
           appliesTo: asset.applies_to,
           appliesToMemberId: asset.applies_to_member_id,
         })),

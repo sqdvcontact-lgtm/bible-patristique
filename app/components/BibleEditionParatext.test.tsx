@@ -182,7 +182,7 @@ describe('paratexte des éditions bibliques', () => {
    *  la couche alpha et l'encre se repose au rendu. Elle n'a donc ni <img> ni
    *  attribut alt, mais un rôle d'image et son intitulé accessible. Une PLANCHE,
    *  qui garde le papier de 1923, se rend en image. */
-  const gravure = (regime: 'vignette' | 'au-fil' | 'hors-texte', largeurImprimee: number | null = null) => ({
+  const gravure = (regime: 'vignette' | 'au-fil' | 'hors-texte', part = 0.36) => ({
     id: 'asset-1',
     assetKey: 'fillion-t07-p0092-i01',
     assetKind: regime === 'hors-texte' ? 'plate' : 'illustration',
@@ -199,7 +199,7 @@ describe('paratexte des éditions bibliques', () => {
     noteId: null,
     materialOrder: 120,
     regime,
-    largeurImprimee,
+    part,
   })
 
   it('découpe une gravure détourée au lieu de l’afficher, et repose l’encre', () => {
@@ -213,28 +213,18 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).not.toContain('<img')
   })
 
-  it('⛔ la part de la colonne SUIT LA LARGEUR IMPRIMÉE', () => {
-    // Fillion imprime ses vignettes de 19,8 à 57,5 % de sa page. Une part fixe
-    // aplatissait ce rapport de 1 à 3 — et, la taille servie valant le double de
-    // la taille d'affichage, elle jetait jusqu'à 4,7 fois la résolution.
-    const part = (regime: 'vignette' | 'au-fil' | 'hors-texte', largeur: number | null = null) =>
-      renderToStaticMarkup(<IllustrationBible illustration={gravure(regime, largeur)} />).match(/style="width:(\d+)%/)?.[1]
-    expect(part('vignette', 0.198)).toBe('36')   // le boisseau : au PLANCHER
+  it('⛔ la part de la colonne est celle que la DONNÉE porte, et rien ne la recalcule', () => {
+    // La chaîne d'image écrit `part_colonne` d'après la largeur imprimée par
+    // Fillion (scripts/fillion/regime-gravure.mjs) ; la page la pose telle
+    // quelle, sans borne ni seuil de son côté. Jusqu'au 3 septembre 2026 elle la
+    // dérivait elle-même, et un lot rempli autrement l'a mise en défaut.
+    const part = (regime: 'vignette' | 'au-fil' | 'hors-texte', valeur: number) =>
+      renderToStaticMarkup(<IllustrationBible illustration={gravure(regime, valeur)} />).match(/style="width:(\d+)%/)?.[1]
+    expect(part('vignette', 0.36)).toBe('36')    // le boisseau, que la chaîne a mis au plancher
     expect(part('vignette', 0.402)).toBe('40')   // le médecin
-    expect(part('vignette', 0.575)).toBe('56')   // la scène de deuil : au PLAFOND
-    expect(part('vignette', null)).toBe('36')    // largeur inconnue : le plancher
-    // ⛔ Une SCÈNE suit sa largeur imprimée elle aussi, depuis le 31 août 2026 :
-    //    sa part valait 0,78 quelle que soit celle-ci, et Fillion imprime ses
-    //    photogravures de 69 à 90 %. C'était la même part fixe, au même endroit,
-    //    pour la même raison, et le régime ne décide plus que du DÉTOURAGE.
-    expect(part('au-fil', 0.69)).toBe('69')
-    expect(part('au-fil', 0.847)).toBe('85')
-    expect(part('au-fil', 0.9)).toBe('88')      // au PLAFOND
-    expect(part('au-fil', 0.3)).toBe('36')      // au PLANCHER
-    // ⛔ Une PLANCHE, elle, prend le plafond sans regarder sa découpe : celle-ci
-    //    est la page entière du volume, et sa largeur ne dit rien.
-    expect(part('hors-texte')).toBe('88')
-    expect(part('hors-texte', 0.2)).toBe('88')
+    expect(part('vignette', 0.56)).toBe('56')    // la scène de deuil, au plafond de la vignette
+    expect(part('au-fil', 0.847)).toBe('85')     // la synagogue de Kefr Bir'im
+    expect(part('hors-texte', 0.88)).toBe('88')  // une planche
   })
 
   it('⛔ une PLANCHE, une SCÈNE et une VIGNETTE s’agrandissent', () => {
@@ -243,7 +233,7 @@ describe('paratexte des éditions bibliques', () => {
     // tombent à trois pixels de haut. Le fichier servi faisant déjà le double de
     // sa taille d'affichage, le montrer à sa taille naturelle suffit — aucun
     // dérivé nouveau n'est nécessaire.
-    const planche = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte')} />)
+    const planche = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte', 0.88)} />)
     const scene = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil', 0.847)} />)
     for (const html of [planche, scene]) {
       expect(html).toContain('aria-label="Agrandir')
@@ -258,11 +248,11 @@ describe('paratexte des éditions bibliques', () => {
   })
 
   it('⛔ une vignette TROP LARGE ne flotte pas : le texte n’aurait plus de mesure', () => {
-    // À 57,5 % de la colonne il ne reste que 196 px de piste, où le justifié se
+    // À 56 % de la colonne il ne reste que 220 px de piste, où le justifié se
     // creuse de lézardes. C'est un axe DISTINCT du détourage : cette gravure-là
     // est au trait, donc détourée, et pourtant elle se centre.
     const etroite = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.402)} habillage />)
-    const large = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.575)} habillage />)
+    const large = renderToStaticMarkup(<IllustrationBible illustration={gravure('vignette', 0.56)} habillage />)
     expect(etroite).toContain('float:right')
     expect(large).not.toContain('float')
     expect(large).toContain('mask-image')
@@ -271,14 +261,14 @@ describe('paratexte des éditions bibliques', () => {
   it('⛔ rend une SCÈNE en image OPAQUE, jamais en masque', () => {
     // Une photogravure en ton continu ne se détoure pas : mesurée, sa surface
     // transparente valait 3 % quand une gravure au trait en rend 85 à 94.
-    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} />)
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil', 0.7)} />)
     expect(html).toContain('<img')
     expect(html).toContain('cs-bible-gravure-cadre')
     expect(html).not.toContain('mask-image')
   })
 
   it('rend une PLANCHE en image, papier compris, et jamais en masque', () => {
-    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte')} />)
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('hors-texte', 0.88)} />)
     expect(html).toContain('<img')
     expect(html).toContain('alt="Requin figurant le poisson de Jonas."')
     expect(html).toContain('cs-bible-gravure-passe')
@@ -304,7 +294,7 @@ describe('paratexte des éditions bibliques', () => {
   })
 
   it('⛔ une SCÈNE ne flotte jamais, même si on le lui demande', () => {
-    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil')} habillage />)
+    const html = renderToStaticMarkup(<IllustrationBible illustration={gravure('au-fil', 0.7)} habillage />)
     expect(html).not.toContain('float')
   })
 })

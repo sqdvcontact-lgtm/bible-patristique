@@ -8,7 +8,7 @@ import {
   MESURE_COLONNE, ORDRE_REGIMES, REGIMES, SPECIMEN_HABILLAGE,
   type GravureFillion,
 } from './regimesFillion'
-import { partIllustration, type RegimeIllustration } from '@/app/lib/bibleEdition'
+import type { RegimeIllustration } from '@/app/lib/bibleEdition'
 import { STYLE_CORPS } from '@/app/lib/compositionBible'
 import { colorMix } from '@/app/lib/couleurs'
 
@@ -110,7 +110,7 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
   familles: EchantillonFamille[]
   gravures: GravureFillion[]
   planches: number
-  planche: { url: string; legende: string } | null
+  planche: { url: string; legende: string; part: number } | null
 }) {
   const [panneau, setPanneau] = useState<ClePanneau>('ornements')
   const [vue, setVue] = useState<CleVue>('planche')
@@ -676,14 +676,14 @@ export function VueEnContexte({ images, poids }: { images: Illustration[]; poids
 // ── Gravures de Fillion : les trois régimes ──────────────────────────────────
 //
 // ⚠️ Le spécimen d'habillage prend `STYLE_CORPS`, le style RÉEL du paratexte
-// biblique, et le régime vient de `regimeIllustration`, la fonction que la page
-// de lecture emploie. Rejouer une composition de mémoire dérive au premier
+// biblique, et le régime comme la part sont ceux que la base porte, écrits par
+// la chaîne d'image et lus par la page de lecture. Rejouer une composition de mémoire dérive au premier
 // réglage — c'est la règle de la planche des styles, et elle vaut ici.
 
 export function SectionRegimes({ gravures, planches, planche, fond }: {
   gravures: GravureFillion[]
   planches: number
-  planche: { url: string; legende: string } | null
+  planche: { url: string; legende: string; part: number } | null
   fond: CleFond
 }) {
   const f = FONDS[fond]
@@ -702,17 +702,18 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
         Une seule composition servait les quarante-trois, du boisseau romain de trois centimètres à la planche double
         page. Trois régimes désormais, et c’est la LARGEUR IMPRIMÉE qui les départage : la page de Fillion est à deux
         colonnes, une gravure qui tient dans une colonne est une vignette, une gravure qui les enjambe est une scène.
-        Le régime se dérive par <code className="ill-code">regimeIllustration</code>, la fonction que la page de lecture
-        emploie ; les fichiers se refont par <code className="ill-code">scripts/fillion/detourer-gravures.mjs</code>.
+        Le régime et la part de colonne sont écrits dans la base par la chaîne d’image, dont la règle vit dans
+        <code className="ill-code">scripts/fillion/regime-gravure.mjs</code>, et la page de lecture les lit tels quels ;
+        les fichiers se refont par <code className="ill-code">scripts/fillion/detourer-gravures.mjs</code>.
       </p>
 
       {/* ── Ce que la mesure range ── */}
       <div className="ill-reg-critere">
-        <h3 className="ill-reg-titre3">La largeur imprimée, et ce qu’elle range</h3>
+        <h3 className="ill-reg-titre3">La part de colonne écrite, et ce qu’elle range</h3>
         <ul className="ill-reg-mesures">
           {gravures.map(g => (
             <li key={g.cle} className={`ill-reg-mesure ill-reg-mesure--${g.regime}`}>
-              <span className="ill-reg-part">{g.largeurImprimee === null ? '—' : `${Math.round(g.largeurImprimee * 100)} %`}</span>
+              <span className="ill-reg-part">{`${Math.round(g.part * 100)} %`}</span>
               <span className="ill-reg-nom">{g.legende}</span>
               <span className="ill-reg-verset">{g.verset}</span>
               <span className="ill-reg-jeton">{REGIMES[g.regime].titre}</span>
@@ -724,13 +725,14 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
       {/* ── Les trois régimes ── */}
       {ORDRE_REGIMES.map(cle => {
         const r = REGIMES[cle]
-        // ⚠️ Une vignette n'a plus UNE part mais une PLAGE : elle suit la
-        //    largeur imprimée. On montre donc ce que le corpus donne vraiment.
-        const parts = (cle === 'vignette' ? gravures : []).map(g => partIllustration(cle, g.largeurImprimee))
-        const part = parts.length ? Math.max(...parts) : partIllustration(cle, null)
-        const plage = parts.length && Math.min(...parts) !== part
-          ? `${Math.round(Math.min(...parts) * 100)} à ${Math.round(part * 100)} %`
-          : `${Math.round(part * 100)} %`
+        // ⚠️ Une vignette n'a pas UNE part mais une PLAGE : chacune suit la
+        //    largeur imprimée, écrite par la chaîne. On montre ce que la base porte.
+        const parts = cle === 'hors-texte' ? (planche ? [planche.part] : []) : parRegime(cle).map(g => g.part)
+        const plage = parts.length === 0
+          ? '—'
+          : Math.min(...parts) !== Math.max(...parts)
+            ? `${Math.round(Math.min(...parts) * 100)} à ${Math.round(Math.max(...parts) * 100)} %`
+            : `${Math.round(Math.max(...parts) * 100)} %`
         return (
           <article key={cle} className="ill-reg">
             <div className="ill-reg-tete">
@@ -740,7 +742,7 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
             </div>
             <p className="ill-reg-texte">{r.propos}</p>
             <dl className="ill-reg-fiche">
-              <dt>Largeur</dt><dd>{plage} de la colonne, selon la largeur imprimée</dd>
+              <dt>Largeur</dt><dd>{plage} de la colonne, écrite par la chaîne d’après la largeur imprimée</dd>
               <dt>Détourage</dt><dd>{r.detourage ? 'oui, encre reposée au rendu' : 'jamais, elle garde son papier'}</dd>
               <dt>Habillage</dt><dd>{r.habillage ? 'oui, dans le commentaire qui couvre son verset, un bord après l’autre' : 'non'}</dd>
               <dt>Cadre</dt><dd>{r.cadre ? 'filet du site, rogné EN DEDANS du filet gravé' : cle === 'hors-texte' ? 'passe-partout' : 'aucun'}</dd>
@@ -750,7 +752,7 @@ export function SectionRegimes({ gravures, planches, planche, fond }: {
             {cle === 'au-fil' && scene && (
               <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
                 <div className="ill-reg-colonne">
-                  <figure className="ill-reg-cadre" style={{ width: `${Math.round(part * 100)}%`, borderColor: colorMix(f.encre, 30) }}>
+                  <figure className="ill-reg-cadre" style={{ width: `${Math.round(scene.part * 100)}%`, borderColor: colorMix(f.encre, 30) }}>
                     {/* ⛔ Une SCÈNE est opaque : la poser en masque la rendrait
                         en aplat d'encre. Elle garde son papier. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -835,7 +837,7 @@ function encree(url: string, encre: string): React.CSSProperties {
  *  est une décision éditoriale et non un réglage de rendu. */
 function SpecimenHabillage({ gravure, fond }: { gravure: GravureFillion; fond: CleFond }) {
   const f = FONDS[fond]
-  const largeur = Math.round(MESURE_COLONNE * partIllustration('vignette', gravure.largeurImprimee))
+  const largeur = Math.round(MESURE_COLONNE * gravure.part)
   return (
     <div className="ill-reg-scene" style={{ backgroundColor: f.fond }}>
       <div className="ill-reg-colonne">

@@ -31,6 +31,8 @@ import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync } from 
 import { execFileSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
 
+import { MESURE_COLONNE } from './regime-gravure.mjs'
+
 // ── Réglages ─────────────────────────────────────────────────────────────────
 
 /** L'encre de la famille, celle des ornements du site (charte). Elle n'est pas
@@ -138,100 +140,12 @@ async function creuserLesTons(png) {
     .png().toBuffer()
 }
 
-/** La largeur imprimée : une colonne, ou les deux.
- *
- *  La page de Fillion est à DEUX colonnes. Une gravure qui tient dans une
- *  colonne est une vignette, que le commentaire habille ; une gravure qui les
- *  enjambe se pose au fil du texte et rien ne l'habille. Le seuil est donc
- *  au-dessus d'une colonne et au-dessous de deux.
- *
- *  ⛔ MAIS ELLE NE DÉCIDE PLUS SEULE DU RÉGIME. Elle dit la MISE EN PAGE — ce qui
- *  s'habille et ce qui ne s'habille pas — non la NATURE de l'image. Une gravure
- *  large peut être un dessin au trait : voir `estPhotographie`, juste après.
- *
- *  ⚠️ Un premier jet classait sur la part des gris qui bordent le trait. Il
- *  rendait le MÊME partage, mais pour une mauvaise raison : il mesurait les
- *  dégâts de la compression, non la composition de la page. Il sert encore, mais
- *  à ce qu'il sait dire : choisir la source. */
-const LARGEUR_DEUX_COLONNES = 0.6
-
-/** ⛔ C'EST FILLION QUI DIT CE QU'IL IMPRIME.
- *
- *  La largeur seule ne suffit plus. Elle a valu tant que le corpus se réduisait aux
- *  onze gravures de Marc, où « enjambe les deux colonnes » et « photogravure »
- *  coïncidaient. À 155 gravures le partage se défait : le massacre des saints
- *  Innocents d'après un ivoire, un plan du temple d'Hérode, une scène de deuil
- *  d'après une peinture grecque enjambent tous les deux colonnes et sont des
- *  DESSINS AU TRAIT. Les cadrer leur laisse un rectangle de papier gris là où la
- *  page attend de l'encre sur le sien. Sur 35 gravures larges, 18 étaient dans ce
- *  cas.
- *
- *  ⚠️ Aucune mesure de pixel ne les sépare proprement. La TRAME — la part des gris
- *  qui bordent le trait — met les photographies de paysage au milieu des dessins,
- *  faute de traits. Et ce que le détourage rend TRANSPARENT laisse une bande
- *  trouble : les deux photogravures de Marc y rendent 34 %, le boisseau, qui est un
- *  dessin, 50 %, et quatre photographies de Luc et de Jean entre 50 et 59 %.
- *
- *  ⛔ La légende IMPRIMÉE, elle, le dit : Fillion écrit « (D'après une
- *  photographie.) » sous ses photographies, et « (D'après un ivoire) »,
- *  « (Bas-relief romain) », « (Peinture égyptienne) » sous ses dessins. C'est la
- *  source qui tranche, non le pixel — et c'est ce que la charte demande partout
- *  ailleurs.
- *
- *  ⚠️ DEUX gravures du tome VII n'ont aucune légende, et une poignée nomment un
- *  lieu sans dire le procédé (« Tombeaux taillés dans le roc », « Intérieur de
- *  l'église la Nativité »). Elles retombent donc au trait, ce qui est le parti le
- *  moins coûteux : une photographie détourée se voit tout de suite, un dessin cadré
- *  passe inaperçu et laisse un rectangle. */
-function estPhotographie(legende) {
-  return /photograph/i.test(legende ?? '')
-}
-
-/** ⛔ LE RÉGIME SE FORCE PAR LA DONNÉE, dans `metadata.regime`. Deux gravures du
- *  tome VII sont des demi-teintes dont la légende ne nomme qu'un lieu, et le
- *  détourage y écrase les tons. Recopié d'`app/lib/bibleEdition.ts`, où la page
- *  le lit ; `app/lib/partIllustration.test.ts` tient les deux accordés.
- *
- *  ⚠️ La page nomme les régimes, la chaîne les code : on traduit ici, une seule
- *  fois. Une valeur inconnue est ignorée. */
-function regimeForce(metadata) {
-  const v = metadata?.regime
-  return v === 'vignette' ? 'A' : v === 'au-fil' ? 'B' : v === 'hors-texte' ? 'C' : null
-}
-
-/** ⛔ UN FICHIER SE SERT AU DOUBLE DE SA TAILLE D'AFFICHAGE, JAMAIS PLUS
- *  (charte). Au delà, le navigateur réduit une seconde fois derrière nous, et
- *  deux réductions successives moyennent les hachures fines en un gris mou. */
-/** ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, et c'est elle qui décide de
- *  la TAILLE SERVIE, puisqu'un fichier se sert au double de sa taille
- *  d'affichage (charte).
- *
- *  ⚠️ Le premier jet donnait 30 % à toutes les vignettes. Fillion les imprime de
- *  19,8 % à 57,5 % de sa page : la part fixe aplatissait un rapport de 1 à 3 et
- *  jetait, mesuré le 30 août 2026, de 1,6 à 4,7 fois la résolution linéaire de
- *  chaque gravure. C'est la cause de tout ce que l'auteur a relevé.
- *
- *  ⛔ CES QUATRE NOMBRES SONT RECOPIÉS de `app/lib/bibleEdition.ts`, où la page
- *  de lecture les lit. Un script `.mjs` ne peut pas importer le module TypeScript
- *  du site, mais deux copies d'une mesure ne restent égales que par accident : le
- *  test `app/lib/partIllustration.test.ts` compare les deux fichiers et refuse
- *  qu'ils divergent. Même garde que celle qui tient `get_niv1_texte`. */
-const PLANCHER_ILLUSTRATION = 0.36
-const PLAFOND_ILLUSTRATION = 0.88
-const PLAFOND_VIGNETTE = 0.56
-const PART_HORS_TEXTE = PLAFOND_ILLUSTRATION
-const MESURE_COLONNE = 500
-
-const borner = (part) => Math.min(PLAFOND_ILLUSTRATION, Math.max(PLANCHER_ILLUSTRATION, part))
-
-function partIllustration(regime, largeurImprimee) {
-  if (regime === 'C') return borner(PART_HORS_TEXTE)
-  if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
-  // ⛔ Le plafond de la vignette suppose une gravure qui TIENT DANS UNE COLONNE.
-  //    Celle qui enjambe les deux garde la proportion que Fillion lui donne.
-  if (largeurImprimee > LARGEUR_DEUX_COLONNES) return borner(largeurImprimee)
-  return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
-}
+/** ⛔ LE RÉGIME ET LA PART NE SE CALCULENT PLUS ICI : ils sont ÉCRITS dans
+ *  « bible_edition_assets » (colonnes « regime » et « part_colonne ») par la
+ *  règle de « regime-gravure.mjs », et cette chaîne les LIT, comme la page. Un
+ *  fichier ne peut donc plus être fabriqué pour un régime et composé pour un
+ *  autre. La chaîne code encore les régimes A, B, C dans ses rapports. */
+const CODE_DU_REGIME = { 'vignette': 'A', 'au-fil': 'B', 'hors-texte': 'C' }
 
 /** Le DOUBLE de la taille d'affichage, jamais plus : au delà, le navigateur
  *  réduit une seconde fois derrière nous et moyenne les hachures. */
@@ -966,7 +880,7 @@ async function principal() {
 
   const { data, error } = await db
     .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,source_page_index,source_crop_box,web_storage_path,printed_caption,canon_id_start,metadata')
+    .select('asset_key,asset_kind,regime,part_colonne,public_uri,source_page_index,source_crop_box,web_storage_path,printed_caption,canon_id_start,metadata')
     .order('source_page_index')
   if (error) throw new Error(`actifs illisibles : ${error.message}`)
 
@@ -975,27 +889,26 @@ async function principal() {
   for (const a of data) {
     if (SEULEMENT && !SEULEMENT.some(m => a.asset_key.includes(m))) continue
     // ⛔ Une PLANCHE ne se détoure jamais : c'est une page entière du volume,
-    //    avec son filet gravé, sa légende imprimée et son papier.
-    if (a.asset_kind === 'plate') {
+    //    avec son filet gravé, sa légende imprimée et son papier. La base le dit.
+    if (a.regime === 'hors-texte') {
       rapport.push({ cle: a.asset_key, regime: 'C', motif: 'planche pleine page' })
       continue
     }
     const n = normaliserDecoupe(a.source_crop_box)
     if (!n) { rapport.push({ cle: a.asset_key, regime: '?', motif: 'découpe illisible' }); continue }
 
-    // ⛔ LE RÉGIME NE SE LIT PLUS SUR LA SEULE LARGEUR : c'est FILLION qui dit ce
-    //    qu'il imprime. Voir `estPhotographie`. Et la DONNÉE le force quand la
-    //    légende ne dit pas le procédé : voir `regimeForce`.
+    // ⛔ LE RÉGIME ET LA PART SE LISENT DANS LA BASE, où la chaîne les a écrits
+    //    (« inscrire-regime-gravures.mjs », règle dans « regime-gravure.mjs »).
+    //    La page lit les mêmes colonnes : fichier et composition ne divergent plus.
     const largeurImprimee = n[2] - n[0]
-    const force = regimeForce(a.metadata)
-    const regime = force ?? (largeurImprimee > LARGEUR_DEUX_COLONNES && estPhotographie(a.printed_caption)
-      ? 'B' : 'A')
-    const ligne = { cle: a.asset_key, regime, largeurImprimee, tournee: null }
+    const regime = CODE_DU_REGIME[a.regime]
+    if (!regime) { rapport.push({ cle: a.asset_key, regime: '?', motif: `régime inconnu en base : ${a.regime}` }); continue }
+    const ligne = { cle: a.asset_key, regime, largeurImprimee, part: Number(a.part_colonne), tournee: null }
 
     if (FABRIQUER) {
       const feuillet = feuilletJp2(a.source_page_index)
       let r
-      const servie = largeurAServir(partIllustration(regime, largeurImprimee))
+      const servie = largeurAServir(ligne.part)
       if (feuillet && regime === 'B') {
         // ⛔ Une gravure qui ENJAMBE LES DEUX COLONNES imprimées est une
         //    photogravure en ton continu : elle se CADRE, elle ne se détoure pas.

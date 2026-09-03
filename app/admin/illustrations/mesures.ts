@@ -14,7 +14,7 @@ import { createClient } from '@supabase/supabase-js'
 import { FAMILLES, type Famille } from './inventaire'
 import type { EchantillonFamille } from './PlancheIllustrations'
 import type { GravureFillion } from './regimesFillion'
-import { largeurImprimee, regimeIllustration } from '@/app/lib/bibleEdition'
+import { regimeEtPartDeLActif } from '@/app/lib/bibleEdition'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,18 +92,18 @@ export async function releverFamilles(): Promise<EchantillonFamille[]> {
 
 // ── Les gravures de Fillion, rangées par régime de composition ───────────────
 
-/** ⛔ Le régime se DÉRIVE, il n'est pas recopié :  est la
- *  fonction que la page de lecture emploie, et la planche doit montrer ce que la
- *  page FAIT. Un relevé recopié dérive au premier réglage et fait ensuite
- *  autorité contre la page qu'il décrit. */
+/** ⛔ Le régime et la part se LISENT dans la base, où la chaîne d'image les a
+ *  écrits, par la fonction même que la page de lecture emploie : la planche
+ *  doit montrer ce que la page FAIT. Un relevé recopié dérive au premier
+ *  réglage et fait ensuite autorité contre la page qu'il décrit. */
 export async function releverGravuresFillion(): Promise<{
   gravures: GravureFillion[]
   planches: number
-  planche: { url: string; legende: string } | null
+  planche: { url: string; legende: string; part: number } | null
 }> {
   const { data, error } = await supabaseAdmin
     .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,width_px,height_px,source_crop_box,canon_id_start,printed_caption,editorial_caption,metadata')
+    .select('asset_key,asset_kind,public_uri,width_px,height_px,canon_id_start,printed_caption,editorial_caption,regime,part_colonne')
   if (error) throw new Error(`Gravures de Fillion illisibles : ${error.message}`)
   const toutes = data ?? []
 
@@ -116,10 +116,9 @@ export async function releverGravuresFillion(): Promise<{
       url: a.public_uri as string,
       largeur: a.width_px as number,
       hauteur: a.height_px as number,
-      largeurImprimee: largeurImprimee(a.source_crop_box as Parameters<typeof largeurImprimee>[0]),
-      regime: regimeIllustration(a.asset_kind as string, a.source_crop_box as Parameters<typeof regimeIllustration>[1], a.printed_caption as string | null, a.metadata),
+      ...regimeEtPartDeLActif({ asset_key: a.asset_key as string, regime: a.regime, part_colonne: a.part_colonne }),
     }))
-    .sort((a, b) => (b.largeurImprimee ?? 0) - (a.largeurImprimee ?? 0))
+    .sort((a, b) => b.part - a.part)
 
   // Une planche TÉMOIN pour le régime hors-texte. Prise par son rang dans l'ordre
   // des clés, non au hasard : la planche montrée doit être la même d'une visite
@@ -134,6 +133,7 @@ export async function releverGravuresFillion(): Promise<{
       ? {
         url: temoin.public_uri as string,
         legende: (temoin.editorial_caption ?? temoin.printed_caption ?? 'Planche hors-texte') as string,
+        part: regimeEtPartDeLActif({ asset_key: temoin.asset_key as string, regime: temoin.regime, part_colonne: temoin.part_colonne }).part,
       }
       : null,
   }

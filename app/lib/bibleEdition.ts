@@ -392,32 +392,46 @@ export function ancreAppelNoteBible(noteId: string, memberId?: string): string {
 
 /** Les trois façons dont une illustration se compose dans la page.
  *
- *  ⛔ Le régime se lit sur DEUX faits, et il les faut tous les deux : la LARGEUR
- *  IMPRIMÉE et la LÉGENDE. La page de Fillion est à deux colonnes ; une gravure
- *  qui tient dans une colonne est une vignette. Mais une gravure qui les ENJAMBE
- *  n'est une scène que si Fillion l'annonce « (D'après une photographie.) » :
- *  c'est alors une photogravure en ton continu, qui garde son papier et se cadre.
- *  Les autres larges sont des DESSINS AU TRAIT, un ivoire, un bas-relief, un
- *  plan, et se détourent comme n'importe quelle vignette.
+ *  ⛔ LE RÉGIME EST UNE DONNÉE, ÉCRITE PAR LA CHAÎNE D'IMAGE, LUE PAR LA PAGE.
+ *  Il vit dans `bible_edition_assets.regime`, avec la part de colonne dans
+ *  `part_colonne` ; la base n'accepte que ces trois valeurs et refuse leur
+ *  absence. La règle qui les calcule — largeur imprimée, légende de Fillion,
+ *  profil du fichier servi — est dans `scripts/fillion/regime-gravure.mjs`, et
+ *  nulle part ailleurs. ⛔ Aucune borne, aucun seuil de largeur ne doit
+ *  reparaître ici : la page compose ce qu'on lui dit, elle ne décide plus.
  *
- *  ⚠️ La règle a lu la seule largeur jusqu'au 31 août 2026, quand la chaîne
- *  d'image lisait déjà la légende depuis la veille. DIX-NEUF gravures larges au
- *  trait étaient donc fabriquées détourées et composées par la page comme des
- *  photogravures : leur encre ne suivait plus le thème, noire sur le cuir, et
- *  elles étaient servies à 1,43 fois leur taille d'affichage au lieu de deux.
- *
- *  ⚠️ Et la largeur ne sort pas de la règle pour autant. HUIT gravures ÉTROITES
- *  portent « (D'après une photographie.) » : ce sont des gravures sur bois faites
- *  d'après un cliché, non des photogravures, et le détourage leur va. La légende
- *  dit d'où vient le modèle, la largeur dit le procédé ; il faut les deux.
- *
- *  ⚠️ Il se DÉRIVE, il n'est pas encore une colonne de `bible_edition_assets` :
- *  tant qu'aucun arbitrage humain ne le contredit, une donnée dérivée ne peut
- *  pas mentir, quand une colonne recopiée le peut. La colonne viendra le jour où
- *  l'on voudra forcer un cas contre la mesure. */
+ *  ⚠️ Elle les DÉRIVAIT jusqu'au 3 septembre 2026, à chaque affichage, d'une
+ *  copie de ces bornes qu'un test tenait accordée à la chaîne. Cela a cédé deux
+ *  fois : les deux copies ont divergé un jour (dix-neuf gravures larges au trait
+ *  fabriquées détourées et composées comme des photogravures), puis un lot rempli
+ *  par une autre chaîne — 1 Samuel, `plate` posé sur vingt-trois vignettes, la
+ *  largeur imprimée rangée ailleurs — a mis la dérivation en défaut sans qu'aucun
+ *  test le voie : une lyre de monnaie composée en planche hors-texte, au double
+ *  de sa taille. Une décision prise une fois, écrite, et contrainte par la base
+ *  ne peut plus se refaire de travers à chaque lecture. */
 export type RegimeIllustration = 'vignette' | 'au-fil' | 'hors-texte'
 
-const LARGEUR_DEUX_COLONNES = 0.6
+const REGIMES_ILLUSTRATION: readonly string[] = ['vignette', 'au-fil', 'hors-texte']
+
+/** ⛔ Ce que la base garantit, la page le VÉRIFIE au seuil, et s'arrête là : un
+ *  actif sans régime ou sans part ne se compose pas « à peu près », il nomme la
+ *  ligne fautive. C'est le seul endroit où la page regarde ces deux colonnes.
+ *  ⚠️ PostgREST rend un `numeric` en nombre ; on tolère la chaîne par prudence. */
+export function regimeEtPartDeLActif(actif: { asset_key: string; regime: unknown; part_colonne: unknown }): {
+  regime: RegimeIllustration
+  part: number
+} {
+  const { regime } = actif
+  const part = typeof actif.part_colonne === 'string' ? Number(actif.part_colonne) : actif.part_colonne
+  if (typeof regime !== 'string' || !REGIMES_ILLUSTRATION.includes(regime)) {
+    throw new Error(`Illustration ${actif.asset_key} sans régime écrit (${String(regime)}) : la chaîne d'image doit l'inscrire avant qu'elle soit servie.`)
+  }
+  if (typeof part !== 'number' || !Number.isFinite(part) || part <= 0 || part > 1) {
+    throw new Error(`Illustration ${actif.asset_key} sans part de colonne écrite (${String(actif.part_colonne)}).`)
+  }
+  return { regime: regime as RegimeIllustration, part }
+}
+
 
 /** ⛔ SEULE LA VIGNETTE EST DÉTOURÉE. Elle porte son dessin dans la couche ALPHA
  *  et l'encre se repose au rendu, de sorte qu'un seul fichier sert le papier et
@@ -451,67 +465,6 @@ export function estDetouree(regime: RegimeIllustration): boolean {
  *  verset se centrent sur le bloc, mais l'axe, lui, porte aussi la gouttière. */
 export const MESURE_COLONNE = 500
 
-/** ⛔ LA PART DE LA COLONNE SUIT LA LARGEUR IMPRIMÉE, elle n'est pas une constante.
- *
- *  Le premier jet donnait 30 % à TOUTES les vignettes. Or Fillion les imprime de
- *  19,8 % (le boisseau) à 57,5 % de sa page (la scène de deuil) : une même part
- *  aplatit un rapport de 1 à 3, et c'est l'auteur qui l'a vu, gravure par gravure.
- *
- *  ⛔ ET ELLE COMMANDE LA RÉSOLUTION SERVIE, puisqu'un fichier se sert au double
- *  de sa taille d'affichage (charte). Mesuré le 30 août 2026, la part fixe avait
- *  fait perdre à chaque gravure de 1,6 à 4,7 fois sa résolution linéaire :
- *
- *    scène de deuil  1408 → 301 px   4,68×      médecin      986 → 298   3,31×
- *    on met le blé   1220 → 301      4,05×      démoniaque   856 → 297   2,88×
- *    barque          1100 → 299      3,68×      paralytique  837 → 298   2,81×
- *
- *  C'est la cause de tout ce que l'auteur a relevé — « a perdu en qualité »,
- *  « toujours flou », « mériterait d'être agrandi ». Aucun réglage de netteté ne
- *  rend ce qu'une réduction a jeté ; seule la taille servie le rend.
- *
- *  ⚠️ Le PLANCHER n'est pas cosmétique : sous 40 %, une gravure dense cesse d'être
- *  lisible, et la source du boisseau ne fait de toute façon que 486 px. Le PLAFOND
- *  vient de la colonne : au delà, il ne reste plus de mesure au texte. */
-/** ⛔ DEUX BORNES POUR TOUTE ILLUSTRATION, QUEL QUE SOIT SON RÉGIME.
- *
- *  Jusqu'au 30 août 2026, seule la VIGNETTE en avait : une scène valait 0,90 et
- *  une planche 1, deux valeurs fixes qui échappaient à toute borne. La colonne
- *  portait donc des gravures de 200 à 500 px, et les plus grandes écrasaient le
- *  texte qu'elles accompagnent. Le régime donne désormais une part NOMINALE, que
- *  ces deux bornes rabattent — c'est le seul endroit où la taille se décide.
- *
- *  ⚠️ Entre les deux, la part suit toujours la largeur imprimée : ce que les
- *  bornes réduisent, ce sont les extrêmes, non la proportion de Fillion. */
-const PLANCHER_ILLUSTRATION = 0.36
-const PLAFOND_ILLUSTRATION = 0.88
-
-/** Une VIGNETTE tient dans UNE colonne imprimée : elle ne peut pas prendre plus
- *  de la moitié du bloc sans cesser d'être ce qu'elle est. */
-const PLAFOND_VIGNETTE = 0.56
-/** Une PLANCHE hors-texte est une page entière du volume : elle prend le plafond. */
-const PART_HORS_TEXTE = PLAFOND_ILLUSTRATION
-
-function borner(part: number): number {
-  return Math.min(PLAFOND_ILLUSTRATION, Math.max(PLANCHER_ILLUSTRATION, part))
-}
-
-export function partIllustration(
-  regime: RegimeIllustration,
-  largeurImprimee: number | null | undefined,
-): number {
-  // ⛔ Une PLANCHE est une page entière du volume : elle prend le plafond, et sa
-  //    largeur imprimée ne veut rien dire, la découpe étant la page elle-même.
-  if (regime === 'hors-texte') return borner(PART_HORS_TEXTE)
-  if (typeof largeurImprimee !== 'number') return borner(PLANCHER_ILLUSTRATION)
-  // ⛔ LE PLAFOND DE LA VIGNETTE SUPPOSE UNE GRAVURE QUI TIENT DANS UNE COLONNE,
-  //    et c'est ce que dit son commentaire. Une gravure qui enjambe les deux —
-  //    un ivoire, un bas-relief, le plan du temple d'Hérode, une vue photographiée
-  //    — n'est pas une vignette trop grande : c'est une scène, et elle garde la
-  //    proportion que Fillion lui donne.
-  if (largeurImprimee > LARGEUR_DEUX_COLONNES) return borner(largeurImprimee)
-  return borner(Math.min(PLAFOND_VIGNETTE, largeurImprimee))
-}
-
 /** ⛔ UNE VIGNETTE TROP LARGE NE PEUT PAS ÊTRE HABILLÉE : il ne resterait pas
  *  deux cents pixels de texte à côté d'elle, et le justifié s'y creuse de
  *  lézardes — la charte le dit déjà du repère en manchette. Au delà de ce seuil
@@ -525,86 +478,6 @@ const SEUIL_HABILLAGE = 0.45
 
 export function estHabillable(part: number): boolean {
   return part <= SEUIL_HABILLAGE
-}
-
-/** La largeur du fichier à servir : le DOUBLE de la taille d'affichage, jamais
- *  plus (charte). Au delà, le navigateur réduit une seconde fois derrière nous. */
-export function largeurServie(part: number): number {
-  return Math.round(2 * part * MESURE_COLONNE)
-}
-
-/** ⛔ C'est FILLION qui dit ce qu'il imprime, non le pixel. Il écrit « (D'après
- *  une photographie.) » sous ses photogravures, et « (D'après un ivoire) »,
- *  « (Bas-relief romain) », « (Peinture égyptienne) » sous ses dessins.
- *
- *  ⚠️ Deux gravures du tome VII n'ont AUCUNE légende, et une poignée nomment un
- *  lieu sans dire le procédé. Elles retombent donc au trait, ce qui est le parti
- *  le moins coûteux : une photographie détourée se voit tout de suite, un dessin
- *  cadré passe inaperçu et laisse un rectangle de papier gris.
- *
- *  ⚠️ La règle est écrite ICI et dans `scripts/fillion/detourer-gravures.mjs`,
- *  qui ne peut pas importer ce module. `app/lib/partIllustration.test.ts` tient
- *  les deux accordées : c'est leur divergence, du 30 au 31 août 2026, qui a
- *  fabriqué le défaut décrit plus haut. */
-export function estPhotogravure(legendeImprimee: string | null | undefined): boolean {
-  return /photograph/i.test(legendeImprimee ?? '')
-}
-
-/** ⛔ LE RÉGIME SE FORCE PAR LA DONNÉE, et c'est le jour annoncé plus haut.
- *
- *  Deux gravures du tome VII sont des photogravures en demi-teinte dont la
- *  légende ne nomme qu'un lieu — « Intérieur de l'église la Nativité, à
- *  Bethléem. » et « Cour d'une maison de l'Orient. » — si bien que la règle les
- *  détourait. Le détourage d'une demi-teinte écrase ses tons, laisse un bord
- *  rectangulaire et rend une image bruitée : il se VOIT, quand un dessin cadré
- *  passe inaperçu.
- *
- *  ⚠️ Aucune mesure de pixel n'a pu remplacer la légende : ni la trame, ni la
- *  part que le détourage rend transparente. La MASSE du pic de papier les sépare
- *  bien — une demi-teinte rend de 2,7 à 9,2 % de sa surface à deux niveaux du
- *  pic, un bois de 10,4 à 44 % — mais l'écart entre les deux familles n'est que
- *  d'un point, ce qui est trop mince pour trancher seul un corpus qui grandit.
- *  On garde donc la règle et l'on force le cas, ce qui est ce que la donnée sait
- *  faire de mieux : dire ce qu'on a vu.
- *
- *  ⚠️ Une valeur inconnue est IGNORÉE, jamais appliquée : une coquille dans un
- *  champ libre ne doit pas changer la composition d'une page. */
-export function regimeForce(metadata: unknown): RegimeIllustration | null {
-  const v = (metadata as { regime?: unknown } | null)?.regime
-  return v === 'vignette' || v === 'au-fil' || v === 'hors-texte' ? v : null
-}
-
-export function regimeIllustration(
-  assetKind: string,
-  decoupe: { normalized?: unknown; left?: unknown; right?: unknown; page_width_px?: unknown } | null | undefined,
-  legendeImprimee?: string | null,
-  metadata?: unknown,
-): RegimeIllustration {
-  // ⛔ Une PLANCHE ne se compose jamais autrement : c'est une page entière du
-  //    volume, avec son filet gravé, sa légende imprimée et son papier. Aucune
-  //    donnée ne la force : ce n'est pas un jugement, c'est ce qu'elle EST.
-  if (assetKind === 'plate') return 'hors-texte'
-  const force = regimeForce(metadata)
-  if (force) return force
-  const largeur = largeurImprimee(decoupe)
-  if (largeur === null) return 'vignette'
-  return largeur > LARGEUR_DEUX_COLONNES && estPhotogravure(legendeImprimee) ? 'au-fil' : 'vignette'
-}
-
-/** La largeur de la découpe en fraction de la page. ⚠️ `normalized` manque sur
- *  une découpe du corpus : elle se CALCULE des bornes absolues et de la largeur
- *  de page, toutes deux présentes. Ce n'est pas deviner, c'est diviser. */
-export function largeurImprimee(decoupe: {
-  normalized?: unknown; left?: unknown; right?: unknown; page_width_px?: unknown
-} | null | undefined): number | null {
-  if (!decoupe) return null
-  const n = decoupe.normalized
-  if (Array.isArray(n) && n.length === 4 && typeof n[0] === 'number' && typeof n[2] === 'number') {
-    return n[2] - n[0]
-  }
-  const { left, right, page_width_px: page } = decoupe
-  if (typeof left !== 'number' || typeof right !== 'number' || typeof page !== 'number' || !page) return null
-  return (right - left) / page
 }
 
 export type BibleEditionDisplayAsset = {
@@ -624,9 +497,10 @@ export type BibleEditionDisplayAsset = {
   noteId: string | null
   materialOrder: number
   regime: RegimeIllustration
-  /** Part de la PAGE imprimée qu'occupait la gravure, en largeur. C'est elle qui
-   *  décide de la part de colonne, donc de la taille servie. */
-  largeurImprimee: number | null
+  /** Part du BLOC de lecture que la gravure occupe en largeur, de 0,36 à 0,88,
+   *  telle que la chaîne d'image l'a écrite (colonne « part_colonne »). Le fichier
+   *  servi fait le double : la page ne la recalcule pas. */
+  part: number
 }
 
 /** Contrat sérialisable entre la page serveur et le lecteur client. */
@@ -851,7 +725,7 @@ const HAUTEUR_LEGENDE = 37
 const LIGNES_APRES_LE_FLOTTANT = 2
 
 function signesPourHabiller(illustration: BibleEditionDisplayAsset): number {
-  const largeur = partIllustration(illustration.regime, illustration.largeurImprimee) * MESURE_COLONNE
+  const largeur = illustration.part * MESURE_COLONNE
   const hauteur = largeur * (illustration.height / illustration.width)
     + (illustration.caption ? HAUTEUR_LEGENDE : 0)
   const lignes = Math.ceil(hauteur / INTERLIGNE_APPARAT) + LIGNES_APRES_LE_FLOTTANT
@@ -908,7 +782,7 @@ export function habillerLesVignettes(
       const hote = porteur
       if (illustration.regime !== 'vignette' || hote === null) continue
       // ⛔ Trop large, elle ne laisse pas de mesure au texte : elle se centre.
-      if (!estHabillable(partIllustration(illustration.regime, illustration.largeurImprimee))) continue
+      if (!estHabillable(illustration.part)) continue
       // ⛔ Un bloc trop court ne peut pas habiller : le flottant en sortirait par
       //    le bas au lieu d'être contourné. La gravure garde alors son propre axe.
       if (proseDuBloc(hote) < signesPourHabiller(illustration)) continue

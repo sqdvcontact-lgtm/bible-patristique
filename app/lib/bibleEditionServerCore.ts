@@ -174,10 +174,15 @@ export type BibleEditionAssetRow = {
   note_id: string | null
   classification_confidence: string
   requires_review: boolean
-  /** ⛔ Les métadonnées de l'actif, telles quelles : c'est là que vit le régime
-   *  FORCÉ, quand la légende de Fillion ne dit pas le procédé. Elles sont
-   *  validées au rendu (`regimeForce`), pas ici. */
+  /** Les métadonnées de l'actif, telles quelles. ⚠️ « metadata.regime » n'est
+   *  plus qu'une consigne pour la CHAÎNE d'image, qui l'a lue en écrivant la
+   *  colonne « regime » : la page ne la regarde pas. */
   metadata: Record<string, unknown> | null
+  /** ⛔ Le régime de composition et la part de colonne, ÉCRITS par la chaîne
+   *  d'image et contraints par la base (non nuls, trois valeurs). La page les
+   *  lit par « regimeEtPartDeLActif », elle ne les dérive plus. */
+  regime: string
+  part_colonne: number
 }
 
 export type BibleEditionChapterPayload = {

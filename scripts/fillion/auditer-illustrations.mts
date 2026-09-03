@@ -17,9 +17,10 @@ import sharp from 'sharp'
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import {
-  MESURE_COLONNE, estDetouree, estHabillable, largeurImprimee, partIllustration, regimeIllustration,
+  MESURE_COLONNE, estDetouree, estHabillable, regimeEtPartDeLActif,
 } from '../../app/lib/bibleEdition'
 import { rendreRegistre, type Defaut as DefautRegistre, type Gravure } from './registreIllustrations'
+import { largeurImprimee } from './regime-gravure.mjs'
 
 const SERVIS = 'tmp/verif-servis'
 const MASTERS = 'tmp/verif-masters'
@@ -168,7 +169,7 @@ mkdirSync(SERVIS, { recursive: true })
 mkdirSync(MASTERS, { recursive: true })
 
 const { data: actifs } = await db.from('bible_edition_assets')
-  .select('id,asset_key,asset_kind,scope_book_code,source_page_index,source_crop_box,printed_caption,editorial_caption,alt_text,canon_id_start,metadata')
+  .select('id,asset_key,asset_kind,scope_book_code,source_page_index,source_crop_box,printed_caption,editorial_caption,alt_text,canon_id_start,metadata,regime,part_colonne')
   .order('asset_key')
 const { data: fichiers } = await db.from('bible_edition_asset_files')
   .select('asset_id,variant_role,storage_bucket,storage_path,width_px,height_px,byte_size')
@@ -192,9 +193,11 @@ for (const a of actifs!) {
     continue
   }
 
-  const regime = regimeIllustration(a.asset_kind as string, a.source_crop_box as never, a.printed_caption as string | null, a.metadata)
-  const li = largeurImprimee(a.source_crop_box as never)
-  const part = partIllustration(regime, li)
+  // ⛔ Le régime et la part se LISENT dans la base, où la chaîne les a écrits :
+  //    l'audit juge ce que la page compose, il ne le recalcule pas. La largeur
+  //    imprimée ne sert qu'à dire de combien le plancher agrandit la gravure.
+  const { regime, part } = regimeEtPartDeLActif({ asset_key: a.asset_key as string, regime: a.regime, part_colonne: a.part_colonne })
+  const li = largeurImprimee(a.source_crop_box as never, a.metadata)
   const larg = f.web.width_px as number
   const haut = f.web.height_px as number
   const afficheLarg = Math.round(part * MESURE_COLONNE)

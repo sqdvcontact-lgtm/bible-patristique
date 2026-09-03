@@ -57,7 +57,7 @@ Notation éditoriale des sources bibliographiques — **doctrine : charte §29 e
 
 # Le nom d'une personne en trois rubriques (2026-08-24)
 
-Doctrine : charte `parametres.charte_ia`, **§29.2**. Règles de code :
+Doctrine : charte `parametres.charte_ia`, **§29 bis**. Règles de code :
 
 - **Tout passe par `app/lib/nomsPersonnes.ts`** (module pur, 24 tests) : `decouperNom`, `nomAncien`, `nomCollectif`, `composerNom`, `composerNomIndex`, `cleTriNom`, `separerNoms`. ⛔ Ne jamais recomposer un nom ailleurs : c'est ainsi que les formes divergent.
 - **Colonnes** : `auteurs_valeur.prenom`, `.nom_famille`, `.pseudonyme`, toutes nullables, migration `auteurs_valeur_nom_en_rubriques`. ⚠️ La colonne s'appelle **`nom_famille`** parce que `nom` était déjà pris par la forme affichée, alors que `NomStructure.nom` du module EST le nom de famille. Les deux vocabulaires se rencontrent dans un `partiesDe` local, et nulle part ailleurs.
@@ -3623,6 +3623,35 @@ le 2026-08-30, pour la raison déjà donnée à propos de la planche des styles 
 qui rejoue une composition de mémoire dérive au premier réglage, et fait ensuite autorité
 contre la page qu'il décrit.
 
+
+### ⛔ Le régime et la part d'une gravure sont des DONNÉES : la chaîne écrit, la page lit (2026-09-03)
+
+`bible_edition_assets.regime` (`vignette` | `au-fil` | `hors-texte`) et `part_colonne`
+(0,36 à 0,88, part du bloc de lecture de 500 px) sont **NON NULS et contraints par la
+base**. La règle qui les calcule vit dans **`scripts/fillion/regime-gravure.mjs`**, et nulle
+part ailleurs ; la page les lit par `regimeEtPartDeLActif` (`app/lib/bibleEdition.ts`) et
+s'arrête, en nommant l'actif, sur une ligne qui ne les porte pas. ⛔ **Aucune borne, aucun
+seuil de largeur, aucune lecture de légende ne doit reparaître dans `app/`.**
+
+- **Un script qui INSÈRE un actif** prend `regimeEtPart({ assetKind, decoupe, legende, metadata })`
+  et écrit les deux colonnes avec la ligne. La base refuse l'insertion sinon, et c'est voulu.
+- **Un actif qui a déjà un fichier servi** prend le régime que ce fichier RÉALISE,
+  `regimeDuProfil(processing_profile)` : détouré → vignette, cadré → au-fil, planche → hors-texte.
+  Composer autrement que le fichier n'est fabriqué rend un aplat d'encre ou un rectangle de papier.
+- **`scripts/fillion/inscrire-regime-gravures.mjs`** contrôle la base contre la règle
+  (233 actifs, 0 écart le 2026-09-03) ; `--ecrire` inscrit. **`detourer-gravures.mjs`** lit les
+  colonnes et ne dérive plus rien.
+- `metadata.regime` n'est plus qu'une consigne pour la chaîne, lue quand la légende ne dit pas
+  le procédé ; `metadata.composition_regime` (lot de 1 Samuel) n'est lu par rien.
+- La vue `v_bible_edition_assets` expose les deux colonnes ; migration
+  `20260903213000_bible_edition_assets_regime_part_colonne`, contrôle dans `supabase/controles/`.
+
+⚠️ **Pourquoi.** La page dérivait ces valeurs à chaque affichage, d'une copie des bornes tenue
+accordée à la chaîne par un test. Le lot de 1 Samuel, rempli par une autre chaîne (`plate`
+posé sur vingt-trois vignettes, largeur imprimée rangée dans `metadata.source`, dix étiquettes
+libres dans `metadata.composition_regime`), l'a mise en défaut sans qu'aucun test le voie :
+une lyre de monnaie composée en planche hors-texte, au double de sa taille. Le genre de ces
+vingt-trois actifs est corrigé en `illustration`. Doctrine : charte § 35.16.23.
 
 ## La PRÉSENTATION vient de `metadata`, et le rendu n'en sort pas (2026-08-25)
 

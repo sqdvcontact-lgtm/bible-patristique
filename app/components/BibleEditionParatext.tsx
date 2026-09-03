@@ -10,7 +10,6 @@ import {
   type BibleEditionDisplayNote,
   type BibleEditionDisplayTextBlock,
   type StyleCompositionBloc,
-  partIllustration,
   estHabillable,
   estDetouree,
   type IllustrationHabillee,
@@ -538,7 +537,8 @@ function citationSortieDuParagraphe(bloc: BlocTexteBiblique, resolu?: StyleResol
  * ⛔ Une seule composition servait les quarante-trois, à `min(fichier, 760 px)`,
  * centrée et sans traitement de thème : un boisseau romain de trois centimètres
  * y prenait la mesure d'une planche double page, et le Cuir recevait une dalle
- * blanche. Trois régimes désormais, et la largeur imprimée les départage.
+ * blanche. Trois régimes désormais, écrits par la chaîne d'image dans la base
+ * et lus ici tels quels, régime et part de colonne : la page ne décide plus.
  *
  * ⛔ LE FICHIER NE S'AFFICHE PAS, IL DÉCOUPE. Les gravures détourées portent leur
  * dessin dans la couche ALPHA, et la couleur se repose au rendu (charte : « le
@@ -554,7 +554,7 @@ export function IllustrationBible({ illustration, habillage }: {
   habillage?: boolean
 }) {
   const regime = illustration.regime
-  const part = partIllustration(regime, illustration.largeurImprimee)
+  const part = illustration.part
   const detouree = estDetouree(regime)
   // ⛔ Une vignette trop large ne peut pas être habillée : il ne resterait pas
   //    deux cents pixels de texte à côté d'elle. Elle se centre alors.

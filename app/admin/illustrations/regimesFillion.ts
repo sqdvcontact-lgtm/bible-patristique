@@ -2,14 +2,16 @@
 //
 // Ce fichier ne porte que la DOCTRINE : ce que chaque régime est, à quoi il sert,
 // et ce qu'on ne doit pas lui faire. ⛔ Il ne porte AUCUN classement : le régime
-// se DÉRIVE de la largeur imprimée, par `regimeIllustration` (`app/lib/bibleEdition.ts`),
-// et c'est la même fonction qui sert la page de lecture.
+// et la part de colonne sont ÉCRITS dans la base par la chaîne d'image (règle
+// dans `scripts/fillion/regime-gravure.mjs`), et la page de lecture comme la
+// planche les LISENT, par `regimeEtPartDeLActif` (`app/lib/bibleEdition.ts`).
 //
 // ⚠️ Une première version nommait les régimes A, B et C et recopiait un classement
-// mesuré à la main. Les deux sont tombés le 30 août 2026 : le nom parce que la
-// page de lecture en employait un autre, et deux vocabulaires pour une seule
-// chose sont la dérive que ce dépôt paie le plus cher ; le classement parce
-// qu'une valeur recopiée ne peut que s'écarter de ce qu'elle décrit.
+// mesuré à la main ; une deuxième les dérivait au rendu. Les deux sont tombés :
+// le nom parce que la page de lecture en employait un autre, et deux vocabulaires
+// pour une seule chose sont la dérive que ce dépôt paie le plus cher ; la
+// dérivation parce qu'un lot rempli par une autre chaîne (1 Samuel, 31 août 2026)
+// l'a mise en défaut sans qu'aucun test le voie.
 
 import type { RegimeIllustration } from '@/app/lib/bibleEdition'
 
@@ -74,9 +76,9 @@ export type GravureFillion = {
   url: string
   largeur: number
   hauteur: number
-  /** Part de la page imprimée qu'occupait la gravure, en largeur. C'est elle qui
-   *  décide du régime, et la planche la montre pour qu'on puisse en juger. */
-  largeurImprimee: number | null
+  /** Part du bloc de lecture que la gravure occupe, telle que la chaîne d'image
+   *  l'a écrite dans la base ; la planche la montre pour qu'on puisse en juger. */
+  part: number
   regime: RegimeIllustration
 }
 

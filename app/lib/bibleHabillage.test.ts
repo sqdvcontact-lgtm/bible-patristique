@@ -62,7 +62,7 @@ function gravure(
     noteId: null,
     materialOrder: 100,
     regime,
-    largeurImprimee: null,
+    part: 0.36,
   }
 }
 

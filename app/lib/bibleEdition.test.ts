@@ -155,7 +155,7 @@ describe('modèle éditorial biblique', () => {
       printedPage: '90',
       canonIdEnd: null,
       regime: 'vignette' as const,
-      largeurImprimee: null,
+      part: 0.36,
     }
     const index = indexerIllustrations([
       { ...base, id: 'book', assetKey: 'book', placement: 'before', canonIdStart: null, bodyBlockId: null, noteId: null, materialOrder: 10 },

@@ -2487,7 +2487,7 @@ Le nombre de péricopes auxquelles un ouvrage est rattaché, le type d’ouvrage
 Quand aucune étude directe ou de motif satisfaisante n’est identifiée, cette absence est consignée dans la file de révision ; elle n’est jamais masquée par la multiplication de références générales.
 
 
-## 29.2 Le nom d’une personne — nom, prénom, pseudonyme
+## 29 bis. Le nom d’une personne — nom, prénom, pseudonyme
 
 Un nom appartient à quelqu’un, non à chacun de ses livres. Les trois rubriques vivent donc sur la fiche de la personne, dans `auteurs_valeur`, et jamais sur l’ouvrage : les corriger depuis un ouvrage les corrige partout où l’auteur est cité, et une seule fois.
 
@@ -4082,6 +4082,79 @@ where pg_get_expr(p.polqual, p.polrelid) like '%<le drapeau>%';
 Sur `test_only`, la requête rend trois lignes : deux le refusent, une l’exigeait.
 ⛔ Une seule suffit pour qu’aucun état ne soit tenable, et rien ne le signale —
 ni erreur, ni ligne manquante, seulement du texte qui n’arrive pas.
+#### 35.16.23. LE RÉGIME ET LA PART SONT ÉCRITS PAR LA CHAÎNE, LUS PAR LA PAGE (2026-09-03)
+
+**Le constat.** Le corpus portait 233 illustrations, non plus 43, et la page de
+lecture DÉRIVAIT encore le régime de composition et la part de colonne à chaque
+affichage, à partir de trois champs de l'actif : le genre (`asset_kind`), la
+découpe (`source_crop_box`) et la légende imprimée. Cela a tenu tant qu'une seule
+chaîne remplissait ces champs. Le lot de 1 Samuel (25 actifs, chaîne de GPT,
+31 août 2026) posait `plate` sur vingt-trois vignettes — le script de charge
+rangeait en planche tout ce qui n'était ni ornement ni plan —, gardait la largeur
+imprimée dans `metadata.source.crop_width_ratio_of_page`, où rien ne la lisait,
+et portait une catégorisation à dix étiquettes libres (`metadata.composition_regime` :
+« vignette-naturaliste-en-colonne », « figure-en-ligne-large », « cul-de-lampe-decoratif »…)
+que rien ne lisait non plus. La page rangeait donc les vingt-trois en hors-texte :
+une lyre sur une monnaie, imprimée à un cinquième de page, s'affichait à la largeur
+de son fichier, soit le double de la taille prévue, dans un passe-partout, et,
+détourée mais rendue en image opaque, disparaissait sur le Cuir. Sur les 208
+gravures des Évangiles et du Pentateuque, la règle était respectée à quelques
+pixels près : ⚠️ **le hasard des tailles ne venait pas de la règle, mais de ce
+qu'elle se recalculait à chaque lecture sur des champs que chaque lot remplit à
+sa façon.**
+
+**La règle, désormais.** `bible_edition_assets` porte deux colonnes NON NULLES et
+contraintes par la base : `regime`, parmi `vignette`, `au-fil` et `hors-texte`, et
+`part_colonne`, la part du bloc de lecture (500 px) que la gravure occupe, de 0,36
+à 0,88. ⛔ **C'est la chaîne qui les écrit, une fois, et la page qui les lit.**
+
+- la règle vit dans **`scripts/fillion/regime-gravure.mjs`**, et nulle part
+  ailleurs : la largeur imprimée (boîte normalisée, ou bornes absolues et largeur
+  de page, ou rapport rangé dans les métadonnées de 1 Samuel), la légende de
+  Fillion (« photographie » ou non), le régime forcé de `metadata.regime`, et les
+  bornes 0,36 · 0,56 · 0,88. Vitest l'éprouve (`regime-gravure.test.mjs`) ;
+- un actif **qui a déjà un fichier servi** prend le régime que ce fichier RÉALISE,
+  lu sur son profil de traitement : détouré → vignette (masque, encre reposée au
+  rendu), cadré → au-fil (opaque, papier gardé), planche → hors-texte. Composer
+  autrement que le fichier n'est fabriqué rend un aplat d'encre ou un rectangle de
+  papier. Deux photogravures de 1 Samuel sans « photographie » dans leur légende
+  n'existent que par leur fichier ;
+- un actif **nouveau** prend la règle de la largeur imprimée et de la légende ;
+  les scripts de charge l'obtiennent par `regimeEtPart(...)` et l'insèrent avec
+  l'actif. ⛔ **Un script qui l'oublie échoue à l'insertion, et c'est voulu** ;
+- `scripts/fillion/inscrire-regime-gravures.mjs` recalcule les deux valeurs par la
+  règle et dit où la base s'en écarte (`--ecrire` pour inscrire). Contrôle du
+  3 septembre 2026 : 233 actifs, 0 écart ;
+- la page lit les deux colonnes par `regimeEtPartDeLActif` (`app/lib/bibleEdition.ts`)
+  et **s'arrête** sur un actif qui ne les porte pas, en le nommant. ⛔ Aucune
+  borne, aucun seuil de largeur, aucune lecture de légende ne doit reparaître dans
+  `app/` ; la chaîne d'image (`detourer-gravures.mjs`) lit les mêmes colonnes, si
+  bien qu'un fichier ne peut plus être fabriqué pour un régime et composé pour un
+  autre ;
+- ⛔ **toute chaîne d'import, GPT compris, écrit ces deux colonnes dans CE
+  vocabulaire.** `metadata.composition_regime` et `metadata.regime` ne sont plus
+  lus par la page ; le second reste une consigne pour la chaîne quand la légende
+  ne dit pas le procédé.
+
+**Ce que la taille n'est pas.** Une catégorie de CONTENU (objet, scène, vue, plan)
+ne décide pas de la taille : c'est Fillion qui l'a décidée, par la largeur qu'il a
+donnée à chaque gravure — le boisseau à un cinquième de page, la scène de deuil à
+plus de la moitié. Une classe par sujet aplatirait ce rapport, et c'est ce que le
+premier jet à 30 % faisait (§ 35.16.5).
+
+**Corrigé le même jour.** Le genre des vingt-trois « planches » de 1 Samuel est
+`illustration` ; leurs régimes et parts sont écrits ; la migration
+`20260903213000_bible_edition_assets_regime_part_colonne` et son contrôle
+(`supabase/controles/`) les portent, et la vue `v_bible_edition_assets` expose les
+deux colonnes.
+
+⚠️ **Décision en attente de l'auteur** : si, sur Matthieu ou Luc, les tailles
+paraissent encore hasardeuses, ce n'est plus un défaut de données mais la règle
+continue elle-même (deux gravures voisines à 59 et 61 % de page sortent à 56 et
+61 % de colonne). Cinq paliers fixes — 36, 45, 56, 70, 88 % — rendraient les
+tailles intentionnelles en gardant l'ordre de Fillion, au prix d'une refabrication
+des fichiers dont le palier monte. À juger sur 1 Samuel corrigé.
+
 ### 35.17. L'ÉCHELLE DES BLANCS — un blanc ne dit que son RAPPORT aux autres
 
 Mesurée dans la page rendue le 30 août 2026, la hiérarchie de la Bible commentée ne se lisait pas, et c'est le BLANC qui manquait à la dire. Les six rangs de titre tenaient tous entre 33 et 56 pixels, et l'ordre y était ROMPU deux fois : la sous-section (T4) recevait 33 px, c'est-à-dire exactement autant qu'un simple changement d'unité de commentaire et moins que la péricope (T6) qu'elle domine ; « Première partie », la plus haute division du livre, en recevait 53, moins que « Livre I » qui lui est subordonné. Six rangs dans un mouchoir, et deux inversés.
