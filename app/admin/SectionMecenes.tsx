@@ -46,6 +46,7 @@ type Compte = {
 
 /** Ce que la route dit de la liaison avec PayPal. Voir app/lib/mecenesServeur.ts. */
 type Reception = {
+  voie: 'ipn' | 'webhook' | null
   configuree: boolean
   derniereLe: string | null
   joursDepuis: number | null
@@ -336,10 +337,10 @@ function BandeauReception({ etat }: { etat: Reception }) {
         border: '1px solid var(--cs-bord)',
       }}>
         <strong>Réception automatique éteinte.</strong> Les dons ne s’inscrivent pas seuls : il faut
-        les porter à la main ci-dessous. Pour l’allumer, posez dans l’hébergeur les trois clés de
-        votre application PayPal (<code>PAYPAL_CLIENT_ID</code>, <code>PAYPAL_CLIENT_SECRET</code>,
-        <code>PAYPAL_WEBHOOK_ID</code>) et déclarez chez PayPal l’adresse de notification
-        <code> /api/paypal/webhook</code>.
+        les porter à la main ci-dessous. Pour l’allumer, posez dans l’hébergeur la variable{' '}
+        <code>PAYPAL_RECEVEUR</code> — l’adresse du compte PayPal qui reçoit les dons — puis
+        déclarez cette adresse dans vos réglages PayPal, à la rubrique « Notification instantanée
+        de paiement » : <code>https://corpus-scriptura.fr/api/paypal/ipn</code>.
       </p>
     )
   }
@@ -351,7 +352,9 @@ function BandeauReception({ etat }: { etat: Reception }) {
       background: 'rgba(var(--cs-vert-rgb),0.07)',
       border: '1px solid var(--cs-vert-pale)',
     }}>
-      <strong style={{ color: 'var(--cs-vert-fonce)' }}>Réception automatique branchée.</strong>{' '}
+      <strong style={{ color: 'var(--cs-vert-fonce)' }}>
+        Réception automatique branchée{etat.voie === 'ipn' ? ' (IPN)' : etat.voie === 'webhook' ? ' (webhook)' : ''}.
+      </strong>{' '}
       {etat.derniereLe ? (
         <>
           Dernière notification de PayPal le {etat.derniereLe}

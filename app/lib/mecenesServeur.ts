@@ -66,7 +66,9 @@ export async function noterLaNotification(sb: SupabaseClient, type: string): Pro
 
 /** Ce que l'administration affiche de la réception automatique. */
 export type EtatReception = {
-  /** Les trois clés de PayPal sont-elles posées dans l'environnement. */
+  /** La voie armée, ou null si aucune ne l'est. Voir `voieDeReception`. */
+  voie: VoieReception
+  /** Vrai dès qu'une voie est armée. */
   configuree: boolean
   /** Le jour de la dernière notification vérifiée, ou null si aucune n'est venue. */
   derniereLe: string | null
@@ -85,18 +87,53 @@ export async function lireEtatReception(sb: SupabaseClient, maintenant = new Dat
   const date = horodatage ? new Date(horodatage) : null
   const lisible = date && !Number.isNaN(date.getTime()) ? date : null
   return {
-    configuree: paypalConfigure(),
+    voie: voieDeReception(),
+    configuree: voieDeReception() !== null,
     derniereLe: lisible ? lisible.toISOString().slice(0, 10) : null,
     joursDepuis: lisible ? Math.floor((maintenant.getTime() - lisible.getTime()) / 86_400_000) : null,
     dernierType: reste.join(' ') || null,
   }
 }
 
-/** Les trois clés sans lesquelles aucune notification ne peut être vérifiée. */
+/** Par où les dons arrivent seuls. Voir les deux routes d'`app/api/paypal/`. */
+export type VoieReception = 'ipn' | 'webhook' | null
+
+/**
+ * Les trois clés du WEBHOOK, sans lesquelles sa signature ne peut être vérifiée.
+ *
+ * ⚠️ Le webhook exige un compte PayPal Business (constaté le 3 septembre 2026 : le
+ * tableau de bord refuse l'onglet « Live » à un compte personnel). La route reste
+ * écrite et dort ; c'est l'IPN qui sert.
+ */
 export function paypalConfigure(): boolean {
   return Boolean(
     process.env.PAYPAL_CLIENT_ID &&
     process.env.PAYPAL_CLIENT_SECRET &&
     process.env.PAYPAL_WEBHOOK_ID,
   )
+}
+
+/**
+ * L'IPN, qui ne demande AUCUNE clé : PayPal valide son propre message en le recevant en
+ * retour. La seule chose à renseigner est l'adresse qui REÇOIT les dons, et elle n'est
+ * pas un secret.
+ *
+ * ⛔ Sans elle, on ne peut pas contrôler qu'un message authentique m'était bien destiné,
+ * et la réception reste éteinte plutôt que d'accepter ce qu'elle ne sait pas juger.
+ */
+export function ipnConfigure(): boolean {
+  return Boolean((process.env.PAYPAL_RECEVEUR ?? '').trim())
+}
+
+/**
+ * La voie armée.
+ *
+ * ⚠️ L'IPN passe d'abord : quand les deux sont montées, c'est lui qui porte les dons
+ * d'un compte personnel, et son message est le plus complet — il nomme le donateur sans
+ * qu'on aille chercher la commande.
+ */
+export function voieDeReception(): VoieReception {
+  if (ipnConfigure()) return 'ipn'
+  if (paypalConfigure()) return 'webhook'
+  return null
 }
