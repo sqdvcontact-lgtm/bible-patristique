@@ -1,11 +1,66 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { Message } from './registre'
 
-const TITRE = 'Références imprimées : conserver la forme source ou normaliser l’affichage ?'
-const EXEMPLE = 'Jérôme, Commentaire sur Jonas, note 1 : « Référence imprimée : IV Reg. XIV, 23 et seqq. » Ailleurs, la même fonction apparaît sous une forme normalisée, par exemple « Lv 13, 5. » ; chez Jean Chrysostome, on rencontre même « Ps 46, 7 ; Ps. 46, 7. » pour le même verset.'
-const QUESTION = 'Pour la future charte des notes, faut-il distinguer systématiquement deux niveaux : (1) la transcription fidèle de la référence telle qu’elle est imprimée dans l’édition source, conservée comme donnée documentaire ; (2) une référence biblique normalisée propre à Corpus Scriptura pour l’affichage, la recherche et les liens ? Si oui, laquelle doit être visible par défaut au lecteur ?'
+type Question = {
+  id: string
+  exemple: string
+  question: string
+}
+
+const QUESTIONS: Question[] = [
+  {
+    id: 'forme-reference-source',
+    exemple: 'Référence imprimée : IV Reg. XIV, 23 et seqq.',
+    question: 'Faut-il conserver cette forme imprimée à l’affichage, ou afficher une référence biblique normalisée ?',
+  },
+  {
+    id: 'prefixe-reference-imprimee',
+    exemple: 'Référence imprimée : Joan. XII, 28.',
+    question: 'Faut-il conserver le préfixe « Référence imprimée : » dans le texte de la note ?',
+  },
+  {
+    id: 'sigles-chiffres-romains',
+    exemple: 'Référence imprimée : Ps. LXXII, 27.',
+    question: 'Faut-il normaliser systématiquement les sigles et les chiffres romains des références bibliques ?',
+  },
+  {
+    id: 'ponctuation-finale-reference',
+    exemple: 'Référence imprimée : He 10, 28-29',
+    question: 'Faut-il imposer une ponctuation finale aux notes constituées uniquement d’une référence ?',
+  },
+  {
+    id: 'abreviations-bibliographiques',
+    exemple: 'Cf. Joh. Sarisberiensis, Polycrat. ; Bruno, Comm. in Consol. philos. (coll. Ang. Maï) ; Glareanus, Præf. ad édit. Basil., 1570 ; Hug. Grotins, Præf. ad hist. Gothor., Vandal. et Longob. ; Brucker, Hist. crit. philos.',
+    question: 'Faut-il normaliser les abréviations bibliographiques dans les notes anciennes ?',
+  },
+  {
+    id: 'orthographe-historique',
+    exemple: 'L’orateur parle ici du système de Straton de Lampsaque, disciple d’Aristote. Suivant ce philosophe, les élémens du monde étoient animés, et avoient en eux un principe de mouvement, dont il étoit résulté, sans aucun concours d’une intelligence suprême, un monde et des êtres tels que nous les voyons. Son système avoit quelque rapport avec celui des atomes d’Epicure dont il est parlé ensuite ; mais il n’étoit pas tout-à-fait le même.',
+    question: 'Faut-il conserver l’orthographe historique des notes lorsqu’elle est clairement attestée ?',
+  },
+  {
+    id: 'points-suspension',
+    exemple: 'Il en est qui supposent… Tels que Démocrite et d’autres philosophes.',
+    question: 'Faut-il conserver les points de suspension de l’édition, ou les normaliser selon leur fonction ?',
+  },
+  {
+    id: 'apparat-critique',
+    exemple: '2 Magnus es — tua et sapi|| minio depicta S.',
+    question: 'L’apparat critique doit-il suivre des règles de normalisation distinctes des autres notes ?',
+  },
+  {
+    id: 'citation-traduction',
+    exemple: '« In scriptis, quod verum est, ex proximo sumendum, quum id et non explicant. »',
+    question: 'Les citations latines dans les notes doivent-elles être distinguées structurellement du commentaire et de leur traduction ?',
+  },
+  {
+    id: 'reference-incomplete',
+    exemple: 'Référence imprimée : 4.',
+    question: 'Comment faut-il traiter une référence imprimée manifestement incomplète ou ambiguë ?',
+  },
+]
 
 function dateHeure(iso: string | null): string {
   if (!iso) return ''
@@ -81,16 +136,16 @@ export default function RegistreNotes({
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
 
-  const contexte = useMemo(() => [
-    `Proposition : ${TITRE}`,
-    '',
-    `Exemple relevé : ${EXEMPLE}`,
-    '',
-    `Question : ${QUESTION}`,
-    ...(instructions.length ? ['', 'Instructions de l’auteur du site :', ...instructions.map((m, i) => `${i + 1}. ${m.texte}`)] : []),
-    '',
-    'Réponds à ce point précis en vue de fixer une règle de la charte des notes.',
-  ].join('\n'), [instructions])
+  function contexteQuestion(item: Question) {
+    return [
+      `Exemple : ${item.exemple}`,
+      '',
+      `Question : ${item.question}`,
+      ...(instructions.length ? ['', 'Instructions de l’auteur du site :', ...instructions.map((m, i) => `${i + 1}. ${m.texte}`)] : []),
+      '',
+      'Réponds uniquement à cette question en vue de fixer une règle de la charte des notes.',
+    ].join('\n')
+  }
 
   async function enregistrer(champ: 'instructionsGenerales' | 'reponsesGenerales', messages: Message[]) {
     const avantInstructions = instructions
@@ -127,8 +182,8 @@ export default function RegistreNotes({
         <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '2rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 8px' }}>Propositions de GPT</h1>
         <p style={{ maxWidth: '44rem', margin: '0 0 12px', fontSize: '0.875rem', lineHeight: 1.6, color: 'var(--cs-texte-second)' }}>Questions éditoriales à instruire avant de les transformer en normes de Corpus Scriptura.</p>
         <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', fontSize: '0.8125rem', color: 'var(--cs-texte-second)' }}>
-          <span><strong style={{ color: 'var(--cs-texte-fort)' }}>1</strong> proposition</span>
-          <span><strong style={{ color: 'var(--cs-texte-fort)' }}>1</strong> à arbitrer</span>
+          <span><strong style={{ color: 'var(--cs-texte-fort)' }}>{QUESTIONS.length}</strong> propositions</span>
+          <span><strong style={{ color: 'var(--cs-texte-fort)' }}>{QUESTIONS.length}</strong> à arbitrer</span>
           <span><strong style={{ color: 'var(--cs-texte-fort)' }}>{instructions.length}</strong> instruction{instructions.length > 1 ? 's' : ''}</span>
           <span><strong style={{ color: 'var(--cs-texte-fort)' }}>{reponses.length}</strong> réponse{reponses.length > 1 ? 's' : ''} de GPT</span>
           <span style={{ marginLeft: 'auto', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{envoi ? 'Enregistrement…' : majLe ? `Enregistré le ${dateHeure(majLe)}` : 'Rien d’enregistré'}</span>
@@ -140,31 +195,26 @@ export default function RegistreNotes({
         <h2 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 600, color: 'var(--cs-encre)' }}>Charte des notes</h2>
         <p style={{ margin: '0 0 12px', fontSize: '0.75rem', color: 'var(--cs-texte-doux)' }}>Échantillon transversal du 3 septembre 2026</p>
 
-        <article style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderLeft: '3px solid var(--cs-texte-doux)', borderRadius: '8px', padding: '16px 18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start', marginBottom: '10px' }}>
-            <h3 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{TITRE}</h3>
-            <span style={{ flex: '0 0 auto', border: '1px solid var(--cs-texte-doux)', borderRadius: '999px', padding: '3px 8px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)' }}>À arbitrer</span>
-          </div>
+        <div style={{ display: 'grid', gap: '12px' }}>
+          {QUESTIONS.map((item, index) => (
+            <article key={item.id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderLeft: '3px solid var(--cs-texte-doux)', borderRadius: '8px', padding: '15px 18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)' }}>{index + 1}</span>
+                <span style={{ flex: '0 0 auto', border: '1px solid var(--cs-texte-doux)', borderRadius: '999px', padding: '3px 8px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)' }}>À arbitrer</span>
+              </div>
+              <p style={{ margin: '10px 0 12px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', lineHeight: 1.65, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>{item.exemple}</p>
+              <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: 1.65, color: 'var(--cs-encre)' }}>{item.question}</p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                <button type="button" onClick={() => navigator.clipboard.writeText(contexteQuestion(item))} style={{ border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'transparent', color: 'var(--cs-texte-second)', padding: '4px 10px', fontSize: '0.6875rem', cursor: 'pointer' }}>Copier pour GPT</button>
+              </div>
+            </article>
+          ))}
+        </div>
 
-          <div style={{ margin: '12px 0', padding: '11px 13px', background: 'var(--cs-fond)', borderRadius: '6px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>Exemple</p>
-            <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: 1.65, color: 'var(--cs-texte-fort)' }}>{EXEMPLE}</p>
-          </div>
-
-          <div style={{ margin: '12px 0 18px' }}>
-            <p style={{ margin: '0 0 4px', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>Question</p>
-            <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: 1.65, color: 'var(--cs-texte-fort)' }}>{QUESTION}</p>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '14px' }}>
-            <button type="button" onClick={() => navigator.clipboard.writeText(contexte)} style={{ border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'transparent', color: 'var(--cs-texte-second)', padding: '4px 10px', fontSize: '0.6875rem', cursor: 'pointer' }}>Copier pour GPT</button>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))', gap: '18px', paddingTop: '14px', borderTop: '1px solid var(--cs-bord-clair)' }}>
-            <ColonneMessages titre="Mes instructions" messages={instructions} onChanger={m => enregistrer('instructionsGenerales', m)} envoi={envoi} placeholder="Une instruction…" />
-            <ColonneMessages titre="Réponses de GPT" messages={reponses} onChanger={m => enregistrer('reponsesGenerales', m)} envoi={envoi} placeholder="La réponse de GPT…" />
-          </div>
-        </article>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))', gap: '18px', marginTop: '18px', padding: '16px 18px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px' }}>
+          <ColonneMessages titre="Mes instructions" messages={instructions} onChanger={m => enregistrer('instructionsGenerales', m)} envoi={envoi} placeholder="Une instruction…" />
+          <ColonneMessages titre="Réponses de GPT" messages={reponses} onChanger={m => enregistrer('reponsesGenerales', m)} envoi={envoi} placeholder="La réponse de GPT…" />
+        </div>
       </section>
     </main>
   )
