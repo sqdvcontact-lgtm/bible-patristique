@@ -8,7 +8,7 @@
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { urlLectureBible } from '@/app/lib/bibleNavigation'
+import { chapitreSuivantDisponible, urlLectureBible } from '@/app/lib/bibleNavigation'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 import SelecteurTraductionBible from './SelecteurTraductionBible'
 
@@ -40,6 +40,7 @@ export default function LectureBilingueBible({
   const allerAuChapitre = (chapitre: number) => {
     naviguer(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
   }
+  const aChapitreSuivant = chapitreSuivantDisponible(livreActif, chapitreActif)
   const fleche = {
     color: 'var(--cs-texte-faible)', fontSize: '1.25rem', lineHeight: 1, background: 'none',
     border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s',
@@ -79,7 +80,11 @@ export default function LectureBilingueBible({
                   redevient pas vert parce que le texte passe en deux colonnes. */}
               <span style={{ fontSize: '1.0625rem', color: 'var(--cs-mention)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
             </h1>
-            <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={fleche} title="Chapitre suivant">›</button>
+            {aChapitreSuivant ? (
+              <button onClick={() => allerAuChapitre(chapitreActif + 1)} className="nav-chap-arrow" style={fleche} title="Chapitre suivant">›</button>
+            ) : (
+              <span aria-hidden style={{ color: 'var(--cs-bord)', fontSize: '1.25rem', lineHeight: 1 }}>›</span>
+            )}
           </div>
           <div />
         </div>
