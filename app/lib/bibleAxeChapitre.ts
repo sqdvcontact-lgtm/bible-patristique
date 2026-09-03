@@ -36,12 +36,26 @@ export function blocInsereDansChapitre(
 
 /**
  * Calcule la hiérarchie HTML sur ce qui atteint réellement l'axe de lecture du
- * chapitre. Les rangs typographiques T1-T6 restent ceux de la donnée ; seule la
- * profondeur HTML est rebasée sur les titres effectivement présents à l'écran.
+ * chapitre.
+ *
+ * ⛔ Le `h1` appartient DÉJÀ à la page : « Genèse ❧ Chapitre 25 », rendu par
+ * `TexteBible` comme par `LectureBilingueBible`. Les titres de l'apparat sont
+ * donc des descendants de ce titre de page et commencent à `h2`. Avant cette
+ * translation, la Genèse rendait 77 `h1` éditoriaux en plus des 50 `h1` de
+ * chapitre, alors que `PieceLiminaire` appliquait déjà explicitement la règle
+ * inverse à son propre titre.
+ *
+ * Les rangs typographiques T1-T6 restent ceux de la donnée et leurs classes CSS
+ * ne changent pas : seule la BALISE du document descend d'un cran. `h6` reste le
+ * plafond HTML si une hiérarchie relative atteint déjà six niveaux.
  */
 export function baliserBlocsDuChapitre(
   blocs: readonly BlocAxeChapitre[],
   bornes: BornesOrdreChapitre,
 ): Map<string, 1 | 2 | 3 | 4 | 5 | 6> {
-  return baliserBlocs(blocs.filter((bloc) => blocInsereDansChapitre(bloc, bornes)))
+  const relatifs = baliserBlocs(blocs.filter((bloc) => blocInsereDansChapitre(bloc, bornes)))
+  return new Map([...relatifs].map(([id, niveau]) => [
+    id,
+    Math.min(6, niveau + 1) as 1 | 2 | 3 | 4 | 5 | 6,
+  ]))
 }
