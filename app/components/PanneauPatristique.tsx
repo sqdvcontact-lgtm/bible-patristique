@@ -810,13 +810,17 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
 
 // ── Panneau principal ─────────────────────────────────────────────────────────
 export default function PanneauPatristique({
-  verset, livreActif, nomLivre, chapitreActif,
+  verset, livreActif, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
   voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   plage, refAffichee,
 }: {
   verset: Verset | null
   livreActif: string
+  /** ⚠️ Reçu mais PLUS AFFICHÉ : l'en-tête ne redit plus « Genèse 13, 5 », que la
+   *  colonne de lecture porte déjà (2026-09-04, voir `refFr`). La propriété reste,
+   *  les appelants la donnant tous, et l'en-tête pouvant la reprendre le jour où
+   *  le volet se lirait ailleurs qu'à côté du texte. */
   nomLivre: string
   chapitreActif: number
   panelWidth?: number | null
@@ -1178,8 +1182,19 @@ export default function PanneauPatristique({
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
   const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsGroupes.length)
   const itemsPage = itemsGroupes.slice(debutItems, finItems)
-  const refFr = refAffichee ?? (verset ? `${nomLivre} ${chapitreActif}, ${verset.verset}`
-    : modeChapitre ? `${nomLivre} ${chapitreActif}` : null)
+  // ── L'EN-TÊTE NE REDIT PLUS LA RÉFÉRENCE QU'ON LIT ──────────────────────────
+  //
+  // ⛔ « Genèse 13, 5 » en tête du volet de droite est parti (2026-09-04, demande de
+  // l'auteur : « supprimer cette indication redondante »). Le volet commente le verset
+  // qu'on vient de désigner d'un clic, à trois centimètres de là, dans une colonne qui
+  // porte déjà le nom du livre, le numéro du chapitre et le verset en surbrillance :
+  // la ligne ne disait rien que l'écran ne montrât.
+  //
+  // ⚠️ `refAffichee` RESTE, et c'est autre chose : la page d'une péricope donne au
+  // volet une PLAGE canonique (« Gn 12, 1-9 ») que rien d'autre n'écrit à l'écran.
+  // Une référence qu'on reçoit se montre ; une référence qu'on déduit de ce qu'on
+  // affiche déjà ne se montre pas.
+  const refFr = refAffichee ?? null
 
   if (!ouvert) {
     // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
@@ -1253,7 +1268,10 @@ export default function PanneauPatristique({
         />
       )}
 
-      {/* En-tête */}
+      {/* En-tête. ⚠️ Il ne paraît QUE s'il a quelque chose à porter — une référence
+          reçue, ou la flèche de repli : vidé de la référence déduite, il ne laissait
+          qu'une bande de 38 px et son filet en haut du volet. */}
+      {(refFr || presentation !== 'inline') && (
       <div style={{ position:'relative', borderBottom:'1px solid var(--cs-bord)', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
         {/* Flèche « réduire » inutile en mode onglets (mobile) ; gardée pour desktop. */}
         {presentation !== 'inline' && (
@@ -1270,6 +1288,7 @@ export default function PanneauPatristique({
           </h2>
         )}
       </div>
+      )}
 
       {verset || modeChapitre ? (
         <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>

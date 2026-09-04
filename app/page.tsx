@@ -135,7 +135,7 @@ export default async function Home({
   // et 744 Ko avant, 73 ms et 26 Ko après.
   const canonPromis = canonDuChapitre(supabase, livre, chapitre)
     .catch(() => ({ lignes: [] as Awaited<ReturnType<typeof canonDuChapitre>>['lignes'], bornes: null }))
-  const [catalog, editionCatalog, { data: rawTranslations }, tradProfil] = await Promise.all([
+  const [catalog, editionCatalog, { data: rawTranslations }, { data: rawEditions }, tradProfil] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `date_publication` = la ligne d'édition
@@ -152,6 +152,15 @@ export default async function Home({
     // pour la Cité de Dieu…), à laquelle renvoie `oeuvres.trad_id`. Un sélecteur de
     // traduction BIBLIQUE ne montre que ce qui en est.
     supabase.from('traductions').select('trad_id, nom, auteur, dates, date_publication').eq('est_biblique', true).order('ordre', { ascending: true }),
+    // ⚠️ LE LIEU ET L’ÉDITEUR de l’édition servie, pour la phrase de la carte
+    // (« D’après l’édition de Paris, Letouzey et Ané, 1888-1904 » — demande de
+    // l’auteur, 2026-09-04). Ils vivent dans `editions_sources`, une table de sept
+    // lignes : elle part dans la MÊME vague que les autres et ne coûte pas un
+    // aller-retour de plus. ⛔ Pas de jointure par `v_traductions_page` : la vue
+    // ne porte pas `est_biblique`, sur quoi le sélecteur de bibles se filtre, et
+    // elle traîne la notice éditoriale entière — deux kilo-octets par bible, à
+    // chaque chapitre ouvert, pour deux mots.
+    supabase.from('editions_sources').select('trad_id, lieu_edition, editeur'),
     // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
     // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
     // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.
@@ -173,8 +182,20 @@ export default async function Home({
     // l'on sait qu'elle sert, coûterait une vague entière.
     canonDuChapitre(supabase, livre, chapitre),
   ])
+  // L'adresse de l'édition servie, rangée par bible. ⚠️ Une bible sans fiche
+  // d'édition n'a pas d'adresse : la phrase de la carte se compose alors avec les
+  // seules dates, et son séparateur part avec le champ absent.
+  const adressesEdition = new Map(
+    ((rawEditions ?? []) as { trad_id: string; lieu_edition: string | null; editeur: string | null }[])
+      .map(e => [e.trad_id, e]),
+  )
   const toutesTraductions = (rawTranslations || [])
-    .map(t => ({ code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null, datePublication: t.date_publication }))
+    .map(t => ({
+      code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null,
+      datePublication: t.date_publication,
+      lieuEdition: adressesEdition.get(t.trad_id)?.lieu_edition ?? null,
+      editeur: adressesEdition.get(t.trad_id)?.editeur ?? null,
+    }))
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0

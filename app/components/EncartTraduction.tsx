@@ -17,6 +17,14 @@
 // millésimes dans un volet de 250 pixels. Il vit dans la fiche « En savoir plus »,
 // que le nom de la bible ouvre.
 //
+// ⚠️ ELLE EN PORTE DÉSORMAIS L'ADRESSE — le lieu, l'éditeur, les dates (demande de
+// l'auteur, 2026-09-04 : « doit mentionner l'éditeur, le lieu d'édition et les dates
+// d'édition »). C'est la forme normative du libellé court d'édition, `Ville,
+// éditeur, année` (charte § 5), et non le relevé des tomes qui avait été chassé : la
+// phrase reste une phrase, de trois mentions au plus. ⛔ Le lieu et l'éditeur ne se
+// devinent pas du nom de la bible : ils viennent d'`editions_sources`, chargés par
+// `app/page.tsx`, et un champ absent emporte son séparateur.
+//
 // ⛔ IL N'Y A PLUS DE REPÈRES — la langue, la confession et l'année alignées derrière
 // des points médians (2026-09-03, demande de l'auteur : « remplace-le par un texte
 // propre, comme celui qu'on trouve sur la page de titre des livres »). Ils disaient en
@@ -88,13 +96,17 @@ export type TraductionEncart = {
   auteur?: string | null
   auteurDates?: string | null
   datePublication?: string | null
+  /** Le lieu et l'éditeur de l'édition servie (`editions_sources`). La phrase
+   *  d'édition les nomme devant les dates — voir `libelleEditionTraduction`. */
+  lieuEdition?: string | null
+  editeur?: string | null
 }
 
 export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
-  const edition = libelleEditionTraduction(trad.datePublication)
+  const edition = libelleEditionTraduction(trad)
   return (
     // ⚠️ Plus de `minHeight` : la carte valait 6,75 rem pour ne jamais faire bouger
     // la mise en page, ce qui laissait un blanc de deux lignes dès que la référence
@@ -112,6 +124,8 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
           traduction », mesuré le 30 août à 218 pixels de volet, qui appelait ce
           dispositif ; il est parti avec lui, et le seuil de 230 dans globals.css
           avec les deux. */}
+      {/* ⚠️ Une FLÈCHE COURTE suit le nom, et c'est elle qui annonce la fiche
+          (2026-09-04) : elle vit dans `NomVolet`, avec sa raison. */}
       <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{trad.label}</NomVolet>
       {/* Le TRADUCTEUR, avec ses dates de vie complètes. La langue de la bible se lit
           dans la fiche « En savoir plus », que le nom ouvre.

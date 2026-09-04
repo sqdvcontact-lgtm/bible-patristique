@@ -111,6 +111,17 @@ type Props = {
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
   livresVides?: Set<string>
+  /**
+   * Le lecteur a cliqué un livre GRISÉ, c'est-à-dire absent de la bible qu'il lit.
+   *
+   * ⛔ Le clic ne se perdait dans rien : la rangée était bien un bouton, elle
+   * répondait au survol, et son geste ne faisait rien du tout (demande de
+   * l'auteur, 2026-09-04). Le volet ne SAIT pas quelles autres bibles portent ce
+   * livre — c'est une lecture de base, et elle appartient au parent, qui tient
+   * déjà le catalogue et les capacités de lecture. Il annonce donc le clic, et
+   * n'en décide pas.
+   */
+  onLivreAbsent?: (livre: Livre) => void
   // La Polyglotte affiche un livre ENTIER, sans notion de chapitre courant, et ne navigue pas
   // par URL. Ces deux réglages lui suffisent pour réutiliser le même volet que la page Bible :
   // c'est la seule façon d'avoir vraiment la même navigation aux deux endroits, plutôt que
@@ -188,7 +199,7 @@ export default function NavLivres({
   livres, livreActif, chapitreActif,
   traductionIndex, traductions,
   panelWidth = null, onWidthChange,
-  livresVides, onChoisirLivre, sansChapitres, titre,
+  livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire,
@@ -276,7 +287,13 @@ export default function NavLivres({
   const AUTRES = filtrer(livres.filter(l => l.testament === 'AUTRES'))
 
   const handleLivre = (code: string) => {
-    if (livresVides?.has(code)) return
+    // Un livre grisé n'ouvre pas ses chapitres : il DIT pourquoi, et où le lire.
+    // ⛔ Il ne se contente plus d'avaler le clic (voir `onLivreAbsent`).
+    if (livresVides?.has(code)) {
+      const livre = livres.find(l => l.code === code)
+      if (livre) onLivreAbsent?.(livre)
+      return
+    }
     const pos = scrollRef.current?.scrollTop || 0
     setLivreActifLocal(code)
     if (onChoisirLivre) { onChoisirLivre(code); setLivreOuvert(code) }
@@ -336,7 +353,9 @@ export default function NavLivres({
 
     return (
       <div key={livre.code}>
-        <button onClick={() => handleLivre(livre.code)} style={{
+        <button onClick={() => handleLivre(livre.code)}
+          title={vide ? 'Absent de cette traduction — voir où le lire' : undefined}
+          style={{
           width: '100%', textAlign: 'left',
           padding: 'var(--volet-air-fin) 6px', borderRadius: '4px', fontSize: '0.84375rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -639,24 +658,44 @@ export default function NavLivres({
           }))} />
       )}
 
-      {/* Barre de recherche. Elle ne défile JAMAIS : elle est hors du conteneur défilant,
-          et `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est longue. */}
+      {/* ── La recherche d'un livre ─────────────────────────────────────────
+          Elle ne défile JAMAIS : elle est hors du conteneur défilant, et
+          `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est
+          longue.
+
+          ⛔ LE CHAMP N'EST PLUS UNE BOÎTE POSÉE DANS UN BLOC : il EST le bloc
+          (demande de l'auteur, 2026-09-04 : « la barre de recherche doit être plus
+          claire, moins visible spontanément, et occuper l'ensemble du bloc où le
+          bloc d'écriture existe actuellement »). Il portait un filet, un fond plus
+          sombre que le volet et un rayon de 4 px, le tout inséré dans un bloc
+          rembourré : trois traits pour un champ qu'on n'emploie qu'une fois sur
+          dix, et qui se lisait avant la liste des livres qu'il commande. Le
+          rembourrage du bloc est passé DANS le champ — même blanc, même gouttière
+          —, si bien que rien n'a bougé de place ; ce sont le filet, le fond et le
+          rayon qui sont partis. Le filet du bas, lui, reste : c'est la séparation
+          d'avec la liste, non l'encadrement du champ.
+          ⚠️ La forme au repos, le texte d'invite et l'allumage au foyer vivent dans
+          `globals.css` (`.cs-volet-recherche`) : un `::placeholder` ne s'écrit pas
+          en style en ligne. */}
       {!sommaireOuvert && (
-      <div style={{ flexShrink: 0, padding: 'calc(var(--volet-air) + 2px) var(--volet-gouttiere) var(--volet-air)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', gap: 'var(--volet-air)' }}>
+      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
         <input
           type="text"
+          className="cs-volet-recherche"
           placeholder="Rechercher un livre biblique"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
-          style={{ flex: 1, minWidth: 0, fontSize: '0.8125rem', padding: '4px 7px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-doux)', color: 'var(--cs-texte)', outline: 'none', boxSizing: 'border-box' }}
+          style={{ flex: 1, minWidth: 0, fontSize: '0.8125rem', padding: 'calc(var(--volet-air) + 2px) var(--volet-gouttiere) var(--volet-air)', color: 'var(--cs-texte)', boxSizing: 'border-box' }}
         />
         {/* Flèche « réduire » inutile en mode onglets (mobile) : les onglets en haut
             font office de navigation. Conservée pour le repli desktop, sauf quand le
             parent gère lui-même le repli du volet entier (Polyglotte : `sansReduire`). */}
         {presentation !== 'inline' && !sansReduire && (
           <button onClick={() => setOuvert(false)} title="Réduire le volet"
-            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
+            /* ⚠️ Le champ n'a plus de bloc rembourré autour de lui : la flèche
+               porte donc sa propre gouttière à droite. */
+            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px var(--volet-gouttiere) 3px 3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>

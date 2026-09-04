@@ -18,6 +18,7 @@ import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
 import type { BibliographiePiece } from '@/app/lib/bibleBibliographieOuvrages'
 import LectureBilingueBible from './LectureBilingueBible'
+import ModaleLivreAbsent, { type TraductionProposee } from './ModaleLivreAbsent'
 import FlecheChapitre from './FlecheChapitre'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
@@ -33,7 +34,10 @@ type Verset = {
   _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
   [traduction: string]: string | number | boolean | null | undefined
 }
-type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; datePublication?: string | null }
+// ⚠️ `lieuEdition` et `editeur` viennent d'`editions_sources` et ne servent qu'à la
+// phrase de la carte du volet (« D'après l'édition de Paris, Letouzey et Ané,
+// 1888-1904 »). Ils sont facultatifs : une bible sans fiche d'édition n'en a pas.
+type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; datePublication?: string | null; lieuEdition?: string | null; editeur?: string | null }
 
 type Props = {
   livres: Livre[]
@@ -350,6 +354,53 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   const livresVides = new Set(livresVidesCache[traduction] ?? [])
   if (versets.some((verset) => verset[traduction])) livresVides.delete(livreActif)
 
+  // ── Un livre GRISÉ, cliqué : la fenêtre qui dit où le lire ──────────────────
+  //
+  // ⛔ Le clic se perdait dans un `return` (corrigé le 2026-09-04, demande de
+  // l’auteur). La fenêtre s’ouvre TOUT DE SUITE, avec le nom du livre et celui de
+  // la bible qu’on lit, et la liste des autres bibles arrive ensuite : un clic qui
+  // n’ouvre rien pendant une requête serait le défaut qu’on vient de corriger.
+  //
+  // ⚠️ DEUX SOURCES, et il en faut deux : `livres_par_traduction` pour les bibles
+  // lues au verset, et la structure éditoriale pour celles qui n’y sont pas —
+  // Fillion, la Bible 899. C’est le même partage que le cache des livres vides
+  // ci-dessus, et il ne se réécrit pas ici : les deux fonctions le portent.
+  const [livreAbsent, setLivreAbsent] = useState<Livre | null>(null)
+  const [bibliesDuLivre, setBibliesDuLivre] = useState<TraductionProposee[] | null>(null)
+  // ⚠️ La remise à « on cherche encore » (`null`) se fait dans le GESTE qui ouvre la
+  // fenêtre, non dans cet effet : un `setState` synchrone dans un effet déclenche une
+  // cascade de rendus, et la charte le proscrit. L'effet ne fait donc que LIRE.
+  const ouvrirLivreAbsent = (livre: Livre) => { setBibliesDuLivre(null); setLivreAbsent(livre) }
+  useEffect(() => {
+    if (!livreAbsent) return
+    const code = livreAbsent.code
+    let annule = false
+    const porteuses = async (): Promise<Set<string>> => {
+      const trouvees = new Set<string>()
+      const { data } = await supabase.from('livres_par_traduction').select('trad_id').eq('livre', code)
+      for (const ligne of (data ?? []) as { trad_id: string }[]) trouvees.add(ligne.trad_id)
+      const editoriales = listeTraductions.filter((t) => estVerseEditorial(readingCapabilities[t.code]))
+      await Promise.all(editoriales.map(async (t) => {
+        const dispo = t.code === TRAD_ID_BIBLE899
+          ? await livresDisponibles899(supabase)
+          : await livresDisponiblesEditoriaux(supabase, t.code)
+        if (dispo.has(code)) trouvees.add(t.code)
+      }))
+      return trouvees
+    }
+    porteuses()
+      .then((trouvees) => {
+        if (annule) return
+        setBibliesDuLivre(listeTraductions
+          .filter((t) => t.code !== traduction && trouvees.has(t.code))
+          .map((t) => ({ code: t.code, label: t.label })))
+      })
+      // Une requête qui échoue ne laisse pas la fenêtre sur « Recherche… » sans fin :
+      // elle dit qu’on n’a rien trouvé, ce qui est vrai de ce qu’on sait.
+      .catch(() => { if (!annule) setBibliesDuLivre([]) })
+    return () => { annule = true }
+  }, [livreAbsent, listeTraductions, readingCapabilities, traduction])
+
   // Largeurs des volets : on RELIT d'abord, on enregistre ensuite.
   //
   // ⛔ La relecture ne passe plus par `requestAnimationFrame`. Les deux effets
@@ -486,6 +537,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         panelWidth={navWidth}
         onWidthChange={setNavWidth}
         livresVides={livresVides}
+        onLivreAbsent={ouvrirLivreAbsent}
         mobile={mobile}
         voletMobile={voletMobile}
         setVoletMobile={setVoletMobile}
@@ -498,6 +550,24 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         sommaireEdition={sommaireEdition}
         pieceActive={pieceAffichee?.cle ?? null}
       />
+      {/* Un livre grisé, cliqué : la fenêtre dit pourquoi, et où le lire. Le choix
+          d’une autre bible NAVIGUE — au chapitre 1 du livre demandé, et non au
+          chapitre qu’on lisait ailleurs, qui n’a rien à voir avec lui. ⛔ Pas
+          d’échange en mémoire ici : on change de livre ET de bible à la fois, et
+          aucune colonne de ce livre n’est chargée. */}
+      {livreAbsent && (
+        <ModaleLivreAbsent
+          nomLivre={livreAbsent.nom}
+          nomTraduction={listeTraductions[traductionIndex]?.label ?? 'cette traduction'}
+          propositions={bibliesDuLivre}
+          onChoisir={(code) => {
+            setLivreAbsent(null)
+            memoriserTraductionBible(code)
+            naviguer(urlLectureBible({ ...maniereDeLire, livre: livreAbsent.code, chapitre: 1, trad: code }))
+          }}
+          onFermer={() => setLivreAbsent(null)}
+        />
+      )}
       {/* Onglet « Texte » : masqué (et non démonté, pour préserver le défilement)
           quand un autre onglet est actif sur mobile. En desktop, l'enveloppe prend
           la place de la colonne (`flex: 1`) et TexteBible la remplit ; elle était en

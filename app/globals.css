@@ -2219,6 +2219,39 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   --volet-case-ecart: clamp(0.125rem, 1cqi, 0.25rem);
 }
 
+/* ── La recherche d'un livre, dans le volet de lecture ────────────────────────
+   ⛔ ELLE N'EST PAS UNE BOÎTE (demande de l'auteur, 2026-09-04 : « plus claire,
+   moins visible spontanément, et occuper l'ensemble du bloc »). Le champ portait
+   un filet, un fond `--cs-fond-doux` et un rayon de 4 px, posés dans un bloc
+   rembourré : quatre traits pour l'objet le moins employé du volet, et il se
+   lisait avant la liste des livres qu'il commande. Il n'a plus ni filet, ni fond,
+   ni rayon, et le rembourrage du bloc est passé dans le champ — il occupe donc
+   TOUT le bloc, sans que rien ait bougé de place.
+
+   ⚠️ Il se donne à voir quand on s'en sert, et alors seulement : au foyer, un
+   fond léger paraît sous lui. C'est le seul moment où l'on a besoin de savoir
+   où l'on écrit. ⛔ Pas de filet au foyer non plus : il redessinerait la boîte
+   qu'on vient d'ôter.
+
+   ⚠️ Le texte d'invite est d'un cran plus pâle que le texte du volet, et non de
+   la couleur du texte saisi : c'est une invite, pas une valeur. */
+.cs-volet-recherche {
+  width: 100%;
+  font-family: inherit;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  outline: none;
+  transition: background 0.14s;
+}
+.cs-volet-recherche::placeholder {
+  color: var(--cs-texte-faible);
+  opacity: 1; /* Firefox l'abaisse à 0,54 : la teinte est déjà choisie. */
+}
+.cs-volet-recherche:focus {
+  background: var(--cs-fond-doux);
+}
+
 /* ── Ce que le volet DIT DE PLUS quand il est large ───────────────────────────
    ⛔ PLUS RIEN, ET C'EST LE POINT (2026-09-03). La carte « Traduction » portait la
    référence de l'édition utilisée, longue de 93 à 348 signes, et la feuille lui
