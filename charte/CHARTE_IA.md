@@ -4940,3 +4940,56 @@ Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normali
 ⚠️ **Corollaire de méthode, et c’est le troisième du même ordre cette semaine** : une fonction de normalisation ne se juge pas sur ses tests, mais sur le CORPUS qu’elle traite. Les dix-sept tests de ce module passaient tous, et aucun ne portait sur un point suivi d’un chiffre.
 
 ⚠️ **Reste connu, non corrigé** : **1 716 renvois** gardent un chapitre romain parce qu’il est écrit en MINUSCULES (« Matth. x, 22 », « Ps. xv, 2 »), et le motif n’accepte que les capitales. L’étendre est un élargissement de la reconnaissance, non une correction : il attend une décision.
+
+
+### 13.9 RECTIFICATION du § 13.8 — la ponctuation et la typographie se normalisent DANS LA DONNÉE
+
+Le § 13.8 ouvrait sur « le site compose, la base conserve », et l’auteur l’a corrigé le jour même : « il faut corriger dans les données des informations importantes, et notamment la ponctuation ; sauf évidemment pour certains écrits spécifiques ; mais la règle veut qu’on normalise la ponctuation et la typo ».
+
+⛔ **LA RÈGLE EST DONC L’INVERSE, ET ELLE VAUT POUR L’APPAREIL DE NOTES.** La ponctuation, la typographie et les abréviations bibliques se normalisent **dans la donnée**. La forme normalisée EST la note ; la leçon imprimée se conserve en `metadata` (§ 8.1), elle ne tient plus le champ `text`.
+
+⚠️ **Pourquoi la règle du § 3.2 ne s’applique pas ici, et c’est la leçon de la rectification.** « Au rendu, sans réécrire la donnée » a été posé pour le TEXTE DE CORPUS, qui est un témoin : la graphie d’Arnauld d’Andilly ou de Knöll fait preuve, et l’on ne touche pas à un témoin. **Une note n’est pas un témoin, c’est un appareil que nous constituons** — nous en fixons la numérotation, le type, l’ordre et les renvois. La transposer sans y penser laissait le champ `text` durablement incomplet : une note sans point final le restait dans tout export, toute copie, toute surface qui ne passe pas par le composant de lecture, et le point n’existait que le temps d’un affichage.
+
+⛔ **QUATRE EXCEPTIONS, ET ELLES SE NOMMENT.** Ce sont les « écrits spécifiques » de la consigne, c’est-à-dire tout ce dont la FORME fait témoignage :
+
+1. **l’apparat critique** (7 379 blocs, § 22) — une notation philologique se rend telle quelle : ni ponctuation ajoutée, ni sigle développé, ni référence normalisée ;
+2. **toute citation dont la GRAPHIE fait preuve** — une leçon ancienne, une orthographe attestée, un latin cité pour sa lettre ;
+3. **la transcription diplomatique** (Bible 899 et tout témoin manuscrit) ;
+4. **le texte reproduit d’un document daté** — privilège, imprimatur, approbation, dont la ponctuation appartient à la pièce.
+
+⚠️ **Le rendu ne disparaît pas pour autant, il devient un FILET.** `terminerNote`, `normaliserReferencesDansTexte` et `normaliserTypographieLecture` sont **idempotentes** : sur une donnée déjà normalisée elles ne font rien, et sur un import qui aurait manqué la passe elles rattrapent. ⛔ Les retirer serait faire dépendre l’affichage de la qualité d’une campagne.
+
+⚠️ **Ce que le rendu garde pour lui, et pour de bon** : ce qui n’appartient pas au texte de la note — l’italique de la langue, le type de note, le numéro affiché, la mise à la ligne d’une référence par rang, l’appel. Aucun de ces quatre ne s’écrit dans `text`.
+
+### 13.10 Les NATURES d’un bloc de note
+
+Demande de l’auteur du 5 septembre 2026 : « il faut aussi mettre en place des “natures” pour constituer des styles dans les notes ». Une note se compose de blocs, et chaque bloc a une FONCTION : c’est elle qui décide de sa composition, comme la nature d’un segment décide de la sienne (§ 7.1).
+
+⛔ **Les trois axes du § 7.1 valent ici**, et il ne faut pas les confondre : la **NATURE** dit ce que le bloc EST (`kind`) ; la **FORME** dit s’il est prose ou vers (`form`) ; le **TYPE** dit qui parle (`metadata.editorial_role`, § 13.8). ⛔ Une nature ne se préfixe pas par sa surface : `texte_note_blocs` EST la table des notes, et le redire dans la valeur serait la dérive que le § 7.1 ferme.
+
+**Le vocabulaire, arrêté sur mesure du corpus au 5 septembre 2026 :**
+
+| Nature | Ce que c’est | Blocs |
+|---|---|---|
+| `reference` | un renvoi, biblique ou bibliographique | 11 916 |
+| `commentary` | la prose de la note | 12 008 |
+| `lemma` | le mot ou la phrase commentés, que la note reprend avant de la commenter | 126 |
+| `quotation` | un passage cité | 115 |
+| `translation` | la traduction du passage cité | 76 |
+| `attribution` | l’attribution d’une citation | 17 |
+| **`source_locator`** *(neuve)* | la coordonnée de la note dans le livre imprimé | ~396 |
+| **`internal_cross_reference`** *(neuve)* | le renvoi à une AUTRE note, ou à un autre endroit de la même œuvre | ~116 |
+
+⛔ **DEUX NATURES SEULEMENT SONT CRÉÉES, et chacune répond aux trois questions du § 7.6.**
+
+**`source_locator`** — « (V) pag. 178. — », « (DD) pag. 185. — ». Aucune nature existante ne le compose : ce n’est ni un renvoi bibliographique, ni de la prose, ni un lemme, mais une COORDONNÉE dans l’exemplaire imprimé — la lettre d’appel de l’édition et sa page. Il se voit à la lecture : aujourd’hui il ouvre le paragraphe dans la même face que le commentaire, et le lecteur le prend pour le début de la note. Il se compose en repère discret, jamais en prose.
+
+**`internal_cross_reference`** — « Voyez la note I, p. 150 », « Voy. Catéch. XIV, 9 ». `reference` le composerait comme un renvoi BIBLIOGRAPHIQUE, avec auteur et titre tirés du catalogue ; or il ne pointe hors de rien : il désigne un autre endroit du même livre. La distinction n’est pas cosmétique, c’est ce qui permettra de le rendre CLIQUABLE le jour où les notes se lieront entre elles.
+
+⛔ **CE QU’ON NE CRÉE PAS, et pourquoi.** Une note de note — « (1) Hieronymus (de Viris Illustr.) » — ne reçoit pas de nature : c’est une RELATION entre deux blocs, et `texte_note_relations` existe pour cela (§ 8.1). Créer une nature reviendrait à dire dans le vocabulaire des fonctions ce que le modèle dit déjà dans celui des liens.
+
+⛔ **Et la LONGUEUR n’est pas une nature.** 2 958 blocs de commentaire tiennent en quatre-vingts signes, 62 en dépassent deux mille : c’est le même acte éditorial, et la composition s’adapte à la mesure sans qu’on ait à nommer deux styles. La charte l’a déjà tranché pour les segments ; on ne rouvre pas.
+
+⚠️ **`lemma` existe et ne sert qu’à UNE œuvre** (126 blocs, un seul texte). Chez Faivre, le lemme est noyé dans le bloc de commentaire, derrière la coordonnée : « (V) pag. 178. — *Avec les démons les plus féroces* … ». Les 396 blocs de cette forme portent donc **trois** natures agglomérées, et c’est la passe la plus rentable de l’appareil.
+
+⛔ **LA CHARTE D’ABORD, LA DONNÉE ENSUITE** (§ 7.6) : le vocabulaire est fixé ici, il entre dans la contrainte de la base, puis on sème, puis on compose, puis on éprouve. ⛔ Jamais un `insert` à la main qui poserait une nature que rien ne sait rendre.
