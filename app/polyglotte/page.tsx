@@ -44,7 +44,23 @@ import {
 } from '@/app/lib/compositionBible'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
-type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string };
+type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string };
+
+// ── La Bible du XIIIe siècle porte DEUX états de son texte ────────────────────
+// TR0009 n'est pas une traduction de plus : c'est un manuscrit, dont on lit soit les
+// abréviations développées, soit la transcription diplomatique. Un interrupteur du volet
+// de gauche commandait ces deux états pour la page entière, si bien qu'on ne pouvait pas
+// les lire EN REGARD l'un de l'autre — le premier usage qu'un philologue en fait. La
+// transcription reçoit donc un identifiant à elle, tenu pour une traduction comme une
+// autre par les colonnes, le cache et le menu. Rien de plus n'est demandé à la base :
+// `chargerVersets899` rapporte déjà les deux couches d'un seul coup, et le cache les
+// garde brutes. `tradBase` retrouve l'identifiant réel pour ce qui s'adresse à la base,
+// `est899` reconnaît les deux.
+const SUFFIXE_DIPLO = "#diplomatic";
+const TRAD_ID_899_DIPLO = `${TRAD_ID_BIBLE899}${SUFFIXE_DIPLO}`;
+const tradBase = (id: string) => (id.endsWith(SUFFIXE_DIPLO) ? id.slice(0, -SUFFIXE_DIPLO.length) : id);
+const est899 = (id: string) => tradBase(id) === TRAD_ID_BIBLE899;
+const couche899De = (id: string): Couche899 => (id === TRAD_ID_899_DIPLO ? "diplomatic" : "expanded");
 
 
 // Le millésime SEUL, sans « Édition de » ni ponctuation : posé sous le nom de la
@@ -246,11 +262,12 @@ async function fetchPaged<T>(table: string, cols: string, addFilters: (q: any) =
   return [...lignes, ...suite.flatMap(r => (r.data ?? []) as T[])];
 }
 
-// Ce que le tableau demande à la base, d'un bloc : les livres, les traductions, le
-// chapitre (ou `null` pour le livre entier), et la couche de la Bible 899. C'est la
-// clé qui dit si ce qui est chargé RÉPOND à ce qui est demandé — et donc si l'on
-// attend, et si l'on doit repartir.
-type Portee = { codes: string[]; tradIds: string[]; chScope: number | null; couche: Couche899 };
+// Ce que le tableau demande à la base, d'un bloc : les livres, les traductions et le
+// chapitre (`null` pour le livre entier). C'est la clé qui dit si ce qui est chargé
+// RÉPOND à ce qui est demandé — et donc si l'on attend, et si l'on doit repartir. La
+// couche de la Bible 899 n'y figure plus : elle est portée par l'identifiant de la
+// colonne (voir `couche899De`), et les deux couches arrivent ensemble au cache.
+type Portee = { codes: string[]; tradIds: string[]; chScope: number | null };
 const memeListe = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 // Ce qui est chargé couvre la demande quand ce sont les mêmes livres et les mêmes
 // traductions, et que le chapitre demandé est celui qu'on a — ou que l'on a le livre
@@ -260,7 +277,6 @@ function couvre(chargee: Portee | null, demande: Portee): boolean {
   return chargee !== null
     && memeListe(chargee.codes, demande.codes)
     && memeListe([...chargee.tradIds].sort(), [...demande.tradIds].sort())
-    && chargee.couche === demande.couche
     && (chargee.chScope === null || chargee.chScope === demande.chScope);
 }
 
@@ -307,14 +323,17 @@ function lire899(livre: string, scope: Scope): Brutes899 | undefined {
 // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
 // manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon
 // (MANUSCRIPT_EXTRA) n'ont pas de canon_id et sont écartées par `chargerVersets899`.
-function lignes899(brutes: Brutes899, couche: Couche899): V2Row[] {
+function lignes899(brutes: Brutes899, tradId: string): V2Row[] {
+  const couche = couche899De(tradId);
   return brutes.map(l => {
     const lacune = rendu899(l) === "lacune";
     return {
-      id: `899:${l.canon_id}`,
+      // L'identifiant porte la colonne : le manuscrit développé et sa transcription
+      // diplomatique se lisent côte à côte, et leurs lignes ne se confondent pas.
+      id: `899:${tradId}:${l.canon_id}`,
       canon_id: l.canon_id,
       livre: l.livre ?? "",
-      trad_id: TRAD_ID_BIBLE899,
+      trad_id: tradId,
       ch_orig: l.chapitre ?? 0,
       v_orig: l.verset ?? 0,
       v_orig_suffixe: null,
@@ -340,10 +359,10 @@ function assemblerDepuisCache(demande: Portee, ordreDe: Map<string, number>): { 
     if (!c) return null;
     canon.push(...c);
     for (const trad of demande.tradIds) {
-      if (trad === TRAD_ID_BIBLE899) {
+      if (est899(trad)) {
         const b = lire899(code, scope);
         if (!b) return null;
-        lignes.push(...lignes899(b, demande.couche));
+        lignes.push(...lignes899(b, trad));
       } else {
         const t = lireTexte(trad, code, scope);
         if (!t) return null;
@@ -381,14 +400,14 @@ async function completerCache(demande: Portee): Promise<void> {
   const canonManquant = codes.filter(code => !lireCanon(code, scope));
   const groupes = new Map<string, { trads: string[]; livres: string[] }>();
   for (const trad of tradIds) {
-    if (trad === TRAD_ID_BIBLE899) continue;
+    if (est899(trad)) continue;
     const livres = codes.filter(code => !lireTexte(trad, code, scope));
     if (!livres.length) continue;
     const g = groupes.get(livres.join(",")) ?? { trads: [], livres };
     g.trads.push(trad);
     groupes.set(livres.join(","), g);
   }
-  const manquant899 = tradIds.includes(TRAD_ID_BIBLE899) ? codes.filter(code => !lire899(code, scope)) : [];
+  const manquant899 = tradIds.some(est899) ? codes.filter(code => !lire899(code, scope)) : [];
 
   const taches: Promise<void>[] = [];
   if (canonManquant.length) {
@@ -651,33 +670,138 @@ const GROUPES_LANG: { code: string; label: string }[] = [
   { code: "grc", label: "Grec" },
 ];
 
+// ── Les éditions qui portent PLUSIEURS textes ─────────────────────────────────
+// Une même édition donne parfois plusieurs textes, et ce sont eux que l'on veut lire en
+// regard l'un de l'autre : la Fillion imprime le latin en face de sa traduction
+// française ; la Bible du XIIIe siècle se lit dans l'état du manuscrit, dans sa
+// transcription diplomatique, ou dans la traduction moderne qu'on en a faite. Dispersés
+// dans une liste rangée par langue, ces textes n'ont plus l'air d'appartenir au même
+// livre. Le menu les réunit donc sous le nom de l'édition, et les déploie AU SURVOL dans
+// un volet posé sur le côté.
+//
+// Le premier membre disponible donne son nom à la famille et sa place dans le menu. Un
+// membre d'une AUTRE langue que lui reste par ailleurs listé dans son propre groupe (la
+// Vulgate de Fillion sous « Latin ») : la famille rassemble, elle ne cache rien, et l'on
+// continue de lire les langues d'un coup d'œil. Une famille dont un seul texte est
+// disponible ne se déploie pas — TR0013 est privée et ne répond qu'à l'administrateur :
+// chez le lecteur, elle redevient une ligne ordinaire.
+type MembreFamille = { id: string; libelle: string; titre?: string };
+const FAMILLES: MembreFamille[][] = [
+  [
+    { id: "TR0010", libelle: "Traduction française" },
+    { id: "TR0011", libelle: "Texte latin en regard", titre: "La Vulgate latine, imprimée en regard du français dans l’édition Fillion" },
+  ],
+  [
+    { id: TRAD_ID_BIBLE899, libelle: "Texte du manuscrit", titre: "Le texte du manuscrit, abréviations développées" },
+    { id: TRAD_ID_899_DIPLO, libelle: "Transcription diplomatique", titre: "Le manuscrit lettre à lettre, ses abréviations non résolues" },
+    { id: "TR0013", libelle: "Traduction en français moderne" },
+  ],
+];
+
+type Membre = { trad: Trad; libelle: string; titre?: string };
+type Famille = { cle: string; principal: Trad; membres: Membre[] };
+type Entree = { sorte: "trad"; trad: Trad } | { sorte: "famille"; famille: Famille };
+
+// Le menu, groupe de langue par groupe de langue, familles comprises. L'ordre reste
+// celui de la base ; une famille prend simplement la place de son membre principal.
+function entreesParLangue(trads: Trad[]): Map<string, Entree[]> {
+  const parId = new Map(trads.map(t => [t.trad_id, t]));
+  const familles = new Map<string, Famille>();   // trad_id du principal → sa famille
+  const absorbes = new Set<string>();            // membres que la famille porte déjà
+  for (const def of FAMILLES) {
+    const membres: Membre[] = [];
+    for (const m of def) {
+      const trad = parId.get(m.id);
+      if (trad) membres.push({ trad, libelle: m.libelle, titre: m.titre });
+    }
+    if (membres.length < 2) continue;
+    const principal = membres[0].trad;
+    familles.set(principal.trad_id, { cle: principal.trad_id, principal, membres });
+    for (const m of membres) if (m.trad.lang === principal.lang) absorbes.add(m.trad.trad_id);
+  }
+  const parLangue = new Map<string, Entree[]>();
+  const poser = (lang: string, e: Entree) => {
+    const liste = parLangue.get(lang) ?? [];
+    liste.push(e);
+    parLangue.set(lang, liste);
+  };
+  for (const t of trads) {
+    const f = familles.get(t.trad_id);
+    if (f) poser(t.lang, { sorte: "famille", famille: f });
+    else if (!absorbes.has(t.trad_id)) poser(t.lang, { sorte: "trad", trad: t });
+  }
+  return parLangue;
+}
+
+const LARGEUR_VOLET = 238;   // le volet d'une famille, posé au côté du menu
+
 function ChoixTraduction({ trads, slots, index, onChoisir }: {
   trads: Trad[]; slots: string[]; index: number; onChoisir: (index: number, val: string) => void;
 }) {
   const [ouvert, setOuvert] = useState(false);
   const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  // La famille déployée, et l'endroit où poser son volet — mesuré sur la ligne survolée
+  // au moment où on la survole, jamais déduit du panneau : le panneau défile.
+  const [volet, setVolet] = useState<{ cle: string; top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panRef = useRef<HTMLDivElement>(null);
+  const voletRef = useRef<HTMLDivElement>(null);
+  // Fermeture DIFFÉRÉE : entre la ligne et son volet, le curseur traverse quelques pixels
+  // qui n'appartiennent ni à l'une ni à l'autre. Sans ce délai, le volet se referme au
+  // moment même où l'on tend la main pour le prendre.
+  const fermeture = useRef<number | null>(null);
   const courante = trads.find(t => t.trad_id === slots[index]) ?? null;
+  const groupes = useMemo(() => entreesParLangue(trads), [trads]);
+  const familleDeployee = useMemo(() => {
+    if (!volet) return null;
+    for (const entrees of groupes.values()) {
+      for (const e of entrees) if (e.sorte === "famille" && e.famille.cle === volet.cle) return e.famille;
+    }
+    return null;
+  }, [groupes, volet]);
 
   useEffect(() => {
     if (!ouvert) return;
     const onDoc = (e: MouseEvent) => {
-      if (btnRef.current?.contains(e.target as Node) || panRef.current?.contains(e.target as Node)) return;
-      setOuvert(false);
+      const cible = e.target as Node;
+      if (btnRef.current?.contains(cible) || panRef.current?.contains(cible) || voletRef.current?.contains(cible)) return;
+      setVolet(null); setOuvert(false);
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOuvert(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setVolet(null); setOuvert(false); } };
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
   }, [ouvert]);
+  // Le compte à rebours du volet ne survit pas au démontage.
+  useEffect(() => () => { if (fermeture.current) window.clearTimeout(fermeture.current); }, []);
 
+  // Fermer le menu emporte le volet : sans quoi il reparaîtrait tel quel à la prochaine
+  // ouverture, déployé sur une famille que l'on ne survole plus.
   const basculer = () => {
+    if (ouvert) { retenirVolet(); setVolet(null); setOuvert(false); return; }
     const r = btnRef.current?.getBoundingClientRect();
     if (r) setRect({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 236) });
-    setOuvert(o => !o);
+    setOuvert(true);
   };
-  const choisir = (val: string) => { onChoisir(index, val); setOuvert(false); };
+  const choisir = (val: string) => { onChoisir(index, val); setVolet(null); setOuvert(false); };
+  const retenirVolet = () => { if (fermeture.current) { window.clearTimeout(fermeture.current); fermeture.current = null; } };
+  const fermerVolet = () => {
+    retenirVolet();
+    fermeture.current = window.setTimeout(() => { fermeture.current = null; setVolet(null); }, 160);
+  };
+  const deployer = (cle: string, el: HTMLElement, nb: number) => {
+    retenirVolet();
+    const r = el.getBoundingClientRect();
+    // À droite de la ligne ; à gauche quand il n'y tient pas. Le volet chevauche la ligne
+    // de deux pixels : aucun interstice ne sépare alors l'une de l'autre.
+    const aDroite = r.right + LARGEUR_VOLET + 8 <= window.innerWidth;
+    const haut = 30 + nb * 46;
+    setVolet({
+      cle,
+      left: aDroite ? r.right - 2 : Math.max(8, r.left - LARGEUR_VOLET + 2),
+      top: Math.max(8, Math.min(r.top - 6, window.innerHeight - 8 - haut)),
+    });
+  };
 
   const ligne = (actif: boolean): React.CSSProperties => ({
     display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
@@ -688,19 +812,76 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
   const coche = (actif: boolean) => (
     <span aria-hidden style={{ width: 12, flexShrink: 0, color: VERT, paddingTop: 2, fontSize: "0.75rem" }}>{actif ? "✓" : ""}</span>
   );
+  const NOM_OPTION: React.CSSProperties = { display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-encre-fonce)", lineHeight: 1.25 };
+  const SOUS_OPTION: React.CSSProperties = { display: "block", fontSize: "0.625rem", color: "var(--cs-texte-doux)", marginTop: 1 };
+  const ENTETE_GROUPE: React.CSSProperties = { padding: "6px 10px 3px", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--cs-texte-doux)" };
+
+  // Une traduction, dans la liste ou dans un volet de famille. Dans un volet, `libelle`
+  // dit ce que ce texte est DANS son édition (« Texte latin en regard ») : le nom de la
+  // traduction est déjà porté par la famille, au-dessus.
+  const optionTrad = (t: Trad, libelle?: string, titre?: string) => {
+    const actif = slots[index] === t.trad_id;
+    const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
+    return (
+      <button key={t.trad_id} role="menuitemradio" aria-checked={actif} title={titre} onClick={() => choisir(t.trad_id)}
+        style={ligne(actif)}
+        onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)"; }}
+        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "transparent"; }}>
+        {coche(actif)}
+        <span style={{ minWidth: 0 }}>
+          <span style={NOM_OPTION}>{libelle ?? t.nom}</span>
+          <span style={SOUS_OPTION}>
+            {t.edition ?? ""}
+            {ailleurs && courante && <span style={{ color: 'var(--cs-attente)' }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
+          </span>
+        </span>
+      </button>
+    );
+  };
+
+  // Une édition à plusieurs textes : une seule ligne, un chevron, et le volet au survol.
+  // La coche vaut pour la famille entière, et la seconde ligne nomme alors le texte
+  // affiché dans cette colonne — sans quoi deux colonnes de la même édition porteraient
+  // le même intitulé sans qu'on sache laquelle donne quoi.
+  const optionFamille = (f: Famille) => {
+    const actifMembre = f.membres.find(m => m.trad.trad_id === slots[index]) ?? null;
+    const deploye = volet?.cle === f.cle;
+    const sous = actifMembre
+      ? actifMembre.libelle
+      : `${f.principal.edition ?? ""}${f.principal.edition ? " · " : ""}${f.membres.length} textes`;
+    const survol = (e: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLButtonElement>) => deployer(f.cle, e.currentTarget, f.membres.length);
+    return (
+      <button key={f.cle} role="menuitem" aria-haspopup="menu" aria-expanded={deploye}
+        onMouseEnter={survol} onFocus={survol} onClick={survol} onMouseLeave={fermerVolet}
+        onKeyDown={e => { if (e.key === "ArrowRight" || e.key === "Enter" || e.key === " ") { e.preventDefault(); deployer(f.cle, e.currentTarget, f.membres.length); } }}
+        style={{ ...ligne(!!actifMembre), background: deploye && !actifMembre ? "rgba(var(--cs-vert-rgb),0.06)" : ligne(!!actifMembre).background, alignItems: "center" }}>
+        {coche(!!actifMembre)}
+        <span style={{ minWidth: 0, flex: 1 }}>
+          <span style={NOM_OPTION}>{f.principal.nom}</span>
+          <span style={SOUS_OPTION}>{sous}</span>
+        </span>
+        <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: "var(--cs-texte-doux)" }}>
+          <path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+    );
+  };
 
   return (
     <>
       <button ref={btnRef} onClick={basculer} className="poly-trad-pick" title="Changer de traduction"
-        aria-haspopup="listbox" aria-expanded={ouvert}
+        aria-haspopup="menu" aria-expanded={ouvert}
         style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "7px 18px 7px 6px", borderRadius: 4, background: "none", border: "none", cursor: "pointer", color: "inherit", transition: "background .15s, box-shadow .15s" }}>
         <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.12 }}>
           <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "rgba(255,255,255,0.97)" }}>
             {courante?.nom ?? "Choisir une traduction"}
           </span>
-          {courante?.edition && (
+          {/* Sous le nom : l'état du texte quand l'édition en porte plusieurs (deux
+              colonnes de la Bible du XIIIe siècle ne se distingueraient pas autrement),
+              le millésime sinon. */}
+          {(courante?.variante ?? courante?.edition) && (
             <span style={{ display: "block", marginTop: 8, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "rgba(255,255,255,0.64)" }}>
-              {courante.edition}
+              {courante?.variante ?? courante?.edition}
             </span>
           )}
         </span>
@@ -710,39 +891,36 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       </button>
 
       {ouvert && rect && createPortal(
-        <div ref={panRef} role="listbox"
+        <div ref={panRef} role="menu"
+          // Le volet est posé d'après la position de la ligne : si le panneau défile
+          // sous la souris, cette position n'a plus cours et le volet se retire.
+          onScroll={() => { retenirVolet(); setVolet(null); }}
           style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
             background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 8, boxShadow: "var(--cs-ombre-modale)",
             padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
           {GROUPES_LANG.map(g => {
-            const membres = trads.filter(t => t.lang === g.code);
+            const membres = groupes.get(g.code) ?? [];
             if (!membres.length) return null;
             return (
               <div key={g.code} role="group" aria-label={g.label}>
                 {/* En-tête de groupe de langue : Français / Latin / Grec. */}
-                <div style={{ padding: "6px 10px 3px", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--cs-texte-doux)" }}>{g.label}</div>
-                {membres.map(t => {
-                  const actif = slots[index] === t.trad_id;
-                  const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
-                  return (
-                    <button key={t.trad_id} role="option" aria-selected={actif} onClick={() => choisir(t.trad_id)}
-                      style={ligne(actif)}
-                      onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)"; }}
-                      onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "transparent"; }}>
-                      {coche(actif)}
-                      <span style={{ minWidth: 0 }}>
-                        <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-encre-fonce)", lineHeight: 1.25 }}>{t.nom}</span>
-                        <span style={{ display: "block", fontSize: "0.625rem", color: "var(--cs-texte-doux)", marginTop: 1 }}>
-                          {t.edition ?? ""}
-                          {ailleurs && courante && <span style={{ color: 'var(--cs-attente)' }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
+                <div style={ENTETE_GROUPE}>{g.label}</div>
+                {membres.map(e => (e.sorte === "famille" ? optionFamille(e.famille) : optionTrad(e.trad)))}
               </div>
             );
           })}
+        </div>,
+        document.body,
+      )}
+
+      {ouvert && volet && familleDeployee && createPortal(
+        <div ref={voletRef} role="menu" aria-label={familleDeployee.principal.nom}
+          onMouseEnter={retenirVolet} onMouseLeave={fermerVolet}
+          style={{ position: "fixed", top: volet.top, left: volet.left, width: LARGEUR_VOLET, zIndex: 3001,
+            background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 8, boxShadow: "var(--cs-ombre-modale)",
+            padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
+          <div style={ENTETE_GROUPE}>{familleDeployee.principal.nom}</div>
+          {familleDeployee.membres.map(m => optionTrad(m.trad, m.libelle, m.titre))}
         </div>,
         document.body,
       )}
@@ -758,9 +936,6 @@ export default function PolyglottePage() {
   const [points, setPoints] = useState<Point[]>([]);
   const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
   const [slots, setSlots] = useState<string[]>([]);
-  // Couche textuelle de TR0009 (Bible 899) recomposée dans sa colonne : abréviations
-  // développées (défaut) ou transcription diplomatique du manuscrit.
-  const [couche899, setCouche899] = useState<Couche899>("expanded");
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
   const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
   // Préférence utilisateur du nombre de traductions visibles (null = automatique, selon
@@ -980,8 +1155,12 @@ export default function PolyglottePage() {
       // à la volée depuis les tables éditoriales (colonne synthétique). On l'ajoute donc
       // explicitement, comme n'importe quelle autre traduction comparable.
       const t899 = liste.find(t => t.trad_id === TRAD_ID_BIBLE899);
-      if (t899 && !migres.some(m => m.trad_id === TRAD_ID_BIBLE899)) {
-        migres.push({ trad_id: TRAD_ID_BIBLE899, nom: t899.nom, ordre: t899.ordre, edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) });
+      if (t899) {
+        const commun = { nom: t899.nom, ordre: t899.ordre, edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) };
+        if (!migres.some(m => m.trad_id === TRAD_ID_BIBLE899)) migres.push({ trad_id: TRAD_ID_BIBLE899, ...commun, variante: "Texte du manuscrit" });
+        // La transcription diplomatique est une colonne à part entière (voir
+        // TRAD_ID_899_DIPLO) : même édition, même langue, autre état du texte.
+        migres.push({ trad_id: TRAD_ID_899_DIPLO, ...commun, variante: "Transcription diplomatique" });
       }
       setTrads(migres);
       // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
@@ -1073,8 +1252,8 @@ export default function PolyglottePage() {
     // lignes problématiques, surnuméraires) lèvent ce filtre.
     const monoLivre = livresAffiches.length === 1;
     const chScope = (!toutAfficher && !sensiblesOnly && !surnumOnly && monoLivre && chapitreChoisi != null) ? chapitreChoisi : null;
-    return { codes: livresAffiches.map(l => l.code), tradIds: slots.filter(Boolean), chScope, couche: couche899 };
-  }, [livresAffiches, slots, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly, couche899]);
+    return { codes: livresAffiches.map(l => l.code), tradIds: slots.filter(Boolean), chScope };
+  }, [livresAffiches, slots, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly]);
   // Ce que `canon` et `v2` portent réellement. Posé AVEC les données, jamais avant.
   const [porteeChargee, setPorteeChargee] = useState<Portee | null>(null);
   // La demande dont le chargement a échoué, pour ne pas la rejouer sans fin ; le
@@ -1134,7 +1313,7 @@ export default function PolyglottePage() {
       timerPreparation.current = null;
       const d = demandeRef.current;
       if (!d.tradIds.length) return;
-      void precharger({ codes: [code], tradIds: d.tradIds, chScope: ch, couche: d.couche });
+      void precharger({ codes: [code], tradIds: d.tradIds, chScope: ch });
     }, 150);
   }, []);
 
@@ -1295,8 +1474,8 @@ export default function PolyglottePage() {
   // appelle « Rois, livre troisième » ce que le canon nomme « 1 Rois ».
   const titresEdition = (code: string) =>
     colonnes
-      .map(c => ({ trad: c.nom, ed: livresEd[c.trad_id]?.[code] }))
-      .filter((x): x is { trad: string; ed: { nom: string; abrege: string } } => Boolean(x.ed));
+      .map(c => ({ id: c.trad_id, trad: c.nom, ed: livresEd[tradBase(c.trad_id)]?.[code] }))
+      .filter((x): x is { id: string; trad: string; ed: { nom: string; abrege: string } } => Boolean(x.ed));
   // `minmax(0, 1fr)` et non `minmax(150px, 1fr)` : c'est la seule forme qui donne
   // des colonnes STRICTEMENT égales. Avec un minimum autre que zéro, une colonne
   // dont le contenu ne se laisse pas rétrécir (mot long, numéro d'origine en
@@ -1511,26 +1690,6 @@ export default function PolyglottePage() {
               })}
             </div>
           </div>
-          {/* TR0009 (Bible 899) : choix de la couche textuelle, seulement si la colonne est affichée. */}
-          {slots.includes(TRAD_ID_BIBLE899) && (
-            <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
-              <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Bible 899 · texte</span>
-              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                {([["Développée", "expanded"], ["Diplomatique", "diplomatic"]] as [string, Couche899][]).map(([lbl, val]) => {
-                  const actif = couche899 === val;
-                  return (
-                    <button key={val} onClick={() => setCouche899(val)}
-                      title={val === "expanded" ? "Abréviations développées" : "Transcription diplomatique du manuscrit"}
-                      style={{ fontSize: "0.625rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                        border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "var(--cs-surface)", color: actif ? VERT : "var(--cs-texte-second)",
-                        fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
-                      {lbl}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
           <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
             <NavLivres
               livres={livresNav}
@@ -1777,8 +1936,8 @@ export default function PolyglottePage() {
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
                 <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
-                {titresEdition(l.code).map(({ trad, ed }) => (
-                  <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
+                {titresEdition(l.code).map(({ id, trad, ed }) => (
+                  <span key={id} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
                     {trad} : {ed.nom}
                   </span>
                 ))}
@@ -1807,8 +1966,8 @@ export default function PolyglottePage() {
               {(toutAfficher || titresEdition(l.code).length > 0) && (
                 <h2 style={{ margin: 0, padding: "8px 12px 8px 70px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {toutAfficher && l.nom_fr}
-                  {titresEdition(l.code).map(({ trad, ed }) => (
-                    <span key={trad} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
+                  {titresEdition(l.code).map(({ id, trad, ed }) => (
+                    <span key={id} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
                       {trad} : {ed.nom}
                     </span>
                   ))}
@@ -1880,7 +2039,7 @@ export default function PolyglottePage() {
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
                                       {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: 'var(--cs-surnum)', cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
                                     </span>
-                                    {estAdmin && t.trad_id !== TRAD_ID_BIBLE899 && (
+                                    {estAdmin && !est899(t.trad_id) && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
                                         onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
                                         style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
@@ -1915,7 +2074,7 @@ export default function PolyglottePage() {
                               // Bruts, ils s'affichaient tels quels (« [lacune : déchirure] »).
                               // On les rend par le MÊME tokeniseur que la page Bible : lacune → un
                               // discret « [Lacune] », lecture incertaine en gris, motif masqué.
-                              <span key={k}>{k > 0 ? " " : ""}{t.trad_id === TRAD_ID_BIBLE899 ? rendreMarqueurs899(c.texte ?? "") : texteCesure(c.texte, t.lang)}</span>
+                              <span key={k}>{k > 0 ? " " : ""}{est899(t.trad_id) ? rendreMarqueurs899(c.texte ?? "") : texteCesure(c.texte, t.lang)}</span>
                             ))}
                           </div>
                         );
