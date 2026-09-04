@@ -43,6 +43,31 @@ describe('normaliserReferencesDansTexte — exemples de l’auteur', () => {
   })
 })
 
+// ── LES DEUX BORNES DU SÉPARATEUR ET DU POINT FINAL (2026-09-05) ────────────
+// Trouvées en faisant passer les 11 916 renvois du corpus par cette fonction. Les
+// deux changeaient ce que le LECTEUR voit, et l'une changeait le SENS.
+describe('normaliserReferencesDansTexte — le point ne dit pas toujours « verset »', () => {
+  it('« Gn 1.5 » désigne DEUX CHAPITRES et reste intact (charte § 3.5.1)', () => {
+    // Sans blanc après le point, c'est l'énumération de chapitres de la charte :
+    // la lire « chapitre 1, verset 5 » change la référence, ce n'est pas la composer.
+    expect(normaliserReferencesDansTexte('Gn 1.5')).toBe('Gn 1.5')
+    expect(normaliserReferencesDansTexte('Gen. 1.5')).toBe('Gen. 1.5')
+  })
+  it('un point SUIVI D’UN BLANC reste le séparateur des éditions anciennes', () => {
+    expect(normaliserReferencesDansTexte('Psal. 65. 29')).toBe('Ps 65, 29')
+  })
+  it('un point suivi d’un CHIFFRE ne se mange pas : les versets disjoints tiennent', () => {
+    // « (Lc 7, 11.15) » rendait « (Lc 7, 1115) » : un verset qui n'existe pas.
+    // 216 blocs de neuf textes étaient dans ce cas.
+    expect(normaliserReferencesDansTexte('(Lc 7, 11.15).')).toBe('(Lc 7, 11.15).')
+    expect(normaliserReferencesDansTexte('(Jn 19, 26.27).')).toBe('(Jn 19, 26.27).')
+    expect(normaliserReferencesDansTexte('(Jn 6, 61-63.67).')).toBe('(Jn 6, 61-63.67).')
+  })
+  it('les versets disjoints se normalisent AUSSI quand le livre le demande', () => {
+    expect(normaliserReferencesDansTexte('(Luc VII, 11.15)')).toBe('(Lc 7, 11.15)')
+  })
+})
+
 describe('normaliserReferencesDansTexte — divers', () => {
   it('reconnaît les abréviations latines et françaises', () => {
     expect(normaliserReferencesDansTexte('Matth. V, 3')).toBe('Mt 5, 3')

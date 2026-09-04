@@ -139,7 +139,21 @@ function resoudreLivre(numTete: string | undefined, mot: string): string | null 
 // borne, « Is. XI, 1 » était lu « I S. XI, 1 » (1 Samuel) au lieu d’Isaïe.
 // Les chiffres arabes restent volontairement acceptés avec ou sans espace
 // afin de reconnaître aussi bien « 1 Co » que « 1Co ».
-const RE_RENVOI = /(?<![\p{L}\d])((?:[1-4]\s*|(?:IV|III|II|I)\s+))?([A-Za-zÀ-ÿ]+)\.?\s*(\d{1,3}|[IVXLCDM]{1,6})\s*[.,]\s*(\d{1,3}(?:\s*[-–]\s*\d{1,3})?)\.?/gu
+// ⛔ DEUX BORNES, ET TOUTES DEUX SONT DES CORRECTIONS (2026-09-05, relevées en faisant
+// passer les 11 916 renvois du corpus par cette fonction) :
+//
+// 1. LE SÉPARATEUR chapitre/verset est la VIRGULE, ou le point SUIVI D’UN BLANC. Il
+//    acceptait tout point, si bien que « Gn 1.5 » — qui désigne les CHAPITRES 1 et 5
+//    (charte § 3.5.1) — devenait « Gn 1, 5 », c’est-à-dire le chapitre 1, verset 5. La
+//    fonction changeait le SENS de la référence. Le blanc est ce qui sépare les deux
+//    cas : une édition ancienne écrit « Psal. 65. 29 » avec un blanc, l’énumération de
+//    chapitres s’écrit sans.
+//
+// 2. LE POINT FINAL ne se mange plus quand un CHIFFRE le suit. « (Lc 7, 11.15) » — les
+//    versets 11 et 15 — rendait « (Lc 7, 1115) » : le point était consommé comme
+//    ponctuation de fin, et les deux nombres se collaient. 216 blocs de neuf textes
+//    étaient dans ce cas, et le lecteur y lisait un verset qui n’existe pas.
+const RE_RENVOI = /(?<![\p{L}\d])((?:[1-4]\s*|(?:IV|III|II|I)\s+))?([A-Za-zÀ-ÿ]+)\.?\s*(\d{1,3}|[IVXLCDM]{1,6})\s*(?:,|\.(?=\s))\s*(\d{1,3}(?:\s*[-–]\s*\d{1,3})?)(?:\.(?!\d))?/gu
 
 export type ReferenceBibliqueNormalisee = {
   source: string
