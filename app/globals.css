@@ -730,6 +730,18 @@ button:focus-visible,
    rang d'encre en même temps, comme les rangées de liste du site.
    ⛔ Il vit dans la feuille et non en style en ligne : une déclaration en ligne bat
    toute règle de feuille sans « important », piège déjà payé trois fois ici. */
+/* ── LE CHEVRON QUI REPLIE UN VOLET ───────────────────────────────────────────
+   Il se pose dans le coin INTÉRIEUR du volet — au bout de la ligne du nom à
+   gauche, dans l'en-tête à droite — et pointe vers le bord où le volet va se
+   ranger. ⛔ Son encre n'est pas celle du texte faible : à quatorze pixels, dans
+   le rang le plus ténu de l'échelle, il ne se trouvait pas (l'auteur l'a cherché
+   sans le voir, 2026-09-04). Un rang au-dessus, et le vert au survol, qui dit
+   qu'on peut le toucher.
+   ⛔ La couleur se déclare ICI : posée en style en ligne, elle battrait la règle
+   de survol — piège déjà payé quatre fois dans ce dépôt. */
+.cs-volet-reduire { color: var(--cs-texte-doux); transition: color 0.14s; }
+.cs-volet-reduire:hover { color: var(--cs-vert); }
+
 .cs-rail-volet { transition: background 0.14s, color 0.14s; }
 .cs-rail-volet:hover { background: var(--cs-fond-doux); }
 .cs-rail-volet:hover span { color: var(--cs-texte-second); }

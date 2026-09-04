@@ -89,6 +89,7 @@ import { useState } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
 import NomVolet from '@/app/components/NomVolet'
+import IconeChevron from '@/app/components/IconeChevron'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 export type TraductionEncart = {
@@ -107,7 +108,13 @@ export type TraductionEncart = {
   coteManuscrit?: string | null
 }
 
-export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
+export default function EncartTraduction({ trad, onReduire }: {
+  trad: TraductionEncart
+  /** Replier le volet. Absent, la carte ne porte pas de chevron — c'est le cas du
+   *  volet de la Polyglotte, qui gère son repli lui-même, et du téléphone en
+   *  onglets, où les onglets font office de navigation. */
+  onReduire?: () => void
+}) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
@@ -130,8 +137,31 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
           dispositif ; il est parti avec lui, et le seuil de 230 dans globals.css
           avec les deux. */}
       {/* ⚠️ Une FLÈCHE COURTE suit le nom, et c'est elle qui annonce la fiche
-          (2026-09-04) : elle vit dans `NomVolet`, avec sa raison. */}
-      <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
+          (2026-09-04) : elle vit dans `NomVolet`, avec sa raison.
+          ⚠️ LE CHEVRON DE REPLI SE POSE AU BOUT DE CETTE LIGNE, dans le coin
+          intérieur du volet (demande de l'auteur, 2026-09-04 : « pas de flèche de
+          fermeture du volet de gauche sur la page Bible classique »). Il y en avait
+          bien un, mais à l'autre bout du volet et au bout du champ de recherche : de
+          quatorze pixels, dans l'encre la plus ténue de l'échelle, il s'y lisait comme
+          une marque du CHAMP — une croix d'effacement, une loupe — et non comme un
+          contrôle du volet. Le volet de droite, lui, porte le sien seul dans son
+          en-tête, et on le voit. C'est ce que fait aussi le volet de la Polyglotte,
+          qui est le modèle : le nom à gauche, le repli à sa droite.
+          ⛔ Il ne se confond pas avec la flèche du nom : celle-ci suit le texte, à
+          l'intérieur du lien ; celui-là se tient au bord de la carte, et il pointe
+          vers le bord où le volet va se ranger. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
+        </div>
+        {onReduire && (
+          <button onClick={onReduire} title="Réduire le volet" aria-label="Réduire le volet"
+            className="cs-volet-reduire"
+            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px', margin: '-2px', display: 'flex', alignItems: 'center' }}>
+            <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
       {/* Le TRADUCTEUR, avec ses dates de vie complètes. La langue de la bible se lit
           dans la fiche « En savoir plus », que le nom ouvre.
           ⛔ Plus de repli sur `label` : le nom de la bible est écrit une ligne plus

@@ -282,7 +282,14 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   // colonne d'étiquettes de 8,5 rem, qui ne laisserait pas 170 px à la valeur dans une
   // colonne étroite. C'est la forme que la fiche d'édition emploie déjà, et c'est
   // désormais le même composant.
-  const aEdition = referenceEdition.length > 0 || !!(i.responsable_edition || i.source_numerique_nom
+  // ⛔ « Responsable de l'édition » a quitté la rubrique (demande de l'auteur,
+  // 2026-09-04 : « fait un peu tache ; supprimer »). Il redisait le plus souvent le
+  // nom que la fiche porte en tête — « Louis-Claude Fillion ; édition numérique :
+  // Corpus Scriptura » sous « Traduction de Louis-Claude Fillion » — et il ne
+  // décide donc plus non plus que la rubrique paraisse.
+  // ⚠️ Le champ reste LU : il nomme le responsable d'une édition critique dans
+  // l'intitulé, sous le nom (voir `intituleTraduction`).
+  const aEdition = referenceEdition.length > 0 || !!(i.source_numerique_nom
     || i.source_numerique_url || i.graphie || numerotation || i.particularites || verif)
   // Deux colonnes seulement s'il y a de quoi remplir les deux. Une notice seule
   // prend toute la mesure plutôt que de laisser une colonne vide à côté d'elle.
@@ -380,7 +387,6 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                     </ul>
                   </div>
                 )}
-                <RangeeEmpilee c="Responsable de l’édition">{rendreEnrichi(i.responsable_edition)}</RangeeEmpilee>
                 <RangeeEmpilee c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source" /> : null)}</RangeeEmpilee>
                 <RangeeEmpilee c="Graphie">{rendreEnrichi(i.graphie)}</RangeeEmpilee>
                 <RangeeEmpilee c="Numérotation">{numerotation}</RangeeEmpilee>

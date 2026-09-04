@@ -534,7 +534,10 @@ export default function NavLivres({
           milieu aurait fait s'allonger le volet sous la liste des livres. */}
       <div className="cs-volet-echelle" style={{ display: 'contents' }}>
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
-      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && <EncartTraduction trad={traductions[traductionIndex]} />}
+      {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
+        <EncartTraduction trad={traductions[traductionIndex]}
+          onReduire={peutSeReduire ? () => setOuvert(false) : undefined} />
+      )}
 
       {/* Menu OCCASIONNEL des manières de lire — entre la fiche de la traduction et la
           recherche des livres. Il ne paraît que lorsque le témoin qu'on lit offre
@@ -660,14 +663,17 @@ export default function NavLivres({
           ⚠️ La forme au repos, le texte d'invite et l'allumage au foyer vivent dans
           `globals.css` (`.cs-volet-recherche`) : un `::placeholder` ne s'écrit pas
           en style en ligne. */}
-      {/* ⚠️ LA RANGÉE PARAÎT MÊME SANS CHAMP DE RECHERCHE, tant qu'elle porte la
-          flèche de repli : sous l'onglet « Sommaire », le champ n'a pas d'objet — il
-          cherche des LIVRES — et la rangée disparaissait avec lui, emportant le seul
-          moyen de fermer le volet. Un contrôle de volet ne peut pas dépendre de
-          l'onglet qu'on regarde. Elle se réduit alors à la flèche, au fer à droite. */}
-      {(!sommaireOuvert || peutSeReduire) && (
-      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', justifyContent: sommaireOuvert ? 'flex-end' : undefined }}>
-        {!sommaireOuvert && (
+      {/* ⛔ ELLE NE PORTE PLUS LA FLÈCHE DE REPLI, qui est montée dans la carte
+          (2026-09-04). Au bout d'un champ de recherche, un chevron de quatorze pixels
+          se lit comme une marque du CHAMP — une croix d'effacement, une loupe — et non
+          comme un contrôle du volet ; c'est pourquoi l'auteur ne le trouvait pas. Il se
+          tient désormais dans le coin intérieur du volet, au bout de la ligne du nom,
+          là où le volet de droite et celui de la Polyglotte portent le leur.
+          ⚠️ La rangée redevient donc CELLE DU CHAMP, et disparaît avec lui sous
+          l'onglet « Sommaire » : on ne cherche pas un livre dans les pièces liminaires,
+          et le repli ne dépend plus d'elle. */}
+      {!sommaireOuvert && (
+      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
         <input
           type="text"
           className="cs-volet-recherche"
@@ -677,28 +683,6 @@ export default function NavLivres({
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
           style={{ flex: 1, minWidth: 0, fontSize: '0.8125rem', padding: 'calc(var(--volet-air) + 2px) var(--volet-gouttiere) var(--volet-air)', color: 'var(--cs-texte)', boxSizing: 'border-box' }}
         />
-        )}
-        {/* ⛔ LA FLÈCHE DE REPLI NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce
-            qui l'avait fait disparaître du bureau (demande de l'auteur, 2026-09-04 :
-            « remettre en place le système permettant de fermer un volet gauche ou
-            droite »). `presentation` dit comment le volet s'empile sur un TÉLÉPHONE —
-            en onglets ou en tiroir — et la condition « presentation !== inline » y
-            cachait la flèche à bon droit, les onglets faisant alors office de
-            navigation. Mais la page Bible passe « inline » EN TOUTES CIRCONSTANCES, si
-            bien que le bureau perdait un contrôle pour une raison qui ne le regarde
-            pas : les deux volets savaient se replier, et plus rien ne les repliait.
-            ⚠️ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de
-            BUREAU : la condition regarde d'abord `mobile`. */}
-        {peutSeReduire && (
-          <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
-            /* ⚠️ Le champ n'a plus de bloc rembourré autour de lui : la flèche
-               porte donc sa propre gouttière à droite. */
-            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px var(--volet-gouttiere) 3px 3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        )}
       </div>
       )}
 

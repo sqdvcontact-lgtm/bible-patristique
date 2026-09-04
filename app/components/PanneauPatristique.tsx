@@ -23,6 +23,7 @@ import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import RailVolet from '@/app/components/RailVolet'
+import IconeChevron from '@/app/components/IconeChevron'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -1283,11 +1284,10 @@ export default function PanneauPatristique({
             bien que le bureau perdait un contrôle pour une raison qui ne le regarde pas.
             ⚠️ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU. */}
         {peutSeReduire && (
-          <button onClick={() => setOuvert(false)} title="Réduire le volet"
-            style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'var(--cs-texte-faible)', display:'flex', alignItems:'center' }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
+            className="cs-volet-reduire"
+            style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', display:'flex', alignItems:'center' }}>
+            <IconeChevron dir="right" size={14} strokeWidth={1.5} />
           </button>
         )}
         {refFr && (
