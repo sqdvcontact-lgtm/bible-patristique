@@ -4548,6 +4548,17 @@ Doctrine : charte `parametres.charte_ia`, § 38.4. Règles de code :
   se répète pas (« La Bible : traduction officielle liturgique »). Le repli de comparaison
   est `replier`, EXPORTÉ de `bibleBibliographieOuvrages` — deux façons de replier une
   chaîne dans le même dossier finiraient par ne plus s'accorder.
+- ⛔ **La carte de traduction se compose EN SANS** (demande de l'auteur, 2026-09-04,
+  citant la carte de Segond : « Louis Segond (1810-1885) D'après l'édition de Paris,
+  Société biblique britannique et étrangère, 1910 // sans sérif »). Les deux lignes
+  d'`EncartTraduction` — le traducteur à `0.8125rem`, l'édition à `0.6875rem` — avaient
+  pris la serif du volet des œuvres, dont la carte est copiée. Mais ce volet-là surmonte
+  un texte EN SERIF, quand celui-ci surmonte une LISTE DE LIVRES qui est en sans (aucun
+  `fontFamily` dans `NavLivres` : tout y hérite du `body`), comme le nom de la bible
+  juste au-dessus (`NomVolet` est en `fontFamily: inherit`). ⚠️ **Règle générale : une
+  carte de volet prend la police de ce qu'elle SURMONTE, non celle du volet dont on l'a
+  copiée.** La divergence avec le volet des œuvres est assumée : ce n'est pas la même
+  page, et c'est ce qu'elles annoncent qui décide, non leur ressemblance.
 - ⛔ **La fiche ne replie plus « Édition et état du texte »**, et la référence en est
   devenue la TÊTE. Les rangées ne portent que ce qu'elle ne dit pas ; le titre, l'année,
   le lieu et l'éditeur en sortent, la licence et la mention obligatoire aussi
@@ -4717,6 +4728,23 @@ Doctrine : charte `parametres.charte_ia`, § 38.5. Règles de code :
 - ⚠️ Le fond du survol vit dans `globals.css` (`.cs-rail-volet`), ⛔ jamais en style en
   ligne : une déclaration en ligne bat toute règle de feuille sans `!important`, et ce
   fichier a déjà payé le piège trois fois.
+- ⚠️ **Le TEXTE se centre dans la hauteur, le chevron reste en tête** (demande de
+  l'auteur, 2026-09-04 : « centrer verticalement le texte ; réduire un peu la taille de
+  police »). Un rail fait toute la hauteur de la lecture, et le libellé posé sous le
+  chevron pendait en haut d'une bande de huit cents pixels quand un dos de livre porte
+  son titre au milieu. ⛔ Le chevron ne descend pas avec lui : il est là où l'œil arrive,
+  et c'est la cible qu'on vise, non le mot. ⚠️ Le groupe se centre d'un BLOC — une
+  enveloppe en `flex: 1` qui porte le libellé ET le complément — sans quoi le passage lu
+  de la Polyglotte se détacherait du nom qu'il accompagne.
+- ⚠️ **Le texte descend d'un rang** : libellé `0.65625rem` (11 → 10,5 px), complément
+  `0.6875rem` (11,5 → 11). Sur une bande de trente pixels, la contrainte n'est pas la
+  lisibilité mais l'encombrement — un rail doit se faire oublier tant qu'on ne le cherche
+  pas. ⚠️ Les `maxHeight` en pourcentage se résolvent désormais contre l'enveloppe, non
+  contre le bouton ; leur somme (58 % + 32 %) reste sous la mesure, et l'enveloppe est en
+  `overflow: hidden` de toute façon.
+- ⚠️ **La barre MOBILE n'est pas un rail** (`NavLivres`, branche `barreMobile`) : elle est
+  horizontale, pleine largeur, sous la navbar, et garde son corps de `0.8125rem`. Ce qui
+  vaut pour une bande de trente pixels ne vaut pas pour une bande de mille.
 
 ## ⛔ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU
 

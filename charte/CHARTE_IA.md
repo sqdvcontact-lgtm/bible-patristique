@@ -3473,6 +3473,8 @@ Six demandes de l’auteur du 4 septembre 2026, en seconde passe sur la page « 
 
 ⚠️ **L'INTERLIGNE D'UNE BIBLIOGRAPHIE EST SERRÉ, LE BLANC ENTRE DEUX NOTICES EST LARGE** (« réduire légèrement l'interligne ; augmenter légèrement le blanc entre deux œuvres »). Une bibliographie n'est pas de la prose : les lignes d'une même référence se lisent d'un trait, tandis que deux références sont deux objets. Le blanc doit donc être plus grand ENTRE les entrées qu'à l'intérieur de l'une d'elles — sans quoi la liste se lit comme un paragraphe, et le retrait suspendu reste seul à dire où commence la suivante. ⛔ La mesure vaut pour TOUTE la famille, l'apparat des bibles comme les listes des notices : il n'y a qu'une composition bibliographique sur le site.
 
+⛔ **LA CARTE DE TRADUCTION SE COMPOSE EN SANS** (citant la carte de Segond : « Louis Segond (1810-1885) D’après l’édition de Paris, Société biblique britannique et étrangère, 1910 // sans sérif »). Elle avait pris la SERIF du volet des œuvres, dont elle est copiée ; mais ce volet-là surmonte un texte en serif, et sa carte est de la même encre que ce qu’elle annonce. Celle-ci surmonte une LISTE DE LIVRES, qui est en sans, et le nom de la bible qui la coiffe l’est aussi : la serif y faisait deux régimes dans une carte de trois lignes. ⚠️ **Règle générale : UNE CARTE DE VOLET PREND LA POLICE DE CE QU’ELLE SURMONTE, non celle du volet dont on l’a copiée.** Que deux volets se ressemblent ne dit rien de ce qu’ils annoncent, et c’est ce qu’ils annoncent qui décide. ⚠️ La divergence avec le volet des œuvres est donc assumée : ce n’est pas la même page.
+
 ### 38.5 Le RAIL d’un volet replié — un seul dessin, et il nomme l’action
 
 Demande de l’auteur du 4 septembre 2026 : « remettre en place le système permettant de fermer un volet gauche ou droite ; ajouter un titre clair sur la barre quand elle est fermée ».
@@ -3490,6 +3492,10 @@ Demande de l’auteur du 4 septembre 2026 : « remettre en place le système per
 ⚠️ **ET UN CONTRÔLE DE QUATORZE PIXELS NE PREND PAS L'ENCRE LA PLUS TÉNUE DE L'ÉCHELLE.** Un rang au-dessus, et l'accent au survol, qui dit qu'on peut le toucher. ⛔ La couleur se déclare dans la FEUILLE : posée en style en ligne, elle battrait la règle de survol — le piège est payé quatre fois dans ce dépôt.
 
 ⛔ **UNE RUBRIQUE NE REDIT PAS CE QUE LA FICHE PORTE EN TÊTE.** « Responsable de l'édition » quitte « Édition et état du texte » (« fait un peu tache ; supprimer ») : il portait le plus souvent le nom déjà écrit deux centimètres plus haut — « Louis-Claude Fillion ; édition numérique : Corpus Scriptura » sous « Traduction de Louis-Claude Fillion ». ⚠️ Le champ reste LU : il nomme le responsable d'une ÉDITION CRITIQUE dans l'intitulé qui suit le nom, là où il apprend quelque chose.
+
+⚠️ **LE RAIL CENTRE SON TEXTE, ET SON CHEVRON RESTE EN TÊTE** (« centrer verticalement le texte ; réduire un peu la taille de police »). Un rail fait toute la hauteur de la lecture : le libellé posé sous le chevron pendait en haut d’une bande de huit cents pixels, quand un dos de livre porte son titre au milieu. ⛔ Le chevron, lui, ne descend pas avec lui — il est là où l’œil arrive, et c’est la cible qu’on vise, non le mot. ⚠️ Le groupe se centre d’un BLOC, le libellé et le repère ensemble : les centrer chacun pour soi détacherait le passage lu du nom qu’il accompagne.
+
+⚠️ **Et son texte descend d’un rang** — le libellé de onze pixels à dix et demi, le repère de onze et demi à onze. Sur une bande de trente pixels de large, un texte plus menu se lit encore et pèse moins : la contrainte n’est pas la lisibilité mais l’encombrement, un rail devant se faire oublier tant qu’on ne le cherche pas.
 
 ### 38.6 La COULEUR d’un corpus se prend là où le lecteur l’a déjà vue
 
