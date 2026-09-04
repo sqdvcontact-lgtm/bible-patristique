@@ -4608,10 +4608,20 @@ retiré, on regarde ce qui reste.
   une déclaration en ligne bat toute règle de feuille sans `!important`, et le survol du
   titre de colonne est resté mort des semaines sans que rien ne le dise.
 - **`fondRepos` ne connaît plus que deux valeurs**, l'accent de la ligne retenue et rien.
-  Une traduction déjà prise se grise par son TEXTE — `--cs-texte-gris` sur le nom,
+  Une traduction déjà prise se grise par son TEXTE — `--cs-texte-doux` sur le nom,
   `--cs-texte-faible` sur la date. ⛔ Plus d'aplat sous la ligne : une liste ne se lit plus
   quand un rang sur deux porte son propre sol. Le paramètre `ailleurs` a quitté `ligne()`
   et ne sert plus qu'aux deux encres.
+- ⚠️ **Et cette encre descend d'un rang** (demande de l'auteur, le soir même : « griser un
+  peu plus le texte des non disponibles »). Le nom valait `--cs-texte-gris` tant qu'un aplat
+  l'accompagnait ; l'encre restée seule doit en porter davantage, et il prend celle du
+  sous-titre d'une ligne ordinaire. ⛔ Pas deux rangs : `--cs-texte-faible` est le plancher
+  de l'échelle, la date y est déjà, et la ligne reste CLIQUABLE — la choisir échange les deux
+  colonnes. ⚠️ Sa hiérarchie interne tient alors par le corps et la police, sérif de 13 px
+  contre sans de 10, non par l'encre.
+- ⚠️ **Règle générale : retirer un ornement DÉCHARGE ce qui reste.** C'est la rectification
+  du même jour prise par l'autre bout — on avait mesuré ce qu'on enlevait, on n'avait pas
+  remesuré ce qui restait seul.
 - ⛔ **L'en-tête d'une colonne ne porte QUE le nom et la date.** `courante.variante` n'y est
   plus rendu du tout. ⚠️ L'état du texte se lit dans le volet de la famille, où l'on
   choisit (« Texte du manuscrit », « Transcription diplomatique », « Traduction en français
