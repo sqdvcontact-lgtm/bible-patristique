@@ -4640,3 +4640,49 @@ où il se faisait couper. Il sert la page Bible et la Polyglotte, qui partagent 
 - ⚠️ **Règle générale : quand un objet cesse d'être posé DANS un bloc pour DEVENIR le bloc,
   tout ce qui se dessinait autour de lui se relit.** Le rembourrage, le filet, l'ombre et
   l'anneau ne visaient pas la même boîte.
+
+## ⚠️ Un nom de bible se compose PARTOUT de la même façon (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.4. Règles de code :
+
+- **`rendreEnrichi` sur le nom d'une bible**, dans les quatre surfaces : le bouton et la
+  liste de `SelecteurTraductionBible` (le menu central de la page Bible), le titre de la
+  fiche `ModaleTraduction`, sa bio et son intitulé. La Polyglotte le faisait déjà. ⛔ Un
+  nom ne se compose pas d'une façon là et d'une autre ici.
+- ⛔ **Les DATES d'un intitulé se composent AVEC lui.** Elles étaient hors de l'appel
+  (`{rendreSiecles(intitule)}{` (`${i.dates}`)`}`) : « (XIIIe siècle) » restait donc en
+  chiffres ordinaires dans la fiche même de la bible qui porte ce siècle dans son nom.
+- ⛔ **`FragmentReference` compose par `rendreSiecles`, jamais par `rendreEnrichi`.** Un
+  fragment de notice porte déjà son RÔLE — intitulé, nom d'autorité, données — et c'est
+  lui qui décide de l'italique et des petites capitales ; poser un `<em>` dans un
+  fragment déjà italique ne se verrait pas, et ferait décider par le TEXTE ce que la
+  donnée nomme.
+
+## « Édition et état du texte » sous la chronologie (2026-09-04)
+
+- **La colonne de droite de la fiche porte la chronologie PUIS l'édition.** La rubrique
+  tenait toute la mesure sous les deux colonnes ; or une frise de cinq entrées s'arrête à
+  mi-hauteur d'une notice qui continue, et la fiche montrait un grand vide à droite avec
+  sa rubrique reléguée dessous. ⚠️ `aColonnes` ne dépend donc plus de la seule
+  chronologie : une bible sans frise mais avec une fiche d'édition ouvre les deux colonnes.
+- ⚠️ **`RangeeEmpilee` a quitté `FicheEdition` pour `ModaleAuteur`**, avec le portrait, le
+  titre de section, `LigneTech` et `Consulter` : la fiche de traduction en a eu besoin à
+  son tour, et une rangée recopiée à deux endroits ne reste identique que par accident.
+  C'est la règle déjà écrite pour les pièces communes aux trois fiches.
+- ⚠️ La rubrique n'emploie plus `LigneTech` : sa colonne d'étiquettes de 8,5 rem ne
+  laisserait pas 170 px à la valeur dans une colonne étroite. Deux formes, chacune pour la
+  mesure qu'elle sert. ⛔ La note de vérification s'y compose en `<span>` et non en
+  paragraphe : elle vit dans la valeur d'une rangée, qui est elle-même un span.
+
+## ⚠️ L'interligne d'une bibliographie est SERRÉ, le blanc entre notices est LARGE (2026-09-04)
+
+`.cs-apparat-bibliographie { line-height: 1.28 }` (au lieu de 1,35) et
+`.cs-apparat-bibliographie__entree { margin: 0 0 0.7em }` (au lieu de 0,45). Les listes
+des notices éditoriales (`.trad-notice li`) suivent : 1,32 et 9 px.
+
+Une bibliographie n'est pas de la prose : les lignes d'une même référence se lisent d'un
+trait, deux références sont deux objets. Le blanc doit donc être plus grand ENTRE les
+entrées qu'à l'intérieur de l'une d'elles — sans quoi la liste se lit comme un paragraphe,
+et le retrait suspendu reste seul à dire où commence la suivante. ⛔ La mesure vaut pour
+TOUTE la famille, l'apparat des bibles compris : il n'y a qu'une composition
+bibliographique sur le site.
