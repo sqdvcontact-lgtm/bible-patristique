@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { parseNotes } from '@/app/lib/notes'
@@ -25,6 +25,8 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 import RailVolet from '@/app/components/RailVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { capitaliserInitiale } from '@/app/lib/citation'
+import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
+import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -33,7 +35,10 @@ const LIBELLE_RAIL = 'Ouvrir les commentaires'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
-  id: number; id_oeuvre: string; segment_numero: number
+  // ⛔ `id_texte` DÉCIDE des regroupements, `id_oeuvre` ne fait que nommer : une œuvre
+  // porte plusieurs textes (La Cité de Dieu son latin et son français, tous deux liés
+  // à des versets) et leurs `segment_numero` se recouvrent.
+  id: number; id_oeuvre: string; id_texte: string; segment_numero: number
   segment_texte: string; ref_niv1: string; ref_niv2: string
   ref_niv3: string; notes?: string | null
 }
@@ -869,6 +874,9 @@ export default function PanneauPatristique({
   const setOuvert = (v: boolean) => { if (mobile) setVoletMobile?.(v ? 'commentaires' : null); else setOuvertLocal(v) }
 
   // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3.
+  // Longueur de chaque segment chargé ou mesuré, par « id_texte|numero ». Elle sert
+  // à juger une ÉLISION : voir `regrouperCitations`.
+  const [longueurs, setLongueurs] = useState<Map<string, number>>(new Map())
   const [segmentsCitations, setSegmentsCitations] = useState<{ seg: Segment; col: string }[]>([])
   const [segmentsDoctrine, setSegmentsDoctrine] = useState<Segment[]>([])
   const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
@@ -945,7 +953,7 @@ export default function PanneauPatristique({
     // La recherche inverse passe désormais par `liens_bibliques` : un index sur
     // `canon_id` au lieu de quatre `ilike '%…%'` sur 136 770 lignes — qui, de
     // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
-    const SEG_COLS = 'id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
+    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
     ;(async () => {
       const liens = plage
         ? await segmentsLiesAPlage(plage.livre, plage.canonDebut, plage.canonFin)
@@ -992,6 +1000,48 @@ export default function PanneauPatristique({
     })()
     return () => { annule = true }
   }, [verset, livreActif, chapitreActif, plage?.livre, plage?.canonDebut, plage?.canonFin])
+
+  // ── MESURER LES ÉLISIONS ────────────────────────────────────────────────────
+  // Deux citations d'un même texte séparées par un ou deux paragraphes se lisent
+  // d'un trait, l'écart marqué d'un « […] » — mais seulement si l'on SAIT ce qu'on
+  // élide (voir `regrouperCitations`). On mesure donc une fois par chapitre, sur
+  // l'ensemble des segments chargés : un filtre qui retire ensuite une citation
+  // d'entre deux autres ouvre un écart dont le texte est déjà là.
+  // ⚠️ La mesure ne part QUE s'il y a un écart à mesurer, et la page n'en dépend
+  // jamais : sans elle, on ne réunit pas, voilà tout.
+  useEffect(() => {
+    const tous = [...segmentsCitations.map(c => c.seg), ...segmentsDoctrine, ...segmentsEcho]
+    const connues = new Map<string, number>()
+    for (const seg of tous) connues.set(`${seg.id_texte}|${seg.segment_numero}`, (seg.segment_texte ?? '').length)
+    // Les écarts se cherchent sur une liste RANGÉE par texte puis par numéro : c'est
+    // un sur-ensemble de toutes les adjacences que l'affichage pourra produire.
+    const rangee = tous
+      .map(seg => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: seg.segment_texte }))
+      .sort((x, y) => (x.idTexte ?? '').localeCompare(y.idTexte ?? '') || x.numero - y.numero)
+    const ecarts = ecartsAMesurer(rangee, c => c)
+    let annule = false
+    // ⚠️ La pose de l'état vit DANS le rappel, y compris quand il n'y a rien à aller
+    // lire : un `setState` dans le corps d'un effet déclenche une cascade de rendus,
+    // et sans écart la boucle ci-dessous ne tourne simplement pas.
+    ;(async () => {
+      const textes = [...new Set(ecarts.map(e => e.idTexte))]
+      const numeros = [...new Set(ecarts.flatMap(numerosDeLEcart))]
+      const trouvees = new Map(connues)
+      for (const lot of lotsPourClauseIn(numeros.map(String))) {
+        const { data, error } = await supabase.from('segments')
+          .select('id_texte, segment_numero, segment_texte')
+          .in('id_texte', textes).in('segment_numero', lot.map(Number))
+        // ⚠️ Une erreur se LIT : elle ne doit pas se lire « rien à élider », ce qui
+        // ferait taire un regroupement sans qu'on sache pourquoi.
+        if (error) { console.error('Volet patristique : les élisions n’ont pas pu être mesurées.', error); return }
+        for (const r of (data ?? []) as { id_texte: string; segment_numero: number; segment_texte: string | null }[]) {
+          trouvees.set(`${r.id_texte}|${r.segment_numero}`, (r.segment_texte ?? '').length)
+        }
+      }
+      if (!annule) setLongueurs(trouvees)
+    })()
+    return () => { annule = true }
+  }, [segmentsCitations, segmentsDoctrine, segmentsEcho])
 
   // Recherche auteur en direct
   useEffect(() => {
@@ -1181,19 +1231,27 @@ export default function PanneauPatristique({
     return [...g].sort()
   }, [itemsAffiches, oeuvres])
 
-  // REGROUPEMENTS (affichage seul, la base n'est pas modifiée) : des segments consécutifs de
-  // la MÊME œuvre (numéros qui s'enchaînent sans trou) sont réunis en UNE occurrence — un seul
-  // paragraphe, à la suite. On regroupe les entrées adjacentes de la liste.
-  const itemsGroupes = useMemo(() => {
-    const groupes: ItemAffiche[][] = []
-    for (const it of itemsFiltres) {
-      const g = groupes[groupes.length - 1]
-      const prec = g?.[g.length - 1]
-      if (prec && prec.seg.id_oeuvre === it.seg.id_oeuvre && it.seg.segment_numero === prec.seg.segment_numero + 1) g.push(it)
-      else groupes.push([it])
+  // REGROUPEMENTS (affichage seul, la base n'est pas modifiée) : les segments d'un MÊME
+  // TEXTE qui se suivent sont réunis en UNE occurrence, et depuis le 2026-09-04 ceux que
+  // sépare une courte élision le sont aussi, l'écart marqué d'un « […] ». Toute la règle
+  // vit dans `regrouperCitations`, avec ses raisons et ses bornes.
+  const signesElides = useCallback((ecart: Ecart) => {
+    let total = 0
+    for (const n of numerosDeLEcart(ecart)) {
+      const l = longueurs.get(`${ecart.idTexte}|${n}`)
+      if (l === undefined) return null
+      total += l
     }
-    return groupes
-  }, [itemsFiltres])
+    return total
+  }, [longueurs])
+  const cleCitation = useCallback((it: ItemAffiche) => ({
+    idOeuvre: it.seg.id_oeuvre, idTexte: it.seg.id_texte,
+    numero: it.seg.segment_numero, texte: it.seg.segment_texte,
+  }), [])
+  const itemsGroupes = useMemo(
+    () => regrouperCitations(itemsFiltres, cleCitation, signesElides),
+    [itemsFiltres, cleCitation, signesElides],
+  )
 
   const nbPagesItems = Math.ceil(itemsGroupes.length / ITEMS_PAR_PAGE)
   const pageCouranteItems = Math.min(pageItems, Math.max(nbPagesItems - 1, 0))
@@ -1563,7 +1621,7 @@ export default function PanneauPatristique({
                   // seul paragraphe ; natures cumulées. Métadonnées et liens = premier segment.
                   const segFusionne = groupe.length === 1
                     ? premier.seg
-                    : { ...premier.seg, segment_texte: groupe.map(g => g.seg.segment_texte).join(' '), notes: groupe.map(g => g.seg.notes).filter(Boolean).join('\n') || null }
+                    : { ...premier.seg, segment_texte: texteDuGroupe(groupe, cleCitation), notes: groupe.map(g => g.seg.notes).filter(Boolean).join('\n') || null }
                   const naturesUnion = Array.from(new Set(groupe.flatMap(g => g.categories)))
                   return (
                     <SegmentCard

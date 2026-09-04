@@ -14,6 +14,8 @@ import {
   BoutonCitationPreferee, MarqueCitation, ModaleRemplacerCitation,
   type CitationPreferee,
 } from "@/app/components/CitationPreferee";
+import { PLAFOND_SEGMENTS_ELIDES, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from "@/app/lib/regrouperCitations";
+import { lotsPourClauseIn } from "@/app/lib/paginationSupabase";
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -363,6 +365,83 @@ export default function PrelevementsPage() {
     if (remplacementPropose && ids.includes(remplacementPropose.id)) setRemplacementPropose(null);
   };
 
+  // ── RÉUNIR LES PASSAGES D'UNE MÊME ŒUVRE ────────────────────────────────────
+  // Même règle que le volet patristique de la page Bible (voir `regrouperCitations`) :
+  // les passages qui se suivent se lisent d'un trait, et ceux que sépare une courte
+  // élision aussi, l'écart marqué d'un « […] ».
+  // ⛔ Un prélèvement ne retient PAS son `id_texte` : il garde un texte, une œuvre et un
+  // numéro de segment. Or c'est le TEXTE qui décide d'un regroupement, une œuvre pouvant
+  // en porter plusieurs aux numéros qui se recouvrent. On le retrouve donc en base — et
+  // quand une œuvre en a plusieurs parmi les segments visés, on ne réunit rien : mieux
+  // vaut deux passages séparés qu'un latin collé à un français.
+  const [texteDeLOeuvre, setTexteDeLOeuvre] = useState<Map<string, string>>(new Map());
+  const [longueurs, setLongueurs] = useState<Map<string, number>>(new Map());
+  useEffect(() => {
+    const patr = prelevements.filter(x => x.type === "patristique" && x.id_oeuvre && x.segment_numero);
+    let annule = false;
+    (async () => {
+      if (!patr.length) { if (!annule) { setTexteDeLOeuvre(new Map()); setLongueurs(new Map()); } return; }
+      // Les numéros à lire : ceux des passages enregistrés, et ceux des écarts courts
+      // qu'ils laissent entre eux, œuvre par œuvre.
+      const numeros = new Set<number>();
+      const parOeuvre = new Map<string, number[]>();
+      for (const x of patr) {
+        numeros.add(x.segment_numero!);
+        const l = parOeuvre.get(x.id_oeuvre!) ?? [];
+        l.push(x.segment_numero!);
+        parOeuvre.set(x.id_oeuvre!, l);
+      }
+      for (const liste of parOeuvre.values()) {
+        const tries = [...new Set(liste)].sort((a, b) => a - b);
+        for (let i = 1; i < tries.length; i++) {
+          const manquants = tries[i] - tries[i - 1] - 1;
+          if (manquants > 0 && manquants <= PLAFOND_SEGMENTS_ELIDES) {
+            for (let n = tries[i - 1] + 1; n < tries[i]; n++) numeros.add(n);
+          }
+        }
+      }
+      const oeuvresVisees = [...parOeuvre.keys()];
+      const lignes: { id_oeuvre: string; id_texte: string; segment_numero: number; segment_texte: string | null }[] = [];
+      for (const lot of lotsPourClauseIn([...numeros].map(String))) {
+        const { data, error } = await supabase.from("segments")
+          .select("id_oeuvre, id_texte, segment_numero, segment_texte")
+          .in("id_oeuvre", oeuvresVisees).in("segment_numero", lot.map(Number));
+        // ⚠️ Une erreur se LIT : sans elle, l'absence de regroupement passerait pour un
+        // parti pris.
+        if (error) { console.error("Prélèvements : les élisions n’ont pas pu être mesurées.", error); return; }
+        lignes.push(...((data ?? []) as typeof lignes));
+      }
+      const textesParOeuvre = new Map<string, Set<string>>();
+      const mesures = new Map<string, number>();
+      for (const r of lignes) {
+        const vus = textesParOeuvre.get(r.id_oeuvre) ?? new Set<string>();
+        vus.add(r.id_texte);
+        textesParOeuvre.set(r.id_oeuvre, vus);
+        mesures.set(`${r.id_texte}|${r.segment_numero}`, (r.segment_texte ?? "").length);
+      }
+      const uniques = new Map<string, string>();
+      for (const [oeuvre, vus] of textesParOeuvre) if (vus.size === 1) uniques.set(oeuvre, [...vus][0]);
+      if (!annule) { setTexteDeLOeuvre(uniques); setLongueurs(mesures); }
+    })();
+    return () => { annule = true; };
+  }, [prelevements]);
+
+  const cleCitation = (x: Prelevement) => ({
+    idOeuvre: x.id_oeuvre ?? "",
+    idTexte: x.id_oeuvre ? texteDeLOeuvre.get(x.id_oeuvre) ?? null : null,
+    numero: x.segment_numero ?? 0,
+    texte: x.texte,
+  });
+  const signesElides = (ecart: Ecart) => {
+    let total = 0;
+    for (const n of numerosDeLEcart(ecart)) {
+      const l = longueurs.get(`${ecart.idTexte}|${n}`);
+      if (l === undefined) return null;
+      total += l;
+    }
+    return total;
+  };
+
   const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
     const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""];
     const texteTraduit = livre ? textesTraduits[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
@@ -583,13 +662,21 @@ export default function PrelevementsPage() {
                       {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "var(--cs-texte-second)" }}>,&ensp;{titre}</span>}
                     </>
                   } count={items.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
-                    {items.map(p => {
-                      const estPref = citationPreferee?.id === p.id;
+                    {/* ⚠️ Les passages d’une même œuvre qui se suivent — ou que sépare une
+                        courte élision — se lisent d’un trait, comme dans le volet de la page
+                        Bible (demande de l’auteur, 2026-09-04). Les actions portent alors sur
+                        TOUT le groupe, comme elles le font depuis toujours pour une suite de
+                        versets bibliques. */}
+                    {regrouperCitations(items, cleCitation, signesElides).map(groupe => {
+                      const p = groupe[0];
+                      const ids = groupe.map(x => x.id);
+                      const texteReuni = texteDuGroupe(groupe, cleCitation);
+                      const estPref = citationPreferee != null && ids.includes(citationPreferee.id);
                       return (
-                        <div key={p.id} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
+                        <div key={ids.join("_")} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.45, margin: "0 0 3px" }}>
-                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(p.texte)))}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texteReuni)))}&#8201;»
                             </p>
                             {(p.ref_niv1 || p.ref_niv2) && (
                               <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
@@ -600,12 +687,12 @@ export default function PrelevementsPage() {
                             )}
                           </div>
                           <div className="prel-actions">
-                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, texte: p.texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
-                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(p.texte), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, texte: texteReuni, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
+                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texteReuni), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
                             {p.id_oeuvre && (
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}
-                            <BoutonSuppr ids={[p.id]} onSuppr={() => supprimerIds([p.id])} />
+                            <BoutonSuppr ids={ids} onSuppr={() => supprimerIds(ids)} />
                           </div>
                         </div>
                       );
