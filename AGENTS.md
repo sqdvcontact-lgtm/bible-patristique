@@ -1361,6 +1361,45 @@ Relevé de l'auteur : « la page Polyglotte n'a pas d'indicateur de chargement ;
 - ⛔ **`canon_id like 'GEN.1.%'` ne servait AUCUN index** sous la collation en_US.UTF-8 : la base lisait tout le livre pour les traductions affichées et jetait le reste — Genèse 1 sur quatre colonnes, 4 604 lignes lues pour 93, 391 ms ; Psaume 119, 8 088 pour 22, 525 ms. L'index `(trad_id, livre, canon_id text_pattern_ops)` (migration `versets_v2_index_chapitre_canonique`) rend le préfixe cherchable : 93 lignes, 4 ms. La règle vaut partout : **un `like 'préfixe%'` sur une colonne texte demande `text_pattern_ops`**, un btree ordinaire ne le voit pas.
 - **Les lectures de départ LISENT leur erreur** (livres, traductions, sondes, citations, notes, et l'écriture d'une note) : une sonde qui échoue tient la traduction pour présente au lieu de la faire disparaître du menu sans un mot.
 
+## Le DOMINO de l'ouverture, et les BLANCS de la justification (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.9. Règles de code :
+
+- **`ordonnerColonnesVisibles` (`passageTexte.ts`)** prend le rang sur la COLONNE — le bord
+  gauche de la cellule, arrondi au pixel — au lieu de la hauteur. ⚠️ Le pas DOUBLE
+  (`--cs-ordre` = colonne × 2) : cinq colonnes au pas ordinaire se joueraient en 120 ms et
+  la chute ne se verrait pas. Mesuré en ligne : ordres 0, 2, 4, 6, 8 → 0 à 240 ms.
+- ⛔ **Le domino ne joue QU'À L'OUVERTURE** (`precedente === null`) : la même chute à chaque
+  chapitre tourné cesserait d'être un accueil pour devenir une attente.
+- ⛔ **Un clic qui ne fait rien de plus que le survol est un clic perdu** : `optionFamille`
+  choisit désormais le premier membre. ⚠️ Le clavier suit — Entrée et Espace choisissent,
+  la flèche déploie.
+
+### ⛔ La cause d'un blanc ignoble est une ligne TROP COURTE, pas une césure manquante
+
+- **Mesuré sur la page servie** (harnais : les rects d'un `Range` par mot, les écarts entre
+  mots d'une même ligne, rapportés à l'espace NATURELLE mesurée dans une sonde hors flux —
+  ⚠️ rapporter à la médiane des écarts fausse tout, la médiane étant elle-même un produit
+  de la justification) : sur **67** blancs de plus de trois espaces, **60** étaient sur la
+  ligne que rétrécit la lettrine de référence, laquelle prenait 28,8 px + 8 de marge, soit
+  **12 % de la mesure**.
+- **La lettrine se range dans la GOUTTIÈRE** : `margin-left` négatif égal au `padding-left`
+  de la cellule (−10 px pour 10 px). ⚠️ Les deux valeurs se répondent, sinon elle déborde
+  sur la réglure.
+- ⛔ **Une espace étroite AGGRAVE la justification.** Elle ajoute le même blanc absolu quel
+  que soit le point de départ : resserrer l'espace naturelle ne resserre que les lignes
+  déjà justes et rend l'écart plus criant ailleurs. `word-spacing` remonte de −0,04 à
+  −0,02 em. Mesuré sur Jean : plus grand blanc 7,5 → 5,6 espaces, blancs de plus du double
+  1 235 → 894. Sur la page servie, avant/après restitué : **969 → 732 (−24 %)**, p90 2,37 →
+  2,17, hauteur 28 034 → 27 380. ⚠️ Un cas extrême a EMPIRÉ (4,58 → 6,70 espaces) : la
+  coupure de ligne est chaotique, la distribution s'améliore, pas chaque ligne.
+- ⛔ **Mesuré et ÉCARTÉ, pour n'y pas revenir** : `text-wrap: pretty` fait PIRE sur du
+  justifié (plus grand blanc 37,9 → 99 px) ; `hyphenate-limit-chars: 4 2 2` ne change RIEN
+  (chiffres identiques au pixel) ; une césure française posée à la main sur les mots longs
+  ne gagne presque rien (67 → 65 gros blancs) — le dictionnaire du navigateur fait déjà le
+  travail, et sans lui les blancs de plus du double augmentent de moitié (p90 10,1 → 17,4
+  px). Ce qui reste est fait de NOMS PROPRES, qu'aucune règle ne coupe sans risque.
+
 ## Une page de lecture s'ouvre sur un TEXTE, et en FONDU (2026-09-04)
 
 Doctrine : charte `parametres.charte_ia`, § 38.7. Règles de code :
