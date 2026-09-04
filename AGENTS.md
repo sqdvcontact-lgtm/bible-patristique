@@ -5412,3 +5412,39 @@ Doctrine : charte `parametres.charte_ia`, § 38.16. Règles de code :
   c'est l'affichage qui s'en passe. `datesTraducteur` est retirée, et **`metadata` a
   quitté la signature de `libelleVersionComplet`** — une signature qui ne reçoit plus la
   donnée est une garde plus sûre qu'un test.
+
+# Les NOTIFICATIONS — une rangée, trois rangs, un ton (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.17. Le volet vit dans
+`app/components/VoletNotifications.tsx`, son modèle dans `app/lib/notificationsClient.ts`,
+ses formes dans `globals.css` (§ « Une notification est une rangée »). ⛔ Il n'y a plus de
+page `/notifications` : la route redirige vers l'accueil.
+
+- ⛔ **`NotificationItem` porte QUATRE choses** — expéditeur (`auteur`), `objet`, `message`,
+  `date` — plus l'adresse et son libellé. `titre` et `contexte` sont SUPPRIMÉS du modèle :
+  l'objet les réunit en une ligne, le document nommé compris (`objetAvecDocument`).
+  ⚠️ La Navbar lisait `n.titre` pour sa vignette : elle lit `n.objet`.
+- ⛔ **Le corps est VIDE quand l'objet dit tout.** « Votre commentaire a été accepté. » sous
+  « Commentaire accepté » occupait le rang où l'on cherche ce que la modération a
+  réellement écrit. Le message ne paraît que s'il porte des mots de quelqu'un.
+- ⛔ **`ton` remplace le titre, et ne colore QUE l'objet** : `validation` → `--cs-vert`,
+  `refus` → `--cs-danger-fonce`, `neutre` → `--cs-texte-second`. ⚠️ Pas le MAROQUIN, que
+  l'auteur proposait : il est `--cs-peres` et DIT un domaine du corpus sur la recherche
+  comme sur l'accueil. ⚠️ « À revoir » se range avec les refus : la publication n'a pas été
+  acceptée en l'état.
+- ⚠️ **Les quatre libellés de modération sont figés au mot près** — « Certification
+  acceptée », « Certification refusée », « Commentaire accepté », « Commentaire refusé » :
+  ils entrent dans la CLÉ d'archivage gardée en stockage local, et les réécrire ferait
+  reparaître d'un coup tout ce que le lecteur avait rangé. Seul le repli a changé de mot,
+  et il ne se rencontre presque jamais.
+- ⛔ **`.cs-notif` est une RANGÉE, pas une carte** : pleine largeur, filet entre voisines,
+  rembourrage à la mesure de l'en-tête du volet. Ni fond propre, ni coins, ni bandeau au
+  flanc. Le conteneur de la liste n'a plus ni `padding` ni `gap`.
+- ⛔ **`.cs-notif-archiver` paraît au survol, AU FOYER et au DOIGT** (`:hover`,
+  `:focus-within`, `@media (hover: none)`), et garde sa place par l'opacité — jamais
+  `display` : la ligne se recomposerait sous le curseur au moment où on le vise.
+- ⚠️ **L'adresse d'un commentaire vient de `id_verset`**, composée à la main et ⛔ SANS
+  `trad` : `urlLectureBible` en exige une, que la notification ne connaît pas, et la page
+  Bible choisit alors celle du lecteur (adresse, cookie, profil). Un commentaire de SEGMENT
+  n'a pas d'adresse ici — il faudrait joindre `segments` pour connaître son œuvre, et le
+  corpus n'en compte aucun (mesuré le 2026-09-04 : cinq commentaires, tous sur un verset).
