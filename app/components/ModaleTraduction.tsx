@@ -40,6 +40,21 @@
 // une troisième fois. La référence est devenue la TÊTE de la rubrique, et les
 // rangées ne portent plus que ce qu'elle ne dit pas.
 //
+// ⛔ CE QUI RELÈVE DE L'ATELIER N'Y PARAÎT PLUS (2026-09-04, quatre demandes de
+// l'auteur, charte § 38.15). La rangée « Vérification » disait un état de TRAVAIL
+// (« Contrôle en cours ») derrière un mot souligné de pointillés qu'il fallait
+// cliquer ; le renvoi « Conditions d'utilisation, § 6 » envoyait chercher ailleurs
+// ce que les deux paragraphes venaient de dire ; « Source numérique » alignait
+// trois objets pour une seule adresse, dont un lien qui redisait l'étiquette de sa
+// rangée. Les trois sont retirés.
+//
+// ⚠️ ET « PARTICULARITÉS » PORTE DE LA PROSE, non la valeur d'une étiquette. C'est
+// la quatrième demande, et la seule qui touche aussi la DONNÉE : la notice de la
+// Segond nommait `versets_canon`, `ch_heb/v_heb` et le « vref eBible » à un lecteur
+// qui ne peut rien en faire. La rangée lui donne l'interligne et la césure d'un
+// paragraphe ; les notices des cinq bibles publiques ont été réécrites en base
+// (migration `20260904190000`, sauvegarde `internal.backup_editions_notices_20260904`).
+//
 // ⚠️ Le CONTENU est séparé de la fenêtre, comme dans la fiche d'auteur : `createPortal`
 // n'existe pas au rendu serveur, et une planche de contrôle hors session ne pourrait
 // pas rendre la fiche si tout tenait dans un seul composant.
@@ -50,9 +65,10 @@ import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { sieclesEnHtml } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { normaliserEspaces } from '@/app/lib/typographie'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { FriseAuteur, TitreSection, RangeeEmpilee, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
-import { type RangChrono } from '@/app/lib/frise'
+import { type RangChrono, estUrl } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
   portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
@@ -82,11 +98,10 @@ export type InfoTrad = {
   photo: string | null; photo_encart: string | null; photo_position: PositionsPhotoTraduction
   schema_numerotation: string | null
   licence_traduction: string | null; mention_obligatoire: string | null
-  statut_corpus_public: string | null; lacunes_publiques: string | null
   titre_edition: string | null; sous_titre_edition: string | null
   editeur: string | null; annee_edition: string | null; lieu_edition: string | null
   source_type: string | null; source_numerique_nom: string | null; source_numerique_url: string | null
-  graphie: string | null; particularites: string | null; integrite_verifiee: boolean | null
+  graphie: string | null; particularites: string | null
   /** « Édition révisée » : la mention de la page de titre. */
   mention_edition: string | null
   /** Le dépôt et la cote d'un TÉMOIN MANUSCRIT — la cote fait le manuscrit. */
@@ -103,6 +118,42 @@ function intituleTraduction(i: InfoTrad): string | null {
   if (i.type_objet === 'recension') return a ? `Recension de ${a}` : null
   if (i.type_objet === 'traduction') return a ? `Traduction de ${a}` : null
   return a
+}
+
+/**
+ * La PROSE d'un champ de la base — notice, graphie, particularités.
+ *
+ * ⚠️ Ces champs sont saisis à l'espace ordinaire : mesuré le 2026-09-04, les cinq
+ * notices bibliques ne portent QUE des U+0020, guillemets et deux-points compris.
+ * La norme française se pose donc au RENDU, comme partout ailleurs sur le site
+ * (charte § 3.2) : `normaliserEspaces` CONVERTIT le type d'une espace déjà présente,
+ * elle n'en ajoute jamais, et ne change pas la longueur du texte.
+ * ⛔ Le grand texte de la fiche, `commentaire_editorial`, passe par `formaterProse`,
+ * qui pose les mêmes règles sur du HTML : ne pas les cumuler, elles sont idempotentes
+ * mais l'une travaille sur des balises et l'autre non.
+ */
+const enProse = (t: string | null | undefined) => rendreEnrichi(t ? normaliserEspaces(t) : t)
+
+/**
+ * La source numérique : son NOM porte le lien, et il n'y a rien d'autre.
+ *
+ * ⛔ PLUS DE « · Voir la source » À CÔTÉ DU NOM (2026-09-04, demande de l'auteur :
+ * « remettre en forme pour faire au plus clair »). La rangée alignait trois objets
+ * pour une seule adresse — le nom, un point médian, un lien dont le libellé redisait
+ * l'étiquette de la rangée —, si bien qu'on hésitait sur ce qu'on cliquait. Le nom
+ * EST la source : il mène donc à elle.
+ *
+ * ⚠️ Le nom se rend TOUJOURS, lien ou pas : `Consulter` ne rend rien sur une adresse
+ * qui n'en est pas une, et le nom disparaîtrait avec elle. D'où `estUrl`, lu ici et
+ * non déduit d'un composant qui peut rendre `null`.
+ * ⚠️ Sans nom, c'est l'HÔTE de l'adresse qui se donne : une source se nomme, elle ne
+ * se cache pas derrière un « voir ».
+ */
+function SourceNumerique({ nom, url }: { nom: string | null; url: string | null }) {
+  const hote = estUrl(url) ? new URL(url!.trim()).host : ''
+  const libelle = nom?.trim() || (hote.startsWith('www.') ? hote.slice(4) : hote)
+  if (!libelle) return null
+  return estUrl(url) ? <Consulter url={url} libelle={libelle} /> : <>{libelle}</>
 }
 
 /** Libellé lisible du schéma de numérotation stocké en base. */
@@ -209,9 +260,6 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   ouvragesCites: OuvrageBibliographique[]
   nomFallback: string
 }) {
-  // « Contrôle en cours » (rubrique Vérification) déplie une note : statut du
-  // corpus et lacunes connues, plutôt qu'un encart permanent en haut de fiche.
-  const [verifNote, setVerifNote] = useState(false)
   // ⚠️ On retient l'ADRESSE de l'image qui a manqué, et non un booléen remis à
   // vrai depuis un effet : la règle des hooks refuse un `setState` synchrone dans
   // un effet, et la fiche peut changer de traduction sans être remontée.
@@ -239,7 +287,6 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   const numerotation = (i.schema_numerotation && i.schema_numerotation !== 'vulgate')
     ? (NUMEROTATION_LABEL[i.schema_numerotation] ?? i.schema_numerotation) : null
   const intitule = intituleTraduction(i)
-  const verif = i.integrite_verifiee == null ? null : (i.integrite_verifiee ? 'Texte vérifié' : 'Contrôle en cours')
   const licenceDP = (i.licence_traduction ?? '').toLowerCase().includes('domaine public')
   // ⛔ Une licence RÉDIGÉE se rend telle quelle, jamais rabattue sur la formule du
   // domaine public : celle de la Bible 899 dit « Texte médiéval dans le domaine
@@ -289,8 +336,15 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   // décide donc plus non plus que la rubrique paraisse.
   // ⚠️ Le champ reste LU : il nomme le responsable d'une édition critique dans
   // l'intitulé, sous le nom (voir `intituleTraduction`).
+  // ⛔ « VÉRIFICATION » NE PARAÎT PLUS (2026-09-04, demande de l'auteur :
+  // « VérificationContrôle en cours // ne pas afficher »). C'était un état de
+  // TRAVAIL — « Contrôle en cours » sur six bibles sur neuf — donné pour un
+  // renseignement, et il fallait cliquer un mot souligné de pointillés pour
+  // apprendre ce qu'il recouvrait. ⚠️ `integrite_verifiee`, `statut_corpus_public`
+  // et `lacunes_publiques` ne sont donc plus lus NULLE PART dans la fiche ; ils
+  // restent en base, où l'administration les tient.
   const aEdition = referenceEdition.length > 0 || !!(i.source_numerique_nom
-    || i.source_numerique_url || i.graphie || numerotation || i.particularites || verif)
+    || i.source_numerique_url || i.graphie || numerotation || i.particularites)
   // Deux colonnes seulement s'il y a de quoi remplir les deux. Une notice seule
   // prend toute la mesure plutôt que de laisser une colonne vide à côté d'elle.
   const deuxColonnes = !etroit && !!(i.bio_courte || i.commentaire_editorial) && (aChrono || aEdition)
@@ -353,7 +407,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
           ) : (
             <>
               {i.bio_courte && (
-                <p className="trad-bloc" style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0 }}>{rendreEnrichi(i.bio_courte)}</p>
+                <p className="trad-bloc" style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0 }}>{enProse(i.bio_courte)}</p>
               )}
               {/* Notice éditoriale : HTML (h2/p) rendu tel quel, aux styles de la
                   fiche d'auteur — titres de section en sérif italique, prose en
@@ -387,28 +441,22 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                     </ul>
                   </div>
                 )}
-                <RangeeEmpilee c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source" /> : null)}</RangeeEmpilee>
-                <RangeeEmpilee c="Graphie">{rendreEnrichi(i.graphie)}</RangeeEmpilee>
+                <RangeeEmpilee c="Source numérique"><SourceNumerique nom={i.source_numerique_nom} url={i.source_numerique_url} /></RangeeEmpilee>
+                <RangeeEmpilee c="Graphie">{enProse(i.graphie)}</RangeeEmpilee>
                 <RangeeEmpilee c="Numérotation">{numerotation}</RangeeEmpilee>
-                <RangeeEmpilee c="Particularités">{rendreEnrichi(i.particularites)}</RangeeEmpilee>
-                {/* Vérification : « Contrôle en cours » se déplie en note (statut du
-                    corpus et lacunes connues), au lieu d'un encart permanent.
-                    ⚠️ La note se compose en SPAN et non en paragraphe : elle vit dans
-                    la valeur d'une rangée, qui est elle-même un span. */}
-                <RangeeEmpilee c="Vérification">{verif ? (
-                  (i.statut_corpus_public || i.lacunes_publiques) ? (
-                    <>
-                      <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
-                        style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
-                      {verifNote && (
-                        <span style={{ display: 'block', margin: '5px 0 1px' }}>
-                          {i.statut_corpus_public && <span style={{ display: 'block', margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{rendreEnrichi(i.statut_corpus_public)}</span>}
-                          {i.lacunes_publiques && <span style={{ display: 'block', fontFamily: SERIF, fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', lineHeight: 1.45 }}>{rendreEnrichi(i.lacunes_publiques)}</span>}
-                        </span>
-                      )}
-                    </>
-                  ) : verif
-                ) : null}</RangeeEmpilee>
+                {/* ⚠️ « PARTICULARITÉS » PORTE DE LA PROSE, non la valeur d'une
+                    étiquette : quatre phrases dans une rangée composée pour un mot
+                    se lisent en télégramme, et c'est ce que l'auteur a relevé le
+                    2026-09-04. Elle garde son étiquette et prend l'interligne et la
+                    césure d'un paragraphe.
+                    ⚠️ En SPAN, jamais en paragraphe : la valeur d'une rangée est
+                    elle-même un span (charte § 38.4).
+                    ⛔ Pas de justification : la colonne fait environ 314 px, soit
+                    quarante-cinq signes par ligne, et le justifié y creuse des
+                    blancs (charte § 38.9). */}
+                <RangeeEmpilee c="Particularités">{i.particularites
+                  ? <span style={{ display: 'block', lineHeight: 1.5, hyphens: 'auto' }}>{enProse(i.particularites)}</span>
+                  : null}</RangeeEmpilee>
               </section>
             )}
           </div>
@@ -443,7 +491,12 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               est le TEXTE ; la transcription, la structuration, les alignements et
               les liens ne le sont pas.
               ⛔ La formule ne s'invente pas ici : elle dit en trois phrases le § 6
-              des conditions d'utilisation, et renvoie à cette page, qui fait foi. */}
+              des conditions d'utilisation, qui fait foi.
+              ⛔ ELLE N'Y RENVOIE PLUS PAR UN LIEN (2026-09-04, demande de l'auteur :
+              « Conditions d'utilisation, § 6 // supprimer, ne pas afficher »). Un
+              renvoi à un article numéroté est une référence d'acte, non un
+              renseignement : il envoie le lecteur chercher ailleurs ce que les deux
+              paragraphes viennent de lui dire, et la page reste au pied du site. */}
           <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
             <TitreSection>Conditions d’usage</TitreSection>
             <p style={{ fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: 0, textAlign: 'justify', hyphens: 'auto' }}>
@@ -457,11 +510,6 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               substantielle de cette structuration à des fins commerciales est soumise à
               autorisation préalable ; une citation reprise publiquement garde la mention de sa
               source.
-            </p>
-            <p style={{ fontFamily: SANS, fontSize: '0.65625rem', lineHeight: 1.5, color: 'var(--cs-texte-doux)', margin: '7px 0 0' }}>
-              <a href="/conditions-utilisation" style={{ color: 'var(--cs-vert)', textDecoration: 'none', borderBottom: '1px solid var(--cs-or-doux)' }}>
-                Conditions d’utilisation, § 6
-              </a>
             </p>
           </section>
         </>
