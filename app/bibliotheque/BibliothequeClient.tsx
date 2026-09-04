@@ -156,15 +156,27 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
   )
 }
 
-// Le blanc qui sépare deux lignes dans la liste des œuvres — texte original,
-// traduction, autre édition : le MÊME pour toutes. Il valait 1px entre un texte
-// original et sa traduction, 5px partout ailleurs, si bien que l'écart changeait
-// de taille d'une ligne à l'autre au gré de ce que chaque œuvre porte : « Texte
-// original latin — Jacques-Paul Migne, Paris, 1845 » se trouvait écarté de la
-// ligne suivante deux fois plus que de la précédente. Ce qui sépare les ŒUVRES
-// entre elles, c'est le filet et le retrait du groupe, pas l'écart des lignes.
-// (Le même chiffre vaut sur téléphone : voir `.bib-ligne` dans globals.css.)
-const MARGE_LIGNE_OEUVRE = '1px'
+// ── LES DEUX BLANCS DE LA LISTE DES ŒUVRES ───────────────────────────────────
+// Le blanc qui sépare deux lignes — texte original, traduction, autre édition — est
+// le MÊME pour toutes : il valait 1px ici et 5px là, si bien que l'écart changeait
+// au gré de ce que chaque œuvre porte. Ce qui sépare les ŒUVRES entre elles, c'est
+// le filet et le retrait du groupe, pas l'écart des lignes.
+//
+// ⛔ MAIS LE BLANC APRÈS LE TITRE N'EST PAS CELUI D'ENTRE DEUX LIGNES (relevé de
+// l'auteur, 2026-09-04 : « je devine un déséquilibre ; éloigner un peu la première
+// ligne du titre, et rapprocher les lignes entre elles »). Mesuré d'ENCRE À ENCRE sur
+// la page servie, c'était l'inverse : 4,0 px entre le titre et sa première édition,
+// 8,7 px entre deux éditions — les sœurs s'écartaient deux fois plus qu'elles ne
+// s'écartaient de leur propre titre, et la liste ne se lisait pas comme un bloc.
+// ⚠️ Les deux blancs ne se mesurent pas dans les boîtes mais dans l'ENCRE : les
+// libellés sont plus petits que leur ligne, et le demi-interligne ajoute 1,7 px que
+// le calcul en marges ne voit pas.
+const MARGE_APRES_TITRE = '5px'
+const MARGE_ENTRE_LIGNES = '0px'
+// Le blanc INTÉRIEUR d'une ligne, en haut comme en bas. ⚠️ Il compte double entre
+// deux lignes, et c'est lui qui les écartait : 3px devenaient 8,7 px d'encre.
+// (Même valeur sur téléphone : voir `.bib-ligne a` dans globals.css.)
+const AIR_LIGNE_OEUVRE = '2px'
 
 // Nombre d'auteurs par page de bibliothèque.
 const AUTEURS_PAR_PAGE = 10
@@ -405,7 +417,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                       {libelleAuteurs(grp.versions[0].auteurs!)}
                     </span>
                   )}
-                  {grp.versions.map(o => {
+                  {grp.versions.map((o, iv) => {
                     // L'éditeur paraît sous son nom répertorié, comme sur la page de
                     // titre : « L. Guérin & Cie » et « Louis Guérin » sont la même
                     // maison, et l'étagère ne doit pas donner à croire le contraire.
@@ -442,7 +454,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         // traduction pour retrouver l’original. Le texte original n’ayant pas de
                         // ligne d’œuvre à lui, sa référence prend le suffixe « #la »
                         // (voir app/lib/refsFavoris.ts).
-                        <div className="bib-ligne" style={{ marginTop: MARGE_LIGNE_OEUVRE, alignItems: 'center' }}>
+                        <div className="bib-ligne" style={{ marginTop: iv === 0 ? MARGE_APRES_TITRE : MARGE_ENTRE_LIGNES, alignItems: 'center' }}>
                           <div className="bib-etoile" style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
                             <EtoileFavori actif={favorisOeuvres.has(refFavoriOriginal(o.id_oeuvre))}
                               onToggle={() => toggleFavoriOeuvre(refFavoriOriginal(o.id_oeuvre))} size={12}
@@ -451,7 +463,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                                 : `Ajouter le texte ${langueOrig} aux favoris`} />
                           </div>
                           <Link href={`/oeuvre/${o.id_oeuvre}?mt=la`}
-                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
+                            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: `${AIR_LIGNE_OEUVRE} 12px ${AIR_LIGNE_OEUVRE} 9px`, textDecoration: 'none' }}>
                             <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                               <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>{libelleTexteOriginal(o.langue_originale)}</span>
                               {o.titre_original && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.titre_original}</span>}
@@ -463,9 +475,12 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </Link>
                         </div>
                       )}
-                      {/* Même écart qu'au-dessus : toutes les lignes de la liste — texte
-                          original, traduction, édition — se suivent au même pas. */}
-                      <div className="bib-ligne" style={{ marginTop: MARGE_LIGNE_OEUVRE, alignItems: 'center' }}>
+                      {/* Même pas que ci-dessus : toutes les lignes de la liste — texte
+                          original, traduction, édition — se suivent au même écart. ⚠️ Sauf
+                          la PREMIÈRE du groupe, qui prend le blanc d'après-titre : ici,
+                          c'est la ligne de traduction quand l'œuvre n'a pas de texte
+                          original à mettre au-dessus d'elle. */}
+                      <div className="bib-ligne" style={{ marginTop: iv === 0 && !aOriginal ? MARGE_APRES_TITRE : MARGE_ENTRE_LIGNES, alignItems: 'center' }}>
                         {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction.
                             Montée au titre, l'étoile laisse ici la même cale que la ligne de texte
                             original, pour que les libellés restent alignés entre eux. */}
@@ -479,7 +494,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           </div>
                         )}
                         <Link href={`/oeuvre/${o.id_oeuvre}`}
-                          style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '3px 12px 3px 9px', textDecoration: 'none' }}>
+                          style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: `${AIR_LIGNE_OEUVRE} 12px ${AIR_LIGNE_OEUVRE} 9px`, textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>{libelle}</span>
                             {(trad || langueSeule) && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
@@ -522,28 +537,40 @@ const PERIODES: Periode[] = [
   { jsx: <EmpanSiecles de={7} a={9} />, min: 7, max: 9 },
   { jsx: <EmpanSiecles de={10} a={13} />, min: 10, max: 13 },
 ]
-const LANGUES = ['Grec', 'Latin', 'Syriaque', 'Copte', 'Arménien']
-const GENRES = ['Apologétique', 'Catéchèse', 'Théologie', 'Traité', 'Homélie', 'Commentaire', 'Lettre']
+// ⛔ DEUX LISTES MORTES retirées le 2026-09-04 : `LANGUES` doublait `languesDispo`, qui
+// vient des DONNÉES, et `GENRES` servait une facette qui n'existe plus — la tradition a
+// remplacé le genre il y a longtemps. Une liste que rien ne lit finit par contredire ce
+// qu'on affiche.
 
-type ChipTheme = { bg: string; border: string; color: string; bgActif: string; borderActif: string }
-const THEMES: Record<string, ChipTheme> = {
-  periode: { bg: 'rgba(139,107,60,0.07)',  border: 'rgba(139,107,60,0.22)', color: '#7a6a50', bgActif: '#7a6040', borderActif: '#7a6040' },
-  langue:  { bg: 'rgba(61,90,107,0.07)',   border: 'rgba(61,90,107,0.22)', color: '#4a6070', bgActif: '#3d5a6b', borderActif: '#3d5a6b' },
-  genre:   { bg: 'rgba(var(--cs-vert-rgb),0.07)',   border: 'rgba(var(--cs-vert-rgb),0.22)', color: 'var(--cs-vert)', bgActif: 'var(--cs-vert)', borderActif: 'var(--cs-vert)' },
-}
-
-function Chip({ actif, onClick, children, theme = 'genre' }: { actif: boolean; onClick: () => void; children: React.ReactNode; theme?: string }) {
-  const t = THEMES[theme] ?? THEMES.genre
+/**
+ * Une PASTILLE de filtre, et son COMPTE.
+ *
+ * ⛔ UNE SEULE FAMILLE VISUELLE, non plus trois. Chaque facette avait sa teinte — brun
+ * pour la période, bleu pour la langue, vert pour la tradition —, ce qui faisait de la
+ * couleur une décoration : la rubrique au-dessus de chaque rang dit déjà de quelle facette
+ * il s'agit, et la couleur n'ajoutait rien qu'elle ne dise. Le bleu était en outre la seule
+ * teinte froide de cet écran, hors de la bande du Cuir. Neuf couleurs en dur sont parties
+ * avec les thèmes (charte : le registre ne peut que décroître).
+ *
+ * ⚠️ LE COMPTE N'EST PAS UN ORNEMENT : c'est ce qui dit qu'un filtre ne servira à rien
+ * avant qu'on l'essaie. La bibliothèque compte QUATORZE auteurs ; une facette qui en rend
+ * huit ne mérite pas qu'on la cherche, et une qui en rend zéro ne se montre pas du tout.
+ */
+function Chip({ actif, compte, onClick, children }: {
+  actif: boolean; compte: number; onClick: () => void; children: React.ReactNode
+}) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} aria-pressed={actif} style={{
+      display: 'inline-flex', alignItems: 'baseline', gap: '5px',
       padding: '2px 9px', borderRadius: '4px', fontSize: '0.6875rem',
-      border: `1px solid ${actif ? t.borderActif : t.border}`,
-      background: actif ? t.bgActif : t.bg,
-      color: actif ? 'var(--cs-sur-aplat)' : t.color,
+      border: `1px solid ${actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`,
+      background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
+      color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
       cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
       transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
     }}>
       {children}
+      <span style={{ fontStyle: 'normal', fontSize: '0.5625rem', fontVariantNumeric: 'tabular-nums', opacity: 0.62 }}>{compte}</span>
     </button>
   )
 }
@@ -1730,6 +1757,38 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
 
   const qNorm = sansAccents(recherche.trim())
 
+  // ── CE QU'UNE FACETTE RENDRAIT ────────────────────────────────────────────
+  // ⚠️ Une facette se compte sur les auteurs qui passent la recherche et tous les
+  // autres filtres, mais PAS le sien : c'est ainsi qu'elle dit ce qu'elle
+  // AJOUTERAIT, et non ce qui reste une fois qu'elle a agi. Le compte se fait sur
+  // quatorze auteurs, il ne coûte rien.
+  const passeRecherche = useCallback((a: Auteur) =>
+    !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)), [qNorm])
+  const dansPeriode = (a: Auteur, i: number) => {
+    const n = siecleEnNombre(a.siecle)
+    return n != null && n >= PERIODES[i].min && n <= PERIODES[i].max
+  }
+  const auteursSauf = (axe: 'periode' | 'langue' | 'famille') => auteurs.filter(a => {
+    if (!passeRecherche(a)) return false
+    if (axe !== 'periode' && periodesActives.size && ![...periodesActives].some(i => dansPeriode(a, i))) return false
+    if (axe !== 'langue' && languesActives.size && !(a.langue_principale && languesActives.has(a.langue_principale))) return false
+    if (axe !== 'famille' && famillesActives.size && !famillesDesTraditions(a.traditions).some(c => famillesActives.has(c))) return false
+    return true
+  })
+  const comptePeriode = (i: number) => auteursSauf('periode').filter(a => dansPeriode(a, i)).length
+  const compteLangue = (l: string) => auteursSauf('langue').filter(a => a.langue_principale === l).length
+  const compteFamille = (c: string) => auteursSauf('famille').filter(a => famillesDesTraditions(a.traditions).includes(c)).length
+  // ⛔ Une facette qui ne rendrait RIEN ne se montre pas — mais une facette ACTIVE reste
+  // toujours visible, active-t-elle sur le vide : on ne cache jamais un filtre qui agit,
+  // sans quoi le lecteur ne saurait plus pourquoi sa liste est courte.
+  const aMontrer = (compte: number, actif: boolean) => compte > 0 || actif
+  const periodesVues = PERIODES.map((p, i) => ({ i, p, compte: comptePeriode(i) }))
+    .filter(x => aMontrer(x.compte, periodesActives.has(x.i)))
+  const languesVues = languesDispo.map(l => ({ l, compte: compteLangue(l) }))
+    .filter(x => aMontrer(x.compte, languesActives.has(x.l)))
+  const famillesVues = famillesDispo.map(famille => ({ famille, compte: compteFamille(famille.cle) }))
+    .filter(x => aMontrer(x.compte, famillesActives.has(x.famille.cle)))
+
   const auteursFiltres = useMemo(() => auteurs
     .filter(a => !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)))
     .filter(a => {
@@ -1833,24 +1892,30 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             {/* Panneau de filtres à facettes (période · langue · tradition). */}
             {filtresOuverts && (
               <div style={{ maxWidth: '52rem', margin: '0 auto 18px', padding: '16px 20px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <LigneFiltres label="Période">
-                  {PERIODES.map((p, i) => (
-                    <Chip key={i} theme="periode" actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>
-                  ))}
-                </LigneFiltres>
-                {languesDispo.length > 0 && (
-                  <LigneFiltres label="Langue">
-                    {languesDispo.map(l => (
-                      // La valeur reste celle de la base (« latin »), la pastille porte
-                      // l'étiquette (« Latin ») : voir app/lib/langues.ts.
-                      <Chip key={l} theme="langue" actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
+                {/* ⛔ Chaque rang ne paraît que s'il lui reste une facette à offrir. La
+                    PÉRIODE ne se dérivait pas des données, à la différence des deux autres :
+                    ses cinq empans s'affichaient toujours, et l'on pouvait cliquer un
+                    siècle que la bibliothèque ne porte pas. */}
+                {periodesVues.length > 0 && (
+                  <LigneFiltres label="Période">
+                    {periodesVues.map(({ i, p, compte }) => (
+                      <Chip key={i} compte={compte} actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>
                     ))}
                   </LigneFiltres>
                 )}
-                {famillesDispo.length > 0 && (
+                {languesVues.length > 0 && (
+                  <LigneFiltres label="Langue">
+                    {languesVues.map(({ l, compte }) => (
+                      // La valeur reste celle de la base (« latin »), la pastille porte
+                      // l'étiquette (« Latin ») : voir app/lib/langues.ts.
+                      <Chip key={l} compte={compte} actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
+                    ))}
+                  </LigneFiltres>
+                )}
+                {famillesVues.length > 0 && (
                   <LigneFiltres label="Tradition">
-                    {famillesDispo.map(famille => (
-                      <Chip key={famille.cle} theme="genre" actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
+                    {famillesVues.map(({ famille, compte }) => (
+                      <Chip key={famille.cle} compte={compte} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
                     ))}
                   </LigneFiltres>
                 )}

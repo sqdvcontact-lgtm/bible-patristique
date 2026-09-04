@@ -196,24 +196,12 @@ const MIN_SLOTS = 2;
 // hauteur fixe (charte, § conversion px → rem) : elle tient la plus longue référence du
 // corpus, « 119, 176 », composée en chiffres tabulaires au corps de la marge.
 const LARGEUR_REF = 44;
-// ⛔ CE QUI ALIGNE LA RÉFÉRENCE SUR SA PREMIÈRE LIGNE DE TEXTE, ce n'est pas un rembourrage
-// choisi à l'œil : c'est d'avoir la MÊME BOÎTE DE LIGNE que la cellule qu'elle accompagne.
-// La référence est composée en sans à 11 px, le verset en sérif à 14 : à interligne relatif,
-// leurs boîtes ne font pas la même hauteur, leurs lignes de base divergent de trois pixels,
-// et le numéro flotte au-dessus de son verset. On lui donne donc l'interligne du texte en
-// valeur ABSOLUE — la boîte cesse alors de dépendre du corps de ce qu'elle porte —, et le
-// même rembourrage haut que la cellule. Les deux lignes de base tombent à moins d'un pixel.
-// ⚠️ Les deux facteurs sont ceux de `.poly-texte-cell` : les changer là demande de les
-// changer ici, et le calc() est écrit pour qu'on le voie.
-const HAUT_LIGNE_TEXTE = "calc(0.875rem * 1.36)";
-// ⚠️ UN PIXEL DE PLUS que le rembourrage de la cellule (7 px), et ce pixel est MESURÉ, non
-// estimé : à boîte de ligne égale, la ligne de base tombe à `(hauteur − corps)/2 + ascendante`,
-// et Source Sans à 11 px n'a pas la même ascendante que Source Serif à 14. Relevé au navigateur
-// sur la géométrie réelle (`tmp/planche-alignement-reference.html`), écart des lignes de base :
-// 7 px → −1,00 · 7,5 → −0,50 · **8 → 0,00** · 8,5 → +0,50 · 9 → +1,00. Pour mémoire, l'ancien
-// réglage (rembourrage 8 px, interligne relatif 1,15) donnait −4,00, ce qui se voyait.
-// ⛔ À REMESURER si l'un des deux corps, l'interligne ou l'une des deux polices change.
-const HAUT_PAD_MARGE = 8;
+// ⛔ CE QUI ALIGNE UNE RÉFÉRENCE SUR SA LIGNE DE TEXTE vit désormais dans la feuille, et
+// non dans deux nombres : la marge et la lettrine EMPRUNTENT le strut de la cellule (voir
+// `.poly-marge-ref` et `.poly-lettrine-item`). Les deux constantes d'ici — un interligne
+// absolu et un rembourrage calibrés à l'œil — étaient en PIXELS quand les deux boîtes se
+// mesurent en rem : elles n'étaient justes qu'à une seule taille de police racine, et
+// elles se sont déréglées dès que le blanc de la cellule et l'interligne ont bougé.
 const ORDRE_NT = 52;
 const ORDRE_CANON_MAX = 78;     // au-delà : écrits non canoniques
 const FOND = "var(--cs-fond)";   // le fond du site, celui de --cs-fond
@@ -1876,6 +1864,54 @@ export default function PolyglottePage() {
            et les boutons restent en sans (chacun porte sa propre font-family). ATTENTION :
            line-height est repris À L'IDENTIQUE par .poly-lettrine-item (hauteur du
            flottant = une ligne de texte) : garder les deux valeurs synchronisées. */
+        /* ── LES MESURES DE LA COLONNE, NOMMÉES UNE FOIS, SUR LA RANGÉE ─────────
+           ⛔ Sur la RANGÉE et non sur la cellule : la marge de référence en est la SŒUR,
+           non la descendante, et c'est elle qui doit emprunter l'interligne et le blanc
+           du haut pour poser sa ligne de base sur celle du texte.
+           Elles se répondent, et elles se sont déjà désaccordées : « --poly-marge-x » est
+           repris par « .poly-lettrine », qui se range dans la gouttière ; « --poly-interligne »
+           par « .poly-lettrine-item », dont l'étui fait exactement une ligne de texte ; et
+           « --poly-air-haut » par la marge de référence.
+           ⚠️ Marges élargies et interligne resserré le 2026-09-04, à la demande de l'auteur :
+           10 → 13 px de gouttière, 7/8 → 8/9 px de blanc, 1,36 → 1,34 d'interligne. */
+        .poly-row, .poly-surnum-row {
+          --poly-marge-x: 13px;
+          --poly-air-haut: 8px;
+          /* Le blanc que la lettrine garde contre la réglure : elle la touchait, sa marge
+             négative valant exactement la gouttière. Elle en reprend trois pixels. */
+          --poly-lettrine-air: 3px;
+          --poly-interligne: 1.34;
+        }
+        /* ── LA RÉFÉRENCE EMPRUNTE LE STRUT DE LA CELLULE ───────────────────────
+           ⛔ CE QUI ALIGNE UNE RÉFÉRENCE SUR SA LIGNE DE TEXTE, ce n'est ni un rembourrage
+           choisi à l'œil ni un nombre mesuré une fois : c'est d'avoir EXACTEMENT la même
+           boîte de ligne — même police, même corps, même interligne, même blanc du haut.
+           Le numéro, lui, se compose en plus petit et en sans DANS cette boîte : un enfant
+           en ligne plus petit se pose sur la ligne de base du strut sans la déplacer.
+           ⚠️ La POLICE compte autant que le corps : l'ascendante d'une sans n'est pas celle
+           d'une sérif, et c'est ce qui restait de travers quand tout le reste s'accordait.
+           Mesuré sur la page servie : la référence canonique ET la lettrine tombaient 2,40 px
+           au-dessus de la ligne de base du texte (relevé de l'auteur, 2026-09-04) ; elles y
+           tombent maintenant à 0,00.
+           ⛔ L'ancien réglage — un interligne absolu et un rembourrage de 8 px calibrés à
+           l'œil — ne pouvait pas tenir : il était en PIXELS quand les deux boîtes se mesurent
+           en rem, si bien qu'il n'était juste qu'à une seule taille de police racine, et il
+           se dérégla dès que le blanc de la cellule passa de 7 à 8 px et l'interligne de
+           1,36 à 1,34. Un rapport se pose, il ne se mesure pas. */
+        .poly-marge-ref {
+          padding: var(--poly-air-haut) 8px 0 0;
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.875rem;
+          line-height: var(--poly-interligne);
+          text-align: right;
+        }
+        .poly-marge-ref > span {
+          font-family: var(--font-source-sans), Arial, sans-serif;
+          font-size: 0.6875rem;
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
         .poly-texte-cell {
           position: relative;
           min-width: 0;
@@ -1883,22 +1919,7 @@ export default function PolyglottePage() {
              entre les lignes de la grille interromprait la réglure verticale à chaque verset,
              et la page redeviendrait un tableau. La gouttière latérale s'ouvre d'un cran, le
              filet n'étant plus doublé d'un fond de cellule pour l'en écarter. */
-          /* ── LES TROIS MESURES DE LA COLONNE, NOMMÉES UNE FOIS ─────────────────
-             Elles se répondent, et elles se sont déjà désaccordées : « --poly-marge-x »
-             est repris par « .poly-lettrine », qui se range dans la gouttière ; et
-             « --poly-interligne » par « .poly-lettrine-item », dont l'étui fait exactement
-             une ligne de texte. Nommées, elles ne peuvent plus dériver l'une de l'autre.
-             ⚠️ Marges élargies et interligne resserré le 2026-09-04, à la demande de
-             l'auteur : « augmenter légèrement les marges, y compris pour le numéro de
-             référence non canonique » et « resserrer très très légèrement l'interligne ».
-             10 → 13 px de gouttière, 7/8 → 8/9 px de blanc, 1,36 → 1,34 d'interligne. */
-          --poly-marge-x: 13px;
-          /* Le blanc que la lettrine garde contre la réglure : elle la touchait, sa marge
-             négative valant exactement la gouttière. Elle en reprend maintenant trois
-             pixels — c'est le « y compris » de la demande. */
-          --poly-lettrine-air: 3px;
-          --poly-interligne: 1.34;
-          padding: 8px var(--poly-marge-x) 9px;
+          padding: var(--poly-air-haut) var(--poly-marge-x) 9px;
           font-family: var(--font-source-serif), Georgia, serif;
           text-align: justify;
           text-align-last: left;
@@ -1949,11 +1970,28 @@ export default function PolyglottePage() {
            repère de la ligne. Deux numéros de même corps dans le même champ de vision se
            disputaient le regard. La taille de l'étui, elle, ne bouge pas : elle est en em de
            la CELLULE, non du numéro (voir .poly-lettrine-item). */
-        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 0.6875rem; line-height: 1; }
+        /* ⚠️ EN LIGNE, et non en bloc : c'est ce qui la pose sur la ligne de base du strut
+           de son étui (voir .poly-lettrine-item), au lieu d'ouvrir une boîte à elle. */
+        .poly-lettrine-ref {
+          display: inline; white-space: nowrap; font-size: 0.6875rem;
+          font-family: var(--font-source-sans), Arial, sans-serif;
+        }
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-faible); }
-        .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: calc(var(--poly-interligne) * 1em); }
+        /* L'étui d'un numéro fait EXACTEMENT une ligne de texte : le flottant ne repousse
+           donc qu'une ligne, et deux versets partageant un créneau en repoussent deux.
+           ⛔ Il porte le STRUT DE LA CELLULE — police sérif, interligne de la cellule — et
+           non plus un centrage vertical : centré, le numéro tombait 2,40 px au-dessus de la
+           ligne de base du texte. Un numéro s'aligne sur une LIGNE DE BASE, jamais sur un
+           milieu de boîte. Voir .poly-marge-ref, qui suit la même règle. */
+        .poly-lettrine-item {
+          position: relative;
+          height: calc(var(--poly-interligne) * 1em);
+          line-height: calc(var(--poly-interligne) * 1em);
+          font-family: var(--font-source-serif), Georgia, serif;
+          text-align: right;
+        }
         /* Le crayon SE POSE SUR le numéro de référence d'origine : au survol de la cellule,
            il recouvre le numéro (fond opaque = celui de la ligne, passé en style inline, donc
            accordé au zébrage alterné) et le remplace. Hors survol, il ne réserve aucune place. */
@@ -2238,7 +2276,9 @@ export default function PolyglottePage() {
                     ⚠️ C'est la SEULE ligne du corps à porter encore des filets, en haut et
                     dans sa marge, et c'est délibéré : la page n'a plus d'horizontale, si bien
                     qu'un filet y devient un signal fort au lieu d'être une trame. */}
-                <div title={titre} style={{ padding: `${HAUT_PAD_MARGE}px 6px 0 0`, textAlign: "right", whiteSpace: "nowrap", fontWeight: 700, fontSize: '0.71875rem', lineHeight: HAUT_LIGNE_TEXTE, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
+                <div title={titre} className="poly-marge-ref" style={{ paddingRight: '6px', color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.71875rem' }}>✦</span>
+                </div>
                 {slotCols.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
@@ -2357,8 +2397,9 @@ export default function PolyglottePage() {
                           tombent tous au même fer, et calée sur la première ligne du texte.
                           ⚠️ Le filet ne subsiste que sur un point signalé, où il DIT quelque
                           chose ; ailleurs, la marge est nue. */}
-                      <div title={signaler ? desc : undefined} style={{ padding: `${HAUT_PAD_MARGE}px 8px 0 0`, textAlign: "right", fontSize: '0.6875rem', fontWeight: 500, lineHeight: HAUT_LIGNE_TEXTE, fontVariantNumeric: "tabular-nums", color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
-                        <div style={{ whiteSpace: "nowrap", lineHeight: "inherit" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
+                      <div title={signaler ? desc : undefined} className="poly-marge-ref"
+                        style={{ color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
+                        <span>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</span>
                       </div>
                       {slotCols.map((sc, i) => {
                         if (!sc.trad) return <div key={i} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
