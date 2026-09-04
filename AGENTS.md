@@ -5359,3 +5359,48 @@ mais il faut aussi qu'il change au niveau des en-têtes de colonne ».
   `min(100%, calc(100dvh - SOMMET_CORPS))`. Le voile plus haut ne change ni l'un ni
   l'autre — le `min` retient la seconde valeur tant que le corps porte son plancher de
   hauteur (`HAUTEUR_CORPS`), ce qui est le cas dès qu'on attend.
+
+# Page Œuvre — UN choix d'édition, et le volet à la forme de la Bible (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.16. Règles de code :
+
+- ⛔ **La règle vit dans `app/oeuvre/[id]/editionsDuTexte.ts`** (module pur, 14 tests), et
+  nulle part ailleurs : trois filtres, dans cet ordre — la LANGUE du texte lu, ce qui est
+  OFFERT à la lecture, puis la fusion des exemplaires d'une même édition — et le compte
+  se fait après les trois. Moins de deux, le menu ne paraît pas.
+- ⛔ **Les deux menus n'en font plus qu'un.** « Édition » listait les ŒUVRES SŒURS,
+  « Éditions de ce texte » les TEXTES de l'œuvre : deux intitulés et deux règles pour une
+  seule question. ⚠️ Celui des œuvres sœurs ne s'était **jamais** ouvert — aucune œuvre
+  publiée ne partage son titre normalisé avec une autre (mesuré le 2026-09-04 ; la seule
+  paire, La Cité de Dieu et son latin de Migne, est dépubliée depuis le 2026-08-26).
+- ⛔ **`is_public` décide de ce qui est OFFERT.** `oeuvre_textes` garde les instantanés
+  d'avant une reprise (`TXT_A0010O0100_FR_1866_JOYEUX_PRE_RESEG_20260903`,
+  `…_LA_1895_ZYCHA_PRE_ALIGN_20260903`) : même traducteur, même millésime, même mention.
+  ⚠️ **La politique de lecture de la table dit `is_admin() OR (is_public AND …)`** : le
+  défaut ne se voyait donc QUE depuis le compte de l'auteur, jamais depuis un compte de
+  lecteur. Avant de croire à un défaut général sur cette page, se demander qui regarde.
+- ⚠️ **Ce qu'on LIT paraît toujours**, fût-il non publié : un menu qui tairait la ligne
+  courante mentirait sur l'endroit où l'on se trouve. Même règle que le menu des bibles.
+- ⛔ **Ce qui identifie une ÉDITION est le traducteur, le millésime et la mention**
+  (`cleEdition`), jamais l'identifiant du texte. Deux lignes qui n'en diffèrent que par
+  lui sont deux exemplaires d'une seule édition — l'Hexaéméron porte **deux fois le même
+  Migne 1857** en grec. L'exemplaire retenu est l'actif, sinon celui par défaut, sinon un
+  public ; sa PLACE dans la liste reste celle du premier vu (`Map` garde l'ordre
+  d'insertion).
+- ⛔ **Le tri se fait sur la LANGUE.** Il comparait « ceci EST le texte original » à « je
+  LIS le texte original », ce qui n'est pas la même question. La langue vient du texte
+  lu ; à défaut, de l'œuvre quand on lit l'original ; ⚠️ une version sans langue déclarée
+  ne se range sous aucune, et le menu se tait plutôt que de deviner.
+- ⚠️ **Une seule œuvre du corpus offre encore ce choix** : la Consolation de la
+  philosophie, en français, entre Ceriziers 1646 et Mirandol 1861. C'est le résultat
+  attendu, non un effet de bord.
+- ⛔ **`LABEL_VOLET` et `BTN_VOLET` sont SUPPRIMÉS** de `app/lib/stylesVoletLecture.ts` :
+  « Lecture » et « Éditions de ce texte » prennent `RUBRIQUE_AXE` et `OPTION_VOLET`, la
+  forme du volet de la Bible. ⛔ Ne pas les réintroduire — une forme gardée « au cas où »
+  est une divergence qui attend. ⚠️ `OPTION_VOLET` lit `var(--volet-air-fin, 2px)` et
+  tient donc hors du volet de la Bible, où l'échelle `--volet-*` n'est pas déclarée ; le
+  blanc entre deux axes s'écrit ici `var(--volet-air, 10px)`, **avec son repli**, sinon
+  la déclaration est invalide et les deux blocs se touchent.
+- ⚠️ **Un seul écart avec la Bible, et il est motivé** : le témoin d'attente au bout de
+  chaque ligne de « Lecture ». « Latin » y vise une AUTRE adresse, donc un rendu serveur
+  entier, quand les axes de la Bible se règlent le plus souvent sur place.
