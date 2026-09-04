@@ -195,6 +195,24 @@ const MIN_SLOTS = 2;
 // hauteur fixe (charte, § conversion px → rem) : elle tient la plus longue référence du
 // corpus, « 119, 176 », composée en chiffres tabulaires au corps de la marge.
 const LARGEUR_REF = 44;
+// ⛔ CE QUI ALIGNE LA RÉFÉRENCE SUR SA PREMIÈRE LIGNE DE TEXTE, ce n'est pas un rembourrage
+// choisi à l'œil : c'est d'avoir la MÊME BOÎTE DE LIGNE que la cellule qu'elle accompagne.
+// La référence est composée en sans à 11 px, le verset en sérif à 14 : à interligne relatif,
+// leurs boîtes ne font pas la même hauteur, leurs lignes de base divergent de trois pixels,
+// et le numéro flotte au-dessus de son verset. On lui donne donc l'interligne du texte en
+// valeur ABSOLUE — la boîte cesse alors de dépendre du corps de ce qu'elle porte —, et le
+// même rembourrage haut que la cellule. Les deux lignes de base tombent à moins d'un pixel.
+// ⚠️ Les deux facteurs sont ceux de `.poly-texte-cell` : les changer là demande de les
+// changer ici, et le calc() est écrit pour qu'on le voie.
+const HAUT_LIGNE_TEXTE = "calc(0.875rem * 1.36)";
+// ⚠️ UN PIXEL DE PLUS que le rembourrage de la cellule (7 px), et ce pixel est MESURÉ, non
+// estimé : à boîte de ligne égale, la ligne de base tombe à `(hauteur − corps)/2 + ascendante`,
+// et Source Sans à 11 px n'a pas la même ascendante que Source Serif à 14. Relevé au navigateur
+// sur la géométrie réelle (`tmp/planche-alignement-reference.html`), écart des lignes de base :
+// 7 px → −1,00 · 7,5 → −0,50 · **8 → 0,00** · 8,5 → +0,50 · 9 → +1,00. Pour mémoire, l'ancien
+// réglage (rembourrage 8 px, interligne relatif 1,15) donnait −4,00, ce qui se voyait.
+// ⛔ À REMESURER si l'un des deux corps, l'interligne ou l'une des deux polices change.
+const HAUT_PAD_MARGE = 8;
 const ORDRE_NT = 52;
 const ORDRE_CANON_MAX = 78;     // au-delà : écrits non canoniques
 const FOND = "var(--cs-fond)";   // le fond du site, celui de --cs-fond
@@ -1518,11 +1536,20 @@ export default function PolyglottePage() {
   // HAUTEUR_NAVBAR est une chaîne rem ; on compose en calc() CSS (pas d'addition
   // numérique). La hauteur de l'en-tête reste en px.
   const SOMMET_CORPS = `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_ENTETE}px)`;
-  // Ce qu'on lit, écrit là où on l'a choisi. ⚠️ Le fleuron ❧ est celui de la page Bible
-  // (« Genèse ❧ Chapitre 1 ») : les deux pages nomment un passage de la même façon.
-  const libellePassage = !onglet ? null : toutAfficher
+  // Ce qu'on lit, écrit là où on l'a choisi.
+  // ⛔ NI FLEURON, NI LE MOT « CHAPITRE » : la forme « Genèse ❧ Chapitre 35 » est celle
+  // d'une page de TITRE, où le fleuron sépare deux lignes d'apparat et où la place ne manque
+  // pas. Dans un volet de 200 px, sous un titre de page, elle faisait une seconde ligne qui
+  // se disputait la première. Le passage se nomme donc comme partout ailleurs sur le site,
+  // par sa RÉFÉRENCE : « Genèse 35 ». Le numéro se compose un rang plus pâle que le nom,
+  // ce qui donne la hiérarchie sans ajouter un mot.
+  const nomPassage = !onglet ? null : toutAfficher
     ? LIBELLE_ONGLET[onglet]
-    : `${livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet]}${chapitreChoisi != null ? ` ❧ Chapitre ${chapitreChoisi}` : ""}`;
+    : (livres.find(l => l.code === livreChoisi)?.nom_fr ?? LIBELLE_ONGLET[onglet]);
+  const chapitrePassage = onglet && !toutAfficher ? chapitreChoisi : null;
+  // La même chose d'un seul tenant, pour le rail du volet rabattu, qui n'a qu'une encre.
+  const libellePassage = nomPassage == null ? null
+    : chapitrePassage != null ? `${nomPassage} ${chapitrePassage}` : nomPassage;
 
   return (
     <div style={{ background: FOND, minHeight: "calc(100vh - 3.5rem)" }}>
@@ -1626,10 +1653,15 @@ export default function PolyglottePage() {
           font-variant-numeric: tabular-nums;
           color: var(--cs-texte-doux); text-align: right;
         }
-        /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.26em,
+        /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.36em,
            l'interligne de la cellule) : le flottant ne repousse donc qu'une seule ligne,
-           et deux versets partageant un créneau en repoussent deux. */
-        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 0.75rem; line-height: 1; }
+           et deux versets partageant un créneau en repoussent deux.
+           ⚠️ Il descend d'un cran (12 px → 11) : c'est la numérotation PROPRE à l'édition,
+           qui accompagne le verset sans le nommer — la référence canonique, en marge, est le
+           repère de la ligne. Deux numéros de même corps dans le même champ de vision se
+           disputaient le regard. La taille de l'étui, elle, ne bouge pas : elle est en em de
+           la CELLULE, non du numéro (voir .poly-lettrine-item). */
+        .poly-lettrine-ref { display: block; white-space: nowrap; font-size: 0.6875rem; line-height: 1; }
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-faible); }
@@ -1715,12 +1747,18 @@ export default function PolyglottePage() {
               </button>
             </div>
             {/* Le passage lu, sous le nom de la page : il tenait dans un bandeau vert en tête
-                du tableau, il est ici, là où on le choisit. ⚠️ Pas de `nowrap` : « Ecclésiastique
-                ❧ Chapitre 44 » ne tient pas dans un volet de 200 px, et il vaut mieux deux
-                lignes qu'un titre coupé. */}
-            {libellePassage && (
-              <div style={{ marginTop: "5px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', color: "var(--cs-encre-fonce)", lineHeight: 1.3, letterSpacing: "0.01em" }}>
-                {libellePassage}
+                du tableau, il est ici, là où on le choisit. ⚠️ Il se compose un rang SOUS le
+                titre — même sérif, mais plus petit et sans graisse, dans l'encre du texte
+                second — parce qu'il ne nomme pas la page mais ce qu'on y a ouvert. À la même
+                taille et à la même encre, les deux lignes se lisaient comme deux titres.
+                ⚠️ Pas de `nowrap` : « Ecclésiastique 44 » ne tient pas dans un volet de
+                200 px, et il vaut mieux deux lignes qu'un nom coupé. */}
+            {nomPassage && (
+              <div style={{ marginTop: "3px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: "var(--cs-texte-second)", lineHeight: 1.3, letterSpacing: "0.01em" }}>
+                {nomPassage}
+                {chapitrePassage != null && (
+                  <span style={{ color: "var(--cs-texte-doux)", fontVariantNumeric: "tabular-nums" }}> {chapitrePassage}</span>
+                )}
               </div>
             )}
           </div>
@@ -1940,7 +1978,7 @@ export default function PolyglottePage() {
                     ⚠️ C'est la SEULE ligne du corps à porter encore des filets, en haut et
                     dans sa marge, et c'est délibéré : la page n'a plus d'horizontale, si bien
                     qu'un filet y devient un signal fort au lieu d'être une trame. */}
-                <div title={titre} style={{ padding: "8px 6px 0 0", textAlign: "right", whiteSpace: "nowrap", fontWeight: 700, fontSize: '0.71875rem', color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
+                <div title={titre} style={{ padding: `${HAUT_PAD_MARGE}px 6px 0 0`, textAlign: "right", whiteSpace: "nowrap", fontWeight: 700, fontSize: '0.71875rem', lineHeight: HAUT_LIGNE_TEXTE, color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>✦</div>
                 {slotCols.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   return (
@@ -2059,8 +2097,8 @@ export default function PolyglottePage() {
                           tombent tous au même fer, et calée sur la première ligne du texte.
                           ⚠️ Le filet ne subsiste que sur un point signalé, où il DIT quelque
                           chose ; ailleurs, la marge est nue. */}
-                      <div title={signaler ? desc : undefined} style={{ padding: "8px 8px 0 0", textAlign: "right", fontSize: '0.6875rem', fontWeight: 500, lineHeight: 1.15, fontVariantNumeric: "tabular-nums", color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
-                        <div style={{ whiteSpace: "nowrap" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
+                      <div title={signaler ? desc : undefined} style={{ padding: `${HAUT_PAD_MARGE}px 8px 0 0`, textAlign: "right", fontSize: '0.6875rem', fontWeight: 500, lineHeight: HAUT_LIGNE_TEXTE, fontVariantNumeric: "tabular-nums", color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
+                        <div style={{ whiteSpace: "nowrap", lineHeight: "inherit" }}>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</div>
                       </div>
                       {slotCols.map((sc, i) => {
                         if (!sc.trad) return <div key={i} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
