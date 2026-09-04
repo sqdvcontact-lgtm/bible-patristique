@@ -897,6 +897,15 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
   // objet là où il n'en faut aucun. Le fait se dit dans l'ENCRE du nom, et le sol du
   // menu reste d'une seule teinte : une liste ne se lit plus quand un rang sur deux y
   // porte son propre fond.
+  // ⚠️ ET LE GRIS DESCEND D'UN RANG (demande de l'auteur, 2026-09-04 : « griser un peu
+  // plus le texte des non disponibles »). Le fond parti, l'encre reste SEULE à dire le
+  // fait, et le rang qui suffisait quand un aplat l'accompagnait ne suffit plus : le nom
+  // passe de `--cs-texte-gris` à `--cs-texte-doux`, c'est-à-dire à l'encre du sous-titre
+  // d'une ligne ordinaire. La ligne entière recule d'un cran, et sa hiérarchie interne
+  // tient alors par le CORPS et la POLICE — sérif de 13 px contre sans de 10 —, non par
+  // l'encre, le rang faible étant le plancher de l'échelle.
+  // ⛔ Pas deux rangs : la ligne reste CLIQUABLE, la choisir échange les deux colonnes,
+  // et une ligne qu'on ne lit plus n'est plus une option.
   // ⚠️ Le fond de repos reste calculé ICI : le survol le remplace, et le quitter doit
   // le RENDRE. Il ne connaît plus que deux valeurs, l'accent de la ligne retenue et
   // rien.
@@ -932,7 +941,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
               capitales et son exposant, et un titre entre astérisques son italique. C'est
               `rendreEnrichi`, le module partagé avec les notices d'auteur — ⛔ jamais un
               rendu HTML sur une colonne rédigée hors du dépôt. */}
-          <span style={{ ...NOM_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-gris)" } : null) }}>
+          <span style={{ ...NOM_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-doux)" } : null) }}>
             {rendreEnrichi(libelle ?? t.nom)}
           </span>
           <span style={{ ...SOUS_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-faible)" } : null) }}>
