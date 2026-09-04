@@ -564,9 +564,17 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
     window.addEventListener('scroll', auDefilement, { passive: true })
     return () => { document.removeEventListener('pointerdown', auTapDehors, true); window.removeEventListener('scroll', auDefilement) }
   }, [mobile, segSurvol])
-  // La barre flottante étant éphémère (remontée à chaque affichage), l'état des
-  // prélèvements BASCULE : chaque action « prélever/retirer » inverse l'appartenance.
-  const marquerSauvegarde = (id: number) => setSauvegardes(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  // ⛔ Le geste DIT ce qu'il a fait, on ne le devine pas en inversant l'appartenance.
+  // La bascule reposait sur une croyance fausse — « la barre flottante est remontée à
+  // chaque affichage » —, alors qu'elle se déplace d'un segment à l'autre sans se
+  // démonter : une inversion posée au retour d'une suppression aurait donc pu marquer
+  // comme prélevé un segment qu'on venait de retirer.
+  const marquerSauvegarde = (id: number, preleve: boolean) => setSauvegardes(prev => {
+    const suite = new Set(prev)
+    if (preleve) suite.add(id)
+    else suite.delete(id)
+    return suite
+  })
 
   const estGroupeVers = (groupe: Groupe) => {
     const mg = membresParGroupe.get(groupe.alignment_id)
@@ -667,9 +675,11 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
         const meta = oeuvresMeta.get(s.id_oeuvre)
         const segData = { id: s.id, idTexte: s.id_texte, numeroSource: s.segment_numero, texte: s.segment_texte } as unknown as SegData
         return createPortal(
-          <div data-seg-toolbar="" onMouseEnter={() => { if (timerSurvol.current) clearTimeout(timerSurvol.current) }} onMouseLeave={() => masquerToolbar(segSurvol.id)}
+          // ⛔ La CLÉ est le segment : sans elle, la cellule est un seul objet pour
+          // toute la page, et l'état de ses boutons suit le pointeur (cf. `OeuvreClient`).
+          <div key={s.id} data-seg-toolbar="" onMouseEnter={() => { if (timerSurvol.current) clearTimeout(timerSurvol.current) }} onMouseLeave={() => masquerToolbar(segSurvol.id)}
             style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '2px 4px' }}>
-            {userId && s.id_oeuvre && <BoutonEnregistrerSegment seg={segData} auteur={auteur} titreOeuvre={meta?.titre ?? ''} idOeuvre={s.id_oeuvre} userId={userId} dejaSauvegarde={sauvegardes.has(s.id)} onSauvegarde={() => marquerSauvegarde(s.id)} />}
+            {userId && s.id_oeuvre && <BoutonEnregistrerSegment seg={segData} auteur={auteur} titreOeuvre={meta?.titre ?? ''} idOeuvre={s.id_oeuvre} userId={userId} dejaSauvegarde={sauvegardes.has(s.id)} onChangement={preleve => marquerSauvegarde(s.id, preleve)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.segment_texte)} auteur={auteur} titre={meta?.titre} sousTitre={meta?.sous_titre ?? undefined} tradAuteur={meta?.trad_auteur ?? undefined} editeur={meta?.editeur ?? undefined} collection={meta?.collection ?? undefined} ville={meta?.ville ?? undefined} datePublication={meta?.date_publication ?? undefined} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.segment_texte)} titreOeuvre={meta?.titre ?? ''} />
           </div>,

@@ -1800,8 +1800,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     ))
   }
 
-  const marquerSauvegardeSeg = (segmentId: number) => {
-    setSauvegardesSegs(prev => new Set([...prev, segmentId]))
+  // ⛔ Le retrait se dit AUSSI. Cette fonction ne savait qu'ajouter, et le signet
+  // appelait le même rappel des deux côtés : un segment retiré restait donc dans
+  // l'ensemble, et se montrait prélevé dès qu'on le survolait à nouveau.
+  const marquerSauvegardeSeg = (segmentId: number, preleve: boolean) => {
+    setSauvegardesSegs(prev => {
+      const suite = new Set(prev)
+      if (preleve) suite.add(segmentId)
+      else suite.delete(segmentId)
+      return suite
+    })
   }
 
   // Met à jour l'affichage immédiatement après l'association d'un verset,
@@ -2627,7 +2635,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
                   </div>
                   <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
-                    {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
+                    {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
                     <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
                     <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
                   </div>
@@ -3290,10 +3298,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         const s = segMap.get(segSurvol.id)
         if (!s) return null
         return createPortal(
-          <div data-seg-toolbar="" onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
+          // ⛔ La CLÉ est le segment, et sans elle la cellule ne fait qu'un seul objet
+          // pour toute la page : React réutilise l'instance quand elle se déplace d'un
+          // segment au suivant, et l'état des boutons passe avec elle — le « ✓ » de la
+          // copie, la fenêtre de signalement ouverte, et le signet, dont c'était le
+          // défaut le plus coûteux (voir `BoutonsSegment`).
+          <div key={s.id} data-seg-toolbar="" onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
             onMouseLeave={() => masquerToolbar(segSurvol.id)}
             style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '2px 4px' }}>
-            {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onSauvegarde={() => marquerSauvegardeSeg(s.id)} />}
+            {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (

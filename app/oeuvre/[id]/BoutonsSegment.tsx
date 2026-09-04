@@ -22,39 +22,52 @@ export const BTN_STYLE: React.CSSProperties = {
 }
 
 // ── Bouton enregistrer segment ────────────────────────────────────────────────
+/**
+ * Le signet d'un segment.
+ *
+ * ⛔ Il ne retient RIEN de ce qu'il vient de faire : ce qu'il montre vient tout entier
+ * de `dejaSauvegarde`, que la page tient, et chaque geste le lui dit par `onChangement`.
+ * Il gardait deux états à lui — l'identifiant de la ligne écrite, et un drapeau
+ * « je viens de retirer ». Or la cellule d'actions flottante de la lecture est UN SEUL
+ * composant qui se déplace d'un segment à l'autre : React réutilise l'instance, et ces
+ * deux états passaient au segment suivant. Trois défauts en découlaient, relevés par
+ * l'auteur le 3 septembre 2026 :
+ *
+ *  1. après un prélèvement, les segments voisins se montraient prélevés sans l'être —
+ *     d'où « les trois segments sont prélevés au lieu d'un seul » ;
+ *  2. retirer l'un de ces voisins effaçait le prélèvement du PREMIER, en silence, car
+ *     la suppression visait l'identifiant retenu et non le segment sous le pointeur ;
+ *  3. après un retrait, un segment réellement prélevé se montrait libre, si bien qu'un
+ *     nouveau clic en écrivait un DOUBLON.
+ *
+ * ⚠️ La cellule flottante porte désormais une clé de segment (`OeuvreClient`), ce qui
+ * remet à neuf les boutons voisins — la copie et le signalement. Les deux remèdes se
+ * tiennent : la clé protège les états qui restent, celui-ci n'en garde plus aucun.
+ */
 export function BoutonEnregistrerSegment({
   seg, auteur, titreOeuvre, idOeuvre, userId,
-  dejaSauvegarde, onSauvegarde,
+  dejaSauvegarde, onChangement,
 }: {
   seg: SegData; auteur: string; titreOeuvre: string; idOeuvre: string
   userId: string
-  dejaSauvegarde: boolean; onSauvegarde: () => void
+  dejaSauvegarde: boolean; onChangement: (preleve: boolean) => void
 }) {
   const [loading, setLoading] = useState(false)
-  const [idPrelev, setIdPrelev] = useState<string | null>(null)
   const { exigerCompte } = useCompte()
 
-  // Supprimer — fonctionne que l'id vienne du local ou du parent
-  const [supprime, setSupprime] = useState(false)
-
+  // ⚠️ On supprime par la clé NATURELLE — ce lecteur, ce segment —, et non par un
+  // identifiant de ligne retenu au moment de l'écriture. C'est ce que le signet dit à
+  // l'écran, c'est vrai d'une séance à l'autre, et un doublon déjà en base part avec.
   const supprimer = async (e: React.MouseEvent) => {
     e.stopPropagation()
     setLoading(true)
-    if (idPrelev) {
-      await supabase.from('prelevements').delete().eq('id', idPrelev)
-      setIdPrelev(null)
-    } else {
-      // Chercher l'id en base
-      const { data } = await supabase.from('prelevements')
-        .select('id').eq('user_id', userId).eq('segment_id', seg.id).limit(1).single()
-      if (data) await supabase.from('prelevements').delete().eq('id', data.id)
-    }
+    const { error } = await supabase.from('prelevements').delete()
+      .eq('user_id', userId).eq('segment_id', seg.id)
     setLoading(false)
-    setSupprime(true)
-    onSauvegarde()
+    if (!error) onChangement(false)
   }
 
-  if ((dejaSauvegarde && !supprime) || idPrelev) {
+  if (dejaSauvegarde) {
     return (
       <Bulle texte="Retirer des prélèvements">
         <button onClick={supprimer} disabled={loading}
@@ -72,14 +85,14 @@ export function BoutonEnregistrerSegment({
     e.stopPropagation()
     if (!exigerCompte('prélever ce passage')) return
     setLoading(true)
-    const { data, error } = await supabase.from('prelevements').insert({
+    const { error } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'patristique',
       auteur, titre_oeuvre: titreOeuvre, id_oeuvre: idOeuvre,
       segment_id: seg.id, id_texte: seg.idTexte,
       segment_numero: seg.numeroSource, texte: texteSansEnrichissement(seg.texte),
-    }).select('id').single()
+    })
     setLoading(false)
-    if (!error && data) { setIdPrelev(data.id); onSauvegarde(); signalerProgression() }
+    if (!error) { onChangement(true); signalerProgression() }
   }
 
   return (
