@@ -1,5 +1,7 @@
 import { Fragment } from 'react'
 
+import { rendreSiecles } from '@/app/lib/siecles'
+
 import {
   CLASSE_CARACTERE_BIBLIOGRAPHIE,
   CLASSES_BIBLIOGRAPHIE,
@@ -75,6 +77,15 @@ export default function BibliographieOuvrages({
  * la référence des volumes servis, qui n'est pas une œuvre du catalogue mais suit
  * les mêmes normes. Deux copies de ces trois lignes divergeraient au premier style
  * ajouté au vocabulaire.
+ *
+ * ⚠️ LES SIÈCLES SE COMPOSENT (demande de l'auteur, 2026-09-04). « Bible française du
+ * XIIIe siècle — manuscrit Français 899 » est un intitulé d'édition comme un autre :
+ * son ordinal y prenait des chiffres ordinaires quand la même chaîne, deux centimètres
+ * plus haut, portait ses petites capitales et son exposant.
+ * ⛔ `rendreSiecles`, et non `rendreEnrichi` : celui-ci italiserait un titre entre
+ * astérisques, et un `em` posé dans un fragment DÉJÀ italique — l'intitulé de
+ * l'ouvrage l'est — ne se verrait pas. La composition des italiques appartient ici au
+ * RÔLE du fragment, que la donnée nomme ; elle ne se prend pas dans son texte.
  */
 export function FragmentReference({ segment }: { segment: SegmentReference }) {
   // Le champ d'origine reste dans le document : c'est par lui qu'on vérifie
@@ -83,10 +94,10 @@ export function FragmentReference({ segment }: { segment: SegmentReference }) {
   const champ = segment.champ ?? undefined
   const classe = segment.style ? CLASSE_CARACTERE_BIBLIOGRAPHIE[segment.style] : undefined
   if (segment.composition === 'italique') {
-    return <em className={classe} data-champ={champ}>{segment.texte}</em>
+    return <em className={classe} data-champ={champ}>{rendreSiecles(segment.texte)}</em>
   }
   // La ponctuation que le composant ajoute n'a ni champ ni style : elle se pose
   // telle quelle, au fil du texte, et hérite de la séquence qui l'entoure.
-  if (!champ && !classe) return <Fragment>{segment.texte}</Fragment>
-  return <span className={classe} data-champ={champ}>{segment.texte}</span>
+  if (!champ && !classe) return <Fragment>{rendreSiecles(segment.texte)}</Fragment>
+  return <span className={classe} data-champ={champ}>{rendreSiecles(segment.texte)}</span>
 }

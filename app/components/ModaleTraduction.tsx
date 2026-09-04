@@ -48,8 +48,9 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
-import { rendreSiecles, sieclesEnHtml } from '@/app/lib/siecles'
-import { FriseAuteur, TitreSection, LigneTech, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
+import { sieclesEnHtml } from '@/app/lib/siecles'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { FriseAuteur, TitreSection, RangeeEmpilee, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
 import { type RangChrono } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
@@ -152,7 +153,9 @@ const STYLES_FICHE = `
      du site (« .cs-apparat-bibliographie__entree », charte § 35.6.2), et la puce
      part avec le retrait : une liste à puces et une bibliographie ne sont pas la
      même chose. */
-  .trad-notice li { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); margin: 0 0 5px; padding-left: 1.1em; text-indent: -1.1em; }
+  /* ⚠️ Même mesure que toutes les bibliographies du site : l'interligne serré, le
+     blanc large entre deux références (charte § 35.6.2). */
+  .trad-notice li { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.32; color: var(--cs-texte); margin: 0 0 9px; padding-left: 1.1em; text-indent: -1.1em; }
   .trad-notice li:last-child { margin-bottom: 0; }
   /* ── LE PORTRAIT FLOTTE, ET LA NOTICE L'HABILLE ──
      Même parti que la fiche d'auteur, et pour la même raison : il ouvrait un en-tête
@@ -260,18 +263,22 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   })
 
   const aChrono = chrono.length > 0
+  // ⚠️ « ÉDITION ET ÉTAT DU TEXTE » PASSE SOUS LA CHRONOLOGIE (demande de l'auteur,
+  // 2026-09-04 : « peut-on envisager que “Édition et état du texte” soit sous la
+  // chronologie ? proprement ? »). Elle tenait toute la mesure, sous les deux
+  // colonnes — et la colonne de droite, qui ne porte qu'une frise de cinq entrées,
+  // s'arrêtait à mi-hauteur d'une notice qui continue : un grand vide à droite, et la
+  // rubrique reléguée sous les deux. Elle remplit ce vide, où elle est à sa place :
+  // à gauche ce qu'on LIT, à droite ce qui le documente.
+  // ⚠️ Ses rangées s'y EMPILENT (`RangeeEmpilee`) : la rangée partagée porte une
+  // colonne d'étiquettes de 8,5 rem, qui ne laisserait pas 170 px à la valeur dans une
+  // colonne étroite. C'est la forme que la fiche d'édition emploie déjà, et c'est
+  // désormais le même composant.
+  const aEdition = referenceEdition.length > 0 || !!(i.responsable_edition || i.source_numerique_nom
+    || i.source_numerique_url || i.graphie || numerotation || i.particularites || verif)
   // Deux colonnes seulement s'il y a de quoi remplir les deux. Une notice seule
   // prend toute la mesure plutôt que de laisser une colonne vide à côté d'elle.
-  // ⚠️ La chronologie décide seule depuis que les gravures sont parties : c'était
-  // la seconde des deux matières que la colonne de droite portait.
-  const aColonnes = !!(i.bio_courte || i.commentaire_editorial) && aChrono
-
-  const colonneDroite = aChrono ? (
-    <section>
-      <TitreSection>Chronologie</TitreSection>
-      <FriseAuteur evenements={chrono} />
-    </section>
-  ) : null
+  const aColonnes = !!(i.bio_courte || i.commentaire_editorial) && (aChrono || aEdition)
 
   return (
     <>
@@ -319,10 +326,10 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
           )}
           <header>
             <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette traduction</p>
-            <h2 id="trad-fiche-titre" style={{ fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{i.nom || nomFallback}</h2>
+            <h2 id="trad-fiche-titre" style={{ fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{rendreEnrichi(i.nom || nomFallback)}</h2>
             {intitule && (
               <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.3 }}>
-                {rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}
+                {rendreEnrichi(intitule)}{i.dates ? rendreEnrichi(` (${i.dates})`) : ''}
               </p>
             )}
           </header>
@@ -331,7 +338,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
           ) : (
             <>
               {i.bio_courte && (
-                <p className="trad-bloc" style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0 }}>{rendreSiecles(i.bio_courte)}</p>
+                <p className="trad-bloc" style={{ fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0 }}>{rendreEnrichi(i.bio_courte)}</p>
               )}
               {/* Notice éditoriale : HTML (h2/p) rendu tel quel, aux styles de la
                   fiche d'auteur — titres de section en sérif italique, prose en
@@ -343,73 +350,59 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
             </>
           )}
         </div>
-        {info !== null && (aColonnes
-          ? <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>{colonneDroite}</div>
-          : colonneDroite)}
+        {info !== null && (aChrono || aEdition) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>
+            {aChrono && (
+              <section>
+                <TitreSection>Chronologie</TitreSection>
+                <FriseAuteur evenements={chrono} />
+              </section>
+            )}
+            {aEdition && (
+              <section>
+                <TitreSection>Édition et état du texte</TitreSection>
+                {referenceEdition.length > 0 && (
+                  <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`} style={{ marginBottom: '7px' }}>
+                    <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
+                      <li className={CLASSES_BIBLIOGRAPHIE.entree}>
+                        {referenceEdition.map((segment, rang) => (
+                          <FragmentReference key={rang} segment={segment} />
+                        ))}
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                <RangeeEmpilee c="Responsable de l’édition">{rendreEnrichi(i.responsable_edition)}</RangeeEmpilee>
+                <RangeeEmpilee c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source" /> : null)}</RangeeEmpilee>
+                <RangeeEmpilee c="Graphie">{rendreEnrichi(i.graphie)}</RangeeEmpilee>
+                <RangeeEmpilee c="Numérotation">{numerotation}</RangeeEmpilee>
+                <RangeeEmpilee c="Particularités">{rendreEnrichi(i.particularites)}</RangeeEmpilee>
+                {/* Vérification : « Contrôle en cours » se déplie en note (statut du
+                    corpus et lacunes connues), au lieu d'un encart permanent.
+                    ⚠️ La note se compose en SPAN et non en paragraphe : elle vit dans
+                    la valeur d'une rangée, qui est elle-même un span. */}
+                <RangeeEmpilee c="Vérification">{verif ? (
+                  (i.statut_corpus_public || i.lacunes_publiques) ? (
+                    <>
+                      <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
+                        style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
+                      {verifNote && (
+                        <span style={{ display: 'block', margin: '5px 0 1px' }}>
+                          {i.statut_corpus_public && <span style={{ display: 'block', margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{rendreEnrichi(i.statut_corpus_public)}</span>}
+                          {i.lacunes_publiques && <span style={{ display: 'block', fontFamily: SERIF, fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', lineHeight: 1.45 }}>{rendreEnrichi(i.lacunes_publiques)}</span>}
+                        </span>
+                      )}
+                    </>
+                  ) : verif
+                ) : null}</RangeeEmpilee>
+              </section>
+            )}
+          </div>
+        )}
       </div>
 
       {info !== null && (
         <>
-          {/* ── L'ÉDITION ET L'ÉTAT DU TEXTE ──────────────────────────────────
-              ⛔ PLUS DE DÉPLI (2026-09-04, demande de l'auteur : « “Édition et
-              état du texte” doit être visible sans être développé ; revoir
-              l'ensemble avec cette nouvelle donne »). Elle était la seule section
-              repliée d'une fiche qui s'ouvre précisément pour la lire ; et le
-              dépli avait un second effet, moins visible : il cachait une
-              REDONDANCE. Le titre, l'année, le lieu et l'éditeur y reparaissaient
-              en rangées, un cran sous une référence qui venait de les composer, et
-              la notice rédigée de la base les disait une troisième fois.
-              ⚠️ LA RÉFÉRENCE EST DEVENUE LA TÊTE DE LA RUBRIQUE. Elle dit ce que
-              l'édition EST — champ par champ, aux normes de toutes les
-              bibliographies du site (charte § 35.6.1) — et les rangées qui la
-              suivent ne disent plus que ce qu'elle ne dit pas : ce qui a établi le
-              texte, d'où vient sa copie numérique, dans quelle graphie il se lit,
-              et jusqu'où il est vérifié.
-              ⛔ La NOTICE RÉDIGÉE (`traductions.source_edition`) ne paraît plus :
-              c'était la seconde vérité, celle qu'on avait cessé de composer. Ce
-              qu'elle portait de plus vit dans les champs — la mention d'édition,
-              le dépôt et la cote du témoin — ou dans « Particularités ».
-              ⛔ La LICENCE et la MENTION OBLIGATOIRE non plus : « Conditions
-              d'usage » en répond depuis le 4 septembre, et une licence rangée en
-              étiquette sous une rubrique technique disait moins que la phrase qui
-              l'explique. */}
-          <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
-            <TitreSection>Édition et état du texte</TitreSection>
-            {referenceEdition.length > 0 && (
-              <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`} style={{ marginBottom: '9px' }}>
-                <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
-                  <li className={CLASSES_BIBLIOGRAPHIE.entree}>
-                    {referenceEdition.map((segment, rang) => (
-                      <FragmentReference key={rang} segment={segment} />
-                    ))}
-                  </li>
-                </ul>
-              </div>
-            )}
-            <div>
-              <LigneTech c="Responsable de l’édition">{i.responsable_edition}</LigneTech>
-              <LigneTech c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /> : null)}</LigneTech>
-              <LigneTech c="Graphie">{i.graphie}</LigneTech>
-              <LigneTech c="Numérotation">{numerotation}</LigneTech>
-              <LigneTech c="Particularités">{i.particularites}</LigneTech>
-              {/* Vérification : « Contrôle en cours » se déplie en note (statut du
-                  corpus + lacunes connues), au lieu d'un encart permanent. */}
-              <LigneTech c="Vérification">{verif ? (
-                (i.statut_corpus_public || i.lacunes_publiques) ? (
-                  <>
-                    <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
-                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
-                    {verifNote && (
-                      <div style={{ margin: '5px 0 1px' }}>
-                        {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
-                        {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
-                      </div>
-                    )}
-                  </>
-                ) : verif
-              ) : null}</LigneTech>
-            </div>
-          </section>
           {/* ── LES OUVRAGES QUE L'ÉDITION CITE ───────────────────────────────
               « Je veux qu'on constitue une nouvelle rubrique contenant, proprement,
               tous les ouvrages cités dans l'édition utilisée ; c'est surtout utile

@@ -1663,7 +1663,14 @@ button:focus-visible,
      l'apparat d'un bloc ou dans la fenêtre d'une note, dont les corps
      diffèrent — ce qu'aucune valeur absolue ne saurait faire. */
   font-size: 0.96em;
-  line-height: 1.35;
+  /* ⚠️ L'INTERLIGNE EST SERRÉ, LE BLANC ENTRE NOTICES EST LARGE (demande de l'auteur,
+     2026-09-04 : « réduire légèrement l'interligne ; augmenter légèrement le blanc
+     entre deux œuvres »). Une bibliographie n'est pas de la prose : ses lignes
+     appartiennent à une même référence et se lisent d'un trait, tandis que deux
+     références sont deux objets. Le blanc doit donc être plus grand ENTRE les entrées
+     qu'à l'intérieur de l'une d'elles, faute de quoi la liste se lit comme un
+     paragraphe et le retrait suspendu est le seul à dire où commence la suivante. */
+  line-height: 1.28;
   margin: 0 0 0.5rem;
   /* Au fer, non justifié : sur des lignes courtes, la justification creuse des
      blancs que le retrait suspendu rend criants. */
@@ -1703,7 +1710,7 @@ button:focus-visible,
 }
 
 .cs-apparat-bibliographie__entree {
-  margin: 0 0 0.45em;
+  margin: 0 0 0.7em;
   padding: 0;
   /* Le RETRAIT SUSPENDU des bibliographies imprimées : la première ligne part
      du bord, les suivantes rentrent d'une largeur. ⚠️ Le retrait négatif se

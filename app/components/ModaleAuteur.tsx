@@ -289,6 +289,27 @@ export const LigneTech = ({ c, children }: { c: string; children: ReactNode }) =
   </div>
 ) : null
 
+// ── La rangée des colonnes ÉTROITES ───────────────────────────────────────────
+// `LigneTech` porte une colonne d'étiquettes de 8,5 rem : elle tient dans une colonne
+// large, pas dans une étroite, où il ne resterait pas 170 px pour la valeur. La rangée
+// EMPILE donc l'étiquette et sa valeur. Deux formes, chacune pour la mesure qu'elle
+// sert — c'est déjà ce que font les deux colonnes de cette fiche-ci.
+// ⚠️ Elle vivait dans `FicheEdition` ; la fiche de traduction en a eu besoin le
+// 2026-09-04, quand « Édition et état du texte » est passée sous la chronologie. Elle
+// rejoint donc les pièces communes aux trois fiches, plutôt que d'être recopiée.
+const CLE_EMPILEE: CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', lineHeight: 1.4 }
+const VAL_EMPILEE: CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.35, display: 'block' }
+
+export function RangeeEmpilee({ c, italique, children }: { c: string; italique?: boolean; children: ReactNode }) {
+  if (!children) return null
+  return (
+    <div style={{ padding: '4px 0', borderTop: '1px solid var(--cs-fond)' }}>
+      <span style={CLE_EMPILEE}>{c}</span>
+      <span style={{ ...VAL_EMPILEE, fontStyle: italique ? 'italic' : 'normal' }}>{children}</span>
+    </div>
+  )
+}
+
 /** Lien vers une source extérieure. Rien du tout si l'adresse n'en est pas une. */
 export const Consulter = ({ url, libelle }: { url: string | null | undefined; libelle: string }) => (url && estUrl(url))
   ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null

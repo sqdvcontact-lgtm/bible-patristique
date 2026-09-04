@@ -27,7 +27,7 @@ import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import {
-  Consulter, LigneTech, PortraitAuteur, TitreSection,
+  Consulter, LigneTech, PortraitAuteur, RangeeEmpilee, TitreSection,
 } from '@/app/components/ModaleAuteur'
 import { libelleTrad, formaterEditeur } from './PageTitre'
 import { rendreTexteEnrichi } from './texteEnrichi'
@@ -58,24 +58,9 @@ export type DonneesEdition = {
   aTexteOriginal: boolean
 }
 
-// ── Rangée des colonnes étroites ──────────────────────────────────────────────
-// La rangée partagée (`LigneTech`) porte une colonne d'étiquettes de 8,5 rem : elle
-// tient dans la colonne large, pas dans l'étroite, où il ne resterait pas 170 px pour
-// la valeur. La colonne de droite EMPILE donc étiquette et valeur, comme le faisaient
-// les cartes d'avant. Deux formes, chacune pour la mesure qu'elle sert : c'est déjà ce
-// que fait la fiche d'auteur, dont les deux colonnes ne se composent pas pareil.
-const CLE_EMPILEE: React.CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', lineHeight: 1.4 }
-const VAL_EMPILEE: React.CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.35, display: 'block' }
-
-function RangeeEmpilee({ c, italique, children }: { c: string; italique?: boolean; children: React.ReactNode }) {
-  if (!children) return null
-  return (
-    <div style={{ padding: '4px 0', borderTop: '1px solid var(--cs-fond)' }}>
-      <span style={CLE_EMPILEE}>{c}</span>
-      <span style={{ ...VAL_EMPILEE, fontStyle: italique ? 'italic' : 'normal' }}>{children}</span>
-    </div>
-  )
-}
+// ⚠️ La rangée des colonnes ÉTROITES (`RangeeEmpilee`) a rejoint `ModaleAuteur` le
+// 2026-09-04 : la fiche de traduction en a eu besoin à son tour, et une forme recopiée
+// à deux endroits ne reste identique que par accident.
 
 const STYLES_FICHE = `
   .fiche-edition-prose { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; white-space: pre-line; }

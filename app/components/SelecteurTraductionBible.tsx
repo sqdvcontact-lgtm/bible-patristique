@@ -13,6 +13,8 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 
+import { rendreEnrichi } from '@/app/lib/enrichissements'
+
 type Traduction = { code: string; label: string }
 
 /**
@@ -132,7 +134,12 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
               surmonte. C'est le même procédé que le double de `.cs-onglet-libelle`,
               qui réserve d'avance la largeur d'un libellé en graisse 600. */}
           <span aria-hidden="true" style={{ ...STYLE_CHEVRON, visibility: 'hidden' }}>▼</span>
-          <span>{label}</span>
+          {/* ⚠️ LE NOM SE COMPOSE (demande de l'auteur, 2026-09-04) : « Bible française
+              du XIIIe siècle » y prend ses petites capitales et son exposant, et un titre
+              entre astérisques son italique. C'est le module partagé avec les notices
+              d'auteur et avec le menu de la Polyglotte : un nom de bible ne se compose pas
+              d'une façon là et d'une autre ici. */}
+          <span>{rendreEnrichi(label)}</span>
           <span aria-hidden="true" style={STYLE_CHEVRON}>{ouvert ? '▲' : '▼'}</span>
         </button>
         {ouvert && (
@@ -154,7 +161,7 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
               }}
                 onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(var(--cs-vert-rgb),0.04)' }}
                 onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'var(--cs-surface)' }}>
-                {t.label}
+                {rendreEnrichi(t.label)}
               </button>
             ))}
           </div>
