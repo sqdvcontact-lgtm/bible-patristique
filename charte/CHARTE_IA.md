@@ -16,7 +16,7 @@ Une forme surprenante n’est pas une erreur par elle-même. En cas de doute, co
 
 ### 1.2 Complétude
 
-L’objectif est une œuvre intégrale. Les contrôles portent sur les commencements, les fins, les divisions, les paragraphes, les notes et les endroits où l’OCR saute facilement une ligne. Les pages du fac-similé peuvent servir de repères de contrôle sans devenir une structure conservée dans le corpus. Une lacune matérielle ne se comble pas par invention.
+L’objectif est une œuvre intégrale. Les contrôles portent sur les commencements, les fins, les divisions, les paragraphes, les notes et les endroits où l’OCR saute facilement une ligne. Les pages du fac-similé peuvent servir de repères de contrôle sans devenir une structure conservée dans le corpus. Une lacune matérielle ne se comble pas par invention. Le marqueur éditorial de lacune `[…]` est autonome dans la composition : lorsqu’il suit un mot, une espace le précède ; lorsqu’un mot le suit, une espace les sépare. Il ne se colle jamais au mot précédent (`mot […]`, jamais `mot[…]`). Les appels de note accolés au marqueur obéissent à leur convention propre et ne suppriment pas cette espace avant la lacune.
 
 ### 1.3 Séparation des phases
 
@@ -4890,3 +4890,16 @@ Demande de l’auteur, le 4 septembre 2026 : « limiter la recherche dans les p�
 ⛔ **Deux surfaces qui portent les MÊMES noms de classe doivent porter la même composition.** La Polyglotte de la page des résultats annonçait dans son commentaire des classes « reprises telles quelles de la page de lecture ». Elles ne l’étaient plus : sans de douze pixels contre une sérif de quatorze, référence canonique enfermée dans une colonne bordée et centrée au lieu d’accompagner le verset en marge, numéro d’édition centré dans son étui au lieu de se poser sur la ligne de base du texte, et trois teintes écrites à la main là où la page de lecture emploie des jetons. La composition vit désormais dans la feuille commune : une déclaration, deux surfaces, et chaque page n’ajoute que ce qui lui appartient — ses filets, et le fond d’un verset dont la traduction affichée ne porte pas le mot.
 
 ⚠️ **Un commentaire qui promet une identité ne la maintient pas.** C’est la troisième fois que le dépôt paie cette leçon, après les deux copies de la forme des volets et les trois surligneurs de la barre de recherche. Une forme recopiée ne reste identique que par accident, et le commentaire qui l’affirme vieillit plus vite que le code qu’il décrit.
+
+
+### 38.20 Un mode qu’on n’emploiera jamais se RETIRE, il ne se répare pas
+
+Décision de l’auteur, le 5 septembre 2026 : « à l’échelle, on pourra jamais l’utiliser ; supprime ça ». La frise de l’histoire de l’Église avait deux dispositions — la liste, et une frise « à l’échelle » où chaque famille tenait une colonne, chaque événement une barre proportionnelle à sa durée, le tout posé sur un axe temporel réel. Elle n’en a plus qu’une.
+
+⛔ **Trois partis avaient été mis devant l’auteur la veille**, après mesure : la barre seule avec l’intitulé au survol, les couloirs plafonnés, ou le retrait du mode. C’est le troisième qui est arbitré, et c’est le seul qui referme la question au lieu de la déplacer. *Un écran qu’on garde en se promettant de le régler un jour est une dette qui ne se voit pas dans un compte.*
+
+⚠️ **Ce que la mesure avait déjà dit.** La frise partait en largeur pour des raisons qui ne devaient rien à la chronologie : un bloc réserve la hauteur de son TEXTE, si bien qu’une famille dense ouvre autant de couloirs qu’elle a d’événements dont les intitulés se chevauchent. Ce sont les titres qui décidaient de la largeur, non la simultanéité — et c’est pour cela qu’aucun réglage de l’axe n’aurait suffi.
+
+⛔ **Et la donnée ne portait pas non plus ce que la barre promettait.** Mesuré le 5 septembre 2026 sur les 1 170 repères de la frise : tous portent une date de fin, mais **456 seulement — 39 % — couvrent un empan réel** ; les 714 autres sont des points, où la fin égale le début. Près de deux repères sur trois se rendaient donc par une barre de hauteur minimale, c’est-à-dire par une barre qui ne dit rien. ⚠️ Le fait est consigné parce qu’il resservira : le jour où l’on reproposera une vue chronologique — ici ou ailleurs —, c’est par lui qu’il faudra commencer.
+
+⚠️ **Une première rédaction de cette note affirmait que la date de fin était “le plus souvent absente”.** Elle ne l’est jamais : la colonne est renseignée sur les 1 170 repères. Le raisonnement était juste — un repère sans durée n’a rien à mettre à l’échelle — et le fait invoqué était faux. C’est la règle du § 38.9 prise par un autre bout : **une règle tirée d’un raisonnement se vérifie avant d’être écrite**, et un commentaire de code n’en est pas dispensé.

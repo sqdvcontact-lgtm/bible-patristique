@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { rendreSiecles, decouperSiecles, Siecle, STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
+// ⚠️ `rendreSiecles` et `Siecle` sont partis avec le mode « à l'échelle », qui seul les
+// employait : la liste compose ses siècles par `decouperSiecles` (voir `rendreTexteLibre`).
+import { decouperSiecles, STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { decouperOrdinaux } from './ordinauxFrise'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
@@ -27,25 +29,25 @@ const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
-// ── Réglages du mode frise « à l'échelle » ─────────────────────────────────
-// Colonnes par famille, barre verticale proportionnelle à la durée, événements
-// positionnés sur un axe temporel réel (px par an).
-const PX_PAR_AN = 2.6
-const H_ENTETE_ECHELLE = 34
-const LARG_GOUTTIERE = 62
-const LARG_LANE = 210
-const ECART_LANE = 8
-const ECART_COL = 18
-const BARRE_W = 3
-const GAP_TXT = 10
-const PAD_BLOC = 4
-const GAP_V = 9
-const H_BARRE_MIN = 7
-const LARG_TEXTE = LARG_LANE - BARRE_W - GAP_TXT - 8
-const CHARS_LIGNE = Math.max(8, Math.floor((LARG_TEXTE / 6.0) * 0.62))
-const CHARS_LIGNE_GRAS = Math.max(7, Math.floor((LARG_TEXTE / 6.6) * 0.62))
-const hauteurTexte = (titre: string, important: boolean) =>
-  PAD_BLOC + 13 + Math.max(1, Math.ceil(titre.length / (important ? CHARS_LIGNE_GRAS : CHARS_LIGNE))) * 15.5 + PAD_BLOC
+// ⛔ LE MODE « À L'ÉCHELLE » EST SUPPRIMÉ (décision de l'auteur, 2026-09-05 :
+// « à l'échelle, on pourra jamais l'utiliser ; supprime ça »). La frise se lit en
+// LISTE, et c'est le seul mode.
+//
+// ⚠️ Ce qu'il promettait — la DURÉE d'un événement rendue par la longueur d'une
+// barre, et deux événements contemporains vus côte à côte — n'a jamais tenu sur ce
+// corpus. L'audit du 2026-09-04 l'avait mesuré : ce sont les INTITULÉS qui décident
+// de la largeur, non la simultanéité. Un bloc réserve la hauteur de son texte, si
+// bien qu'une famille dense ouvre autant de couloirs qu'elle a d'événements dont
+// les titres se chevauchent, et la frise partait en largeur pour des raisons qui ne
+// devaient rien à la chronologie. Aucun des trois partis envisagés — barre seule
+// avec l'intitulé au survol, couloirs plafonnés, retrait du mode — n'a été arbitré
+// ce jour-là ; c'est le troisième qui l'est.
+//
+// ⚠️ Et la DONNÉE ne portait pas non plus ce que la barre promettait. Mesuré le
+// 2026-09-05 sur les 1 170 repères de la frise : tous portent une date de fin, mais
+// 456 seulement — 39 % — couvrent un empan réel ; les 714 autres sont des points, où
+// la fin égale le début. Près de deux repères sur trois se rendaient donc par une
+// barre de hauteur minimale, c'est-à-dire par une barre qui ne dit rien.
 
 type Filtres = {
   familles: Set<string>
@@ -125,7 +127,6 @@ function rendreFrise(texte: string | null | undefined, q: string): React.ReactNo
 export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   const mobile = useEstMobile(900)
   const [densite, setDensite] = useState<Densite>('etendu')
-  const [vue, setVue] = useState<'liste' | 'echelle'>('liste')
   const [f, setF] = useState<Filtres>(FILTRES_VIDES)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
   const [recherche, setRecherche] = useState('')
@@ -222,35 +223,6 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   )
   const notesOuvertes = toutesNotes || matchNotice
 
-  // ── Colonnes du mode « à l'échelle » : positionnement sur un axe temporel. ──
-  const echelle = useMemo(() => {
-    const avecDate = visibles.filter(e => e.date_debut != null)
-    if (!avecDate.length) return null
-    const ys = avecDate.flatMap(e => [e.date_debut!, e.date_fin ?? e.date_debut!])
-    const debut = Math.floor(Math.min(...ys) / 100) * 100
-    const fin = Math.ceil(Math.max(...ys) / 100) * 100
-    const famillesPresentes = Array.from(new Set(avecDate.map(e => e.famille ?? '').filter(Boolean)))
-    let basMax = 0
-    const cols = famillesPresentes.map(fam => {
-      const items = avecDate.filter(e => (e.famille ?? '') === fam).sort((a, b) => a.date_debut! - b.date_debut!)
-      const finCouloir: number[] = []
-      const places = items.map(e => {
-        const deb = e.date_debut!, ferme = Math.max(e.date_fin ?? deb, deb)
-        const top = (deb - debut) * PX_PAR_AN
-        const dureeH = (ferme - deb) * PX_PAR_AN
-        const occ = Math.max(H_BARRE_MIN, dureeH, hauteurTexte(e.titre, false))
-        const bas = top + occ + GAP_V
-        if (bas > basMax) basMax = bas
-        let c = finCouloir.findIndex(fc => fc <= top)
-        if (c === -1) { c = finCouloir.length; finCouloir.push(bas) } else finCouloir[c] = bas
-        return { e, couloir: c, top, dureeH, occ }
-      })
-      return { fam, places, nbCouloirs: Math.max(1, finCouloir.length) }
-    })
-    const hauteur = Math.max((fin - debut) * PX_PAR_AN, basMax) + 12
-    return { debut, fin, hauteur, cols }
-  }, [visibles])
-
   const basculer = useCallback((cle: 'familles' | 'genres' | 'zones', v: string) => {
     setF(prev => {
       const s = new Set(prev[cle])
@@ -295,22 +267,6 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)', color: toutesNotes ? VERT : 'var(--cs-texte-second)' }}>
         {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
       </button>
-
-      <GroupeFiltre label="Disposition">
-        <div style={{ display: 'flex', border: `1px solid ${BORD}`, borderRadius: '999px', overflow: 'hidden' }} role="group" aria-label="Disposition de la frise">
-          {([['liste', 'Liste'], ['echelle', 'À l’échelle']] as ['liste' | 'echelle', string][]).map(([cle, label], i) => (
-            <button key={cle} onClick={() => setVue(cle)} aria-pressed={vue === cle}
-              style={{
-                flex: 1, fontSize: '0.6875rem', padding: '5px 4px', border: 'none',
-                borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: vue === cle ? VERT : 'var(--cs-surface)', color: vue === cle ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
-                fontFamily: 'inherit', fontWeight: vue === cle ? 600 : 400, whiteSpace: 'nowrap',
-              }}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </GroupeFiltre>
 
       <GroupeFiltre label="Densité">
         <div style={{ display: 'flex', border: `1px solid ${BORD}`, borderRadius: '999px', overflow: 'hidden' }} role="group" aria-label="Densité de la frise">
@@ -435,8 +391,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
 
         {/* ── Frise ──────────────────────────────────────────────────────── */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '16px 32px 64px' }}>
-          {/* Le mode « à l'échelle » a besoin de toute la largeur (défilement horizontal). */}
-          <div style={{ maxWidth: vue === 'echelle' ? 'none' : '48rem', margin: '0 auto' }}>
+          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
 
             {/* ⛔ NI COMPTE DE REPÈRES, NI FILET (demande de l'auteur, 2026-09-04 : « y'a un
                 double filet en haut de page ; supprimer. Y'a le nombre de repères en haut
@@ -456,8 +411,6 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
                   </button>
                 )}
               </div>
-            ) : vue === 'echelle' ? (
-              <FriseEchelle echelle={echelle} recherche={recherche.trim()} />
             ) : (
               <ListeFrise items={visibles} mobile={mobile} toutesNotes={notesOuvertes} recherche={recherche.trim()} />
             )}
@@ -474,84 +427,6 @@ function ListeFrise({ items, mobile, toutesNotes, recherche }: { items: RangFris
     <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
       {items.map(e => <CarteEvenement key={e.id} e={e} mobile={mobile} toutesNotes={toutesNotes} recherche={recherche} />)}
     </ul>
-  )
-}
-
-// ── Mode « à l'échelle » : colonnes par famille, barre ∝ durée, axe temporel. ──
-type PlaceEchelle = { e: RangFrise; couloir: number; top: number; dureeH: number; occ: number }
-type ColEchelle = { fam: string; places: PlaceEchelle[]; nbCouloirs: number }
-function FriseEchelle({ echelle, recherche }: {
-  echelle: { debut: number; fin: number; hauteur: number; cols: ColEchelle[] } | null
-  recherche: string
-}) {
-  if (!echelle) return (
-    <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '20px' }}>
-      Aucun repère daté à placer sur l’échelle pour cette sélection.
-    </p>
-  )
-  const { debut, hauteur, cols } = echelle
-  const largCol = (c: ColEchelle) => c.nbCouloirs * LARG_LANE + (c.nbCouloirs - 1) * ECART_LANE
-  const xCol: number[] = []
-  let x = LARG_GOUTTIERE
-  cols.forEach(c => { xCol.push(x); x += largCol(c) + ECART_COL })
-  const largTotale = x - ECART_COL + 8
-  const bornesSiecles: number[] = []
-  for (let b = debut; b <= echelle.fin; b += 100) bornesSiecles.push(b)
-
-  return (
-    <div style={{ overflowX: 'auto', border: `1px solid ${BORD}`, borderRadius: '8px', background: 'var(--cs-fond-clair)' }}>
-      <div style={{ position: 'relative', width: largTotale, height: H_ENTETE_ECHELLE + hauteur, minWidth: '100%' }}>
-
-        {/* En-têtes de colonnes (une par famille). */}
-        {cols.map((c, i) => (
-          <div key={c.fam} style={{
-            position: 'absolute', top: 0, left: xCol[i], width: largCol(c), height: H_ENTETE_ECHELLE,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', textAlign: 'center',
-            borderBottom: `1.5px solid ${colorMix(coulFamille(c.fam), 27)}`, padding: '0 8px', boxSizing: 'border-box',
-          }}>
-            <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', background: coulFamille(c.fam), flexShrink: 0 }} />
-            <span style={{ fontFamily: SANS, fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: coulFamille(c.fam), lineHeight: 1.25 }}>{c.fam}</span>
-          </div>
-        ))}
-
-        <div style={{ position: 'absolute', top: H_ENTETE_ECHELLE, left: 0, right: 0, height: hauteur }}>
-          {/* Filets et repères de siècle dans la gouttière. */}
-          {bornesSiecles.map(b => {
-            const y = (b - debut) * PX_PAR_AN
-            const s = siecleDe(b + 1)
-            return (
-              <React.Fragment key={b}>
-                <div style={{ position: 'absolute', top: y, left: LARG_GOUTTIERE - 6, width: largTotale - LARG_GOUTTIERE + 6, borderTop: `1px solid ${SEP}` }} />
-                {b < echelle.fin && s != null && (
-                  <div style={{ position: 'absolute', top: y + 5, left: 0, width: LARG_GOUTTIERE - 12, textAlign: 'right', fontFamily: SERIF, fontSize: '0.71875rem', color: 'var(--cs-or-doux)' }}>
-                    <Siecle n={s} />
-                  </div>
-                )}
-              </React.Fragment>
-            )
-          })}
-
-          {/* Blocs événements, positionnés sur l'axe et répartis en couloirs. */}
-          {cols.map((c, i) => {
-            const teinte = coulFamille(c.fam)
-            return c.places.map(({ e, couloir, top, dureeH, occ }) => {
-              const gauche = xCol[i] + couloir * (LARG_LANE + ECART_LANE)
-              return (
-                <div key={e.id}
-                  title={`${e.date_affichage} · ${e.titre}${e.notice ? '\n\n' + e.notice : ''}`}
-                  style={{ position: 'absolute', top, left: gauche, width: LARG_LANE, height: occ }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, width: BARRE_W, height: Math.max(H_BARRE_MIN, dureeH), background: teinte, opacity: 0.9, borderRadius: '4px' }} />
-                  <div style={{ paddingLeft: BARRE_W + GAP_TXT, paddingTop: PAD_BLOC }}>
-                    <div style={{ fontFamily: SERIF, fontSize: '0.625rem', color: teinte, fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>{rendreSiecles(formaterDateHistoire(e.date_affichage))}</div>
-                    <div style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: TEXTE, lineHeight: 1.28, marginTop: '1px' }}>{rendreFrise(e.titre, recherche)}</div>
-                  </div>
-                </div>
-              )
-            })
-          })}
-        </div>
-      </div>
-    </div>
   )
 }
 
