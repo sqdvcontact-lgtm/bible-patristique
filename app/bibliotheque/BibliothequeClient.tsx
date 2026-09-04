@@ -614,8 +614,9 @@ type NoticeCompacte = {
   siecle_edition_affichage: string | null
   domaine_public: string | null
   langue_originale: string | null
-  verifie: boolean | null
-  verifie_admin: boolean | null
+  // ⛔ `verifie` et `verifie_admin` ne sont plus ni lus ni demandés : la marque qu'ils
+  // servaient est retirée, et un champ que rien ne lit finit par contredire ce qu'on
+  // affiche.
 }
 
 function cleOeuvreCatalogue(n: NoticeCompacte) {
@@ -729,19 +730,13 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
             // La langue originale ne s'affiche plus : sur un catalogue de
             // traductions françaises, elle ne renseigne pas le lecteur et
             // ouvrait une colonne vide une ligne sur deux.
-            // Trois états : vérifié par l'admin (contrôle humain), pré-contrôle
-            // automatique (IA) — que l'on signale SANS le présenter comme vérifié —,
-            // ou rien du tout.
-            const verifieAdmin = groupe.notices.every(n => n.verifie_admin)
-            const precontroleIA = !verifieAdmin && groupe.notices.every(n => n.verifie)
-            const [icone, libelle, couleur] = verifieAdmin
-              ? ['✓', 'Données vérifiées', '#7a8a6a']
-              : precontroleIA
-              // Ocre franc : la référence n'est pas fautive, mais elle n'est pas
-              // encore garantie. Le gris-taupe précédent se lisait comme une
-              // mention passive ; l'ocre retient l'œil sans crier à l'erreur.
-              ? ['✦', 'Référence en cours de vérification', '#b07d1e']
-              : ['✦', 'Non vérifié', '#c09050']
+            // ⛔ ET LA MARQUE DE VÉRIFICATION NON PLUS (décision de l'auteur,
+            // 2026-09-04 : « rien de spécial ; en fait, il faut tout bonnement
+            // supprimer »). Elle disait « ✦ Référence en cours de vérification »
+            // sur presque tout le catalogue — 2 488 notices sur 2 499 —, si bien
+            // qu'elle ne distinguait rien et jetait un doute uniforme sur des
+            // références qui n'en méritaient pas. Un état qui ne varie pas
+            // n'informe pas : on le retire plutôt que de le farder.
             return (
               <div key={groupe.cle}
                 className="cat-ligne"
@@ -764,17 +759,16 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       return (
                         <span key={n.id} style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.4 }}>
                           {meta ? <>{metaAvantDate}{metaAvantDate && dateEdition ? ', ' : null}{dateEdition && <span title={n.date_edition_precision_affichage ?? undefined}><HistoricalDate value={dateEdition} variant="short" /></span>}</> : titreDeclineCatalogue(n)}
-                          {dp && <span title="Domaine public — œuvre libre de droits" style={{ marginLeft: '5px', fontSize: '0.5625rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em', cursor: 'help' }}>DP</span>}
+                          {/* ⛔ « Domaine public » EN TOUTES LETTRES, et sans infobulle
+                              (décision de l'auteur, 2026-09-04). « DP » demandait qu'on
+                              survole pour le comprendre, et l'infobulle ne faisait que
+                              développer le sigle : deux gestes pour deux mots. */}
+                          {dp && <span style={{ marginLeft: '5px', fontSize: '0.5625rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em' }}>Domaine public</span>}
                           <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDeclineCatalogue(n)} />
                         </span>
                       )
                     })}
                   </div>
-                  {/* Vérification des données */}
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '1px', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: couleur }}>
-                    <span style={{ fontSize: '0.5625rem' }}>{icone}</span>
-                    {libelle}
-                  </span>
                 </div>
                 {/* Actions : proposer + vote.
                     Les deux pictogrammes occupent la même case de 22 px et sont
@@ -925,7 +919,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
       for (let de = 0; ; de += 1000) {
         const { data: page } = await supabase
           .from('v_catalogue_notices_dates')
-          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, editeur, date_edition_affichage_courte, date_edition_precision_affichage, siecle_edition_affichage, domaine_public, langue_originale, verifie, verifie_admin')
+          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, editeur, date_edition_affichage_courte, date_edition_precision_affichage, siecle_edition_affichage, domaine_public, langue_originale')
           .eq('presence_sur_le_site', false)
           .eq('refuse_admin', false)
           .order('auteur')
@@ -1090,6 +1084,24 @@ const CHAMP_STYLE: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '8px 11px',
   border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)',
   color: 'var(--cs-texte-fort)', outline: 'none', fontFamily: 'var(--font-source-serif), Georgia, serif',
+}
+
+/**
+ * Un champ PRÉREMPLI, donc figé : il porte ce que la notice du catalogue dit, et
+ * l'auteur de la proposition n'a pas à le récrire.
+ *
+ * ⛔ Ni `disabled` ni `readOnly` sur un champ de saisie : le premier grise le texte
+ * jusqu'à le rendre illisible et le retire du parcours au clavier, le second garde
+ * l'apparence d'un champ où l'on pourrait écrire. C'est une VALEUR qu'on montre, non
+ * une saisie qu'on refuse — elle se compose donc comme une valeur, dans le cadre du
+ * champ pour que la colonne garde son aplomb.
+ */
+function ChampFige({ valeur }: { valeur: string }) {
+  return (
+    <div style={{ ...CHAMP_STYLE, background: 'var(--cs-fond-doux)', color: 'var(--cs-texte-second)', minHeight: '2.3125rem', display: 'flex', alignItems: 'center' }}>
+      {valeur}
+    </div>
+  )
 }
 
 /* ── Autocomplétion auteur ──────────────────────────────────────────────── */
@@ -1270,6 +1282,22 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
     ...valeursInitiales,
   })
   const [form, setForm] = useState<FormProposition>(valeursDepart.current)
+  // ⛔ CE QUI EST PRÉREMPLI EST FIGÉ (demande de l'auteur, 2026-09-04 : « quand quelqu'un
+  // propose une œuvre, bloquer les informations préremplies ; il ne doit pas pouvoir les
+  // modifier »). La proposition part d'une notice du catalogue : l'auteur et le titre SONT
+  // cette notice, et les laisser modifiables laissait partir une proposition qui ne
+  // désignait plus ce qu'on avait sous les yeux — l'équipe éditoriale recevait alors une
+  // œuvre sans savoir de quelle ligne du catalogue elle venait.
+  // ⚠️ Le verrou se déduit de ce qui a été PASSÉ, non d'un drapeau : l'onglet « Proposer
+  // une œuvre », qui ne préremplit rien, reste entièrement libre.
+  // ⚠️ Un état à initialiseur PARESSEUX, non une référence : la valeur se calcule une
+  // fois et se LIT pendant le rendu, ce qu'une référence n'a pas le droit de faire
+  // (`react-hooks/refs`). Elle ne change jamais — ce qui est prérempli l'est à l'ouverture.
+  const [figes] = useState<Set<keyof FormProposition>>(() => new Set(
+    (Object.keys(valeursInitiales ?? {}) as (keyof FormProposition)[])
+      .filter(cle => String(valeursInitiales?.[cle] ?? '').trim() !== '')
+  ))
+  const fige = (cle: keyof FormProposition) => figes.has(cle)
 
   // Le parent (fenêtre modale) est prévenu dès que la saisie diffère de son point de
   // départ : il pourra demander confirmation avant de fermer et éviter une perte
@@ -1382,19 +1410,31 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>
               Auteur patristique <span style={{ color: 'var(--cs-danger)' }}>*</span>
             </label>
-            <ComboAuteur value={form.auteur_nom}
-              onChange={v => setForm(prev => ({ ...prev, auteur_nom: v }))}
-              onAuteurId={id => setAuteurId(id)} />
+            {fige('auteur_nom')
+              ? <ChampFige valeur={form.auteur_nom} />
+              : <ComboAuteur value={form.auteur_nom}
+                  onChange={v => setForm(prev => ({ ...prev, auteur_nom: v }))}
+                  onAuteurId={id => setAuteurId(id)} />}
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>
               Titre de l’œuvre <span style={{ color: 'var(--cs-danger)' }}>*</span>
             </label>
-            <ComboTitre value={form.titre}
-              onChange={v => setForm(prev => ({ ...prev, titre: v }))}
-              auteurNom={form.auteur_nom} />
+            {fige('titre')
+              ? <ChampFige valeur={form.titre} />
+              : <ComboTitre value={form.titre}
+                  onChange={v => setForm(prev => ({ ...prev, titre: v }))}
+                  auteurNom={form.auteur_nom} />}
           </div>
         </div>
+        {/* Dit UNE fois pourquoi ces cases ne s'ouvrent pas : un champ figé sans un mot
+            se lit comme un champ en panne. */}
+        {figes.size > 0 && (
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', lineHeight: 1.5, margin: '-8px 0 0' }}>
+            Ces informations viennent de la notice du catalogue et ne se modifient pas ici.
+            Pour proposer une autre œuvre, passez par l’onglet « Proposer une œuvre ».
+          </p>
+        )}
 
         {/* Traducteur + éditeur */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

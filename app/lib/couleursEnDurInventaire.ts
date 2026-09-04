@@ -52,7 +52,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'admin/SectionTraductions.tsx': ['#a0b8aa'],
   'admin/SectionValidationNotices.tsx': ['#6f8a3e'],
   'admin/SectionVerifications.tsx': ['rgba(60,50,30,0.06)'],
-  'bibliotheque/BibliothequeClient.tsx': ['#3d5a6b', '#4a4030', '#4a6070', '#7a6040', '#7a6a48', '#7a6a50', '#7a8a6a', '#8a7a5a', '#a2564a', '#b0442a', '#b07d1e', '#b87a30', '#b88a45', '#b8a888', '#c09050', '#cfe0d5', 'rgba(139,107,60,0.05)', 'rgba(139,107,60,0.07)', 'rgba(139,107,60,0.08)', 'rgba(139,107,60,0.22)', 'rgba(30,26,20,0.42)', 'rgba(30,26,20,0.55)', 'rgba(61,90,107,0.07)', 'rgba(61,90,107,0.22)'],
+  'bibliotheque/BibliothequeClient.tsx': ['#3d5a6b', '#4a4030', '#4a6070', '#7a6040', '#7a6a48', '#7a6a50', '#7a8a6a', '#8a7a5a', '#a2564a', '#b0442a', '#b87a30', '#b88a45', '#b8a888', '#cfe0d5', 'rgba(139,107,60,0.05)', 'rgba(139,107,60,0.07)', 'rgba(139,107,60,0.08)', 'rgba(139,107,60,0.22)', 'rgba(30,26,20,0.42)', 'rgba(30,26,20,0.55)', 'rgba(61,90,107,0.07)', 'rgba(61,90,107,0.22)'],
   'bienvenue/page.tsx': ['#7a7068'],
   'chantier/page.tsx': ['#bca877', 'rgba(180,50,40,0.06)', 'rgba(180,50,40,0.18)'],
   // Les deux cartons de l'accueil sont une GAMME DESSINÉE, non des teintes
