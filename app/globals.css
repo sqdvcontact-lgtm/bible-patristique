@@ -225,6 +225,43 @@
   --cs-communaute: #7a5f22;
   --cs-communaute-aplat: #7a5f22;
 
+  /* ── LES DEUX SÉRIES DU BUDÉ (2026-09-04) ────────────────────────────────────────
+     Demande de l'auteur : « pour rendre hommage discrètement aux Budé, mettre le petit
+     encart contenant les initiales de l'auteur en couleurs ; en rouge pour les latins,
+     en jaune pour les grecs ; s'inspirer des couleurs Budé et adapter à l'harmonie du
+     site ». La Collection des Universités de France relie ses volumes grecs en jaune
+     safran et ses latins en rouge : sur un rayon, la série se lit avant le titre.
+
+     ⚠️ L'HOMMAGE EST DISCRET PAR SA TAILLE, non par sa pâleur. Un premier jeu de teintes
+     lavées a été mesuré puis écarté : ΔE 9,7 entre les deux séries et 5,0 entre le rouge
+     et la case NEUTRE — deux carrés qu'on n'aurait pas distingués l'un de l'autre, ni
+     d'un carré sans couleur. Ce qui fait le Budé, c'est justement qu'on reconnaît la
+     série de loin. Les teintes sont donc franches, et c'est le carré qui est petit :
+     44 px dans une carte de trois cent cinquante.
+
+     ⛔ ELLES NE SONT PAS UNE COULEUR DE PLUS DANS LA PALETTE : elles tombent sur les axes
+     que le site a déjà. Le rouge est à 37° de teinte, entre --cs-danger-fonce (31°) et
+     --cs-danger (48°), et sa chroma (53,8) est celle du premier (53,7). Le safran est à
+     81°, la teinte de --cs-lacune (82°) et de --cs-or (83°), monté en clarté et en chroma
+     jusqu'au rang d'un aplat. Mesuré : ΔE 51,8 entre les deux séries, 72,9 et 61,6 avec
+     la case neutre — on ne les confond avec rien.
+
+     ⛔ ET CE SONT DES JETONS À ELLES, non --cs-danger-fonce et --cs-or réemployés : une
+     série de collection n'est ni un danger ni un apparat, et un jeton de RÔLE prêté à une
+     CATÉGORIE finit par changer sous elle le jour où le rôle bouge.
+
+     ⚠️ En Cuir, elles GARDENT leur teinte, comme la frise de l'histoire et les catégories
+     de modération : ce sont des catégories encodées par la couleur, et les rabattre au
+     monochrome effacerait l'information. Elles se relisent sur le sol brun — le rouge
+     descend d'un cran (L* 34,3), le safran de sept (57,9) — au lieu d'être recopiées.
+
+     Contrastes mesurés, initiales sur leur aplat : 6,57 et 5,19 au Clair, 6,52 et 5,04 en
+     Cuir. ⛔ Le seuil de 4,5 s'applique : les initiales sont composées à 0,875 rem. */
+  --cs-bude-latin: #9c3325;
+  --cs-bude-latin-encre: #f7f4ef;
+  --cs-bude-grec: #c9962a;
+  --cs-bude-grec-encre: #3a2a10;
+
   /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
      profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
      sur les fonds clairs, tout en se lisant comme une annotation d'éditeur, non comme du
@@ -513,6 +550,19 @@
   --cs-peres-aplat: #4e2823;
   --cs-communaute: #dcc08a;
   --cs-communaute-aplat: #3a3122;
+
+  /* Les deux séries du Budé gardent leur TEINTE : ce sont des catégories encodées par la
+     couleur, au même titre que la frise de l'histoire et les catégories de modération, et
+     les rabattre au monochrome effacerait ce qu'elles disent. ⚠️ Elles se RELISENT
+     pourtant sur le sol brun plutôt que d'être recopiées : le rouge descend d'un cran
+     (L* 34,3 contre 37,1) et le safran de sept (57,9 contre 65,3), le second étant seul à
+     risquer l'éclat sur une page sombre. Les deux restent plus clairs que la case neutre
+     du Cuir (L* 26), comme un carton se détache d'un sol sombre EN MONTANT.
+     Contrastes des initiales sur leur aplat : 6,52 et 5,04. */
+  --cs-bude-latin: #8e3226;
+  --cs-bude-latin-encre: #f2e7d6;
+  --cs-bude-grec: #b0842a;
+  --cs-bude-grec-encre: #241a08;
 
   /* Le surnuméraire septante perd son violet. Ses quatre rangs deviennent quatre
      beiges, séparés par la seule luminance. */

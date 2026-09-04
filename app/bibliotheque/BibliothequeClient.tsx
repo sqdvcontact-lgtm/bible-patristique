@@ -13,6 +13,7 @@ import IconeChevron from '@/app/components/IconeChevron'
 import OngletsPage from '@/app/components/OngletsPage'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { serieDeLAuteur } from '@/app/lib/langueBude'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from '@/app/lib/bibliothequeSelects'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
@@ -690,6 +691,18 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
   // Initiale(s) de l'auteur pour le placeholder
   const initiale = nomAuteur.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('')
 
+  // ── LA CASE D'INITIALES PREND LA COULEUR DE SA SÉRIE ────────────────────────
+  // Hommage aux Budé (demande de l'auteur, 2026-09-04) : rouge pour les latins, safran
+  // pour les grecs, comme la Collection des Universités de France relie ses deux séries.
+  // ⚠️ Le Budé ne connaît QUE ces deux-là. Là où la collection se tait — syriaque,
+  // arménien, arabe, copte —, la case garde la teinte neutre du site : la couleur dit une
+  // série, elle ne prétend pas classer toutes les langues.
+  // ⛔ Et un corpus que les DEUX séries se disputent n'en reçoit aucune (`serieDeLAuteur`) :
+  // les Actes des martyrs anciens portent quinze notices latines et seize grecques.
+  const serie = serieDeLAuteur(groupes.flatMap(g => g.notices).map(n => n.langue_originale))
+  const aplatSerie = serie === 'latin' ? 'var(--cs-bude-latin)' : serie === 'grec' ? 'var(--cs-bude-grec)' : 'var(--cs-bord-clair)'
+  const encreSerie = serie === 'latin' ? 'var(--cs-bude-latin-encre)' : serie === 'grec' ? 'var(--cs-bude-grec-encre)' : 'var(--cs-texte-doux)'
+
   return (
     <div
       style={{ background: 'var(--cs-fond-clair)', borderRadius: '8px', border: '1px solid var(--cs-bord)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
@@ -698,9 +711,13 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
-        {/* Zone initiales — carré discret (réduit : la vignette prenait trop de place). */}
-        <div style={{ width: '44px', flexShrink: 0, background: 'var(--cs-bord-clair)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', letterSpacing: '0.03em', userSelect: 'none' }}>{initiale}</span>
+        {/* Zone initiales — carré discret (réduit : la vignette prenait trop de place),
+            qui porte la couleur de la série (voir `serie` plus haut). ⚠️ Le `title` n'est
+            pas un ornement : une information portée par la seule couleur n'est lisible
+            que de qui connaît le code, et il ne promet rien qu'il ne tienne. */}
+        <div title={serie === 'latin' ? 'Œuvres en latin' : serie === 'grec' ? 'Œuvres en grec' : undefined}
+          style={{ width: '44px', flexShrink: 0, background: aplatSerie, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: encreSerie, letterSpacing: '0.03em', userSelect: 'none' }}>{initiale}</span>
         </div>
 
         {/* Infos auteur + bouton */}
