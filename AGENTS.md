@@ -4587,3 +4587,56 @@ TR0011 et TR0012, qui n'en avaient aucune.
   dessus. `id` est `generated always as identity` : ⛔ ne jamais le fournir.
 - ⚠️ **TR0013 reste sans chronologie**, faute d'une décision : sa traduction moderne est
   établie sur le témoin de TR0009, dont elle pourrait reprendre les jalons.
+
+## ⛔ Rectification du soir : retirer un ornement n'est pas gratuit (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.3, sous « Rectification du même jour ».
+Trois des règles posées le matin sont reprises, et toutes pour la même raison : on avait
+chaque fois retiré un ornement **de trop**. ⚠️ La règle générale vaut au delà de cette
+page — **la bonne mesure ne se trouve pas en enlevant tant qu'on peut** ; après avoir
+retiré, on regarde ce qui reste.
+
+- **L'ÉCHELLE se compose en CASES** (`RANGEE_CASES`, `CASE_ECHELLE`), sur toute la largeur
+  du volet. Cinq valeurs en clair séparées par un point médian se lisaient comme une ligne
+  de texte, et rien ne disait qu'on pouvait les toucher. ⛔ Ce n'est pas le retour des
+  pilules : une pilule est un objet PAR VALEUR — cinq cadres, cinq fonds, cinq rayons —,
+  un contrôle segmenté n'a qu'UN cadre et qu'UN rayon pour toutes ses cases, qui n'existent
+  que par le filet qui les sépare. ⚠️ Les interrupteurs INDÉPENDANTS (« Relecture », admin)
+  gardent `CHOIX_DISCRET`, leur colonne et leur clair : ils ne forment pas une échelle.
+- ⛔ **Fond, encre et graisse des cases se déclarent DANS LA FEUILLE** (`.poly-case`),
+  jamais en ligne. C'est le piège du style en ligne, déjà payé deux fois dans ce fichier :
+  une déclaration en ligne bat toute règle de feuille sans `!important`, et le survol du
+  titre de colonne est resté mort des semaines sans que rien ne le dise.
+- **`fondRepos` ne connaît plus que deux valeurs**, l'accent de la ligne retenue et rien.
+  Une traduction déjà prise se grise par son TEXTE — `--cs-texte-gris` sur le nom,
+  `--cs-texte-faible` sur la date. ⛔ Plus d'aplat sous la ligne : une liste ne se lit plus
+  quand un rang sur deux porte son propre sol. Le paramètre `ailleurs` a quitté `ligne()`
+  et ne sert plus qu'aux deux encres.
+- ⛔ **L'en-tête d'une colonne ne porte QUE le nom et la date.** `courante.variante` n'y est
+  plus rendu du tout. ⚠️ L'état du texte se lit dans le volet de la famille, où l'on
+  choisit (« Texte du manuscrit », « Transcription diplomatique », « Traduction en français
+  moderne ») : c'est le menu qui distingue, l'en-tête qui nomme. ⛔ Conséquence assumée :
+  deux états du témoin 899 ouverts côte à côte portent le même en-tête.
+- ⚠️ **La cellule d'en-tête donne de l'air au bloc teinté** : `padding: "5px 6px"` au lieu de
+  `"0 4px"`. Elle n'avait aucun rembourrage vertical — mesuré, le bouton faisait 69 px dans
+  une cellule de 69 —, si bien que le fond du survol et du menu ouvert courait d'un filet à
+  l'autre. Un fond qui touche le bord de sa case cesse de se lire comme un ÉTAT.
+
+### ⛔ Un anneau de foyer se pose DEDANS dès que le champ EST son bloc (2026-09-04)
+
+`.cs-volet-recherche:focus-visible { outline-offset: -2px }` (`globals.css`). L'anneau
+global du site se pose à un pixel **à l'extérieur** de la boîte, ce qui convient à un champ
+posé DANS un bloc rembourré ; le champ de recherche des volets EST son bloc depuis le
+matin même — mesuré, 319 sur 45 dans un bloc de 319 sur 46. L'anneau tombait donc par-dessus
+le filet du bas, par-dessus le bloc voisin en haut, et sortait du volet sur les deux côtés,
+où il se faisait couper. Il sert la page Bible et la Polyglotte, qui partagent `NavLivres`.
+
+- ⛔ **On ne le retire pas** : c'est le seul repère du clavier, et le champ n'a ni filet ni
+  fond au repos qui pussent en tenir lieu. ⚠️ Un `<input type="text">` correspond à
+  `:focus-visible` même au CLIC de souris : la règle vaut donc dans les deux cas.
+- ⚠️ La règle globale porte `!important` sur l'ÉPAISSEUR, non sur le décalage : deux classes
+  (0,2,0) l'emportent sur `input:focus-visible` (0,1,1), et la couleur comme la largeur
+  restent celles du site.
+- ⚠️ **Règle générale : quand un objet cesse d'être posé DANS un bloc pour DEVENIR le bloc,
+  tout ce qui se dessinait autour de lui se relit.** Le rembourrage, le filet, l'ombre et
+  l'anneau ne visaient pas la même boîte.
