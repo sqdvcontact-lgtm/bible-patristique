@@ -43,10 +43,21 @@
 // n'avait pas sa place, non sa mesure qui était fausse.
 //
 // ⚠️ LA FORME EST CELLE DU VOLET DES PAGES PATRISTIQUES, pris pour modèle à la demande
-// de l'auteur : le nom en vert qui ouvre la fiche, puis ce qu'on lit en serif à
-// 0,8125 rem, et l'édition en dessous, dans la même serif. Une seule interligne, 1,35,
-// celle du volet d'à côté — l'ancienne référence se composait à 1,3 sur un œil de
-// 0,65625 rem, si serrée qu'elle en devenait un pavé.
+// de l'auteur : le nom en vert qui ouvre la fiche, puis ce qu'on lit à 0,8125 rem, et
+// l'édition en dessous. Une seule interligne, 1,35, celle du volet d'à côté —
+// l'ancienne référence se composait à 1,3 sur un œil de 0,65625 rem, si serrée qu'elle
+// en devenait un pavé.
+//
+// ⛔ LES DEUX LIGNES SE COMPOSENT EN SANS (demande de l'auteur, 2026-09-04, citant la
+// carte de Segond : « Louis Segond (1810-1885) D'après l'édition de Paris, Société
+// biblique britannique et étrangère, 1910 // sans sérif »). Elles avaient pris la serif
+// du volet des œuvres, dont la carte est le modèle ; mais ce volet-là surmonte un texte
+// EN SERIF, et sa carte est de la même encre que ce qu'elle annonce. Ici la carte
+// surmonte une LISTE DE LIVRES, qui est en sans, et le nom de la bible juste au-dessus
+// l'est aussi (`NomVolet` hérite du volet). La serif y faisait donc deux régimes dans
+// une carte de trois lignes. ⚠️ La divergence avec le volet des œuvres est assumée : ce
+// n'est pas la même page, et c'est ce qu'elles SURMONTENT qui décide, non leur
+// ressemblance.
 //
 // ⛔ LA CARTE NE PORTE PLUS LA NOTICE DU TRADUCTEUR (2026-09-02, demande de
 // l'auteur : « n'afficher que le premier texte »). Entrée le 31 août au-dessus de
@@ -168,7 +179,7 @@ export default function EncartTraduction({ trad, onReduire }: {
           haut depuis le 2026-08-31, et la ligne du traducteur le redisait alors mot
           pour mot. Sans traducteur nommé, elle porte un tiret, qui dit au moins que
           la place existe et qu'on ne l'a pas remplie. */}
-      <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.35 }}>
+      <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.35 }}>
         {/* ⚠️ Le nom et les dates se COMPOSENT, comme dans le menu central et dans la
             fiche : « Bible française du XIIIe siècle » et « (XIIIe siècle) » y prennent
             leurs petites capitales et leur exposant. La carte les rendait bruts, à un
@@ -176,11 +187,11 @@ export default function EncartTraduction({ trad, onReduire }: {
         {trad.auteur ? rendreEnrichi(trad.auteur) : '—'}
         {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> {rendreEnrichi(`(${trad.auteurDates})`)}</span>}
       </span>
-      {/* L'ÉDITION, dans la serif et le corps des pages de titre. La phrase tient sur
+      {/* L'ÉDITION, dans le corps des pages de titre et le sans du volet. La phrase tient sur
           une ou deux lignes quel que soit le volet, et n'a donc ni budget ni mesure —
           c'est tout le bénéfice d'un texte court (voir l'en-tête). */}
       {edition && (
-        <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35 }}>{edition}</span>
+        <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35 }}>{edition}</span>
       )}
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
     </div>

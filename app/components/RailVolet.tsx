@@ -57,29 +57,43 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         // Le chevron se pose EN HAUT du rail, là où l'œil arrive, et non au milieu
         // d'une bande qui fait toute la hauteur de l'écran.
-        justifyContent: 'flex-start', paddingTop: '12px', gap: '10px',
+        justifyContent: 'flex-start', paddingTop: '12px',
         overflow: 'hidden',
       }}>
       <IconeChevron dir={gauche ? 'right' : 'left'} size={14} strokeWidth={1.5} />
-      {/* ⚠️ Le libellé prend l'encre du texte gris et non celle du texte faible : sur
-          une bande de trente pixels, il est le seul contenu, et il doit se lire sans
-          qu'on s'en approche. */}
-      <span aria-hidden style={{
-        writingMode: 'vertical-rl', fontSize: '0.6875rem', letterSpacing: '0.12em',
-        textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-gris)',
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '58%',
+      {/* ⚠️ LE TEXTE SE CENTRE DANS LA HAUTEUR, le chevron restant en tête (demande de
+          l'auteur, 2026-09-04 : « centrer verticalement le texte ; réduire un peu la
+          taille de police »). Un rail fait toute la hauteur de la lecture : le libellé
+          posé sous le chevron pendait en haut d'une bande de huit cents pixels, quand un
+          dos de livre porte son titre au milieu. ⛔ Le chevron, lui, ne descend pas avec
+          lui : il est là où l'œil arrive, et c'est la cible qu'on vise.
+          ⚠️ Le groupe se centre d'un bloc — libellé ET complément —, sans quoi le repère
+          de la Polyglotte se détacherait du nom qu'il accompagne. */}
+      <span style={{
+        flex: 1, minHeight: 0, overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: '10px',
       }}>
-        {libelle}
-      </span>
-      {complement && (
+        {/* ⚠️ Le libellé prend l'encre du texte gris et non celle du texte faible : sur
+            une bande de trente pixels, il est le seul contenu, et il doit se lire sans
+            qu'on s'en approche. */}
         <span aria-hidden style={{
-          writingMode: 'vertical-rl', fontFamily: 'var(--font-source-serif), Georgia, serif',
-          fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.04em',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '32%',
+          writingMode: 'vertical-rl', fontSize: '0.65625rem', letterSpacing: '0.12em',
+          textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-gris)',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '58%',
         }}>
-          {complement}
+          {libelle}
         </span>
-      )}
+        {complement && (
+          <span aria-hidden style={{
+            writingMode: 'vertical-rl', fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.04em',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '32%',
+          }}>
+            {complement}
+          </span>
+        )}
+      </span>
     </button>
   )
 }
