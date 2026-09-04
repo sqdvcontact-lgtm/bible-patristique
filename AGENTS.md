@@ -5154,3 +5154,41 @@ PAGINE déjà par mille (`range`), et le commentaire du code dit que sans cela �
 s'arrêtait vers Augustin » : le piège a existé, il est fermé. ⚠️ `enLettres` n'écrit en
 toutes lettres que de un à vingt ; au-delà le chiffre paraît, d'où le « 100 » qui a l'air
 d'un arrondi.
+
+# Les deux SÉRIES du Budé — la case d'initiales du catalogue (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.13. Règles de code :
+
+- **`app/lib/langueBude.ts`** (module pur, 8 tests) : `serieDeLaNotice` prend la PREMIÈRE
+  langue nommée, `serieDeLAuteur` n'attribue une série que si l'autre ne la conteste pas.
+  ⛔ Le module ne connaît ni couleur ni rendu.
+- ⚠️ **La langue est du TEXTE LIBRE, et elle porte souvent une chaîne de transmission** :
+  « grec ; version latine de Rufin », « grec perdu ; version syriaque conservée »,
+  « grec/latin/syriaque/copte ». L'original ouvre la phrase, donc la tête décide — une
+  œuvre grecque conservée en latin reste grecque. ⛔ On ne cherche pas la langue ailleurs
+  que dans la tête : « ancien français » ne doit pas devenir du latin.
+- ⛔ **Un corpus que les deux séries se DISPUTENT n'en reçoit aucune.** Les cinq cas du
+  catalogue sont tous des recueils collectifs : Actes de martyrs anciens (15 latines,
+  16 grecques), Apophtegmes des Pères du désert, trois dossiers anonymes. ⚠️ Une langue
+  TIERCE ne conteste rien : latin + syriaque reste latin.
+- **Quatre jetons**, `--cs-bude-latin`, `--cs-bude-latin-encre`, `--cs-bude-grec`,
+  `--cs-bude-grec-encre`, dans les deux thèmes. ⛔ Pas de réemploi de `--cs-danger-fonce`
+  ni de `--cs-or` : un jeton de RÔLE prêté à une CATÉGORIE change sous elle le jour où le
+  rôle bouge. ⚠️ En Cuir ils gardent leur TEINTE (catégories encodées par la couleur,
+  comme la frise de l'histoire) mais s'y relisent : L* 37,1 → 34,3 pour le rouge, 65,3 →
+  57,9 pour le safran.
+- ⚠️ **Contrastes mesurés des initiales sur leur aplat** : 6,57 et 5,19 au Clair, 6,52 et
+  5,04 en Cuir. Le seuil de 4,5 s'applique — elles sont composées à 0,875 rem.
+- ⚠️ **La case porte aussi son MOT** (`title`, « Œuvres en latin » / « Œuvres en grec ») :
+  une information portée par la seule couleur n'est lisible que de qui connaît le code.
+  ⛔ Ce n'est pas l'infobulle en l'air du § 38.12 : celle-ci dit ce que la couleur seule ne
+  peut pas dire, et elle ne s'annonce par aucun curseur d'aide.
+- ⚠️ **Le premier jeu de teintes, LAVÉES, a été mesuré puis écarté** : ΔE 9,7 entre les
+  deux séries et 5,0 entre le rouge et la case neutre. Délaver une couleur pour la rendre
+  discrète, c'est lui retirer ce qu'on lui demandait de dire. L'hommage est discret par la
+  TAILLE du carré — 44 px dans une carte de 350.
+- **Épreuve** : `tmp/planche-bude.html`, qui inline la feuille RÉELLE du site (deux
+  directives Tailwind ôtées) et montre les trois cas dans les deux thèmes. ⚠️ Le Cuir n'y
+  est pas posé sur la racine mais sur une classe, la substitution étant faite dans la copie
+  de la feuille : c'est le seul moyen de tenir les deux thèmes sur une image, et le site,
+  lui, ne pose jamais le Cuir ailleurs que sur `:root`.
