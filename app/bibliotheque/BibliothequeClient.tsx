@@ -700,8 +700,11 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
   // ⛔ Et un corpus que les DEUX séries se disputent n'en reçoit aucune (`serieDeLAuteur`) :
   // les Actes des martyrs anciens portent quinze notices latines et seize grecques.
   const serie = serieDeLAuteur(groupes.flatMap(g => g.notices).map(n => n.langue_originale))
-  const aplatSerie = serie === 'latin' ? 'var(--cs-bude-latin)' : serie === 'grec' ? 'var(--cs-bude-grec)' : 'var(--cs-bord-clair)'
-  const encreSerie = serie === 'latin' ? 'var(--cs-bude-latin-encre)' : serie === 'grec' ? 'var(--cs-bude-grec-encre)' : 'var(--cs-texte-doux)'
+  // ⚠️ La case SANS série n'est pas un gris vide mais un VÉLIN : le gris de bordure sur
+  // l'encre la plus ténue ne rendait que 2,25 de contraste (4,09 en Cuir), et se lisait
+  // comme une donnée manquante. Une absence de série est une décision, et elle se compose.
+  const aplatSerie = serie === 'latin' ? 'var(--cs-bude-latin)' : serie === 'grec' ? 'var(--cs-bude-grec)' : 'var(--cs-bude-neutre)'
+  const encreSerie = serie === 'latin' ? 'var(--cs-bude-latin-encre)' : serie === 'grec' ? 'var(--cs-bude-grec-encre)' : 'var(--cs-bude-neutre-encre)'
 
   return (
     <div

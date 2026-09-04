@@ -262,6 +262,33 @@
   --cs-bude-grec: #c9962a;
   --cs-bude-grec-encre: #3a2a10;
 
+  /* ⛔ ET LA TROISIÈME CASE N'EST PAS UN GRIS VIDE. Là où le Budé se tait — syriaque,
+     arménien, arabe, copte, et les corpus que les deux séries se disputent —, elle
+     portait le gris de bordure du site sur l'encre la plus ténue de l'échelle : mesuré,
+     2,25 de contraste au Clair et 4,09 en Cuir, pour 4,5 exigés à cette taille. Les
+     initiales n'y étaient pas lisibles, et le carré se lisait comme une donnée manquante
+     plutôt que comme une décision. Relevé par l'auteur : « j'aimerais au moins des tons
+     un peu plus nobles, plutôt que ce gris vide ».
+
+     C'est un VÉLIN — le volume broché posé entre deux reliures. ⛔ Il ne prend PAS le
+     vert du site, essayé et écarté : `--cs-ecriture` vaut exactement cette teinte et dit
+     déjà l'Écriture, si bien que deux choses différentes auraient été vertes sur le même
+     site ; et le vert est l'ACCENT, donc l'exception aurait crié plus fort que la règle.
+     Un vert PÂLE, lui, retombait dans le piège des teintes lavées : ΔE 5,5 de l'ancien
+     gris, on ne l'aurait pas vu.
+
+     ⚠️ Il se distingue des deux séries par la CHROMA, non par la teinte : 15,3 contre
+     53,8 et 60,9. Une matière, non une couleur — c'est ce qui l'empêche de se lire comme
+     une troisième série, alors même qu'il partage l'axe chaud du safran (84° contre 81°).
+     Mesuré : ΔE 25,8 de la carte (contre 8,8 pour l'ancien gris, qui s'y noyait), 46,7 du
+     safran, 59,0 du rouge. Sa valeur est celle de --cs-or-doux, l'or atténué des fleurons
+     et des favoris — ⛔ mais c'est un jeton à lui : un jeton de RÔLE prêté à une CATÉGORIE
+     change sous elle le jour où le rôle bouge.
+
+     Contraste des initiales : 7,12 au Clair, 6,70 en Cuir. */
+  --cs-bude-neutre: #c8b89e;
+  --cs-bude-neutre-encre: #3a2a10;
+
   /* Ocre « apparat » : les états d'ABSENCE du témoin (lacune du manuscrit). Plus
      profond que --cs-etiquette (trop pâle pour un petit marqueur) : assez de contraste
      sur les fonds clairs, tout en se lisant comme une annotation d'éditeur, non comme du
@@ -563,6 +590,13 @@
   --cs-bude-latin-encre: #f2e7d6;
   --cs-bude-grec: #b0842a;
   --cs-bude-grec-encre: #241a08;
+  /* Le vélin se retourne : sol sombre, encre claire — une reliure de vélin sur un rayon
+     mal éclairé. ⚠️ Il monte au-dessus de la carte (L* 30,6 contre 20,7) sans atteindre la
+     clarté du safran, qu'il concurrencerait : un vélin à L* 62 n'était qu'à ΔE 32,6 de la
+     série grecque, celui-ci est à 46,7. Contraste des initiales : 6,70, contre 4,09 pour
+     le gris qu'il remplace. */
+  --cs-bude-neutre: #544631;
+  --cs-bude-neutre-encre: #e6dcc4;
 
   /* Le surnuméraire septante perd son violet. Ses quatre rangs deviennent quatre
      beiges, séparés par la seule luminance. */
