@@ -4686,3 +4686,50 @@ entrées qu'à l'intérieur de l'une d'elles — sans quoi la liste se lit comme
 et le retrait suspendu reste seul à dire où commence la suivante. ⛔ La mesure vaut pour
 TOUTE la famille, l'apparat des bibles compris : il n'y a qu'une composition
 bibliographique sur le site.
+
+# Le RAIL d'un volet replié — `app/components/RailVolet.tsx` (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.5. Règles de code :
+
+- **Un seul composant pour les TROIS rails** : le volet des livres (`NavLivres`), celui
+  des Pères (`PanneauPatristique`) et celui de la Polyglotte. Ils étaient trois dessins
+  voisins qui avaient déjà divergé — la Polyglotte portait le passage lu, les livres
+  écrivaient leur nom de bas en haut, les Pères de haut en bas et deux crans plus petit.
+  Trente pixels, le chevron en tête, le libellé en `writing-mode: vertical-rl` SANS
+  rotation (le sens d'un dos de livre français).
+- ⚠️ **Le rail nomme l'ACTION** : « Ouvrir les commentaires », « Ouvrir les livres ». Un
+  repère peut s'y ajouter en second (`complement`), dans le sérif et sans capitales : la
+  Polyglotte y garde le passage ouvert, que le tableau ne nomme plus une fois replié.
+- ⚠️ Le fond du survol vit dans `globals.css` (`.cs-rail-volet`), ⛔ jamais en style en
+  ligne : une déclaration en ligne bat toute règle de feuille sans `!important`, et ce
+  fichier a déjà payé le piège trois fois.
+
+## ⛔ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU
+
+C'est la vraie leçon de cette reprise, et elle vaut au delà des volets. Le système de
+repli existait : les deux volets de la page Bible savaient se fermer, rail compris. C'est
+la **flèche** qui les fermait qui avait disparu, gardée par `presentation !== 'inline'` —
+or `presentation` dit comment un volet s'empile sur un TÉLÉPHONE, en onglets ou en tiroir,
+et la condition était juste là (les onglets font alors office de navigation). `BibleLayout`
+passant `presentation="inline"` en toutes circonstances, le bureau perdait un contrôle pour
+une raison qui ne le regardait pas.
+
+- La condition est désormais `!sansReduire && (!mobile || presentation !== 'inline')`,
+  calculée une fois (`peutSeReduire`) dans chacun des deux volets.
+- ⚠️ **Rien dans le rendu ne le montrait** : le composant est juste, le rail est écrit, le
+  bouton existe — c'est sa GARDE qui visait la mauvaise surface. **Une condition
+  d'affichage nomme d'abord la surface qu'elle vise.**
+
+## ⛔ Un contrôle de volet ne dépend ni de l'onglet qu'on regarde, ni de sa place
+
+La flèche vit dans la rangée du champ de recherche de `NavLivres`. Deux défauts, tous deux
+propres à l'onglet « Sommaire » (les pièces liminaires de Fillion) :
+
+- la rangée était gardée par `!sommaireOuvert` — le champ cherche des LIVRES et n'a pas
+  d'objet là —, et elle emportait la flèche avec elle : plus aucun moyen de fermer le
+  volet. Elle paraît maintenant dès qu'elle porte la flèche, réduite alors au fer à droite
+  (une rangée de 21 px sous les onglets) ;
+- ⚠️ elle était rendue **après** `SommaireEdition`, qui prend toute la hauteur restante :
+  la flèche tombait au BAS du volet, à deux mille pixels de l'endroit où elle se trouve
+  sous l'onglet « Livres ». Elle est remontée avant le sommaire. Un contrôle qui change de
+  bout d'écran selon l'onglet ne s'apprend jamais.
