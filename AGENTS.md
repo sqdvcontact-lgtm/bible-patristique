@@ -1395,9 +1395,18 @@ Doctrine : charte `parametres.charte_ia`, § 38.9. Règles de code :
   de la justification) : sur **67** blancs de plus de trois espaces, **60** étaient sur la
   ligne que rétrécit la lettrine de référence, laquelle prenait 28,8 px + 8 de marge, soit
   **12 % de la mesure**.
-- **La lettrine se range dans la GOUTTIÈRE** : `margin-left` négatif égal au `padding-left`
-  de la cellule (−10 px pour 10 px). ⚠️ Les deux valeurs se répondent, sinon elle déborde
-  sur la réglure.
+- ⛔ **RECTIFIÉ LE SOIR MÊME : la lettrine part du FER DU TEXTE** (`margin-left: 0`), elle
+  ne se range plus dans la gouttière. La marge négative la posait à **−10,00 px** du fer,
+  sur les quarante-huit cellules relevées et sans une exception : chaque verset ouvrait
+  sur un repère en saillie, et le bord gauche de la colonne était ragué (relevé de
+  l'auteur : « la référence canonique dans la cellule de chaque verset, celle qui est
+  grise, doit être alignée en marge gauche avec le texte contenu dans la même cellule »).
+  ⛔ **Et le gain n'en était pas un**, mesuré avant et après sur la même page : plus grand
+  blanc **5,47 → 4,86** espaces naturelles, neuvième décile 2,78 → 2,66, blancs de plus du
+  triple **147 → 123**. ⚠️ **Ce qui coûte à la justification est la LARGEUR d'un flottant,
+  non sa POSITION** : la première ligne perd les mêmes pixels de mesure de toute façon.
+  C'est un raisonnement, non une mesure, qui avait conclu l'inverse. `--poly-lettrine-air`
+  est parti avec la marge négative.
 - ⛔ **Une espace étroite AGGRAVE la justification.** Elle ajoute le même blanc absolu quel
   que soit le point de départ : resserrer l'espace naturelle ne resserre que les lignes
   déjà justes et rend l'écart plus criant ailleurs. `word-spacing` remonte de −0,04 à
@@ -5328,3 +5337,25 @@ Migration `20260904190000_editions_sources_notices_lisibles`, sauvegarde
 - ⚠️ **`editions_sources` est une table de la DONNÉE**, donc du domaine de GPT : ce sont
   des notices d'interface, réécrites à la demande de l'auteur, sauvegardées et
   réversibles. Le fond philologique n'a pas bougé.
+
+## ⛔ Un VOILE D'ATTENTE couvre tout ce qui attend, en-tête compris (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.9, rectification du soir. Relevé de
+l'auteur : « quand on charge un texte, le fond change légèrement de couleur ; c'est ok,
+mais il faut aussi qu'il change au niveau des en-têtes de colonne ».
+
+- ⚠️ **C'est le BLOC POSITIONNÉ qui décide de ce qu'un voile couvre.** `MarqueAttente` est
+  en `position: absolute; inset: 0` : elle s'étend à son parent positionné, et à rien
+  d'autre. Sur la Polyglotte, ce parent était le corps du tableau, si bien que la teinte
+  s'arrêtait net sous le filet de l'en-tête. Un bloc positionné de plus, qui enveloppe
+  l'en-tête ET le corps, porte désormais la marque ; ⛔ le corps garde le sien, dont
+  dépendent les cellules d'actions posées en absolu.
+- ⚠️ **L'en-tête est COLLANT et porte `z-index: 5`** ; le voile monte à 900 et le recouvre
+  donc, à l'arrêt comme au défilement, les deux vivant dans le même contexte
+  d'empilement. ⛔ Il garde `pointer-events: none` : on doit pouvoir changer une colonne
+  pendant qu'une autre charge.
+- ⛔ **L'anneau ne bouge pas d'un pixel**, et c'est ce qu'il fallait vérifier : il vit dans
+  un enfant collant à `SOMMET_CORPS`, donc sous l'en-tête, et sa boîte vaut
+  `min(100%, calc(100dvh - SOMMET_CORPS))`. Le voile plus haut ne change ni l'un ni
+  l'autre — le `min` retient la seconde valeur tant que le corps porte son plancher de
+  hauteur (`HAUTEUR_CORPS`), ce qui est le cas dès qu'on attend.
