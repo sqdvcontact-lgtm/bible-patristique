@@ -59,7 +59,7 @@
 // n'existe pas au rendu serveur, et une planche de contrôle hors session ne pourrait
 // pas rendre la fiche si tout tenait dans un seul composant.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
@@ -148,12 +148,20 @@ const enProse = (t: string | null | undefined) => rendreEnrichi(t ? normaliserEs
  * non déduit d'un composant qui peut rendre `null`.
  * ⚠️ Sans nom, c'est l'HÔTE de l'adresse qui se donne : une source se nomme, elle ne
  * se cache pas derrière un « voir ».
+ *
+ * ⛔ C'EST UNE FONCTION, ET NON UN COMPOSANT, et la différence se voit à l'écran.
+ * `RangeeEmpilee` se tait sur un enfant FAUX ; or un élément de composant est
+ * toujours VRAI, fût-il rendu à `null`. Passée en `<SourceNumerique …/>`, la rangée
+ * gardait donc son étiquette sur les bibles qui n'ont aucune source numérique — la
+ * Fillion affichait « SOURCE NUMÉRIQUE » suivi de rien, relevé en ligne le
+ * 2026-09-04. La règle vaut pour toute rangée dont la valeur peut manquer : on lui
+ * passe une VALEUR, jamais un composant qui décidera lui-même de se taire.
  */
-function SourceNumerique({ nom, url }: { nom: string | null; url: string | null }) {
+function sourceNumerique(nom: string | null, url: string | null): ReactNode {
   const hote = estUrl(url) ? new URL(url!.trim()).host : ''
   const libelle = nom?.trim() || (hote.startsWith('www.') ? hote.slice(4) : hote)
   if (!libelle) return null
-  return estUrl(url) ? <Consulter url={url} libelle={libelle} /> : <>{libelle}</>
+  return estUrl(url) ? <Consulter url={url} libelle={libelle} /> : libelle
 }
 
 /** Libellé lisible du schéma de numérotation stocké en base. */
@@ -441,7 +449,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                     </ul>
                   </div>
                 )}
-                <RangeeEmpilee c="Source numérique"><SourceNumerique nom={i.source_numerique_nom} url={i.source_numerique_url} /></RangeeEmpilee>
+                <RangeeEmpilee c="Source numérique">{sourceNumerique(i.source_numerique_nom, i.source_numerique_url)}</RangeeEmpilee>
                 <RangeeEmpilee c="Graphie">{enProse(i.graphie)}</RangeeEmpilee>
                 <RangeeEmpilee c="Numérotation">{numerotation}</RangeeEmpilee>
                 {/* ⚠️ « PARTICULARITÉS » PORTE DE LA PROSE, non la valeur d'une

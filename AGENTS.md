@@ -5268,3 +5268,63 @@ n'est donc pas un substitut de police.
   étiquette déjà écrite.
 - ⛔ **Deux listes MORTES retirées** : `LANGUES` doublait `languesDispo`, tirée des données,
   et `GENRES` servait une facette remplacée depuis longtemps par la tradition.
+
+# La fiche d'une traduction ne porte plus l'atelier (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.15. Quatre demandes de l'auteur sur
+« En savoir plus sur cette traduction ». Règles de code :
+
+- ⛔ **La rangée « Vérification » est SUPPRIMÉE**, dépli compris. Elle disait un état de
+  TRAVAIL — « Contrôle en cours » sur six bibles sur neuf — derrière un mot souligné de
+  pointillés qu'il fallait cliquer. ⚠️ **Conséquence à connaître : `integrite_verifiee`,
+  `statut_corpus_public` et `lacunes_publiques` ne sont plus lus NULLE PART sur le
+  site.** Les trois quittent `InfoTrad` ; ils restent en base, où l'administration les
+  tient. Le seul de leurs contenus qui fût un fait de LECTEUR — l'Ecclésiaste absent de
+  la Septante — est passé dans la notice de l'édition, où il ouvre le propos.
+- ⛔ **Le renvoi « Conditions d'utilisation, § 6 » ne paraît plus.** Les deux paragraphes
+  de la rubrique disent la chose en clair ; la page reste au pied du site.
+- ⛔ **`SourceNumerique` : le NOM porte le lien, et rien ne l'accompagne.** La rangée
+  alignait trois objets pour une seule adresse, dont un lien « Voir la source » qui
+  redisait l'étiquette de sa propre rangée. ⚠️ Le nom se rend TOUJOURS, lien ou pas :
+  `Consulter` ne rend rien sur une adresse malformée et emporterait le nom avec elle,
+  d'où `estUrl` lu ici. Sans nom, c'est l'HÔTE de l'adresse qui se donne.
+- ⚠️ **« Particularités » porte de la PROSE, non la valeur d'une étiquette** : la rangée
+  lui donne l'interligne et la césure d'un paragraphe. ⛔ En SPAN, jamais en paragraphe
+  (la valeur d'une rangée est elle-même un span), et sans justification — la colonne
+  fait environ 314 px, soit quarante-cinq signes par ligne.
+- ⚠️ **`enProse` : les champs de prose de la fiche passent par `normaliserEspaces`**
+  (`particularites`, `graphie`, `bio_courte`). Mesuré le 2026-09-04 : les cinq notices
+  bibliques ne portaient QUE des espaces ordinaires (U+0020), guillemets et deux-points
+  compris — `rendreEnrichi` ne normalise rien, à la différence de `rendreTexteEnrichi`.
+  ⛔ On ne pose donc pas de fine dans la DONNÉE : la norme est au rendu (charte § 3.2).
+  ⚠️ Ne pas cumuler avec `formaterProse`, qui pose les mêmes règles sur le HTML de
+  `commentaire_editorial` — les deux sont idempotentes, mais l'une travaille sur des
+  balises et l'autre non.
+
+## ⛔ Une notice d'édition ne nomme aucun objet de la base
+
+Migration `20260904190000_editions_sources_notices_lisibles`, sauvegarde
+`internal.backup_editions_notices_20260904`, retour en arrière
+`sql/rollback_editions_notices_20260904.sql`.
+
+- **Ce qui sort** : `versets_canon`, `ch_heb/v_heb`, le « vref eBible », la balise `<i>`,
+  les « codes techniques dans la base » — et les JOURNAUX DE TRAVAIL, c'est-à-dire les
+  comptes d'alignement de la Vulgate et la décision datée de la Septante avec son motif
+  juridique et son renvoi à la charte.
+- ⚠️ **Ce qui reste, intégralement** : chaque fait éditorial, y compris les deux
+  recensions de Daniel, Suzanne et Bel, la lacune de l'Ecclésiaste et son motif, les
+  italiques de la Sacy relevées sur le fac-similé, les 283 lignes de la Vulgate hors du
+  découpage canonique, les suscriptions de la Crampon comptées comme premier verset. On
+  a réécrit la formulation, jamais le fond. Mesuré : Septante 897 → 519 signes, Segond
+  198 → 159, Vulgate 399 → 379 ; la Sacy MONTE de 208 à 320, expliquer une italique
+  coûtant plus de mots que nommer une balise.
+- ⛔ **Ce qu'une rangée dit déjà n'est pas redit** : la Segond annonçait sa numérotation
+  hébraïque deux centimètres sous la rangée « Numérotation — Hébraïque ».
+- **`source_nom` aussi** : la barre oblique, qui se lit comme un chemin ou comme une
+  alternative, cède à une apposition, et la nature de l'identifiant se nomme
+  (« Dépôt scrollmapper/bible_databases — texte FreCrampon »).
+- ⚠️ **TR0009 n'est pas touchée sur `particularites`** : sa notice se lit déjà. TR0010 à
+  TR0013 n'en ont aucune, et celle de TR0012 ne se voit qu'au compte d'administration.
+- ⚠️ **`editions_sources` est une table de la DONNÉE**, donc du domaine de GPT : ce sont
+  des notices d'interface, réécrites à la demande de l'auteur, sauvegardées et
+  réversibles. Le fond philologique n'a pas bougé.
