@@ -185,14 +185,21 @@ export async function chargerPresencePatristiquePlage(
 }
 
 /** Un seul lien biblique suffit à répondre : l'œuvre en porte, ou n'en porte pas.
- *  `limit(1)` fait que Postgres s'arrête au premier trouvé. */
+ *
+ *  ⛔ On part de `segments`, dont `id_oeuvre` est indexé, et l'on EMBARQUE les
+ *  liens — jamais l'inverse. Filtrer la ressource embarquée
+ *  (`liens_bibliques … segments!inner`) fait compiler par PostgREST une jointure
+ *  latérale BORNÉE, laquelle est une barrière d'optimisation : le planificateur
+ *  parcourt alors `liens_bibliques` EN ENTIER. Une œuvre SANS lien n'y trouve
+ *  jamais de sortie anticipée — 403 ms au repos, et le `statement_timeout` de
+ *  huit secondes sous charge (2026-09-03). Par `segments`, 45 ms au pire. */
 export async function porteDesLiensBibliques(client: Client, idsOeuvres: readonly string[]): Promise<boolean> {
   if (!idsOeuvres.length) return false
   try {
     const { data, error } = await client
-      .from('liens_bibliques')
-      .select('id, segments!inner(id_oeuvre)')
-      .in('segments.id_oeuvre', [...idsOeuvres])
+      .from('segments')
+      .select('id_oeuvre, liens_bibliques!inner(id)')
+      .in('id_oeuvre', [...idsOeuvres])
       .limit(1)
     return !error && (data?.length ?? 0) > 0
   } catch {

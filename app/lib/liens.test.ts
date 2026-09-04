@@ -7,52 +7,40 @@ import { hydraterLiensHerites } from './liens'
 describe('hydraterLiensHerites', () => {
   it('charge les liens par la clé textuelle stable malgré un id bigint arrondi', async () => {
     const appels: { eq: unknown[][]; in: unknown[][] } = { eq: [], in: [] }
+    const lien = (id: number, canon: string) => ({
+      id,
+      segment_id: 2_852_178_520_832_810_500,
+      canon_id: canon,
+      verset_v2_id: null,
+      livre: null,
+      chapitre: null,
+      type: 1,
+      fiabilite: 'vérifié',
+      motif: `Citation explicite de ${canon}.`,
+      provenance: 'lecture',
+      arbitrage_requis: false,
+    })
+    // La requête part de `segments` et EMBARQUE ses liens : une ligne par
+    // segment, ses liens en tableau. Voir `liensDeSegments`.
     const lignes = [
       {
-        id: 135444,
-        segment_id: 2_852_178_520_832_810_500,
-        canon_id: 'LUK.2.25',
-        verset_v2_id: null,
-        livre: null,
-        chapitre: null,
-        type: 1,
-        fiabilite: 'vérifié',
-        motif: 'Citation explicite de Luc 2,25.',
-        provenance: 'lecture',
-        arbitrage_requis: false,
-        segments: {
-          id_texte: 'TR_FR_1844_FAIVRE_HOMILIA_PRAESENTATIONIS',
-          segment_key: 'seg_b621be50e09c0eab99052435',
-        },
-      },
-      {
-        id: 135445,
-        segment_id: 2_852_178_520_832_810_500,
-        canon_id: 'LUK.2.26',
-        verset_v2_id: null,
-        livre: null,
-        chapitre: null,
-        type: 1,
-        fiabilite: 'vérifié',
-        motif: 'Citation explicite de Luc 2,26.',
-        provenance: 'lecture',
-        arbitrage_requis: false,
-        segments: {
-          id_texte: 'TR_FR_1844_FAIVRE_HOMILIA_PRAESENTATIONIS',
-          segment_key: 'seg_b621be50e09c0eab99052435',
-        },
+        id_texte: 'TR_FR_1844_FAIVRE_HOMILIA_PRAESENTATIONIS',
+        segment_key: 'seg_b621be50e09c0eab99052435',
+        liens_bibliques: [lien(135444, 'LUK.2.25'), lien(135445, 'LUK.2.26')],
       },
     ]
     const chaine = {
       select: vi.fn(),
       eq: vi.fn(),
       in: vi.fn(),
-      order: vi.fn(),
     }
     chaine.select.mockReturnValue(chaine)
     chaine.eq.mockImplementation((...args: unknown[]) => { appels.eq.push(args); return chaine })
-    chaine.in.mockImplementation((...args: unknown[]) => { appels.in.push(args); return chaine })
-    chaine.order.mockResolvedValue({ data: lignes, error: null })
+    // `.in` ferme la requête : c'est le dernier maillon de la chaîne.
+    chaine.in.mockImplementation((...args: unknown[]) => {
+      appels.in.push(args)
+      return Promise.resolve({ data: lignes, error: null })
+    })
     const client = { from: vi.fn(() => chaine) }
     const segment = {
       id: 2_852_178_520_832_810_500,
@@ -68,12 +56,17 @@ describe('hydraterLiensHerites', () => {
 
     expect(Number.isSafeInteger(segment.id)).toBe(false)
     expect(segment.lien_1).toBe('LUK.2.25;LUK.2.26')
+    // ⛔ On interroge `segments`, jamais `liens_bibliques` : filtrer la ressource
+    // embarquée compile une jointure latérale bornée, donc un parcours complet
+    // de `liens_bibliques` (5 028 ms contre 10, mesuré le 2026-09-03).
+    expect(client.from).toHaveBeenCalledWith('segments')
+    expect(client.from).not.toHaveBeenCalledWith('liens_bibliques')
     expect(appels.eq).toContainEqual([
-      'segments.id_texte',
+      'id_texte',
       'TR_FR_1844_FAIVRE_HOMILIA_PRAESENTATIONIS',
     ])
     expect(appels.in).toContainEqual([
-      'segments.segment_key',
+      'segment_key',
       ['seg_b621be50e09c0eab99052435'],
     ])
     expect(appels.in.some(([colonne]) => colonne === 'segment_id')).toBe(false)

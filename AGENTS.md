@@ -2462,6 +2462,41 @@ source = 'edge_logs', log_attributes['response.status_code'] not in ('200','206'
 
 `request.path`, `length(request.search)` et `request.headers.x_client_info` donnent la table, la longueur d'adresse et le client (`createBrowserClient` / `createServerClient`) — c'est-à-dire la cause entière.
 
+# ⛔ On ne FILTRE jamais par une ressource embarquée (2026-09-03)
+
+Doctrine : charte `parametres.charte_ia`, **§ 18**, sous « Une page de lecture ne tombe pas sur une lenteur de la base ».
+
+Quand supabase-js filtre une ressource EMBARQUÉE — `.select('…, segments!inner(id_oeuvre)')` suivi d'un `.in('segments.id_oeuvre', …)` —, PostgREST compile cela en `INNER JOIN LATERAL ( … LIMIT $ OFFSET $ ) ON true`. **Ce `LIMIT` interne est une barrière d'optimisation** : le planificateur ne peut plus renverser la jointure pour attaquer par l'index de la table filtrée, et il parcourt la table PORTEUSE en entier en sondant l'autre à chaque ligne.
+
+**La règle** : on interroge la table qu'on sait FILTRER PAR SON INDEX, et l'on embarque l'autre. Ici `segments` (indexée sur `id_oeuvre`, sur `(id_texte, segment_key)`) porte `liens_bibliques!inner(…)`, jamais l'inverse. Le nombre d'allers-retours ne change pas ; seul l'ordre de la jointure change.
+
+Mesuré le 2026-09-03, base au repos, sous la RLS d'un lecteur :
+
+| Lecture | par la ressource embarquée | en partant de `segments` |
+|---|---:|---:|
+| Les liens d'une division (300 clés, `liensDeSegments`) | **5 028 ms** | **10 ms** |
+| Sonde SEO, œuvre liée (`porteDesLiensBibliques`) | 182 ms | 19 ms |
+| Sonde SEO, œuvre SANS lien | 403 ms | 45 ms |
+
+⛔ **Une œuvre SANS lien est le pire cas, et il est structurel** : le parcours n'a aucune sortie anticipée et lit les 65 954 lignes de `liens_bibliques`. C'est pourquoi la même œuvre revenait dans chaque rafale d'erreurs.
+
+⚠️ **S'y ajoute la RLS, qui multiplie le coût du mauvais plan.** La politique `liens_bibliques_lecture_textes_publics` est un `EXISTS` sur segments ⋈ oeuvre_textes ⋈ oeuvres : sur le parcours complet, le planificateur la matérialise en un « hashed SubPlan » de **92 258 identifiants de segments**, reconstruit à chaque requête avant même que le parcours commence.
+
+**La panne qu'elle a coûtée**, et c'est ce qui l'a fait trouver : sous charge — Next prefetche plusieurs `/oeuvre/…` de front — la requête franchissait le `statement_timeout` de huit secondes du rôle `authenticated`. PostgREST rendait **500 / code 57014**, et `liensDeSegments` (`app/lib/liens.ts`, `if (error) throw error`) laissait remonter l'erreur jusqu'à `app/error.tsx` : « Cette page n'a pas pu s'afficher ». ⚠️ `porteDesLiensBibliques` avale la sienne : elle ne cassait pas la page, elle la ralentissait — un défaut qui ne se signale nulle part.
+
+⚠️ **Le diagnostic ne se lit PAS dans un `EXPLAIN` de sa propre reformulation**, laquelle est rapide et innocente le code à tort. Il faut la VRAIE requête, que `pg_stat_statements` rend verbatim :
+
+```
+select calls, min_exec_time, mean_exec_time, max_exec_time, query
+from pg_stat_statements where query ilike '%liens_bibliques%' and query ilike '%LATERAL%'
+```
+
+Ici : **jamais sous 119 ms, 2,3 s en moyenne, 7,9 s au pire** sur 325 appels. Une requête qui n'est JAMAIS rapide ne l'est pas par accident. ⚠️ Ne pas se fier non plus à `pg_stat_user_tables` : ses compteurs étaient périmés d'un facteur quinze (4 364 lignes annoncées pour 65 954), sans que le planificateur, lui, s'y trompe (`reltuples` était juste).
+
+⚠️ **Un embarquement inversé se VÉRIFIE avant d'être cru** : PostgREST doit résoudre la relation dans l'autre sens, ce qu'il ne fait que s'il existe **une seule** clé étrangère entre les deux tables (`liens_bibliques_segment_id_fkey`). Le contrôle tient en une requête anonyme, le témoin étant une relation volontairement fausse : une relation inconnue rend **PGRST200**, une relation valide bute sur les droits (**42501**).
+
+⚠️ **Le renversement change la FORME de la réponse** : une ligne par segment, ses liens en tableau, au lieu d'une ligne par lien. C'est plus sûr — le plafond de lignes de PostgREST ne porte que sur le niveau haut, donc il ne peut plus tronquer les liens d'une division — mais tout appelant doit être relu. Et `liens_bibliques.id` restant sous `Number.MAX_SAFE_INTEGER` (151 864 au 2026-09-03), le tri en JavaScript demeure exact.
+
 # Éditions bibliques commentées — famille Fillion (2026-08-20)
 
 Le socle est **générique**, pas « fait pour Fillion » : une **famille éditoriale** (`bible_edition_families`) relie plusieurs traductions distinctes (`bible_edition_members`), et servira à toute autre édition bilingue ou apparentée. Pour Fillion, `TR0011` porte la Vulgate **telle qu’imprimée dans ses volumes** et `TR0010` son français. ⛔ **Ne jamais réutiliser `TR0004`** (Vulgate clémentine) comme Vulgate Fillion : ce sont deux témoins, pas deux vues d’un même texte.

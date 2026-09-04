@@ -48,14 +48,17 @@ type SegmentPourLiens = {
   segment_key: string | null
 }
 
-type LienAvecSegment = Lien & {
-  segments: { id_texte: string; segment_key: string } | { id_texte: string; segment_key: string }[] | null
+type SegmentAvecLiens = {
+  id_texte: string | null
+  segment_key: string | null
+  liens_bibliques: Lien | Lien[] | null
 }
 
 const cleStableSegment = (idTexte: string, segmentKey: string) => `${idTexte}\u0000${segmentKey}`
 
-function parentDuLien(lien: LienAvecSegment) {
-  return Array.isArray(lien.segments) ? lien.segments[0] : lien.segments
+function liensDuSegment(ligne: SegmentAvecLiens): Lien[] {
+  if (!ligne.liens_bibliques) return []
+  return Array.isArray(ligne.liens_bibliques) ? ligne.liens_bibliques : [ligne.liens_bibliques]
 }
 
 /**
@@ -87,13 +90,20 @@ export async function liensDeSegments(
     // `lotsPourClauseIn`, et l'« Explication sur le psaume IV » qu'un lot de 500
     // avait fermée. Les clés de segment vont de trente à quatre-vingts signes selon
     // l'œuvre — aucun nombre fixe ne tient d'un texte à l'autre.
+    // ⛔ On interroge `segments` et l'on EMBARQUE ses liens, jamais l'inverse.
+    // Filtrer une ressource EMBARQUÉE — `liens_bibliques … segments!inner`, puis
+    // `.eq('segments.id_texte', …)` — fait compiler par PostgREST une jointure
+    // latérale BORNÉE (`… LIMIT $ OFFSET $`), et ce `LIMIT` est une barrière
+    // d'optimisation : le planificateur ne peut plus attaquer par
+    // `segments_texte_segment_key_uq` et parcourt `liens_bibliques` EN ENTIER,
+    // 65 954 lignes, en sondant `segments` à chaque fois. Mesuré le 2026-09-03
+    // sur une division de 300 clés, base au repos : 5 028 ms contre 10.
     for (const lot of lotsPourClauseIn([...ensemble])) {
       requetes.push(
-        client.from('liens_bibliques')
-          .select(`${COLS}, segments!inner(id_texte, segment_key)`)
-          .eq('segments.id_texte', idTexte)
-          .in('segments.segment_key', lot)
-          .order('id'),
+        client.from('segments')
+          .select(`id_texte, segment_key, liens_bibliques!inner(${COLS})`)
+          .eq('id_texte', idTexte)
+          .in('segment_key', lot),
       )
     }
   }
@@ -101,13 +111,13 @@ export async function liensDeSegments(
   const resultats = await Promise.all(requetes)
   for (const { data, error } of resultats) {
     if (error) throw error
-    for (const ligne of (data ?? []) as LienAvecSegment[]) {
-      const parent = parentDuLien(ligne)
-      if (!parent?.id_texte || !parent.segment_key) continue
-      const cle = cleStableSegment(parent.id_texte, parent.segment_key)
-      const { segments: _segments, ...lien } = ligne
+    for (const ligne of (data ?? []) as SegmentAvecLiens[]) {
+      if (!ligne.id_texte || !ligne.segment_key) continue
+      const liens = liensDuSegment(ligne)
+      if (!liens.length) continue
+      const cle = cleStableSegment(ligne.id_texte, ligne.segment_key)
       if (!parSegment.has(cle)) parSegment.set(cle, [])
-      parSegment.get(cle)!.push(lien)
+      parSegment.get(cle)!.push(...liens)
     }
   }
   for (const arr of parSegment.values()) arr.sort((a, b) => a.type - b.type || a.id - b.id)
