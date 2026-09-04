@@ -288,7 +288,15 @@ export default function AccueilCards() {
            deux idées à entretenir pour un seul carton.
 
            Contrastes mesurés sur la teinte HAUTE, la plus claire des deux : titre 9,79
-           au Clair et 7,88 au Cuir, annonce 7,16 et 5,92. */
+           au Clair et 7,88 au Cuir, annonce 7,16 et 5,92.
+
+           ⚠️ CES VALEURS SONT SUIVIES AILLEURS depuis le 2026-09-04 : « --cs-peres » et
+           « --cs-peres-aplat » (globals.css, § familles de corpus) portent le maroquin
+           ce carton, et c'est par lui que les résultats patristiques de la recherche et
+           de la barre de recherche se teintent. ⛔ Elles restent LITTÉRALES des deux
+           côtés — un carton est une gamme dessinée, un jeton une teinte de rôle — mais
+           reteinter ce carton sans reteinter les jetons ferait dire deux choses au même
+           corpus. */
         .ac-bible {
           background: linear-gradient(160deg, #2a3d30 0%, #1e2e24 100%);
         }

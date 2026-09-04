@@ -188,11 +188,24 @@
      les corpus — mais elles donnent le ton : l'Écriture garde le vert, la Communauté
      garde l'or, et il ne manquait que les Pères.
 
-     ⛔ La teinte des Pères est un POURPRE DE RUBRIQUE, la seconde encre du manuscrit
-     après l'or, et non un bleu : la charte a essayé les teintes froides franches sur ce
-     papier (§ La couleur appartient à l'auteur) et les a reprises le jour même. Il est
-     à 162° du vert, c'est-à-dire presque à l'opposé, et à 36° de --cs-danger, ce qui
-     suffit sur une page où le danger ne paraît que sur la ligne d'un verset absent.
+     ⛔ La teinte des Pères est LE MAROQUIN DE LA PAGE D'ACCUEIL (décision de l'auteur,
+     2026-09-04). Le carton « Patristique » de l'accueil (`.ac-patristique`, AccueilCards)
+     y porte cette reliure depuis le 31 août, et
+     les résultats patristiques portent la même : une matière ne se nomme pas de deux
+     façons selon l'écran où elle paraît. Elle remplace un pourpre de rubrique (#8a2846)
+     qui n'était pas faux, mais qui n'était nulle part ailleurs sur le site. Elle est à
+     123° du vert et à 53° de l'or, ce qui sépare les trois familles sans recourir à une
+     teinte froide : ΔE 35,6 à 47,8 entre elles, mesuré. Et ΔE 30,9 de --cs-danger-fonce,
+     qui partage sa teinte (31°) mais en est loin par la clarté et la chroma (L* 35,4 et
+     C 53,7 contre 23,6 et 25,1).
+
+     ⚠️ Elle est plus PROFONDE que ses deux sœurs — L* 23,6 contre 41,3 et 41,9, blanc
+     11,71 sur la rubrique contre 6,15 et 6,02 — et c'est le caractère du maroquin, non
+     un écart à corriger : sur l'accueil, le carton des Pères et celui de la Bible sont
+     tous deux à L* 23,5, « maroquin vert et maroquin rouge, les deux reliures d'un même
+     ensemble ». La bande des Pères se lit donc plus sombre que les deux autres, à
+     dessein. ⛔ Ne pas l'éclaircir pour l'aligner sur elles : ce serait la reprendre à
+     l'accueil, qui est justement d'où elle vient.
 
      ⛔ La Communauté ne peut PAS prendre --cs-or tel quel : mesuré, il ne rend que 3,79
      sur le papier, sous le seuil AA. La charte l'avait déjà constaté pour les couvertures
@@ -207,8 +220,8 @@
      qu'on ait à les nommer, et ils montent tout seuls sur le sol sombre du Cuir. */
   --cs-ecriture: #3d6b4f;
   --cs-ecriture-aplat: #3d6b4f;
-  --cs-peres: #8a2846;
-  --cs-peres-aplat: #8a2846;
+  --cs-peres: #5a2a26;
+  --cs-peres-aplat: #5a2a26;
   --cs-communaute: #7a5f22;
   --cs-communaute-aplat: #7a5f22;
 
@@ -473,9 +486,9 @@
      ⚠️ C'est une DÉROGATION au monochrome, et elle est celle que la charte accorde déjà :
      « la frise de l'histoire et les catégories de modération encodent des CATÉGORIES par
      la couleur, et les rabattre effacerait l'information ». Une section de résultats est
-     exactement cela. Les trois teintes sont donc gardées, mais SOURDES : une sauge, une
-     rose fanée et l'or du Cuir, toutes dans la clarté du parchemin, sans réintroduire ni
-     bleu ni vert franc.
+     exactement cela. Les trois teintes sont donc gardées, mais SOURDES : une sauge, un
+     maroquin fané et l'or du Cuir, toutes dans la clarté du parchemin, sans réintroduire
+     ni bleu ni vert franc.
 
      ⛔ Les ENCRES ne peuvent pas se rabattre sur --cs-vert, qui vaut ici #dcc08a : les
      trois familles y seraient identiques. Elles ont donc leurs valeurs propres.
@@ -483,12 +496,21 @@
      ⛔ Les APLATS, eux, redeviennent du CUIR PROFOND, comme la barre de navigation et
      pour la même raison : trois bandes claires répétées sur toute la hauteur d'une page
      de résultats en seraient la seule tache de couleur. Chacun garde le PENCHANT de sa
-     famille (le vert, le rose, l'or) sans en avoir la clarté. Blanc mesuré dessus :
-     11,96 · 13,55 · 12,79. */
+     famille (le vert, le maroquin, l'or) sans en avoir la clarté. Blanc mesuré dessus :
+     11,97 · 12,71 · 12,79.
+
+     ⚠️ L'aplat des Pères EST le carton de l'accueil en Cuir, sa teinte basse (#4e2823) :
+     il tombe de lui-même dans la bande de ses deux sœurs (L* 21,1 contre 22,9 et 20,9).
+     Il porte en revanche deux fois leur chroma (20,4 contre 9,3 et 11,2), et c'est encore
+     ce que fait l'accueil, dont le carton des Pères est plus coloré que celui de la Bible.
+     ⛔ L'ENCRE, elle, ne peut pas être littérale : les deux teintes du carton sont sombres,
+     et il faut ici une encre CLAIRE. C'est donc le même maroquin monté au rang d'encre —
+     L* 71,9, C 24,9, teinte 35°, celle du carton en Cuir —, où il rend 8,15 sur le sol,
+     entre la sauge (8,87) et l'or (10,05). */
   --cs-ecriture: #9fc0a4;
   --cs-ecriture-aplat: #2c3a30;
-  --cs-peres: #d99a9f;
-  --cs-peres-aplat: #3a2a2e;
+  --cs-peres: #dda297;
+  --cs-peres-aplat: #4e2823;
   --cs-communaute: #dcc08a;
   --cs-communaute-aplat: #3a3122;
 
