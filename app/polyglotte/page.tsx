@@ -947,7 +947,11 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     <>
       <button ref={btnRef} onClick={basculer} className="poly-trad-pick" title="Changer de traduction"
         aria-haspopup="menu" aria-expanded={ouvert}
-        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "7px 18px 7px 6px", borderRadius: 4, background: "none", border: "none", cursor: "pointer", color: "inherit", transition: "background .15s, box-shadow .15s" }}>
+        // ⛔ AUCUN `background` EN LIGNE ICI : il vit dans la feuille, avec le survol et
+        // l'état ouvert. Une déclaration en ligne bat toujours une règle de feuille sans
+        // « important », et le `background: none` qui se trouvait là rendait la règle de
+        // survol MORTE depuis qu'elle avait été écrite — voir la note de la feuille.
+        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "7px 18px 7px 6px", borderRadius: 4, border: "none", cursor: "pointer", color: "inherit", transition: "background .15s" }}>
         {/* ⚠️ Les trois encres étaient du BLANC translucide, juste tant que ce nom se posait
             sur un aplat vert. Sur le papier, elles prennent l'échelle de gris du site : le nom
             en petites capitales de l'échelle haute, le millésime un rang plus bas, le chevron
@@ -1673,15 +1677,23 @@ export default function PolyglottePage() {
            s'encadre pas. ⛔ La valeur RETENUE ne bouge pas au survol — elle porte déjà
            l'accent, et la faire changer d'encre laisserait croire qu'on va l'éteindre. */
         .poly-choix:not([aria-pressed="true"]):hover { color: var(--cs-texte-second); }
-        .poly-trad-pick:hover { background: rgba(var(--cs-vert-rgb),0.07); }
+        /* ⛔ LE FOND DU TITRE SE DÉCLARE ICI, ET NULLE PART EN LIGNE. Le bouton portait
+           « background: none » dans son style en ligne : une déclaration en ligne bat
+           toujours une règle de feuille sans « important », si bien que ce survol-ci ne
+           s'est JAMAIS appliqué depuis qu'il a été écrit. Rien ne le signalait — il ne
+           restait que l'anneau de foyer, que l'auteur a fini par relever comme le seul
+           état visible, et qui n'en était pas un. C'est le piège du style en ligne déjà
+           consigné pour les volets, pris par un autre bout. */
+        .poly-trad-pick { background: none; }
         /* ⛔ PAS DE FILET AUTOUR DU TITRE quand le menu s'ouvre (décision de l'auteur,
            2026-09-04). Un cadre d'un pixel posé sur un en-tête de colonne redessine une
            boîte là où la page n'en porte aucune, et il paraissait au CLIC de souris —
            une règle « focus-within » sur un bouton sans enfant focalisable n'est qu'un
-           « focus ». Le menu ouvert garde simplement le sol du survol : la colonne reste
-           désignée, sans qu'un trait s'ajoute à la réglure du tableau. ⚠️ Le clavier, lui,
-           garde son anneau : c'est la règle « focus-visible » globale de globals.css, qui
-           pose un contour et non un cadre intérieur. */
+           « focus ». Le menu ouvert garde le sol du survol : la colonne reste désignée,
+           sans qu'un trait s'ajoute à la réglure du tableau. ⚠️ Le clavier, lui, garde
+           son anneau : c'est la règle « focus-visible » globale de globals.css, qui pose
+           un contour et non un cadre intérieur. */
+        .poly-trad-pick:hover,
         .poly-trad-pick[aria-expanded="true"] { background: rgba(var(--cs-vert-rgb),0.07); }
         /* La référence d'origine en LETTRINE : un petit bloc flottant, posé au début du
            verset, que le texte vient habiller comme une initiale ornée. Le filet à droite
