@@ -30,7 +30,7 @@ import {
   styleArgument, styleBlocDeVers, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
-import { LABEL_VOLET, BTN_VOLET } from '@/app/lib/stylesVoletLecture'
+import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import { cesurerGrec, codeLangue } from '@/app/lib/grec'
 import {
@@ -42,6 +42,7 @@ import {
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
 import { libelleVersionComplet } from './versionTextuelle'
+import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import FicheEdition from './FicheEdition'
@@ -1727,13 +1728,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
       actif: surOrig })
   }
-  // Menu 2 — éditions dans la LANGUE du mode courant (masqué si une seule).
-  const langueCouranteEstOrig = couranteEstOriginale || (idOeuvre === editionFrRef?.id_oeuvre && modeTexte === 'la')
-  const editionsMenu2 = langueCouranteEstOrig ? editionsOriginal : editionsTraduction
-  // « Éditions de ce texte » compare des éditions d'une MÊME langue : le latin et sa
-  // traduction relèvent du menu des modes de lecture, pas de celui-ci. Sans ce tri,
-  // une œuvre à deux textes offrait deux fois le même choix, sous deux intitulés.
-  const versionsMemeLangue = versionsTextuelles.filter(v => estVersionOriginale(v) === surTexteOriginal)
   // L’étoile range CE QU’ON LIT. Sur une édition en langue originale autonome, c’est
   // l’œuvre elle-même, qui a son identifiant. Sur une traduction lue en « texte
   // original seul », c’est le texte original, qui n’en a pas : sa référence prend le
@@ -1754,6 +1748,61 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const trad = v.trad_auteur ? libelleTrad(v.trad_auteur) : (v.langue_trad || 'Français')
     return [trad, edit && `édition ${edit}`].filter(Boolean).join(', ')
   }
+
+  // ── « ÉDITIONS DE CE TEXTE » : UN SEUL CHOIX, ET SEULEMENT S'IL Y EN A UN ───
+  // Le volet en portait DEUX, qui répondaient à la même question sous deux
+  // intitulés et par deux règles : « Édition » listait les ŒUVRES SŒURS (des lignes
+  // d'`oeuvres` au même titre normalisé), « Éditions de ce texte » les TEXTES de
+  // l'œuvre courante. Ils n'en font plus qu'un, et la règle est celle de l'auteur
+  // (2026-09-04) : deux ÉDITIONS DIFFÉRENTES dans la MÊME LANGUE, ou rien.
+  // ⚠️ Le menu des œuvres sœurs ne s'était JAMAIS ouvert : aucune œuvre publiée ne
+  // partage son titre normalisé avec une autre (mesuré le 2026-09-04 ; la seule
+  // paire, La Cité de Dieu et son latin de Migne, a été dépubliée le 2026-08-26).
+  // Elles rejoignent le menu commun plutôt que d'y garder une rubrique à elles.
+  // ⛔ Le tri d'avant comparait « ceci EST le texte original » à « je LIS le texte
+  // original », ce qui n'est pas la même question que la langue : il se fait
+  // désormais sur la LANGUE, et sur elle seule.
+  // ⚠️ La langue vient du TEXTE qu’on lit, et d’abord de lui : c’est la seule qui
+  // décrive ce qui est à l’écran. Le repli ne sert qu’au texte original, dont la langue
+  // est celle de l’œuvre. ⛔ Une version sans langue déclarée ne se range sous aucune :
+  // le menu se tait plutôt que de deviner.
+  const langueActive = versionActive?.langue ?? (couranteEstOriginale ? oeuvre.langue_originale : null)
+  // Le millésime d'une œuvre sœur : `date_publication` est du TEXTE, et porte parfois
+  // une fourchette (« 1870-1873 ») — on retient la première année nommée.
+  const anneeDeLOeuvre = (v: string | null): number | null => {
+    const trouve = (v ?? '').match(/d{4}/u)
+    return trouve ? Number(trouve[0]) : null
+  }
+  const editionsDeCeTexte = editionsOffertes([
+    ...versionsTextuelles.map(v => ({
+      cle: v.idTexte,
+      langue: v.langue,
+      traducteur: v.traducteur,
+      annee: v.anneeEdition,
+      mention: v.editionLabel,
+      libelle: libelleVersionComplet(v),
+      url: v.idTexte === idTexte ? null : urlDuTexte(idOeuvre, 'fr', v.idTexte),
+      actif: v.idTexte === idTexte,
+      // ⛔ C'est ICI que tombent les instantanés de travail — « …_PRE_RESEG_20260903 »,
+      // « …_PRE_ALIGN_20260903 » —, que la politique de lecture d'`oeuvre_textes`
+      // (`is_admin() OR is_public`) montre à l'AUTEUR et à lui seul.
+      lisible: v.isPublic,
+      indisponible: v.metadata?.indisponible === true,
+      prefere: v.isDefault,
+    })),
+    ...versions.filter(v => v.id_oeuvre !== idOeuvre).map(v => ({
+      cle: v.id_oeuvre,
+      langue: v.langue_trad?.trim() ? v.langue_trad : v.langue_originale,
+      traducteur: v.trad_auteur,
+      annee: anneeDeLOeuvre(v.date_publication),
+      mention: [formaterEditeur(v.editeur), v.ville].filter(Boolean).join(', ') || null,
+      libelle: libelleEdition(v),
+      url: `/oeuvre/${v.id_oeuvre}`,
+      actif: false,
+      // Les œuvres sœurs sont déjà filtrées sur `acces_public` à leur chargement.
+      lisible: true,
+    })),
+  ], langueActive)
 
   // « Du même auteur » : la ligne qui DÉPARTAGE deux entrées. Le titre y reste
   // normalisé, comme partout ailleurs, et deux éditions d'un même texte y portaient
@@ -2246,68 +2295,48 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 Les deux sont partis avec le mode segments, et le menu ne parle donc plus
                 que de LANGUE. */}
             {modesLecture.length > 0 && (
-              <div style={{ marginTop: '10px' }}>
-                <span style={LABEL_VOLET}>Lecture</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
-                  {modesLecture.map(m => {
-                    const url = urlDuModeOuNull(m.cibleOeuvre, m.cibleMt, m.cibleTexte)
-                    const attend = attendCette(url)
-                    return (
-                      <button key={m.cle} onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt, m.cibleTexte)}
-                        {...gestesDeNavigation(url)}
-                        style={{ ...BTN_VOLET(m.actif), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', cursor: attend ? 'progress' : 'pointer' }}>
-                        <span>{m.label}</span>
-                        {/* Le témoin garde sa place vide : le libellé ne bouge pas quand il paraît. */}
-                        <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-faible)', opacity: attend ? 1 : 0, transition: 'opacity 0.12s' }}>…</span>
-                      </button>
-                    )
-                  })}
-                </div>
+              <div style={{ marginTop: 'var(--volet-air, 10px)' }}>
+                <span style={RUBRIQUE_AXE}>Lecture</span>
+                {modesLecture.map(m => {
+                  const url = urlDuModeOuNull(m.cibleOeuvre, m.cibleMt, m.cibleTexte)
+                  const attend = attendCette(url)
+                  return (
+                    <button key={m.cle} type="button" aria-pressed={m.actif}
+                      onClick={() => allerAuMode(m.cibleOeuvre, m.cibleMt, m.cibleTexte)}
+                      {...gestesDeNavigation(url)}
+                      className="cs-option-volet"
+                      style={{ ...OPTION_VOLET(m.actif), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', cursor: attend ? 'progress' : m.actif ? 'default' : 'pointer' }}>
+                      <span>{m.label}</span>
+                      {/* Le témoin garde sa place vide : le libellé ne bouge pas quand il paraît.
+                          ⚠️ C'est le seul écart avec le volet de la Bible, et il est motivé :
+                          « Latin » vise une AUTRE adresse, donc un rendu serveur entier, quand
+                          les axes de la Bible se règlent le plus souvent sur place. */}
+                      <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-faible)', opacity: attend ? 1 : 0, transition: 'opacity 0.12s' }}>…</span>
+                    </button>
+                  )
+                })}
               </div>
             )}
-            {/* ── Menu 2 : édition, dans la LANGUE du mode courant ────────────
-                Masqué s'il n'y a qu'une édition dans cette langue. Chaque édition
-                est une œuvre sœur ; la choisir y navigue. */}
-            {editionsMenu2.length > 1 && (
-              <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Édition</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {editionsMenu2.map(v => {
-                    const actif = v.id_oeuvre === idOeuvre
-                    const url = actif ? null : `/oeuvre/${v.id_oeuvre}`
-                    return (
-                      <button key={v.id_oeuvre} disabled={actif}
-                        onClick={() => { if (url) naviguer(url) }}
-                        {...gestesDeNavigation(url)}
-                        title={actif ? 'Édition affichée' : 'Afficher cette édition'}
-                        style={{ textAlign: 'left', fontSize: '0.625rem', lineHeight: 1.32, padding: '4px 8px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord-clair)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.07)' : 'transparent', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)', cursor: actif ? 'default' : 'pointer', fontWeight: actif ? 600 : 400, transition: 'border-color 0.12s, background 0.12s' }}>
-                        {libelleEdition(v)}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-            {/* Plusieurs versions d'une même œuvre (rare) : sélecteur conservé. */}
-            {versionsMemeLangue.length > 1 && (
-              <div style={{ marginTop: '7px' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '4px' }}>Éditions de ce texte</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {versionsMemeLangue.map(version => {
-                    const actif = version.idTexte === idTexte
-                    const indisponible = !actif && version.metadata?.indisponible === true
-                    const url = actif || indisponible ? null : urlDuTexte(idOeuvre, 'fr', version.idTexte)
-                    return (
-                      <button key={version.idTexte} disabled={actif || indisponible}
-                        onClick={() => { if (url) naviguer(url) }}
-                        {...gestesDeNavigation(url)}
-                        title={actif ? 'Édition affichée' : indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette édition'}
-                        style={{ ...BTN_VOLET(actif), cursor: actif ? 'default' : indisponible ? 'not-allowed' : 'pointer', opacity: indisponible ? 0.45 : 1 }}>
-                        {libelleVersionComplet(version)}
-                      </button>
-                    )
-                  })}
-                </div>
+            {/* ── ÉDITIONS DE CE TEXTE ─────────────────────────────────────────
+                UN seul menu, et il ne paraît que s'il y a un CHOIX : deux éditions
+                DIFFÉRENTES dans la MÊME langue (règle et mesures dans
+                `editionsDuTexte`). Les textes de l'œuvre et les œuvres sœurs y
+                figurent ensemble, sous une seule règle : le lecteur ne choisit pas
+                entre deux sortes d'identifiants, il choisit une édition. */}
+            {editionsDeCeTexte.length > 0 && (
+              <div style={{ marginTop: 'var(--volet-air, 10px)' }}>
+                <span style={RUBRIQUE_AXE}>Éditions de ce texte</span>
+                {editionsDeCeTexte.map(edition => (
+                  <button key={edition.cle} type="button" aria-pressed={edition.actif}
+                    disabled={edition.actif || edition.indisponible}
+                    onClick={() => { if (edition.url) naviguer(edition.url) }}
+                    {...gestesDeNavigation(edition.indisponible ? null : edition.url)}
+                    title={edition.actif ? 'Édition affichée' : edition.indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette édition'}
+                    className="cs-option-volet"
+                    style={{ ...OPTION_VOLET(edition.actif), cursor: edition.actif ? 'default' : edition.indisponible ? 'not-allowed' : 'pointer', opacity: edition.indisponible ? 0.45 : 1 }}>
+                    {edition.libelle}
+                  </button>
+                ))}
               </div>
             )}
           </div>
