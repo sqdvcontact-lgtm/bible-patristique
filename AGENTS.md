@@ -489,6 +489,68 @@ Le volet « Bible » de la page d'une œuvre (`OeuvreClient.tsx`) fait l'inverse
 
 ⚠️ **Les natures cumulées se disent dans l'ordre de la charte §9.1 à §9.4**, et non dans celui du verset qui ouvre le groupe : « He 11, 24-25 · citation · reprise », jamais « reprise · citation ».
 
+## Le volet patristique se lit EN FRANÇAIS, et d'un trait (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.8. Règles de code :
+
+- ⛔ **`app/lib/contrepartieFrancaise.ts` : un lien peut désigner un texte LATIN.** 2 468
+  segments liés sur 39 823, six œuvres — La Cité de Dieu, les trois commentaires de
+  Jérôme sur les petits prophètes, l'Apologétique, Du symbole — toutes pourvues d'un
+  français public ET d'un ensemble d'alignement. Le volet servait alors du latin. ⛔ On
+  ne re-pointe PAS `liens_bibliques` : le lien a été établi sur le latin, et l'alignement
+  est au paragraphe. La correspondance se fait à l'affichage.
+- ⛔ **La CARDINALITÉ du groupe décide.** Mesuré : la Cité de Dieu compte 1 039 groupes
+  dont 802 aux effectifs inégaux (4,8 latins pour 6,0 français, 22 au plus),
+  l'Apologétique 516 dont 255 égaux. À effectifs égaux, le nième latin répond au nième
+  français ; à effectifs inégaux, on rend TOUT l'empan français. ⚠️ Conséquence mesurée
+  en ligne sur Gn 4, 17 : une occurrence de 3 831 signes là où les six autres en font 230
+  à 590. Choisir le premier, ou le nième « à peu près », donnerait un passage que le lien
+  ne désigne pas.
+- ⚠️ **`Segment.idLien` garde le segment qui PORTE le lien** ; tout le reste — texte,
+  intitulés, numéro, identifiant — devient le français, car c'est ce qu'on lit, ouvre et
+  prélève. Seul le retrait d'un lien vise `idLien`. ⛔ Et les TYPES se cherchent par
+  `idLien`, non par l'identifiant affiché.
+- ⚠️ Cinq lectures, et elles ne partent QUE si un segment est en langue originale. La
+  correspondance n'est écrite nulle part ailleurs : ni `segments.texte_original` (ces six
+  œuvres ne l'emploient pas pour cela), ni `segment_metadata.original_segment_key` (aucun
+  de leurs français ne le porte, mesuré). Une fonction en base rendrait le tout d'un
+  aller-retour, le jour où le coût se verra.
+
+### Réunir les citations, l'élision marquée d'un « […] »
+
+- **`app/lib/regrouperCitations.ts`** (module pur, 19 tests) sert DEUX surfaces : le volet
+  de droite et la page des prélèvements. Plafond d'élision **500 signes** (décision de
+  l'auteur), plafond technique de **6 segments** — celui-ci ne juge rien, il borne la
+  requête.
+- ⛔ **On ne réunit que ce qu'on peut MESURER** : un écart se juge en signes élidés, non
+  en nombre de segments — une édition en découpe un en dix, une autre en fait un seul. Il
+  faut donc avoir LU le texte élidé : `ecartsAMesurer` dit ce qu'il reste à aller lire, et
+  un écart dont un segment manque à l'appel ne se réunit pas.
+- ⚠️ **La mesure se prend sur la liste ENTIÈRE, filtres écartés** : un filtre qui retire
+  une citation d'entre deux autres ouvre un écart dont le texte est déjà chargé.
+- ⛔ **On ne réunit que dans un même TEXTE, non dans une même œuvre.** La Cité de Dieu a
+  son latin et son français, tous deux liés, et leurs `segment_numero` se recouvrent : le
+  regroupement collait un paragraphe latin à un paragraphe français dès que leurs numéros
+  se suivaient. Le défaut était là depuis l'origine du regroupement.
+- ⚠️ **Un prélèvement ne retient pas son `id_texte`** : on le retrouve en base, et quand
+  une œuvre en a plusieurs parmi les segments visés, on ne réunit rien pour elle.
+- ⛔ Rien de tout cela ne concerne les VERSETS bibliques : ils se réunissent déjà, en
+  gardant leurs bornes, et une élision y ferait disparaître un verset sans le dire.
+
+### La gouttière d'un verset, et l'initiale d'un extrait
+
+- ⛔ **`referenceNativeLisible` (bibleEditionBilingue.ts) retire le code du livre** :
+  « 1, 22 » et non « ACT 1,22 ». Le code vient d'un REPLI — 28 656 segments portent
+  `metadata.native_reference`, 18 197 retombent sur `editorial_label`, qui est le libellé
+  humain et porte donc son livre. ⛔ On ne retire la tête que si ce qui suit est vraiment
+  une référence : « Prologue » n'est pas un code, et « II, 3 » n'en est pas un non plus.
+  ⚠️ `analyserReferenceNativeSimple` n'est PAS touchée : elle décide si une numérotation
+  alternative PARAÎT dans la lecture simple, ce qui est une décision de donnée, non
+  d'affichage.
+- ⚠️ **`capitaliserInitiale` ne change JAMAIS la longueur du texte** : le volet pose ses
+  appels de note par offset. Une lettre dont la capitale s'écrit en deux signes reste
+  minuscule.
+
 ⚠️ **`parseInt` et non `Number` pour le TRI** : un verset suffixé (« 22a ») se range à sa place au lieu de tomber en `NaN` et de dériver en queue de liste. Le REGROUPEMENT, lui, garde son `Number` — un verset suffixé ne se fond pas dans une fourchette.
 
 # Page « Communauté » (ex-« Publications ») — couvertures de petit livre (2026-08-17)
