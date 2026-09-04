@@ -1,7 +1,11 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # ⛔ La charte Supabase est l’UNIQUE boîte à règles (2026-08-24)
@@ -4504,3 +4508,82 @@ Doctrine : charte `parametres.charte_ia`, § 38.3. Règles de code, toutes dans
 - **Un réglage de volet se compose en clair** (`CHOIX_DISCRET`, `POINT_DISCRET`) : ni
   cadre, ni fond, ni rayon ; l'accent et la demi-graisse pour la valeur retenue.
   ⚠️ Une ÉCHELLE se lit en rang, des interrupteurs INDÉPENDANTS en colonne.
+
+# La PROVENANCE d'un texte biblique — carte, fiche, chronologie (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.4. Règles de code :
+
+- **La phrase de provenance vit dans `app/lib/editionTraduction.ts`** (module pur), et
+  elle a maintenant DEUX formes : une édition, un témoin manuscrit. ⛔ C'est la
+  **COTE** (`editions_sources.cote_manuscrit`) qui décide, pas un type à interpréter ni
+  une mention à reconnaître — `source_type` dit « manuscrit numérisé », `mention_edition`
+  dit « Témoin manuscrit », et ni l'un ni l'autre n'est un fait sur la provenance. Deux
+  colonnes neuves (`depot_manuscrit`, `cote_manuscrit`, migration `20260904104257`),
+  exposées en fin de `v_traductions_page` (`20260904105223`).
+- ⛔ **La DATE de l'adresse vient de `editions_sources.annee_edition`**, non de
+  `traductions.date_publication`. Le lieu et l'éditeur venant de la fiche d'édition, y
+  prendre aussi la date est la seule façon que les trois mentions parlent du même livre :
+  la carte de Sacy datait de 1667-1696 l'adresse de l'édition de 1730. La date rédigée
+  reste le REPLI, pour une bible sans fiche d'édition. ⚠️ Le champ est un TEXTE et porte
+  parfois le détail des volumes (« vol. I : 1909 ; vol. II : 1907 ; vol. III : 1912 ») :
+  `millesimesDeLaFiche` en retient les deux bornes, le « vers » accolé compris.
+- **`joindreEditeurs` (`editeursNormalisation.ts`) joint les maisons par « et »**, chacune
+  résolue pour son propre compte dans la table de référence. ⛔ Il ne remplace PAS
+  `normaliserNomEditeur`, qui joint par une barre oblique : celui-là compose une colonne
+  ou une notice, celui-ci une PHRASE, et le point-virgule y ouvrirait un second niveau de
+  ponctuation. ⚠️ Idempotent, et il ne coupe jamais un nom qui porte « et » (« Letouzey
+  et Ané »), `partiesCoedition` ne connaissant que le point-virgule.
+- ⚠️ **La résolution se fait CÔTÉ SERVEUR** (`app/page.tsx`, `chargerIndexEditeurs` dans
+  la vague qui part déjà) : le champ arrive dans `EncartTraduction` déjà normalisé.
+  ⛔ Ne pas envoyer l'index au navigateur pour composer deux mots. La FICHE, elle, est un
+  composant client et passe par le cache d'`app/lib/editeurs` ; tant qu'il n'est pas prêt,
+  `joindreEditeurs` rend la forme brute — jamais un vide.
+- **La référence de l'édition servie porte la mention d'édition et le témoin**
+  (`referenceEditionServie.ts`). ⚠️ `mentionAComposer` la fait taire dans deux cas
+  attestés : un témoin manuscrit n'en a pas, et une mention que le TITRE contient déjà ne
+  se répète pas (« La Bible : traduction officielle liturgique »). Le repli de comparaison
+  est `replier`, EXPORTÉ de `bibleBibliographieOuvrages` — deux façons de replier une
+  chaîne dans le même dossier finiraient par ne plus s'accorder.
+- ⛔ **La fiche ne replie plus « Édition et état du texte »**, et la référence en est
+  devenue la TÊTE. Les rangées ne portent que ce qu'elle ne dit pas ; le titre, l'année,
+  le lieu et l'éditeur en sortent, la licence et la mention obligatoire aussi
+  (« Conditions d'usage » en répond). ⛔ `edition_reference_affichee` — la notice rédigée
+  — ne paraît plus nulle part dans la fiche : c'était la seconde vérité.
+- **Le retrait suspendu des bibliographies vaut AUSSI dans les notices**
+  (`.trad-notice li`) : même mesure que `.cs-apparat-bibliographie__entree`, et la puce
+  part avec lui. ⚠️ Le bloc `<style>` de `ModaleTraduction` est un littéral de gabarit :
+  ⛔ aucun accent grave dedans, pas même dans un commentaire CSS (payé une fois de plus ce
+  jour-là).
+
+## ⛔ Deux vues qui nomment la même chose doivent se répondre (2026-09-04)
+
+`v_chronologie_auteurs` écrit ses `type_affichage` sans accents ; `v_chronologie_traductions`
+écrit « édition » et « réception » avec les leurs, quand les six clés de `COUL_TYPE` et
+`LIB_TYPE` sont sans. **Deux brins sur trois** d'une chronologie de traduction ne trouvaient
+donc ni couleur ni libellé, et leurs puces tombaient sur le gris de repli — c'est pour cela
+que la légende avait été éteinte sur les traductions (`sansLegende`, retiré avec le défaut).
+
+- **`cleTypeAffichage` (`app/lib/frise.ts`) replie la CLÉ**, jamais la donnée : NFD,
+  diacritiques ôtés, bas de casse. ⚠️ L'œ ligaturé n'est pas un accent et survit au repli,
+  ce qui est nécessaire au brin « œuvre » d'un auteur. Éprouvé sur les valeurs réelles des
+  deux vues (`frise.test.ts`).
+- ⚠️ `coulType` et le filtre des brins passent par elle ; `stylePuce` et la légende
+  suivent. La légende reparaît dès que deux brins sont présents, auteurs comme traductions.
+
+## Composer une chronologie, c'est CHOISIR, jamais inventer (2026-09-04)
+
+`scripts/chronologie-traductions-fillion-aelf-2026-09-04.mjs` a donné une frise à TR0010,
+TR0011 et TR0012, qui n'en avaient aucune.
+
+- ⛔ **Le script ne crée AUCUN événement.** Il n'écrit que dans `traductions_evenements` :
+  les quatorze événements rattachés existent déjà, datés, sourcés et validés. Inventer un
+  fait daté pour garnir une frise serait une décision philologique prise par une décision
+  d'interface — et `evenements.source_principale` est NOT NULL précisément pour cela.
+- ⚠️ **Chaque lien porte `a_controler = true`** : l'interface choisit, l'auteur valide. Le
+  drapeau n'empêche pas l'affichage (charte § 26) et range les lignes dans la file de
+  l'onglet « Chronologie » de l'administration.
+- ⚠️ `ordre_force` suit l'ordre CHRONOLOGIQUE par pas de dix, comme les six chronologies
+  déjà en place : c'est lui qui départage deux événements d'une même année, et la vue range
+  dessus. `id` est `generated always as identity` : ⛔ ne jamais le fournir.
+- ⚠️ **TR0013 reste sans chronologie**, faute d'une décision : sa traduction moderne est
+  établie sur le témoin de TR0009, dont elle pourrait reprendre les jalons.
