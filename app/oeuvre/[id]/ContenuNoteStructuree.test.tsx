@@ -59,4 +59,13 @@ describe('ContenuNoteStructuree', () => {
     expect(html).toContain('font-style:normal')
     expect(html).not.toContain('<em>')
   })
+
+  it('compose les titres et locutions balisés en italique dans une note ordinaire', () => {
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ text: 'Voir *De anima*, 58.' }),
+    )} />)
+
+    expect(html).toContain('Voir <em>De anima</em>, 58.')
+    expect(html).not.toContain('*De anima*')
+  })
 })
