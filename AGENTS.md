@@ -432,7 +432,10 @@ Règle d'auteur. Les deux rubriques qui portent des TITRES, « Œuvres patristiq
 
 Intégrée à la recherche rapide globale de la Navbar (`app/components/Navbar.tsx`), en SECTION distincte « Péricopes », menée en parallèle des autres catégories (effet dédié, non bloquant).
 
-- **RPC** : `supabase.rpc('rechercher_pericopes', { p_requete, p_limite: 8 })`, réservé aux **authentifiés**. Ne pas l'ouvrir aux anonymes sans décision explicite (RLS inchangée). Helper : `chercherPericopes()` dans `app/lib/pericopes.ts` (types, `referencePericope`, `correspondanceVisible`, `libelleCategoriePericope`).
+- **RPC** : `rechercher_pericopes(p_requete, p_limite, p_livre, p_chapitre, p_verset)`, réservé aux **authentifiés**. Ne pas l'ouvrir aux anonymes sans décision explicite (RLS inchangée). Helper : `chercherPericopes()` dans `app/lib/pericopes.ts` (types, `referencePericope`, `correspondanceVisible`, `libelleCategoriePericope`).
+- ⛔ **ELLE SE LIMITE AU TITRE, AUX APPELLATIONS ET À LA RÉFÉRENCE** (demande de l'auteur, 2026-09-04 ; doctrine à la charte, § 38.18). La branche « ressemblance » — un nom retenu dès que `similarity(nom, q) >= 0,22` — ne retient plus rien par elle-même : ⚠️ elle survit en **SECOURS**, et ne s'exécute que si la recherche stricte ne rend RIEN. Mesuré sur vingt termes : **5 résultats sur 82** ne portaient pas le terme cherché, **aucun sur 77** après correction ; et « nocse de cana » retrouve toujours les Noces de Cana.
+- ⛔ **LA RÉFÉRENCE SE COMPREND CÔTÉ SITE**, par `analyserRequetePericope` (`app/lib/pericopesRecherche.ts`, pur et testé) — le module que le catalogue emploie déjà —, et se passe au RPC en trois valeurs. La base ne reçoit qu'un code de livre et deux nombres : la table des noms et des abréviations vit dans `app/lib/bible.ts`, et une seconde liste écrite en SQL divergerait au premier ajout. ⚠️ Un **nom de livre seul** (« Jonas ») ne déclenche PAS cette voie : le catalogue, qui a la place de les montrer, réunit le livre et les titres qui portent le mot ; la barre n'a que huit rangs.
+- ⚠️ **DROP puis CREATE, jamais `create or replace`** : la signature a gagné trois paramètres, et un remplacement aurait posé une SURCHARGE que PostgreSQL refuse ensuite d'appeler (« function is not unique »). Les droits se reposent à l'identique — EXECUTE pour `authenticated` et `service_role`, jamais `anon`. Migration `20260905090000_rechercher_pericopes_titre_appellations_references.sql`, contrôles dans `supabase/controles/`.
 - **Comportement** : rien sous 2 caractères, debounce ~200 ms, chaque frappe annule la requête précédente (AbortController → aucune réponse obsolète), 8 résultats max, une ligne = une péricope.
 - **Affichage** : titre principal / référence biblique / catégorie. La référence se construit sur la PREMIÈRE occurrence principale. Ligne « Correspond à : X » seulement si `correspondance_visible === true` et `correspondance !== titre` — ne JAMAIS afficher un alias masqué ou inexact (ex. « baleine » → « Jonas et le grand poisson », jamais « Jonas dans la baleine »).
 - **Navigation** : clic ou Entrée → `/pericopes/${pericope_id}` (le `pericope_id` est un slug). Nav clavier (↑/↓), Échap ferme.
@@ -5448,3 +5451,36 @@ page `/notifications` : la route redirige vers l'accueil.
   Bible choisit alors celle du lecteur (adresse, cookie, profil). Un commentaire de SEGMENT
   n'a pas d'adresse ici — il faudrait joindre `segments` pour connaître son œuvre, et le
   corpus n'en compte aucun (mesuré le 2026-09-04 : cinq commentaires, tous sur un verset).
+
+# La page des RÉSULTATS — le volet, le mot trouvé, la Polyglotte (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.19. Règles de code, dans
+`app/recherche/RechercheClient.tsx` :
+
+- ⛔ **Le volet prend la forme de celui de « Bible classique »** : ses rubriques passent à
+  `RUBRIQUE_AXE` (casse ordinaire), son mode de recherche à `OPTION_VOLET` + `.cs-option-volet`
+  (une option par ligne, la retenue sur pastille verte), son champ à `.cs-volet-recherche`
+  (ni cadre, ni fond, ni ombre, le rembourrage DANS le champ), et il gagne un `<h1>` au rang
+  `TITRE_VOLET` — la page n'avait aucun titre de niveau 1. `.mode-btn` est parti avec le
+  contrôle segmenté.
+- ⚠️ **Les deux axes qui portent NEUF bibles gardent un menu**, et ce n'est pas un oubli :
+  la règle de l'option par ligne a été écrite pour des axes de deux ou trois états, et
+  dix-huit rangs ne se posent pas dans un volet. Le menu se dépouille comme le reste
+  (`.ctrl-sel` : ni cadre ni fond, la flèche du navigateur suffit à le dire cliquable).
+- ⛔ **Le terme trouvé se marque par la GRAISSE**, jamais par un fond. La forme vit dans
+  `app/lib/surlignageRecherche.ts` (`STYLE_TERME_TAPE`), partagée par les **trois**
+  surligneurs du site — les deux de la barre de recherche et celui de la page des
+  résultats. ⚠️ Le `<mark>` reste, et `background: transparent` n'est pas un ornement :
+  c'est ce qui éteint le jaune que le navigateur pose par défaut sur cette balise.
+- ⛔ **La colonne de la Polyglotte se compose dans `globals.css`** (§ « La colonne de la
+  Polyglotte »), pour les DEUX surfaces. Le bloc `<style>` de `app/polyglotte/page.tsx` ne
+  garde que ce qui lui est propre (survol, crayon, actions, curseur) ; la page des
+  résultats n'ajoute que ses filets et le fond d'un verset dont la traduction affichée ne
+  porte pas le mot. ⚠️ La marge de référence fait **44 px** des deux côtés (`LARGEUR_REF`),
+  et l'en-tête des colonnes doit suivre, sinon les deux grilles ne se répondent plus.
+- ⚠️ **Trois teintes en dur** (`#6f8f7b`, `#7a1d16`, `#a9bcb0`) ont quitté
+  `couleursEnDurInventaire.ts` avec la copie qui les portait.
+- ⛔ **Un accent grave dans un commentaire CSS casse le fichier**, et il a été payé une fois
+  de plus ce jour-là : les deux blocs `<style>` vivent dans des littéraux de gabarit, et
+  `globals.css` écrit entre accents graves y ferme la chaîne. Nommer un fichier entre
+  guillemets français dans ces blocs, jamais entre accents graves.
