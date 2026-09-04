@@ -27,6 +27,7 @@ import IconeChevron from '@/app/components/IconeChevron'
 import { capitaliserInitiale } from '@/app/lib/citation'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -41,6 +42,12 @@ type Segment = {
   id: number; id_oeuvre: string; id_texte: string; segment_numero: number
   segment_texte: string; ref_niv1: string; ref_niv2: string
   ref_niv3: string; notes?: string | null
+  segment_key?: string | null
+  // ⚠️ Le segment qui PORTE le lien biblique, quand ce n'est pas celui qu'on montre :
+  // un lien posé sur un latin s'affiche dans sa contrepartie française (voir
+  // `contrepartieFrancaise`). Ce qu'on lit, ouvre et prélève est le français ; le
+  // retrait d'un lien, lui, vise toujours le segment d'origine.
+  idLien: number
 }
 type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
@@ -379,8 +386,8 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
               <IconeDrapeau />
             </button>
             <BoutonSupprimerLien
-              segmentId={s.id} colonneLien={colonneLien}
-              isAdmin={isAdmin} onSupprime={() => onSupprimeLien(s.id)}
+              segmentId={s.idLien} colonneLien={colonneLien}
+              isAdmin={isAdmin} onSupprime={() => onSupprimeLien(s.idLien)}
             />
           </div>
         </div>
@@ -953,7 +960,7 @@ export default function PanneauPatristique({
     // La recherche inverse passe désormais par `liens_bibliques` : un index sur
     // `canon_id` au lieu de quatre `ilike '%…%'` sur 136 770 lignes — qui, de
     // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
-    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
+    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
     ;(async () => {
       const liens = plage
         ? await segmentsLiesAPlage(plage.livre, plage.canonDebut, plage.canonFin)
@@ -975,19 +982,33 @@ export default function PanneauPatristique({
       if (!ids.length) {
         setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setLoading(false); return
       }
-      const segs: Segment[] = []
+      const bruts: Segment[] = []
       for (let i = 0; i < ids.length; i += 500) {
         const { data } = await supabase.from('segments').select(SEG_COLS).in('id', ids.slice(i, i + 500))
-        segs.push(...((data ?? []) as Segment[]))
+        bruts.push(...((data ?? []) as Segment[]))
       }
       if (annule) return
+      // ⛔ ON LIT TOUJOURS UNE TRADUCTION FRANÇAISE (demande de l'auteur, 2026-09-04).
+      // Un lien peut désigner un texte latin — 2 468 sur 39 823, six œuvres — et le
+      // volet servait alors du latin. Le segment AFFICHÉ devient sa contrepartie
+      // française, identifiant compris ; seul `idLien` garde celui qui porte le lien.
+      // ⚠️ Aucune requête ne part quand tout est déjà français, c'est-à-dire presque
+      // toujours : voir `chargerContrepartiesFrancaises`.
+      const contreparties = await chargerContrepartiesFrancaises(supabase, bruts)
+      if (annule) return
+      const segs: Segment[] = bruts.map(s => {
+        const fr = contreparties.get(s.id)
+        return fr ? { ...s, ...fr, id_oeuvre: s.id_oeuvre, idLien: s.id } : { ...s, idLien: s.id }
+      })
       // Citations = types 1 et 2 réunis, comme auparavant ; doctrine = 3 ; écho = 4.
       // Un même segment peut nourrir plusieurs rubriques.
+      // ⚠️ Les TYPES se cherchent par `idLien` : ils sont portés par le lien, non par
+      // le segment qu'on montre.
       const citations: { seg: Segment; col: string }[] = []
       const doctrine: Segment[] = []
       const echo: Segment[] = []
       for (const s of segs) {
-        const types = typesParSegment.get(s.id)!
+        const types = typesParSegment.get(s.idLien)!
         if (types.has(1)) citations.push({ seg: s, col: 'lien_1' })
         else if (types.has(2)) citations.push({ seg: s, col: 'lien_2' })
         if (types.has(3)) doctrine.push(s)
