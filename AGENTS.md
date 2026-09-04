@@ -1299,6 +1299,55 @@ Relevé de l'auteur : « la page Polyglotte n'a pas d'indicateur de chargement ;
 - ⛔ **`canon_id like 'GEN.1.%'` ne servait AUCUN index** sous la collation en_US.UTF-8 : la base lisait tout le livre pour les traductions affichées et jetait le reste — Genèse 1 sur quatre colonnes, 4 604 lignes lues pour 93, 391 ms ; Psaume 119, 8 088 pour 22, 525 ms. L'index `(trad_id, livre, canon_id text_pattern_ops)` (migration `versets_v2_index_chapitre_canonique`) rend le préfixe cherchable : 93 lignes, 4 ms. La règle vaut partout : **un `like 'préfixe%'` sur une colonne texte demande `text_pattern_ops`**, un btree ordinaire ne le voit pas.
 - **Les lectures de départ LISENT leur erreur** (livres, traductions, sondes, citations, notes, et l'écriture d'une note) : une sonde qui échoue tient la traduction pour présente au lieu de la faire disparaître du menu sans un mot.
 
+## Une page de lecture s'ouvre sur un TEXTE, et en FONDU (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.7. Règles de code :
+
+- ⛔ **La Polyglotte n'a plus d'écran vide.** La tour de Babel ruinée et l'invite
+  « Ouvrez un livre » sont retirées ; la page s'ouvre toujours sur un texte. La planche
+  passe en `fonction: 'reserve'` dans `app/admin/illustrations/inventaire.ts` — ⛔ une
+  gravure qu'on cesse de poser se DÉCLASSE dans l'inventaire, elle ne s'y oublie pas.
+- **Les deux clés de reprise vivent dans `app/lib/repriseLecture.ts`** (module pur pour
+  son cœur, 8 tests) : `cs_dernier_bible` (écrite par `BibleLayout`, relue par
+  `AccueilCards` et par la Polyglotte) et `cs_derniere_polyglotte`. ⛔ Ne plus lire ni
+  écrire ces clés à la main : la première l'était en deux exemplaires qu'aucun mécanisme
+  n'obligeait à rester d'accord.
+- ⚠️ **La Polyglotte retombe sur la Classique avant de retomber sur la Genèse** : le
+  lecteur n'a qu'une lecture en cours, même s'il la mène sur deux pages. ⛔ Le LIVRE
+  ENTIER ne se retient jamais comme tel — geste explicite et coûteux — et rouvre à son
+  premier chapitre.
+- ⛔ **La reprise se décide dans la RÉPONSE de la requête des livres**, non au premier
+  rendu : `localStorage` n'existe pas au rendu serveur, et le code retenu doit être
+  confronté à la liste RÉELLEMENT servie — un code de longue date peut avoir disparu du
+  canon offert. D'où `ensembleDeLivre`, fonction pure hors du composant : `ensembleDe`
+  s'appuie sur l'état `livres`, qui n'est pas encore posé dans cette réponse. ⚠️ Un
+  `setState` dans un rappel asynchrone n'est pas un `setState` dans un corps d'effet : le
+  linter ne le signale pas, et il a raison.
+
+### ⛔ L'ouverture en fondu : c'est la PROVENANCE DU TEXTE qui décide du chemin
+
+- **Bible classique** : le texte est rendu par le SERVEUR, donc peint avant toute
+  animation. `data-passage="ouverture"` est donc l'état INITIAL de `BibleLayout` — il
+  voyage dans le HTML servi (vérifié en ligne : une occurrence dans la réponse) et le
+  fondu joue dès la première peinture. ⚠️ Posé après coup, il ferait DISPARAÎTRE un texte
+  déjà lisible pour le ramener : pire que le défaut qu'on corrige. Un `setTimeout` de
+  `DUREE_OUVERTURE_MS` retire la marque, et ne retire QUE l'ouverture (`p => p ===
+  'ouverture' ? null : p`) : un départ a pu commencer entre-temps.
+- **Polyglotte** : le texte vient du NAVIGATEUR, la colonne est vide au premier rendu.
+  C'est l'arrivée déjà en place qui se joue — la première n'avait pas de départ pour
+  l'appeler, et le garde `passage !== 'sortie'` la refusait. Elle est désormais admise sur
+  le seul cas `precedente === null`. ⛔ Ne pas lui donner l'ouverture de la Classique :
+  elle ferait un fondu sur une colonne vide.
+- ⛔ **L'ouverture n'est pas ÉCHELONNÉE**, et ne peut pas l'être : le rang d'un bloc se
+  mesure dans le navigateur (`ordonnerBlocsVisibles`), trop tard pour un texte que le
+  serveur a déjà peint. La colonne entière paraît d'un fondu.
+- ⛔ **Le fondu d'ouverture ne porte QUE l'opacité** (`cs-lecture-ouvrir`), quand celui
+  d'une arrivée translate de six pixels : une transformation ferait de la colonne le bloc
+  conteneur des cellules d'actions posées en `fixed`.
+- ⚠️ Les durées s'accordent des deux côtés : 0,45 s dans `globals.css`, 520 ms dans
+  `DUREE_OUVERTURE_MS` — la marque ne se retire qu'une fois le fondu joué. `prefers-
+  reduced-motion` éteint les deux.
+
 ## L'axe du titre de la page Bible, mesuré en ligne le 2026-09-03
 
 Relevé de l'auteur : « un problème d'alignement, avec le titre ‹Jean ❧ Chapitre 1› ». Mesuré sur Jean 1 (Fillion), fenêtre de 2 560 px, racine 22 : le titre, le menu des bibles, l'introduction et le BLOC de verset (numéro + texte, 31,25 rem) sont tous centrés au même pixel (1 176,4). Mais le TEXTE du verset est centré à 1 191,5, soit **15 px à droite**, parce que la gouttière du numéro (30 px depuis le 29 août 2026, « le retrait désigne le verset ») est prise DANS le bloc et pousse le texte de la moitié de sa largeur. Le titre est donc sur l'axe du bloc, et l'œil, qui suit la masse du texte, le voit 15 px à gauche. ⚠️ Ce n'est pas un effet de l'enveloppe de lecture posée le 3 septembre (tous les cadres sont centrés au même pixel), c'est la géométrie du bloc de verset. Deux remèdes possibles, et c'est un arbitrage d'auteur : faire PENDRE le numéro hors du bloc (le texte reprend l'axe, le numéro sort dans la marge, comme dans un livre), ou décaler l'en-tête et les blocs éditoriaux de la moitié de la gouttière. Rien n'est changé sans décision.
