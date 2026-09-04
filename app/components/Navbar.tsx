@@ -16,6 +16,7 @@ import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
 import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
+import { STYLE_TERME_TAPE } from "@/app/lib/surlignageRecherche";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
 
@@ -505,17 +506,18 @@ function normaliserExtrait(s: string): string {
 // couleur, et la seule qui se répète à CHAQUE rang. La liste en devenait bariolée,
 // et le vert disait « Bible » au milieu d'un groupe pourpre.
 //
-// ⚠️ Elle ne prend pas non plus le jaune `--cs-vise-fond` de la page de résultats,
-// et la différence tient à ce qu'on FAIT dans chacune. Sur la page, on cherche un
-// mot des yeux dans un paragraphe de prose, et le jaune est le repère qu'on y
-// poursuit. Ici l'entrée fait trois mots, on vient de taper le début du premier, et
-// l'on sait déjà ce qu'on a écrit : une pastille par ligne y serait un coup de
-// surligneur sur un mot qu'on n'a pas besoin de retrouver. La graisse suffit.
+// ⚠️ La PAGE DES RÉSULTATS a rejoint cette forme le 2026-09-04 : elle portait un
+// fond jaune (`--cs-vise-fond`), que l'auteur a refusé — « ne pas surligner en jaune
+// les termes trouvés ; le gras suffit ». Le raisonnement écrit ici distinguait les
+// deux surfaces : sur la page, on cherche un mot des yeux dans un paragraphe de
+// prose, et le jaune passait pour le repère qu'on y poursuit. Il était le même mot
+// mis cinq fois en pastille dans la même ligne, et le texte cessait de se lire
+// comme un texte.
 //
-// ⛔ Une seule définition pour les DEUX surligneurs : ils portaient la même
-// déclaration recopiée, et une forme recopiée à deux endroits ne reste identique
-// que par accident.
-const STYLE_TERME_TAPE: React.CSSProperties = { fontWeight: 700, color: 'var(--cs-encre-fonce)' };
+// ⛔ UNE SEULE DÉFINITION POUR LES TROIS SURLIGNEURS DU SITE, dans
+// `app/lib/surlignageRecherche.ts` : les deux d'ici, qui portaient la même déclaration
+// recopiée, et celui de la page des résultats, qui en disait une autre. Une forme
+// recopiée à trois endroits ne reste identique que par accident.
 
 function surlignerMatch(texte: string, query: string): React.ReactNode {
   if (!query) return texte

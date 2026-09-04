@@ -1555,7 +1555,7 @@ export default function PolyglottePage() {
 
   // ── Le passage d'un texte à l'autre est FLUIDE, ici aussi (2026-09-03) ─────
   // Même dispositif que la page d'œuvre et la page Bible (`app/lib/passageTexte.ts`,
-  // animations dans `globals.css`) : au DÉPART, les lignes visibles reçoivent leur
+  // animations dans « globals.css ») : au DÉPART, les lignes visibles reçoivent leur
   // rang et s'effacent l'une après l'autre, puis le corps entier ; à l'ARRIVÉE, le
   // corps remonte en tête si le chapitre ou le livre a changé, et les lignes
   // paraissent de même. Le départ, c'est le moment où l'attente commence
@@ -1852,148 +1852,15 @@ export default function PolyglottePage() {
            un contour et non un cadre intérieur. */
         .poly-trad-pick:hover,
         .poly-trad-pick[aria-expanded="true"] { background: rgba(var(--cs-vert-rgb),0.07); }
-        /* La référence d'origine en LETTRINE : un petit bloc flottant, posé au début du
-           verset, que le texte vient habiller comme une initiale ornée. Le filet à droite
-           la tient à distance sans l'enfermer dans un cadre. */
-        /* Texte justifié, serré, et césuré généreusement : sans césure, la justification
-           d'une colonne étroite creuse des lézardes. hyphenate-limit-chars autorise des
-           fragments courts, faute de quoi le navigateur renonce à couper. La langue de la
-           cellule (attribut lang) décide du dictionnaire — voir codeLangue(). */
-        /* Le texte biblique passe en SÉRIF de lecture (Source Serif) : la page cesse de
-           lire comme un tableur pour lire comme une édition. La lettrine, les millésimes
-           et les boutons restent en sans (chacun porte sa propre font-family). ATTENTION :
-           line-height est repris À L'IDENTIQUE par .poly-lettrine-item (hauteur du
-           flottant = une ligne de texte) : garder les deux valeurs synchronisées. */
-        /* ── LES MESURES DE LA COLONNE, NOMMÉES UNE FOIS, SUR LA RANGÉE ─────────
-           ⛔ Sur la RANGÉE et non sur la cellule : la marge de référence en est la SŒUR,
-           non la descendante, et c'est elle qui doit emprunter l'interligne et le blanc
-           du haut pour poser sa ligne de base sur celle du texte.
-           Elles se répondent, et elles se sont déjà désaccordées : « --poly-marge-x » est
-           repris par « .poly-lettrine », qui se range dans la gouttière ; « --poly-interligne »
-           par « .poly-lettrine-item », dont l'étui fait exactement une ligne de texte ; et
-           « --poly-air-haut » par la marge de référence.
-           ⚠️ Marges élargies et interligne resserré le 2026-09-04, à la demande de l'auteur :
-           10 → 13 px de gouttière, 7/8 → 8/9 px de blanc, 1,36 → 1,34 d'interligne. */
-        .poly-row, .poly-surnum-row {
-          --poly-marge-x: 13px;
-          --poly-air-haut: 8px;
-          --poly-interligne: 1.34;
-        }
-        /* ── LA RÉFÉRENCE EMPRUNTE LE STRUT DE LA CELLULE ───────────────────────
-           ⛔ CE QUI ALIGNE UNE RÉFÉRENCE SUR SA LIGNE DE TEXTE, ce n'est ni un rembourrage
-           choisi à l'œil ni un nombre mesuré une fois : c'est d'avoir EXACTEMENT la même
-           boîte de ligne — même police, même corps, même interligne, même blanc du haut.
-           Le numéro, lui, se compose en plus petit et en sans DANS cette boîte : un enfant
-           en ligne plus petit se pose sur la ligne de base du strut sans la déplacer.
-           ⚠️ La POLICE compte autant que le corps : l'ascendante d'une sans n'est pas celle
-           d'une sérif, et c'est ce qui restait de travers quand tout le reste s'accordait.
-           Mesuré sur la page servie : la référence canonique ET la lettrine tombaient 2,40 px
-           au-dessus de la ligne de base du texte (relevé de l'auteur, 2026-09-04) ; elles y
-           tombent maintenant à 0,00.
-           ⛔ L'ancien réglage — un interligne absolu et un rembourrage de 8 px calibrés à
-           l'œil — ne pouvait pas tenir : il était en PIXELS quand les deux boîtes se mesurent
-           en rem, si bien qu'il n'était juste qu'à une seule taille de police racine, et il
-           se dérégla dès que le blanc de la cellule passa de 7 à 8 px et l'interligne de
-           1,36 à 1,34. Un rapport se pose, il ne se mesure pas. */
-        .poly-marge-ref {
-          padding: var(--poly-air-haut) 8px 0 0;
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.875rem;
-          line-height: var(--poly-interligne);
-          text-align: right;
-        }
-        .poly-marge-ref > span {
-          font-family: var(--font-source-sans), Arial, sans-serif;
-          font-size: 0.6875rem;
-          font-weight: 500;
-          font-variant-numeric: tabular-nums;
-          white-space: nowrap;
-        }
-        .poly-texte-cell {
-          position: relative;
-          min-width: 0;
-          /* ⛔ Le blanc entre versets vient d'ICI, et de nulle part ailleurs : un écart posé
-             entre les lignes de la grille interromprait la réglure verticale à chaque verset,
-             et la page redeviendrait un tableau. La gouttière latérale s'ouvre d'un cran, le
-             filet n'étant plus doublé d'un fond de cellule pour l'en écarter. */
-          padding: var(--poly-air-haut) var(--poly-marge-x) 9px;
-          font-family: var(--font-source-serif), Georgia, serif;
-          text-align: justify;
-          text-align-last: left;
-          hyphens: auto; -webkit-hyphens: auto;
-          hyphenate-limit-chars: 5 2 2;
-          /* Un peu plus dense (goût de l'auteur) : interligne juste resserré, et les mots
-             rapprochés. line-height reste synchronisé avec .poly-lettrine-item (hauteur du
-             flottant = une ligne).
-             ⚠️ L'ESPACE NATURELLE EST REMONTÉE D'UN DEMI-CRAN (-0,04 → -0,02 em), et c'est
-             un remède aux blancs, non un renoncement à la densité : la justification ajoute
-             le MÊME blanc absolu quelle que soit l'espace de départ, si bien qu'une espace
-             plus étroite rend l'écart plus criant. Mesuré sur Jean : l'espace naturelle
-             passe de 3,38 à 3,72 px, le plus grand blanc de 7,5 à 5,6 fois cette espace, et
-             les blancs de plus du double tombent de 1 235 à 894. La page n'y perd rien : la
-             lettrine rendue au texte la raccourcit de 350 px. */
-          word-spacing: -0.02em;
-          line-height: var(--poly-interligne);
-        }
-        .poly-texte-cell::after { content: ""; display: block; clear: both; }
-        /* Aucune marge ni rembourrage VERTICAL, et pas de taille propre : la lettrine
-           garde la taille de police de la ligne, si bien que la hauteur de ses éléments
-           s'exprime en em de la ligne — voir .poly-lettrine-item. */
-        /* ⛔ LA LETTRINE PART DU FER DU TEXTE, elle ne se range plus dans la gouttière
-           (demande de l'auteur, 2026-09-04, le soir : « la référence canonique dans la
-           cellule de chaque verset, celle qui est grise, doit être alignée en marge gauche
-           avec le texte contenu dans la même cellule »). Elle avait été tirée dans le
-           rembourrage le matin même, par une marge gauche négative égale au padding, pour
-           rendre au texte les 12 % de mesure qu'elle lui prenait sur la première ligne.
-           ⚠️ Mesuré sur la page servie, cela la posait à −10,00 px du fer du texte, sur
-           les quarante-huit cellules relevées, sans une exception : chaque verset ouvrait
-           donc sur un repère en saillie, et le bord gauche de la colonne était ragué.
-           ⛔ ET LE GAIN N'EN ÉTAIT PAS UN, mesuré avant et après sur la même page : le plus
-           grand blanc passe de 5,47 à 4,86 espaces naturelles, le neuvième décile de 2,78 à
-           2,66, et les blancs de plus du triple de 147 à 123. Le fer rendu au texte
-           n'AGGRAVE pas la justification, il l'améliore d'un cheveu. La crainte reposait sur
-           un raisonnement — la première ligne perd dix pixels — que la mesure dément : ce
-           qui coûte à la justification est la LARGEUR du flottant, non sa position. */
-        .poly-lettrine {
-          float: left;
-          display: flex; flex-direction: column; align-items: flex-end;
-          margin: 0 7px 0 0; padding: 0 8px 0 0;
-          border-right: 1px solid rgba(var(--cs-vert-rgb),0.22);
-          font-family: var(--font-source-sans), Arial, sans-serif;
-          font-weight: 400; letter-spacing: 0.03em;
-          font-variant-numeric: tabular-nums;
-          color: var(--cs-texte-doux); text-align: right;
-        }
-        /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.36em,
-           l'interligne de la cellule) : le flottant ne repousse donc qu'une seule ligne,
-           et deux versets partageant un créneau en repoussent deux.
-           ⚠️ Il descend d'un cran (12 px → 11) : c'est la numérotation PROPRE à l'édition,
-           qui accompagne le verset sans le nommer — la référence canonique, en marge, est le
-           repère de la ligne. Deux numéros de même corps dans le même champ de vision se
-           disputaient le regard. La taille de l'étui, elle, ne bouge pas : elle est en em de
-           la CELLULE, non du numéro (voir .poly-lettrine-item). */
-        /* ⚠️ EN LIGNE, et non en bloc : c'est ce qui la pose sur la ligne de base du strut
-           de son étui (voir .poly-lettrine-item), au lieu d'ouvrir une boîte à elle. */
-        .poly-lettrine-ref {
-          display: inline; white-space: nowrap; font-size: 0.6875rem;
-          font-family: var(--font-source-sans), Arial, sans-serif;
-        }
-        /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
-           parcourt la colonne accroche le numéro qui change. */
-        .poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-faible); }
-        /* L'étui d'un numéro fait EXACTEMENT une ligne de texte : le flottant ne repousse
-           donc qu'une ligne, et deux versets partageant un créneau en repoussent deux.
-           ⛔ Il porte le STRUT DE LA CELLULE — police sérif, interligne de la cellule — et
-           non plus un centrage vertical : centré, le numéro tombait 2,40 px au-dessus de la
-           ligne de base du texte. Un numéro s'aligne sur une LIGNE DE BASE, jamais sur un
-           milieu de boîte. Voir .poly-marge-ref, qui suit la même règle. */
-        .poly-lettrine-item {
-          position: relative;
-          height: calc(var(--poly-interligne) * 1em);
-          line-height: calc(var(--poly-interligne) * 1em);
-          font-family: var(--font-source-serif), Georgia, serif;
-          text-align: right;
-        }
+        /* ⛔ LA COMPOSITION DE LA COLONNE A QUITTÉ CETTE PAGE POUR « globals.css »
+           (2026-09-04) — les mesures nommées, la marge de référence, la cellule de texte
+           et la lettrine. Elle sert DEUX surfaces : cette page, et la Polyglotte de la
+           page des résultats, qui portait une copie de ces classes sous le commentaire
+           « REPRISES TELLES QUELLES de la page de lecture » — et qui avait dérivé sur
+           tout : sans au lieu de sérif, référence dans une colonne bordée au lieu de la
+           marge, lettrine centrée dans son étui au lieu de se poser sur la ligne de base.
+           ⚠️ Ne restent ici que les règles PROPRES à cette page : le survol d'une rangée,
+           le crayon, les boutons d'action, le curseur. */
         /* Le crayon SE POSE SUR le numéro de référence d'origine : au survol de la cellule,
            il recouvre le numéro (fond opaque = celui de la ligne, passé en style inline, donc
            accordé au zébrage alterné) et le remplace. Hors survol, il ne réserve aucune place. */

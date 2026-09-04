@@ -1,14 +1,14 @@
 // Recherche de péricopes — types, appel RPC et helpers d'affichage.
 //
-// Le RPC `rechercher_pericopes(p_requete, p_limite)` n'est accessible qu'aux utilisateurs
-// AUTHENTIFIÉS et renvoie une ligne par péricope (jamais une par appellation, même si
-// plusieurs correspondent). On n'affiche jamais un alias masqué ou inexact
-// (`correspondance_visible === false`).
+// Le RPC `rechercher_pericopes(p_requete, p_limite, p_livre, p_chapitre, p_verset)`
+// n'est accessible qu'aux utilisateurs AUTHENTIFIÉS et renvoie une ligne par péricope
+// (jamais une par appellation, même si plusieurs correspondent). On n'affiche jamais
+// un alias masqué ou inexact (`correspondance_visible === false`).
 
 import { supabase } from './supabase'
 import { formaterPlageCanonique, parsePointCanonique } from './referencesBibliques'
 import { estOeuvrePubliee } from './oeuvresPublication'
-import { premierePhraseNotice } from './pericopesRecherche'
+import { analyserRequetePericope, premierePhraseNotice } from './pericopesRecherche'
 
 export type PericopeUsageRecherche =
   | 'principal'
@@ -51,6 +51,22 @@ export type PericopeSearchResult = {
  * Interroge le RPC. Ne lance rien sous deux caractères. Passe le `signal` d'un
  * AbortController pour annuler une requête devenue obsolète. Renvoie au plus `limite`
  * résultats (le RPC applique déjà la limite).
+ *
+ * La recherche est LIMITÉE au titre, aux appellations et à la RÉFÉRENCE (demande de
+ * l'auteur, 2026-09-04). Le RPC ne retient plus un nom pour sa seule ressemblance de
+ * trigrammes — « noces » rendait « Nativité » par « Noël » —, sauf en SECOURS, quand
+ * la recherche stricte ne rend rien : une faute de frappe trouve encore sa péricope.
+ *
+ * ⚠️ LA RÉFÉRENCE EST COMPRISE ICI, par `analyserRequetePericope` — le module PUR que
+ * le catalogue emploie déjà —, et passée au RPC en trois valeurs. La base ne reçoit
+ * qu'un code de livre et deux nombres : ⛔ la table des noms et des abréviations vit
+ * dans `app/lib/bible.ts`, et une seconde liste écrite en SQL divergerait au premier
+ * ajout. C'est aussi ce qui fait dire la même chose aux deux surfaces de recherche.
+ *
+ * ⛔ Un NOM DE LIVRE SEUL (« Jonas ») ne déclenche PAS la voie de la référence : une
+ * référence est « Mt 5 », non « Matthieu ». Le catalogue, qui a la place de les
+ * montrer, réunit le livre et les titres qui portent le mot ; la barre de recherche
+ * n'a que huit rangs, où les cinquante-deux péricopes de Matthieu chasseraient tout.
  */
 export async function chercherPericopes(
   query: string,
@@ -59,7 +75,15 @@ export async function chercherPericopes(
 ): Promise<PericopeSearchResult[]> {
   const q = query.trim()
   if (q.length < 2) return []
-  let requete = supabase.rpc('rechercher_pericopes', { p_requete: q, p_limite: limite })
+  const ref = analyserRequetePericope(q)
+  const parReference = ref.livre !== null && ref.chapitre !== null
+  let requete = supabase.rpc('rechercher_pericopes', {
+    p_requete: q,
+    p_limite: limite,
+    p_livre: parReference ? ref.livre : null,
+    p_chapitre: parReference ? ref.chapitre : null,
+    p_verset: parReference ? ref.verset : null,
+  })
   if (signal) requete = requete.abortSignal(signal)
   const { data, error } = await requete
   if (error) throw error

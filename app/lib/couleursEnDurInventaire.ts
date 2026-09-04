@@ -121,6 +121,9 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   //    #4a453f (nom d'auteur d'une ligne de répartition) est passé à --cs-texte ;
   //    #f6cfca et #8a1710 étaient le surlignage ROUGE, que plus rien n'appelait depuis
   //    que la ligne d'en-tête dit où le mot se trouve. Partis avec lui.
-  'recherche/RechercheClient.tsx': ['#5a5248', '#6a8474', '#6f8f7b', '#7a1d16', '#7a5a10', '#a9bcb0', '#b6ccbd', '#c8c0b8', '#e8c96a', 'rgba(30,28,24,0.38)'],
+  // ⚠️ #6f8f7b, #7a1d16 et #a9bcb0 en sont sortis le 2026-09-04 : c'étaient les trois
+  // teintes de la copie de la Polyglotte, laquelle est passée aux jetons de la page de
+  // lecture (voir globals.css, « La colonne de la Polyglotte »).
+  'recherche/RechercheClient.tsx': ['#5a5248', '#6a8474', '#7a5a10', '#b6ccbd', '#c8c0b8', '#e8c96a', 'rgba(30,28,24,0.38)'],
   'soutenir/page.tsx': ['#b0a088', '#cfc6b6', '#fff'],
 }

@@ -11,6 +11,15 @@ import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/t
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesures } from '@/app/lib/grec'
 import { MENTION_ABSENT, MENTION_ABSENT_TITRE, STYLE_MENTION } from '@/app/lib/compositionBible'
+import { STYLE_TERME_TAPE } from '@/app/lib/surlignageRecherche'
+// ⛔ LE VOLET PREND LA FORME DE CELUI DE « BIBLE CLASSIQUE » (demande de l'auteur,
+// 2026-09-04 : « revoir la mise en forme du volet de gauche de la page des résultats :
+// prendre modèle sur le volet de gauche de la page Bible classique »). C'est le dernier
+// volet du site à ne pas la porter ; les volets d'« Aller plus loin » l'ont reçue la
+// veille. Une rubrique d'axe, des options en liste verticale, l'option retenue sur
+// pastille verte : trois formes recopiées de moins.
+import { RUBRIQUE_AXE, OPTION_VOLET } from '@/app/lib/stylesVoletLecture'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 
@@ -111,13 +120,17 @@ function contientTerme(texte: string, terme: string, mode: Mode): boolean {
 // On construit le regex sur le texte normalisé pour trouver les positions, puis on surligne
 // les caractères originaux aux mêmes positions.
 //
-// ⛔ Le surlignage SORT du jeu des familles de corpus. Il portait --cs-vert-clair, c'est-à-dire
-// la teinte de la Bible : dans un résultat patristique, il aurait désormais dit « Bible ».
-// Il prend donc --cs-vise-fond, le jeton qui dit déjà « le verset que vous cherchiez », le
-// même dans les quatre onglets. Mesuré 13,6 sur son fond.
+// ⛔ PLUS DE FOND JAUNE (demande de l'auteur, 2026-09-04 : « ne pas surligner en jaune les
+// termes trouvés ; le gras suffit »). Le mot se marque par la GRAISSE et par une encre d'un
+// rang plus profonde, la forme que la barre de recherche emploie déjà — `STYLE_TERME_TAPE`,
+// une seule définition pour les trois surligneurs du site.
 //
-// ⚠️ Le surlignage NE SE RESSERRE PAS quand tout le reste se resserre : c'est le seul objet
-// de la page qu'on cherche des yeux, et le comprimer le rendrait plus difficile à trouver.
+// ⚠️ Le `<mark>` RESTE : il dit que le mot répond à la recherche, ce qu'aucune graisse ne
+// dit à qui n'y voit pas. Seule sa peinture s'en va — et il faut l'éteindre, le navigateur
+// posant un fond jaune par défaut sur cette balise.
+//
+// (Le jaune avait pris la place d'un vert, lui-même remplacé parce qu'il disait « Bible »
+// dans un résultat patristique ; c'est la troisième teinte à tomber, et la dernière.)
 //
 // (Une variante ROUGE a existé, pour le verset dont la traduction affichée ne porte pas le
 // mot. Plus rien ne l'appelait depuis que la ligne d'en-tête dit où le mot se trouve ; c'est
@@ -127,7 +140,7 @@ function surligneParts(texte: string, terme: string, mode: Mode, kb: string): Re
   if (!texte || !termes.length) return [texte]
   const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
   const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
-  const style = { background: 'var(--cs-vise-fond)', color: 'var(--cs-texte-fort)', fontWeight: 700, borderRadius: '4px', padding: '0 2px' }
+  const style = STYLE_TERME_TAPE
   try {
     const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
     const alt = termesN.map(echapperRegex).join('|')
@@ -824,10 +837,8 @@ export default function RechercheClient() {
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
         .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
-        .mode-btn { padding:5px 14px; font-size:0.6875rem; border:none; cursor:pointer; transition:background 0.12s,color 0.12s; }
-        .mode-btn--actif { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); font-weight:500; }
-        .mode-btn--inactif { background:var(--cs-surface); color:var(--cs-texte-second); }
-        .mode-btn--inactif:hover { background:var(--cs-fond-doux); }
+        /* (« .mode-btn » est parti avec le contrôle segmenté : le mode se prend désormais
+           en options de volet, dont la forme vit dans « stylesVoletLecture ».) */
         /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
         .poly-outer { border-radius:0 0 8px 8px; border:1px solid var(--cs-bord); border-top:none; box-shadow:var(--cs-ombre-flottante); overflow:hidden; }
         .poly-hd { background:var(--cs-vert-aplat-profond); display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
@@ -842,17 +853,32 @@ export default function RechercheClient() {
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
         .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:var(--cs-encre); background:var(--cs-vert-clair); border-top:1px solid var(--cs-vert-clair); border-bottom:1px solid var(--cs-vert-clair); text-align:center; }
-        .poly-row { display:grid; border-top:1px solid var(--cs-vert-pale); font-size:0.8125rem; text-decoration:none; }
-        .poly-num { padding:5px 4px; text-align:center; font-weight:700; font-size:0.71875rem; line-height:1.15; color:var(--cs-vert); border-right:1px solid var(--cs-vert-pale); white-space:nowrap; }
-        .poly-texte-cell { min-width:0; padding:5px 10px 6px; border-left:1px solid var(--cs-vert-pale); text-align:justify; text-align-last:left; hyphens:auto; -webkit-hyphens:auto; hyphenate-limit-chars:5 2 2; word-spacing:-0.06em; letter-spacing:-0.01em; line-height:1.26; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; color:var(--cs-encre-fonce); }
-        .poly-texte-cell::after { content:""; display:block; clear:both; }
-        .poly-texte-cell--absent { background:var(--cs-danger-fond); color:#7a1d16; }
-        .poly-lettrine { float:left; display:flex; flex-direction:column; align-items:flex-end; margin:0 8px 0 0; padding:0 7px 0 0; border-right:1px solid rgba(var(--cs-vert-rgb),0.22); font-family:var(--font-source-sans), Arial, sans-serif; font-weight:400; letter-spacing:0.03em; font-variant-numeric:tabular-nums; color:#6f8f7b; text-align:right; }
-        .poly-lettrine-item { position:relative; display:flex; align-items:center; justify-content:flex-end; height:1.26em; }
-        .poly-lettrine-ref { display:block; white-space:nowrap; font-size:0.53125rem; line-height:1; }
-        .poly-lettrine-ch { font-weight:400; color:#a9bcb0; }
-        .ctrl-sel { font-size:0.6875rem; padding:4px 8px; border:1px solid var(--cs-bord); border-radius:4px; background:var(--cs-surface); color:var(--cs-encre); outline:none; cursor:pointer; }
-        .ctrl-sel:focus { border-color:var(--cs-vert); }
+        /* ⛔ LA COLONNE SE COMPOSE COMME CELLE DE LA PAGE POLYGLOTTE, et la composition
+           vit dans « globals.css » — une seule déclaration, deux surfaces (demande de
+           l'auteur, 2026-09-04). Le commentaire d'au-dessus promettait des classes
+           « REPRISES TELLES QUELLES de la page de lecture » ; elles avaient dérivé sur
+           tout ce qui compte : texte en sans de 12 px contre une sérif de 14, référence
+           canonique dans une colonne bordée et centrée au lieu de la marge, lettrine
+           centrée dans son étui au lieu de se poser sur la ligne de base du texte, et
+           trois teintes écrites à la main là où la page de lecture emploie des jetons.
+           ⚠️ Ne restent ici que les règles PROPRES à cette surface : les filets qui
+           séparent les colonnes et les rangées, et le fond d'un verset dont la
+           traduction affichée ne porte pas le mot cherché.
+           ⚠️ Le corps monte de 13 à 14 px, celui de la page de lecture : la cellule le
+           tient de sa rangée, et c'est de lui que la lettrine tire la hauteur de son
+           étui (une ligne de texte, exactement). */
+        .poly-row { display:grid; border-top:1px solid var(--cs-vert-pale); font-size:0.875rem; text-decoration:none; }
+        .poly-texte-cell { border-left:1px solid var(--cs-vert-pale); }
+        .poly-texte-cell--absent { background:var(--cs-danger-fond); color:var(--cs-danger-fonce); }
+        /* ⛔ UN MENU DU VOLET NE PORTE NI CADRE NI FOND. Neuf bibles ne se posent pas en
+           neuf lignes dans un volet — c'est pourquoi ces deux axes gardent un menu là où
+           le mode passe en options —, mais le menu se dépouille comme tout le reste : il
+           prend l'encre et le corps d'une option, et le navigateur garde sa flèche, qui
+           suffit à le dire cliquable. Un fond léger au survol et au foyer, comme le champ
+           de recherche. */
+        .ctrl-sel { width:100%; font-size:0.71875rem; padding:2px 4px 2px 0; border:none; border-radius:4px; background:transparent; color:var(--cs-texte-second); outline:none; cursor:pointer; font-family:inherit; transition:background 0.12s, color 0.12s; }
+        .ctrl-sel:hover { background:rgba(var(--cs-vert-rgb),0.05); color:var(--cs-texte); }
+        .ctrl-sel:focus { background:var(--cs-fond-doux); color:var(--cs-encre); }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
@@ -878,15 +904,26 @@ export default function RechercheClient() {
 
             {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
             <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px' }}>
-              <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.75rem', letterSpacing:'0.12em', textTransform:'uppercase', color:'var(--cs-texte-doux)', fontWeight:400 }}>Recherche</span>
+              {/* ⛔ PLUS DE CAPITALES ESPACÉES en tête du volet : c'est le TITRE de la page,
+                  et il prend le rang que la charte donne à un titre de volet — celui que
+                  portent déjà l'Histoire, les péricopes et la page d'œuvre. Composé en
+                  0,75 rem gris pâle, il pesait moins que la première rubrique d'en dessous.
+                  ⚠️ La page n'avait AUCUN titre de niveau 1 : c'en est un maintenant. */}
+              <h1 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
               {done && (() => {
                 const total = versetsRes.length + segmentsRes.length + essaisRes.length
                 return <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-faible)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
               })()}
             </div>
 
+            {/* ── LE CHAMP EST SON PROPRE BLOC ──────────────────────────────────────
+                Il portait un filet, un rayon, un fond de surface et une ombre posée :
+                un objet encadré dans un volet où plus rien ne l'est. Il prend la forme
+                des volets de lecture (`.cs-volet-recherche`, globals.css) — rembourrage
+                DANS le champ, rien autour, un filet en pied qui le sépare de ce qu'il
+                commande, et un fond léger au seul foyer. */}
             {/* Champ principal */}
-            <div style={{ position:'relative', width:'100%' }}>
+            <div style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)' }}>
               <input ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
@@ -903,12 +940,13 @@ export default function RechercheClient() {
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                style={{ width:'100%', fontSize:'0.84375rem', padding:'8px 38px 8px 14px', border:'1px solid var(--cs-bord)', borderRadius:'8px', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box', boxShadow:'var(--cs-ombre-posee)' }} />
+                className="cs-volet-recherche"
+                style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box' }} />
               {query ? (
                 <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
-                  style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
+                  style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
               ) : (
-                <svg style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', color:'var(--cs-bord)', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
+                <svg style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', color:'var(--cs-bord)', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
                   <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
                   <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
                 </svg>
@@ -945,8 +983,8 @@ export default function RechercheClient() {
               {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
                   explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
               <div>
-                <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--cs-texte-doux)', margin:'0 0 5px', display:'flex', alignItems:'center', gap:'3px' }}>
-                  Mode
+                <p style={{ ...RUBRIQUE_AXE, margin:'0 0 3px', display:'flex', alignItems:'center', gap:'4px' }}>
+                  Mode de recherche
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
@@ -966,9 +1004,15 @@ export default function RechercheClient() {
                     </span>
                   </span>
                 </p>
-                <div style={{ display:'flex', border:'1px solid var(--cs-bord)', borderRadius:'4px', overflow:'hidden' }}>
-                  <button className={`mode-btn ${mode==='prefixe'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1 }} onClick={()=>setMode('prefixe')}>Début de mot</button>
-                  <button className={`mode-btn ${mode==='exact'?'mode-btn--actif':'mode-btn--inactif'}`} style={{ flex:1, borderLeft:'1px solid var(--cs-bord)' }} onClick={()=>setMode('exact')}>Mot exact</button>
+                {/* ⛔ Les deux boutons encadrés d'un filet — un contrôle segmenté — cèdent
+                    aux options en LIGNE du volet de lecture : une par rang, celle qui est
+                    retenue sur la pastille verte. C'est le geste des axes « Lecture » et
+                    « Commentaires » de la page Bible, et ce sont les mêmes objets de style. */}
+                <div>
+                  {([['prefixe','Début de mot'],['exact','Mot exact']] as [Mode, string][]).map(([k, lib]) => (
+                    <button key={k} className="cs-option-volet" style={OPTION_VOLET(mode === k)}
+                      aria-pressed={mode === k} onClick={() => setMode(k)}>{lib}</button>
+                  ))}
                 </div>
               </div>
               {/* « Chercher dans » (périmètre) et « Afficher en » (traduction montrée),
@@ -976,7 +1020,7 @@ export default function RechercheClient() {
                   jamais : il commande l'affichage quel que soit le périmètre. */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
                 <div>
-                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--cs-texte-doux)', margin:'0 0 4px' }}>Chercher dans</p>
+                  <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Chercher dans</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
                     onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
                     <option value="ALL">Toutes les bibles</option>
@@ -984,7 +1028,7 @@ export default function RechercheClient() {
                   </select>
                 </div>
                 <div>
-                  <p style={{ fontSize:'0.5625rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--cs-texte-doux)', margin:'0 0 4px' }}>Afficher en</p>
+                  <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Afficher en</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
                   </select>
@@ -1000,9 +1044,9 @@ export default function RechercheClient() {
                 <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid var(--cs-bord)', borderRadius:'8px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.12)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.06)')}>
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'transparent', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.08)')}
+                      onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
                       </svg>
@@ -1014,9 +1058,9 @@ export default function RechercheClient() {
                   {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
                   {rechercheSauvee && (
                     <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'100%', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.06)', border:'1px solid var(--cs-bord)', borderRadius:'8px', padding:'5px 10px', cursor:'pointer', transition:'background 0.12s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.12)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.06)')}>
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'transparent', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.08)')}
+                      onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
                         <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
@@ -1120,8 +1164,8 @@ export default function RechercheClient() {
 
           {/* En-tête polyglotte — hors du scroll (badge « recherche » retiré) */}
           {done && onglet==='polyglotte' && versetsRes.length > 0 && (
-            <div className="poly-hd" style={{ gridTemplateColumns:`46px repeat(${colTrads.length},minmax(0,1fr))`, flexShrink:0, margin:'12px 22px 0' }}>
-              {/* Cellule vide au-dessus de la colonne canonique (46px), pour aligner l'en-tête
+            <div className="poly-hd" style={{ gridTemplateColumns:`44px repeat(${colTrads.length},minmax(0,1fr))`, flexShrink:0, margin:'12px 22px 0' }}>
+              {/* Cellule vide au-dessus de la marge de référence (44px), pour aligner l'en-tête
                   sur la grille du corps. */}
               <div style={{ borderRight:'1px solid rgba(255,255,255,0.14)' }} />
               {colTrads.map((code, i) => {
@@ -1320,13 +1364,15 @@ export default function RechercheClient() {
             )}
 
             {/* ── Polyglotte — structure REPRISE de la page de lecture : grille avec colonne
-                de numéro canonique (46px) + une colonne par traduction, lettrine de référence
+                de référence canonique en marge (44px) + une colonne par traduction, lettrine
                 d'origine, texte justifié et césuré, zébrage vert, en-tête de livre = NOM SEUL. */}
             {done && onglet==='polyglotte' && (
               versetsFiltres.length===0
                 ? <Vide texte="Aucun verset trouvé." />
                 : (() => {
-                    const polyTmpl = `46px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
+                    // 44 px : la mesure de la marge de référence sur la page Polyglotte
+                    // (`LARGEUR_REF`). Les deux colonnes de tête se répondent enfin.
+                    const polyTmpl = `44px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
                     const livresVus = new Set<string>()
                     return (
                       <div className="poly-outer">
@@ -1350,8 +1396,14 @@ export default function RechercheClient() {
                               <a className="poly-row" style={{ gridTemplateColumns:polyTmpl, background:fond }}
                                 href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
                                 target="_blank" rel="noopener noreferrer">
-                                {/* Colonne canonique */}
-                                <div className="poly-num">{v.chapitre}, {v.verset}</div>
+                                {/* ⛔ LA RÉFÉRENCE CANONIQUE EST EN MARGE, non dans une colonne
+                                    bordée : elle accompagne le verset au lieu de l'encadrer, et
+                                    elle emprunte le strut de la cellule pour poser sa ligne de
+                                    base sur celle du texte. C'est la forme de la page Polyglotte
+                                    depuis le 2026-09-04. */}
+                                <div className="poly-marge-ref" style={{ color:'var(--cs-vert)' }}>
+                                  <span>{v.chapitre}, {v.verset}</span>
+                                </div>
                                 {/* Une colonne par traduction */}
                                 {colTrads.map((code, i) => {
                                   const lang = traductions.find(t => t.code === code)?.lang ?? 'fr'
