@@ -772,7 +772,7 @@ export default function TexteBible({
                     {v.verset}
                     {v.chapitre_alternatif != null && (
                       <span style={STYLE_NUMERO_ALTERNATIF}>
-                        {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `,${v.verset_alternatif}` : ''})
+                        {' '}({v.chapitre_alternatif}{v.verset_alternatif != null ? `, ${v.verset_alternatif}` : ''})
                       </span>
                     )}
                   </span>

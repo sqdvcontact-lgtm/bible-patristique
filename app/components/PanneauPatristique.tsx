@@ -24,6 +24,7 @@ import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import RailVolet from '@/app/components/RailVolet'
 import IconeChevron from '@/app/components/IconeChevron'
+import { capitaliserInitiale } from '@/app/lib/citation'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -380,9 +381,19 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
         </div>
       </div>
 
-      {/* Texte du segment */}
+      {/* Texte du segment.
+          ⚠️ L'INITIALE SE CAPITALISE, À L'AFFICHAGE SEUL (demande de l'auteur, 2026-09-04 :
+          « toute référence patristique citée dans le volet de droite doit comporter une
+          majuscule en début de phrase ; seulement à l'affichage »). Un extrait commence là
+          où le lien le prend, c'est-à-dire souvent au milieu d'une phrase de l'édition —
+          « aussi les Grecs lui ont-ils donné le nom de cosmos… » —, et il se lit alors
+          comme une phrase amputée. ⛔ La donnée ne bouge pas : c'est `capitaliserInitiale`,
+          la fonction qui sert déjà le presse-papiers des citations, et elle ne change
+          jamais la longueur du texte — les appels de note se posent par offset.
+          ⚠️ Elle passe AVANT `rendreTexteAvecNotes` : la capitale appartient au texte, non
+          au balisage, et l'appliquer après aurait demandé de descendre dans le rendu. */}
       <p lang="fr" style={{ fontSize:'0.78125rem', lineHeight:'1.38', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
-        {rendreTexteAvecNotes(s.segment_texte, parseNotes(s.notes))}
+        {rendreTexteAvecNotes(capitaliserInitiale(s.segment_texte), parseNotes(s.notes))}
       </p>
     </div>
   )

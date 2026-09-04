@@ -7,6 +7,7 @@ import {
   notesDuChapitreBilingue,
   rangeesNonVides,
   referenceNativeEnChiffres,
+  referenceNativeLisible,
   repartirBlocsDeCorps,
   type ColonneBilingue,
   type MembreBilingue,
@@ -143,5 +144,43 @@ describe('référence native imprimée', () => {
     // silence, on rend la référence telle quelle.
     expect(referenceNativeEnChiffres('IIII, 2')).toBe('IIII, 2')
     expect(referenceNativeEnChiffres('VV')).toBe('VV')
+  })
+})
+
+describe('référence native LISIBLE — la gouttière d’un verset', () => {
+  it('retire le code du livre', () => {
+    expect(referenceNativeLisible('ACT 1,22')).toBe('1, 22')
+    expect(referenceNativeLisible('1KI 1,1')).toBe('1, 1')
+    expect(referenceNativeLisible('TOB 9,9')).toBe('9, 9')
+    expect(referenceNativeLisible('PSA 13,3 extra')).toBe('13, 3 extra')
+  })
+
+  it('pose l’espace après la virgule', () => {
+    expect(referenceNativeLisible('50,25')).toBe('50, 25')
+    expect(referenceNativeLisible('50 , 25')).toBe('50, 25')
+    expect(referenceNativeLisible('50, 25')).toBe('50, 25')
+  })
+
+  it('convertit encore le chapitre romain de Fillion', () => {
+    expect(referenceNativeLisible('I, 1')).toBe('1, 1')
+    expect(referenceNativeLisible('XIV,3')).toBe('14, 3')
+  })
+
+  it('⛔ ne prend pas un chiffre romain pour un code de livre', () => {
+    expect(referenceNativeLisible('II, 3')).toBe('2, 3')
+    expect(referenceNativeLisible('XXIII, 45')).toBe('23, 45')
+  })
+
+  it('⛔ ne retire une tête que si ce qui suit est une référence', () => {
+    expect(referenceNativeLisible('Prologue')).toBe('Prologue')
+    expect(referenceNativeLisible('ACT Prologue')).toBe('ACT Prologue')
+    expect(referenceNativeLisible(null)).toBeNull()
+  })
+
+  it('est idempotente', () => {
+    for (const brut of ['ACT 1,22', '50,25', 'I, 1', 'Prologue']) {
+      const une = referenceNativeLisible(brut)
+      expect(referenceNativeLisible(une)).toBe(une)
+    }
   })
 })

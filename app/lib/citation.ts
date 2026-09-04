@@ -53,7 +53,15 @@ export function normaliserPonctuationFinale(texte: string): string {
 export function capitaliserInitiale(texte: string): string {
   return texte.replace(
     /^((?:<\/?[a-zA-Z]+>|[\s«»“”‘’"'([*_+^—–-])*)(\p{Ll})/u,
-    (_m, prefixe: string, lettre: string) => prefixe + lettre.toUpperCase(),
+    (_m, prefixe: string, lettre: string) => {
+      const capitale = lettre.toUpperCase()
+      // ⛔ La capitalisation ne change JAMAIS la longueur du texte. Elle sert aussi le
+      // volet patristique, dont le rendu pose les appels de note par OFFSET : une lettre
+      // dont la capitale s'écrit en deux signes (« ß » → « SS ») décalerait tout ce qui
+      // suit. On la laisse alors telle quelle : une initiale minuscule vaut mieux qu'un
+      // appel de note déplacé.
+      return capitale.length === lettre.length ? prefixe + capitale : prefixe + lettre
+    },
   )
 }
 

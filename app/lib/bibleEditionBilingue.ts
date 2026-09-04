@@ -178,6 +178,38 @@ export function lectureBilinguePossible(membres: readonly MembreBilingue[]): boo
   return new Set(membres.map((membre) => membre.id)).size >= 2
 }
 
+/** Une tête de code de livre — « ACT », « 1KI », « TOB » — suivie d'un blanc. */
+const TETE_CODE_LIVRE = /^[0-9]?[A-Z]{2,4}\s+/
+/** Ce qui, après elle, fait bien une référence : un chapitre, une virgule, un verset. */
+const SUITE_CHAPITRE_VERSET = /^(?:[0-9]+|[IVXLCDM]+)\s*,\s*[0-9]/
+
+/**
+ * La référence native TELLE QU'ON LA LIT dans la gouttière d'un verset : « 1, 22 ».
+ *
+ * ⛔ ELLE NE PORTE PAS LE NOM DU LIVRE (demande de l'auteur, 2026-09-04 : « je trouve
+ * “ACT 1,22” comme référence biblique : c'est une erreur ; on indique seulement “1, 22”,
+ * avec l'espace et sans le nom abrégé du livre »). La page dit déjà quel livre on lit,
+ * en titre et dans le volet ; la gouttière d'un verset ne le redit pas.
+ *
+ * ⚠️ Le code vient d'un REPLI, non de la donnée voulue : `metadata.native_reference`
+ * porte la référence seule, et 28 656 segments l'ont ; 18 197 autres retombent sur
+ * `editorial_label`, qui est le libellé humain du segment et porte donc son livre (voir
+ * `bibleReferenceNative`). On corrige à l'AFFICHAGE : la donnée reste ce qu'elle est.
+ *
+ * ⛔ On ne retire la tête que si ce qui suit est vraiment une référence : « Prologue »
+ * n'est pas un code de livre, et « II, 3 » n'en est pas un non plus — un chiffre romain
+ * n'est jamais suivi d'un blanc puis d'un couple chapitre-verset.
+ */
+export function referenceNativeLisible(reference: string | null): string | null {
+  if (reference === null) return null
+  const tete = reference.match(TETE_CODE_LIVRE)
+  const sansLivre = tete && SUITE_CHAPITRE_VERSET.test(reference.slice(tete[0].length))
+    ? reference.slice(tete[0].length)
+    : reference
+  // L'espace après la virgule est celle de la composition française des références.
+  return referenceNativeEnChiffres(sansLivre.replace(/\s*,\s*/g, ', '))
+}
+
 const VALEUR_ROMAINE: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
 
 /**

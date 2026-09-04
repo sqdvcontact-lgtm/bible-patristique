@@ -45,7 +45,7 @@ import {
   apparierRangees,
   colonnesBilingues,
   rangeesNonVides,
-  referenceNativeEnChiffres,
+  referenceNativeLisible,
   repartirBlocsDeCorps,
   repartirIllustrations,
   notesDuChapitreBilingue,
@@ -279,7 +279,7 @@ export default function BibleBilingue({
                   ) : (
                     <div style={STYLE_LIGNE_VERSET}>
                       <span style={STYLE_REFERENCE}>
-                        {referenceNativeEnChiffres(cellule.referenceNative)}
+                        {referenceNativeLisible(cellule.referenceNative)}
                       </span>
                       <p style={membre.memberRole === 'source_text' ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
                         {cellule.texte}
