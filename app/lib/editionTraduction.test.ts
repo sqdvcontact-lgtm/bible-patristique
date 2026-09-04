@@ -57,3 +57,20 @@ describe('libelleEditionTraduction — la phrase de la page de titre', () => {
     expect(libelleEditionTraduction({ datePublication: 'vers 1260' })).toBe('D’après l’édition de vers 1260')
   })
 })
+
+describe('les lieux d’une co-édition', () => {
+  it('joint les lieux par un TRAIT D’UNION, l’éditeur gardant son point-virgule', () => {
+    // Bible Crampon : trois villes, deux maisons. Séparés tous deux par « ; »,
+    // on ne voyait plus où le lieu finit ni où l’éditeur commence.
+    expect(libelleEditionTraduction({
+      datePublication: '1894-1904 ; révision présentée : 1923',
+      lieuEdition: 'Paris ; Tournai ; Rome',
+      editeur: 'Desclée et Cie ; Société de S. Jean l’Évangéliste',
+    })).toBe('D’après l’édition de Paris-Tournai-Rome, Desclée et Cie ; Société de S. Jean l’Évangéliste, 1923')
+  })
+
+  it('laisse un lieu unique intact', () => {
+    expect(libelleEditionTraduction({ datePublication: '1730', lieuEdition: 'Paris', editeur: 'Jean Desessartz ; Guillaume Desprez' }))
+      .toBe('D’après l’édition de Paris, Jean Desessartz ; Guillaume Desprez, 1730')
+  })
+})

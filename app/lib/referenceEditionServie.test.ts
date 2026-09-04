@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { segmentsReferenceEdition, texteReferenceEdition } from './referenceEditionServie'
+import { joindreLieux, segmentsReferenceEdition, texteReferenceEdition } from './referenceEditionServie'
 
 const FILLION = {
   titreEdition: 'La Sainte Bible (texte latin et traduction française), commentée d’après la Vulgate et les textes originaux, à l’usage des séminaires et du clergé',
@@ -59,5 +59,21 @@ describe('referenceEditionServie — la référence des volumes utilisés', () =
     expect(champs).toContain('lieu')
     expect(champs).toContain('editeur')
     expect(champs).toContain('annee')
+  })
+})
+
+describe('joindreLieux', () => {
+  it('joint plusieurs lieux par un trait d’union', () => {
+    expect(joindreLieux('Paris ; Tournai ; Rome')).toBe('Paris-Tournai-Rome')
+  })
+
+  it('laisse un lieu unique tel quel, espaces compris', () => {
+    expect(joindreLieux('Bar-le-Duc')).toBe('Bar-le-Duc')
+    expect(joindreLieux(null)).toBeNull()
+  })
+
+  it('la référence des volumes suit la même règle', () => {
+    expect(texteReferenceEdition({ titreEdition: 'La Sainte Bible', lieuEdition: 'Paris ; Tournai ; Rome', editeur: 'Desclée et Cie ; Société de S. Jean l’Évangéliste', anneeEdition: '1923' }))
+      .toBe('La Sainte Bible, Paris-Tournai-Rome, Desclée et Cie ; Société de S. Jean l’Évangéliste, 1923.')
   })
 })

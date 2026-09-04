@@ -58,6 +58,26 @@ function propre(valeur: string | null | undefined): string | null {
 }
 
 /**
+ * LES LIEUX D'UNE CO-ÉDITION SE JOIGNENT PAR UN TRAIT D'UNION.
+ *
+ * La base sépare les valeurs multiples d'un champ par un point-virgule —
+ * « Paris ; Tournai ; Rome » —, ce qui est juste dans une colonne et illisible
+ * dans une PHRASE : les mentions d'une adresse s'y séparent par des virgules, et
+ * l'œil ne sait plus où le lieu finit ni où l'éditeur commence. La forme imprimée
+ * est « Paris-Tournai-Rome », et c'est celle qu'employait la notice de la Bible
+ * Crampon avant que la référence ne se compose depuis les champs.
+ *
+ * ⛔ L'ÉDITEUR garde son point-virgule, lui : c'est le séparateur normatif de
+ * plusieurs éditeurs responsables (charte § 5), et deux maisons jointes par un
+ * trait d'union se liraient comme une seule.
+ */
+export function joindreLieux(lieu: string | null): string | null {
+  if (!lieu) return null
+  const parts = lieu.split(';').map(p => p.trim()).filter(Boolean)
+  return parts.length > 1 ? parts.join('-') : lieu
+}
+
+/**
  * La référence, fragment par fragment.
  *
  * Forme attendue, ponctuation comprise :
@@ -89,7 +109,7 @@ export function segmentsReferenceEdition(edition: EditionServie): SegmentReferen
   // unique est le cas ordinaire, et le dire ne renseigne personne.
   const tomes = edition.nombreTomes
   for (const mention of [
-    { champ: 'lieu' as const, texte: propre(edition.lieuEdition) },
+    { champ: 'lieu' as const, texte: joindreLieux(propre(edition.lieuEdition)) },
     { champ: 'editeur' as const, texte: propre(edition.editeur) },
     { champ: 'annee' as const, texte: propre(edition.anneeEdition) },
     { champ: null, texte: typeof tomes === 'number' && tomes > 1 ? `${tomes} vol.` : null },

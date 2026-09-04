@@ -37,6 +37,7 @@
 // Module pur, testé par editionTraduction.test.ts.
 
 import { parserDateHistorique, type BorneDateHistorique } from './datesHistoriques'
+import { joindreLieux } from './referenceEditionServie'
 
 /** Ce que la carte sait de l'édition servie : la date rédigée de la traduction,
  *  puis le lieu et l'éditeur de sa fiche d'édition (`editions_sources`). */
@@ -78,7 +79,9 @@ export function libelleEditionTraduction(source: SourceEditionTraduction): strin
   const dates = datesEdition(source.datePublication)
   // ⛔ Pas de date, pas d'édition : voir l'en-tête (le manuscrit Français 899).
   if (!dates) return null
-  const adresse = [source.lieuEdition, source.editeur, dates]
+  // ⚠️ Les LIEUX d'une co-édition se joignent par un trait d'union, les ÉDITEURS
+  // gardent leur point-virgule : voir `joindreLieux`, qui en donne la raison.
+  const adresse = [joindreLieux((source.lieuEdition ?? '').trim() || null), source.editeur, dates]
     .map(part => (part ?? '').trim())
     .filter(Boolean)
     .join(', ')
