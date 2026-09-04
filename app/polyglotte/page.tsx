@@ -42,7 +42,10 @@ import {
   MENTION_ABSENT, MENTION_ABSENT_TITRE, MENTION_DEUTERO, MENTION_LACUNE, MENTION_LACUNE_TITRE,
   STYLE_INVITE, STYLE_MENTION, STYLE_MENTION_LACUNE,
 } from '@/app/lib/compositionBible'
-import { colorMix } from '@/app/lib/couleurs'
+// ⛔ `colorMix` est parti avec les pilules de « Traductions visibles » : plus aucun
+// réglage du volet ne pose de fond teinté.
+import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { comparerParMillesime, millesimeEdition, type RangeableParMillesime } from '@/app/lib/millesimeEdition'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string };
@@ -68,15 +71,10 @@ const couche899De = (id: string): Couche899 => (id === TRAD_ID_899_DIPLO ? "dipl
 // traduction, en petites capitales espacées, il se lit pour ce qu'il est. Une date sous
 // un titre n'a pas besoin qu'on la présente. L'année retenue est celle de l'édition-source
 // (dernier millésime qu'elle cite), à défaut la fin de la période de publication.
-function editionTrad(t: { source_edition?: string | null; publication_fin_annee?: number | null }): string | null {
-  let annee: string | null = null;
-  if (t.source_edition) {
-    const millesimes = t.source_edition.match(/\d{4}/g);
-    if (millesimes?.length) annee = millesimes[millesimes.length - 1];
-  }
-  if (!annee && t.publication_fin_annee) annee = String(t.publication_fin_annee);
-  return annee;
-}
+// ⛔ La dérivation et l'ordre vivent dans `app/lib/millesimeEdition.ts`, module PUR
+// testé sur les dix notices réelles du corpus : lire une date dans de la prose est la
+// partie fragile du dispositif, et elle ne s'éprouve pas depuis une page.
+const editionTrad = millesimeEdition;
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
 type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
@@ -728,8 +726,17 @@ type Membre = { trad: Trad; libelle: string; titre?: string };
 type Famille = { cle: string; principal: Trad; membres: Membre[] };
 type Entree = { sorte: "trad"; trad: Trad } | { sorte: "famille"; famille: Famille };
 
-// Le menu, groupe de langue par groupe de langue, familles comprises. L'ordre reste
-// celui de la base ; une famille prend simplement la place de son membre principal.
+// Ce qu'il faut d'une entrée pour la ranger : son millésime et son rang de base. Une
+// FAMILLE se range sur son membre PRINCIPAL, qui est le nom sous lequel elle paraît.
+const clefDeRang = (e: Entree): RangeableParMillesime => {
+  const t = e.sorte === "famille" ? e.famille.principal : e.trad;
+  return { millesime: t.edition, ordre: t.ordre };
+};
+const comparerParDate = (a: Entree, b: Entree) => comparerParMillesime(clefDeRang(a), clefDeRang(b));
+
+// Le menu, groupe de langue par groupe de langue, familles comprises. Chaque groupe est
+// rangé par DATE (demande de l'auteur, 2026-09-04) ; une famille prend la place de son
+// membre principal, et se range donc au millésime de celui-ci.
 function entreesParLangue(trads: Trad[]): Map<string, Entree[]> {
   const parId = new Map(trads.map(t => [t.trad_id, t]));
   const familles = new Map<string, Famille>();   // trad_id du principal → sa famille
@@ -756,8 +763,32 @@ function entreesParLangue(trads: Trad[]): Map<string, Entree[]> {
     if (f) poser(t.lang, { sorte: "famille", famille: f });
     else if (!absorbes.has(t.trad_id)) poser(t.lang, { sorte: "trad", trad: t });
   }
+  for (const [lang, liste] of parLangue) parLangue.set(lang, [...liste].sort(comparerParDate));
   return parLangue;
 }
+
+// ── Un RÉGLAGE du volet ne se compose pas en boutons ──────────────────────────
+// « Traductions visibles » alignait cinq pilules bordées et arrondies pour un réglage
+// qu'on touche une fois par visite : cinq cadres, cinq fonds, cinq rayons, dans un volet
+// où la liste des livres n'en porte aucun (décision de l'auteur, 2026-09-04 : « remettre
+// en forme de façon plus élégante, sans effet “bouton” »). Les valeurs se lisent
+// désormais en clair ; la retenue prend l'accent et la demi-graisse, les autres l'encre
+// douce. ⛔ Ni cadre, ni fond, ni rayon.
+//
+// ⚠️ UNE ÉCHELLE se lit en RANG, des interrupteurs INDÉPENDANTS se lisent en COLONNE.
+// « Auto · 2 · 3 · 4 · 5 » est une échelle de cinq valeurs courtes dont on ne retient
+// qu'une : le rang la donne d'un coup d'œil, et le point médian est le séparateur du
+// site. « Lignes problématiques » et « Surnuméraires » sont deux états qu'on allume ou
+// qu'on éteint, et longs : une option par ligne, comme le volet de la page Bible.
+const CHOIX_DISCRET = (actif: boolean, teinte: string): React.CSSProperties => ({
+  background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left",
+  fontFamily: "var(--font-source-sans), Arial, sans-serif",
+  fontSize: "0.6875rem", lineHeight: 1.4,
+  fontWeight: actif ? 600 : 400,
+  color: actif ? teinte : "var(--cs-texte-doux)",
+  whiteSpace: "nowrap",
+});
+const POINT_DISCRET: React.CSSProperties = { color: "var(--cs-texte-faible)", fontSize: "0.6875rem", lineHeight: 1.4, userSelect: "none" };
 
 const LARGEUR_VOLET = 238;   // le volet d'une famille, posé au côté du menu
 
@@ -829,10 +860,20 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     });
   };
 
-  const ligne = (actif: boolean): React.CSSProperties => ({
+  // ⛔ UNE TRADUCTION DÉJÀ AFFICHÉE AILLEURS SE GRISE, elle ne s'annonce pas en ocre
+  // (décision de l'auteur, 2026-09-04 : « grise légèrement le bloc de l'œuvre déjà
+  // utilisée ; n'utilise pas d'ocre pour le texte qui signale ça »). L'ocre est la
+  // teinte de l'ATTENTE — « à normaliser », « brouillon » —, et une colonne déjà prise
+  // n'est ni l'un ni l'autre : c'est un fait, non un défaut. Le gris le dit sans
+  // interdire le choix, qui reste offert et échange les deux colonnes.
+  // ⚠️ Le fond de repos se calcule ICI et nulle part ailleurs : le survol le remplace,
+  // et le quitter doit le RENDRE — poser « transparent » au départ effaçait le gris.
+  const fondRepos = (actif: boolean, ailleurs: boolean) =>
+    actif ? "rgba(var(--cs-vert-rgb),0.10)" : ailleurs ? "var(--cs-fond-doux)" : "transparent";
+  const ligne = (actif: boolean, ailleurs = false): React.CSSProperties => ({
     display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
     padding: "7px 10px", borderRadius: 4, border: "none", cursor: "pointer",
-    background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "transparent",
+    background: fondRepos(actif, ailleurs),
     fontFamily: "var(--font-source-sans), Arial, sans-serif",
   });
   const coche = (actif: boolean) => (
@@ -850,15 +891,21 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
     return (
       <button key={t.trad_id} role="menuitemradio" aria-checked={actif} title={titre} onClick={() => choisir(t.trad_id)}
-        style={ligne(actif)}
+        style={ligne(actif, ailleurs)}
         onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)"; }}
-        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "transparent"; }}>
+        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = fondRepos(actif, ailleurs); }}>
         {coche(actif)}
         <span style={{ minWidth: 0 }}>
-          <span style={NOM_OPTION}>{libelle ?? t.nom}</span>
+          {/* ⚠️ Le nom se COMPOSE : « Bible française du XIIIe siècle » y prend ses petites
+              capitales et son exposant, et un titre entre astérisques son italique. C'est
+              `rendreEnrichi`, le module partagé avec les notices d'auteur — ⛔ jamais un
+              rendu HTML sur une colonne rédigée hors du dépôt. */}
+          <span style={{ ...NOM_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-gris)" } : null) }}>
+            {rendreEnrichi(libelle ?? t.nom)}
+          </span>
           <span style={SOUS_OPTION}>
             {t.edition ?? ""}
-            {ailleurs && courante && <span style={{ color: 'var(--cs-attente)' }}>{t.edition ? " · " : ""}Échange avec la position de {courante.nom}</span>}
+            {ailleurs && courante && <span style={{ color: "var(--cs-texte-faible)" }}>{t.edition ? " · " : ""}Échange avec la position de {rendreEnrichi(courante.nom)}</span>}
           </span>
         </span>
       </button>
@@ -882,8 +929,11 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
         onKeyDown={e => { if (e.key === "ArrowRight" || e.key === "Enter" || e.key === " ") { e.preventDefault(); deployer(f.cle, e.currentTarget, f.membres.length); } }}
         style={{ ...ligne(!!actifMembre), background: deploye && !actifMembre ? "rgba(var(--cs-vert-rgb),0.06)" : ligne(!!actifMembre).background, alignItems: "center" }}>
         {coche(!!actifMembre)}
+        {/* ⛔ Une FAMILLE ne se grise pas quand un de ses textes est affiché ailleurs :
+            les autres restent libres, et la griser dirait le contraire. Le gris se pose
+            sur les MEMBRES, dans le volet, qui passent par `optionTrad`. */}
         <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={NOM_OPTION}>{f.principal.nom}</span>
+          <span style={NOM_OPTION}>{rendreEnrichi(f.principal.nom)}</span>
           <span style={SOUS_OPTION}>{sous}</span>
         </span>
         <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: "var(--cs-texte-doux)" }}>
@@ -903,15 +953,28 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
             en petites capitales de l'échelle haute, le millésime un rang plus bas, le chevron
             plus bas encore — c'est une marque d'ouverture, pas un accent. */}
         <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.12 }}>
+          {/* ⚠️ Le nom se COMPOSE (`rendreEnrichi`) : « Bible française du XIIIe siècle »
+              y prend ses petites capitales et son exposant. */}
           <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
-            {courante?.nom ?? "Choisir une traduction"}
+            {courante ? rendreEnrichi(courante.nom) : "Choisir une traduction"}
           </span>
-          {/* Sous le nom : l'état du texte quand l'édition en porte plusieurs (deux
-              colonnes de la Bible du XIIIe siècle ne se distingueraient pas autrement),
-              le millésime sinon. */}
-          {(courante?.variante ?? courante?.edition) && (
-            <span style={{ display: "block", marginTop: 8, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-gris)" }}>
-              {courante?.variante ?? courante?.edition}
+          {/* ⛔ SOUS LE NOM, C'EST LA DATE, et rien d'autre ne prend sa place (décision de
+              l'auteur, 2026-09-04 : « c'est indiqué “Texte du manuscrit” et non une date ;
+              c'est problématique »). L'état du texte s'y substituait dès que l'édition en
+              porte plusieurs, si bien que la Bible du XIIIe siècle était la seule colonne
+              du tableau sans millésime — celle, précisément, dont la date importe le plus.
+              ⚠️ L'état du texte reste NÉCESSAIRE : deux colonnes d'une même édition ne se
+              distingueraient pas autrement. Il descend d'une ligne, sous la date, dans une
+              encre plus pâle et sans la chasse du millésime : c'est une glose, pas un
+              second repère. */}
+          {courante?.edition && (
+            <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-gris)" }}>
+              {courante.edition}
+            </span>
+          )}
+          {courante?.variante && (
+            <span style={{ display: "block", marginTop: 1, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>
+              {courante.variante}
             </span>
           )}
         </span>
@@ -1606,8 +1669,20 @@ export default function PolyglottePage() {
            en deux lignes : titre en sérif, millésime plus discret. ⚠️ Les deux états
            prenaient un voile BLANC translucide, juste sur l'ancien aplat vert et invisible
            sur le papier : ils passent à l'accent du site. */
+        /* Un réglage du volet, en clair : au survol il se fonce d'un rang, il ne
+           s'encadre pas. ⛔ La valeur RETENUE ne bouge pas au survol — elle porte déjà
+           l'accent, et la faire changer d'encre laisserait croire qu'on va l'éteindre. */
+        .poly-choix:not([aria-pressed="true"]):hover { color: var(--cs-texte-second); }
         .poly-trad-pick:hover { background: rgba(var(--cs-vert-rgb),0.07); }
-        .poly-trad-pick:focus-within { box-shadow: inset 0 0 0 1px rgba(var(--cs-vert-rgb),0.45); }
+        /* ⛔ PAS DE FILET AUTOUR DU TITRE quand le menu s'ouvre (décision de l'auteur,
+           2026-09-04). Un cadre d'un pixel posé sur un en-tête de colonne redessine une
+           boîte là où la page n'en porte aucune, et il paraissait au CLIC de souris —
+           une règle « focus-within » sur un bouton sans enfant focalisable n'est qu'un
+           « focus ». Le menu ouvert garde simplement le sol du survol : la colonne reste
+           désignée, sans qu'un trait s'ajoute à la réglure du tableau. ⚠️ Le clavier, lui,
+           garde son anneau : c'est la règle « focus-visible » globale de globals.css, qui
+           pose un contour et non un cadre intérieur. */
+        .poly-trad-pick[aria-expanded="true"] { background: rgba(var(--cs-vert-rgb),0.07); }
         /* La référence d'origine en LETTRINE : un petit bloc flottant, posé au début du
            verset, que le texte vient habiller comme une initiale ornée. Le filet à droite
            la tient à distance sans l'enfermer dans un cadre. */
@@ -1765,16 +1840,17 @@ export default function PolyglottePage() {
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
           <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
             <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Traductions visibles</span>
-            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-              {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val]) => {
+            <div style={{ display: "flex", alignItems: "baseline", gap: "5px", flexWrap: "wrap" }}>
+              {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => {
                 const actif = nbTradPref === val;
                 return (
-                  <button key={lbl} onClick={() => setNbTradPref(val)}
-                    style={{ fontSize: "0.625rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                      border: `1px solid ${actif ? VERT : "var(--cs-bord)"}`, background: actif ? "rgba(var(--cs-vert-rgb),0.10)" : "var(--cs-surface)", color: actif ? VERT : "var(--cs-texte-second)",
-                      fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
-                    {lbl}
-                  </button>
+                  <Fragment key={lbl}>
+                    {rang > 0 && <span aria-hidden style={POINT_DISCRET}>·</span>}
+                    <button onClick={() => setNbTradPref(val)} aria-pressed={actif}
+                      className="poly-choix" style={CHOIX_DISCRET(actif, VERT)}>
+                      {lbl}
+                    </button>
+                  </Fragment>
                 );
               })}
             </div>
@@ -1786,7 +1862,11 @@ export default function PolyglottePage() {
           {estAdmin && (
             <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
               <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Relecture</span>
-              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+              {/* Deux interrupteurs INDÉPENDANTS, donc une option par ligne : leurs
+                  libellés sont longs, et un rang les ferait retomber en escalier dans un
+                  volet de 200 px. La teinte reste celle de chacun — c'est elle qui dit
+                  ce que le filtre montre. */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "2px" }}>
                 {([["sensibles", sensiblesOnly, "var(--cs-danger)", "Lignes problématiques"],
                    ["surnum", surnumOnly, "var(--cs-surnum)", "Surnuméraires"]] as const).map(([cle, actif, teinte, libelle]) => (
                   <button key={cle}
@@ -1795,11 +1875,7 @@ export default function PolyglottePage() {
                       else { setSurnumOnly(!actif); if (!actif) { setSensiblesOnly(false); setToutAfficher(false); } }
                     }}
                     aria-pressed={actif}
-                    style={{ fontSize: "0.625rem", fontWeight: actif ? 600 : 400, padding: "2px 9px", borderRadius: "999px", cursor: "pointer",
-                      border: `1px solid ${actif ? teinte : "var(--cs-bord)"}`,
-                      background: actif ? colorMix(teinte, 12) : "var(--cs-surface)",
-                      color: actif ? teinte : "var(--cs-texte-second)",
-                      fontFamily: "var(--font-source-sans), Arial, sans-serif", whiteSpace: "nowrap" }}>
+                    className="poly-choix" style={CHOIX_DISCRET(actif, teinte)}>
                     {libelle}
                   </button>
                 ))}
