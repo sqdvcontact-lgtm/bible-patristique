@@ -4733,3 +4733,32 @@ propres à l'onglet « Sommaire » (les pièces liminaires de Fillion) :
   la flèche tombait au BAS du volet, à deux mille pixels de l'endroit où elle se trouve
   sous l'onglet « Livres ». Elle est remontée avant le sommaire. Un contrôle qui change de
   bout d'écran selon l'onglet ne s'apprend jamais.
+
+## ⛔ Le chevron de repli se pose dans le COIN INTÉRIEUR du volet (2026-09-04, soir)
+
+Doctrine : charte `parametres.charte_ia`, § 38.5. Règles de code :
+
+- **Il vit dans `EncartTraduction`** (prop `onReduire`), au bout de la ligne du nom, et
+  non plus au bout du champ de recherche. À cet endroit-là, un chevron de quatorze pixels
+  se lisait comme une marque du CHAMP — une croix d'effacement, une loupe — et l'auteur
+  l'a cherché sans le voir alors qu'il était bien rendu. C'est la place qu'occupe le
+  chevron du volet de la Polyglotte et celui du volet des Pères.
+- ⚠️ **Il ne se confond pas avec la flèche de `NomVolet`** : celle-là suit le TEXTE, à
+  l'intérieur du lien, et annonce la fiche ; celui-ci se tient au BORD de la carte et
+  pointe vers le bord où le volet va se ranger.
+- ⛔ **`.cs-volet-reduire` porte sa couleur, pas le style en ligne.** Les deux volets
+  partagent la classe : `--cs-texte-doux` au repos (un rang au-dessus du texte faible, où
+  quatorze pixels ne se trouvent pas) et `--cs-vert` au survol. Posée en ligne, la
+  couleur battrait la règle de survol — piège payé quatre fois dans ce dépôt.
+- ⚠️ La rangée du champ de recherche redevient **celle du champ** : elle disparaît de
+  nouveau sous l'onglet « Sommaire », le repli ne dépendant plus d'elle. La complication
+  posée le matin même (rangée réduite à la flèche, remontée avant le sommaire) tombe avec.
+
+## ⛔ Une rubrique ne redit pas ce que la fiche porte en tête (2026-09-04)
+
+« Responsable de l'édition » quitte « Édition et état du texte » : il portait le plus
+souvent le nom déjà écrit deux centimètres plus haut — « Louis-Claude Fillion ; édition
+numérique : Corpus Scriptura » sous « Traduction de Louis-Claude Fillion ». ⚠️ Le champ
+`responsable_edition` reste LU : `intituleTraduction` le nomme pour une ÉDITION CRITIQUE,
+dans l'intitulé qui suit le nom, là où il apprend quelque chose. ⛔ Il ne décide donc plus
+non plus que la rubrique paraisse (`aEdition`).
