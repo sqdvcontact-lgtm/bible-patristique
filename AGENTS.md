@@ -1937,6 +1937,18 @@ Trois workflows, et une leçon.
 - ⚠️ **Tous les signalements ne sont pas des défauts.** Une lecture de `localStorage` dans un effet est correcte, l’effet étant le bon outil pour un système extérieur. Corriger `set-state-in-effect` en série casserait des comportements pour gagner un rendu : chaque cas demande de comprendre l’intention.
 
 
+# ⛔ Un objet qui SE DÉPLACE d’une cible à l’autre porte une CLÉ (2026-09-03)
+
+Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle des traductions parallèles — n’est pas rendue une fois par segment : c’est **un seul composant** qui suit le pointeur. Sans `key`, React réutilise l’instance quand elle change de cible, et **l’état de ses boutons passe à la cible suivante**.
+
+- ⛔ **Le remède tient en deux moitiés, et il faut les deux.** La `key` sur la cellule (`key={s.id}`) remet à neuf les états qu’on garde légitimement — le « ✓ » d’une copie, une fenêtre de signalement ouverte. Et le bouton qui dit un ÉTAT DE DONNÉE n’en garde aucun : il le lit dans la page et lui dit chaque geste (`dejaSauvegarde` / `onChangement(true|false)`).
+- ⛔ **Un rappel qui ne sait qu’AJOUTER ment une fois sur deux.** Le signet appelait le même `onSauvegarde()` pour prélever ET pour retirer, et la page ne savait qu’ajouter : un segment retiré restait dans l’ensemble. La bascule d’en face (`if (has) delete else add`) n’était pas meilleure — elle reposait sur une croyance fausse, « la barre est remontée à chaque affichage ». **Le geste DIT ce qu’il a fait ; on ne le devine ni par l’ajout systématique ni par l’inversion.**
+- ⛔ **Une suppression vise la CLÉ NATURELLE, jamais un identifiant retenu au moment de l’écriture.** L’identifiant appartient à l’instance ; la clé (`user_id` + `segment_id`) appartient à ce que le bouton montre. C’est vrai d’une séance à l’autre, cela vaut une requête au lieu de deux, et un doublon déjà en base part avec.
+- ⚠️ **Le défaut passe pour un défaut de DONNÉES**, et c’est ce qui l’a fait vivre : l’auteur voyait trois prélèvements là où il n’en avait voulu qu’un (segments 248, 249 et 251 de *Du symbole*, 3 septembre 2026). Le clic n’insérait pourtant qu’une ligne, et le trigger `resoudre_prelevement_segment` ne multiplie rien. Trois conséquences d’une seule cause : les voisins d’un segment prélevé se montraient prélevés sans l’être ; les retirer effaçait le prélèvement du PREMIER, en silence ; et, après un retrait, un segment réellement prélevé se montrait libre, si bien qu’un nouveau clic en écrivait un doublon.
+- ⚠️ **Ni les types, ni les 1 606 tests, ni la relecture du composant ne le voient** : le composant est juste, c’est sa RÉUTILISATION qui ne l’est pas. Il se reproduit en survolant deux cibles à la suite, dans la page servie.
+
+⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
+
 # Appels aux routes admin — le verrou renvoie une REDIRECTION, pas une erreur
 
 ⚠️ Quand la session n'est pas reconnue, `proxy.ts` ne répond pas par un 401 : il **redirige** vers `/chantier?suite=…`. Or `fetch` suit les redirections par défaut, si bien qu'un appel à `/api/admin/…` revient en **`200` porteur de HTML** et satisfait `res.ok`. Le seul symptôme est un « Unexpected token < » au `res.json()`, généralement avalé par un `catch`.
