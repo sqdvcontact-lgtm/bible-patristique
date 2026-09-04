@@ -89,6 +89,7 @@ import { useState } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
 import NomVolet from '@/app/components/NomVolet'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 export type TraductionEncart = {
   code: string
@@ -130,7 +131,7 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
           avec les deux. */}
       {/* ⚠️ Une FLÈCHE COURTE suit le nom, et c'est elle qui annonce la fiche
           (2026-09-04) : elle vit dans `NomVolet`, avec sa raison. */}
-      <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{trad.label}</NomVolet>
+      <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
       {/* Le TRADUCTEUR, avec ses dates de vie complètes. La langue de la bible se lit
           dans la fiche « En savoir plus », que le nom ouvre.
           ⛔ Plus de repli sur `label` : le nom de la bible est écrit une ligne plus
@@ -138,8 +139,12 @@ export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {
           pour mot. Sans traducteur nommé, elle porte un tiret, qui dit au moins que
           la place existe et qu'on ne l'a pas remplie. */}
       <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.35 }}>
-        {trad.auteur || '—'}
-        {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> ({trad.auteurDates})</span>}
+        {/* ⚠️ Le nom et les dates se COMPOSENT, comme dans le menu central et dans la
+            fiche : « Bible française du XIIIe siècle » et « (XIIIe siècle) » y prennent
+            leurs petites capitales et leur exposant. La carte les rendait bruts, à un
+            centimètre d'un menu qui les compose. */}
+        {trad.auteur ? rendreEnrichi(trad.auteur) : '—'}
+        {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> {rendreEnrichi(`(${trad.auteurDates})`)}</span>}
       </span>
       {/* L'ÉDITION, dans la serif et le corps des pages de titre. La phrase tient sur
           une ou deux lignes quel que soit le volet, et n'a donc ni budget ni mesure —
