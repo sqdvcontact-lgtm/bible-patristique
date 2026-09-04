@@ -723,6 +723,17 @@ button:focus-visible,
   .cs-bible-gravure--flottante { float: none !important; margin: 0.75rem auto !important; width: 60% !important; }
 }
 
+/* ── LE RAIL D'UN VOLET REPLIÉ ────────────────────────────────────────────────
+   Une bande de trente pixels qu'on clique pour rouvrir le volet. ⚠️ Le survol la
+   FONCE d'un rang : c'est le seul état d'une surface qui ne porte ni cadre ni fond
+   propre, et sans lui rien ne dit qu'on peut la toucher. Le libellé remonte d'un
+   rang d'encre en même temps, comme les rangées de liste du site.
+   ⛔ Il vit dans la feuille et non en style en ligne : une déclaration en ligne bat
+   toute règle de feuille sans « important », piège déjà payé trois fois ici. */
+.cs-rail-volet { transition: background 0.14s, color 0.14s; }
+.cs-rail-volet:hover { background: var(--cs-fond-doux); }
+.cs-rail-volet:hover span { color: var(--cs-texte-second); }
+
 /* Champs sur fond vert/sombre : l'anneau vert ne contrasterait pas → anneau clair. */
 .cs-focus-clair:focus-visible {
   outline-color: rgba(255, 255, 255, 0.9) !important;

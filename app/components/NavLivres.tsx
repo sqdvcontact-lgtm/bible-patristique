@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import EncartTraduction, { type TraductionEncart } from '@/app/components/EncartTraduction'
+import RailVolet from '@/app/components/RailVolet'
 import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
@@ -129,6 +130,9 @@ type Props = {
   onChoisirLivre?: (code: string) => void   // si fourni, remplace la navigation par URL
   sansChapitres?: boolean                   // masque la grille des chapitres
   titre?: string                            // libellé du volet replié
+  /** Ce que le rail écrit quand le volet est fermé : une ACTION, « Ouvrir les
+   *  livres ». ⚠️ À défaut, il se compose depuis `titre`, qui nomme le contenu. */
+  libelleRail?: string
   // Polyglotte : navigation par chapitre/verset SANS quitter la page (pas de router.push).
   // `onChoisirChapitre` remplace le saut d'URL au clic d'un chapitre ; `onChoisirLivreEntier`
   // charge le livre complet ; `onChoisirVerset` cible un verset (barre de recherche « Gn 1 1 »).
@@ -199,7 +203,7 @@ export default function NavLivres({
   livres, livreActif, chapitreActif,
   traductionIndex, traductions,
   panelWidth = null, onWidthChange,
-  livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre,
+  livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre, libelleRail,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire,
@@ -247,6 +251,14 @@ export default function NavLivres({
   // Les écrits non canoniques restent repliés par défaut : ils sont là pour qui les cherche,
   // sans allonger la liste de ceux qui ne les consultent pas.
   const [autresOuvert, setAutresOuvert] = useState(false)
+  // ⚠️ Le rail nomme l'ACTION : « Ouvrir les livres ». Un parent qui donne à son
+  // volet un autre nom (la Polyglotte : « Livres à comparer ») le voit repris tel
+  // quel, précédé du verbe.
+  const libelleDuRail = libelleRail ?? (titre ? `Ouvrir : ${titre}` : 'Ouvrir les livres')
+  // Le volet se replie partout, SAUF en onglets sur un téléphone (les onglets font
+  // office de navigation) et sauf quand le parent gère lui-même son repli
+  // (`sansReduire` : la Polyglotte, qui rabat le volet entier).
+  const peutSeReduire = !sansReduire && (!mobile || presentation !== 'inline')
   const [ouvertLocal, setOuvertLocal] = useState(true)
   // ⚠️ La largeur de la fenêtre n'est connue qu'au montage, et l'initialiser à
   // l'état ferait diverger le rendu serveur du premier rendu client — le désaccord
@@ -446,19 +458,13 @@ export default function NavLivres({
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{titre ?? 'Livres de la Bible'}</span>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{libelleDuRail}</span>
         </button>
       )
     }
-    return (
-      <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-        style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderRight: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span style={{ writingMode: 'vertical-rl' as const, transform: 'rotate(180deg)', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>{titre ?? 'Livres de la Bible'}</span>
-      </button>
-    )
+    // Le rail du volet replié : le composant partagé avec le volet des Pères et
+    // celui de la Polyglotte. ⚠️ Il nomme l'ACTION, non le contenu.
+    return <RailVolet cote="gauche" libelle={libelleDuRail} onOuvrir={() => setOuvert(true)} />
   }
 
   // La poignée existe dès que le parent sait recevoir une largeur. Le geste, lui,
@@ -677,8 +683,14 @@ export default function NavLivres({
           ⚠️ La forme au repos, le texte d'invite et l'allumage au foyer vivent dans
           `globals.css` (`.cs-volet-recherche`) : un `::placeholder` ne s'écrit pas
           en style en ligne. */}
-      {!sommaireOuvert && (
-      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
+      {/* ⚠️ LA RANGÉE PARAÎT MÊME SANS CHAMP DE RECHERCHE, tant qu'elle porte la
+          flèche de repli : sous l'onglet « Sommaire », le champ n'a pas d'objet — il
+          cherche des LIVRES — et la rangée disparaissait avec lui, emportant le seul
+          moyen de fermer le volet. Un contrôle de volet ne peut pas dépendre de
+          l'onglet qu'on regarde. Elle se réduit alors à la flèche, au fer à droite. */}
+      {(!sommaireOuvert || peutSeReduire) && (
+      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center', justifyContent: sommaireOuvert ? 'flex-end' : undefined }}>
+        {!sommaireOuvert && (
         <input
           type="text"
           className="cs-volet-recherche"
@@ -688,11 +700,20 @@ export default function NavLivres({
           onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
           style={{ flex: 1, minWidth: 0, fontSize: '0.8125rem', padding: 'calc(var(--volet-air) + 2px) var(--volet-gouttiere) var(--volet-air)', color: 'var(--cs-texte)', boxSizing: 'border-box' }}
         />
-        {/* Flèche « réduire » inutile en mode onglets (mobile) : les onglets en haut
-            font office de navigation. Conservée pour le repli desktop, sauf quand le
-            parent gère lui-même le repli du volet entier (Polyglotte : `sansReduire`). */}
-        {presentation !== 'inline' && !sansReduire && (
-          <button onClick={() => setOuvert(false)} title="Réduire le volet"
+        )}
+        {/* ⛔ LA FLÈCHE DE REPLI NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce
+            qui l'avait fait disparaître du bureau (demande de l'auteur, 2026-09-04 :
+            « remettre en place le système permettant de fermer un volet gauche ou
+            droite »). `presentation` dit comment le volet s'empile sur un TÉLÉPHONE —
+            en onglets ou en tiroir — et la condition « presentation !== inline » y
+            cachait la flèche à bon droit, les onglets faisant alors office de
+            navigation. Mais la page Bible passe « inline » EN TOUTES CIRCONSTANCES, si
+            bien que le bureau perdait un contrôle pour une raison qui ne le regarde
+            pas : les deux volets savaient se replier, et plus rien ne les repliait.
+            ⚠️ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de
+            BUREAU : la condition regarde d'abord `mobile`. */}
+        {peutSeReduire && (
+          <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
             /* ⚠️ Le champ n'a plus de bloc rembourré autour de lui : la flèche
                porte donc sa propre gouttière à droite. */
             style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '3px var(--volet-gouttiere) 3px 3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>

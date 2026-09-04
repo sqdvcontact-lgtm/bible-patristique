@@ -22,6 +22,12 @@ import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import RailVolet from '@/app/components/RailVolet'
+
+/** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
+ *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
+ *  pas ; « Ouvrir les commentaires » dit ce qu'un clic fera. */
+const LIBELLE_RAIL = 'Ouvrir les commentaires'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
 type Segment = {
@@ -1195,6 +1201,9 @@ export default function PanneauPatristique({
   // Une référence qu'on reçoit se montre ; une référence qu'on déduit de ce qu'on
   // affiche déjà ne se montre pas.
   const refFr = refAffichee ?? null
+  // Le volet se replie partout, SAUF en onglets sur un téléphone, où les onglets du
+  // haut font office de navigation et où une flèche de plus n'irait nulle part.
+  const peutSeReduire = !mobile || presentation !== 'inline'
 
   if (!ouvert) {
     // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
@@ -1210,19 +1219,13 @@ export default function PanneauPatristique({
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
+          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{LIBELLE_RAIL}</span>
         </button>
       )
     }
-    return (
-      <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
-        style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.5625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-faible)' }}>Commentaires</span>
-      </button>
-    )
+    // Le rail du volet replié : le composant partagé avec le volet des livres et
+    // celui de la Polyglotte. ⚠️ Il nomme l'ACTION, non le contenu.
+    return <RailVolet cote="droite" libelle={LIBELLE_RAIL} onOuvrir={() => setOuvert(true)} />
   }
 
   const handleDrag = onWidthChange ? (e: React.MouseEvent) => {
@@ -1271,10 +1274,15 @@ export default function PanneauPatristique({
       {/* En-tête. ⚠️ Il ne paraît QUE s'il a quelque chose à porter — une référence
           reçue, ou la flèche de repli : vidé de la référence déduite, il ne laissait
           qu'une bande de 38 px et son filet en haut du volet. */}
-      {(refFr || presentation !== 'inline') && (
+      {(refFr || peutSeReduire) && (
       <div style={{ position:'relative', borderBottom:'1px solid var(--cs-bord)', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
-        {/* Flèche « réduire » inutile en mode onglets (mobile) ; gardée pour desktop. */}
-        {presentation !== 'inline' && (
+        {/* ⛔ ELLE NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce qui l'avait fait
+            disparaître du bureau (demande de l'auteur, 2026-09-04). `presentation` dit
+            comment le volet s'empile sur un TÉLÉPHONE, où les onglets font office de
+            navigation ; mais la page Bible passe « inline » en toutes circonstances, si
+            bien que le bureau perdait un contrôle pour une raison qui ne le regarde pas.
+            ⚠️ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU. */}
+        {peutSeReduire && (
           <button onClick={() => setOuvert(false)} title="Réduire le volet"
             style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', color:'var(--cs-texte-faible)', display:'flex', alignItems:'center' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">

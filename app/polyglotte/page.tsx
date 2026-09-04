@@ -46,6 +46,7 @@ import {
 // réglage du volet ne pose de fond teinté.
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { comparerParMillesime, millesimeEdition, type RangeableParMillesime } from '@/app/lib/millesimeEdition'
+import RailVolet from "@/app/components/RailVolet";
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string };
@@ -1845,20 +1846,13 @@ export default function PolyglottePage() {
             hauteur restante. */}
         <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex", flexDirection: "column" }}>
           {voletReduit ? (
-            // Volet rabattu : un mince rail cliquable pour le rouvrir, sur le modèle du
-            // rail de la page Bible (fond clair, filet à droite, chevron discret).
-            <button onClick={() => setVoletReduit(false)} title="Afficher le volet des livres" aria-label="Afficher le volet"
-              style={{ width: "30px", flex: 1, background: "var(--cs-fond-clair)", border: "none", borderRight: "1px solid var(--cs-bord)", cursor: "pointer", color: "var(--cs-texte-doux)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: "12px", gap: "10px" }}>
-              <IconeChevron dir="right" size={14} strokeWidth={1.5} />
-              {/* ⚠️ Le rail porte ce que le volet portait : sans lui, replier le volet ferait
-                  perdre de vue le passage qu'on lit, puisque le tableau ne le nomme plus.
-                  Écrit en hauteur, dans le sens de la lecture d'un dos de livre. */}
-              {libellePassage && (
-                <span aria-hidden style={{ writingMode: "vertical-rl", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.71875rem", color: "var(--cs-texte-gris)", letterSpacing: "0.04em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxHeight: "60%" }}>
-                  {libellePassage}
-                </span>
-              )}
-            </button>
+            // ⚠️ Le rail de ce volet a servi de MODÈLE aux deux volets de la page Bible
+            // (demande de l'auteur, 2026-09-04) : les trois passent désormais par le même
+            // composant, plutôt que par trois dessins voisins qui divergeaient déjà.
+            // ⚠️ Il porte en complément le passage qu'on lit : sans lui, replier le volet
+            // ferait perdre de vue le chapitre ouvert, que le tableau ne nomme plus.
+            <RailVolet cote="gauche" libelle="Ouvrir les livres" complement={libellePassage}
+              onOuvrir={() => setVoletReduit(false)} />
           ) : (
             <>
           {/* Titre de la page, en tête du volet de gauche, avec le bouton de repli à sa droite. */}
