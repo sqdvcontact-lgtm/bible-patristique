@@ -26,11 +26,19 @@
 // prose deux centimètres plus bas, et la date qu'ils affichaient était la date
 // RÉDIGÉE de la base, avec ses points-virgules et ses annonces.
 //
-// ⚠️ ELLE PORTE EN REVANCHE TROIS RUBRIQUES NOUVELLES (même demande) :
-// « L'édition utilisée », qui compose champ par champ la référence des volumes
-// servis ; « Ouvrages cités dans cette édition », qui lit le catalogue
-// bibliographique et ne paraît pas s'il est vide ; et « Conditions d'usage », qui
-// dit ce que la licence permet et ce que le travail éditorial réserve.
+// ⚠️ TROIS RUBRIQUES PLEINE MESURE FERMENT LA FICHE, dans cet ordre : « Édition
+// et état du texte », qui compose champ par champ la référence des volumes servis
+// puis dit l'état du texte ; « Ouvrages cités dans cette édition », qui lit le
+// catalogue bibliographique et ne paraît pas s'il est vide ; et « Conditions
+// d'usage », qui dit ce que la licence permet et ce que le travail éditorial
+// réserve. On va ainsi de ce que l'édition EST à ce qu'on peut en faire.
+//
+// ⛔ AUCUNE N'EST REPLIÉE (2026-09-04, demande de l'auteur). « Édition et état du
+// texte » l'était, et le dépli cachait une redondance autant qu'un contenu : le
+// titre, l'année, le lieu et l'éditeur y reparaissaient en rangées sous une
+// référence qui venait de les composer, et la notice rédigée de la base les disait
+// une troisième fois. La référence est devenue la TÊTE de la rubrique, et les
+// rangées ne portent plus que ce qu'elle ne dit pas.
 //
 // ⚠️ Le CONTENU est séparé de la fenêtre, comme dans la fiche d'auteur : `createPortal`
 // n'existe pas au rendu serveur, et une planche de contrôle hors session ne pourrait
@@ -48,6 +56,8 @@ import {
   portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
 } from '@/app/lib/portraitTraduction'
 import BibliographieOuvrages, { FragmentReference } from '@/app/components/BibliographieOuvrages'
+import { indexEditeursNavigateur, useEditeursCharges } from '@/app/lib/editeurs'
+import { joindreEditeurs } from '@/app/lib/editeursNormalisation'
 import {
   ouvragesDeLaFamille,
   type LigneBibliographieOuvrage, type OuvrageBibliographique,
@@ -69,13 +79,16 @@ export type InfoTrad = {
   commentaire_editorial: string | null
   photo: string | null; photo_encart: string | null; photo_position: PositionsPhotoTraduction
   schema_numerotation: string | null
-  edition_reference_affichee: string | null; edition_reference_url: string | null
   licence_traduction: string | null; mention_obligatoire: string | null
   statut_corpus_public: string | null; lacunes_publiques: string | null
   titre_edition: string | null; sous_titre_edition: string | null
   editeur: string | null; annee_edition: string | null; lieu_edition: string | null
   source_type: string | null; source_numerique_nom: string | null; source_numerique_url: string | null
   graphie: string | null; particularites: string | null; integrite_verifiee: boolean | null
+  /** « Édition révisée » : la mention de la page de titre. */
+  mention_edition: string | null
+  /** Le dépôt et la cote d'un TÉMOIN MANUSCRIT — la cote fait le manuscrit. */
+  depot_manuscrit: string | null; cote_manuscrit: string | null
   /** Combien de volumes l'édition compte : la rubrique « L'édition utilisée » en
    *  répond, et c'est la seule donnée matérielle qu'elle admette. */
   nombre_tomes: number | null
@@ -129,14 +142,18 @@ const STYLES_FICHE = `
      donc plus grosse que la prose qu'elle accompagne. ⛔ Pas de justification
      ici : une référence tient sur deux lignes courtes, que la justification
      étirerait. */
-  .trad-notice ul { margin: 0 0 8px; padding-left: 1.05rem; }
-  .trad-notice li { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); margin: 0 0 5px; }
-  .trad-notice li::marker { color: var(--cs-texte-faible); }
+  .trad-notice ul { margin: 0 0 8px; padding-left: 0; list-style: none; }
+  /* ⚠️ RETRAIT SUSPENDU, et pas de puce (2026-09-04, demande de l'auteur : « pour
+     la bibliographie, il faut un retrait négatif pour les secondes lignes d'un
+     paragraphe »). Les listes des notices sont des BIBLIOGRAPHIES — « Études sur
+     cette traduction », cinq références chez la Bible du XIIIe siècle —, et une
+     référence de deux lignes ne se lit que si la seconde rentre : c'est ce qui
+     sépare deux notices à l'œil. La mesure est celle de toutes les bibliographies
+     du site (« .cs-apparat-bibliographie__entree », charte § 35.6.2), et la puce
+     part avec le retrait : une liste à puces et une bibliographie ne sont pas la
+     même chose. */
+  .trad-notice li { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); margin: 0 0 5px; padding-left: 1.1em; text-indent: -1.1em; }
   .trad-notice li:last-child { margin-bottom: 0; }
-  .trad-tech > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 7px; }
-  .trad-tech > summary::-webkit-details-marker { display: none; }
-  .trad-tech-fleche { display: inline-block; transition: transform 0.15s; }
-  .trad-tech[open] .trad-tech-fleche { transform: rotate(90deg); }
   /* ── LE PORTRAIT FLOTTE, ET LA NOTICE L'HABILLE ──
      Même parti que la fiche d'auteur, et pour la même raison : il ouvrait un en-tête
      à part, où son vis-à-vis — un titre, deux lignes de repères — laissait un grand
@@ -199,6 +216,10 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   // dernière ligne qui l'habille — même mesure que la fiche d'auteur, même code.
   const cadreRef = useRef<HTMLDivElement>(null)
   useBordSurDerniereLigne(cadreRef, true, info?.trad_id ?? nomFallback)
+  // Le cache des éditeurs répertoriés : le hook déclenche son chargement et
+  // provoque un rendu quand il est prêt, l'index se lit ensuite en mémoire.
+  useEditeursCharges()
+  const indexEditeurs = indexEditeursNavigateur()
 
   const i = info ?? ({} as InfoTrad)
 
@@ -225,10 +246,17 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
 
   // La RÉFÉRENCE des volumes servis, composée champ par champ (module pur,
   // `referenceEditionServie`). Vide sans titre d'édition : la rubrique se tait.
+  // ⚠️ L'ÉDITEUR y prend sa forme normalisée, comme dans la carte du volet : chaque
+  // maison sous son nom répertorié, et « et » entre elles au lieu du point-virgule
+  // du catalogue. La fiche est un composant du navigateur : elle passe donc par le
+  // cache de `app/lib/editeurs`, qui charge la table une fois par session. ⛔ Tant
+  // qu'il n'est pas prêt, `joindreEditeurs` rend la forme brute — jamais un vide.
   const referenceEdition = segmentsReferenceEdition({
     titreEdition: i.titre_edition, sousTitreEdition: i.sous_titre_edition,
-    lieuEdition: i.lieu_edition, editeur: i.editeur,
+    mentionEdition: i.mention_edition,
+    lieuEdition: i.lieu_edition, editeur: joindreEditeurs(i.editeur, indexEditeurs),
     anneeEdition: i.annee_edition, nombreTomes: i.nombre_tomes,
+    depotManuscrit: i.depot_manuscrit, coteManuscrit: i.cote_manuscrit,
   })
 
   const aChrono = chrono.length > 0
@@ -322,21 +350,33 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
 
       {info !== null && (
         <>
-          {/* ── L'ÉDITION UTILISÉE ────────────────────────────────────────────
-              La référence bibliographique des VOLUMES SERVIS, et rien d'autre
-              (2026-09-04, demande de l'auteur : « ce n'est pas une bibliographie
-              sélective, mais la référence bibliographique des volumes utilisés »).
-              Elle se compose champ par champ depuis `editions_sources`, aux normes
-              de toutes les bibliographies du site — l'intitulé en italique, les
-              données en romain, la ponctuation produite par le rendu (charte
-              § 35.6.1) —, et prend la même famille de styles qu'elles.
-              ⛔ Elle ne se lit plus dans le HTML de la notice, où elle était écrite
-              à la main sous un titre qui la disait « sélective ».
-              ⛔ Sans titre d'édition en base, la rubrique ne paraît pas. */}
-          {referenceEdition.length > 0 && (
-            <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
-              <TitreSection>L’édition utilisée</TitreSection>
-              <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`}>
+          {/* ── L'ÉDITION ET L'ÉTAT DU TEXTE ──────────────────────────────────
+              ⛔ PLUS DE DÉPLI (2026-09-04, demande de l'auteur : « “Édition et
+              état du texte” doit être visible sans être développé ; revoir
+              l'ensemble avec cette nouvelle donne »). Elle était la seule section
+              repliée d'une fiche qui s'ouvre précisément pour la lire ; et le
+              dépli avait un second effet, moins visible : il cachait une
+              REDONDANCE. Le titre, l'année, le lieu et l'éditeur y reparaissaient
+              en rangées, un cran sous une référence qui venait de les composer, et
+              la notice rédigée de la base les disait une troisième fois.
+              ⚠️ LA RÉFÉRENCE EST DEVENUE LA TÊTE DE LA RUBRIQUE. Elle dit ce que
+              l'édition EST — champ par champ, aux normes de toutes les
+              bibliographies du site (charte § 35.6.1) — et les rangées qui la
+              suivent ne disent plus que ce qu'elle ne dit pas : ce qui a établi le
+              texte, d'où vient sa copie numérique, dans quelle graphie il se lit,
+              et jusqu'où il est vérifié.
+              ⛔ La NOTICE RÉDIGÉE (`traductions.source_edition`) ne paraît plus :
+              c'était la seconde vérité, celle qu'on avait cessé de composer. Ce
+              qu'elle portait de plus vit dans les champs — la mention d'édition,
+              le dépôt et la cote du témoin — ou dans « Particularités ».
+              ⛔ La LICENCE et la MENTION OBLIGATOIRE non plus : « Conditions
+              d'usage » en répond depuis le 4 septembre, et une licence rangée en
+              étiquette sous une rubrique technique disait moins que la phrase qui
+              l'explique. */}
+          <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
+            <TitreSection>Édition et état du texte</TitreSection>
+            {referenceEdition.length > 0 && (
+              <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`} style={{ marginBottom: '9px' }}>
                 <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
                   <li className={CLASSES_BIBLIOGRAPHIE.entree}>
                     {referenceEdition.map((segment, rang) => (
@@ -345,9 +385,31 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                   </li>
                 </ul>
               </div>
-            </section>
-          )}
-
+            )}
+            <div>
+              <LigneTech c="Responsable de l’édition">{i.responsable_edition}</LigneTech>
+              <LigneTech c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /> : null)}</LigneTech>
+              <LigneTech c="Graphie">{i.graphie}</LigneTech>
+              <LigneTech c="Numérotation">{numerotation}</LigneTech>
+              <LigneTech c="Particularités">{i.particularites}</LigneTech>
+              {/* Vérification : « Contrôle en cours » se déplie en note (statut du
+                  corpus + lacunes connues), au lieu d'un encart permanent. */}
+              <LigneTech c="Vérification">{verif ? (
+                (i.statut_corpus_public || i.lacunes_publiques) ? (
+                  <>
+                    <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
+                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
+                    {verifNote && (
+                      <div style={{ margin: '5px 0 1px' }}>
+                        {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
+                        {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
+                      </div>
+                    )}
+                  </>
+                ) : verif
+              ) : null}</LigneTech>
+            </div>
+          </section>
           {/* ── LES OUVRAGES QUE L'ÉDITION CITE ───────────────────────────────
               « Je veux qu'on constitue une nouvelle rubrique contenant, proprement,
               tous les ouvrages cités dans l'édition utilisée ; c'est surtout utile
@@ -395,49 +457,6 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               </a>
             </p>
           </section>
-
-          {/* L'édition : section secondaire, repliable (natif, accessible), et
-              pleine mesure — ses rangées portent une colonne d'étiquettes de
-              8,5 rem, qui n'entrerait pas dans une colonne. */}
-          <details className="trad-tech" style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
-            <summary>
-              <span aria-hidden className="trad-tech-fleche" style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)' }}>▸</span>
-              <TitreSection>Édition et état du texte</TitreSection>
-            </summary>
-            <div style={{ marginTop: '4px' }}>
-              <LigneTech c="Titre de l’édition">{i.titre_edition ? <>{i.titre_edition}{i.sous_titre_edition ? <><br /><span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>{i.sous_titre_edition}</span></> : null}</> : null}</LigneTech>
-              {/* Année et lieu : deux lignes distinctes. */}
-              <LigneTech c="Année">{i.annee_edition}</LigneTech>
-              <LigneTech c="Lieu">{i.lieu_edition}</LigneTech>
-              <LigneTech c="Éditeur">{i.editeur}</LigneTech>
-              <LigneTech c="Responsable de l’édition">{i.responsable_edition}</LigneTech>
-              {/* Édition de référence (imprimée) : sans lien « fac-similé », redondant
-                  avec « Voir la source numérique » (même URL). */}
-              <LigneTech c="Édition de référence">{i.edition_reference_affichee}</LigneTech>
-              <LigneTech c="Source numérique">{i.source_numerique_nom ? <>{i.source_numerique_nom}{i.source_numerique_url ? <> · <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /></> : null}</> : (i.source_numerique_url ? <Consulter url={i.source_numerique_url} libelle="Voir la source numérique" /> : null)}</LigneTech>
-              <LigneTech c="Graphie">{i.graphie}</LigneTech>
-              <LigneTech c="Numérotation">{numerotation}</LigneTech>
-              <LigneTech c="Particularités">{i.particularites}</LigneTech>
-              <LigneTech c="Licence">{licenceDP ? 'Domaine public' : (i.licence_traduction || null)}</LigneTech>
-              {i.mention_obligatoire && <LigneTech c="Mention obligatoire">{i.mention_obligatoire}</LigneTech>}
-              {/* Vérification : « Contrôle en cours » se déplie en note (statut du
-                  corpus + lacunes connues), au lieu d'un encart permanent. */}
-              <LigneTech c="Vérification">{verif ? (
-                (i.statut_corpus_public || i.lacunes_publiques) ? (
-                  <>
-                    <button onClick={() => setVerifNote(o => !o)} aria-expanded={verifNote}
-                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--cs-texte)', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '2px', cursor: 'pointer' }}>{verif}</button>
-                    {verifNote && (
-                      <div style={{ margin: '5px 0 1px' }}>
-                        {i.statut_corpus_public && <p style={{ margin: '0 0 3px', fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{i.statut_corpus_public}</p>}
-                        {i.lacunes_publiques && <p style={{ margin: 0, fontFamily: SERIF, fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', lineHeight: 1.45 }}>{i.lacunes_publiques}</p>}
-                      </div>
-                    )}
-                  </>
-                ) : verif
-              ) : null}</LigneTech>
-            </div>
-          </details>
         </>
       )}
 

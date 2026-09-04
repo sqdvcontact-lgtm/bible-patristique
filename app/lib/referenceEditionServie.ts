@@ -37,7 +37,7 @@
  */
 
 import {
-  LIAISON_SOUS_TITRE, PONCTUATION_FORTE, SEPARATEUR,
+  LIAISON_SOUS_TITRE, PONCTUATION_FORTE, replier, SEPARATEUR,
   type SegmentReference,
 } from './bibleBibliographieOuvrages'
 
@@ -45,11 +45,17 @@ import {
 export type EditionServie = {
   titreEdition?: string | null
   sousTitreEdition?: string | null
+  /** « Édition révisée » : la mention que porte la page de titre. */
+  mentionEdition?: string | null
   lieuEdition?: string | null
+  /** L'éditeur, DÉJÀ résolu et joint par `joindreEditeurs`. */
   editeur?: string | null
   /** Les millésimes, TELS QUE LA BASE LES ÉCRIT : « 1888-1904 », « vers 1260 ». */
   anneeEdition?: string | null
   nombreTomes?: number | null
+  /** Un TÉMOIN MANUSCRIT se nomme par son dépôt et sa cote, non par un éditeur. */
+  depotManuscrit?: string | null
+  coteManuscrit?: string | null
 }
 
 function propre(valeur: string | null | undefined): string | null {
@@ -75,6 +81,38 @@ export function joindreLieux(lieu: string | null): string | null {
   if (!lieu) return null
   const parts = lieu.split(';').map(p => p.trim()).filter(Boolean)
   return parts.length > 1 ? parts.join('-') : lieu
+}
+
+/**
+ * LA MENTION D'ÉDITION, quand elle apprend quelque chose.
+ *
+ * « Édition révisée » se compose après le titre, comme sur la page de titre d'un
+ * livre. ⛔ Deux cas la font taire, et tous deux sont dans la donnée réelle :
+ *
+ * — un TÉMOIN MANUSCRIT n'a pas de mention d'édition. La Bible française du
+ *   XIIIe siècle porte « Témoin manuscrit », qui est une classification et non une
+ *   mention : composée à la suite d'un titre qui dit déjà « manuscrit Français
+ *   899 », et devant la cote qui suit, elle le dirait une troisième fois ;
+ * — une mention que le TITRE contient déjà ne se répète pas. La traduction
+ *   liturgique s'intitule « La Bible : traduction officielle liturgique » et porte
+ *   « Traduction officielle liturgique » pour mention. C'est la règle du complément
+ *   qui redit son titre (charte, § « Un titre de niveau et son COMPLÉMENT »),
+ *   appliquée ici à l'adresse d'une édition.
+ *
+ * ⚠️ Le repli de comparaison est celui du catalogue (`replier`) : accents, casse,
+ * apostrophes et ponctuation y sont neutralisés, et deux graphies d'une même
+ * mention se reconnaissent donc l'une l'autre.
+ */
+function mentionAComposer(
+  edition: EditionServie,
+  titre: string,
+  cote: string | null,
+): string | null {
+  if (cote) return null
+  const mention = propre(edition.mentionEdition)
+  if (!mention) return null
+  const sousTitre = propre(edition.sousTitreEdition) ?? ''
+  return replier(`${titre} ${sousTitre}`).includes(replier(mention)) ? null : mention
 }
 
 /**
@@ -108,8 +146,14 @@ export function segmentsReferenceEdition(edition: EditionServie): SegmentReferen
   // une mention d'adresse, non une glose. « 1 vol. » ne s'écrit pas — un volume
   // unique est le cas ordinaire, et le dire ne renseigne personne.
   const tomes = edition.nombreTomes
+  const cote = propre(edition.coteManuscrit)
   for (const mention of [
+    { champ: 'mention_edition' as const, texte: mentionAComposer(edition, titre, cote) },
     { champ: 'lieu' as const, texte: joindreLieux(propre(edition.lieuEdition)) },
+    // ⛔ Un TÉMOIN MANUSCRIT n'a pas d'éditeur : il a un dépôt et une cote, et
+    // l'adresse savante les nomme dans cet ordre, après la ville.
+    { champ: 'depot_manuscrit' as const, texte: cote ? propre(edition.depotManuscrit) : null },
+    { champ: 'cote_manuscrit' as const, texte: cote },
     { champ: 'editeur' as const, texte: propre(edition.editeur) },
     { champ: 'annee' as const, texte: propre(edition.anneeEdition) },
     { champ: null, texte: typeof tomes === 'number' && tomes > 1 ? `${tomes} vol.` : null },

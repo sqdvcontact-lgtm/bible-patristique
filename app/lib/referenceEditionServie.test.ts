@@ -77,3 +77,56 @@ describe('joindreLieux', () => {
       .toBe('La Sainte Bible, Paris-Tournai-Rome, Desclée et Cie ; Société de S. Jean l’Évangéliste, 1923.')
   })
 })
+
+describe('la mention d’édition et le témoin manuscrit', () => {
+  it('compose la mention d’édition après le titre', () => {
+    // Bible Crampon : « Édition révisée » est une vraie mention de page de titre.
+    expect(texteReferenceEdition({
+      titreEdition: 'La Sainte Bible',
+      mentionEdition: 'Édition révisée',
+      lieuEdition: 'Paris ; Tournai ; Rome',
+      editeur: 'Desclée et Société de Saint-Jean-l’Évangéliste',
+      anneeEdition: '1923',
+    })).toBe('La Sainte Bible, Édition révisée, Paris-Tournai-Rome, Desclée et Société de Saint-Jean-l’Évangéliste, 1923.')
+  })
+
+  it('⛔ ne répète pas une mention que le titre porte déjà', () => {
+    // Traduction officielle liturgique : le titre la contient mot pour mot.
+    expect(texteReferenceEdition({
+      titreEdition: 'La Bible : traduction officielle liturgique',
+      mentionEdition: 'Traduction officielle liturgique',
+      lieuEdition: 'Paris', editeur: 'Mame', anneeEdition: '2013',
+    })).toBe('La Bible : traduction officielle liturgique, Paris, Mame, 2013.')
+  })
+
+  it('nomme le dépôt et la cote d’un TÉMOIN MANUSCRIT, jamais un éditeur', () => {
+    expect(texteReferenceEdition({
+      titreEdition: 'Bible française du XIIIe siècle — manuscrit Français 899',
+      sousTitreEdition: 'Témoin suivi par Corpus Scriptura',
+      mentionEdition: 'Témoin manuscrit',
+      lieuEdition: 'Paris',
+      depotManuscrit: 'Bibliothèque nationale de France',
+      coteManuscrit: 'Français 899',
+      anneeEdition: 'vers 1260',
+      nombreTomes: 1,
+    })).toBe('Bible française du XIIIe siècle — manuscrit Français 899. Témoin suivi par Corpus Scriptura, Paris, Bibliothèque nationale de France, Français 899, vers 1260.')
+  })
+
+  it('⛔ le dépôt seul ne paraît pas : c’est la COTE qui fait le manuscrit', () => {
+    expect(texteReferenceEdition({
+      titreEdition: 'La Sainte Bible', lieuEdition: 'Paris',
+      depotManuscrit: 'Bibliothèque nationale de France', anneeEdition: '1730',
+    })).toBe('La Sainte Bible, Paris, 1730.')
+  })
+
+  it('garde chaque donnée dans SON champ', () => {
+    const champs = segmentsReferenceEdition({
+      titreEdition: 'Bible française du XIIIe siècle',
+      lieuEdition: 'Paris',
+      depotManuscrit: 'Bibliothèque nationale de France',
+      coteManuscrit: 'Français 899',
+      anneeEdition: 'vers 1260',
+    }).map(s => s.champ).filter(Boolean)
+    expect(champs).toEqual(['titre', 'lieu', 'depot_manuscrit', 'cote_manuscrit', 'annee'])
+  })
+})

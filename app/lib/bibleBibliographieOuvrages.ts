@@ -85,7 +85,12 @@ export type BibliographiePiece = {
  * petites capitales pour le nom d'autorité de l'auteur.
  */
 export type SegmentReference = {
-  champ: 'prenom' | 'nom_famille' | 'titre' | 'sous_titre' | 'lieu' | 'editeur' | 'annee' | null
+  // ⚠️ Les trois derniers ne servent que la référence de l'ÉDITION SERVIE
+  // (`referenceEditionServie`), qui n'est pas un ouvrage du catalogue mais suit
+  // les mêmes normes : le champ d'origine reste dans le document, et c'est par lui
+  // que les tests vérifient qu'aucune donnée n'a été fondue dans une autre.
+  champ: 'prenom' | 'nom_famille' | 'titre' | 'sous_titre' | 'lieu' | 'editeur' | 'annee'
+    | 'mention_edition' | 'depot_manuscrit' | 'cote_manuscrit' | null
   style: StyleCaractereBibliographie | null
   composition: 'romain' | 'italique' | 'petites-capitales'
   texte: string
@@ -157,7 +162,10 @@ const ARTICLES_ET_DETERMINANTS: ReadonlySet<string> = new Set([
  * l'apostrophe et le trait d'union rendus à l'espace qu'ils valent — « Saint-Jean »
  * se range comme « Saint Jean », « d'Alexandrie » comme « d Alexandrie ».
  */
-function replier(texte: string): string {
+/** ⚠️ EXPORTÉE : la référence de l’édition servie s’en sert pour savoir si une
+ *  mention d’édition redit déjà le titre. Deux façons de replier une chaîne
+ *  dans le même dossier finiraient par ne plus s’accorder. */
+export function replier(texte: string): string {
   return texte
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
