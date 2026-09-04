@@ -1,4 +1,4 @@
-// ── La ligne d'ÉDITION d'une bible ────────────────────────────────────────────
+// ── La ligne de PROVENANCE d'une bible ────────────────────────────────────────
 //
 // Une phrase, celle que porte la page de titre des œuvres : « D'après l'édition
 // de Paris, Letouzey et Ané, 1888-1904 » (décision de l'auteur, 2026-09-03,
@@ -13,38 +13,66 @@
 // (demande de l'auteur, 2026-09-04 : « doit mentionner l'éditeur, le lieu
 // d'édition et les dates d'édition »). Elle prend donc la forme normative du
 // libellé court d'édition, `Ville, éditeur, année` (charte § 5, `edition_label`),
-// et l'interface y ajoute seule la formule « D'après l'édition de ». Le lieu et
-// l'éditeur viennent d'`editions_sources` ; ⛔ ils ne se devinent jamais du nom
-// de la bible, et un champ absent emporte SON séparateur — « D'après l'édition
-// de Letouzey et Ané, 1888-1904 » quand la ville manque.
+// et l'interface y ajoute seule la formule « D'après l'édition de ».
 //
-// ⚠️ La date affichée est celle de l'ÉDITION SERVIE, non de la première parution.
-// Le champ `traductions.date_publication` mêle parfois les deux, séparées par un
-// point-virgule et annoncées par un mot : « 1874-1880 ; révision présentée : 1910 »,
-// « 1592 ; édition source : 1946 ». La phrase nomme l'édition d'où le texte est
-// tiré — 1910, 1946 —, sans quoi elle daterait un livre que le lecteur n'a pas
-// sous les yeux. On lit donc les clauses À REBOURS, de la dernière à la première,
+// ⛔ TOUT S'Y SÉPARE PAR DES VIRGULES, ET RIEN D'AUTRE (demande de l'auteur,
+// 2026-09-04, devant la Bible de Sacy : « il faut utiliser la version
+// normalisée ; on doit avoir “Jean Desessartz et Guillaume Desprez” ; tout séparé
+// par des virgules »). Une co-édition arrivait telle que la base l'écrit —
+// « Jean Desessartz ; Guillaume Desprez » —, et son point-virgule ouvrait au
+// milieu de la phrase un second niveau de ponctuation où l'on ne voyait plus où
+// l'éditeur commence. Les maisons se résolvent chacune dans la table de référence
+// et se joignent par « et » : voir `joindreEditeurs`. ⚠️ La résolution se fait
+// CÔTÉ SERVEUR (`app/page.tsx`), et le champ arrive ici déjà normalisé — l'index
+// des éditeurs n'a pas à voyager jusqu'au navigateur pour deux mots.
+//
+// ⚠️ LA DATE EST CELLE DE LA FICHE D'ÉDITION, non de la première parution. Le
+// lieu et l'éditeur viennent d'`editions_sources` : y prendre aussi la date est
+// la seule façon que les trois mentions parlent du même livre. La carte de Sacy
+// annonçait « Paris, Jean Desessartz et Guillaume Desprez, 1667-1696 »,
+// c'est-à-dire l'adresse de l'édition de 1730 sous les dates de la première
+// publication ; deux maisons qui ne se sont associées qu'au siècle suivant s'y
+// trouvaient datées de 1667. ⚠️ `annee_edition` est un TEXTE, et la Septante de
+// Swete y écrit « vol. I : 1909 ; vol. II : 1907 ; vol. III : 1912 » : on en
+// retient la fourchette, du plus ancien millésime au plus récent.
+//
+// ⛔ Faute de fiche d'édition, on retombe sur `traductions.date_publication`, qui
+// mêle parfois deux dates séparées par un point-virgule et annoncées par un mot :
+// « 1874-1880 ; révision présentée : 1910 ». On lit alors les clauses À REBOURS,
 // et la première qui se lit comme une date fait l'édition.
 //
-// ⛔ Rien n'est affiché quand aucune clause ne donne d'année, ET MÊME SI LE LIEU
-// ET L'ÉDITEUR SONT CONNUS. C'est la DATE qui décide qu'il y a une édition à
-// nommer : la Bible française du XIIIe siècle date sa composition en une phrase
-// et nomme un MANUSCRIT pour témoin (« témoin utilisé : BnF, Français 899, vers
-// 1260 ») ; sa fiche d'édition porte pourtant « Paris », qui est le lieu du
-// manuscrit. Sans cette garde, la carte annoncerait « D'après l'édition de
-// Paris » là où il n'y a pas d'édition du tout.
+// ⛔ UN TÉMOIN MANUSCRIT N'A PAS D'ÉDITION : il a un dépôt et une cote, et la
+// phrase le dit (demande de l'auteur, 2026-09-04 : « aucun texte pour la bible du
+// XIIIe siècle ; à corriger, d'après le manuscrit machin machin »). La carte se
+// taisait pour lui, une garde de la veille refusant de nommer une « édition » là
+// où la fiche ne porte qu'un lieu de copie. La garde était juste et la conclusion
+// trop courte : ce n'est pas la phrase qu'il fallait taire, c'est l'autre phrase
+// qu'il fallait écrire. C'est la COTE qui décide — pas un type à interpréter, pas
+// une mention à reconnaître —, et l'adresse suit la forme savante, « le manuscrit
+// Paris, Bibliothèque nationale de France, Français 899 ».
+//
+// ⛔ Rien n'est affiché quand une édition ne donne aucune année, ET MÊME SI LE
+// LIEU ET L'ÉDITEUR SONT CONNUS : c'est la DATE qui décide qu'il y a une édition
+// à nommer.
 //
 // Module pur, testé par editionTraduction.test.ts.
 
 import { parserDateHistorique, type BorneDateHistorique } from './datesHistoriques'
 import { joindreLieux } from './referenceEditionServie'
 
-/** Ce que la carte sait de l'édition servie : la date rédigée de la traduction,
- *  puis le lieu et l'éditeur de sa fiche d'édition (`editions_sources`). */
+/** Ce que la carte sait de la provenance du texte : la fiche d'édition
+ *  (`editions_sources`) d'abord, la date rédigée de la traduction à défaut. */
 export type SourceEditionTraduction = {
   datePublication?: string | null
   lieuEdition?: string | null
+  /** L'éditeur, DÉJÀ résolu et joint par `joindreEditeurs` (le serveur normalise). */
   editeur?: string | null
+  /** Les millésimes de la fiche d'édition, tels que la base les écrit. */
+  anneeEdition?: string | null
+  /** L'institution qui conserve le témoin, quand la provenance est un manuscrit. */
+  depotManuscrit?: string | null
+  /** La cote du témoin. ⛔ Sa PRÉSENCE dit qu'on tient un manuscrit, non une édition. */
+  coteManuscrit?: string | null
 }
 
 function ecrireBorne(borne: BorneDateHistorique): string {
@@ -52,12 +80,11 @@ function ecrireBorne(borne: BorneDateHistorique): string {
   return borne.precision === 'exacte' || !borne.precision ? String(borne.annee) : `vers ${borne.annee}`
 }
 
-/** La fourchette de l'édition servie, resserrée, ou `null` s'il n'y a pas d'année
- *  à nommer.
+/** La fourchette lue dans la date RÉDIGÉE de la traduction, ou `null`.
  *  ⚠️ La fourchette se resserre — « 1888-1904 », jamais « 1888 - 1904 » : c'est la
  *  règle des citations (voir citation.ts), et dans une phrase un intervalle espacé
  *  se coupe en fin de ligne. */
-function datesEdition(datePublication: string | null | undefined): string | null {
+function datesRedigees(datePublication: string | null | undefined): string | null {
   const brut = (datePublication ?? '').trim()
   if (!brut) return null
   const clauses = brut.split(';').map(c => c.trim()).filter(Boolean)
@@ -74,16 +101,54 @@ function datesEdition(datePublication: string | null | undefined): string | null
   return null
 }
 
-/** La phrase de provenance, ou `null` s'il n'y a pas d'édition à nommer. */
+/**
+ * Les millésimes de la FICHE D'ÉDITION, ramenés à une année ou à une fourchette.
+ *
+ * ⚠️ Le champ est un texte libre, et il porte parfois le détail des volumes :
+ * « vol. I : 1909 ; vol. II : 1907 ; vol. III : 1912 ». Une phrase de carte n'a
+ * pas la place de le répéter, et l'énumération n'apprendrait rien à qui veut
+ * savoir de quand date ce qu'il lit : on garde les deux bornes.
+ * ⚠️ Le « vers » ACCOLÉ à un millésime part avec lui — un témoin daté par
+ * approximation ne prend pas la précision d'un colophon.
+ */
+function millesimesDeLaFiche(anneeEdition: string | null | undefined): string | null {
+  const brut = (anneeEdition ?? '').trim()
+  if (!brut) return null
+  const bornes = [...brut.matchAll(/(vers\s+)?(\d{3,4})/giu)]
+    .map(m => ({ vers: !!m[1], annee: Number(m[2]) }))
+  if (!bornes.length) return null
+  const plusAncienne = bornes.reduce((a, b) => (b.annee < a.annee ? b : a))
+  const plusRecente = bornes.reduce((a, b) => (b.annee > a.annee ? b : a))
+  const ecrire = (b: { vers: boolean; annee: number }) => (b.vers ? `vers ${b.annee}` : String(b.annee))
+  return plusAncienne.annee === plusRecente.annee
+    ? ecrire(plusAncienne)
+    : `${ecrire(plusAncienne)}-${ecrire(plusRecente)}`
+}
+
+/** La date à nommer : celle de la fiche d'édition, à défaut celle de la notice. */
+function datesEdition(source: SourceEditionTraduction): string | null {
+  return millesimesDeLaFiche(source.anneeEdition) ?? datesRedigees(source.datePublication)
+}
+
+function propre(valeur: string | null | undefined): string | null {
+  const texte = (valeur ?? '').trim()
+  return texte ? texte : null
+}
+
+/** La phrase de provenance, ou `null` s'il n'y a rien à nommer. */
 export function libelleEditionTraduction(source: SourceEditionTraduction): string | null {
-  const dates = datesEdition(source.datePublication)
-  // ⛔ Pas de date, pas d'édition : voir l'en-tête (le manuscrit Français 899).
+  const dates = datesEdition(source)
+  // ⚠️ Les LIEUX d'une co-édition se joignent par un trait d'union : voir
+  // `joindreLieux`, qui en donne la raison.
+  const lieu = joindreLieux(propre(source.lieuEdition))
+  const cote = propre(source.coteManuscrit)
+  if (cote) {
+    // ⛔ Un manuscrit se nomme même sans date : sa cote l'identifie à elle seule.
+    const adresse = [lieu, propre(source.depotManuscrit), cote, dates].filter(Boolean).join(', ')
+    return `D’après le manuscrit ${adresse}`
+  }
+  // ⛔ Pas de date, pas d'édition : voir l'en-tête.
   if (!dates) return null
-  // ⚠️ Les LIEUX d'une co-édition se joignent par un trait d'union, les ÉDITEURS
-  // gardent leur point-virgule : voir `joindreLieux`, qui en donne la raison.
-  const adresse = [joindreLieux((source.lieuEdition ?? '').trim() || null), source.editeur, dates]
-    .map(part => (part ?? '').trim())
-    .filter(Boolean)
-    .join(', ')
+  const adresse = [lieu, propre(source.editeur), dates].filter(Boolean).join(', ')
   return `D’après l’édition de ${adresse}`
 }

@@ -96,10 +96,14 @@ export type TraductionEncart = {
   auteur?: string | null
   auteurDates?: string | null
   datePublication?: string | null
-  /** Le lieu et l'éditeur de l'édition servie (`editions_sources`). La phrase
-   *  d'édition les nomme devant les dates — voir `libelleEditionTraduction`. */
+  /** Ce que la fiche d'édition (`editions_sources`) porte de la provenance du
+   *  texte : lieu, éditeur DÉJÀ NORMALISÉ, millésimes, et — pour un témoin
+   *  manuscrit — son dépôt et sa cote. Voir `libelleEditionTraduction`. */
   lieuEdition?: string | null
   editeur?: string | null
+  anneeEdition?: string | null
+  depotManuscrit?: string | null
+  coteManuscrit?: string | null
 }
 
 export default function EncartTraduction({ trad }: { trad: TraductionEncart }) {

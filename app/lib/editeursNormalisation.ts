@@ -140,3 +140,42 @@ export function editeursDuSegment(segment: string, index: IndexEditeurs | null):
 export function estVilleConnue(segment: string, index: IndexEditeurs | null): boolean {
   return !!index && index.villes.has(cleEditeur(segment.trim()))
 }
+
+/**
+ * LES MAISONS D'UNE MENTION D'ÉDITEUR, JOINTES PAR « et ».
+ *
+ * C'est la forme d'une PHRASE, non celle d'une colonne : « D'après l'édition de
+ * Paris, Jean Desessartz et Guillaume Desprez, 1730 » (demande de l'auteur,
+ * 2026-09-04, devant la carte de la Bible de Sacy : « il faut utiliser la version
+ * normalisée ; tout séparé par des virgules »). La phrase sépare déjà le lieu, les
+ * éditeurs et la date par des virgules ; un point-virgule au milieu y ouvre un
+ * second niveau de ponctuation, et l'oeil ne sait plus où l'éditeur commence.
+ *
+ * Chaque maison se résout POUR SON PROPRE COMPTE dans la table de référence, comme
+ * le fait `normaliserNomEditeur` : c'est ce qui fait la « version normalisée »
+ * demandée, la table connaissant « Desclée » sous la graphie « Desclée et Cie ».
+ * Seul le LIANT change, et il change parce que la surface change.
+ *
+ * ⛔ Le point-virgule reste le séparateur normatif dans une COLONNE et dans une
+ * notice de catalogue (charte § 5) : cette fonction ne le remplace pas partout,
+ * elle compose une énumération française là où l'on écrit une phrase.
+ *
+ * ⚠️ Elle est IDEMPOTENTE : « A et B » ne porte plus de point-virgule, ne se
+ * découpe donc plus, et se rend tel quel. Un nom de maison qui porte « et » —
+ * « Letouzey et Ané », « Desclée et Cie » — ne se coupe jamais, `partiesCoedition`
+ * ne connaissant que le point-virgule.
+ */
+export function joindreEditeurs(
+  editeur: string | null | undefined,
+  index: IndexEditeurs | null,
+): string | null {
+  const brut = (editeur ?? '').trim()
+  if (!brut) return null
+  // La forme ENTIÈRE d'abord, comme dans `normaliserNomEditeur` : une variante qui
+  // porte un point-virgule devient introuvable dès qu'on découpe avant de chercher.
+  const entier = resoudreNomEditeur(brut, index)
+  if (entier && !estCoedition(entier)) return entier
+  const maisons = partiesCoedition(entier ?? brut).map((p) => resoudreNomEditeur(p, index) ?? p)
+  if (maisons.length <= 1) return maisons[0] ?? brut
+  return `${maisons.slice(0, -1).join(', ')} et ${maisons[maisons.length - 1]}`
+}

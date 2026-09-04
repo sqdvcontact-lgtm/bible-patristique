@@ -34,10 +34,16 @@ type Verset = {
   _est899?: boolean; _estEditorial?: boolean; _estLacune?: boolean
   [traduction: string]: string | number | boolean | null | undefined
 }
-// ⚠️ `lieuEdition` et `editeur` viennent d'`editions_sources` et ne servent qu'à la
-// phrase de la carte du volet (« D'après l'édition de Paris, Letouzey et Ané,
-// 1888-1904 »). Ils sont facultatifs : une bible sans fiche d'édition n'en a pas.
-type Traduction = { code: string; label: string; auteur?: string | null; auteurDates?: string | null; datePublication?: string | null; lieuEdition?: string | null; editeur?: string | null }
+// ⚠️ Le lieu, l'éditeur, les millésimes, le dépôt et la cote viennent tous
+// d'`editions_sources` et ne servent qu'à la phrase de la carte du volet
+// (« D'après l'édition de Paris, Letouzey et Ané, 1888-1904 » ; « D'après le
+// manuscrit Paris, Bibliothèque nationale de France, Français 899, vers 1260 »).
+// Ils sont facultatifs : une bible sans fiche d'édition n'en a aucun.
+type Traduction = {
+  code: string; label: string; auteur?: string | null; auteurDates?: string | null
+  datePublication?: string | null; lieuEdition?: string | null; editeur?: string | null
+  anneeEdition?: string | null; depotManuscrit?: string | null; coteManuscrit?: string | null
+}
 
 type Props = {
   livres: Livre[]

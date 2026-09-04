@@ -35,6 +35,8 @@ import {
 import { chargerPresencePatristique } from '@/app/lib/metadonneesSeoServeur'
 import { JsonLd, donneesChapitreBible, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
+import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
+import { joindreEditeurs } from '@/app/lib/editeursNormalisation'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
 // interroger avec la session du visiteur (client lisant les cookies), sinon elle
@@ -135,7 +137,7 @@ export default async function Home({
   // et 744 Ko avant, 73 ms et 26 Ko après.
   const canonPromis = canonDuChapitre(supabase, livre, chapitre)
     .catch(() => ({ lignes: [] as Awaited<ReturnType<typeof canonDuChapitre>>['lignes'], bornes: null }))
-  const [catalog, editionCatalog, { data: rawTranslations }, { data: rawEditions }, tradProfil] = await Promise.all([
+  const [catalog, editionCatalog, { data: rawTranslations }, { data: rawEditions }, tradProfil, , indexEditeurs] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `date_publication` = la ligne d'édition
@@ -160,7 +162,7 @@ export default async function Home({
     // ne porte pas `est_biblique`, sur quoi le sélecteur de bibles se filtre, et
     // elle traîne la notice éditoriale entière — deux kilo-octets par bible, à
     // chaque chapitre ouvert, pour deux mots.
-    supabase.from('editions_sources').select('trad_id, lieu_edition, editeur'),
+    supabase.from('editions_sources').select('trad_id, lieu_edition, editeur, annee_edition, depot_manuscrit, cote_manuscrit'),
     // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
     // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
     // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.
@@ -181,21 +183,38 @@ export default async function Home({
     // pèse un kilo-octet et part en parallèle : la calculer plus tard, là où
     // l'on sait qu'elle sert, coûterait une vague entière.
     canonDuChapitre(supabase, livre, chapitre),
+    // ⚠️ L'INDEX DES ÉDITEURS RÉPERTORIÉS, pour que la carte nomme les maisons
+    // sous leur forme normalisée et les joigne par « et » (voir `joindreEditeurs`).
+    // La table est minuscule et le module la garde cinq minutes en mémoire : la
+    // requête part avec la vague et ne coûte pas un aller-retour de plus.
+    // ⛔ La résolution se fait ICI, sur le serveur : envoyer l'index au navigateur
+    // ferait voyager la table entière des éditeurs pour composer deux mots.
+    chargerIndexEditeurs(supabase),
   ])
   // L'adresse de l'édition servie, rangée par bible. ⚠️ Une bible sans fiche
   // d'édition n'a pas d'adresse : la phrase de la carte se compose alors avec les
   // seules dates, et son séparateur part avec le champ absent.
   const adressesEdition = new Map(
-    ((rawEditions ?? []) as { trad_id: string; lieu_edition: string | null; editeur: string | null }[])
-      .map(e => [e.trad_id, e]),
+    ((rawEditions ?? []) as {
+      trad_id: string; lieu_edition: string | null; editeur: string | null
+      annee_edition: string | null; depot_manuscrit: string | null; cote_manuscrit: string | null
+    }[]).map(e => [e.trad_id, e]),
   )
   const toutesTraductions = (rawTranslations || [])
-    .map(t => ({
-      code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null,
-      datePublication: t.date_publication,
-      lieuEdition: adressesEdition.get(t.trad_id)?.lieu_edition ?? null,
-      editeur: adressesEdition.get(t.trad_id)?.editeur ?? null,
-    }))
+    .map(t => {
+      const fiche = adressesEdition.get(t.trad_id)
+      return {
+        code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null,
+        datePublication: t.date_publication,
+        lieuEdition: fiche?.lieu_edition ?? null,
+        // ⚠️ L'éditeur part d'ici DÉJÀ NORMALISÉ : chaque maison sous son nom
+        // répertorié, et « et » entre elles au lieu du point-virgule du catalogue.
+        editeur: joindreEditeurs(fiche?.editeur, indexEditeurs),
+        anneeEdition: fiche?.annee_edition ?? null,
+        depotManuscrit: fiche?.depot_manuscrit ?? null,
+        coteManuscrit: fiche?.cote_manuscrit ?? null,
+      }
+    })
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0

@@ -7,6 +7,7 @@ import {
   normaliserNomEditeur,
   resoudreNomEditeur,
   estCoedition,
+  joindreEditeurs,
   partiesCoedition,
   SEPARATEUR_COEDITEURS,
   variantesDepuisLignes,
@@ -214,5 +215,56 @@ describe('variantesDepuisLignes', () => {
 
   it('lit aussi bien un collage à fins de ligne Windows', () => {
     expect(variantesDepuisLignes('Cerf\r\nÉditions du Cerf')).toEqual(['Cerf', 'Éditions du Cerf'])
+  })
+})
+
+describe('joindreEditeurs — l’énumération d’une PHRASE', () => {
+  // Les maisons réellement rencontrées par les bibles du corpus.
+  const BIBLES = construireIndexEditeurs([
+    { nom_complet: 'Jean Desessartz', variantes: null, ville: 'Paris' },
+    { nom_complet: 'Guillaume Desprez', variantes: null, ville: 'Paris' },
+    { nom_complet: 'Desclée', variantes: ['Desclée et Cie'], ville: null },
+    { nom_complet: 'Société de Saint-Jean-l’Évangéliste', variantes: ['Société de S. Jean l’Évangéliste'], ville: null },
+    { nom_complet: 'Letouzey et Ané', variantes: null, ville: 'Paris' },
+  ])
+
+  it('joint deux maisons par « et », jamais par un point-virgule', () => {
+    expect(joindreEditeurs('Jean Desessartz ; Guillaume Desprez', BIBLES))
+      .toBe('Jean Desessartz et Guillaume Desprez')
+  })
+
+  it('résout chaque maison sous son nom répertorié', () => {
+    expect(joindreEditeurs('Desclée et Cie ; Société de S. Jean l’Évangéliste', BIBLES))
+      .toBe('Desclée et Société de Saint-Jean-l’Évangéliste')
+  })
+
+  it('⛔ ne coupe jamais un nom de maison qui porte « et »', () => {
+    expect(joindreEditeurs('Letouzey et Ané', BIBLES)).toBe('Letouzey et Ané')
+  })
+
+  it('range trois maisons en énumération française', () => {
+    expect(joindreEditeurs('Jean Desessartz ; Guillaume Desprez ; Desclée', BIBLES))
+      .toBe('Jean Desessartz, Guillaume Desprez et Desclée')
+  })
+
+  it('est idempotente : ce qu’elle a composé se recompose à l’identique', () => {
+    const une = joindreEditeurs('Jean Desessartz ; Guillaume Desprez', BIBLES)
+    expect(joindreEditeurs(une, BIBLES)).toBe(une)
+  })
+
+  it('garde la forme brute d’une maison non répertoriée', () => {
+    expect(joindreEditeurs('Biblioteca de Autores Cristianos', BIBLES))
+      .toBe('Biblioteca de Autores Cristianos')
+    expect(joindreEditeurs('Mame ; Maison inconnue', BIBLES)).toBe('Mame et Maison inconnue')
+  })
+
+  it('se tait sur un champ vide', () => {
+    expect(joindreEditeurs(null, BIBLES)).toBeNull()
+    expect(joindreEditeurs('   ', BIBLES)).toBeNull()
+  })
+
+  it('rend la forme brute sans index — la carte ne reste jamais muette', () => {
+    expect(joindreEditeurs('Jean Desessartz ; Guillaume Desprez', null))
+      .toBe('Jean Desessartz et Guillaume Desprez')
   })
 })
