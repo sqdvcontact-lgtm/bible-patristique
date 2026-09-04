@@ -4903,3 +4903,40 @@ Décision de l’auteur, le 5 septembre 2026 : « à l’échelle, on pourra jam
 ⛔ **Et la donnée ne portait pas non plus ce que la barre promettait.** Mesuré le 5 septembre 2026 sur les 1 170 repères de la frise : tous portent une date de fin, mais **456 seulement — 39 % — couvrent un empan réel** ; les 714 autres sont des points, où la fin égale le début. Près de deux repères sur trois se rendaient donc par une barre de hauteur minimale, c’est-à-dire par une barre qui ne dit rien. ⚠️ Le fait est consigné parce qu’il resservira : le jour où l’on reproposera une vue chronologique — ici ou ailleurs —, c’est par lui qu’il faudra commencer.
 
 ⚠️ **Une première rédaction de cette note affirmait que la date de fin était “le plus souvent absente”.** Elle ne l’est jamais : la colonne est renseignée sur les 1 170 repères. Le raisonnement était juste — un repère sans durée n’a rien à mettre à l’échelle — et le fait invoqué était faux. C’est la règle du § 38.9 prise par un autre bout : **une règle tirée d’un raisonnement se vérifie avant d’être écrite**, et un commentaire de code n’en est pas dispensé.
+
+
+### 13.8 La NORMALISATION des notes — ce que le site compose, ce que la base porte
+
+Chantier ouvert le 5 septembre 2026 à la demande de l’auteur (« normaliser l’ensemble des notes »). Le mode opératoire, passe par passe, vit dans `work/notes/PROTOCOLE_NOTES.md` ; ce qui suit est la doctrine.
+
+⛔ **LE SITE COMPOSE, LA BASE CONSERVE.** C’est la règle du § 3.2 appliquée aux notes, et elle décide de tout le reste : on ne réécrit une donnée que lorsque le rendu ne PEUT pas la composer — parce que l’information manque, parce qu’elle est fausse, ou parce qu’elle n’est pas là où le rendu la cherche.
+
+⚠️ **Mesuré avant d’écrire une seule ligne : une bonne moitié de ce qu’on croit à corriger l’est déjà.** Sur les 16 408 notes hors apparat, **6 431 (39 %) n’ont aucune ponctuation finale dans la donnée**, et `terminerNote` les termine toutes ; **3 392 renvois bibliques sur 11 916** sont réécrits à l’affichage par `normaliserReferencesDansTexte`. Les corriger en base serait du travail perdu, et pire : ce serait effacer la leçon imprimée que le § 8.1 demande de conserver.
+
+⛔ **L’APPARAT CRITIQUE reste hors de toute passe de normalisation** — 7 379 blocs, 30 % de l’appareil. Ni ponctuation ajoutée, ni référence normalisée, ni typographie de lecture, ni italique (§ 22).
+
+**Quatre points arbitrés par l’auteur le 5 septembre 2026.**
+
+⛔ **1. Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1**, et le numéro INTERNE ne bouge pas. `note_key` et `note_number` portent l’identité et l’ordre de lecture, dont dépendent 23 569 ancres. ⚠️ **Cette décision RECTIFIE le § 13.3**, qui dit encore que « la numérotation ne recommence ni à une partie, ni à un livre, ni à un espace textuel » : la règle valait pour un numéro unique, et il y en a désormais deux. La Bible faisait déjà ainsi, et sa règle cesse d’être une exception.
+
+⛔ **L’apparat critique forme sa propre série de numéros.** Mêlé aux notes de lecture, il les noie : les Confessions passent de **1 039** à moins de 90 par livre dès qu’on l’en sort — leur gros numéro était l’apparat de Knöll, non l’appareil de lecture. ⚠️ Treize textes sur quarante-sept garderont malgré tout trois chiffres, la Cité de Dieu latine en tête avec **731** dans un seul livre ; c’est une conséquence connue de l’arbitrage, non un défaut.
+
+⛔ **2. Les œuvres CITÉES en note entrent dans `ouvrages_bibliographiques`**, le catalogue des ouvrages, et la référence se COMPOSE depuis ses champs — jamais rédigée à la main dans un bloc. C’est le modèle du § 35.6.1, étendu aux notes. **Deux gardes** : un auteur ancien n’y reçoit jamais de fiche notée (§ 29), sans quoi inscrire l’Énéide dégraderait la valeur scientifique de la notice qui la cite ; et les champs d’édition (lieu, éditeur, année, ISBN) restent vides tant qu’on ne cite que l’œuvre.
+
+⛔ **3. Un bloc de note entièrement LATIN se compose en italique, quelle que soit sa longueur** — y compris les 27 blocs qui dépassent 900 signes. ⚠️ Le grec ne suit pas : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse. ⚠️ Le latin ENCHÂSSÉ dans une note française est un cas distinct : aucune donnée ne dit où il commence, et il demande une écriture.
+
+⛔ **4. Le type de note paraît sur TOUTES les notes, sans exception** — auteur, traducteur, éditeur de la source, Corpus Scriptura. ⚠️ Il se répète donc des milliers de fois, et **c’est la forme qui doit en tenir compte** : la mention est la chose la plus discrète de la note, jamais une étiquette encadrée ni une ligne à elle. ⛔ Elle vit dans `metadata.editorial_role`, jamais dans le texte du bloc : les 136 « (Note du Traducteur.) » écrits en clair dans le corpus se retirent à mesure que le type se pose.
+
+⚠️ **69 % des blocs (16 873 sur 24 264) ne déclarent aucun type** : c’est le plus gros manque de l’appareil, et rien ne peut s’afficher tant qu’il n’est pas posé. ⛔ **Un type faux est pire qu’un type absent** — il attribue à un Père une remarque de son traducteur du XIXe siècle. Le doute laisse la note sans type et se signale.
+
+### 13.8.1 Deux corruptions du normaliseur, trouvées en le mesurant
+
+Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normaliserReferencesDansTexte` elle-même — jamais par une copie de ses règles. Deux défauts en sont sortis, tous deux visibles du lecteur.
+
+⛔ **Le point n’est un séparateur chapitre/verset que s’il est SUIVI D’UN BLANC.** La fonction acceptait tout point, si bien que « Gn 1.5 » — qui désigne les CHAPITRES 1 et 5 (§ 3.5.1) — devenait « Gn 1, 5 », le chapitre 1 verset 5. **Elle changeait le sens de la référence.** Le blanc sépare les deux cas : une édition ancienne écrit « Psal. 65. 29 » avec un blanc, l’énumération de chapitres s’écrit sans.
+
+⛔ **Le point final ne se mange pas quand un CHIFFRE le suit.** « (Lc 7, 11.15) » — les versets 11 et 15 — rendait « (Lc 7, 1115) » : le point était consommé comme ponctuation de fin et les deux nombres se collaient. **216 blocs de neuf textes**, et le lecteur y lisait un verset qui n’existe pas.
+
+⚠️ **Corollaire de méthode, et c’est le troisième du même ordre cette semaine** : une fonction de normalisation ne se juge pas sur ses tests, mais sur le CORPUS qu’elle traite. Les dix-sept tests de ce module passaient tous, et aucun ne portait sur un point suivi d’un chiffre.
+
+⚠️ **Reste connu, non corrigé** : **1 716 renvois** gardent un chapitre romain parce qu’il est écrit en MINUSCULES (« Matth. x, 22 », « Ps. xv, 2 »), et le motif n’accepte que les capitales. L’étendre est un élargissement de la reconnaissance, non une correction : il attend une décision.

@@ -5,8 +5,9 @@
 §§ 3.2, 3.5.1, 3.8, 8, 13) ; ce document dit **comment on s'y prend**, dans quel ordre,
 et ce qu'on ne fait surtout pas.
 
-⚠️ **État : v1, 5 septembre 2026.** Cinq points attendent l'arbitrage de l'auteur ; ils
-sont signalés **⏳ EN ATTENTE** et ne se traitent pas avant. Tout le reste est applicable.
+⚠️ **État : v2, 5 septembre 2026.** Les quatre points qui commandaient le travail sont
+**arbitrés** (numérotation, catalogue des œuvres citées, italique du latin, type de note) ;
+ils sont marqués ✅ et datés. Le protocole est applicable en entier.
 
 ---
 
@@ -167,6 +168,23 @@ clair se retire du texte une fois le type posé** — sans quoi le lecteur la li
 reste **sans type** ; elle se signale, elle ne s'invente pas. Un type faux est pire qu'un
 type absent : il attribue à un Père une remarque de son traducteur du XIXe siècle.
 
+### 6.1 ✅ Le type paraît sur TOUTES les notes (arbitré le 5 septembre 2026)
+
+Décision de l'auteur, contre la proposition de ne marquer que l'exception : **chaque note
+dit qui la signe, sans exception**, y compris dans une œuvre dont les 1 830 notes sont
+toutes du même traducteur.
+
+⚠️ **Conséquence pour le rendu, et elle décide de la forme.** La mention se répète des
+milliers de fois : elle doit donc être la chose la plus DISCRÈTE de la note — un rang
+d'encre sous le texte, en petit, jamais une étiquette encadrée ni une ligne à elle. C'est
+la règle que la charte pose déjà pour la manchette d'un commentaire (§ 35.15) : un repère
+qu'on lit mille fois se retrouve d'un coup d'œil et ne se lit pas.
+
+⛔ **Elle ne se met PAS dans le texte du bloc.** Le type est une donnée
+(`metadata.editorial_role`) et le site la compose ; l'écrire dans `text` recopierait
+l'information à deux endroits, et c'est exactement ce que les 136 « (Note du Traducteur.) »
+déjà présents dans le corpus vont cesser d'être.
+
 ---
 
 ## 7. Passe 4 — la LANGUE (D, jugement)
@@ -175,7 +193,12 @@ type absent : il attribue à un Père une remarque de son traducteur du XIXe si�
 Deux cas, et ils ne se traitent pas pareil :
 
 - **le bloc ENTIER est latin** — `language = 'la'` le dit déjà, et **c'est au rendu de
-  l'italiser** (voir la question 3 ci-dessous). Rien à écrire. ⏳ EN ATTENTE.
+  l'italiser**. Rien à écrire. ✅ Arbitré le 5 septembre 2026 : **italique quelle que soit
+  la longueur**, y compris sur les 27 blocs qui dépassent 900 signes. ⛔ Le grec ne suit
+  pas : son alphabet le distingue déjà, et une italique grecque est une déformation de la
+  lettre, non un changement de graisse.
+  ⛔ **L'apparat critique reste hors de la règle** : il est latin de bout en bout, et
+  l'italiser mettrait sept mille entrées en italique pour ne rien distinguer.
 - **le latin est ENCHÂSSÉ dans une note française** — le cas le plus fréquent, et le plus
   coûteux : « Ac in primis quidem cùm baptizantur mulieres, diaconus tantùm… » au milieu
   d'un paragraphe français. Le bloc est `fr`, la langue du fragment n'est déclarée nulle
@@ -225,8 +248,29 @@ propre sous la forme normalisée du site ».
 devient de la DONNÉE, et le site la COMPOSE. On ne rédige jamais « VIRGILE, *Énéide*,
 livre I. » à la main dans un bloc de note.
 
+### 9.1 ✅ La table est `ouvrages_bibliographiques` (arbitré le 5 septembre 2026)
+
+Décision de l'auteur : les œuvres citées entrent dans le **catalogue des ouvrages**
+existant, celui de l'onglet « Ouvrages » de l'administration. Un seul gestionnaire.
+
+⛔ **DEUX GARDES, ET ELLES NE SE NÉGOCIENT PAS.**
+
+1. **Un auteur ancien n'y reçoit JAMAIS de fiche notée** (charte § 29 : « un Père/auteur
+   ancien ou collectif = source, jamais de fiche notée »). Virgile, Tite-Live et Platon
+   entrent comme AUTEURS de l'ouvrage cité, sans passer par `auteurs_valeur`. Ouvrir une
+   fiche non notée pour eux ferait basculer l'ouvrage en `a_verifier` par la branche
+   `auteur_non_evalue` du calcul de statut scientifique — c'est-à-dire qu'inscrire
+   l'Énéide dégraderait la valeur scientifique de la notice qui la cite.
+2. **Les champs d'ÉDITION restent vides** quand on ne cite que l'œuvre. `lieu`, `editeur`,
+   `annee`, `isbn` décrivent un exemplaire imprimé ; l'Énéide n'en a pas. On les renseigne
+   seulement lorsque la note cite une ÉDITION précise (« trad. de V. Cousin », qui figure
+   déjà dans plusieurs notes de Boèce).
+
+⚠️ **Le `type_ouvrage` d'une œuvre ancienne est `source_primaire`** — la valeur existe et
+porte déjà 146 notices, dont les plus anciennes remontent à 1346.
+
 **Ce qu'on écrit :**
-- l'œuvre citée, dans le catalogue (⏳ EN ATTENTE : quelle table — question 2) ;
+- l'œuvre citée, dans `ouvrages_bibliographiques`, sous les deux gardes ci-dessus ;
 - sur le bloc de note : le renvoi vers cette fiche, et le **locus** (livre, chapitre,
   paragraphe, vers) ;
 - la forme imprimée, conservée en `metadata`.
@@ -250,14 +294,31 @@ référence : c'est une note pour quelqu'un qui a déjà le livre ouvert.
 
 ## 10. Passe 7 — la NUMÉROTATION
 
-⏳ **EN ATTENTE** (question 1). Ce qui est établi :
+✅ **Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1** (arbitré le 5 septembre
+2026 : « CHAQUE début de niveau 1 »).
 
-- `note_number` est aujourd'hui **continu à l'échelle du texte**, et la charte § 13.3
-  l'impose (« La numérotation ne recommence ni à une partie, ni à un livre, ni à un espace
-  textuel »). L'auteur demande l'inverse.
-- Mesuré : recommencer au **livre** ne suffit pas — les Confessions garderaient un
-  « 1039 », le Manuel de Dhuoda un « 443 ». Recommencer au **chapitre** met tout sous cent
-  sauf un texte (Bondurand, 184 dans un chapitre).
+⛔ **Le numéro INTERNE ne bouge pas.** `note_key` et `note_number` portent l'identité et
+l'ordre de lecture, et les 23 569 ancres en dépendent : c'est le numéro **affiché** qui
+recommence, et lui seul. C'est exactement ce que la Bible fait depuis toujours
+(AGENTS.md : « Le numéro visible d'une note recommence à chaque chapitre […] l'identifiant
+interne demeure global et stable »), et la règle cesse donc d'être une exception biblique.
+
+⚠️ **La charte § 13.3 dit aujourd'hui le contraire** (« La numérotation ne recommence ni à
+une partie, ni à un livre, ni à un espace textuel ») : elle est à reprendre, en distinguant
+les deux numéros — ce qu'elle ne fait pas.
+
+⛔ **L'APPARAT CRITIQUE COMPTE À PART.** Il forme sa propre série : mêlé aux notes de
+lecture, il les noie. Mesuré : les Confessions passent de **1 039** à moins de 90 par livre
+dès qu'on l'en sort — leur gros numéro était l'apparat de Knöll, non l'appareil de lecture.
+
+⚠️ **Ce qui reste à trois chiffres après le recommencement, et qu'il faut savoir** :
+treize textes sur quarante-sept. Le pire est la **Cité de Dieu latine (731)**, puis le
+**Manuel pour mon fils (443)**, les **Questions sur l'Heptateuque (241)**, les
+**Catéchèses baptismales (222)**, les quatre commentaires de **Bareille (192 à 210, qui
+n'ont qu'un seul niveau 1, donc rien ne change pour eux)**, la **Cité de Dieu française
+(172)**, **Du corps et du sang du Seigneur (140)**. Recommencer au CHAPITRE les mettrait
+tous sous cent sauf un ; c'est un arbitrage que l'auteur a tranché autrement, et qui peut
+se rouvrir texte par texte.
 - ⛔ Le numéro INTERNE ne doit pas bouger : `note_key` et `note_number` portent l'identité
   et l'ordre, et les ancres en dépendent. C'est le numéro **affiché** qui recommence —
   exactement ce que la Bible fait déjà (AGENTS.md : « Le numéro visible d'une note
