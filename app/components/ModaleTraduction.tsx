@@ -50,6 +50,7 @@ import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
 import { sieclesEnHtml } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 import { FriseAuteur, TitreSection, RangeeEmpilee, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
 import { type RangChrono } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -222,6 +223,13 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   // Le cache des éditeurs répertoriés : le hook déclenche son chargement et
   // provoque un rendu quand il est prêt, l'index se lit ensuite en mémoire.
   useEditeursCharges()
+  // ⛔ SOUS 640 PX, LA FICHE N'A QU'UNE COLONNE. C'est le seuil de la charte pour
+  // « grilles à une colonne, champs qui passent l'un sous l'autre » : la fenêtre y
+  // fait au plus 600 px, et deux colonnes de 250 et 190 px n'y logent ni une frise
+  // ni une référence bibliographique. ⚠️ La grille est posée en style EN LIGNE et
+  // aucune média-query ne peut l'atteindre : le seuil se lit donc en JavaScript,
+  // comme partout ailleurs sur ce site (charte, « Piège inline »).
+  const etroit = useEstMobile(640)
   const indexEditeurs = indexEditeursNavigateur()
 
   const i = info ?? ({} as InfoTrad)
@@ -278,7 +286,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
     || i.source_numerique_url || i.graphie || numerotation || i.particularites || verif)
   // Deux colonnes seulement s'il y a de quoi remplir les deux. Une notice seule
   // prend toute la mesure plutôt que de laisser une colonne vide à côté d'elle.
-  const aColonnes = !!(i.bio_courte || i.commentaire_editorial) && (aChrono || aEdition)
+  const deuxColonnes = !etroit && !!(i.bio_courte || i.commentaire_editorial) && (aChrono || aEdition)
 
   return (
     <>
@@ -314,8 +322,8 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
           des deux : c'est ce qui permet au nom de se poser à côté du portrait et à la
           prose de le contourner. Il reste hors du « Chargement… », pour que la fenêtre
           dise tout de suite de quelle traduction elle parle. */}
-      <div style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-        <div style={{ borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: deuxColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: deuxColonnes ? '26px' : '20px', alignItems: 'start' }}>
+        <div style={{ borderRight: deuxColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: deuxColonnes ? '24px' : 0 }}>
           {portrait && portraitCasse !== portrait.url && (
             <div ref={cadreRef} className="trad-portrait-flottant">
               <div className="trad-portrait-fenetre" style={{ width: '8.75rem', aspectRatio: '2 / 3', overflow: 'hidden', background: 'var(--cs-fond-doux)' }}>
