@@ -641,29 +641,6 @@ export default function NavLivres({
         />
       )}
 
-      {/* ── Le sommaire de l'édition ────────────────────────────────────────
-          Il prend la place de la recherche et de la liste des livres : on ne
-          cherche pas un livre dans les pièces liminaires, et deux listes
-          superposées feraient du volet un tiroir sans fond.
-
-          ⛔ Sa mise en forme est celle du SOMMAIRE D'UNE ŒUVRE (`OeuvreClient`),
-          décision de l'auteur : c'est le même objet — la table des matières d'un
-          livre — et il n'avait pas à se présenter de deux façons. La portée prend
-          donc le rang du niveau 1, la pièce celui du niveau 2 avec son filet de
-          gauche, et l'on quitte le sérif sur pastille verte, qui était emprunté à
-          la liste des livres. */}
-      {sommaireOuvert && (
-        <SommaireEdition pieces={sommaireEdition} pieceActive={pieceActive}
-          onOuvrir={cle => naviguer(urlLectureBible({
-            ...maniereDeLire,
-            // Une pièce est commune aux deux membres de la famille : la mettre en
-            // regard d'elle-même n'aurait aucun sens.
-            bilingue: false,
-            livre: livreActifLocal, chapitre: chapitreActifLocal, trad: tradCode,
-            piece: cle,
-          }))} />
-      )}
-
       {/* ── La recherche d'un livre ─────────────────────────────────────────
           Elle ne défile JAMAIS : elle est hors du conteneur défilant, et
           `flexShrink: 0` l'empêche d'être comprimée quand la liste des livres est
@@ -724,6 +701,30 @@ export default function NavLivres({
         )}
       </div>
       )}
+
+      {/* ── Le sommaire de l'édition ────────────────────────────────────────
+          Il prend la place de la recherche et de la liste des livres : on ne
+          cherche pas un livre dans les pièces liminaires, et deux listes
+          superposées feraient du volet un tiroir sans fond.
+
+          ⛔ Sa mise en forme est celle du SOMMAIRE D'UNE ŒUVRE (`OeuvreClient`),
+          décision de l'auteur : c'est le même objet — la table des matières d'un
+          livre — et il n'avait pas à se présenter de deux façons. La portée prend
+          donc le rang du niveau 1, la pièce celui du niveau 2 avec son filet de
+          gauche, et l'on quitte le sérif sur pastille verte, qui était emprunté à
+          la liste des livres. */}
+      {sommaireOuvert && (
+        <SommaireEdition pieces={sommaireEdition} pieceActive={pieceActive}
+          onOuvrir={cle => naviguer(urlLectureBible({
+            ...maniereDeLire,
+            // Une pièce est commune aux deux membres de la famille : la mettre en
+            // regard d'elle-même n'aurait aucun sens.
+            bilingue: false,
+            livre: livreActifLocal, chapitre: chapitreActifLocal, trad: tradCode,
+            piece: cle,
+          }))} />
+      )}
+
 
       {/* Suggestion de ref parsée — remplace toute la liste tant qu'une référence est reconnue */}
       {!sommaireOuvert && refParsee && (
