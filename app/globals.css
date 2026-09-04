@@ -2251,6 +2251,22 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 .cs-volet-recherche:focus {
   background: var(--cs-fond-doux);
 }
+/* ⛔ L'ANNEAU DE FOYER SE POSE DEDANS, PAS AUTOUR (demande de l'auteur, 2026-09-04 :
+   « l'encadrement vert dépasse, mord du texte, ou du texte passe dessus »). L'anneau
+   global de globals.css se pose à un pixel À L'EXTÉRIEUR de la boîte, ce qui convient
+   à un champ posé DANS un bloc rembourré — mais celui-ci EST son bloc depuis le
+   2026-09-04 : mesuré, 319 sur 45 dans un bloc de 319 sur 46. L'anneau tombait donc
+   par-dessus le filet du bas, par-dessus le bloc voisin en haut, et sortait du volet
+   sur les deux côtés, où il se faisait couper.
+   ⚠️ Un décalage NÉGATIF le rend au champ : il se pose deux pixels en dedans, à sept
+   pixels du texte, et rien n'en déborde. ⛔ On ne le retire pas : c'est le seul repère
+   du clavier, et le champ n'a ni filet ni fond au repos qui pourraient en tenir lieu.
+   ⚠️ La règle globale porte « important » sur l'ÉPAISSEUR, non sur le décalage : deux
+   classes suffisent à l'emporter, et la couleur comme la largeur restent celles du
+   site. */
+.cs-volet-recherche:focus-visible {
+  outline-offset: -2px;
+}
 
 /* ── Ce que le volet DIT DE PLUS quand il est large ───────────────────────────
    ⛔ PLUS RIEN, ET C'EST LE POINT (2026-09-03). La carte « Traduction » portait la

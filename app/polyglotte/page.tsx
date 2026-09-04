@@ -788,7 +788,35 @@ const CHOIX_DISCRET = (actif: boolean, teinte: string): React.CSSProperties => (
   color: actif ? teinte : "var(--cs-texte-doux)",
   whiteSpace: "nowrap",
 });
-const POINT_DISCRET: React.CSSProperties = { color: "var(--cs-texte-faible)", fontSize: "0.6875rem", lineHeight: 1.4, userSelect: "none" };
+
+// ── L'ÉCHELLE se compose en CASES, sur toute la largeur du volet ──────────────
+// Rectification du 2026-09-04, le soir : « pas de points médians moches ; plutôt de
+// jolies cases propres sur l'ensemble de la largeur ». La veille, les cinq pilules
+// bordées avaient cédé la place à cinq valeurs en clair séparées par le point médian
+// du site — le remède avait retiré un ornement de trop et laissé un rang de mots qui
+// ne se lisait plus comme un réglage. Cinq cases égales, un seul cadre autour d'elles,
+// un filet entre elles : c'est le contrôle segmenté, il occupe la mesure du volet, et
+// l'on voit d'un coup d'œil combien de valeurs il offre et laquelle est retenue.
+//
+// ⛔ CE N'EST PAS LE RETOUR DES PILULES. Une pilule est un objet par valeur — cinq
+// cadres, cinq fonds, cinq rayons ; ici il n'y a qu'UN cadre et qu'UN rayon pour les
+// cinq, et les cases n'existent que par le filet qui les sépare. Un réglage reste un
+// réglage, il ne devient pas cinq boutons.
+//
+// ⚠️ NI FOND NI ENCRE EN LIGNE : ils vivent dans la feuille, avec le survol et l'état
+// retenu. Une déclaration en ligne bat toujours une règle de feuille sans
+// « important », et c'est ainsi que le survol du titre de colonne était mort sans que
+// rien ne le dise (voir la note de la feuille, plus bas).
+const RANGEE_CASES: React.CSSProperties = {
+  display: "flex", width: "100%",
+  border: "1px solid var(--cs-bord)", borderRadius: 4, overflow: "hidden",
+};
+const CASE_ECHELLE = (premiere: boolean): React.CSSProperties => ({
+  flex: 1, minWidth: 0, padding: "4px 0", textAlign: "center", cursor: "pointer",
+  border: "none", borderLeft: premiere ? "none" : "1px solid var(--cs-bord)", borderRadius: 0,
+  fontFamily: "var(--font-source-sans), Arial, sans-serif",
+  fontSize: "0.6875rem", lineHeight: 1.4,
+});
 
 const LARGEUR_VOLET = 238;   // le volet d'une famille, posé au côté du menu
 
@@ -860,20 +888,23 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     });
   };
 
-  // ⛔ UNE TRADUCTION DÉJÀ AFFICHÉE AILLEURS SE GRISE, elle ne s'annonce pas en ocre
-  // (décision de l'auteur, 2026-09-04 : « grise légèrement le bloc de l'œuvre déjà
-  // utilisée ; n'utilise pas d'ocre pour le texte qui signale ça »). L'ocre est la
-  // teinte de l'ATTENTE — « à normaliser », « brouillon » —, et une colonne déjà prise
-  // n'est ni l'un ni l'autre : c'est un fait, non un défaut. Le gris le dit sans
-  // interdire le choix, qui reste offert et échange les deux colonnes.
-  // ⚠️ Le fond de repos se calcule ICI et nulle part ailleurs : le survol le remplace,
-  // et le quitter doit le RENDRE — poser « transparent » au départ effaçait le gris.
-  const fondRepos = (actif: boolean, ailleurs: boolean) =>
-    actif ? "rgba(var(--cs-vert-rgb),0.10)" : ailleurs ? "var(--cs-fond-doux)" : "transparent";
-  const ligne = (actif: boolean, ailleurs = false): React.CSSProperties => ({
+  // ⛔ UNE TRADUCTION DÉJÀ AFFICHÉE AILLEURS SE GRISE PAR SON TEXTE, ET PAR RIEN
+  // D'AUTRE (rectification de l'auteur, 2026-09-04 au soir : « ne griser que le texte ;
+  // pas de fond gris »). Elle s'annonçait la veille en ocre, ce qui était faux — l'ocre
+  // est la teinte de l'ATTENTE, et une colonne déjà prise est un fait, non un défaut ;
+  // le remède avait posé un aplat gris sous la ligne entière, ce qui est un second
+  // objet là où il n'en faut aucun. Le fait se dit dans l'ENCRE du nom, et le sol du
+  // menu reste d'une seule teinte : une liste ne se lit plus quand un rang sur deux y
+  // porte son propre fond.
+  // ⚠️ Le fond de repos reste calculé ICI : le survol le remplace, et le quitter doit
+  // le RENDRE. Il ne connaît plus que deux valeurs, l'accent de la ligne retenue et
+  // rien.
+  const fondRepos = (actif: boolean) =>
+    actif ? "rgba(var(--cs-vert-rgb),0.10)" : "transparent";
+  const ligne = (actif: boolean): React.CSSProperties => ({
     display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
     padding: "7px 10px", borderRadius: 4, border: "none", cursor: "pointer",
-    background: fondRepos(actif, ailleurs),
+    background: fondRepos(actif),
     fontFamily: "var(--font-source-sans), Arial, sans-serif",
   });
   const coche = (actif: boolean) => (
@@ -891,9 +922,9 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
     return (
       <button key={t.trad_id} role="menuitemradio" aria-checked={actif} title={titre} onClick={() => choisir(t.trad_id)}
-        style={ligne(actif, ailleurs)}
+        style={ligne(actif)}
         onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)"; }}
-        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = fondRepos(actif, ailleurs); }}>
+        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = fondRepos(actif); }}>
         {coche(actif)}
         <span style={{ minWidth: 0 }}>
           {/* ⚠️ Le nom se COMPOSE : « Bible française du XIIIe siècle » y prend ses petites
@@ -903,7 +934,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
           <span style={{ ...NOM_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-gris)" } : null) }}>
             {rendreEnrichi(libelle ?? t.nom)}
           </span>
-          <span style={SOUS_OPTION}>
+          <span style={{ ...SOUS_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-faible)" } : null) }}>
             {t.edition ?? ""}
             {ailleurs && courante && <span style={{ color: "var(--cs-texte-faible)" }}>{t.edition ? " · " : ""}Échange avec la position de {rendreEnrichi(courante.nom)}</span>}
           </span>
@@ -962,23 +993,22 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
           <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
             {courante ? rendreEnrichi(courante.nom) : "Choisir une traduction"}
           </span>
-          {/* ⛔ SOUS LE NOM, C'EST LA DATE, et rien d'autre ne prend sa place (décision de
-              l'auteur, 2026-09-04 : « c'est indiqué “Texte du manuscrit” et non une date ;
-              c'est problématique »). L'état du texte s'y substituait dès que l'édition en
-              porte plusieurs, si bien que la Bible du XIIIe siècle était la seule colonne
-              du tableau sans millésime — celle, précisément, dont la date importe le plus.
-              ⚠️ L'état du texte reste NÉCESSAIRE : deux colonnes d'une même édition ne se
-              distingueraient pas autrement. Il descend d'une ligne, sous la date, dans une
-              encre plus pâle et sans la chasse du millésime : c'est une glose, pas un
-              second repère. */}
+          {/* ⛔ SOUS LE NOM, IL N'Y A QUE LA DATE (décision de l'auteur, 2026-09-04 :
+              « “Texte du manuscrit” : ne pas l'indiquer ; seulement indiquer une date »).
+              L'état du texte s'y substituait d'abord à la date, si bien que la Bible du
+              XIIIe siècle était la seule colonne du tableau sans millésime ; il était
+              descendu d'une ligne dessous, en glose. Il n'y est plus du tout : un en-tête
+              de colonne porte le nom de l'édition et sa date, et une troisième ligne y
+              faisait un second repère là où il n'en faut qu'un.
+              ⚠️ L'état du texte se lit LÀ OÙ L'ON CHOISIT, dans le volet de la famille —
+              « Texte du manuscrit », « Transcription diplomatique », « Traduction en
+              français moderne ». C'est le menu qui distingue, l'en-tête qui nomme.
+              ⛔ Conséquence assumée : deux colonnes d'une MÊME édition portent le même
+              en-tête. Le cas ne se présente que si l'on ouvre deux états du témoin 899
+              côte à côte, et l'auteur l'a tranché. */}
           {courante?.edition && (
             <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-gris)" }}>
               {courante.edition}
-            </span>
-          )}
-          {courante?.variante && (
-            <span style={{ display: "block", marginTop: 1, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>
-              {courante.variante}
             </span>
           )}
         </span>
@@ -1677,6 +1707,15 @@ export default function PolyglottePage() {
            s'encadre pas. ⛔ La valeur RETENUE ne bouge pas au survol — elle porte déjà
            l'accent, et la faire changer d'encre laisserait croire qu'on va l'éteindre. */
         .poly-choix:not([aria-pressed="true"]):hover { color: var(--cs-texte-second); }
+        /* ── LES CASES DE L'ÉCHELLE ──
+           ⛔ Fond, encre et graisse SE DÉCLARENT ICI, jamais en ligne : une déclaration
+           en ligne bat toute règle de feuille sans « important », et c'est ainsi que le
+           survol du titre de colonne est resté mort pendant des semaines (note plus bas).
+           ⚠️ La case retenue ne réagit pas au survol : elle porte déjà l'accent, et la
+           faire changer d'encre laisserait croire qu'on va l'éteindre. */
+        .poly-case { background: transparent; color: var(--cs-texte-doux); font-weight: 400; transition: background .12s, color .12s; }
+        .poly-case:not([aria-pressed="true"]):hover { background: rgba(var(--cs-vert-rgb),0.06); color: var(--cs-texte-second); }
+        .poly-case[aria-pressed="true"] { background: rgba(var(--cs-vert-rgb),0.12); color: var(--cs-vert); font-weight: 600; }
         /* ⛔ LE FOND DU TITRE SE DÉCLARE ICI, ET NULLE PART EN LIGNE. Le bouton portait
            « background: none » dans son style en ligne : une déclaration en ligne bat
            toujours une règle de feuille sans « important », si bien que ce survol-ci ne
@@ -1852,19 +1891,13 @@ export default function PolyglottePage() {
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
           <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
             <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Traductions visibles</span>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "5px", flexWrap: "wrap" }}>
-              {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => {
-                const actif = nbTradPref === val;
-                return (
-                  <Fragment key={lbl}>
-                    {rang > 0 && <span aria-hidden style={POINT_DISCRET}>·</span>}
-                    <button onClick={() => setNbTradPref(val)} aria-pressed={actif}
-                      className="poly-choix" style={CHOIX_DISCRET(actif, VERT)}>
-                      {lbl}
-                    </button>
-                  </Fragment>
-                );
-              })}
+            <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
+              {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
+                <button key={lbl} onClick={() => setNbTradPref(val)} aria-pressed={nbTradPref === val}
+                  className="poly-case" style={CASE_ECHELLE(rang === 0)}>
+                  {lbl}
+                </button>
+              ))}
             </div>
           </div>
           {/* Les deux réglages de relecture de l'administrateur. Ils étaient posés en absolu
@@ -1987,7 +2020,14 @@ export default function PolyglottePage() {
                     // Une seule colonne par traduction depuis que la référence d'origine est
                     // passée en lettrine : le « span 2 » d'avant faisait déborder chaque
                     // en-tête sur sa voisine, et les quatre retombaient à la ligne en escalier.
-                    <div key={k} style={{ borderLeft: `1px solid ${FILET_COL}`, padding: "0 4px", display: "flex", alignItems: "stretch", justifyContent: "center", minWidth: 0 }}>
+                    // ⚠️ LA CELLULE DONNE DE L'AIR AU BLOC TEINTÉ (demande de l'auteur,
+                    // 2026-09-04 : « l'encadrement me convient, mais il semble dépasser un
+                    // peu ou toucher le bord de la case »). Elle n'avait AUCUN rembourrage
+                    // vertical : mesuré, le bouton faisait 69 px dans une cellule de 69, si
+                    // bien que le fond du survol et du menu ouvert courait d'un filet à
+                    // l'autre et venait toucher la réglure. Cinq pixels en haut et en bas,
+                    // six sur les côtés : le bloc se pose DANS la case au lieu de la remplir.
+                    <div key={k} style={{ borderLeft: `1px solid ${FILET_COL}`, padding: "5px 6px", display: "flex", alignItems: "stretch", justifyContent: "center", minWidth: 0 }}>
                       {/* Le nom est un menu déroulant : chevron pour qu'on voie qu'il se
                           clique. Une traduction déjà affichée ailleurs peut être choisie : les
                           deux colonnes s'échangent alors leur place (indiqué dans l'option). */}
