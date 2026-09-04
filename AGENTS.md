@@ -5029,3 +5029,87 @@ Doctrine : charte `parametres.charte_ia`, § 38.10. Règles de code :
   on clique. Son volet ne porte que le fondu, `.cs-volet-echange`, avec une `key` par
   segment — le bloc se REMONTE, si bien que l'ancien s'en va d'un coup et que le nouveau se
   pose doucement. Un volet n'a pas la place de tenir deux états à la fois.
+
+# ⛔ Le NOMBRE DE CHAPITRES vient de l'ossature, jamais d'une table (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.11. Règles de code :
+
+- ⛔ **Tout passe par `app/lib/chapitresCanon.ts`** : `nombreDeChapitres`,
+  `estLivreOuvrable`, `chargerChapitresParLivre`, et `CHAPITRES_PROTOCANON` comme seul
+  repli. La source est la vue **`livres_canon`** (migration `20260904170000`), qui compte
+  sur `versets_canon`. ⛔ Ne plus écrire un compte de chapitres ailleurs : il l'était en
+  TROIS exemplaires — `NavLivres`, `SelecteurCitation`, et le préchargement du chapitre
+  suivant de la Polyglotte — et il n'en reste aucun.
+- ⚠️ **La table ne portait que les 66 livres protocanoniques**, et `|| 1` faisait le reste :
+  le Siracide s'offrait à UN chapitre pour 51, la Sagesse pour 19, les Maccabées pour 16 et
+  15, Tobie 14, Judith 16, Baruch 6. Quelque **22 000 versets** inatteignables depuis le
+  volet, sur la page Bible comme sur la Polyglotte. Vérifié en ligne après correction :
+  Siracide 24 rend ses 39 versets.
+- ⚠️ **Et elle avait DÉRIVÉ sur ce qu'elle couvrait** : Joël y valait 3 chapitres pour 4
+  dans l'ossature (le quatrième était inatteignable), Daniel 14 pour 12 (les deux derniers
+  s'offraient sans rien rendre, leur texte vivant sous `SUS` et `BEL`). Le repli porte
+  désormais les valeurs de l'ossature, non celles de la Vulgate.
+- ⛔ **Un livre que l'ossature ne porte pas ne se LISTE pas** (`estLivreOuvrable`), le
+  tableau se composant sur les créneaux canoniques. Partent avec « Esther (grec) » : la
+  Lettre de Jérémie et les douze écrits non canoniques encore vides, dont la rubrique
+  « ÉCRITS NON CANONIQUES » disparaît faute d'entrées. ⚠️ Tant que la vue n'a pas répondu,
+  on ne retire RIEN : une liste qui s'ampute sur une requête en vol ment davantage qu'une
+  entrée en trop.
+- ⚠️ **Une seule requête pour tout le site** : la promesse est retenue au niveau du module,
+  et les trois surfaces qui en ont besoin la partagent. ⛔ Le module ne tire PAS
+  `app/lib/supabase` — il reçoit le client — sinon il ouvrirait un client navigateur dès
+  son import et deviendrait intestable.
+- ⚠️ **Ce qui reste OUVERT, et qui est une affaire de données** : Suzanne et Bel ont chacun
+  un chapitre d'ossature et 194 et 126 versets, mais `LIVRES_FONDUS_DANS_DANIEL` les retire
+  de la liste au motif que leur texte se lit dans Daniel — or Daniel n'a pas de chapitre 13
+  ni 14 dans l'ossature. Leur texte n'est donc atteignable par aucun chemin. La Lettre de
+  Jérémie porte 73 versets qu'aucun créneau canonique ne reçoit.
+
+## La Polyglotte : la colonne se charge seule, et la marque se centre sur le tableau
+
+- ⛔ **L'attente n'est plus GLOBALE.** `attenteColonneSeule` reconnaît le cas où seules les
+  TRADUCTIONS changent — mêmes livres, même chapitre — et `attenteGlobale` en est privée :
+  ni voile, ni passage, ni plancher de hauteur. L'ossature et les lignes des colonnes
+  inchangées restent valables, si bien que la table ne bouge pas.
+- ⚠️ **`tradsEnAttente` se lit dans le CACHE, non dans `porteeChargee`** : une colonne déjà
+  venue s'affiche à l'instant même, ce qui est le cas ordinaire dès qu'on revient à une
+  traduction déjà lue. Vérifié en ligne : passer une colonne à la Septante remplit sa
+  colonne de grec sans que rien d'autre bouge.
+- ⛔ **Une colonne qui charge le DIT** (`MENTION_ATTENTE`, `CelluleEnAttente`) : sans cela
+  elle rendait « Absent de cette traduction » le temps d'arriver, ce qui est faux et ce que
+  le lecteur retient.
+- ⚠️ **`MarqueAttente` prend un `sommet`** : l'anneau se centre sur la part VISIBLE de son
+  bloc, et cette part ne commence pas toujours sous la barre de navigation — la Polyglotte
+  pose au-dessus de son tableau un en-tête collant de 72 px. Mesuré sur la page servie :
+  centre de l'anneau à 683 px, centre du tableau visible à 683 ; il valait 719 avant.
+  ⚠️ La LARGEUR n'a jamais demandé de réglage — le voile couvre son parent positionné.
+- ⚠️ **Le corps garde la hauteur du tableau tant que rien n'est chargé** (`HAUTEUR_CORPS`),
+  sans quoi l'anneau se centrerait dans une bande de 12 rem posée en haut d'un écran vide.
+
+## Les trois mesures d'une colonne se nomment une fois (2026-09-04)
+
+`--poly-marge-x`, `--poly-lettrine-air`, `--poly-interligne`, posées sur
+`.poly-texte-cell`. ⛔ Elles se répondent — la lettrine se range dans la gouttière par une
+marge négative, et l'étui d'un numéro fait exactement une ligne de texte — et elles
+s'étaient déjà désaccordées. ⚠️ Réglages du jour : gouttière 10 → 13 px, blanc 7/8 → 8/9,
+interligne 1,36 → 1,34, et le numéro d'origine reprend **3 px** contre la réglure, qu'il
+touchait (sa marge négative valait exactement la gouttière).
+
+## ⛔ Un curseur d'aide sans infobulle est une promesse en l'air (2026-09-04)
+
+`CelluleAbsente` perd `cursor: help` et son `title` sur l'absence ORDINAIRE : l'infobulle
+ne disait que « Cette traduction ne porte pas ce verset », c'est-à-dire la mention en
+d'autres mots. ⚠️ Le cas DEUTÉROCANONIQUE garde les deux, son infobulle disant POURQUOI la
+case est vide. ⚠️ `RechercheClient` garde son `title` sans curseur : il ne promet rien, et
+une infobulle qui vient en plus ne coûte pas.
+
+## ⚠️ Les notes éditoriales d'un verset sont en place, et elles sont RARES
+
+Relevé le 2026-09-04, à la question de l'auteur (« est-ce toujours en place ? »). La note
+de `versets_v2.notes` se lit au survol d'un crayon de 9 px posé contre le numéro d'origine
+(`.poly-lettrine-ref`), et elle est portée par **3 641 versets sur 220 000** : Sacy 1 943,
+Vulgate 1 118, Septante 390, Segond 158, la traduction moderne du témoin 32 ; Crampon et
+Fillion aucune. ⛔ Rien n'est cassé — Genèse 5, 31 en porte une chez Sacy comme chez la
+Vulgate. ⚠️ Mais elles ne se trouvent que par hasard, et leur seul chemin de lecture est
+une infobulle native : les rendre plus franches est une décision d'auteur, non un
+nettoyage.
