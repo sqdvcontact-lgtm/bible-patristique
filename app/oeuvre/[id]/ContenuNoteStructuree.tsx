@@ -4,6 +4,7 @@ import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/reference
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
 import { ContenuApparatCritique } from './ApparatCritique'
+import { rendreTexteEnrichi } from './texteEnrichi'
 
 // Le texte d'un bloc de RENVOI biblique (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
@@ -94,7 +95,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               borderLeft: traduction ? '2px solid var(--cs-or-doux)' : undefined,
             }}
           >
-            {texteFinal(texteBloc(block), finSurTexte)}
+            {rendreTexteEnrichi(texteFinal(texteBloc(block), finSurTexte))}
             {referencesInline.map((reference, i) => (
               <span
                 key={reference.blockId}
@@ -105,7 +106,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 data-needs-review={String(reference.needsReview)}
                 style={{ fontSize: '0.92em', color: 'var(--cs-texte-second)' }}
               >
-                {'\u00A0'}{texteFinal(texteBloc(reference), finSurInline && i === referencesInline.length - 1)}
+                {'\u00A0'}{rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurInline && i === referencesInline.length - 1))}
               </span>
             ))}
             {referencesApresVers.map((reference, i) => (
@@ -119,7 +120,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                   data-needs-review={String(reference.needsReview)}
                   style={{ fontSize: '0.92em', color: 'var(--cs-texte-second)' }}
                 >
-                  {texteFinal(texteBloc(reference), finSurApresVers && i === referencesApresVers.length - 1)}
+                  {rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurApresVers && i === referencesApresVers.length - 1))}
                 </span>
               </Fragment>
             ))}
