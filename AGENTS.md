@@ -5113,3 +5113,44 @@ Fillion aucune. ⛔ Rien n'est cassé — Genèse 5, 31 en porte une chez Sacy c
 Vulgate. ⚠️ Mais elles ne se trouvent que par hasard, et leur seul chemin de lecture est
 une infobulle native : les rendre plus franches est une décision d'auteur, non un
 nettoyage.
+
+# Catalogue des traductions — la marque retirée, le prérempli figé (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.12. Règles de code, dans
+`app/bibliotheque/BibliothequeClient.tsx` :
+
+- ⛔ **La marque « ✦ Référence en cours de vérification » est SUPPRIMÉE.** Elle se
+  calculait sur `verifie_admin` puis `verifie`, et paraissait sur **2 488 notices sur
+  2 499** ; son troisième état, « Non vérifié », n'existait sur aucune. Décision de
+  l'auteur, après lui avoir proposé de l'affiner : « rien de spécial ; en fait, il faut
+  tout bonnement supprimer ». ⚠️ Les colonnes `verifie` et `verifie_admin` ne sont plus ni
+  typées ni demandées, et les deux teintes qu'elle portait (`#b07d1e`, `#c09050`) ont
+  quitté `couleursEnDurInventaire.ts` — c'est la garde chromatique qui l'a exigé, et elle
+  a bien fait son office.
+- ⚠️ **Ce qui reste dans la donnée, si l'on veut un jour dire quelque chose de vrai** :
+  `verification_code` (NOTICE_VERIFIEE 2 272, TEXTE_VERIFIE 161, EXEMPLAIRE_VERIFIE 66),
+  `workflow_status_code` (VERIFIE 2 488, VALIDE_ADMIN 11) et surtout
+  `decision_import_code`, qui varie franchement : BIBLIOGRAPHIE 1 928, IMPORTER 495,
+  IMPORT_PARTIEL 47, CONSERVER 29.
+- ⛔ **« Domaine public » s'écrit en toutes lettres**, sans `title` ni `cursor: help` :
+  l'infobulle ne faisait que développer le sigle.
+- ⛔ **`ChampFige` : ce qui est PRÉREMPLI ne se modifie pas.** Le verrou se déduit des
+  clés non vides de `valeursInitiales`, jamais d'un drapeau — l'onglet « Proposer une
+  œuvre », qui ne préremplit rien, reste libre. ⛔ Ni `disabled` ni `readOnly` : le
+  premier grise le texte et le retire du clavier, le second garde l'apparence d'un champ
+  où l'on pourrait écrire. C'est une valeur qu'on montre, composée dans le cadre du champ
+  pour que la colonne garde son aplomb, et une phrase dit une fois pourquoi.
+- ⚠️ **`figes` est un `useState` à initialiseur PARESSEUX, non un `useRef`** : la valeur
+  se lit pendant le rendu, ce qu'une référence n'a pas le droit de faire
+  (`react-hooks/refs`, trois erreurs de lint à la première écriture).
+
+## ⚠️ « 100 œuvres répertoriées » chez Augustin est un compte RÉEL
+
+Question de l'auteur, et la réponse méritait d'être vérifiée : ce n'est ni un chiffre rond
+ni un plafond. Augustin porte **205 notices pour 100 œuvres distinctes** (`v_catalogue_notices_dates`,
+`presence_sur_le_site = false`), et le regroupement d'affichage (`cleOeuvreCatalogue`) en
+rend exactement 100 — vérifié en ligne, le panneau ouvre 100 lignes. ⚠️ Le chargement
+PAGINE déjà par mille (`range`), et le commentaire du code dit que sans cela « la liste
+s'arrêtait vers Augustin » : le piège a existé, il est fermé. ⚠️ `enLettres` n'écrit en
+toutes lettres que de un à vingt ; au-delà le chiffre paraît, d'où le « 100 » qui a l'air
+d'un arrondi.
