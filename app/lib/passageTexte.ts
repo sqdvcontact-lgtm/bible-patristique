@@ -31,6 +31,17 @@ export const DUREE_SORTIE_MS = 320
  *  (une autre page de pagination, un niveau rechargé) paraît sans animation. */
 export const DUREE_ENTREE_MS = 900
 
+/** L'OUVERTURE d'une page de lecture : un fondu de la colonne entière, et non une
+ *  arrivée bloc par bloc (demande de l'auteur, 2026-09-04 : « faire un affichage plus
+ *  doux que le texte qui apparaît brutalement »).
+ *  ⛔ Le rang d'un bloc se calcule DANS LE NAVIGATEUR, ce qui est trop tard pour une
+ *  page dont le serveur a déjà peint le texte : l'ouverture ne peut donc pas être
+ *  échelonnée. Elle se déclare dans le rendu même — le HTML servi la porte —, et le
+ *  fondu joue dès la première peinture, sans que rien n'ait à disparaître d'abord.
+ *  ⚠️ La valeur dépasse la durée de l'animation (0,45 s dans `globals.css`) : la classe
+ *  ne se retire qu'une fois le fondu joué. */
+export const DUREE_OUVERTURE_MS = 520
+
 /** Une bascule annoncée et jamais reprise (navigation interrompue) ne doit pas
  *  attendre le prochain montage venu pour s'y appliquer. */
 const PEREMPTION_MS = 20_000

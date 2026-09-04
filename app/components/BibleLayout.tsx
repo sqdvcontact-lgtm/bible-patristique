@@ -3,7 +3,8 @@
 import { useEffect, useLayoutEffect, useState, useRef } from 'react'
 import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
-import { DUREE_ENTREE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
+import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
+import { retenirPositionBible } from '@/app/lib/repriseLecture'
 import NavLivres, { type PieceSommaireBible } from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
@@ -139,7 +140,22 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // l'autre (Matthieu 7 s'ouvrait par sa fin), et le passage en regard remontait
   // tout, le composant changeant. Mesuré en ligne le 2026-09-02 (AGENTS.md).
   const lectureRef = useRef<HTMLDivElement>(null)
-  const [passage, setPassage] = useState<'sortie' | 'entree' | null>(null)
+  // ⚠️ LA PAGE S'OUVRE EN FONDU (demande de l'auteur, 2026-09-04 : « à l'ouverture de la
+  // page, faire un affichage plus doux que le texte qui apparaît brutalement »). L'état
+  // part donc d'« ouverture », et c'est nécessaire qu'il en parte : le texte de cette
+  // page est rendu par le SERVEUR, donc peint avant même que React s'hydrate. Un fondu
+  // posé après coup ferait disparaître un texte déjà lisible pour le ramener — pire que
+  // le défaut qu'on corrige. Déclaré au premier rendu, il voyage dans le HTML servi et
+  // joue dès la première peinture, sur un document chargé comme sur une navigation.
+  // ⛔ Le fondu de l'ouverture ne porte QUE l'opacité, quand celui d'une arrivée
+  // translate de six pixels : une transformation ferait de la colonne le bloc conteneur
+  // des cellules d'actions posées en `fixed` (charte, passage d'un texte à l'autre).
+  const [passage, setPassage] = useState<'sortie' | 'entree' | 'ouverture' | null>('ouverture')
+  useEffect(() => {
+    // ⚠️ On ne retire QUE l'ouverture : un départ a pu commencer entre-temps.
+    const fin = window.setTimeout(() => setPassage(p => (p === 'ouverture' ? null : p)), DUREE_OUVERTURE_MS)
+    return () => window.clearTimeout(fin)
+  }, [])
   const repriseRef = useRef<{ livre: string; chapitre: number; verset: number | null; hauteur: number | null } | null>(null)
   const arriveeRef = useRef(true)
   // Un échange de bible EN MÉMOIRE (deux bibles canoniques déjà chargées) montre la
@@ -448,8 +464,11 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // Ce qu'on lit VRAIMENT, retenu pour la prochaine ouverture : la reprise de
   // lecture de l'accueil (`localStorage`) et le rendu serveur de la page (cookie),
   // qui n'aura donc plus à interroger le profil.
+  // ⚠️ La forme de la place retenue vit dans `app/lib/repriseLecture.ts`, avec sa clé :
+  // la Polyglotte la relit pour s'ouvrir là où l'on en était, et la carte de l'accueil
+  // pour proposer la reprise. Écrite ici à la main, elle l'était aussi à l'accueil.
   useEffect(() => {
-    localStorage.setItem('cs_dernier_bible', JSON.stringify({ livre: livreActif, chapitre: chapitreActif, trad: tradInitiale, nomLivre }))
+    retenirPositionBible({ livre: livreActif, chapitre: chapitreActif, trad: tradInitiale, nomLivre })
     memoriserTraductionBible(tradInitiale)
   }, [livreActif, chapitreActif, tradInitiale, nomLivre])
 

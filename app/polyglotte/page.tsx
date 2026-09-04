@@ -26,6 +26,7 @@ import IconeChevron from "@/app/components/IconeChevron";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { DUREE_ENTREE_MS, ordonnerBlocsVisibles } from "@/app/lib/passageTexte";
+import { LIVRE_PAR_DEFAUT, ouvertureDeLaPolyglotte, retenirPositionPolyglotte } from "@/app/lib/repriseLecture";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
@@ -1065,13 +1066,29 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
   );
 }
 
+/** L'ensemble (le « tiroir ») auquel un livre appartient : le lecteur ne le choisit pas,
+ *  il se déduit de l'ordre canonique du livre demandé. */
+function ensembleDeLivre(livres: Livre[], code: string): Onglet {
+  const o = livres.find(l => l.code === code)?.ordre ?? 0;
+  if (code === "PSA") return "PSA";
+  if (o > ORDRE_CANON_MAX) return "AUTRES";
+  return o >= ORDRE_NT ? "NT" : "AT";
+}
+
 export default function PolyglottePage() {
   const [livres, setLivres] = useState<Livre[]>([]);
   // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
   const [livresEd, setLivresEd] = useState<Record<string, Record<string, { nom: string; abrege: string }>>>({});
   const [trads, setTrads] = useState<Trad[]>([]);
   const [points, setPoints] = useState<Point[]>([]);
-  const [onglet, setOnglet] = useState<Onglet | null>(null);   // la page s'ouvre vide : on choisit un ensemble
+  // ⛔ LA PAGE NE S'OUVRE PLUS VIDE (demande de l'auteur, 2026-09-04 : « supprimer le
+  // dessin et afficher soit le dernier emplacement de lecture de l'utilisateur — il faut
+  // donc l'enregistrer — soit la Genèse »). L'ensemble reste nul le temps que les livres
+  // arrivent, et il est posé dans la réponse même : voir le chargement initial.
+  const [onglet, setOnglet] = useState<Onglet | null>(null);
+  // Les livres ont-ils été demandés ET rendus ? Sert au seul cas où la liste revient vide :
+  // sans elle, un échec de lecture et une page qui charge se ressemblent trait pour trait.
+  const [livresLus, setLivresLus] = useState(false);
   const [slots, setSlots] = useState<string[]>([]);
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
   const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
@@ -1235,12 +1252,19 @@ export default function PolyglottePage() {
   // LE LIVRE COMMANDE, L'ENSEMBLE SUIT. Les onglets ont disparu : on choisit un livre dans le
   // sommaire, et l'ensemble à charger (AT / Psaumes / NT / non canoniques) s'en déduit. Le
   // lecteur n'a plus à savoir dans quel tiroir ranger sa demande.
-  const ensembleDe = useCallback((code: string): Onglet => {
-    const o = livres.find(l => l.code === code)?.ordre ?? 0;
-    if (code === "PSA") return "PSA";
-    if (o > ORDRE_CANON_MAX) return "AUTRES";
-    return o >= ORDRE_NT ? "NT" : "AT";
-  }, [livres]);
+  // ⚠️ Le calcul est une fonction PURE (`ensembleDeLivre`, hors du composant) : la
+  // reprise d'ouverture s'en sert dans la réponse même de la requête des livres, où
+  // l'état `livres` n'est pas encore posé.
+  const ensembleDe = useCallback((code: string): Onglet => ensembleDeLivre(livres, code), [livres]);
+
+  // ⚠️ CE QU'ON LIT SE RETIENT, pour la prochaine ouverture de la page. ⛔ Le livre
+  // ENTIER ne se retient pas comme tel : c'est un geste explicite et coûteux, et une
+  // ouverture de page doit être brève (voir `repriseLecture`, qui le ramène au premier
+  // chapitre). Aucune requête, aucun état : une écriture dans le stockage local.
+  useEffect(() => {
+    if (!livreChoisi) return;
+    retenirPositionPolyglotte(livreChoisi, chapitreChoisi);
+  }, [livreChoisi, chapitreChoisi]);
 
   const choisirLivre = useCallback((code: string) => {
     setOnglet(ensembleDe(code));
@@ -1263,7 +1287,23 @@ export default function PolyglottePage() {
     supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data, error }) => {
       // ⚠️ Lire l'erreur : un volet vide se lit « rien à comparer », ce qui ment sur une panne.
       if (error) console.error("Polyglotte : les livres n’ont pas pu être lus.", error);
-      setLivres((data ?? []).filter(l => !LIVRES_FONDUS_DANS_DANIEL.has(l.code)));
+      const liste = (data ?? []).filter(l => !LIVRES_FONDUS_DANS_DANIEL.has(l.code));
+      setLivres(liste);
+      setLivresLus(true);
+      if (!liste.length) return;
+      // ⛔ L'OUVERTURE SE DÉCIDE ICI, et non au premier rendu : la place retenue vit dans
+      // `localStorage`, que le rendu serveur ne connaît pas, et le livre demandé doit
+      // être confronté à la liste réellement servie — un code retenu de longue date peut
+      // avoir disparu du canon offert. On retombe alors sur la Genèse, puis sur le premier
+      // livre venu, pour que la page ouvre TOUJOURS sur un texte.
+      // ⚠️ Le chapitre ne suit que si c'est bien le livre retenu qu'on ouvre.
+      const ou = ouvertureDeLaPolyglotte();
+      const livre = liste.find(l => l.code === ou.livre)
+        ?? liste.find(l => l.code === LIVRE_PAR_DEFAUT)
+        ?? liste[0];
+      setOnglet(ensembleDeLivre(liste, livre.code));
+      setLivreChoisi(livre.code);
+      setChapitreChoisi(livre.code === ou.livre ? ou.chapitre : 1);
     });
     // Désignation des livres propre à chaque édition, quand elle diffère du canon : la
     // Sacy de 1730 compte quatre livres des Rois là où le canon en compte deux de Samuel
@@ -1495,9 +1535,17 @@ export default function PolyglottePage() {
       const haut = corps.getBoundingClientRect().top + window.scrollY - hautDeLecture(enteteRef.current);
       if (window.scrollY > haut) window.scrollTo(0, Math.max(0, haut));
     }
-    // Venu du cache, rien ne s'est effacé : rien ne paraît non plus, même parti que
-    // l'échange de bible en mémoire sur la page Bible. Le défilement dit qu'on a tourné.
-    if (passage !== "sortie") return;
+    // ⚠️ LA PREMIÈRE ARRIVÉE N'A PAS DE DÉPART, et c'est le seul cas où l'on paraît sans
+    // s'être effacé (demande de l'auteur, 2026-09-04 : « faire un affichage plus doux que
+    // le texte qui apparaît brutalement »). La page s'ouvre maintenant sur un livre, et
+    // son texte vient du NAVIGATEUR : rien n'est à l'écran avant lui, donc rien n'a à
+    // s'effacer, et le fondu se joue sur ce qui arrive. ⛔ C'est aussi pourquoi cette page
+    // n'emprunte pas l'ouverture en fondu de la Bible classique, qui vaut pour un texte
+    // déjà peint par le serveur : ici la colonne est vide au premier rendu.
+    // Ailleurs, venu du cache, rien ne s'est effacé et rien ne paraît non plus : même
+    // parti que l'échange de bible en mémoire sur la page Bible, le défilement dit qu'on
+    // a tourné.
+    if (passage !== "sortie" && precedente !== null) return;
     ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE);
     setPassage("entree");
     const fin = window.setTimeout(() => setPassage(null), DUREE_ENTREE_MS);
@@ -1955,44 +2003,18 @@ export default function PolyglottePage() {
           valait 18 px de chaque côté pour dégager l'ombre du bloc, qui n'existe plus. Toute
           largeur reprise ici revient au texte, et le calcul de largeur adaptative la compte. */}
       <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "0 12px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "var(--cs-texte-fort)" }}>
-        {/* Aucun livre choisi : la page reste vide et l'explique */}
-        {!onglet && (
-          // Le groupe (image + légende) est centré VERTICALEMENT et HORIZONTALEMENT dans le bloc.
-          <div style={{ position: "relative", minHeight: "calc(100dvh - 3.5rem - 6rem)" }}>
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(56rem, 94%)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              {/* Tour de Babel (gravure) : image de la Polyglotte — la confusion des langues,
-                  que la lecture en regard rassemble. PNG détouré (fond blanc rendu transparent) :
-                  la gravure se pose sur le crème, sans rectangle clair ni mix-blend-mode.
-
-                  ⛔ Sa largeur était posée en PIXELS (816), donc absolue : elle ne suivait ni
-                  la colonne ni la police racine. Sur un grand écran, où la racine passe de 16
-                  à 22 (§ Responsive), tout grandissait autour d'elle d'un tiers pendant qu'elle
-                  gardait ses 816 px — la gravure rapetissait donc à mesure que l'écran
-                  s'agrandissait, et flottait au milieu d'une colonne devenue trop vaste. En rem
-                  (51rem = les mêmes 816 px à la racine 16), elle grandit avec le reste, jusqu'à
-                  1 122 px à la racine 22, et les 96 % la gardent dans sa colonne quand le volet
-                  des livres est ouvert.
-
-                  Le PLAFOND DE HAUTEUR est l'autre moitié du réglage, et il vaut pour les écrans
-                  BAS, non pour les petits : la gravure est large de 1436 sur 870, donc presque
-                  deux fois plus large que haute. Le groupe est centré par translate(-50%, -50%)
-                  dans un bloc qui ne mesure que la hauteur restante ; dès que l'image dépasse,
-                  elle déborde des DEUX côtés à la fois et sa tête passe sous l'en-tête collant.
-                  À 816 px de large elle en fait 494 de haut, ce qui ne tient plus sous une
-                  fenêtre de moins de 700 px. Le plafond réserve la légende et les marges, puis
-                  laisse la hauteur commander.
-
-                  ⚠️ Les deux bornes sont des MAXIMA, et width reste auto : c'est la seule
-                  écriture qui garde les proportions. Avec une largeur POSÉE plus un plafond de
-                  hauteur, la largeur est définitive et le plafond écrase l'image sans la
-                  recalculer — mesuré sous une fenêtre de 600 px : 816 sur 400, soit un rapport
-                  de 2,04 au lieu de 1,651, une tour de Babel étirée en travers. Quand les deux
-                  dimensions sont automatiques et bornées, le navigateur applique les maxima l'un
-                  après l'autre en tenant le rapport (CSS 2.1, § 10.4). */}
-              <img className="cs-ornement" src="/ornements/tour-babel-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: "min(68rem, 96%)", maxHeight: "calc(100dvh - 3.5rem - 15rem)", opacity: 0.72, marginBottom: "16px" }} />
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", margin: 0 }}>Ouvrez un livre</p>
-            </div>
+        {/* ⛔ PLUS DE GRAVURE NI D'INVITE « Ouvrez un livre » (demande de l'auteur,
+            2026-09-04 : « supprimer le dessin et afficher soit le dernier emplacement de
+            lecture de l'utilisateur, soit la Genèse »). La tour de Babel ruinée occupait
+            seule l'écran tant qu'aucun livre n'était ouvert ; or la page a maintenant
+            toujours un livre à ouvrir, et l'écran qu'elle ornait n'existe plus. La planche
+            passe en réserve (voir l'inventaire des illustrations).
+            ⚠️ Il reste UN cas où rien ne s'ouvre, et lui seul se dit : la liste des livres
+            n'a pas pu être lue. Un panneau discret journalise son erreur — un centre vide
+            et muet se lirait comme une page qui charge encore. */}
+        {!onglet && livresLus && (
+          <div role="alert" style={{ minHeight: "calc(100dvh - 3.5rem - 6rem)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", textAlign: "center" }}>
+            La liste des livres n’a pas pu être lue.
           </div>
         )}
 

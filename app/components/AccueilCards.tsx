@@ -5,6 +5,7 @@ import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
+import { lirePositionBible, type PositionBible } from '@/app/lib/repriseLecture'
 
 // ⛔ PLUS DE TROISIÈME CARTE (décision de l'auteur, 2026-08-31). La Communauté est
 // retirée de l'accueil : les portes de la page sont la Bible et les Pères, et rien
@@ -12,7 +13,10 @@ import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 // partout. ⚠️ `cs_derniere_publication` continue d'être ÉCRIT par la lecture d'un
 // essai (`app/essais/[id]/EssaiClient.tsx`) ; plus personne ne le lit ici. On ne
 // touche pas à l'écriture : le jour où une porte y revient, la reprise est là.
-type DernierBible   = { livre: string; chapitre: number; trad: string; nomLivre: string }
+// ⛔ La forme de la reprise de lecture vit dans `app/lib/repriseLecture.ts`, avec la clé
+//    et le lecteur qui la relit : elle était écrite ici et à `BibleLayout`, en deux
+//    exemplaires qu'aucun mécanisme n'obligeait à rester d'accord.
+type DernierBible   = PositionBible
 type DerniereOeuvre = { id: string; titre: string; auteur: string }
 
 function abregerTexte(texte?: string, max = 30) {
@@ -135,9 +139,9 @@ export default function AccueilCards() {
 
   useEffect(() => {
     try {
-      const b = localStorage.getItem('cs_dernier_bible')
+      const b = lirePositionBible()
       const o = localStorage.getItem('cs_derniere_oeuvre')
-      if (b) setBible(JSON.parse(b))
+      if (b) setBible(b)
       if (o) setOeuvre(JSON.parse(o))
     } catch {}
   }, [])

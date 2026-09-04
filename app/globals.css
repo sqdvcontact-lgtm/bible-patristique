@@ -2380,6 +2380,20 @@ main.lecture-entree [data-cs-bloc],
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
+/* L'OUVERTURE d'une page de lecture : la colonne entière paraît en fondu, au lieu de
+   s'afficher d'un coup (demande de l'auteur, 2026-09-04). ⛔ Elle n'est PAS échelonnée,
+   et ne peut pas l'être : le rang d'un bloc se mesure dans le navigateur, quand le texte
+   de la page Bible est déjà peint par le serveur. La classe est donc posée dans le rendu
+   même — le HTML servi la porte — et le fondu joue dès la première peinture : rien ne
+   disparaît pour reparaître. ⛔ Opacité SEULE : une transformation ferait de la colonne le
+   bloc conteneur des cellules d'actions posées en `fixed`. */
+[data-passage="ouverture"] .cs-lecture-colonne {
+  animation: cs-lecture-ouvrir 0.45s ease-out both;
+}
+@keyframes cs-lecture-ouvrir {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 /* Le mot de l'écran d'attente d'une œuvre (`app/oeuvre/[id]/loading.tsx`) : il ne
    vient qu'au bout d'un instant, une arrivée rapide ne montrant rien. */
 @keyframes cs-attente-paraitre {
@@ -2392,7 +2406,8 @@ main.lecture-entree [data-cs-bloc],
   main.lecture-entree [data-cs-bloc],
   [data-passage="sortie"] [data-cs-bloc],
   [data-passage="sortie"] .cs-lecture-colonne,
-  [data-passage="entree"] [data-cs-bloc] {
+  [data-passage="entree"] [data-cs-bloc],
+  [data-passage="ouverture"] .cs-lecture-colonne {
     animation-duration: 0.01ms;
     animation-delay: 0s;
   }
