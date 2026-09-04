@@ -58,12 +58,15 @@ export default function ModaleLivreAbsent({
 
   return createPortal(
     <div onClick={onFermer}
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      /* ⚠️ Le calque est un NOIR translucide, non un jeton d'encre : c'est une
+         ombre, et un jeton se retournerait avec le thème — au Cuir il tirerait un
+         rideau clair sur la page (charte, § Encre contre aplat). */
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-absent-titre"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '24rem', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         {/* Bandeau — la teinte d'encre du site, et un livre fermé pour emblème. */}
-        <div style={{ position: 'relative', padding: '20px 24px 16px', background: 'linear-gradient(180deg, var(--cs-vert-pale) 0%, var(--cs-fond-clair) 100%)', borderBottom: '1px solid var(--cs-bord-clair)', borderRadius: '11px 11px 0 0' }}>
+        <div style={{ position: 'relative', padding: '20px 24px 16px', background: 'linear-gradient(180deg, var(--cs-vert-pale) 0%, var(--cs-fond-clair) 100%)', borderBottom: '1px solid var(--cs-bord-clair)', borderRadius: '12px 12px 0 0' }}>
           <button onClick={onFermer} aria-label="Fermer" title="Fermer"
             style={{ position: 'absolute', top: '12px', right: '14px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
           <div aria-hidden="true"

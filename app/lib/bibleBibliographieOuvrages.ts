@@ -110,11 +110,14 @@ export function auteurPorteParLeTitreDeLaPiece(pieceKey: string): boolean {
 // non une apposition — il se détache par un POINT. ⛔ Ni deux-points, ni
 // virgule : les deux ont été prescrits tour à tour, et l'un après l'autre
 // remplacés. L'insécable qui précédait le deux-points n'a plus d'objet.
-const LIAISON_SOUS_TITRE = '. '
-const SEPARATEUR = ', '
+// ⚠️ Les trois sont EXPORTÉES : la référence de l'édition servie (`referenceEditionServie`)
+// se compose des mêmes signes, et deux jeux de ponctuation pour une même norme
+// divergeraient au premier ajustement.
+export const LIAISON_SOUS_TITRE = '. '
+export const SEPARATEUR = ', '
 // Un intitulé qui se ferme déjà sur une ponctuation forte ne reçoit pas un
 // second point : la ponctuation attestée d'un titre est conservée (charte §3.4).
-const PONCTUATION_FORTE = /[.!?…]$/u
+export const PONCTUATION_FORTE = /[.!?…]$/u
 
 function propre(valeur: string | null | undefined): string | null {
   const texte = valeur?.trim()
@@ -252,6 +255,32 @@ export function grouperBibliographiesParPiece(
     pieceKey,
     ouvrages: [...ouvrages].sort(comparerOuvrages),
   }))
+}
+
+/**
+ * TOUS LES OUVRAGES CITÉS DANS UNE ÉDITION, toutes pièces confondues.
+ *
+ * La fiche « À propos de cette traduction » en fait une rubrique (demande de
+ * l'auteur, 2026-09-04 : « tous les ouvrages cités dans l'édition utilisée ;
+ * c'est surtout utile pour Fillion »). ⚠️ Ce n'est pas la concaténation des
+ * listes par pièce : un même ouvrage cité dans deux introductions n'y paraît
+ * qu'UNE fois, l'identité étant `ouvrage_id`, et l'ordre se calcule sur
+ * l'ensemble — une bibliographie d'édition se range par auteur et par titre, non
+ * par ordre d'apparition dans le volume.
+ *
+ * ⛔ La liste est VIDE tant que la donnée ne porte rien : la rubrique ne paraît
+ * alors pas. On ne la remplit pas d'un repli sur le texte des blocs matériels.
+ */
+export function ouvragesDeLaFamille(
+  lignes: readonly LigneBibliographieOuvrage[],
+): OuvrageBibliographique[] {
+  const parId = new Map<number, OuvrageBibliographique>()
+  for (const piece of grouperBibliographiesParPiece(lignes)) {
+    for (const ouvrage of piece.ouvrages) {
+      if (!parId.has(ouvrage.id)) parId.set(ouvrage.id, ouvrage)
+    }
+  }
+  return [...parId.values()].sort(comparerOuvrages)
 }
 
 /**

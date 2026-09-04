@@ -4392,3 +4392,69 @@ Demande de l'auteur : « un petit module admin pour les styles, pour les identif
 - ⚠️ **Un verset s'IDENTIFIE, il ne s'attribue pas encore.** La prose est la seule forme que la donnée porte ; `est_suscription` vient du canon et n'est lu par aucune surface de la page Bible ; le vers attend que les stiques du Psautier soient dans la donnée (charte § 7.4). Le catalogue le dit ; la vue « Bible » ne liste que les blocs de l'appareil.
 - ⚠️ **Le début du texte d'un bloc se lit par la chaîne de la page** (première unité-source du segment, meilleure couche, mêmes priorités que `bibleEditionServerCore`) : un bloc sans intitulé se reconnaît à ses premiers mots, jamais à sa seule clé. Les clauses `in` passent par `lotsPourClauseIn`.
 - ⚠️ **Les divisions d'un texte viennent de `get_niv1_list`**, la RPC de la page d'œuvre, et les segments sans niveau 1 se listent à part : une œuvre sans divisions en a quand même des segments.
+
+# La fiche d'une traduction et le volet de la Bible (2026-09-04)
+
+Sept demandes de l'auteur sur la page « Bible classique ». Doctrine : charte
+`parametres.charte_ia`, §§ 3.2, 38, 38.1 et 38.2. Règles de code :
+
+- ⛔ **La phrase d'édition de la carte se compose dans `editionTraduction.ts`, et
+  la DATE seule décide qu'il y a une édition à nommer.** Elle nomme désormais le
+  lieu, l'éditeur et les dates — la forme normative `Ville, éditeur, année` du
+  § 5 —, mais un lieu connu sans date ne fait pas une édition : la fiche du
+  manuscrit Français 899 porte « Paris », qui est le lieu du MANUSCRIT, et la
+  carte annoncerait sans cette garde « l'édition de Paris ». Le lieu et l'éditeur
+  viennent d'`editions_sources`, chargés par `app/page.tsx` dans la vague qui part
+  déjà. ⛔ Pas de jointure par `v_traductions_page` : la vue ne porte pas
+  `est_biblique`, sur quoi le sélecteur de bibles se filtre, et elle traîne la
+  notice éditoriale entière — deux kilo-octets par bible, à chaque chapitre ouvert.
+- ⛔ **La référence des VOLUMES SERVIS ne passe pas par `ouvrages_bibliographiques`**,
+  dont `annee` est un ENTIER : « 1888-1904 » et « vol. I : 1909 ; vol. II : 1907 »
+  n'y entrent pas. Elle se compose champ par champ depuis `editions_sources`
+  (`app/lib/referenceEditionServie.ts`, pur, 8 tests), aux mêmes normes que toute
+  bibliographie du site. ⚠️ La ponctuation et le type `SegmentReference` sont
+  IMPORTÉS de `bibleBibliographieOuvrages.ts` — `LIAISON_SOUS_TITRE`, `SEPARATEUR`,
+  `PONCTUATION_FORTE` y sont exportés pour cela : deux jeux de signes pour une même
+  norme divergeraient au premier ajustement. Et `FragmentReference` (ex-`RendreSegment`)
+  est exporté de `BibliographieOuvrages.tsx`, pour la même raison.
+- **`ouvragesDeLaFamille`** réunit les ouvrages cités par une édition, toutes pièces
+  confondues, dédoublonnés par `ouvrage_id` et rangés par `comparerOuvrages`. ⛔ Ce
+  n'est pas la concaténation des listes par pièce : une bibliographie d'édition se
+  range par auteur, non par ordre d'apparition dans le volume.
+- ⛔ **`v_bible_editorial_bibliography_entries` est en `security_barrier`, non en
+  `security_invoker`** : elle s'exécute avec les droits de son propriétaire, et
+  `anon` la lit. C'est ce qui permet à la fiche, composant CLIENT, de la charger.
+- ⛔ **Un cadre dont on écrit la hauteur DU DEHORS doit la transmettre à ce qu'il
+  contient.** `useBordSurDerniereLigne` allonge le cadre du portrait jusqu'à la
+  dernière ligne qui l'habille ; la zone d'image tenait la sienne de son seul
+  rapport 2/3 et ne suivait pas, si bien que la rallonge se voyait en passe-partout
+  SOUS l'image. Le cadre est un flex, la zone d'image s'y étire (`align-items:
+  stretch`), et son style en ligne ne pose PAS de hauteur — elle doit rester à
+  `auto`, sinon l'étirement ne joue pas.
+- ⛔ **La mention d'édition en toutes lettres vit dans `app/lib/mentionEdition.ts`**
+  (pur, 6 tests) : « deuxième édition », jamais « 2e édition », `2e éd.` et
+  `2e édit.` proscrits au même titre. Au-delà du vingtième rang elle écrit
+  « édition n° 24 », ⛔ jamais « 24e ». `SectionTraductions` l'importe ; elle
+  portait sa propre écriture.
+- ⚠️ **Corriger un ordinal dans une couche de LECTURE allonge la chaîne**, et les
+  empans d'italique qui l'indexent (`metadata.editorial_normalization.inline_spans`)
+  se décalent. Ils se recalculent DANS LA MÊME ÉCRITURE, depuis les intitulés
+  eux-mêmes et non par un décalage arithmétique, puis se vérifient en relisant
+  chaque empan. ⛔ `text_content` — la couche SOURCE — n'est jamais touchée.
+- **Un livre GRISÉ, cliqué, s'explique** : `NavLivres` annonce le clic
+  (`onLivreAbsent`), `BibleLayout` cherche les bibles qui portent ce livre aux DEUX
+  sources — `livres_par_traduction` pour celles qui se lisent au verset, la
+  structure éditoriale pour les autres — et `ModaleLivreAbsent` les propose. ⚠️ La
+  remise à « on cherche encore » se fait dans le GESTE qui ouvre la fenêtre, jamais
+  dans l'effet : un `setState` synchrone dans un effet déclenche une cascade de
+  rendus, et le linter le refuse.
+- ⛔ **L'en-tête du volet de droite ne redit plus la référence DÉDUITE**
+  (`PanneauPatristique`, `refFr`), et il ne paraît plus que s'il a quelque chose à
+  porter. ⚠️ `refAffichee` RESTE : la page d'une péricope donne au volet une plage
+  canonique que rien d'autre n'écrit à l'écran. Une référence qu'on REÇOIT se
+  montre ; une référence qu'on DÉDUIT de ce qu'on affiche déjà ne se montre pas.
+  `nomLivre` reste une propriété, reçue et non affichée.
+- ⚠️ **Le champ de recherche du volet est `.cs-volet-recherche`** (`globals.css`) :
+  ni filet, ni fond, ni rayon, le rembourrage du bloc passé DANS le champ, un fond
+  léger au seul foyer. Un `::placeholder` ne s'écrit pas en style en ligne, d'où la
+  classe.

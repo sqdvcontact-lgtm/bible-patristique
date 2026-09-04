@@ -11,7 +11,26 @@
 // façon, et celle-ci était restée une liste d'étiquettes.
 //
 // Sources : `v_traductions_page` (par `trad_id`), `v_chronologie_traductions`, et,
-// pour une édition illustrée, `bible_edition_members` → `v_bible_edition_assets`.
+// pour une édition qui appartient à une famille, `bible_edition_members` →
+// `v_bible_editorial_bibliography_entries`.
+//
+// ⛔ ELLE NE MONTRE PLUS LES GRAVURES DE L'ÉDITION (2026-09-04, demande de
+// l'auteur : « ne pas afficher la famille “Gravures” »). Six planches en
+// échantillon régulier, leur passe-partout, la planche agrandie par-dessus la
+// fiche et les deux requêtes qui les portaient sont parties avec elles. Les
+// gravures se lisent À LEUR PLACE, dans le texte, où l'édition les a mises ; une
+// mosaïque d'aperçus en tête de fiche était un ornement, non un renseignement.
+//
+// ⛔ ELLE NE PORTE PLUS LES TROIS REPÈRES sous le nom — « Français · Catholique ·
+// 1888 - 1904 » (même demande). Ils disaient en télégramme ce que la notice dit en
+// prose deux centimètres plus bas, et la date qu'ils affichaient était la date
+// RÉDIGÉE de la base, avec ses points-virgules et ses annonces.
+//
+// ⚠️ ELLE PORTE EN REVANCHE TROIS RUBRIQUES NOUVELLES (même demande) :
+// « L'édition utilisée », qui compose champ par champ la référence des volumes
+// servis ; « Ouvrages cités dans cette édition », qui lit le catalogue
+// bibliographique et ne paraît pas s'il est vide ; et « Conditions d'usage », qui
+// dit ce que la licence permet et ce que le travail éditorial réserve.
 //
 // ⚠️ Le CONTENU est séparé de la fenêtre, comme dans la fiche d'auteur : `createPortal`
 // n'existe pas au rendu serveur, et une planche de contrôle hors session ne pourrait
@@ -28,14 +47,19 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
   portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
 } from '@/app/lib/portraitTraduction'
+import BibliographieOuvrages, { FragmentReference } from '@/app/components/BibliographieOuvrages'
+import {
+  ouvragesDeLaFamille,
+  type LigneBibliographieOuvrage, type OuvrageBibliographique,
+} from '@/app/lib/bibleBibliographieOuvrages'
+import { segmentsReferenceEdition } from '@/app/lib/referenceEditionServie'
+import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
-// La fiche s'ouvre au-dessus de la page de lecture ; la gravure agrandie s'ouvre
-// au-dessus de la fiche, et rien ne s'intercale entre les deux.
+// La fiche s'ouvre au-dessus de la page de lecture.
 const Z_FICHE = 1200
-const Z_PLANCHE = 1201
 
 /** Fiche de présentation — la vue porte déjà l'édition source jointe. */
 export type InfoTrad = {
@@ -52,35 +76,9 @@ export type InfoTrad = {
   editeur: string | null; annee_edition: string | null; lieu_edition: string | null
   source_type: string | null; source_numerique_nom: string | null; source_numerique_url: string | null
   graphie: string | null; particularites: string | null; integrite_verifiee: boolean | null
-}
-
-/** Une gravure de l'édition, telle que la sert `v_bible_edition_assets`. */
-export type Gravure = {
-  asset_key: string
-  public_uri: string | null
-  alt_text: string | null
-  printed_caption: string | null
-  editorial_caption: string | null
-}
-
-/** Combien de gravures la fiche montre. Les autres se lisent à leur place, dans le texte. */
-const GRAVURES_MONTREES = 6
-
-/** La légende d'une gravure, dans l'ordre qu'emploie déjà la page de lecture :
- *  la description éditoriale s'il y en a une, sinon la légende imprimée. */
-const legendeGravure = (g: Gravure) => g.editorial_caption ?? g.printed_caption
-
-/** Un échantillon RÉGULIER d'une suite, premier et dernier compris.
- *
- *  ⛔ Pas les six premières : les gravures sont rangées dans l'ordre du livre, et
- *  les six premières d'une bible entière ne montreraient que la Genèse. Un pas
- *  constant fait voir l'étendue de l'édition. */
-export function echantillonRegulier<T>(tout: readonly T[], combien: number): T[] {
-  if (combien <= 0) return []
-  if (tout.length <= combien) return [...tout]
-  if (combien === 1) return [tout[0]]
-  const pas = (tout.length - 1) / (combien - 1)
-  return Array.from({ length: combien }, (_, i) => tout[Math.round(i * pas)])
+  /** Combien de volumes l'édition compte : la rubrique « L'édition utilisée » en
+   *  répond, et c'est la seule donnée matérielle qu'elle admette. */
+  nombre_tomes: number | null
 }
 
 /** Intitulé juste selon le type d'objet (jamais la valeur technique brute). */
@@ -139,8 +137,6 @@ const STYLES_FICHE = `
   .trad-tech > summary::-webkit-details-marker { display: none; }
   .trad-tech-fleche { display: inline-block; transition: transform 0.15s; }
   .trad-tech[open] .trad-tech-fleche { transform: rotate(90deg); }
-  .trad-gravure { transition: box-shadow 0.15s, border-color 0.15s; }
-  .trad-gravure:hover { border-color: var(--cs-or-doux); box-shadow: var(--cs-ombre-nette); }
   /* ── LE PORTRAIT FLOTTE, ET LA NOTICE L'HABILLE ──
      Même parti que la fiche d'auteur, et pour la même raison : il ouvrait un en-tête
      à part, où son vis-à-vis — un titre, deux lignes de repères — laissait un grand
@@ -151,8 +147,22 @@ const STYLES_FICHE = `
      partout ailleurs — le passe-partout et le filet sont DANS la boîte. Écrire une
      mesure ici, c'est refaire le défaut que la fiche a corrigé le 2026-08-31.
      ⛔ La marge BASSE est à zéro : elle repousserait la limite d'habillage sous le bord
-     du cadre et une ligne de plus viendrait pendre dessous (cf. useBordSurDerniereLigne). */
-  .trad-portrait-flottant { float: left; margin: 2px 18px 0 0; padding: 5px; background: var(--cs-surface); border: 1px solid var(--cs-bord); box-shadow: var(--cs-ombre-posee); }
+     du cadre et une ligne de plus viendrait pendre dessous (cf. useBordSurDerniereLigne).
+
+     ⚠️ LE CADRE EST UN FLEX, ET C'EST CE QUI CHASSE LE BANDEAU BLANC (2026-09-04,
+     l'auteur : « on trouve un petit bandeau blanc sous l'image, comme si elle
+     n'entrait pas dans le bloc »). Le bord bas du cadre se pose sur la dernière ligne
+     qui l'habille : useBordSurDerniereLigne lui écrit une HAUTEUR, de quelques
+     pixels supérieure à la sienne. La zone d'image, elle, tenait sa hauteur de son
+     seul rapport 2/3 et ne suivait pas : la rallonge se voyait donc en passe-partout,
+     sous l'image, et par elle seule — d'où un bandeau en bas là où les trois autres
+     côtés portent cinq pixels. En flex, la zone d'image s'ÉTIRE (align-items:
+     stretch, la valeur par défaut) jusqu'au bord du cadre, et la rallonge revient à
+     l'image, qui la remplit — elle est en « cover ». Le rapport 2/3 continue de
+     donner la hauteur au repos, quand il n'y a rien à rallonger.
+     ⚠️ Le style en ligne de la zone d'image ne pose PAS de hauteur : elle reste à
+     « auto », faute de quoi l'étirement du flex ne jouerait pas. */
+  .trad-portrait-flottant { float: left; display: flex; margin: 2px 18px 0 0; padding: 5px; background: var(--cs-surface); border: 1px solid var(--cs-bord); box-shadow: var(--cs-ombre-posee); }
   /* La colonne de la notice est un BLOC, jamais un flex : un flottant n'existe pas dans
      un conteneur flex, ses enfants devenant des éléments de flex. L'écart que portait
      le « gap » se reprend donc en marge — et PAS sur l'en-tête, qui suit le portrait et
@@ -170,12 +180,13 @@ const STYLES_FICHE = `
  * Le contenu de la fiche : en-tête, deux colonnes, section repliable.
  * Les données lui arrivent chargées ; `info` à `null` vaut « on charge encore ».
  */
-export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, onAgrandir }: {
+export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallback }: {
   info: InfoTrad | null
   chrono: RangChrono[]
-  gravures: Gravure[]
+  /** Les ouvrages cités dans l'édition, lus dans le catalogue bibliographique.
+   *  Vides, la rubrique ne paraît pas — c'est le cas de huit bibles sur neuf. */
+  ouvragesCites: OuvrageBibliographique[]
   nomFallback: string
-  onAgrandir: (g: Gravure) => void
 }) {
   // « Contrôle en cours » (rubrique Vérification) déplie une note : statut du
   // corpus et lacunes connues, plutôt qu'un encart permanent en haut de fiche.
@@ -199,57 +210,39 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
   const verif = i.integrite_verifiee == null ? null : (i.integrite_verifiee ? 'Texte vérifié' : 'Contrôle en cours')
   const licenceDP = (i.licence_traduction ?? '').toLowerCase().includes('domaine public')
   const portrait = portraitTraduction(i)
-  // Les repères de la traduction sur une seule ligne d'étiquettes, comme les dates,
-  // la langue et les traditions d'un auteur.
-  const reperes = [i.langue, i.confession, i.date_publication].filter(Boolean).join(' · ')
 
-  const montrees = echantillonRegulier(gravures, GRAVURES_MONTREES)
+  // La RÉFÉRENCE des volumes servis, composée champ par champ (module pur,
+  // `referenceEditionServie`). Vide sans titre d'édition : la rubrique se tait.
+  const referenceEdition = segmentsReferenceEdition({
+    titreEdition: i.titre_edition, sousTitreEdition: i.sous_titre_edition,
+    lieuEdition: i.lieu_edition, editeur: i.editeur,
+    anneeEdition: i.annee_edition, nombreTomes: i.nombre_tomes,
+  })
+
   const aChrono = chrono.length > 0
-  const aGravures = montrees.length > 0
   // Deux colonnes seulement s'il y a de quoi remplir les deux. Une notice seule
   // prend toute la mesure plutôt que de laisser une colonne vide à côté d'elle.
-  const aColonnes = !!(i.bio_courte || i.commentaire_editorial) && (aChrono || aGravures)
+  // ⚠️ La chronologie décide seule depuis que les gravures sont parties : c'était
+  // la seconde des deux matières que la colonne de droite portait.
+  const aColonnes = !!(i.bio_courte || i.commentaire_editorial) && aChrono
 
-  const colonneDroite = (
-    <>
-      {aChrono && (
-        <section>
-          <TitreSection>Chronologie</TitreSection>
-          <FriseAuteur evenements={chrono} sansLegende />
-        </section>
-      )}
-      {aGravures && (
-        <section>
-          <TitreSection>Gravures</TitreSection>
-          {/* Deux par rang, chacune dans son passe-partout : le cadre du portrait,
-              en plus petit. `contain` et non `cover` — une planche gravée se
-              regarde entière, et leurs formats vont du carré au double folio. */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
-            {montrees.map(g => (
-              <button key={g.asset_key} type="button" className="trad-gravure"
-                onClick={() => onAgrandir(g)} title={legendeGravure(g) ?? undefined}
-                aria-label={`Agrandir : ${legendeGravure(g) ?? g.alt_text ?? 'gravure'}`}
-                style={{ padding: '4px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '0', boxShadow: 'var(--cs-ombre-posee)', cursor: 'zoom-in' }}>
-                <span style={{ display: 'block', aspectRatio: '1 / 1', background: 'var(--cs-fond-doux)' }}>
-                  <img src={g.public_uri ?? ''} alt={g.alt_text ?? ''} loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
-                </span>
-              </button>
-            ))}
-          </div>
-          {gravures.length > montrees.length && (
-            <p style={{ margin: '7px 0 0', fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', lineHeight: 1.4 }}>
-              {montrees.length} des {gravures.length} gravures de l’édition. Les autres se lisent à leur place, dans le texte.
-            </p>
-          )}
-        </section>
-      )}
-    </>
-  )
+  const colonneDroite = aChrono ? (
+    <section>
+      <TitreSection>Chronologie</TitreSection>
+      <FriseAuteur evenements={chrono} sansLegende />
+    </section>
+  ) : null
 
   return (
     <>
-      {/* En-tête : portrait, nom, repères.
+      {/* En-tête : portrait, nom, intitulé.
+          ⛔ PLUS DE REPÈRES sous le nom — « Français · Catholique · 1888 - 1904 »
+          (2026-09-04, demande de l'auteur). Ils avaient été montés là le 28 août
+          depuis la section repliable, au motif qu'on ne range pas derrière un dépli
+          ce qui identifie l'objet qu'on lit ; c'était vrai de la langue et de la
+          confession, moins de la date, qui était la date RÉDIGÉE de la base, avec ses
+          points-virgules et ses annonces. La notice le dit en prose deux centimètres
+          plus bas, et la langue comme la confession restent lisibles dans le dépli.
           ⛔ LE CADRE EST CELUI DE L'ENCART, et non plus celui de la fiche d'auteur
           (2026-08-31, l'auteur trouvant l'illustration trop étroite). Une notice de
           traduction porte deux images, et son PORTRAIT est préparé pour un rapport
@@ -264,8 +257,8 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
           passe-partout et le filet sont dans la boîte (`box-sizing: border-box`), et
           un rapport posé sur le cadre les aurait pris dedans — l'image y perdait
           douze pixels de large et le cadrage n'aurait plus été celui qu'on a réglé.
-          ⚠️ Le passe-partout RESTE : c'est la langue de cette fiche, où les gravures
-          portent le même, « le cadre du portrait, en plus petit ».
+          ⚠️ Le passe-partout RESTE : c'est la langue de la maison, celle des portraits
+          d'auteur, et une image sans marie-louise s'y lirait comme une vignette.
           ⛔ Plus de hauteur en PIXELS à côté d'une largeur en rem : la police racine
           monte à 22 px sur un grand écran, et le cadre de 6,5 rem sur 130 px y
           devenait un PAYSAGE de 143 sur 130. Un rapport ne connaît pas ce défaut. */}
@@ -290,11 +283,6 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
             {intitule && (
               <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.3 }}>
                 {rendreSiecles(intitule)}{i.dates ? ` (${i.dates})` : ''}
-              </p>
-            )}
-            {reperes && (
-              <p style={{ fontFamily: SANS, fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0', lineHeight: 1.4 }}>
-                {rendreSiecles(reperes)}
               </p>
             )}
           </header>
@@ -322,6 +310,81 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
 
       {info !== null && (
         <>
+          {/* ── L'ÉDITION UTILISÉE ────────────────────────────────────────────
+              La référence bibliographique des VOLUMES SERVIS, et rien d'autre
+              (2026-09-04, demande de l'auteur : « ce n'est pas une bibliographie
+              sélective, mais la référence bibliographique des volumes utilisés »).
+              Elle se compose champ par champ depuis `editions_sources`, aux normes
+              de toutes les bibliographies du site — l'intitulé en italique, les
+              données en romain, la ponctuation produite par le rendu (charte
+              § 35.6.1) —, et prend la même famille de styles qu'elles.
+              ⛔ Elle ne se lit plus dans le HTML de la notice, où elle était écrite
+              à la main sous un titre qui la disait « sélective ».
+              ⛔ Sans titre d'édition en base, la rubrique ne paraît pas. */}
+          {referenceEdition.length > 0 && (
+            <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
+              <TitreSection>L’édition utilisée</TitreSection>
+              <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`}>
+                <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
+                  <li className={CLASSES_BIBLIOGRAPHIE.entree}>
+                    {referenceEdition.map((segment, rang) => (
+                      <FragmentReference key={rang} segment={segment} />
+                    ))}
+                  </li>
+                </ul>
+              </div>
+            </section>
+          )}
+
+          {/* ── LES OUVRAGES QUE L'ÉDITION CITE ───────────────────────────────
+              « Je veux qu'on constitue une nouvelle rubrique contenant, proprement,
+              tous les ouvrages cités dans l'édition utilisée ; c'est surtout utile
+              pour Fillion. Si cette rubrique est vide, elle ne doit pas apparaître »
+              (2026-09-04). Elle lit `v_bible_editorial_bibliography_entries`, la
+              même source que les bibliographies de l'apparat, et la compose par le
+              même composant : une édition ne dit pas ses auteurs de deux façons.
+              ⚠️ Toutes pièces confondues et dédoublonnées par `ouvrage_id`, rangées
+              par auteur puis par titre — voir `ouvragesDeLaFamille`.
+              ⛔ Vide, elle ne paraît pas : c'est le cas de huit bibles sur neuf,
+              tant que leur catalogue n'est pas fait. */}
+          {ouvragesCites.length > 0 && (
+            <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
+              <TitreSection>Ouvrages cités dans cette édition</TitreSection>
+              <BibliographieOuvrages ouvrages={ouvragesCites} />
+            </section>
+          )}
+
+          {/* ── CONDITIONS D'USAGE ────────────────────────────────────────────
+              « Ajouter les restrictions de licence ; expliquer que le travail
+              éditorial est protégé » (2026-09-04). La licence de la traduction
+              paraissait bien dans le dépli, en une rangée d'étiquette — « Domaine
+              public » —, ce dont un lecteur conclut que tout est libre. Ce qui l'est
+              est le TEXTE ; la transcription, la structuration, les alignements et
+              les liens ne le sont pas.
+              ⛔ La formule ne s'invente pas ici : elle dit en trois phrases le § 6
+              des conditions d'utilisation, et renvoie à cette page, qui fait foi. */}
+          <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
+            <TitreSection>Conditions d’usage</TitreSection>
+            <p style={{ fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: 0, textAlign: 'justify', hyphens: 'auto' }}>
+              {licenceDP
+                ? 'Le texte de cette édition relève du domaine public : il se lit, se cite et se reproduit librement.'
+                : `Le texte de cette édition est diffusé sous la mention « ${i.licence_traduction ?? 'droits non précisés'} ».`}
+              {i.mention_obligatoire ? ` ${i.mention_obligatoire}` : ''}
+            </p>
+            <p style={{ fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: '7px 0 0', textAlign: 'justify', hyphens: 'auto' }}>
+              La transcription, la structuration des données, la segmentation, les alignements
+              et les liens établis entre versets et textes patristiques constituent en revanche
+              un travail éditorial original, protégé par le droit d’auteur. Toute reproduction
+              substantielle de cette structuration à des fins commerciales est soumise à
+              autorisation préalable ; une citation reprise publiquement garde la mention de sa
+              source.
+            </p>
+            <p style={{ fontFamily: SANS, fontSize: '0.65625rem', lineHeight: 1.5, color: 'var(--cs-texte-doux)', margin: '7px 0 0' }}>
+              <a href="/conditions-utilisation" style={{ color: 'var(--cs-vert)', textDecoration: 'none', borderBottom: '1px solid var(--cs-or-doux)' }}>
+                Conditions d’utilisation, § 6
+              </a>
+            </p>
+          </section>
 
           {/* L'édition : section secondaire, repliable (natif, accessible), et
               pleine mesure — ses rangées portent une colonne d'étiquettes de
@@ -373,35 +436,10 @@ export function ContenuFicheTraduction({ info, chrono, gravures, nomFallback, on
   )
 }
 
-/**
- * Une gravure regardée en grand, dans son passe-partout. Elle se ferme d'un clic
- * hors du cadre, ou par Échap, qui ne referme alors pas la fiche.
- */
-export function PlancheGravure({ gravure, onFermer }: { gravure: Gravure; onFermer: () => void }) {
-  const legende = legendeGravure(gravure)
-  return (
-    <div onClick={onFermer} role="dialog" aria-modal="true" aria-label="Gravure agrandie"
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.55)', zIndex: Z_PLANCHE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <figure onClick={e => e.stopPropagation()}
-        style={{ margin: 0, width: 'min(100%, 48rem)', maxHeight: '100%', overflowY: 'auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '12px', boxShadow: 'var(--cs-ombre-modale)', padding: '14px' }}>
-        <img src={gravure.public_uri ?? ''} alt={gravure.alt_text ?? ''}
-          style={{ display: 'block', margin: '0 auto', maxWidth: '100%', maxHeight: '65vh', width: 'auto', height: 'auto' }} />
-        {legende && (
-          <figcaption style={{ margin: '10px auto 0', maxWidth: '34rem', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.78125rem', lineHeight: 1.35, color: 'var(--cs-texte-second)', textAlign: 'center' }}>
-            {legende}
-          </figcaption>
-        )}
-      </figure>
-    </div>
-  )
-}
-
 export default function ModaleTraduction({ code, nomFallback, onFermer }: { code: string; nomFallback: string; onFermer: () => void }) {
   const [info, setInfo] = useState<InfoTrad | null>(null)
   const [chrono, setChrono] = useState<RangChrono[]>([])
-  const [gravures, setGravures] = useState<Gravure[]>([])
-  // La gravure qu'on regarde en grand, par-dessus la fiche.
-  const [planche, setPlanche] = useState<Gravure | null>(null)
+  const [ouvragesCites, setOuvragesCites] = useState<OuvrageBibliographique[]>([])
 
   useEffect(() => {
     let annule = false
@@ -410,19 +448,20 @@ export default function ModaleTraduction({ code, nomFallback, onFermer }: { code
       .then(({ data }) => { if (!annule) setInfo((data as InfoTrad | null) ?? ({} as InfoTrad)) })
     supabase.from('v_chronologie_traductions').select('*').eq('trad_id', code).order('ordre_affichage')
       .then(({ data }) => { if (!annule) setChrono((data ?? []) as unknown as RangChrono[]) })
-    // Les gravures appartiennent à la FAMILLE ÉDITORIALE, non à la traduction :
-    // une édition bilingue les publie une fois pour ses deux textes. La seconde
-    // requête ne part donc que si la traduction appartient à une famille.
+    // Les ouvrages cités appartiennent à la FAMILLE ÉDITORIALE, non à la traduction :
+    // une édition bilingue les cite une fois pour ses deux textes, dans un appareil
+    // qui est commun aux deux. La seconde requête ne part donc que si la traduction
+    // appartient à une famille — une bible ordinaire n'en a pas.
     supabase.from('bible_edition_members').select('family_id').eq('trad_id', code).limit(1).maybeSingle()
       .then(({ data }) => {
         const famille = (data as { family_id: string } | null)?.family_id
         if (annule || !famille) return
-        supabase.from('v_bible_edition_assets')
-          .select('asset_key, public_uri, alt_text, printed_caption, editorial_caption')
-          .eq('family_id', famille).order('material_order')
+        supabase.from('v_bible_editorial_bibliography_entries')
+          .select('family_id, piece_key, display_order, source_body_block_id, ouvrage_id, titre, sous_titre, lieu, editeur, annee, auteur_nom, auteur_prenom, auteur_nom_famille')
+          .eq('family_id', famille)
           .then(({ data: lignes }) => {
             if (annule) return
-            setGravures(((lignes ?? []) as Gravure[]).filter(g => !!g.public_uri))
+            setOuvragesCites(ouvragesDeLaFamille((lignes ?? []) as unknown as LigneBibliographieOuvrage[]))
           })
       })
     return () => { annule = true }
@@ -430,25 +469,19 @@ export default function ModaleTraduction({ code, nomFallback, onFermer }: { code
 
   // Le défilement de fond est gelé tant que la fenêtre est ouverte (comme la fiche
   // d'auteur) : le calque, lui, ne défile pas, c'est le CONTENU de la boîte qui
-  // défile. ⛔ Cet effet n'a AUCUNE dépendance, et c'est nécessaire : rejoué à
-  // l'ouverture d'une gravure, il retiendrait « hidden » comme état antérieur et
-  // ne rendrait jamais le défilement à la page.
+  // défile.
   useEffect(() => {
     const prec = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prec }
   }, [])
 
-  // Échap ferme la gravure agrandie d'abord, la fiche ensuite.
+  // Échap ferme la fiche.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      if (planche) setPlanche(null)
-      else onFermer()
-    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onFermer() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [planche, onFermer])
+  }, [onFermer])
 
   if (typeof document === 'undefined') return null
 
@@ -460,12 +493,10 @@ export default function ModaleTraduction({ code, nomFallback, onFermer }: { code
           style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
           <button onClick={onFermer} aria-label="Fermer" title="Fermer"
             style={{ position: 'sticky', float: 'right', top: '0', marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-          <ContenuFicheTraduction info={info} chrono={chrono} gravures={gravures}
-            nomFallback={nomFallback} onAgrandir={setPlanche} />
+          <ContenuFicheTraduction info={info} chrono={chrono} ouvragesCites={ouvragesCites}
+            nomFallback={nomFallback} />
         </div>
       </div>
-
-      {planche && <PlancheGravure gravure={planche} onFermer={() => setPlanche(null)} />}
     </>,
     document.body,
   )

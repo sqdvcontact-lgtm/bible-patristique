@@ -12,6 +12,7 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import type { Traduction } from './adminTypes'
 import { revaliderTraductions } from '@/app/actions/revalider'
 import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
+import { mentionEdition } from '@/app/lib/mentionEdition'
 
 type PhotoPos = { x: number; y: number; scale: number }
 type PhotoPositions = { bandeau: PhotoPos; encart: PhotoPos }
@@ -455,10 +456,9 @@ function BoutonSource({ label, urls }: { label: string; urls: string[] }) {
 function enValeurs(champ: string | null | undefined): string[] {
   return String(champ ?? '').split(';').map(s => s.trim()).filter(Boolean)
 }
-function mentionEdition(n: number): string {
-  if (n === 1) return '1re édition'
-  return `${n}e édition`
-}
+// ⛔ La mention d'édition ne s'écrit plus en chiffres — « 2e édition » est proscrit
+// depuis le 2026-09-04 (charte). La règle vit dans un module pur, avec ses tests,
+// et non ici : elle vaut pour toutes les surfaces qui composent cette mention.
 const styleTag: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', color: 'var(--cs-texte)', border: '1px solid var(--cs-bord-clair)', borderRadius: '999px', padding: '1px 9px', lineHeight: 1.45 }
 const styleInput: React.CSSProperties = { width: '100%', fontSize: '0.75rem', padding: '4px 8px', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-encre)', outline: 'none', boxSizing: 'border-box' }
 const styleMini: React.CSSProperties = { fontSize: '0.625rem', padding: '3px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', cursor: 'pointer', color: 'var(--cs-texte-second)' }

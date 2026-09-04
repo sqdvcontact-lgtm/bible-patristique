@@ -4,6 +4,7 @@ import {
   auteurPorteParLeTitreDeLaPiece,
   bibliographieDesBlocs,
   grouperBibliographiesParPiece,
+  ouvragesDeLaFamille,
   segmentsReference,
   texteReference,
   type LigneBibliographieOuvrage,
@@ -365,5 +366,46 @@ describe('l’ordre d’une bibliographie', () => {
       titre: 'Baruch', sous_titre: null,
     }))
     expect(grouperBibliographiesParPiece(lignes)[0].ouvrages.map((o) => o.ordre)).toEqual([4, 9])
+  })
+})
+
+describe('ouvragesDeLaFamille — tous les ouvrages cités dans une édition', () => {
+  const NOTICE = ENTREES_DU_MEME_AUTEUR[0]
+  const ligne = (piece: string, ouvrageId: number, titre: string, ordre: number): LigneBibliographieOuvrage => ({
+    ...NOTICE,
+    piece_key: piece,
+    display_order: ordre,
+    ouvrage_id: ouvrageId,
+    titre,
+    sous_titre: null,
+    auteur_nom: null,
+    auteur_prenom: null,
+    auteur_nom_famille: null,
+  })
+
+  it('réunit les pièces et range l’ensemble par auteur puis par titre', () => {
+    expect(ouvragesDeLaFamille([
+      ligne('introduction-genese', 10, 'Zacharie', 1),
+      ligne('du-meme-auteur', 11, 'Abdias', 1),
+      ligne('introduction-matthieu', 12, 'Michée', 1),
+    ]).map((o) => o.titre)).toEqual(['Abdias', 'Michée', 'Zacharie'])
+  })
+
+  it('ne cite qu’UNE fois un ouvrage repris dans deux pièces', () => {
+    const tous = ouvragesDeLaFamille([
+      ligne('introduction-genese', 10, 'Zacharie', 1),
+      ligne('introduction-exode', 10, 'Zacharie', 4),
+    ])
+    expect(tous).toHaveLength(1)
+    // La première occurrence IMPRIMÉE l'emporte : le rang retenu est le sien.
+    expect(tous[0].ordre).toBe(1)
+  })
+
+  it('rend une liste vide quand la donnée ne porte rien', () => {
+    expect(ouvragesDeLaFamille([])).toEqual([])
+  })
+
+  it('lit les quinze ouvrages du témoin Fillion', () => {
+    expect(ouvragesDeLaFamille(ENTREES_DU_MEME_AUTEUR)).toHaveLength(15)
   })
 })

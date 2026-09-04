@@ -52,7 +52,7 @@ export default function BibliographieOuvrages({
             data-ouvrage-id={ouvrage.id}
           >
             {segmentsReference(ouvrage, { avecAuteur }).map((segment, rang) => (
-              <RendreSegment key={`${ouvrage.id}:${rang}`} segment={segment} />
+              <FragmentReference key={`${ouvrage.id}:${rang}`} segment={segment} />
             ))}
           </li>
         ))}
@@ -70,8 +70,13 @@ export default function BibliographieOuvrages({
  * pour le nom d'autorité de l'auteur, le romain pour tout le reste. ⚠️ Le nom se
  * compose depuis la donnée (`auteurs_valeur.nom_famille`), ⛔ jamais par découpe
  * de la chaîne affichée.
+ *
+ * ⚠️ EXPORTÉ : la fiche « À propos de cette traduction » compose de la même façon
+ * la référence des volumes servis, qui n'est pas une œuvre du catalogue mais suit
+ * les mêmes normes. Deux copies de ces trois lignes divergeraient au premier style
+ * ajouté au vocabulaire.
  */
-function RendreSegment({ segment }: { segment: SegmentReference }) {
+export function FragmentReference({ segment }: { segment: SegmentReference }) {
   // Le champ d'origine reste dans le document : c'est par lui qu'on vérifie
   // qu'un titre et son sous-titre n'ont pas été fondus, et qu'aucune donnée
   // matérielle ne s'est glissée dans la référence.
