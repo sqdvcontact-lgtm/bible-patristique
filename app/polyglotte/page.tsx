@@ -1877,9 +1877,6 @@ export default function PolyglottePage() {
         .poly-row, .poly-surnum-row {
           --poly-marge-x: 13px;
           --poly-air-haut: 8px;
-          /* Le blanc que la lettrine garde contre la réglure : elle la touchait, sa marge
-             négative valant exactement la gouttière. Elle en reprend trois pixels. */
-          --poly-lettrine-air: 3px;
           --poly-interligne: 1.34;
         }
         /* ── LA RÉFÉRENCE EMPRUNTE LE STRUT DE LA CELLULE ───────────────────────
@@ -1942,20 +1939,25 @@ export default function PolyglottePage() {
         /* Aucune marge ni rembourrage VERTICAL, et pas de taille propre : la lettrine
            garde la taille de police de la ligne, si bien que la hauteur de ses éléments
            s'exprime en em de la ligne — voir .poly-lettrine-item. */
-        /* ⛔ LA LETTRINE SE RANGE DANS LA GOUTTIÈRE, elle ne prend plus sur le texte
-           (demande de l'auteur, 2026-09-04 : « affiner encore la densité du texte, les
-           césures, renvois, pour éviter les blancs ignobles et contre-natures entre
-           mots »). Mesuré sur la page servie : le flottant valait 28,8 px et sa marge 8,
-           soit 12 % de la mesure — et sur 67 blancs de plus de trois espaces, 60 étaient
-           sur la ligne qu'il rétrécit. Une marge gauche négative le tire dans le
-           rembourrage, qui perd d'autant : le texte retrouve sa mesure pleine dès la
-           première ligne, et le repère reste où l'œil le cherche.
-           ⚠️ Les deux valeurs se répondent — margin-left NÉGATIF = padding-left de la
-           cellule — sans quoi la lettrine déborderait sur la réglure. */
+        /* ⛔ LA LETTRINE PART DU FER DU TEXTE, elle ne se range plus dans la gouttière
+           (demande de l'auteur, 2026-09-04, le soir : « la référence canonique dans la
+           cellule de chaque verset, celle qui est grise, doit être alignée en marge gauche
+           avec le texte contenu dans la même cellule »). Elle avait été tirée dans le
+           rembourrage le matin même, par une marge gauche négative égale au padding, pour
+           rendre au texte les 12 % de mesure qu'elle lui prenait sur la première ligne.
+           ⚠️ Mesuré sur la page servie, cela la posait à −10,00 px du fer du texte, sur
+           les quarante-huit cellules relevées, sans une exception : chaque verset ouvrait
+           donc sur un repère en saillie, et le bord gauche de la colonne était ragué.
+           ⛔ ET LE GAIN N'EN ÉTAIT PAS UN, mesuré avant et après sur la même page : le plus
+           grand blanc passe de 5,47 à 4,86 espaces naturelles, le neuvième décile de 2,78 à
+           2,66, et les blancs de plus du triple de 147 à 123. Le fer rendu au texte
+           n'AGGRAVE pas la justification, il l'améliore d'un cheveu. La crainte reposait sur
+           un raisonnement — la première ligne perd dix pixels — que la mesure dément : ce
+           qui coûte à la justification est la LARGEUR du flottant, non sa position. */
         .poly-lettrine {
           float: left;
           display: flex; flex-direction: column; align-items: flex-end;
-          margin: 0 7px 0 calc(var(--poly-lettrine-air) - var(--poly-marge-x)); padding: 0 8px 0 0;
+          margin: 0 7px 0 0; padding: 0 8px 0 0;
           border-right: 1px solid rgba(var(--cs-vert-rgb),0.22);
           font-family: var(--font-source-sans), Arial, sans-serif;
           font-weight: 400; letter-spacing: 0.03em;
@@ -2163,6 +2165,26 @@ export default function PolyglottePage() {
         {onglet && (
           <>
 
+            {/* ── LE BLOC QUI ATTEND : L'EN-TÊTE ET LE CORPS ENSEMBLE ─────────────────
+                ⛔ LE VOILE D'ATTENTE COUVRE LES EN-TÊTES DE COLONNE (demande de l'auteur,
+                2026-09-04 : « quand on charge un texte, le fond change légèrement de
+                couleur ; c'est ok, mais il faut aussi qu'il change au niveau des en-têtes
+                de colonne »). Il ne couvrait que le corps, si bien que la teinte s'arrêtait
+                net sous le filet de l'en-tête : la page se donnait comme à moitié en
+                attente, et la bande qui porte le nom des éditions — c'est-à-dire ce qu'on
+                vient de changer — restait la seule chose qui ne bougeait pas.
+                ⚠️ C'est le BLOC POSITIONNÉ qui décide de ce que le voile couvre : il est en
+                « position: absolute; inset: 0 », donc il s'étend à son parent positionné,
+                et rien d'autre. Le remonter d'un cran suffit ; le corps garde le sien, dont
+                dépendent les cellules d'actions.
+                ⚠️ L'en-tête est COLLANT et porte « z-index: 5 » ; le voile monte à 900 et le
+                recouvre donc, à l'arrêt comme au défilement. Il reste sans événements de
+                pointeur : on peut changer une colonne pendant qu'une autre charge.
+                ⚠️ L'anneau, lui, ne bouge pas d'un pixel : il vit dans un enfant collant à
+                « SOMMET_CORPS », c'est-à-dire sous l'en-tête, et sa boîte est bornée par
+                « 100dvh - SOMMET_CORPS », que le voile plus haut ne change pas. */}
+            <div style={{ position: "relative" }}>
+
             {/* ── L'EN-TÊTE, SUR LE PAPIER ────────────────────────────────────────────
                 Une seule ligne : le nom de chaque édition en tête de sa colonne, et un
                 unique filet dessous. ⛔ Plus de barre de titre — le nom du livre est passé
@@ -2232,10 +2254,12 @@ export default function PolyglottePage() {
               </div>
             </div>
 
-            {/* Corps : un bloc par livre, rendu paresseux (content-visibility). L'enveloppe
-                porte la marque d'attente, centrée sur le corps du tableau — sur ce qu'on
-                lit, et non sur l'écran ; un plancher de hauteur lui laisse la place
-                quand rien n'est encore chargé. */}
+            {/* Corps : un bloc par livre, rendu paresseux (content-visibility). Un plancher
+                de hauteur lui laisse la place quand rien n'est encore chargé, pour que
+                l'anneau d'attente ait où se centrer.
+                ⚠️ Il garde « position: relative », dont dépendent les cellules d'actions
+                posées en absolu ; la marque d'attente, elle, a rejoint le bloc du dessus,
+                qui porte aussi l'en-tête. */}
             <div data-passage={passage ?? undefined} style={{ position: "relative" }}>
             {/* `cs-lecture-colonne` : ce qui s'efface et paraît quand on passe d'un texte
                 à l'autre (voir « passage » plus haut). L'en-tête collant, lui, ne bouge pas. */}
@@ -2492,6 +2516,7 @@ export default function PolyglottePage() {
             </section>
           );
         })}
+            </div>
             </div>
             <MarqueAttente enAttente={attenteGlobale} sommet={SOMMET_CORPS} />
             </div>
