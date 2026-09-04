@@ -550,6 +550,18 @@ Doctrine : charte `parametres.charte_ia`, § 38.8. Règles de code :
 - ⚠️ **`capitaliserInitiale` ne change JAMAIS la longueur du texte** : le volet pose ses
   appels de note par offset. Une lettre dont la capitale s'écrit en deux signes reste
   minuscule.
+- ⛔ **Une ÉLISION précédée d'une PONCTUATION FORTE prend la capitale** (`PONCTUATION_FORTE`
+  dans `regrouperCitations.ts`, demande de l'auteur du 2026-09-04 devant « […] c'est la
+  conduite d'un »). Ce qu'on élide entre deux phrases, ce sont des phrases entières : la
+  suivante commence donc comme une phrase. ⛔ Rien après un deux-points, un point-virgule
+  ou une virgule, où la phrase n'était pas finie. ⚠️ Un guillemet ou une parenthèse
+  fermants ne rompent pas la ponctuation forte : « Il le dit. » finit bien une phrase.
+- ⚠️ **`referenceCanoniqueLisible` est le REPLI de la gouttière en lecture EN REGARD**
+  (2026-09-04) : « GEN.3.1 » → « 3, 1 », composé comme la native — chiffres arabes, espace
+  après la virgule, jamais le code du livre. Une édition ne dit sa numérotation propre que
+  lorsqu'elle DIFFÈRE du canon, et la colonne qui n'en a pas portait une gouttière vide.
+  ⛔ Il ne prétend pas être une numérotation d'édition : il dit le CRÉNEAU, ce que les deux
+  colonnes ont en commun.
 
 ⚠️ **`parseInt` et non `Number` pour le TRI** : un verset suffixé (« 22a ») se range à sa place au lieu de tomber en `NaN` et de dériver en queue de liste. Le REGROUPEMENT, lui, garde son `Number` — un verset suffixé ne se fond pas dans une fourchette.
 
@@ -4954,3 +4966,66 @@ numérique : Corpus Scriptura » sous « Traduction de Louis-Claude Fillion ». 
 `responsable_edition` reste LU : `intituleTraduction` le nomme pour une ÉDITION CRITIQUE,
 dans l'intitulé qui suit le nom, là où il apprend quelque chose. ⛔ Il ne décide donc plus
 non plus que la rubrique paraisse (`aEdition`).
+
+# Cliquer un verset en LECTURE EN REGARD, et les deux écrans qu'on traverse (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.10. Règles de code :
+
+- ⛔ **LA CIBLE EST LA RANGÉE, jamais la cellule.** Les deux colonnes d'une rangée sont le
+  MÊME créneau canonique, et `segmentsLiesAuVerset` ne connaît que `canon_id` : cliquer
+  l'ancien français ou le français ouvre donc le même apparat, et il n'y a rien à
+  départager entre elles. `BibleBilingue` reçoit `canonSelectionne` et
+  `onSelectionnerVerset` ; `BibleLayout` fabrique le `Verset` depuis le seul créneau
+  (`parsePointCanonique`, `formaterPlageCanonique`) et bascule sur un second clic.
+  ⚠️ Une rangée dont une colonne est vide se clique aussi : l'apparat tient au créneau,
+  non à ce que telle édition en porte.
+- ⚠️ **Les deux props traversent `LectureBilingueBible` par son `...contenu`** : elles sont
+  déclarées sur `LectureBilingueProps`, donc rien à reporter à la main — c'est ce qui les
+  empêche de se perdre en route, comme la manière de lire s'était perdue réglage par
+  réglage.
+- ⛔ **AUCUN COMPTAGE DE LECTURE ici.** Les lignes d'une segmentation éditoriale ne ciblent
+  pas `versets_v2`, et la lecture simple s'en abstient déjà pour elles (`ligneSource`).
+- ⚠️ **L'appel de note arrête le clic** (`NoteBibliqueFenetre`, `stopPropagation`) : ouvrir
+  une note ne sélectionne pas le verset qui la porte. Une rangée-bouton l'eût interdit ;
+  c'est aussi pourquoi la rangée reste un `div` cliquable, comme `.verset-row` en lecture
+  simple, plutôt qu'un `role="button"` qui envelopperait de vrais boutons.
+- ⛔ **La marque ne déplace RIEN, et elle vit dans la FEUILLE** (`.cs-regard-rangee`,
+  globals.css). Le débord latéral de 4 px se prend en marge NÉGATIVE : pris en
+  rembourrage, il rétrécirait les colonnes, et le fer du texte des versets cesserait de
+  répondre à celui de l'appareil, que la feuille déduit des mêmes mesures
+  (`--regard-numero`). ⚠️ Posée en style en ligne, la teinte battrait toute règle de
+  feuille et le survol serait mort sans que rien ne le dise — le titre de colonne de la
+  Polyglotte l'a été des semaines pour cette raison.
+- ⚠️ **Le verset retenu se déclare à DEUX classes**
+  (`.cs-regard-rangee.cs-regard-rangee--retenue`) : à une seule, il perdrait sa marque au
+  survol, `:hover` pesant plus lourd que lui.
+
+## ⛔ Un état qu'on TRAVERSE ne se compose pas comme une page de titre (2026-09-04)
+
+- **La gravure de la cité ruinée quitte l'écran « livre absent »** de `TexteBible` (demande
+  de l'auteur : « supprimer le dessin »). Elle y disait bien ce qu'il fallait ; mais
+  l'écran se rencontre plus souvent depuis que la barre rouvre la Bible sur le DERNIER
+  livre lu, qui n'est pas toujours dans la bible qu'on retrouve, et une planche de soixante
+  pour cent de la hauteur y devient une cérémonie pour un passage. La mention seule reste.
+- ⛔ **Une gravure qu'on cesse de poser se DÉCLASSE dans l'inventaire, elle ne s'y oublie
+  pas** : `fonction: 'reserve'` dans `app/admin/illustrations/inventaire.ts`, l'emploi
+  passé au passé et la `pose` retirée. La garde `inventaire.test.ts` refuse une image
+  absente de la liste comme une entrée sans fichier : la retirer de la liste ferait échouer
+  les tests, et c'est bien ainsi.
+
+## Le volet efface AUSSITÔT ce qu'on quitte, et dit l'attente (2026-09-04)
+
+- ⛔ **On n'attend pas la réponse pour effacer.** `PanneauPatristique` gardait la liste
+  précédente sous un mot « Chargement… » : on lisait, une seconde durant, l'apparat d'un
+  verset qu'on venait de quitter. L'enveloppe passe à `opacity: 0` dès `loading`, avec une
+  transition de 160 ms. ⚠️ La PLACE reste : retirer la liste du flux ferait sauter le volet
+  au clic, puis sauter de nouveau à l'arrivée.
+- **`MarqueAttenteVolet`** (`app/lib/attenteNavigation.tsx`) : un anneau de 1,5 rem, SANS
+  voile — le volet est étroit et un voile y couvrirait tout — et différé de 160 ms, comme
+  la marque de page. ⛔ Rien ne s'éteint dans le corps d'un effet : l'anneau se lit sur
+  `enAttente`, qui retombe seul.
+- ⚠️ **La page d'ŒUVRE n'a pas de marque d'attente, et il n'en faut pas** : les liens
+  bibliques d'un segment sont chargés avec sa tranche de texte, donc déjà en mémoire quand
+  on clique. Son volet ne porte que le fondu, `.cs-volet-echange`, avec une `key` par
+  segment — le bloc se REMONTE, si bien que l'ancien s'en va d'un coup et que le nouveau se
+  pose doucement. Un volet n'a pas la place de tenir deux états à la fois.
