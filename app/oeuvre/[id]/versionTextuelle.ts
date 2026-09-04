@@ -19,26 +19,8 @@ export function labelCourtVersion(version: Pick<VersionTextuelle, 'traducteur' |
   return [personne, version.anneeEdition].filter(Boolean).join(' ')
 }
 
-// Date d'une personne, lue dans `metadata` (les dates de vie d'un traducteur ne
-// sont pas encore une donnée propre du modèle). Accepte un libellé déjà rédigé
-// (`traducteur_dates`), ou un couple naissance/mort.
-function datesTraducteur(metadata: Record<string, unknown> | null | undefined): string | null {
-  if (!metadata) return null
-  const norm = (v: unknown): string | null =>
-    typeof v === 'number' && Number.isFinite(v) ? String(v)
-      : typeof v === 'string' && v.trim() ? v.trim() : null
-  const rediges = norm(metadata.traducteur_dates)
-  if (rediges) return rediges
-  const naissance = norm(metadata.traducteur_naissance)
-  const mort = norm(metadata.traducteur_mort)
-  if (naissance && mort) return `${naissance}–${mort}` // tiret demi-cadratin
-  if (naissance) return `né en ${naissance}`
-  if (mort) return `† ${mort}`
-  return null
-}
-
 /** Libellé d'une version dans le sélecteur « Éditions de ce texte » : la formule de
- *  traduction du site, les dates du traducteur si on les connaît, puis le millésime.
+ *  traduction du site, puis le millésime.
  *
  *  ⚠️ Il rendait `traducteur` BRUT, c'est-à-dire la liste du catalogue avec son
  *  point-virgule : « H. Barreau ; M. Charpentier, édition de 1873 ». Un point-virgule
@@ -46,16 +28,24 @@ function datesTraducteur(metadata: Record<string, unknown> | null | undefined): 
  *  forme. Et un nom propre posé seul en regard d'un « Texte latin » ne dit pas ce
  *  qu'on choisit : c'est une traduction, et la ligne doit le dire.
  *
+ *  ⛔ IL NE PORTE PLUS LES DATES DE VIE DU TRADUCTEUR (demande de l'auteur,
+ *  2026-09-04 : « ne pas afficher les dates de vie et de mort de l'auteur dans
+ *  l'onglet de choix de la traduction dans le volet gauche »). Une ligne de menu
+ *  répond à une seule question — quelle édition je lis —, et « Traduction par René de
+ *  Ceriziers (1603–1662), 1646 » y portait DEUX empans de dates, dont l'un ne dit rien
+ *  de l'édition. La fiche « À propos de cette édition » est l'endroit d'une notice ;
+ *  un volet de lecture est l'endroit d'un choix.
+ *  ⚠️ La donnée reste en base (`metadata.traducteur_naissance` / `_mort`, portée par
+ *  les deux Boèce français, seuls textes du corpus à l'avoir) : c'est l'AFFICHAGE qui
+ *  s'en passe, et `datesTraducteur` est partie avec lui — une fonction que plus rien
+ *  n'appelle est une seconde vérité qui attend.
+ *
  *  Une version en langue originale n'a pas de traducteur à nommer : c'est son titre
  *  de version qui la désigne, « Texte latin ». */
 export function libelleVersionComplet(
-  version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition' | 'metadata'>,
+  version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition'>,
 ): string {
-  const dates = datesTraducteur(version.metadata)
-  const formule = libelleTrad(version.traducteur)
-  const tete = formule
-    ? (dates ? `${formule} (${dates})` : formule)
-    : (version.titre?.trim() || 'Édition')
+  const tete = libelleTrad(version.traducteur) || version.titre?.trim() || 'Édition'
   // Le millésime seul : la rubrique du menu annonce déjà des éditions, et « édition
   // de 1646 » sous « Éditions de ce texte » redisait le mot pour rien.
   const annee = version.anneeEdition ? String(version.anneeEdition) : null

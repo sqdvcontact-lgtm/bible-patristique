@@ -5,7 +5,6 @@ const version = (v: Partial<Parameters<typeof libelleVersionComplet>[0]>) => ({
   traducteur: null,
   titre: 'Édition',
   anneeEdition: null,
-  metadata: null,
   ...v,
 }) as Parameters<typeof libelleVersionComplet>[0]
 
@@ -39,12 +38,16 @@ describe('libelleVersionComplet', () => {
       .toBe('Texte latin, 1873')
   })
 
-  it('ajoute les dates du traducteur quand la version les porte', () => {
-    expect(libelleVersionComplet(version({
-      traducteur: 'Bareille',
-      anneeEdition: 1865,
-      metadata: { traducteur_naissance: 1810, traducteur_mort: 1878 },
-    }))).toBe('Traduction de Bareille (1810–1878), 1865')
+  // ⛔ Les dates de vie du traducteur ne paraissent plus dans le menu (2026-09-04) :
+  // une ligne de choix répond à une seule question, et deux empans de dates sur la
+  // même ligne font hésiter sur ce que le millésime désigne.
+  // ⛔ Les dates de vie du traducteur ne paraissent plus (2026-09-04). La garde la
+  // plus sûre est la SIGNATURE : la fonction ne reçoit plus `metadata`, où elles
+  // vivent, et elles ne peuvent donc pas revenir par distraction. Le libellé le
+  // confirme ici.
+  it('⛔ ne porte PAS les dates de vie du traducteur', () => {
+    expect(libelleVersionComplet(version({ traducteur: 'Bareille', anneeEdition: 1865 })))
+      .toBe('Traduction de Bareille, 1865')
   })
 
   it('se contente du titre quand rien d’autre n’est connu', () => {
