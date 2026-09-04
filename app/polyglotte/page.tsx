@@ -19,7 +19,8 @@ import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
 import { cesurerLatin } from "@/app/lib/cesuresLatines";
 import { supabase } from "@/app/lib/supabase";
-import NavLivres, { NB_CHAPITRES } from "@/app/components/NavLivres";
+import NavLivres from "@/app/components/NavLivres";
+import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from "@/app/lib/chapitresCanon";
 import IconeCrayon from "@/app/components/IconeCrayon";
 import IconeDrapeau from "@/app/components/IconeDrapeau";
 import IconeChevron from "@/app/components/IconeChevron";
@@ -40,7 +41,7 @@ import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
-  MENTION_ABSENT, MENTION_ABSENT_TITRE, MENTION_DEUTERO, MENTION_LACUNE, MENTION_LACUNE_TITRE,
+  MENTION_ABSENT, MENTION_ATTENTE, MENTION_DEUTERO, MENTION_LACUNE, MENTION_LACUNE_TITRE,
   STYLE_INVITE, STYLE_MENTION, STYLE_MENTION_LACUNE,
 } from '@/app/lib/compositionBible'
 // ⛔ `colorMix` est parti avec les pilules de « Traductions visibles » : plus aucun
@@ -647,13 +648,29 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
 // traduction ne porte pas ce verset au lieu d'un tiret muet. Pour les passages
 // deutérocanoniques, l'infobulle explique POURQUOI la case est vide.
 function CelluleAbsente({ deutero }: { deutero?: boolean }) {
+  // ⛔ PLUS DE CURSEUR D'AIDE SUR L'ABSENCE ORDINAIRE (demande de l'auteur, 2026-09-04 :
+  // « au survol de "Absent de cette traduction" j'ai un curseur différent, avec un point
+  // d'interrogation, mais aucun texte ne s'affiche ; ça n'a donc aucun sens »).
+  // L'infobulle ne disait que « Cette traduction ne porte pas ce verset », c'est-à-dire
+  // la mention elle-même en d'autres mots : le curseur promettait une explication qui
+  // n'existait pas. La mention se suffit — c'est ce pour quoi elle a été écrite.
+  // ⚠️ Le cas DEUTÉROCANONIQUE garde les deux : là, l'infobulle dit POURQUOI la case est
+  // vide, ce que quatre mots ne peuvent pas tenir.
+  if (!deutero) return <span style={STYLE_MENTION}>{MENTION_ABSENT}</span>;
   return (
     <span
-      title={deutero ? "Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli." : MENTION_ABSENT_TITRE}
+      title="Ce passage nous est parvenu en grec, non en hébreu. Les Bibles catholique et orthodoxe le reçoivent ; la Bible protestante et la Bible hébraïque ne le comptent pas parmi les livres canoniques. La case est donc vide pour cette traduction, et non par oubli."
       style={{ ...STYLE_MENTION, cursor: "help" }}>
-      {deutero ? MENTION_DEUTERO : MENTION_ABSENT}
+      {MENTION_DEUTERO}
     </span>
   );
+}
+
+// La colonne qu'on vient de choisir, dont le texte arrive : la cellule le DIT, au lieu
+// de se donner pour absente. ⚠️ Même voix que les autres mentions — c'est l'éditeur qui
+// parle à la place d'un texte qui n'est pas là, et ici il ne le sera qu'un instant.
+function CelluleEnAttente() {
+  return <span style={STYLE_MENTION}>{MENTION_ATTENTE}</span>;
 }
 
 // Cellule de la colonne « Notes » : vide, elle montre une invite centrée et discrète
@@ -1454,6 +1471,14 @@ export default function PolyglottePage() {
   }, [livresAffiches, slots, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly]);
   // Ce que `canon` et `v2` portent réellement. Posé AVEC les données, jamais avant.
   const [porteeChargee, setPorteeChargee] = useState<Portee | null>(null);
+  // Le compte des chapitres, pour borner la mise en cache du chapitre SUIVANT. Même
+  // promesse que celle du volet : une seule requête pour la page (`chapitresCanon`).
+  const [chapitresParLivre, setChapitresParLivre] = useState<ChapitresParLivre | null>(null);
+  useEffect(() => {
+    let vivant = true;
+    void chargerChapitresParLivre(supabase).then(t => { if (vivant) setChapitresParLivre(t); });
+    return () => { vivant = false; };
+  }, []);
   // La demande dont le chargement a échoué, pour ne pas la rejouer sans fin ; le
   // bouton « Réessayer » la lève. Une référence, et non un état dans les dépendances
   // de l'effet : un échec qui relancerait l'effet relancerait la requête, en boucle.
@@ -1472,6 +1497,31 @@ export default function PolyglottePage() {
     if (enCache) { setCanon(enCache.canon); setV2(enCache.lignes); setPorteeChargee(demande); }
   }
   const enChargement = !demandeVide && !couvre(porteeChargee, demande) && erreurChargement !== demande;
+  // ── CHANGER UNE COLONNE NE RECHARGE PAS LA TABLE ────────────────────────────
+  // Demande de l'auteur (2026-09-04) : « quand je change de traduction sur une colonne,
+  // il ne faut pas tout recharger ; seulement le texte de cette colonne ».
+  // ⛔ L'attente était GLOBALE : elle voilait la table entière et rejouait le passage,
+  // alors que les autres colonnes n'avaient pas bougé et que leur texte était déjà là.
+  // ⚠️ Quand seules les TRADUCTIONS changent — mêmes livres, même chapitre —, l'ossature
+  // et les lignes des colonnes inchangées restent valables : la table ne bouge pas, et
+  // seule la colonne neuve dit qu'elle arrive.
+  const attenteColonneSeule = enChargement && porteeChargee !== null
+    && memeListe(porteeChargee.codes, demande.codes)
+    && (porteeChargee.chScope === null || porteeChargee.chScope === demande.chScope);
+  const attenteGlobale = enChargement && !attenteColonneSeule;
+  // Les traductions dont le texte n'est pas encore là. ⚠️ Lu dans le CACHE, et non dans
+  // `porteeChargee` : une colonne déjà venue s'affiche à l'instant même, sans attente —
+  // c'est le cas ordinaire dès qu'on revient à une traduction déjà lue.
+  const tradsEnAttente = useMemo(() => {
+    const s = new Set<string>();
+    if (!attenteColonneSeule) return s;
+    const scope = scopeDe(demande.chScope);
+    for (const trad of demande.tradIds) {
+      const present = demande.codes.every(code => est899(trad) ? !!lire899(code, scope) : !!lireTexte(trad, code, scope));
+      if (!present) s.add(trad);
+    }
+    return s;
+  }, [attenteColonneSeule, demande]);
   useEffect(() => {
     if (demandeVide || couvre(porteeChargee, demande) || erreurRef.current === demande) return;
     const numero = ++numeroDemandeRef.current;
@@ -1496,10 +1546,10 @@ export default function PolyglottePage() {
   useEffect(() => {
     if (enChargement || demandeVide || demande.chScope == null || demande.codes.length !== 1) return;
     const suivant = demande.chScope + 1;
-    if (suivant > (NB_CHAPITRES[demande.codes[0]] ?? 1)) return;
+    if (suivant > nombreDeChapitres(demande.codes[0], chapitresParLivre)) return;
     const t = window.setTimeout(() => { void precharger({ ...demande, chScope: suivant }); }, 400);
     return () => window.clearTimeout(t);
-  }, [enChargement, demandeVide, demande]);
+  }, [enChargement, demandeVide, demande, chapitresParLivre]);
   // Et le chapitre qu'on SURVOLE dans le sommaire, avec un court délai pour ne pas tirer
   // sur tout ce que le curseur traverse (même patron que les modes de lecture de la Bible).
   const demandeRef = useRef(demande);
@@ -1529,11 +1579,11 @@ export default function PolyglottePage() {
   const enteteRef = useRef<HTMLDivElement>(null);
   const porteeRendueRef = useRef<Portee | null>(null);
   useLayoutEffect(() => {
-    if (!enChargement || passage === "sortie") return;
+    if (!attenteGlobale || passage === "sortie") return;
     const corps = corpsRef.current;
     if (!corps || ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE) === 0) return;
     setPassage("sortie");
-  }, [enChargement, passage]);
+  }, [attenteGlobale, passage]);
   useLayoutEffect(() => {
     const precedente = porteeRendueRef.current;
     porteeRendueRef.current = porteeChargee;
@@ -1708,6 +1758,11 @@ export default function PolyglottePage() {
   // HAUTEUR_NAVBAR est une chaîne rem ; on compose en calc() CSS (pas d'addition
   // numérique). La hauteur de l'en-tête reste en px.
   const SOMMET_CORPS = `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_ENTETE}px)`;
+  // Ce qui reste à l'écran SOUS l'en-tête collant : la part visible du tableau. C'est
+  // sur elle que l'anneau d'attente se centre, et c'est le plancher qu'on donne au corps
+  // tant que rien n'est chargé — sans quoi l'anneau se centrerait dans un bloc de douze
+  // rem posé en haut d'un écran vide, au lieu du milieu du tableau.
+  const HAUTEUR_CORPS = `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUT_NAV + HAUT_ENTETE}px)`;
   // Ce qu'on lit, écrit là où on l'a choisi.
   // ⛔ NI FLEURON, NI LE MOT « CHAPITRE » : la forme « Genèse ❧ Chapitre 35 » est celle
   // d'une page de TITRE, où le fleuron sépare deux lignes d'apparat et où la place ne manque
@@ -1828,7 +1883,22 @@ export default function PolyglottePage() {
              entre les lignes de la grille interromprait la réglure verticale à chaque verset,
              et la page redeviendrait un tableau. La gouttière latérale s'ouvre d'un cran, le
              filet n'étant plus doublé d'un fond de cellule pour l'en écarter. */
-          padding: 7px 10px 8px;
+          /* ── LES TROIS MESURES DE LA COLONNE, NOMMÉES UNE FOIS ─────────────────
+             Elles se répondent, et elles se sont déjà désaccordées : « --poly-marge-x »
+             est repris par « .poly-lettrine », qui se range dans la gouttière ; et
+             « --poly-interligne » par « .poly-lettrine-item », dont l'étui fait exactement
+             une ligne de texte. Nommées, elles ne peuvent plus dériver l'une de l'autre.
+             ⚠️ Marges élargies et interligne resserré le 2026-09-04, à la demande de
+             l'auteur : « augmenter légèrement les marges, y compris pour le numéro de
+             référence non canonique » et « resserrer très très légèrement l'interligne ».
+             10 → 13 px de gouttière, 7/8 → 8/9 px de blanc, 1,36 → 1,34 d'interligne. */
+          --poly-marge-x: 13px;
+          /* Le blanc que la lettrine garde contre la réglure : elle la touchait, sa marge
+             négative valant exactement la gouttière. Elle en reprend maintenant trois
+             pixels — c'est le « y compris » de la demande. */
+          --poly-lettrine-air: 3px;
+          --poly-interligne: 1.34;
+          padding: 8px var(--poly-marge-x) 9px;
           font-family: var(--font-source-serif), Georgia, serif;
           text-align: justify;
           text-align-last: left;
@@ -1845,7 +1915,7 @@ export default function PolyglottePage() {
              les blancs de plus du double tombent de 1 235 à 894. La page n'y perd rien : la
              lettrine rendue au texte la raccourcit de 350 px. */
           word-spacing: -0.02em;
-          line-height: 1.36;
+          line-height: var(--poly-interligne);
         }
         .poly-texte-cell::after { content: ""; display: block; clear: both; }
         /* Aucune marge ni rembourrage VERTICAL, et pas de taille propre : la lettrine
@@ -1864,7 +1934,7 @@ export default function PolyglottePage() {
         .poly-lettrine {
           float: left;
           display: flex; flex-direction: column; align-items: flex-end;
-          margin: 0 6px 0 -10px; padding: 0 7px 0 0;
+          margin: 0 7px 0 calc(var(--poly-lettrine-air) - var(--poly-marge-x)); padding: 0 8px 0 0;
           border-right: 1px solid rgba(var(--cs-vert-rgb),0.22);
           font-family: var(--font-source-sans), Arial, sans-serif;
           font-weight: 400; letter-spacing: 0.03em;
@@ -1883,7 +1953,7 @@ export default function PolyglottePage() {
         /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
            parcourt la colonne accroche le numéro qui change. */
         .poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-faible); }
-        .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: 1.36em; }
+        .poly-lettrine-item { position: relative; display: flex; align-items: center; justify-content: flex-end; height: calc(var(--poly-interligne) * 1em); }
         /* Le crayon SE POSE SUR le numéro de référence d'origine : au survol de la cellule,
            il recouvre le numéro (fond opaque = celui de la ligne, passé en style inline, donc
            accordé au zébrage alterné) et le remplace. Hors survol, il ne réserve aucune place. */
@@ -2134,9 +2204,9 @@ export default function PolyglottePage() {
             {/* ⛔ Ni cadre, ni fond de surface, ni coins arrondis : le corps EST la page. Il
                 portait une carte blanche bordée, qui s'arrêtait avant le bord du bloc et
                 donnait à lire un objet posé sur le papier plutôt qu'une page imprimée. */}
-            <div ref={corpsRef} className="cs-lecture-colonne" style={{ minHeight: enChargement ? "12rem" : undefined }}>
+            <div ref={corpsRef} className="cs-lecture-colonne" style={{ minHeight: attenteGlobale ? HAUTEUR_CORPS : undefined }}>
               {colonnes.length === 0 && <div style={{ padding: 20, color: "var(--cs-texte-doux)" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
-              {erreurChargement && !enChargement && (
+              {erreurChargement && !attenteGlobale && (
                 <div role="alert" style={{ padding: 20, display: "flex", alignItems: "center", gap: 12, fontSize: "0.8125rem", color: "var(--cs-danger)" }}>
                   Le chargement a échoué.
                   <button onClick={reessayer}
@@ -2346,7 +2416,9 @@ export default function PolyglottePage() {
                               </span>
                             )}
                             {cs.length === 0 ? (
-                              <CelluleAbsente deutero={deuterocanonique(r.id)} />
+                              // ⚠️ Une colonne dont le texte n'est pas encore venu n'est pas
+                              // une colonne qui ne porte pas le verset : voir `tradsEnAttente`.
+                              tradsEnAttente.has(t.trad_id) ? <CelluleEnAttente /> : <CelluleAbsente deutero={deuterocanonique(r.id)} />
                             ) : lacuneCell ? (
                               // Fait du témoin, et non défaut de traduction : la mention garde la
                               // forme commune (STYLE_MENTION) et n'en change que la teinte, l'ocre des
@@ -2380,7 +2452,7 @@ export default function PolyglottePage() {
           );
         })}
             </div>
-            <MarqueAttente enAttente={enChargement} />
+            <MarqueAttente enAttente={attenteGlobale} sommet={SOMMET_CORPS} />
             </div>
 
           </>

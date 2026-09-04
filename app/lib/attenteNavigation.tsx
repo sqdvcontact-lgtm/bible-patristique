@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type MutableRefObject, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 /**
  * Le clic est ACQUITTÉ.
@@ -159,7 +159,22 @@ export function MarqueAttenteVolet({ enAttente }: { enAttente: boolean }) {
   )
 }
 
-export function MarqueAttente({ enAttente }: { enAttente: boolean }) {
+export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR }: {
+  enAttente: boolean
+  /**
+   * Le HAUT du bloc qu'on couvre, quand ce n'est pas le bas de la barre de navigation.
+   *
+   * ⛔ L'anneau se centre sur la part VISIBLE du bloc, et cette part ne commence pas
+   * toujours sous la barre : la Polyglotte pose au-dessus de son tableau un en-tête
+   * collant de soixante pixels, sous lequel rien ne se lit. Mesuré sur la page servie,
+   * l'anneau tombait trente-cinq pixels trop haut, à cheval sur cet en-tête (demande de
+   * l'auteur, 2026-09-04 : « le symbole de chargement doit être centré dans le bloc
+   * dédié au tableau, au centre, en hauteur comme en largeur »).
+   * ⚠️ La LARGEUR, elle, n'a jamais eu besoin de réglage : le voile couvre son parent
+   * positionné, donc exactement le bloc, et l'anneau s'y centre.
+   */
+  sommet?: string
+}) {
   const [allume, setAllume] = useState(false)
   // ⚠️ Un EFFET ici, et non le recalage pendant le rendu employé ailleurs dans le
   // dépôt : ce qu'on règle est un MINUTEUR, c'est-à-dire un système extérieur, et
@@ -196,8 +211,8 @@ export function MarqueAttente({ enAttente }: { enAttente: boolean }) {
           // ⚠️ Sous la BARRE, qui est fixe : un bloc qui défile avec la page passe
           // dessous, l'anneau ne doit pas y passer avec lui.
           position: 'sticky',
-          top: HAUTEUR_NAVBAR,
-          height: `min(100%, ${HAUTEUR_SOUS_NAVBAR})`,
+          top: sommet,
+          height: `min(100%, calc(100dvh - ${sommet}))`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

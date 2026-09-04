@@ -267,6 +267,9 @@ export const STYLE_INVITE: CSSProperties = {
  * entière passe à l'infobulle, pour qui la cherche. */
 export const MENTION_ABSENT = 'Absent de cette traduction'
 export const MENTION_ABSENT_TITRE = 'Cette traduction ne porte pas ce verset.'
+/** Le texte d'une colonne qu'on vient de choisir, et qui arrive. ⛔ Jamais « Absent de
+ *  cette traduction » pendant ce temps-là : ce serait un mensonge d'une seconde. */
+export const MENTION_ATTENTE = 'Chargement…'
 export const MENTION_DEUTERO = 'Absent des Bibles hébraïque et protestante'
 export const MENTION_LACUNE = 'Lacune du manuscrit'
 export const MENTION_LACUNE_TITRE = 'Lacune matérielle du manuscrit'

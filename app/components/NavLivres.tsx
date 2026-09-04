@@ -9,6 +9,8 @@ import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
+import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
+import { supabase } from '@/app/lib/supabase'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
@@ -16,17 +18,9 @@ import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibl
 // bouger la mise en page. Données passées en prop (chargées côté serveur avec la
 // session du visiteur), et lien « En savoir plus » sur le modèle de la page Œuvre.
 
-export const NB_CHAPITRES: Record<string, number> = {
-  GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
-  '1SA':31,'2SA':24,'1KI':22,'2KI':25,'1CH':29,'2CH':36,
-  EZR:10,NEH:13,EST:16,JOB:42,PSA:150,PRO:31,ECC:12,SNG:8,
-  ISA:66,JER:52,LAM:5,EZK:48,DAN:14,HOS:14,JOL:3,AMO:9,
-  OBA:1,JON:4,MIC:7,NAM:3,HAB:3,ZEP:3,HAG:2,ZEC:14,MAL:4,
-  MAT:28,MRK:16,LUK:24,JHN:21,ACT:28,ROM:16,'1CO':16,'2CO':13,
-  GAL:6,EPH:6,PHP:4,COL:4,'1TH':5,'2TH':3,'1TI':6,'2TI':4,
-  TIT:3,PHM:1,HEB:13,JAS:5,'1PE':5,'2PE':3,'1JN':5,'2JN':1,
-  '3JN':1,JUD:1,REV:22,
-}
+// ⛔ LE NOMBRE DE CHAPITRES NE S'ÉCRIT PLUS ICI. Il venait d'une table à la main qui
+// ignorait les deutérocanoniques — le Siracide s'y offrait à UN chapitre pour 51 — et
+// qui avait dérivé sur ceux qu'elle portait. Il vient de l'ossature (`chapitresCanon`).
 
 const ABREV_TO_CODE: Record<string, string> = {
   gn:'GEN',gen:'GEN',genese:'GEN',
@@ -227,6 +221,16 @@ export default function NavLivres({
   const [chapitreRecu, setChapitreRecu] = useState(chapitreActif)
   if (!Object.is(chapitreRecu, chapitreActif)) { setChapitreRecu(chapitreActif); setChapitreActifLocal(chapitreActif) }
   const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
+  // Combien de chapitres offrir, et quels livres lister : l'OSSATURE le dit, une table
+  // à la main le disait mal. La promesse est partagée par tout le site (`chapitresCanon`),
+  // si bien que les deux volets du site ne font qu'une requête. ⚠️ La grille des chapitres
+  // ne paraît qu'au clic d'un livre : l'attendre ne retarde donc rien de ce qu'on voit.
+  const [chapitres, setChapitres] = useState<ChapitresParLivre | null>(null)
+  useEffect(() => {
+    let vivant = true
+    void chargerChapitresParLivre(supabase).then(t => { if (vivant) setChapitres(t) })
+    return () => { vivant = false }
+  }, [])
   // Onglet du volet : les livres, ou le sommaire de l'édition. Ouvrir une pièce
   // depuis le sommaire recharge la page ; l'onglet doit donc se retrouver ouvert
   // au retour, sinon le lecteur perd sa place à chaque pièce lue. Même patron de
@@ -294,9 +298,16 @@ export default function NavLivres({
       .some(mot => mot.startsWith(q)))
   }
 
-  const AT = filtrer(livres.filter(l => l.testament === 'AT'))
-  const NT = filtrer(livres.filter(l => l.testament === 'NT'))
-  const AUTRES = filtrer(livres.filter(l => l.testament === 'AUTRES'))
+  // ⛔ UN LIVRE QUE L'OSSATURE NE PORTE PAS NE SE LISTE PAS (décision de l'auteur,
+  // 2026-09-04, sur « Esther (grec) » : « ça doit disparaître »). Le tableau se compose
+  // sur les créneaux canoniques : sans eux, le livre s'ouvre sur une page vide, et
+  // l'offrir est un cul-de-sac. La même règle emporte la Lettre de Jérémie et les écrits
+  // non canoniques encore à charger, dont la rubrique disparaît faute d'entrées.
+  // ⚠️ Tant que l'ossature n'a pas répondu, on ne retire rien : voir `estLivreOuvrable`.
+  const offrables = livres.filter(l => estLivreOuvrable(l.code, chapitres))
+  const AT = filtrer(offrables.filter(l => l.testament === 'AT'))
+  const NT = filtrer(offrables.filter(l => l.testament === 'NT'))
+  const AUTRES = filtrer(offrables.filter(l => l.testament === 'AUTRES'))
 
   const handleLivre = (code: string) => {
     // Un livre grisé n'ouvre pas ses chapitres : il DIT pourquoi, et où le lire.
@@ -354,7 +365,7 @@ export default function NavLivres({
     const actif  = livreActifLocal === livre.code
     const suggere = refParsee?.code === livre.code
     const vide = livresVides?.has(livre.code) ?? false
-    const nb = NB_CHAPITRES[livre.code] || 1
+    const nb = nombreDeChapitres(livre.code, chapitres)
 
     // Les options (chapitres + « Livre entier ») ne se déplient qu'au CLIC sur le nom du
     // livre — jamais au simple survol.

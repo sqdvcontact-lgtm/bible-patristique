@@ -8,6 +8,7 @@ import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/t
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { cleTriTitre } from '@/app/lib/titres'
 import { mentionTraducteurs } from '@/app/lib/traducteurs'
+import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -33,17 +34,9 @@ const CODE_PAR_LIBELLE = new Map<string, string>(
     [sansAccents(NOM_LIVRE[code] ?? ''), code],
   ]).filter(([k]) => !!k)
 )
-const NB_CHAPITRES: Record<string, number> = {
-  GEN:50,EXO:40,LEV:27,NUM:36,DEU:34,JOS:24,JDG:21,RUT:4,
-  '1SA':31,'2SA':24,'1KI':22,'2KI':25,'1CH':29,'2CH':36,
-  EZR:10,NEH:13,EST:16,JOB:42,PSA:150,PRO:31,ECC:12,SNG:8,
-  ISA:66,JER:52,LAM:5,EZK:48,DAN:14,HOS:14,JOL:3,AMO:9,
-  OBA:1,JON:4,MIC:7,NAM:3,HAB:3,ZEP:3,HAG:2,ZEC:14,MAL:4,
-  MAT:28,MRK:16,LUK:24,JHN:21,ACT:28,ROM:16,'1CO':16,'2CO':13,
-  GAL:6,EPH:6,PHP:4,COL:4,'1TH':5,'2TH':3,'1TI':6,'2TI':4,
-  TIT:3,PHM:1,HEB:13,JAS:5,'1PE':5,'2PE':3,'1JN':5,'2JN':1,
-  '3JN':1,JUD:1,REV:22,
-}
+// ⛔ Le nombre de chapitres était recopié ici, à l'identique du volet de navigation, et
+// il portait le même défaut : aucun deutérocanonique, donc UN chapitre offert pour le
+// Siracide, qui en a 51. Il vient de l'ossature (`chapitresCanon`).
 
 // Citation « pleine » — le texte cité (SANS guillemets français) va dans un bloc Citation,
 // et la référence dans une note. `texte` porte le corps cité, `fin` la ponctuation finale
@@ -239,6 +232,13 @@ type TradBible = { trad_id: string; nom: string; langue: string | null }
 function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   const [livre, setLivre] = useState('')
   const [chapitre, setChapitre] = useState<number | null>(null)
+  // Combien de chapitres offrir : l'ossature le dit (promesse partagée par tout le site).
+  const [chapitresParLivre, setChapitresParLivre] = useState<ChapitresParLivre | null>(null)
+  useEffect(() => {
+    let vivant = true
+    void chargerChapitresParLivre(supabase).then(t => { if (vivant) setChapitresParLivre(t) })
+    return () => { vivant = false }
+  }, [])
   const [versets, setVersets] = useState<{ id_verset: string; verset: number; texte: string }[]>([])
   const [chargement, setChargement] = useState(false)
   // Traduction citée : liste chargée depuis `traductions`, défaut « Segond » (TR0002).
@@ -317,7 +317,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
       <div>
         <BoutonRetour onClick={() => setLivre('')}>Livres</BoutonRetour>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '5px' }}>
-          {Array.from({ length: NB_CHAPITRES[livre] }, (_, i) => i + 1).map(c => (
+          {Array.from({ length: nombreDeChapitres(livre, chapitresParLivre) }, (_, i) => i + 1).map(c => (
             <button key={c} onClick={() => setChapitre(c)} style={{ fontSize: '0.71875rem', padding: '6px 0', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', cursor: 'pointer' }}>{c}</button>
           ))}
         </div>
