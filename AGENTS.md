@@ -5204,3 +5204,67 @@ Doctrine : charte `parametres.charte_ia`, § 38.13. Règles de code :
   est pas posé sur la racine mais sur une classe, la substitution étant faite dans la copie
   de la feuille : c'est le seul moyen de tenir les deux thèmes sur une image, et le site,
   lui, ne pose jamais le Cuir ailleurs que sur `:root`.
+
+# ⛔ Une RÉFÉRENCE emprunte le STRUT de son texte (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.14. Règles de code, dans
+`app/polyglotte/page.tsx` :
+
+- ⛔ **`.poly-marge-ref` et `.poly-lettrine-item` portent le strut de `.poly-texte-cell`** :
+  même police, même corps (0,875 rem), même interligne, même blanc du haut. Le numéro se
+  compose en 0,6875 rem et en sans DANS cette boîte, en ligne — un enfant plus petit se
+  pose sur la ligne de base du strut sans la déplacer. ⚠️ `.poly-lettrine-ref` est passée de
+  `display: block` à `inline` pour cela, et `.poly-lettrine-item` a perdu son centrage
+  vertical : **un numéro s'aligne sur une ligne de base, jamais sur un milieu de boîte**.
+- ⚠️ **La POLICE compte autant que le corps** : l'ascendante d'une sans n'est pas celle
+  d'une sérif. C'est ce qui restait de travers — 0,80 px — quand le corps, l'interligne et
+  le rembourrage s'accordaient déjà. Mesuré sur la page servie : les deux références
+  tombaient à −2,40 px de la ligne de base du texte, elles y tombent à 0,00.
+- ⛔ **`HAUT_LIGNE_TEXTE` et `HAUT_PAD_MARGE` sont SUPPRIMÉS**, et il ne faut pas les
+  refaire. C'étaient un interligne absolu et un rembourrage calibrés une fois au navigateur,
+  avec le tableau des écarts en commentaire : **un réglage en pixels ne peut pas compenser
+  une différence mesurée en rem**, la police racine du site étant fluide de 16 à 22. Ils se
+  sont déréglés le jour même où le blanc de la cellule est passé de 7 à 8 px et l'interligne
+  de 1,36 à 1,34. ⚠️ Leur commentaire disait « à remesurer si… » : *une consigne de remesure
+  est le signe qu'on a posé un nombre là où il fallait poser un rapport.*
+- ⚠️ **Les mesures de la colonne montent sur `.poly-row` et `.poly-surnum-row`**, non plus
+  sur `.poly-texte-cell` : la marge de référence en est la SŒUR, non la descendante, et
+  c'est elle qui doit lire `--poly-interligne` et `--poly-air-haut`.
+- ⚠️ **L'étui d'un numéro fait toujours exactement une ligne** (25,78 px pour 25,795 mesurés
+  sur la page servie) : c'est ce qui fait que le flottant ne repousse qu'une ligne.
+
+## ⚠️ Les espaces fines de la Polyglotte : rien à faire, et c'est mesuré (2026-09-04)
+
+Question de l'auteur. Le tableau porte bien l'insécable pleine chasse devant le deux-points
+et la fine insécable devant le point-virgule — relevé sur un chapitre servi : **21 U+00A0,
+18 U+202F, 298 césures conditionnelles U+00AD**. Tout passe par `rendreTexteEnrichi`, qui
+appelle `normaliserEspaces` à son entrée. Et Source Serif 4 les rend à leur juste chasse :
+**2,04 px contre 4,06** pour une espace ordinaire, soit 14,6 % du cadratin contre 29,1 — ce
+n'est donc pas un substitut de police.
+
+# Bibliothèque — deux blancs, et des filtres qui comptent (2026-09-04)
+
+- ⛔ **Le blanc d'APRÈS-TITRE et le blanc d'ENTRE LIGNES sont deux mesures**
+  (`MARGE_APRES_TITRE`, `MARGE_ENTRE_LIGNES`, `AIR_LIGNE_OEUVRE`). ⚠️ **Un blanc de liste se
+  mesure dans l'ENCRE, non dans les boîtes** : en marges, les trois écarts valaient un pixel
+  et paraissaient égaux ; d'encre à encre, il y avait **4,0 px après le titre et 8,7 px entre
+  deux éditions**. Les libellés étant plus petits que leur ligne, le demi-interligne ajoute
+  1,7 px qu'un calcul en marges ne voit pas. Désormais **7,0 et 5,7**, vérifié en ligne.
+- ⚠️ La première ligne d'un groupe n'est pas toujours la traduction : c'est la ligne de
+  TEXTE ORIGINAL quand l'œuvre en a une, et le test doit porter sur les deux (`iv === 0`
+  plus `!aOriginal` pour la seconde).
+- ⛔ **Une pastille de filtre porte son COMPTE**, calculé sur la recherche et tous les
+  AUTRES filtres, jamais le sien : elle dit ce qu'elle AJOUTERAIT, non ce qui reste une fois
+  qu'elle a agi. ⚠️ Une facette à zéro ne se montre plus — sauf si elle est ACTIVE : on ne
+  cache jamais un filtre qui agit. La période, seule des trois, ne se dérivait pas des
+  données : ses cinq empans s'affichaient toujours.
+- ⚠️ **Le contexte : la bibliothèque compte QUINZE auteurs**, montrés dix par page, et le
+  panneau leur offrait quatorze pastilles. Le compte est ce qui le dit ; il dira aussi le
+  jour où le panneau redeviendra utile.
+- ⛔ **Une facette n'a pas besoin d'une couleur à elle** : les trois axes portaient trois
+  teintes, quand la rubrique au-dessus de chaque rang dit déjà de quel axe il s'agit. Sept
+  couleurs en dur quittent l'inventaire, dont le seul bleu froid de l'écran. ⚠️ Ce n'est pas
+  contraire aux séries du Budé : là, la couleur EST l'information ; ici, elle répétait une
+  étiquette déjà écrite.
+- ⛔ **Deux listes MORTES retirées** : `LANGUES` doublait `languesDispo`, tirée des données,
+  et `GENRES` servait une facette remplacée depuis longtemps par la tradition.
