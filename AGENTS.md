@@ -5404,3 +5404,11 @@ Doctrine : charte `parametres.charte_ia`, § 38.16. Règles de code :
 - ⚠️ **Un seul écart avec la Bible, et il est motivé** : le témoin d'attente au bout de
   chaque ligne de « Lecture ». « Latin » y vise une AUTRE adresse, donc un rendu serveur
   entier, quand les axes de la Bible se règlent le plus souvent sur place.
+- ⛔ **Le libellé d'une édition ne porte PAS les dates de vie du traducteur** (demande de
+  l'auteur, 2026-09-04). Une ligne de menu répond à une seule question — quelle édition
+  je lis —, et « Traduction par René de Ceriziers (1603–1662), 1646 » y portait deux
+  empans de dates, dont l'un ne dit rien de l'édition. ⚠️ La donnée reste en base
+  (`metadata.traducteur_naissance` / `_mort`, portée par les seuls deux Boèce français) :
+  c'est l'affichage qui s'en passe. `datesTraducteur` est retirée, et **`metadata` a
+  quitté la signature de `libelleVersionComplet`** — une signature qui ne reçoit plus la
+  donnée est une garde plus sûre qu'un test.
