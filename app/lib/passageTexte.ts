@@ -143,6 +143,44 @@ export function ordonnerBlocsVisibles(racine: HTMLElement, haut: number, selecte
   return blocs.length
 }
 
+/**
+ * L'ouverture EN DOMINO : les cellules paraissent COLONNE PAR COLONNE, de gauche à
+ * droite, au lieu de ligne par ligne (demande de l'auteur, 2026-09-04 : « à l'ouverture
+ * de la page, peut-on imaginer que le texte s'affiche progressivement, colonne par
+ * colonne, pour donner un effet de domino ? ça peut être joli, mais il faut que ce soit
+ * rapide »).
+ *
+ * ⚠️ C'est le même dispositif que l'arrivée ordinaire — `data-cs-bloc` et `--cs-ordre`,
+ * les animations de `globals.css` — mais le rang se prend sur la COLONNE et non sur la
+ * hauteur. Le pas double le rang, faute de quoi cinq colonnes se joueraient en cent
+ * vingt millisecondes et la chute ne se verrait pas.
+ *
+ * ⛔ La colonne se reconnaît au bord GAUCHE de la cellule, arrondi au pixel : une grille
+ * de tableau n'expose pas son indice de colonne, et une cellule ne sait pas où elle est.
+ */
+export function ordonnerColonnesVisibles(
+  racine: HTMLElement,
+  haut: number,
+  selecteurCellule: string,
+  pas = 2,
+): number {
+  racine.querySelectorAll<HTMLElement>('[data-cs-bloc]').forEach(el => {
+    delete el.dataset.csBloc
+    el.style.removeProperty('--cs-ordre')
+  })
+  const cellules = Array.from(racine.querySelectorAll<HTMLElement>(selecteurCellule))
+    .map(el => ({ el, boite: el.getBoundingClientRect() }))
+    .filter(({ boite }) => boite.height > 0 && boite.bottom > haut && boite.top < window.innerHeight)
+  if (cellules.length === 0) return 0
+  const bords = [...new Set(cellules.map(({ boite }) => Math.round(boite.left)))].sort((x, y) => x - y)
+  for (const { el, boite } of cellules) {
+    const colonne = bords.indexOf(Math.round(boite.left))
+    el.dataset.csBloc = ''
+    el.style.setProperty('--cs-ordre', String(Math.min(colonne * pas, RANG_MAX)))
+  }
+  return cellules.length
+}
+
 /** Le premier élément du sélecteur dont une part est encore sous la ligne `haut`
  *  (la barre de navigation, ou le bord d'un défileur), dans l'ordre du document. */
 export function elementEnTete(racine: ParentNode, selecteur: string, haut: number): HTMLElement | null {

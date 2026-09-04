@@ -25,7 +25,7 @@ import IconeDrapeau from "@/app/components/IconeDrapeau";
 import IconeChevron from "@/app/components/IconeChevron";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
-import { DUREE_ENTREE_MS, ordonnerBlocsVisibles } from "@/app/lib/passageTexte";
+import { DUREE_ENTREE_MS, ordonnerBlocsVisibles, ordonnerColonnesVisibles } from "@/app/lib/passageTexte";
 import { LIVRE_PAR_DEFAUT, ouvertureDeLaPolyglotte, retenirPositionPolyglotte } from "@/app/lib/repriseLecture";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
@@ -965,10 +965,22 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       ? actifMembre.libelle
       : `${f.principal.edition ?? ""}${f.principal.edition ? " · " : ""}${f.membres.length} textes`;
     const survol = (e: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLButtonElement>) => deployer(f.cle, e.currentTarget, f.membres.length);
+    // ⛔ LE CLIC NE SE PERD PAS DANS LE VOLET (demande de l'auteur, 2026-09-04 : « quand je
+    // clique sur le nom d'une traduction qui a un menu déroulant secondaire, ne pas bloquer
+    // le clic : afficher la première traduction du menu déroulant »). Il ne faisait que
+    // déployer ce que le survol déployait déjà : un clic qui ne fait rien de plus que le
+    // survol est un clic perdu. Il choisit le PREMIER texte de l'édition — celui que le
+    // volet met en tête — et le volet reste ouvert pour en prendre un autre.
+    const choisirLePremier = () => { const t = f.membres[0]?.trad.trad_id; if (t) choisir(t); };
     return (
       <button key={f.cle} role="menuitem" aria-haspopup="menu" aria-expanded={deploye}
-        onMouseEnter={survol} onFocus={survol} onClick={survol} onMouseLeave={fermerVolet}
-        onKeyDown={e => { if (e.key === "ArrowRight" || e.key === "Enter" || e.key === " ") { e.preventDefault(); deployer(f.cle, e.currentTarget, f.membres.length); } }}
+        onMouseEnter={survol} onFocus={survol} onClick={choisirLePremier} onMouseLeave={fermerVolet}
+        // ⚠️ Le CLAVIER suit le clic : Entrée et Espace choisissent, la flèche déploie. Un
+        // clavier qui n'aurait plus que le déploiement n'atteindrait jamais le premier texte.
+        onKeyDown={e => {
+          if (e.key === "ArrowRight") { e.preventDefault(); deployer(f.cle, e.currentTarget, f.membres.length); }
+          else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisirLePremier(); }
+        }}
         style={{ ...ligne(!!actifMembre), background: deploye && !actifMembre ? "rgba(var(--cs-vert-rgb),0.06)" : ligne(!!actifMembre).background, alignItems: "center" }}>
         {coche(!!actifMembre)}
         {/* ⛔ Une FAMILLE ne se grise pas quand un de ses textes est affiché ailleurs :
@@ -1546,7 +1558,12 @@ export default function PolyglottePage() {
     // parti que l'échange de bible en mémoire sur la page Bible, le défilement dit qu'on
     // a tourné.
     if (passage !== "sortie" && precedente !== null) return;
-    ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE);
+    // ⚠️ À L'OUVERTURE, LE TEXTE TOMBE EN DOMINO — colonne par colonne, de gauche à droite
+    // (demande de l'auteur, 2026-09-04). ⛔ Seulement à l'ouverture : la même chute jouée à
+    // chaque chapitre tourné cesserait d'être un accueil pour devenir une attente. Les
+    // arrivées suivantes gardent la chute ligne par ligne, qui suit la lecture.
+    if (precedente === null) ordonnerColonnesVisibles(corps, hautDeLecture(enteteRef.current), ".poly-texte-cell");
+    else ordonnerBlocsVisibles(corps, hautDeLecture(enteteRef.current), SELECTEUR_BLOCS_POLYGLOTTE);
     setPassage("entree");
     const fin = window.setTimeout(() => setPassage(null), DUREE_ENTREE_MS);
     return () => window.clearTimeout(fin);
@@ -1811,26 +1828,43 @@ export default function PolyglottePage() {
              entre les lignes de la grille interromprait la réglure verticale à chaque verset,
              et la page redeviendrait un tableau. La gouttière latérale s'ouvre d'un cran, le
              filet n'étant plus doublé d'un fond de cellule pour l'en écarter. */
-          padding: 7px 14px 8px;
+          padding: 7px 10px 8px;
           font-family: var(--font-source-serif), Georgia, serif;
           text-align: justify;
           text-align-last: left;
           hyphens: auto; -webkit-hyphens: auto;
           hyphenate-limit-chars: 5 2 2;
-          /* Un peu plus dense (goût de l'auteur) : interligne juste resserré, et surtout
-             les mots rapprochés d'un cran. line-height reste synchronisé avec
-             .poly-lettrine-item (hauteur du flottant = une ligne). */
-          word-spacing: -0.04em;
+          /* Un peu plus dense (goût de l'auteur) : interligne juste resserré, et les mots
+             rapprochés. line-height reste synchronisé avec .poly-lettrine-item (hauteur du
+             flottant = une ligne).
+             ⚠️ L'ESPACE NATURELLE EST REMONTÉE D'UN DEMI-CRAN (-0,04 → -0,02 em), et c'est
+             un remède aux blancs, non un renoncement à la densité : la justification ajoute
+             le MÊME blanc absolu quelle que soit l'espace de départ, si bien qu'une espace
+             plus étroite rend l'écart plus criant. Mesuré sur Jean : l'espace naturelle
+             passe de 3,38 à 3,72 px, le plus grand blanc de 7,5 à 5,6 fois cette espace, et
+             les blancs de plus du double tombent de 1 235 à 894. La page n'y perd rien : la
+             lettrine rendue au texte la raccourcit de 350 px. */
+          word-spacing: -0.02em;
           line-height: 1.36;
         }
         .poly-texte-cell::after { content: ""; display: block; clear: both; }
         /* Aucune marge ni rembourrage VERTICAL, et pas de taille propre : la lettrine
            garde la taille de police de la ligne, si bien que la hauteur de ses éléments
            s'exprime en em de la ligne — voir .poly-lettrine-item. */
+        /* ⛔ LA LETTRINE SE RANGE DANS LA GOUTTIÈRE, elle ne prend plus sur le texte
+           (demande de l'auteur, 2026-09-04 : « affiner encore la densité du texte, les
+           césures, renvois, pour éviter les blancs ignobles et contre-natures entre
+           mots »). Mesuré sur la page servie : le flottant valait 28,8 px et sa marge 8,
+           soit 12 % de la mesure — et sur 67 blancs de plus de trois espaces, 60 étaient
+           sur la ligne qu'il rétrécit. Une marge gauche négative le tire dans le
+           rembourrage, qui perd d'autant : le texte retrouve sa mesure pleine dès la
+           première ligne, et le repère reste où l'œil le cherche.
+           ⚠️ Les deux valeurs se répondent — margin-left NÉGATIF = padding-left de la
+           cellule — sans quoi la lettrine déborderait sur la réglure. */
         .poly-lettrine {
           float: left;
           display: flex; flex-direction: column; align-items: flex-end;
-          margin: 0 8px 0 0; padding: 0 7px 0 0;
+          margin: 0 6px 0 -10px; padding: 0 7px 0 0;
           border-right: 1px solid rgba(var(--cs-vert-rgb),0.22);
           font-family: var(--font-source-sans), Arial, sans-serif;
           font-weight: 400; letter-spacing: 0.03em;
@@ -2069,7 +2103,10 @@ export default function PolyglottePage() {
                     /* Colonne fermée : un simple crayon, propre et discret, pour rouvrir. */
                     <button onClick={() => setNotesReduites(false)} title="Afficher la colonne Notes" aria-label="Afficher la colonne Notes" className="poly-notes-rail"
                       style={{ background: "none", border: "none", cursor: "pointer", color: "var(--cs-texte-doux)", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", padding: 0 }}>
-                      <IconeCrayon size={13} />
+                      {/* ⚠️ Un cran plus grand que le crayon d'une cellule (demande de
+                          l'auteur) : seul contenu d'un rail de dix-huit pixels, il est ce
+                          qu'on vise, non ce qu'on remarque en passant. */}
+                      <IconeCrayon size={16} />
                     </button>
                   ) : (
                     /* Colonne ouverte : toute la cellule est cliquable ; au survol, « Notes »
