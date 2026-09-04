@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { rendreSiecles, decouperSiecles, Siecle, STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
+import { decouperOrdinaux } from './ordinauxFrise'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
   type RangFrise, type Densite, DENSITES, coulFamille, passeDensite,
@@ -9,6 +10,7 @@ import {
 } from '@/app/lib/frise'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { colorMix } from '@/app/lib/couleurs'
 
 // Frise générale de l'histoire de l'Église.
@@ -76,18 +78,24 @@ function surligner(texte: string, cle: string, q: string): React.ReactNode[] {
     : <React.Fragment key={`${cle}-t${i}`}>{p}</React.Fragment>)
 }
 
-// Ordinaux de souverains (« Albert Ier ») : chiffre romain en capitales normales,
-// suffixe « er/e » en exposant. On agit sur les fragments NON reconnus comme siècles.
+// Ordinaux de souverains (« Albert Ier ») et chiffres de siècle élidés (« du XIIe ») :
+// chiffre romain en capitales normales, suffixe en exposant. On agit sur les fragments
+// NON reconnus comme siècles par `decouperSiecles`.
+//
+// ⛔ LA RÈGLE VIT DANS `ordinauxFrise`, ET PLUS ICI. Le motif écrit sur place valait
+// `[IVXLCDM]+(er|re|e)` : le L de « Le » est un chiffre romain, le C de « Ce » et le D de
+// « De » aussi, et « Le scribe Shlomo » se composait « Lᵉ scribe ». Mesuré sur tout le
+// corpus : **559 faux exposants** contre 99 vrais (relevé de l'auteur, 2026-09-04).
 function rendreTexteLibre(v: string, cle: string, q: string): React.ReactNode[] {
   const out: React.ReactNode[] = []
-  const re = /\b([IVXLCDM]+)(er|re|e)\b/g
-  let last = 0, m: RegExpExecArray | null, k = 0
-  while ((m = re.exec(v))) {
-    if (m.index > last) out.push(...surligner(v.slice(last, m.index), `${cle}-${k}a`, q))
-    out.push(<React.Fragment key={`${cle}-${k}o`}>{m[1]}<sup style={{ fontSize: '0.62em', lineHeight: 1, verticalAlign: 'baseline', position: 'relative', top: '-0.5em' }}>{m[2]}</sup></React.Fragment>)
-    k++; last = re.lastIndex
+  let k = 0
+  for (const fr of decouperOrdinaux(v)) {
+    if (fr.t === 'texte') out.push(...surligner(fr.v, `${cle}-${k++}a`, q))
+    else if (fr.t === 'romain') out.push(<React.Fragment key={`${cle}-${k++}r`}>{fr.v}</React.Fragment>)
+    // ⛔ Les styles viennent de la source unique : l'exposant valait ici 0,62 em écrit à
+    // la main, comme le faisait déjà `rendreSegment` avant qu'on l'y reprenne.
+    else out.push(<sup key={`${cle}-${k++}o`} style={STYLE_ORDINAL}>{fr.v}</sup>)
   }
-  if (last < v.length) out.push(...surligner(v.slice(last), `${cle}-${k}a`, q))
   return out
 }
 
@@ -399,7 +407,13 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           borderBottom: mobile ? `1px solid ${BORD}` : 'none',
         }}>
           <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 12px' }}>
-            <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#b0a088', margin: '0 0 4px' }}>Aller plus loin</p>
+          {/* ⛔ PLUS DE SUR-TITRE EN CAPITALES ESPACÉES (demande de l'auteur, 2026-09-04 :
+              « pour l'ensemble des volets de gauche, reprendre le style et la méthode des
+              volets de la page bible classique et œuvres patristiques »). Les volets de
+              lecture n'en portent aucun : le titre ouvre le volet, et la barre de
+              navigation dit déjà d'où l'on vient. Trois formes d'étiquette coexistaient
+              ici — 0,5 rem à 0,14 em, 0,5 à 0,16, 0,53125 à 0,1 — là où les volets de
+              lecture n'en ont qu'UNE, « RUBRIQUE_AXE », en casse ordinaire. */}
             <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Histoire de l’Église</h1>
           </div>
 
@@ -424,12 +438,12 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
           {/* Le mode « à l'échelle » a besoin de toute la largeur (défilement horizontal). */}
           <div style={{ maxWidth: vue === 'echelle' ? 'none' : '48rem', margin: '0 auto' }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '0 0 16px', paddingBottom: '12px', borderBottom: `1px solid ${SEP}` }}>
-              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }} aria-live="polite">
-                {visibles.length} repère{visibles.length > 1 ? 's' : ''}
-              </span>
-            </div>
-
+            {/* ⛔ NI COMPTE DE REPÈRES, NI FILET (demande de l'auteur, 2026-09-04 : « y'a un
+                double filet en haut de page ; supprimer. Y'a le nombre de repères en haut
+                de page : supprimer »). Le compte occupait une ligne pour un chiffre que
+                personne ne vient chercher, et son filet DOUBLAIT celui que la première
+                carte de la liste porte déjà en tête : deux traits à seize pixels l'un de
+                l'autre, sur toute la mesure, avant le premier mot. */}
             {visibles.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: '20px' }}>
                 <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>
@@ -725,7 +739,7 @@ function SelectSiecle({ id, valeur, siecles, tout, onChange }: {
 function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: '13px', paddingTop: '13px', borderTop: `1px solid ${SEP}` }}>
-      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>{label}</div>
+      <div style={{ ...RUBRIQUE_AXE, marginBottom: '7px' }}>{label}</div>
       {children}
     </div>
   )

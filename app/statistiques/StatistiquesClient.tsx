@@ -21,6 +21,7 @@ type VersetCite = {
   canon_id: string; livre: string; chapitre: number; verset: number;
   score: number; nb_citations: number; nb_commentaires: number; nb_allusions: number; nb_oeuvres: number;
   TR0002: string | null;
+  calcule_le: string | null;
 }
 
 const statLigne: React.CSSProperties = {
@@ -43,17 +44,32 @@ function EnteteStat({ titre, intro, style }: { titre: string; intro: string; sty
 
 export default function StatistiquesClient() {
   const [cites, setCites] = useState<VersetCite[] | null>(null)
+  const [erreur, setErreur] = useState(false)
 
-  // Versets les plus cités et commentés par les Pères : le score est calculé en base
-  // (vue versets_plus_cites) à partir des liens patristiques.
+  // ⛔ LA PAGE LIT L'INSTANTANÉ, non la vue (2026-09-04, l'auteur : « Statistiques ne
+  // fonctionne pas »). `versets_plus_cites` recalcule tout le classement à chaque appel —
+  // 67 868 liens joints à `segments`, agrégés deux fois, puis un LATERAL par verset pour
+  // le texte de la Segond : **12 485 ms mesurés**, pour un délai de 8 s sur
+  // `authenticated`. La requête était donc ANNULÉE, et la page annonçait « Aucun lien
+  // pour l'instant », ce qui était faux. Sur `versets_plus_cites_mat` : **0,23 ms**.
+  // ⚠️ C'est un INSTANTANÉ : il porte sa date, et ne bouge qu'au recalcul demandé depuis
+  // le centre de contrôle. Une page qui ne dirait pas quand elle a été calculée laisserait
+  // croire qu'elle est vivante.
   useEffect(() => {
-    supabase.from('versets_plus_cites')
-      .select('canon_id, livre, chapitre, verset, score, nb_citations, nb_commentaires, nb_allusions, nb_oeuvres, TR0002')
+    supabase.from('versets_plus_cites_mat')
+      .select('canon_id, livre, chapitre, verset, score, nb_citations, nb_commentaires, nb_allusions, nb_oeuvres, TR0002, calcule_le')
       .order('score', { ascending: false })
       .order('nb_commentaires', { ascending: false })
       .limit(30)
-      .then(({ data }) => setCites((data as VersetCite[]) ?? []))
+      // ⛔ On LIT l'erreur. Sans elle, un classement en panne et un classement vide
+      // rendaient exactement la même phrase, et c'est ainsi que le défaut a vécu.
+      .then(({ data, error }) => {
+        if (error) { setErreur(true); setCites([]); return }
+        setCites((data as VersetCite[]) ?? [])
+      })
   }, [])
+
+  const calculeLe = cites?.[0]?.calcule_le ?? null
 
   const detailCite = (v: VersetCite) => {
     const parts: string[] = []
@@ -86,6 +102,10 @@ export default function StatistiquesClient() {
           intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
         {cites === null ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+        ) : erreur ? (
+          <p role="alert" style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)' }}>
+            Le classement n&apos;a pas pu être chargé.
+          </p>
         ) : cites.length === 0 ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun lien pour l&apos;instant.</p>
         ) : (
@@ -105,6 +125,11 @@ export default function StatistiquesClient() {
               </Link>
             ))}
           </div>
+        )}
+        {calculeLe && (
+          <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', margin: '14px 0 0' }}>
+            Classement calculé le {new Date(calculeLe).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}.
+          </p>
         )}
       </div>
     </main>

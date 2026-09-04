@@ -59,6 +59,7 @@ import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import IconeChevron from '@/app/components/IconeChevron'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import {
   libelleCategoriePericope,
   type PericopeCatalogueItem,
@@ -138,7 +139,7 @@ function libelleReference(req: RequetePericope): string {
 function Rubrique({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginTop: '18px', marginBottom: '2px' }}>
-      <span style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>{children}</span>
+      <span style={RUBRIQUE_AXE}>{children}</span>
       <span aria-hidden style={{ flex: 1, height: '1px', background: SEP }} />
     </div>
   )
@@ -146,7 +147,7 @@ function Rubrique({ children }: { children: React.ReactNode }) {
 function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: '12px' }}>
-      <div style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '7px' }}>{label}</div>
+      <div style={{ ...RUBRIQUE_AXE, marginBottom: '6px' }}>{label}</div>
       {children}
     </div>
   )
@@ -454,16 +455,25 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           borderBottom: mobile ? `1px solid ${BORD}` : 'none',
         }}>
           <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 13px' }}>
-            <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 4px' }}>Catalogue</p>
+          {/* ⛔ PLUS DE SUR-TITRE EN CAPITALES ESPACÉES (demande de l'auteur, 2026-09-04 :
+              « pour l'ensemble des volets de gauche, reprendre le style et la méthode des
+              volets de la page bible classique et œuvres patristiques »). Les volets de
+              lecture n'en portent aucun : le titre ouvre le volet, et la barre de
+              navigation dit déjà d'où l'on vient. Trois formes d'étiquette coexistaient
+              ici — 0,5 rem à 0,14 em, 0,5 à 0,16, 0,53125 à 0,1 — là où les volets de
+              lecture n'en ont qu'UNE, « RUBRIQUE_AXE », en casse ordinaire. */}
             <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Les péricopes</h1>
-            {/* Chapeau : la définition, puis une ligne d'accroche en italique pour le
-                rythme. Énumération par deux-points (pas d'incise entre tirets). */}
-            <p style={{ margin: '8px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte-second)' }}>
+            {/* Chapeau : la définition, et rien d'autre. Énumération par deux-points
+                (pas d'incise entre tirets).
+                ⛔ « Ce catalogue les rassemble, livre après livre » est SUPPRIMÉ (demande
+                de l'auteur, 2026-09-04) : la ligne ne disait rien que la liste ne montre
+                aussitôt, et elle ajoutait un troisième rang de texte à un bloc de tête qui
+                en portait déjà deux.
+                ⚠️ La définition se resserre : 1,55 → 1,4 d'interligne, six pixels de blanc
+                au lieu de huit. */}
+            <p style={{ margin: '6px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
               Une péricope est un passage biblique formant une unité de sens :{' '}
               <span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>récit, parabole, discours ou psaume</span>.
-            </p>
-            <p style={{ margin: '5px 0 0', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-faible)' }}>
-              Ce catalogue les rassemble, livre après livre.
             </p>
           </div>
 

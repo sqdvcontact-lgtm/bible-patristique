@@ -203,20 +203,9 @@ const STYLES_FICHE = `
      donc plus grosse que la prose qu'elle accompagne. ⛔ Pas de justification
      ici : une référence tient sur deux lignes courtes, que la justification
      étirerait. */
-  .trad-notice ul { margin: 0 0 8px; padding-left: 0; list-style: none; }
-  /* ⚠️ RETRAIT SUSPENDU, et pas de puce (2026-09-04, demande de l'auteur : « pour
-     la bibliographie, il faut un retrait négatif pour les secondes lignes d'un
-     paragraphe »). Les listes des notices sont des BIBLIOGRAPHIES — « Études sur
-     cette traduction », cinq références chez la Bible du XIIIe siècle —, et une
-     référence de deux lignes ne se lit que si la seconde rentre : c'est ce qui
-     sépare deux notices à l'œil. La mesure est celle de toutes les bibliographies
-     du site (« .cs-apparat-bibliographie__entree », charte § 35.6.2), et la puce
-     part avec le retrait : une liste à puces et une bibliographie ne sont pas la
-     même chose. */
-  /* ⚠️ Même mesure que toutes les bibliographies du site : l'interligne serré, le
-     blanc large entre deux références (charte § 35.6.2). */
-  .trad-notice li { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.32; color: var(--cs-texte); margin: 0 0 9px; padding-left: 1.1em; text-indent: -1.1em; }
-  .trad-notice li:last-child { margin-bottom: 0; }
+  /* ⛔ Les listes de la notice — les BIBLIOGRAPHIES — se composent dans globals.css,
+     avec celles de la page « Les traductions » : une seule déclaration, deux surfaces
+     (2026-09-04). Elles vivaient ici, et la page, elle, n’en avait aucune. */
   /* ── LE PORTRAIT FLOTTE, ET LA NOTICE L'HABILLE ──
      Même parti que la fiche d'auteur, et pour la même raison : il ouvrait un en-tête
      à part, où son vis-à-vis — un titre, deux lignes de repères — laissait un grand

@@ -10,7 +10,7 @@ import {
   portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
 } from '@/app/lib/portraitTraduction'
 import {
-  VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO, MENTION_SUR_PHOTO,
+  VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO,
   CHEVRON_SUR_PHOTO, OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
 } from '@/app/lib/bandeauTraduction'
 
@@ -208,17 +208,11 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             {meta}
           </span>
         )}
-        {t.import_maj_le && (
-          <span style={{
-            fontSize: '0.625rem', fontStyle: 'italic',
-            color: t.photo ? MENTION_SUR_PHOTO : 'var(--cs-texte-faible)',
-            display: 'block', marginTop: '3px',
-            textShadow: t.photo ? ombreTexte : 'none',
-            transition: 'color 0.2s',
-          }}>
-            Mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </span>
-        )}
+        {/* ⛔ LA DATE DE MISE À JOUR N'EST PLUS ICI (demande de l'auteur, 2026-09-04 :
+            « n'afficher la date de mise à jour que dans le texte développé »). Une carte
+            fermée nomme la traduction et dit d'où elle vient ; la date à laquelle NOUS
+            avons repris son corpus est un fait d'atelier, qui n'aide pas à choisir. Elle
+            se lit dans le dépli, sous la notice. */}
       </div>
 
       <span style={{
@@ -310,10 +304,16 @@ function FicheTraduction({ t }: { t: Traduction }) {
               style={styleImagePortrait(e)} />
           </div>
         )}
+        {/* ⚠️ LE TEXTE SE RESSERRE (demande de l'auteur, 2026-09-04). L'interligne
+            passe de 1,65 à 1,52 et le blanc entre paragraphes de 10 à 7 px : à 13,5 px de
+            corps, 1,65 ouvre les lignes d'une notice de plusieurs écrans jusqu'à la faire
+            flotter. C'est le pas déjà retenu pour la Bible commentée (1,5 → 1,42) et pour
+            le volet condensé. Les valeurs vivent dans `globals.css`, avec les autres
+            règles de `.trad-article`. */}
         {t.bio_courte && (
           <p style={{
-            fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65,
-            margin: '0 0 12px', fontStyle: 'italic',
+            fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.5,
+            margin: '0 0 10px', fontStyle: 'italic',
             textAlign: 'justify', hyphens: 'auto',
           }}>
             {t.bio_courte}
@@ -322,9 +322,14 @@ function FicheTraduction({ t }: { t: Traduction }) {
         {t.commentaire_editorial && (
           <div
             className="trad-article"
-            style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+            style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.52, textAlign: 'justify', hyphens: 'auto' }}
             dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
           />
+        )}
+        {t.import_maj_le && (
+          <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', margin: '14px 0 0' }}>
+            Corpus mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.
+          </p>
         )}
       </div>
     </div>

@@ -680,8 +680,11 @@ h6 {
 .trad-article p :not(sup) {
   font-size: 0.84375rem !important;
   color: var(--cs-texte-fort) !important;
-  line-height: 1.65 !important;
-  margin: 0 0 10px !important;
+  /* ⚠️ Resserré le 2026-09-04, à la demande de l'auteur : 1,65 ouvrait les lignes d'une
+     notice de plusieurs écrans jusqu'à la faire flotter. Même pas que la Bible commentée
+     (1,5 → 1,42) et que le volet condensé. */
+  line-height: 1.52 !important;
+  margin: 0 0 7px !important;
   text-decoration: none !important;
   text-align: justify !important;
   hyphens: auto !important;
@@ -694,7 +697,7 @@ h6 {
   font-size: 1.0625rem !important;
   font-weight: normal !important;
   color: var(--cs-encre-fonce) !important;
-  margin: 20px 0 8px !important;
+  margin: 16px 0 6px !important;
   text-decoration: none !important;
 }
 .trad-article h2 {
@@ -702,9 +705,44 @@ h6 {
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   color: var(--cs-encre) !important;
-  margin: 18px 0 6px !important;
+  margin: 14px 0 5px !important;
   text-decoration: none !important;
 }
+
+/* ── UNE BIBLIOGRAPHIE DE NOTICE PREND LA FORME OFFICIELLE ────────────────────
+   ⛔ « Études sur cette traduction » retombait sur la liste par DÉFAUT du navigateur :
+   puces rondes, corps du navigateur — donc plus gros que la prose qu'elle accompagne —
+   et pas de retrait suspendu (relevé de l'auteur, 2026-09-04 : « utilise le système
+   officiel de bibliographie, et la mise en forme officielle »). La classe « trad-article »
+   réglait ses paragraphes, ses titres, son gras et son italique, et n'avait jamais rien
+   dit de ses listes.
+   ⚠️ LES MESURES SONT CELLES DE TOUTE BIBLIOGRAPHIE DU SITE (charte § 35.6.2) :
+   interligne SERRÉ, blanc LARGE entre deux références, retrait suspendu, aucune puce.
+   Une référence de deux lignes ne se lit que si la seconde rentre — c'est ce qui sépare
+   deux notices à l'œil.
+   ⛔ Une SEULE déclaration pour les deux surfaces qui rendent ces notices : la page
+   « Les traductions » et la fiche « À propos de cette traduction » (« trad-notice »), qui
+   la portait dans son propre bloc de style. Deux copies d'une même forme ne restent
+   identiques que par accident. */
+.trad-article ul,
+.trad-notice ul {
+  margin: 0 0 8px !important;
+  padding-left: 0 !important;
+  list-style: none !important;
+}
+.trad-article li,
+.trad-notice li {
+  font-family: var(--font-source-sans), Arial, sans-serif !important;
+  font-size: 0.75rem !important;
+  line-height: 1.32 !important;
+  color: var(--cs-texte) !important;
+  margin: 0 0 9px !important;
+  padding-left: 1.1em !important;
+  text-indent: -1.1em !important;
+  text-align: left !important;
+}
+.trad-article li:last-child,
+.trad-notice li:last-child { margin-bottom: 0 !important; }
 .trad-article strong {
   font-weight: 600 !important;
   color: var(--cs-texte-fort) !important;

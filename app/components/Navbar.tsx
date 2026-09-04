@@ -86,7 +86,11 @@ const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
 const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
   { href: "/bibliotheque", label: "Patristique" },
   { href: "/essais", label: "Communauté", discret: true },
-  { href: "/traductions", label: "Aller plus loin", discret: true },
+  // ⚠️ L'onglet ouvre sur « Acheter des livres », et non sur « Les traductions »
+  // (demande de l'auteur, 2026-09-04). Le menu du survol n'a pas changé d'ordre : c'est
+  // le CLIC sur le libellé qui mène ailleurs, vers la page la plus utile à qui n'a rien
+  // demandé de précis.
+  { href: "/librairies", label: "Aller plus loin", discret: true },
 ];
 // Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,
 // désormais des pages indépendantes. Le menu déroulant (au survol) les recense.
@@ -378,7 +382,7 @@ function OngletAllerPlusLoin({ label, style, actif }: { label: string; style: Re
     // Le menu DIT ce que chaque page contient, et le montre d'un emblème.
     // « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
     // une liste de cinq mots laissait le lecteur ouvrir au hasard.
-    <OngletMenu href="/traductions" label={label} style={style} actif={actif}
+    <OngletMenu href="/librairies" label={label} style={style} actif={actif}
       classeMenu="cs-plus-menu--riche cs-plus-menu--pages">
       {LIENS_ALLER_PLUS_LOIN.map(l => (
         <Link key={l.href} href={l.href} className="cs-plus-riche">
@@ -1799,7 +1803,7 @@ export default function Navbar() {
             {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
               href === "/bibliotheque"
                 ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
-                : href === "/traductions"
+                : href === "/librairies"
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
                 ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
@@ -1901,7 +1905,7 @@ export default function Navbar() {
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
               {/* ⚠️ Le premier lien est celui des bibles : il rouvre où l'on en était. */}
-              {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(({ href, label }) => lienMobile(href, label))}
+              {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/librairies")].map(({ href, label }) => lienMobile(href, label))}
 
               <p style={styleSectionMobile}>Aller plus loin</p>
               {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label, true))}

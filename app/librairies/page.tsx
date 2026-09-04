@@ -70,6 +70,16 @@ export default function LibrairiesPage() {
             Où trouver les textes, en éditions neuves, anciennes ou critiques.
           </p>
         </div>
+        {/* ⚠️ LE MOT DE TÊTE (texte de l'auteur, 2026-09-04). La page ouvrait sur une
+            liste d'enseignes, sans dire pourquoi elle existe : c'est la première page
+            d'« Aller plus loin » depuis le même jour, et elle accueille donc quelqu'un
+            qui n'a rien demandé de précis.
+            ⛔ Il n'est PAS en italique, à la différence de la ligne au-dessus : celle-ci
+            glose le titre, celui-ci est de la prose qu'on lit. */}
+        <p style={{ maxWidth: '34rem', margin: '0 auto 20px', fontSize: '0.8125rem', lineHeight: 1.62, color: 'var(--cs-texte)', textAlign: 'center' }}>
+          Les livres demeurent des instruments de travail indispensables. Les adresses
+          ci-dessous proposent des ouvrages solides, utiles à l’étude comme à la recherche.
+        </p>
       </div>
 
       <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '2px 24px 60px' }}>
