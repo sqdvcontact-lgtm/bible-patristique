@@ -269,7 +269,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   const colonneDroite = aChrono ? (
     <section>
       <TitreSection>Chronologie</TitreSection>
-      <FriseAuteur evenements={chrono} sansLegende />
+      <FriseAuteur evenements={chrono} />
     </section>
   ) : null
 

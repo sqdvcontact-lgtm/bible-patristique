@@ -18,7 +18,7 @@ import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { CADRES_PORTRAIT } from '@/app/lib/photoAuteur'
-import { type RangChrono, coulType, LIB_TYPE, estUrl } from '@/app/lib/frise'
+import { type RangChrono, cleTypeAffichage, coulType, LIB_TYPE, estUrl } from '@/app/lib/frise'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import HistoricalDate from '@/app/components/HistoricalDate'
@@ -307,18 +307,24 @@ function stylePuce(type: string | null) {
 // dans l'ordre éditorial de la vue (`ordre_affichage`, jamais recalculé ici).
 // Les trois types se distinguent par la puce et une nuance typographique, sans
 // blocs colorés qui rompraient l'homogénéité.
-export function FriseAuteur({ evenements, sansLegende }: { evenements: RangChrono[]; sansLegende?: boolean }) {
+export function FriseAuteur({ evenements }: { evenements: RangChrono[] }) {
   const [ouverts, setOuverts] = useState<Set<number>>(new Set())
   if (!evenements.length) return null
-  const presents = new Set(evenements.map(a => a.type_affichage))
+  // ⚠️ La CLÉ, non la valeur : la vue des traductions écrit « édition » et
+  // « réception » avec leurs accents, et les brins sont nommés sans.
+  const presents = new Set(evenements.map(a => cleTypeAffichage(a.type_affichage)))
   const brins = ['formation', 'edition', 'reception', 'vie', 'œuvre', 'contexte'].filter(t => presents.has(t))
   const basculer = (k: number) => setOuverts(prev => { const s = new Set(prev); s.has(k) ? s.delete(k) : s.add(k); return s })
   return (
     <div>
       {/* Légende : seulement les brins effectivement présents (auteur OU traduction), et
           jamais quand un seul brin est présent (une légende à une entrée n'apprend rien).
-          `sansLegende` la supprime tout à fait (chronologie d'une traduction). */}
-      {!sansLegende && brins.length > 1 && (
+          ⚠️ Elle sert aussi les TRADUCTIONS depuis le 2026-09-04 : leurs trois brins —
+          formation, édition, réception — ne se devinent pas plus que ceux d'un auteur,
+          et la fiche de traduction est composée sur le modèle de la fiche d'auteur. Elle
+          en était privée tant que les puces tombaient toutes sur le gris de repli, faute
+          d'accorder les clés. */}
+      {brins.length > 1 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'flex-start' }}>
           {brins.map(t => (
             <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>

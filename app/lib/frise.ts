@@ -142,7 +142,23 @@ export const COUL_TYPE: Record<string, string> = {
   edition: '#8a7440',
   reception: '#83a06a',
 }
-export const coulType = (t?: string | null) => (t && COUL_TYPE[t]) || 'var(--cs-texte-gris)'
+/**
+ * LA CLÉ D'UN TYPE D'AFFICHAGE, débarrassée de ses accents.
+ *
+ * ⛔ Les deux vues ne l'écrivent pas de la même façon : `v_chronologie_auteurs`
+ * rend « vie », « œuvre », « contexte », et `v_chronologie_traductions` rend
+ * « édition » et « réception », accentués. Les six clés ci-dessus étant sans
+ * accents, DEUX des trois brins d'une chronologie de traduction ne trouvaient
+ * jamais leur couleur ni leur libellé : leurs puces tombaient sur le gris de
+ * repli, et la frise ne distinguait plus ce qu'elle range.
+ * ⚠️ On replie la CLÉ, on ne renomme pas la donnée : la vue dit ce qu'elle dit,
+ * et le rendu s'y accorde. L'œ ligaturé n'est pas un accent et survit au repli,
+ * qui est celui du reste du site (NFD, diacritiques ôtés, bas de casse).
+ */
+export const cleTypeAffichage = (t?: string | null): string =>
+  (t ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+
+export const coulType = (t?: string | null) => COUL_TYPE[cleTypeAffichage(t)] || 'var(--cs-texte-gris)'
 
 export const LIB_TYPE: Record<string, string> = {
   vie: 'Vie',
