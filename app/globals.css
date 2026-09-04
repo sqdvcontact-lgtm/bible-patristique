@@ -1584,6 +1584,34 @@ button:focus-visible,
   margin-right: auto;
 }
 
+/* ── CLIQUER UN VERSET EN REGARD OUVRE SON APPARAT (2026-09-04) ─────────────────
+   Demande de l'auteur : « permettre de cliquer sur un verset pour afficher les
+   liens patristiques (sur l'AF et le Français) ». ⛔ La cible est la RANGÉE et non
+   la cellule : ses deux colonnes sont le même créneau canonique, et c'est par
+   `canon_id` que le volet de droite se charge.
+   ⚠️ Mêmes teintes que la lecture simple — survol à 5 %, verset retenu à 11 % —
+   pour que le geste se reconnaisse d'une lecture à l'autre (`TexteBible`,
+   `styleBlocVerset`). ⛔ Elles ne peuvent PAS se poser en style en ligne : une
+   déclaration en ligne bat toute règle de feuille sans `!important`, et le survol
+   serait mort sans que rien ne le dise — le titre de colonne de la Polyglotte l'a
+   été des semaines pour cette raison.
+   ⛔ LA MISE EN PAGE NE BOUGE PAS : le débord latéral de 4 px se prend en marge
+   NÉGATIVE, sinon le rembourrage rétrécirait les colonnes et le fer du texte des
+   versets cesserait de répondre à celui de l'appareil, que la feuille déduit des
+   mêmes mesures (`--regard-numero`, ci-dessus).
+   ⚠️ Le verset retenu se déclare à DEUX classes : à une seule, il perdrait sa
+   marque au survol, le `:hover` pesant plus lourd que lui. */
+.cs-regard-rangee {
+  margin-left: -0.25rem;
+  margin-right: -0.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.cs-regard-rangee:hover { background: rgba(var(--cs-vert-rgb), 0.05); }
+.cs-regard-rangee.cs-regard-rangee--retenue { background: rgba(var(--cs-vert-rgb), 0.11); }
+
 /* ── UN BLOC DE SUITE NE ROUVRE PAS LE BLANC DE SON RANG (2026-09-03) ────────────
    Fillion range une introduction ou un commentaire en autant de blocs que de
    paragraphes ; chacun rouvrait le blanc de son rang — 2,25 rem en regard (le
@@ -2394,6 +2422,14 @@ main.lecture-entree [data-cs-bloc],
   from { opacity: 0; }
   to { opacity: 1; }
 }
+/* L'ÉCHANGE DANS UN VOLET : ce qu'on quitte s'en va, ce qui arrive paraît en fondu
+   (demande de l'auteur, 2026-09-04 : « quand je change de segment, supprimer
+   immédiatement, de façon smooth, les références déjà affichées »). ⚠️ Le bloc se
+   REMONTE à chaque passage — une clé par segment — si bien que l'ancien s'en va d'un
+   coup et que le nouveau se pose doucement : c'est ce qu'on veut ici, un volet n'ayant
+   pas la place de tenir deux états à la fois. */
+.cs-volet-echange { animation: cs-lecture-ouvrir 0.18s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .cs-volet-echange { animation-duration: 0.01ms; } }
 /* Le mot de l'écran d'attente d'une œuvre (`app/oeuvre/[id]/loading.tsx`) : il ne
    vient qu'au bout d'un instant, une arrivée rapide ne montrant rien. */
 @keyframes cs-attente-paraitre {

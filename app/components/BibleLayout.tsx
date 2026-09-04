@@ -10,6 +10,7 @@ import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR } from '@/app/lib/bible'
+import { formaterPlageCanonique, parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
@@ -118,6 +119,26 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     && versetSelectionne.chapitre === chapitreActif
     ? versetSelectionne
     : null
+  // ⛔ EN LECTURE EN REGARD, LA SÉLECTION SE FAIT SUR L'AXE CANONIQUE, jamais sur
+  // une colonne (demande de l'auteur, 2026-09-04 : « permettre de cliquer sur un
+  // verset pour afficher les liens patristiques, sur l'AF et le Français »). Les
+  // deux cellules d'une rangée sont le MÊME verset, et le volet de droite ne
+  // connaît que `canon_id` : le créneau suffit donc à le nourrir, d'où qu'on l'ait
+  // cliqué. Un second clic sur le même créneau le relâche, comme en lecture simple.
+  // ⚠️ AUCUN COMPTAGE DE LECTURE ici : les lignes d'une segmentation éditoriale ne
+  // ciblent pas `versets_v2`, et la lecture simple s'en abstient déjà pour elles.
+  const selectionnerCanon = (canonId: string) => {
+    const point = parsePointCanonique(canonId)
+    if (!point || point.chapitre == null || point.verset == null) return
+    const choisi: Verset = {
+      id_verset: canonId,
+      ref: formaterPlageCanonique(canonId),
+      livre: point.livre,
+      chapitre: point.chapitre,
+      verset: point.verset,
+    }
+    setVersetSelectionne(actuel => (actuel?.id_verset === canonId ? null : choisi))
+  }
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre du bloc de texte tant que la page se prépare.
   const naviguer = useNaviguer()
@@ -611,6 +632,8 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
             traductions={listeTraductions}
             traductionIndex={traductionIndex}
             setTraductionIndex={handleSetTraductionIndex}
+            canonSelectionne={versetSelectionneCourant?.id_verset ?? null}
+            onSelectionnerVerset={selectionnerCanon}
           />
         ) : (
         <TexteBible

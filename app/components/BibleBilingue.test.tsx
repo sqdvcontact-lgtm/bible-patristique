@@ -336,4 +336,23 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html).not.toContain('textDecoration:underline dotted')
     expect(html).not.toContain('text-decoration:underline dotted')
   })
+
+  it('rend la RANGÉE cliquable — les deux colonnes ouvrent le même apparat', () => {
+    const html = renderToStaticMarkup(
+      <BibleBilingue {...COMMUN} canonSelectionne="MRK.1.2" onSelectionnerVerset={() => {}} />,
+    )
+    // Une seule cible par créneau : ce qui se clique est la rangée, non la cellule,
+    // puisque le volet de droite se charge sur `canon_id`. ⚠️ MRK.1.2 n'a pas de
+    // français et se clique tout de même : l'apparat tient au créneau.
+    expect(html.match(/class="cs-regard-rangee[^"]*"/g)).toEqual([
+      'class="cs-regard-rangee"',
+      'class="cs-regard-rangee cs-regard-rangee--retenue"',
+    ])
+    // La marque du verset retenu se pose sur la rangée qu'on a désignée, et sur elle seule.
+    expect(html.indexOf('data-canon-id="MRK.1.2"')).toBeLessThan(html.indexOf('--retenue'))
+  })
+
+  it('⛔ ne rend RIEN de cliquable quand la lecture ne sait pas sélectionner', () => {
+    expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} />)).not.toContain('cs-regard-rangee')
+  })
 })

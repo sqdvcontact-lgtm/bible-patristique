@@ -28,6 +28,7 @@ import { capitaliserInitiale } from '@/app/lib/citation'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
+import { MarqueAttenteVolet } from '@/app/lib/attenteNavigation'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -1615,7 +1616,14 @@ export default function PanneauPatristique({
                   </div>
                 )}
 
-                {loading && <p style={{ fontSize:'0.78125rem', color:'var(--cs-texte-doux)', textAlign:'center', padding:'16px 0' }}>Chargement…</p>}
+                {/* ⛔ LES RÉFÉRENCES DU PASSAGE QU'ON QUITTE S'EFFACENT AUSSITÔT (demande de
+                    l'auteur, 2026-09-04). Le volet gardait la liste précédente sous un mot
+                    « Chargement… » : on lisait donc, une seconde durant, l'apparat d'un verset
+                    qu'on venait de quitter, et rien ne disait que ce n'était plus le bon.
+                    ⚠️ Elle s'efface en fondu, et sa PLACE reste : la retirer du flux ferait
+                    sauter le volet à chaque clic, puis sauter de nouveau à l'arrivée. */}
+                <MarqueAttenteVolet enAttente={loading} />
+                <div style={{ opacity: loading ? 0 : 1, transition: 'opacity .16s ease' }}>
                 {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
                   <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:'12px', marginTop:'26px', marginBottom:'14px' }}>
                     {/* Même carapace et même traitement que l'onglet Commentaires : planche
@@ -1653,6 +1661,7 @@ export default function PanneauPatristique({
                     />
                   )
                 })}
+                </div>
                 </div>
               </>
             )}

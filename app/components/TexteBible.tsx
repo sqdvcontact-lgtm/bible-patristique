@@ -661,52 +661,16 @@ export default function TexteBible({
           {rendreFluxEditorial(indexBlocs.opening, indexIllustrations.opening)}
 
           {(versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))) && (
-            // Charte : l'image + légende se placent au tiers supérieur du bloc,
-            // non centrées verticalement dans le vide.
-            // ⛔ Le bloc SORT de la mesure de lecture, et il le faut. Les trois grandes
-            // gravures du site — Babel sur le Polyglotte, le désert sur la recherche, la
-            // cité ici — partagent la même pose, mais celle-ci vivait dans une colonne de
-            // 620 px quand les deux autres ont toute la largeur : elle s'affichait à 549
-            // contre 816, et se trouvait servie 2,9 fois trop grande, d'où un trait gris et
-            // mou. La largeur est celle qui rend EXACTEMENT 51rem une fois les 96 % du
-            // maximum appliqués (51 / 0,96 = 53,125), et le débordement est centré sur l'axe
-            // du parent, lui-même centré dans la page.
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '60vh', gap: 0, padding: '8vh 16px 0', boxSizing: 'border-box', width: 'min(70.83rem, 94vw)', marginLeft: '50%', transform: 'translateX(-50%)' }}>
-              {/* Des ruines fumantes plutôt qu'un fleuron : l'ornement disait « fin de
-                  chapitre », là où il faut dire « il n'y a rien ici ».
-
-                  La mesure et l'intensité sont celles de la tour de Babel sur le Polyglotte :
-                  c'est un écran d'attente, non un blanc de pied de page, et la gravure doit s'y
-                  voir. Elle partage d'ailleurs son encre, prise pour référence de la famille.
-
-                  ⚠️ La légende reste au TIERS SUPÉRIEUR du bloc (charte), et non centrée dans
-                  le vide : c'est la seule chose que cette pose ne reprend pas du Polyglotte.
-
-                  ⛔ En img, jamais en Image de Next : à certaines largeurs l'optimiseur rend
-                  un PNG à trois canaux, la couche alpha est aplatie sur du blanc et le fond
-                  réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
-
-                  ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE, elle n'a plus de fond
-                  blanc à faire disparaître, et l'opacité posée sur la même image créait de
-                  toute façon un contexte d'empilement qui annulait le mélange (charte).
-
-                  ⛔ Aucune LARGEUR posée, deux MAXIMA seulement. Les 190 px d'avant étaient une
-                  valeur absolue, qui ne suivait pas la police racine. Le plafond de hauteur
-                  vaut pour les fenêtres BASSES : la planche est un panorama, et sa hauteur y
-                  chasserait la légende sous le pli. */}
-              <img className="cs-ornement" src="/ornements/cite-ruinee.png" alt="" aria-hidden="true"
-                style={{ maxWidth: 'min(68rem, 96%)', maxHeight: 'calc(100dvh - 3.5rem - 15rem)', opacity: 0.72 }} />
-              {/* DIX PIXELS, et plus aucune marge négative. Celle-ci corrigeait un vide qui
-                  n'aurait jamais dû être dans le fichier : la planche traînait 312 lignes
-                  transparentes sous les ruines, gardées par une douzaine de mouchetures à alpha 1.
-                  Le script rogne désormais sur ce qui se VOIT, la planche hugge son encre, et le
-                  texte se pose à quelques pixels du dessin sans qu'on ait à deviner le vide.
-                  ⚠️ Corollaire : une marge négative sous une gravure est presque toujours le
-                  symptôme d'une planche mal rognée, non un réglage de composition. */}
-              <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '10px 0 0', maxWidth: '21.25rem' }}>
-                La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
-              </p>
-            </div>
+            /* ⛔ PLUS DE GRAVURE ICI (demande de l'auteur, 2026-09-04 : « supprimer le
+               dessin »). La cité ruinée occupait soixante pour cent de la hauteur pour dire
+               ce qu'une phrase dit mieux, et l'écran se rencontre désormais plus souvent :
+               la barre rouvre la Bible sur le DERNIER livre lu, qui n'est pas toujours dans
+               la bible qu'on retrouve. Un état qu'on traverse ne se compose pas comme une
+               page de titre. La planche passe en réserve (voir l'inventaire des
+               illustrations). ⚠️ La mention, elle, reste : c'est elle qu'on lisait. */
+            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '0 auto', padding: '18vh 16px 0', maxWidth: '21.25rem' }}>
+              La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
+            </p>
           )}
 
           {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu

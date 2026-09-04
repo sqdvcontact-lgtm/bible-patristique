@@ -116,6 +116,49 @@ export function useEnAttente(): boolean {
  * dans un bloc qui tient à l'écran (la colonne de la Bible), il remplit le bloc
  * et ne bouge pas.
  */
+/**
+ * LA MARQUE D'ATTENTE D'UN VOLET : l'anneau seul, sans voile.
+ *
+ * Demande de l'auteur du 4 septembre 2026 : « quand je change de segment, au moment du
+ * chargement, supprimer immédiatement (de façon smooth) les références déjà affichées ;
+ * afficher un petit symbole de chargement ». Le volet de droite gardait les références
+ * du passage PRÉCÉDENT jusqu'à l'arrivée des suivantes, sous un mot « Chargement… » :
+ * on lisait donc, pendant une seconde, l'apparat d'un verset qu'on venait de quitter.
+ *
+ * ⛔ Pas de voile ici, à la différence de `MarqueAttente` : un volet de trois cents
+ * pixels assombri d'un bord à l'autre se lit comme un rideau, non comme une attente. Et
+ * l'anneau y descend d'un tiers — celui de la page fait 2,25 rem, ce qui, dans une
+ * colonne étroite, est un objet et non un signe.
+ *
+ * ⚠️ Le même délai de cent soixante millisecondes : une réponse plus prompte que lui
+ * n'allume rien, et un anneau qui s'allume et s'éteint dans le même souffle se lit comme
+ * un défaut.
+ */
+export function MarqueAttenteVolet({ enAttente }: { enAttente: boolean }) {
+  const [allume, setAllume] = useState(false)
+  useEffect(() => {
+    if (!enAttente) return
+    const minuteur = setTimeout(() => setAllume(true), 160)
+    return () => { clearTimeout(minuteur); setAllume(false) }
+  }, [enAttente])
+  if (!enAttente || !allume) return null
+  return (
+    <div aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', padding: '22px 0' }}>
+      <span
+        style={{
+          display: 'block',
+          width: '1.5rem',
+          height: '1.5rem',
+          borderRadius: '50%',
+          border: '2px solid var(--cs-bord)',
+          borderTopColor: 'var(--cs-vert)',
+          animation: 'spin 0.7s linear infinite',
+        }}
+      />
+    </div>
+  )
+}
+
 export function MarqueAttente({ enAttente }: { enAttente: boolean }) {
   const [allume, setAllume] = useState(false)
   // ⚠️ Un EFFET ici, et non le recalage pendant le rendu employé ailleurs dans le

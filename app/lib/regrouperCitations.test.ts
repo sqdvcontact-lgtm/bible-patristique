@@ -111,6 +111,30 @@ describe('texteDuGroupe', () => {
     expect(texteDuGroupe([], soi)).toBe('')
   })
 
+  it('⚠️ met la capitale après une élision qui suit une ponctuation FORTE', () => {
+    expect(texteDuGroupe([c(1, 'Il le dit ainsi.'), c(4, 'c’est la conduite d’un sage.')], soi))
+      .toBe(`Il le dit ainsi. ${MARQUE_ELISION} C’est la conduite d’un sage.`)
+    expect(texteDuGroupe([c(1, 'Il le demande ?'), c(4, 'oui, sans doute.')], soi))
+      .toBe(`Il le demande ? ${MARQUE_ELISION} Oui, sans doute.`)
+    // Un guillemet ou une parenthèse fermante ne rompt pas la ponctuation forte.
+    expect(texteDuGroupe([c(1, '« Il le dit. »'), c(4, 'ainsi parle-t-il.')], soi))
+      .toBe(`« Il le dit. » ${MARQUE_ELISION} Ainsi parle-t-il.`)
+  })
+
+  it('⛔ ne met AUCUNE capitale quand la phrase n’était pas finie', () => {
+    expect(texteDuGroupe([c(1, 'Il le dit ainsi :'), c(4, 'c’est la conduite d’un sage.')], soi))
+      .toBe(`Il le dit ainsi : ${MARQUE_ELISION} c’est la conduite d’un sage.`)
+    expect(texteDuGroupe([c(1, 'Il le dit ainsi,'), c(4, 'et le répète.')], soi))
+      .toBe(`Il le dit ainsi, ${MARQUE_ELISION} et le répète.`)
+    expect(texteDuGroupe([c(1, 'Il le dit ainsi ;'), c(4, 'puis se tait.')], soi))
+      .toBe(`Il le dit ainsi ; ${MARQUE_ELISION} puis se tait.`)
+  })
+
+  it('⛔ ne touche à rien quand les segments se SUIVENT', () => {
+    expect(texteDuGroupe([c(1, 'Il le dit ainsi.'), c(2, 'c’est la conduite d’un sage.')], soi))
+      .toBe('Il le dit ainsi. c’est la conduite d’un sage.')
+  })
+
   it('⛔ la marque n’imite pas un appel de note', () => {
     // Les appels se lisent « [[12]] » : la marque ne doit pas s'y confondre.
     expect(MARQUE_ELISION).not.toMatch(/\[\[\d+\]\]/)

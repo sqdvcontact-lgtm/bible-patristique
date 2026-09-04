@@ -6,6 +6,7 @@ import {
   lectureBilinguePossible,
   notesDuChapitreBilingue,
   rangeesNonVides,
+  referenceCanoniqueLisible,
   referenceNativeEnChiffres,
   referenceNativeLisible,
   repartirBlocsDeCorps,
@@ -144,6 +145,21 @@ describe('référence native imprimée', () => {
     // silence, on rend la référence telle quelle.
     expect(referenceNativeEnChiffres('IIII, 2')).toBe('IIII, 2')
     expect(referenceNativeEnChiffres('VV')).toBe('VV')
+  })
+})
+
+describe('référence CANONIQUE lisible — le repli de la gouttière', () => {
+  it('rend le chapitre et le verset', () => {
+    expect(referenceCanoniqueLisible('GEN.3.1')).toBe('3, 1')
+    expect(referenceCanoniqueLisible('1SA.17.45')).toBe('17, 45')
+    expect(referenceCanoniqueLisible('PSA.119.176')).toBe('119, 176')
+  })
+
+  it('⛔ ne devine rien de ce qui n’est pas un créneau', () => {
+    expect(referenceCanoniqueLisible(null)).toBeNull()
+    expect(referenceCanoniqueLisible('GEN')).toBeNull()
+    expect(referenceCanoniqueLisible('GEN.3')).toBeNull()
+    expect(referenceCanoniqueLisible('GEN.III.1')).toBeNull()
   })
 })
 

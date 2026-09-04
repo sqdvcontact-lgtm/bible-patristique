@@ -200,6 +200,26 @@ const SUITE_CHAPITRE_VERSET = /^(?:[0-9]+|[IVXLCDM]+)\s*,\s*[0-9]/
  * n'est pas un code de livre, et « II, 3 » n'en est pas un non plus — un chiffre romain
  * n'est jamais suivi d'un blanc puis d'un couple chapitre-verset.
  */
+/**
+ * La référence CANONIQUE d'un créneau, telle qu'on la lit : « GEN.3.1 » → « 3, 1 ».
+ *
+ * ⚠️ Elle sert de repli à la gouttière d'une colonne dont l'édition ne dit rien de
+ * propre. La numérotation native ne se DIT que lorsqu'elle diffère du canon (voir
+ * `chargerVersetsCanoniquesV2`) : sur une traduction alignée sur le même schéma, la
+ * colonne restait donc muette, et la référence ne paraissait que d'un côté.
+ * ⛔ Demande de l'auteur, 2026-09-04 : « la référence biblique doit apparaître des deux
+ * côtés ». Un lecteur qui compare deux colonnes lit deux textes, non un texte et son
+ * ombre : chacune porte son numéro.
+ */
+export function referenceCanoniqueLisible(canonId: string | null): string | null {
+  if (!canonId) return null
+  const parts = canonId.split('.')
+  if (parts.length < 3) return null
+  const chapitre = parts[parts.length - 2]
+  const verset = parts[parts.length - 1]
+  return /^[0-9]+$/.test(chapitre) && /^[0-9]+[a-z]?$/.test(verset) ? `${chapitre}, ${verset}` : null
+}
+
 export function referenceNativeLisible(reference: string | null): string | null {
   if (reference === null) return null
   const tete = reference.match(TETE_CODE_LIVRE)

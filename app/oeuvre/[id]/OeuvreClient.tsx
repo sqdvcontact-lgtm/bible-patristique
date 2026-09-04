@@ -3135,7 +3135,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   )}
                 </div>
 
-                {/* Références du segment actif */}
+                {/* Références du segment actif.
+                    ⚠️ Le bloc se REMONTE à chaque segment (`key`) et paraît en fondu : ce
+                    qu'on quitte s'en va d'un coup, ce qui arrive se pose doucement.
+                    ⛔ Aucune marque d'attente ici, et il n'en faut pas : les liens bibliques
+                    d'un segment sont chargés avec sa tranche de texte, donc déjà en mémoire
+                    quand on clique. Le volet de la page Bible, lui, va les chercher. */}
+                <div key={segActif ?? 'aucun'} className="cs-volet-echange">
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
@@ -3268,6 +3274,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '10px 0 0' }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
+                </div>
               </>
             ) : (
               <div style={{ flex: 1, minHeight: 0, paddingTop: '14px', display: 'flex', flexDirection: 'column' }}>

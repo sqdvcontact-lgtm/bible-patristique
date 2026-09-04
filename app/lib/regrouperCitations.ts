@@ -30,6 +30,8 @@
  * Module pur : aucune requête, aucun rendu.
  */
 
+import { capitaliserInitiale } from './citation'
+
 /**
  * Le plafond d'ÉLISION, en signes. Au delà, deux citations restent deux
  * citations : le lecteur doit voir qu'il manque quelque chose de conséquent, et
@@ -125,16 +127,32 @@ export function regrouperCitations<T>(
   return groupes
 }
 
+/** La ponctuation qui FERME une phrase, guillemets et parenthèses fermantes compris.
+ *  ⚠️ Le BLANC y est admis : en français, le guillemet fermant est précédé d'une espace,
+ *  et « Il le dit. » finit bien une phrase. Le deux-points et le point-virgule n'y sont
+ *  pas : ils ouvrent une suite, et ce qui vient après ne prend pas la capitale. */
+const PONCTUATION_FORTE = /[.!?…][\s»"'’)\]]*$/u
+
 /**
  * Le texte d'un groupe : les citations à la suite, l'élision marquée d'un
  * « […] ». ⚠️ La marque n'apparaît qu'aux jonctions qui en ont une : deux
  * segments qui se suivent se joignent d'une simple espace, comme avant.
+ *
+ * ⚠️ UNE ÉLISION QUI SUIT UNE PONCTUATION FORTE OUVRE UNE PHRASE, et ce qui vient
+ * après prend donc la capitale (demande de l'auteur, 2026-09-04, devant « […] c'est
+ * la conduite d'un » : « à l'affichage, afficher une majuscule après une élision
+ * précédée par une ponctuation forte »). Ce qu'on élide entre deux phrases, ce sont
+ * des phrases entières ; la suivante commence donc comme une phrase. ⛔ Après un
+ * deux-points ou une virgule, rien ne change : la phrase n'était pas finie.
+ * ⚠️ C'est la même règle que l'initiale d'un extrait, et la même fonction — elle ne
+ * change jamais la longueur du texte, les appels de note s'y posant par offset.
  */
 export function texteDuGroupe<T>(groupe: readonly T[], cle: (item: T) => CitationRegroupable): string {
   return groupe.reduce((acc, item, i) => {
     const cet = cle(item)
     if (i === 0) return cet.texte
-    const joint = cet.numero === cle(groupe[i - 1]).numero + 1 ? ' ' : ` ${MARQUE_ELISION} `
-    return acc + joint + cet.texte
+    if (cet.numero === cle(groupe[i - 1]).numero + 1) return acc + ' ' + cet.texte
+    const suite = PONCTUATION_FORTE.test(acc) ? capitaliserInitiale(cet.texte) : cet.texte
+    return `${acc} ${MARQUE_ELISION} ${suite}`
   }, '')
 }

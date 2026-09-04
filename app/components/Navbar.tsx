@@ -8,6 +8,7 @@ import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { useCompte } from "@/app/lib/contexteCompte";
 import { LIVRES } from "@/app/lib/bible";
+import { lirePositionBible } from "@/app/lib/repriseLecture";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import EmblemeNavigation from "@/app/components/EmblemesNavigation";
@@ -42,7 +43,33 @@ function planifierTacheSecondaire(tache: () => void, delai: number) {
 // lien discret, puisqu'elle pèse autant que la lecture suivie.
 // La lecture suivie s'ouvre sur Genèse 1 : un chapitre, non une page vide. Une seule
 // écriture de cette adresse, reprise par l'onglet des bibles comme par le panneau mobile.
+/** Là où « Bible classique » mène quand on n'a encore rien lu : au commencement. */
 const HREF_BIBLE_CLASSIQUE = "/?livre=GEN&chapitre=1";
+
+/**
+ * ⚠️ « BIBLE CLASSIQUE » ROUVRE OÙ L'ON EN ÉTAIT (demande de l'auteur, 2026-09-04 :
+ * « ouvrir Bible classique soit sur la Genèse soit sur le dernier livre ouvert par
+ * l'utilisateur »). C'est la règle que la Polyglotte suit depuis le matin même, et la
+ * place est celle que `BibleLayout` retient à chaque chapitre lu.
+ *
+ * ⛔ Elle se lit dans un EFFET, jamais au rendu : `localStorage` n'existe pas au rendu
+ * serveur, et une adresse qui différerait entre les deux ferait diverger l'hydratation.
+ * Le lien part donc de la Genèse et se rectifie au montage, ce qui ne se voit pas — on
+ * ne clique pas dans les vingt millisecondes qui suivent la peinture.
+ *
+ * ⛔ L'adresse ne porte PAS la bible : elle se décide sur le SERVEUR, par le cookie puis
+ * le profil (voir `preferenceBible`). Un `?trad=` ici la figerait dans le lien.
+ */
+function useHrefBibleClassique(): string {
+  const [href, setHref] = useState(HREF_BIBLE_CLASSIQUE);
+  useEffect(() => {
+    const place = lirePositionBible();
+    if (!place) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHref(`/?livre=${encodeURIComponent(place.livre)}&chapitre=${place.chapitre}`);
+  }, []);
+  return href;
+}
 const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
   { href: HREF_BIBLE_CLASSIQUE, label: "Bible", exact: true },
   { href: "/polyglotte", label: "Polyglotte" },
@@ -418,13 +445,14 @@ function OngletBibles({ etat, pathname, styleLien }: {
 }) {
   const surClassique = pathname === "/";
   const surPolyglotte = pathname.startsWith("/polyglotte");
+  const hrefBible = useHrefBibleClassique();
 
   // Très large : les deux bibles s'annoncent chacune par son nom entier. C'est l'état le
   // plus clair du site — on lit ce qu'il offre sans avoir à survoler quoi que ce soit.
   if (etat === 'deux') {
     return (
       <>
-        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-nav-onglet" aria-current={surClassique ? "page" : undefined}
+        <Link href={hrefBible} className="cs-nav-onglet" aria-current={surClassique ? "page" : undefined}
           style={styleLien("/", true, true)}>Bible classique</Link>
         <Link href="/polyglotte" className="cs-nav-onglet" aria-current={surPolyglotte ? "page" : undefined}
           style={styleLien("/polyglotte", undefined, true)}>Bible polyglotte</Link>
@@ -436,9 +464,9 @@ function OngletBibles({ etat, pathname, styleLien }: {
   if (etat === 'fendu') {
     return (
       <div className="cs-bible">
-        <Link href={HREF_BIBLE_CLASSIQUE} className="cs-bible-face">Les Saintes Écritures</Link>
+        <Link href={hrefBible} className="cs-bible-face">Les Saintes Écritures</Link>
         <div className="cs-bible-split">
-          <Link href={HREF_BIBLE_CLASSIQUE} aria-current={surClassique ? "page" : undefined} className={`cs-bible-seg${surClassique ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
+          <Link href={hrefBible} aria-current={surClassique ? "page" : undefined} className={`cs-bible-seg${surClassique ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
           <Link href="/polyglotte" aria-current={surPolyglotte ? "page" : undefined} className={`cs-bible-seg${surPolyglotte ? " cs-bible-seg--actif" : ""}`}>Polyglotte</Link>
         </div>
       </div>
@@ -453,9 +481,9 @@ function OngletBibles({ etat, pathname, styleLien }: {
   return (
     // Deux entrées seulement : le menu se borne à sa mesure, au lieu des 13rem
     // qu'appellent « Aller plus loin » et « Administration ».
-    <OngletMenu href={HREF_BIBLE_CLASSIQUE} label={etat === 'long' ? "La Bible" : "Bible"}
+    <OngletMenu href={hrefBible} label={etat === 'long' ? "La Bible" : "Bible"}
       style={styleFace} actif={surClassique} classeMenu="cs-plus-menu--bibles">
-      <Link href={HREF_BIBLE_CLASSIQUE} className="cs-plus-lien" aria-current={surClassique ? "page" : undefined}>Bible classique</Link>
+      <Link href={hrefBible} className="cs-plus-lien" aria-current={surClassique ? "page" : undefined}>Bible classique</Link>
       <Link href="/polyglotte" className="cs-plus-lien" aria-current={surPolyglotte ? "page" : undefined}>Bible polyglotte</Link>
     </OngletMenu>
   );
@@ -611,6 +639,7 @@ const CRAN_MAX = 4;
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const hrefBibleMobile = useHrefBibleClassique();
   // Session et profil viennent du contexte partagé, jamais d'une requête à soi : la
   // barre tenait son propre abonnement et sa propre lecture de `profils`, qui partait
   // en double (`getSession` puis l'événement de session initiale). Voir contexteCompte.
@@ -1869,7 +1898,8 @@ export default function Navbar() {
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
-              {[...LIENS_LECTURE, ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(({ href, label }) => lienMobile(href, label))}
+              {/* ⚠️ Le premier lien est celui des bibles : il rouvre où l'on en était. */}
+              {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(({ href, label }) => lienMobile(href, label))}
 
               <p style={styleSectionMobile}>Aller plus loin</p>
               {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label, true))}

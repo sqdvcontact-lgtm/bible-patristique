@@ -45,6 +45,7 @@ import {
   apparierRangees,
   colonnesBilingues,
   rangeesNonVides,
+  referenceCanoniqueLisible,
   referenceNativeLisible,
   repartirBlocsDeCorps,
   repartirIllustrations,
@@ -132,6 +133,11 @@ export type LectureBilingueProps = {
   blocs?: readonly BlocBilingue[]
   notes?: readonly NoteBilingue[]
   illustrations?: readonly IllustrationBilingue[]
+  /** Le créneau canonique retenu, s'il en est un. Voir `onSelectionnerVerset`. */
+  canonSelectionne?: string | null
+  /** Cliquer une rangée ouvre l'apparat patristique de son créneau canonique.
+   *  Absent, la lecture n'est pas cliquable et ne porte aucune marque de survol. */
+  onSelectionnerVerset?: (canonId: string) => void
   mobile?: boolean
 }
 
@@ -148,6 +154,8 @@ export default function BibleBilingue({
   blocs = [],
   notes = [],
   illustrations = [],
+  canonSelectionne = null,
+  onSelectionnerVerset,
   mobile = false,
 }: LectureBilingueProps): ReactNode {
   const ordre = colonnesBilingues(membres, mobile ? 'mobile' : 'desktop')
@@ -231,6 +239,30 @@ export default function BibleBilingue({
     illustration.id,
   ))
 
+  // ── CLIQUER UN VERSET OUVRE SON APPARAT, DES DEUX CÔTÉS ─────────────────────
+  // Demande de l'auteur (2026-09-04) : « permettre de cliquer sur un verset pour
+  // afficher les liens patristiques (sur l'AF et le Français) ».
+  // ⛔ LA CIBLE EST LA RANGÉE, jamais la cellule : les deux colonnes d'une rangée
+  // sont le MÊME verset canonique, et le volet de droite se charge sur `canon_id`
+  // (`segmentsLiesAuVerset`). Cliquer l'ancien français ou le français ouvre donc
+  // le même apparat, et il n'y a rien à départager entre deux colonnes qui disent
+  // le même créneau. ⚠️ Une rangée dont une colonne est vide se clique aussi :
+  // l'apparat tient au créneau, non à ce que telle édition en porte.
+  // ⚠️ Les appels de note arrêtent le clic (`NoteBibliqueFenetre`) : ouvrir une
+  // note ne sélectionne pas le verset qui la porte.
+  // ⚠️ Le survol et la marque du verset retenu vivent dans `globals.css`
+  // (`.cs-regard-rangee`) : posés en style en ligne, ils battraient toute règle de
+  // feuille, et le survol serait mort sans que rien ne le dise.
+  const choisir = onSelectionnerVerset
+  const marquesDeRangee = (canonId: string) => {
+    if (!choisir) return {}
+    const retenue = canonId === canonSelectionne
+    return {
+      className: `cs-regard-rangee${retenue ? ' cs-regard-rangee--retenue' : ''}`,
+      onClick: () => choisir(canonId),
+    }
+  }
+
   const styleGrille = mobile
     ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', rowGap: '0.35rem' }
     : {
@@ -260,7 +292,7 @@ export default function BibleBilingue({
         <div key={rangee.canonId}>
           {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
           {rendreImages(commun.images.beforeByCanon.get(rangee.canonId) ?? [])}
-          <div style={styleGrille} data-canon-id={rangee.canonId}>
+          <div style={styleGrille} data-canon-id={rangee.canonId} {...marquesDeRangee(rangee.canonId)}>
             {rangee.cellules.map((cellule, index) => {
               const membre = colonnesOrdonnees[index].membre
               return (
@@ -278,8 +310,12 @@ export default function BibleBilingue({
                     </p>
                   ) : (
                     <div style={STYLE_LIGNE_VERSET}>
+                      {/* ⚠️ LA RÉFÉRENCE PARAÎT DES DEUX CÔTÉS (demande de l'auteur,
+                          2026-09-04). Une édition ne dit sa numérotation propre que
+                          lorsqu'elle DIFFÈRE du canon ; à défaut la colonne portait une
+                          gouttière vide, et le lecteur n'avait de numéro que d'un bord. */}
                       <span style={STYLE_REFERENCE}>
-                        {referenceNativeLisible(cellule.referenceNative)}
+                        {referenceNativeLisible(cellule.referenceNative) ?? referenceCanoniqueLisible(rangee.canonId)}
                       </span>
                       <p style={membre.memberRole === 'source_text' ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
                         {cellule.texte}
