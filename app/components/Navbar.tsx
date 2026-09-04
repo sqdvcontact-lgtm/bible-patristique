@@ -890,7 +890,9 @@ export default function Navbar() {
           const n = nouvelles[0]
           // La fermeture est confiée à un effet dédié (voir ci-dessous) : un compte à
           // rebours posé ici survivait à la vignette et fermait la suivante trop tôt.
-          setToastNotification({ id: Date.now(), titre: n.titre, message: String(n.message || n.objet).slice(0, 120) })
+          // ⚠️ Le modèle n’a plus de `titre` : l’OBJET tient ce rôle, et le corps
+          // peut être vide quand l’objet dit déjà tout (voir notificationsClient).
+          setToastNotification({ id: Date.now(), titre: n.objet, message: String(n.message || '').slice(0, 120) })
         }
         localStorage.setItem(cleConnues, JSON.stringify(toutes.map(n => n.key)))
       } catch {

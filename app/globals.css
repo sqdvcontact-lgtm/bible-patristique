@@ -2302,6 +2302,38 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 .cs-option-volet[aria-pressed='true']:hover,
 .cs-option-volet[aria-pressed='true']:focus-visible { background: rgba(var(--cs-vert-rgb), 0.10); color: var(--cs-encre); }
 
+/* ── UNE NOTIFICATION EST UNE RANGÉE, non une carte ───────────────────────────
+   ⛔ Elle était une CARTE — fond propre, filet, coins arrondis, rembourrage — posée
+   dans un volet qui a déjà tout cela, avec un bandeau vert au flanc gauche : deux
+   cadres emboîtés, et une gouttière perdue de chaque côté pour un volet de 26 rem
+   (demande de l'auteur, 2026-09-04 : « ne pas faire un bloc dans un bloc ; utiliser
+   tout l'espace disponible ; se passer du bandeau vert »). Elle prend maintenant toute
+   la largeur, et c'est un filet qui la sépare de sa voisine.
+   ⚠️ Le rembourrage est celui de l'en-tête du volet : les trois fers tombent au même
+   endroit, ce qu'une carte rentrée de neuf pixels interdisait. */
+.cs-notif { padding: 10px 14px 11px; }
+.cs-notif + .cs-notif { border-top: 1px solid var(--cs-fond-doux); }
+.cs-notif:hover,
+.cs-notif:focus-within { background: var(--cs-fond); }
+
+/* ⛔ « ARCHIVER » NE PARAÎT QU'AU SURVOL (même demande) : c'est le geste le plus rare
+   du volet, et il occupait une ligne à lui sous chaque notification.
+   ⚠️ MAIS IL PARAÎT AUSSI AU FOYER ET AU DOIGT. Une action qui ne vient qu'au survol
+   est hors d'atteinte sur un écran tactile et invisible au clavier — c'est la règle
+   déjà payée sur la gouttière d'actions des prélèvements. ⛔ Il garde sa PLACE quand il
+   ne se voit pas (opacité, non « display ») : sans quoi l'en-tête de la rangée se
+   recomposerait sous le curseur au moment où on le vise. */
+.cs-notif-archiver { opacity: 0; transition: opacity 0.12s; }
+.cs-notif:hover .cs-notif-archiver,
+.cs-notif:focus-within .cs-notif-archiver,
+.cs-notif-archiver:focus-visible { opacity: 1; }
+@media (hover: none) {
+  .cs-notif-archiver { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-notif-archiver { transition: none; }
+}
+
 /* ── Le VOLET DE LECTURE s'adapte à SA largeur ────────────────────────────────
    Le volet se traîne de 120 à 400 px à la main, et sa largeur au repos suit
    l'écran — clamp(200px, 14vw, 320px), soit 200 px sur un portable de 1280 et
