@@ -209,6 +209,18 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   const intitule = intituleTraduction(i)
   const verif = i.integrite_verifiee == null ? null : (i.integrite_verifiee ? 'Texte vérifié' : 'Contrôle en cours')
   const licenceDP = (i.licence_traduction ?? '').toLowerCase().includes('domaine public')
+  // ⛔ Une licence RÉDIGÉE se rend telle quelle, jamais rabattue sur la formule du
+  // domaine public : celle de la Bible 899 dit « Texte médiéval dans le domaine
+  // public. La réutilisation du fac-similé numérique de Gallica demeure soumise aux
+  // conditions de la Bibliothèque nationale de France. » — la réserve tomberait, et
+  // c'est précisément ce qu'une rubrique de licence doit dire. On ne compose la
+  // phrase du site que sur la mention COURTE, celle qui ne dit rien de plus.
+  const licenceTexte = (i.licence_traduction ?? '').trim()
+  const licenceDetaillee = licenceTexte.toLowerCase() === 'domaine public'
+    ? 'Le texte de cette édition relève du domaine public : il se lit, se cite et se reproduit librement.'
+    : licenceTexte
+      ? (licenceDP ? licenceTexte : `Le texte de cette édition est diffusé sous la mention « ${licenceTexte} ».`)
+      : 'Les droits sur le texte de cette édition ne sont pas précisés.'
   const portrait = portraitTraduction(i)
 
   // La RÉFÉRENCE des volumes servis, composée champ par champ (module pur,
@@ -366,9 +378,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
           <section style={{ borderTop: '1px solid var(--cs-fond-doux)', marginTop: '20px', paddingTop: '13px' }}>
             <TitreSection>Conditions d’usage</TitreSection>
             <p style={{ fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: 0, textAlign: 'justify', hyphens: 'auto' }}>
-              {licenceDP
-                ? 'Le texte de cette édition relève du domaine public : il se lit, se cite et se reproduit librement.'
-                : `Le texte de cette édition est diffusé sous la mention « ${i.licence_traduction ?? 'droits non précisés'} ».`}
+              {licenceDetaillee}
               {i.mention_obligatoire ? ` ${i.mention_obligatoire}` : ''}
             </p>
             <p style={{ fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: '7px 0 0', textAlign: 'justify', hyphens: 'auto' }}>
