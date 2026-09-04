@@ -4458,3 +4458,49 @@ Sept demandes de l'auteur sur la page « Bible classique ». Doctrine : charte
   ni filet, ni fond, ni rayon, le rembourrage du bloc passé DANS le champ, un fond
   léger au seul foyer. Un `::placeholder` ne s'écrit pas en style en ligne, d'où la
   classe.
+
+# La Bible polyglotte — réglages, menu des colonnes, en-têtes (2026-09-04)
+
+Doctrine : charte `parametres.charte_ia`, § 38.3. Règles de code, toutes dans
+`app/polyglotte/page.tsx` sauf mention contraire :
+
+- ⛔ **AUCUN `background` EN LIGNE sur un élément dont la feuille gouverne le survol.**
+  Le titre de colonne (`.poly-trad-pick`) portait `background: "none"` dans son style en
+  ligne : une déclaration en ligne bat toujours une règle de feuille sans `!important`,
+  si bien que `.poly-trad-pick:hover` était MORTE depuis qu'elle avait été écrite. Rien
+  ne le signalait — l'anneau de `:focus-within` restait le seul état visible de la
+  colonne, et c'est lui que l'auteur a fini par relever comme malvenu. ⚠️ **Le piège du
+  style en ligne ne borne pas les seules média-queries** (consigné plus haut pour les
+  volets) : il bloque TOUTE règle de feuille sur la même propriété. Avant de retirer un
+  état visible, MESURER celui qui est censé le remplacer.
+- ⛔ **`:focus-within` sur un bouton sans enfant focalisable n'est que `:focus`**, donc il
+  paraît au clic de SOURIS. Pour marquer un menu ouvert, viser
+  `[aria-expanded="true"]` ; le clavier garde l'anneau `:focus-visible` global du site.
+- **Le millésime et l'ordre du menu vivent dans `app/lib/millesimeEdition.ts`** (module
+  pur, 13 tests sur les dix notices RÉELLES de `traductions.source_edition`) :
+  `millesimeEdition`, `anneeDuMillesime`, `comparerParMillesime`. ⛔ Ne pas recomposer une
+  dérivation de date ailleurs : lire une année dans de la prose est la partie fragile du
+  dispositif, et elle ne s'éprouve pas depuis une page.
+  - ⚠️ On prend le **DERNIER** millésime de la notice (l'adresse ferme la référence) et
+    l'on emporte le **« vers »** qui le précède : la cote « Regius 7268.2.2 » n'est jamais
+    en queue, et « (vers 1260) » ne se rend pas « 1260 ».
+  - ⛔ Le menu se range sur la date **qu'on montre**, jamais sur `publication_debut_annee` :
+    les deux ne coïncident presque jamais, et un menu rangé sur l'une en affichant l'autre
+    passe pour cassé.
+- ⛔ **Un `variante` ne prend jamais la place du millésime** dans l'en-tête d'une colonne.
+  Il descend d'une ligne, en glose. La Bible du XIIIe siècle était la seule colonne du
+  tableau sans date, parce qu'elle est la seule à porter deux états de son texte.
+- **Les noms de traduction passent par `rendreEnrichi`** (`app/lib/enrichissements.tsx`),
+  dans le menu comme en tête de colonne : petites capitales et exposant des siècles,
+  italique d'un titre entre astérisques. ⚠️ Pas dans la rubrique d'un volet de famille,
+  composée en capitales espacées, où des petites capitales seraient plus petites que ce
+  qui les entoure.
+- **Une traduction déjà affichée ailleurs se GRISE** : fond `--cs-fond-doux`, nom en
+  `--cs-texte-gris`, mention d'échange en `--cs-texte-faible`. ⛔ Jamais `--cs-attente`,
+  qui est l'ocre d'un travail en cours. ⚠️ Le fond de repos se calcule en UN point
+  (`fondRepos`) : les gestionnaires de survol le REPOSENT au départ du curseur, et poser
+  `transparent` effaçait le gris. ⛔ Une FAMILLE ne se grise pas : ses autres textes
+  restent libres.
+- **Un réglage de volet se compose en clair** (`CHOIX_DISCRET`, `POINT_DISCRET`) : ni
+  cadre, ni fond, ni rayon ; l'accent et la demi-graisse pour la valeur retenue.
+  ⚠️ Une ÉCHELLE se lit en rang, des interrupteurs INDÉPENDANTS en colonne.
