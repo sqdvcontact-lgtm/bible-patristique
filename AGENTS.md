@@ -5171,14 +5171,26 @@ Doctrine : charte `parametres.charte_ia`, § 38.13. Règles de code :
   catalogue sont tous des recueils collectifs : Actes de martyrs anciens (15 latines,
   16 grecques), Apophtegmes des Pères du désert, trois dossiers anonymes. ⚠️ Une langue
   TIERCE ne conteste rien : latin + syriaque reste latin.
-- **Quatre jetons**, `--cs-bude-latin`, `--cs-bude-latin-encre`, `--cs-bude-grec`,
-  `--cs-bude-grec-encre`, dans les deux thèmes. ⛔ Pas de réemploi de `--cs-danger-fonce`
+- ⛔ **La troisième case n'est pas un gris vide, c'est un VÉLIN**
+  (`--cs-bude-neutre` / `--cs-bude-neutre-encre`, 2026-09-04, le jour même). Le gris de
+  bordure portait l'encre la plus ténue de l'échelle : mesuré, **2,25 de contraste au
+  Clair et 4,09 en Cuir**, pour 4,5 exigés à cette taille. Défaut antérieur à la couleur
+  des séries, mais qui se voyait d'autant plus depuis qu'il voisinait deux cases lisibles.
+  7,12 et 6,70 désormais. ⚠️ Le vélin se distingue des deux séries par la CHROMA (15,3
+  contre 53,8 et 60,9), non par la teinte : une matière, non une couleur — c'est ce qui
+  l'empêche de se lire comme une troisième série alors qu'il partage l'axe du safran (84°
+  contre 81°). ⛔ **Pas de vert** : `--cs-ecriture` vaut exactement le vert du site et dit
+  déjà l'Écriture ; et un vert pâle était à ΔE 5,5 de l'ancien gris, invisible.
+- **Six jetons**, `--cs-bude-latin`, `--cs-bude-latin-encre`, `--cs-bude-grec`,
+  `--cs-bude-grec-encre`, `--cs-bude-neutre`, `--cs-bude-neutre-encre`, dans les deux
+  thèmes. ⛔ Pas de réemploi de `--cs-danger-fonce`
   ni de `--cs-or` : un jeton de RÔLE prêté à une CATÉGORIE change sous elle le jour où le
   rôle bouge. ⚠️ En Cuir ils gardent leur TEINTE (catégories encodées par la couleur,
   comme la frise de l'histoire) mais s'y relisent : L* 37,1 → 34,3 pour le rouge, 65,3 →
   57,9 pour le safran.
-- ⚠️ **Contrastes mesurés des initiales sur leur aplat** : 6,57 et 5,19 au Clair, 6,52 et
-  5,04 en Cuir. Le seuil de 4,5 s'applique — elles sont composées à 0,875 rem.
+- ⚠️ **Contrastes mesurés des initiales sur leur aplat** : 6,57 · 5,19 · 7,12 au Clair,
+  6,52 · 5,04 · 6,70 en Cuir. Le seuil de 4,5 s'applique — elles sont composées à
+  0,875 rem.
 - ⚠️ **La case porte aussi son MOT** (`title`, « Œuvres en latin » / « Œuvres en grec ») :
   une information portée par la seule couleur n'est lisible que de qui connaît le code.
   ⛔ Ce n'est pas l'infobulle en l'air du § 38.12 : celle-ci dit ce que la couleur seule ne
