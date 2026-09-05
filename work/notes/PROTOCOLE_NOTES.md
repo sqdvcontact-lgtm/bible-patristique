@@ -2,13 +2,15 @@
 
 Écrit POUR LES IA qui produisent ou corrigent l'appareil de notes, sur le modèle de
 `work/fillion/STYLES_BIBLIQUES.md`. La doctrine fait foi (charte `parametres.charte_ia`,
-§§ 3.5.1, 3.8, 7.1, 7.6, 8, 13.8 à 13.10) ; ce document dit **comment on s'y prend**, dans
+§§ 3.5.1, 3.8, 7.1, 7.6, 8, 13.8 à 13.12) ; ce document dit **comment on s'y prend**, dans
 quel ordre, et ce qu'on ne fait surtout pas.
 
-⚠️ **État : v3, 5 septembre 2026.** La v1 ouvrait sur « le site compose, la base
-conserve » : **l'auteur l'a corrigé le jour même**, et la v2 avec (voir § 0). Les cinq
-points qui commandaient le travail sont arbitrés et datés. Le protocole est applicable en
-entier.
+⚠️ **État : v4, 5 septembre 2026.** La v1 ouvrait sur « le site compose, la base
+conserve » : **l'auteur l'a corrigé le jour même**, et la v2 avec (voir § 0). La v4 reporte
+les **treize arbitrages** rendus le 5 septembre sur les douze questions de
+`work/notes/QUESTIONS_NOTES_20260905.txt` : ils vivent dans la charte, § 13.12, et ce
+document dit où chacun s'applique. ⛔ **Une seule question reste ouverte** : sur quoi fendre
+le bloc à trois têtes de Faivre (§ 6.1). Tout le reste est applicable.
 
 ---
 
@@ -72,7 +74,7 @@ vocabulaire de styles double de taille sans rien dire de plus.
 | `translation` | la traduction du passage cité | 76 |
 | `attribution` | l'attribution d'une citation | 17 |
 | **`source_locator`** *(neuve)* | la coordonnée de la note dans le livre imprimé | ~396 |
-| **`internal_cross_reference`** *(neuve)* | le renvoi à une autre note, ou ailleurs dans la même œuvre | ~116 |
+| **`internal_cross_reference`** *(neuve)* | le renvoi à une autre note, ou ailleurs dans la même œuvre | ~79 |
 
 ⛔ **La LONGUEUR n'est pas une nature.** 2 958 blocs de commentaire tiennent en
 quatre-vingts signes, 62 dépassent deux mille : c'est le même acte éditorial, et la
@@ -81,10 +83,19 @@ composition s'adapte à la mesure sans qu'on nomme deux styles.
 ⛔ **Une note DE note n'est pas une nature** — c'est une relation, et
 `texte_note_relations` existe pour cela (35 blocs concernés).
 
-### 1.2 Les types (charte § 13.8)
+⚠️ **Le ~116 annoncé jusqu'ici pour `internal_cross_reference` était le compte d'AUTRE
+CHOSE** : 116 blocs ouvrent sur « ibid. » ou « id. », ce qui relève de la passe 6. Ceux qui
+ouvrent sur « Voy. », « Voir » ou « Consulter » sont **79** — et le mot d'ouverture ne suffit
+de toute façon pas à les classer (§ 6.2).
+
+### 1.2 Les types (charte §§ 13.8 et 13.12.1)
 
 `author_note`, `translator_note`, `source_editorial_note`, `corpus_editorial_note`,
 `critical_apparatus`. ✅ Le type paraît sur **toutes** les notes, sans exception.
+
+⛔ **Les repères qui permettent de RECONNAÎTRE chacun vivent dans la charte, § 13.12.1**, à
+la demande de l'auteur : c'est là qu'on les lit avant de commencer, et il n'y en a pas
+d'autre exemplaire.
 
 ✅ **Le rendu l'annonce depuis le 5 septembre 2026** (`app/lib/typeNote.ts`) : l'en-tête de
 la fenêtre de note dit « Note du traducteur 12 », et « Note » tant qu'aucun type n'est posé.
@@ -100,7 +111,7 @@ demi fausse.
 ```
 0. RELEVÉ        — on mesure avant de toucher                      (aucune écriture)
 1. SAUVEGARDE    — l'appareil entier de l'œuvre, dans internal.
-2. PROPRETÉ      — préfixes, ponctuation, typographie, abréviations (mécanique)
+2. PROPRETÉ      — préfixes, ponctuation, typographie, italiques OCR  (mécanique)
 3. NATURES       — la fonction de chaque bloc, et les blocs à fendre (structure)
 4. TYPE          — qui parle                                        (jugement)
 5. LANGUE        — quel fragment est latin, grec                    (jugement)
@@ -152,15 +163,21 @@ On écrit dans la même campagne le retour arrière (`sql/rollback_…`), et on 
 
 ### 5.1 Le préfixe « Référence imprimée : » n'est pas du texte de note
 
-⚠️ **Le compte est à REPRENDRE au relevé.** Ce protocole annonçait 3 622 blocs ; la base en
-rend **4 883** au 5 septembre 2026, tous de nature `reference` et tous sans type. L'écart
-n'est pas expliqué, et la passe 0 impose de toute façon de remesurer avant d'écrire.
+⚠️ **Le compte a été REPRIS** : ce protocole annonçait 3 622 blocs, la base en rend
+**4 883**, dans **27 textes**, presque tous chez Jeannin et Bareille. Aucun ne devient vide
+une fois le préfixe retiré. ⚠️ La passe 0 impose de toute façon de remesurer avant d'écrire.
 
 Le lecteur voit ce préfixe. C'est une PROVENANCE, et une provenance vit dans `metadata`.
 
 - retirer `^Référence imprimée\s*:\s*` du `text` ;
 - poser `metadata.provenance_note = 'reference_imprimee'` ;
 - ⚠️ ne rien retirer d'autre : ce qui suit est la référence, telle qu'imprimée.
+
+✅ **Le renvoi passe ENSUITE par le normaliseur, comme les autres** (arbitré le 5 septembre
+2026, charte § 13.12, décision 2). ⛔ La provenance dit d'OÙ vient le renvoi, jamais qu'il
+doive garder sa graphie : sans quoi le site écrirait « Ps. 5, 8. » sur ces 4 883 blocs et
+« Ps 5, 8 » partout ailleurs, pour la même référence. La leçon imprimée se conserve en
+`metadata`, ce qui rend la provenance vérifiable au lieu d'en faire une étiquette.
 
 ### 5.2 La ponctuation finale entre dans la donnée
 
@@ -176,10 +193,44 @@ On applique `normaliserTypographieLecture` (espaces § 3.2, ponctuation des cita
 § 3.8) et, sur les blocs `reference`, `normaliserReferencesDansTexte` (abréviation
 normative espacée, chapitre en chiffres arabes, virgule avant le verset).
 
-⚠️ **La leçon imprimée se conserve avant d'écrire** : `metadata.forme_imprimee` reçoit le
-`text` d'origine dès qu'il change.
+⚠️ **La leçon imprimée se conserve avant d'écrire, mais PAS sur tout changement** (arbitré
+le 5 septembre 2026, charte § 13.12, décision 3) : `metadata.forme_imprimee` reçoit le
+`text` d'origine dès que le changement DÉPASSE la typographie — ponctuation finale ajoutée,
+abréviation développée, référence recomposée. ⛔ Jamais pour une espace fine :
+`normaliserTypographieLecture` ne change pas la longueur d'un texte, et conserver une leçon
+pour cela ferait de `metadata` un double du champ `text` sur des milliers de blocs, sans
+qu'aucune preuve y gagne.
 
 ⛔ **Les quatre exceptions du § 0 ne passent par aucune de ces trois étapes.**
+
+### 5.4 Les italiques de l'OCR deviennent des MARQUEURS
+
+✅ **Arbitré le 5 septembre 2026** (charte § 13.12, décision 1). **420 blocs** de cinq textes
+portent dans `metadata.enrichments` les italiques, petites capitales et exposants relevés
+sur la page imprimée — **3 569 empans ancrés par offset** — et **aucune ligne du site ne les
+lit**. Ils se convertissent en `*italique*`, `++petites capitales++` et `^^exposant^^`,
+écrits dans le `text`, que `rendreTexteEnrichi` compose déjà.
+
+| Texte | Blocs | Empans |
+|---|---:|---:|
+| `A0044O0003TFR-V11` (Cyrille, Faivre) | 370 | 3 092 |
+| Faivre, Catéchèses mystagogiques | 29 | 307 |
+| Faivre, Homélie sur le paralytique | 10 | 105 |
+| `A0044O0004TFR01` | 9 | 46 |
+| Faivre, Homélie de la Présentation | 2 | 19 |
+
+- **406 blocs sur 420 (96,7 %)** se convertissent sans réserve, et aucun de ces textes ne
+  porte déjà `*`, `+`, `^` ni `<i>` ;
+- **14 blocs** ont des empans qui se CHEVAUCHENT : on les relit un par un ;
+- ⚠️ **on rejoint d'abord les empans que l'OCR a coupés en fin de LIGNE IMPRIMÉE** — deux
+  empans séparés d'au plus un signe n'en font qu'un. Sans ce recollement, un enrichissement
+  qui court sur deux lignes se marque deux fois, au milieu d'un mot ;
+- ⛔ **on convertit AVANT toute écriture qui pourrait RACCOURCIR le texte.** Mesuré : la
+  passe 2 telle qu'elle est écrite ne déplacerait aucun de ces 3 569 empans (0 déplacé,
+  écart de longueur maximal 0 signe) — mais c'est une chance, non une garantie :
+  `normaliserTypographieLecture` préserve la longueur par construction, et ces blocs ne
+  portent aucune référence que le normaliseur sache réécrire. Une passe future qui
+  raccourcirait l'un de ces textes les invaliderait EN SILENCE.
 
 ---
 
@@ -198,16 +249,44 @@ blocs.
  source_locator                     lemma                                  commentary
 ```
 
-Trois natures, trois blocs, trois `rank`. ⚠️ On ne devine pas la frontière : la
-coordonnée se termine au tiret cadratin, le lemme à la première ponctuation forte qui
-suit — **et si l'un des deux repères manque, on ne fend pas**, on signale.
+Trois natures, trois blocs, trois `rank`. La coordonnée se termine au tiret cadratin ;
+⛔ **ce qui borne le LEMME n'est pas tranché**, et l'auteur en a demandé une séance à part
+(charte § 13.12.3). Rien ne se fend tant qu'elle n'a pas eu lieu.
+
+⛔ **La règle de PONCTUATION écrite ici fabrique de FAUX LEMMES**, et la donnée offre mieux.
+Mesuré le 5 septembre 2026 sur les 396 blocs :
+
+- une italique de l'OCR **ouvre juste après le tiret** dans **378 blocs (95,5 %)** ;
+- **16** n'en portent aucune : ils ouvrent directement sur le commentaire, et la règle de
+  ponctuation y couperait au hasard (« (G) pag. 140. — Tout ce paragraphe a été cité par
+  Théodoret… ») ;
+- **2** n'ont pas de tiret cadratin ;
+- une fois rejoints les empans que l'OCR coupe en fin de LIGNE IMPRIMÉE (24 blocs),
+  **345 sur 378 (91,3 %) se ferment sur une ponctuation forte**, celle-ci comprise DANS
+  l'italique, comme l'imprimeur l'a composée ;
+- des 33 restants, la plupart se ferment sur des points de suspension ou une virgule que
+  l'édition compose ainsi ; **trois seulement sont de vraies bavures**, où l'OCR a italisé un
+  mot du commentaire en plus du lemme.
+
+⚠️ **Cette passe DÉPEND de la 5.4** : les italiques converties en marqueurs, le fendage se
+lit dans le texte lui-même et non dans des offsets.
 
 ### 6.2 Les renvois internes
 
-**~116 blocs** ouvrent sur « Voy. », « Voir », « Consulter », ou nomment une autre note
-(« Voyez la note I, p. 150 »). Ils prennent `internal_cross_reference` : ils ne pointent
-hors de rien, et `reference` les composerait comme un renvoi bibliographique, avec un
-auteur et un titre qu'ils n'ont pas.
+**79 blocs** ouvrent sur « Voy. », « Voir » ou « Consulter » — dont 41 rangés aujourd'hui en
+`reference` et 38 en `commentary`. Ils prennent `internal_cross_reference` **quand ils
+désignent un autre endroit de la MÊME œuvre** : ils ne pointent alors hors de rien, et
+`reference` les composerait comme un renvoi bibliographique, avec un auteur et un titre
+qu'ils n'ont pas.
+
+⛔ **LE MOT D'OUVERTURE NE DÉCIDE DE RIEN** (arbitré le 5 septembre 2026, charte § 13.12,
+décision 4). Sur ces 79 blocs, les uns renvoient à Paul Monceaux et à la *Revue d'histoire
+ecclésiastique*, donc hors de l'œuvre ; les autres à « la note L, tome I, p. 131 » ou à
+« Cat. XIV, note N ». **Sept seulement nomment explicitement une note.** On les lit un par
+un : « il faut systématiquement faire un contrôle logique ; il faut que l'IA regarde de près
+ce qui est écrit et réfléchisse ; on ne peut pas automatiser » (l'auteur). ⚠️ La règle écrite
+se tirera de cette lecture — est interne le renvoi qui nomme une note, un tome ou un chapitre
+de l'œuvre, et rien d'autre — mais elle vient APRÈS, non avant.
 
 ### 6.3 ✅ L'ACCUEIL EST POSÉ — on peut semer
 
@@ -260,6 +339,22 @@ sans quoi le lecteur la lira deux fois.
 ⛔ **Un type faux est pire qu'un type absent** : il attribue à un Père une remarque de son
 traducteur du XIXe siècle. Le doute laisse la note sans type et se signale.
 
+**La méthode, arbitrée le 5 septembre 2026 : EN LOT PAR TEXTE, SAUF EXCEPTIONS NOMMÉES.**
+Une édition a un responsable, et ses notes sont de lui. Mesuré en cherchant les notes qui
+trahissent une seconde voix (« nous avons traduit », « le traducteur », « nous croyons ») :
+
+- **34 textes, 10 348 blocs** n'en portent AUCUNE : ils se traitent d'un coup, soit 61 % du
+  manque ;
+- **10 textes, 6 525 blocs** en portent au moins une : ils demandent la lecture.
+
+Les plus lourds : Cité de Dieu latine 3 758 blocs (0 voix tierce), Cyrille de Jérusalem
+1 834 (148), Chrysostome sur les Psaumes 1 828 (1), Cité de Dieu française 1 806 (3), Manuel
+pour mon fils 1 536 (0), Chrysostome sur la Genèse 1 318 (0).
+
+⛔ **Sortent du lot pour être jugés à part** : les blocs qui disent « nous », ceux qui
+nomment le traducteur, ceux qui portent déjà leur type en clair. Un sondage de contrôle ferme
+chaque texte.
+
 ---
 
 ## 8. Passe 5 — la LANGUE
@@ -274,7 +369,15 @@ Deux cas :
   et l'italique y déforme la lettre. ⛔ L'apparat critique ne suit pas non plus : latin de
   bout en bout, l'italiser ne distinguerait rien.
 - **le latin ENCHÂSSÉ dans une note française** — le plus fréquent et le plus coûteux.
-  Aucune donnée ne dit où il commence : c'est une écriture, par marqueur d'italique.
+  ✅ **Arbitré le 5 septembre 2026** : « il faut simplement le mettre en italique » (charte
+  § 13.12.2). Aucune donnée ne dit où il commence : c'est une écriture, par marqueur
+  d'italique, et une LECTURE — jamais un dictionnaire de mots courts, qui italiserait du
+  français à chaque page. ⚠️ Une abréviation de renvoi (« ibid. », « id. », « op. cit. »,
+  « cf. », « passim ») n'est pas du latin CITÉ : c'est une convention bibliographique, et
+  elle ne s'italise pas. ⛔ Ne pas cumuler avec l'italique du bloc entier : un bloc
+  `language = 'la'` est italisé au RENDU et son texte ne porte aucun marqueur. ⚠️ Sur les
+  cinq textes de la passe 5.4, l'imprimeur a déjà fait le travail — 2 341 empans dans le seul
+  `A0044O0003TFR-V11`, dont une part est du latin.
 
 ⛔ **On n'italise pas une citation FRANÇAISE** : l'italique dit ici la langue, les
 guillemets disent la citation (§ 3.8).
@@ -300,6 +403,25 @@ chapitre par chapitre. C'est précisément pourquoi ces renvois doivent être r�
 **Exemple mesuré.** « Voir, Lettre 92, 6 ; CXLVII, 36. » ne dit ni l'auteur, ni l'édition,
 ni même que les deux numéros relèvent de la même correspondance. Le travail est
 documentaire, non typographique, et se fait **avec le fac-similé sous les yeux**.
+
+✅ **Ce qu'on fait des ORPHELINS, arbitré le 5 septembre 2026** (charte § 13.12, décisions 8
+et 9). Mesuré sur les 116 blocs qui ouvrent sur « ibid. » ou « id. » : la note qui précède
+immédiatement nomme une œuvre dans **43 cas (37 %)** ; il faut remonter de deux à douze notes
+dans **60** ; et **13 ne se résolvent par aucun moyen mécanique**. La marche pour ces treize,
+dans cet ordre :
+
+1. **on les dépublie** ;
+2. **on cherche au cas par cas**, au besoin dans le fac-similé ;
+3. **on corrige** si la réponse est trouvée ; **on reconstitue avec une note éditoriale** si
+   on le peut ; **on supprime** si on ne le peut pas.
+
+⚠️ **« Dépublier » n'existe pas encore pour une note** : `texte_note_blocs` porte
+`needs_review`, qui ne masque rien par lui-même, et aucune colonne ni métadonnée lue par le
+site ne retire un bloc de la lecture. Le mécanisme se pose AVANT la passe, non pendant, et il
+vaudra pour tout bloc qu'on voudra retenir — non pour les seuls treize orphelins.
+
+✅ **Un « ibid. » résolu se compose ENTIER** : le lecteur lira « Augustin, *La Cité de Dieu*,
+XI, 25 » et ne lira plus « Ibid., 25 ». La forme imprimée se conserve en `metadata`.
 
 ---
 
@@ -384,14 +506,62 @@ rester invisible en ligne pendant que ses neuf tests passaient.
 
 ---
 
-## 13. Ce que le protocole NE couvre pas encore
+## 13. Passes À PART (hors de la marche œuvre par œuvre)
+
+Quatre décisions du 5 septembre 2026 ne se jouent pas œuvre par œuvre : elles portent sur le
+corpus entier, ou sur le code.
+
+### 13.1 Le motif du normaliseur accepte le chapitre romain en MINUSCULES
+
+✅ **Arbitré** (charte § 13.12, décision 11). ⚠️ **Le chiffre de 1 716 annoncé jusqu'ici était
+FAUX** : mesuré en passant chaque cas par la vraie fonction, il y a **355 occurrences** de la
+forme « <mot>. <romain minuscule>, <nombre> », dans 355 blocs et 14 textes, dont **223
+seulement seraient réécrites**.
+
+⛔ Le risque est borné par le motif lui-même : il n'agit que si le mot qui précède résout vers
+un livre du référentiel. « Cor. » (58 occurrences), « Ibid. » (26), « Thess. » et « Eccl. »
+en sont volontairement absents comme équivoques et restent intacts — vérifié sur la vraie
+fonction : « Cor. XV, 22 » et « Ibid. V, 12 » ne bougent pas. Un caractère à changer dans
+`RE_RENVOI` (`app/lib/referenceNote.ts`), plus des tests de non-régression sur les cas
+laissés intacts. ⚠️ Chaque bloc touché se signale, pour un contrôle par sondage.
+
+### 13.2 Le référentiel accueille les variantes NON ÉQUIVOQUES
+
+✅ **Arbitré** (décision 12), une à une, chacune vérifiée sur ses occurrences réelles :
+« Ephés. » (3), « Ephes. » (1), « Math. » (2), « Galat. » (1), « Apocal. » (1), « Nomb. » (2),
+« Sag. » (2). ⛔ Restent dehors, équivoques : « Cor. » (58), « Thess. » (6), « Eccl. » (4),
+« Tim. » (2), « Par. » (1).
+
+### 13.3 Les métadonnées se réunissent sous UN nom
+
+✅ **Arbitré** (décision 10) : `human_validated` (14 000 blocs) l'emporte sur
+`validated_human` (5 662), `reference_normalized` (1 682) sur `normalised_reference`
+(1 032). ⚠️ Sans risque, et c'est mesuré : les **901 blocs qui portent les deux premiers
+s'accordent tous**, sans une contradiction, et les deux seconds ne se rencontrent jamais sur
+un même bloc. Le nom retenu est déjà celui que lit `lireMetadonneesBlocNote`.
+
+### 13.4 La page cesse de transporter le journal d'atelier
+
+✅ **Arbitré** (décision 13) : `metadata` porte plus de 150 clés distinctes, pour l'essentiel
+un journal de travail daté, et **554 blocs y portent une copie complète d'un bloc** (`text`,
+`kind`, `form`, `rank`, `language`… toutes à 554). Le site n'en lit que quatre
+scalaires, mais le `jsonb` ENTIER voyage jusqu'au navigateur, pour 24 264 blocs. ⛔ **On
+restreint la LECTURE aux clés projetées** : gain sans arbitrage, sans toucher une donnée.
+⚠️ Le journal appartient à GPT, et il se supprime s'il ne sert à rien — la décision lui
+revient. Les 554 copies de bloc, elles, sont une seconde vérité et se regardent à part.
+
+---
+
+## 14. Ce que le protocole NE couvre pas encore
 
 - `segments.notes` (**2 456**) et `versets_v2.notes` (**3 641**) : notes libres, hors du
   modèle structuré, dette explicite du § 8.1. Elles ne se normalisent pas avant migration.
 - `bible_verse_notes` (**8 695**) et `bible_editorial_body_block_notes` (**371**) : notes
   de Fillion, doctrine et numérotation propres (§ 35). Hors de ce protocole.
-- **1 716 renvois** gardent un chapitre romain en MINUSCULES (« Matth. x, 22 »), que le
-  motif de `RE_RENVOI` n'accepte pas. Élargir la reconnaissance attend une décision.
-- Les **métadonnées ont dérivé** : `human_validated` (14 000) et `validated_human` (5 662)
-  disent la même chose sous deux noms ; `reference_normalized` (1 682) et
-  `normalised_reference` (1 032) aussi. À unifier, dans une passe à part.
+- **La FENTE du bloc à trois têtes de Faivre** (§ 6.1) : sur quoi borner le lemme n'est pas
+  tranché, et l'auteur en a demandé une séance à part.
+- **« Dépublier » une note** (§ 9) : la décision est prise, le mécanisme n'existe pas.
+- **Le renvoi interne reste un TEXTE, non un lien** : `internal_cross_reference` sépare ce
+  qui pointe au dedans de ce qui pointe au dehors, mais rien ne DÉSIGNE encore la note ou le
+  segment visés. La lecture de la passe 3 le prépare ; la cible se posera quand le modèle
+  saura la porter.
