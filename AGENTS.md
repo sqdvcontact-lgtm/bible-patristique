@@ -5416,6 +5416,76 @@ Doctrine : charte `parametres.charte_ia`, § 38.16. Règles de code :
   quitté la signature de `libelleVersionComplet`** — une signature qui ne reçoit plus la
   donnée est une garde plus sûre qu'un test.
 
+# ⛔ La PAIRE DE LECTURE — quelle traduction, quel original (2026-09-05)
+
+Toute la règle vit dans **`app/oeuvre/[id]/paireDeLecture.ts`** (module pur, 20 tests),
+appelé à l'identique par `page.tsx` et par `OeuvreClient.tsx`. ⛔ Ne plus décider d'une
+cible de lecture par un `find(...)` posé dans un composant : c'est ce qui a cédé.
+
+**Le défaut, relevé sur les Annotations sur le livre de Job (`A0010O0100`).** Le choix
+s'écrivait `versionsTextuelles.find(v => !estVersionOriginale(v))`, c'est-à-dire « la
+première traduction venue », dans l'ordre où Supabase avait rendu les lignes —
+`order('annee_edition')`, et rien pour départager deux millésimes égaux. L'œuvre portait
+alors deux traductions de 1866 : l'édition courante et l'instantané d'avant une
+resegmentation (`retired`, privé), que la politique de lecture d'`oeuvre_textes`
+(`is_admin() OR is_public`) montre à l'AUTEUR seul. Une ligne sur deux, l'archive sortait
+la première, et « Français & Latin » emmenait l'administrateur sur
+`?texte=…_PRE_RESEG_20260903&mt=bilingue` — un texte que l'alignement ne connaît pas. Le
+mode restait pourtant offert et ACTIF : la garde ne demandait qu'un original QUELCONQUE
+dans l'œuvre. Bouton allumé, une seule colonne. ⚠️ Effacer l'archive n'était pas la
+correction : la même mécanique attend toute œuvre à plusieurs traductions, brouillons ou
+versions privées.
+
+- ⛔ **Une version RETIRÉE n'est jamais une cible implicite.** Elle reste consultable par
+  son adresse — un administrateur doit pouvoir y revenir —, mais aucun bouton ne l'y
+  envoie. Seule exception : le texte qu'on LIT déjà, qui est un choix explicite.
+  Un ENSEMBLE d'alignement `retired` s'écarte de même (`ensemblesUtilisables`) :
+  l'Hexaéméron en garde un, de 96 groupes, à côté de celui qui fait foi, de 302.
+- ⛔ **Rien ne dépend de l'ordre d'arrivée.** Le classement est TOTAL : ce qu'on lit, puis
+  le texte par défaut, puis le statut éditorial (`published` > `review` > `draft`), puis la
+  publicité, puis l'identifiant. ⚠️ `annee_edition` n'est même pas un champ de
+  `VersionLisible` : il ne peut plus rien décider. ⚠️ Le statut ne tranche qu'APRÈS le
+  texte par défaut — douze lignes `draft`/`review` portent `is_default`, et ce sont bien
+  celles-là que la page ouvre.
+- ⛔ **Le BILINGUE a sa propre cible, et ce n'est pas celle du français.** Lu depuis une
+  archive ou une édition non alignée, « Français » reste sur place — on ne change pas
+  d'édition pour rien — quand « Français & Latin » rejoint la traduction que l'alignement
+  relie à l'original. Les deux partageaient `cibleFrTexte`. Ordre de préférence : celle
+  qu'on lit si elle est alignée, le texte par défaut, une version publiée, toute autre non
+  retirée.
+- ⛔ **On parcourt les originaux dans le même ordre et l'on retient LE PREMIER QUI TROUVE
+  UNE TRADUCTION ALIGNÉE.** Une œuvre n'a qu'un original en service mais peut en garder
+  trois en base (Hexaéméron : un retiré, un en revue, un brouillon SANS AUCUN SEGMENT) :
+  préférer aveuglément le mieux classé mettrait en regard un texte que rien ne relie à ce
+  qu'on lit.
+- ⛔ **L'alignement AVANT le repli**, comme dans `originalEnRegard` :
+  `segments.texte_original` n'est qu'une copie, elle peut avoir dérivé, et elle s'éteindra.
+  ⚠️ `repliTexteOriginal` (la colonne SEULE) est distinct d'`aTexteOriginal` (« y a-t-il
+  quelque chose à mettre en regard », alignement compris) : c'est le premier, et lui seul,
+  qui autorise le bilingue faute d'alignement.
+- ⛔ **Une lecture en regard ne s'ouvre jamais à vide** (`modeDeLectureEffectif`) : le mode
+  demandé ne vaut que si une colonne peut RÉELLEMENT se composer en face du texte lu.
+  ⚠️ Cela réparait aussi un défaut plus ancien : « Latin » masquait le français sans rien
+  mettre à sa place — une page BLANCHE, qu'une préférence gardée dans le navigateur
+  suffisait à rouvrir sur un texte original.
+- **Un lien EXPLICITE `?texte=…&mt=bilingue` incohérent rejoint la traduction alignée**
+  (effet dans `OeuvreClient`, `router.replace`, toute l'adresse conservée). ⛔ Sur la seule
+  ADRESSE, jamais sur la préférence du navigateur : déplacer le lecteur d'un texte à
+  l'autre pour un réglage qu'il ne relit pas serait une navigation qu'il n'a pas demandée.
+- ⚠️ **`page.tsx` appelle DEUX fois, et c'est voulu** : le premier appel choisit la paire
+  (l'original en regard, dont la vague suivante charge les notes et compte les groupes), le
+  second reprend la MÊME règle une fois la finesse connue — c'est le nombre de groupes, et
+  non le niveau déclaré, qui désigne l'ensemble qui porte la lecture. Fonction pure et sans
+  requête : le second appel ne coûte rien, et il n'y a toujours qu'une règle.
+- ⚠️ **Contrôle sur le corpus RÉEL** (47 œuvres, 65 textes, 20 ensembles, ancienne règle
+  contre nouvelle, toutes les versions actives) : **deux** changements, tous deux sur la
+  Consolation de la philosophie, la seule œuvre à deux traductions alignées sur un même
+  latin. Lu depuis Mirandol (le texte par défaut), « Français & Latin » emmenait sur
+  Ceriziers 1646 ; il reste sur Mirandol. Lu depuis le latin, « Français » visait Ceriziers ;
+  il vise Mirandol. Partout ailleurs, à l'octet près, la même paire qu'avant. ⚠️ Sur
+  l'Hexaéméron, la paire ne CHANGE pas mais cesse d'être un coup de dé : ses deux grecs de
+  1857 se départageaient jusque-là par l'ordre des lignes.
+
 # Les NOTIFICATIONS — une rangée, trois rangs, un ton (2026-09-04)
 
 Doctrine : charte `parametres.charte_ia`, § 38.17. Le volet vit dans

@@ -14,7 +14,8 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { blocsBilingues, chargerProjectionBilingue, choisirEnsembleBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
+import { blocsBilingues, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
+import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
@@ -435,26 +436,37 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   if (blocsRecus !== blocsOriginal) { setBlocsRecus(blocsOriginal); setBlocsOriginalEtat(blocsOriginal) }
 
   const blocsAlignes = useMemo(() => Object.keys(blocsOriginalEtat).length > 0, [blocsOriginalEtat])
-  const aTexteOriginal = useMemo(
-    () => blocsAlignes || [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
-    [blocsAlignes, segmentsInit, segmentsApparatInit],
+  // Le REPLI, et lui seul : `segments.texte_original`, la copie de l'original recollée
+  // dans la traduction. ⛔ À ne pas confondre avec `aTexteOriginal`, qui répond à « y
+  // a-t-il quelque chose à mettre en regard », alignement compris. C'est ce repli-là,
+  // et non l'autre, qui autorise le mode bilingue faute d'alignement.
+  const repliTexteOriginal = useMemo(
+    () => [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
+    [segmentsInit, segmentsApparatInit],
   )
+  const aTexteOriginal = blocsAlignes || repliTexteOriginal
 
+  // ── LA PAIRE DE LECTURE ────────────────────────────────────────────────────
+  // Quelle traduction, quel original, quel alignement : la règle vit dans
+  // `paireDeLecture.ts`, avec ses tests, et le SERVEUR l'applique à l'identique — sans
+  // quoi la page préchargerait l'original que le client ne compose pas.
+  // ⛔ Ce choix ne se fait plus par des `find(...)` posés côte à côte : « la première
+  // traduction venue » désignait, sur une œuvre à deux éditions de 1866, l'instantané
+  // de travail retiré du service, et « Français & Latin » y emmenait l'administrateur.
+  const paireDeLecture = useMemo(
+    () => choisirPaireDeLecture({
+      idTexteActif: idTexte,
+      versions: versionsTextuelles,
+      alignements: alignementsDisponibles,
+      langueOriginale: oeuvre.langue_originale,
+      repliTexteOriginal,
+    }),
+    [idTexte, versionsTextuelles, alignementsDisponibles, oeuvre.langue_originale, repliTexteOriginal],
+  )
   // Le texte en langue originale de CETTE œuvre, s'il en a un et si ce n'est pas celui
-  // qu'on lit : c'est lui que l'alignement met en regard. Même reconnaissance que le
-  // serveur (pas de traducteur, langue de `oeuvre.langue_originale`, accents ignorés).
-  const idTexteEnRegard = useMemo(() => {
-    const norme = (v: string | null | undefined) => (v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
-    const langue = norme(oeuvre.langue_originale)
-    if (!langue) return null
-    const trouve = versionsTextuelles.find(v => !v.traducteur?.trim() && norme(v.langue) === langue)
-    return trouve && trouve.idTexte !== idTexte ? trouve.idTexte : null
-  }, [oeuvre.langue_originale, versionsTextuelles, idTexte])
-
-  const ensembleBilingue = useMemo(
-    () => idTexteEnRegard ? choisirEnsembleBilingue(alignementsDisponibles, idTexte, idTexteEnRegard) : null,
-    [alignementsDisponibles, idTexte, idTexteEnRegard],
-  )
+  // qu'on lit : c'est lui que l'alignement met en regard.
+  const idTexteEnRegard = paireDeLecture.idTexteEnRegard
+  const ensembleBilingue = paireDeLecture.ensembleBilingue
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
   // « Traductions parallèles » est désactivé pour le moment (mode de lecture jugé
@@ -565,8 +577,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       else if (localStorage.getItem(`cs_bilingue_${idOeuvre}`) === '1') setModeTexte('bilingue')
     } catch {}
   }, [idOeuvre])
-  const affichageBilingue = modeTexte === 'bilingue'
-  const afficherOriginalSeul = modeTexte === 'la'
+
+  // ── UNE LECTURE EN REGARD NE S'OUVRE JAMAIS À VIDE ─────────────────────────
+  // ⛔ Le mode demandé ne vaut que si une colonne peut RÉELLEMENT se composer en face
+  // du texte lu : un ensemble d'alignement qui couvre ce texte, ou le repli
+  // `segments.texte_original`. Sans cela, « Français & Latin » allumait son bouton et
+  // ne rendait qu'une colonne (relevé sur A0010O0100 le 2026-09-05), et « Latin »
+  // masquait le français pour ne rien mettre à sa place — une page blanche, qu'une
+  // préférence gardée dans le navigateur suffisait à rouvrir.
+  const enRegardSurPlace = paireDeLecture.enRegardSurPlace
+  const modeTexteEffectif = modeDeLectureEffectif(modeTexte, paireDeLecture)
+  const affichageBilingue = modeTexteEffectif === 'bilingue'
+  const afficherOriginalSeul = modeTexteEffectif === 'la'
+  // ⚠️ Le rattrapage d'un lien « ?mt=bilingue » incohérent est plus bas, avec `router` :
+  // il déplace le lecteur, et non seulement le mode. Voir « UN LIEN QUI NE MÈNE À RIEN ».
   // Libellés du choix de lecture selon la langue de l'original (grec ou, par défaut, latin).
   // La langue s'écrit « Grec » ou « grec » selon les fiches : la comparaison stricte
   // laissait passer la minuscule, et un texte grec repartait alors avec les libellés
@@ -765,6 +789,32 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (memeOeuvre) partir()
     else window.setTimeout(partir, DUREE_SORTIE_MS)
   }
+
+  // ── UN LIEN « ?mt=bilingue » QUI NE MÈNE À RIEN ────────────────────────────
+  // Une adresse EXPLICITE posée sur une traduction que rien ne met en regard — une
+  // archive, une édition qu'aucun alignement ne couvre — rejoint la traduction qui
+  // porte l'alignement, plutôt que de retomber en silence sur le français seul. Tout le
+  // reste de l'adresse est conservé, la position de lecture (`niv1`, `groupe`, `cle`)
+  // comprise : on ne change que d'édition. Faute d'une telle traduction, il n'y a rien
+  // à faire ici — `modeTexteEffectif` a déjà ramené la page au français seul.
+  //
+  // ⚠️ `replace` et non `push` : c'est une correction d'adresse, pas un pas de lecture.
+  // Le retour arrière ne doit pas ramener sur le lien mort.
+  // ⚠️ Sur la seule ADRESSE, jamais sur la préférence gardée dans le navigateur :
+  // déplacer le lecteur d'un texte à l'autre pour un réglage qu'il ne relit pas serait
+  // une navigation qu'il n'a pas demandée.
+  useEffect(() => {
+    if (enRegardSurPlace) return
+    const cible = paireDeLecture.navigationBilingue
+    if (!cible || cible === idTexte) return
+    try {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('mt') !== 'bilingue') return
+      params.set('texte', cible)
+      router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
+    } catch {}
+  }, [enRegardSurPlace, paireDeLecture.navigationBilingue, idTexte, router])
+
   // Une navigation qui n'aboutit pas (retour arrière pendant l'attente, autre clic)
   // laisse ce composant en place : on lui rend son texte.
   const aTransite = useRef(false)
@@ -1647,15 +1697,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // titres d'origine : il peut être un TEXTE de l'œuvre, à côté de la traduction
   // (Les Confessions, 2026-08-23 : Knöll CSEL 33 sous A0010O0001, avec son apparat).
   // La règle de reconnaissance est la même qu'entre œuvres sœurs — pas de traducteur,
-  // et la langue de l'œuvre —, pour qu'il n'y en ait qu'une à retenir.
-  const nomLangue = (s: string | null | undefined) =>
-    (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
-  const memeLangue = (a: string | null | undefined, b: string | null | undefined) =>
-    !!a && !!b && nomLangue(a) === nomLangue(b)
+  // et la langue de l'œuvre —, pour qu'il n'y en ait qu'une à retenir. Elle vit
+  // désormais dans `paireDeLecture.ts`, avec le serveur qui l'applique aussi : elle
+  // était écrite ici, là-bas, et dans deux replis d'accents différents.
   const estVersionOriginale = (v: VersionTextuelle) =>
-    !v.traducteur?.trim() && memeLangue(v.langue, oeuvre.langue_originale)
-  const versionOriginale = versionsTextuelles.find(estVersionOriginale) ?? null
-  const versionTraduite = versionsTextuelles.find(v => !estVersionOriginale(v)) ?? null
+    estVersionEnLangueOriginale(v, oeuvre.langue_originale)
+  // ⛔ NI L'UN NI L'AUTRE NE SE CHOISIT PLUS PAR `find` : « le premier original venu »
+  // et « la première traduction venue » lisaient l'ordre de Supabase, c'est-à-dire le
+  // millésime seul, et deux éditions de la même année s'y rangeaient au hasard.
+  const versionOriginale = paireDeLecture.original
+  const versionTraduite = paireDeLecture.traductionFr
   const surTexteOriginal = !!versionActive && estVersionOriginale(versionActive)
   const editionCourante = versions.find(v => v.id_oeuvre === idOeuvre) ?? null
   const couranteEstOriginale = surTexteOriginal || (editionCourante ? estEditionOriginale(editionCourante)
@@ -1713,18 +1764,30 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // rien affiché — toutes les œuvres traduites, la Doctrine des Apôtres en témoin.
   const cibleFrOeuvre = versionOriginale ? (versionTraduite ? idOeuvre : null) : (editionFrRef?.id_oeuvre ?? null)
   const cibleFrTexte = versionOriginale ? (versionTraduite?.idTexte ?? null) : null
+  // ⛔ LE BILINGUE A SA PROPRE CIBLE, et ce n'est pas toujours celle du français. Lu
+  // depuis une archive ou depuis une édition qu'aucun alignement ne couvre, « Français »
+  // reste sur place — on ne change pas d'édition pour rien — quand « Français & Latin »
+  // doit rejoindre la traduction que l'alignement relie à l'original. Les deux
+  // partageaient `cibleFrTexte`, et c'est ainsi qu'un clic emmenait sur une archive
+  // dépourvue d'alignement, où le mode restait pourtant allumé, sans seconde colonne.
+  const cibleBilingueTexte = versionOriginale ? (paireDeLecture.traductionBilingue?.idTexte ?? null) : null
   if (aOriginalQuelconque && cibleFrOeuvre) {
     const surFr = !couranteEstOriginale && (versionOriginale ? true : idOeuvre === editionFrRef?.id_oeuvre)
     modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
-      actif: surFr && modeTexte === 'fr' })
-    modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'bilingue',
-      actif: surFr && modeTexte === 'bilingue' })
+      actif: surFr && modeTexteEffectif === 'fr' })
+    // ⛔ Le mode ne s'offre que si quelque chose peut réellement paraître en regard :
+    // un ensemble d'alignement, ou le repli `segments.texte_original`. « Un original
+    // quelconque existe quelque part dans l'œuvre » ne suffit plus.
+    if (paireDeLecture.bilingueOffert) {
+      modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleBilingueTexte, cibleMt: 'bilingue',
+        actif: surFr && modeTexteEffectif === 'bilingue' })
+    }
   }
   if (versionOriginale) {
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: idOeuvre, cibleTexte: versionOriginale.idTexte,
       cibleMt: 'fr', actif: surTexteOriginal })
   } else if (aOriginalQuelconque && (couranteEstOriginale || editionOrigRef || aTexteOriginal)) {
-    const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexte === 'la'))
+    const surOrig = idOeuvre === cibleOrigOeuvre && (couranteEstOriginale || (cibleOrigMt === 'la' && modeTexteEffectif === 'la'))
     modesLecture.push({ cle: 'orig', label: labelOrigMenu, cibleOeuvre: cibleOrigOeuvre, cibleMt: cibleOrigMt,
       actif: surOrig })
   }
@@ -1736,7 +1799,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Le texte en langue originale d’une œuvre à plusieurs textes relève du même
   // suffixe : il a bien un `id_texte`, mais `favoris.ref_id` désigne des ŒUVRES, et
   // sans lui l’étoile posée sur le latin rangeait de nouveau la traduction.
-  const favoriEstOriginal = surTexteOriginal || (!couranteEstOriginale && modeTexte === 'la')
+  const favoriEstOriginal = surTexteOriginal || (!couranteEstOriginale && modeTexteEffectif === 'la')
   const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
   const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
   const libelleEdition = (v: VersionTrad): string => {

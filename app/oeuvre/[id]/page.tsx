@@ -18,9 +18,9 @@ import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import {
   chargerProjectionBilingue,
-  choisirEnsembleBilingue,
   type BlocOriginal,
 } from './bilingueAlignement'
+import { choisirPaireDeLecture, ensemblesUtilisables } from './paireDeLecture'
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
@@ -343,21 +343,6 @@ export default async function OeuvrePage({
       <p style={{color:'var(--cs-texte-gris)'}}>Aucun texte accessible pour cette œuvre.</p>
     </div>
   )
-  // « ?mt=la » désigne le texte original de l'œuvre. Quand ce texte existe pour
-  // lui-même dans `oeuvre_textes` (le latin de Knöll sous Les Confessions), on l'y
-  // envoie : il a ses titres d'origine, ses sommaires et son apparat, là où
-  // `segments.texte_original` n'est que la colonne du bilingue. Une seule porte à
-  // tenir plutôt que quatre : la bibliothèque, le compte, le profil public et les
-  // favoris pointent tous sur « ?mt=la ».
-  const langueOriginaleOeuvre = (oeuvre.langue_originale ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
-  const texteEnLangueOriginale = langueOriginaleOeuvre
-    ? textesAccessibles.find(t => !t.traducteur?.trim()
-        && (t.langue ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() === langueOriginaleOeuvre)
-    : undefined
-  if (sp.mt === 'la' && !sp.texte && texteEnLangueOriginale) {
-    redirect(`/oeuvre/${encodeURIComponent(id)}?texte=${encodeURIComponent(texteEnLangueOriginale.id_texte)}`)
-  }
-
   const idTexte = texteActif.id_texte as string
   const lectureTexteEntier = oeuvre.lecture_texte_entier === true
   const versionsTextuelles = textesAccessibles.map((t) => construireVersionTextuelle(t, indexEditeurs))
@@ -379,6 +364,32 @@ export default async function OeuvrePage({
         status: alignement.status,
       }]
     })
+
+  // ── LA PAIRE DE LECTURE ────────────────────────────────────────────────────
+  // Quelle traduction, quel original, quel alignement : la règle vit dans
+  // `paireDeLecture.ts`, avec ses tests, et le CLIENT l'applique à l'identique. Les
+  // deux côtés doivent sortir avec le même original en regard, sans quoi le serveur
+  // préchargerait les notes et la projection d'un texte que le client ne compose pas.
+  // ⛔ Ce choix ne se fait plus par `find(...)` sur des lignes triées au millésime :
+  // deux éditions de la même année, et c'est l'ordre de Supabase qui décidait.
+  const paireDeLecture = choisirPaireDeLecture({
+    idTexteActif: idTexte,
+    versions: versionsTextuelles,
+    alignements: alignementsDisponibles,
+    langueOriginale: oeuvre.langue_originale,
+  })
+
+  // « ?mt=la » désigne le texte original de l'œuvre. Quand ce texte existe pour
+  // lui-même dans `oeuvre_textes` (le latin de Knöll sous Les Confessions), on l'y
+  // envoie : il a ses titres d'origine, ses sommaires et son apparat, là où
+  // `segments.texte_original` n'est que la colonne du bilingue. Une seule porte à
+  // tenir plutôt que quatre : la bibliothèque, le compte, le profil public et les
+  // favoris pointent tous sur « ?mt=la ».
+  const texteEnLangueOriginale = paireDeLecture.original
+  if (sp.mt === 'la' && !sp.texte && texteEnLangueOriginale && texteEnLangueOriginale.idTexte !== idTexte) {
+    redirect(`/oeuvre/${encodeURIComponent(id)}?texte=${encodeURIComponent(texteEnLangueOriginale.idTexte)}`)
+  }
+
   const alignementDemande = sp.compare
     ? alignementsDisponibles.find(alignement => alignement.alignmentSetId === sp.compare)
     : null
@@ -636,16 +647,17 @@ export default async function OeuvrePage({
   // Le texte latin ou grec lu EN REGARD, quand ce n'est pas celui qu'on lit : ses
   // notes alimentent la seconde colonne du bilingue, où `texte_original` n'apporte
   // que la lettre.
-  const idTexteEnRegard = texteEnLangueOriginale && texteEnLangueOriginale.id_texte !== idTexte
-    ? (texteEnLangueOriginale.id_texte as string) : null
+  const idTexteEnRegard = paireDeLecture.idTexteEnRegard
 
   // Les alignements qui se disputent CETTE paire de textes. Quand il y en a plusieurs,
   // c'est le plus FIN qui porte la lecture, et la finesse se compte : une ligne de
   // `texte_alignements` par groupe. Le comptage part avec la vague ci-dessous, en
   // `head`, donc sans qu'aucune ligne voyage — et il n'est PAS émis quand un seul
   // alignement se présente, ce qui est le cas de toutes les œuvres sauf une.
+  // ⛔ Un ensemble RETIRÉ ne se compte pas : il ne portera pas la lecture, et l'
+  // Hexaéméron en garde un à côté de celui qui fait foi.
   const candidatsBilingues = idTexteEnRegard
-    ? alignementsDisponibles.filter(a =>
+    ? ensemblesUtilisables(alignementsDisponibles).filter(a =>
         (a.referenceTextId === idTexte && a.alignedTextId === idTexteEnRegard)
         || (a.referenceTextId === idTexteEnRegard && a.alignedTextId === idTexte))
     : []
@@ -812,9 +824,20 @@ export default async function OeuvrePage({
 
   // Lecture bilingue : l'original en regard vient de SES PROPRES segments, retrouvés par
   // l'alignement. Rien n'est recopié dans la traduction (voir `bilingueAlignement.ts`).
-  const ensembleBilingue = idTexteEnRegard
-    ? choisirEnsembleBilingue(alignementsDisponibles, idTexte, idTexteEnRegard)
-    : null
+  //
+  // ⚠️ SECOND APPEL, ET IL EST VOULU. Le premier (plus haut) a choisi la paire —
+  // l'original, la traduction qui le porte —, ce dont la vague précédente avait besoin
+  // pour charger les notes de l'original et compter les groupes. Celui-ci reprend la
+  // MÊME règle une fois la finesse connue : c'est le NOMBRE DE GROUPES, et non le
+  // niveau déclaré, qui désigne l'ensemble qui portera la lecture (la Doctrine des
+  // Apôtres l'a montré, voir `choisirEnsembleBilingue`). Fonction pure et sans requête :
+  // le second appel ne coûte rien, et il n'y a toujours qu'une règle.
+  const ensembleBilingue = choisirPaireDeLecture({
+    idTexteActif: idTexte,
+    versions: versionsTextuelles,
+    alignements: alignementsDisponibles,
+    langueOriginale: oeuvre.langue_originale,
+  }).ensembleBilingue
   // Les versets du premier niveau et la projection bilingue ne dépendent que de la
   // tranche, jamais l'un de l'autre : ils partent ensemble. Ils se suivaient, une
   // vague pour rien.
