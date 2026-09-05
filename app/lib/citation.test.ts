@@ -8,6 +8,8 @@ import {
   citationPatristique,
   citationBiblique,
 } from './citation'
+import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
+import { GUILLEMET_FERMANT, GUILLEMET_OUVRANT } from './referenceBibliographique'
 
 describe('convertirGuillemetsInternes', () => {
   it('remplace les guillemets français internes par des guillemets anglais', () => {
@@ -84,6 +86,38 @@ describe('citationPatristique', () => {
     const { texte } = citationPatristique('paix', { ...info, datePublication: '1984-1986' })
     expect(texte).toContain('1984-1986')
     expect(texte).not.toContain('1984 – 1986')
+  })
+  // ── Depuis le 5 septembre 2026, la référence vient du MOTEUR bibliographique ──
+  it('compose dans l’ordre du moteur : trad., collection, lieu, éditeur, date', () => {
+    const { texte } = citationPatristique('paix', {
+      auteur: 'Augustin d’Hippone', titre: 'La Cité de Dieu',
+      tradAuteur: 'H. Barreau ; M. Charpentier', editeur: 'Louis Vivès',
+      collection: 'Œuvres complètes de saint Augustin', ville: 'Paris',
+      datePublication: '1870 – 1873',
+    })
+    expect(texte.startsWith(
+      'Augustin d’Hippone, La Cité de Dieu, trad. H. Barreau et M. Charpentier, '
+      + 'coll. ' + GUILLEMET_OUVRANT + 'Œuvres complètes de saint Augustin' + GUILLEMET_FERMANT
+      + ', Paris, Louis Vivès, 1870-1873, disponible sur le site Corpus Scriptura : ',
+    )).toBe(true)
+  })
+  it('joint deux maisons par la barre à fines, jamais par le point-virgule du catalogue', () => {
+    const { texte } = citationPatristique('paix', { ...info, editeur: 'Veuve Jean Camusat ; Pierre Le Petit' })
+    expect(texte).toContain('Veuve Jean Camusat' + SEPARATEUR_COEDITEURS + 'Pierre Le Petit')
+    expect(texte).not.toContain('Camusat ; Pierre')
+  })
+  it('compose l’auteur en petites capitales dans la forme HTML', () => {
+    const { html } = citationPatristique('paix', info)
+    expect(html).toContain('<span style="font-variant: small-caps">Augustin</span>')
+  })
+  it('⛔ le point final de la notice tombe : la phrase continue', () => {
+    const { texte } = citationPatristique('paix', info)
+    expect(texte).not.toContain('1937. disponible')
+    expect(texte).toContain('1937, disponible sur le site Corpus Scriptura')
+  })
+  it('sans titre, la citation garde sa provenance et son passage', () => {
+    const { texte } = citationPatristique('paix', {})
+    expect(texte).toBe('disponible sur le site Corpus Scriptura : « Paix. »')
   })
 })
 

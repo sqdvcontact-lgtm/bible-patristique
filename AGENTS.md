@@ -5770,6 +5770,81 @@ audit des six écritures existantes et décisions dans
   chiffres qui font un hexa (`${OUV}` + `De …`).
 
 
+# ⛔ La référence qui SORT du site se compose du même moteur (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.6.6**. Demande de l'auteur : « uniformiser
+sur l'ensemble des pages les références bibliographiques via le moteur bibliographique mis
+en place ; y compris dans le copier/coller ». Règles de code :
+
+- **Deux modules neufs, et ils sont PURS.** `app/lib/noticeOeuvre.ts` (`noticeDUneOeuvre`)
+  fait d'une œuvre du catalogue une `NoticeBibliographique` ;
+  `app/lib/referenceBibliographiqueSorties.ts` écrit les FRAGMENTS du moteur hors du DOM —
+  `texteFragments` (plein-texte), `htmlFragments` (collage riche),
+  `baliseFragments` (`*italique*`, le balisage des textes du site), plus
+  `fragmentsSansPointFinal` et `typographieFragment`. ⛔ Aucun des deux ne recompose : ils
+  nomment des champs, ou disent une composition dans une autre langue.
+- ⛔ **`typographieFragment` a QUITTÉ `ReferenceBibliographique.tsx`** pour ce module, et n'y
+  est plus que ré-exportée : le presse-papiers demande la même typographie que l'écran, et
+  deux copies divergeraient au premier réglage.
+- ⛔ **Les fragments italiques CONSÉCUTIFS se réunissent en une seule course** (`courses`) :
+  le titre, le point de liaison et le sous-titre sont trois fragments d'un seul intitulé, et
+  balisés un à un ils donnent `*Titre**. **Sous-titre*` — une italique fermée puis rouverte,
+  c'est-à-dire rien.
+- ⚠️ **Hors du site, une classe arrive NUE** : `htmlFragments` écrit les petites capitales en
+  `style="font-variant: small-caps"`. Seule exception à la règle qui veut que la composition
+  vienne de la feuille — hors du site, il n'y a plus de feuille.
+- **Quatre surfaces branchées.** Le PRESSE-PAPIERS (`citation.ts::citationPatristique`, donc
+  les trois boutons de copie : lecture d'une œuvre, volet patristique, prélèvements) ; la
+  NOTE d'un essai (`SelecteurCitation.tsx::refNotePatristique`) ; le REPLI de la
+  bibliographie d'une péricope (`noticeLibre`, qui remplace `ReferenceBiblio`) ; et le volet
+  patristique, dont le bouton de copie ignorait le sous-titre.
+- ⚠️ **Ce que la mise en ordre CHANGE, à l'œil** : l'éditeur venait avant la collection, la
+  collection paraissait nue au lieu de `coll. « … »`, la ville suivait l'éditeur au lieu de
+  le précéder, deux maisons coéditrices gardaient le `;` du catalogue, et l'auteur ne
+  prenait pas ses petites capitales dans un collage riche.
+- ⛔ **Le POINT FINAL du moteur tombe quand la phrase continue** : le presse-papiers enchaîne
+  « …, disponible sur le site Corpus Scriptura : “…” » et la note d'un essai son locus
+  (`§ 12`). `fragmentsSansPointFinal` ne retire que le fragment sans champ ni style dont le
+  texte est un point seul — jamais la ponctuation d'une donnée (un titre qui se ferme sur
+  `?` garde son point d'interrogation, et rien n'est retiré).
+- ⚠️ **Les TRADUCTEURS sont nettoyés, pas composés** : `nomsTraducteurs` retire de la chaîne
+  du catalogue ce qui n'est pas un nom (« — prénom non établi », un « signalée » de travail,
+  une capitale de civilité — « Abbé Pognon » → « abbé Pognon ») et rend la liste ; c'est le
+  moteur qui pose « trad. » et l'énumération à la française. ⛔ `mentionTraducteurs` reste
+  pour les surfaces qui écrivent une PHRASE (le libellé d'un menu), jamais pour une notice.
+- ⚠️ **L'auteur d'une œuvre est une forme d'AUTORITÉ** (`auteurs.nom`, servi comme
+  `info?.auteur_nom`), non un nom en texte libre : il se compose donc en petites capitales
+  (`nature: 'auteur_ancien'`), comme partout ailleurs sur le site.
+- ⚠️ **`noticeDUneOeuvre` accepte un `IndexEditeurs`, et le presse-papiers ne lui en passe
+  aucun**, à dessein : l'index du navigateur est chargé sur la page d'œuvre et sur la
+  bibliothèque, pas sur le volet patristique ni sur les prélèvements, et une copie qui
+  résoudrait « L. Guérin » ici et pas là serait une divergence de plus. Mesuré le 2026-09-05 :
+  aucune des trente valeurs d'`oeuvres.editeur` n'est abrégée, l'index ne changerait donc
+  rien aujourd'hui. ⛔ Le découpage des coéditeurs, lui, joue TOUJOURS : `normaliserNomEditeur`
+  sans index sépare quand même sur `;` et joint par la barre à fines.
+- ⛔ **`resserrerTiretsAnnees` a déménagé** de `citation.ts` vers `noticeOeuvre.ts` (et y est
+  ré-exportée) : la règle des fourchettes de millésimes appartient à la notice, non au
+  presse-papiers, et elle vaut donc aussi pour la note d'un essai.
+- ⚠️ **Une SEULE référence se compose encore à part**, et sa raison est écrite : celle des
+  volumes servis d'une bible (`referenceEditionServie.ts`, § 38.4) — millésimes en TEXTE,
+  mention d'édition, dépôt, cote, nombre de tomes, qu'aucune notice d'ouvrage ne porte. Elle
+  emprunte déjà la ponctuation du moteur et le type de ses fragments. ⛔ Ne pas la prendre
+  pour un précédent.
+- ⛔ **Hors du chantier, et ce n'est pas un oubli** : l'en-tête de groupe des prélèvements
+  (`Auteur, *Titre*`) et le libellé d'une citation favorite sont des ÉTIQUETTES de
+  navigation, non des notices — les passer au moteur y ajouterait des petites capitales et
+  un point final. Et `composerBibliographie` (`bibleBibliographie.ts`) ne compose rien : il
+  découpe une bibliographie déjà écrite dans un bloc, ce que la charte admet comme repli
+  (§ 35.6.2), ⛔ sans jamais en tirer titre, auteur ni éditeur.
+- ⚠️ **Piège d'atelier, payé encore ce jour** : une FINE insécable (U+202F) tapée dans un
+  test ne se distingue pas d'une espace ordinaire, et un patch passé par un heredoc la perd.
+  Les attentes qui portent `coll. « … »` ou la barre des coéditeurs se composent depuis
+  `GUILLEMET_OUVRANT`, `GUILLEMET_FERMANT` et `SEPARATEUR_COEDITEURS`, ⛔ jamais d'un
+  littéral tapé.
+- ⚠️ **`SelecteurCitation` lit deux colonnes de plus** (`sous_titre`, `collection`) dans ses
+  deux requêtes d'œuvre : sans elles, la note d'un essai aurait dit moins que le
+  presse-papiers pour la même œuvre.
+
 # ⛔ Une page de lecture ne tombe pas sur une couche SECONDAIRE (2026-09-05)
 
 Doctrine : charte `parametres.charte_ia`, § 18, sous « Une page de lecture ne tombe pas

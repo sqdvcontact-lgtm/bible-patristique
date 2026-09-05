@@ -3097,6 +3097,24 @@ Cette obligation vaut aussi pour les œuvres antiques, médiévales ou anciennes
 
 **Écriture.** Le moteur ne modifie aucun texte source. Quand la donnée se corrige, on ne touche qu’aux colonnes qui changent, en transaction, avec sauvegarde et retour en arrière ; `texte_norm` est généré depuis `segment_texte` et ne s’écrit jamais.
 
+### 35.6.6. La référence qui SORT du site se compose du même moteur
+
+**Décision de l’auteur du 5 septembre 2026** : uniformiser les références bibliographiques sur l’ensemble des pages, le copier-coller compris. Une référence n’est pas une affaire d’écran. Elle part au presse-papiers d’un lecteur qui va la coller dans son traitement de texte, et elle entre dans la note d’un essai. Ces deux sorties disent la MÊME référence que la page d’où elles viennent, et par le même moteur.
+
+⛔ **Trois écritures d’une référence, et trois seulement.** Les FRAGMENTS que le moteur rend se balisent en nœuds pour l’écran, en HTML pour un collage riche, et entre astérisques pour le balisage des textes du site. Aucune ne recompose : elles disent l’italique et les petites capitales dans leur langue, et s’arrêtent là. ⛔ Hors du site, une classe arrive nue : les petites capitales s’écrivent alors en style inline, seule exception à la règle qui veut que la composition vienne de la feuille.
+
+⚠️ **Les fragments italiques CONSÉCUTIFS se réunissent en une seule course.** Le titre, le point qui le joint à son sous-titre et le sous-titre sont trois fragments d’un seul intitulé. Balisés un à un, ils donnent `*Titre**. **Sous-titre*`, que l’enrichissement lit comme une italique fermée puis rouverte, c’est-à-dire comme rien du tout.
+
+⚠️ **Le POINT FINAL tombe quand la phrase continue.** Le presse-papiers enchaîne « …, disponible sur le site Corpus Scriptura : “…” » et la note d’un essai ajoute son locus (§ 12) : le point du moteur tomberait au milieu. ⛔ On ne retire que le point que le MOTEUR a posé, jamais la ponctuation d’une donnée.
+
+**Une ŒUVRE du catalogue est une notice comme une autre.** `oeuvres` n’a aucun lien vers `ouvrages_bibliographiques` et porte ses propres champs libres. Un adaptateur les nomme dans le vocabulaire du moteur, et s’arrête là : l’auteur y est une forme d’autorité et se compose donc en petites capitales, les traducteurs sont NETTOYÉS et non composés, le liant et l’énumération appartenant au moteur, et les maisons que le point-virgule du catalogue sépare se joignent par la barre à fines du § 35.6.4.
+
+⚠️ **Ce que la mise en ordre a corrigé, et qui se voyait**, sur la citation d’une œuvre du catalogue : l’éditeur venait avant la collection, la collection paraissait toute nue au lieu de « coll. “…” », la ville suivait l’éditeur au lieu de le précéder, et deux maisons coéditrices gardaient le point-virgule d’une colonne de base.
+
+⛔ **Le REPLI d’une surface se compose du même moteur.** La bibliographie d’une péricope dont l’entrée n’a pas d’`ouvrage_id`, ou dont la vue des références n’a pas répondu, passe ses champs libres au moteur au lieu de garder une mise en forme à elle. ⚠️ Aucune petite capitale alors : elles viennent des autorités, que seule la notice structurée porte.
+
+⚠️ **Une seule référence se compose encore à part, et sa raison est écrite** : celle des VOLUMES SERVIS d’une bible (§ 38.4), dont les millésimes sont un texte que le catalogue des ouvrages ne saurait dire, et qui porte une mention d’édition, un dépôt, une cote et un nombre de tomes qu’une notice d’ouvrage n’a pas. Elle partage la ponctuation du moteur et le type de ses fragments. ⛔ Elle ne fonde pas une seconde norme.
+
 ### 35.7. Les guillemets d’une citation en langue étrangère restent en romain
 
 Une citation latine ou une translittération grecque en alphabet latin enchâssée dans une phrase française se compose en italique, mais les guillemets qui l’encadrent appartiennent au français qui cite et restent en romain. On écrit donc « *Jesu Christi* » et jamais *« Jesu Christi »*. ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.

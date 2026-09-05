@@ -15,7 +15,11 @@ import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
-import { pagesLisibles, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import {
+  noticeDepuisChampsLibres,
+  pagesLisibles,
+  type NoticeBibliographique,
+} from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
@@ -470,19 +474,15 @@ export default function PericopePage() {
                 vus.add(cle); return true
               })
             })().map((r, i) => {
-              const notice = r.ouvrage_id != null ? notices[r.ouvrage_id] : undefined
+              // La notice STRUCTURÉE quand l'entrée porte un `ouvrage_id` et que la vue
+              // a répondu ; sinon les champs libres, passés au MÊME moteur. Les pages
+              // sont celles du LIEN à la péricope, non de l'ouvrage, et suivent.
+              const notice = (r.ouvrage_id != null ? notices[r.ouvrage_id] : undefined) ?? noticeLibre(r)
+              const pages = pagesDuLien(r, notice)
               return (
                 <li key={r.ouvrage_id ?? `libre-${i}`} style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
-                  {notice
-                    ? (
-                      // La référence composée par le MOTEUR, depuis la base ; les pages
-                      // sont celles du LIEN à la péricope, non de l'ouvrage, et suivent.
-                      <>
-                        <ReferenceBibliographique notice={notice} />
-                        {pagesDuLien(r, notice) && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(pagesDuLien(r, notice) as string)}</span>}
-                      </>
-                    )
-                    : <ReferenceBiblio r={r} />}
+                  <ReferenceBibliographique notice={notice} />
+                  {pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(pages)}</span>}
                 </li>
               )
             })}
@@ -529,24 +529,29 @@ function LigneInfo({ label, children }: { label: string; children: React.ReactNo
   )
 }
 
-// Le REPLI d'une référence, depuis les champs libres de la vue, tant que la notice
-// structurée n'est pas chargée (ou si la vue des références ne répond pas) : auteurs,
-// titre en italique, sous-titre, collection, lieu, éditeur, année ; les pages du lien
-// en note. ⛔ Aucune petite capitale ici : elles viennent des autorités, que seule la
-// notice structurée porte (moteur bibliographique, charte § 35.6.1).
-function ReferenceBiblio({ r }: { r: RefBiblio }) {
-  const gens = r.auteurs || (r.directeurs ? `${r.directeurs} (dir.)` : null)
-  const lieuEd = [r.lieu, r.editeur].filter(Boolean).join(', ')
-  return (
-    <>
-      {gens && <span>{typo(gens)}, </span>}
-      <em style={{ fontStyle: 'italic', color: 'var(--cs-texte)' }}>{typo(r.titre ?? '')}</em>
-      {r.sous_titre && <span>. {typo(r.sous_titre)}</span>}
-      {r.collection && <span>, coll. «&#8239;{typo(r.collection)}&#8239;»{r.numero_collection ? `, ${r.numero_collection}` : ''}</span>}
-      {lieuEd && <span>, {typo(lieuEd)}</span>}
-      {r.annee && <span>, {r.annee}</span>}
-      <span>.</span>
-      {r.pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(r.pages)}</span>}
-    </>
-  )
+/**
+ * Une entrée dont la notice structurée manque, dans la forme que lit le MOTEUR.
+ *
+ * ⛔ Elle ne se compose pas à part : ce sont les mêmes champs, passés au même moteur,
+ * qui rendent l'ordre, la ponctuation et le point final. ⚠️ Aucune petite capitale
+ * ici — elles viennent des autorités, que seule la notice structurée porte (charte
+ * § 35.6.1). ⚠️ Les PAGES restent hors de la notice : celles d'une entrée de péricope
+ * sont les pages du LIEN, et elles suivent la référence.
+ *
+ * Le repli sert deux cas : une entrée sans ouvrage_id, et une vue des références qui
+ * n'a pas répondu.
+ */
+function noticeLibre(r: RefBiblio): NoticeBibliographique {
+  return noticeDepuisChampsLibres({
+    id: r.ouvrage_id,
+    titre: r.titre,
+    sous_titre: r.sous_titre,
+    auteurs: r.auteurs,
+    directeurs: r.directeurs,
+    collection: r.collection,
+    numero_collection: r.numero_collection,
+    lieu: r.lieu,
+    editeur: r.editeur,
+    annee: r.annee,
+  })
 }

@@ -1,7 +1,15 @@
-import { formaterDateHistorique } from './datesHistoriques'
-import { mentionTraducteurs } from './traducteurs'
+import { noticeDUneOeuvre, type OeuvreCitee } from './noticeOeuvre'
+import { fragmentsReference, SEPARATEUR } from './referenceBibliographique'
+import {
+  echapperHtml,
+  fragmentsSansPointFinal,
+  htmlFragments,
+  texteFragments,
+} from './referenceBibliographiqueSorties'
 import { normaliserEspaces } from './typographie'
 import { sansCesures } from './cesuresLatines'
+
+export { resserrerTiretsAnnees } from './noticeOeuvre'
 
 // ── Mise en forme des citations (copier / coller, et affichage des prélèvements) ──
 // Règles arrêtées par l'auteur, appliquées à UN seul endroit :
@@ -23,11 +31,6 @@ export function convertirGuillemetsInternes(texte: string): string {
   return texte
     .replace(/«[  \s]*/g, '“')
     .replace(/[  \s]*»/g, '”')
-}
-
-// « 1984 – 1986 » / « 1984 — 1986 » / « 1984 - 1986 » → « 1984-1986 ».
-export function resserrerTiretsAnnees(s: string): string {
-  return s.replace(/(\d)\s*[‐-―−-]\s*(\d)/g, '$1-$2')
 }
 
 // Ponctuation finale, juste avant le guillemet fermant (voir règle 2).
@@ -76,55 +79,45 @@ export function preparerTexteCitation(texte: string): string {
   return sansCesures(normaliserEspaces(capitaliserInitiale(normaliserPonctuationFinale(convertirGuillemetsInternes(texte.trim())))))
 }
 
-function echapperHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-export type InfoCitation = {
-  auteur?: string | null
-  titre?: string | null
-  sousTitre?: string | null
-  tradAuteur?: string | null
-  editeur?: string | null
-  collection?: string | null
-  ville?: string | null
-  datePublication?: string | null
-}
+/** Ce que la page tient d'une œuvre pour la citer : les champs du catalogue, sous les
+ *  noms que les boutons de copie emploient. C'est le type de l'ADAPTATEUR
+ *  (`noticeOeuvre.ts`), gardé ici sous son nom historique. */
+export type InfoCitation = OeuvreCitee
 
 export type CitationRendue = { texte: string; html: string }
 
-// Citation d'un passage patristique, en DEUX formes : `texte` (plein-texte, presse-papiers)
-// et `html` (titre en italique, pour un collage riche dans un traitement de texte).
+/** La mention de provenance qui ferme la référence, avant le passage cité. */
+const MENTION_SITE = 'disponible sur le site Corpus Scriptura'
+
+/**
+ * Citation d'un passage patristique, en DEUX formes : `texte` (plein-texte,
+ * presse-papiers) et `html` (italiques et petites capitales, pour un collage riche
+ * dans un traitement de texte).
+ *
+ * ⛔ LA RÉFÉRENCE NE SE RECOMPOSE PLUS ICI. Elle vient du MOTEUR bibliographique du
+ * site (`referenceBibliographique.ts`), par l'adaptateur qui fait d'une œuvre une
+ * notice (`noticeOeuvre.ts`) — le même moteur qui compose la bibliographie d'une
+ * péricope, l'apparat d'une œuvre et la fiche d'un ouvrage. Ce que le lecteur colle
+ * est donc, au mot près, ce qu'il avait sous les yeux.
+ *
+ * ⚠️ Jusqu'au 5 septembre 2026 cette fonction avait son ordre à elle — l'éditeur
+ * avant la collection, la collection toute nue, la ville après l'éditeur, le
+ * point-virgule brut du catalogue entre deux maisons —, et elle était le dernier
+ * endroit du site où une référence s'écrivait à la main.
+ *
+ * ⚠️ Le POINT FINAL de la notice tombe : la phrase continue par la provenance, puis
+ * par le passage cité.
+ */
 export function citationPatristique(texte: string, info: InfoCitation): CitationRendue {
-  const titreComplet = [info.titre?.trim(), info.sousTitre?.trim()].filter(Boolean).join('. ')
-
-  const avant: string[] = []
-  if (info.auteur?.trim()) avant.push(info.auteur.trim())
-
-  const apres: string[] = []
-  // Le champ porte une LISTE (« A ; B ») : c'est ici qu'elle devient « trad. A et B ».
-  const trad = mentionTraducteurs(info.tradAuteur)
-  if (trad) apres.push(trad)
-  if (info.editeur?.trim()) apres.push(info.editeur.trim())
-  if (info.collection?.trim()) apres.push(info.collection.trim())
-  if (info.ville?.trim()) apres.push(info.ville.trim())
-  const date = resserrerTiretsAnnees(formaterDateHistorique(info.datePublication))
-  if (date) apres.push(date)
-  apres.push('disponible sur le site Corpus Scriptura')
-
+  const fragments = fragmentsSansPointFinal(fragmentsReference(noticeDUneOeuvre(info)))
   const cite = preparerTexteCitation(texte)
-
-  const parties = [...avant, ...(titreComplet ? [titreComplet] : []), ...apres]
-  const texteFinal = parties.join(', ') + ' : « ' + cite + ' »'
-
-  const partiesHtml = [
-    ...avant.map(echapperHtml),
-    ...(titreComplet ? [`<em>${echapperHtml(titreComplet)}</em>`] : []),
-    ...apres.map(echapperHtml),
-  ]
-  const html = partiesHtml.join(', ') + ' : « ' + echapperHtml(cite) + ' »'
-
-  return { texte: texteFinal, html }
+  const reference = texteFragments(fragments)
+  const referenceHtml = htmlFragments(fragments)
+  return {
+    texte: [reference, MENTION_SITE].filter(Boolean).join(SEPARATEUR) + ' : « ' + cite + ' »',
+    html: [referenceHtml, echapperHtml(MENTION_SITE)].filter(Boolean).join(SEPARATEUR)
+      + ' : « ' + echapperHtml(cite) + ' »',
+  }
 }
 
 // Citation d'un passage biblique : « texte » (référence). Pas de titre ni de dates,

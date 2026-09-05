@@ -203,14 +203,14 @@ function rendreSiecle(str: string): React.ReactNode {
 
 
 // ── Bouton copie segment ──────────────────────────────────────────────────────
-function BoutonCopieSegment({ texte, auteur, titre, trad_auteur, editeur, collection, ville, date_publication }: {
-  texte: string; auteur: string; titre: string
+function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, editeur, collection, ville, date_publication }: {
+  texte: string; auteur: string; titre: string; sous_titre?: string
   trad_auteur?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string
 }) {
   const [copie, setCopie] = useState(false)
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const citation = citationPatristique(texte, { auteur, titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication })
+    const citation = citationPatristique(texte, { auteur, titre, sousTitre: sous_titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication })
     copierCitation(citation).then(() => {
       setCopie(true); setTimeout(() => setCopie(false), 1400)
     })
@@ -379,6 +379,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
               texte={texteSansEnrichissement(s.segment_texte)} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
+              sous_titre={info?.sous_titre}
               trad_auteur={info?.trad_auteur ?? undefined} editeur={info?.editeur ?? undefined}
               collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
             />

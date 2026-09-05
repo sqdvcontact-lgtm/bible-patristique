@@ -8,6 +8,9 @@ import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/t
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { cleTriTitre } from '@/app/lib/titres'
 import { mentionTraducteurs } from '@/app/lib/traducteurs'
+import { noticeDUneOeuvre } from '@/app/lib/noticeOeuvre'
+import { fragmentsReference, SEPARATEUR } from '@/app/lib/referenceBibliographique'
+import { baliseFragments, fragmentsSansPointFinal } from '@/app/lib/referenceBibliographiqueSorties'
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 
 const NOM_FR: Record<string, string> = {
@@ -121,23 +124,41 @@ function corpsCitation(texte: string): { corps: string; fin: string } {
   return terminaison(convertirGuillemetsInternes(texteSansEnrichissement(String(texte ?? '')).trim()))
 }
 
-type OeuvreMeta = { titre: string; trad_auteur?: string | null; editeur?: string | null; ville?: string | null; date_publication?: string | null }
+type OeuvreMeta = {
+  titre: string; sous_titre?: string | null; trad_auteur?: string | null
+  editeur?: string | null; collection?: string | null; ville?: string | null
+  date_publication?: string | null
+}
 
-// Note bibliographique pour un renvoi patristique : titre en italiques (*\u2026*), PAS de
-// niveaux 1-5, ajout de l'\u00e9diteur, du traducteur, de la ville et de la date ; le locus (\u00a7)
-// est conserv\u00e9 ; termin\u00e9e par un point.
+/**
+ * La note bibliographique d'un renvoi patristique, pour l'appareil d'un essai.
+ *
+ * ⛔ La référence ne se recompose pas ici : elle vient du MOTEUR
+ * (`referenceBibliographique.ts`), par l'adaptateur qui fait d'une œuvre une notice,
+ * et se met au balisage des textes du site — l'italique entre astérisques, que
+ * `rendreEnrichi` compose. Une note d'essai dit donc la même référence que le
+ * presse-papiers et que la bibliographie d'une péricope.
+ *
+ * ⚠️ Le LOCUS (§) est le seul ajout : il désigne le passage cité dans l'œuvre, et
+ * n'appartient à aucune notice. Il prend la place du point final, que le moteur pose
+ * et qu'on retire.
+ */
 function refNotePatristique(auteur: string, o: OeuvreMeta, segs: SegPatr[]): string {
   const nums = segs.map(s => s.segment_numero).sort((a, b) => a - b)
   const contigu = nums.length > 1 && nums.every((n, i) => i === 0 || n === nums[i - 1] + 1)
-  const locus = nums.length === 1 ? `\u00a7${nums[0]}` : contigu ? `\u00a7${nums[0]}\u2013\u00a7${nums[nums.length - 1]}` : `\u00a7${nums.join(', ')}`
-  const parts = [auteur, `*${o.titre}*`]
-  const trad = mentionTraducteurs(o.trad_auteur)
-  if (trad) parts.push(trad)
-  if (o.editeur) parts.push(String(o.editeur))
-  if (o.ville) parts.push(String(o.ville))
-  if (o.date_publication) parts.push(formaterDateHistorique(o.date_publication))
-  parts.push(locus)
-  return parts.filter(Boolean).join(', ') + '.'
+  const locus = nums.length === 1 ? `§${nums[0]}` : contigu ? `§${nums[0]}–§${nums[nums.length - 1]}` : `§${nums.join(', ')}`
+  const notice = noticeDUneOeuvre({
+    auteur,
+    titre: o.titre,
+    sousTitre: o.sous_titre,
+    tradAuteur: o.trad_auteur,
+    editeur: o.editeur,
+    collection: o.collection,
+    ville: o.ville,
+    datePublication: o.date_publication,
+  })
+  const reference = baliseFragments(fragmentsSansPointFinal(fragmentsReference(notice)))
+  return [reference, locus].filter(Boolean).join(SEPARATEUR) + '.'
 }
 
 // Note pour un renvoi biblique : la r\u00e9f\u00e9rence (avec, si connue, la traduction citee),
@@ -378,7 +399,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   // Toutes les œuvres publiées, avec le nom de l'auteur ET les métadonnées d'édition
   // (traducteur, éditeur, ville, date) qui nourrissent la note bibliographique.
   useEffect(() => {
-    supabase.from('oeuvres').select('id_oeuvre, titre, titre_original, id_auteur, acces_public, trad_auteur, editeur, ville, date_publication, auteurs!oeuvres_id_auteur_fkey(nom)').order('titre').then(({ data }) => {
+    supabase.from('oeuvres').select('id_oeuvre, titre, sous_titre, titre_original, id_auteur, acces_public, trad_auteur, editeur, collection, ville, date_publication, auteurs!oeuvres_id_auteur_fkey(nom)').order('titre').then(({ data }) => {
       const liste = ((data ?? []) as any[]).filter(estOeuvrePubliee)
         .map(o => ({ id_oeuvre: o.id_oeuvre, titre: o.titre, titre_original: o.titre_original, id_auteur: o.id_auteur, auteurNom: o.auteurs?.nom ?? '', trad_auteur: o.trad_auteur, editeur: o.editeur, ville: o.ville, date_publication: o.date_publication }))
       setOeuvres(liste)
@@ -542,11 +563,15 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     } else {
       const [{ data: seg }, { data: meta }] = await Promise.all([
         supabase.from('segments').select('id, segment_numero').eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero).single(),
-        supabase.from('oeuvres').select('titre, trad_auteur, editeur, ville, date_publication').eq('id_oeuvre', it.id_oeuvre).maybeSingle(),
+        supabase.from('oeuvres').select('titre, sous_titre, trad_auteur, editeur, collection, ville, date_publication').eq('id_oeuvre', it.id_oeuvre).maybeSingle(),
       ])
       if (seg) {
         const auteur = it.auteur ?? it.auteur_nom ?? ''
-        const oeuvreMeta: OeuvreMeta = { titre: meta?.titre ?? it.titre_oeuvre ?? '', trad_auteur: meta?.trad_auteur, editeur: meta?.editeur, ville: meta?.ville, date_publication: meta?.date_publication }
+        const oeuvreMeta: OeuvreMeta = {
+          titre: meta?.titre ?? it.titre_oeuvre ?? '', sous_titre: meta?.sous_titre,
+          trad_auteur: meta?.trad_auteur, editeur: meta?.editeur, collection: meta?.collection,
+          ville: meta?.ville, date_publication: meta?.date_publication,
+        }
         const ref = refNotePatristique(auteur, oeuvreMeta, [seg as unknown as SegPatr])
         const { corps, fin } = corpsCitation(it.texte ?? '')
         onChoisir({ label: ref, type: 'segment', id: String(seg.id), href: hrefSegment(it.id_oeuvre, seg.id), complet: true, texte: corps, fin, ref })

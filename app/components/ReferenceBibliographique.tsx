@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 
 import { rendreSiecles } from '@/app/lib/siecles'
-import { normaliserEspaces } from '@/app/lib/typographie'
+import { typographieFragment } from '@/app/lib/referenceBibliographiqueSorties'
 import {
   CLASSE_CARACTERE_BIBLIOGRAPHIE,
   CLASSES_BIBLIOGRAPHIE,
@@ -50,16 +50,11 @@ export default function ReferenceBibliographique({
 }
 
 /**
- * La typographie de LECTURE d'un fragment : l'apostrophe courbe, et les espaces
- * insécables que la haute ponctuation et les guillemets demandent. La norme est au
- * RENDU (charte § 3.2) : la donnée garde ses espaces ordinaires, et
- * `normaliserEspaces` ne fait que convertir le TYPE d'une espace déjà là, jamais
- * en ajouter. Un titre tapé « assertore : disputatio » se lit donc avec son
- * insécable, sans qu'une ligne de la base ait bougé.
+ * ⚠️ RÉ-EXPORTÉE : la typographie de lecture d'un fragment vit avec les autres sorties
+ * d'une référence (`referenceBibliographiqueSorties.ts`), le presse-papiers demandant la
+ * même. Le nom reste ici pour les appelants historiques.
  */
-export function typographieFragment(texte: string): string {
-  return normaliserEspaces(texte.replace(/'/gu, '’'))
-}
+export { typographieFragment }
 
 /**
  * Un fragment de référence, composé selon son RÔLE.
