@@ -15,7 +15,7 @@ import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
-import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import { pagesLisibles, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
@@ -57,6 +57,13 @@ type RefBiblio = {
 // : ; ! ? et autour des guillemets. `normaliserEspacesOriginal` AJOUTE l'espace (les notices,
 // texte éditorial saisi, ne l'ont pas), de façon idempotente.
 function typo(s: string): string { return normaliserEspacesOriginal(s.replace(/'/g, '’')) }
+
+// Les pages du LIEN à la péricope suivent la notice, sauf si la notice les porte déjà : un
+// article dit ses pages lui-même, et « p. 330–360. p. 330-360 » les dirait deux fois.
+function pagesDuLien(r: RefBiblio, notice: NoticeBibliographique): string | null {
+  if (!r.pages) return null
+  return pagesLisibles(r.pages) === pagesLisibles(notice.pages) ? null : r.pages
+}
 type Occurrence = {
   id: number; livre: string; canon_id_debut: string; canon_id_fin: string | null
   niveau: number; est_principale: boolean; fiabilite: string | null
@@ -472,7 +479,7 @@ export default function PericopePage() {
                       // sont celles du LIEN à la péricope, non de l'ouvrage, et suivent.
                       <>
                         <ReferenceBibliographique notice={notice} />
-                        {r.pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(r.pages)}</span>}
+                        {pagesDuLien(r, notice) && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(pagesDuLien(r, notice) as string)}</span>}
                       </>
                     )
                     : <ReferenceBiblio r={r} />}
