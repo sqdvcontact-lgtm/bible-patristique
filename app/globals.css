@@ -2137,7 +2137,15 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   margin: 0.5rem calc(8mm - 4px);
   padding: 0.12rem 4px;
   font-size: 0.95em;
+  /* ⛔ JUSTIFIÉE, DONC CÉSURÉE (charte § 41.2, posée le 2026-09-05). Elle se justifiait
+     nue : sur les quatre cent trente-huit signes qui ont fait naître cette règle, rien
+     ne bornait l'étirement des espaces, et la citation se lisait plus lâche que le
+     paragraphe qui la porte. Le retrait de 8 mm de chaque côté lui laisse une mesure
+     plus étroite que celle du fil, ce qui creuse la lézarde d'autant plus vite. */
   text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
   border-radius: 4px;
   transition: background 0.12s;
 }

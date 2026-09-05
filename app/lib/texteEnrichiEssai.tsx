@@ -2,6 +2,7 @@ import React from 'react'
 import NoteTooltip from './NoteTooltip'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { hrefSur } from '@/app/lib/liensSurs'
+import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enReact } from '@/app/lib/compositionEssai'
 
 export type ElementPanneau =
   | { type: 'note'; texte: string }
@@ -106,7 +107,7 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
       if (i > 0) contenuLignes.push(<br key={`br-${blocs.length}-${i}`} />)
       contenuLignes.push(...rendreInline(ligne, cleNote, options))
     })
-    blocs.push(<p key={blocs.length} style={{ margin: '0 0 1.6mm', lineHeight: 1.42, textAlign: 'justify', wordSpacing: 0, letterSpacing: '0.002em', textIndent: '0.75em', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{contenuLignes}</p>)
+    blocs.push(<p key={blocs.length} style={enReact(PARAGRAPHE_ESSAI)}>{contenuLignes}</p>)
     paragraphe = []
   }
 
@@ -116,7 +117,7 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
     if (espace) { flush(); blocs.push(<div key={blocs.length} style={{ height: `${espace[1]}mm` }} />); return }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(<blockquote key={blocs.length} style={{ fontStyle: 'normal', fontSize: '0.9em', fontFamily: "var(--font-source-sans), Arial, sans-serif", color: 'var(--cs-texte)', marginLeft: '8mm', marginRight: '8mm', marginTop: '1.4mm', marginBottom: '1.4mm', lineHeight: 1.3, textAlign: 'justify', wordSpacing: '-0.01em', letterSpacing: '-0.004em', textIndent: 0 }}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
+      blocs.push(<blockquote key={blocs.length} style={enReact(CITATION_ESSAI)}>{rendreInline(ligne.slice(2), cleNote, options)}</blockquote>)
       return
     }
     if (ligne.startsWith('## ')) {

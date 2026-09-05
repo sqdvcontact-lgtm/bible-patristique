@@ -27,7 +27,13 @@ export default function ConditionsUtilisationPage() {
           Dernière mise à jour : juillet 2026
         </p>
 
-        <div style={{ fontSize: "0.84375rem", lineHeight: 1.75, color: "var(--cs-texte)" }}>
+        {/* ⛔ LA PROSE LA PLUS LONGUE DU SITE APRÈS LES ESSAIS, et elle portait
+            l'interligne le plus ouvert (audit de densité, 2026-09-05) : 1,75 sur des
+            lignes de quelque cent signes, sans justification ni césure. Elle prend le
+            rang des notices, 1,52, et les cinq propriétés de la composition dense.
+            ⚠️ La justification est HÉRITÉE par tout ce que porte ce bloc : les listes
+            la refusent une à une, un item d'énumération se ferrant à gauche. */}
+        <div style={{ fontSize: "0.84375rem", lineHeight: 1.52, color: "var(--cs-texte)", textAlign: "justify", textJustify: "inter-word", hyphens: "auto", WebkitHyphens: "auto", wordSpacing: "-0.03em", letterSpacing: 0 } as React.CSSProperties}>
 
           <Section titre="1. Présentation du site">
             <p>
@@ -91,7 +97,7 @@ export default function ConditionsUtilisationPage() {
               contenus sont systématiquement soumis à une modération avant toute publication.
             </p>
             <p>L&rsquo;utilisateur s&rsquo;engage à ne pas déposer de contenu :</p>
-            <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
+            <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>contraire aux lois et règlements en vigueur ;</li>
               <li>à caractère injurieux, diffamatoire, discriminatoire ou outrageant ;</li>
               <li>portant atteinte aux droits de tiers, notamment aux droits d&rsquo;auteur ;</li>

@@ -3,6 +3,8 @@
 // [espace:Nmm]) et le HTML d'une zone contentEditable — pour que la mise en
 // forme s'affiche directement pendant la rédaction, sans bouton « Aperçu ».
 
+import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEssai'
+
 function echapper(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
@@ -38,9 +40,9 @@ export function syntaxeVersHtml(texte: string): string {
 
   const flush = () => {
     if (paragraphe.length === 0) return
-    // Présentation calquée sur la page de lecture (.essai-lecture-corps p) :
-    // sérif, interligne 1,5, justifié, alinéa de 0,9em.
-    blocs.push(`<p style="margin:0 0 1.6mm;font-family:var(--font-source-serif), Georgia, serif;line-height:1.5;text-align:justify;text-indent:0.9em;">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
+    // Présentation calquée sur la page de lecture : les deux surfaces lisent la MÊME
+    // écriture (`compositionEssai`), au lieu de la recopier chacune de son côté.
+    blocs.push(`<p style="${enCss(PARAGRAPHE_ESSAI)}">${paragraphe.map(inlineVersHtml).join('<br>')}</p>`)
     paragraphe = []
   }
 
@@ -54,7 +56,7 @@ export function syntaxeVersHtml(texte: string): string {
     }
     if (ligne.startsWith('> ')) {
       flush()
-      blocs.push(`<blockquote style="font-style:normal;font-size:0.9em;font-family:var(--font-source-serif), Georgia, serif;color:var(--cs-texte);margin:3mm 8mm;line-height:1.44;text-align:justify;text-indent:0;">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
+      blocs.push(`<blockquote style="${enCss(CITATION_ESSAI)}">${inlineVersHtml(ligne.slice(2))}</blockquote>`)
       return
     }
     if (ligne.startsWith('## ')) {

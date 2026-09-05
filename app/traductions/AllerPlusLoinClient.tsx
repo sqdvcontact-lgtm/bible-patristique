@@ -232,12 +232,17 @@ function normaliserContenu(texte: string): string {
   if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
     html = texte
   } else {
-    const pStyle = 'color:var(--cs-texte-fort);font-size:0.84375rem;line-height:1.78;margin:0 0 12px;text-decoration:none'
+    // ⛔ AUCUN STYLE EN CLAIR ICI. Ces paragraphes tombent dans `.trad-article`, dont
+    // toutes les déclarations sont `!important` : couleur, corps, interligne, marge,
+    // alignement et césure. Un attribut `style` d'auteur perd contre un `!important`
+    // d'auteur, si bien que l'interligne de 1,78 qui figurait ici n'a JAMAIS été servi —
+    // le lecteur recevait 1,52 (audit de densité, 2026-09-05). Une valeur morte est pire
+    // qu'une valeur absente : on la corrige et rien ne bouge.
     html = texte
       .split(/\n+/)
       .map(l => l.trim())
       .filter(Boolean)
-      .map(l => `<p style="${pStyle}">${l}</p>`)
+      .map(l => `<p>${l}</p>`)
       .join('')
   }
   // Assaini avant injection : `commentaire_editorial` est du HTML éditorial, mais on

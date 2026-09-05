@@ -430,8 +430,11 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
                     color: var(--cs-encre-fonce); line-height: 1.3; letter-spacing: -0.005em;
                     font-size: 1.25rem; font-style: italic; margin: 0.625rem 0 1rem; }
-        .cs-chapeau { font-size: 0.875rem; color: var(--cs-texte-second); line-height: 1.75;
-                      max-width: 32.5rem; margin: 0 auto; }
+        /* ⚠️ La classe cs-chapeau a été retirée le 2026-09-05 : elle n'était posée sur
+           AUCUN élément de la page, ici comme dans la requête média du bas. Elle portait
+           l'interligne le plus ouvert du site, 1,75, et l'audit de densité l'avait
+           d'abord comptée parmi les écarts — une règle morte fausse un relevé comme
+           elle fausse une lecture. */
         /* Chevron d'invite à descendre : bouton discret, un peu plus grand, qui
            oscille doucement pour signaler qu'il y a une suite, et pousse au clic
            jusqu'au corps de la page. L'oscillation se coupe si l'on préfère moins
@@ -533,7 +536,6 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-ecran { padding: 1.625rem 1rem 1.375rem; }
           .cs-enseigne { font-size: 1.375rem; letter-spacing: 0.13em; }
           .cs-titre { font-size: 1rem; margin: 0.5rem 0 0.875rem; }
-          .cs-chapeau { font-size: 0.84375rem; line-height: 1.7; }
           .cs-suite { margin-top: 0.75rem; }
           .cs-principes { grid-template-columns: 1fr; gap: 1.125rem; margin-bottom: 1.875rem; }
           .cs-cartes { grid-template-columns: 1fr; }
@@ -721,7 +723,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: "normal", fontSize: "0.9375rem", color: "var(--cs-danger-fonce)", margin: "0 0 0.5rem" }}>
             Aucun démarchage
           </h2>
-          <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.7, margin: 0 }}>
+          {/* ⛔ Deux paragraphes de cinq à six lignes sur une mesure de 41 rem : de la
+              prose, et elle prend la composition dense du site (audit du 2026-09-05).
+              1,70 y était le second interligne le plus ouvert du site. */}
+          <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.52, margin: 0, textAlign: "justify", textJustify: "inter-word", hyphens: "auto", WebkitHyphens: "auto", wordSpacing: "-0.03em", letterSpacing: 0 } as React.CSSProperties}>
             Toute sollicitation commerciale relative à ce site est
             <strong style={{ color: "var(--cs-danger-fonce)" }}> refusée par avance</strong>, qu’elle soit
             envoyée par une personne ou par un automate. Cela vaut pour le référencement,
@@ -729,7 +734,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             de développement. Les adresses figurant sur ce site ne valent pas consentement
             et ne sont pas collectables.
           </p>
-          <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.7, margin: "0.625rem 0 0" }}>
+          <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-second)", lineHeight: 1.52, margin: "0.625rem 0 0", textAlign: "justify", textJustify: "inter-word", hyphens: "auto", WebkitHyphens: "auto", wordSpacing: "-0.03em", letterSpacing: 0 } as React.CSSProperties}>
             La prospection par voie électronique sans accord préalable est interdite en France
             (article L. 34-5 du code des postes et des communications électroniques) et
             constitue un traitement de données sans base légale au sens du RGPD. Tout message

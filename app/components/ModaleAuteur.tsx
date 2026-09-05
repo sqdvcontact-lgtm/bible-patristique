@@ -416,9 +416,12 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
   )
 }
 
+// ⚠️ Court, mais JUSTIFIÉ : la césure n'est pas affaire de longueur. Dès qu'un texte
+// est justifié, toute ligne pleine étire ses espaces sans borne si rien ne les remplit —
+// deux lignes suffisent à le voir (audit de densité, 2026-09-05).
 function DetailChrono({ label, children }: { label?: string; children: ReactNode }) {
   return (
-    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify' }}>
+    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
       {label && <span style={{ color: 'var(--cs-texte-faible)' }}>{label} : </span>}{children}
     </p>
   )
@@ -516,8 +519,12 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
             {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0' }}>{meta}</p>}
           </header>
           {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_biographique)}</p></section>}
+          {/* ⚠️ Les anecdotes font 373 signes en médiane, soit cinq à six lignes : de la
+              prose, et la seule de cette fenêtre qui ne fût ni justifiée ni césurée,
+              quand sa voisine « auteur-prose » l'est depuis toujours (audit de densité,
+              2026-09-05). L'interligne, lui, était déjà au rang des notices. */}
           {auteur.anecdotes?.trim() && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)' }} className="cs-notice-italique auteur-bloc">{rendreEnrichi(auteur.anecdotes)}</p>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', wordSpacing: '-0.025em', letterSpacing: 0 } as React.CSSProperties} className="cs-notice-italique auteur-bloc">{rendreEnrichi(auteur.anecdotes)}</p>
           )}
           {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_theologique)}</p></section>}
           {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.influence)}</p></section>}

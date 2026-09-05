@@ -129,12 +129,16 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     letterSpacing: '0.07em', textTransform: 'uppercase', pointerEvents: 'none',
   }
 
-  // Simplification du commentaire editorial pour l'affichage dans la modale
+  // Simplification du commentaire editorial pour l'affichage dans la modale.
+  // ⛔ Sans style en clair, comme du côté public : ces paragraphes tombent dans
+  // `.trad-article`, dont les déclarations sont `!important` et gagnent contre tout
+  // attribut `style`. L'interligne de 1,78 qui figurait ici n'a jamais été servi
+  // (audit de densité, 2026-09-05).
   const htmlEditorial = t.commentaire_editorial
     ? DOMPurify.sanitize(t.commentaire_editorial.startsWith('<')
         ? t.commentaire_editorial
         : t.commentaire_editorial.split(/\n+/).filter(Boolean)
-            .map(l => `<p style="color:var(--cs-texte-fort);font-size:0.84375rem;line-height:1.78;margin:0 0 12px">${l}</p>`)
+            .map(l => `<p>${l}</p>`)
             .join(''))
     : ''
 
@@ -230,15 +234,20 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
               </div>
             )}
 
-            {/* Texte réel */}
+            {/* Texte réel
+                ⛔ Les valeurs sont celles d'`AllerPlusLoinClient`, au signe près : cet
+                aperçu se dit « copie exacte », et il ne l'était pas. La bio y paraissait
+                en corps 14 sur un interligne de 1,65 quand le lecteur la reçoit en corps
+                12,5 sur 1,50 ; l'auteur jugeait donc ses notices dans une forme que le
+                site ne sert pas (audit de densité, 2026-09-05). */}
             <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
               {t.bio_courte && (
-                <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0 0 12px', fontStyle: 'italic', textAlign: 'justify', hyphens: 'auto' }}>
+                <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: '0 0 10px', fontStyle: 'italic', textAlign: 'justify', hyphens: 'auto' }}>
                   {t.bio_courte}
                 </p>
               )}
               {htmlEditorial && (
-                <div className="trad-article" style={{ color: 'var(--cs-texte-fort)', fontSize: '1rem', lineHeight: 1.65, textAlign: 'justify', hyphens: 'auto' }}
+                <div className="trad-article" style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.52, textAlign: 'justify', hyphens: 'auto' }}
                   dangerouslySetInnerHTML={{ __html: htmlEditorial }} />
               )}
             </div>

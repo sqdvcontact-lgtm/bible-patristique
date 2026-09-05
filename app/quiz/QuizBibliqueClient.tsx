@@ -676,7 +676,8 @@ function JeuBiblique({ verset, livreCorrect, etape, resultats, etapesRestantes, 
   return (
     <>
       <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '12px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.58, color: 'var(--cs-encre-fonce)', textAlign: 'justify', fontWeight: 560 }}>« {verset.TR0001} »</p>
+        {/* Justifié, donc césuré — comme tout verset du site (audit du 2026-09-05). */}
+        <p lang="fr" style={{ margin: 0, fontSize: '1rem', lineHeight: 1.52, color: 'var(--cs-encre-fonce)', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', fontWeight: 560 } as React.CSSProperties}>« {verset.TR0001} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>
@@ -750,7 +751,7 @@ function JeuPatristique({ segment, etape, resultats, etapesRestantes, saisieAute
   return (
     <>
       <div style={{ position: 'sticky', top: '58px', zIndex: 5, background: 'rgba(248,251,242,0.96)', border: '1px solid rgba(var(--cs-vert-rgb),0.20)', borderRadius: '12px', padding: '13px 14px', backdropFilter: 'blur(8px)' }}>
-        <p lang="fr" style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.65, color: 'var(--cs-encre-fonce)', textAlign: 'justify', fontWeight: 500, fontStyle: 'italic' }}>« {rendreTexteEnrichi(segment.texte)} »</p>
+        <p lang="fr" style={{ margin: 0, fontSize: '0.9375rem', lineHeight: 1.52, color: 'var(--cs-encre-fonce)', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', fontWeight: 500, fontStyle: 'italic' } as React.CSSProperties}>« {rendreTexteEnrichi(segment.texte)} »</p>
         <BarreProgression resultats={resultats} etapesRestantes={etapesRestantes} />
       </div>
       <div style={{ marginTop: '14px', display: 'grid', gap: '12px' }}>

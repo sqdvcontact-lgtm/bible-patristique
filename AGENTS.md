@@ -248,6 +248,26 @@ Le JavaScript est irréprochable : les **onze** appels à `useEstMobile` passent
 **Règle** : avant d'écrire une média-query, prendre un seuil de ce tableau. En inventer un douzième demande une raison qu'on écrit dans le commentaire.
 - **Test** : le navigateur *intégré* (Browser pane) honore le viewport (`resize_window` → largeur réelle) ; le navigateur *claude-in-chrome* NON (reste à 1920). Les pages derrière le verrou exigent une session (compte invité `ACCES_INVITES`).
 
+# Densité des textes — le gris typographique (2026-09-05)
+
+La doctrine est à la **charte § 41** ; ce qui suit est ce qu'il faut savoir pour écrire du code sans la rouvrir.
+
+**La règle en une ligne** : au-delà de deux cent cinquante signes servis, soit environ trois lignes pleines, un texte se compose `text-align: justify` + `text-justify: inter-word`, `hyphens: auto` (+ `-webkit-hyphens`), `word-spacing: -0.03em` en sans ou `-0.025em` en sérif, `letter-spacing: 0`, et un interligne pris au barème : **1,38–1,40** pour l'appareil, **1,50–1,52** pour une notice ou une page fixe, **1,62** au plus, réservé au corps qu'on lit d'un bout à l'autre. En dessous du seuil, on ne touche à rien : un libellé, un message d'état, une légende n'ont pas de gris.
+
+⛔ **Un texte justifié est TOUJOURS césuré, quelle que soit sa longueur.** Le seuil décide si l'on justifie, jamais si l'on césure quand on a justifié. `app/lib/densiteTypographique.test.ts` parcourt `app/` — styles en ligne, balises `<style>` et fichiers `.css` — et refuse tout bloc justifié sans `hyphens`. Trois surfaces en sont exemptées, chacune avec sa raison écrite dans le test : le lecteur de source native et la feuille du manuscrit 899 (ancien français, aucune syllabation disponible) et la zone d'édition de `TexteBible` (un champ de saisie ne promet pas le rendu final). ⚠️ La liste ne s'allonge pas pour faire passer un test.
+
+⚠️ **Un éditeur WYSIWYG prend la césure comme la page de lecture**, puisqu'il promet la forme finale ; c'est le champ de SAISIE ordinaire qui en est dispensé. La distinction est celle qui sépare `EditeurEssai` de `TexteBible`.
+
+**Une même forme ne s'écrit qu'une fois.** Le corps d'un essai était réglé à trois endroits qui disaient des choses différentes ; il dérive désormais de `app/lib/compositionEssai.ts`, comme la lecture d'une œuvre dérive de `app/lib/compositionOeuvre.ts`. Le module expose les déclarations en kebab-case et deux formateurs, `enCss()` pour un attribut ou une feuille, `enReact()` pour un objet `CSSProperties`.
+
+⛔ **Vérifier qu'une valeur est SERVIE avant de la corriger.** Un attribut `style` d'auteur perd contre une déclaration `!important` d'auteur : trois interlignes du dépôt ne parvenaient à personne, et on pouvait les changer sans que rien ne bouge. Une règle CSS que rien ne porte est du même ordre — `.cs-chapeau` portait 1,75 sur la page du chantier sans être posée nulle part.
+
+⛔ **Un aperçu d'administration compose EXACTEMENT comme la surface publique**, valeur par valeur. La fiche d'une traduction se disait « copie exacte » du volet public et servait deux crans d'écart.
+
+⚠️ **On ne justifie ni ne césure un bloc CENTRÉ** (bande de noms, exergue, colophon, portrait de lecteur) : une coupure au milieu d'un centrage se voit. Si un texte centré devient un paragraphe, c'est le centrage qu'il faut lui retirer d'abord. Un texte en `white-space: pre-wrap` ne se justifie jamais non plus : il se ferre, et il se césure.
+
+**Relevé de l'audit** (`audit/densite-typographique-2026-09-05.md`, hors dépôt, `audit/` étant ignoré) : quinze paragraphes justifiés sur trente n'étaient pas césurés, onze surfaces portaient de 1,60 à 1,75.
+
 # Contrôle des œuvres (admin) — score de qualité figé
 
 La coloration de la liste (rouge/jaune/vert selon critique/moyen) venait de la vue `oeuvres_controle_stats`, **recalculée à chaque ouverture** : ~10,5 s (scan de ~123 000 segments + ~10 regex/segment + tri disque). Désormais **figée** dans la vue matérialisée `oeuvres_controle_stats_mat` (lecture ~0,1 ms). Recalcul **sur demande seulement** : bouton « ↻ Recalculer » → route admin `POST /api/admin/controle-refresh` → RPC `rafraichir_controle_stats()` (SECURITY DEFINER, service_role) qui fait `REFRESH MATERIALIZED VIEW CONCURRENTLY` et met à jour `controle_stats_meta.calcule_le` (affiché comme « Qualité calculée le … »). ⚠️ Après édition de segments/rangs, les couleurs restent figées jusqu'au prochain recalcul manuel — c'est voulu. `anon` n'a pas accès à ces objets (admin = `authenticated`).

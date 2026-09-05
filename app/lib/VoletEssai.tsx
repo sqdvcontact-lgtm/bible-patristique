@@ -167,7 +167,12 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
               onEnregistrer={onEnregistrerNote}
             />
           ) : (
-            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-fort)', lineHeight: 1.55, fontStyle: 'normal', whiteSpace: 'pre-wrap' }}>
+            // ⚠️ Ferré, et césuré quand même : sur la mesure étroite d'un volet, c'est la
+            // césure qui REMPLIT les lignes, la justification s'y creusant de lézardes
+            // (doctrine du site, cf. globals.css § manchette). Le pre-wrap interdit de
+            // toute façon de justifier : il conserve les espaces du texte, que la
+            // justification étirerait pour leur compte. (Audit de densité, 2026-09-05.)
+            <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-fort)', lineHeight: 1.5, fontStyle: 'normal', whiteSpace: 'pre-wrap', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
               {elementActif.type === 'note' ? rendreNote(contenu ?? '') : contenu}
             </p>
           )}

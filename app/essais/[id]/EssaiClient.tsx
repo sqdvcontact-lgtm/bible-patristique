@@ -5,6 +5,7 @@ import { useEstMobile } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai, extraireSommaire } from '@/app/lib/texteEnrichiEssai'
+import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEssai'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
@@ -222,29 +223,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       ? { display: 'flex', flexDirection: 'column', background: 'var(--cs-fond)' }
       : { display: 'flex', height: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <style>{`
-        .essai-lecture-corps p {
-          font-family: var(--font-source-serif), Georgia, serif !important;
-          text-align: justify !important;
-          line-height: 1.5 !important;
-          word-spacing: 0 !important;
-          letter-spacing: 0 !important;
-          text-indent: 0.9em !important;
-          margin-top: 0 !important;
-          margin-bottom: 1.6mm !important;
-        }
+        /* ⛔ La composition du corps vient du module compositionEssai, jamais d'ici :
+           la lecture, l'éditeur et le composeur en dérivent tous les trois. Trois copies
+           d'une même forme ne restent identiques que par accident, et les !important
+           de cette feuille masquaient les deux autres. */
+        .essai-lecture-corps p { ${enCss(PARAGRAPHE_ESSAI, true)} }
         .essai-lecture-corps blockquote {
-          font-style: normal !important;
-          text-align: justify !important;
-          font-family: var(--font-source-serif), Georgia, serif !important;
-          color: var(--cs-texte) !important;
-          line-height: 1.44 !important;
-          word-spacing: -0.02em !important;
-          letter-spacing: -0.006em !important;
-          text-indent: 0 !important;
-          margin-top: 3mm !important;
-          margin-bottom: 3mm !important;
-          margin-left: 8mm !important;
-          margin-right: 8mm !important;
+          ${enCss(CITATION_ESSAI, true)}
+          /* Ce que le navigateur pose de lui-même sur une citation, et qui n'est pas
+             de la composition : le filet de gauche et son retrait. */
           border-left: none !important;
           padding-left: 0 !important;
         }

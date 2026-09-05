@@ -120,11 +120,19 @@ export default function SoutenirPage() {
         fontFamily: "var(--font-source-serif), Georgia, serif",
         fontSize: "clamp(0.65625rem, 0.55rem + 0.18vw, 0.8rem)",
         color: "var(--cs-texte-doux)",
-        lineHeight: 1.6,
+        /* Cinq lignes pleines : c'est un paragraphe, il prend la composition dense
+           du site (audit du 2026-09-05). */
+        lineHeight: 1.52,
+        textAlign: "justify",
+        textJustify: "inter-word",
+        hyphens: "auto",
+        WebkitHyphens: "auto",
+        wordSpacing: "-0.025em",
+        letterSpacing: 0,
         maxWidth: "26rem",
         marginTop: "clamp(18px, 2.4vh, 30px)",
         flexShrink: 0,
-      }}>
+      } as React.CSSProperties}>
         Les lecteurs qui ont soutenu le corpus portent un grain auprès de leur nom.
         Il ne donne aucun droit et ne dit aucune somme. Si l’adresse de votre don n’est
         pas celle de votre compte, dites-le-nous par la <a href="/contact" style={{ color: "var(--cs-vert-fonce)" }}>page de contact</a> et nous

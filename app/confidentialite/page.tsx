@@ -28,7 +28,12 @@ export default function ConfidentialitePage() {
           Dernière mise à jour : juillet 2026
         </p>
 
-        <div style={{ fontSize: "0.84375rem", lineHeight: 1.75, color: "var(--cs-texte)" }}>
+        {/* ⛔ Même composition que les conditions d'utilisation, et pour la même raison
+            (audit de densité, 2026-09-05) : 1,75 sur des lignes de quelque cent signes,
+            sans justification ni césure. Rang des notices, 1,52, et les cinq propriétés.
+            ⚠️ La justification est HÉRITÉE par tout ce que porte ce bloc : les listes
+            la refusent une à une, un item d'énumération se ferrant à gauche. */}
+        <div style={{ fontSize: "0.84375rem", lineHeight: 1.52, color: "var(--cs-texte)", textAlign: "justify", textJustify: "inter-word", hyphens: "auto", WebkitHyphens: "auto", wordSpacing: "-0.03em", letterSpacing: 0 } as React.CSSProperties}>
 
           <Section titre="1. Responsable du traitement">
             <p>
@@ -49,7 +54,7 @@ export default function ConfidentialitePage() {
 
           <Section titre="2. Données collectées">
             <p>Le site collecte les données suivantes, selon votre usage :</p>
-            <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
+            <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>
                 <strong>Adresse e-mail</strong> – lors de la création d&rsquo;un compte, via le service
                 d&rsquo;authentification Supabase. Elle est utilisée pour l&rsquo;identification et, le cas échéant,
@@ -99,7 +104,7 @@ export default function ConfidentialitePage() {
 
           <Section titre="3. Finalités du traitement">
             <p>Vos données sont utilisées exclusivement pour :</p>
-            <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
+            <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>permettre la création et la gestion de votre compte utilisateur ;</li>
               <li>sauvegarder vos prélèvements bibliques et patristiques d&rsquo;une session à l&rsquo;autre ;</li>
               <li>afficher, après modération, les commentaires et essais que vous publiez ;</li>
@@ -148,7 +153,7 @@ export default function ConfidentialitePage() {
           </Section>
 
           <Section titre="7. Durée de conservation">
-            <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
+            <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>
                 Les données de compte sont conservées tant que le compte est actif, et supprimées dans un
                 délai raisonnable après une demande de clôture de compte.
@@ -209,7 +214,7 @@ export default function ConfidentialitePage() {
             <p>
               Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :
             </p>
-            <ul style={{ paddingLeft: "20px", margin: "8px 0" }}>
+            <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li><strong>Droit d&rsquo;accès</strong> – obtenir la confirmation que vos données sont traitées et en obtenir une copie ;</li>
               <li><strong>Droit de rectification</strong> – corriger des données inexactes ou incomplètes ;</li>
               <li><strong>Droit à l&rsquo;effacement</strong> – demander la suppression de vos données ;</li>

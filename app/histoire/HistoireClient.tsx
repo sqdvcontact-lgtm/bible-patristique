@@ -495,8 +495,18 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
     <div style={{ minWidth: 0 }}>
       {titre}
 
+      {/* ⛔ UNE NOTICE SE COMPOSE COMME TOUTES CELLES DU SITE (audit de densité,
+          2026-09-05). Celle-ci était le seul texte justifié du site à l'être NU : ni
+          césure, ni `inter-word`, ni espace resserrée. Justifié sans césure, rien ne
+          borne l'étirement des espaces — mesuré ailleurs dans le dépôt jusqu'à 1,609 em,
+          six fois le quart de cadratin —, et le gris se délave. La colonne fait ici
+          quelque 460 px pour des notices de 221 signes en médiane, dont un quart passe
+          280 et va jusqu'à 776 : ce sont des paragraphes, pas des libellés.
+          ⚠️ L'interligne descend de 1,55 à 1,52, le rang des notices du site
+          (`.trad-article`, `.auteur-prose`, `.trad-notice`). Il était au-dessus d'elles
+          alors que ses textes sont plus courts. */}
       {afficheNotice && noticeCourte && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: '4px 0 0', textAlign: 'justify' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.52, margin: '4px 0 0', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', wordSpacing: '-0.025em', letterSpacing: 0 } as React.CSSProperties}>
           {rendreFrise(noticeCourte, recherche)}
         </p>
       )}

@@ -297,9 +297,15 @@ export default function ProfilPublicPage() {
             </div>
           )}
 
-          {/* Bio */}
+          {/* Bio
+              ⚠️ Seul l'interligne rentre dans le barème du site (audit du 2026-09-05) :
+              ce portrait peut aller jusqu'à quatre cents signes, mais il est CENTRÉ,
+              comme tout cet en-tête. On ne justifie pas un bloc centré, et on ne le
+              césure pas non plus — une coupure au milieu d'un bloc centré se voit. Si le
+              portrait devait se composer en paragraphe, c'est le centrage qu'il faudrait
+              lui retirer d'abord. */}
           {profil.bio && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-fond-doux)', lineHeight: 1.65, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-fond-doux)', lineHeight: 1.52, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
               {profil.bio}
             </p>
           )}

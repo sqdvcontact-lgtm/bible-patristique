@@ -5,7 +5,8 @@ import { useEstMobile } from '@/app/lib/useEstMobile'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
-import { rendreEssai, compterCaracteres, lettreDepuisIndex, type ElementPanneau } from '@/app/lib/texteEnrichiEssai'
+import { compterCaracteres, lettreDepuisIndex, type ElementPanneau } from '@/app/lib/texteEnrichiEssai'
+import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEssai'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { syntaxeVersHtml, htmlVersSyntaxe, styleNote } from '@/app/lib/serialisationEssai'
 import { diffMots } from '@/app/lib/diffTexte'
@@ -538,14 +539,18 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai h3,
         .editeur-essai p,
         .editeur-essai blockquote { margin: 0; }
-        /* Présentation calquée EXACTEMENT sur la page de lecture (.essai-lecture-corps) :
-           sérif, interligne 1,5, paragraphes justifiés avec alinéa. */
-        .editeur-essai p,
-        .editeur-essai blockquote { font-family: var(--font-source-serif), Georgia, serif; }
         .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600; font-size: 1.06em; line-height: 1.25; color: var(--cs-encre-fonce); }
         .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: var(--cs-texte); }
-        .editeur-essai p { line-height: 1.5; text-align: justify; text-indent: 0.9em; }
-        .editeur-essai blockquote { font-style: normal; font-size: 0.9em; color: var(--cs-texte); margin-left: 8mm; margin-right: 8mm; text-align: justify; line-height: 1.44; }
+        /* ⛔ La composition du corps vient du module compositionEssai, la MÊME écriture
+           que la page de lecture, au lieu d'être recopiée ici. Elle n'était pas « calquée
+           exactement » comme le disait ce commentaire : la sérialisation posait ses
+           valeurs en clair, cette feuille les siennes, et le composeur une troisième
+           série que les !important de la lecture écrasaient.
+           ⚠️ Ces deux règles servent les blocs NUS que le navigateur fabrique sous la
+           frappe : un retour à la ligne dans une zone éditable crée un paragraphe sans
+           attribut de style, et sans elles il tomberait hors composition. */
+        .editeur-essai p { ${enCss(PARAGRAPHE_ESSAI)} }
+        .editeur-essai blockquote { ${enCss(CITATION_ESSAI)} }
         .editeur-essai h2 + h3,
         .editeur-essai h2 + h2 { margin-top: 3mm; }
         .editeur-essai h2 + p,

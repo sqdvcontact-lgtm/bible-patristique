@@ -1528,7 +1528,9 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
   return (
     <div style={{ maxWidth: '38.75rem', margin: '0 auto', padding: '8px 0 80px' }}>
       <div style={{ background: 'rgba(var(--cs-vert-rgb),0.06)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', padding: '14px 18px', marginBottom: '28px' }}>
-        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert-fonce)', lineHeight: 1.65, margin: 0 }}>
+        {/* Trois à quatre lignes pleines sur la mesure de lecture : c'est un
+            paragraphe, il prend la composition dense (audit du 2026-09-05). */}
+        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-vert-fonce)', lineHeight: 1.52, margin: 0, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: 0 } as React.CSSProperties}>
           Vous souhaitez enrichir la bibliothèque patristique ? Proposez un texte <strong>libre de droits</strong> (auteur décédé depuis plus de 70 ans, ou traduction ancienne dans le domaine public).
           Fournissez de préférence un texte propre, déjà structuré. L’équipe éditoriale vous contactera si nécessaire.
         </p>

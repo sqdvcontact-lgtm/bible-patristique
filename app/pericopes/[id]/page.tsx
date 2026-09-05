@@ -121,7 +121,11 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
               {/* Numéro centré verticalement sur la PREMIÈRE ligne du verset (boîte à la hauteur
                   d'une ligne, contenu centré) — plutôt qu'aligné sur la ligne de base. */}
               <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>{v.verset}</span>
-              <p style={{ fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.55, color: TEXTE, margin: 0, textAlign: 'justify' }}>
+              {/* ⚠️ Justifié, donc césuré : c'est ainsi que le site compose partout
+                  ailleurs un verset (`.citation-verset`, `.segment-texte`). Ce
+                  paragraphe-ci était le seul de la page à justifier sans césure, quand
+                  les notices juste dessous le font depuis toujours (audit 2026-09-05). */}
+              <p lang="fr" style={{ fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.55, color: TEXTE, margin: 0, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
                 {rendreTexteEnrichi(String(v.texte))}
               </p>
               {/* Boutons d'action centrés en face de cette même première ligne. */}

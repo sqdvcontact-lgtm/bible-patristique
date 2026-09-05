@@ -52,7 +52,10 @@ export default function ContactPage() {
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "12px", lineHeight: 1.25 }}>
           Contact
         </h1>
-        <p style={{ fontSize: "0.84375rem", color: "#566150", lineHeight: 1.7, marginBottom: "28px" }}>
+        {/* ⚠️ Deux lignes seulement : ce chapeau ne relève pas de la composition dense,
+            qui ne vise que les paragraphes. Seul l'interligne rentre dans le barème du
+            site — 1,70 était le troisième plus ouvert (audit du 2026-09-05). */}
+        <p style={{ fontSize: "0.84375rem", color: "#566150", lineHeight: 1.52, marginBottom: "28px" }}>
           Une question, un signalement d’erreur, l’exercice de vos droits sur vos données&#8239;: écrivez-nous
           par ce formulaire. Laissez votre adresse si vous souhaitez une réponse.
         </p>
