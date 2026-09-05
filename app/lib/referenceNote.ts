@@ -153,7 +153,10 @@ function resoudreLivre(numTete: string | undefined, mot: string): string | null 
 //    versets 11 et 15 — rendait « (Lc 7, 1115) » : le point était consommé comme
 //    ponctuation de fin, et les deux nombres se collaient. 216 blocs de neuf textes
 //    étaient dans ce cas, et le lecteur y lisait un verset qui n’existe pas.
-const RE_RENVOI = /(?<![\p{L}\d])((?:[1-4]\s*|(?:IV|III|II|I)\s+))?([A-Za-zÀ-ÿ]+)\.?\s*(\d{1,3}|[IVXLCDM]{1,6})\s*(?:,|\.(?=\s))\s*(\d{1,3}(?:\s*[-–]\s*\d{1,3})?)(?:\.(?!\d))?/gu
+// Le plus long livre du canon, le Psautier, compte 150 chapitres.
+const CHAPITRE_MAX = 150
+
+const RE_RENVOI = /(?<![\p{L}\d])((?:[1-4]\s*|(?:IV|III|II|I)\s+))?([A-Za-zÀ-ÿ]+)\.?\s*(\d{1,3}|[IVXLCDM]{1,6}|[ivxlcdm]{1,6})\s*(?:,|\.(?=\s))\s*(\d{1,3}(?:\s*[-–]\s*\d{1,3})?)(?:\.(?!\d))?/gu
 
 export type ReferenceBibliqueNormalisee = {
   source: string
@@ -181,6 +184,15 @@ export function releverReferencesBibliquesNormalisables(texte: string): Referenc
     if (!bookCode || match.index == null) continue
     const chapNum = /^\d+$/.test(chap) ? parseInt(chap, 10) : romainVersEntier(chap)
     if (chapNum == null) continue
+    // ⛔ AUCUN LIVRE DU CANON N'A PLUS DE 150 CHAPITRES (le Psautier en a 150, et il
+    // est le plus long). Un nombre au-delà ne désigne donc rien : c'est le signe que
+    // le motif a lu comme un chiffre romain ce qui n'en est pas un. Mesuré le
+    // 5 septembre 2026 sur les 24 264 blocs du corpus, au moment d'accepter les
+    // romains en MINUSCULES (charte § 13.12, décision 11) : la borne écarte SIX
+    // corruptions — « na m. 2 » rendu « Na 1000, 2 », « Psalm. 77. » rendu
+    // « Ps 1000, 77 », où le « m » d'un mot est pris pour mille — et elle ne coûte
+    // AUCUNE réécriture existante, aucune des 4 038 ne dépassant 150.
+    if (chapNum < 1 || chapNum > CHAPITRE_MAX) continue
     const v = verset.replace(/\s*[-–]\s*/g, '-')
     const normalized = `${abrevEspacee(bookCode)} ${chapNum}, ${v}`
     if (normalized === source) continue

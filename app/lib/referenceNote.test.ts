@@ -110,6 +110,46 @@ describe('normaliserReferencesDansTexte — divers', () => {
   })
 })
 
+describe('le chapitre romain en MINUSCULES (charte § 13.12, décision 11)', () => {
+  it('reconnaît le romain minuscule comme le romain capital', () => {
+    expect(normaliserReferencesDansTexte('Matth. x, 22.')).toBe('Mt 10, 22')
+    expect(normaliserReferencesDansTexte('Ps. cxv, 12')).toBe('Ps 115, 12')
+    expect(normaliserReferencesDansTexte('Gal. v, 17')).toBe('Ga 5, 17')
+    expect(normaliserReferencesDansTexte('Eccli. xxx, 24.')).toBe('Si 30, 24')
+  })
+
+  // ⛔ Le motif n'agit que si le mot qui précède RÉSOUT vers un livre du
+  // référentiel. Les abréviations équivoques en sont volontairement absentes,
+  // et l'élargissement ne doit pas les y faire entrer par la bande.
+  it('laisse intactes les abréviations équivoques', () => {
+    expect(normaliserReferencesDansTexte('Cor. xv, 22')).toBe('Cor. xv, 22')
+    expect(normaliserReferencesDansTexte('Ibid. v, 12')).toBe('Ibid. v, 12')
+    expect(normaliserReferencesDansTexte('Thess. iv, 16')).toBe('Thess. iv, 16')
+  })
+
+  // ⛔ AUCUN LIVRE DU CANON N'A PLUS DE 150 CHAPITRES. Mesuré sur les 24 264 blocs
+  // du corpus le 5 septembre 2026, la borne écarte SIX corruptions et n'en coûte
+  // aucune : sur les 4 038 réécritures d'alors, pas une ne dépassait 150.
+  it('refuse un chapitre que le canon ne peut pas porter', () => {
+    // « m » pris pour mille, au milieu d'un mot ou après lui.
+    expect(normaliserReferencesDansTexte('na m. 2')).toBe('na m. 2')
+    expect(normaliserReferencesDansTexte('Psalm. 77. ')).toBe('Psalm. 77. ')
+  })
+
+  // ⚠️ Le motif RECULE dans le mot qui précède, et c'est ce qui rend « Abdi. 1 »
+  // lisible : « Abd » + « i » = Abdias, chapitre 1. Interdire ce recul (par un
+  // groupe atomique) coûterait treize réécritures justes, mesurées, et
+  // n'écarterait aucune corruption que la borne n'écarte déjà.
+  it('lit « Abdi. 1 » comme Abdias, qui n’a qu’un chapitre', () => {
+    expect(normaliserReferencesDansTexte('Abdi. 1.')).toBe('Ab 1, 1')
+    expect(normaliserReferencesDansTexte('Abdi. 12.')).toBe('Ab 1, 12')
+  })
+
+  it('n’accepte pas un romain de casse MÊLÉE', () => {
+    expect(normaliserReferencesDansTexte('Matth. xI, 22')).toBe('Matth. xI, 22')
+  })
+})
+
 describe('terminerNote', () => {
   it('ajoute un point si la note n’a pas de ponctuation forte', () => {
     expect(terminerNote('Gn 2, 7')).toBe('Gn 2, 7.')

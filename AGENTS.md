@@ -3840,7 +3840,7 @@ sont à leur place.
 contredit, une donnée dérivée ne peut pas mentir, quand une colonne recopiée le peut. La
 colonne viendra le jour où l’on voudra forcer un cas contre la mesure.
 
-⚠️ **Sauvegarde des fichiers d’avant** : `C:Corpus Scripturaillion-illustrations-avant-jp2-20260830`.
+⚠️ **Sauvegarde des fichiers d’avant** : `C:\Corpus Scriptura\fillion-illustrations-avant-jp2-20260830`.
 
 ⚠️ **Les 43 sont `is_public = true` alors qu'elles portent toutes
 `metadata.test_only = true`, `validation_status = 'review'` et `requires_review = true`.**
@@ -5602,3 +5602,39 @@ Doctrine : charte `parametres.charte_ia`, § 38.19. Règles de code, dans
   de plus ce jour-là : les deux blocs `<style>` vivent dans des littéraux de gabarit, et
   `globals.css` écrit entre accents graves y ferme la chaîne. Nommer un fichier entre
   guillemets français dans ces blocs, jamais entre accents graves.
+
+
+# ⛔ Un CHAPITRE au-delà de 150 n’est pas un chapitre (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, § 13.12, décision 11. Règles de code, toutes
+dans `app/lib/referenceNote.ts` :
+
+- **`RE_RENVOI` accepte le chapitre romain en MINUSCULES** (« Matth. x, 22 », « Ps. cxv,
+  12 »), sur une alternative HOMOGÈNE — `[IVXLCDM]{1,6}|[ivxlcdm]{1,6}` — jamais une classe
+  mêlée, qui admettrait « xI ». ⚠️ `romainVersEntier` passait déjà par `toUpperCase()` : il
+  n'y avait rien à y changer.
+- ⛔ **`CHAPITRE_MAX = 150`, et ce n'est pas un garde-fou de confort** : le Psautier est le
+  plus long livre du canon. Un nombre au-delà dit que le motif a lu comme un romain ce qui
+  n'en est pas un. Sans la borne, l'élargissement fabriquait **six corruptions** mesurées
+  sur les 24 264 blocs du corpus — « na m. 2 » → « Na 1000, 2 », « Psalm. 77. » →
+  « Ps 1000, 77 », le « m » d'un mot pris pour mille. ⚠️ Elle ne coûte RIEN : des 4 038
+  réécritures d'avant, pas une ne dépassait 150.
+- ⛔ **On ne rend PAS le groupe du mot ATOMIQUE**, bien que ce soit le remède apparent au
+  « Psalm. 77 ». Le recul dans le mot est ce qui rend « Abdi. 1 » lisible — « Abd » + « i »
+  font Abdias, chapitre 1, et le livre n'en a qu'un. Mesuré : l'interdire coûterait **treize
+  réécritures justes** et n'écarterait aucune corruption que la borne n'écarte déjà. *Une
+  garde se choisit sur ce qu'elle coûte, non sur ce qu'elle a l'air de protéger.*
+- ⚠️ **La borne ne CORRIGE pas une référence fautive**, elle refuse d'en fabriquer une.
+  Trois sources du corpus donnent un chapitre qui n'existe pas — « I Cor. xxv, 24 »
+  (seize chapitres), « I Thess. vi, 12 » (cinq), « Ap. v, 15 » (quatorze versets au
+  chapitre 5) — et le normaliseur les recompose fidèlement. Ce sont trois cas pour le
+  sondage, non trois défauts du motif.
+- ⚠️ **Le motif ABSORBE le point final** (`(?:\.(?!\d))?`) : « Abdi. 1. » rend « Ab 1, 1 »
+  sans point, et c'est `terminerNote` qui le repose au niveau de la NOTE, jamais du bloc.
+  Deux attentes de test s'y sont trompées avant d'être corrigées.
+
+⚠️ **La mesure est le seul juge, et elle se fait sur le CORPUS** (charte § 13.8.1) : le
+harnais `tmp/mesure-romains-minuscules.mts` fait passer tous les blocs par la VRAIE
+fonction, avant et après, et compare les deux relevés. Les vingt premiers cas eyeballés
+paraissaient tous justes ; c'est le balayage complet qui a fait paraître les six
+corruptions.
