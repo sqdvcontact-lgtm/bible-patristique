@@ -54,14 +54,18 @@ const texteMeta = (metadata: Record<string, unknown> | null, cle: string) => {
  * accident la même paire note/bloc ou si la notice manque, la chaîne source reste
  * affichée : une dette bibliographique ne rend jamais une note vide.
  */
-export function useBibliographieNote(noteKey: string, blockIds: readonly string[]): BibliographieNoteParBloc {
+export function useBibliographieNote(
+  noteKey: string,
+  blockIds: readonly string[],
+  enabled = true,
+): BibliographieNoteParBloc {
   const cleBlocs = useMemo(() => [...blockIds].sort().join('\u001F'), [blockIds])
   const [parBloc, setParBloc] = useState<BibliographieNoteParBloc>({})
 
   useEffect(() => {
     let actif = true
     const ids = cleBlocs ? cleBlocs.split('\u001F').filter(Boolean) : []
-    if (!noteKey || ids.length === 0) {
+    if (!enabled || !noteKey || ids.length === 0) {
       setParBloc({})
       return () => { actif = false }
     }
@@ -128,7 +132,7 @@ export function useBibliographieNote(noteKey: string, blockIds: readonly string[
     })()
 
     return () => { actif = false }
-  }, [noteKey, cleBlocs])
+  }, [enabled, noteKey, cleBlocs])
 
   return parBloc
 }
