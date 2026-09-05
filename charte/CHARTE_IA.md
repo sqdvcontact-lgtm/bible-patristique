@@ -3115,6 +3115,20 @@ Cette obligation vaut aussi pour les œuvres antiques, médiévales ou anciennes
 
 ⚠️ **Une seule référence se compose encore à part, et sa raison est écrite** : celle des VOLUMES SERVIS d’une bible (§ 38.4), dont les millésimes sont un texte que le catalogue des ouvrages ne saurait dire, et qui porte une mention d’édition, un dépôt, une cote et un nombre de tomes qu’une notice d’ouvrage n’a pas. Elle partage la ponctuation du moteur et le type de ses fragments. ⛔ Elle ne fonde pas une seconde norme.
 
+### 35.6.7. L’ADRESSE d’une édition s’écrit en un seul endroit
+
+**Rappel de l’auteur du 5 septembre 2026 : « c’est ville, éditeur, année ; il faut uniformiser. »** L’adresse d’une édition — « Bar-le-Duc, Louis Guérin, 1866 » — se lit dans cet ordre, qui est celui de la notice bibliographique (§ 35.6.1) et du libellé court d’édition (§ 5). Il n’y a aucune raison qu’un libellé de navigation dise les mêmes trois choses dans un autre ordre.
+
+⛔ **Elle était écrite à SEPT endroits, et cinq la disaient à l’envers.** La ligne d’une édition dans le sélecteur d’une œuvre, la mention d’une œuvre sœur, la ligne qui départage deux entrées de « Du même auteur », la carte de la bibliothèque, le menu des œuvres récentes de la barre : toutes composaient « éditeur, ville, année », quand la fiche d’une version et la carte d’une bible composaient « ville, éditeur, année ». Le lecteur changeait donc d’ordre d’une page à l’autre, pour la même édition. Une seule écriture désormais, et une règle qui change là change partout.
+
+⛔ **Ce n’est PAS une notice bibliographique.** Pas de titre, pas d’auteur, pas d’italique, pas de point final : une notice se compose par le MOTEUR (§ 35.6.5). L’adresse en est la seule partie qu’un libellé de navigation reprend, et c’est pour cela qu’elle a son écriture à elle.
+
+⚠️ **L’adresse ne RÉSOUT rien.** L’éditeur lui arrive sous son nom d’autorité, coéditeurs déjà joints par la barre à fines (§ 35.6.4), et la date déjà mise en forme. Elle décide de l’ordre et du séparateur, et s’arrête là.
+
+⚠️ **Une surface dont une mention est un NŒUD prend la LISTE ordonnée** plutôt que la chaîne, et pose sa mention avec le même séparateur. C’est le cas de la carte de la bibliothèque, dont la date est rendue par un composant : elle garde ainsi l’ordre sans le réécrire.
+
+⚠️ **La phrase de provenance suit, et sa grammaire tient.** Sur le frontispice d’une œuvre comme sur la carte d’une bible, on lit désormais « D’après l’édition de Bar-le-Duc, Louis Guérin, 1866 » : « de » gouverne la VILLE, et l’éditeur la suit en apposition. ⛔ Sans ville, « de » gouverne l’ÉDITEUR, et l’article contracté redevient nécessaire — « D’après l’édition du Cerf, 1984 », « D’après la publication des Presses universitaires… », « D’après la publication de l’Imprimerie nationale ». Les deux cas coexistent, et le second n’est pas une survivance : c’est la seule façon de dire la phrase quand le lieu manque.
+
 ### 35.7. Les guillemets d’une citation en langue étrangère restent en romain
 
 Une citation latine ou une translittération grecque en alphabet latin enchâssée dans une phrase française se compose en italique, mais les guillemets qui l’encadrent appartiennent au français qui cite et restent en romain. On écrit donc « *Jesu Christi* » et jamais *« Jesu Christi »*. ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.

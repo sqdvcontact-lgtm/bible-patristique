@@ -57,6 +57,7 @@
 //
 // Module pur, testé par editionTraduction.test.ts.
 
+import { adresseEdition } from './adresseEdition'
 import { parserDateHistorique, type BorneDateHistorique } from './datesHistoriques'
 import { joindreLieux } from './referenceEditionServie'
 
@@ -149,6 +150,8 @@ export function libelleEditionTraduction(source: SourceEditionTraduction): strin
   }
   // ⛔ Pas de date, pas d'édition : voir l'en-tête.
   if (!dates) return null
-  const adresse = [lieu, propre(source.editeur), dates].filter(Boolean).join(', ')
+  // ⚠️ L'ordre est celui de l'ADRESSE (charte § 5), et il vient du module qui en
+  // répond : la même phrase se lit sur le frontispice d'une œuvre.
+  const adresse = adresseEdition({ ville: lieu, editeur: source.editeur, annee: dates })
   return `D’après l’édition de ${adresse}`
 }

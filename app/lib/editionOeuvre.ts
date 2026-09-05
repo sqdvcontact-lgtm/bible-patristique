@@ -15,6 +15,7 @@
 import { libelleTrad } from './traducteurs'
 import { libelleTexteOriginal } from './langues'
 import { normaliserNomEditeur, type IndexEditeurs } from './editeursNormalisation'
+import { adresseEdition } from './adresseEdition'
 
 /** Les colonnes lues, telles que `v_oeuvres_dates` les nomme — `date` mise à part,
  *  que l'appelant prend dans `date_publication_affichage_courte`. */
@@ -39,16 +40,15 @@ function responsabilite(o: EditionOeuvre): string {
   return vide(o.langue_trad) && !vide(o.langue_originale) ? libelleTexteOriginal(o.langue_originale) : ''
 }
 
-/** Chez qui, où, quand. L'éditeur paraît sous son nom RÉPERTORIÉ quand il l'est
+/** Où, chez qui, quand — l'ADRESSE de l'édition, dans l'ordre de la charte (§ 5) et
+ *  par le module qui en répond. L'éditeur paraît sous son nom RÉPERTORIÉ quand il l'est
  *  (« L. Guérin & Cie » → « Louis Guérin ») : la donnée brute reste intacte, seule
  *  la lecture change. Sans index chargé, la forme brute est rendue telle quelle. */
 function provenance(o: EditionOeuvre, index: IndexEditeurs | null): string {
-  return [normaliserNomEditeur(o.editeur, index), (o.ville ?? '').trim(), (o.date ?? '').trim()]
-    .filter(Boolean)
-    .join(', ')
+  return adresseEdition({ ville: o.ville, editeur: normaliserNomEditeur(o.editeur, index), annee: o.date })
 }
 
-/** « Traduction par H. Barreau et M. Charpentier, Louis Vivès, Paris, 1870-1873 ».
+/** « Traduction par H. Barreau et M. Charpentier, Paris, Louis Vivès, 1870-1873 ».
  *  Chaîne vide quand l'œuvre ne porte aucune de ces mentions : l'appelant n'affiche
  *  alors pas de ligne du tout, plutôt qu'une ligne qui ne dirait rien. */
 export function ligneEdition(o: EditionOeuvre, index: IndexEditeurs | null = null): string {

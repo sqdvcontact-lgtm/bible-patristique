@@ -5845,6 +5845,50 @@ en place ; y compris dans le copier/coller ». Règles de code :
   deux requêtes d'œuvre : sans elles, la note d'un essai aurait dit moins que le
   presse-papiers pour la même œuvre.
 
+# ⛔ L'ADRESSE d'une édition : ville, éditeur, année (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.6.7**. Rappel de l'auteur : « c'est
+ville, éditeur, année ; il faut uniformiser. » Règles de code :
+
+- **Une seule écriture, `app/lib/adresseEdition.ts`** (pur, 10 tests) :
+  `adresseEdition({ ville, editeur, annee })` rend la chaîne,
+  `mentionsAdresseEdition` la LISTE ordonnée, `SEPARATEUR_ADRESSE` la virgule. ⛔ Ne
+  plus joindre ces trois mentions ailleurs : elles l'étaient à SEPT endroits, dont cinq
+  à l'envers.
+- **Les sept sites** : `versionTextuelle.ts` (`publicationLabel`) et
+  `editionTraduction.ts` (la phrase d'une carte de bible) avaient déjà le bon ordre et
+  sont centralisés ; `editionOeuvre.ts` (le menu des œuvres récentes de la barre), les
+  trois libellés d'`OeuvreClient` (`libelleEdition`, la `mention` d'une œuvre sœur,
+  `libelleDistinction` de « Du même auteur »), la carte de `BibliothequeClient` et la
+  phrase du frontispice (`PageTitre::formulerProvenance`) CHANGENT d'ordre.
+- ⛔ **Ce n'est PAS une notice**, et le module ne cherche pas à en faire une : ni titre,
+  ni auteur, ni italique, ni point final. Une notice se compose par le MOTEUR
+  (`referenceBibliographique.ts`). L'adresse en est la seule partie qu'un libellé de
+  navigation reprend.
+- ⚠️ **Le module ne RÉSOUT rien** : l'éditeur lui arrive de `formaterEditeur` ou de
+  `normaliserNomEditeur` (coéditeurs déjà joints par la barre à fines), la date de
+  `formaterDateHistorique`. Il décide de l'ordre et du séparateur, et s'arrête là.
+- ⚠️ **Une surface dont une mention est un NŒUD prend `mentionsAdresseEdition`** : la
+  carte de la bibliothèque rend sa date par `HistoricalDate` et ne peut donc pas la
+  mettre dans la chaîne. Elle joint les mentions avec `SEPARATEUR_ADRESSE`, et garde
+  l'ordre sans le réécrire.
+- ⛔ **`formulerProvenance` garde sa grammaire, et il le faut.** Avec une VILLE, « de »
+  la gouverne et l'éditeur suit en apposition : « D'après l'édition de Bar-le-Duc, Louis
+  Guérin, 1866 », qui est mot pour mot la phrase de la carte d'une bible. SANS ville,
+  « de » gouverne l'ÉDITEUR et l'article contracté redevient nécessaire — « du Cerf »,
+  « des Presses universitaires », « de l'Imprimerie nationale ». Les deux branches
+  coexistent ; ⛔ ne pas retirer la seconde en croyant nettoyer.
+- ⚠️ **`formulerProvenance` n'est pas testée, et ne peut pas l'être en l'état** :
+  `PageTitre.tsx` tire `@/app/lib/editeurs`, qui ouvre un client Supabase de navigateur
+  dès son import (même piège que `pericopesRecherche`). La partie qui décide de l'ordre,
+  elle, l'est — c'est `adresseEdition`.
+- ⚠️ **Piège d'atelier, payé une fois de plus** : `\\b` écrit dans un heredoc arrive dans
+  le fichier comme le caractère U+0008, et quatre `\b` de `formulerProvenance` sont
+  devenus des retours arrière — regex silencieusement fausse, que `JSON.stringify`
+  RÉAFFICHE en `\b`. Contrôle : `[...s].filter(c => c.codePointAt(0) < 32 && ![9,10,13].includes(c.codePointAt(0)))`
+  sur tout `app/` ne doit rendre que les trois fichiers connus de l'audit du 5 septembre
+  (`SectionOuvrages.tsx`, `liensSurs.ts`, `liensSurs.test.ts`).
+
 # ⛔ Une page de lecture ne tombe pas sur une couche SECONDAIRE (2026-09-05)
 
 Doctrine : charte `parametres.charte_ia`, § 18, sous « Une page de lecture ne tombe pas

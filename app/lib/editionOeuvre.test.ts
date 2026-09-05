@@ -23,9 +23,11 @@ const citeFrancaise = {
 }
 
 describe('ligne d’édition d’une œuvre', () => {
+  // ⚠️ L'adresse se lit « ville, éditeur, année » (charte § 5, rappelé par l'auteur le
+  // 5 septembre 2026) : elle se disait ici à l'envers, comme sur quatre autres surfaces.
   it('distingue deux éditions d’un même titre', () => {
-    expect(ligneEdition(citeLatine)).toBe('Texte original latin, Jacques-Paul Migne, Paris, 1845')
-    expect(ligneEdition(citeFrancaise)).toBe('Traduction par H. Barreau et M. Charpentier, Louis Vivès, Paris, 1870-1873')
+    expect(ligneEdition(citeLatine)).toBe('Texte original latin, Paris, Jacques-Paul Migne, 1845')
+    expect(ligneEdition(citeFrancaise)).toBe('Traduction par H. Barreau et M. Charpentier, Paris, Louis Vivès, 1870-1873')
   })
 
   it('ne nomme la langue que faute de traducteur', () => {
@@ -43,9 +45,9 @@ describe('ligne d’édition d’une œuvre', () => {
       { nom_complet: 'Louis Guérin', variantes: ['L. Guérin & Cie'], ville: 'Bar-le-Duc' },
     ])
     const guerin = { editeur: 'L. Guérin & Cie', ville: 'Bar-le-Duc', date: '1864' }
-    expect(ligneEdition(guerin, index)).toBe('Louis Guérin, Bar-le-Duc, 1864')
+    expect(ligneEdition(guerin, index)).toBe('Bar-le-Duc, Louis Guérin, 1864')
     // Index non chargé : la forme rencontrée vaut mieux que rien.
-    expect(ligneEdition(guerin)).toBe('L. Guérin & Cie, Bar-le-Duc, 1864')
+    expect(ligneEdition(guerin)).toBe('Bar-le-Duc, L. Guérin & Cie, 1864')
   })
 
   it('dit le traducteur non identifié, qui distingue aussi une édition', () => {

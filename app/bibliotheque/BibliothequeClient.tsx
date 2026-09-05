@@ -17,6 +17,7 @@ import { serieDeLAuteur } from '@/app/lib/langueBude'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from '@/app/lib/bibliothequeSelects'
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
+import { mentionsAdresseEdition, SEPARATEUR_ADRESSE } from '@/app/lib/adresseEdition'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
@@ -422,13 +423,17 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     </span>
                   )}
                   {grp.versions.map((o, iv) => {
+                    // L'ADRESSE de l'édition, dans l'ordre de la charte (§ 5) : ville,
+                    // éditeur, année. ⚠️ La date est un NŒUD (`HistoricalDate`) et ne peut
+                    // pas entrer dans la chaîne : on prend donc les MENTIONS ordonnées, et
+                    // on lui pose le même séparateur.
                     // L'éditeur paraît sous son nom répertorié, comme sur la page de
                     // titre : « L. Guérin & Cie » et « Louis Guérin » sont la même
                     // maison, et l'étagère ne doit pas donner à croire le contraire.
-                    const editionTexte = [formaterEditeur(o.editeur), o.ville].filter(Boolean).join(', ')
+                    const editionTexte = mentionsAdresseEdition({ ville: o.ville, editeur: formaterEditeur(o.editeur) }).join(SEPARATEUR_ADRESSE)
                     const datePublication = o.date_publication_affichage_courte
                     const aEdition = !!(editionTexte || datePublication)
-                    const edition = <>{editionTexte}{editionTexte && datePublication ? ', ' : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
+                    const edition = <>{editionTexte}{editionTexte && datePublication ? SEPARATEUR_ADRESSE : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
                     const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
                     // Une édition en LANGUE ORIGINALE (langue_trad vide, langue_originale
                     // renseignée) n'a pas de traducteur à nommer : c'est sa langue qui la

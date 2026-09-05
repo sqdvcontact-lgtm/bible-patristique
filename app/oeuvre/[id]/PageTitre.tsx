@@ -6,6 +6,7 @@ import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { MarqueImprimeur } from './Ornements'
 import { memeIntitule, sansPointFinal } from '@/app/lib/titres'
+import { adresseEdition } from '@/app/lib/adresseEdition'
 
 // Libellé du traducteur : logique pure dans `app/lib/traducteurs.ts` (testée),
 // ré-exportée ici pour les appelants historiques.
@@ -28,22 +29,38 @@ export function formaterEditeur(editeur: string | null | undefined): string {
 // d'éditeur ne prend pas d'article (« de Gallimard », « de Desclée de Brouwer »).
 const EDITEUR_AVEC_DU = new Set(['cerf', 'seuil', 'centurion']);
 
-/** Formule de provenance élégante et grammaticale, sans redondance de « édition » :
- *  - « Cerf, Paris, 1984 »            → « D'après l'édition du Cerf, Paris, 1984 »
- *  - « Éditions du CNRS, Paris »      → « D'après la publication des Éditions du CNRS, Paris »
- *  - « Presses universitaires… »     → « D'après la publication des Presses universitaires… »
- *  - « Imprimerie nationale »        → « D'après la publication de l'Imprimerie nationale »
- *  - « Gallimard, Paris, 1990 »      → « D'après l'édition de Gallimard, Paris, 1990 » */
+/**
+ * Formule de provenance élégante et grammaticale, sans redondance de « édition ».
+ *
+ * ⛔ L'ADRESSE d'une édition se lit « ville, éditeur, année » (charte § 5, rappelé par
+ * l'auteur le 5 septembre 2026), et cette phrase la disait à l'envers depuis toujours :
+ * « D'après l'édition de Louis Guérin, Bar-le-Duc, 1866 ». La carte d'une bible, qui
+ * porte la MÊME phrase, la disait déjà dans le bon ordre — deux frontispices du même
+ * site ne peuvent pas nommer une adresse de deux façons.
+ *
+ * ⚠️ Avec une VILLE, « de » gouverne la ville et l'éditeur la suit en apposition :
+ * l'article contracté n'a plus lieu d'être, et la phrase est celle de
+ * `libelleEditionTraduction`. Sans ville, « de » gouverne l'ÉDITEUR, et toute la
+ * grammaire ci-dessous redevient nécessaire — c'est pourquoi elle reste.
+ *
+ *  - « Bar-le-Duc, Louis Guérin, 1866 » → « D'après l'édition de Bar-le-Duc, Louis Guérin, 1866 »
+ *  - « Cerf, 1984 » (sans ville)        → « D'après l'édition du Cerf, 1984 »
+ *  - « Presses universitaires… »        → « D'après la publication des Presses universitaires… »
+ *  - « Imprimerie nationale »           → « D'après la publication de l'Imprimerie nationale »
+ */
 export function formulerProvenance(
   editeur: string | null | undefined,
   ville: string | null | undefined,
   dateFormatee: string,
 ): string {
   const ed = formaterEditeur(editeur);
-  const lieuDate = [ville, dateFormatee].filter(Boolean).join(', ');
-  const suffixe = lieuDate ? `, ${lieuDate}` : '';
-  if (!ed) return lieuDate ? `D’après l’édition de ${lieuDate}` : '';
+  const lieu = (ville ?? '').trim();
+  // La ville en tête : « de » la gouverne, et l'adresse suit son ordre normatif.
+  if (lieu) return `D’après l’édition de ${adresseEdition({ ville: lieu, editeur: ed, annee: dateFormatee })}`;
+  if (!ed) return dateFormatee ? `D’après l’édition de ${dateFormatee}` : '';
 
+  // ⛔ Sans ville, c'est l'ÉDITEUR que « de » gouverne, et l'article se décide sur son nom.
+  const suffixe = dateFormatee ? `, ${dateFormatee}` : '';
   const bas = ed.toLowerCase();
   // Le nom porte déjà un mot de publication → on parle de « publication », pas d'« édition ».
   if (/^(é|e)ditions?\b/.test(bas)) return `D’après la publication des ${ed}${suffixe}`;

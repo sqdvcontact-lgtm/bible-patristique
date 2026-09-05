@@ -1,4 +1,5 @@
 import type { VersionTextuelle } from './oeuvreTypes'
+import { adresseEdition } from '@/app/lib/adresseEdition'
 import { libelleTrad } from '@/app/lib/traducteurs'
 import {
   editeursDuSegment,
@@ -118,7 +119,7 @@ export function decomposerEdition(
     ville = morceaux.shift() ?? null
     editeur = morceaux.length ? (normaliserNomEditeur(morceaux.join(', '), index) || null) : null
   }
-  const publicationLabel = [ville, editeur, annee].filter(Boolean).join(', ')
+  const publicationLabel = adresseEdition({ ville, editeur, annee })
 
   return {
     editionDescription: edition ? capitaleInitiale(edition) : null,

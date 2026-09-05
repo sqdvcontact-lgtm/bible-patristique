@@ -73,6 +73,7 @@ import FicheEdition from './FicheEdition'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import BandeauDegradations from './BandeauDegradations'
 import { useEditeursCharges } from '@/app/lib/editeurs'
+import { adresseEdition } from '@/app/lib/adresseEdition'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import NomVolet from '@/app/components/NomVolet'
 import { FeuilleVigne } from './Ornements'
@@ -1883,7 +1884,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
   const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
   const libelleEdition = (v: VersionTrad): string => {
-    const edit = [formaterEditeur(v.editeur), v.ville, v.date_publication ? formaterDateHistorique(v.date_publication) : null].filter(Boolean).join(', ')
+    // L'ADRESSE de l'édition, dans l'ordre de la charte (§ 5) : ville, éditeur, année.
+    const edit = adresseEdition({
+      ville: v.ville,
+      editeur: formaterEditeur(v.editeur),
+      annee: v.date_publication ? formaterDateHistorique(v.date_publication) : null,
+    })
     if (estEditionOriginale(v)) {
       const lang = /grec/i.test(v.langue_originale || '') ? 'Grec' : 'Latin'
       return [lang, edit && `édition ${edit}`].filter(Boolean).join(' — ')
@@ -1938,7 +1944,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       langue: v.langue_trad?.trim() ? v.langue_trad : v.langue_originale,
       traducteur: v.trad_auteur,
       annee: anneeDeLOeuvre(v.date_publication),
-      mention: [formaterEditeur(v.editeur), v.ville].filter(Boolean).join(', ') || null,
+      mention: adresseEdition({ ville: v.ville, editeur: formaterEditeur(v.editeur) }) || null,
       libelle: libelleEdition(v),
       url: `/oeuvre/${v.id_oeuvre}`,
       actif: false,
@@ -1964,10 +1970,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // de son côté. Rien n'imposait qu'elles s'accordent, et elles ne s'accordaient pas.
     // Les trois rangs sont maintenant assemblés au même endroit, par la même constante.
     //
-    // La virgule reste À L'INTÉRIEUR du rang « édition », où elle sépare l'éditeur, la
-    // ville et la date : ce sont les parties d'une même mention, non trois rangs.
+    // La virgule reste À L'INTÉRIEUR du rang « édition », où elle sépare la ville,
+    // l'éditeur et la date : ce sont les parties d'une même adresse, non trois rangs.
     const SEP = ' — '
-    const edition = [formaterEditeur(o.editeur ?? null), o.ville, o.date_publication ? formaterDateHistorique(o.date_publication) : null].filter(Boolean).join(', ')
+    const edition = adresseEdition({
+      ville: o.ville,
+      editeur: formaterEditeur(o.editeur ?? null),
+      annee: o.date_publication ? formaterDateHistorique(o.date_publication) : null,
+    })
     const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
     const originale = estEditionOriginale({ langue_trad: o.langue_trad ?? null, langue_originale: o.langue_originale ?? null })
     const langue = originale
