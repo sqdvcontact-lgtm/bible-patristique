@@ -17,6 +17,7 @@ import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 import { STYLE_TERME_TAPE } from "@/app/lib/surlignageRecherche";
+import { referenceBiblique } from "@/app/lib/rechercheRequete";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
 
@@ -843,6 +844,9 @@ export default function Navbar() {
   }, [requeteRapide]);
 
   const qNorm = sansAccents(requeteRapide.trim());
+  // Le PASSAGE que la saisie désigne (« Jn 3, 16 », « Genèse 22 ») : il s'ouvre, il ne se
+  // cherche pas. La grammaire est celle des péricopes, la même que la page des résultats.
+  const refBiblique = referenceBiblique(requeteRapide);
   // Préfixe de MOT (comme le reste de la recherche rapide) : « am » trouve « Amos »,
   // jamais « Samuel » (am au milieu). On teste le début de chaque mot du nom.
   const motCommencePar = (nom: string) => sansAccents(nom).split(/[\s'’-]+/).some(w => w.startsWith(qNorm));
@@ -854,6 +858,7 @@ export default function Navbar() {
   // ⛔ L'ordre suit EXACTEMENT celui du rendu, sinon la flèche descend dans une liste
   // et le surlignage se pose dans une autre : les œuvres ouvrent, leurs auteurs suivent.
   const itemsNavigables: { cle: string; href: string }[] = [];
+  if (refBiblique) itemsNavigables.push({ cle: 'ref', href: refBiblique.href });
   oeuvresTrouvees.slice(0, 3).forEach(o => itemsNavigables.push({ cle: `oe:${o.id_oeuvre}`, href: `/oeuvre/${o.id_oeuvre}` }));
   livresTrouves.slice(0, 3).forEach(l => itemsNavigables.push({ cle: `li:${l.code}`, href: `/?livre=${l.code}&chapitre=1` }));
   auteursTrouves.slice(0, 3).forEach(a => itemsNavigables.push({ cle: `au:${a.id_auteur}`, href: `/auteur/${a.id_auteur}` }));
@@ -869,12 +874,13 @@ export default function Navbar() {
       if (el) { el.setAttribute('data-nav-actif', 'true'); el.scrollIntoView({ block: 'nearest' }); }
     }
   }, [cleActive]);
-  const aucunResultat = !rechercheRapideLoading && !pericopesLoading && qNorm.length > 0 && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0 && evenementsTrouves.length === 0;
+  const aucunResultat = !rechercheRapideLoading && !pericopesLoading && qNorm.length > 0 && !refBiblique && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0 && evenementsTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
     if (!requeteRapide.trim()) return;
-    router.push(`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`);
+    // Entrée sur une référence chiffrée OUVRE le passage ; sur un mot, la recherche entière.
+    router.push(refBiblique ? refBiblique.href : `/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`);
     fermerRechercheRapide();
   };
 
@@ -1251,6 +1257,20 @@ export default function Navbar() {
                      ⚠️ Les deux domaines ne sont plus contigus (vert puis bleu, et leurs
                      autres rubriques plus bas) : c'est le prix de la mise en tête, et le
                      filet de gauche continue de dire le domaine de chacun. ── */}
+              {/* Avant tout : le PASSAGE que la saisie désigne, s'il y en a un. « Jn 3, 16 »
+                  n'est pas un titre à chercher, c'est un endroit où aller (2026-09-06). */}
+              {refBiblique && (
+                <div style={styleDomaine("bible")}>
+                  <p className="rr-hd" style={{ margin: 0 }}>Passage biblique</p>
+                  <div className="rr-corps">
+                    <Link id="nav-ref" href={refBiblique.href} onClick={fermerRechercheRapide}
+                      className="rr-ligne"
+                      style={{ padding: "4px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
+                      Ouvrir {refBiblique.libelle}
+                    </Link>
+                  </div>
+                </div>
+              )}
               {oeuvresTrouvees.length > 0 && (
                 <div style={styleDomaine("patristique")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Œuvres patristiques</p>

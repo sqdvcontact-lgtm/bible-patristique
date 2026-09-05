@@ -12,6 +12,14 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { cesurerGrec, codeLangue, copierSansCesures } from '@/app/lib/grec'
 import { MENTION_ABSENT, MENTION_ABSENT_TITRE, STYLE_MENTION } from '@/app/lib/compositionBible'
 import { STYLE_TERME_TAPE } from '@/app/lib/surlignageRecherche'
+// ⛔ CE QUE LA RECHERCHE DEMANDE ET COMMENT ELLE RELIT vit dans un module PUR, testé
+// (audit du 2026-09-06) : les termes, le mode, la référence biblique tapée, la
+// frontière de mot telle que la BASE la voit. Cette page n'en garde que le rendu.
+import {
+  compterMarque, contientMarque, contientTousOriginal, graphiesVariantes as graphiesLatines, marqueDe,
+  modeDepuisParametre, normaliser, referenceBiblique, regexMarque, termesRecherche,
+  type Marque, type ModeRecherche, type ReferenceBiblique,
+} from '@/app/lib/rechercheRequete'
 // ⛔ LE VOLET PREND LA FORME DE CELUI DE « BIBLE CLASSIQUE » (demande de l'auteur,
 // 2026-09-04 : « revoir la mise en forme du volet de gauche de la page des résultats :
 // prendre modèle sur le volet de gauche de la page Bible classique »). C'est le dernier
@@ -23,18 +31,10 @@ import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarc
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 
-// ── Graphies & normalisation (hérités de la concordance) ─────────────────────
-function normaliser(s: string): string {
-  return (s ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[''ʼ]/g, "'")
-}
-function graphiesVariantes(base: string): string[] {
-  const v = new Set([base])
-  if (base.includes('j'))          v.add(base.replaceAll('j', 'i'))
-  if (/^i[aeiouy]/.test(base))     v.add('j' + base.slice(1))
-  if (base.includes('v'))          v.add(base.replaceAll('v', 'u'))
-  if (base.includes('u'))          v.add(base.replaceAll('u', 'v'))
-  return [...v].filter(s => s.length >= 2)
-}
+// (`normaliser` et `graphiesVariantes`, hérités de la concordance, vivent désormais dans
+// `app/lib/rechercheRequete.ts`, avec les tests qui leur manquaient. Les graphies
+// latines ne servent plus qu'à RELIRE un texte original : la base les cherche
+// elle-même, d'une seule expression, par `graphies_latines`.)
 
 // (`refFr` et son `abrevFr` composaient la référence entière — « Ps 18, 2 » — sur chaque
 // carte de résultat. Le nom du livre étant monté dans la rubrique de groupe, la ligne ne
@@ -75,7 +75,7 @@ type SegmentResult = {
 type EssaiResult = {
   id: number; titre: string; sous_titre: string | null; resume: string | null; contenu: string; categories: string[]
 }
-type Mode = 'prefixe' | 'exact'
+type Mode = ModeRecherche
 type Onglet = 'bible' | 'patristique' | 'essais' | 'polyglotte'
 
 const PAGE = 20
@@ -95,27 +95,7 @@ type RechercheSauvee = {
   ts: number
 }
 
-function termesRecherche(terme: string): string[] {
-  return terme.trim().split(/\s+/).filter(Boolean)
-}
-function echapperRegex(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-function contientTerme(texte: string, terme: string, mode: Mode): boolean {
-  const termes = termesRecherche(terme)
-  if (!termes.length) return false
-  const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
-  const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
-  const texteN = normaliser(texte)
-  try {
-    return termes.every(t => {
-      const tN = normaliser(t)
-      return new RegExp(`${sep}${echapperRegex(tN)}${fin}`, 'i').test(texteN)
-    })
-  }
-  catch { return false }
-}
-// Surligne les occurrences du terme dans UN run de texte plat. Renvoie toujours des nœuds
+// Surligne les occurrences de la MARQUE dans UN run de texte plat. Renvoie toujours des nœuds
 // CLÉS (préfixe `kb`) — pour pouvoir être imbriqué dans l'enrichissement sans collision de clé.
 // On construit le regex sur le texte normalisé pour trouver les positions, puis on surligne
 // les caractères originaux aux mêmes positions.
@@ -135,16 +115,14 @@ function contientTerme(texte: string, terme: string, mode: Mode): boolean {
 // (Une variante ROUGE a existé, pour le verset dont la traduction affichée ne porte pas le
 // mot. Plus rien ne l'appelait depuis que la ligne d'en-tête dit où le mot se trouve ; c'est
 // maintenant le sigle barré et le fond d'absence qui le disent.)
-function surligneParts(texte: string, terme: string, mode: Mode, kb: string): React.ReactNode[] {
-  const termes = termesRecherche(terme)
-  if (!texte || !termes.length) return [texte]
-  const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
-  const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
+// ⚠️ La frontière de mot est celle de la base (`regexMarque`) : l'ancienne liste de
+// séparateurs ignorait l'apostrophe et le trait d'union, et « l’espérance » ne se
+// marquait pas — quand elle n'était pas rejetée tout à fait (voir `rechercheRequete`).
+function surligneParts(texte: string, marque: Marque, kb: string): React.ReactNode[] {
+  const re = regexMarque(marque)
+  if (!texte || !re) return [texte]
   const style = STYLE_TERME_TAPE
   try {
-    const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
-    const alt = termesN.map(echapperRegex).join('|')
-    const re = new RegExp(`${sep}(${alt})${fin}`, 'gi')
     const texteN = normaliser(texte)
     const parts: React.ReactNode[] = []; let last = 0; let m: RegExpExecArray | null
     while ((m = re.exec(texteN)) !== null) {
@@ -159,18 +137,18 @@ function surligneParts(texte: string, terme: string, mode: Mode, kb: string): Re
   } catch { return [texte] }
 }
 
-function highlighter(texte: string, terme: string, mode: Mode): React.ReactNode {
-  if (!texte || !terme) return texte
-  const parts = surligneParts(texte, terme, mode, 'h')
+function highlighter(texte: string, marque: Marque): React.ReactNode {
+  if (!texte || !marque.mots.length) return texte
+  const parts = surligneParts(texte, marque, 'h')
   return parts.length > 1 ? <>{parts}</> : texte
 }
 
 // Enrichissement (gras, italique, `<i>` de Sacy…) ET surlignage du mot cherché, ensemble :
 // on passe le surligneur en `transform` de rendreTexteEnrichi. Sans cela, la recherche
 // affichait soit les balises en clair (onglet Bible), soit un texte appauvri (Polyglotte).
-function rendreEtSurligner(texte: string, terme: string, mode: Mode): React.ReactNode {
+function rendreEtSurligner(texte: string, marque: Marque): React.ReactNode {
   if (!texte) return texte
-  return rendreTexteEnrichi(texte, (s, key) => surligneParts(s, terme, mode, key))
+  return rendreTexteEnrichi(texte, (s, key) => surligneParts(s, marque, key))
 }
 
 // ── Les trois FAMILLES DE CORPUS ────────────────────────────────────────────
@@ -224,22 +202,8 @@ async function pagine<T = any>(make: (de: number, a: number) => any, signal: Abo
   return out
 }
 
-// Nombre d'occurrences du terme (mot entier / début de mot) dans un texte — sert au
-// décompte par livre/œuvre/publication affiché dans le volet gauche.
-function compterOccurrences(texte: string, terme: string, mode: Mode): number {
-  const termes = termesRecherche(terme)
-  if (!texte || !termes.length) return 0
-  const sep = '(^|[\\s\\u202f\\u00a0«»,;:!?—.(\\[])'
-  const fin = mode === 'exact' ? '(?=[\\s\\u202f\\u00a0«»,;:!?—.)\\]]|$)' : ''
-  try {
-    const termesN = termes.map(normaliser).sort((a, b) => b.length - a.length)
-    const alt = termesN.map(echapperRegex).join('|')
-    const re = new RegExp(`${sep}(${alt})${fin}`, 'gi')
-    const texteN = normaliser(texte)
-    let c = 0; while (re.exec(texteN) !== null) c++
-    return c
-  } catch { return 0 }
-}
+// (Le décompte des occurrences par livre, œuvre ou publication passe par `compterMarque`,
+// dans le module pur.)
 
 // Date courte d'un enregistrement, compacte pour tenir à droite du bouton (« 27 juil. 14:32 »).
 function formatDateCourt(ts: number): string {
@@ -269,7 +233,13 @@ export default function RechercheClient() {
   const mobile = useEstMobile(900)
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
-  const [mode, setMode] = useState<Mode>(searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe')
+  const [mode, setMode] = useState<Mode>(modeDepuisParametre(searchParams.get('mode')))
+  // La référence biblique que la saisie désigne (« Jn 3, 16 »), s'il y en a une : la
+  // page l'OUVRE en tête des résultats, quel que soit l'onglet.
+  const [reference, setReference] = useState<ReferenceBiblique | null>(null)
+  // Les RACINES rendues par la base en mode « famille » : ce que la page marque et
+  // relit à la place des termes tapés.
+  const [lexemes, setLexemes] = useState<string[]>([])
 
   // Par défaut : on cherche dans TOUTES les bibles (scope ALL) et l'on affiche dans la
   // traduction préférée (ou Sacy à défaut). La préférence ne pilote donc que l'affichage,
@@ -429,147 +399,91 @@ export default function RechercheClient() {
     setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
     setPageV(0); setPageS(0); setPageE(0)
     setFiltres({ livre: null, oeuvre: null, essai: null })
+    setReference(referenceBiblique(q))
+    setLexemes([])
 
     try {
+      // ⛔ UNE SEULE VOIE, un mot ou plusieurs (audit du 2026-09-06). La base reçoit les
+      // TERMES et le MODE ; elle les normalise comme ses textes (`norm_fr` : accents,
+      // casse, graphies anciennes — « était » trouve « étoit » chez Sacy), exige chaque
+      // terme dans la MÊME bible ou le même segment, et ne rend que ce qui se lit. Avant,
+      // deux mots passaient par un `ilike` sur le texte BRUT, sensible aux accents, et
+      // les graphies latines se cherchaient en autant d'appels successifs, sur le
+      // français normalisé aussi, qui ne les connaît pas.
       const termes = termesRecherche(q)
-      const fragments = modeActif === 'prefixe' && termes.length > 1
       const chercheTout = scopeActif === 'ALL'
-      const termeNorm = normaliser(q)
-      const vars = (!fragments && termeNorm.length >= 2) ? graphiesVariantes(termeNorm) : null
-
       const tradCodes = traductions.map(t => t.code)
-      // On récupère aussi les num_TRxxxx : les références d'ORIGINE de chaque édition,
-      // affichées en lettrine dans l'onglet Polyglotte, comme sur la page Polyglotte.
-      const selVersets = `id_verset, ref, livre, chapitre, verset, ${tradCodes.join(', ')}, ${tradCodes.map(c => 'num_' + c).join(', ')}`
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
         // La table ne se lit plus qu'en propriétaire : le public passe par la vue
         // `essais_publies`, qui tait l'auteur d'une publication anonyme.
         let r = supabase.from('essais_publies').select('id, titre, sous_titre, resume, contenu, categories')
-        if (fragments) {
-          for (const t of termes) r = r.or(`titre.ilike.%${t}%,sous_titre.ilike.%${t}%,resume.ilike.%${t}%,contenu.ilike.%${t}%`)
-          r = r.limit(500)
-        } else {
-          r = r.or(`titre.ilike.%${q}%,sous_titre.ilike.%${q}%,resume.ilike.%${q}%,contenu.ilike.%${q}%`).limit(200)
-        }
-        return r.abortSignal(signal)
+        for (const t of termes) r = r.or(`titre.ilike.%${t}%,sous_titre.ilike.%${t}%,resume.ilike.%${t}%,contenu.ilike.%${t}%`)
+        return r.limit(500).abortSignal(signal)
       })()
 
-      // Versets, segments et essais lancés en parallèle. Versets et segments sont
-      // PAGINÉS (voir `pagine`) pour dépasser le plafond de 1000 de PostgREST.
-      const [segsFromRpc, versetsArr, resE] = await Promise.all([
+      // Les racines du mode « famille » : ce que la page marquera dans le texte.
+      const reqLexemes = modeActif === 'famille'
+        ? supabase.rpc('lexemes_recherche', { p_termes: termes }).abortSignal(signal)
+        : Promise.resolve({ data: null as string[] | null })
 
-        // ── Segments ──────────────────────────────────────────────────────────
-        (async (): Promise<any[]> => {
-          const { data: textesDefaut } = await supabase.from('oeuvre_textes').select('id_texte').eq('is_default', true)
-          const idsTextesDefaut = (textesDefaut ?? []).map((row: any) => row.id_texte)
-          // 1) Matches dans le TEXTE FRANÇAIS (segment_texte).
-          const frRows: any[] = await (async () => {
-            if (fragments) {
-              return pagine((de, a) => {
-                let r = supabase.from('segments').select('id, segment_texte, id_oeuvre, id_texte, ref_niv1, ref_niv3').in('id_texte', idsTextesDefaut) as any
-                for (const t of termes) r = r.ilike('segment_texte', `%${t}%`)
-                return r.range(de, a)
-              }, signal)
-            } else if (vars && vars.length > 1) {
-              const seenSeg = new Set<number>(); const acc: any[] = []
-              for (const v of vars) {
-                const rows = await pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: v, p_exact: modeActif === 'exact', p_id_texte: null }).range(de, a), signal)
-                for (const row of rows) if (!seenSeg.has(row.id)) { seenSeg.add(row.id); acc.push(row) }
-              }
-              return acc
-            } else {
-              return pagine((de, a) => supabase.rpc('recherche_segments', { p_terme: q, p_exact: modeActif === 'exact', p_id_texte: null }).range(de, a), signal)
-            }
-          })()
-
-          // 2) Matches dans le TEXTE ORIGINAL (latin/grec). Même barre : la requête interroge
-          //    aussi l'original. Un mot grec ne matche que l'original ; un mot commun au latin
-          //    et au français fait remonter les deux, fusionnés par segment.
-          const origRows: any[] = await (async () => {
-            if (fragments) {
-              return pagine((de, a) => {
-                let r = supabase.from('segments').select('id, segment_texte, texte_original, id_oeuvre, id_texte, ref_niv1, ref_niv3').in('id_texte', idsTextesDefaut) as any
-                for (const t of termes) r = r.ilike('texte_original', `%${t}%`)
-                return r.range(de, a)
-              }, signal)
-            }
-            const cands = vars && vars.length ? vars : [q]
-            const seen = new Set<number>(); const acc: any[] = []
-            for (const v of cands) {
-              const rows = await pagine((de, a) => supabase.rpc('recherche_segments_original', { p_terme: v, p_exact: modeActif === 'exact', p_id_texte: null }).range(de, a), signal)
-              for (const row of rows) if (!seen.has(row.id)) { seen.add(row.id); acc.push(row) }
-            }
-            return acc
-          })()
-
-          // 3) Fusion par id : un segment peut matcher côté français, côté original, ou les deux.
-          const byId = new Map<number, any>()
-          for (const r of frRows) byId.set(r.id, { ...r, matchFr: true })
-          for (const r of origRows) {
-            const e = byId.get(r.id)
-            if (e) { e.texte_original = r.texte_original ?? e.texte_original; e.matchOrig = true }
-            else byId.set(r.id, { ...r, matchOrig: true })
-          }
-          return [...byId.values()]
-        })(),
-
-        // ── Versets ───────────────────────────────────────────────────────────
-        // L'ancien chemin passait par `concordance_versets` — relique du modèle d'avant
-        // la bascule du 20/07 (30 lignes, identifiants périmés `B001714`) : elle renvoyait
-        // 0, d'où « aucun mot n'était trouvé ». Un mot seul passe désormais par la fonction
-        // `recherche_versets`, qui compare via `unaccent` — on trouve donc « vérité » même
-        // en tapant « verite ». Le filtre client affine ensuite en mot entier / début de mot.
-        (async (): Promise<any[]> => {
-          if (!fragments) {
-            return pagine((de, a) => supabase.rpc('recherche_versets', { p_terme: q, p_scope: chercheTout ? 'ALL' : scopeActif }).range(de, a), signal)
-          }
-          // Fragments (plusieurs mots, mode début de mot) : requête directe, chaque mot
-          // requis. Accent-sensible ici — cas plus rare, la recherche d'un mot prime.
-          const cols = chercheTout ? tradCodes : [scopeActif]
-          return pagine((de, a) => {
-            let r = supabase.from('versets_lecture').select(selVersets)
-            for (const t of termes) r = r.or(cols.map(c => `${c}.ilike.%${t}%`).join(','))
-            return r.range(de, a)
-          }, signal)
-        })(),
-
-        // ── Essais ────────────────────────────────────────────────────────────
+      // Versets, segments, original et essais lancés en parallèle. Versets et segments
+      // sont PAGINÉS (voir `pagine`) pour dépasser le plafond de 1000 de PostgREST.
+      const [frRows, origRows, versetsArr, resE, resLex] = await Promise.all([
+        pagine((de, a) => supabase.rpc('recherche_segments_v2', { p_termes: termes, p_mode: modeActif }).range(de, a), signal),
+        // Le texte original (latin, grec) : chaque terme sous ses graphies latines, en
+        // début de mot ou entier — la famille de mots n'a pas de racines pour lui.
+        pagine((de, a) => supabase.rpc('recherche_segments_original_v2', { p_termes: termes, p_exact: modeActif === 'exact' }).range(de, a), signal),
+        pagine((de, a) => supabase.rpc('recherche_versets_v2', { p_termes: termes, p_mode: modeActif, p_scope: chercheTout ? 'ALL' : scopeActif }).range(de, a), signal),
         reqE,
+        reqLexemes,
       ])
 
       if (signal.aborted) return
 
-      // Détection troncature — seuils alignés sur le plafond de pagination (6000)
-      const limiteE = fragments ? 500 : 200
+      const lexemesRecus = ((resLex as { data?: string[] | null }).data ?? []) as string[]
+      setLexemes(lexemesRecus)
+      // Ce que la page marque et relit : les termes, ou les racines en mode famille.
+      const marqueLocale = marqueDe(termes, modeActif, lexemesRecus)
+      // En mode famille la base a jugé sur les racines ; la page ne rejette rien de ce
+      // qu'elle a rendu — elle marque ce qu'elle reconnaît, et ne marque pas faux.
+      const relire = (texte: string) => modeActif === 'famille' || contientMarque(texte, marqueLocale)
+
+      // Fusion par id : un segment peut répondre côté français, côté original, ou les deux.
+      const byId = new Map<number, any>()
+      for (const r of frRows as any[]) byId.set(r.id, { ...r, matchFr: true })
+      for (const r of origRows as any[]) {
+        const e = byId.get(r.id)
+        if (e) { e.texte_original = r.texte_original ?? e.texte_original; e.matchOrig = true }
+        else byId.set(r.id, { ...r, matchOrig: true })
+      }
+      const segsFromRpc = [...byId.values()]
+
+      // Détection troncature — seuils alignés sur les plafonds des RPC (6000 versets,
+      // 5000 segments) et de la pagination.
       const avertissements: string[] = []
       if (versetsArr.length >= 6000) avertissements.push('Bible')
-      if (segsFromRpc.length >= 6000) avertissements.push('Pères de l’Église')
-      if ((resE.data?.length ?? 0) >= limiteE) avertissements.push('Publications')
+      if (frRows.length >= 5000 || origRows.length >= 5000) avertissements.push('Pères de l’Église')
+      if ((resE.data?.length ?? 0) >= 500) avertissements.push('Publications')
       if (avertissements.length) setTronque(avertissements)
 
-      // Filtre client versets : mot entier ou début de mot, INSENSIBLE AUX ACCENTS
-      // (contientTerme normalise les deux côtés). Colonnes : toutes les bibles si ALL,
-      // sinon la seule choisie. Ce filtre resserre le résultat de recherche_versets
-      // (qui, lui, fait une simple sous-chaîne) sur la frontière de mot voulue.
+      // Versets : la base a exigé tous les termes dans une même bible ; la page ne
+      // garde que les versets où elle RETROUVE la marque dans une bible du périmètre
+      // (c'est aussi ce qui dit, ligne par ligne, quelles bibles portent le mot).
       const versetsRaw = versetsArr as unknown as VersetResult[]
       const colsFiltre = chercheTout ? tradCodes : [scopeActif]
-      const versets = versetsRaw.filter(v => colsFiltre.some(c => contientTerme(String(v[c] ?? ''), q, modeActif)))
+      const versets = versetsRaw.filter(v => colsFiltre.some(c => relire(String(v[c] ?? ''))))
       setVersetsRes(versets)
 
-      // Essais
+      // Essais : chaque terme quelque part (la vue), puis tous les termes ensemble.
       const essais = (resE.data ?? []) as EssaiResult[]
-      setEssaisRes(fragments ? essais.filter(e => contientTerme([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), q, modeActif)) : essais)
+      setEssaisRes(termes.length > 1 ? essais.filter(e => relire([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '))) : essais)
 
-      // Segments + oeuvres. On resserre TOUJOURS sur la frontière de mot (comme les
-      // versets) : la RPC fait une simple sous-chaîne, donc « am » remonterait « Ratramme ».
-      // En début-de-mot/exact single-word, on teste chaque graphie variante (i/j, u/v) pour
-      // ne pas perdre les appariements orthographiques anciens.
-      const candidatsSeg = fragments ? [q] : (vars && vars.length ? vars : [q])
+      // Segments : le français se relit par la marque, l'original par ses graphies.
       const segs = (segsFromRpc as any[]).filter((s: any) =>
-        (s.matchFr && candidatsSeg.some(mv => contientTerme(s.segment_texte ?? '', mv, modeActif)))
-        || (s.matchOrig && candidatsSeg.some(mv => contientTerme(s.texte_original ?? '', mv, modeActif))))
+        (s.matchFr && relire(s.segment_texte ?? ''))
+        || (s.matchOrig && contientTousOriginal(s.texte_original ?? '', termes, modeActif === 'exact')))
       const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
       const oeuvreMap: Record<string, { titre: string; auteur: string; langue: string }> = {}
       if (oeuvreIds.length) {
@@ -602,7 +516,7 @@ export default function RechercheClient() {
 
   useEffect(() => {
     const q = searchParams.get('q')?.trim()
-    const modeParam: Mode = searchParams.get('mode') === 'exact' ? 'exact' : 'prefixe'
+    const modeParam: Mode = modeDepuisParametre(searchParams.get('mode'))
     // On n'agit que si l'URL a RÉELLEMENT changé depuis la dernière fois. Un re-rendu qui
     // rejoue l'effet sans changement d'URL ne touche donc à rien : c'est ce qui protège
     // une recherche lancée au clavier (sans `q` dans l'URL) contre l'effacement.
@@ -688,6 +602,10 @@ export default function RechercheClient() {
     setTimeout(() => { if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = cible }, 120)
   }
 
+  // La MARQUE de la recherche affichée : les termes tapés, ou les racines rendues par
+  // la base en mode famille. Tout ce que la page relit ou surligne passe par elle.
+  const marque = useMemo(() => marqueDe(termesRecherche(lastQuery), mode, lexemes), [lastQuery, mode, lexemes])
+
   // Résultats bibliques TRIÉS dans l'ordre canonique (Genèse → Apocalypse, puis chapitre,
   // puis verset), pour l'onglet Bible ET l'onglet Polyglotte. L'ancien tri « mot absent de
   // la traduction affichée → en bas » est abandonné au profit de l'ordre biblique demandé.
@@ -700,6 +618,13 @@ export default function RechercheClient() {
     const sigles = siglesTraductions(traductions.map(t => t.label))
     return Object.fromEntries(traductions.map((t, i) => [t.code, sigles[i]])) as Record<string, string>
   }, [traductions])
+
+  // Un texte ORIGINAL se marque sous les graphies latines des termes (u/v, i/j), en
+  // début de mot ou entier : la famille de mots n'a pas de racines pour le latin.
+  const marqueOriginal = useMemo<Marque>(() => ({
+    mots: termesRecherche(lastQuery).flatMap(t => graphiesLatines(normaliser(t))),
+    entier: mode === 'exact',
+  }), [lastQuery, mode])
 
   // Résultats patristiques TRIÉS par nom d'auteur (alphabétique), puis œuvre, puis segment.
   const segmentsTries = useMemo(() => [...segmentsRes].sort((a, b) =>
@@ -729,8 +654,8 @@ export default function RechercheClient() {
   const repartitionEssais = useMemo(() =>
     essaisRes.map(e => ({
       id: e.id, titre: e.titre,
-      n: compterOccurrences([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), lastQuery, mode) || 1,
-    })).sort((a, b) => b.n - a.n), [essaisRes, lastQuery, mode])
+      n: compterMarque([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), marque) || 1,
+    })).sort((a, b) => b.n - a.n), [essaisRes, marque])
 
   // Listes FILTRÉES par le volet gauche (livre / œuvre / publication). Sans filtre,
   // ce sont les listes triées complètes.
@@ -996,10 +921,16 @@ export default function RechercheClient() {
                         <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier ; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
                       </span>
 
-                      <span style={{ display:'block' }}>
+                      <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Mot exact</span>
                         <span style={{ display:'block' }}>Ne trouve que le mot entier ; plusieurs mots entiers, non consécutifs, sont admis.</span>
                         <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires ; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
+                      </span>
+
+                      <span style={{ display:'block' }}>
+                        <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Famille de mots</span>
+                        <span style={{ display:'block' }}>Trouve le mot sous toutes ses formes, conjugué ou dérivé, en français seulement.</span>
+                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« aimer » ramène aime, aimait, aimé ; « espérance » ramène aussi espérer et espéré.</span>
                       </span>
                     </span>
                   </span>
@@ -1007,9 +938,11 @@ export default function RechercheClient() {
                 {/* ⛔ Les deux boutons encadrés d'un filet — un contrôle segmenté — cèdent
                     aux options en LIGNE du volet de lecture : une par rang, celle qui est
                     retenue sur la pastille verte. C'est le geste des axes « Lecture » et
-                    « Commentaires » de la page Bible, et ce sont les mêmes objets de style. */}
+                    « Commentaires » de la page Bible, et ce sont les mêmes objets de style.
+                    ⚠️ Un troisième rang depuis le 2026-09-06, la famille de mots : l'index
+                    plein texte français existait sur les segments, rien ne le lisait. */}
                 <div>
-                  {([['prefixe','Début de mot'],['exact','Mot exact']] as [Mode, string][]).map(([k, lib]) => (
+                  {([['prefixe','Début de mot'],['exact','Mot exact'],['famille','Famille de mots']] as [Mode, string][]).map(([k, lib]) => (
                     <button key={k} className="cs-option-volet" style={OPTION_VOLET(mode === k)}
                       aria-pressed={mode === k} onClick={() => setMode(k)}>{lib}</button>
                   ))}
@@ -1227,6 +1160,25 @@ export default function RechercheClient() {
               </div>
             )}
 
+            {/* ── Le PASSAGE que la saisie désigne ──
+                « Jean 3, 16 » ou « Genèse 22 » n'est pas un mot à chercher, c'est un
+                endroit où aller : la page l'ouvre en tête, quel que soit l'onglet, avant
+                les résultats — qui, sur une référence, sont presque toujours vides. La
+                grammaire est celle des péricopes (audit du 2026-09-06). */}
+            {done && reference && (
+              <div style={{ ...styleFamille('bible'), marginBottom:'10px' }}>
+                <div className="grp">
+                  <div className="grp-hd"><span className="nom">Passage biblique</span></div>
+                  <div className="grp-corps">
+                    <a href={reference.href} className="grp-ligne" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
+                      <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontWeight:600, color:'var(--cs-encre)' }}>Ouvrir {reference.libelle}</span>
+                      <span style={{ color:'var(--fam)', display:'inline-flex' }}><IconeChevron dir="right" size={13} strokeWidth={1.5} /></span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ── Bible ── */}
             {done && onglet==='bible' && (
               versetsFiltres.length===0
@@ -1247,12 +1199,12 @@ export default function RechercheClient() {
                         {tranche.items.map(v => {
                           const texte = String((v as any)[tradBible]??'')
                           const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
-                          const displayLeMot = !!(lastQuery && contientTerme(texte, lastQuery, mode))
+                          const displayLeMot = !!(lastQuery && contientMarque(texte, marque))
                           // TOUTES les bibles qui portent le mot, en SIGLES sur la ligne du haut.
                           // Celle qui est affichée porte un filet ; elle est barrée quand le mot
                           // n'y figure pas, et la ligne prend alors le fond d'absence.
                           const contientDans = lastQuery
-                            ? traductions.filter(t => contientTerme(String((v as any)[t.code]??''), lastQuery, mode))
+                            ? traductions.filter(t => contientMarque(String((v as any)[t.code]??''), marque))
                             : []
                           return (
                             <a key={v.id_verset}
@@ -1274,7 +1226,7 @@ export default function RechercheClient() {
                                   mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 {texte
-                                  ? rendreEtSurligner(texte, lastQuery, mode)
+                                  ? rendreEtSurligner(texte, marque)
                                   : <span style={{ color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
                               </p>
                             </a>
@@ -1317,12 +1269,12 @@ export default function RechercheClient() {
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
                                 <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
-                                  {rendreEtSurligner(nettoyerFin(s.texte_original), lastQuery, mode)}
+                                  {rendreEtSurligner(nettoyerFin(s.texte_original), marqueOriginal)}
                                 </span>
                               </p>
                             ) : (
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
-                                {rendreEtSurligner(nettoyerFin(s.segment_texte), lastQuery, mode)}
+                                {rendreEtSurligner(nettoyerFin(s.segment_texte), marque)}
                               </p>
                             )}
                           </a>
@@ -1342,7 +1294,7 @@ export default function RechercheClient() {
                       rubrique avec sa catégorie, et la ligne garde le sous-titre et l'extrait. */}
                   {essaisPage.map(e=>{
                     const extrait = snippetEssai(e.contenu, lastQuery)
-                    const texteAffiche = (e.resume && contientTerme(e.resume, lastQuery, mode)) ? e.resume : extrait
+                    const texteAffiche = (e.resume && contientMarque(e.resume, marque)) ? e.resume : extrait
                     return (
                       <div className="grp" key={e.id}>
                         <div className="grp-hd">
@@ -1353,7 +1305,7 @@ export default function RechercheClient() {
                           <a href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="grp-ligne">
                             {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:'0 0 2px' }}>{e.sous_titre}</p>}
                             <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.42, color:'var(--cs-texte-fort)', margin:0 }}>
-                              {highlighter(texteAffiche, lastQuery, mode)}
+                              {highlighter(texteAffiche, marque)}
                             </p>
                           </a>
                         </div>
@@ -1412,7 +1364,7 @@ export default function RechercheClient() {
                                   const original = String((v as any)[code] ?? '')
                                   const brut = texteSansEnrichissement(original)
                                   const numOrig = String((v as any)['num_' + code] ?? '').trim()
-                                  const absent = brut && lastQuery ? !contientTerme(brut, lastQuery, mode) : false
+                                  const absent = brut && lastQuery ? !contientMarque(brut, marque) : false
                                   return (
                                     <div key={i} lang={lang} onCopy={copierSansCesures} className={`poly-texte-cell${absent ? ' poly-texte-cell--absent' : ''}`}>
                                       {/* Lettrine : référence(s) d'origine de l'édition (num_TRxxxx),
@@ -1432,8 +1384,8 @@ export default function RechercheClient() {
                                         </span>
                                       )}
                                       {!brut ? <span title={MENTION_ABSENT_TITRE} style={STYLE_MENTION}>{MENTION_ABSENT}</span>
-                                        : lang === 'grc' ? (absent ? cesurerGrec(brut) : highlighter(cesurerGrec(brut), lastQuery, mode))
-                                        : rendreEtSurligner(original, lastQuery, mode)}
+                                        : lang === 'grc' ? (absent ? cesurerGrec(brut) : highlighter(cesurerGrec(brut), marque))
+                                        : rendreEtSurligner(original, marque)}
                                     </div>
                                   )
                                 })}
