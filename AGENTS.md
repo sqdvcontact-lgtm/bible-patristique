@@ -5848,3 +5848,88 @@ colonnes à égalité.
   range for type integer » : 42 fois le 5 septembre. Aucun commentaire n'est possible sur
   ces segments ; c'est une question de DONNÉE (renuméroter, ou clef sur
   `(id_texte, segment_key)` comme les liens), côté GPT.
+
+# ⛔ La LACUNE du témoin garde ses CROCHETS, et les met en forme (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.21**. Demande de l'auteur : « les
+“lacunes” doivent être mises en forme : corps légèrement plus petit, léger espace avant
+et après les crochets, ocre ou maroquin ». Règles de code, toutes dans
+`app/lib/marqueurs899.tsx` :
+
+- ⛔ **Le manque se dit « […] », entre CROCHETS, dans les DEUX membres de l'édition.**
+  `MARQUEUR_LACUNE` remplace les chevrons « ⟨ Lacune ⟩ » de la colonne du manuscrit : le
+  même fait ne peut pas se dire de deux signes selon la colonne, et le crochet est celui
+  que la philologie donne à ce qu'un témoin a perdu — celui, aussi, que la donnée écrit
+  déjà. Le motif exact reste à l'infobulle (`TITRE_LACUNE`).
+- ⚠️ **L'air est une MARGE (`0 0.15em`), non une espace du texte** : une espace serait une
+  occasion de couper la ligne entre le crochet et le mot qui le précède, et elle
+  s'emporterait en copiant le verset. `whiteSpace: 'nowrap'` garde la marque d'un seul
+  tenant. Le corps est `0.85em`, donc RELATIF, donc exempt de la garde typographique ;
+  l'encre est `--cs-lacune`.
+- ⚠️ **La FINE insécable demeure, et pour son seul office** : quand la lacune coupe un MOT
+  (« por[…]er »), elle sépare la marque du fragment resté collé. `fineSiColle` la pose des
+  deux côtés, pour la lacune nue comme pour la lacune motivée.
+- ⛔ **UNE TRADUCTION NON RECOMPOSÉE NE PASSE PAS PAR `rendreMarqueurs899`.** Ce tokeniseur
+  tolère un « ] » orphelin parce que la recomposition par créneau canonique coupe un
+  marqueur en deux ; la traduction moderne du témoin (TR0013) porte **85 RESTITUTIONS**
+  entre crochets (« il [m'exauça] »), qui sont l'usage philologique et doivent s'imprimer
+  telles quelles — le tokeniseur y verrait autant de fermetures et griserait tout ce qui
+  les précède. `marquerLacunesDuTemoin` ne reconnaît que la lacune, par PAIRES COMPLÈTES,
+  et se passe en `transform` à `rendreTexteEnrichi` : l'enrichissement et le surlignage
+  ne sont pas touchés.
+- **`estTraductionModerne899` (`app/lib/bible899.ts`)** dit quelle traduction porte ses
+  lacunes en clair, suffixe `#diplomatic` compris. Deux surfaces l'emploient, la page
+  Bible (`TexteBible`) et la Polyglotte, dont `texteCesure` prend désormais un `transform`.
+- ⛔ **Le crochet fermant d'une lacune NUE n'est pas une fermeture orpheline**, et c'est le
+  défaut que la mise en forme a fait paraître : un verset qui s'ouvre sur « […] » basculait
+  TOUT ENTIER en lecture incertaine. Le début d'un verset se juge sur le PREMIER TOKEN,
+  jamais sur `indexOf(']')`, et la lacune nue passe en tête de `RE_TOKEN` pour cela.
+- ⚠️ **Piège d'édition, payé de nouveau** : le module porte une espace fine insécable
+  U+202F en littéral. Un `old_string` où elle a été remplacée par une espace ordinaire ne
+  s'apparie pas, et rien ne le montre à la lecture. Passer par un script Node qui ne
+  touche pas cette ligne, puis contrôler le point de code.
+
+⚠️ **CE QUI RESTE, et c'est une affaire de DONNÉE.** **652 versets** de TR0013 portent
+« [lecture incertaine : … ] » et s'impriment BRUTS sur la page Bible comme dans la
+Polyglotte, avec une douzaine d'étiquettes que le vocabulaire du témoin ne connaît pas
+(« lecture difficile », « Fragment », « Suite incertaine », « Suite corrompue »,
+« Restitution incertaine », « Passage altéré », « reprise »). Les rendre demande de
+savoir les distinguer d'une restitution, ce qui ne se devine pas ; et **60 versets**
+portent des crochets déséquilibrés, donc des marqueurs à cheval. Rien n'a été fait de ce
+côté sans arbitrage.
+
+# Le panneau de FILTRES de la bibliothèque (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.22**. Demande de l'auteur : revoir les
+filtres de la page, en termes esthétiques et pratiques. Règles de code, dans
+`app/bibliotheque/BibliothequeClient.tsx` :
+
+- ⛔ **La rubrique se pose EN MARGE, elle ne coiffe pas son rang.** `LigneFiltres` est une
+  grille `COLONNE_RUBRIQUE / 1fr` : rubrique au fer à droite, pastilles au fer à gauche.
+  Les trois bannières centrées coûtaient une ligne entière chacune, et les pastilles
+  centrées n'offraient aucun bord gauche où l'œil revienne. Le panneau passe de 261 à
+  ~106 px sans rien retrancher.
+- ⚠️ **`alignItems: 'baseline'` sur la grille, jamais un `paddingTop` calculé** : la
+  rubrique se pose sur la ligne de base de la première pastille, et rien n'est écrit en
+  pixels. La boîte des pastilles est un flex, dont la première ligne de base est celle de
+  son premier enfant : c'est ce qui fait tenir l'alignement sans mesure.
+- ⚠️ **La chasse ajoute une espace APRÈS la dernière lettre** : au fer à droite, elle
+  décalerait la rubrique du bord de sa colonne, d'où le `marginRight` négatif de la même
+  valeur. ⛔ Pas de `textIndent`, qui ajoute au DÉBUT et aggraverait le cas.
+- ⛔ **Un filtre qui agit se MONTRE.** Les filtres retenus se rappellent en jetons sous la
+  barre de recherche quand le panneau est refermé, chacun retirable d'un clic. ⚠️ Ils ne
+  se doublent pas du panneau ouvert, qui montre déjà les mêmes pastilles à l'état actif.
+- ⛔ **Et le bouton ne compte plus ce que les jetons NOMMENT** : la pastille « ❷ » disait
+  la même chose à quarante pixels, sans dire lesquels. Ce que le bouton doit encore porter
+  — qu'un filtre agit — son encre et son filet le disent.
+- ⚠️ **Le résumé ne paraît que si la liste est RESTREINTE** (`listeRestreinte`) : un compte
+  qui ne bouge jamais n'est pas une information. Il donne le total au passage, que le pied
+  « Page 1 sur 3 » ne laissait que deviner.
+- ⚠️ **`stylePastille` est la seule écriture de la forme**, et sert la pastille du panneau
+  comme le jeton du rappel : deux définitions d'un même objet divergent au premier réglage.
+- ⚠️ **`capitaliserInitiale` est IMPORTÉE de `app/lib/citation.ts`**, non recopiée : elle
+  saute les marques de tête et ne touche pas une initiale déjà capitale, ce qu'il faut
+  exactement ici. ⛔ `enLettres(1)` rend « une » (féminin) : le cas d'un seul auteur
+  s'écrit à part.
+- ⚠️ **`useEstMobile` dans le composant principal** : le panneau est piloté par des styles
+  en ligne, qu'une média-query ne peut pas surcharger (patron de la charte, § Responsive).
