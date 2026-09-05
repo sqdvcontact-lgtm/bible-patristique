@@ -1,0 +1,537 @@
+QUESTIONS SUR LA NORMALISATION DES NOTES
+Relevé du 5 septembre 2026 — Claude
+================================================================================
+
+Aucune donnée n'a été touchée. Tout ce qui suit est MESURÉ sur le corpus réel, et
+les mesures de normalisation passent par les vraies fonctions du site
+(normaliserReferencesDansTexte, normaliserTypographieLecture, terminerNote) et
+non par une copie de leurs règles.
+
+Harnais employés, tous en lecture seule :
+    npx tsx tmp/audit-notes.mts              (déjà en place, passes A à F)
+    npx tsx tmp/audit-notes-campagne.mts     (neuf — offsets, fendage, ibid., type)
+    npx tsx tmp/audit-romains-minuscules.mts (neuf — l'élargissement du motif)
+
+Chaque question est autonome : le fait, la question, les options, ce que je ferais.
+Les réponses iront dans la charte, puis dans le protocole, avant toute écriture.
+
+
+================================================================================
+I. TROIS FAITS QUI RECTIFIENT LE PROTOCOLE
+================================================================================
+
+Avant les questions, trois chiffres du protocole qui ne correspondent plus à la
+base. Ils ne demandent pas d'arbitrage, mais ils changent l'ampleur des passes.
+
+F1. LE PRÉFIXE « Référence imprimée : »
+    Protocole : 3 622 blocs.   Mesuré : 4 883 blocs, dans 27 textes.
+    Presque tout chez Jeannin (Chrysostome, 3 500 environ) et Bareille.
+    Aucun ne deviendrait vide une fois le préfixe retiré.
+
+F2. LES RENVOIS INTERNES
+    Protocole : « ~116 blocs ».   Mesuré : 79 blocs ouvrent sur
+    « Voy. / Voir / Consulter / Cf. », dont 41 rangés aujourd'hui en `reference`
+    et 38 en `commentary`. Et 116 est en réalité le compte des blocs ouvrant sur
+    « ibid. / id. », qui est une autre affaire (passe 6). Voir Q5.
+
+F3. LES CHAPITRES ROMAINS EN MINUSCULES
+    Protocole : 1 716 renvois.   Mesuré : 355 occurrences de la forme
+    « <mot>. <romain minuscule>, <nombre> », dans 355 blocs et 14 textes.
+    Sur ces 355, 223 seulement seraient réécrites (voir Q10).
+
+
+================================================================================
+II. LES QUESTIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+Q1 — LES ITALIQUES DE L'OCR : QUE DEVIENNENT-ELLES ?           [passe 2, urgent]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    420 blocs portent, dans metadata.enrichments, les italiques, petites
+    capitales et exposants relevés par l'OCR sur la page imprimée — 3 569 empans
+    au total, ancrés par OFFSET (start / end), dans cinq textes :
+
+        A0044O0003TFR-V11 (Cyrille, Faivre) ....... 370 blocs, 3 092 empans
+        Faivre, Catéchèses mystagogiques ..........  29 blocs,   307 empans
+        Faivre, Homélie sur le paralytique ........  10 blocs,   105 empans
+        A0044O0004TFR01 ...........................   9 blocs,    46 empans
+        Faivre, Homélie de la Présentation ........   2 blocs,    19 empans
+
+    ⚠️ AUCUNE LIGNE DU SITE NE LES LIT. Vérifié : `metadata.enrichments`
+    n'apparaît nulle part dans app/. Les deux commits du 4 septembre intitulés
+    « Rendre les enrichissements » rendaient la syntaxe *italique* écrite DANS le
+    texte, ce qui est autre chose. Ces 3 569 empans sont donc, aujourd'hui, une
+    donnée morte — et le seul témoin des italiques de l'édition.
+
+    ⚠️ Bonne nouvelle mesurée : la passe 2, telle que le protocole l'écrit, ne
+    déplacerait AUCUN de ces empans (0 déplacé, écart de longueur maximal
+    0 signe). Ce n'est pas une garantie, c'est une chance : normaliserTypographie
+    Lecture préserve la longueur par construction, et ces blocs ne portent aucune
+    référence biblique que le normaliseur sache réécrire. Toute passe future qui
+    RACCOURCIRAIT un de ces textes les invaliderait en silence.
+
+LA QUESTION
+    Convertit-on ces empans en marqueurs écrits dans le texte, ou les
+    garde-t-on en offsets ?
+
+LES OPTIONS
+    a) LES CONVERTIR EN MARQUEURS (*italique*, ++petites capitales++, ^^exposant^^)
+       Ils deviennent VISIBLES à la lecture — le site rend déjà cette syntaxe —
+       et s'affranchissent de tout offset, donc de tout risque de décalage.
+       Mesuré : 406 blocs sur 420 (96,7 %) sont convertibles sans réserve ;
+       aucun texte ne porte déjà *, +, ^ ou <i> ; 14 blocs ont des empans qui se
+       chevauchent et demandent une décision cas par cas.
+       ⚠️ Cela CHANGE le texte des blocs : la leçon d'origine se conserve.
+
+    b) LES GARDER EN OFFSETS, et les recalculer à chaque écriture qui touche le
+       texte, dans la même écriture (c'est ce que fait déjà la chaîne Fillion
+       pour les ordinaux). Rien ne devient visible tant qu'on n'écrit pas le
+       rendu qui les lit.
+
+    c) LES LAISSER DORMIR et ne rien en faire. Les italiques de Faivre restent
+       perdues pour le lecteur, et un futur raccourcissement les invalidera.
+
+CE QUE JE FERAIS
+    (a). C'est la règle que la charte pose déjà ailleurs : « un champ que rien ne
+    lit n'est pas une réserve pour plus tard, c'est une seconde vérité qui attend
+    de contredire la première ». Et cela rend à Faivre son italique, qui EST son
+    lemme (voir Q4).
+
+CODE PRÊT
+    Rien à écrire côté rendu : rendreTexteEnrichi compose déjà les trois
+    marqueurs. Il faudrait un script de conversion, et le contrôle du reste.
+
+
+--------------------------------------------------------------------------------
+Q2 — UN RENVOI « IMPRIMÉ » SE NORMALISE-T-IL ?                       [passe 2]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    4 883 blocs ouvrent sur « Référence imprimée : », suivis de la référence
+    telle que l'édition la donne : « Ps. 5, 8. », « Is. 61, 10. », « Ex. 15, 6. »
+    Le protocole dit de retirer le préfixe et de poser
+    metadata.provenance_note = 'reference_imprimee'.
+
+    Mais le préfixe annonce précisément que ce qui suit est la forme IMPRIMÉE.
+    Le normaliseur, lui, rendrait « Ps 5, 8. », « Is 61, 10. », « Ex 15, 6. »
+
+LA QUESTION
+    Une fois le préfixe retiré, ce renvoi passe-t-il par la normalisation comme
+    les autres, ou sa provenance le met-elle à l'abri ?
+
+LES OPTIONS
+    a) NORMALISER COMME LES AUTRES. La provenance dit d'où vient le renvoi, pas
+       qu'il doive garder sa graphie. Le corpus dit « Ps 5, 8 » partout ailleurs.
+    b) NE PAS NORMALISER. La mention annonçait une forme imprimée ; la réécrire
+       fait mentir la provenance qu'on vient de poser.
+    c) NORMALISER, et conserver la forme imprimée en metadata (voir Q3), ce qui
+       rend la provenance vérifiable au lieu d'être une simple étiquette.
+
+CE QUE JE FERAIS
+    (c). C'est la doctrine du § 13.9 appliquée telle quelle : la forme normalisée
+    EST la note, la leçon imprimée se conserve en metadata.
+
+
+--------------------------------------------------------------------------------
+Q3 — LA LEÇON IMPRIMÉE : SUR QUELS BLOCS LA CONSERVER ?              [passe 2]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    Le § 13.9 veut que la leçon imprimée se conserve en metadata dès que le texte
+    change. Selon l'étendue qu'on lui donne, cela va de quelques centaines de
+    blocs à près de vingt mille — l'appareil doublerait de poids.
+
+    Rappel de ce que le rendu change aujourd'hui, mesuré (audit-notes.mts) :
+      · ponctuation finale absente sur 6 431 notes de 16 408 (39 %) ;
+      · 3 392 renvois bibliques sur 11 916 réécrits par le normaliseur ;
+      · la normalisation typographique, elle, ne change JAMAIS la longueur — elle
+        convertit un type d'espace, elle n'en ajoute pas.
+
+LA QUESTION
+    Sur quels blocs pose-t-on metadata.forme_imprimee ?
+
+LES OPTIONS
+    a) SUR TOUT BLOC DONT LE TEXTE CHANGE, fût-ce d'une seule espace fine.
+       Le plus sûr, le plus lourd, et le seul entièrement réversible.
+    b) SEULEMENT QUAND LE CHANGEMENT VA AU-DELÀ DE LA TYPOGRAPHIE : ponctuation
+       finale ajoutée, abréviation développée, référence recomposée. Une espace
+       fine n'est pas une leçon.
+    c) JAMAIS : les fonctions sont idempotentes et le fac-similé fait foi.
+
+CE QUE JE FERAIS
+    (b). Une espace fine n'a jamais fait preuve de rien, et la conserver ferait
+    de metadata un double du texte. Mais (a) est défendable si vous voulez
+    pouvoir revenir en arrière sans le fac-similé.
+
+
+--------------------------------------------------------------------------------
+Q4 — LE BLOC À TROIS TÊTES DE FAIVRE : SUR QUOI LE FENDRE ?          [passe 3]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    396 blocs ouvrent sur une coordonnée imprimée, puis un tiret cadratin :
+        « (V) pag. 178. — Avec les démons les plus féroces. On peut consulter… »
+    Le protocole propose de fendre à la ponctuation : la coordonnée s'arrête au
+    tiret, le lemme à la première ponctuation forte qui suit.
+
+    ⚠️ Cette règle fabrique de FAUX LEMMES, et la donnée offre mieux. Mesuré :
+        première italique COLLÉE au tiret (c'est le lemme) .... 381  (96,2 %)
+        première italique plus loin (il n'y a pas de lemme) ...  11
+        aucune italique .......................................   2
+        aucun tiret cadratin ..................................   2
+
+    Les blocs sans italique au tiret ouvrent directement sur le commentaire, et
+    la règle de ponctuation y couperait au hasard :
+        « (G) pag. 140. — Tout ce paragraphe a été cité par Théodoret… »
+        « (Y) pag. 217. — Ménandre fut disciple de Simon le Magicien… »
+        « (F) pag. 188. — Voyez notre dissertation sur le secret. »
+
+LA QUESTION
+    Fend-on sur l'italique relevée par l'OCR, ou sur la ponctuation ?
+
+LES OPTIONS
+    a) SUR L'ITALIQUE, ET À DÉFAUT ON NE FEND PAS. Le lemme est le premier empan
+       italique après le tiret ; les 15 blocs qui n'en ont pas ne reçoivent que
+       leur coordonnée, et aucun lemme n'est deviné.
+    b) SUR L'ITALIQUE, PONCTUATION EN REPLI pour les 15 restants. Rattrape
+       peut-être deux ou trois lemmes, au risque d'en fabriquer douze.
+    c) SUR LA PONCTUATION, comme le protocole l'écrit aujourd'hui.
+
+CE QUE JE FERAIS
+    (a). La donnée dit où le lemme commence ET où il finit ; une règle de
+    ponctuation ne fait que le supposer.
+
+DÉPEND DE
+    Q1 : si les italiques sont converties en marqueurs, le fendage se fait sur le
+    texte lui-même et non sur des offsets. Répondre à Q1 avant Q4.
+
+CODE PRÊT
+    Le rendu compose déjà source_locator et lemma en tête de note, sur la ligne
+    du propos : fendre ne se verra pas en lecture (charte § 13.11).
+
+
+--------------------------------------------------------------------------------
+Q5 — QU'EST-CE QUI FAIT UN RENVOI *INTERNE* ?                        [passe 3]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    Le protocole reconnaît un renvoi interne à son mot d'ouverture : « Voy. »,
+    « Voir », « Consulter ». Mesuré, ce mot ne décide de rien. Sur les 79 blocs
+    qui ouvrent ainsi :
+
+        « Voy. Paul Monceaux, *Hist. litt. de l'Afrique chrétienne*, I, p. 190. »
+        « Voy. C. Callewaert, *Revue d'histoire ecclésiastique*, t. II, p. 777. »
+              → ce sont des renvois BIBLIOGRAPHIQUES, ils sortent de l'œuvre.
+
+        « (Voy. la note L, tome I, p. 131.) »
+        « (Voy. Cat. XIV, note N.) »
+        « Voyez sur cette déesse Céleste la note placée au chap. iv de ce livre. »
+              → ce sont des renvois INTERNES.
+
+    Et seulement 7 des 79 nomment explicitement une note.
+
+LA QUESTION
+    À quoi reconnaît-on qu'un renvoi ne sort pas de l'œuvre ?
+
+LES OPTIONS
+    a) À CE QU'IL NOMME UNE NOTE, UN TOME OU UN CHAPITRE DE L'ŒUVRE, et rien
+       d'autre : pas de nom d'auteur, pas de titre. Le reste reste `reference`.
+    b) AU MOT D'OUVERTURE, comme le protocole l'écrit. Simple, et faux sur au
+       moins la moitié du lot.
+    c) À LA MAIN, les 79 étant peu nombreux : on les lit et on tranche.
+
+CE QUE JE FERAIS
+    (c), puis (a) comme règle écrite pour les imports à venir. 79 blocs se lisent
+    en une séance, et la règle se tirera de ce qu'on aura vu plutôt que l'inverse.
+
+
+--------------------------------------------------------------------------------
+Q6 — LE TYPE DE NOTE : EN LOT PAR TEXTE, OU NOTE PAR NOTE ?          [passe 4]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    16 873 blocs sur 24 264 (69 %) ne portent aucun type. C'est le plus gros
+    manque de l'appareil, et le plus coûteux à combler.
+
+    Mesuré, texte par texte, en cherchant les notes qui trahissent une seconde
+    voix (« nous avons traduit », « le traducteur », « nous croyons ») :
+
+        34 textes où AUCUNE note ne trahit une seconde voix ... 10 348 blocs
+        10 textes où au moins une note en trahit une .......... 6 525 blocs
+
+    Les plus lourds :
+        Cité de Dieu, latin (Bénédictins de Vivès) .. 3 758  | voix tierce :  0
+        Cyrille de Jérusalem (Faivre) ............... 1 834  | voix tierce : 148
+        Chrysostome, Psaumes (Jeannin) .............. 1 828  | voix tierce :   1
+        Cité de Dieu, français (Barreau) ............ 1 806  | voix tierce :   3
+        Manuel pour mon fils (Bondurand) ............ 1 536  | voix tierce :   0
+        Chrysostome, Genèse (Jeannin) ............... 1 318  | voix tierce :   0
+
+LA QUESTION
+    Attribue-t-on le type en lot, par texte, ou note par note ?
+
+LES OPTIONS
+    a) EN LOT PAR TEXTE, SAUF EXCEPTIONS NOMMÉES. Une édition a un responsable ;
+       ses notes sont de lui. Sortent du lot, pour être jugés à part, les blocs
+       qui disent « nous », qui nomment le traducteur, ou qui portent déjà leur
+       type en clair. Sondage de contrôle par texte.
+    b) EN LOT PAR TEXTE, SANS EXCEPTION. Le plus rapide. Un type faux se glissera
+       là où le traducteur parle au milieu des notes de l'éditeur — ce que le
+       protocole tient pour pire qu'un type absent.
+    c) NOTE PAR NOTE. Le plus sûr, hors de portée d'une campagne, praticable
+       œuvre par œuvre sur les plus courtes.
+
+CE QUE JE FERAIS
+    (a). Les 34 textes « purs » (10 348 blocs, 61 % du manque) se traitent alors
+    d'un coup, et l'attention se porte sur les 10 textes mêlés.
+
+QUESTION SUBSIDIAIRE
+    Q6bis — Les 136 notes qui portent « (Note du Traducteur.) » EN CLAIR : le
+    protocole dit de retirer la mention une fois le type posé. Confirmez-vous ?
+    Le lecteur la lirait sinon deux fois, l'en-tête de la fenêtre l'annonçant
+    déjà (« Note du traducteur 12 »).
+
+
+--------------------------------------------------------------------------------
+Q7 — LE LATIN ENCHÂSSÉ : DANS CETTE CAMPAGNE, OU PLUS TARD ?         [passe 5]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    Le bloc entièrement latin est réglé : language = 'la' suffit, et le site
+    l'italise depuis le 5 septembre, quelle que soit sa longueur (3 805 blocs).
+
+    Le latin ENCHÂSSÉ dans une note française est un autre cas : aucune donnée ne
+    dit où il commence. Le protocole le tient pour « le plus fréquent et le plus
+    coûteux », et il demande une écriture, mot par mot.
+
+    ⚠️ Sauf sur les cinq textes de Q1, où l'OCR a relevé 2 341 empans italiques
+    dans A0044O0003TFR-V11 seul. Une part de ces italiques EST du latin.
+
+LA QUESTION
+    Traite-t-on le latin enchâssé dans cette campagne ?
+
+LES OPTIONS
+    a) PLUS TARD. La campagne se borne aux blocs entiers, déjà servis.
+    b) MAINTENANT, mais sur les seuls cinq textes enrichis, en convertissant les
+       italiques de l'OCR (Q1) : le travail est déjà fait par l'imprimeur, on ne
+       fait que le reprendre.
+    c) MAINTENANT, partout, à la main ou par détection assistée.
+
+CE QUE JE FERAIS
+    (b). C'est la seule part du problème où la donnée existe déjà. Le reste
+    demande une lecture, et une lecture ne se mène pas en même temps que six
+    autres passes.
+
+
+--------------------------------------------------------------------------------
+Q8 — LES « IBID. » QUI N'ONT PAS D'AMONT                             [passe 6]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    116 blocs ouvrent sur « ibid. » ou « id. ». En remontant l'ordre de lecture :
+
+        la note qui PRÉCÈDE immédiatement nomme une œuvre .... 43  (37 %)
+        il faut remonter la chaîne (2 à 12 notes) ............ 60
+        AUCUN amont trouvé en douze notes ................... 13
+
+    Les 13 derniers ne se résolvent par aucun moyen mécanique.
+
+LA QUESTION
+    Que fait-on des 13, et comment se signalent les cas douteux ?
+
+LES OPTIONS
+    a) ON LES LAISSE INTACTS, avec une marque en metadata qui dit qu'on a
+       cherché et qu'on n'a pas trouvé. Ils attendent le fac-similé.
+    b) ON LES RÉSOUT AU FAC-SIMILÉ dans la même campagne — 13 cas, c'est peu.
+    c) ON LES LAISSE SANS MARQUE, comme les 60 autres tant qu'ils ne sont pas
+       traités.
+
+CE QUE JE FERAIS
+    (b) si vous voulez clore la passe, (a) sinon. Mais dans les deux cas il faut
+    NOMMER la marque : je propose metadata.renvoi_non_resolu = true, avec la
+    date et le nombre de notes remontées.
+
+QUESTION SUBSIDIAIRE
+    Q8bis — Un « ibid. » résolu garde-t-il sa forme imprimée à l'écran, ou le
+    site compose-t-il la référence complète ? Le protocole dit d'écrire la
+    référence complète et de conserver la forme imprimée en metadata. Cela veut
+    dire que le lecteur ne verra plus jamais « Ibid., 25 » mais « Augustin,
+    Cité de Dieu, XI, 25 ». Confirmez-vous ce parti ?
+
+
+--------------------------------------------------------------------------------
+Q9 — LES MÉTADONNÉES : QUEL NOM GARDE-T-ON ?                     [passe à part]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    Deux paires de noms disent le même fait :
+
+        human_validated .......  14 000 blocs
+        validated_human .......   5 662 blocs
+        les deux à la fois ....     901 blocs  — et ils S'ACCORDENT tous, sans
+                                    une seule contradiction (vérifié).
+
+        reference_normalized ..   1 682 blocs
+        normalised_reference ..   1 032 blocs
+        les deux à la fois ....       0 bloc
+
+LA QUESTION
+    Quel nom survit dans chaque paire ?
+
+LES OPTIONS
+    a) LE PLUS RÉPANDU : human_validated (14 000) et reference_normalized (1 682).
+       Moins d'écritures, et le nom majoritaire est déjà celui que le code lit
+       (lireMetadonneesBlocNote lit human_validated).
+    b) LE PLUS RÉGULIER : le participe d'abord, comme dans normalised_reference.
+    c) ON NE TOUCHE À RIEN pour l'instant.
+
+CE QUE JE FERAIS
+    (a), et sans hésiter : le code lit déjà human_validated, et l'unification est
+    sans risque puisque les 901 blocs qui portent les deux s'accordent.
+
+
+--------------------------------------------------------------------------------
+Q10 — ÉLARGIT-ON LE MOTIF AUX ROMAINS EN MINUSCULES ?           [hors périmètre]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    Le motif du normaliseur n'accepte le chapitre romain qu'en CAPITALES. Mesuré
+    en passant chaque cas par la vraie fonction :
+
+        occurrences « <mot>. <romain minuscule>, <nombre> » ...... 355
+        l'abréviation résout, la référence SERAIT réécrite ....... 223  (3 textes)
+        l'abréviation ne résout pas, rien ne changerait .......... 132
+
+    ⚠️ Le risque est déjà borné par le motif lui-même : il n'agit que si le mot
+    qui précède résout vers un livre du référentiel. « Cor. » (58 occurrences),
+    « Ibid. » (26), « Thess. », « Eccl. » sont volontairement absents de la table
+    parce qu'équivoques, et resteraient donc intacts. Vérifié sur les vraies
+    fonctions : « Cor. XV, 22 » et « Ibid. V, 12 » ne bougent pas.
+
+    Les vingt premières réécritures, sans exception juste :
+        « Ps. cxv, 12 » → « Ps 115, 12 »     « Matth. x, 30 » → « Mt 10, 30 »
+        « Eccli. xxx, 24 » → « Si 30, 24 »   « Gal. v, 17 »  → « Ga 5, 17 »
+        « Rom. v, 5 »  → « Rm 5, 5 »         « Gen. xxx, 37 » → « Gn 30, 37 »
+
+LA QUESTION
+    Élargit-on la reconnaissance aux romains minuscules ?
+
+LES OPTIONS
+    a) OUI. 223 renvois de trois textes rejoignent la forme du reste du corpus.
+       Le mot qui précède doit résoudre, ce qui écarte les 132 autres d'office.
+    b) OUI, ET ON SIGNALE chaque bloc touché pour un contrôle par sondage avant
+       de tenir la passe pour close.
+    c) NON. Les 223 gardent « Matth. x, 22 » là où le corpus dit « Mt 10, 22 ».
+
+CE QUE JE FERAIS
+    (b). Le gain est net et le risque mesuré nul, mais 223 blocs se contrôlent
+    par sondage sans peine, et une marque coûte moins qu'un doute.
+
+CODE PRÊT
+    Un caractère à changer dans RE_RENVOI (app/lib/referenceNote.ts), plus des
+    tests de non-régression sur les cas laissés intacts.
+
+
+--------------------------------------------------------------------------------
+Q11 — COMPLÈTE-T-ON LA TABLE DES ABRÉVIATIONS ?                 [hors périmètre]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    L'audit précédent a fait paraître, parmi les 132 cas laissés intacts, des
+    abréviations qui ne sont PAS équivoques et manquent seulement à la table :
+
+        Ephés. (3), Ephes. (1)  — « Eph. » résout déjà, la variante longue non
+        Math. (2)               — variante de « Matth. »
+        Corinth. (1)            — mais « Cor. » seul reste équivoque
+        Galat. (1)              — « Gal. » résout déjà
+        Apocal. (1)             — « Ap. » résout déjà
+        Nomb. (2)               — Nombres
+        Sag. (2)                — Sagesse
+
+    Et d'autres qui doivent RESTER dehors, étant équivoques :
+        Cor. (58), Thess. (6), Eccl. (4), Tim. (2), Par. (1)
+
+LA QUESTION
+    Ajoute-t-on les variantes non équivoques au référentiel ?
+
+LES OPTIONS
+    a) OUI, une à une, chacune vérifiée sur son contexte réel.
+    b) OUI, mais seulement celles vues plus d'une fois.
+    c) NON : le référentiel est réputé complet, une variante manquante se
+       signale au lieu d'être ajoutée.
+
+CE QUE JE FERAIS
+    (a). Chaque ajout est une ligne, il se vérifie en lisant les occurrences, et
+    la charte a déjà tranché que les équivoques restent dehors.
+
+
+--------------------------------------------------------------------------------
+Q12 — LE JOURNAL D'ATELIER DANS `metadata`                       [passe à part]
+--------------------------------------------------------------------------------
+
+LE FAIT
+    metadata porte plus de 150 clés distinctes. La plupart sont un JOURNAL DE
+    TRAVAIL daté : facsimile_pixel_review_20260903, _20260904, _20260905,
+    material_baseline_evidence_20260903, dual_ocr_material_review_20260903,
+    documentary_risk_class_20260904, p3_canonicalization_audit_20260904…
+
+    ⚠️ Et 554 blocs portent, DANS metadata, une copie complète d'un bloc :
+    les clés text, kind, form, rank, block_id, language, rendering, needs_review,
+    translation_of et target_block_id y sont toutes à 554.
+
+    Le site n'en lit que quatre scalaires (editorial_role, printed_line,
+    visual_review_reason, human_validated), projetés côté serveur. Mais le jsonb
+    ENTIER est rapatrié par la page : 24 264 blocs, dont 7 266 pour le seul
+    apparat de Knöll.
+
+LA QUESTION
+    Que fait-on de ce journal ?
+
+LES OPTIONS
+    a) RIEN pour l'instant : ce sont les traces de GPT, elles lui appartiennent.
+    b) L'ARCHIVER dans internal. et ne garder dans metadata que ce que quelqu'un
+       lit. La page s'allégerait d'autant.
+    c) NE RESTREINDRE QUE LA LECTURE : la page ne demande que les quatre clés
+       qu'elle projette, le journal reste en base sans traverser le réseau.
+
+CE QUE JE FERAIS
+    (c) tout de suite — c'est un gain sans arbitrage, et sans toucher une donnée.
+    (b) est une décision qui vous revient, et qui revient à GPT pour ce qui est
+    de son journal. ⚠️ Les 554 copies de bloc, elles, sont une seconde vérité au
+    sens de la charte, et méritent d'être regardées à part.
+
+
+================================================================================
+III. CE QUI EST TRANCHÉ, ET QUE JE FERAI SANS DEMANDER
+================================================================================
+
+  · La ponctuation finale s'applique à la DERNIÈRE pièce d'une note, jamais à
+    chaque bloc (§ 13.9).
+  · L'apparat critique ne passe par aucune passe de normalisation (7 379 blocs).
+  · Le numéro affiché est calculé à la lecture et n'est jamais écrit en base :
+    c'est fait, et il n'y aura rien à écrire.
+  · L'italique du bloc entièrement latin est servie ; le grec ne suit pas.
+  · Le type s'annonce dans l'en-tête de la fenêtre de note dès qu'il est posé.
+  · Une passe se joue sur UNE œuvre, avec sauvegarde dans internal., retour
+    arrière écrit et relu, et relecture depuis la base après écriture.
+
+
+================================================================================
+IV. CE QUI EST DÉJÀ EN PLACE CÔTÉ CODE
+================================================================================
+
+  app/lib/naturesNote.ts ......... les huit natures, leurs quatre familles
+  app/lib/typeNote.ts ............ les cinq types, et leurs libellés
+  app/lib/numerotationNotes.ts ... le numéro affiché (pur, testé)
+  ContenuNoteStructuree.tsx ...... compose les deux natures neuves, l'ancrage en
+                                   tête sur la ligne du propos, l'italique du latin
+  contrainte texte_note_blocs_kind_check ... accepte les huit natures
+  sql/20260905_natures_bloc_note.sql ...... la migration, et son retour arrière
+
+  ⚠️ La contrainte a été élargie le 5 septembre. Aucune donnée n'a été écrite, et
+  le retour arrière fonctionne tant qu'aucun bloc ne porte source_locator ni
+  internal_cross_reference. Dites-le si vous préférez qu'elle attende aussi.
+
+================================================================================
