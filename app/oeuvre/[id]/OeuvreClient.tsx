@@ -32,7 +32,11 @@ import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normali
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
-import { SELECT_SEGMENT, NATURES_CORPS, NATURES_APPARAT } from '@/app/lib/oeuvreSelects'
+import {
+  limiterRequeteSegmentsALaSurface,
+  segmentsDeLaSurface,
+  SELECT_SEGMENT,
+} from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
@@ -710,9 +714,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
       const profondeur = await profondeurPresente(async niveau => {
         const colonne = `ref_niv${niveau}`
-        const { data, error } = await supabase.from('segments').select('id')
-          .eq('id_oeuvre', idOeuvre).in('nature', NATURES_CORPS)
-          .not(colonne, 'is', null).neq(colonne, '').limit(1)
+        const { data, error } = await limiterRequeteSegmentsALaSurface(
+          supabase.from('segments').select('id').eq('id_oeuvre', idOeuvre),
+          'corps',
+        ).not(colonne, 'is', null).neq(colonne, '').limit(1)
         // ⛔ Une requête en échec n'est pas un niveau absent : on rend « on ne sait pas ».
         if (error) { console.error(`Sonde du niveau ${niveau} :`, error); return null }
         return (data?.length ?? 0) > 0
@@ -1244,15 +1249,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // Somme théologique ~6500 segments/niv1, se chargeaient en séquentiel) : on
     // récupère le total avec le 1er lot, puis on tire le reste d'un coup.
     const lotNiv1 = (from: number) => {
-      let q = supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
-        .in('nature', NATURES_CORPS).order('segment_numero').range(from, from + 999)
+      let q = limiterRequeteSegmentsALaSurface(
+        supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte),
+        'corps',
+      ).order('segment_numero').range(from, from + 999)
       if (!lectureTexteEntier && !texteSansNiveaux && n1) {
         q = n1 === NIV1_LIMINAIRES ? q.is('ref_niv1', null) : q.eq('ref_niv1', n1)
       }
       return q
     }
-    let premierReq = supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
-      .in('nature', NATURES_CORPS).order('segment_numero').range(0, 999)
+    let premierReq = limiterRequeteSegmentsALaSurface(
+      supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte),
+      'corps',
+    ).order('segment_numero').range(0, 999)
     if (!lectureTexteEntier && !texteSansNiveaux && n1) {
       premierReq = n1 === NIV1_LIMINAIRES ? premierReq.is('ref_niv1', null) : premierReq.eq('ref_niv1', n1)
     }
@@ -1261,7 +1270,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       console.error(`Chargement des segments impossible (${idTexte}/${n1}) :`, premier.error)
       throw premier.error
     }
-    const segs: any[] = [...((premier.data as any[]) ?? [])]
+    const segs: any[] = [...segmentsDeLaSurface(((premier.data as any[]) ?? []), 'corps')]
     const total = premier.count ?? segs.length
     if (total > 1000) {
       const restes = await Promise.all(
@@ -1272,7 +1281,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           console.error(`Chargement d'un lot de segments impossible (${idTexte}/${n1}) :`, r.error)
           throw r.error
         }
-        segs.push(...((r.data as any[]) ?? []))
+        segs.push(...segmentsDeLaSurface(((r.data as any[]) ?? []), 'corps'))
       }
     }
 
@@ -1370,21 +1379,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // après une modification ou une suppression admin, puisque l'apparat n'est
   // sinon chargé qu'une seule fois au rendu serveur de la page.
   const chargerApparatData = async () => {
-    const { data, error } = await supabase
-      .from('segments')
-      .select(SELECT_SEGMENT)
-      .eq('id_oeuvre', idOeuvre)
-      .eq('id_texte', idTexte)
-      // ⛔ Les DEUX natures d'apparat, comme au rendu serveur : une égalité sur la
-      // seule `apparat_critique` aurait fait disparaître, au premier rechargement
-      // admin, ce que la page venait d'afficher. Voir `NATURES_APPARAT`.
-      .in('nature', NATURES_APPARAT)
-      .order('segment_numero')
+    const { data, error } = await limiterRequeteSegmentsALaSurface(
+      supabase
+        .from('segments')
+        .select(SELECT_SEGMENT)
+        .eq('id_oeuvre', idOeuvre)
+        .eq('id_texte', idTexte),
+      'apparat',
+    ).order('segment_numero')
     if (error) {
       console.error(`Chargement de l'apparat impossible (${idTexte}) :`, error)
       throw error
     }
-    const segs = ((data ?? []) as any[]).filter(segmentAffichable)
+    const segs = segmentsDeLaSurface(((data ?? []) as any[]), 'apparat').filter(segmentAffichable)
 
     let c = 0, n1c = ''
     const newSegs: SegData[] = segs.map((s: any) => {
@@ -1580,14 +1587,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
   // idOeuvre vient des Props
   const hasApparat = segmentsApparat.length > 0
-  // Le TOC apparat n'inclut que les niv1 qui ne sont PAS dans le sommaire texte :
-  // les catéchèses avec des résidus apparat_critique ne doivent pas y apparaître.
-  const niv1TexteSetClient = new Set(niv1List)
   const tocApparatLocal = (() => {
     const vus = new Set<string>()
     const out: { niv1: string; anchor: string }[] = []
     groupesApparat.forEach(g => {
-      if (g.niv1 && !vus.has(g.niv1) && !niv1TexteSetClient.has(g.niv1)) {
+      if (g.niv1 && !vus.has(g.niv1)) {
         vus.add(g.niv1)
         out.push({ niv1: g.niv1, anchor: g.anchor })
       }
@@ -3077,9 +3081,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             return (
               <>
                 {groupesApparat.map((groupe) => {
-                  // Les sections qui ont du texte dans le sommaire ne sont pas
-                  // affichées ici — leurs résidus apparat_critique sont filtrés.
-                  if (niv1TexteSetClient.has(groupe.niv1)) return null
                   const showNiv1 = groupe.niv1 && groupe.niv1 !== dniv1
                   if (showNiv1) { dniv1 = groupe.niv1; dniv2 = '' }
                   const showNiv2 = groupe.niv2 && groupe.niv2 !== dniv2

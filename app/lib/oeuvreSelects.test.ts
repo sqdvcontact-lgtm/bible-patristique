@@ -1,7 +1,18 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { NATURES_CORPS, NATURES_APPARAT, SELECT_SEGMENT } from './oeuvreSelects'
+import {
+  estSegmentDeLApparat,
+  estSegmentDuCorps,
+  FILTRE_APPARAT_POSTGREST,
+  FILTRE_ESPACE_CORPS_POSTGREST,
+  limiterRequeteSegmentsALaSurface,
+  NATURES_CORPS,
+  NATURES_APPARAT,
+  segmentsDeLaSurface,
+  SELECT_SEGMENT,
+  surfaceDuSegment,
+} from './oeuvreSelects'
 import { NATURE_VALIDES } from './naturesSegments'
 
 /**
@@ -61,14 +72,20 @@ describe('le vocabulaire des natures est entièrement rangé', () => {
 const RACINE = join(import.meta.dirname, '..', '..')
 const lire = (chemin: string) => readFileSync(join(RACINE, chemin), 'utf8')
 
-describe('les listes de natures n’ont pas de copie qui dérive', () => {
-  it('la vue d’apparat interroge les DEUX natures, jamais une égalité', () => {
+describe('le contrat des surfaces n’a pas de copie qui dérive', () => {
+  it('les chargements serveur et client passent par le filtre partagé', () => {
     for (const chemin of ['app/oeuvre/[id]/page.tsx', 'app/oeuvre/[id]/OeuvreClient.tsx']) {
       const source = lire(chemin)
       // Une égalité sur une seule nature d'apparat, c'est la panne d'origine.
       expect(source).not.toMatch(/\.eq\(\s*'nature'\s*,\s*'apparat_(critique|editeur)'\s*\)/)
-      expect(source).toContain('NATURES_APPARAT')
+      expect(source).toContain('limiterRequeteSegmentsALaSurface')
     }
+  })
+
+  it('ne retranche jamais un groupe d’apparat parce que son niv1 existe au corps', () => {
+    const source = lire('app/oeuvre/[id]/OeuvreClient.tsx')
+    expect(source).not.toContain('niv1TexteSetClient')
+    expect(source).not.toMatch(/\.has\(groupe\.niv1\)/)
   })
 
   it('`get_niv1_texte` est le miroir exact de NATURES_CORPS', () => {
@@ -87,6 +104,83 @@ describe('les listes de natures n’ont pas de copie qui dérive', () => {
     expect(liste, 'la liste des natures est introuvable dans la migration').toBeDefined()
     const naturesSql = [...liste!.matchAll(/'([^']+)'/g)].map(m => m[1])
     expect([...naturesSql].sort()).toEqual([...NATURES_CORPS].sort())
+  })
+})
+
+describe('la surface est déterminée par espace_textuel avant la nature', () => {
+  const corps = {
+    id: 1,
+    ref_niv1: 'Livre deuxième',
+    nature: 'texte',
+    espace_textuel: 'corps',
+  }
+  const signatureApparat = {
+    id: 2,
+    ref_niv1: 'Livre deuxième',
+    nature: 'signature',
+    espace_textuel: 'apparat_critique',
+  }
+
+  it('A — conserve le même ref_niv1 sur les deux surfaces', () => {
+    expect(segmentsDeLaSurface([corps, signatureApparat], 'corps')).toEqual([corps])
+    expect(segmentsDeLaSurface([corps, signatureApparat], 'apparat')).toEqual([signatureApparat])
+  })
+
+  it('B — place une signature d’apparat dans l’apparat seulement', () => {
+    expect(estSegmentDeLApparat(signatureApparat)).toBe(true)
+    expect(estSegmentDuCorps(signatureApparat)).toBe(false)
+  })
+
+  it('C — conserve une signature sans espace d’apparat dans le corps', () => {
+    const signatureCorps = { nature: 'signature', espace_textuel: null }
+    expect(estSegmentDuCorps(signatureCorps)).toBe(true)
+    expect(estSegmentDeLApparat(signatureCorps)).toBe(false)
+  })
+
+  it('D — conserve apparat_critique sans espace explicite dans l’apparat', () => {
+    expect(surfaceDuSegment({ nature: 'apparat_critique', espace_textuel: null })).toBe('apparat')
+  })
+
+  it('E — conserve apparat_editeur sans espace explicite dans l’apparat', () => {
+    expect(surfaceDuSegment({ nature: 'apparat_editeur' })).toBe('apparat')
+  })
+
+  it('F — ne range jamais un segment simultanément au corps et à l’apparat', () => {
+    const cas = [
+      corps,
+      signatureApparat,
+      { nature: 'signature', espace_textuel: null },
+      { nature: 'apparat_critique', espace_textuel: null },
+      { nature: 'apparat_editeur', espace_textuel: 'apparat_critique' },
+      { nature: 'apparat_critique', espace_textuel: 'corps' },
+    ]
+    for (const segment of cas) {
+      expect(Number(estSegmentDuCorps(segment)) + Number(estSegmentDeLApparat(segment))).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('traduit exactement la même priorité dans les filtres PostgREST', () => {
+    const appels: [string, string, (readonly string[])?][] = []
+    const requete = {
+      in(colonne: string, valeurs: readonly string[]) {
+        appels.push(['in', colonne, valeurs])
+        return this
+      },
+      or(filtres: string) {
+        appels.push(['or', filtres])
+        return this
+      },
+    }
+
+    limiterRequeteSegmentsALaSurface(requete, 'corps')
+    expect(appels).toEqual([
+      ['in', 'nature', NATURES_CORPS],
+      ['or', FILTRE_ESPACE_CORPS_POSTGREST],
+    ])
+
+    appels.length = 0
+    limiterRequeteSegmentsALaSurface(requete, 'apparat')
+    expect(appels).toEqual([['or', FILTRE_APPARAT_POSTGREST]])
   })
 })
 

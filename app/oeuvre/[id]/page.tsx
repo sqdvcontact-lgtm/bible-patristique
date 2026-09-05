@@ -1,6 +1,11 @@
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
 import { numeroVersetLisible } from '@/app/lib/compositionVersets'
-import { SELECT_SEGMENT, NATURES_CORPS, NATURES_APPARAT } from '@/app/lib/oeuvreSelects'
+import {
+  estSegmentDeLApparat,
+  limiterRequeteSegmentsALaSurface,
+  segmentsDeLaSurface,
+  SELECT_SEGMENT,
+} from '@/app/lib/oeuvreSelects'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
@@ -410,11 +415,8 @@ export default async function OeuvrePage({
     // Applique le filtre à une requête (nature « texte » embarque les introductions).
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
-        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_CORPS)
-        // ⛔ « apparat » désigne les DEUX natures d'apparat, jamais la seule
-        // `apparat_critique` : voir `NATURES_APPARAT`, et les 342 segments que
-        // cette égalité-là tenait hors de l'écran.
-        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
+        if (k === 'nature' && v === 'texte') q = limiterRequeteSegmentsALaSurface(q, 'corps')
+        else if (k === 'nature' && v === 'apparat') q = limiterRequeteSegmentsALaSurface(q, 'apparat')
         else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
@@ -440,10 +442,12 @@ export default async function OeuvrePage({
       )
       for (const r of restes) acc.push(...((r.data as any[]) ?? []))
     }
+    const surface = filtre.nature === 'apparat' ? 'apparat' : 'corps'
+    const selectionnes = segmentsDeLaSurface(acc, surface)
     // Les liens ne sont plus portés par le segment : on les repose au format
     // attendu, avec le client du serveur — c'est ce rendu que le lecteur voit.
-    await hydraterLiensHerites(acc, supabase)
-    return acc
+    await hydraterLiensHerites(selectionnes, supabase)
+    return selectionnes
   }
 
   // Première tranche d'un niveau 1 (ordre de LECTURE = segment_numero, comme le
@@ -456,11 +460,8 @@ export default async function OeuvrePage({
   async function chargerTrancheTexte(filtre: Record<string, string>): Promise<{ segments: Segment[]; partiel: boolean }> {
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
-        if (k === 'nature' && v === 'texte') q = q.in('nature', NATURES_CORPS)
-        // ⛔ « apparat » désigne les DEUX natures d'apparat, jamais la seule
-        // `apparat_critique` : voir `NATURES_APPARAT`, et les 342 segments que
-        // cette égalité-là tenait hors de l'écran.
-        else if (k === 'nature' && v === 'apparat') q = q.in('nature', NATURES_APPARAT)
+        if (k === 'nature' && v === 'texte') q = limiterRequeteSegmentsALaSurface(q, 'corps')
+        else if (k === 'nature' && v === 'apparat') q = limiterRequeteSegmentsALaSurface(q, 'apparat')
         else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
         else q = q.eq(k, v)
       }
@@ -475,7 +476,7 @@ export default async function OeuvrePage({
     const premier = await appliquer(
       supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, PLAFOND_TRANCHE - 1)
-    const lignes: any[] = (premier.data as any[]) ?? []
+    const lignes = segmentsDeLaSurface(((premier.data as any[]) ?? []), 'corps')
     const partiel = lignes.length >= PLAFOND_TRANCHE
     const acc: any[] = partiel ? lignes.slice(0, PLAFOND_TRANCHE - 1) : lignes
     await hydraterLiensHerites(acc, supabase)
@@ -682,8 +683,11 @@ export default async function OeuvrePage({
     if (!groupe && !cle) return null
     // Une reprise ne vise que le CORPS : retomber dans l'apparat, où le texte ne se
     // lit pas, serait pire que retomber au début.
-    const corps = () => supabase.from('segments').select(colonnes)
-      .eq('id_oeuvre', id).eq('id_texte', idTexte).in('nature', NATURES_CORPS)
+    const corps = () => limiterRequeteSegmentsALaSurface(
+      supabase.from('segments').select(colonnes)
+        .eq('id_oeuvre', id).eq('id_texte', idTexte),
+      'corps',
+    )
     if (groupe) {
       const { data: membre } = await supabase.from('texte_alignement_membres').select('segment_key')
         .eq('alignment_id', groupe).eq('id_texte', idTexte).order('member_order').limit(1).maybeSingle()
@@ -742,9 +746,12 @@ export default async function OeuvrePage({
     chargerCodesTraductions(supabase),
     chargerNotesStructurees(idTexte),
     chargerNotesStructurees(idTexteEnRegard),
-    supabase.from('segments').select('id', { count: 'exact', head: true })
-      .eq('id_oeuvre', id).eq('id_texte', idTexte)
-      .is('ref_niv1', null).in('nature', NATURES_CORPS),
+    limiterRequeteSegmentsALaSurface(
+      supabase.from('segments').select('id', { count: 'exact', head: true })
+        .eq('id_oeuvre', id).eq('id_texte', idTexte)
+        .is('ref_niv1', null),
+      'corps',
+    ),
     candidatsBilingues.length > 1
       ? Promise.all(candidatsBilingues.map(async alignement => ({
           alignmentSetId: alignement.alignmentSetId,
@@ -787,10 +794,9 @@ export default async function OeuvrePage({
   if ((nbSegmentsLiminaires ?? 0) > 0) niv1TexteMap[NIV1_LIMINAIRES] = 'LIMINAIRES'
 
   const segmentCible = passage
-  // Un lien vers un segment d'apparat ouvre la page SUR l'apparat. Les deux natures
-  // y donnent droit : viser un paragraphe du « Sommaire général » ne doit pas ouvrir
-  // le texte suivi, où il ne se lit pas.
-  const vueInitiale = NATURES_APPARAT.includes(segmentCible?.nature as never) ? 'apparat' : 'texte'
+  // Un lien vers un segment ouvre la surface que déclare son espace textuel ; les
+  // natures historiques ne servent de repli que si cet espace est absent.
+  const vueInitiale = segmentCible && estSegmentDeLApparat(segmentCible) ? 'apparat' : 'texte'
   const texteSansNiveaux = niv1List.length === 0
   // Le niveau nommé par l'adresse ne vaut que s'il existe dans CE texte : deux textes
   // d'une même œuvre ne partagent leurs clés de niveau qu'une fois sur deux (« Liber I »

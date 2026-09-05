@@ -108,3 +108,70 @@ export const NATURES_CORPS = [
  * § 7), mais la vue continue de la servir — ses 1 276 segments sont en ligne.
  */
 export const NATURES_APPARAT = ['apparat_critique', 'apparat_editeur'] as const
+
+/**
+ * La surface de lecture est un axe distinct de la nature du segment.
+ *
+ * `espace_textuel = 'apparat_critique'` l'emporte toujours, notamment pour les
+ * signatures de l'éditeur. À défaut d'espace explicite, les deux anciennes natures
+ * d'apparat restent reconnues pour que les éditions héritées ne perdent rien.
+ */
+export const ESPACE_TEXTUEL_APPARAT = 'apparat_critique' as const
+export type SurfaceOeuvre = 'corps' | 'apparat'
+
+type SegmentPourSurface = {
+  nature?: string | null
+  espace_textuel?: string | null
+}
+
+const contient = (valeurs: readonly string[], valeur: string) => valeurs.includes(valeur)
+
+export function surfaceDuSegment(segment: SegmentPourSurface): SurfaceOeuvre | null {
+  const nature = String(segment.nature ?? '').trim()
+  const espace = String(segment.espace_textuel ?? '').trim()
+
+  if (espace === ESPACE_TEXTUEL_APPARAT) return 'apparat'
+  if (contient(NATURES_CORPS, nature)) return 'corps'
+  if (!espace && contient(NATURES_APPARAT, nature)) return 'apparat'
+  return null
+}
+
+export function estSegmentDuCorps(segment: SegmentPourSurface): boolean {
+  return surfaceDuSegment(segment) === 'corps'
+}
+
+export function estSegmentDeLApparat(segment: SegmentPourSurface): boolean {
+  return surfaceDuSegment(segment) === 'apparat'
+}
+
+export function segmentsDeLaSurface<T extends SegmentPourSurface>(
+  segments: readonly T[],
+  surface: SurfaceOeuvre,
+): T[] {
+  return segments.filter(segment => surfaceDuSegment(segment) === surface)
+}
+
+/**
+ * Les formes PostgREST du même contrat. Le filtre d'apparat ne prend une nature
+ * héritée qu'en l'absence d'un espace explicite ; un espace explicite contraire
+ * reste donc prioritaire. Le corps accepte l'héritage sans espace, mais jamais un
+ * segment que la base place explicitement dans l'apparat.
+ */
+export const FILTRE_ESPACE_CORPS_POSTGREST =
+  `espace_textuel.is.null,espace_textuel.neq.${ESPACE_TEXTUEL_APPARAT}`
+export const FILTRE_APPARAT_POSTGREST =
+  `espace_textuel.eq.${ESPACE_TEXTUEL_APPARAT},and(espace_textuel.is.null,nature.in.(${NATURES_APPARAT.join(',')}))`
+
+type RequeteSurface = {
+  in(colonne: string, valeurs: readonly string[]): RequeteSurface
+  or(filtres: string): RequeteSurface
+}
+
+/** Applique le contrat partagé aux requêtes serveur et client. */
+export function limiterRequeteSegmentsALaSurface<T>(requete: T, surface: SurfaceOeuvre): T {
+  const q = requete as unknown as RequeteSurface
+  const filtree = surface === 'corps'
+    ? q.in('nature', NATURES_CORPS).or(FILTRE_ESPACE_CORPS_POSTGREST)
+    : q.or(FILTRE_APPARAT_POSTGREST)
+  return filtree as unknown as T
+}
