@@ -1,3 +1,5 @@
+'use client'
+
 import { Fragment } from 'react'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
@@ -6,6 +8,7 @@ import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
 import { familleDeNature, natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
+import * as BibliographieNote from './noteBibliographie'
 
 // Le texte d'un bloc de RENVOI EXTÉRIEUR (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
@@ -22,16 +25,82 @@ import { rendreTexteEnrichi } from './texteEnrichi'
 // normalisation se fait DANS LA DONNÉE, et le rendu n'est plus qu'un FILET — il ne
 // change rien à une note déjà normalisée, et rattrape un import qui aurait manqué la
 // passe. ⛔ Les retirer ferait dépendre l'affichage de la qualité d'une campagne.
-function texteBloc(bloc: NoteBlocData): string {
-  const texte = natureSeNormaliseCommeReference(bloc.kind)
-    ? normaliserReferencesDansTexte(bloc.text)
-    : bloc.text
-  return normaliserTypographieLecture(texte)
+function textePartielBloc(bloc: NoteBlocData, texte: string): string {
+  const normalise = natureSeNormaliseCommeReference(bloc.kind)
+    ? normaliserReferencesDansTexte(texte)
+    : texte
+  return normaliserTypographieLecture(normalise)
 }
+
+function texteBloc(bloc: NoteBlocData): string {
+  return textePartielBloc(bloc, bloc.text)
+}
+
 // Ponctuation finale : appliquée uniquement à la DERNIÈRE pièce rendue de la note
 // (le point final ne doit apparaître qu'une fois, en fin de note). Idempotent.
 function texteFinal(texte: string, estDernier: boolean): string {
   return estDernier ? terminerNote(texte) : texte
+}
+
+/**
+ * UNE SOUS-CHAÎNE BIBLIOGRAPHIQUE EXPLICITEMENT MAPPÉE est remplacée par sa notice.
+ *
+ * ⛔ Aucun motif, aucune reconnaissance : `source_citation` vient de la relation
+ * `texte_note_bloc_ouvrages` et doit apparaître UNE fois, exactement, dans le bloc.
+ * Si ce contrat n'est plus vrai (édition simultanée, donnée ancienne, collision), le
+ * bloc entier retombe sur son texte source. La bibliographie ne peut donc jamais
+ * manger une phrase qu'elle n'a pas explicitement reçue en charge.
+ */
+function rendreBlocAvecBibliographie(
+  bloc: NoteBlocData,
+  references: readonly BibliographieNote.ReferenceBibliographiqueNote[],
+  estDernier: boolean,
+) {
+  if (references.length === 0) {
+    return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
+  }
+
+  const positions = references.map(reference => {
+    const debut = bloc.text.indexOf(reference.sourceCitation)
+    const second = debut < 0 ? -1 : bloc.text.indexOf(reference.sourceCitation, debut + reference.sourceCitation.length)
+    return { reference, debut, second }
+  })
+  if (positions.some(item => item.debut < 0 || item.second >= 0)) {
+    console.error(`[notes] ancre bibliographique non unique dans ${bloc.blockId}`)
+    return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
+  }
+  positions.sort((a, b) => a.debut - b.debut)
+
+  let curseur = 0
+  for (const item of positions) {
+    if (item.debut < curseur) {
+      console.error(`[notes] ancres bibliographiques chevauchantes dans ${bloc.blockId}`)
+      return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
+    }
+    curseur = item.debut + item.reference.sourceCitation.length
+  }
+
+  curseur = 0
+  return (
+    <>
+      {positions.map((item, rang) => {
+        const avant = bloc.text.slice(curseur, item.debut)
+        curseur = item.debut + item.reference.sourceCitation.length
+        return (
+          <Fragment key={`${item.reference.ouvrageId}:${item.reference.citationRank}`}>
+            {avant ? rendreTexteEnrichi(textePartielBloc(bloc, avant)) : null}
+            <BibliographieNote.ReferenceBibliographiqueNote reference={item.reference} />
+            {rang === positions.length - 1 ? (() => {
+              const apres = bloc.text.slice(curseur)
+              return apres
+                ? rendreTexteEnrichi(texteFinal(textePartielBloc(bloc, apres), estDernier))
+                : null
+            })() : null}
+          </Fragment>
+        )
+      })}
+    </>
+  )
 }
 
 /**
@@ -76,6 +145,14 @@ function estReferenceRattachee(block: NoteBlocData) {
  * paragraphe, suit sa cible en ligne, ou vient après un retour dans des vers.
  */
 export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
+  const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
+  const apparatCritique = estNoteApparatCritique(note)
+  const bibliographieParBloc = BibliographieNote.useBibliographieNote(
+    note.noteKey,
+    blocks.map(block => block.blockId),
+    !apparatCritique,
+  )
+
   // L'APPARAT CRITIQUE se compose à part : ni typographie de lecture, ni point
   // final ajouté, ni référence normalisée — la notation philologique se rend
   // telle quelle (voir ApparatCritique.tsx). La bifurcation ne tient PAS au
@@ -83,9 +160,8 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
   // `metadata.editorial_role`, et elle exige que TOUS les blocs de la note en
   // relèvent : toute note qui n'est pas intégralement un apparat continue de
   // passer par le rendu ci-dessous, inchangé.
-  if (estNoteApparatCritique(note)) return <ContenuApparatCritique note={note} />
+  if (apparatCritique) return <ContenuApparatCritique note={note} />
 
-  const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
   const rattaches = new Map<string, NoteBlocData[]>()
 
   for (const block of blocks) {
@@ -167,7 +243,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 {rendreTexteEnrichi(texteBloc(ancrage))}{' '}
               </span>
             ))}
-            {rendreTexteEnrichi(texteFinal(texteBloc(block), finSurTexte))}
+            {rendreBlocAvecBibliographie(block, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
             {referencesInline.map((reference, i) => (
               <span
                 key={reference.blockId}
