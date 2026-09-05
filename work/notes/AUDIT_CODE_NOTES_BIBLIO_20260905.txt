@@ -1,0 +1,355 @@
+AUDIT DU CODE — NOTES STRUCTURÉES ET NORMALISATEUR BIBLIOGRAPHIQUE
+5 septembre 2026, lecture seule
+
+Aucune donnée n'a été modifiée, aucun fichier de code n'a été touché. Tout ce qui est
+chiffré ci-dessous a été mesuré, soit par requête en lecture seule sur la base, soit en
+faisant passer le corpus par la VRAIE fonction (harnais dans tmp/, non versionné).
+
+
+0. PÉRIMÈTRE ET MÉTHODE
+─────────────────────────────────────────────────────────────────────────────────────
+
+Côté notes, lu en entier : app/lib/naturesNote.ts, typeNote.ts, numerotationNotes.ts,
+apparatCritique.ts, appelsNotesStructurees.ts, referenceNote.ts,
+app/oeuvre/[id]/ContenuNoteStructuree.tsx, oeuvreTypes.ts (types des notes),
+sql/20260905_natures_bloc_note.sql et son retour arrière ; lu par extraits :
+app/oeuvre/[id]/page.tsx (chargeur des notes et numéro affiché, l. 515-665),
+appelNote.tsx (libellé et numéro visible), ComparaisonTraductions.tsx (sa propre
+infobulle, l. 68-125, et son chargeur, l. 365-405). Tests : naturesNote (4),
+typeNote (6), numerotationNotes (7), ContenuNoteStructuree.natures (8),
+ContenuNoteStructuree (4), apparatCritique (16), referenceNote (26, relancé : vert).
+
+Côté bibliographique, lu en entier : app/lib/editeursNormalisation.ts, editeurs.ts,
+editeursServeur.ts, app/api/admin/editeurs/route.ts, app/lib/bibleBibliographieOuvrages.ts,
+app/admin/SectionEditeurs.tsx, les quatre migrations sql/20260829_*.sql ; lu par
+extraits : SectionOuvrages.tsx (Rattachement, majRattachement), SectionFiabilite.tsx
+(majEditeur). En base : la définition VIVANTE des treize fonctions (cle_editeur,
+editeurs_cles, editeurs_variantes_propres, les quatre déclencheurs, les quatre fonctions
+de contrôle, resoudre_editeur, internal.normaliser_cle_bibliographique), les sept
+déclencheurs posés sur editeurs et editeurs_valeur, et la vue
+v_bible_editorial_bibliography_entries. Tests : editeursNormalisation (37),
+bibleBibliographieOuvrages (33).
+
+État du dépôt au moment de l'audit : les commits 72bbb507 (charte § 13.12 + protocole)
+et 8b9e4212 (romains minuscules, borne 150) sont poussés. L'arbre porte une retouche
+NON COMMITÉE de quatre lignes sur app/oeuvre/[id]/page.tsx, l. 528 (le commentaire sur
+le numéro qui recommence par division et l'ordre secondaire par note_key) ; elle vient
+d'un autre chantier et n'a pas été touchée.
+
+
+1. CÔTÉ NOTES
+─────────────────────────────────────────────────────────────────────────────────────
+
+1.1 Ce qui tient
+
+- Les trois axes sont bien séparés dans le code : la NATURE (naturesNote.ts, huit
+  valeurs, quatre familles, lecture tolérante qui rend null sur l'inconnu), le TYPE
+  (typeNote.ts, cinq valeurs, libellé « Note » par défaut, unanimité des blocs exigée,
+  la même règle que estNoteApparatCritique), le NUMÉRO AFFICHÉ (numerotationNotes.ts,
+  une série par division de niveau 1, l'apparat en série séparée, calcul pur).
+- La contrainte texte_note_blocs_kind_check de public.texte_note_blocs porte bien les
+  huit natures. Les sept contraintes homonymes à six valeurs relevées en base sont
+  celles de tables de sauvegarde internal.backup_a0044_faivre_phase3_* : sans effet.
+  Aucune nature neuve n'est semée (source_locator 0, internal_cross_reference 0) ; le
+  retour arrière reste sans perte.
+- Le chargeur de page.tsx pagine ses quatre tables ET la requête des divisions
+  (chargerToutesPagesSupabase). Treize textes à notes dépassent mille segments : sans
+  cette pagination, la moitié d'entre eux aurait eu des numéros faux en silence.
+  Ce n'est pas le cas.
+- 23 119 notes ancrées, 0 ancre dont le segment manque, 0 note à cheval sur deux
+  niveaux 1. Le renvoi interne n'est pas normalisé (natureSeNormaliseCommeReference ne
+  vaut que pour reference), et le test le tient.
+- La borne CHAPITRE_MAX et l'alternative homogène des romains fonctionnent comme
+  prévu : « Ps. CLI, 1 », « Jud. I, 5 », « Gn 1.5 » et « (Lc 7, 11.15) » restent intacts.
+
+1.2 Défauts constatés, du plus grave au plus léger
+
+N1. LE MOTIF RE_RENVOI ABSORBE LE POINT DE PHRASE, et la fonction ne le repose pas.
+    Le groupe optionnel qui termine le motif (referenceNote.ts, l. 159) prend le point
+    qui suit le verset dès qu'aucun chiffre ne le suit ; « normalized » est recomposé
+    sans lui ; terminerNote ne repose un point qu'à la FIN DE LA NOTE. Mesuré sur les
+    11 922 blocs de nature reference (les seuls que la lecture normalise) :
+      4 276 réécritures, dont 2 886 sur une source qui finit par un point ;
+      2 839 sont en fin de dernière pièce, et terminerNote repose le point ;
+         34 sont au MILIEU d'un bloc : le point de phrase disparaît ;
+         13 sont en fin d'un bloc qui n'est pas le dernier de sa note : le point
+            final du bloc disparaît.
+    Exemples réels (rendu actuel) :
+      « Rom. IX, 28. Is. x, 23. »          → « Rm 9, 28 Is 10, 23 »
+      « Ps. LXVIII, 22. Matth. xxvII, 34. » → « Ps 68, 22 Matth. xxvII, 34 »
+      « Act. II, 41. Ibid. IV, 4 et 32. »   → « Ac 2, 41 Ibid. IV, 4 et 32 »
+      « Dt 32, 8. Sept. »                   → « Dt 32, 8 Sept. »
+    Onze textes sont touchés (quatre Bareille à six cas chacun, la Cité de Dieu
+    française trois, Jeannin deux et un, six autres un). Le défaut est ANTÉRIEUR à la
+    séance du jour : seul le refus de manger le point quand un chiffre le suit
+    (« 11.15 ») est du 5 septembre ; l'absorption elle-même date du motif d'origine, et
+    les tests l'encodent (« Matth. x, 22. » doit rendre « Mt 10, 22 »).
+    Remède : ne plus faire entrer le point dans la portion réécrite (retirer le groupe
+    final, ou l'ajouter à « normalized » quand il a été pris). Le point reposé par
+    terminerNote ne fait alors jamais doublon, celui-ci s'abstenant devant une
+    ponctuation forte. Coût : deux attentes de test à réécrire (« Ab 1, 1. »,
+    « Mt 10, 22. »), 47 rendus corrigés, aucun autre changement mesuré.
+
+N2. LES DEUX SURFACES DE LECTURE NE DISENT PAS LA MÊME CHOSE D'UNE NOTE.
+    ComparaisonTraductions.tsx porte sa propre infobulle (AppelNote, l. 77) : le libellé
+    n'y connaît que « Apparat critique » ou « Note » (l. 80), jamais les cinq types de
+    typeNote.ts ; l'exposant et l'en-tête montrent note.noteNumber, le numéro INTERNE,
+    jamais displayNumber ; son chargeur (l. 365-405) reconstruit les notes sans jamais
+    calculer le numéro affiché ni la division. Une note de traducteur se lit donc
+    « Note du traducteur 12 » dans la lecture et « Note 1039 » en traductions
+    parallèles. Le chargeur est en outre une seconde écriture de celui de page.tsx.
+    Remède : un chargeur commun (avec numerosAffiches et estNoteApparatCritique),
+    et libelleDeLaNote + displayNumber dans AppelNote de la comparaison.
+
+N3. LE NUMÉRO AFFICHÉ SUIT note_number, ET note_number N'EST PAS TOUJOURS L'ORDRE DE
+    LECTURE DANS LA DIVISION. numerosAffiches distribue ses numéros dans l'ordre de
+    notesRows (note_number, note_key) : il tient note_number pour l'ordre de lecture.
+    Mesuré, à l'intérieur de chaque division, sur la position de la première ancre :
+      Cité de Dieu latine (BENEDICTINS_VIVES)     60 inversions sur 3 150 notes
+      Cité de Dieu française (BARREAU_VIVES)      14 sur 1 803
+      Homélies Jeannin (A0014O0004)                9 sur 1 318
+      Bareille A0051O0045                          7 sur 98
+      A0051O0049 (3), A0051O0022 (2), A0014O0088 (2), Faivre A0044O0003TFR-V11 (1),
+      A0014O0038 (1), A0017O0001 (1)
+    soit 100 endroits, dans dix textes, où le lecteur rencontrera par exemple la
+    note 2235 avant la 2234 (Liber octavus-decimus : n° 2234 au segment 3757, n° 2235
+    au segment 3614, cent quarante-trois segments plus haut).
+    Deux lectures possibles, et c'est une décision : ou bien la donnée est fautive
+    (une ancre mal posée, un numéro mal attribué) et se corrige ; ou bien le code doit
+    ordonner les notes par leur PREMIÈRE ANCRE (segment_numero, segment_offset_unicode)
+    avant d'appeler numerosAffiches, ce qui est la définition même du numéro affiché
+    (charte § 13.8, « l'ordre de lecture ») et rend la numérotation indépendante de
+    note_number. La seconde voie est la plus sûre : elle ne dépend plus d'un numéro
+    d'import.
+
+N4. 608 NOTES DE LA CITÉ DE DIEU LATINE N'ONT AUCUNE ANCRE (16 % de ses 3 758 notes ;
+    607 ont note_number nul ; toutes ont leurs blocs). Elles ne sont jamais rendues,
+    et rien ne le dit : le code les tolère en silence (un bloc dont la note n'a pas de
+    numéro est ignoré, une note sans ancre n'a pas d'appel). Deux autres textes en ont
+    une chacun. C'est une donnée (domaine de GPT), mais le silence est du code : un
+    compteur « notes sans ancre » dans le centre de contrôle éviterait de le
+    redécouvrir.
+
+N5. LATENT — la division d'une note est celle de sa « première ancre » dans l'ordre de
+    anchorsRows, c'est-à-dire (note_key, segment_key, offset) : un ordre LEXICOGRAPHIQUE
+    de segment_key, non l'ordre de lecture, contrairement à ce qu'annonce le commentaire
+    de page.tsx (l. 630). Sans effet aujourd'hui : 450 notes ont plusieurs ancres, aucune
+    n'est à cheval sur deux niveaux 1. À corriger le jour où une note sera rappelée
+    d'une division à l'autre (trier les ancres par segment_numero, ou réemployer la
+    table des divisions déjà chargée).
+
+N6. LE NUMÉRO INTERNE RECOMMENCE PAR LIVRE DANS LES CONFESSIONS : 1 039 numéros
+    distincts pour 7 277 notes (782 numéros portés par plusieurs notes). Le marqueur
+    [[n]] n'est donc pas unique dans le texte. Le code de page.tsx le supporte parce
+    qu'il indexe par segment ; mais tout outillage qui prendrait note_number pour une
+    identité (la table parNumero de ComparaisonTraductions, un export, un contrôle)
+    se tromperait. À savoir, non à corriger.
+
+N7. MINEUR — l'italique de la langue (fontStyle italic sur un bloc language = la) et
+    l'italique de marqueur *…* ne se distinguent pas quand ils se rencontrent : un em
+    dans un bloc déjà italique reste italique, sans bascule en romain. La charte
+    § 13.12.2 demande justement de ne pas les cumuler ; rien dans le code ne l'empêche.
+
+N8. MINEUR — CHAPITRE_MAX = 150 exclut le psaume 151 (« Ps. CLI, 1 » reste intact).
+    Aucune occurrence normalisable perdue dans le corpus aujourd'hui ; limite connue à
+    consigner si l'on renvoie un jour à la Septante par ce motif.
+
+1.3 État des données lues par ce code (pour mémoire)
+
+- kind : commentary 12 008, reference 11 922, lemma 126, quotation 115, translation 76,
+  attribution 17.
+- metadata.editorial_role : absent 16 873 (69,5 %), critical_apparatus 7 379,
+  source_editorial_note 11, corpus_editorial_note 1. Le type « Note » par défaut est
+  donc, aujourd'hui, ce que le lecteur voit sept fois sur dix.
+
+
+2. CÔTÉ NORMALISATEUR BIBLIOGRAPHIQUE
+─────────────────────────────────────────────────────────────────────────────────────
+
+2.1 Ce qui tient
+
+- Une seule clé de comparaison écrite deux fois, et les deux écritures RENDENT LA MÊME
+  CHOSE SUR TOUTE LA DONNÉE ACTUELLE : aucun nom, aucune variante, aucun alias des deux
+  référentiels (653 maisons, 746 autorités) ne porte une lettre hors du jeu que
+  public.cle_editeur translittère. Le test de la capitale accentuée est en place.
+- Les déclencheurs vivants sont ceux attendus : sur editeurs, la troisième version de
+  trg_editeurs_fusion_variantes (avec la sortie précoce quand ni le nom ni les variantes
+  ne changent) et trg_editeurs_absorber ; sur editeurs_valeur, la fusion des alias et
+  l'absorption qui transfère notices et collections avant de supprimer. Aucune
+  collision INTERNE dans l'un ni l'autre référentiel (0 et 0) : autorites et variantes
+  ne se disputent rien à l'intérieur d'une même table.
+- La résolution lit la forme entière avant de découper ; une coédition ne se rend
+  jamais telle quelle ; la barre oblique n'est pas un séparateur de coédition ;
+  joindreEditeurs est idempotente ; variantesDepuisLignes protège la virgule. Trente-
+  sept tests couvrent ces règles, avec les cas réels (Camusat, Thomas More / CADIR).
+- Les cinquante coéditions de editeurs ont été séparées (coeditions_editeurs_a_separer
+  rend 0). Tout ouvrage à éditeur libre est rattaché à une autorité (0 non rattaché).
+- La vue v_bible_editorial_bibliography_entries est bien en security_barrier, ne sert
+  que les familles publiées, et coalesce(editeurs_valeur.nom, ouvrage.editeur) comme la
+  charte le prescrit ; bibleBibliographieOuvrages.ts ne fait aucune découpe de chaîne,
+  et ses 33 tests le tiennent (dédoublonnage par ouvrage_id, article écarté du seul
+  classement, latin préservé, ponctuation de rendu).
+
+2.2 Défauts et risques, du plus grave au plus léger
+
+B1. LES DEUX RÉFÉRENTIELS ONT DIVERGÉ DEPUIS LE 29 AOÛT, ET RIEN NE LE SURVEILLE.
+    Le contrôle de clôture qui « doit rester vide » (autorites_editeurs_a_fusionner)
+    rend aujourd'hui 87 lignes : 81 noms d'autorités d'editeurs_valeur qu'une fiche
+    d'editeurs déclare variante (« A. Cherest » est une variante d'« Alfred Cherest »,
+    « Aubier-Montaigne » d'« Aubier »), et 6 dans l'autre sens (« Walter de Gruyter »,
+    maison, est un alias de « De Gruyter », autorité). propagation_editeurs_a_faire rend
+    9 lignes, variantes_editeurs_disputees 22 graphies, en huit couples (Henri Oudin /
+    Librairie religieuse Henri Oudin, Chamonal, Belin, Messeiller, Girard, Rieder,
+    Institut pontifical oriental, Sorbonne). Le J.-P. Migne du 29 août n'y est plus.
+    Côté code, la cause est structurelle : la propagation n'existe que dans UN sens
+    (route.ts, propagerAuxAutorites : de editeurs vers editeurs_valeur) et ne joue que
+    quand on enregistre depuis SectionEditeurs ; rien ne joue quand editeurs_valeur
+    s'écrit (SectionFiabilite, SectionOuvrages, scripts) ; et AUCUNE des quatre
+    fonctions de contrôle n'est appelée par app/ ni par controle_tableau_bord — elles
+    ne sont citées que par deux scripts du 29 août et leurs migrations. Un contrôle
+    qu'on ne lit pas n'en est pas un. Remède : une tuile du centre de contrôle sur les
+    trois compteurs ; et soit une propagation symétrique, soit la décision de fond
+    (un seul référentiel, ou une table de correspondance explicite).
+
+B2. DEUX CLÉS COEXISTENT, ET L'UNE N'EST LUE PAR RIEN. editeurs_valeur.cle_normalisee
+    (comme auteurs_valeur et collections_valeur) est une colonne générée par
+    internal.normaliser_cle_bibliographique : sans aucun séparateur, œ rendu oe,
+    apostrophes unifiées ; public.cle_editeur garde les séparateurs en espaces et jette
+    œ. Les deux divergent sur 644 des 746 autorités, et surtout elles n'ont pas la même
+    notion de « même maison » (« FirminDidot » et « Firmin Didot » se rejoignent pour
+    l'une, non pour l'autre). Or cle_normalisee n'est lue par AUCUNE fonction ni vue de
+    la base, ni par une ligne d'app/ : seul sql/20260829_cle_editeur_capitales_
+    accentuees.sql la nomme, en commentaire. C'est le cas « un champ que rien ne lit est
+    une seconde vérité qui attend de contredire la première » (AGENTS). Décision : la
+    retirer, ou lui donner un lecteur (le rattachement des ouvrages, par exemple), mais
+    alors l'unifier avec cle_editeur.
+
+B3. LATENT — cle_editeur (SQL) et cleEditeur (TS) diffèrent hors du jeu translittéré :
+    le TypeScript décompose en NFD et garde la lettre de base (š → s, ø reste ø, ł
+    reste ł), le SQL jette en espace tout ce que sa table de translate ne connaît pas
+    (š → espace). Aucun nom actuel n'est concerné (mesuré), mais le premier éditeur
+    tchèque, polonais ou scandinave ouvrira l'écart, et le test actuel ne le verrait pas
+    (il n'éprouve qu'une capitale accentuée). Remède : unaccent côté SQL (ou une table
+    élargie), et un test qui compare les deux sur un jeu de lettres hors ASCII.
+
+B4. LATENT — le déclencheur d'editeurs_valeur N'A PAS la sortie précoce posée le
+    29 août sur celui d'editeurs. Toute mise à jour d'une autorité (un score depuis
+    SectionFiabilite, l'horodatage set_updated_at) rejoue les contrôles de collision.
+    Sans effet aujourd'hui (aucune collision interne), mais le jour où deux autorités se
+    disputeront une graphie DANS editeurs_valeur, la fiche ne pourra plus être notée :
+    c'est exactement le cas Migne du 29 août, transposé.
+
+B5. route.ts — trois petites choses. (a) reponseErreur ne tient pour erreur du
+    demandeur (409) que ZE001 ; le ZE002 du déclencheur (point-virgule dans le nom)
+    revient en 500, alors qu'estCoedition côté route et le like du déclencheur ne se
+    recouvrent pas exactement (« Foo; » passe le premier, tombe sur le second).
+    (b) traiterCoedition insère les maisons une à une sans transaction : si la troisième
+    insertion échoue, les deux premières restent et la fiche composée aussi. Une RPC
+    ferait l'opération d'un tenant. (c) Côté écran, supprimer() de SectionEditeurs
+    n'inspecte pas la réponse du DELETE : un refus se traduit par une liste rechargée à
+    l'identique, sans message — la famille des « 174 requêtes dont error n'est jamais
+    lue » de l'audit du 2 septembre.
+
+B6. LATENT — les deux index (editeurs.ts côté navigateur, editeursServeur.ts côté
+    serveur) se construisent sur un select sans order() : une graphie revendiquée par
+    deux fiches d'editeurs serait résolue vers celle qui arrive en dernier, au gré de
+    Postgres. Sans effet aujourd'hui (0 collision interne), mais c'est la même famille
+    de défaut que « le choix d'édition ne dépend plus de l'ordre des lignes » (commit
+    e0d46773 du jour).
+
+B7. MINEUR — la file « à normaliser » de SectionEditeurs découpe la mention brute sur
+    « ; » ET sur « / » (l. 114), quand estCoedition ne connaît que le point-virgule :
+    un vrai nom de maison à barre oblique non encore répertorié paraît en deux puces,
+    dont aucune n'est la maison. Cohérent avec morceauxDeMention, mais à savoir.
+
+B8. MODÈLE — ouvrages_bibliographiques ne porte qu'un editeur_valeur_id ; trois
+    autorités composées (« A ; B ») subsistent dans editeurs_valeur pour cette raison, et
+    le verrou ZE002 ne porte que sur editeurs. Déjà consigné le 29 août ; toujours ouvert.
+
+B9. SectionOuvrages — le rattachement d'un ouvrage à son autorité est un menu de 746
+    entrées, sans suggestion par clé alors que cleEditeur existe et que le champ libre
+    (« Notice : … ») est affiché à côté. Sans urgence (0 ouvrage non rattaché), mais
+    c'est là que le normalisateur servirait le plus au prochain lot.
+
+2.3 Ce que les tests ne couvrent pas
+
+- Aucun test sur la route /api/admin/editeurs (le 2 septembre relevait déjà zéro test
+  sur les 55 routes d'API) : les trois actions, les codes 409/500, la propagation.
+- Aucun test qui compare cle_editeur (SQL) et cleEditeur (TS) au-delà d'une capitale
+  accentuée (voir B3).
+- Aucun test sur SectionEditeurs.charger (la file « à normaliser », B7).
+
+
+3. TROUVAILLES AU PASSAGE — CARACTÈRES DE CONTRÔLE DANS QUATRE SOURCES
+─────────────────────────────────────────────────────────────────────────────────────
+
+Le balayage des 565 fichiers d'app/ (et de sql/, work/notes, AGENTS.md, charte/) a
+trouvé quatre fichiers qui portent des caractères de contrôle LITTÉRAUX là où le code
+voulait écrire un échappement — le piège réparé quatre fois aujourd'hui, déjà présent
+avant :
+
+- app/admin/SectionOuvrages.tsx l. 940 : deux U+0000 littéraux dans les deux
+  join('…') de la comparaison des alias. Conséquence pratique : grep et ripgrep
+  tiennent le fichier pour BINAIRE et masquent leurs correspondances (mon propre grep
+  sur editeurs_valeur y a caché une ligne pendant cet audit).
+- app/lib/liensSurs.ts l. 21 : U+0000 et U+001F littéraux comme bornes d'une classe de
+  caractères ; app/lib/liensSurs.test.ts l. 20 : U+0001 littéral dans une chaîne.
+- app/admin/controleQualite.ts l. 58 : le U+FFFD est voulu (détection d'encodage) ;
+  deux U+0080 invisibles servent de bornes de plage.
+
+Tous sont fonctionnellement équivalents à l'échappement voulu : rien ne casse à
+l'exécution. Mais un fichier source binaire échappe aux outils texte, et une plage dont
+la borne est invisible ne se relit pas. Remède : réécrire les échappements en clair.
+Aucun n'a été touché par cet audit.
+
+
+4. RÉCAPITULATIF
+─────────────────────────────────────────────────────────────────────────────────────
+
+Se corrige dans le code, sans attendre une décision de fond :
+  N1 (le point de phrase, 47 cas mesurés), N2 (une seule infobulle, un seul chargeur),
+  N5 (ordre des ancres), B4 (sortie précoce sur editeurs_valeur), B5 (ZE002 en 409,
+  DELETE lu, coédition en RPC), B6 (order() sur les index), section 3 (échappements).
+
+Attend une décision de l'auteur :
+  N3 (le numéro affiché suit l'ancre ou l'on corrige les 100 inversions),
+  B1 (deux référentiels : surveiller et propager, ou fondre),
+  B2 (cle_normalisee : retirer ou faire servir), B8 (modèle de la coédition).
+
+Est une donnée, à porter à GPT :
+  N4 (608 notes sans ancre de la Cité de Dieu latine), les 100 inversions de N3 si
+  l'on choisit de corriger la donnée, les 87 + 9 + 22 lignes de B1.
+
+Rien n'a été trouvé qui contredise les décisions du § 13.12 ni le code posé ce jour
+(natures, types, numérotation, romains minuscules, borne 150) : les défauts relevés
+sont antérieurs, ou latents.
+
+
+5. QUESTIONS POUR L'AUTEUR
+─────────────────────────────────────────────────────────────────────────────────────
+
+Q1. Le point de phrase (N1) : je corrige le motif pour qu'il ne mange plus le point ?
+    (47 rendus changent, deux attentes de test aussi ; rien d'autre ne bouge, mesuré.)
+Q2. Le numéro affiché (N3) : il suit l'ordre des ANCRES (ordre de lecture réel), quel
+    que soit note_number ? Ou l'on tient note_number pour vrai et l'on corrige les 100
+    inversions dans la donnée ?
+Q3. Les 608 notes sans ancre de la Cité de Dieu latine (N4) : je le signale à GPT, et
+    j'ajoute un compteur au centre de contrôle ?
+Q4. Traductions parallèles (N2) : j'aligne leur infobulle sur la lecture (type, numéro
+    affiché, chargeur commun) ?
+Q5. cle_normalisee (B2) : on la retire, ou on lui donne un usage ? Si usage, on unifie
+    avec cle_editeur ?
+Q6. Les deux référentiels d'éditeurs (B1) : tuile de contrôle + propagation dans les
+    deux sens, ou fusion des deux tables en une ?
+Q7. Les quatre fichiers à caractères de contrôle (section 3) : je les répare ?
+Q8. Les petits correctifs groupés (B4, B5, B6, N5) : je les fais d'un seul commit ?
+
+
+Annexe — harnais et requêtes employés (tmp/, non versionné)
+  tmp/mesure-point-final.mts     les 24 264 blocs passés par releverReferencesBibliquesNormalisables
+  tmp/audit-point-final.mts      neuf cas témoins du motif
+  tmp/scan-controle.mjs          balayage des caractères de contrôle
+  tmp/points-de-code.mjs         points de code des quatre lignes fautives
+  Les requêtes SQL (inversions par division, notes sans ancre, collisions internes,
+  lettres hors jeu, usages de cle_normalisee) ont été passées en lecture seule par le
+  connecteur ; aucune n'écrit.

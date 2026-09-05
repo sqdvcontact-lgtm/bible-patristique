@@ -5638,3 +5638,45 @@ harnais `tmp/mesure-romains-minuscules.mts` fait passer tous les blocs par la VR
 fonction, avant et après, et compare les deux relevés. Les vingt premiers cas eyeballés
 paraissaient tous justes ; c'est le balayage complet qui a fait paraître les six
 corruptions.
+
+# Audit du code des notes et du normalisateur bibliographique (2026-09-05)
+
+Rapport : `work/notes/AUDIT_CODE_NOTES_BIBLIO_20260905.txt` (lecture seule, tout mesuré sur le
+corpus ou en base). Ce qu'un agent doit savoir avant de toucher à ce code, en attendant les
+décisions de l'auteur (questions Q1 à Q8 du rapport) :
+
+- ⛔ **`RE_RENVOI` (`app/lib/referenceNote.ts`) MANGE LE POINT DE PHRASE** : le groupe final du
+  motif prend le point qui suit le verset, `normalized` ne le repose pas, et `terminerNote` ne
+  rend un point qu'en FIN DE NOTE. Mesuré sur les 11 922 blocs `reference` : 34 points de phrase
+  perdus au milieu d'un bloc, 13 en fin d'un bloc qui n'est pas le dernier de sa note
+  (« Rom. IX, 28. Is. x, 23. » → « Rm 9, 28 Is 10, 23 »). Antérieur au 5 septembre ; les tests
+  l'encodent (« Matth. x, 22. » → « Mt 10, 22 »). À corriger sur décision (Q1).
+- ⚠️ **`numerosAffiches` tient `note_number` pour l'ordre de lecture**, et il ne l'est pas
+  partout : 100 inversions dans dix textes, mesurées sur la première ancre PAR DIVISION (60 sur
+  la Cité de Dieu latine, 14 sur la française). Ordonner par ancre, ou corriger la donnée (Q2).
+- ⚠️ **`ComparaisonTraductions` a sa PROPRE infobulle** (l. 77) : ni les cinq types de
+  `libelleDeLaNote`, ni `displayNumber` — le numéro INTERNE y paraît ; son chargeur (l. 365-405)
+  est une seconde écriture de celui de `page.tsx`.
+- ⚠️ **608 notes de la Cité de Dieu latine n'ont aucune ancre** (607 sans `note_number`, toutes
+  avec leurs blocs) et ne paraissent jamais ; le code se tait. Donnée (GPT) ; compteur à poser.
+- ⚠️ Le numéro interne recommence par LIVRE dans les Confessions (1 039 numéros distincts pour
+  7 277 notes) : `[[n]]` n'est pas unique dans le texte. `page.tsx` le supporte (index par
+  segment) ; tout outillage qui prendrait `note_number` pour une identité se tromperait.
+- ⛔ **Les deux référentiels d'éditeurs ont DIVERGÉ** : `autorites_editeurs_a_fusionner()` rend
+  87 lignes (elle « doit rester vide », et rendait 0 le 29 août), `propagation_editeurs_a_faire()`
+  9, `variantes_editeurs_disputees()` 22 graphies en huit couples. AUCUNE des quatre fonctions de
+  contrôle n'est appelée par `app/` ni par `controle_tableau_bord` ; la propagation de `route.ts`
+  ne joue que d'`editeurs` vers `editeurs_valeur`, et seulement depuis `SectionEditeurs`.
+- ⚠️ **`cle_normalisee` n'est lue par RIEN** — ni fonction, ni vue, ni `app/` — et diverge de
+  `cle_editeur` sur 644 autorités sur 746 (pas de séparateur, œ → oe) : deux clés, une seule en
+  service. Retirer ou faire servir (Q5).
+- ⚠️ `cle_editeur` (SQL) et `cleEditeur` (TS) coïncident sur TOUTE la donnée actuelle (aucune
+  lettre hors du jeu translittéré), mais divergent sur š, č, ł, ø… (NFD garde la lettre de base,
+  `translate` la jette) ; le déclencheur d'`editeurs_valeur` n'a PAS la sortie précoce de celui
+  d'`editeurs` ; `route.ts` rend ZE002 en 500 (seul ZE001 fait 409) ; `traiterCoedition` n'est
+  pas transactionnel ; les deux index d'éditeurs se construisent sans `order()`.
+- ⚠️ **Quatre sources portent des caractères de contrôle LITTÉRAUX** là où un échappement était
+  voulu : `app/admin/SectionOuvrages.tsx:940` (deux NUL — grep et ripgrep tiennent le fichier
+  pour BINAIRE et masquent leurs correspondances), `app/lib/liensSurs.ts:21` (U+0000, U+001F),
+  `app/lib/liensSurs.test.ts:20` (U+0001), `app/admin/controleQualite.ts:58` (deux U+0080 comme
+  bornes de plage ; le U+FFFD y est voulu). Équivalents à l'exécution ; à réécrire en clair (Q7).
