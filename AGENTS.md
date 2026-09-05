@@ -5790,6 +5790,17 @@ audit des six écritures existantes et décisions dans
   chiffres qui font un hexa (`${OUV}` + `De …`).
 
 
+# L'outil bibliographique — `/bibliographie` (2026-09-06)
+
+Doctrine : charte § 42. Demande de l'auteur du 6 septembre 2026 (« un outil bibliographique dédié au religieux, dans Aller plus loin »). C'est une **surface du moteur** ci-dessus, non un moteur de plus : chaque référence se compose par `ReferenceBibliographique` depuis `v_references_bibliographiques`, par `chargerNoticesBibliographiques`, et le bouton « Copier » passe par `htmlFragments` / `texteFragments`. Règles de code :
+
+- **`app/lib/bibliographieCatalogue.ts` est pur et testé** : assemblage des lignes de la base en entrées, tri par `comparerOuvrages` (⛔ jamais réécrit), lettre de vedette par `clefDeVedette` (exportée pour cela de `bibleBibliographieOuvrages.ts`), filtres, recherche, libellés, comptes. ⛔ Aucune règle de composition, aucune lecture Supabase dedans.
+- ⛔ **Ne montre que `retenu` et `secondaire`** (charte § 29.1). Le filtre est dans la requête de `app/bibliographie/page.tsx` ET dans `estMontrable` ; la page ne demande que les colonnes qu'elle affiche — ni score, ni réserve, ni motif — et le client n'écrit nulle part le rang d'un ouvrage. Au 2026-09-06 : 588 ouvrages sur 958 ; les 162 sources primaires sont toutes `a_verifier` et n'y paraissent pas — dette de qualification, dans la donnée.
+- **Chargement serveur + ISR (30 min)**, modèle du catalogue des péricopes : service-role, `chargerToutesPagesSupabase` pour les 1 659 liens de péricopes (au-delà d'une page PostgREST). ⚠️ Ce qui part au navigateur est MESURÉ : 515 Ko d'entrées + 10 Ko de noms ; le texte de recherche (`indexerRecherche`) se calcule au montage et ne voyage pas (717 Ko sinon). Les noms de péricopes voyagent une fois, dans une table à part.
+- **Même grammaire de volet que `PericopesCatalogueClient`** (recherche, compte, « Parcourir », « Filtrer », cases à marqueur carré, repli mobile) ; la marge collante porte la LETTRE. ⛔ Pas d'onglets : le seul partage naturel (le genre) redirait un filtre (charte § 36). Les comptes des filtres se prennent sur le corpus entier.
+- **Contrôle sur données réelles** : `tmp/controle-bibliographie.mts` (non versionné) rejoue le chargement de la page et imprime comptes, ordre, poids et quelques recherches. `node --env-file=.env.local node_modules/tsx/dist/cli.mjs tmp/controle-bibliographie.mts`.
+- Ce qu'il ne fait pas encore : lier aux œuvres (16 ouvrages cités dans des notes) et aux bibles (15, introductions) ; une fiche par ouvrage ; un lien d'achat (les librairies ont leur page, la sienne y renvoie en pied).
+
 # ⛔ La référence qui SORT du site se compose du même moteur (2026-09-05)
 
 Doctrine : charte `parametres.charte_ia`, **§ 35.6.6**. Demande de l'auteur : « uniformiser

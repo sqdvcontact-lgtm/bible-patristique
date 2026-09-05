@@ -163,8 +163,10 @@ export function replier(texte: string): string {
     .trim()
 }
 
-/** La clé d'un TITRE : replié, puis délesté de son article initial. */
-function clefDeTitre(texte: string): string {
+/** La clé d'un TITRE : replié, puis délesté de son article initial.
+ *  ⚠️ EXPORTÉE depuis le 2026-09-06 : l'outil bibliographique (`bibliographieCatalogue`)
+ *  range ses entrées par la même clé — une seule façon de classer un titre. */
+export function clefDeTitre(texte: string): string {
   const mots = replier(texte).split(' ')
   // ⛔ Jamais le dernier mot : un titre qui n'est QUE son article se range sous
   // lui, faute de quoi sa clé serait vide et il remonterait en tête.
@@ -180,7 +182,9 @@ function clefDeTitre(texte: string): string {
  * bloc à part. ⛔ L'article ne se retire pas d'un nom d'autorité : « La Taille »
  * est un nom, non un titre précédé d'un article.
  */
-function clefDeVedette(ouvrage: OuvrageBibliographique): string {
+/** ⚠️ EXPORTÉE depuis le 2026-09-06, pour la même raison que `clefDeTitre` : c'est
+ *  aussi par elle que l'outil bibliographique range ses entrées sous une LETTRE. */
+export function clefDeVedette(ouvrage: OuvrageBibliographique): string {
   const auteur = ouvrage.auteur
   if (!auteur) return clefDeTitre(ouvrage.titre)
   return replier(auteur.nomFamille ?? auteur.nom)

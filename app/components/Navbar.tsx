@@ -101,6 +101,9 @@ const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?:
 // de la description de chaque page : ⛔ on ne promet ici que ce qu'elle porte.
 const LIENS_ALLER_PLUS_LOIN: { href: string; label: string; dit: string }[] = [
   { href: "/traductions", label: "Les traductions", dit: "Chaque bible servie ici, sa notice et l’édition dont elle vient." },
+  // L'outil bibliographique (2026-09-06) : entre ce qu'on LIT ici et où l'on ACHÈTE,
+  // ce sur quoi les notices s'appuient, à chercher et à citer.
+  { href: "/bibliographie", label: "Bibliographie", dit: "Les ouvrages qui fondent les notices : commentaires, éditions, études, à citer." },
   { href: "/librairies", label: "Acheter des livres", dit: "Où trouver les éditions imprimées, neuves ou anciennes." },
   { href: "/statistiques", label: "Statistiques", dit: "Les versets les plus cités par les Pères, et les plus lus ici." },
   { href: "/pericopes", label: "Péricopes", dit: "Les passages nommés de l’Écriture, et ce que les Pères en disent." },

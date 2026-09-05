@@ -39,6 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/pericopes`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/essais`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE}/traductions`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE}/bibliographie`, changeFrequency: "monthly", priority: 0.6 },
     ...((auteurs.data ?? []) as { id_auteur: string }[]).map(a => ({
       url: `${BASE}/auteur/${a.id_auteur}`, changeFrequency: "monthly" as const, priority: 0.6,
     })),

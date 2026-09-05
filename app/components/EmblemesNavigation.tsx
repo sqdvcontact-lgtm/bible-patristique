@@ -49,6 +49,23 @@ function Librairies() {
   )
 }
 
+/** Une ÉTAGÈRE : deux dos droits et un penché, sur leur sol. Ce qu'on consulte et
+ *  qu'on range, non ce qu'on achète — la devanture dit cela — ni ce qu'on lit en
+ *  regard — les deux pages disent cela.
+ *  ⛔ DEUX dos droits, jamais trois : trois traits de même hauteur se lisent comme
+ *  trois colonnes (leçon de la colonne antique voisine). Le dos penché fait
+ *  l'étagère à lui seul : sans lui, ce sont des barres. */
+function Bibliographie() {
+  return (
+    <>
+      <path d="M4 19.4h16" />
+      <path d="M6.2 19.4V6.4h3.2v13" />
+      <path d="M11.6 19.4V6.4h2.6v13" />
+      <path d="M15.1 7.6l3.3-.9 3.1 12.1-3.3.9z" />
+    </>
+  )
+}
+
 /** Trois barres croissantes sur leur ligne de sol : ce que le site compte. */
 function Statistiques() {
   return (
@@ -98,6 +115,7 @@ function Histoire() {
 
 const DESSINS: Record<string, () => React.JSX.Element> = {
   '/traductions': Traductions,
+  '/bibliographie': Bibliographie,
   '/librairies': Librairies,
   '/statistiques': Statistiques,
   '/pericopes': Pericopes,
