@@ -16,6 +16,7 @@ import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffic
 import type { BlocOriginal } from './bilingueAlignement'
 import { blocsBilingues, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
+import { construireNavigationApparat } from './apparatNavigation'
 import {
   basculerChapeau,
   chapeauxEnTexte,
@@ -1587,17 +1588,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
   // idOeuvre vient des Props
   const hasApparat = segmentsApparat.length > 0
-  const tocApparatLocal = (() => {
-    const vus = new Set<string>()
-    const out: { niv1: string; anchor: string }[] = []
-    groupesApparat.forEach(g => {
-      if (g.niv1 && !vus.has(g.niv1)) {
-        vus.add(g.niv1)
-        out.push({ niv1: g.niv1, anchor: g.anchor })
-      }
-    })
-    return out
-  })()
+  const tocApparatLocal = useMemo(
+    () => construireNavigationApparat(groupesApparat),
+    [groupesApparat],
+  )
 
   // Détection session + chargement des segments déjà sauvegardés
   // + traduction biblique par défaut choisie dans Mon compte
@@ -2496,12 +2490,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </button>
                 {apparatOuvert && (
                   <div style={{ flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
-                    {tocApparatLocal.map((entry, i) => (
-                      <div key={i}>
+                    {tocApparatLocal.map((entry) => (
+                      <div key={entry.niv1} style={{ marginBottom: entry.niveaux2.length > 0 ? '5px' : undefined }}>
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
                           style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
                           {rendreTexteEnrichi(titreSansAppelsDeNote(entry.niv1))}
                         </a>
+                        {entry.niveaux2.map((niveau2) => (
+                          <a key={niveau2.niv2} href={`#${niveau2.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(niveau2.anchor) }} className="toc-lien-n2"
+                            style={{ display: 'block', paddingLeft: '10px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                            {rendreTexteEnrichi(titreSansAppelsDeNote(niveau2.niv2))}
+                          </a>
+                        ))}
                       </div>
                     ))}
                   </div>

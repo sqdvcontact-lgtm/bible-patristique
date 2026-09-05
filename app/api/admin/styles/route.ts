@@ -135,7 +135,9 @@ export async function GET(request: Request) {
         return NextResponse.json({ textes: data ?? [] })
       }
       case 'divisions': {
-        const { data, error } = await supabaseAdmin.rpc('get_niv1_list', { p_id_oeuvre: p('oeuvre'), p_id_texte: p('texte') })
+        // L'éditeur doit voir les divisions de TOUTES les surfaces. La RPC publique
+        // `get_niv1_list` est volontairement limitée au sommaire du corps.
+        const { data, error } = await supabaseAdmin.rpc('get_niv1_list_global', { p_id_oeuvre: p('oeuvre'), p_id_texte: p('texte') })
         if (error) throw new Error(error.message)
         const divisions = ((data ?? []) as { ref_niv1: string | null }[]).map((r) => r.ref_niv1).filter((v): v is string => Boolean(v))
         const { count: sansDivision } = await supabaseAdmin.from('segments').select('id', { count: 'exact', head: true }).eq('id_oeuvre', p('oeuvre')).eq('id_texte', p('texte')).is('ref_niv1', null)

@@ -105,6 +105,41 @@ describe('le contrat des surfaces n’a pas de copie qui dérive', () => {
     const naturesSql = [...liste!.matchAll(/'([^']+)'/g)].map(m => m[1])
     expect([...naturesSql].sort()).toEqual([...NATURES_CORPS].sort())
   })
+
+  it('`get_niv1_list` projette le corps et exclut explicitement l’apparat', () => {
+    const migrations = readdirSync(join(RACINE, 'supabase/migrations')).filter(f => f.endsWith('.sql')).sort()
+    const derniere = migrations.filter(f =>
+      /function public\.get_niv1_list\(\s*p_id_oeuvre text,\s*p_id_texte text\s*\)/.test(
+        lire(join('supabase/migrations', f)),
+      )).pop()
+    expect(derniere, 'aucune migration ne définit get_niv1_list(text, text)').toBeDefined()
+
+    const migration = lire(join('supabase/migrations', derniere!))
+    const corps = migration.match(
+      /create or replace function public\.get_niv1_list\(\s*p_id_oeuvre text,\s*p_id_texte text\s*\)([\s\S]*?)\$function\$;/,
+    )?.[1]
+    expect(corps, 'la définition de get_niv1_list(text, text) est introuvable').toBeDefined()
+    expect(corps).toContain("s.espace_textuel is distinct from 'apparat_critique'")
+
+    const liste = corps!.match(/s\.nature = any\(array\[([^\]]*)\]\)/s)?.[1]
+    expect(liste, 'la liste des natures du corps est introuvable dans get_niv1_list').toBeDefined()
+    const naturesSql = [...liste!.matchAll(/'([^']+)'/g)].map(m => m[1])
+    expect([...naturesSql].sort()).toEqual([...NATURES_CORPS].sort())
+  })
+
+  it('réserve la projection globale à l’administration des styles', () => {
+    const routeAdmin = lire('app/api/admin/styles/route.ts')
+    expect(routeAdmin).toContain("rpc('get_niv1_list_global'")
+    expect(routeAdmin).not.toContain("rpc('get_niv1_list',")
+
+    const migrations = readdirSync(join(RACINE, 'supabase/migrations')).filter(f => f.endsWith('.sql')).sort()
+    const derniere = migrations.filter(f =>
+      lire(join('supabase/migrations', f)).includes('function public.get_niv1_list_global(')).pop()
+    expect(derniere, 'aucune migration ne définit get_niv1_list_global').toBeDefined()
+    const migration = lire(join('supabase/migrations', derniere!))
+    expect(migration).toMatch(/revoke execute on function public\.get_niv1_list_global\(text, text\)[\s\S]*from public, anon, authenticated;/)
+    expect(migration).toMatch(/grant execute on function public\.get_niv1_list_global\(text, text\)[\s\S]*to service_role;/)
+  })
 })
 
 describe('la surface est déterminée par espace_textuel avant la nature', () => {
@@ -124,6 +159,19 @@ describe('la surface est déterminée par espace_textuel avant la nature', () =>
   it('A — conserve le même ref_niv1 sur les deux surfaces', () => {
     expect(segmentsDeLaSurface([corps, signatureApparat], 'corps')).toEqual([corps])
     expect(segmentsDeLaSurface([corps, signatureApparat], 'apparat')).toEqual([signatureApparat])
+  })
+
+  it('écarte une Épître explicitement placée dans l’apparat du sommaire du corps', () => {
+    const epitre = {
+      ref_niv1: 'Épître dédicatoire',
+      nature: 'signature',
+      espace_textuel: 'apparat_critique',
+    }
+    expect(segmentsDeLaSurface([epitre], 'corps')).toEqual([])
+  })
+
+  it('conserve Livre deuxième au corps même si l’apparat porte le même ref_niv1', () => {
+    expect(segmentsDeLaSurface([corps, signatureApparat], 'corps').map(s => s.ref_niv1)).toEqual(['Livre deuxième'])
   })
 
   it('B — place une signature d’apparat dans l’apparat seulement', () => {
