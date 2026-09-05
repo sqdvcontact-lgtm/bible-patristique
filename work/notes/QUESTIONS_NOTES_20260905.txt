@@ -170,6 +170,23 @@ CE QUE JE FERAIS
 Q4 — LE BLOC À TROIS TÊTES DE FAIVRE : SUR QUOI LE FENDRE ?          [passe 3]
 --------------------------------------------------------------------------------
 
+CE QUE « FENDRE » VEUT DIRE
+    Aujourd'hui, ceci est UNE SEULE ligne de texte_note_blocs :
+
+        (C) pag. 309. — Son vrai nom est celui de Jésus. Voyez la note P, p. 335.
+
+    La fendre, c'est en faire TROIS, chacune avec sa nature et son rang :
+
+        rang 1  source_locator  « (C) pag. 309. »
+        rang 2  lemma           « Son vrai nom est celui de Jésus. »
+        rang 3  commentary      « Voyez la note P, ci-bas, p. 335. »
+
+    La question est : QU'EST-CE QUI DIT OÙ COUPER ?
+      · sur la PONCTUATION, c'est une supposition — on parie que la première
+        phrase après le tiret est toujours le lemme ;
+      · sur l'ITALIQUE, c'est un fait relevé — Faivre imprime son lemme en
+        italique, et l'OCR en a gardé les bornes exactes.
+
 LE FAIT
     396 blocs ouvrent sur une coordonnée imprimée, puis un tiret cadratin :
         « (V) pag. 178. — Avec les démons les plus féroces. On peut consulter… »
@@ -177,10 +194,28 @@ LE FAIT
     tiret, le lemme à la première ponctuation forte qui suit.
 
     ⚠️ Cette règle fabrique de FAUX LEMMES, et la donnée offre mieux. Mesuré :
-        première italique COLLÉE au tiret (c'est le lemme) .... 381  (96,2 %)
-        première italique plus loin (il n'y a pas de lemme) ...  11
-        aucune italique .......................................   2
+        une italique OUVRE juste après le tiret ............... 378  (95,5 %)
+        aucune italique en tête (il n'y a pas de lemme) .......  16
         aucun tiret cadratin ..................................   2
+
+    ⚠️ ET L'ITALIQUE NE CERNE PAS LE LEMME À PEU PRÈS : ELLE LE CERNE AU SIGNE
+    PRÈS. L'OCR découpe ses empans par LIGNE IMPRIMÉE — un lemme qui court sur
+    deux lignes en donne deux, qu'il faut rejoindre (24 blocs sont dans ce cas).
+    Une fois rejoints (tmp/audit-lemme-faivre.mts) :
+
+        l'empan se ferme sur une ponctuation forte ... 345 sur 378  (91,3 %)
+        il se ferme ailleurs .........................  33
+
+    et la ponctuation est DANS l'italique, comme l'imprimeur l'a composée :
+
+        « Ils lui donnèrent du vin mêlé de myrrhe. »
+        « Le règne de l'Antechrist ne sera que de trois ans et demi. »
+        « D'où retirerez-vous les molécules dont ce corps fut jadis organisé ? »
+
+    ⚠️ Les 33 restants ne sont pas tous des défauts : plusieurs se ferment sur
+    des points de suspension ou une virgule, que l'édition compose ainsi. Trois
+    cas seulement sont de vraies bavures, où l'OCR a italisé un mot du
+    commentaire en plus du lemme (« … ou Elymas. Elymas »).
 
     Les blocs sans italique au tiret ouvrent directement sur le commentaire, et
     la règle de ponctuation y couperait au hasard :
@@ -192,16 +227,22 @@ LA QUESTION
     Fend-on sur l'italique relevée par l'OCR, ou sur la ponctuation ?
 
 LES OPTIONS
-    a) SUR L'ITALIQUE, ET À DÉFAUT ON NE FEND PAS. Le lemme est le premier empan
-       italique après le tiret ; les 15 blocs qui n'en ont pas ne reçoivent que
-       leur coordonnée, et aucun lemme n'est deviné.
-    b) SUR L'ITALIQUE, PONCTUATION EN REPLI pour les 15 restants. Rattrape
-       peut-être deux ou trois lemmes, au risque d'en fabriquer douze.
+    a) SUR L'ITALIQUE, ET À DÉFAUT ON NE FEND PAS. Le lemme est la SUITE d'empans
+       italiques contigus qui ouvre après le tiret, bornes comprises ; les 18
+       blocs qui n'en ont pas ne reçoivent que leur coordonnée, et aucun lemme
+       n'est deviné.
+    b) SUR L'ITALIQUE, PONCTUATION EN REPLI pour les 18 restants. Rattrape
+       peut-être deux ou trois lemmes, au risque d'en fabriquer quinze.
     c) SUR LA PONCTUATION, comme le protocole l'écrit aujourd'hui.
 
 CE QUE JE FERAIS
-    (a). La donnée dit où le lemme commence ET où il finit ; une règle de
-    ponctuation ne fait que le supposer.
+    (a). La donnée dit où le lemme commence ET où il finit, à la ponctuation
+    près ; une règle de ponctuation ne fait que le supposer. Et les 33 fins
+    irrégulières se relisent une par une — c'est peu.
+
+    ⚠️ RÈGLE À ÉCRIRE AVEC : on rejoint d'abord les empans que l'OCR a coupés en
+    fin de ligne (deux empans séparés d'au plus un signe n'en font qu'un). Sans
+    ce recollement, 24 lemmes seraient tronqués au milieu d'un mot.
 
 DÉPEND DE
     Q1 : si les italiques sont converties en marqueurs, le fendage se fait sur le
