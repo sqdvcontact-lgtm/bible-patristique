@@ -13,18 +13,11 @@
  */
 
 /**
- * ⚠️ Les deux dernières entrées ne sont pas des colonnes mais des CHAMPS de
+ * ⚠️ Les dernières entrées ne sont pas des colonnes mais des CHAMPS de
  * `segment_metadata`, tirés par leur nom et renommés au passage. On ne prend pas la
  * colonne `jsonb` entière : elle porte une trentaine de clés par segment — offsets de
  * source, journal de contributions, justifications sémantiques — pour une page qui en
- * charge jusqu'à mille d'un coup. Deux champs suffisent, et ils portent tous deux la
- * composition des VERS (voir `app/lib/compositionVers.ts`) :
- *
- * - `alinea` ← `indent_inches` : la position du bord gauche de la ligne sur la page
- *   imprimée, relevée à l'océrisation. C'est d'elle que se déduisent les alinéas
- *   poétiques, qu'aucune règle ne saurait deviner.
- * - `strophe_avant` ← `stanza_before` : la ligne ouvre-t-elle une strophe. Renseignée
- *   chez Ceriziers, absente chez Mirandol, d'où le repli sur `paragraphe`.
+ * charge jusqu'à mille d'un coup.
  */
 export const COLONNES_SEGMENT = [
   'id', 'id_texte', 'segment_key', 'segment_numero', 'segment_texte',
@@ -34,23 +27,9 @@ export const COLONNES_SEGMENT = [
   'espace_textuel', 'join_before',
   'alinea:segment_metadata->>indent_inches',
   'strophe_avant:segment_metadata->>stanza_before',
-  // Le numéro du VERSET biblique, écrit à la main sur un segment de nature `verset`
-  // (voir `app/lib/compositionVersets.ts`). ⛔ Pas `verse_number` : cette clé-là porte
-  // déjà le rang du VERS dans son poème, chez Ceriziers.
   'numero_verset:segment_metadata->>biblical_verse_number',
-  // La FORME du segment — `vers` ou rien. ⛔ C'est un axe SÉPARÉ de la nature, et il
-  // le faut : dans l'apparat, la nature vaut déjà `apparat_critique` et ne peut pas
-  // dire en plus que le passage est en vers. Voir `estEnVers`, qui lit cette clé ET
-  // la nature héritée `vers`.
   'forme:segment_metadata->>forme',
-  // Provenance de la colonne latine : `texte_original` est la copie d'un segment du
-  // texte en langue originale de l'œuvre, et cette clé dit lequel. Sans elle, le
-  // bilingue ne peut pas rendre à ce bloc l'apparat critique qui pend à son segment.
   'cle_original:segment_metadata->>original_segment_key',
-  // L'OUVRAGE que cite un segment bibliographique (`segment_metadata.ouvrage_id`).
-  // Quand il est là, le segment ne se rend plus depuis son texte : la notice se
-  // compose depuis la base, par le moteur bibliographique (charte § 35.6.1). Le
-  // texte reste la projection de secours, la recherche et l'export.
   'ouvrage_id:segment_metadata->>ouvrage_id',
 ] as const
 
@@ -58,31 +37,11 @@ export const COLONNES_SEGMENT = [
 export const SELECT_SEGMENT = COLONNES_SEGMENT.join(',')
 
 /**
- * Les natures qui appartiennent au CORPS du texte.
+ * Les natures qui appartiennent au CORPS du texte quand aucun `espace_textuel`
+ * explicite ne les a déjà rangées.
  *
  * ⛔ `apparat_auteur` (prologue, avertissement, dédicace de l'auteur) en fait partie :
- * il se lit à sa place dans le texte. Son retrait de cette liste l'avait fait
- * disparaître du rendu le 18 août 2026 — le « Prologue de Rufin aux livres X et XI »
- * ne paraissait plus entre le titre du Livre X et « Chapitre I ». À ne pas confondre
- * avec `apparat_critique`, l'apparat de l'ÉDITEUR, qui a sa propre vue.
- *
- * ⛔ `lemme` en fait partie POUR LA MÊME RAISON, et son absence coûtait la même chose.
- * C'est le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente.
- * Quarante-sept segments le portent, tous dans le *Commentaire sur Jonas* de Jérôme
- * (`TXT_A0051O0022_FR_1879_BAREILLE`), œuvre PUBLIÉE, tous au rang 1 de leur
- * paragraphe — et aucun n'était chargé. Le lecteur recevait donc le commentaire sans
- * le texte commenté : la division « Jonas 1, 1 » ouvrait sur « La traduction des
- * Septante est la même, à cette différence près… », qui compare une traduction à un
- * verset absent. Relevé et corrigé le 29 août 2026.
- *
- * ⚠️ Un lemme se lit AU FIL DU TEXTE, comme n'importe quel paragraphe : décision de
- * l'auteur du 20 août 2026 (charte § 3.8) — « le lemme se détache par sa FONCTION, non
- * par sa taille », et le seuil de la citation sortie reste à 400 signes.
- *
- * ⚠️ La règle générale, qu'on a maintenant payée DEUX fois : cette liste est le seul
- * endroit qui décide qu'une nature paraît. Une nature admise par
- * `chk_segments_nature` et absente d'ici n'est pas mal composée — elle n'existe pas
- * pour le lecteur, en silence, et aucun test ne le dit.
+ * il se lit à sa place dans le texte. `lemme` en fait partie pour la même raison.
  */
 export const NATURES_CORPS = [
   'texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent',
@@ -90,38 +49,34 @@ export const NATURES_CORPS = [
 ] as const
 
 /**
- * Les natures composées dans la VUE D'APPARAT, la seconde surface de la page d'œuvre.
+ * Les natures héritées qui tombent dans la VUE D'APPARAT quand aucun
+ * `espace_textuel` explicite ne les a déjà rangées.
  *
- * ⛔ `apparat_editeur` en fait partie, et son absence a coûté exactement ce que la
- * garde ci-dessus annonçait : la vue ne chargeait QUE `apparat_critique`, si bien que
- * **342 segments de cinq œuvres publiées ne paraissaient nulle part** — ni au corps,
- * qui les écarte à bon droit, ni à l'apparat, qui ne les demandait pas. Le « Sommaire
- * général » des *Homélies sur l'Hexaéméron* de Basile (dix-neuf paragraphes, un par
- * homélie), la « Table des chapitres », le « Colophon » et le « Privilège » de
- * l'*Histoire ecclésiastique*, l'« Avertissement » des *Homélies sur Anne* : tous
- * étaient en base, tous manquaient à l'écran, et rien ne le disait. Relevé le
- * 2026-08-29, sur la question « GPT me dit qu'il y a un sommaire, je ne le vois pas ».
+ * ⚠️ `apparat_editeur` ne décide donc plus à lui seul de la surface : un Avis au
+ * lecteur peut légitimement porter `nature='apparat_editeur'` tout en appartenant à
+ * `espace_textuel='introduction'`; une Approbation ou un Privilège peut porter la
+ * même nature et appartenir explicitement à `apparat_critique`.
  *
- * ⚠️ Le partage entre les deux listes est celui de l'AUTEUR et de l'ÉDITEUR, non celui
- * du texte et de l'appareil : `apparat_auteur` (préface, prologue, dédicace de
- * l'auteur) se lit au corps ; `apparat_editeur` (avertissement du traducteur,
- * privilège, approbation, sommaire analytique) se lit à l'apparat. La base impose
- * d'ailleurs à ce dernier `espace_textuel = 'apparat_critique'`
- * (`segments_apparat_editeur_space_ck`).
- *
- * ⛔ `apparat_critique` est la valeur HÉRITÉE, fourre-tout : on n'en crée plus (charte
- * § 7), mais la vue continue de la servir — ses 1 276 segments sont en ligne.
+ * `apparat_critique` reste la valeur héritée fourre-tout et continue d'être servie.
  */
 export const NATURES_APPARAT = ['apparat_critique', 'apparat_editeur'] as const
 
 /**
  * La surface de lecture est un axe distinct de la nature du segment.
  *
- * `espace_textuel = 'apparat_critique'` l'emporte toujours, notamment pour les
- * signatures de l'éditeur. À défaut d'espace explicite, les deux anciennes natures
- * d'apparat restent reconnues pour que les éditions héritées ne perdent rien.
+ * ⛔ RÈGLE : un `espace_textuel` explicite PRIME toujours sur `nature`.
+ * - `apparat_critique` → vue d'apparat ;
+ * - `corps` ou `introduction` → lecture du texte ;
+ * - si l'espace est NULL, la nature héritée sert de repli.
+ *
+ * Cette priorité est indispensable aux paratextes éditoriaux : l'« Avis au lecteur »
+ * des Confessions d'Arnauld d'Andilly est `apparat_editeur` dans `introduction`, tandis
+ * que l'Approbation des docteurs et le Privilège du Roi sont `apparat_editeur` dans
+ * `apparat_critique`. Les trois pièces doivent rester visibles sur leur surface réelle.
  */
 export const ESPACE_TEXTUEL_APPARAT = 'apparat_critique' as const
+export const ESPACE_TEXTUEL_CORPS = 'corps' as const
+export const ESPACE_TEXTUEL_INTRODUCTION = 'introduction' as const
 export type SurfaceOeuvre = 'corps' | 'apparat'
 
 type SegmentPourSurface = {
@@ -135,8 +90,12 @@ export function surfaceDuSegment(segment: SegmentPourSurface): SurfaceOeuvre | n
   const nature = String(segment.nature ?? '').trim()
   const espace = String(segment.espace_textuel ?? '').trim()
 
+  // L'espace explicite fait foi, avant toute interprétation de la nature.
   if (espace === ESPACE_TEXTUEL_APPARAT) return 'apparat'
-  if (contient(NATURES_CORPS, nature)) return 'corps'
+  if (espace === ESPACE_TEXTUEL_CORPS || espace === ESPACE_TEXTUEL_INTRODUCTION) return 'corps'
+
+  // Compatibilité des imports historiques qui ne portaient pas encore l'axe de surface.
+  if (!espace && contient(NATURES_CORPS, nature)) return 'corps'
   if (!espace && contient(NATURES_APPARAT, nature)) return 'apparat'
   return null
 }
@@ -157,26 +116,23 @@ export function segmentsDeLaSurface<T extends SegmentPourSurface>(
 }
 
 /**
- * Les formes PostgREST du même contrat. Le filtre d'apparat ne prend une nature
- * héritée qu'en l'absence d'un espace explicite ; un espace explicite contraire
- * reste donc prioritaire. Le corps accepte l'héritage sans espace, mais jamais un
- * segment que la base place explicitement dans l'apparat.
+ * Les formes PostgREST du même contrat.
+ *
+ * Le corps prend d'abord les deux espaces explicites qui lui appartiennent, quelle
+ * que soit la nature, puis les seules natures de corps des lignes historiques sans
+ * espace. L'apparat fait exactement le miroir.
  */
-export const FILTRE_ESPACE_CORPS_POSTGREST =
-  `espace_textuel.is.null,espace_textuel.neq.${ESPACE_TEXTUEL_APPARAT}`
+export const FILTRE_CORPS_POSTGREST =
+  `espace_textuel.in.(${ESPACE_TEXTUEL_CORPS},${ESPACE_TEXTUEL_INTRODUCTION}),and(espace_textuel.is.null,nature.in.(${NATURES_CORPS.join(',')}))`
 export const FILTRE_APPARAT_POSTGREST =
   `espace_textuel.eq.${ESPACE_TEXTUEL_APPARAT},and(espace_textuel.is.null,nature.in.(${NATURES_APPARAT.join(',')}))`
 
 type RequeteSurface = {
-  in(colonne: string, valeurs: readonly string[]): RequeteSurface
   or(filtres: string): RequeteSurface
 }
 
 /** Applique le contrat partagé aux requêtes serveur et client. */
 export function limiterRequeteSegmentsALaSurface<T>(requete: T, surface: SurfaceOeuvre): T {
   const q = requete as unknown as RequeteSurface
-  const filtree = surface === 'corps'
-    ? q.in('nature', NATURES_CORPS).or(FILTRE_ESPACE_CORPS_POSTGREST)
-    : q.or(FILTRE_APPARAT_POSTGREST)
-  return filtree as unknown as T
+  return q.or(surface === 'corps' ? FILTRE_CORPS_POSTGREST : FILTRE_APPARAT_POSTGREST) as unknown as T
 }
