@@ -36,6 +36,8 @@ import {
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
 import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
 import { numerosAffiches } from '@/app/lib/numerotationNotes'
+import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import { natureBlocNoteSur } from '@/app/lib/naturesNote'
 import { redirect } from 'next/navigation'
 
@@ -134,6 +136,9 @@ type Segment = {
   // Même remarque : champ de `segment_metadata`, rendu en texte. Il désigne le
   // segment du texte en langue originale dont `texte_original` est la copie.
   cle_original: string|null
+  /** L’ouvrage que cite un segment bibliographique (`segment_metadata.ouvrage_id`) :
+   *  un entier, servi en TEXTE comme les autres champs de métadonnée. */
+  ouvrage_id: string|null
 }
 
 type TexteVersionRow = {
@@ -943,7 +948,20 @@ export default async function OeuvrePage({
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
         numeroVerset: numeroVersetLisible(s.numero_verset),
         forme: s.forme,
+        ouvrageId: identifiantOuvrage(s.ouvrage_id),
     }))
+
+  // Les notices des ouvrages que cite l'apparat — la liste de Mirandol chez Boèce —,
+  // lues d'un seul tenant dans `v_references_bibliographiques` et envoyées avec les
+  // segments : le premier rendu compose déjà depuis la base. Une œuvre sans segment
+  // bibliographique ne paie aucun aller-retour. ⚠️ Une panne ici ne ferme pas la
+  // page : le segment retombe sur son texte, la projection de secours.
+  const noticesBibliographiques = await chargerNoticesBibliographiques(supabase, identifiantsOuvrages(segmentsApparatData))
+    .then(tableDesNotices)
+    .catch((erreur: unknown) => {
+      console.error(`Notices bibliographiques illisibles (${idTexte}) :`, erreur)
+      return {} as Record<number, NoticeBibliographique>
+    })
 
   const groupesApparatData = groupesApparat.map((g, gi) => ({
     niv1: g.niv1, niv2: g.niv2, niv3: g.niv3, niv4: g.niv4,
@@ -999,6 +1017,7 @@ export default async function OeuvrePage({
       oeuvre={{titre:oeuvre.titre,titre_affichage:oeuvre.titre_affichage,sous_titre:oeuvre.sous_titre,titre_original:oeuvre.titre_original,trad_auteur:oeuvre.trad_auteur,trad_date:oeuvre.trad_date,commentaire_traduction:oeuvre.commentaire_traduction,note_editoriale_complete:oeuvre.note_editoriale_complete,note_editoriale_complement:oeuvre.note_editoriale_complement,note_editoriale_titre:oeuvre.note_editoriale_titre,editeur:oeuvre.editeur,collection:oeuvre.collection,ville:oeuvre.ville,date_publication:oeuvre.date_publication,date_mise_en_ligne:oeuvre.date_mise_en_ligne,id_oeuvre:oeuvre.id_oeuvre,date_composition:oeuvre.date_composition,langue_originale:oeuvre.langue_originale,genres:oeuvre.genres,url_source:oeuvre.url_source,nb_signes:oeuvre.nb_signes}}
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
+      noticesBibliographiques={noticesBibliographiques}
       segmentCibleId={segmentCible?.id ?? null}
       cibleReprise={segmentCible?.reprise === true}
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}

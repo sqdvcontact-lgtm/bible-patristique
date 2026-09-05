@@ -1,16 +1,9 @@
-import { Fragment } from 'react'
-
-import { rendreSiecles } from '@/app/lib/siecles'
-
+import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 import {
-  CLASSE_CARACTERE_BIBLIOGRAPHIE,
-  CLASSES_BIBLIOGRAPHIE,
-} from '@/app/lib/apparatBibliographie'
-import {
-  segmentsReference,
+  noticeDUnOuvrage,
   type OuvrageBibliographique,
-  type SegmentReference,
 } from '@/app/lib/bibleBibliographieOuvrages'
+import ReferenceBibliographique, { FragmentReference } from './ReferenceBibliographique'
 
 /**
  * Une LISTE D'OUVRAGES, composée depuis les champs de chaque notice.
@@ -24,7 +17,9 @@ import {
  * La forme est celle de TOUTES les bibliographies de l'apparat —
  * `.cs-apparat-bibliographie` — et non une composition propre à cette pièce :
  * ⛔ aucune puce, aucun tiret, aucun cadre, aucun fond, aucune bordure, une
- * bibliographie imprimée se tenant par son retrait et par son blanc.
+ * bibliographie imprimée se tenant par son retrait et par son blanc. Chaque
+ * entrée compose sa référence par LE moteur bibliographique du site
+ * (`ReferenceBibliographique`) : la liste n'a pas de règle à elle.
  *
  * ⚠️ Chaque `<li>` répond d'UN `ouvrage_id`, et sa clé React est cet
  * identifiant : ⛔ jamais le rang dans le tableau, qui change dès qu'une entrée
@@ -53,9 +48,7 @@ export default function BibliographieOuvrages({
             className={CLASSES_BIBLIOGRAPHIE.entree}
             data-ouvrage-id={ouvrage.id}
           >
-            {segmentsReference(ouvrage, { avecAuteur }).map((segment, rang) => (
-              <FragmentReference key={`${ouvrage.id}:${rang}`} segment={segment} />
-            ))}
+            <ReferenceBibliographique notice={noticeDUnOuvrage(ouvrage)} avecAuteur={avecAuteur} />
           </li>
         ))}
       </ul>
@@ -64,40 +57,8 @@ export default function BibliographieOuvrages({
 }
 
 /**
- * Un fragment de référence, composé selon son RÔLE.
- *
- * Le rôle est nommé par la donnée (`segment.style`) et la feuille le compose :
- * l'italique pour l'intitulé de l'ouvrage — titre, sous-titre et le deux-points
- * qui les joint ne font qu'un seul titre typographique —, les petites capitales
- * pour le nom d'autorité de l'auteur, le romain pour tout le reste. ⚠️ Le nom se
- * compose depuis la donnée (`auteurs_valeur.nom_famille`), ⛔ jamais par découpe
- * de la chaîne affichée.
- *
- * ⚠️ EXPORTÉ : la fiche « À propos de cette traduction » compose de la même façon
- * la référence des volumes servis, qui n'est pas une œuvre du catalogue mais suit
- * les mêmes normes. Deux copies de ces trois lignes divergeraient au premier style
- * ajouté au vocabulaire.
- *
- * ⚠️ LES SIÈCLES SE COMPOSENT (demande de l'auteur, 2026-09-04). « Bible française du
- * XIIIe siècle — manuscrit Français 899 » est un intitulé d'édition comme un autre :
- * son ordinal y prenait des chiffres ordinaires quand la même chaîne, deux centimètres
- * plus haut, portait ses petites capitales et son exposant.
- * ⛔ `rendreSiecles`, et non `rendreEnrichi` : celui-ci italiserait un titre entre
- * astérisques, et un `em` posé dans un fragment DÉJÀ italique — l'intitulé de
- * l'ouvrage l'est — ne se verrait pas. La composition des italiques appartient ici au
- * RÔLE du fragment, que la donnée nomme ; elle ne se prend pas dans son texte.
+ * ⚠️ Ré-exporté pour les appelants historiques (la fiche « À propos de cette
+ * traduction » compose ainsi la référence des volumes servis) : le fragment vit
+ * désormais dans `ReferenceBibliographique.tsx`, avec la référence entière.
  */
-export function FragmentReference({ segment }: { segment: SegmentReference }) {
-  // Le champ d'origine reste dans le document : c'est par lui qu'on vérifie
-  // qu'un titre et son sous-titre n'ont pas été fondus, et qu'aucune donnée
-  // matérielle ne s'est glissée dans la référence.
-  const champ = segment.champ ?? undefined
-  const classe = segment.style ? CLASSE_CARACTERE_BIBLIOGRAPHIE[segment.style] : undefined
-  if (segment.composition === 'italique') {
-    return <em className={classe} data-champ={champ}>{rendreSiecles(segment.texte)}</em>
-  }
-  // La ponctuation que le composant ajoute n'a ni champ ni style : elle se pose
-  // telle quelle, au fil du texte, et hérite de la séquence qui l'entoure.
-  if (!champ && !classe) return <Fragment>{rendreSiecles(segment.texte)}</Fragment>
-  return <span className={classe} data-champ={champ}>{rendreSiecles(segment.texte)}</span>
-}
+export { FragmentReference }

@@ -1,0 +1,247 @@
+MOTEUR CENTRALISÉ DE RENDU BIBLIOGRAPHIQUE — AUDIT DE L'EXISTANT ET PROPOSITION
+5 septembre 2026
+
+Mission : une seule logique bibliographique, nourrie par les tables structurées, qui
+produit ponctuation, ordre et typographie ; segment_texte cesse d'être la source du rendu
+dès qu'une notice est reliée à un ouvrage_id.
+
+
+1. CE QUI EXISTE (audit, lecture seule)
+─────────────────────────────────────────────────────────────────────────────────────
+
+1.1 Six écritures du rendu coexistent
+
+  A. app/lib/bibleBibliographieOuvrages.ts + app/components/BibliographieOuvrages.tsx
+     LE moteur structuré : fragments typés (champ, style, composition), auteur en
+     « Prénom NOM » depuis auteurs_valeur, titre et sous-titre en italique joints par un
+     point, lieu, éditeur, année, point final unique. Vocabulaire de styles CLOS à cinq
+     valeurs (apparatBibliographie.ts), feuille commune .cs-apparat-bibliographie. Sert
+     « Du même auteur » (Fillion) et la fiche de traduction (« tous les ouvrages cités »).
+     33 + 10 tests. Ne connaît ni article, ni titre hôte, ni pages, ni contributeurs
+     (éd., trad., dir.), ni coéditeurs, ni collection.
+  B. app/lib/referenceEditionServie.ts : la référence des volumes servis (editions_sources),
+     même type SegmentReference, mêmes constantes de ponctuation. Pas un ouvrage.
+  C. app/pericopes/[id]/page.tsx, ReferenceBiblio (l. 491) : champs libres de la vue
+     bibliographie_admissible, « auteurs, *titre*. sous-titre, coll. « X », n, lieu,
+     éditeur, année. » — auteurs en romain, aucune autorité, pas de petites capitales.
+  D. app/admin/SectionOuvrages.tsx, Citation (l. 454) : la même écriture que C, en sérif.
+  E. app/lib/bibleBibliographie.ts + BibleBibliographie.tsx : découpe des notes à tirets
+     (presentation.style = bibliographie) : 19 blocs de note Fillion, 15 blocs de corps
+     (tous rattachés à une entrée structurée). Couche de compatibilité, texte non
+     structuré.
+  F. En base, internal.refresh_bible_editorial_bibliography_entry (+ 3 déclencheurs) :
+     recompose « - *Titre : sous-titre*, lieu, éditeur, année. » et l'écrit dans
+     bible_source_unit_texts.text_features.editorial_normalization.blocks[0].reading_text
+     de la couche lecture-fidele-liminaires. C'est une PROJECTION TEXTUELLE recopiée dans
+     la donnée (le contraire du point 10 de la mission), dont le site ne dépend plus que
+     comme repli matériel : PieceLiminaire compose la liste structurée quand elle existe.
+
+1.2 segment_metadata.bibliography_render
+
+  136 segments, un seul texte (TXT_A0064O0001_FR_1861_MIRANDOL, nature apparat_editeur,
+  espace introduction), 135 ouvrages distincts. Clés : ouvrage_id, parts[], style,
+  punctuation_generated, physical_description_excluded. Rôles rencontrés : author 136,
+  title 133, place 129, publisher 128, year 133, translator 12, editor 3, article_title 3,
+  container_title 3, volume 2, pages 2, date 1, edition 1. Styles : les cinq du vocabulaire
+  clos, plus deux hors vocabulaire : bibliographie-titre-article (3) et
+  bibliographie-titre-periodique (2).
+  ⛔ AUCUNE ligne du dépôt ne le lit (app/, scripts/, sql/, supabase/ : zéro occurrence).
+  segment_texte = bibliographic_display_text sur les 136 : la page rend aujourd'hui ce
+  texte plat, sans italique ni petites capitales, par rendreTexteAvecNotes dans la vue
+  d'apparat d'OeuvreClient (l. 3160). 35 ouvrages sur 135 ont un auteur rattaché à une
+  autorité ; 101 auteurs sont « free_text_pending_authority ».
+
+1.3 Le modèle de données
+
+  ouvrages_bibliographiques : auteurs, titre, sous_titre, directeurs, traducteurs,
+  collection, numero_collection, lieu, editeur, annee (integer), edition (82 lignes, en
+  pratique une NOTE : « Après le 28 août 1494 ; GW M47578 »), langue, type_ouvrage
+  (catégorie SCIENTIFIQUE, neuf valeurs), editeur_valeur_id (784/930), collection_valeur_id.
+  ouvrages_bibliographiques_editeurs (ouvrage_id, editeur_id → editeurs_valeur, rang,
+  role ∈ editeur|coediteur|imprimeur|diffuseur|reimprimeur) : 755 ouvrages, 15 à
+  plusieurs lignes.
+  ouvrage_contributeurs_scientifiques : role ∈ auteur_scientifique|auteur_source|
+  editeur_scientifique|traducteur ; nature ∈ chercheur (→ auteurs_valeur, 506 fiches
+  toutes pourvues de prenom + nom_famille)|auteur_ancien (→ auteurs.id_auteur)|collectif.
+  747 ouvrages ont au moins un contributeur ; 565 un auteur scientifique rattaché ; 140
+  un auteur ancien rattaché.
+  ⛔ Il n'existe AUCUNE colonne pour : la forme de la notice (article / contribution /
+  monographie), le titre de l'ouvrage hôte ou du périodique, la tomaison, les pages,
+  la date précise (« juin 1837 »). Pour Hand, Hauréau et Jourdain, GPT a logé le titre
+  hôte dans `collection` et la tomaison dans `numero_collection` ; les pages n'existent
+  que dans bibliography_render.parts et dans la note. Le renderer C lirait donc
+  « coll. « Revue du Nord », juin 1837 » : le modèle est en défaut, pas le rendu.
+
+1.4 Droits de lecture
+
+  auteurs_valeur, editeurs_valeur, collections_valeur : RLS admin seulement.
+  ouvrages_bibliographiques, ouvrage_contributeurs_scientifiques : SELECT authenticated.
+  ouvrages_bibliographiques_editeurs : RLS activée, AUCUNE politique → invisible à tout
+  lecteur. Un lecteur ne peut donc pas composer « Prénom NOM » ni les coéditeurs depuis
+  les tables : il faut une VUE en security_barrier (le modèle de
+  v_bible_editorial_bibliography_entries, lisible par anon et authenticated).
+
+1.5 La police
+
+  Source Serif 4 telle que la sert next/font/google (v4.004, 87 à 373 glyphes par
+  sous-ensemble) ne porte que ccmp dnom frac liga numr pnum tnum kern : ⛔ ni smcp ni
+  c2sc. `font-variant-caps: small-caps` y est donc SYNTHÉTISÉ par le navigateur (capitales
+  réduites). L'amont Adobe 4.005 (WOFF2) porte smcp, c2sc et onum sur le ROMAIN
+  (SourceSerif4Variable-Roman : 419 Ko, axes wght + opsz ; l'italique n'a pas de petites
+  capitales, comme toute italique). De vraies petites capitales demandent donc
+  l'auto-hébergement des deux variables Adobe (≈ 760 Ko contre des sous-ensembles Google
+  de 60 à 110 Ko) : décision d'auteur, chiffrée au point 5.
+
+1.6 Doctrine déjà écrite
+
+  La charte § 35.6.1 et § 35.6.2 prescrit déjà ce que la mission demande : source de
+  vérité structurée, ponctuation générée, ouvrage_id comme identité, un seul style
+  bibliographique, petites capitales depuis auteurs_valeur, autorité ancienne composée
+  entière, vocabulaire de styles clos. Elle ne connaît pas encore l'article, le titre
+  hôte, la tomaison, les pages ni les contributeurs (éd., trad., dir.) : à compléter.
+
+
+2. DÉCISIONS
+─────────────────────────────────────────────────────────────────────────────────────
+
+D1. bibliography_render : option B, SORTI du chemin de rendu. Le front lit la base par une
+    vue ; le JSON reste ce qu'il est (un cache de GPT, traçable à ouvrage_id), et
+    segment_texte reste la projection de secours, la recherche et l'export. Rien n'est
+    supprimé, rien n'est régénéré : le site ne le regarde plus.
+
+D2. UN moteur : app/lib/referenceBibliographique.ts (pur). Le moteur A devient un
+    ADAPTATEUR : segmentsReference(ouvrage) construit une notice et appelle le moteur ;
+    ses 43 tests continuent de garder la forme Fillion, à l'octet près. Les moteurs C et
+    D s'y rattachent ; B reste (pas un ouvrage) ; E reste couche de compatibilité pour le
+    texte non structuré ; F n'est plus appelé par rien de neuf et se signale à GPT.
+
+D3. Le modèle gagne CINQ colonnes nullables sur ouvrages_bibliographiques, rien d'autre :
+    forme_notice (monographie | article_periodique | contribution_collectif |
+    entree_dictionnaire, CHECK), titre_hote, tomaison, pages, date_affichee. Tout le reste
+    (auteurs, éditeurs scientifiques, traducteurs, coéditeurs, collection, mention
+    d'édition) est déjà dans les tables. ⛔ Pas de HTML, pas de marqueur *…*, pas de
+    chaîne composée. Un ouvrage_hote_id normalisé (l'hôte comme fiche à part) reste
+    possible plus tard : titre_hote en sera alors la projection.
+
+D4. Une vue v_references_bibliographiques (security_barrier, lisible par anon et
+    authenticated) : une ligne par ouvrage, les éditeurs liés et les contributeurs en
+    tableaux JSON, les autorités déjà jointes (prenom, nom_famille, pseudonyme, nom
+    d'autorité, auteur_id). Une seule requête pour N notices (.in('ouvrage_id', …) par
+    lots), toujours fraîche : corriger « Montalant » en « François Montalant » se voit au
+    prochain affichage sans toucher un segment.
+
+D5. Les trois articles de Boèce (Hand 899, Hauréau 901, Jourdain 909) reçoivent leurs
+    colonnes depuis la propre projection de GPT (parts : article_title, container_title,
+    volume, pages, date), et collection / numero_collection redeviennent NULL. Trois
+    lignes, sauvegardées dans internal.backup_ouvrages_articles_boece_20260905, retour en
+    arrière écrit. Le reste des 135 ne bouge pas : le moteur les compose depuis les
+    colonnes existantes.
+
+D6. Le vocabulaire des styles s'étend de deux valeurs — bibliographie-titre-article
+    (romain, guillemets français) et bibliographie-titre-hote (italique) — consignées
+    dans la charte avec les cinq colonnes.
+
+
+3. LE MOTEUR
+─────────────────────────────────────────────────────────────────────────────────────
+
+Entrée : NoticeBibliographique (le contenu de la vue, adapté). Sortie : des fragments
+{ role, champ, style, composition, texte }. La ponctuation est un fragment sans champ ni
+style, qui hérite de la séquence où il tombe (charte § 35.6.2).
+
+Ordre et règles :
+  auteur(s) — contributeurs auteur_scientifique / auteur_source par ordre ; chercheur :
+    prénom en romain + nom de famille en petites capitales ; autorité ancienne :
+    forme canonique entière en petites capitales (charte § 35.6.1) ; collectif : romain ;
+    aucun contributeur : le texte libre `auteurs` en romain (repli propre, jamais de
+    petites capitales heuristiques) ; à défaut « dir. X » depuis `directeurs`.
+    Plusieurs : « A, B et C ».
+  titre — monographie : titre italique + « . » + sous-titre italique (ponctuation forte
+    du titre respectée). Article / contribution : « titre » en romain entre guillemets
+    français à fines insécables, puis « , dans » (contribution, dictionnaire) ou « , »
+    (périodique), puis titre hôte en italique, puis tomaison en romain.
+  contributeurs — « éd. X », « trad. X », « dir. X », dans cet ordre, depuis les
+    contributeurs structurés, sinon depuis traducteurs / directeurs en texte libre.
+  collection — « coll. « X », n » (convention du site, C et D), avant l'adresse.
+  adresse — lieu, éditeur(s) : les lignes liées par rang (editeur, coediteur, imprimeur),
+    sinon l'autorité éditeur_valeur_id, sinon `editeur` ; coéditeurs joints par la barre
+    à fines (SEPARATEUR_COEDITEURS, charte § 35.6.4) ; date_affichee sinon annee.
+  pages — « p. 282–292 », tiret demi-cadratin, jamais de « p. » de description
+    matérielle (charte § 35.6.1 : la pagination d'un exemplaire ne s'affiche pas ; les
+    pages d'une contribution dans son hôte, si).
+  final — un seul point, sauf ponctuation forte déjà là. Blancs normalisés. Un champ
+    absent emporte son séparateur ; rien n'est inventé.
+
+Composant : <ReferenceBibliographique notice avecAuteur /> — des nœuds, jamais du HTML
+injecté ; FragmentReference (existant) compose chaque fragment selon son style.
+Chargement : chargerNoticesBibliographiques(client, ids) → Map, une requête par lot.
+
+Câblage :
+  Boèce (OeuvreClient, vue d'apparat) : COLONNES_SEGMENT gagne
+  ouvrage_id:segment_metadata->>ouvrage_id ; les notices des segments d'apparat se
+  chargent avec eux (serveur pour le premier rendu, client au rechargement) ; un segment
+  qui porte un ouvrage_id résolu se compose par le moteur, le texte restant le repli.
+  Fillion : l'adaptateur ; rien ne change à l'écran.
+  Péricopes : la page charge les notices des ouvrage_id de bibliographie_admissible et
+  compose par le moteur ; les pages du LIEN (pericope_bibliographie.pages) suivent.
+  Admin : la Citation de la fiche compose la même notice (champs de la fiche +
+  contributeurs déjà chargés) : l'administrateur voit ce que le lecteur verra.
+
+
+4. CE QUI NE CASSE PAS
+─────────────────────────────────────────────────────────────────────────────────────
+  Les tests existants de Fillion (43) et de la référence servie ; les liens ouvrage_id ;
+  les vues des péricopes ; les exports (segment_texte inchangé) ; la recherche (texte_norm
+  généré, jamais écrit) ; les notes à tirets (E) ; la projection F (toujours en place).
+  Aucune écriture dans segments. Les seules écritures : cinq colonnes et une vue
+  (migration), trois lignes d'ouvrages (sauvegardées).
+
+
+5. CE QUI ATTEND L'AUTEUR
+─────────────────────────────────────────────────────────────────────────────────────
+  Q1. Les petites capitales VRAIES : auto-héberger Source Serif 4.005 (Roman variable
+      419 Ko, Italic variable 339 Ko, next/font/local) à la place des sous-ensembles
+      Google ? Tant que non, small-caps est synthétisé par le navigateur — le repli que la
+      mission tolère « dûment justifié », et il l'est : la police servie ne le permet pas.
+  Q2. La collection : garder la convention du site (« coll. « X », n » avant l'adresse) ou
+      passer à la forme savante « Paris, Cerf, 1990 (Sources chrétiennes, 123) » ?
+  Q3. Le titre hôte : colonne texte (fait ici) ou fiche à part (ouvrage_hote_id) ?
+  Q4. La projection SQL F (Fillion) : la laisser dormir ou la retirer (GPT) ?
+
+
+RÉALISATION (5 septembre 2026, soir) — ce qui a été fait, tel que proposé
+=========================================================================
+
+D1  bibliography_render : sorti du chemin de rendu (rien ne le lit ; ni régénéré, ni supprimé).
+D2  Un moteur : app/lib/referenceBibliographique.ts (pur) + app/components/ReferenceBibliographique.tsx
+    (nœuds, sans dangerouslySetInnerHTML). bibleBibliographieOuvrages.segmentsReference est un
+    adaptateur (noticeDUnOuvrage) ; ses 43 tests passent inchangés. FragmentReference a déménagé
+    dans le composant et reste ré-exporté pour ModaleTraduction.
+D3  Cinq colonnes nullables (forme_notice + CHECK, titre_hote, tomaison, pages, date_affichee).
+D4  Vue v_references_bibliographiques, security_barrier, lisible par anon (éprouvé : 6 notices de
+    Boèce avec contributeurs joints, sous set_config('role','anon')). Chargeur groupé par lots :
+    app/lib/referencesBibliographiquesChargement.ts.
+D5  899, 901, 909 remplis depuis la projection de GPT ; sauvegarde
+    internal.backup_ouvrages_articles_boece_20260905 ; sql/boece_articles_colonnes_20260905.sql et
+    sql/rollback_boece_articles_colonnes_20260905.sql. La tomaison de Hauréau, d'abord tombée sur
+    « juin 1837 » par repli sur numero_collection, a été remise à NULL (la date est dans
+    date_affichee).
+D6  Deux styles : bibliographie-titre-article (romain) et bibliographie-titre-hote (italique) ;
+    les règles de rôle se pendent à .cs-reference-bibliographique et non plus au bloc de liste.
+
+Surfaces : apparat d'œuvre (Boèce : notices envoyées avec les segments par page.tsx, complétées
+au rechargement par OeuvreClient ; segment_texte = projection de secours), péricopes (notice
+structurée + pages du lien, repli ReferenceBiblio), admin (Citation par le moteur, vue relue
+après écriture et au changement des contributeurs), Fillion (adaptateur).
+
+Contrôles : tsc propre (hors app/quiz, non versionné) ; vitest 1881/1881 après correction d'un
+faux positif de formes.test.ts (${OUV}De lu comme un alpha hexadécimal) ; aucun caractère de
+contrôle dans les fichiers écrits ; planche visuelle tmp/planche-references.html (composant réel,
+feuille réelle, données réelles).
+
+Questions à l'auteur (inchangées) : Q1 auto-héberger Source Serif 4.005 pour de vraies petites
+capitales ; Q2 convention de la collection ; Q3 titre_hote en texte contre ouvrage_hote_id ;
+Q4 sort de la projection SQL F. Remarques de données (GPT) : les autorités « Johann Friedrich
+Gleditsch (maison) » et « Druckerei Ad insigne Pinus » portent une mention de nature dans le nom ;
+l'autorité « Johannes Trithemius » diffère du nom_affiche « Jean Trithème » ; le type_ouvrage de
+Hauréau (901) reste « monographie » pour un article.

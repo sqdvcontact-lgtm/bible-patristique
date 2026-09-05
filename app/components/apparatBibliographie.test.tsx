@@ -270,15 +270,15 @@ describe('le style bibliographique commun de l’apparat', () => {
     // ⚠️ Une classe seule (0,1,0) perd contre une règle d'ambiance qui vise la
     // BALISE — `.cs-notice-italique em`, (0,1,1). Mesuré le 2026-08-28 : le
     // titre d'une notice sortait alors en romain AVEC la classe comme sans
-    // elle, l'italique ne tenant que par le `<em>`. Chaque rôle se pend donc au
-    // bloc, ce qui porte son sélecteur à (0,2,0). ⛔ Ne pas l'aplatir.
+    // elle, l’italique ne tenant que par le `<em>`. Chaque rôle se pend donc à la
+    // RÉFÉRENCE (`.cs-reference-bibliographique`, l’enveloppe des fragments, quelle que soit la surface qui la porte), ce qui porte son sélecteur à (0,2,0). ⛔ Ne pas l’aplatir.
     for (const classe of Object.values(CLASSE_CARACTERE_BIBLIOGRAPHIE)) {
       const regles = reglesDeLaFamille().filter((regle) => regle.selecteur.includes(classe))
       expect(regles.length, `aucune règle pour « ${classe} »`).toBeGreaterThan(0)
       for (const { selecteur } of regles) {
         for (const part of selecteur.split(',').map((morceau) => morceau.trim())) {
           if (!part.includes(classe)) continue
-          expect(part.startsWith(`.${CLASSES_BIBLIOGRAPHIE.bloc} .`), `« ${part} » ne se pend pas au bloc`)
+          expect(part.startsWith(`.${CLASSES_BIBLIOGRAPHIE.reference} .`), `« ${part} » ne se pend pas à la référence`)
             .toBe(true)
         }
       }

@@ -5,6 +5,9 @@ import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MarqueAttente } from '@/app/lib/attenteNavigation'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
+import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
+import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
@@ -367,7 +370,7 @@ const AUCUN_BLOC: Record<string, BlocOriginal> = {}
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -965,6 +968,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const [segments, setSegments] = useState<SegData[]>(segmentsInit)
   const [groupesApparat, setGroupesApparat] = useState<GroupeData[]>(groupesApparatInit)
   const [segmentsApparat, setSegmentsApparat] = useState<SegData[]>(segmentsApparatInit)
+  // Les notices des ouvrages que cite l'apparat, par `ouvrage_id` : un segment qui en
+  // porte un se compose depuis la BASE (moteur bibliographique, charte § 35.6.1), non
+  // depuis son texte. Le serveur les envoie avec l'apparat ; le rechargement les complète.
+  const [noticesBibliographiques, setNoticesBibliographiques] = useState<Record<number, NoticeBibliographique>>(noticesBibliographiquesInit)
   const [niv1Loading, setNiv1Loading] = useState(false)
   const [niv1Erreur, setNiv1Erreur] = useState<string | null>(null)
   const [pageActuelle, setPageActuelle] = useState(0)
@@ -1417,6 +1424,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
         numeroVerset: numeroVersetLisible(s.numero_verset),
         forme: s.forme,
+        ouvrageId: identifiantOuvrage(s.ouvrage_id),
       }
     })
 
@@ -1438,7 +1446,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi}` })
 
     setGroupesApparat(newGroupes)
-    setSegmentsApparat(await rattacherAlignement(newSegs))
+    // Les notices des ouvrages cités partent AVEC l'alignement, et arrivent avant que
+    // les segments ne se posent : sans elles, un segment bibliographique retomberait
+    // un instant sur son texte, la projection de secours. ⚠️ Une panne de la vue ne
+    // ferme pas l'apparat : elle se dit, et les segments se lisent depuis le texte.
+    const [segsAlignes, notices] = await Promise.all([
+      rattacherAlignement(newSegs),
+      chargerNoticesBibliographiques(supabase, identifiantsOuvrages(newSegs)).catch((erreur: unknown) => {
+        console.error(`Notices bibliographiques illisibles (${idTexte}) :`, erreur)
+        return new Map<number, NoticeBibliographique>()
+      }),
+    ])
+    setNoticesBibliographiques(prev => ({ ...prev, ...tableDesNotices(notices) }))
+    setSegmentsApparat(segsAlignes)
   }
 
   const changerNiv1 = async (n1: string, opts?: { forceRefresh?: boolean; conserverPosition?: boolean }) => {
@@ -3163,6 +3183,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               const s = segMapApparat.get(sid)
                               if (!s) return null
                               const actif = segActif === sid
+                              // Un segment qui cite un OUVRAGE se compose depuis la base, par le
+                              // moteur bibliographique ; son texte n'est plus que la projection de
+                              // secours, servie si la notice n'a pu être lue (charte § 35.6.1).
+                              const notice = s.ouvrageId != null ? noticesBibliographiques[s.ouvrageId] : undefined
                               return (
                                 <Fragment key={sid}>
                                   {i > 0 ? liantAvantSegment(s.joinBefore) : null}
@@ -3171,7 +3195,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
-                                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
+                                    {notice
+                                      ? <ReferenceBibliographique notice={notice} />
+                                      : rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
                                   </span>
                                 </Fragment>
                               )

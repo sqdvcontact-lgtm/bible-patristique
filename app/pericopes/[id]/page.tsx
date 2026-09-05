@@ -14,6 +14,9 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
+import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import { chargerNoticesBibliographiques, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
 import { ABREV_FR } from '@/app/lib/bible'
@@ -39,6 +42,9 @@ type Pericope = {
 // un lien vérifié et un ouvrage éditorialement validé) une fois les liens vérifiés.
 type RefBiblio = {
   rubrique: string | null; importance: string | null
+  /** L'identité de l'ouvrage : c'est par lui que la notice STRUCTURÉE se charge et se
+   *  compose (moteur bibliographique). Les champs qui suivent sont le repli. */
+  ouvrage_id: number | null
   auteurs: string | null; titre: string | null; sous_titre: string | null
   directeurs: string | null; collection: string | null; numero_collection: string | null
   lieu: string | null; editeur: string | null; annee: number | null
@@ -182,6 +188,11 @@ export default function PericopePage() {
     [occurrences],
   )
 
+  // Les notices STRUCTURÉES des ouvrages cités, par `ouvrage_id` : c'est elles qui se
+  // composent — auteur en petites capitales, titre en italique, ponctuation générée —
+  // par le moteur bibliographique du site. La ligne de la vue ne sert que de repli.
+  const [notices, setNotices] = useState<Record<number, NoticeBibliographique>>({})
+
   // Bibliographie groupée par rubrique (contexte, exégèse, théologie, tradition),
   // ordonnée par importance (principale avant complémentaire) puis année descendante.
   const groupesBiblio = useMemo(() => {
@@ -228,15 +239,22 @@ export default function PericopePage() {
             .eq('pericope_id', id).eq('visible_public', true).eq('est_principal', false)
             .order('ordre'),
           supabase.from('bibliographie_admissible')
-            .select('rubrique, importance, auteurs, titre, sous_titre, directeurs, collection, numero_collection, lieu, editeur, annee, pages, reference_passage')
+            .select('ouvrage_id, rubrique, importance, auteurs, titre, sous_titre, directeurs, collection, numero_collection, lieu, editeur, annee, pages, reference_passage')
             .eq('pericope_id', id),
         ])
         if (annule) return
         setPeri(p as Pericope)
         setOccurrences((occ ?? []) as Occurrence[])
         setVariantes((noms ?? []) as Variante[])
-        setBiblio((refs ?? []) as RefBiblio[])
+        const references = (refs ?? []) as RefBiblio[]
+        setBiblio(references)
         setEtat('ok')
+        // Les notices structurées, d'un seul tenant, APRÈS que la page s'est ouverte :
+        // elles n'ont pas à la retarder, et si la vue ne répond pas la ligne de repli
+        // compose déjà la référence.
+        chargerNoticesBibliographiques(supabase, references.map(r => r.ouvrage_id))
+          .then(map => { if (!annule) setNotices(tableDesNotices(map)) })
+          .catch((erreur: unknown) => console.error('Notices bibliographiques illisibles :', erreur))
       } catch {
         if (!annule) setEtat('erreur')
       }
@@ -436,15 +454,31 @@ export default function PericopePage() {
             {(() => {
               const vus = new Set<string>()
               return groupesBiblio.flatMap(g => g.refs).filter(r => {
-                const cle = `${r.auteurs ?? r.directeurs ?? ''}|${r.titre ?? ''}|${r.annee ?? ''}`
+                // L'identité d'une entrée est `ouvrage_id` (charte § 35.6.1) ; les champs
+                // libres ne départagent que les lignes qui n'en portent pas.
+                const cle = r.ouvrage_id != null
+                  ? `ouvrage:${r.ouvrage_id}`
+                  : `${r.auteurs ?? r.directeurs ?? ''}|${r.titre ?? ''}|${r.annee ?? ''}`
                 if (vus.has(cle)) return false
                 vus.add(cle); return true
               })
-            })().map((r, i) => (
-              <li key={i} style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
-                <ReferenceBiblio r={r} />
-              </li>
-            ))}
+            })().map((r, i) => {
+              const notice = r.ouvrage_id != null ? notices[r.ouvrage_id] : undefined
+              return (
+                <li key={r.ouvrage_id ?? `libre-${i}`} style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
+                  {notice
+                    ? (
+                      // La référence composée par le MOTEUR, depuis la base ; les pages
+                      // sont celles du LIEN à la péricope, non de l'ouvrage, et suivent.
+                      <>
+                        <ReferenceBibliographique notice={notice} />
+                        {r.pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(r.pages)}</span>}
+                      </>
+                    )
+                    : <ReferenceBiblio r={r} />}
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}
@@ -488,8 +522,11 @@ function LigneInfo({ label, children }: { label: string; children: React.ReactNo
   )
 }
 
-// Une référence bibliographique rendue « à la scientifique » : auteurs, titre en
-// italique, sous-titre, collection, lieu, éditeur, année ; le passage couvert en note.
+// Le REPLI d'une référence, depuis les champs libres de la vue, tant que la notice
+// structurée n'est pas chargée (ou si la vue des références ne répond pas) : auteurs,
+// titre en italique, sous-titre, collection, lieu, éditeur, année ; les pages du lien
+// en note. ⛔ Aucune petite capitale ici : elles viennent des autorités, que seule la
+// notice structurée porte (moteur bibliographique, charte § 35.6.1).
 function ReferenceBiblio({ r }: { r: RefBiblio }) {
   const gens = r.auteurs || (r.directeurs ? `${r.directeurs} (dir.)` : null)
   const lieuEd = [r.lieu, r.editeur].filter(Boolean).join(', ')

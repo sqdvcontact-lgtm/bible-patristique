@@ -2,6 +2,7 @@ import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 import type { BlocOriginal } from './bilingueAlignement'
 import type { NatureBlocNote } from '@/app/lib/naturesNote'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -98,6 +99,10 @@ export type SegData = {
   /** La FORME du segment : `vers`, ou rien. ⛔ Axe SÉPARÉ de la nature — dans
    *  l'apparat celle-ci vaut déjà `apparat_critique`. Voir `estEnVers`. */
   forme?: string | null
+  /** L'OUVRAGE que cite ce segment bibliographique (`segment_metadata.ouvrage_id`).
+   *  Quand la notice est chargée, c'est elle qui se compose, non `texte`, qui n'est
+   *  plus qu'une projection de secours. `null` pour tout segment ordinaire. */
+  ouvrageId?: number | null
 }
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
@@ -210,6 +215,10 @@ export type Props = {
   tocApparat: TocEntry[]
   groupesApparat: GroupeData[]
   segmentsApparat: SegData[]
+  /** Les notices des ouvrages que citent les segments d'apparat, par `ouvrage_id`,
+   *  chargées avec eux au rendu serveur (`v_references_bibliographiques`). Le client
+   *  les complète quand il recharge l'apparat. */
+  noticesBibliographiques?: Record<number, NoticeBibliographique>
   segmentCibleId?: number | null
   /** Le segment visé est une REPRISE (on arrive d'un autre texte de l'œuvre, au même
    *  passage) : on s'y pose sans le sélectionner. Voir `passageTexte.ts`. */

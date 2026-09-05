@@ -32,12 +32,20 @@
 // de champs. Ce qui fonde le calcul (autorité éditrice, collection, contributeurs et
 // leurs rangs) est réuni sous un seul intitulé, à côté du statut qui en découle.
 
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { messageErreurQualification } from './qualification'
 import { colorMix } from '@/app/lib/couleurs'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import { composerNom, separerNoms, listeDepuisVirgules, type NomStructure } from '@/app/lib/nomsPersonnes'
+import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
+import {
+  noticeDepuisChampsLibres,
+  noticeDepuisVue,
+  type LigneVueReference,
+  type NoticeBibliographique,
+} from '@/app/lib/referenceBibliographique'
+import { COLONNES_VUE_REFERENCES } from '@/app/lib/referencesBibliographiquesChargement'
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -449,22 +457,40 @@ function Sommaire({ total, comptes, nbValides }: { total: number; comptes: { sci
 }
 
 // ── Citation composée, telle qu'elle paraît en documentation ────────────────
-// Même ordre que `ReferenceBiblio` (app/pericopes/[id]/page.tsx) : auteurs, titre en
-// italique, sous-titre, collection, lieu et éditeur, année.
-function Citation({ o }: { o: Partial<OuvrageDetail> }) {
-  const gens = (o.auteurs ?? '').trim() || ((o.directeurs ?? '').trim() ? `${o.directeurs} (dir.)` : '')
-  const lieuEd = [o.lieu, o.editeur].filter(Boolean).join(', ')
+// La citation de la fiche est LA référence que le lecteur verra, composée par le même
+// moteur que la page (charte § 35.6.1) : l'administrateur ne relit pas une autre notice.
+// Elle se construit sur la vue `v_references_bibliographiques` (autorités jointes : nom
+// de famille en petites capitales, éditeur normalisé), recouverte des champs en cours de
+// saisie pour suivre la frappe.
+function Citation({ notice }: { notice: NoticeBibliographique }) {
   return (
     <p style={{ fontFamily: SERIF, fontSize: '1rem', lineHeight: 1.55, color: 'var(--cs-texte)', margin: 0 }}>
-      {gens && <span>{typo(gens)}, </span>}
-      <em style={{ fontStyle: 'italic', color: 'var(--cs-encre)' }}>{typo(o.titre ?? '')}</em>
-      {o.sous_titre && <span>. {typo(o.sous_titre)}</span>}
-      {o.collection && <span>, coll. {'« '}{typo(o.collection)}{' »'}{o.numero_collection ? `, ${o.numero_collection}` : ''}</span>}
-      {lieuEd && <span>, {typo(lieuEd)}</span>}
-      {o.annee ? <span>, {o.annee}</span> : null}
-      <span>.</span>
+      <ReferenceBibliographique notice={notice} />
     </p>
   )
+}
+
+/** Un champ en cours de saisie recouvre la valeur de la vue ; un champ que le formulaire
+ *  n'a pas encore reçu (`undefined`) la laisse : au premier rendu, `f` est vide. */
+function recouvrir<T>(saisie: T | undefined, base: T): T {
+  return saisie === undefined ? base : saisie
+}
+
+/** Les champs du formulaire posés sur la ligne de la vue : la citation suit la frappe,
+ *  tandis que l'éditeur et la collection gardent leur forme d'AUTORITÉ, que le
+ *  formulaire ne saisit pas en texte. Sans ligne de vue, les champs seuls composent. */
+function noticeDeLaFiche(id: number, vue: LigneVueReference | null, f: Partial<OuvrageDetail>): NoticeBibliographique {
+  if (!vue) return noticeDepuisChampsLibres({ ...f, id })
+  return noticeDepuisVue({
+    ...vue,
+    titre: recouvrir(f.titre, vue.titre),
+    sous_titre: recouvrir(f.sous_titre, vue.sous_titre),
+    lieu: recouvrir(f.lieu, vue.lieu),
+    annee: recouvrir(f.annee, vue.annee),
+    auteurs_texte: recouvrir(f.auteurs, vue.auteurs_texte),
+    directeurs_texte: recouvrir(f.directeurs, vue.directeurs_texte),
+    traducteurs_texte: recouvrir(f.traducteurs, vue.traducteurs_texte),
+  })
 }
 
 // ── Fiche d'un ouvrage ──────────────────────────────────────────────────────
@@ -481,22 +507,46 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
   const [detail, setDetail] = useState<OuvrageDetail | null>(null)
   const [contribs, setContribs] = useState<LigneContrib[]>([])
   const [f, setF] = useState<Partial<OuvrageDetail>>({})
+  // La ligne de la vue des références (autorités jointes), pour composer la citation
+  // exactement comme la page publique la compose.
+  const [vueReference, setVueReference] = useState<LigneVueReference | null>(null)
+  // Les contributeurs tels que le chargement les a rendus : une liste qui en diffère a
+  // été ÉCRITE, et la référence doit se relire (petites capitales, ordre, renvoi au registre).
+  const contribsCharges = useRef<LigneContrib[] | null>(null)
+
+  const relireReference = useCallback(async () => {
+    const { data } = await supabase.from('v_references_bibliographiques')
+      .select(COLONNES_VUE_REFERENCES).eq('ouvrage_id', id).maybeSingle()
+    setVueReference((data ?? null) as unknown as LigneVueReference | null)
+  }, [id])
+
+  // ⚠️ Pas au chargement, où la vue vient d’être lue dans la même vague ; et le
+  // `setState` vit dans le rappel asynchrone de la relecture, non dans le corps de l’effet.
+  useEffect(() => {
+    if (contribsCharges.current === null || contribs === contribsCharges.current) return
+    void relireReference()
+  }, [contribs, relireReference])
 
   useEffect(() => {
     let annule = false
     ;(async () => {
-      const [d, c] = await Promise.all([
+      const [d, c, v] = await Promise.all([
         supabase.from('ouvrages_bibliographiques')
           .select('id, auteurs, titre, sous_titre, directeurs, traducteurs, collection, numero_collection, lieu, editeur, annee, isbn, langue, type_ouvrage, garantie_scientifique, note, statut_editorial, editeur_valeur_id, collection_valeur_id, statut_scientifique, statut_scientifique_override, motif_statut_scientifique, source_evaluation_scientifique, confiance_evaluation_scientifique')
           .eq('id', id).maybeSingle(),
         supabase.from('ouvrage_contributeurs_scientifiques')
           .select('id, ouvrage_id, auteur_valeur_id, auteur_id, nom_affiche, role_contributeur, nature_personne, ordre')
           .eq('ouvrage_id', id).order('ordre'),
+        supabase.from('v_references_bibliographiques')
+          .select(COLONNES_VUE_REFERENCES).eq('ouvrage_id', id).maybeSingle(),
       ])
       if (annule) return
       setDetail((d.data ?? null) as OuvrageDetail | null)
       setF((d.data ?? {}) as Partial<OuvrageDetail>)
-      setContribs((c.data ?? []) as LigneContrib[])
+      const liste = (c.data ?? []) as LigneContrib[]
+      contribsCharges.current = liste
+      setContribs(liste)
+      setVueReference((v.data ?? null) as unknown as LigneVueReference | null)
     })()
     return () => { annule = true }
   }, [id])
@@ -512,6 +562,8 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
     if (error) { onErreur(messageErreur(error.message)); return false }
     setDetail(prev => (prev ? ({ ...prev, ...champs } as OuvrageDetail) : prev))
     setF(prev => ({ ...prev, ...champs }))
+    // La vue des références est relue : une autorité liée a pu changer avec la fiche.
+    void relireReference()
     onInfo(messageOk); onSauve()
     return true
   }
@@ -591,7 +643,7 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
 
       {/* ── En-tête : la notice telle qu'elle se lit, son rang, son état ──── */}
       <div style={{ ...carteStyle, borderColor: 'var(--cs-vert-pale)', background: colorMix('var(--cs-vert)', 3) }}>
-        <Citation o={f} />
+        <Citation notice={noticeDeLaFiche(id, vueReference, f)} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', marginTop: '11px' }}>
           <Puce gros txt={L_SCI[sciCalc] ?? sciCalc} coul={C_SCI[sciCalc] ?? 'var(--cs-systeme)'} />
           {ligne.statut_scientifique_override && <Puce txt="Décision manuelle" coul="var(--cs-systeme)" />}

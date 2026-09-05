@@ -5680,3 +5680,91 @@ décisions de l'auteur (questions Q1 à Q8 du rapport) :
   pour BINAIRE et masquent leurs correspondances), `app/lib/liensSurs.ts:21` (U+0000, U+001F),
   `app/lib/liensSurs.test.ts:20` (U+0001), `app/admin/controleQualite.ts:58` (deux U+0080 comme
   bornes de plage ; le U+FFFD y est voulu). Équivalents à l'exécution ; à réécrire en clair (Q7).
+
+# ⛔ UN moteur de rendu bibliographique, et la BASE est la source (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, § 35.6.5. Mission de l'auteur du 5 septembre 2026 ;
+audit des six écritures existantes et décisions dans
+`work/notes/PROPOSITION_RENDU_BIBLIOGRAPHIQUE_20260905.txt`. Règles de code :
+
+- ⛔ **`app/lib/referenceBibliographique.ts` est LE moteur**, pur et testé :
+  `fragmentsReference(notice, { avecAuteur })` rend des fragments typés — `champ` (la colonne
+  d'origine), `style` (la fonction bibliographique, vocabulaire clos), `composition` (romain,
+  italique, petites capitales), `texte`. La ponctuation, les liants (« dans », « éd. »,
+  « trad. », « dir. », « coll. », « p. ») et les guillemets sont des fragments SANS champ ni
+  style : ils héritent de la séquence où ils tombent. ⛔ Ne recomposer une référence nulle part
+  ailleurs : SIX écritures coexistaient (la liste Fillion, la référence d'édition servie, le
+  `ReferenceBiblio` des péricopes, la `Citation` de l'admin, `composerBibliographie`, la
+  projection SQL). `bibleBibliographieOuvrages.segmentsReference` n'est plus qu'un ADAPTATEUR
+  (`noticeDUnOuvrage`), et `LIAISON_SOUS_TITRE`, `SEPARATEUR`, `PONCTUATION_FORTE` y sont
+  RÉ-EXPORTÉS depuis le moteur, où ils vivent avec la règle.
+- **Le composant est `app/components/ReferenceBibliographique.tsx`** : des NŒUDS (`em`, `span`,
+  fragment), jamais de HTML injecté ; ni crochet ni session, il sert le serveur comme le
+  navigateur. `FragmentReference` y vit désormais (ré-exporté par `BibliographieOuvrages.tsx`
+  pour `ModaleTraduction`). Il ne porte AUCUN identifiant : c'est l'appelant qui sait où la
+  référence paraît (`data-ouvrage-id` d'une entrée de liste, `id` d'un segment).
+- **La donnée se lit dans la vue `v_references_bibliographiques`** (migration
+  `20260905150000_references_bibliographiques.sql`) : `security_barrier`, propriétaire
+  `postgres`, SELECT pour `anon`, `authenticated`, `service_role`. Éprouvé en base : `anon` lit
+  les six notices de Boèce AVEC leurs contributeurs joints, alors qu'il ne peut lire ni
+  `auteurs_valeur` ni `ouvrages_bibliographiques_editeurs` (RLS sans politique). Elle joint les
+  autorités d'auteurs (`prenom`, `nom_famille`, `nom` ; `auteurs.nom` pour un ancien), les
+  éditeurs liés par rang et rôle (`editeurs_lies`), la collection d'autorité. ⛔ `edition` n'y
+  est pas exposée : c'est un champ de NOTE en pratique. Le chargeur est
+  `chargerNoticesBibliographiques(client, ids)` (`referencesBibliographiquesChargement.ts`) :
+  lots par `lotsPourClauseIn`, le client REÇU, jamais importé, et rien n'est recopié dans les
+  segments. Corriger une autorité se voit au prochain affichage, partout.
+- **Cinq colonnes nullables sur `ouvrages_bibliographiques`** : `forme_notice` (CHECK :
+  monographie, article_periodique, contribution_collectif, entree_dictionnaire), `titre_hote`,
+  `tomaison`, `pages`, `date_affichee`. Une forme absente se DÉRIVE (`formeDeLaNotice`) : un
+  titre hôte fait un article de périodique, qui ne pose pas « dans » (mieux vaut un liant en
+  moins qu'un liant faux) ; sinon une monographie. ⛔ Rien ne s'invente : un champ absent
+  emporte son séparateur, et le moteur ne connaît ni dictionnaire d'éditeurs ni expression
+  régulière sur un nom.
+- **Ce que le moteur compose.** Un chercheur à `prenom` + `nom_famille` : prénom en romain,
+  nom en PETITES CAPITALES (`bibliographie-nom-auteur`). Une autorité sans rubriques ou un
+  auteur ancien : le nom ENTIER en petites capitales, ⛔ jamais coupé à la première espace. Un
+  collectif ou un nom en texte libre : romain. Monographie : titre italique, « . », sous-titre
+  italique (une espace seule après une ponctuation forte). Article, contribution, entrée :
+  titre en ROMAIN entre guillemets français à fines (`bibliographie-titre-article`), puis
+  « dans » (sauf périodique) et l'hôte en italique (`bibliographie-titre-hote`), puis la
+  tomaison. « éd. », « trad. », « dir. » depuis les contributeurs structurés, sinon le texte
+  libre coupé sur « ; » ; sans auteur, la direction ouvre la notice. `coll. « X », n`. Lieu,
+  puis les éditeurs liés (editeur, coediteur, imprimeur, par rang, joints par
+  `SEPARATEUR_COEDITEURS` ; diffuseur et réimprimeur ignorés), puis `date_affichee` sinon
+  `annee`. « p. » + insécable + pages, tiret demi-cadratin entre deux nombres. Un seul point
+  final, sauf ponctuation forte déjà là. Sans titre : aucun fragment.
+- **Deux styles de caractère de plus** dans `STYLES_CARACTERE_BIBLIOGRAPHIE`, deux règles dans
+  `globals.css`. ⛔ Les règles de rôle de la famille se pendent désormais à
+  **`.cs-reference-bibliographique`**, l'enveloppe des fragments, et non plus au bloc de
+  liste : une notice se compose partout (apparat d'une œuvre, ligne de péricope, fiche
+  d'admin), et c'est l'enveloppe qui la suit. `apparatBibliographie.test.tsx` le garde.
+- **Quatre surfaces branchées.** Fillion : l'adaptateur, 43 tests inchangés. L'apparat d'une
+  œuvre : `COLONNES_SEGMENT` tire `ouvrage_id:segment_metadata->>ouvrage_id`, `SegData.ouvrageId`
+  le porte, les notices partent AVEC les segments (`page.tsx`, prop `noticesBibliographiques`)
+  et se complètent au rechargement (`OeuvreClient`) ; un segment qui porte un `ouvrage_id`
+  rend `<ReferenceBibliographique>`, et son `segment_texte` n'est plus que la PROJECTION DE
+  SECOURS (panne de la vue, dite au journal), la recherche et l'export. La péricope :
+  `bibliographie_admissible` tire `ouvrage_id`, le dédoublonnage se fait par lui,
+  `ReferenceBiblio` reste le REPLI (aucune petite capitale : elles viennent des autorités), et
+  les pages du LIEN suivent la notice. L'admin : `Citation` compose la ligne de la vue
+  recouverte des champs en cours de saisie (`noticeDeLaFiche`), et la vue se relit après chaque
+  écriture et quand les contributeurs changent.
+- ⛔ **`segment_metadata.bibliography_render` est SORTI du chemin de rendu** (décision B) : 136
+  segments de Boèce le portent, RIEN ne le lit, il n'est ni régénéré ni supprimé. Un cache que
+  rien ne lit finit par contredire la vérité ; celui-ci ne peut plus. ⚠️ La projection SQL
+  (`internal.refresh_bible_editorial_bibliography_*`, qui écrit `- *Titre*…` dans
+  `reading_text`) est laissée en place : elle sert la recherche et l'export, non le rendu.
+- ⚠️ **Les petites capitales sont SYNTHÉTISÉES.** Source Serif 4 telle que la sert
+  next/font/google (v4.004) ne porte ni `smcp` ni `c2sc` ; l'amont Adobe 4.005 les porte, en
+  romain seulement (variable woff2 de 419 Ko). Les avoir vraies demande d'auto-héberger la
+  police : décision de l'auteur, chiffrée dans la proposition (Q1). `font-variant-caps:
+  small-caps` reste la seule écriture admise ; ⛔ pas de `text-transform`.
+- **Données du jour** : trois notices de Boèce (899 Hand, 901 Hauréau, 909 Jourdain) remplies
+  dans les colonnes de forme depuis la projection de GPT (`sql/boece_articles_colonnes_20260905.sql`,
+  sauvegarde `internal.backup_ouvrages_articles_boece_20260905`, retour
+  `sql/rollback_boece_articles_colonnes_20260905.sql`). ⛔ Le moteur ne modifie aucun texte
+  source ; `texte_norm` reste généré par `norm_fr(segment_texte)`.
+- ⚠️ **Piège de garde** : `formes.test.ts` lit `${X}De` ou `${X}12` dans un gabarit de chaîne
+  comme un alpha hexadécimal collé à une teinte. Couper le gabarit devant deux lettres ou
+  chiffres qui font un hexa (`${OUV}` + `De …`).

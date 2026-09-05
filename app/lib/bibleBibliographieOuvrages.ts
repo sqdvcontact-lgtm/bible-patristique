@@ -21,7 +21,20 @@
  * Module PUR : il ne connaît ni Supabase, ni React.
  */
 
-import type { StyleCaractereBibliographie } from './apparatBibliographie'
+import {
+  fragmentsReference,
+  LIAISON_SOUS_TITRE,
+  PONCTUATION_FORTE,
+  SEPARATEUR,
+  type FragmentNotice,
+  type NoticeBibliographique,
+  type OptionsReference,
+} from './referenceBibliographique'
+
+// ⚠️ Ré-exportés : la référence de l'édition servie (`referenceEditionServie.ts`) se
+// compose des mêmes signes, et deux jeux de ponctuation pour une même norme
+// divergeraient au premier ajustement. Ils VIVENT dans le moteur, avec la règle.
+export { LIAISON_SOUS_TITRE, PONCTUATION_FORTE, SEPARATEUR }
 
 /** Ce que la vue `v_bible_editorial_bibliography_entries` sert, tel quel. */
 export type LigneBibliographieOuvrage = {
@@ -72,29 +85,14 @@ export type BibliographiePiece = {
 
 /**
  * Le fragment d'une référence : d'où il vient, ce qu'il EST, et comment il se
- * compose.
- *
- * `champ` nomme la colonne d'origine et `style` la fonction bibliographique du
- * fragment, dans le vocabulaire clos de `apparatBibliographie`. Les deux valent
- * `null` pour la ponctuation, que le code ajoute et que la donnée ne porte pas :
- * ⛔ un séparateur n'a pas de style propre, il appartient à la séquence où il
+ * compose — le type du MOTEUR (`FragmentNotice`), sous son ancien nom pour les
+ * appelants historiques. `champ` nomme la colonne d'origine et `style` la fonction
+ * bibliographique, dans le vocabulaire clos de `apparatBibliographie` ; les deux
+ * valent `null` pour la ponctuation, que le moteur ajoute et que la donnée ne porte
+ * pas : ⛔ un séparateur n'a pas de style propre, il appartient à la séquence où il
  * tombe — d'où le point du sous-titre, qui reste dans l'italique du titre.
- *
- * Les trois compositions suffisent : le romain pour tout ce qui n'est ni
- * intitulé ni nom d'autorité, l'italique pour l'intitulé de l'ouvrage, les
- * petites capitales pour le nom d'autorité de l'auteur.
  */
-export type SegmentReference = {
-  // ⚠️ Les trois derniers ne servent que la référence de l'ÉDITION SERVIE
-  // (`referenceEditionServie`), qui n'est pas un ouvrage du catalogue mais suit
-  // les mêmes normes : le champ d'origine reste dans le document, et c'est par lui
-  // que les tests vérifient qu'aucune donnée n'a été fondue dans une autre.
-  champ: 'prenom' | 'nom_famille' | 'titre' | 'sous_titre' | 'lieu' | 'editeur' | 'annee'
-    | 'mention_edition' | 'depot_manuscrit' | 'cote_manuscrit' | null
-  style: StyleCaractereBibliographie | null
-  composition: 'romain' | 'italique' | 'petites-capitales'
-  texte: string
-}
+export type SegmentReference = FragmentNotice
 
 /**
  * Les pièces où le TITRE porte déjà l'auteur, et où le répéter serait le dire
@@ -109,20 +107,9 @@ export function auteurPorteParLeTitreDeLaPiece(pieceKey: string): boolean {
   return PIECES_A_AUTEUR_COMMUN.has(pieceKey)
 }
 
-// Le POINT qui détache un sous-titre de son titre, et la virgule qui sépare
-// les mentions d'une même notice (charte §35.6.1).
-// ⚠️ Décision de l'auteur du 28 août 2026 : un sous-titre EST un sous-titre,
-// non une apposition — il se détache par un POINT. ⛔ Ni deux-points, ni
-// virgule : les deux ont été prescrits tour à tour, et l'un après l'autre
-// remplacés. L'insécable qui précédait le deux-points n'a plus d'objet.
-// ⚠️ Les trois sont EXPORTÉES : la référence de l'édition servie (`referenceEditionServie`)
-// se compose des mêmes signes, et deux jeux de ponctuation pour une même norme
-// divergeraient au premier ajustement.
-export const LIAISON_SOUS_TITRE = '. '
-export const SEPARATEUR = ', '
-// Un intitulé qui se ferme déjà sur une ponctuation forte ne reçoit pas un
-// second point : la ponctuation attestée d'un titre est conservée (charte §3.4).
-export const PONCTUATION_FORTE = /[.!?…]$/u
+// ⚠️ Le POINT du sous-titre, la virgule des mentions et la ponctuation forte VIVENT
+// dans le moteur (`referenceBibliographique.ts`), avec la règle qui s'en sert, et
+// sont ré-exportés en tête de ce fichier pour la référence de l'édition servie.
 
 function propre(valeur: string | null | undefined): string | null {
   const texte = valeur?.trim()
@@ -319,7 +306,43 @@ export function bibliographieDesBlocs(
 }
 
 /**
- * Une référence, fragment par fragment.
+ * L'ouvrage de la vue Fillion, dans la forme que lit le MOTEUR : un seul éditeur
+ * (la forme d'autorité que la vue a déjà résolue), un seul auteur, dont l'autorité
+ * dit si elle se coupe en prénom et nom de famille. Une autorité sans rubriques —
+ * un ancien, un médiéval — se compose entière en petites capitales : c'est le
+ * moteur qui le sait, ce fichier ne fait que lui passer la donnée.
+ */
+export function noticeDUnOuvrage(ouvrage: OuvrageBibliographique): NoticeBibliographique {
+  const auteur = ouvrage.auteur
+  return {
+    id: ouvrage.id,
+    forme: null,
+    titre: ouvrage.titre,
+    sousTitre: ouvrage.sousTitre,
+    titreHote: null,
+    tomaison: null,
+    pages: null,
+    dateAffichee: null,
+    annee: ouvrage.annee,
+    lieu: ouvrage.lieu,
+    editeurs: ouvrage.editeur ? [{ rang: 1, role: 'editeur', nom: ouvrage.editeur }] : [],
+    collection: null,
+    numeroCollection: null,
+    contributeurs: auteur
+      ? [{
+          role: 'auteur_scientifique', nature: 'chercheur', ordre: 1,
+          nomAffiche: auteur.nom, prenom: auteur.prenom, nomFamille: auteur.nomFamille, nomAutorite: auteur.nom,
+        }]
+      : [],
+    auteursTexte: null,
+    directeursTexte: null,
+    traducteursTexte: null,
+  }
+}
+
+/**
+ * Une référence, fragment par fragment — par le MOTEUR bibliographique du site
+ * (`referenceBibliographique.ts`), dont cette fonction n'est plus que l'adaptateur.
  *
  * Forme attendue, ponctuation comprise :
  * « Évangile selon saint Jean. Introduction critique et commentaires, Paris,
@@ -330,84 +353,9 @@ export function bibliographieDesBlocs(
  */
 export function segmentsReference(
   ouvrage: OuvrageBibliographique,
-  options: { avecAuteur?: boolean } = {},
+  options: OptionsReference = {},
 ): SegmentReference[] {
-  const segments: SegmentReference[] = []
-  const auteur = options.avecAuteur ? ouvrage.auteur : null
-  if (auteur) {
-    // Le nom de famille en petites capitales, le prénom en bas de casse. ⛔ La
-    // découpe vient de la donnée (`auteurs_valeur.prenom` / `.nom_famille`) :
-    // une autorité que ce couple ne décrit pas — un ancien, un médiéval — se
-    // compose entière en petites capitales, elle ne se coupe pas à la première
-    // espace (charte §35.6.1).
-    if (auteur.nomFamille && auteur.prenom) {
-      segments.push({ champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: auteur.prenom })
-      segments.push({ champ: null, style: null, composition: 'romain', texte: ' ' })
-      segments.push({
-        champ: 'nom_famille',
-        style: 'bibliographie-nom-auteur',
-        composition: 'petites-capitales',
-        texte: auteur.nomFamille,
-      })
-    } else {
-      segments.push({
-        champ: 'nom_famille',
-        style: 'bibliographie-nom-auteur',
-        composition: 'petites-capitales',
-        texte: auteur.nomFamille ?? auteur.nom,
-      })
-    }
-    segments.push({ champ: null, style: null, composition: 'romain', texte: SEPARATEUR })
-  }
-
-  // Titre et sous-titre sont deux champs, mais UN seul intitulé : l'italique les
-  // couvre tous les deux, et le point qui les joint avec eux.
-  segments.push({
-    champ: 'titre',
-    style: 'bibliographie-titre-ouvrage',
-    composition: 'italique',
-    texte: ouvrage.titre,
-  })
-  if (ouvrage.sousTitre) {
-    // ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n'en reçoit pas
-    // une seconde : « Où en est la question biblique ? Réponse », et non
-    // « … ?. Réponse » — la ponctuation attestée du titre détache à elle seule.
-    // ⛔ Le point de liaison n'a pas de style à lui : il reste dans la séquence
-    // italique du titre, dont il est la charnière.
-    segments.push({
-      champ: null,
-      style: null,
-      composition: 'italique',
-      texte: PONCTUATION_FORTE.test(ouvrage.titre) ? ' ' : LIAISON_SOUS_TITRE,
-    })
-    segments.push({
-      champ: 'sous_titre',
-      style: 'bibliographie-sous-titre',
-      composition: 'italique',
-      texte: ouvrage.sousTitre,
-    })
-  }
-
-  for (const mention of [
-    { champ: 'lieu' as const, texte: ouvrage.lieu },
-    { champ: 'editeur' as const, texte: ouvrage.editeur },
-    { champ: 'annee' as const, texte: ouvrage.annee === null ? null : String(ouvrage.annee) },
-  ]) {
-    if (!mention.texte) continue
-    segments.push({ champ: null, style: null, composition: 'romain', texte: SEPARATEUR })
-    segments.push({
-      champ: mention.champ,
-      style: 'bibliographie-donnees',
-      composition: 'romain',
-      texte: mention.texte,
-    })
-  }
-
-  const dernier = segments[segments.length - 1]
-  if (!PONCTUATION_FORTE.test(dernier.texte)) {
-    segments.push({ champ: null, style: null, composition: 'romain', texte: '.' })
-  }
-  return segments
+  return fragmentsReference(noticeDUnOuvrage(ouvrage), options)
 }
 
 /** La référence en texte nu : ce que le lecteur lit, sans sa composition. Sert

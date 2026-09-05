@@ -47,6 +47,11 @@ export const COLONNES_SEGMENT = [
   // texte en langue originale de l'œuvre, et cette clé dit lequel. Sans elle, le
   // bilingue ne peut pas rendre à ce bloc l'apparat critique qui pend à son segment.
   'cle_original:segment_metadata->>original_segment_key',
+  // L'OUVRAGE que cite un segment bibliographique (`segment_metadata.ouvrage_id`).
+  // Quand il est là, le segment ne se rend plus depuis son texte : la notice se
+  // compose depuis la base, par le moteur bibliographique (charte § 35.6.1). Le
+  // texte reste la projection de secours, la recherche et l'export.
+  'ouvrage_id:segment_metadata->>ouvrage_id',
 ] as const
 
 /** La liste telle que PostgREST l'attend. */
