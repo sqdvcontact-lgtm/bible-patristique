@@ -3,6 +3,7 @@ import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructu
 import type { BlocOriginal } from './bilingueAlignement'
 import type { NatureBlocNote } from '@/app/lib/naturesNote'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -219,6 +220,10 @@ export type Props = {
    *  chargées avec eux au rendu serveur (`v_references_bibliographiques`). Le client
    *  les complète quand il recharge l'apparat. */
   noticesBibliographiques?: Record<number, NoticeBibliographique>
+  /** Les couches SECONDAIRES que le serveur n'a pas pu charger (notes, renvois,
+   *  versets cités, original en regard, apparat). La page se lit sans elles et le
+   *  dit au lecteur par un bandeau ; voir `app/lib/chargementTolerant.ts`. */
+  degradations?: DegradationChargement[]
   segmentCibleId?: number | null
   /** Le segment visé est une REPRISE (on arrive d'un autre texte de l'œuvre, au même
    *  passage) : on s'y pose sans le sélectionner. Voir `passageTexte.ts`. */

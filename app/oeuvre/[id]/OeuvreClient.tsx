@@ -4,7 +4,11 @@ import { hydraterLiensHerites } from '@/app/lib/liens'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MarqueAttente } from '@/app/lib/attenteNavigation'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
-import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
+// ⛔ La projection qui ne faillit pas : une ancre hors du texte est laissée de côté
+// et dite à la console, le segment se lit. La stricte lève, et une seule ancre
+// fermait la division (2026-09-05, voir `app/lib/chargementTolerant.ts`).
+import { projeterAppelsNotesStructureesEnSignalant as projeterAppels } from '@/app/lib/appelsNotesStructurees'
+import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
@@ -67,6 +71,7 @@ import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import FicheEdition from './FicheEdition'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
+import BandeauDegradations from './BandeauDegradations'
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import NomVolet from '@/app/components/NomVolet'
@@ -367,10 +372,11 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
  * recopient une propriété) : il se recalerait donc à chaque rendu, indéfiniment.
  */
 const AUCUN_BLOC: Record<string, BlocOriginal> = {}
+const AUCUNE_DEGRADATION: DegradationChargement[] = []
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -1338,7 +1344,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
         numero: estIntro ? s.segment_numero : c, numeroSource: s.segment_numero,
         texte: s.segment_texte,
-        texteAffichage: projeterAppelsNotesStructurees(
+        texteAffichage: projeterAppels(
           s.segment_texte,
           s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
         ), versets,
@@ -1346,7 +1352,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
         cleOriginal: s.cle_original,
         texteOriginalAffichage: s.texte_original
-          ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+          ? projeterAppels(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
           : undefined,
         notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
@@ -1409,7 +1415,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       return {
         id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
         numero: c, numeroSource: s.segment_numero, texte: s.segment_texte,
-        texteAffichage: projeterAppelsNotesStructurees(
+        texteAffichage: projeterAppels(
           s.segment_texte,
           s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
         ), versets: [],
@@ -1417,7 +1423,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
         cleOriginal: s.cle_original,
         texteOriginalAffichage: s.texte_original
-          ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+          ? projeterAppels(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
           : undefined,
         notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
         nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
@@ -2682,6 +2688,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   aide: 'La composition du seul frontispice, sauts de ligne compris. Renseignée, c’est elle qui paraît ici, à la place du titre de catalogue.' },
               ] : undefined,
             })} />
+
+          {/* Ce que le serveur n'a pas pu charger, dit au lecteur : la page s'ouvre
+              sans la couche qui manque au lieu de tomber (charte § 18). */}
+          <BandeauDegradations degradations={degradations} estAdmin={estAdmin} />
 
           {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
               à la place du long filet. Il se centre sur toute la largeur du bloc, en

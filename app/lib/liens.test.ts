@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/app/lib/supabase', () => ({ supabase: { from: vi.fn() } }))
 
-import { hydraterLiensHerites } from './liens'
+import { hydraterLiensHerites, segmentsLiesAuChapitre } from './liens'
+import { supabase } from './supabase'
 
 describe('hydraterLiensHerites', () => {
   it('charge les liens par la clé textuelle stable malgré un id bigint arrondi', async () => {
@@ -70,5 +71,33 @@ describe('hydraterLiensHerites', () => {
       ['seg_b621be50e09c0eab99052435'],
     ])
     expect(appels.in.some(([colonne]) => colonne === 'segment_id')).toBe(false)
+  })
+})
+
+describe('segmentsLiesAuChapitre', () => {
+  it('filtre le chapitre par les colonnes engendrées, jamais par un motif like', async () => {
+    const appels: { eq: unknown[][]; like: unknown[][] } = { eq: [], like: [] }
+    const chaine = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      like: vi.fn(),
+      // La chaîne est « thenable » : `await` la résout comme une réponse PostgREST.
+      then: (resoudre: (v: unknown) => unknown) => Promise.resolve({ data: [], error: null }).then(resoudre),
+    }
+    chaine.select.mockReturnValue(chaine)
+    chaine.eq.mockImplementation((...args: unknown[]) => { appels.eq.push(args); return chaine })
+    chaine.like.mockImplementation((...args: unknown[]) => { appels.like.push(args); return chaine })
+    ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue(chaine)
+
+    await segmentsLiesAuChapitre('GEN', 1)
+
+    // ⛔ `like` sur `canon_id` n'est pas leakproof : sous la RLS, la politique
+    // s'évaluait sur la table entière avant le motif (2 337 ms sur GEN 1, le délai
+    // de huit secondes sous charge). Les deux colonnes engendrées portent l'index.
+    expect(appels.like).toEqual([])
+    expect(appels.eq).toContainEqual(['canon_livre', 'GEN'])
+    expect(appels.eq).toContainEqual(['canon_chapitre', 1])
+    expect(appels.eq).toContainEqual(['livre', 'GEN'])
+    expect(appels.eq).toContainEqual(['chapitre', 1])
   })
 })

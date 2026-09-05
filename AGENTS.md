@@ -5768,3 +5768,83 @@ audit des six écritures existantes et décisions dans
 - ⚠️ **Piège de garde** : `formes.test.ts` lit `${X}De` ou `${X}12` dans un gabarit de chaîne
   comme un alpha hexadécimal collé à une teinte. Couper le gabarit devant deux lettres ou
   chiffres qui font un hexa (`${OUV}` + `De …`).
+
+
+# ⛔ Une page de lecture ne tombe pas sur une couche SECONDAIRE (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, § 18, sous « Une page de lecture ne tombe pas
+sur une couche SECONDAIRE ». Demande de l'auteur du 5 septembre 2026, devant « Cette page
+n'a pas pu s'afficher » sur les Confessions : « consolide le code pour que ça se produise
+le moins possible ».
+
+**Ce qui s'est passé, lu dans le journal Vercel.** `npx vercel logs corpus-scriptura.fr --json`
+(session Vercel du poste ouverte, une heure d'historique) rend l'erreur EXACTE avec son
+repère : `Error: Ancre de note structurée incomplète : AUG-CONF-KNOLL-APP-0154 … digest:
+'1476769284'`, sur `/oeuvre/A0010O0001`. ⚠️ Le journal Supabase ne montrait RIEN côté
+serveur ce jour-là : la panne n'était pas une requête en échec mais une DONNÉE en
+transition. Un quart d'heure après, la même ancre était complète en base et aucune ancre
+du corpus n'était défectueuse : une écriture en cours sur les notes de Knöll avait laissé
+UNE ancre sans sa note le temps de l'import, et `chargerNotesStructurees` levait dessus.
+Une œuvre entière fermée à tout lecteur, pour une ancre, pendant un intervalle qui ne
+dépendait pas du site. ⛔ Quand le lecteur donne un « repère de la panne », lire le journal
+Vercel AVANT de chercher dans Supabase : c'est le seul endroit qui porte la pile.
+
+**La règle.** Le TEXTE est la seule couche dont l'échec ferme la page. Tout ce qui
+l'accompagne se charge sous `tolerer` (`app/lib/chargementTolerant.ts`, pur, testé) :
+notes structurées des deux textes, renvois bibliques (`hydraterLiensHerites`), versets
+cités et leurs codes de traduction, projection bilingue, apparat critique, numérotation
+des notes par division. En cas d'échec, la couche manque, l'échec part au journal
+(`[lecture] page servie sans …`), et le lecteur voit un bandeau sous le frontispice
+(`app/oeuvre/[id]/BandeauDegradations.tsx`) qui nomme ce qui manque et propose de
+recharger ; l'administrateur y lit le détail. ⛔ Rien n'est avalé en silence : le bandeau
+et le journal SONT le signal. ⚠️ La règle du 3 septembre (« le chargement du TEXTE lève,
+et il le doit : une page servie sans ses liens serait une page fausse ») ne tient que si
+la page se donne pour complète ; déclarée, elle ne ment pas.
+
+- **Une ancre INCOMPLÈTE est laissée de côté et comptée** (`ancresIncompletes`), jamais
+  levée ; le compte va au bandeau (« quelques appels de note »).
+- **La projection des appels ne faillit pas non plus** :
+  `projeterAppelsNotesStructureesSansFaillir` (page serveur, qui compte les refus pour
+  le bandeau) et `projeterAppelsNotesStructureesEnSignalant` (rechargements du
+  navigateur, traductions parallèles) laissent de côté une ancre hors du texte et la
+  signalent. ⛔ `projeterAppelsNotesStructurees`, qui LÈVE, reste la projection de
+  CONTRÔLE des scripts et des tests (charte § 13.6) ; une page ne l'appelle plus.
+- **`generateMetadata` ne ferme pas la page qu'elle décrit** : un rejet rend le titre
+  du site.
+- ⚠️ Ce qui reste STRICT, et doit le rester : la tranche du texte lu
+  (`chargerTrancheTexte`, `promesseTexteEntier`), l'œuvre et ses textes. Sans eux il
+  n'y a rien à lire.
+
+**Deuxième cause, de la même famille : `liens_bibliques` par chapitre.** Le 4 septembre,
+quatorze `500` à huit secondes sur `canon_id like 'GEN.1.%'` (métadonnées de la page
+Bible et d'une péricope, dix chapitres d'Exode lancés en parallèle). ⛔ Sous la RLS,
+`like` n'est pas leakproof (`textlike`, `proleakproof = false`) : Postgres évalue la
+politique (EXISTS sur segments ⋈ oeuvre_textes ⋈ oeuvres) sur CHAQUE ligne de la table
+avant le motif, et aucun index ne peut porter le `like`, `text_pattern_ops` compris.
+Mesuré, rôle `authenticated` : 66 236 lignes sondées pour 2 741 rendues, 2 337 ms au
+repos. `=` sur `text` et `integer` est leakproof : migration
+`20260905163625_liens_bibliques_canon_livre_chapitre` (deux colonnes ENGENDRÉES de
+`canon_id`, `canon_livre` et `canon_chapitre`, index `liens_bib_canon_chapitre_idx`),
+et les six sites (`segmentsLiesAuChapitre`, `segmentsLiesAPlage`,
+`chargerReferencesPatristiquesPericope`, `chargerPresencePatristique`, `…Plage`)
+filtrent par `.eq('canon_livre', …).eq('canon_chapitre', …)`. Après : 2 773 lignes
+sondées, **169 ms** pour le parcours des liens. ⚠️ Ce qui reste sur les métadonnées de
+la page Bible est l'embarquement `segments!inner(id_oeuvre)`, une sonde de `segments`
+sous SA politique par lien (0,3 ms × 2 741 sur GEN 1) : 1 046 ms à froid, sur le
+chapitre le plus lié du corpus. ⚠️ La règle « `like 'préfixe%'` demande
+`text_pattern_ops` » (Polyglotte, `versets_v2`) vaut pour une table sans politique
+coûteuse par ligne ; sous une RLS à EXISTS, il faut un prédicat leakproof, donc des
+colonnes à égalité.
+
+**Relevé sans être traité, à décider :**
+- `segmentsLiesAuChapitre` et les métadonnées prennent au plus 1 000 lignes (plafond
+  PostgREST) : GEN 1 en porte 2 773, le volet patristique ouvert sur le chapitre en
+  ignore donc près des deux tiers, en silence. Paginer (`chargerToutesPagesSupabase`)
+  alourdirait le volet d'autant ; arbitrage d'auteur.
+- `commentaires.id_segment` est un `integer` quand `segments.id` est un `bigint` : 2 589
+  segments (Cyrille de Jérusalem, `A0044O0003TFR-V11` surtout) ont un identifiant
+  au-delà de 2^31, et 2 585 au-delà de 2^53. Le navigateur envoie
+  `id_segment=eq.6907057922700000000` (arrondi par JavaScript) et reçoit `400` « out of
+  range for type integer » : 42 fois le 5 septembre. Aucun commentaire n'est possible sur
+  ces segments ; c'est une question de DONNÉE (renuméroter, ou clef sur
+  `(id_texte, segment_key)` comme les liens), côté GPT.

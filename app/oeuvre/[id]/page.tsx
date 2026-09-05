@@ -30,10 +30,11 @@ import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from '
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
 import {
-  projeterAppelsNotesStructurees,
+  projeterAppelsNotesStructureesSansFaillir,
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
 import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
 import { numerosAffiches } from '@/app/lib/numerotationNotes'
 import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
@@ -64,7 +65,7 @@ export async function generateMetadata({ params, searchParams }: {
 
   // Une seule vague : rien ici ne dépend du résultat d'autre chose. La sonde des
   // liens bibliques part avec les autres et ne coûte donc pas un aller-retour.
-  const [{ data }, { data: textes }, auteursOeuvre, aLiensBibliques] = await Promise.all([
+  const charge = await Promise.all([
     supabase.from('oeuvres')
       .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
       .eq('id_oeuvre', id).maybeSingle(),
@@ -74,7 +75,13 @@ export async function generateMetadata({ params, searchParams }: {
       .eq('is_public', true),
     chargerAuteursDOeuvre(supabase, id),
     porteDesLiensBibliques(supabase, [id]),
-  ])
+  ]).catch((error: unknown) => {
+    // Une métadonnée qui ne se lit pas ne ferme pas la page qu'elle décrit.
+    console.error(`[lecture] métadonnées de l’œuvre ${id} illisibles :`, error)
+    return null
+  })
+  if (!charge) return { title: { absolute: 'Corpus Scriptura' } }
+  const [{ data }, { data: textes }, auteursOeuvre, aLiensBibliques] = charge
   if (!data) return { title: { absolute: 'Corpus Scriptura' } }
   // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
   const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as any)?.nom
@@ -165,6 +172,23 @@ type AlignementRow = {
 }
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
+
+type NotesStructureesChargees = {
+  notesParSegment: Record<string, Record<string, NoteStructuree>>
+  ancresParSegment: Record<string, AncreNoteStructureeProjection[]>
+}
+const AUCUNE_NOTE = (): NotesStructureesChargees => ({ notesParSegment: {}, ancresParSegment: {} })
+
+type VersetsCites = Record<string, { label: string; livre: string; chapitre: string; verset: string; textes: Record<string, string> }>
+
+// Les renvois bibliques sont une couche SECONDAIRE : leur échec (le délai dépassé
+// sur `liens_bibliques` du 3 septembre 2026) rend la surface sans eux, dit au
+// lecteur par le bandeau, et ne ferme plus la page.
+const LIENS_MANQUANTS: Omit<DegradationChargement, 'detail'> = { quoi: 'les renvois bibliques', publique: true }
+
+/** Les premières clés d'une liste, pour un journal qui ne doit pas en porter mille. */
+const apercu = (cles: readonly string[], n = 8) =>
+  cles.slice(0, n).join(', ') + (cles.length > n ? `… (${cles.length} en tout)` : '')
 
 function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEditeurs | null): VersionTextuelle {
   const titre = t.titre_version || t.id_texte
@@ -278,7 +302,7 @@ async function chargerCodesTraductions(supabase: Client) {
   return codesTraductionsLecture(supabase)
 }
 
-async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesTraductions: string[]) {
+async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesTraductions: string[]): Promise<VersetsCites> {
   const tousIds = new Set<string>()
   segments.forEach(s => extraireVersets(s).forEach(v => tousIds.add(v)))
   const tousIdsArray = Array.from(tousIds)
@@ -291,7 +315,7 @@ async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesT
     supabase.from('versets_lecture').select(selectVersets).in('id_verset', batch)))
   const versetsData = results.flatMap(r => r.data ?? []) as any[]
 
-  const versetMap: Record<string,{label:string;textes:Record<string,string>}> = {}
+  const versetMap: VersetsCites = {}
   versetsData.forEach(v => {
     const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
     const ref = detailsRefBiblique(v.ref)
@@ -318,6 +342,19 @@ export default async function OeuvrePage({
 
   // Client lisant la session : les fonctions imbriquées ci-dessous le capturent.
   const supabase = await creerSupabaseServeur()
+
+  // ── LE JOURNAL DES COUCHES MANQUANTES ─────────────────────────────────────
+  // Le TEXTE est la seule couche dont l'échec ferme la page. Tout ce qui
+  // l'accompagne (notes structurées, renvois bibliques, versets cités, original en
+  // regard, apparat critique, codes de traduction) se charge sous `tolerer` : en
+  // cas d'échec la page est servie SANS la couche, l'échec part au journal du
+  // serveur, et le lecteur en est averti par un bandeau qui nomme ce qui manque
+  // (`BandeauDegradations`). ⛔ Ne rien avaler en silence : le bandeau et le
+  // journal SONT le signal. Relevé du 5 septembre 2026 : UNE ancre de note
+  // incomplète, le temps d'une écriture en base, fermait les Confessions à tout
+  // lecteur (« Ancre de note structurée incomplète : AUG-CONF-KNOLL-APP-0154 »).
+  // Voir `app/lib/chargementTolerant.ts`.
+  const degradations: DegradationChargement[] = []
 
   // L'œuvre reste l'identité canonique ; le texte actif est choisi séparément.
   // La RLS masque les versions non publiques aux lecteurs ordinaires.
@@ -451,7 +488,7 @@ export default async function OeuvrePage({
     const selectionnes = segmentsDeLaSurface(acc, surface)
     // Les liens ne sont plus portés par le segment : on les repose au format
     // attendu, avec le client du serveur — c'est ce rendu que le lecteur voit.
-    await hydraterLiensHerites(selectionnes, supabase)
+    await tolerer(degradations, LIENS_MANQUANTS, () => hydraterLiensHerites(selectionnes, supabase), () => selectionnes)
     return selectionnes
   }
 
@@ -484,7 +521,7 @@ export default async function OeuvrePage({
     const lignes = segmentsDeLaSurface(((premier.data as any[]) ?? []), 'corps')
     const partiel = lignes.length >= PLAFOND_TRANCHE
     const acc: any[] = partiel ? lignes.slice(0, PLAFOND_TRANCHE - 1) : lignes
-    await hydraterLiensHerites(acc, supabase)
+    await tolerer(degradations, LIENS_MANQUANTS, () => hydraterLiensHerites(acc, supabase), () => acc)
     return { segments: acc as Segment[], partiel }
   }
 
@@ -531,7 +568,10 @@ export default async function OeuvrePage({
       rows = await Promise.all([
         chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase.from('texte_notes')
           .select('note_key,note_number').eq('id_texte', idTexte)
-          .order('note_number').range(debut, fin)),
+          // Le numéro recommence à 1 dans chaque division. Il ne suffit donc plus
+          // à stabiliser une pagination : sans ce départage, une note peut tomber
+          // dans deux pages successives et une autre disparaître entre les deux.
+          .order('note_number').order('note_key').range(debut, fin)),
         chargerToutesPagesSupabase<AnchorRow>((debut, fin) => supabase.from('texte_note_ancres')
           .select('note_key,marker,segment_key,source_target,segment_offset_unicode')
           .eq('id_texte', idTexte).order('note_key').order('segment_key')
@@ -581,17 +621,28 @@ export default async function OeuvrePage({
     }
     const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}
     const ancresParSegment: Record<string, AncreNoteStructureeProjection[]> = {}
+    // ⛔ Une ancre INCOMPLÈTE est laissée de côté et comptée, jamais levée. Le 5
+    // septembre 2026, pendant qu'une écriture reprenait les notes des Confessions,
+    // UNE ancre est restée un moment sans sa note (« Ancre de note structurée
+    // incomplète : AUG-CONF-KNOLL-APP-0154 ») : la page levait dessus et fermait
+    // l'œuvre entière à tout lecteur, puis rouvrait d'elle-même l'écriture finie.
+    // Un import n'est pas atomique, et le lecteur ne paie pas l'intervalle. Le
+    // compte part au journal et au bandeau : l'erreur est REMONTÉE (charte § 13.6),
+    // elle n'est plus fatale.
+    const ancresIncompletes: string[] = []
     for (const anchor of anchorsRows) {
       const note = parNote.get(anchor.note_key)
       const marker = anchor.marker?.match(/^\[\[([A-Z0-9]+)\]\]$/)?.[1]
       if (!note || !marker || !anchor.segment_key) {
-        throw new Error(`Ancre de note structurée incomplète : ${anchor.note_key}.`)
+        ancresIncompletes.push(anchor.note_key)
+        continue
       }
       notesParSegment[anchor.segment_key] ??= {}
       notesParSegment[anchor.segment_key][marker] = note
       if (anchor.source_target === 'segment_texte') {
         if (anchor.segment_offset_unicode === null || !Number.isInteger(anchor.segment_offset_unicode)) {
-          throw new Error(`Offset Unicode absent pour ${anchor.note_key}.`)
+          ancresIncompletes.push(`${anchor.note_key} (offset absent)`)
+          continue
         }
         ancresParSegment[anchor.segment_key] ??= []
         ancresParSegment[anchor.segment_key].push({
@@ -601,6 +652,13 @@ export default async function OeuvrePage({
           sourceTarget: anchor.source_target,
         })
       }
+    }
+    if (ancresIncompletes.length > 0) {
+      noterDegradation(degradations, {
+        quoi: 'quelques appels de note',
+        detail: `${idTexte} : ${ancresIncompletes.length} ancre(s) incomplète(s), laissée(s) de côté : ${apercu(ancresIncompletes)}`,
+        publique: true,
+      })
     }
     // ── LE NUMÉRO AFFICHÉ ─────────────────────────────────────────────────────
     // Charte § 13.8 : il repart à 1 à chaque division de NIVEAU 1, et l'apparat
@@ -621,9 +679,16 @@ export default async function OeuvrePage({
     // vont de un à huit lots.
     if (notesRows.length > 0) {
       type DivisionRow = { segment_key: string | null; ref_niv1: string | null }
-      const divisionsRows = await chargerToutesPagesSupabase<DivisionRow>((debut, fin) =>
-        supabase.from('segments').select('segment_key,ref_niv1')
-          .eq('id_texte', idTexte).order('segment_numero').range(debut, fin))
+      // Sans division, les notes se numérotent en une seule série : une dégradation
+      // que seul l'administrateur a besoin de voir.
+      const divisionsRows = await tolerer(
+        degradations,
+        { quoi: 'la numérotation des notes par division', publique: false },
+        () => chargerToutesPagesSupabase<DivisionRow>((debut, fin) =>
+          supabase.from('segments').select('segment_key,ref_niv1')
+            .eq('id_texte', idTexte).order('segment_numero').range(debut, fin)),
+        () => [] as DivisionRow[],
+      )
       const divisionParSegment = new Map<string, string>()
       for (const ligne of divisionsRows) {
         // Une division absente vaut la chaîne vide, exactement comme dans
@@ -747,10 +812,12 @@ export default async function OeuvrePage({
     supabase.rpc('get_niv1_list', { p_id_oeuvre: id, p_id_texte: idTexte }),
     supabase.rpc('get_niv1_texte', { p_id_oeuvre: id, p_id_texte: idTexte }),
     promessePassage,
-    chargerTousSegments({ nature: 'apparat' }),
-    chargerCodesTraductions(supabase),
-    chargerNotesStructurees(idTexte),
-    chargerNotesStructurees(idTexteEnRegard),
+    // Les quatre couches qui suivent sont SECONDAIRES : leur échec rend la page
+    // sans elles, dit au lecteur par le bandeau, jamais fermée (voir `degradations`).
+    tolerer(degradations, { quoi: 'l’apparat critique', publique: true }, () => chargerTousSegments({ nature: 'apparat' }), () => [] as any[]),
+    tolerer(degradations, { quoi: 'le texte des versets cités', publique: true }, () => chargerCodesTraductions(supabase), () => [] as string[]),
+    tolerer(degradations, { quoi: 'les notes de l’apparat', publique: true }, () => chargerNotesStructurees(idTexte), AUCUNE_NOTE),
+    tolerer(degradations, { quoi: 'les notes du texte original', publique: true }, () => chargerNotesStructurees(idTexteEnRegard), AUCUNE_NOTE),
     limiterRequeteSegmentsALaSurface(
       supabase.from('segments').select('id', { count: 'exact', head: true })
         .eq('id_oeuvre', id).eq('id_texte', idTexte)
@@ -852,10 +919,12 @@ export default async function OeuvrePage({
   // Les versets du premier niveau et la projection bilingue ne dépendent que de la
   // tranche, jamais l'un de l'autre : ils partent ensemble. Ils se suivaient, une
   // vague pour rien.
+  const PROJECTION_VIDE = () => ({ groupeParCle: new Map<string, string>(), blocParGroupe: new Map<string, BlocOriginal>() })
   const [versetMap, projectionBilingue] = await Promise.all([
-    enrichirAvecVersets(supabase, segmentsTexte, codesTraductions),
+    tolerer(degradations, { quoi: 'le texte des versets cités', publique: true },
+      () => enrichirAvecVersets(supabase, segmentsTexte, codesTraductions), (): VersetsCites => ({})),
     ensembleBilingue && idTexteEnRegard
-      ? chargerProjectionBilingue(supabase, {
+      ? tolerer(degradations, { quoi: 'le texte original en regard', publique: true }, () => chargerProjectionBilingue(supabase, {
           alignmentSetId: ensembleBilingue.alignmentSetId,
           idTexteTraduit: idTexte,
           idTexteOriginal: idTexteEnRegard,
@@ -864,8 +933,8 @@ export default async function OeuvrePage({
             .filter((cle): cle is string => Boolean(cle)),
           notesOriginales,
           ancresOriginales: ancresNotesOriginales,
-        })
-      : Promise.resolve({ groupeParCle: new Map<string, string>(), blocParGroupe: new Map<string, BlocOriginal>() }),
+        }), PROJECTION_VIDE)
+      : Promise.resolve(PROJECTION_VIDE()),
   ])
   const blocsOriginal = Object.fromEntries(projectionBilingue.blocParGroupe)
 
@@ -895,13 +964,20 @@ export default async function OeuvrePage({
     if (g.niv1 !== la1 || g.niv2 !== la2) { tocApparat.push({niv1:g.niv1,niv2:g.niv2,anchor:`a${i}`}); la1=g.niv1; la2=g.niv2 }
   })
 
+  // Les appels de note se posent SANS FAILLIR : une ancre hors du texte (offset
+  // au-delà du segment, marqueur mal formé) est laissée de côté et comptée, le
+  // segment se lit. La projection stricte levait, et une seule ancre fermait la page.
+  const ancresRefusees = new Set<string>()
+  const projeter = (texte: string, ancres: AncreNoteStructureeProjection[] | undefined) =>
+    projeterAppelsNotesStructureesSansFaillir(texte, ancres, (_ancre, refus) => { ancresRefusees.add(refus) })
+
   const segmentsData = segmentsTexte
     .filter(segmentAffichable)
     .map(s => ({
       id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
       numero: numLocaux.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
       texte: s.segment_texte,
-      texteAffichage: projeterAppelsNotesStructurees(
+      texteAffichage: projeter(
         s.segment_texte,
         s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
       ), versets: versetParSegment[s.id] || [],
@@ -909,7 +985,7 @@ export default async function OeuvrePage({
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
       cleOriginal: s.cle_original,
       texteOriginalAffichage: s.texte_original
-        ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+        ? projeter(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
         : undefined,
       notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
       groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
@@ -932,7 +1008,7 @@ export default async function OeuvrePage({
       id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
       numero: numLocauxApparat.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
       texte: s.segment_texte,
-      texteAffichage: projeterAppelsNotesStructurees(
+      texteAffichage: projeter(
         s.segment_texte,
         s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
       ), versets: [],
@@ -940,7 +1016,7 @@ export default async function OeuvrePage({
       paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
       cleOriginal: s.cle_original,
       texteOriginalAffichage: s.texte_original
-        ? projeterAppelsNotesStructurees(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
+        ? projeter(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
         : undefined,
       notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
       groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
@@ -950,6 +1026,13 @@ export default async function OeuvrePage({
         forme: s.forme,
         ouvrageId: identifiantOuvrage(s.ouvrage_id),
     }))
+  if (ancresRefusees.size > 0) {
+    noterDegradation(degradations, {
+      quoi: 'quelques appels de note',
+      detail: `${ancresRefusees.size} ancre(s) hors du texte : ${apercu([...ancresRefusees])}`,
+      publique: true,
+    })
+  }
 
   // Les notices des ouvrages que cite l'apparat — la liste de Mirandol chez Boèce —,
   // lues d'un seul tenant dans `v_references_bibliographiques` et envoyées avec les
@@ -1018,6 +1101,7 @@ export default async function OeuvrePage({
       groupes={groupesData} segments={segmentsData}
       tocApparat={tocApparat} groupesApparat={groupesApparatData} segmentsApparat={segmentsApparatData}
       noticesBibliographiques={noticesBibliographiques}
+      degradations={degradations}
       segmentCibleId={segmentCible?.id ?? null}
       cibleReprise={segmentCible?.reprise === true}
       niv1Initial={premierNiv1 ?? niv1List[0] ?? null}

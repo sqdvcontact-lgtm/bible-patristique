@@ -115,8 +115,12 @@ export async function chargerPresencePatristique(
       // imposé, une troncature laisserait Postgres choisir QUELLES lignes rendre —
       // et le même chapitre nommerait deux auteurs différents d'une visite à
       // l'autre. Un titre doit être le même à chaque fois.
+      // ⛔ Le chapitre se filtre par `canon_livre` + `canon_chapitre`, jamais par
+      // `like` : sous la RLS le motif n'est pas leakproof et la politique
+      // s'évaluait sur les 66 236 lignes de la table (2 337 ms, huit secondes sous
+      // charge, quatorze 500 le 4 septembre 2026). Voir `segmentsLiesAuChapitre`.
       client.from('liens_bibliques').select('type, segments!inner(id_oeuvre)')
-        .like('canon_id', `${livre}.${chapitre}.%`).order('id'),
+        .eq('canon_livre', livre).eq('canon_chapitre', chapitre).order('id'),
       client.from('liens_bibliques').select('type, segments!inner(id_oeuvre)')
         .is('canon_id', null).eq('livre', livre).eq('chapitre', chapitre).order('id'),
       lireCatalogue(client),
@@ -162,7 +166,7 @@ export async function chargerPresencePatristiquePlage(
       lireCatalogue(client),
       ...chapitres.map(c => client.from('liens_bibliques')
         .select('type, canon_id, segments!inner(id_oeuvre)')
-        .like('canon_id', `${livre}.${c}.%`).order('id')),
+        .eq('canon_livre', livre).eq('canon_chapitre', c).order('id')),
       client.from('liens_bibliques').select('type, canon_id, segments!inner(id_oeuvre)')
         .is('canon_id', null).eq('livre', livre).in('chapitre', chapitres).order('id'),
     ])

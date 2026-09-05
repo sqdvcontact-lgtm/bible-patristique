@@ -238,10 +238,13 @@ export async function chargerReferencesPatristiquesPericope(
 
   const COLS = 'segment_id, type, canon_id'
   const withSignal = <T extends { abortSignal: (s: AbortSignal) => T }>(q: T) => (signal ? q.abortSignal(signal) : q)
-  // Liens au niveau du verset (canon_id « LIVRE.chap.% »), un appel par chapitre,
-  // plus les liens rattachés au chapitre entier (canon_id nul, livre+chapitre posés).
+  // Liens au niveau du verset, un appel par chapitre, filtrés par les colonnes
+  // engendrées `canon_livre` + `canon_chapitre` (⛔ jamais `like` sur `canon_id`,
+  // qui n'est pas leakproof sous la RLS : voir `segmentsLiesAuChapitre`,
+  // app/lib/liens.ts), plus les liens rattachés au chapitre entier (canon_id nul,
+  // livre+chapitre posés).
   const requetesVerset = chapitres.map(c =>
-    withSignal(supabase.from('liens_bibliques').select(COLS).like('canon_id', `${livre}.${c}.%`)))
+    withSignal(supabase.from('liens_bibliques').select(COLS).eq('canon_livre', livre).eq('canon_chapitre', c)))
   const requeteChapitre = withSignal(
     supabase.from('liens_bibliques').select(COLS).is('canon_id', null).eq('livre', livre).in('chapitre', chapitres))
   const resultats = await Promise.all([...requetesVerset, requeteChapitre])

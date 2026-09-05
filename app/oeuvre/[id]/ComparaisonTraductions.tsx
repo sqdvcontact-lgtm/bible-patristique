@@ -18,7 +18,9 @@ import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, 
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
-  projeterAppelsNotesStructurees,
+  // La projection qui ne faillit pas : une ancre hors du texte est laissée de côté
+  // et dite à la console, le segment se lit (2026-09-05).
+  projeterAppelsNotesStructureesEnSignalant,
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
@@ -254,7 +256,7 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
         onMouseEnter={mobile ? undefined : e => onSurvol(e.currentTarget, segment.id)}
         onMouseLeave={mobile ? undefined : () => onQuitter(segment.id)}>
         {renderSegmentTexte(
-          composer(projeterAppelsNotesStructurees(segment.segment_texte, ancres[segment.segment_key])),
+          composer(projeterAppelsNotesStructureesEnSignalant(segment.segment_texte, ancres[segment.segment_key])),
           notes[segment.segment_key] ?? [],
         )}
       </span>

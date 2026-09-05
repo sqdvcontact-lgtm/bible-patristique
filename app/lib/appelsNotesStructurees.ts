@@ -13,6 +13,23 @@ function comparerMarqueurs(a: string, b: string): number {
   return cleA.localeCompare(cleB, 'fr', { numeric: true })
 }
 
+/** Ce qui rend une ancre INPROJETABLE sur un texte de `longueur` points de code,
+ *  ou `null` si elle se projette. Une seule écriture des deux contrôles, pour la
+ *  projection stricte comme pour celle qui ne faillit pas. */
+export function refusDAncre(ancre: AncreNoteStructureeProjection, longueur: number): string | null {
+  if (!MARQUEUR_NOTE.test(ancre.marker)) {
+    return `Marqueur de note invalide pour ${ancre.noteKey} : ${ancre.marker}`
+  }
+  if (!Number.isInteger(ancre.segmentOffsetUnicode)
+    || ancre.segmentOffsetUnicode < 0
+    || ancre.segmentOffsetUnicode > longueur) {
+    return `Offset Unicode hors limites pour ${ancre.noteKey} : ${ancre.segmentOffsetUnicode}/${longueur}`
+  }
+  return null
+}
+
+type SurRefus = (ancre: AncreNoteStructureeProjection, refus: string) => void
+
 /**
  * Reconstruit la projection textuelle des appels de notes à partir des ancres
  * structurées. Les offsets Postgres comptent les points de code Unicode depuis
@@ -21,10 +38,44 @@ function comparerMarqueurs(a: string, b: string): number {
  *
  * La donnée canonique n'est jamais modifiée. Les marqueurs déjà matériels sont
  * conservés sans duplication, pour que les anciens imports restent compatibles.
+ *
+ * ⛔ Une ancre inprojetable LÈVE : c'est la projection de CONTRÔLE, celle des
+ * scripts et des tests (charte § 13.6, l'erreur est remontée). Une PAGE emploie
+ * `projeterAppelsNotesStructureesSansFaillir`, qui laisse l'ancre de côté et la
+ * signale : une seule ancre ne ferme pas une œuvre au lecteur (2026-09-05).
  */
 export function projeterAppelsNotesStructurees(
   texte: string,
   ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
+): string {
+  return projeter(texte, ancres, (_ancre, refus) => { throw new Error(refus) })
+}
+
+/** La même projection, pour une PAGE : une ancre que le texte ne peut pas recevoir
+ *  est laissée de côté et passée à `signaler`, les autres se posent. Le texte rendu
+ *  est celui de la projection stricte dès que rien n'est refusé. */
+export function projeterAppelsNotesStructureesSansFaillir(
+  texte: string,
+  ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
+  signaler: SurRefus,
+): string {
+  return projeter(texte, ancres, signaler)
+}
+
+/** Pour une surface rendue par le NAVIGATEUR (rechargement d'une division ou de
+ *  l'apparat, traductions parallèles) : l'ancre refusée est dite à la console, le
+ *  segment se lit. Le serveur, lui, compte les refus pour le bandeau de la page. */
+export function projeterAppelsNotesStructureesEnSignalant(
+  texte: string,
+  ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
+): string {
+  return projeter(texte, ancres, (_ancre, refus) => { console.error('[lecture] appel de note laissé de côté :', refus) })
+}
+
+function projeter(
+  texte: string,
+  ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
+  surRefus: SurRefus,
 ): string {
   if (!ancres?.length) return texte
 
@@ -34,15 +85,10 @@ export function projeterAppelsNotesStructurees(
 
   for (const ancre of ancres) {
     if (ancre.sourceTarget !== 'segment_texte') continue
-    if (!MARQUEUR_NOTE.test(ancre.marker)) {
-      throw new Error(`Marqueur de note invalide pour ${ancre.noteKey} : ${ancre.marker}`)
-    }
-    if (!Number.isInteger(ancre.segmentOffsetUnicode)
-      || ancre.segmentOffsetUnicode < 0
-      || ancre.segmentOffsetUnicode > pointsDeCode.length) {
-      throw new Error(
-        `Offset Unicode hors limites pour ${ancre.noteKey} : ${ancre.segmentOffsetUnicode}/${pointsDeCode.length}`,
-      )
+    const refus = refusDAncre(ancre, pointsDeCode.length)
+    if (refus !== null) {
+      surRefus(ancre, refus)
+      continue
     }
     if (texte.includes(ancre.marker)) continue
 

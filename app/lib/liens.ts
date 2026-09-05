@@ -150,12 +150,22 @@ export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
  *
  *  Deux requêtes, comme pour le verset : les liens par verset ne portent que
  *  `canon_id` (« GEN.1.7 ») ; les liens de chapitre ne portent que `livre` +
- *  `chapitre`. Le motif `LIKE 'GEN.1.%'` prend bien GEN.1.1 à GEN.1.31 sans
- *  déborder sur GEN.12.x (le second point est exigé par le motif).
+ *  `chapitre`.
+ *
+ *  ⛔ Le chapitre d'un lien AU VERSET se filtre par `canon_livre` + `canon_chapitre`,
+ *  deux colonnes ENGENDRÉES de `canon_id` (migration du 2026-09-05), jamais par
+ *  `like 'GEN.1.%'`. Sous la RLS, `like` n'est pas « leakproof » : Postgres doit
+ *  évaluer la politique de lecture (un EXISTS sur segments ⋈ oeuvre_textes ⋈
+ *  oeuvres) sur CHAQUE ligne de la table AVANT d'appliquer le motif, et aucun
+ *  index ne peut servir de condition. Mesuré le 2026-09-05 sur GEN 1, rôle
+ *  `authenticated` : 66 236 lignes sondées par la politique pour 2 741 rendues,
+ *  2 337 ms au repos, et le délai de huit secondes sous charge (quatorze 500 le
+ *  4 septembre). `=` est leakproof : l'index `liens_bib_canon_chapitre_idx`
+ *  retient d'abord les lignes du chapitre, la politique ne s'évalue que sur elles.
  */
 export async function segmentsLiesAuChapitre(livre: string, chapitre: number): Promise<Lien[]> {
   const [parVerset, parChapitre] = await Promise.all([
-    supabase.from('liens_bibliques').select(COLS).like('canon_id', `${livre}.${chapitre}.%`),
+    supabase.from('liens_bibliques').select(COLS).eq('canon_livre', livre).eq('canon_chapitre', chapitre),
     supabase.from('liens_bibliques').select(COLS).eq('livre', livre).eq('chapitre', chapitre),
   ])
   if (parVerset.error) throw parVerset.error
@@ -179,7 +189,8 @@ export async function segmentsLiesAPlage(livre: string, canonDebut: string, cano
   const v1 = d.verset, v2 = f.verset
   const chapitres: number[] = []
   for (let c = c1; c <= c2; c++) chapitres.push(c)
-  const requetesVerset = chapitres.map(c => supabase.from('liens_bibliques').select(COLS).like('canon_id', `${livre}.${c}.%`))
+  // Même filtre leakproof que `segmentsLiesAuChapitre` : jamais `like` sur `canon_id`.
+  const requetesVerset = chapitres.map(c => supabase.from('liens_bibliques').select(COLS).eq('canon_livre', livre).eq('canon_chapitre', c))
   const requeteChapitre = supabase.from('liens_bibliques').select(COLS).is('canon_id', null).eq('livre', livre).in('chapitre', chapitres)
   const resultats = await Promise.all([...requetesVerset, requeteChapitre])
   const out: Lien[] = []
