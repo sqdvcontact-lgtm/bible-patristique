@@ -145,6 +145,14 @@ function estReferenceRattachee(block: NoteBlocData) {
  * paragraphe, suit sa cible en ligne, ou vient après un retour dans des vers.
  */
 export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
+  const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
+  const apparatCritique = estNoteApparatCritique(note)
+  const bibliographieParBloc = BibliographieNote.useBibliographieNote(
+    note.noteKey,
+    blocks.map(block => block.blockId),
+    !apparatCritique,
+  )
+
   // L'APPARAT CRITIQUE se compose à part : ni typographie de lecture, ni point
   // final ajouté, ni référence normalisée — la notation philologique se rend
   // telle quelle (voir ApparatCritique.tsx). La bifurcation ne tient PAS au
@@ -152,13 +160,8 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
   // `metadata.editorial_role`, et elle exige que TOUS les blocs de la note en
   // relèvent : toute note qui n'est pas intégralement un apparat continue de
   // passer par le rendu ci-dessous, inchangé.
-  if (estNoteApparatCritique(note)) return <ContenuApparatCritique note={note} />
+  if (apparatCritique) return <ContenuApparatCritique note={note} />
 
-  const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
-  const bibliographieParBloc = BibliographieNote.useBibliographieNote(
-    note.noteKey,
-    blocks.map(block => block.blockId),
-  )
   const rattaches = new Map<string, NoteBlocData[]>()
 
   for (const block of blocks) {
