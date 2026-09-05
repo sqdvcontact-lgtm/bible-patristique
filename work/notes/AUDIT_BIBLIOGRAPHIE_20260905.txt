@@ -235,7 +235,7 @@ lignes de app/admin/SectionOuvrages.tsx, qu'il tient pour BINAIRE.
     adresse.replace(/^[\s<NUL>-<US>]+/, '')
 
 Le NUL y sert de séparateur de jointure et de borne de classe de caractères. Mais
-il est écrit EN LITTÉRAL au lieu de ' ', et cela coûte :
+il est écrit EN LITTÉRAL au lieu de '\u0000', et cela coûte :
 
     · GNU grep saute le fichier — or plusieurs « repérages » de la charte sont
       des `grep -rn ... doit ne rien renvoyer`. Ils signalent encore le fichier,
@@ -248,7 +248,7 @@ il est écrit EN LITTÉRAL au lieu de ' ', et cela coûte :
 ✅ Les quatre gardes du dessin (couleurs, échelle, formes, CSS) lisent par `fs`
 et voient donc le fichier : la CI n'est pas aveugle.
 
-    → Correction sans risque : écrire ' ' au lieu du caractère. Trois lignes.
+    → Correction sans risque : écrire '\u0000' au lieu du caractère. Trois lignes.
       ⚠️ Et c'est le même défaut que j'ai introduit ce matin dans mon propre code :
       il se glisse quand on écrit un fichier par un outil qui interprète les
       échappements. Une garde qui refuserait tout octet de contrôle dans app/
