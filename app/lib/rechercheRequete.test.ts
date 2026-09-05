@@ -34,6 +34,18 @@ describe('termes et mode', () => {
     expect(normaliser('Espérance')).toBe('esperance')
     expect(normaliser('l’Envoyé')).toBe("l'envoye")
   })
+  it('ramène les graphies anciennes au français d’aujourd’hui, comme la base', () => {
+    // Sacy : la base trouve « était » dans « étoit » ; la page doit le relire de même.
+    expect(normaliser('la terre étoit informe')).toBe('la terre etait informe')
+    expect(normaliser('ils disoient et connoissoient')).toBe('ils disaient et connaissaient')
+    // « connoître » et « foible » se replient ; « paroistre » (« oi » devant « st ») n'est
+    // pas dans les règles de la base, et la page ne fait pas plus qu'elle.
+    expect(normaliser('connoître, foible, paroistre')).toBe('connaitre, faible, paroistre')
+    // Et la longueur ne bouge pas : c'est ce qui garde le marquage à sa place.
+    for (const s of ['étoit', 'connoître', 'disoient', 'foible']) expect(normaliser(s).length).toBe(s.length)
+    expect(contientTous('Dieu vit que cela étoit bon', ['était'], true)).toBe(true)
+    expect(compterOccurrences('il étoit, ils étoient', ['était', 'étaient'], true)).toBe(2)
+  })
 })
 
 describe('référence biblique', () => {
@@ -88,15 +100,25 @@ describe('la marque', () => {
   it('marque les termes en préfixe ou entiers, et les racines en famille', () => {
     expect(marqueDe(['aimer'], 'prefixe')).toEqual({ mots: ['aimer'], entier: false })
     expect(marqueDe(['aimer'], 'exact')).toEqual({ mots: ['aimer'], entier: true })
-    expect(marqueDe(['aimer'], 'famille', ['aim'])).toEqual({ mots: ['aim'], entier: false })
+    expect(marqueDe(['aimer'], 'famille', ['aim'])).toEqual({ mots: ['aim'], entier: false, jusquAuBout: true })
     // Sans racine rendue, les termes tapés servent de repli.
-    expect(marqueDe(['aimer'], 'famille')).toEqual({ mots: ['aimer'], entier: false })
+    expect(marqueDe(['aimer'], 'famille')).toEqual({ mots: ['aimer'], entier: false, jusquAuBout: true })
   })
   it('relit et compte par la marque', () => {
     const m = marqueDe(['aimer'], 'famille', ['aim'])
     expect(contientMarque('il aimait ceux qui l’aiment', m)).toBe(true)
     expect(compterMarque('il aimait ceux qui l’aiment', m)).toBe(2)
     expect(regexMarque(m)).not.toBeNull()
+  })
+  it('en famille, marque le mot fléchi entier, non la seule racine', () => {
+    const m = marqueDe(['aimer'], 'famille', ['aim'])
+    const re = regexMarque(m)!
+    const texte = normaliser('il aimait ceux qui aiment')
+    const marques = [...texte.matchAll(re)].map(x => x[2])
+    expect(marques).toEqual(['aimait', 'aiment'])
+    // En préfixe, seule la partie tapée se marque, comme avant.
+    const p = regexMarque(marqueDe(['aim'], 'prefixe'))!
+    expect([...texte.matchAll(p)].map(x => x[2])).toEqual(['aim', 'aim'])
   })
 })
 

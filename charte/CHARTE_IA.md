@@ -5434,6 +5434,10 @@ Demande de l’auteur, 6 septembre 2026 : « se pencher sur le système de reche
 
 ⛔ **La frontière de mot que la page relit est celle de la base** : tout ce qui n’est ni lettre ni chiffre. Une liste de séparateurs écrite à la main finit par en oublier un, et ce qu’elle oublie, elle le jette.
 
+⛔ **LA RELECTURE DE LA PAGE REPREND LA NORMALISATION DE LA BASE, règle par règle.** La page relit chaque ligne rendue pour dire quelles bibles portent le mot et où le marquer ; si elle ne normalise pas comme la base, elle rejette ce que la base a trouvé. Relevé sur le site une heure après la mise en ligne de ce paragraphe : **3 249 versets rendus pour « était », 2 153 gardés** — les 1 096 où seule Sacy porte le mot, sous la graphie « étoit », étaient jetés par une relecture qui ne connaissait que les accents et la casse. Les règles de graphie ancienne de `norm_fr` sont donc reprises dans la relecture (« oit » → « ait », « oient » → « aient », « connoître » → « connaître », « foible » → « faible »), et toute règle qui entrerait dans `norm_fr` s’y reporte. ⚠️ Seules les règles qui GARDENT LA LONGUEUR du mot y entrent : le marquage retrouve ses positions dans le texte d’origine par leur index dans le texte replié, et une substitution qui allonge ou raccourcit — « tems » → « temps », « enfans » → « enfants », « sçav » → « sav » — décalerait tout ce qui suit. Ces trois-là restent à la base seule : trois mots dont la relecture peut manquer, jamais une position fausse. *Une garde s’éprouve en réintroduisant le défaut ; ici, c’est le site qui l’a fait.*
+
+⚠️ **En famille, la marque couvre le mot fléchi entier** : « aimait », non « aim ». La racine sert à trouver, le mot à montrer.
+
 ⛔ **Une référence chiffrée S’OUVRE, elle ne se cherche pas.** « Jean 3, 16 », « Jn 3,16 », « Genèse 22 » : la page des résultats l’ouvre en tête, quel que soit l’onglet, et la barre de recherche l’offre en premier rang, Entrée y menant. La grammaire est celle des péricopes (§ 38.18), la seule du site ; « Jonas » seul n’est pas une référence.
 
 ### 43.3 Ce qui n’a pas bougé, et ce qui reste

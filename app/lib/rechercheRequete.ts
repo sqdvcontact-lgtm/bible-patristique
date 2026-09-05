@@ -45,9 +45,31 @@ export function termesRecherche(q: string): string[] {
   return q.trim().split(/\s+/).filter(Boolean)
 }
 
-/** Minuscules, sans accents, apostrophes unifiées : ce qu'on compare des deux côtés. */
+/**
+ * Minuscules, sans accents, apostrophes unifiées, ET les graphies anciennes ramenées au
+ * français d'aujourd'hui : ce qu'on compare des deux côtés.
+ *
+ * ⛔ CES RÈGLES SONT CELLES DE `norm_fr`, la normalisation de la BASE, et il faut les
+ * lui prendre toutes — sinon la page rejette ce que la base a rendu. Relevé sur le site
+ * le 2026-09-06 : la base trouvait « était » dans « étoit » (Sacy, 2 267 versets), la
+ * page relisait chaque verset sans connaître « étoit », et jetait ceux où seule Sacy
+ * portait le mot ; et sur un verset gardé, « étoit » ne se marquait pas.
+ *
+ * ⚠️ Seules les règles qui GARDENT LA LONGUEUR sont reprises : le marquage retrouve les
+ * positions dans le texte d'origine par leur index dans le texte replié, et une
+ * substitution qui allonge ou raccourcit décalerait tout ce qui suit. `norm_fr` en a
+ * trois de plus — « tems » → « temps », « enfans » → « enfants », « sçav » → « sav » —,
+ * qui changent la longueur ; la base les applique, la page non : trois mots dont la
+ * relecture peut manquer, ⛔ jamais une position fausse.
+ */
 export function normaliser(s: string): string {
   return (s ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’ʼ']/g, "'")
+    // connoître, paroissoit, accroître… : « oi » devant t, tr, ss dans ces radicaux.
+    .replace(/(conn|reconn|par|appar|compar|acc|croi|dec|empl|nett)oi(t|tr|ss)/g, '$1ai$2')
+    // étoit, avoit, disoit → était, avait, disait ; étoient → étaient.
+    .replace(/([a-z]{2,})oit(s?)\b/g, '$1ait$2')
+    .replace(/([a-z]{2,})oient\b/g, '$1aient')
+    .replace(/\bfoibl/g, 'faibl')
 }
 
 // ── 2. La référence biblique tapée ───────────────────────────────────────────
@@ -111,10 +133,13 @@ export function echapperRegex(s: string): string {
  * l'emporte sur « glo » quand les deux sont tapés. Rend `null` sans terme.
  * ⚠️ Le texte à tester doit être passé par `normaliser`, comme les termes le sont ici.
  */
-export function regexTermes(termes: readonly string[], entier: boolean): RegExp | null {
+export function regexTermes(termes: readonly string[], entier: boolean, jusquAuBout = false): RegExp | null {
   const nets = [...new Set(termes.map(normaliser).filter(Boolean))].sort((a, b) => b.length - a.length)
   if (nets.length === 0) return null
-  return new RegExp(`${SEP_AVANT}(${nets.map(echapperRegex).join('|')})${entier ? SEP_APRES : ''}`, 'giu')
+  // `jusquAuBout` : le mot ENTIER qui commence par le terme est pris dans la marque —
+  // « aimait » tout entier pour la racine « aim », non ses trois premières lettres.
+  const corps = `(${nets.map(echapperRegex).join('|')}${jusquAuBout ? '[\\p{L}\\p{N}]*' : ''})`
+  return new RegExp(`${SEP_AVANT}${corps}${entier ? SEP_APRES : ''}`, 'giu')
 }
 
 /** Vrai si CHAQUE terme se trouve dans le texte, en début de mot (ou en mot entier). */
@@ -145,10 +170,15 @@ export function compterOccurrences(texte: string, termes: readonly string[], ent
  * resurrect-ion). ⚠️ Faute de racines (la base n'a pas répondu), les termes tapés
  * servent de repli : on marque moins, on ne marque pas faux.
  */
-export type Marque = { mots: string[]; entier: boolean }
+export type Marque = {
+  mots: string[]
+  entier: boolean
+  /** En famille, la marque couvre le mot fléchi ENTIER, non la seule racine. */
+  jusquAuBout?: boolean
+}
 
 export function marqueDe(termes: readonly string[], mode: ModeRecherche, lexemes: readonly string[] = []): Marque {
-  if (mode === 'famille') return { mots: [...(lexemes.length ? lexemes : termes)], entier: false }
+  if (mode === 'famille') return { mots: [...(lexemes.length ? lexemes : termes)], entier: false, jusquAuBout: true }
   return { mots: [...termes], entier: mode === 'exact' }
 }
 
@@ -161,7 +191,7 @@ export function compterMarque(texte: string, m: Marque): number {
 }
 
 export function regexMarque(m: Marque): RegExp | null {
-  return regexTermes(m.mots, m.entier)
+  return regexTermes(m.mots, m.entier, m.jusquAuBout === true)
 }
 
 // ── 4. Les graphies d'un mot latin ───────────────────────────────────────────

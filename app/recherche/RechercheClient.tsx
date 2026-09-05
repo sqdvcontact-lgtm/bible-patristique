@@ -399,8 +399,15 @@ export default function RechercheClient() {
     setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
     setPageV(0); setPageS(0); setPageE(0)
     setFiltres({ livre: null, oeuvre: null, essai: null })
-    setReference(referenceBiblique(q))
     setLexemes([])
+
+    // ⛔ UNE RÉFÉRENCE CHIFFRÉE S'OUVRE, ELLE NE SE CHERCHE PAS. « Jean 3, 16 » n'est pas
+    // trois mots à trouver dans les textes — « jean », « 3 », « 16 » y sont partout, et
+    // la page attendait plusieurs secondes de milliers de lignes inutiles avant de
+    // montrer la carte (relevé sur le site, 2026-09-06). La carte se pose seule.
+    const ref = referenceBiblique(q)
+    setReference(ref)
+    if (ref) { setLastQuery(q); setLastScope(scopeActif); setLoading(false); setDone(false); return }
 
     try {
       // ⛔ UNE SEULE VOIE, un mot ou plusieurs (audit du 2026-09-06). La base reçoit les
@@ -1127,7 +1134,7 @@ export default function RechercheClient() {
           {/* Résultats */}
           <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
 
-            {!done && !loading && (
+            {!done && !loading && !reference && (
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
                 ...(mobile ? { marginTop:'40px', marginBottom:'24px' } : { height:'100%' }) }}>
                 {/* Un désert et une fosse tiennent la page tant qu'aucune requête n'est lancée.
@@ -1165,7 +1172,7 @@ export default function RechercheClient() {
                 endroit où aller : la page l'ouvre en tête, quel que soit l'onglet, avant
                 les résultats — qui, sur une référence, sont presque toujours vides. La
                 grammaire est celle des péricopes (audit du 2026-09-06). */}
-            {done && reference && (
+            {reference && !loading && (
               <div style={{ ...styleFamille('bible'), marginBottom:'10px' }}>
                 <div className="grp">
                   <div className="grp-hd"><span className="nom">Passage biblique</span></div>
