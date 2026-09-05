@@ -1,0 +1,273 @@
+AUDIT DE LA NORMALISATION BIBLIOGRAPHIQUE
+Relevé du 5 septembre 2026 — Claude
+================================================================================
+
+Question de l'auteur : « Nous avons mis un outil de normalisation bibliographique,
+il me semble. As-tu des indications sur ça dans la charte ? Si non, les
+constituer ; si oui, peux-tu auditer ? »
+
+RÉPONSE COURTE : la doctrine existe, et elle est ample — §§ 29, 29.0 à 29.2,
+29 bis, 35.6, 35.6.1 à 35.6.4. Le code existe aussi, en six modules purs et
+testés. La donnée est en très bon état. Mais L'OUTIL QUE LA CHARTE PRESCRIT EN ⛔
+N'EXISTE PAS, et un contrôle qu'elle dit devoir rester vide en rend 87.
+
+⛔ Aucune donnée n'a été touchée par cet audit.
+
+
+================================================================================
+I. CE QUI EXISTE
+================================================================================
+
+DOCTRINE (charte parametres.charte_ia)
+    § 29     valeur académique des sources bibliographiques
+    § 29.0   constitution obligatoire des notices
+    § 29.1   qualification scientifique (statut calculé par la base)
+    § 29 bis le nom d'une personne — nom, prénom, pseudonyme
+    § 35.6   une note bibliographique se compose en liste
+    § 35.6.1 NORMALISATION des notices — l'outil « Normaliser », les contrôles
+    § 35.6.2 un seul style bibliographique, et il vient de la donnée
+    § 35.6.3 l'ordre se CALCULE (vedette, puis titre, articles ôtés)
+    § 35.6.4 catalogue obligatoire et autorités d'éditeurs
+
+CODE
+    app/lib/bibleBibliographieOuvrages.ts .. composition champ par champ, ordre
+                                             calculé, ponctuation produite au rendu
+    app/lib/referenceEditionServie.ts ...... la référence d'une édition servie
+    app/lib/apparatBibliographie.ts ........ la famille de styles, unique
+    app/lib/editeursNormalisation.ts ....... clé, résolution, coéditions
+    app/lib/nomsPersonnes.ts ............... nom, prénom, pseudonyme
+    app/components/BibliographieOuvrages.tsx  le rendu
+
+BASE
+    ouvrages_bibliographiques ....... 925 fiches
+    editeurs_valeur ................. autorités bibliographiques (+ cle_normalisee)
+    auteurs_valeur .................. autorités de personnes (+ cle_normalisee)
+    editeurs ........................ maisons des éditions primaires
+    internal.normaliser_cle_bibliographique() ... la clé du projet
+    public.cle_editeur() ............ la clé des éditeurs
+    autorites_editeurs_a_fusionner() / variantes_editeurs_disputees()
+    coeditions_editeurs_a_separer()
+
+
+================================================================================
+II. CE QUI TIENT — les contrôles que la charte nomme, et qui passent
+================================================================================
+
+✅ LE CATALOGUE EST SAIN
+    925 ouvrages, 0 sans titre.
+    778 fiches portent un éditeur en texte : 778 sont rattachées à une autorité.
+    ⇒ 100 % de rattachement. Le contrôle 2 de la clôture § 35.6.4 passe.
+
+✅ AUCUN DOUBLON D'OUVRAGE
+    Mesuré avec la VRAIE fonction du projet (internal.normaliser_cle_
+    bibliographique) sur auteur + titre + sous-titre + année :
+        0 fiche en double, 0 clé concernée.
+
+    ⚠️ Ma première mesure en annonçait beaucoup, et elle était fausse : elle ne
+    repliait que le TITRE. « Opera » revient 19 fois, mais ce sont dix-huit
+    éditions d'années différentes ; « Commentaire sur Daniel » trois fois, mais de
+    trois auteurs. Un titre seul n'est pas une clé bibliographique.
+
+✅ L'EXHAUSTIVITÉ DU RÉFÉRENTIEL EST PRESQUE ATTEINTE
+    Après découpage des coéditions sur « ; », comme la charte le prescrit :
+
+        ouvrages_bibliographiques ...... 260 maisons,   0 absente
+        oeuvres .........................  18 maisons,   0 absente
+        editions_sources ................   9 maisons,   0 absente
+        bible_edition_components ........   2 maisons,   0 absente
+        catalogue_notices ............... 580 maisons,   5 absentes
+
+    ⚠️ Ma première mesure annonçait 54 absentes pour catalogue_notices. Elle était
+    fausse aussi : elle comptait les coéditions entières (« Abbaye de Maredsous ;
+    Desclée de Brouwer »), que la charte exclut expressément du référentiel.
+
+    Les cinq vraies manquantes, une occurrence chacune :
+        Gerold · Henri Vrayet de Surcy · Gyldendalske Boghandel, Nordisk Forlag
+        Eustache Vignon · Akademie Verlag
+
+✅ AUCUNE COÉDITION LAISSÉE COMME AUTORITÉ
+    coeditions_editeurs_a_separer() rend 0. Le verrou de base tient.
+
+✅ LA COUCHE BIBLIOGRAPHIQUE STRUCTURÉE EST INTÈGRE
+    bible_editorial_bibliography_entries : 15 entrées, 0 sans ouvrage_id,
+    15 ouvrages distincts. Le contrôle 6 du § 35.6.1 passe.
+    ⚠️ Mais voir le point 4 ci-dessous : quinze entrées, c'est UNE pièce.
+
+
+================================================================================
+III. CE QUI NE TIENT PAS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. L'OUTIL « NORMALISER » N'EXISTE PAS                              [le plus grave]
+--------------------------------------------------------------------------------
+
+Le § 35.6.1 le prescrit en ⛔, et en toutes lettres :
+
+    « Dès qu'un tel objet est rencontré […] il faut passer par l'outil
+      "Normaliser" de l'administration. Ce passage recherche d'abord une fiche
+      existante au moyen de la clé bibliographique normalisée […] et la
+      réutilise ; ⛔ on ne crée jamais un doublon parce que la casse, la
+      ponctuation, l'abréviation ou l'ordre des éléments diffèrent. »
+
+Mesuré dans app/admin/SectionOuvrages.tsx, l'écran des ouvrages :
+
+    « Normalis » .................... 0 occurrence
+    « cle_normalisee » .............. 0 occurrence
+    « normaliser_cle » .............. 0 occurrence
+    « doublon » ..................... 0 occurrence
+    « reutilis » .................... 0 occurrence
+
+Et aucune route dédiée dans app/api/admin/.
+
+L'écran offre : parcourir, trier (titre, auteur, éditeur, année), filtrer,
+éditer une notice, gérer les auteurs et autorités, poser un statut éditorial et
+une décision manuelle. Il n'offre NI recherche par clé normalisée, NI détection
+de rapprochement, NI réemploi d'une fiche existante.
+
+⚠️ Autrement dit : la doctrine décrit un outil que personne n'a construit, et le
+« ⛔ on ne crée jamais un doublon » repose aujourd'hui sur la seule attention de
+qui saisit. Que le catalogue soit malgré tout sans doublon (§ II) dit le soin qui
+y a été mis, non l'existence d'un garde-fou.
+
+    → DÉCISION À PRENDRE : construire l'outil, ou réécrire le § 35.6.1 pour
+      qu'il décrive ce qui existe. La charte ne peut pas prescrire en ⛔ un geste
+      impossible : une règle qu'on ne peut pas suivre s'érode, et elle érode les
+      autres avec elle.
+
+
+--------------------------------------------------------------------------------
+2. LA CLÉ NORMALISÉE MANQUE À LA TABLE DES OUVRAGES
+--------------------------------------------------------------------------------
+
+    editeurs_valeur.cle_normalisee ......... EXISTE
+    auteurs_valeur.cle_normalisee .......... EXISTE
+    ouvrages_bibliographiques.cle_normalisee  N'EXISTE PAS
+
+La clé sur laquelle l'outil du § 35.6.1 devrait chercher n'est donc pas
+matérialisée pour les OUVRAGES, alors qu'elle l'est pour les deux référentiels
+d'autorités. La fonction, elle, existe (internal.normaliser_cle_bibliographique)
+et n'est appelée par aucune ligne de app/.
+
+    → C'est le préalable technique du point 1 : sans colonne indexée, une
+      recherche par clé sur 925 fiches se fera par balayage.
+
+
+--------------------------------------------------------------------------------
+3. LE CONTRÔLE QUI « DOIT RESTER VIDE » REND 87
+--------------------------------------------------------------------------------
+
+Le § 35.6.4 le dit sans ambiguïté : « Contrôle de clôture :
+public.autorites_editeurs_a_fusionner() doit rester vide ».
+
+    autorites_editeurs_a_fusionner() ....... 87
+    variantes_editeurs_disputees() ......... 19
+
+⚠️ C'est une RÉGRESSION : AGENTS.md consigne, pour la passe du 29 août 2026,
+« contrôle de clôture à zéro », avec une seule collision laissée ouverte
+(« J.-P. Migne »). Il y en a dix-neuf aujourd'hui.
+
+Les 87 sont des collisions ENTRE LES DEUX RÉFÉRENTIELS : une forme qu'un
+référentiel déclare variante est encore autorité dans l'autre.
+
+    « Eugène Belin »        autorité dans editeurs,
+                            variante de « Librairie classique Eugène Belin »
+                            dans editeurs_valeur
+    « Rieder »              autorité dans editeurs,
+                            variante de « Éditions Rieder » dans editeurs_valeur
+    « Walter de Gruyter »   autorité dans editeurs,
+                            variante de « De Gruyter » dans editeurs_valeur
+    « Aubier-Montaigne »    autorité dans editeurs_valeur,
+                            variante de « Aubier » dans editeurs
+
+Et les 19 disputées sont des graphies que DEUX autorités revendiquent :
+
+    « H. Oudin »    → « Henri Oudin » ET « Librairie religieuse Henri Oudin »
+    « F. Rieder »   → « Rieder » ET « Éditions Rieder »
+    « H. Messeiller » → « Henri Messeiller » ET « Imprimerie Henri Messeiller »
+
+⚠️ Le motif est clair et il est le même partout : une campagne a promu dans
+editeurs_valeur la forme LONGUE (« Librairie X », « Éditions X », « Imprimerie
+X ») en reléguant le nom nu au rang de variante, pendant que editeurs garde le
+nom nu comme autorité. Ce n'est pas un désordre : ce sont deux partis
+bibliographiques, appliqués chacun dans son référentiel.
+
+    → C'est une DÉCISION PHILOLOGIQUE, et la charte dit que la machine ne
+      tranche pas. La question est : la forme d'autorité d'une maison est-elle son
+      enseigne complète (« Librairie religieuse Henri Oudin ») ou le nom sous
+      lequel on la cite (« Henri Oudin ») ? Une fois tranchée, elle se règle en une
+      passe pour les 87.
+
+
+--------------------------------------------------------------------------------
+4. LA COUCHE STRUCTURÉE NE COUVRE QU'UNE PIÈCE
+--------------------------------------------------------------------------------
+
+bible_editorial_bibliography_entries ne porte que 15 entrées — la rubrique « Du
+même auteur » du tome I de Fillion. Le § 35.6.1 est écrit pour cette couche, et
+il énumère six contrôles bloquants qui portent donc, aujourd'hui, sur quinze
+lignes.
+
+Les 925 ouvrages du catalogue existent bien, mais un seul apparat les rend par la
+voie structurée. Partout ailleurs, une référence citée dans une note reste une
+chaîne de texte.
+
+    → Ce n'est pas un défaut, c'est l'état d'avancement. Mais il faut le savoir
+      avant de lire le § 35.6.1 comme une description de l'existant : c'est un
+      programme, non un constat. La passe 7 du protocole des notes (les œuvres
+      citées au catalogue) est précisément ce qui l'étendrait.
+
+
+--------------------------------------------------------------------------------
+5. DEUX FICHIERS SUIVIS PORTENT DES OCTETS NUL INVISIBLES
+--------------------------------------------------------------------------------
+
+Trouvé en cherchant l'outil « Normaliser » : GNU grep refuse d'afficher les
+lignes de app/admin/SectionOuvrages.tsx, qu'il tient pour BINAIRE.
+
+    app/admin/SectionOuvrages.tsx ... 4 NUL, aux offsets 63254, 63290, 67097
+    app/lib/liensSurs.ts ............ 1 NUL, à l'offset 1075
+
+⚠️ Ils sont DÉLIBÉRÉS, et ce ne sont pas des bogues :
+
+    aliases.join('<NUL>') === (fiche.aliases ?? []).join('<NUL>')
+    liste.join('<NUL>') === auRegistre.variantes.join('<NUL>')
+    adresse.replace(/^[\s<NUL>-<US>]+/, '')
+
+Le NUL y sert de séparateur de jointure et de borne de classe de caractères. Mais
+il est écrit EN LITTÉRAL au lieu de ' ', et cela coûte :
+
+    · GNU grep saute le fichier — or plusieurs « repérages » de la charte sont
+      des `grep -rn ... doit ne rien renvoyer`. Ils signalent encore le fichier,
+      mais ne montrent plus OÙ ;
+    · git le tient pour binaire dès que le NUL tombe dans les 8 000 premiers
+      octets (c'est le cas de liensSurs.ts, fichier de SÉCURITÉ) : plus de diff,
+      donc plus de relecture ;
+    · l'intention est invisible à qui relit.
+
+✅ Les quatre gardes du dessin (couleurs, échelle, formes, CSS) lisent par `fs`
+et voient donc le fichier : la CI n'est pas aveugle.
+
+    → Correction sans risque : écrire ' ' au lieu du caractère. Trois lignes.
+      ⚠️ Et c'est le même défaut que j'ai introduit ce matin dans mon propre code :
+      il se glisse quand on écrit un fichier par un outil qui interprète les
+      échappements. Une garde qui refuserait tout octet de contrôle dans app/
+      fermerait la famille.
+
+
+================================================================================
+IV. CE QUE JE FERAIS, DANS CET ORDRE
+================================================================================
+
+1. TRANCHER la forme d'autorité d'une maison (point 3) — c'est vous. Puis passer
+   les 87 en une campagne, avec sauvegarde et retour arrière.
+2. AJOUTER les 5 maisons manquantes de catalogue_notices (point II) — une ligne
+   chacune, aucun arbitrage.
+3. CORRIGER les trois NUL littéraux (point 5), et poser la garde qui les refuse.
+4. DÉCIDER du sort de l'outil « Normaliser » (point 1) : le construire, ou
+   réécrire le § 35.6.1. ⚠️ Si on le construit, la colonne cle_normalisee des
+   ouvrages (point 2) vient d'abord.
+
+⛔ Rien de tout cela n'est fait. L'audit est en lecture seule.
+
+================================================================================
