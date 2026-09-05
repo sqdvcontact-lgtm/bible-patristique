@@ -86,6 +86,13 @@ composition s'adapte à la mesure sans qu'on nomme deux styles.
 `author_note`, `translator_note`, `source_editorial_note`, `corpus_editorial_note`,
 `critical_apparatus`. ✅ Le type paraît sur **toutes** les notes, sans exception.
 
+✅ **Le rendu l'annonce depuis le 5 septembre 2026** (`app/lib/typeNote.ts`) : l'en-tête de
+la fenêtre de note dit « Note du traducteur 12 », et « Note » tant qu'aucun type n'est posé.
+La passe 4 n'a donc plus qu'à ÉCRIRE la donnée : le jour où un bloc reçoit son
+`editorial_role`, la note le dit d'elle-même. ⚠️ Le libellé exige l'UNANIMITÉ des blocs
+d'une note : une note mixte s'annonce « Note », mieux valant cela qu'une attribution à
+demi fausse.
+
 ---
 
 ## 2. L'ordre des opérations, œuvre par œuvre
@@ -145,8 +152,11 @@ On écrit dans la même campagne le retour arrière (`sql/rollback_…`), et on 
 
 ### 5.1 Le préfixe « Référence imprimée : » n'est pas du texte de note
 
-**3 622 blocs** le portent, et le lecteur le voit. C'est une PROVENANCE, et une provenance
-vit dans `metadata`.
+⚠️ **Le compte est à REPRENDRE au relevé.** Ce protocole annonçait 3 622 blocs ; la base en
+rend **4 883** au 5 septembre 2026, tous de nature `reference` et tous sans type. L'écart
+n'est pas expliqué, et la passe 0 impose de toute façon de remesurer avant d'écrire.
+
+Le lecteur voit ce préfixe. C'est une PROVENANCE, et une provenance vit dans `metadata`.
 
 - retirer `^Référence imprimée\s*:\s*` du `text` ;
 - poser `metadata.provenance_note = 'reference_imprimee'` ;
@@ -199,13 +209,33 @@ suit — **et si l'un des deux repères manque, on ne fend pas**, on signale.
 hors de rien, et `reference` les composerait comme un renvoi bibliographique, avec un
 auteur et un titre qu'ils n'ont pas.
 
-### 6.3 Avant de semer une nature neuve
+### 6.3 ✅ L'ACCUEIL EST POSÉ — on peut semer
 
-⛔ **La charte d'abord, la donnée ensuite** (§ 7.6). Le vocabulaire est fixé en charte
-§ 13.10 ; il entre dans la contrainte de la base ; **puis** on sème ; **puis** on compose ;
-**puis** on éprouve à l'écran. ⛔ Jamais un `insert` qui poserait une nature que rien ne
-sait rendre : le bloc ne paraîtrait nulle part, en silence — c'est le défaut que ce dépôt
-a déjà payé quatre fois avec `NATURES_CORPS`.
+⛔ **La charte d'abord, la donnée ensuite** (§ 7.6). L'ordre est : la charte, la contrainte
+de la base, le vocabulaire du code, la composition, l'épreuve à l'écran — et **seulement
+ensuite** on sème. ⛔ Jamais un `insert` qui poserait une nature que rien ne sait rendre :
+le bloc ne paraîtrait nulle part, en silence — c'est le défaut que ce dépôt a déjà payé
+quatre fois avec `NATURES_CORPS`.
+
+**Les cinq premiers pas sont faits (5 septembre 2026).** Semer est désormais permis.
+
+| # | Ce qui est en place | Où |
+|---|---|---|
+| 1 | la charte définit les natures et leurs quatre familles | §§ 13.10 et 13.11 |
+| 2 | la contrainte accepte les huit natures | `texte_note_blocs_kind_check`, migration `sql/20260905_natures_bloc_note.sql` |
+| 3 | le vocabulaire du code, source unique | `app/lib/naturesNote.ts` |
+| 4 | le rendu compose les deux natures neuves | `ContenuNoteStructuree.tsx` |
+| 5 | tests de composition | `ContenuNoteStructuree.natures.test.tsx` |
+
+⚠️ **Le retour arrière ne vaut que TANT QUE RIEN N'EST SEMÉ** :
+`sql/rollback_natures_bloc_note_20260905.sql` échoue dès qu'un bloc porte l'une des deux
+natures neuves, et c'est voulu — ce qu'on fait alors de ces blocs ne se décide pas dans un
+fichier de rollback.
+
+⚠️ **Ce que la composition fait déjà, et qu'il ne faut pas refaire dans la donnée** : un
+bloc d'`ancrage` placé EN TÊTE d'une note ne fait pas paragraphe, il se compose sur la
+ligne du propos, en repère discret. Fendre le bloc de Faivre en trois ne se verra donc pas
+en lecture : la note gardera l'aspect qu'elle a sur la page imprimée.
 
 ---
 
@@ -238,8 +268,9 @@ traducteur du XIXe siècle. Le doute laisse la note sans type et se signale.
 Deux cas :
 
 - **le bloc ENTIER est latin** — `language = 'la'` le dit déjà, et **c'est au rendu de
-  l'italiser**. ✅ Arbitré : **italique quelle que soit la longueur**, y compris les 27
-  blocs qui dépassent 900 signes. ⛔ Le grec ne suit pas : son alphabet le distingue déjà,
+  l'italiser**. ✅ Arbitré, et SERVI depuis le 5 septembre 2026 (`estBlocEnLatin`) :
+  **italique quelle que soit la longueur**, y compris les 27 blocs qui dépassent 900
+  signes. Rien à écrire pour ce cas. ⛔ Le grec ne suit pas : son alphabet le distingue déjà,
   et l'italique y déforme la lettre. ⛔ L'apparat critique ne suit pas non plus : latin de
   bout en bout, l'italiser ne distinguerait rien.
 - **le latin ENCHÂSSÉ dans une note française** — le plus fréquent et le plus coûteux.
@@ -315,6 +346,12 @@ référence : c'est une note pour qui a déjà le livre ouvert.
 
 ✅ **Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1** (arbitré le 5 septembre
 2026).
+
+✅ **Le calcul est SERVI depuis le 5 septembre 2026** (`app/lib/numerotationNotes.ts`,
+branché dans `app/oeuvre/[id]/page.tsx`) : il n'y a **rien à écrire en base** pour cette
+passe, et il n'y aura rien à y écrire. ⚠️ La division d'une note se lit sur le `ref_niv1`
+du segment ANCRÉ, jamais dans `texte_notes.book` : sur 8 580 notes des 23 729 du corpus
+(36 %, dans 39 textes sur 47), les deux diffèrent.
 
 ⛔ **Le numéro INTERNE ne bouge pas.** `note_key` et `note_number` portent l'identité et
 l'ordre de lecture, dont dépendent 23 569 ancres.

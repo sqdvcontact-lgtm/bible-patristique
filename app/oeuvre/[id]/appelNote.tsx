@@ -7,7 +7,7 @@ import { normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
-import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
+import { libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import type { NoteAffichee } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import {
@@ -154,12 +154,18 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   contenu: NoteAffichee
   variante?: VarianteAppelNote
 }) {
-  // Une entrée d'apparat critique s'annonce comme telle : le lecteur doit voir
-  // du premier coup d'œil qu'il lit une variante de manuscrits, non une phrase
-  // de commentaire. C'est l'EN-TÊTE de la bulle qui le dit — jamais le texte de
-  // la note, où l'on n'ajoute rien.
-  const estApparat = typeof contenu !== 'string' && estNoteApparatCritique(contenu)
-  const libelle = estApparat ? 'Apparat critique' : 'Note'
+  // LE TYPE DE LA NOTE S'ANNONCE ICI, et nulle part ailleurs : « Note du
+  // traducteur 12 », « Apparat critique 7 ». Le lecteur doit voir du premier coup
+  // d'œil qui parle — une variante de manuscrits n'est pas une remarque de
+  // commentaire, et une note du traducteur n'engage pas le Père qu'on lit.
+  //
+  // ⛔ Jamais dans le TEXTE de la note, où l'on n'ajoute rien : la mention se
+  // répète des milliers de fois, et c'est ce qui commande sa forme — la plus
+  // discrète de la note, portée par la métadonnée (charte § 13.8).
+  //
+  // ⚠️ Une note HÉRITÉE (une chaîne, non un objet) ne porte pas de type : elle
+  // s'annonce « Note », comme un bloc dont le rôle n'est pas encore posé.
+  const libelle = typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
@@ -304,7 +310,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
         role="button"
         tabIndex={0}
-        aria-label={`Consulter ${estApparat ? "l'apparat critique" : 'la note'} ${numeroVisible}`}
+        aria-label={`${libelle} ${numeroVisible}`}
         style={styleAppelNote(variante)}
       >
         {numeroVisible}
@@ -390,7 +396,9 @@ export function rendreTexteAvecNotes(
           <sup key={k++} style={styleSeparateurAppels(variante)}>{separateurAppels(rang, marqueurs.length)}</sup>
         )
         const contenu = notes[marqueur] ?? ''
-        const numeroVisible = typeof contenu === 'string' ? numeroDe(marqueur) : contenu.noteNumber
+        const numeroVisible = typeof contenu === 'string'
+          ? numeroDe(marqueur)
+          : (contenu.displayNumber ?? contenu.noteNumber)
         appels.push(<AppelNote key={k++} numeroVisible={numeroVisible} contenu={contenu} variante={variante} />)
       })
       noeuds.push(

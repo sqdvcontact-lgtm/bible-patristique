@@ -29,7 +29,9 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
-import { lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
+import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
+import { numerosAffiches } from '@/app/lib/numerotationNotes'
+import { natureBlocNoteSur } from '@/app/lib/naturesNote'
 import { redirect } from 'next/navigation'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
@@ -546,7 +548,7 @@ export default async function OeuvrePage({
       parNote.get(block.note_key)!.blocks.push({
         blockId: block.block_id,
         rank: block.rank,
-        kind: block.kind as NoteStructuree['blocks'][number]['kind'],
+        kind: natureBlocNoteSur(block.kind) ?? 'commentary',
         form: block.form as NoteStructuree['blocks'][number]['form'],
         language: block.language,
         text: block.text,
@@ -583,6 +585,51 @@ export default async function OeuvrePage({
         })
       }
     }
+    // ── LE NUMÉRO AFFICHÉ ─────────────────────────────────────────────────────
+    // Charte § 13.8 : il repart à 1 à chaque division de NIVEAU 1, et l'apparat
+    // critique tient sa PROPRE série. Le calcul lui-même est pur et testé
+    // (`numerosAffiches`) ; tout ce qui suit ne fait que lui apporter la division
+    // de chaque note.
+    //
+    // ⚠️ La division ne se lit PAS dans `texte_notes.book`, qui la porte pourtant.
+    // Mesuré le 5 septembre 2026 : sur les 1 830 notes d'`A0044O0003TFR-V11`,
+    // `book` et le `ref_niv1` du segment ancré diffèrent SANS EXCEPTION ; sur la
+    // Cité de Dieu française, sur 1 595 des 1 804. `book` est une métadonnée
+    // d'import ; la division est une propriété du texte SERVI. C'est l'ancre qui
+    // fait foi.
+    //
+    // ⛔ La requête est GARDÉE, et ne part qu'après les autres : elle pagine par
+    // mille, et un texte de dix mille segments sans une seule note paierait onze
+    // allers-retours pour rien. Les quarante-sept textes qui portent des notes
+    // vont de un à huit lots.
+    if (notesRows.length > 0) {
+      type DivisionRow = { segment_key: string | null; ref_niv1: string | null }
+      const divisionsRows = await chargerToutesPagesSupabase<DivisionRow>((debut, fin) =>
+        supabase.from('segments').select('segment_key,ref_niv1')
+          .eq('id_texte', idTexte).order('segment_numero').range(debut, fin))
+      const divisionParSegment = new Map<string, string>()
+      for (const ligne of divisionsRows) {
+        // Une division absente vaut la chaîne vide, exactement comme dans
+        // `numerotationLocale` : les liminaires forment une série, ils n'en sont
+        // pas privés.
+        if (ligne.segment_key) divisionParSegment.set(ligne.segment_key, ligne.ref_niv1 ?? '')
+      }
+      // La division d'une note est celle de sa PREMIÈRE ancre : une note rappelée
+      // d'une division à l'autre appartient à celle où le lecteur la rencontre
+      // d'abord, et garde ce numéro à ses deux appels.
+      const divisionParNote = new Map<string, string>()
+      for (const anchor of anchorsRows) {
+        if (divisionParNote.has(anchor.note_key) || !anchor.segment_key) continue
+        divisionParNote.set(anchor.note_key, divisionParSegment.get(anchor.segment_key) ?? '')
+      }
+      const affiches = numerosAffiches(notesRows.map(ligne => ({
+        noteKey: ligne.note_key,
+        division: divisionParNote.get(ligne.note_key) ?? '',
+        apparat: estNoteApparatCritique(parNote.get(ligne.note_key) ?? { blocks: [] }),
+      })))
+      for (const [cle, note] of parNote) note.displayNumber = affiches.get(cle) ?? null
+    }
+
     return { notesParSegment, ancresParSegment }
   }
 

@@ -3,15 +3,29 @@ import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
+import { familleDeNature, natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
 
-// Le texte d'un bloc de RENVOI biblique (kind='reference') est normalisé au rendu :
+// Le texte d'un bloc de RENVOI EXTÉRIEUR (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
+//
+// ⛔ Un renvoi INTERNE (`internal_cross_reference`) n'y passe PAS, et c'est la raison
+// d'être de cette nature : « Voyez la note I, p. 150 » n'a ni auteur ni titre à
+// normaliser, et son « I » est un numéro de note, que le normaliseur convertirait en
+// chapitre arabe. La règle vit dans `naturesNote.ts`, avec le vocabulaire.
+//
 // Tous les blocs passent ensuite par la composition typographique de lecture :
 // espaces de la charte §3.2 et ponctuation des citations de la charte §3.8.
+//
+// ⚠️ Ces fonctions sont IDEMPOTENTES, et le restent : depuis la charte § 13.9 la
+// normalisation se fait DANS LA DONNÉE, et le rendu n'est plus qu'un FILET — il ne
+// change rien à une note déjà normalisée, et rattrape un import qui aurait manqué la
+// passe. ⛔ Les retirer ferait dépendre l'affichage de la qualité d'une campagne.
 function texteBloc(bloc: NoteBlocData): string {
-  const texte = bloc.kind === 'reference' ? normaliserReferencesDansTexte(bloc.text) : bloc.text
+  const texte = natureSeNormaliseCommeReference(bloc.kind)
+    ? normaliserReferencesDansTexte(bloc.text)
+    : bloc.text
   return normaliserTypographieLecture(texte)
 }
 // Ponctuation finale : appliquée uniquement à la DERNIÈRE pièce rendue de la note
@@ -20,8 +34,33 @@ function texteFinal(texte: string, estDernier: boolean): string {
   return estDernier ? terminerNote(texte) : texte
 }
 
+/**
+ * ITALIQUE DE LA LANGUE — charte § 13.8, arbitré le 5 septembre 2026.
+ *
+ * Un bloc ENTIÈREMENT latin s'italise, quelle que soit sa longueur : les 27 blocs du
+ * corpus qui dépassent 900 signes ne font pas exception, l'italique disant ici la
+ * LANGUE et non l'emphase.
+ *
+ * ⛔ LE GREC NE SUIT PAS : son alphabet le distingue déjà, et l'italique y déforme la
+ * lettre. ⛔ L'apparat critique non plus, mais il ne passe pas par ici : latin de bout
+ * en bout, l'italiser ne distinguerait rien.
+ *
+ * ⚠️ Ne concerne QUE le bloc entier, celui dont `language` porte la langue. Le latin
+ * ENCHÂSSÉ dans une note française — le cas le plus fréquent, et le plus coûteux —
+ * n'est pas de ce ressort : aucune donnée ne dit où il commence, et il s'écrit par
+ * marqueur d'italique dans le texte. Le deviner ici italiserait du français.
+ */
+export function estBlocEnLatin(bloc: Pick<NoteBlocData, 'language'>): boolean {
+  return bloc.language === 'la'
+}
+
 const RENDU_INLINE = 'inline_after_target'
 const RENDU_RETOUR_VERSE = 'manual_line_break_in_verse'
+
+// La composition DISCRÈTE : un peu plus petite, en teinte seconde. Elle sert ce que
+// le lecteur traverse pour atteindre le propos — la coordonnée d'où vient la note,
+// et les renvois qui suivent leur cible en ligne.
+const STYLE_DISCRET = { fontSize: '0.92em', color: 'var(--cs-texte-second)' } as const
 
 function estReferenceRattachee(block: NoteBlocData) {
   return Boolean(
@@ -56,14 +95,31 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
     rattaches.set(block.targetBlockId, list)
   }
 
-  // Blocs effectivement rendus, et identifiant du dernier : c'est sa dernière pièce
-  // qui portera le point final de la note.
-  const affiches = blocks.filter(block => !estReferenceRattachee(block))
+  const rendus = blocks.filter(block => !estReferenceRattachee(block))
+
+  // ── L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE ────────────────────────────────
+  // Les blocs de la famille `ancrage` qui OUVRENT la note — la coordonnée imprimée,
+  // le lemme repris — se composent sur la ligne du propos, et non au-dessus de lui.
+  // Sur la page de Faivre, « (V) pag. 178. — Avec les démons… On peut consulter… »
+  // tient sur un seul paragraphe : le fendre en trois natures est une opération de
+  // STRUCTURE (charte § 13.10), elle ne doit pas se voir en lecture.
+  //
+  // ⚠️ En TÊTE seulement, et seulement s'il reste quelque chose après : un lemme qui
+  // reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul
+  // ancrage n'a pas de propos à qui s'attacher — elle se rend alors seule.
+  let coupe = 0
+  while (coupe < rendus.length && familleDeNature(rendus[coupe].kind) === 'ancrage') coupe++
+  const entete = coupe < rendus.length ? rendus.slice(0, coupe) : []
+  const affiches = coupe < rendus.length ? rendus.slice(coupe) : rendus
   const dernierBlocId = affiches.at(-1)?.blockId
 
   return (
-    <div data-note-key={note.noteKey} data-note-number={note.noteNumber}>
-      {affiches.map(block => {
+    <div
+      data-note-key={note.noteKey}
+      data-note-number={note.noteNumber}
+      data-note-affiche={typeof note.displayNumber === 'number' ? String(note.displayNumber) : undefined}
+    >
+      {affiches.map((block, rang) => {
         const verse = block.form === 'verse'
         const traduction = block.kind === 'translation'
         const references = rattaches.get(block.blockId) ?? []
@@ -74,6 +130,8 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         const finSurApresVers = estDernierBloc && referencesApresVers.length > 0
         const finSurInline = estDernierBloc && referencesApresVers.length === 0 && referencesInline.length > 0
         const finSurTexte = estDernierBloc && referencesApresVers.length === 0 && referencesInline.length === 0
+        // L'en-tête d'ancrage ouvre le PREMIER bloc rendu, et lui seul.
+        const ouverture = rang === 0 ? entete : []
 
         return (
           <div
@@ -81,13 +139,14 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             lang={block.language ?? undefined}
             data-block-id={block.blockId}
             data-kind={block.kind}
+            data-famille={familleDeNature(block.kind)}
             data-form={block.form}
             data-rendering={block.rendering ?? undefined}
             data-needs-review={String(block.needsReview)}
             style={{
               margin: '0 0 7px',
               whiteSpace: verse || referencesApresVers.length > 0 ? 'pre-line' : 'normal',
-              fontStyle: 'normal',
+              fontStyle: estBlocEnLatin(block) ? 'italic' : 'normal',
               // Les vers cités dans une note ne portent plus d'étiquette « Vers » : ils se
               // signalent par une police un peu plus petite et un léger retrait à gauche.
               fontSize: verse ? '0.9em' : undefined,
@@ -95,6 +154,19 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               borderLeft: traduction ? '2px solid var(--cs-or-doux)' : undefined,
             }}
           >
+            {ouverture.map(ancrage => (
+              <span
+                key={ancrage.blockId}
+                lang={ancrage.language ?? undefined}
+                data-block-id={ancrage.blockId}
+                data-kind={ancrage.kind}
+                data-famille="ancrage"
+                data-needs-review={String(ancrage.needsReview)}
+                style={{ ...STYLE_DISCRET, fontStyle: estBlocEnLatin(ancrage) ? 'italic' : undefined }}
+              >
+                {rendreTexteEnrichi(texteBloc(ancrage))}{' '}
+              </span>
+            ))}
             {rendreTexteEnrichi(texteFinal(texteBloc(block), finSurTexte))}
             {referencesInline.map((reference, i) => (
               <span
@@ -104,7 +176,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 data-kind={reference.kind}
                 data-rendering={reference.rendering ?? undefined}
                 data-needs-review={String(reference.needsReview)}
-                style={{ fontSize: '0.92em', color: 'var(--cs-texte-second)' }}
+                style={STYLE_DISCRET}
               >
                 {'\u00A0'}{rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurInline && i === referencesInline.length - 1))}
               </span>
@@ -118,7 +190,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                   data-kind={reference.kind}
                   data-rendering={reference.rendering ?? undefined}
                   data-needs-review={String(reference.needsReview)}
-                  style={{ fontSize: '0.92em', color: 'var(--cs-texte-second)' }}
+                  style={STYLE_DISCRET}
                 >
                   {rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurApresVers && i === referencesApresVers.length - 1))}
                 </span>

@@ -1,12 +1,18 @@
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 import type { BlocOriginal } from './bilingueAlignement'
+import type { NatureBlocNote } from '@/app/lib/naturesNote'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
   blockId: string
   rank: number
-  kind: 'lemma' | 'commentary' | 'quotation' | 'translation' | 'reference' | 'attribution'
+  /** La NATURE du bloc : ce qu'il EST. Vocabulaire clos, rangé en quatre familles
+   *  dans `app/lib/naturesNote.ts`, qui reflète la contrainte SQL
+   *  `texte_note_blocs_kind_check`. ⛔ Ne pas recopier l'union ici : deux listes
+   *  parallèles finissent par diverger, et un bloc d'une nature inconnue du rendu
+   *  ne paraît nulle part, en silence. */
+  kind: NatureBlocNote
   form: 'prose' | 'verse'
   language?: string | null
   text: string
@@ -29,7 +35,19 @@ export type NoteBlocData = {
   /** `metadata.human_validated`. Lu, jamais écrit. */
   humanValidated?: boolean | null
 }
-export type NoteStructuree = { noteKey: string; noteNumber: number; blocks: NoteBlocData[] }
+export type NoteStructuree = {
+  noteKey: string
+  /** `texte_notes.note_number` — le numéro INTERNE, qui porte l'identité et l'ordre
+   *  de lecture. ⛔ Ne s'affiche plus : `texte_note_ancres.marker` vaut exactement
+   *  `[[note_number]]`, et 23 569 ancres en dépendent. */
+  noteNumber: number
+  /** Le numéro que le LECTEUR voit : il repart à 1 à chaque division de niveau 1, et
+   *  l'apparat critique tient sa propre série (charte § 13.8). Calculé au chargement
+   *  par `numerosAffiches`, jamais stocké. Absent quand la division n'a pas pu être
+   *  établie : l'appel retombe alors sur `noteNumber`. */
+  displayNumber?: number | null
+  blocks: NoteBlocData[]
+}
 export type NoteAffichee = string | NoteStructuree
 export type SegData = {
   id: number

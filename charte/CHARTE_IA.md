@@ -1798,6 +1798,24 @@ Les préférences d’affichage, dont le mode texte intégral, ne modifient jama
 
 **Tests d’acceptation pour Claude.** Ouvrir successivement Ceriziers, Mirandol et le latin : le même menu « Traductions » doit apparaître ; aucune occurrence visible de « Versions textuelles » ni « Traductions parallèles » ne doit subsister ; les livres doivent s’afficher en casse éditoriale normale ; les deux rubriques Ceriziers atypiques doivent garder leur source mais afficher III/VI correctement ; l’appel Mirandol cité ci-dessus doit montrer 2 ; le latin doit être disponible depuis les deux traductions et utiliser les alignements directs.
 
+**Échanges techniques GPT ↔ Claude — problèmes de code à transmettre et surveiller (Bible 899, 5 septembre 2026).** Ces points ne sont pas des règles éditoriales propres à Boèce : ils forment le registre de passage des défauts de code observés pendant les contrôles de corpus. Un défaut de lecteur, de vue, de RLS ou de projection ne doit jamais être réparé en altérant les données philologiques.
+
+- **CONFIRMÉ — confidentialité des vues.** `traductions` masque correctement une traduction privée sous le rôle `anon`, mais une vue en droits du définisseur peut contourner cette protection. `v_traductions_page` expose actuellement les métadonnées de `TR0013` alors que la ligne de `traductions` est invisible à `anon`. ⛔ Ne jamais considérer le filtrage de la table de base comme une preuve de confidentialité d’une vue dérivée. Toute vue publique de traduction doit être testée sous `anon` et filtrer explicitement l’état privé, ou employer un modèle de sécurité qui conserve la politique attendue. Ce défaut est signalé ; il n’est pas corrigé ici tant qu’une modification transversale de `v_traductions_page` n’a pas été explicitement demandée.
+
+- **CONFIRMÉ — coordonnées de texte.** Les `start_offset` / `end_offset` de `bible_editorial_segment_sources` sont des points de code Unicode dans la couche **développée**, pas des positions de la couche diplomatique et pas des octets. ⛔ Appliquer directement ces offsets à `text_content` diplomatique coupe les mots dès qu’une abréviation développée change la longueur (`⁊` → `et`, etc.). Le défaut a été observé à `LUK.2.8` (`t en cele region` au lieu de `Et en cele region`). La projection diplomatique doit passer par le helper de base prévu à cet effet ; le client ne la réimplémente pas par `substring`.
+
+- **CONFIRMÉ — fonctions `internal` appelées par une vue publique.** Une fonction de projection ajoutée dans `internal` a momentanément rendu `v_bible899_aelf_polyglotte` illisible sous `anon`, bien que le calcul fût correct en backend privilégié. La fonction publique indirecte a été sécurisée avec un contexte d’exécution borné et un `search_path` fixé. ⚠️ Après toute modification d’une fonction appelée depuis une vue publique, exécuter un vrai test sous `anon` ; un test `service_role` ne détecte pas ce défaut. Ne jamais ouvrir globalement le schéma `internal` au public pour contourner une erreur de permissions.
+
+- **À SURVEILLER — `security_invoker` / droits du définisseur.** Les vues polyglottes n’emploient pas toutes le même mode de sécurité : certaines sont `security_invoker=true`, d’autres non. Ce choix doit être intentionnel. `v_bible899_aelf_polyglotte` est actuellement lisible sous `anon` pour les couches publiques attendues et ne livre pas `TR0013`; `v_bible_verse_notes` ne livre que les notes techniquement publiables et aucune note `TR0013`. Ces invariants doivent devenir des tests de régression. ⛔ Ne pas harmoniser mécaniquement les options des vues sans vérifier le contrat de lecture voulu.
+
+- **CONFIRMÉ — couverture incomplète de Control V2.** Le protocole accepte les mutations `verset_v2`, mais refuse actuellement au moins `bible_verse_note_block` et `bible_editorial_segment`. Une anomalie de `needs_review` ou de métadonnée éditoriale peut donc être certaine sans disposer d’un chemin de mutation contrôlé. Tant que ces types ne sont pas couverts, on documente la dette et on n’écrit pas hors protocole. À terme, étendre Control V2 ou fournir un chemin de mutation gardé dédié ; ne jamais le contourner silencieusement.
+
+- **CONFIRMÉ — ordre canonique et ordre surnuméraire.** Dans `TR0013`, les cibles canoniques ont normalement `ordre_slot = NULL`; les extras manuscrits portent l’ordre matériel dans `ordre_slot`. ⛔ Une comparaison globale `source.alignment_order = target.ordre_slot` produit donc des milliers de faux décalages. Pour le canonique, contrôler par `canon_id` et cohérence `livre/ch_orig/v_orig`; pour les extras, contrôler l’ordre matériel.
+
+- **CONFIRMÉ — incertitudes multi-versets.** `has_unclear=true` n’implique pas toujours qu’une balise commence dans la ligne : le drapeau peut être contextuel. Inversement, une plage `[lecture incertaine : …]` peut commencer dans un verset et se fermer dans le suivant. ⛔ Le code ne doit ni fabriquer une balise à partir du seul booléen, ni traiter chaque verset indépendamment, ni produire le marqueur nu `[lecture incertaine]`. Le rendu doit préserver les bornes éditoriales explicites et les chaînes transfrontalières.
+
+**Tests de régression à communiquer à Claude.** Sous `anon` : `TR0013` doit rester absent de `traductions`, de tout texte polyglotte et de tout apparat de travail ; l’accès direct à `versets_v2` doit rester refusé ; `v_bible899_aelf_polyglotte` doit rester exécutable et ne livrer que les couches autorisées ; toute vue de notice doit respecter l’état privé. Pour la recomposition : reconstruire les unités partagées sans perte non blanche et vérifier spécifiquement une frontière située après une expansion d’abréviation. Pour les incertitudes : tester une balise interne, une balise franchissant une frontière de verset et un `has_unclear` contextuel sans balise locale.
+
 ## 19. Modèle de données des œuvres et versions
 
 ### 19.1 `oeuvres`
@@ -4993,3 +5011,35 @@ Demande de l’auteur du 5 septembre 2026 : « il faut aussi mettre en place des
 ⚠️ **`lemma` existe et ne sert qu’à UNE œuvre** (126 blocs, un seul texte). Chez Faivre, le lemme est noyé dans le bloc de commentaire, derrière la coordonnée : « (V) pag. 178. — *Avec les démons les plus féroces* … ». Les 396 blocs de cette forme portent donc **trois** natures agglomérées, et c’est la passe la plus rentable de l’appareil.
 
 ⛔ **LA CHARTE D’ABORD, LA DONNÉE ENSUITE** (§ 7.6) : le vocabulaire est fixé ici, il entre dans la contrainte de la base, puis on sème, puis on compose, puis on éprouve. ⛔ Jamais un `insert` à la main qui poserait une nature que rien ne sait rendre.
+
+
+### 13.11 Les QUATRE FAMILLES de natures, et ce qu'elles commandent
+
+Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient à une **FAMILLE**, qui dit ce que le bloc FAIT dans l'économie de la note — et c'est la famille, non la nature, qui commande la composition.
+
+⚠️ **Pourquoi une famille plutôt que huit règles.** Une liste plate oblige à trancher huit fois, et rien n'y empêche deux natures voisines de recevoir deux compositions sans raison. La famille pose la règle une seule fois : **deux natures d'une même famille se composent de même, sauf raison NOMMÉE ; deux natures de familles différentes ne se composent jamais de même.** C'est en les rangeant qu'on a vu ce qui sépare réellement les deux renvois : non pas leur forme, qui est la même, mais leur DESTINATION.
+
+| Famille | Ce que le bloc fait | Natures | Ce qu'elle commande à la composition |
+|---|---|---|---|
+| **ancrage** | ce à quoi la note TIENT | `lemma`, `source_locator` | discret, et en tête, sur la ligne du propos |
+| **propos** | ce que la note DIT d'elle-même | `commentary` | la prose ordinaire, pleine mesure |
+| **témoignage** | ce qu'elle RAPPORTE d'un tiers | `quotation`, `translation`, `attribution` | les marques de la citation : langue, retrait, filet |
+| **renvoi** | ce vers quoi elle ENVOIE | `reference`, `internal_cross_reference` | la destination décide de la normalisation |
+
+⛔ **L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.** Chez Faivre, « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » tient sur **un seul paragraphe imprimé**. La passe 3 du protocole le fend en trois blocs, parce que ce sont trois fonctions ; mais fendre est une opération de STRUCTURE, et *une opération de structure ne doit pas se voir en lecture*. Les blocs d'ancrage qui OUVRENT une note se composent donc sur la ligne du propos, en repère discret, et non empilés au-dessus de lui. ⚠️ **En tête seulement** : un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
+
+⛔ **DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.** Un renvoi vers le DEHORS (`reference`) se normalise : il a un auteur, un titre, un locus, et le site sait les composer. Un renvoi vers le DEDANS (`internal_cross_reference`) ne le peut pas — il n'a ni auteur ni titre — et le lui appliquer serait une CORRUPTION, non une maladresse : dans « Voyez la note I, p. 150 », le « I » est un numéro de note, que `normaliserReferencesDansTexte` convertirait en chapitre arabe. *Deux blocs de même apparence, deux traitements opposés : c'est la nature qui les départage, et rien d'autre ne le pouvait.*
+
+⛔ **UNE NATURE INCONNUE NE FAIT PAS DISPARAÎTRE SON BLOC.** Le vocabulaire se lit avec indulgence : une valeur hors liste retombe sur `commentary` et le bloc reste LISIBLE, fût-ce sans sa composition propre. ⚠️ C'est le contraire du défaut payé quatre fois avec `NATURES_CORPS`, où le bloc s'évanouissait en silence. *Un vocabulaire en avance sur son rendu est un désagrément ; un texte qui manque à la page est une perte.*
+
+### 13.11.1 Ce que le CODE porte depuis le 5 septembre 2026
+
+⛔ **Le vocabulaire a une SOURCE UNIQUE, et elle est double par nécessité** : `app/lib/naturesNote.ts` et la contrainte `texte_note_blocs_kind_check`. Les deux se modifient ENSEMBLE, dans l'ordre du § 7.6 — la charte, la contrainte, le vocabulaire du code, la composition, l'épreuve à l'écran, et *seulement ensuite* on sème. Migration `sql/20260905_natures_bloc_note.sql`, retour arrière en regard.
+
+⛔ **Le NUMÉRO AFFICHÉ se calcule à la lecture, jamais en base** (`app/lib/numerotationNotes.ts`) : `note_number` reste l'identité et l'ordre de lecture, dont dépendent 23 569 ancres, et `texte_note_ancres.marker` vaut exactement `[[note_number]]` — renuméroter en base, ce serait réécrire les deux et perdre l'ancrage.
+
+⚠️ **La division d'une note ne se lit PAS dans `texte_notes.book`, qui la porte pourtant.** Mesuré le 5 septembre 2026 : sur les 23 729 notes du corpus, **8 580 (36 %, dans 39 textes sur 47) ont un `book` différent du `ref_niv1` du segment qu'elles ancrent** ; sur `A0044O0003TFR-V11`, les 1 830 notes diffèrent sans une seule exception. `book` est une métadonnée d'IMPORT ; la division est une propriété du texte SERVI. **C'est l'ancre qui fait foi**, et les 747 notes dont l'ancre ne porte aucun niveau 1 forment une série à part, comme les liminaires dans la numérotation des paragraphes.
+
+⛔ **Le TYPE s'annonce dans l'en-tête de la fenêtre de note, et nulle part ailleurs** (`app/lib/typeNote.ts`) : « Note du traducteur 12 », « Apparat critique 7 ». ⚠️ **Il exige l'unanimité des blocs** : une note mixte — le commentaire de l'édition, puis le renvoi que NOUS ajoutons — n'annonce rien, car *mieux vaut « Note » qu'une attribution à demi fausse*. Le libellé nomme une RESPONSABILITÉ, jamais une position dans la page : « note de l'édition », et non « note de l'éditeur », que la maison d'édition et l'éditeur scientifique se disputent en français.
+
+⛔ **L'ITALIQUE DE LA LANGUE ne porte que sur le bloc ENTIER**, celui dont `language` déclare la langue. Le latin ENCHÂSSÉ dans une note française — le cas le plus fréquent et le plus coûteux — n'est pas de ce ressort : aucune donnée ne dit où il commence, et le deviner au rendu italiserait du français. Il s'écrit par marqueur, dans le texte, à la passe 5.
