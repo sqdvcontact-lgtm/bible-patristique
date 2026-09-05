@@ -5933,3 +5933,58 @@ filtres de la page, en termes esthétiques et pratiques. Règles de code, dans
   s'écrit à part.
 - ⚠️ **`useEstMobile` dans le composant principal** : le panneau est piloté par des styles
   en ligne, qu'une média-query ne peut pas surcharger (patron de la charte, § Responsive).
+
+# ⛔ Des requêtes qui ne s'ATTENDENT pas partent ENSEMBLE (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.23**. Relevé de l'auteur : « le temps
+d'affichage me paraît un peu lent » sur l'onglet « Catalogue des traductions ». Mesuré :
+**1 807 ms** en **quatre allers-retours EN SÉRIE** — la session, trois pages de notices,
+les votes — dont aucun n'avait besoin de ce que le précédent rapportait. **932 ms** une
+fois lancés ensemble. Règles de code :
+
+- **`chargerPagesEnParallele` (`app/lib/paginationSupabase.ts`)** demande les pages par
+  VAGUES parallèles ; `chargerToutesPagesSupabase` reste la voie d'une lecture qui peut
+  s'arrêter tôt. ⛔ Le choix n'est pas de goût : une vague SPÉCULE, et une page spéculée
+  au-delà de la fin n'est pas gratuite — sur une vue qui calcule ses colonnes, le nœud de
+  calcul s'exécute pour toutes les lignes jusqu'à `offset + limit` **avant de n'en rendre
+  aucune** (569 ms mesurés sur `v_catalogue_notices_dates`). `PAGES_PAR_VAGUE` se taille
+  donc sur la liste qu'on charge, et se remesure quand cette liste change d'ordre de
+  grandeur. On n'en demande une seconde que si la DERNIÈRE page revenue était pleine.
+- ⛔ **Les pages d'une vague se gardent DANS L'ORDRE, page courte au milieu comprise** :
+  les jeter perdrait des lignes en silence si la table a bougé entre deux requêtes, alors
+  que les garder ne peut qu'ajouter ce qui existe.
+- ⛔ **Quand le filtre coûte plus cher que ce qu'il écarte, on ne filtre pas.** Le
+  catalogue envoyait **2 499 identifiants** (12 116 octets d'adresse) pour aller chercher
+  les votes d'une table qui en compte **trois**, dont la politique de lecture est déjà
+  publique. ⚠️ PostgREST renvoie l'adresse ENTIÈRE dans son en-tête `content-location` :
+  un client node refuse déjà la réponse (`HeadersOverflowError`, en-têtes > 16 ko), et la
+  clause était à un millier de notices de casser sans un mot. C'est `lotsPourClauseIn`
+  pris par l'autre bout.
+- ⛔ **Une panne se DIT.** Les quatre requêtes ne lisaient jamais leur `error` : un échec
+  se rendait « Aucun auteur ne correspond à ces critères ». `chargerPagesEnParallele`
+  lève ; le composant journalise, affiche une ligne et propose de réessayer, et `chargé`
+  reste faux pour que « Réessayer » ait quelque chose à faire.
+
+⚠️ **CE QUE L'AUDIT A DÉMENTI, et qu'il faut savoir avant de le re-soupçonner** : le
+regroupement des 2 499 notices à chaque rendu — deux mille `localeCompare(…, 'fr')` sans
+collateur réemployé — coûte **3 ms**, et un `Intl.Collator` gardé sous la main n'y change
+rien (V8 le met déjà en cache). Le premier suspect était le mauvais.
+
+⚠️ **CE QUI RESTE, ET QUI EST DE LA BASE.** Les trois colonnes de date de
+`v_catalogue_notices_dates` coûtent **1,3 s** sur les trois pages. Mesuré sur un passage
+complet de 2 499 lignes : `siecle_edition_affichage` 89 ms, `date_edition_affichage_courte`
+183 ms, `date_edition_precision_affichage` 299 ms, **les trois ensemble 597 ms — exactement
+la somme**. L'additivité dit tout : aucune sous-expression n'est partagée, et
+`format_date_bornes_historique(…, extraire_date_principale(date_edition))` est calculée
+**deux fois par ligne** (une fois pour la « courte », une fois dans le `CASE` de la
+« précision »), pour **515 dates distinctes et 16 siècles** sur 2 499 lignes. Deux
+barrières `OFFSET 0` en `LATERAL` suffisent à la faire tomber à **148 ms** : elles
+empêchent l'inlining, et le planificateur ajoute alors un `Memoize` (1 808 succès sur
+2 499 pour les dates, 2 482 sur 2 499 pour les siècles). Éprouvé, **zéro écart sur les
+2 645 lignes**, aucune autre vue n'en dépend. ⛔ Non appliqué : c'est la base, donc un
+arbitrage.
+
+⚠️ **Comment on mesure une liste chargée par le NAVIGATEUR** : depuis le poste, en
+rejouant ses requêtes exactes — le chemin réseau est le même que celui du lecteur, à la
+différence d'une page servie, qu'il faut mesurer en ligne. ⚠️ Le plafond de PostgREST est
+bien de **1 000 lignes** (vérifié : un `Range: 0-4999` rend `content-range: 0-999/*`).
