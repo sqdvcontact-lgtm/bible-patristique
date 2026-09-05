@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chargerToutesPagesSupabase, lotsPourClauseIn } from './paginationSupabase'
+import { chargerPagesEnParallele, chargerToutesPagesSupabase, lotsPourClauseIn } from './paginationSupabase'
 
 describe('pagination Supabase', () => {
   it('charge au-delà du plafond et demande la page vide après un multiple exact', async () => {
@@ -17,6 +17,61 @@ describe('pagination Supabase', () => {
     const erreur = new Error('permission denied')
     await expect(chargerToutesPagesSupabase(async () => ({ data: null, error: erreur })))
       .rejects.toBe(erreur)
+  })
+})
+
+describe('pagination Supabase en parallèle', () => {
+  const source = Array.from({ length: 5 }, (_, i) => i + 1)
+
+  it('demande les pages d’une vague ENSEMBLE, et s’arrête sur une page courte', async () => {
+    const debuts: number[] = []
+    let enVol = 0
+    let volMax = 0
+    const resultat = await chargerPagesEnParallele(async (debut, fin) => {
+      debuts.push(debut)
+      enVol += 1
+      volMax = Math.max(volMax, enVol)
+      await Promise.resolve()
+      enVol -= 1
+      return { data: source.slice(debut, fin + 1), error: null }
+    }, { taille: 2, vague: 3 })
+    expect(resultat).toEqual(source)
+    // Une seule vague : 0-1, 2-3, 4-5. La dernière rend une ligne sur deux, donc c’est fini.
+    expect(debuts).toEqual([0, 2, 4])
+    expect(volMax).toBe(3)
+  })
+
+  it('demande une SECONDE vague quand la dernière page était pleine', async () => {
+    const long = Array.from({ length: 7 }, (_, i) => i + 1)
+    const debuts: number[] = []
+    const resultat = await chargerPagesEnParallele(async (debut, fin) => {
+      debuts.push(debut)
+      return { data: long.slice(debut, fin + 1), error: null }
+    }, { taille: 3, vague: 2 })
+    expect(resultat).toEqual(long)
+    expect(debuts).toEqual([0, 3, 6, 9])
+  })
+
+  // ⛔ Une page qui SUIT une page courte se garde : la jeter perdrait des lignes en
+  // silence si la table avait bougé entre les deux requêtes.
+  it('garde l’ordre des pages, page courte au milieu comprise', async () => {
+    const resultat = await chargerPagesEnParallele<number>(async (debut) => ({
+      data: debut === 0 ? [1, 2] : debut === 2 ? [3] : [9],
+      error: null,
+    }), { taille: 2, vague: 3 })
+    expect(resultat).toEqual([1, 2, 3, 9])
+  })
+
+  it('remonte l’erreur d’une page quelconque de la vague', async () => {
+    const erreur = new Error('permission denied')
+    await expect(chargerPagesEnParallele(async (debut) => (
+      debut === 0 ? { data: [1, 2], error: null } : { data: null, error: erreur }
+    ), { taille: 2, vague: 2 })).rejects.toBe(erreur)
+  })
+
+  it('refuse une vague qui n’en est pas une', async () => {
+    await expect(chargerPagesEnParallele(async () => ({ data: [], error: null }), { vague: 0 }))
+      .rejects.toThrow('Taille de vague invalide')
   })
 })
 

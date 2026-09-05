@@ -26,6 +26,7 @@ import { useCompte } from '@/app/lib/contexteCompte'
 // ⚠️ La même fonction que la citation : elle saute les marques de tête et ne touche pas
 // une initiale déjà capitale. Une seconde écriture ici divergerait au premier réglage.
 import { capitaliserInitiale } from '@/app/lib/citation'
+import { chargerPagesEnParallele, chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -1004,6 +1005,10 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
   const [notices, setNotices] = useState<NoticeCompacte[]>([])
   const [chargement, setChargement] = useState(false)
   const [chargé, setChargé] = useState(false)
+  // ⛔ Une liste vide et une requête en échec ne se ressemblent pas, et le catalogue
+  //    les confondait : ses quatre requêtes ne lisaient jamais leur `error`, si bien
+  //    qu’une panne se rendait « Aucun auteur ne correspond à ces critères ».
+  const [erreur, setErreur] = useState<string | null>(null)
   const [votes, setVotes] = useState<Record<number, number>>({})
   const [mesVotes, setMesVotes] = useState<Set<number>>(new Set())
   const [userId, setUserId] = useState<string | null>(null)
@@ -1013,18 +1018,21 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
 
   const PAR_PAGE = 50
 
+  type LigneVote = { id_notice: number; user_id: string }
+
   const charger = async () => {
     if (chargé) return
     setChargement(true)
+    setErreur(null)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUserId(session?.user.id ?? null)
-
-      // Chargement complet : PostgREST plafonne à 1000 lignes par requête, on pagine.
-      // (Sans cela, la liste s'arrêtait vers « Augustin ».)
-      const data: NoticeCompacte[] = []
-      for (let de = 0; ; de += 1000) {
-        const { data: page } = await supabase
+      // ⛔ LES QUATRE REQUÊTES PARTENT ENSEMBLE. Elles se suivaient — la session, puis
+      //    les trois pages de notices, puis les votes — et aucune n’a besoin de ce que
+      //    la précédente rapporte. Mesuré le 2026-09-05 : 1 807 ms en série, 932 ms
+      //    ensemble. Le plafond de PostgREST étant de mille lignes, les trois pages sont
+      //    inévitables ; rien ne les obligeait à s’attendre.
+      const [seance, data, voteData] = await Promise.all([
+        supabase.auth.getSession(),
+        chargerPagesEnParallele<NoticeCompacte>((debut, fin) => supabase
           .from('v_catalogue_notices_dates')
           .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, editeur, date_edition_affichage_courte, date_edition_precision_affichage, siecle_edition_affichage, domaine_public, langue_originale')
           .eq('presence_sur_le_site', false)
@@ -1032,30 +1040,40 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
           .order('auteur')
           .order('titre_stable')
           .order('id')
-          .range(de, de + 999)
-        if (!page?.length) break
-        data.push(...page)
-        if (page.length < 1000) break
-      }
+          .range(debut, fin)),
+        // ⛔ PLUS DE `in.(…)` SUR LES IDENTIFIANTS DE TOUTES LES NOTICES. La table des
+        //    votes en compte TROIS, et sa politique de lecture est déjà publique : on
+        //    envoyait douze kilo-octets d’adresse pour en rapporter trois. PostgREST
+        //    renvoie de surcroît l’adresse ENTIÈRE dans son en-tête `content-location`,
+        //    si bien qu’un client node refuse déjà la réponse (`HeadersOverflowError`) :
+        //    la clause était à un millier de notices de casser, et sans un mot. Voir
+        //    `lotsPourClauseIn`, qui porte la règle.
+        chargerToutesPagesSupabase<LigneVote>((debut, fin) => supabase
+          .from('catalogue_votes').select('id_notice, user_id').order('id').range(debut, fin)),
+      ])
 
-      if (data.length) {
-        setNotices(data)
-        const ids = data.map((n: NoticeCompacte) => n.id)
-        if (ids.length > 0) {
-          const { data: voteData } = await supabase.from('catalogue_votes').select('id_notice, user_id').in('id_notice', ids)
-          if (voteData) {
-            const counts: Record<number, number> = {}
-            const miens = new Set<number>()
-            for (const v of voteData) {
-              counts[v.id_notice] = (counts[v.id_notice] ?? 0) + 1
-              if (session?.user.id && v.user_id === session.user.id) miens.add(v.id_notice)
-            }
-            setVotes(counts)
-            setMesVotes(miens)
-          }
-        }
+      const session = seance.data.session
+      setUserId(session?.user.id ?? null)
+      if (data.length) setNotices(data)
+
+      // ⚠️ Les votes ne sont plus filtrés sur les notices affichées : les quelques
+      //    entrées d’une notice absente de la liste ne sont jamais lues, la carte d’un
+      //    vote ne se consultant que par la notice qu’on rend.
+      const comptes: Record<number, number> = {}
+      const miens = new Set<number>()
+      for (const v of voteData) {
+        comptes[v.id_notice] = (comptes[v.id_notice] ?? 0) + 1
+        if (session?.user.id && v.user_id === session.user.id) miens.add(v.id_notice)
       }
+      setVotes(comptes)
+      setMesVotes(miens)
       setChargé(true)
+    } catch (e) {
+      // ⛔ On ne se rend pas VIDE sur une panne : `chargerPagesEnParallele` lève, là où
+      //    la boucle d’avant jetait l’erreur en silence. `chargé` reste faux, pour que
+      //    « Réessayer » ait quelque chose à faire.
+      console.error('[catalogue] chargement impossible', e)
+      setErreur(e instanceof Error ? e.message : 'Erreur inconnue')
     } finally { setChargement(false) }
   }
 
@@ -1150,6 +1168,14 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
 
       {chargement ? (
         <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Chargement…</p>
+      ) : erreur ? (
+        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+          Le catalogue n’a pas pu être chargé.{' '}
+          <button onClick={() => { void charger() }}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', font: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+            Réessayer
+          </button>
+        </p>
       ) : auteursTriés.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           Aucun auteur ne correspond à ces critères.
