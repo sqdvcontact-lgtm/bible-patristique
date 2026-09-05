@@ -23,6 +23,9 @@ import { rendreEnrichi } from '@/app/lib/enrichissements'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
+// ⚠️ La même fonction que la citation : elle saute les marques de tête et ne touche pas
+// une initiale déjà capitale. Une seconde écriture ici divergerait au premier réglage.
+import { capitaliserInitiale } from '@/app/lib/citation'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -556,30 +559,87 @@ const PERIODES: Periode[] = [
  * avant qu'on l'essaie. La bibliothèque compte QUATORZE auteurs ; une facette qui en rend
  * huit ne mérite pas qu'on la cherche, et une qui en rend zéro ne se montre pas du tout.
  */
+/**
+ * La forme COMMUNE de la pastille, dans ses deux états. Elle sert le panneau (où l'on
+ * choisit) ET le rappel des filtres retenus (où l'on retire) : deux surfaces, un seul
+ * objet, et pas deux définitions qui divergeraient au premier réglage.
+ */
+function stylePastille(actif: boolean): React.CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'baseline', gap: '7px',
+    padding: '3px 10px', borderRadius: '4px', fontSize: '0.71875rem',
+    border: `1px solid ${actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`,
+    background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
+    color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
+    cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
+    transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
+  }
+}
+
+/** Le COMPTE, ou la croix : ce qui suit le libellé se compose toujours de la même façon. */
+const SUFFIXE_PASTILLE: React.CSSProperties = {
+  fontStyle: 'normal', fontSize: '0.625rem', fontVariantNumeric: 'tabular-nums', opacity: 0.68,
+}
+
 function Chip({ actif, compte, onClick, children }: {
   actif: boolean; compte: number; onClick: () => void; children: React.ReactNode
 }) {
   return (
-    <button onClick={onClick} aria-pressed={actif} style={{
-      display: 'inline-flex', alignItems: 'baseline', gap: '5px',
-      padding: '2px 9px', borderRadius: '4px', fontSize: '0.6875rem',
-      border: `1px solid ${actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`,
-      background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
-      color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
-      cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
-      transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
-    }}>
+    <button onClick={onClick} aria-pressed={actif} style={stylePastille(actif)}>
       {children}
-      <span style={{ fontStyle: 'normal', fontSize: '0.5625rem', fontVariantNumeric: 'tabular-nums', opacity: 0.62 }}>{compte}</span>
+      <span style={SUFFIXE_PASTILLE}>{compte}</span>
     </button>
   )
 }
 
-function LigneFiltres({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * Un filtre RETENU, rappelé sous la barre de recherche quand le panneau est refermé.
+ *
+ * ⛔ Refermer le panneau ne laissait qu'un « ② » sur le bouton : on savait qu'il agissait
+ * deux filtres, jamais lesquels. Un filtre qui agit se montre — c’est la règle qui garde
+ * déjà une facette active visible dans le panneau, même quand elle ne rendrait rien.
+ */
+function Jeton({ onRetirer, children }: { onRetirer: () => void; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' }}>
-      <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.2em', textIndent: '0.2em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', textAlign: 'center' }}>{label}</span>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', justifyContent: 'center' }}>{children}</div>
+    <button onClick={onRetirer} title="Retirer ce filtre" style={stylePastille(true)}>
+      {children}
+      <span style={SUFFIXE_PASTILLE} aria-hidden="true">×</span>
+    </button>
+  )
+}
+
+/** La colonne des rubriques du panneau : assez large pour « Tradition », la plus longue. */
+const COLONNE_RUBRIQUE = '5.5rem'
+
+/**
+ * Un RANG de facettes : sa rubrique EN MARGE, ses pastilles au fer à gauche.
+ *
+ * ⛔ Les trois rubriques se posaient en BANNIÈRE CENTRÉE au-dessus de leur rang, ce qui
+ * coûtait une ligne entière chacune et faisait du panneau une page de titre à trois
+ * titres. Les pastilles centrées n'offraient en outre aucun bord gauche où l'œil revienne :
+ * cinq larges, deux étroites, sept larges, chaque rang ragué des deux côtés.
+ *
+ * ⚠️ La rubrique se pose sur la LIGNE DE BASE de la première pastille, jamais sur le
+ * milieu de sa boîte : deux corps différents centrés l’un sur l’autre font flotter le plus
+ * petit au-dessus de la ligne de l’autre. C’est la grille qui l’aligne, sans un pixel écrit.
+ */
+function LigneFiltres({ label, mobile, children }: { label: string; mobile: boolean; children: React.ReactNode }) {
+  return (
+    <div role="group" aria-label={label} style={{
+      display: 'grid',
+      gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : `${COLONNE_RUBRIQUE} minmax(0, 1fr)`,
+      columnGap: '0.75rem', rowGap: '6px', alignItems: 'baseline',
+    }}>
+      <span style={{
+        fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em',
+        textTransform: 'uppercase', color: 'var(--cs-texte-doux)',
+        textAlign: mobile ? 'left' : 'right',
+        // La chasse ajoute une espace APRÈS la dernière lettre : au fer à droite, elle
+        // décalerait la rubrique du bord de sa colonne. On la reprend.
+        marginRight: mobile ? 0 : '-0.16em',
+        whiteSpace: 'nowrap',
+      }}>{label}</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>{children}</div>
     </div>
   )
 }
@@ -1689,6 +1749,9 @@ function normaliserAuteurs(data: any[], oeuvres: Oeuvre[], auteursParOeuvre: Rec
 
 export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurChargement = false }: { auteurs: Auteur[]; erreurChargement?: boolean }) {
   useEditeursCharges()
+  // Le panneau de filtres est piloté par des styles INLINE : une média-query ne peut pas
+  // les surcharger, la mesure passe donc par le JS (patron de la charte, § Responsive).
+  const estMobile = useEstMobile()
   const searchParams = useSearchParams()
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInitiaux)
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
@@ -1803,6 +1866,26 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
   [auteurs, qNorm, periodesActives, languesActives, famillesActives])
 
+  // La liste est-elle RESTREINTE ? (une recherche, un filtre, ou les deux)
+  const listeRestreinte = auteursFiltres.length !== auteurs.length
+
+  // ── CE QUI AGIT, ET CE QUE LA LISTE PORTE ─────────────────────────────────
+  // ⚠️ Deux choses que la page ne disait NULLE PART. Lesquels des filtres agissent,
+  // une fois le panneau refermé : le bouton n'en portait que le NOMBRE. Et combien
+  // d’auteurs répondent : seul le pied « Page 1 sur 3 » le laissait deviner, et le
+  // total ne se lisait qu’en tournant les pages jusqu’au bout.
+  const filtresRetenus: { cle: string; libelle: React.ReactNode; retirer: () => void }[] = [
+    ...PERIODES.map((p, i) => ({ i, p })).filter(({ i }) => periodesActives.has(i))
+      .map(({ i, p }) => ({ cle: `p${i}`, libelle: p.jsx, retirer: () => basculer(setPeriodesActives, i) })),
+    ...languesDispo.filter(l => languesActives.has(l))
+      .map(l => ({ cle: `l${l}`, libelle: libelleLangue(l), retirer: () => basculer(setLanguesActives, l) })),
+    ...famillesDispo.filter(f => famillesActives.has(f.cle))
+      .map(f => ({ cle: `f${f.cle}`, libelle: f.libelle, retirer: () => basculer(setFamillesActives, f.cle) })),
+  ]
+  const effacerLesFiltres = () => {
+    setPeriodesActives(new Set()); setLanguesActives(new Set()); setFamillesActives(new Set())
+  }
+
   // La liste se tourne par pages de DIX auteurs. Chaque fiche fait deux cents
   // pixels, et sa liste d'œuvres dépliée bien davantage : au-delà de dix, on ne
   // parcourt plus une bibliothèque, on fait défiler.
@@ -1891,20 +1974,20 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
 
             {/* Panneau de filtres à facettes (période · langue · tradition). */}
             {filtresOuverts && (
-              <div style={{ maxWidth: '52rem', margin: '0 auto 18px', padding: '16px 20px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div style={{ maxWidth: '52rem', margin: '0 auto 14px', padding: '14px 20px 15px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '11px' }}>
                 {/* ⛔ Chaque rang ne paraît que s'il lui reste une facette à offrir. La
                     PÉRIODE ne se dérivait pas des données, à la différence des deux autres :
                     ses cinq empans s'affichaient toujours, et l'on pouvait cliquer un
                     siècle que la bibliothèque ne porte pas. */}
                 {periodesVues.length > 0 && (
-                  <LigneFiltres label="Période">
+                  <LigneFiltres label="Période" mobile={estMobile}>
                     {periodesVues.map(({ i, p, compte }) => (
                       <Chip key={i} compte={compte} actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>
                     ))}
                   </LigneFiltres>
                 )}
                 {languesVues.length > 0 && (
-                  <LigneFiltres label="Langue">
+                  <LigneFiltres label="Langue" mobile={estMobile}>
                     {languesVues.map(({ l, compte }) => (
                       // La valeur reste celle de la base (« latin »), la pastille porte
                       // l'étiquette (« Latin ») : voir app/lib/langues.ts.
@@ -1913,21 +1996,54 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                   </LigneFiltres>
                 )}
                 {famillesVues.length > 0 && (
-                  <LigneFiltres label="Tradition">
+                  <LigneFiltres label="Tradition" mobile={estMobile}>
                     {famillesVues.map(({ famille, compte }) => (
                       <Chip key={famille.cle} compte={compte} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
                     ))}
                   </LigneFiltres>
                 )}
+                {/* ⚠️ « Tout effacer » se range sous la COLONNE DES PASTILLES, non au bord du
+                    panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus
+                    loin, il ne se rattachait à rien et faisait un objet de plus en bas d'écran. */}
                 {nbFiltres > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '2px' }}>
-                    <button onClick={() => { setPeriodesActives(new Set()); setLanguesActives(new Set()); setFamillesActives(new Set()) }}
-                      style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                      Effacer les filtres
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: estMobile ? 'minmax(0, 1fr)' : `${COLONNE_RUBRIQUE} minmax(0, 1fr)`,
+                    columnGap: '0.75rem', paddingTop: '1px',
+                  }}>
+                    {!estMobile && <span />}
+                    <button onClick={effacerLesFiltres}
+                      style={{ justifySelf: 'start', fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: 0 }}>
+                      Tout effacer
                     </button>
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Ce qui AGIT, quand le panneau est refermé. ⛔ Il ne se double pas du panneau
+                ouvert, qui montre déjà les mêmes pastilles à l'état actif. */}
+            {!filtresOuverts && filtresRetenus.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center', justifyContent: 'center', maxWidth: '52rem', margin: '0 auto 12px' }}>
+                {filtresRetenus.map(f => (
+                  <Jeton key={f.cle} onRetirer={f.retirer}>{f.libelle}</Jeton>
+                ))}
+                <button onClick={effacerLesFiltres}
+                  style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '0 4px' }}>
+                  Tout effacer
+                </button>
+              </div>
+            )}
+
+            {/* Ce que la liste PORTE. Il ne paraît que lorsqu'une recherche ou un filtre la
+                restreint : c’est là que le compte est une information, et le total qu’il donne
+                au passage ne se lisait autrement qu’en tournant les pages jusqu’au bout. */}
+            {listeRestreinte && auteursFiltres.length > 0 && (
+              <p aria-live="polite" style={{ textAlign: 'center', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif', margin: '0 0 14px' }}>
+                {auteursFiltres.length === 1
+                  ? `Un auteur sur ${enLettres(auteurs.length)}`
+                  : `${capitaliserInitiale(enLettres(auteursFiltres.length))} auteurs sur ${enLettres(auteurs.length)}`}
+              </p>
             )}
 
             {auteursFiltres.length === 0 ? (

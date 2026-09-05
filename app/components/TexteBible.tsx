@@ -16,7 +16,8 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
@@ -488,6 +489,10 @@ export default function TexteBible({
   const estLigne899 = (v: Verset) => v._est899 === true
   const estLigneEditoriale = (v: Verset) => v._estEditorial === true
   const estLacune899 = (v: Verset) => v._estLacune === true
+  // La traduction moderne du même témoin n'est pas recomposée, mais son texte porte les
+  // lacunes du manuscrit en clair : il faut les mettre en forme, sans passer par le
+  // tokeniseur du témoin, qui prendrait ses restitutions pour des marqueurs à cheval.
+  const lacunesEnClair = estTraductionModerne899(traduction)
   const indexBlocs = indexerBlocsDeCorps(editionChapter?.bodyBlocks ?? [])
   const indexIllustrations = indexerIllustrations(editionChapter?.assets ?? [])
   // ⛔ LES VIGNETTES SE FONDENT DANS LE COMMENTAIRE QUI COUVRE LEUR VERSET, et y
@@ -753,7 +758,13 @@ export default function TexteBible({
                     ) : (overrides[v.id_verset]?.[traduction] ?? v[traduction]) ? (
                       ligne899
                         ? rendreMarqueurs899(String(v[traduction] ?? ''))
-                        : rendreTexteEnrichi(String(overrides[v.id_verset]?.[traduction] ?? v[traduction]))
+                        : rendreTexteEnrichi(
+                            String(overrides[v.id_verset]?.[traduction] ?? v[traduction]),
+                            // La traduction moderne du témoin porte ses lacunes en clair
+                            // (« […] ») : elles se mettent en forme comme dans la colonne du
+                            // manuscrit, sans que le reste de l'enrichissement soit touché.
+                            lacunesEnClair ? marquerLacunesDuTemoin : undefined,
+                          )
                     ) : (
                       <span style={STYLE_VERSET_VIDE}>—</span>
                     )}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { rendreMarqueurs899 } from './marqueurs899'
+import { marquerLacunesDuTemoin, MARQUEUR_LACUNE, rendreMarqueurs899 } from './marqueurs899'
 
 const FINE = ' '   // espace fine insécable U+202F
 const NBSP = ' '   // espace insécable U+00A0
@@ -52,7 +52,7 @@ describe('rendreMarqueurs899', () => {
     const out = reduireTout(rendreMarqueurs899('a [lacune : trou de vélin] b')) as ReturnType<typeof reduire>[]
     expect(out).toEqual([
       { t: 'texte', v: 'a ' },
-      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '⟨ Lacune ⟩' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
       { t: 'texte', v: ' b' },
     ])
   })
@@ -64,7 +64,7 @@ describe('rendreMarqueurs899', () => {
     expect(out).toEqual([
       { t: 'texte', v: 'por' },
       { t: 'texte', v: ' ' },
-      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '⟨ Lacune ⟩' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
       { t: 'texte', v: ' ' },
       { t: 'texte', v: 'er' },
     ])
@@ -92,6 +92,72 @@ describe('rendreMarqueurs899', () => {
     ])
   })
 
+  // ── La lacune NUE « […] » ────────────────────────────────────────────────────────
+  // Elle se ferme d’elle-même : c’est la donnée qui porte déjà la marque, il n’y a
+  // aucun motif à masquer, et le mode courant n’en est pas changé.
+  it('rend une lacune NUE au milieu d’un verset', () => {
+    const out = reduireTout(rendreMarqueurs899('Après qu’il eut mangé et bu […]')) as ReturnType<typeof reduire>[]
+    expect(out).toEqual([
+      { t: 'texte', v: 'Après qu’il eut mangé et bu ' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
+    ])
+  })
+
+  // ⛔ Le crochet fermant d’une lacune nue n’est PAS une fermeture orpheline : un verset
+  // qui s’ouvre sur elle basculait tout entier en lecture incertaine.
+  it('un verset qui COMMENCE par une lacune nue garde son texte en clair', () => {
+    const out = reduireTout(rendreMarqueurs899('[…] et il prenait ce qu’il pouvait')) as ReturnType<typeof reduire>[]
+    expect(out).toEqual([
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
+      { t: 'texte', v: ' et il prenait ce qu’il pouvait' },
+    ])
+  })
+
+  it('insère une fine de chaque côté quand la lacune nue coupe un mot', () => {
+    const out = reduireTout(rendreMarqueurs899('por[…]er')) as ReturnType<typeof reduire>[]
+    expect(out).toEqual([
+      { t: 'texte', v: 'por' },
+      { t: 'texte', v: FINE },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
+      { t: 'texte', v: FINE },
+      { t: 'texte', v: 'er' },
+    ])
+  })
+
+  // ── Le texte NON recomposé (traduction moderne du même témoin) ───────────────────
+  // ⛔ Elle porte 85 RESTITUTIONS entre crochets, qui sont l’usage philologique et
+  // doivent s’imprimer telles quelles : on ne reconnaît que la lacune, par paires.
+  describe('marquerLacunesDuTemoin', () => {
+    it('laisse intact un texte sans lacune', () => {
+      expect(marquerLacunesDuTemoin('Nabal répondit aux serviteurs', 't0')).toBe('Nabal répondit aux serviteurs')
+    })
+
+    it('ne touche NI une restitution NI une lecture incertaine', () => {
+      const texte = 'Le Seigneur [les eut frappés] et [lecture incertaine : il partit]'
+      expect(marquerLacunesDuTemoin(texte, 't1')).toBe(texte)
+    })
+
+    it('met en forme la lacune nue et la lacune motivée', () => {
+      const out = reduireTout(marquerLacunesDuTemoin('Le Seigneur [lacune : déchirure] hors du paradis […]', 't2')) as ReturnType<typeof reduire>[]
+      expect(out).toEqual([
+        { t: 'texte', v: 'Le Seigneur ' },
+        { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
+        { t: 'texte', v: ' hors du paradis ' },
+        { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
+      ])
+    })
+
+    it('sépare d’une fine la lacune qui coupe un mot', () => {
+      const out = reduireTout(marquerLacunesDuTemoin('por[lacune : déchirure]er', 't3')) as ReturnType<typeof reduire>[]
+      expect(out).toEqual([
+        { t: 'texte', v: 'por' },
+        { t: 'texte', v: FINE },
+        { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: MARQUEUR_LACUNE },
+        { t: 'texte', v: FINE },
+        { t: 'texte', v: 'er' },
+      ])
+    })
+  })
   // Le tokeniseur se lit par INDICES : une normalisation qui changerait la longueur
   // décalerait tout ce qui suit. Celle-ci est caractère pour caractère.
   it('ne change pas la longueur du texte', () => {

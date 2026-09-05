@@ -15,6 +15,21 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 /** Identifiant de la traduction Bible 899 dans `traductions`. */
 export const TRAD_ID_BIBLE899 = 'TR0009'
 
+/**
+ * La traduction en français MODERNE du même témoin (TR0013). Elle n’est pas recomposée —
+ * son texte vit dans `versets_v2`, un verset par créneau canonique — mais elle porte les
+ * mêmes LACUNES que le manuscrit, écrites en clair « […] », et neuf « [lacune : motif] ».
+ *
+ * ⚠️ Elle ne passe donc PAS par `rendreMarqueurs899` : voir `marquerLacunesDuTemoin`, qui
+ * ne reconnaît que la lacune, et par paires complètes.
+ */
+export const TRAD_ID_BIBLE899_MODERNE = 'TR0013'
+
+/** Ce texte porte-t-il les lacunes du témoin écrites en clair ? (TR0013, suffixes compris) */
+export function estTraductionModerne899(tradId: string | null | undefined): boolean {
+  return (tradId ?? '').split('#')[0] === TRAD_ID_BIBLE899_MODERNE
+}
+
 // Couche textuelle (état du texte). « diplomatic » (transcription) et « expanded »
 // (abréviations développées) existent toujours ; « modernized » (graphie modernisée
 // du segment canonique) n'existe QUE si les données l'exposent — la disponibilité se
