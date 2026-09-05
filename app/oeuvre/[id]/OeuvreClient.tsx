@@ -16,6 +16,17 @@ import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffic
 import type { BlocOriginal } from './bilingueAlignement'
 import { blocsBilingues, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
+import {
+  basculerChapeau,
+  chapeauxEnTexte,
+  clesDeSurface,
+  niveauVide,
+  niveauxOfferts,
+  normaliserConfig,
+  poserProfondeur,
+  profondeurPresente,
+  type Surface,
+} from './niveauxAffichage'
 
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
@@ -646,13 +657,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const voletsDirty = navWidth !== null || pannWidth !== null
   const refNav = useRef<HTMLElement>(null)
   const refAside = useRef<HTMLElement>(null)
-  const [configNiveaux, setConfigNiveaux] = useState({
-    sommaire: niveauxSommaire ?? 1, corps: niveauxCorps ?? 1,
-    txtSommaire: (txtSommaire ?? []).concat([false,false,false,false,false]).slice(0,5) as boolean[],
-    txtCorps: (txtCorps ?? []).concat([false,false,false,false,false]).slice(0,5) as boolean[],
-    afficherNumeros: afficherNumeros ?? true,
-    texteEntier: lectureTexteEntier,
+  // ⛔ La configuration est NORMALISÉE à l'ouverture : bornée à ce que chaque surface
+  // sait rendre, chapeaux éteints au-dessus de leur niveau. La règle et ses mesures
+  // vivent dans `niveauxAffichage.ts` — c'est elle qui répare les pastilles à la fois
+  // vertes et grisées. ⚠️ Elle ne change RIEN à l'écran de lecture : un niveau au delà
+  // du maximum rend comme le maximum, et un chapeau au delà de sa profondeur ne rend
+  // pas du tout. Elle accorde ce que le panneau montre avec ce que la page fait.
+  const configInitiale = () => normaliserConfig({
+    sommaire: niveauxSommaire, corps: niveauxCorps,
+    txtSommaire, txtCorps, afficherNumeros, texteEntier: lectureTexteEntier,
   })
+  const [configNiveaux, setConfigNiveaux] = useState(configInitiale)
+  // ⛔ ET ELLE SE RECALE QUAND ON CHANGE D'ŒUVRE. `/oeuvre/[id]` est une seule route :
+  // passer d'une œuvre à l'autre ne remonte pas ce composant, si bien que le panneau
+  // gardait les niveaux de l'œuvre PRÉCÉDENTE — un réglage qui décrit autre chose que
+  // ce qu'on lit. Patron des états qui recopient une propriété (charte § linter) : on
+  // recale PENDANT le rendu, jamais dans un effet, sinon l'ancien réglage paraît un
+  // instant. ⚠️ Sur l'œuvre courante, les retouches non enregistrées sont conservées.
+  const [oeuvreDeLaConfig, setOeuvreDeLaConfig] = useState(idOeuvre)
   const [configOuverte, setConfigOuverte] = useState(false)
   const [configEnvoi, setConfigEnvoi] = useState(false)
   // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
@@ -661,27 +683,49 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // puis plus rien, et devait conclure que le réglage ne marchait pas. Un réglage qui
   // échoue doit le dire, sans quoi on cherche le défaut dans l'affichage.
   const [configErreur, setConfigErreur] = useState<string | null>(null)
-  // Quels niveaux de titres existent réellement dans l'œuvre : on grise les niveaux
-  // vides dans le sélecteur d'affichage. Calculé une fois, à l'ouverture du panneau
-  // (admin seulement), par une simple sonde d'existence par niveau.
-  const [niveauxPresents, setNiveauxPresents] = useState<boolean[] | null>(null)
+  // ── QUELS NIVEAUX DE TITRE EXISTENT VRAIMENT ──────────────────────────────
+  // Le panneau signale les niveaux creux. `null` = on ne sait pas encore, ou la sonde a
+  // échoué : dans les deux cas on ne grise RIEN. Calculé à l'ouverture du panneau, pour
+  // l'administrateur seul, et refait quand on change d'œuvre.
+  //
+  // ⛔ SUR L'ŒUVRE, NON SUR LE TEXTE LU. Les quatre réglages vivent sur `oeuvres` et
+  // gouvernent tous ses textes à la fois : mesurer le seul texte ouvert grisait un
+  // niveau que son voisin porte — le grec de l'Hexaéméron n'a qu'un niveau quand son
+  // français en a deux, et le Morel du Discours 38 n'en a aucun quand son grec en a un.
+  //
+  // ⛔ ET DU PLUS HAUT AU PLUS BAS, EN SÉRIE, EN S'ARRÊTANT AU PREMIER ABSENT. Une sonde
+  // qui trouve s'arrête à la première ligne ; une sonde qui ne trouve rien parcourt tout
+  // le texte — 3,1 s sur la Somme théologique, mesuré. Les cinq partaient EN PARALLÈLE
+  // sous le délai de huit secondes du rôle `authenticated`, et une requête refusée était
+  // lue comme un niveau absent : d'où des niveaux existants grisés, une fois sur deux.
+  // La règle, ses mesures et l'emboîtement qu'elle suppose vivent dans
+  // `niveauxAffichage.ts`.
+  const [profondeurExistante, setProfondeurExistante] = useState<number | null>(null)
   useEffect(() => {
-    if (!configOuverte || niveauxPresents) return
+    if (!configOuverte) return
     let annule = false
-    // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
-    // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
-    // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
-    const cols = ['ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5'] as const
     ;(async () => {
-      const reponses = await Promise.all(cols.map(col =>
-        supabase.from('segments').select('id').eq('id_oeuvre', idOeuvre).eq('id_texte', idTexte)
-          .in('nature', NATURES_CORPS).not(col, 'is', null).neq(col, '').limit(1)
-      ))
-      if (annule) return
-      setNiveauxPresents(cols.map((_, i) => ((reponses[i].data as unknown[])?.length ?? 0) > 0))
+      // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
+      // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
+      // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
+      const profondeur = await profondeurPresente(async niveau => {
+        const colonne = `ref_niv${niveau}`
+        const { data, error } = await supabase.from('segments').select('id')
+          .eq('id_oeuvre', idOeuvre).in('nature', NATURES_CORPS)
+          .not(colonne, 'is', null).neq(colonne, '').limit(1)
+        // ⛔ Une requête en échec n'est pas un niveau absent : on rend « on ne sait pas ».
+        if (error) { console.error(`Sonde du niveau ${niveau} :`, error); return null }
+        return (data?.length ?? 0) > 0
+      })
+      if (!annule) setProfondeurExistante(profondeur)
     })()
     return () => { annule = true }
-  }, [configOuverte, niveauxPresents, idOeuvre, idTexte])
+  }, [configOuverte, idOeuvre])
+  if (oeuvreDeLaConfig !== idOeuvre) {
+    setOeuvreDeLaConfig(idOeuvre)
+    setConfigNiveaux(configInitiale())
+    setProfondeurExistante(null)
+  }
   const resetVolets = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_oeuvre2') } catch {} }
   const [nbCommentairesOeuvre, setNbCommentairesOeuvre] = useState<number | null>(null)
   useEffect(() => {
@@ -3480,40 +3524,48 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
               <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-gris)', lineHeight: 1.45, margin: 0 }}>Le texte entier conserve ses titres et son sommaire. La pagination ne s’arrête plus à chaque niveau 1.</p>
             </div>
-            {(['sommaire', 'corps'] as const).map(type => {
-              const key = type === 'sommaire' ? 'sommaire' : 'corps'
-              const txtKey = type === 'sommaire' ? 'txtSommaire' : 'txtCorps'
+            {(['sommaire', 'corps'] as Surface[]).map(type => {
+              const { profondeur: key, chapeaux: txtKey } = clesDeSurface(type)
               const titre = type === 'sommaire' ? 'Sommaire' : 'Corps du texte'
               return (
                 <div key={type} style={{ marginBottom: '14px', padding: '12px 14px', background: 'var(--cs-fond-clair)', borderRadius: '8px', border: '1px solid var(--cs-fond-doux)' }}>
                   <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', margin: '0 0 10px' }}>{titre}</p>
 
+                  {/* ⛔ Le panneau n'offre que les niveaux que CETTE surface sait rendre :
+                      trois pour le sommaire, quatre pour le corps. Il en proposait cinq
+                      de chaque côté, dont aucun rendu ne s'occupe. */}
                   <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
-                    {[1,2,3,4,5].map(n => {
-                      const vide = !!niveauxPresents && !niveauxPresents[n - 1]
+                    {niveauxOfferts(type).map(n => {
                       const choisi = configNiveaux[key] === n
+                      // ⛔ La sonde SIGNALE, elle n'interdit pas : un niveau creux se
+                      // montre éteint mais reste cliquable. Une sonde qui se tromperait —
+                      // ou qui n'aurait pas répondu — ne doit jamais fermer un réglage.
+                      // ⛔ Et le niveau CHOISI ne se grise jamais : vert et éteint à la
+                      // fois, il ne se lisait plus.
+                      const vide = niveauVide(profondeurExistante, n, choisi)
                       return (
-                        <button key={n} disabled={vide} onClick={() => { if (!vide) setConfigNiveaux(prev => ({ ...prev, [key]: n })) }}
-                          title={vide ? `Le niveau ${n} n’existe pas dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}
-                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
+                        <button key={n} onClick={() => setConfigNiveaux(prev => poserProfondeur(prev, type, n))}
+                          title={vide ? `Le niveau ${n} ne porte aucun titre dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}
+                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
                           {n}
                         </button>
                       )
                     })}
                   </div>
 
+                  {/* ⛔ Un chapeau au-dessus du niveau affiché ne rend RIEN : il se montre
+                      donc ÉTEINT, et non vert-et-grisé — c'est-à-dire coché sans qu'on
+                      puisse le décocher. Baisser le niveau l'éteint pour de bon
+                      (`poserProfondeur`), si bien que la donnée dit ce que l'écran dit. */}
                   <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
                   <div style={{ display: 'flex', gap: '4px' }}>
-                    {[1,2,3,4,5].map((n, i) => {
-                      const actif = configNiveaux[txtKey][i]
+                    {niveauxOfferts(type).map(n => {
                       const disponible = n <= configNiveaux[key]
+                      const actif = disponible && configNiveaux[txtKey][n - 1]
                       return (
-                        <button key={n} disabled={!disponible} onClick={() => setConfigNiveaux(prev => {
-                          const arr = [...prev[txtKey]]
-                          arr[i] = !arr[i]
-                          return { ...prev, [txtKey]: arr }
-                        })}
+                        <button key={n} disabled={!disponible}
+                          onClick={() => setConfigNiveaux(prev => basculerChapeau(prev, type, n))}
                           title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
                           style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
                           N{n}
@@ -3540,12 +3592,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <button disabled={configEnvoi} onClick={async () => {
                 setConfigEnvoi(true)
                 setConfigErreur(null)
-                const toStr = (b: boolean[]) => b.map(x => x ? '1' : '0').join(',')
                 const appels = [
                   { champ: 'niveaux_sommaire', valeur: configNiveaux.sommaire },
                   { champ: 'niveaux_corps', valeur: configNiveaux.corps },
-                  { champ: 'texte_sommaire', valeur: toStr(configNiveaux.txtSommaire) },
-                  { champ: 'texte_corps', valeur: toStr(configNiveaux.txtCorps) },
+                  { champ: 'texte_sommaire', valeur: chapeauxEnTexte(configNiveaux.txtSommaire) },
+                  { champ: 'texte_corps', valeur: chapeauxEnTexte(configNiveaux.txtCorps) },
                   { champ: 'afficher_numeros', valeur: configNiveaux.afficherNumeros },
                   { champ: 'lecture_texte_entier', valeur: configNiveaux.texteEntier },
                 ]

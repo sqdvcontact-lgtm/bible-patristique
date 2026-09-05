@@ -5486,6 +5486,54 @@ versions privées.
   l'Hexaéméron, la paire ne CHANGE pas mais cesse d'être un coup de dé : ses deux grecs de
   1857 se départageaient jusque-là par l'ordre des lignes.
 
+# ⛔ Le panneau des NIVEAUX D'AFFICHAGE dit la vérité (2026-09-05)
+
+La roue crantée du volet règle, séparément pour le SOMMAIRE et pour le CORPS, jusqu'à
+quel niveau de titre on descend et lesquels montrent leur CHAPEAU. Les quatre valeurs
+vivent sur l'ŒUVRE — `niveaux_sommaire`, `niveaux_corps`, `texte_sommaire`,
+`texte_corps` — et gouvernent donc TOUS ses textes. La règle vit dans
+**`app/oeuvre/[id]/niveauxAffichage.ts`** (module pur, 18 tests).
+
+Relevé de l'auteur : « y'a des N toujours cochés, même quand grisés, et n'affichent pas
+toujours les niveaux existants ». Trois causes, et elles n'ont rien en commun.
+
+- ⛔ **UN CHAPEAU NE RESTE PAS COCHÉ HORS DE PORTÉE.** Sa pastille se peignait sur
+  `texte_sommaire[i]` et se grisait sur `i >= niveaux_sommaire` : les deux pouvaient
+  valoir vrai, et c'est le cas ORDINAIRE en base — Du combat chrétien porte `niveaux 1,1`
+  pour `chapeaux 1,1,1`, la Somme théologique `sommaire 2` pour `1,1,1,1,1`. Le bouton
+  étant `disabled`, **on ne pouvait plus le décocher** : « toujours cochés », au mot près.
+  Et remonter le niveau rallumait d'un coup des chapeaux que personne n'avait choisis. Le
+  chapeau se montre donc ÉTEINT au-dessus de son niveau, `poserProfondeur` l'éteint pour
+  de bon quand on baisse, et `normaliserConfig` accorde l'état d'ouverture à la donnée.
+  ⚠️ Rien ne change à l'écran de lecture : un chapeau au delà de sa profondeur ne rendait
+  déjà rien, la page posant le complément DANS le titre.
+- ⛔ **LE PANNEAU N'OFFRE QUE CE QUE LA SURFACE SAIT RENDRE** (`PROFONDEUR_MAX`) : le
+  sommaire s'arrête au niveau 3 (`profondeurSommaire >= 3` est son test le plus profond),
+  le corps au niveau 4. Il en proposait CINQ de chaque côté. La Somme théologique est
+  enregistrée à `niveaux_corps = 5`, qui rend exactement comme 4, et ses chapeaux N4/N5 de
+  sommaire ne sont lus par aucune ligne.
+- ⛔ **UNE SONDE EN ÉCHEC N'EST PAS UN NIVEAU ABSENT.** Elle lisait `data` sans regarder
+  `error`, et `null` valait « absent ». Or elle coûte, mesuré, **3,1 s par niveau
+  ABSENT** — elle parcourt les 32 367 segments de la Somme théologique pour ne rien
+  trouver — et **cinq partaient en parallèle** sous le délai de huit secondes
+  d'`authenticated`. D'où un grisé intermittent, c'est-à-dire « pas toujours ». Elle
+  descend maintenant du plus haut au plus bas, EN SÉRIE, et s'arrête au premier absent :
+  une sonde qui trouve répond à la première ligne, si bien qu'on ne paie ce prix qu'UNE
+  fois. ⚠️ Cela suppose les niveaux emboîtés, ce que la donnée dit (aucune des 46 œuvres
+  ne porte un niveau sans celui du dessus) — d'où la règle suivante, qui rend l'hypothèse
+  inoffensive.
+- ⛔ **LA SONDE SIGNALE, ELLE N'INTERDIT PAS.** Un niveau creux se montre éteint et reste
+  CLIQUABLE ; une sonde qui se tromperait ne peut donc pas fermer un réglage. Et le niveau
+  CHOISI ne se grise jamais : vert et éteint à la fois, il ne se lisait plus — c'est ce
+  que voyait toute œuvre sans aucun titre (Cyprien, le Morel du Discours 38).
+- ⛔ **ELLE PORTE SUR L'ŒUVRE, NON SUR LE TEXTE LU.** Le réglage est œuvre-wide : mesurer
+  le seul texte ouvert grisait un niveau que son voisin porte — le grec de l'Hexaéméron
+  n'a qu'un niveau quand son français en a deux.
+- ⚠️ **ET LE PANNEAU SE RECALE QUAND ON CHANGE D'ŒUVRE.** `/oeuvre/[id]` est une seule
+  route : passer d'une œuvre à l'autre ne remonte pas `OeuvreClient`, si bien que le
+  panneau gardait les niveaux de la PRÉCÉDENTE. Patron des états qui recopient une
+  propriété — on recale pendant le rendu, jamais dans un effet.
+
 # Les NOTIFICATIONS — une rangée, trois rangs, un ton (2026-09-04)
 
 Doctrine : charte `parametres.charte_ia`, § 38.17. Le volet vit dans
