@@ -5272,3 +5272,21 @@ Relevé de l’auteur, 2026-09-05 : « le temps d’affichage me paraît un peu 
 ⚠️ **Et ce qui reste, qui est de la BASE.** Les trois colonnes de date de la vue du catalogue coûtent à elles seules **1,3 s** sur les trois pages : cinq fonctions PL/pgSQL, aucune sous-expression partagée — la même est calculée deux fois par ligne — pour 515 dates distinctes sur 2 499 lignes. Deux barrières d’optimisation suffiraient à la faire tomber de 597 à 148 ms, le planificateur y ajoutant de lui-même un cache par valeur. Éprouvé, à l’identique au caractère près sur les 2 645 lignes ; non appliqué, faute d’arbitrage.
 
 ⚠️ **Comment on mesure une liste chargée par le NAVIGATEUR** : depuis le poste, en rejouant ses requêtes exactes. Le chemin réseau est le même que celui du lecteur, puisque c’est son navigateur qui parle à la base — à la différence d’une page servie, où il faut mesurer en ligne (§ 18).
+
+### 38.24 La fiche d’une ŒUVRE porte une FRISE, et un sommaire vide ne paraît pas
+
+Trois demandes de l’auteur, 2026-09-05.
+
+⛔ **LA FICHE D’UNE ŒUVRE PORTE UNE CHRONOLOGIE, ET C’EST CELLE DE SON AUTEUR.** Il n’y en a pas d’autre : douze événements sur 1 346 nomment une œuvre, **un seul par œuvre**, et une frise d’un point n’est pas une frise. Mais la question qu’on pose à cette fenêtre — *où ce livre tombe-t-il ?* — se répond précisément là, entre la naissance et la mort de celui qui l’a écrite.
+
+⚠️ **La ligne qui nomme l’œuvre lue s’y DÉTACHE**, à l’accent et à la graisse — le marqueur de l’entrée active d’un sommaire, et rien de plus. Sans elle, la fiche de l’œuvre montrerait la fiche de l’auteur et ne répondrait à rien. ⛔ La chronologie OUVRE la colonne de droite, comme dans la fiche d’une traduction : on situe avant de documenter ; et elle ne paraît pas quand l’auteur n’en a pas.
+
+⚠️ **Le champ existait et rien ne le lisait.** Les deux vues de chronologie portent `oeuvre_id` depuis l’origine ; aucune ligne du site ne l’avait jamais demandé. *Un champ qu’aucune surface ne lit n’est pas une réserve pour plus tard : c’est une porte qu’on a oublié d’ouvrir.*
+
+⛔ **UN SOMMAIRE QUI N’A RIEN À SOMMER NE PARAÎT PAS.** Le volet de lecture posait la rubrique « SOMMAIRE » et, dessous, la mention « Texte complet » : une rubrique qui annonce une table des matières, et une ligne qui dit qu’il n’y en a pas. Deux objets pour rien, et ils s’en vont ensemble. L’apparat critique prend alors toute la hauteur du volet, son plafond de moitié ne partageant plus avec personne.
+
+⚠️ **La règle porte sur le CONTENU, non sur le mode de lecture**, et la distinction n’est pas de forme. Le cas se rencontre aujourd’hui en TEXTE ENTIER — une seule œuvre publique, « De la vanité des idoles » — mais un texte sans niveaux le rendrait tout aussi absurde ailleurs. ⛔ Et l’on ne retire pas le sommaire du mode « texte entier » : **vingt-trois œuvres s’y lisent AVEC le leur**, dont l’Apologétique (52 chapitres) et les Homélies sur la Genèse (68), où il est la seule navigation — c’est même son unique office là, puisque tout est déjà chargé dans la page.
+
+⛔ **UNE SOURCE NUMÉRIQUE NE DONNE QUE LE NOM DU SITE** (« toujours illisible ; se contenter de donner le nom du site »). Le champ n’est pas un nom mais une PHRASE — le site, puis ce qu’on y a pris : « eBible.org — corpus BibleNLP, édition fra-fraLSG » —, et dans la colonne étroite d’une fiche elle ne se lit pas.
+
+⛔ **Et ce nom n’est PAS l’hôte de l’adresse.** Trois des sept sources du corpus sont hébergées sur un même dépôt public, où le lecteur ne reconnaîtrait aucun des trois sites. C’est le DÉBUT du nom qui nomme, la suite qui précise ; l’hôte ne sert que de dernier repli, quand aucun nom n’est écrit. ⚠️ La coupe se fait sur un séparateur EXPLICITE — le tiret, ou l’incise « , d’après … » —, jamais sur une position ni sur la première virgule : « Gallica, Bibliothèque nationale de France » porte la sienne dans son nom même.

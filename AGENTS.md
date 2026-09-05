@@ -5988,3 +5988,72 @@ arbitrage.
 rejouant ses requêtes exactes — le chemin réseau est le même que celui du lecteur, à la
 différence d'une page servie, qu'il faut mesurer en ligne. ⚠️ Le plafond de PostgREST est
 bien de **1 000 lignes** (vérifié : un `Range: 0-4999` rend `content-range: 0-999/*`).
+
+# La fiche d'une ŒUVRE porte une FRISE, et un sommaire vide ne paraît pas (2026-09-05)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.24**. Trois demandes de l'auteur.
+Règles de code :
+
+## ⛔ Un sommaire qui n'a rien à SOMMER ne paraît pas
+
+`OeuvreClient.tsx`, `sommaireAQuoiSommer`. Le volet posait la rubrique « SOMMAIRE » et,
+dessous, la mention « Texte complet » : une rubrique qui annonce une table des matières,
+et une ligne qui dit qu'il n'y en a pas. Les deux s'en vont ensemble ; la mention n'a
+plus aucun cas et son bloc est supprimé.
+
+- ⚠️ **La règle porte sur le CONTENU, non sur le mode de lecture.** Mesuré le
+  2026-09-05 : **une seule œuvre publique** a un sommaire vide (« De la vanité des
+  idoles »), et elle est en texte entier — mais aucune œuvre hors texte entier ne l'est,
+  et un texte sans niveaux le rendrait tout aussi absurde ailleurs. La garde est donc
+  `modeComparaisonActif || !texteSansNiveaux`.
+- ⛔ **Ne PAS l'étendre au mode « texte entier » lui-même** : **23 œuvres publiques** s'y
+  lisent AVEC leur sommaire, dont l'Apologétique (52 chapitres), les Homélies sur la
+  Genèse (68), Du mépris du monde (64) et le Commentaire sur Jonas (41). Là, le sommaire
+  est la SEULE navigation, et c'est même son unique office (tout est déjà chargé).
+- ⚠️ **Le mode COMPARAISON garde le sien** : `texteSansNiveaux` y est souvent vrai, et
+  c'est pourtant lui qui liste les Livres → Divisions alignés.
+- ⚠️ **Sans sommaire dessous, l'apparat critique prend toute la hauteur** : son
+  `maxHeight: 50%` ne partageait qu'avec un sommaire qui n'est plus là.
+
+## La CHRONOLOGIE de la fiche d'une œuvre
+
+`FicheEdition.tsx`, en tête de la colonne de droite. C'est celle de l'AUTEUR.
+
+- ⚠️ **Il n'y en a pas d'autre, et c'est mesuré** : `evenements.oeuvre_id` est renseigné
+  sur **12 événements sur 1 346**, un seul par œuvre, dont **9** remontent par
+  `v_chronologie_auteurs`. Une frise d'un point n'est pas une frise. Ce qu'on demande à
+  cette fenêtre — *où ce livre tombe-t-il ?* — se répond dans la vie de celui qui l'a
+  écrit.
+- ⛔ **La ligne qui nomme l'œuvre lue s'y DÉTACHE** : `FriseAuteur` prend
+  `oeuvreEnRelief`, et rend cette ligne à l'accent et à la graisse 600 — le marqueur de
+  l'entrée active d'un sommaire, rien de plus. Sans lui, la fiche de l'œuvre montrerait
+  la fiche de l'auteur et ne répondrait à rien.
+- ⛔ **La VUE, jamais `evenements` ni `auteurs_evenements`** (charte § 26), et
+  `v_chronologie_auteurs_DATES` comme la fiche d'auteur : c'est elle qui porte la date
+  courte, dont la colonne des dates dépend.
+- ⚠️ **`RangChrono.oeuvre_id` est déclaré FACULTATIF** : la vue des traductions ne le
+  porte pas. Il existait dans les deux vues d'auteur depuis l'origine et **aucune ligne
+  du site ne l'avait jamais demandé** — *un champ qu'aucune surface ne lit n'est pas une
+  réserve pour plus tard, c'est une porte qu'on a oublié d'ouvrir.*
+- ⚠️ **Une frise absente ne ferme pas la fiche** : l'erreur part au journal et la rubrique
+  se tait. `aColonnes` la compte, sinon une œuvre sans édition de référence rendrait la
+  frise sur une seule colonne.
+
+## ⛔ Une SOURCE NUMÉRIQUE ne donne que le nom du SITE
+
+`app/lib/sourceNumerique.ts` (pur, 17 tests sur les sept sources du corpus), employé par
+`ModaleTraduction`. `editions_sources.source_nom` n'est pas un nom mais une PHRASE — le
+site, puis ce qu'on y a pris : « eBible.org — corpus BibleNLP, édition fra-fraLSG ». Dans
+la colonne étroite d'une fiche, elle ne se lit pas.
+
+- ⛔ **Le nom du site n'est PAS l'hôte de l'adresse.** Trois des sept sources sont
+  hébergées sur `github.com`, et le lecteur n'y reconnaîtrait ni eBible.org, ni le dépôt
+  scrollmapper, ni lxx-swete. L'hôte ne sert que de dernier repli, quand aucun nom n'est
+  écrit.
+- ⚠️ **La coupe se fait sur un SÉPARATEUR EXPLICITE**, jamais sur une position : le tiret
+  (cadratin ou demi-cadratin) entouré d'espaces, ou l'incise « , d'après … » qui introduit
+  la provenance. ⛔ Jamais à la première virgule — « Gallica, Bibliothèque nationale de
+  France » porte la sienne dans son nom même — ni sur un tiret COLLÉ, qui appartient au
+  nom (« Dépôt lxx-swete »).
+- ⚠️ Une coupe qui ne laisserait rien n'est pas une coupe : on rend alors la phrase
+  entière. Mieux vaut long que vide.
