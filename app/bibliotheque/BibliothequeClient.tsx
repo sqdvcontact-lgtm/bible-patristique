@@ -1966,9 +1966,10 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                 style={{ position: 'relative', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78125rem', color: filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', background: filtresOuverts ? 'rgba(var(--cs-vert-rgb),0.06)' : 'var(--cs-surface)', border: `1px solid ${filtresOuverts || nbFiltres > 0 ? 'var(--cs-vert-clair)' : 'var(--cs-bord)'}`, borderRadius: '8px', cursor: 'pointer', padding: '7px 14px', fontFamily: 'inherit' }}>
                 <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M1.5 3h11M3.5 7h7M5.5 11h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                 Filtres
-                {nbFiltres > 0 && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '15px', height: '15px', padding: '0 4px', borderRadius: '999px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.5625rem', fontWeight: 700, lineHeight: 1 }}>{nbFiltres}</span>
-                )}
+                {/* ⛔ Plus de PASTILLE DE COMPTE sur ce bouton. Elle disait « deux filtres » à
+                    quarante pixels des deux jetons qui les NOMMENT : deux comptes de la même
+                    chose sur une seule ligne, dont l'un ne dit pas lesquels. Ce que le bouton
+                    doit encore porter — qu'un filtre agit — est dit par son encre et son filet. */}
               </button>
             </div>
 
