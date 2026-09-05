@@ -36,8 +36,8 @@ import ModalSignalement from "@/app/components/ModalSignalement";
 import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
 import { citationBiblique } from "@/app/lib/citation";
 import { useCompte } from "@/app/lib/contexteCompte";
-import { aRevoir899, chargerVersets899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
-import { rendreMarqueurs899 } from "@/app/lib/marqueurs899";
+import { aRevoir899, chargerVersets899, estTraductionModerne899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
+import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
@@ -116,12 +116,12 @@ type Surnum = { cle: string; livre: string; ch: number; v: number; ancre: string
 // <i>…</i> (Sacy 1730 : mots ajoutés par le traducteur, absents de la Vulgate) et le gras
 // <b>…</b>. On le rend en vrais éléments React — jamais via dangerouslySetInnerHTML.
 
-function texteEnrichi(t: string | null) {
+function texteEnrichi(t: string | null, transform?: (s: string, cle: string) => React.ReactNode) {
   if (!t) return null;
   // Rendu commun au reste du site (gras **, italique <i>/*, petites capitales ++,
   // exposant ^^, siècles en romain). Compat : l'ancien balisage <b> devient **.
   const norm = t.replace(/<b>([\s\S]*?)<\/b>/g, "**$1**");
-  return rendreTexteEnrichi(norm);
+  return rendreTexteEnrichi(norm, transform);
 }
 
 // Enrichit le texte APRÈS avoir posé les tirets conditionnels. Un tiret conditionnel est
@@ -139,11 +139,11 @@ function texteEnrichi(t: string | null) {
 // ⚠️ La césure vient AVANT l'enrichissement, et c'est sans danger : `cesurerLatin` comme
 // `cesurerGrec` ne touchent que des suites de LETTRES assez longues — jamais la ponctuation,
 // jamais les marques `**`, `++`, `^^` ni `<i>`, dont le nom de balise n'a qu'une lettre.
-function texteCesure(t: string | null, lang?: string) {
-  if (!t) return texteEnrichi(t);
-  if (lang === "grc") return texteEnrichi(cesurerGrec(t));
-  if (lang === "la") return texteEnrichi(cesurerLatin(t));
-  return texteEnrichi(t);
+function texteCesure(t: string | null, lang?: string, transform?: (s: string, cle: string) => React.ReactNode) {
+  if (!t) return texteEnrichi(t, transform);
+  if (lang === "grc") return texteEnrichi(cesurerGrec(t), transform);
+  if (lang === "la") return texteEnrichi(cesurerLatin(t), transform);
+  return texteEnrichi(t, transform);
 }
 
 const VERT = "var(--cs-vert)";
@@ -2357,12 +2357,18 @@ export default function PolyglottePage() {
                               // lacunes. Même mot que la page Bible, sans crochets.
                               <span title={MENTION_LACUNE_TITRE} style={STYLE_MENTION_LACUNE}>{MENTION_LACUNE}</span>
                             ) : cs.map((c, k) => (
-                              // Colonne TR0009 : le texte porte des marqueurs éditoriaux inline
-                              // (`[lecture incertaine : …]`, `[lacune : …]`, `[ajout marginal : …]`).
+                              // Colonne du TÉMOIN (TR0009) : le texte porte des marqueurs éditoriaux
+                              // inline (`[lecture incertaine : …]`, `[lacune : …]`, `[ajout marginal : …]`).
                               // Bruts, ils s'affichaient tels quels (« [lacune : déchirure] »).
-                              // On les rend par le MÊME tokeniseur que la page Bible : lacune → un
-                              // discret « [Lacune] », lecture incertaine en gris, motif masqué.
-                              <span key={k}>{k > 0 ? " " : ""}{est899(t.trad_id) ? rendreMarqueurs899(c.texte ?? "") : texteCesure(c.texte, t.lang)}</span>
+                              // On les rend par le MÊME tokeniseur que la page Bible : la lacune devient
+                              // un discret « […] », la lecture incertaine passe en gris, le motif est masqué.
+                              //
+                              // Colonne de la TRADUCTION MODERNE du même témoin (TR0013) : elle n’est pas
+                              // recomposée, mais elle porte les mêmes lacunes en clair. Elle passe donc par
+                              // l’enrichissement ordinaire, la lacune seule recevant sa mise en forme.
+                              <span key={k}>{k > 0 ? " " : ""}{est899(t.trad_id)
+                                ? rendreMarqueurs899(c.texte ?? "")
+                                : texteCesure(c.texte, t.lang, estTraductionModerne899(t.trad_id) ? marquerLacunesDuTemoin : undefined)}</span>
                             ))}
                           </div>
                         );

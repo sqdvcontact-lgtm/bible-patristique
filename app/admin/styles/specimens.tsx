@@ -54,7 +54,8 @@ import {
 } from '@/app/lib/compositionOeuvre'
 import type { RangTitreOeuvre } from '@/app/lib/compositionOeuvre'
 import { styleLigneDeVers } from '@/app/lib/compositionVers'
-import { rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 export type CleOnglet = 'bible' | 'oeuvres' | 'apparat-oeuvres' | 'apparat-bibles'
 
@@ -292,8 +293,8 @@ const BIBLE: Unite[] = [
   },
   {
     style: 'bible/marqueurs éditoriaux — Bible 899',
-    note: 'Les marques de la transcription diplomatique, rendues discrètement dans le fil : lecture incertaine, ajout marginal, lacune matérielle. La teinte seule signale, et l’infobulle porte le sens savant — aucun crochet ne reste à l’écran.',
-    alerte: '⛔ Ces marqueurs peuvent être À CHEVAL sur deux versets : la recomposition par créneau canonique en ouvre un dans l’un et le ferme dans l’autre. `rendreMarqueurs899` est donc un TOKENISEUR tolérant, qui accepte un marqueur non ouvert comme un marqueur non fermé — sans quoi un crochet brut s’imprimerait.',
+    note: 'Les marques de la transcription diplomatique, rendues discrètement dans le fil : lecture incertaine, ajout marginal, lacune matérielle. La teinte seule signale une lecture incertaine, et l’infobulle porte le sens savant. La LACUNE, elle, garde ses crochets — le signe que la philologie donne à ce qu’un témoin a perdu — d’un cran sous le texte, dans l’ocre des absences, et avec un léger espace de part et d’autre pour qu’elle ne se soude pas aux mots.',
+    alerte: '⛔ Ces marqueurs peuvent être À CHEVAL sur deux versets : la recomposition par créneau canonique en ouvre un dans l’un et le ferme dans l’autre. `rendreMarqueurs899` est donc un TOKENISEUR tolérant, qui accepte un marqueur non ouvert comme un marqueur non fermé — sans quoi un crochet brut s’imprimerait. ⚠️ Le crochet fermant d’une lacune NUE (« […] ») n’est pas une fermeture orpheline : un verset qui s’ouvre sur elle basculerait tout entier en lecture incertaine.',
     contenu: (
       <>
         <Rangee n="11">
@@ -304,6 +305,24 @@ const BIBLE: Unite[] = [
         </Rangee>
         <Rangee n="13">
           {rendreMarqueurs899('Et Dieu vit que cela était bon. [lacune : et du soir et du matin]')}
+        </Rangee>
+        <Rangee n="14">
+          {rendreMarqueurs899('Le Seigneur Dieu [lacune : déchirure] hors du paradis de délices pour [lacune : déchirure]er la terre dont il fut pris.')}
+        </Rangee>
+      </>
+    ),
+  },
+  {
+    style: 'bible/lacune en clair — traduction moderne du témoin',
+    note: 'La traduction moderne de la Bible du XIIIᵉ siècle porte les mêmes lacunes que le manuscrit, mais écrites en clair dans son texte (« […] »). Elle n’est pas recomposée : elle passe par l’enrichissement ordinaire, et la lacune seule y reçoit sa mise en forme. Même marque, même corps, même ocre que dans la colonne du témoin — c’est le même fait dans les deux membres d’une seule édition.',
+    alerte: '⛔ On ne lui passe PAS le tokeniseur du témoin : elle porte quatre-vingt-cinq RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y verrait autant de fermetures orphelines et griserait tout ce qui les précède. `marquerLacunesDuTemoin` ne reconnaît donc que la lacune, et par PAIRES COMPLÈTES.',
+    contenu: (
+      <>
+        <Rangee n="15">
+          {rendreTexteEnrichi('Après qu’il eut mangé et bu […]', marquerLacunesDuTemoin)}
+        </Rangee>
+        <Rangee n="16">
+          {rendreTexteEnrichi('Pharaon laissa les fils d’Israël sortir du pays lorsque le Seigneur [les eut frappés].', marquerLacunesDuTemoin)}
         </Rangee>
       </>
     ),
