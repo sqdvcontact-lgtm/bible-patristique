@@ -2,7 +2,6 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react'
 
-import { supabase } from '@/app/lib/supabase'
 import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographiquesChargement'
 import {
   fragmentsReference,
@@ -53,6 +52,12 @@ const texteMeta = (metadata: Record<string, unknown> | null, cle: string) => {
  * reconnaissance. Si la relation n'est pas lisible, si deux textes portent par
  * accident la même paire note/bloc ou si la notice manque, la chaîne source reste
  * affichée : une dette bibliographique ne rend jamais une note vide.
+ *
+ * ⚠️ Le client Supabase n'est PAS importé au niveau du module. Les tests de rendu
+ * des notes importent ce composant sans variables NEXT_PUBLIC Supabase : créer le
+ * navigateur ici ferait échouer cinq suites avant même leur premier test. L'import
+ * dynamique n'a lieu qu'après vérification de la configuration publique ; sans elle,
+ * l'enrichissement bibliographique s'efface et la chaîne source reste la vérité de repli.
  */
 export function useBibliographieNote(
   noteKey: string,
@@ -70,7 +75,18 @@ export function useBibliographieNote(
       return () => { actif = false }
     }
 
+    // Le repli source est intentionnel : en test, pré-rendu sans configuration ou
+    // déploiement incomplet, une référence ancienne reste lisible au lieu de faire
+    // échouer toute l'infobulle.
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setParBloc({})
+      return () => { actif = false }
+    }
+
     ;(async () => {
+      const { supabase } = await import('@/app/lib/supabase')
+      if (!actif) return
+
       const { data, error } = await supabase
         .from('texte_note_bloc_ouvrages')
         .select('id_texte,block_id,citation_rank,ouvrage_id,locator,source_citation,metadata')
@@ -129,7 +145,10 @@ export function useBibliographieNote(
       }
       for (const refs of Object.values(resultat)) refs.sort((a, b) => a.citationRank - b.citationRank)
       if (actif) setParBloc(resultat)
-    })()
+    })().catch((error: unknown) => {
+      console.error(`[notes] chargement bibliographique impossible pour ${noteKey} :`, error)
+      if (actif) setParBloc({})
+    })
 
     return () => { actif = false }
   }, [enabled, noteKey, cleBlocs])
