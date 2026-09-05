@@ -27,8 +27,9 @@ import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import {
-  Consulter, LigneTech, PortraitAuteur, RangeeEmpilee, TitreSection,
+  Consulter, FriseAuteur, LigneTech, PortraitAuteur, RangeeEmpilee, TitreSection,
 } from '@/app/components/ModaleAuteur'
+import type { RangChrono } from '@/app/lib/frise'
 import { libelleTrad, formaterEditeur } from './PageTitre'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { libelleVersionComplet } from './versionTextuelle'
@@ -88,9 +89,11 @@ function anneeEnLigne(valeur: string | null | undefined): string | null {
  * `photoPosition` arrive après coup (le cadrage du portrait se charge à l'ouverture) ;
  * le portrait, lui, paraît tout de suite, son adresse se déduisant de l'identifiant.
  */
-export function ContenuFicheEdition({ donnees, photoPosition, onOuvrirAuteur }: {
+export function ContenuFicheEdition({ donnees, photoPosition, chrono = [], onOuvrirAuteur }: {
   donnees: DonneesEdition
   photoPosition?: unknown
+  /** La chronologie de l'AUTEUR, où l'œuvre lue se reconnaît (voir plus bas). */
+  chrono?: RangChrono[]
   onOuvrirAuteur: (idAuteur: string) => void
 }) {
   const { oeuvre, titre, auteurs, auteurNom, versionActive, versions, aTexteOriginal } = donnees
@@ -121,10 +124,26 @@ export function ContenuFicheEdition({ donnees, photoPosition, onOuvrirAuteur }: 
   const noteComplement = oeuvre.note_editoriale_complement?.trim() || null
   const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete || noteComplement)
   const aSite = !!(enLigne || etendue || autresVersions.length || aTexteOriginal)
-  const aColonnes = aEdition && (aOeuvre || aSite)
+  const aChrono = chrono.length > 0
+  const aColonnes = aEdition && (aChrono || aOeuvre || aSite)
 
   const colonneDroite = (
     <>
+      {/* ── LA CHRONOLOGIE ─────────────────────────────────────────────────────────
+          Demande de l'auteur, 2026-09-05. C'est celle de l'AUTEUR, et il n'y en a pas
+          d'autre : douze événements sur 1 346 nomment une œuvre, un par œuvre, et une
+          frise d'un point n'est pas une frise. Mais la question qu'on pose à cette
+          fenêtre — « où ce livre tombe-t-il ? » — se répond précisément là : la ligne
+          qui nomme l'œuvre lue s'y détache, entre la naissance et la mort de celui qui
+          l'a écrite.
+          ⚠️ Elle ouvre la colonne, comme dans la fiche d'une traduction : on situe
+          avant de documenter. Et elle ne paraît pas quand l'auteur n'en a pas. */}
+      {aChrono && (
+        <section>
+          <TitreSection>Chronologie</TitreSection>
+          <FriseAuteur evenements={chrono} oeuvreEnRelief={oeuvre.id_oeuvre} />
+        </section>
+      )}
       {aOeuvre && (
         <section>
           <TitreSection>L’œuvre</TitreSection>
@@ -256,6 +275,7 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
   onFermer: () => void
 }) {
   const [photoPosition, setPhotoPosition] = useState<unknown>(null)
+  const [chrono, setChrono] = useState<RangChrono[]>([])
   const idPortrait = donnees.auteurs[0]?.id_auteur ?? null
 
   // Le CADRAGE du portrait est la seule chose que la page de lecture n'a pas : elle
@@ -265,6 +285,25 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
     let annule = false
     supabase.from('auteurs').select('photo_position').eq('id_auteur', idPortrait).maybeSingle()
       .then(({ data }) => { if (!annule) setPhotoPosition((data as { photo_position?: unknown } | null)?.photo_position ?? null) })
+    return () => { annule = true }
+  }, [idPortrait])
+
+  // La chronologie de l'auteur, dans laquelle l'œuvre lue se reconnaît.
+  // ⛔ La VUE, jamais `evenements` ni `auteurs_evenements` : elle porte déjà l'ordre
+  //    éditorial, la date rédigée, le type d'affichage et les sources (charte § 26).
+  // ⚠️ `v_chronologie_auteurs_DATES`, comme la fiche d'auteur : c'est elle qui porte
+  //    la date courte, dont la colonne des dates de la frise dépend.
+  useEffect(() => {
+    if (!idPortrait) return
+    let annule = false
+    supabase.from('v_chronologie_auteurs_dates').select('*')
+      .eq('auteur_id', idPortrait).order('ordre_affichage')
+      .then(({ data, error }) => {
+        // Une frise absente n'empêche pas de lire la fiche : on la journalise et l'on
+        // se tait, plutôt que de fermer une fenêtre pour un ornement.
+        if (error) { console.error('[fiche œuvre] chronologie illisible', error); return }
+        if (!annule) setChrono((data ?? []) as RangChrono[])
+      })
     return () => { annule = true }
   }, [idPortrait])
 
@@ -291,7 +330,7 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
         <button onClick={onFermer} aria-label="Fermer" title="Fermer"
           style={{ position: 'sticky', float: 'right', top: '0', marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-        <ContenuFicheEdition donnees={donnees} photoPosition={photoPosition} onOuvrirAuteur={onOuvrirAuteur} />
+        <ContenuFicheEdition donnees={donnees} photoPosition={photoPosition} chrono={chrono} onOuvrirAuteur={onOuvrirAuteur} />
       </div>
     </div>,
     document.body,

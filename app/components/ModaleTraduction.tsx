@@ -68,6 +68,7 @@ import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { normaliserEspaces } from '@/app/lib/typographie'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { FriseAuteur, TitreSection, RangeeEmpilee, Consulter, useBordSurDerniereLigne } from '@/app/components/ModaleAuteur'
+import { libelleSourceNumerique } from '@/app/lib/sourceNumerique'
 import { type RangChrono, estUrl } from '@/app/lib/frise'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
@@ -149,6 +150,12 @@ const enProse = (t: string | null | undefined) => rendreEnrichi(t ? normaliserEs
  * ⚠️ Sans nom, c'est l'HÔTE de l'adresse qui se donne : une source se nomme, elle ne
  * se cache pas derrière un « voir ».
  *
+ * ⛔ ET ELLE NE DONNE QUE LE NOM DU SITE (demande de l'auteur, 2026-09-05 : « toujours
+ * illisible ; se contenter de donner le nom du site »). `source_nom` n'est pas un nom
+ * mais une phrase — « eBible.org — corpus BibleNLP, édition fra-fraLSG » —, et dans la
+ * colonne étroite d'une fiche elle ne se lit pas. La règle vit dans
+ * `app/lib/sourceNumerique.ts`, avec les sept sources du corpus pour témoins.
+ *
  * ⛔ C'EST UNE FONCTION, ET NON UN COMPOSANT, et la différence se voit à l'écran.
  * `RangeeEmpilee` se tait sur un enfant FAUX ; or un élément de composant est
  * toujours VRAI, fût-il rendu à `null`. Passée en `<SourceNumerique …/>`, la rangée
@@ -158,8 +165,7 @@ const enProse = (t: string | null | undefined) => rendreEnrichi(t ? normaliserEs
  * passe une VALEUR, jamais un composant qui décidera lui-même de se taire.
  */
 function sourceNumerique(nom: string | null, url: string | null): ReactNode {
-  const hote = estUrl(url) ? new URL(url!.trim()).host : ''
-  const libelle = nom?.trim() || (hote.startsWith('www.') ? hote.slice(4) : hote)
+  const libelle = libelleSourceNumerique(nom, url)
   if (!libelle) return null
   return estUrl(url) ? <Consulter url={url} libelle={libelle} /> : libelle
 }

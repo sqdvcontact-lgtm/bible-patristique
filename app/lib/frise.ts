@@ -58,6 +58,11 @@ export type RangChrono = {
   nature_lien: string | null
   justification: string | null
   type_affichage: string | null
+  /** ⚠️ L’ŒUVRE que l’événement nomme, quand il en nomme une. Les deux vues la
+   *  portent, et rien ne la lisait : douze événements sur 1 346 en ont une, un par
+   *  œuvre. C’est par elle que la fiche d’une œuvre se reconnaît dans la chronologie
+   *  de son auteur. Facultative : la vue des traductions ne la porte pas. */
+  oeuvre_id?: string | null
   zone_geographique: string | null
   pays: string | null
   region: string | null

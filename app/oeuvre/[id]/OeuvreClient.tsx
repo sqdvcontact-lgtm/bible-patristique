@@ -966,6 +966,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Navigation lazy par niv1
   const niv1List = niv1ListProp
   const texteSansNiveaux = niv1List.length === 0
+  // ⛔ UN SOMMAIRE QUI N’A RIEN À SOMMER NE PARAÎT PAS (demande de l’auteur,
+  //    2026-09-05). Le volet posait la rubrique « SOMMAIRE » et, dessous, la mention
+  //    « Texte complet » : une rubrique qui annonce une table des matières, et une
+  //    ligne qui dit qu’il n’y en a pas. Deux objets pour rien.
+  //
+  // ⚠️ La règle porte sur le CONTENU, non sur le mode de lecture : c’est en texte
+  //    entier que le cas se rencontre aujourd’hui — une seule œuvre publique, « De la
+  //    vanité des idoles » — mais un texte sans niveaux le rendrait tout aussi absurde
+  //    ailleurs. ⛔ Ne pas l’étendre au mode « texte entier » lui-même : vingt-trois
+  //    œuvres s’y lisent AVEC leur sommaire, dont l’Apologétique (52 chapitres) et les
+  //    Homélies sur la Genèse (68), où il est la seule navigation.
+  const sommaireAQuoiSommer = modeComparaisonActif || !texteSansNiveaux
   // Carte niv1 -> titre textuel, complete des le rendu serveur.
   // Elle reste enrichie apres modifications ou chargements forces.
   const [niv1TexteMap, setNiv1TexteMap] = useState<Record<string, string>>(niv1TexteMapProp)
@@ -2508,7 +2520,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
             {!modeComparaisonActif && tocApparatLocal.length > 0 && (
-              <div style={{ ...(apparatOuvert ? { flex: '0 1 auto', maxHeight: '50%', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
+              <div style={{ ...(apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                   <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>APPARAT CRITIQUE</span>
@@ -2535,6 +2547,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
             )}
 
+            {sommaireAQuoiSommer && (
             <div style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
@@ -2580,13 +2593,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               )
             )}
 
-            {!modeComparaisonActif && texteSansNiveaux && (
-              <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>
-                Texte complet
-              </p>
-            )}
-
-            {!modeComparaisonActif && !texteSansNiveaux && niv1List.map(n1 => {
+            {!modeComparaisonActif && niv1List.map(n1 => {
               const estActif = vue === 'texte' && n1 === niv1Actif
               // Le complément ne se compose que s'il dit autre chose que son titre.
               const n1txt = complementDeTitre(n1, niv1TexteMap[n1])
@@ -2646,6 +2653,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           </div>
               )}
             </div>
+            )}
           </div>
         </nav>
         </>

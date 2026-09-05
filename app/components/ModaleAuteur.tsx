@@ -328,7 +328,13 @@ function stylePuce(type: string | null) {
 // dans l'ordre éditorial de la vue (`ordre_affichage`, jamais recalculé ici).
 // Les trois types se distinguent par la puce et une nuance typographique, sans
 // blocs colorés qui rompraient l'homogénéité.
-export function FriseAuteur({ evenements }: { evenements: RangChrono[] }) {
+/**
+ * ⚠️ `oeuvreEnRelief` sert la fiche d’une ŒUVRE, qui montre la chronologie de son
+ * AUTEUR : la ligne où l’œuvre est nommée s’y détache, sinon la fiche ne répondrait
+ * pas à la question qu’on lui pose — où ce livre tombe-t-il dans cette vie. C’est le
+ * marqueur de l’entrée active du sommaire, et rien de plus : l’accent et la graisse.
+ */
+export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements: RangChrono[]; oeuvreEnRelief?: string | null }) {
   const [ouverts, setOuverts] = useState<Set<number>>(new Set())
   if (!evenements.length) return null
   // ⚠️ La CLÉ, non la valeur : la vue des traductions écrit « édition » et
@@ -368,6 +374,8 @@ export function FriseAuteur({ evenements }: { evenements: RangChrono[] }) {
           // Plus d'italique « par défaut » sur les œuvres : le romain convient, l'italique
           // ne provient que du balisage *…* dans le titre. Le contexte reste en italique.
           const italique = contexte
+          const enRelief = !!oeuvreEnRelief && a.oeuvre_id === oeuvreEnRelief
+          const encre = enRelief ? 'var(--cs-vert)' : contexte ? 'var(--cs-texte-gris)' : 'var(--cs-encre)'
           const dernier = i === evenements.length - 1
           const cle = a.association_id
           const ouvert = ouverts.has(cle)
@@ -386,11 +394,11 @@ export function FriseAuteur({ evenements }: { evenements: RangChrono[] }) {
               <div style={{ paddingBottom: pb, fontSize: '0.6875rem', lineHeight: 1.18 }}>
                 {aDetail ? (
                   <button onClick={() => basculer(cle)} aria-expanded={ouvert}
-                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? 'var(--cs-texte-gris)' : 'var(--cs-encre)', fontStyle: italique ? 'italic' : 'normal' }}>
+                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: encre, fontWeight: enRelief ? 600 : undefined, fontStyle: italique ? 'italic' : 'normal' }}>
                     {rendreMarquesNote(a.titre)}
                   </button>
                 ) : (
-                  <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: contexte ? 'var(--cs-texte-gris)' : 'var(--cs-encre)', fontStyle: italique ? 'italic' : 'normal' }}>
+                  <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: encre, fontWeight: enRelief ? 600 : undefined, fontStyle: italique ? 'italic' : 'normal' }}>
                     {rendreMarquesNote(a.titre)}
                   </span>
                 )}
