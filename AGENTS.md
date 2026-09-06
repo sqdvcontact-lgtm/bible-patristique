@@ -1098,6 +1098,8 @@ C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site 
 
 **Règle** : quand on n'indexe qu'une partie d'un fichier, on relit le CONTENU indexé (`git diff --cached <fichier>`), jamais seulement son compte de lignes. Et une découpe par index de chaîne se borne à une ancre de FIN explicite, jamais au premier `}` rencontré.
 
+⛔ **ET LA MÊME RÈGLE VAUT POUR UNE PARTIE DES FICHIERS** (payé le 2026-09-06). L'arbre de travail portant des chantiers d'autrui, on indexe par une liste écrite à la main : `app/lib/fenetreContextuelle.ts` a reçu la fonction `tailleRacinePx`, ses appelants ont été commités deux commits plus tard, et lui jamais. Le déploiement est tombé sur « Export tailleRacinePx doesn't exist in target module », le site restant sur la version d'avant. ⚠️ **Ni `tsc`, ni le linter, ni les 2 076 tests ne peuvent le voir** : ils lisent l'arbre de TRAVAIL, où la fonction était là. Après un `git add` par liste, relire `git diff --cached --name-only` en regard de ce qu'on a réellement touché — et `git status --short` doit ne plus montrer, en modifié, que ce qu'on savait ne pas être à soi.
+
 ## La garde chromatique — on GÈLE, on ne rabat pas
 
 `app/lib/couleursEnDurInventaire.ts` porte l'état du 2026-08-23 ; `couleursEnDur.test.ts` refuse toute teinte **nouvelle** et exige qu'une teinte transposée soit **retirée** du registre. La dette devient donc visible dans chaque diff, et ne peut que décroître.
