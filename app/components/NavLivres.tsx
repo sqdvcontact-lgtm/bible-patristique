@@ -9,6 +9,10 @@ import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
 import { estLivreNonCanonique } from '@/app/lib/bible'
+import {
+  chargerDensiteLivre, encreDuCran, fondDuCran, libelleDensiteChapitre,
+  type DensiteChapitre,
+} from '@/app/lib/densitePatristique'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
@@ -233,6 +237,7 @@ export default function NavLivres({
     void chargerChapitresParLivre(supabase).then(t => { if (vivant) setChapitres(t) })
     return () => { vivant = false }
   }, [])
+
   // Onglet du volet : les livres, ou le sommaire de l'édition. Ouvrir une pièce
   // depuis le sommaire recharge la page ; l'onglet doit donc se retrouver ouvert
   // au retour, sinon le lecteur perd sa place à chaque pièce lue. Même patron de
@@ -286,6 +291,20 @@ export default function NavLivres({
 
   const tradCode = traductions[traductionIndex]?.code ?? 'TR0001'
   const refParsee = parseRefBiblique(recherche)
+
+  // ── La densité patristique du livre OUVERT ─────────────────────────────────
+  // ⚠️ Elle ne se charge que pour le livre dont on regarde les chapitres : c'est le
+  // seul dont on voie les cases, et la table de tout le canon ferait 1 217 lignes pour
+  // en montrer cinquante. Le module garde ce qu'il a lu, si bien qu'y revenir ne coûte
+  // rien. ⛔ Un échec ne fait rien tomber : la teinte est un ornement de lecture.
+  const [densites, setDensites] = useState<Map<number, DensiteChapitre>>(new Map())
+  const livreDesCases = livreOuvert ?? (refParsee?.code ?? null)
+  useEffect(() => {
+    if (!livreDesCases || sansChapitres) { setDensites(new Map()); return }
+    let vivant = true
+    void chargerDensiteLivre(supabase, livreDesCases).then(t => { if (vivant) setDensites(t) })
+    return () => { vivant = false }
+  }, [livreDesCases, sansChapitres])
 
   // Si ref parsée : filtrer ne fait rien (on affiche tout pour voir le livre suggéré)
   // Recherche par D\u00c9BUT DE MOT, non par sous-cha\u00eene : \u00ab Ps \u00bb trouve \u00ab Psaumes \u00bb (un mot
@@ -436,6 +455,10 @@ export default function NavLivres({
                   // Polyglotte : le chapitre survolé se met en cache avant le clic.
                   onMouseEnter={() => onPreparerChapitre?.(livre.code, ch)}
                   onFocus={() => onPreparerChapitre?.(livre.code, ch)}
+                  /* La densité patristique ne se dit qu'au REPOS : le chapitre courant et
+                     la suggestion de recherche gardent leurs accents, qui répondent à une
+                     autre question — où je suis, où l'on me propose d'aller. */
+                  title={libelleDensiteChapitre(densites.get(ch))}
                   style={{
                   fontSize: '0.6875rem', height: 'var(--volet-case)', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
@@ -443,9 +466,11 @@ export default function NavLivres({
                   /* Cases plus petites, gris léger au repos (le vert reste l'accent du
                      chapitre courant et de la suggestion de recherche). */
                   background: (actif && chapitreActifLocal === ch) ? 'var(--cs-vert-aplat)'
-                    : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)' : 'var(--cs-fond-doux)',
+                    : estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)'
+                    : fondDuCran(densites.get(ch)?.cran) ?? 'var(--cs-fond-doux)',
                   color: (actif && chapitreActifLocal === ch) ? 'var(--cs-sur-aplat)'
-                    : estChapSuggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
+                    : estChapSuggere ? 'var(--cs-encre)'
+                    : encreDuCran(densites.get(ch)?.cran) ?? 'var(--cs-texte-second)',
                   fontWeight: estChapSuggere ? 700 : 400,
                   lineHeight: 1, textAlign: 'center',
                 }}>

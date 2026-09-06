@@ -167,6 +167,32 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
   fontStyle: 'italic',
 }
 
+/** LA MARQUE DE DENSITÉ, dans la gouttière d'actions : le nombre d'œuvres qui parlent
+ *  du verset. ⚠️ Elle est la plus ténue de la page, et il le faut : elle accompagne
+ *  chaque verset commenté, soit un sur trois, et un repère qui se répète autant ne peut
+ *  pas peser. ⛔ Chiffres tabulaires : deux marques voisines doivent s'aligner. */
+export const STYLE_DENSITE: CSSProperties = {
+  position: 'absolute',
+  top: '0.28125rem',
+  left: '0.5rem',
+  fontSize: '0.5625rem',
+  lineHeight: 1.2,
+  color: 'var(--cs-texte-faible)',
+  fontVariantNumeric: 'tabular-nums',
+  pointerEvents: 'none',
+  transition: 'opacity 0.12s',
+}
+
+/** La même, au doigt : sous le verset et en toutes lettres, la marge droite n'existant
+ *  plus. ⚠️ Un chiffre nu y flotterait sans rien pour le nommer. */
+export const STYLE_DENSITE_MOBILE: CSSProperties = {
+  margin: '0.25rem 0 0',
+  fontSize: '0.5625rem',
+  lineHeight: 1.3,
+  color: 'var(--cs-texte-faible)',
+  letterSpacing: '0.02em',
+}
+
 /* ── Les MENTIONS des grilles de comparaison ───────────────────────────────────────
  * La Polyglotte et la Polyglotte de la page Recherche ne rendent pas que du texte :
  * elles rendent aussi, dans la cellule même, ce qui tient la place du texte absent.

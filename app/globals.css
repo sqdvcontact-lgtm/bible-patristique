@@ -295,6 +295,20 @@
      texte fané. Distinct du gris des lectures incertaines (présent mais douteux). */
   --cs-lacune: #8a6a2c;
 
+  /* ── La DENSITÉ PATRISTIQUE : cinq crans, du plus ténu au plus vif ───────────────
+     Les cases de chapitre du volet se teintent à mesure que les Pères y parlent. Le
+     cran est un RANG sur les quantiles du canon, jamais un seuil de valeur (voir la
+     vue `densite_patristique_chapitres`).
+     ⛔ L'ENCRE N'EST PAS CELLE DES CASES ORDINAIRES. Mesuré le 2026-09-06 sur cette
+     rampe : `--cs-texte-second` rend 4,46 au premier cran et tombe à 2,63 au cinquième,
+     quand le chiffre est composé à 11 px. `--cs-encre-fonce` tient de 11,08 à 6,54. */
+  --cs-densite-1: color-mix(in srgb, var(--cs-vert) 5%, var(--cs-fond-doux));
+  --cs-densite-2: color-mix(in srgb, var(--cs-vert) 11%, var(--cs-fond-doux));
+  --cs-densite-3: color-mix(in srgb, var(--cs-vert) 19%, var(--cs-fond-doux));
+  --cs-densite-4: color-mix(in srgb, var(--cs-vert) 29%, var(--cs-fond-doux));
+  --cs-densite-5: color-mix(in srgb, var(--cs-vert) 42%, var(--cs-fond-doux));
+  --cs-densite-encre: var(--cs-encre-fonce);
+
   /* ── La MENTION : la voix de l'éditeur, quand elle tient la place d'un texte ──────
      « Absent de cette traduction », « Prendre une note sur Gn 1, 6 » : ce ne sont ni du
      texte de corpus, ni de l'interface. C'est l'éditeur qui parle à la place du texte
@@ -533,6 +547,19 @@
      les appels de note à 0,60 em, c'est elle qui doit se voir le mieux), attente,
      or, étiquette, or-doux. */
   --cs-lacune: #dcbe7a;
+
+  /* ⛔ LA DENSITÉ SE RELIT DANS SON NOUVEAU SOL, elle ne se recopie pas. Au Cuir,
+     `--cs-vert` est un or clair : la rampe ÉCLAIRCIT la case au lieu de l'assombrir, et
+     la porter à 42 % la ferait traverser la BANDE MÉDIANE, où la charte a déjà constaté
+     qu'aucune encre ne tient — mesuré, l'encre claire y tombe à 3,17 et le sol sombre n'y
+     remonte qu'à 3,02. La rampe s'arrête donc à un quart, sous le milieu, et garde
+     l'encre CLAIRE : 7,71 au premier cran, 4,8 au cinquième. */
+  --cs-densite-1: color-mix(in srgb, var(--cs-vert) 5%, var(--cs-fond-doux));
+  --cs-densite-2: color-mix(in srgb, var(--cs-vert) 10%, var(--cs-fond-doux));
+  --cs-densite-3: color-mix(in srgb, var(--cs-vert) 15%, var(--cs-fond-doux));
+  --cs-densite-4: color-mix(in srgb, var(--cs-vert) 20%, var(--cs-fond-doux));
+  --cs-densite-5: color-mix(in srgb, var(--cs-vert) 25%, var(--cs-fond-doux));
+  --cs-densite-encre: var(--cs-texte-second);
   /* La mention suit le renversement : au Cuir elle est plus CLAIRE que les rangs de
      texte discrets, et reste bien en dessous de l'or de la lacune. Les distances y sont
      nécessairement courtes — le Cuir est monochrome par décision, tout y vit dans la

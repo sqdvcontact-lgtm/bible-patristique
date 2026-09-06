@@ -20,9 +20,13 @@ import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
+  STYLE_DENSITE, STYLE_DENSITE_MOBILE,
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
 } from '@/app/lib/compositionBible'
+import {
+  chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset,
+} from '@/app/lib/densitePatristique'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import FlecheChapitre from '@/app/components/FlecheChapitre'
 import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre, PieceLiminaire } from '@/app/components/BibleEditionParatext'
@@ -431,6 +435,22 @@ export default function TexteBible({
   // flottant. `actionsMobileId` = verset dont les actions sont visibles.
   const [actionsMobileId, setActionsMobileId] = useState<string | null>(null)
 
+  // ── OÙ LES PÈRES PARLENT ───────────────────────────────────────────────────
+  // 37 % du canon porte un renvoi patristique, et la page n'en laissait rien voir : on
+  // cliquait un verset et l'on découvrait, ou non. Une marque discrète dit combien
+  // d'ŒUVRES en parlent — c'est ce que le volet de droite ouvrira, et c'est le seul
+  // compte qui ne vaille jamais zéro quand il y a quelque chose.
+  // ⛔ Elle ne retarde RIEN : le chapitre est déjà rendu quand elle arrive, et un échec
+  // ne fait pas tomber la lecture (charte § 18).
+  const [densites, setDensites] = useState<Map<string, DensiteVerset>>(new Map())
+  useEffect(() => {
+    let vivant = true
+    setDensites(new Map())
+    void chargerDensiteChapitre(supabase, livreActif, chapitreActif)
+      .then(t => { if (vivant) setDensites(t) })
+    return () => { vivant = false }
+  }, [livreActif, chapitreActif])
+
   useEffect(() => {
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
@@ -644,6 +664,10 @@ export default function TexteBible({
             .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
+            /* La gouttière sert deux choses, jamais en même temps : la densité au repos,
+               les actions dès qu'on vise la ligne. */
+            .verset-row:hover .marque-densite,
+            .verset-row--actif .marque-densite { opacity: 0; }
             /* Les flèches encadrent le titre : elles prennent sa teinte, non le vert. */
             .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
@@ -785,6 +809,16 @@ export default function TexteBible({
                       <AppelNoteBiblique key={note.id} note={note} />
                     ))}
                   </p>
+                  {/* ⚠️ SOUS le verset au doigt : la marge droite n'existe pas là, les
+                      actions en étant sorties. La marque se pose donc en fin de bloc,
+                      au fer du texte. */}
+                  {mobile && densites.get(v.id_verset) && (
+                    <p style={STYLE_DENSITE_MOBILE} title={libelleDensiteVerset(densites.get(v.id_verset)!)}>
+                      {densites.get(v.id_verset)!.oeuvres > 1
+                        ? `${densites.get(v.id_verset)!.oeuvres} œuvres en parlent`
+                        : '1 œuvre en parle'}
+                    </p>
+                  )}
                 </div>
 
                 {/* Boutons d'action — hors du bloc sélectionné. Sur mobile, ils
@@ -795,7 +829,17 @@ export default function TexteBible({
                   position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
-                } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible' }}>
+                } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
+                  {/* La marque de densité occupe la gouttière AU REPOS, et s'efface dès
+                      que les actions y paraissent : les deux ne s'y rencontrent jamais.
+                      ⛔ En absolu, pour ne pas pousser les boutons, qui gardent leur
+                      place même invisibles. */}
+                  {!mobile && densites.get(v.id_verset) && (
+                    <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
+                      style={STYLE_DENSITE}>
+                      {densites.get(v.id_verset)!.oeuvres}
+                    </span>
+                  )}
                   {/* Les actions écrivent encore dans le modèle `versets_v2`. On les masque
                       pour toutes les lignes éditoriales recomposées ; la colonne reste
                       réservée pour préserver l'alignement de la mise en page. */}
