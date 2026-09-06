@@ -1104,6 +1104,24 @@ button:focus-visible,
   .cs-notif-archiver { min-height: 2.75rem; display: inline-flex; align-items: center; padding: 0 0.5rem; }
 }
 
+/* ⛔ LA COQUILLE DE LA PAGE BIBLE AVANT HYDRATATION (audit du 2026-09-06).
+   Le serveur rend la mise en page de BUREAU quelle que soit la largeur — le drapeau
+   mobile part à faux pour ne pas désaccorder l'hydratation — et rien ne la masquait
+   sous 900px : deux volets de 460px y écrasaient la colonne de texte, laquelle est en
+   `flex: 1; min-width: 0`. Le lecteur voyait cette frame le temps du montage, et un
+   navigateur sans JavaScript ne voyait qu'elle.
+   ⚠️ On EMPILE plutôt qu'on ne masque : c'est le patron mobile de la charte (empilement
+   vertical en flux document), et rien n'y disparaît de ce que le serveur a rendu.
+   ⚠️ La règle ne peut mordre qu'AVANT le montage : passé lui, le drapeau vaut vrai et
+   la classe n'est plus posée. */
+@media (max-width: 900px) {
+  .cs-bible-coquille {
+    flex-direction: column;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Page Bible — deux hiérarchies, T1 à T6 et I1 à I6
 

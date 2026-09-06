@@ -347,6 +347,7 @@ export default function PericopePage() {
       refAffichee={formaterPlageCanonique(principale.canon_id_debut, principale.canon_id_fin)}
       mobile={mobile}
       presentation={mobile ? 'inline' : 'drawer'}
+      sousBarres={false}
       barreMobile={false}
       voletMobile={voletMobile}
       setVoletMobile={setVoletMobile}
@@ -515,7 +516,10 @@ export default function PericopePage() {
     <main style={{ background: FOND }}>
       <div style={{ display: 'flex', height: `calc(100dvh - ${HAUTEUR_NAVBAR})`, overflow: 'hidden' }}>
         {/* Gauche : informations, options, notices */}
-        <aside style={{ width: '20rem', flexShrink: 0, height: '100%', overflowY: 'auto', background: PANEL, borderRight: `1px solid ${BORD}` }}>{voletDroit}</aside>
+        {/* ⛔ La colonne SUIT l'écran au lieu d'être posée : à 20rem fixes, entre 901
+            et 1024 px il ne restait que 257 px au texte des versets, le panneau
+            patristique prenant 260 px de plus. */}
+        <aside style={{ width: 'clamp(14rem, 22vw, 20rem)', flexShrink: 0, height: '100%', overflowY: 'auto', background: PANEL, borderRight: `1px solid ${BORD}` }}>{voletDroit}</aside>
         {/* Centre : le texte défile */}
         <section style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '1.75rem 2rem 3rem' }}>{centre}</section>
         {/* Droite : apparat patristique (poignée et repli sur son bord gauche : c'est son côté naturel) */}

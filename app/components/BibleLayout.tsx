@@ -555,8 +555,16 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     // navbar par le layout : la page dépassait donc l'écran d'autant et défilait,
     // emportant hors de vue la barre de recherche du volet de gauche. Elle reste
     // désormais à l'écran quel que soit l'endroit où l'on est descendu.
+    // ⛔ `cs-bible-coquille` n'est PAS un ornement : le serveur rend toujours la
+    // coquille de BUREAU (le drapeau mobile part à faux pour ne pas désaccorder
+    // l'hydratation), si bien qu'avant le montage un téléphone recevait une rangée
+    // de 460px de volets qui écrasait la colonne de texte à presque rien. Aucune
+    // règle ne la masquait sous 900px, et sans JavaScript la page restait ainsi.
+    // La classe rend cette seule frame lisible : les trois blocs s'empilent en flux,
+    // qui est déjà le patron mobile de la charte. Après hydratation le drapeau passe
+    // à vrai, la classe n'est plus posée, et les onglets prennent la main.
     <div
-      className={mobile ? '' : 'flex overflow-hidden'}
+      className={mobile ? '' : 'flex overflow-hidden cs-bible-coquille'}
       style={mobile
         ? { position: 'relative', display: 'flex', flexDirection: 'column' }
         : { position: 'relative', display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden' }}>

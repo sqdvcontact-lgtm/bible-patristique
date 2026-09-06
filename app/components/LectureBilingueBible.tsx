@@ -1,5 +1,7 @@
 'use client'
 
+import { useEstMobile } from '@/app/lib/useEstMobile'
+
 // Enveloppe de la lecture « Latin & Français » : même châssis que la lecture
 // ordinaire — en-tête, navigation de chapitre, zone de défilement — pour que le
 // passage d'un mode à l'autre ne déplace rien à l'écran. Le corps est rendu par
@@ -35,6 +37,12 @@ export default function LectureBilingueBible({
   mobile = false,
   ...contenu
 }: LectureBilingueBibleProps) {
+  // ⛔ Deux colonnes ne tiennent pas dans la bande 901–980 px. Le shell y reste
+  //    en mode bureau (volets de 200 et 260 px ouverts), si bien que la lecture en
+  //    regard se partageait environ 320 px : 140 et 180 px par colonne. Sous 980 —
+  //    un seuil de la liste admise, celui du sommaire d’œuvre et du bilingue d’une
+  //    œuvre — les deux colonnes s’empilent par verset, l’axe canonique restant commun.
+  const colonnesEtroites = useEstMobile(980)
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre de la lecture tant que la page se prépare.
   const naviguer = useNaviguer()
@@ -121,7 +129,7 @@ export default function LectureBilingueBible({
             ? { maxWidth: '100%', margin: '0 auto' }
             : { width: 'min(calc(var(--mesure-page) + 2.375rem), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-page)) 2.375rem' }}
         >
-          <BibleBilingue {...contenu} mobile={mobile} />
+          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} />
         </div>
       </div>
     </div>

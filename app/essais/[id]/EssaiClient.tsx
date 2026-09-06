@@ -68,7 +68,14 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   // et le texte prend toute la largeur (voir AGENTS § Responsive mobile).
   const mobile = useEstMobile(900)
   const [voletOuvert, setVoletOuvert] = useState(true)
-  useEffect(() => { if (typeof window !== 'undefined' && window.innerWidth < 900) setVoletOuvert(false) }, [])
+  // ⛔ Fermé d'office sous 1100 px, non sous 900. Volet gauche 15rem, volet droit
+  //    18,75rem et 112 px de rembourrage : à 901 px il ne restait que 249 px de mesure
+  //    au texte, et 328 mesurés à 1010 px. Le seuil n'est pas celui du hook parce qu'il
+  //    ne dit pas la même chose : le hook dit « téléphone », celui-ci dit « la place
+  //    manque pour lire À CÔTÉ ». On l'ouvre toujours d'un clic.
+  // ⚠️ `window.innerWidth <= 900` et non `< 900` : à 900 px exactement, le hook
+  //    (`max-width: 900px`) disait mobile pendant que ce test disait bureau.
+  useEffect(() => { if (typeof window !== 'undefined' && window.innerWidth <= 1100) setVoletOuvert(false) }, [])
   const [nbVues, setNbVues] = useState(essai.nb_vues)
   const [nbAppreciations, setNbAppreciations] = useState(0)
   const [aApprecie, setApprecie] = useState(false)

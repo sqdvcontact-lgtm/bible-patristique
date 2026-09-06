@@ -845,7 +845,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
 export default function PanneauPatristique({
   verset, livreActif, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
-  voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
+  voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer', sousBarres = true,
   plage, refAffichee,
 }: {
   verset: Verset | null
@@ -863,6 +863,12 @@ export default function PanneauPatristique({
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
   barreMobile?: boolean
   presentation?: 'drawer' | 'inline'
+  /** ⛔ En mode ONGLETS, le panneau réserve la barre d'onglets au-dessus (2,875rem)
+   *  et le bandeau de chapitre en dessous. Ces deux barres n'existent QUE sur la page
+   *  Bible : la page d'une péricope, qui reprend le même panneau, y gagnait 46 px de
+   *  blanc en tête et 40 en pied, dans une carte forcée à un écran de haut pour deux
+   *  références (audit de responsiveness, 2026-09-06). */
+  sousBarres?: boolean
   // Page d'une péricope : charge l'apparat d'une PLAGE canonique exacte plutôt que d'un
   // verset ou d'un chapitre entier. `refAffichee` remplace alors l'en-tête de référence.
   plage?: { livre: string; canonDebut: string; canonFin: string | null }
@@ -1340,7 +1346,7 @@ export default function PanneauPatristique({
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
     <div ref={refPanel} style={mobile
       ? (presentation === 'inline'
-        ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE }
+        ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
         : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'var(--cs-ombre-modale-haut)' })
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'var(--cs-surface)', borderLeft:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {/* Tag de filtre : un fantôme en gras (::after) fige la largeur, pour que la
