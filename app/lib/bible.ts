@@ -89,12 +89,37 @@ export const LIVRES: LivreBible[] = [
   { code: '3MA', nom: '3 Maccabées',              testament: 'AUTRES', nbVersets: 0 },
   { code: '4MA', nom: '4 Maccabées',              testament: 'AUTRES', nbVersets: 0 },
   { code: 'MAN', nom: 'Prière de Manassé',        testament: 'AUTRES', nbVersets: 0 },
+  // ⚠️ À PART, et non au chapitre 6 de Baruch où le canon catholique la range : la
+  // Septante la transmet d'un seul tenant, et c'est cette forme que le site porte.
+  { code: 'LJE', nom: 'Lettre de Jérémie',        testament: 'AUTRES', nbVersets: 0 },
   { code: 'PS2', nom: 'Psaume 151',               testament: 'AUTRES', nbVersets: 0 },
   { code: 'PSS', nom: 'Psaumes de Salomon',       testament: 'AUTRES', nbVersets: 0 },
   { code: 'ODA', nom: 'Odes',                     testament: 'AUTRES', nbVersets: 0 },
+  // ⚠️ Le Daniel du VIEUX GREC, et non le Daniel de l'ossature, qui suit Théodotion.
+  // Ce sont DEUX RECENSIONS et non deux copies : la charte interdit de les dédoublonner
+  // sur les coordonnées et le texte. Le nom doit dire laquelle on ouvre, sans quoi le
+  // lecteur croit à un doublon de « Daniel ».
+  { code: 'DAG', nom: 'Daniel (vieux grec)',      testament: 'AUTRES', nbVersets: 0 },
   { code: 'ENO', nom: 'Hénoch',                   testament: 'AUTRES', nbVersets: 0 },
   { code: 'JUB', nom: 'Jubilés',                  testament: 'AUTRES', nbVersets: 0 },
 ]
+
+/**
+ * Les écrits que le CANON CATHOLIQUE ne reçoit pas, et qu'il faut donc dire tels au
+ * lecteur : ce sont ceux de la troisième colonne, « AUTRES ». La Septante en porte
+ * plusieurs, et la marque affichée à côté de leur nom se lit vis-à-vis de ce canon-là,
+ * non des autres traditions — un orthodoxe compte autrement, et la marque le dit sans
+ * prétendre trancher pour lui.
+ * ⚠️ La base a son propre juge, `livres_lisibles.canonique`, qu'elle rend au volet de
+ * navigation. Cette liste-ci sert le RENDU SERVEUR, qui ne peut pas attendre une
+ * requête pour savoir dans quelle vue chercher un chapitre.
+ */
+export const LIVRES_NON_CANONIQUES: ReadonlySet<string> = new Set(
+  LIVRES.filter(l => l.testament === 'AUTRES').map(l => l.code),
+)
+export function estLivreNonCanonique(code: string): boolean {
+  return LIVRES_NON_CANONIQUES.has(code)
+}
 
 export const ABREV_FR: Record<string, string> = {
   GEN:'Gn',  EXO:'Ex',  LEV:'Lv',  NUM:'Nb',  DEU:'Dt',

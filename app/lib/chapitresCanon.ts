@@ -14,17 +14,20 @@
  * C'est le défaut de `NATURES_CORPS` et de `get_niv1_texte`, pris par un troisième bout :
  * une liste recopiée finit toujours par coûter du texte au lecteur.
  *
- * La source est la vue `livres_canon` (migration 20260904170000), qui compte sur
- * `versets_canon`. Une SEULE requête pour tout le site : la promesse est retenue au
- * niveau du module, si bien que les deux volets qui en ont besoin la partagent.
+ * La source est la vue `livres_lisibles` (2026-09-06), qui compte sur `versets_canon`
+ * pour l'ossature et sur `versets_apocryphes` pour les écrits que le canon ne reçoit
+ * pas. Une SEULE requête pour tout le site : la promesse est retenue au niveau du
+ * module, si bien que les volets qui en ont besoin la partagent.
  */
 
 /** Le client Supabase, réduit à ce qu'on lui demande ici. ⛔ On ne l'importe PAS :
  *  `app/lib/supabase` ouvre un client navigateur dès son import, ce qui rendrait ce
  *  module intestable et le tirerait dans le rendu serveur. */
+export type LigneLivreLisible = { code: string; chapitres: number; canonique: boolean }
+
 type LecteurCanon = {
   from: (table: string) => {
-    select: (colonnes: string) => PromiseLike<{ data: { code: string; chapitres: number }[] | null; error: unknown }>
+    select: (colonnes: string) => PromiseLike<{ data: LigneLivreLisible[] | null; error: unknown }>
   }
 }
 
@@ -53,10 +56,13 @@ export function nombreDeChapitres(code: string, table: ChapitresParLivre | null)
 }
 
 /**
- * Un livre se LISTE-t-il ? ⛔ Un livre que l'ossature ne porte pas ne peut rien rendre :
- * le tableau se compose sur les créneaux canoniques, et sans eux la page reste vide.
- * L'offrir est un cul-de-sac (décision de l'auteur, 2026-09-04, sur « Esther (grec) » :
- * « ça doit disparaître »).
+ * Un livre se LISTE-t-il ? ⛔ Un livre que RIEN ne peut rendre est un cul-de-sac, et on
+ * ne l'offre pas (décision de l'auteur, 2026-09-04, sur « Esther (grec) » : « ça doit
+ * disparaître »). La règle n'a pas changé ; ce qui a changé, c'est ce qui peut rendre.
+ * ⚠️ Depuis le 2026-09-06, la source est `livres_lisibles` et non plus `livres_canon` :
+ * les écrits sans créneau canonique que la Septante porte ont leur propre chemin de
+ * lecture, et se listent donc à leur tour. Un livre reste écarté quand il ne compte
+ * aucun chapitre NULLE PART, ce qui est toujours le cas d'Hénoch ou des Jubilés.
  * ⚠️ Tant qu'on ne SAIT pas — la vue n'a pas répondu —, on ne retire rien : une liste qui
  * s'amputerait sur une requête en vol mentirait plus qu'une entrée en trop.
  */
@@ -64,7 +70,7 @@ export function estLivreOuvrable(code: string, table: ChapitresParLivre | null):
   return table === null || (table[code] ?? 0) > 0
 }
 
-let promesse: Promise<ChapitresParLivre> | null = null
+let promesse: Promise<LigneLivreLisible[]> | null = null
 
 /**
  * Une seule lecture pour tout le site : la promesse est retenue, et les deux volets qui
@@ -72,14 +78,24 @@ let promesse: Promise<ChapitresParLivre> | null = null
  * une exception : le volet retombe alors sur le repli, et la navigation tient.
  * ⛔ L'échec n'est pas retenu : la fois suivante réessaie.
  */
-export function chargerChapitresParLivre(client: LecteurCanon): Promise<ChapitresParLivre> {
+export function chargerLivresLisibles(client: LecteurCanon): Promise<LigneLivreLisible[]> {
   if (promesse) return promesse
-  promesse = Promise.resolve(client.from('livres_canon').select('code, chapitres'))
+  // ⚠️ `livres_lisibles`, non plus `livres_canon` (2026-09-06) : la première ajoute à
+  // l'ossature les écrits que le canon ne reçoit pas et que la Septante porte pourtant —
+  // sept livres, 2 108 versets, qu'aucun chemin ne lisait. La vue dit lequel est
+  // canonique, et c'est cette colonne qui porte la marque affichée à côté du nom.
+  promesse = Promise.resolve(client.from('livres_lisibles').select('code, chapitres, canonique'))
     .then(({ data, error }) => {
-      if (error) { console.error('Le compte des chapitres n’a pas pu être lu.', error); promesse = null; return {} }
-      const table: ChapitresParLivre = {}
-      for (const ligne of data ?? []) table[ligne.code] = ligne.chapitres
-      return table
+      if (error) { console.error('Le compte des chapitres n’a pas pu être lu.', error); promesse = null; return [] }
+      return data ?? []
     })
   return promesse
+}
+
+export function chargerChapitresParLivre(client: LecteurCanon): Promise<ChapitresParLivre> {
+  return chargerLivresLisibles(client).then(lignes => {
+    const table: ChapitresParLivre = {}
+    for (const ligne of lignes) table[ligne.code] = ligne.chapitres
+    return table
+  })
 }

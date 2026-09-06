@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { cache, type ComponentProps } from 'react'
 import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
-import { LIVRES } from '@/app/lib/bible'
+import { LIVRES, estLivreNonCanonique } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
 import { estVerseEditorial, withCanonicalV2Capability } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
@@ -319,7 +319,12 @@ export default async function Home({
     const { data } = await supabase
       // Vue de compatibilité canonique. Elle reste le chemin exclusif des éditions
       // historiques et n'est jamais utilisée pour simuler un mode source.
-      .from('versets_lecture')
+      // ⚠️ Un livre SANS créneau canonique n'y est pas, et ne peut pas y être : la
+      // Septante porte sept écrits que le canon ne reçoit pas, et ils vivent dans
+      // `versets_apocryphes`, hors de l'ossature, ce qui est leur juste place. Le
+      // contrat de lecture est le même des deux côtés, si bien que le choix se réduit
+      // à un nom de vue (voir la migration 20260906125959).
+      .from(estLivreNonCanonique(livre) ? 'versets_lecture_apocryphes' : 'versets_lecture')
       .select('*')
       .eq('livre', livre)
       .eq('chapitre', chapitre)

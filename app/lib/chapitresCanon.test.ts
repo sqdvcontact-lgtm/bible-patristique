@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { CHAPITRES_PROTOCANON, estLivreOuvrable, nombreDeChapitres } from './chapitresCanon'
+import {
+  CHAPITRES_PROTOCANON, chargerChapitresParLivre, chargerLivresLisibles,
+  estLivreOuvrable, nombreDeChapitres,
+} from './chapitresCanon'
 
 // Ce que l'ossature porte réellement, relevé sur `livres_canon` le 2026-09-04.
 const OSSATURE = { GEN: 50, SIR: 51, WIS: 19, TOB: 14, JDT: 16, '1MA': 16, '2MA': 15, BAR: 6, JOL: 4, DAN: 12 }
@@ -36,16 +39,57 @@ describe('nombreDeChapitres', () => {
 })
 
 describe('estLivreOuvrable', () => {
-  it('⛔ un livre absent de l’ossature ne se liste pas', () => {
-    expect(estLivreOuvrable('ESG', OSSATURE)).toBe(false)
-    expect(estLivreOuvrable('LJE', OSSATURE)).toBe(false)
+  it('⛔ un livre que RIEN ne rend ne se liste pas', () => {
+    // Hénoch et les Jubilés n'ont de texte nulle part : ni ossature, ni apocryphes.
+    expect(estLivreOuvrable('ENO', OSSATURE)).toBe(false)
+    expect(estLivreOuvrable('JUB', OSSATURE)).toBe(false)
   })
 
   it('un livre que l’ossature porte se liste', () => {
     expect(estLivreOuvrable('SIR', OSSATURE)).toBe(true)
   })
 
+  it('⚠️ un écrit NON CANONIQUE se liste dès qu’il a des chapitres (2026-09-06)', () => {
+    // `livres_lisibles` en compte pour les écrits de la Septante hors ossature : la
+    // Lettre de Jérémie et le Daniel du vieux grec s'ouvrent depuis qu'ils ont un
+    // chemin de lecture. Ils n'entrent PAS dans l'ossature pour autant.
+    expect(estLivreOuvrable('LJE', { ...OSSATURE, LJE: 1, DAG: 12 })).toBe(true)
+    expect(estLivreOuvrable('DAG', { ...OSSATURE, LJE: 1, DAG: 12 })).toBe(true)
+    expect(estLivreOuvrable('LJE', OSSATURE)).toBe(false)
+  })
+
   it('⚠️ tant qu’on ne SAIT pas, on ne retire rien', () => {
     expect(estLivreOuvrable('ESG', null)).toBe(true)
+  })
+})
+
+describe('chargerLivresLisibles', () => {
+  it('interroge `livres_lisibles`, et non plus `livres_canon`', async () => {
+    // ⛔ La bascule de vue est la décision, pas le dessin : `livres_canon` ne connaît
+    // que l'ossature, et laissait les écrits non canoniques grisés à jamais.
+    const demandes: { table: string; colonnes: string }[] = []
+    const client = {
+      from: (table: string) => ({
+        select: (colonnes: string) => {
+          demandes.push({ table, colonnes })
+          return Promise.resolve({
+            data: [
+              { code: 'GEN', chapitres: 50, canonique: true },
+              { code: 'DAG', chapitres: 12, canonique: false },
+            ],
+            error: null,
+          })
+        },
+      }),
+    }
+
+    const lignes = await chargerLivresLisibles(client)
+
+    expect(demandes).toEqual([{ table: 'livres_lisibles', colonnes: 'code, chapitres, canonique' }])
+    expect(lignes.find(l => l.code === 'DAG')?.canonique).toBe(false)
+    // La table des chapitres se dérive de la MÊME lecture : une seule requête pour tout
+    // le site, comme avant.
+    expect(await chargerChapitresParLivre(client)).toEqual({ GEN: 50, DAG: 12 })
+    expect(demandes).toHaveLength(1)
   })
 })

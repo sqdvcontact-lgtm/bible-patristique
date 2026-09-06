@@ -1,5 +1,6 @@
 'use client'
-import { ABREV_FR } from '@/app/lib/bible'
+import { ABREV_FR, estLivreNonCanonique } from '@/app/lib/bible'
+import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
 
 import { Fragment, useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -591,7 +592,11 @@ export default function TexteBible({
           <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="entete" onAller={allerAuChapitre} />
 
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-            <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
+            {/* La marque suit le titre du chapitre comme elle suit le nom au volet : un
+                lecteur qui arrive par un lien direct n'a jamais vu le volet. */}
+            <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>
+              {nomLivre}{estLivreNonCanonique(livreActif) && <MarqueNonCanonique />}
+            </span>
             <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
             {/* ⛔ PAS DE VERT DANS CE TITRE (décision de l'auteur, 2026-08-30). Le rang
                 de chapitre portait `--cs-vert`, qui jurait contre le fleuron chaud posé
