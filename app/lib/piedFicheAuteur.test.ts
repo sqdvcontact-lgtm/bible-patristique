@@ -42,6 +42,35 @@ describe('pied de la fiche d’auteur', () => {
     expect(modale).not.toContain("referencedTable: 'ouvrages_bibliographiques'")
   })
 
+  it('⛔ ne porte AUCUNE phrase de total (2026-09-06)', () => {
+    // Relevé de l'auteur : « 40 renvois, sur 35 versets de 14 livres. et 8 traductions
+    // françaises au catalogue, pas encore ici. — supprimer. » Les trois blocs portaient
+    // la même sorte de chapeau ; les trois l'ont perdu.
+    expect(modale).not.toContain('renvois, sur {nombreFr')
+    expect(modale).not.toContain('au catalogue, pas encore ici')
+    expect(modale).not.toContain('de la bibliographie.')
+  })
+
+  it('compose les DEUX bibliographies par le moteur, jamais à la main', () => {
+    // Charte § 35.6.5 : il n'y a qu'une composition bibliographique sur le site.
+    expect(modale).toContain('<ReferenceBibliographique')
+    expect(modale).toContain('noticeDuCatalogue({')
+    expect(modale).toContain('chargerNoticesBibliographiques(supabase, idsOuvrages)')
+    // ⚠️ La fiche nomme déjà l'auteur en tête : le redire à chaque ligne serait un
+    // refrain.
+    expect(modale).toContain('avecAuteur={false}')
+  })
+
+  it('l’empreinte biblique se lit en FILETS, sans un chiffre', () => {
+    // Relevé de l'auteur : « c'est pas clair ». Un compte nu ne dit pas ce qu'il compte ;
+    // un filet dit la part, qui est la seule chose qu'on cherche ici.
+    expect(modale).toContain('partDuFilet(l.liens')
+    expect(modale).toContain('Livres les plus commentés')
+    expect(modale).not.toContain('Dans l’Écriture')
+    // Le compte exact reste à l'infobulle, pour qui le veut.
+    expect(modale).toContain('title={`${nombreFr(l.liens)} renvois')
+  })
+
   it('se charge en SECONDE VAGUE et se tait quand il n’a rien à dire', () => {
     // La fiche ne doit pas attendre son pied : l'effet est séparé de celui qui charge
     // la notice, les œuvres et la frise.

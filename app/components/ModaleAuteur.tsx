@@ -15,6 +15,10 @@ import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { LIVRES } from '@/app/lib/bible'
+import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
+import { noticeDuCatalogue } from '@/app/lib/noticeOeuvre'
+import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographiquesChargement'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
@@ -56,16 +60,25 @@ type Auteur = {
 type EmpreinteLivre = { livre: string; liens: number; versets: number }
 type Empreinte = { liens: number; versets: number; livres: number; tete: EmpreinteLivre[] }
 type EditionCataloguee = {
-  id: number; titre_stable: string | null; titre_edition: string | null
-  traducteur: string | null; date_edition_affichage_courte: string | null
+  id: number; titre_stable: string | null
+  traducteur: string | null; collection_nom: string | null
+  lieu_edition: string | null; editeur: string | null
+  annee_edition: number | null; date_edition_affichage_courte: string | null
 }
-type OuvrageSavant = { id: number; titre: string; annee: number | null; collection: string | null }
 type PiedFiche = {
   empreinte: Empreinte | null
   editions: EditionCataloguee[]; nbEditions: number
-  ouvrages: OuvrageSavant[]; nbOuvrages: number
+  /** Des NOTICES du moteur, non des lignes brutes : la composition vient de lui. */
+  ouvrages: NoticeBibliographique[]; nbOuvrages: number
 }
 const PIED_VIDE: PiedFiche = { empreinte: null, editions: [], nbEditions: 0, ouvrages: [], nbOuvrages: 0 }
+
+/** La part d'un filet, mesurée sur le PREMIER livre. Un plancher de 6 % garde une
+ *  trace visible au dernier rang : un filet de moins d'un pixel n'est pas un filet. */
+function partDuFilet(liens: number, tete: number): number {
+  if (tete <= 0) return 0
+  return Math.max(6, Math.round((liens / tete) * 100))
+}
 
 const POS_DEFAUT: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
 
@@ -473,16 +486,27 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
 
         {empreinte && (
           <div style={{ minWidth: 0 }}>
-            <TitrePied>Dans l’Écriture</TitrePied>
-            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '0 0 6px', lineHeight: 1.45 }}>
-              {nombreFr(empreinte.liens)} renvois, sur {nombreFr(empreinte.versets)} versets
-              {empreinte.livres > 1 ? ` de ${empreinte.livres} livres` : ''}.
-            </p>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: '1fr max-content', columnGap: '10px', rowGap: '2px', alignItems: 'baseline' }}>
+            <TitrePied>Livres les plus commentés</TitrePied>
+            {/* ⛔ AUCUN NOMBRE. Un compte nu (« Genèse 3 106 ») ne dit pas ce qu'il
+                compte, et le mot juste — renvoi, passage, citation — demanderait une
+                phrase que ce pied ne peut pas porter (relevé de l'auteur, 2026-09-06 :
+                « c'est pas clair »). Un filet dit la PART, qui est la seule chose qu'on
+                veut savoir ici : ce que cet auteur lit le plus. Le compte exact reste à
+                l'infobulle, pour qui le cherche. */}
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {empreinte.tete.map(l => (
-                <li key={l.livre} style={{ display: 'contents' }}>
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{NOM_LIVRE[l.livre] ?? l.livre}</span>
-                  <span title={`${nombreFr(l.versets)} versets`} style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontVariantNumeric: 'tabular-nums' }}>{nombreFr(l.liens)}</span>
+                <li key={l.livre} title={`${nombreFr(l.liens)} renvois, sur ${nombreFr(l.versets)} versets`} style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {NOM_LIVRE[l.livre] ?? l.livre}
+                  </span>
+                  {/* ⚠️ La part se mesure sur le PREMIER livre, non sur le total : les
+                      six premiers d'Augustin ne font que la moitié de ses renvois, et
+                      des filets tous ténus ne classeraient plus rien. */}
+                  <span aria-hidden="true" style={{
+                    display: 'block', height: '2px', marginTop: '2px', borderRadius: '999px',
+                    width: `${partDuFilet(l.liens, empreinte.tete[0]?.liens ?? l.liens)}%`,
+                    background: 'color-mix(in srgb, var(--cs-vert) 34%, transparent)',
+                  }} />
                 </li>
               ))}
             </ul>
@@ -492,17 +516,22 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
         {aEditions && (
           <div style={{ minWidth: 0 }}>
             <TitrePied>Éditions répertoriées</TitrePied>
-            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '0 0 6px', lineHeight: 1.45 }}>
-              {/* Le catalogue tient ce que le site n'a pas encore : le dire ici évite au
-                  lecteur de conclure d'une fiche courte que l'auteur est peu traduit. */}
-              {nombreFr(pied.nbEditions)} traduction{pied.nbEditions > 1 ? 's' : ''} française{pied.nbEditions > 1 ? 's' : ''} au catalogue, pas encore ici.
-            </p>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {/* ⛔ La notice se compose par le MOTEUR bibliographique, comme partout
+                ailleurs sur le site (charte § 35.6.5) : ordre, liants et ponctuation
+                viennent de lui, et `noticeDuCatalogue` ne fait que nommer les champs.
+                ⚠️ `avecAuteur={false}` : la fiche porte déjà le nom en tête. */}
+            <ul className="cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote pied-biblio"
+              style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {pied.editions.map(e => (
-                <li key={e.id} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                  title={[e.titre_stable, e.titre_edition, e.traducteur].filter(Boolean).join(' · ')}>
-                  {e.titre_stable || e.titre_edition}
-                  {e.date_edition_affichage_courte && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.65625rem' }}> {e.date_edition_affichage_courte}</span>}
+                <li key={e.id} className="cs-apparat-bibliographie__entree">
+                  <ReferenceBibliographique
+                    notice={noticeDuCatalogue({
+                      id: e.id, titreStable: e.titre_stable, traducteur: e.traducteur,
+                      collection: e.collection_nom, lieu: e.lieu_edition, editeur: e.editeur,
+                      dateAffichee: e.date_edition_affichage_courte, annee: e.annee_edition,
+                    })}
+                    avecAuteur={false}
+                  />
                 </li>
               ))}
             </ul>
@@ -512,15 +541,14 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
         {aOuvrages && (
           <div style={{ minWidth: 0 }}>
             <TitrePied>Éditions savantes</TitrePied>
-            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '0 0 6px', lineHeight: 1.45 }}>
-              {nombreFr(pied.nbOuvrages)} ouvrage{pied.nbOuvrages > 1 ? 's' : ''} de la bibliographie.
-            </p>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              {pied.ouvrages.map(o => (
-                <li key={o.id} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                  title={[o.titre, o.collection, o.annee ? String(o.annee) : null].filter(Boolean).join(' · ')}>
-                  {o.titre}
-                  {o.annee && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.65625rem' }}> {o.annee}</span>}
+            {/* ⛔ Ce sont de vraies notices d'`ouvrages_bibliographiques` : elles se
+                composent par le moteur depuis leurs AUTORITÉS, jamais par un titre et
+                une année recollés. */}
+            <ul className="cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote pied-biblio"
+              style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {pied.ouvrages.map(notice => (
+                <li key={notice.id} className="cs-apparat-bibliographie__entree">
+                  <ReferenceBibliographique notice={notice} avecAuteur={false} />
                 </li>
               ))}
             </ul>
@@ -708,7 +736,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       // Le catalogue : MÊME garde que la Bibliothèque — pas encore sur le site, non
       // refusée. Trois titres suffisent, le compte exact vient de l'en-tête.
       supabase.from('v_catalogue_notices_dates')
-        .select('id, titre_stable, titre_edition, traducteur, date_edition_affichage_courte', { count: 'exact' })
+        .select('id, titre_stable, traducteur, collection_nom, lieu_edition, editeur, annee_edition, date_edition_affichage_courte', { count: 'exact' })
         .eq('id_auteur', id).eq('presence_sur_le_site', false).eq('refuse_admin', false)
         .order('titre_stable').limit(3),
       // La bibliographie : l'auteur ancien y est la SOURCE, jamais le contributeur
@@ -721,22 +749,36 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       // trois ouvrages au hasard. Les deux tables tiennent en mille lignes : le piège
       // du `!inner` sur `segments` (charte) ne s'applique pas ici.
       supabase.from('ouvrages_bibliographiques')
-        .select('id, titre, annee, collection, ouvrage_contributeurs_scientifiques!inner(auteur_id, role_contributeur)', { count: 'exact' })
+        .select('id, ouvrage_contributeurs_scientifiques!inner(auteur_id, role_contributeur)', { count: 'exact' })
         .eq('ouvrage_contributeurs_scientifiques.auteur_id', id)
         .eq('ouvrage_contributeurs_scientifiques.role_contributeur', 'auteur_source')
         .neq('statut_editorial', 'rejete')
         .in('statut_scientifique', ['retenu', 'secondaire'])
         .order('annee', { ascending: false, nullsFirst: false })
         .limit(3),
-    ]).then(([empreinteRes, catalogueRes, biblioRes]) => {
+    ]).then(async ([empreinteRes, catalogueRes, biblioRes]) => {
       if (annule) return
       const brut = empreinteRes.data as Empreinte | null
+      // ⚠️ Une SECONDE lecture, et elle ne part que s'il y a des ouvrages : la notice
+      // complète vit dans `v_references_bibliographiques`, avec ses autorités résolues.
+      // La première requête ne sert plus qu'à choisir LESQUELS.
+      const idsOuvrages = biblioRes.error ? [] : ((biblioRes.data ?? []) as { id: number }[]).map(o => o.id)
+      let notices: NoticeBibliographique[] = []
+      if (idsOuvrages.length > 0) {
+        try {
+          const table = await chargerNoticesBibliographiques(supabase, idsOuvrages)
+          notices = idsOuvrages.map(i => table.get(i)).filter((n): n is NoticeBibliographique => !!n)
+        } catch (err) {
+          console.error('[fiche auteur] bibliographie savante illisible', err)
+        }
+      }
+      if (annule) return
       setPied({
         empreinte: empreinteRes.error ? null : brut,
         editions: catalogueRes.error ? [] : ((catalogueRes.data ?? []) as EditionCataloguee[]),
         nbEditions: catalogueRes.error ? 0 : (catalogueRes.count ?? 0),
-        ouvrages: biblioRes.error ? [] : ((biblioRes.data ?? []) as unknown as OuvrageSavant[]),
-        nbOuvrages: biblioRes.error ? 0 : (biblioRes.count ?? 0),
+        ouvrages: notices,
+        nbOuvrages: notices.length === 0 ? 0 : (biblioRes.count ?? 0),
       })
     })
     return () => { annule = true }

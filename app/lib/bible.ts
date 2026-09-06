@@ -2,7 +2,19 @@
 // figurent désormais dans le MÊME volet de navigation que les deux Testaments, sur la page
 // Bible comme sur la Polyglotte. Les tenir à l'écart obligeait à deux navigations distinctes,
 // alors que le lecteur circule d'un ensemble à l'autre sans changer de geste.
-export type LivreBible = { code: string; nom: string; testament: 'AT' | 'NT' | 'AUTRES'; nbVersets: number }
+/**
+ * ⚠️ `testament` dit la PLACE, `canonique` dit le STATUT, et les deux ne se confondent
+ * plus (2026-09-06, demande de l'auteur : « je veux bien que les non canoniques soient à
+ * leur place traditionnelle, mais il faut simplement indiquer non canonique en petit à
+ * côté »). Un écrit que le canon catholique ne reçoit pas se range donc auprès du livre
+ * dont il relève — le Psaume 151 après le Psautier, la Lettre de Jérémie après Baruch —
+ * et porte sa mention. `canonique` absent vaut VRAI : seuls les écrits qu'il faut
+ * signaler le déclarent.
+ */
+export type LivreBible = {
+  code: string; nom: string; testament: 'AT' | 'NT' | 'AUTRES'; nbVersets: number
+  canonique?: boolean
+}
 
 export const LIVRES: LivreBible[] = [
   { code: 'GEN', nom: 'Genèse',                   testament: 'AT', nbVersets: 1533 },
@@ -21,13 +33,20 @@ export const LIVRES: LivreBible[] = [
   { code: '2CH', nom: '2 Chroniques',             testament: 'AT', nbVersets:  822 },
   { code: 'EZR', nom: 'Esdras',                   testament: 'AT', nbVersets:  280 },
   { code: 'NEH', nom: 'Néhémie',                  testament: 'AT', nbVersets:  406 },
+  // ⚠️ Non canoniques, mais à leur PLACE : chacun auprès du livre dont il relève.
+  { code: '1ES', nom: '1 Esdras (3 Esdras)',      testament: 'AT', nbVersets: 0, canonique: false },
   { code: 'TOB', nom: 'Tobie',                    testament: 'AT', nbVersets:  248 },
   { code: 'JDT', nom: 'Judith',                   testament: 'AT', nbVersets:  340 },
   { code: 'EST', nom: 'Esther',                   testament: 'AT', nbVersets:  167 },
   { code: '1MA', nom: '1 Maccabées',              testament: 'AT', nbVersets:  925 },
   { code: '2MA', nom: '2 Maccabées',              testament: 'AT', nbVersets:  556 },
+  { code: '3MA', nom: '3 Maccabées',              testament: 'AT', nbVersets: 0, canonique: false },
+  { code: '4MA', nom: '4 Maccabées',              testament: 'AT', nbVersets: 0, canonique: false },
   { code: 'JOB', nom: 'Job',                      testament: 'AT', nbVersets: 1070 },
   { code: 'PSA', nom: 'Psaumes',                  testament: 'AT', nbVersets: 2461 },
+  { code: 'PS2', nom: 'Psaume 151',               testament: 'AT', nbVersets: 0, canonique: false },
+  { code: 'ODA', nom: 'Odes',                     testament: 'AT', nbVersets: 0, canonique: false },
+  { code: 'PSS', nom: 'Psaumes de Salomon',       testament: 'AT', nbVersets: 0, canonique: false },
   { code: 'PRO', nom: 'Proverbes',                testament: 'AT', nbVersets:  915 },
   { code: 'ECC', nom: 'Ecclésiaste ou Qohélet',  testament: 'AT', nbVersets:  222 },
   { code: 'SNG', nom: 'Cantique des cantiques',   testament: 'AT', nbVersets:  117 },
@@ -37,8 +56,10 @@ export const LIVRES: LivreBible[] = [
   { code: 'JER', nom: 'Jérémie',                  testament: 'AT', nbVersets: 1364 },
   { code: 'LAM', nom: 'Lamentations',             testament: 'AT', nbVersets:  154 },
   { code: 'BAR', nom: 'Baruch',                   testament: 'AT', nbVersets:  213 },
+  { code: 'LJE', nom: 'Lettre de Jérémie',        testament: 'AT', nbVersets: 0, canonique: false },
   { code: 'EZK', nom: 'Ézéchiel',                 testament: 'AT', nbVersets: 1273 },
   { code: 'DAN', nom: 'Daniel',                   testament: 'AT', nbVersets:  357 },
+  { code: 'DAG', nom: 'Daniel (vieux grec)',      testament: 'AT', nbVersets: 0, canonique: false },
   { code: 'HOS', nom: 'Osée',                     testament: 'AT', nbVersets:  197 },
   { code: 'JOL', nom: 'Joël',                     testament: 'AT', nbVersets:   73 },
   { code: 'AMO', nom: 'Amos',                     testament: 'AT', nbVersets:  146 },
@@ -79,43 +100,33 @@ export const LIVRES: LivreBible[] = [
   { code: 'JUD', nom: 'Jude',                     testament: 'NT', nbVersets:   25 },
   { code: 'REV', nom: 'Apocalypse',               testament: 'NT', nbVersets:  404 },
 
-  // Écrits non canoniques. Reçus par aucune des traditions que nous publions, ils sont
-  // néanmoins comparés dans la Polyglotte : leur place est donc dans la navigation, à part
-  // et clairement nommée. Le nombre de versets est laissé à 0 tant qu'aucune édition n'est
-  // chargée — la navigation les grisera d'elle-même, comme tout livre sans texte.
-  { code: '1ES', nom: '1 Esdras (3 Esdras)',      testament: 'AUTRES', nbVersets: 0 },
-  { code: '2ES', nom: '2 Esdras (4 Esdras)',      testament: 'AUTRES', nbVersets: 0 },
-  { code: 'EZA', nom: "Apocalypse d'Esdras",      testament: 'AUTRES', nbVersets: 0 },
-  { code: '3MA', nom: '3 Maccabées',              testament: 'AUTRES', nbVersets: 0 },
-  { code: '4MA', nom: '4 Maccabées',              testament: 'AUTRES', nbVersets: 0 },
-  { code: 'MAN', nom: 'Prière de Manassé',        testament: 'AUTRES', nbVersets: 0 },
-  // ⚠️ À PART, et non au chapitre 6 de Baruch où le canon catholique la range : la
-  // Septante la transmet d'un seul tenant, et c'est cette forme que le site porte.
-  { code: 'LJE', nom: 'Lettre de Jérémie',        testament: 'AUTRES', nbVersets: 0 },
-  { code: 'PS2', nom: 'Psaume 151',               testament: 'AUTRES', nbVersets: 0 },
-  { code: 'PSS', nom: 'Psaumes de Salomon',       testament: 'AUTRES', nbVersets: 0 },
-  { code: 'ODA', nom: 'Odes',                     testament: 'AUTRES', nbVersets: 0 },
-  // ⚠️ Le Daniel du VIEUX GREC, et non le Daniel de l'ossature, qui suit Théodotion.
-  // Ce sont DEUX RECENSIONS et non deux copies : la charte interdit de les dédoublonner
-  // sur les coordonnées et le texte. Le nom doit dire laquelle on ouvre, sans quoi le
-  // lecteur croit à un doublon de « Daniel ».
-  { code: 'DAG', nom: 'Daniel (vieux grec)',      testament: 'AUTRES', nbVersets: 0 },
-  { code: 'ENO', nom: 'Hénoch',                   testament: 'AUTRES', nbVersets: 0 },
-  { code: 'JUB', nom: 'Jubilés',                  testament: 'AUTRES', nbVersets: 0 },
+  // Écrits que le canon ne reçoit pas ET qui n'ont pas de place dans l'ordre catholique :
+  // ni l'Ancien ni le Nouveau Testament ne les range. Ils ferment la navigation, à part.
+  // ⚠️ Ceux que la Septante porte se lisent à LEUR RANG, plus haut, marqués « non
+  // canonique » : c'est la place qui a changé le 2026-09-06, jamais le statut.
+  // Le nombre de versets reste à 0 tant qu'aucune édition n'est chargée — la navigation
+  // les grisera d'elle-même, comme tout livre sans texte.
+  { code: '2ES', nom: '2 Esdras (4 Esdras)',      testament: 'AUTRES', nbVersets: 0, canonique: false },
+  { code: 'EZA', nom: "Apocalypse d'Esdras",      testament: 'AUTRES', nbVersets: 0, canonique: false },
+  { code: 'MAN', nom: 'Prière de Manassé',        testament: 'AUTRES', nbVersets: 0, canonique: false },
+  { code: 'ENO', nom: 'Hénoch',                   testament: 'AUTRES', nbVersets: 0, canonique: false },
+  { code: 'JUB', nom: 'Jubilés',                  testament: 'AUTRES', nbVersets: 0, canonique: false },
 ]
 
 /**
  * Les écrits que le CANON CATHOLIQUE ne reçoit pas, et qu'il faut donc dire tels au
- * lecteur : ce sont ceux de la troisième colonne, « AUTRES ». La Septante en porte
- * plusieurs, et la marque affichée à côté de leur nom se lit vis-à-vis de ce canon-là,
- * non des autres traditions — un orthodoxe compte autrement, et la marque le dit sans
- * prétendre trancher pour lui.
+ * lecteur. ⛔ Ils ne se reconnaissent PLUS à leur testament : depuis le 2026-09-06 ils
+ * se rangent à leur place traditionnelle, auprès du livre dont ils relèvent, et c'est
+ * `canonique: false` qui les désigne. Confondre les deux remettrait le Psaume 151 au bas
+ * de la liste.
+ * ⚠️ La marque se lit vis-à-vis de ce canon-là, non des autres traditions — un orthodoxe
+ * compte autrement, et la marque le dit sans prétendre trancher pour lui.
  * ⚠️ La base a son propre juge, `livres_lisibles.canonique`, qu'elle rend au volet de
  * navigation. Cette liste-ci sert le RENDU SERVEUR, qui ne peut pas attendre une
  * requête pour savoir dans quelle vue chercher un chapitre.
  */
 export const LIVRES_NON_CANONIQUES: ReadonlySet<string> = new Set(
-  LIVRES.filter(l => l.testament === 'AUTRES').map(l => l.code),
+  LIVRES.filter(l => l.canonique === false).map(l => l.code),
 )
 export function estLivreNonCanonique(code: string): boolean {
   return LIVRES_NON_CANONIQUES.has(code)

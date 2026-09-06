@@ -2005,6 +2005,21 @@ button:focus-visible,
 }
 .cs-apparat-bibliographie__entree:last-child { margin-bottom: 0; }
 
+/* Le PIED d'une fiche d'auteur : la même famille, un cran plus bas. Ce n'est pas
+   une bibliographie qu'on vient lire, c'est un renseignement secondaire posé sous
+   la fiche, et il ne peut pas peser plus que les œuvres qu'elle liste (0,71875 rem).
+   ⚠️ Le retrait suspendu se resserre avec le corps ; on ne le retire pas, c'est lui
+   qui fait voir où commence la notice suivante. */
+.pied-biblio.cs-apparat-bibliographie {
+  font-size: 0.6875rem;
+  line-height: 1.32;
+}
+.pied-biblio .cs-apparat-bibliographie__entree {
+  margin-bottom: 0.55em;
+  padding-left: 0.9em;
+  text-indent: -0.9em;
+}
+
 /* Les fragments d'une notice STRUCTURÉE, composés selon leur rôle.
 
    ⚠️ Chaque règle se pend À LA RÉFÉRENCE — `.cs-reference-bibliographique

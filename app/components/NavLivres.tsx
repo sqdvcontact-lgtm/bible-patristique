@@ -8,6 +8,7 @@ import RailVolet from '@/app/components/RailVolet'
 import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
 import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
+import { estLivreNonCanonique } from '@/app/lib/bible'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
@@ -390,10 +391,10 @@ export default function NavLivres({
           cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
           opacity: vide ? 0.55 : 1,
         }}>
-          {/* La marque suit le nom, jamais la section : un lecteur qui arrive par une
-              recherche ne voit pas l'en-tête « Écrits non canoniques » sous lequel le
-              livre est rangé. */}
-          <span>{livre.nom}{livre.testament === 'AUTRES' && <MarqueNonCanonique />}</span>
+          {/* ⛔ La marque se juge sur le STATUT, jamais sur le testament : ces livres se
+              rangent à leur place traditionnelle depuis le 2026-09-06, donc au milieu de
+              l'Ancien Testament, et c'est elle seule qui les en distingue. */}
+          <span>{livre.nom}{estLivreNonCanonique(livre.code) && <MarqueNonCanonique />}</span>
           {!vide && !sansChapitres && <span style={{ color: '#a9b6a6', fontSize: '0.5rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
         </button>
 

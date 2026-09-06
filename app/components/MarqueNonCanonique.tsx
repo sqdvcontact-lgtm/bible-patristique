@@ -1,36 +1,43 @@
 // ── La marque des écrits non canoniques ────────────────────────────────────────
 //
-// Un obèle en exposant, à côté du nom du livre. La Septante porte des écrits que le
-// canon catholique ne reçoit pas — 1 Esdras, 3 et 4 Maccabées, le Daniel du vieux grec,
-// les Odes, le Psaume 151, les Psaumes de Salomon, la Lettre de Jérémie —, et le lecteur
-// doit le savoir AVANT d'ouvrir, non après.
+// Deux mots en petit, à côté du nom du livre. La Septante porte des écrits que le canon
+// catholique ne reçoit pas — 1 Esdras, 3 et 4 Maccabées, le Daniel du vieux grec, les
+// Odes, le Psaume 151, les Psaumes de Salomon, la Lettre de Jérémie —, et le lecteur doit
+// le savoir AVANT d'ouvrir, non après.
 //
-// ⚠️ L'exposant et la teinte suffisent, et rien d'autre : pas de pointillé, pas de
-// pastille, pas de cartouche (charte, § appels de note). La marque doit se voir sans
-// jamais peser plus que le titre qu'elle accompagne.
+// ⛔ Ils se rangent désormais à leur PLACE TRADITIONNELLE, auprès du livre dont ils
+// relèvent (demande de l'auteur, 2026-09-06) : c'est cette mention, et elle seule, qui les
+// distingue de leurs voisins. Un obèle en exposant l'a dite une journée ; un signe qu'il
+// faut apprendre ne dit rien à qui ne l'a pas appris, et l'auteur a tranché pour les mots.
 //
-// ⚠️ ELLE DIT VIS-À-VIS DE QUOI. « Non canonique » tout court serait un jugement ; les
-// Églises d'Orient ne comptent pas comme Rome, et plusieurs de ces livres sont reçus
-// ailleurs. L'infobulle nomme donc le canon de référence, et le texte de rechange que
-// lisent les lecteurs d'écran le dit en toutes lettres.
+// ⚠️ ELLE DIT VIS-À-VIS DE QUOI, et l'infobulle le nomme. « Non canonique » tout court
+// serait un jugement : les Églises d'Orient ne comptent pas comme Rome, et plusieurs de
+// ces livres sont reçus ailleurs.
+//
+// ⚠️ La taille est ABSOLUE, non relative : la marque accompagne un nom de volet de
+// 0,84375 rem et un titre de chapitre de 1,25 rem, et en `em` elle serait deux fois plus
+// grosse dans le second. C'est la même mention, elle a le même corps.
 
-const OBELE = '†'
+const TEXTE = 'non canonique'
+const INFOBULLE = 'Écrit non reçu par le canon catholique'
 
-export default function MarqueNonCanonique({ taille = '0.6875em' }: { taille?: string }) {
+export default function MarqueNonCanonique({ taille = '0.5625rem' }: { taille?: string }) {
   return (
-    <sup
-      title="Écrit non reçu par le canon catholique"
+    <span
+      title={INFOBULLE}
       style={{
-        marginLeft: '0.18em',
+        marginLeft: '0.4em',
         fontSize: taille,
-        lineHeight: 0,
-        color: 'var(--cs-texte-faible)',
-        verticalAlign: 'super',
+        fontFamily: 'var(--font-source-sans), Arial, sans-serif',
         fontWeight: 400,
+        fontStyle: 'normal',
+        letterSpacing: '0.04em',
+        color: 'var(--cs-texte-faible)',
+        whiteSpace: 'nowrap',
+        verticalAlign: 'baseline',
       }}
     >
-      <span aria-hidden="true">{OBELE}</span>
-      <span className="sr-only">, écrit non reçu par le canon catholique</span>
-    </sup>
+      {TEXTE}
+    </span>
   )
 }

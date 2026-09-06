@@ -107,3 +107,66 @@ export function noticeDUneOeuvre(
     traducteursTexte: nomsTraducteurs(oeuvre.tradAuteur).join(' ; ') || null,
   }
 }
+
+/** Ce que `catalogue_notices` porte d'une édition répertoriée. Une notice de catalogue
+ *  n'est PAS une œuvre du site : elle décrit un livre imprimé que nous n'avons pas
+ *  encore, et ses champs ne sont pas les mêmes. */
+export type EditionCatalogueCitee = {
+  id: number
+  /** Le titre de l'ŒUVRE, non celui de la page de titre — voir ci-dessous. */
+  titreStable?: string | null
+  traducteur?: string | null
+  collection?: string | null
+  lieu?: string | null
+  editeur?: string | null
+  /** Le millésime déjà rédigé par la vue (`date_edition_affichage_courte`). */
+  dateAffichee?: string | null
+  annee?: number | null
+}
+
+/**
+ * L'édition répertoriée, dans la forme que lit le moteur.
+ *
+ * ⛔ LE TITRE EST `titre_stable`, JAMAIS `titre_edition`. Le second est la page de
+ * titre transcrite, et elle porte tout l'appareil du XVIIe siècle : « Traduction du
+ * livre de S. Augustin de la Correction et de la grâce, avec des sommaires de la
+ * doctrine contenue en chaque chapitre — deuxième édition ». Mesuré le 2026-09-06 :
+ * 2 001 notices sur 2 499 en portent une qui diffère du titre de l'œuvre, et 267
+ * contiennent un « , dans … » qui ferait doublon avec le liant du moteur. Une liste
+ * de trois lignes ne peut pas les recevoir.
+ *
+ * ⚠️ LE TRADUCTEUR PASSE TEL QUEL, et ne va PAS dans `nomsTraducteurs`.
+ * `catalogue_notices.traducteur` n'est pas tenu par la convention du point-virgule
+ * (charte, § 5) : ce sont des mentions lues sur les notices, en prose. Mesuré : 23
+ * signes en moyenne, 2 lignes seulement portent un deux-points, 24 une réserve
+ * d'attribution. Le nettoyer reviendrait à découper une phrase.
+ *
+ * ⚠️ AUCUN CONTRIBUTEUR : la fiche où cette notice paraît nomme déjà l'auteur, et
+ * `fragmentsReference` reçoit `avecAuteur: false`.
+ */
+export function noticeDuCatalogue(
+  edition: EditionCatalogueCitee,
+  indexEditeurs: IndexEditeurs | null = null,
+): NoticeBibliographique {
+  const editeur = propre(normaliserNomEditeur(edition.editeur, indexEditeurs))
+  const date = propre(edition.dateAffichee)
+  return {
+    id: edition.id,
+    forme: 'monographie',
+    titre: propre(edition.titreStable) ?? '',
+    sousTitre: null,
+    titreHote: null,
+    tomaison: null,
+    pages: null,
+    dateAffichee: date ? resserrerTiretsAnnees(date) : null,
+    annee: edition.annee ?? null,
+    lieu: propre(edition.lieu),
+    editeurs: editeur ? [{ rang: 1, role: 'editeur', nom: editeur }] : [],
+    collection: propre(edition.collection),
+    numeroCollection: null,
+    contributeurs: [],
+    auteursTexte: null,
+    directeursTexte: null,
+    traducteursTexte: propre(edition.traducteur),
+  }
+}
