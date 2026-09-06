@@ -86,3 +86,27 @@ __pycache__/
 pnpm-lock.yaml
 pnpm-workspace.yaml
 .pnpm-store/
+
+# ── Ce qui n'a pas à voyager dans un déploiement (2026-09-06) ─────────────────
+# Vercel clone le dépôt à CHAQUE déploiement et facture l'espace de tous ceux qu'il
+# retient — mille et plus, pour un plafond de 10 Go atteint le 6 septembre 2026.
+# Le site tient en 37 Mo (app, public, data) ; ces deux ateliers en pesaient 209.
+# ⚠️ Copie vérifiée sur D:\Corpus Scriptura\bible-patristique\ avant retrait du suivi
+# (1 531 fichiers, 369,8 Mo pour l'Heptateuque ; les lots 899 y étaient déjà, le
+# dossier local en étant une jonction).
+
+# Atelier de segmentation de l'Heptateuque : terminé, l'œuvre est importée et publiée.
+# NDJSON d'inspection, PDF de rendu, images de contrôle, candidats CSV et JSON.
+# ⛔ Rien du site ne le lit — vérifié sur app/, proxy.ts, package.json et .github/.
+/scripts/heptateuque/
+
+# Lots d'import de la Bible 899 : archives et colonnes d'images, régénérables depuis
+# la source. ⛔ On NE ferme PAS le dossier entier : deux workflows y écrivent et y
+# ajoutent des fichiers de contrôle (final_sheet_run_id.txt, SOURCE_FIXES_*.json,
+# manifest_sha256.txt), tous sous le kilo-octet, qui restent suivis.
+# ⛔ Et `data/manuscrits/bible-899/` ne bouge pas : le TEI scellé et son manifeste
+# sont LUS AU CHARGEMENT par le site, qui en vérifie l'empreinte.
+/work/bible899/incoming/
+/work/bible899/LOT_*_READY/
+/work/bible899/*.zip
+/work/bible899/*.zip.sha256
