@@ -2982,3 +2982,12 @@ main.lecture-entree [data-cs-bloc],
 [data-visite-cible="actions"] .verset-actions { display: flex !important; }
 [data-visite-cible="actions"] .bouton-action-verset { opacity: 1 !important; }
 [data-visite-cible="actions"] .marque-densite { opacity: 0; }
+
+/* ⛔ LA POLYGLOTTE POSE SES ACTIONS DANS CHAQUE CELLULE, une par traduction, et ne
+   les révèle qu'au survol — tant que le curseur BOUGE, une seconde d'immobilité les
+   effaçant. Une visite ne survole rien et ne bouge pas : elle désigne. Même règle que
+   la colonne d'actions de la page Bible, sur d'autres classes.
+   ⚠️ Le bandeau clair vient avec les boutons : sans lui, trois glyphes flotteraient
+   sur le texte de la cellule, et c'est précisément ce que le survol évite. */
+[data-visite-cible="actions"] .poly-act { opacity: .9 !important; }
+[data-visite-cible="actions"] .poly-cellact { background: var(--cs-surface); box-shadow: var(--cs-ombre-nette); }

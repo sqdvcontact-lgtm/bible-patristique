@@ -6262,17 +6262,29 @@ sa forme (case / trait / case). Ici, sa mécanique.
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
-- `app/lib/visiteBibleClassique.ts` — le scénario, en données. Une visite par page.
+- `app/lib/visiteBibleClassique.ts` et `app/lib/visitePolyglotte.ts` — les scénarios,
+  en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
+  repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
+  de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
 - `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang 2800
   (au-dessus des modales du site, qui montent à 2700).
 
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Cinq aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
-(NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique). Deux étapes
-visent des classes qui existaient déjà (`.verset-row`, `.verset-actions`).
+Huit aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
+(NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique), plus
+`poly-colonnes`, `poly-entete` et `poly-notes` sur la Polyglotte. Quatre étapes visent
+des classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
+`.poly-texte-cell`).
 ⛔ Ne pas les retirer en remaniant un volet : rien ne casse à la compilation, l'étape
-disparaît simplement du parcours. ⚠️ NavLivres est partagé avec la Polyglotte, qui porte
-donc les mêmes repères — c'est voulu, sa visite les trouvera déjà posés.
+disparaît simplement du parcours. ⚠️ NavLivres est partagé par les deux pages, et son
+repère `livres` sert donc les deux visites — c'était prévu, et il n'a rien coûté.
+
+⛔ **UNE VISITE NE S'OUVRE QUE LÀ OÙ SA PAGE PEUT LA PORTER.** La Bible classique
+attend que son texte, rendu par le serveur, ait fini son fondu d'ouverture ; la
+Polyglotte attend que ses colonnes soient venues, son texte étant chargé par le
+navigateur, ET que l'écran soit assez large — sous 820 px elle rend un écran
+« largeur requise », ses repères restent dans le document mais de taille nulle, et la
+visite s'ouvrirait pour se fermer aussitôt, étape après étape.
 
 **Le sujet est suivi par une boucle d'images** (`requestAnimationFrame`) tant que la
 visite est ouverte, et l'état ne change que si le rectangle a bougé. ⛔ Pas de mesure

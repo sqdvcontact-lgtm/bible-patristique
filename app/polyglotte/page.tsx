@@ -29,6 +29,11 @@ import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { DUREE_ENTREE_MS, ordonnerBlocsVisibles, ordonnerColonnesVisibles } from "@/app/lib/passageTexte";
 import { LIVRE_PAR_DEFAUT, ouvertureDeLaPolyglotte, retenirPositionPolyglotte } from "@/app/lib/repriseLecture";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
+import { useEstMobile } from "@/app/lib/useEstMobile";
+import VisiteGuidee from "@/app/components/VisiteGuidee";
+import { CLE_VISITE_POLYGLOTTE, VISITE_POLYGLOTTE } from "@/app/lib/visitePolyglotte";
+import { oublierVisite, visiteFaite } from "@/app/lib/visiteGuidee";
+import { offrirLaVisite } from "@/app/lib/demandeDeVisite";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
@@ -1718,6 +1723,37 @@ export default function PolyglottePage() {
   const colonnes = slotCols.map(s => s.trad).filter((t): t is Trad => !!t);
   const nomDe = (code: string) => livres.find(l => l.code === code)?.nom_fr ?? code;
 
+  // ── LA VISITE ──────────────────────────────────────────────────────────────
+  // ⛔ ELLE NE S'OUVRE QUE LÀ OÙ LE TABLEAU EXISTE. Sous 820 px la page rend un
+  // écran « largeur requise » et l'outil n'est pas peint : ses repères sont bien
+  // dans le document, mais de taille nulle, si bien que toutes les étapes se
+  // déroberaient l'une après l'autre et que la visite s'ouvrirait pour se fermer
+  // aussitôt. Et elle attend que les colonnes soient venues : le texte de cette
+  // page est chargé par le NAVIGATEUR, à la différence de la Bible classique, dont
+  // le serveur rend le chapitre.
+  const ecranEtroit = useEstMobile(820);
+  const visitePrete = !ecranEtroit && colonnes.length > 0 && !attenteGlobale;
+
+  // ⚠️ Un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle est déjà
+  // ouverte, la visite doit repartir de son grand message, et le composant ne s'y
+  // remet qu'en se remontant. Le compteur lui sert de clé (même patron que la Bible).
+  const [visite, setVisite] = useState(0);
+  useEffect(() => {
+    if (!visitePrete) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("visite")) oublierVisite(CLE_VISITE_POLYGLOTTE);
+    else if (visiteFaite(CLE_VISITE_POLYGLOTTE)) return;
+    const depart = window.setTimeout(() => setVisite(1), DUREE_ENTREE_MS / 2);
+    return () => window.clearTimeout(depart);
+  }, [visitePrete]);
+
+  // L'offre au bouton d'administration de la barre. ⚠️ Elle se retire quand la page
+  // cesse d'être en état d'en montrer une : le bouton disparaît alors de lui-même.
+  useEffect(() => {
+    if (!visitePrete) return;
+    return offrirLaVisite(() => setVisite(n => n + 1));
+  }, [visitePrete]);
+
   // Sous le titre canonique du livre, la désignation que lui donnent les éditions affichées
   // quand elle diffère. C'est la seule façon pour le lecteur de savoir que la Sacy de 1730
   // appelle « Rois, livre troisième » ce que le canon nomme « 1 Rois ».
@@ -1955,7 +1991,7 @@ export default function PolyglottePage() {
             )}
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
-          <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
+          <div data-visite="poly-colonnes" style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
             <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Traductions visibles</span>
             <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
@@ -2066,7 +2102,7 @@ export default function PolyglottePage() {
                 porte le blanc de séparation dans le bloc collant lui-même, sur un fond
                 opaque, si bien que le texte ne défile jamais dans l'interstice. */}
             <div ref={enteteRef} style={{ position: "sticky", top: HAUTEUR_NAVBAR, zIndex: 5, background: FOND, paddingTop: HAUT_NAV }}>
-              <div style={{ display: "grid", gridTemplateColumns: tmpl, fontSize: '0.75rem', minHeight: HAUT_ENTETE, borderBottom: "1px solid var(--cs-bord)" }}>
+              <div data-visite="poly-entete" style={{ display: "grid", gridTemplateColumns: tmpl, fontSize: '0.75rem', minHeight: HAUT_ENTETE, borderBottom: "1px solid var(--cs-bord)" }}>
                 {/* La marge de la référence : la réglure ne commence qu'après elle. */}
                 <div />
                 {/* Un en-tête par colonne de traduction, exactement : la numérotation
@@ -2099,7 +2135,7 @@ export default function PolyglottePage() {
                     n'écriront jamais de note : la colonne se ferme d'un clic, et la place
                     qu'elle rend peut aller jusqu'à ouvrir une colonne de traduction de plus
                     (voir le calcul de largeur adaptative). */}
-                <div style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "0 6px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minWidth: 0 }}>
+                <div data-visite="poly-notes" style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "0 6px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minWidth: 0 }}>
                   {notesReduites ? (
                     /* Colonne fermée : un simple crayon, propre et discret, pour rouvrir. */
                     <button onClick={() => setNotesReduites(false)} title="Afficher la colonne Notes" aria-label="Afficher la colonne Notes" className="poly-notes-rail"
@@ -2403,6 +2439,12 @@ export default function PolyglottePage() {
       </div>
         </div>
       </div>
+
+      {/* La visite, en portail vers <body> : elle passe au-dessus de tout ce que la
+          page peut ouvrir, la fenêtre d'édition d'un verset comprise. */}
+      {visite > 0 && (
+        <VisiteGuidee key={visite} visite={VISITE_POLYGLOTTE} onFin={() => setVisite(0)} />
+      )}
 
       {cibleEdition && (
         <ModaleEditionVerset
