@@ -1633,19 +1633,21 @@ export default function Navbar() {
   // ⛔ Il ne paraît QUE si la page courante offre une visite : un contrôle qui ne
   // ferait rien sur les trois quarts du site est une promesse en l'air, ce que la
   // charte refuse ailleurs pour un simple curseur d'aide.
-  // ⛔ Il suit les DROITS, non « estAdminAffiche », et c'est la convention de cette
-  // barre : l'onglet « Administration » et l'interrupteur d'à côté s'y tiennent tous
-  // deux. `modeUtilisateurStandard` gouverne ce que la PAGE montre — les crayons, les
-  // pastilles de file — non le poste de commande de la barre. Accroché à lui, le bouton
-  // disparaissait précisément dans le cas où l'on veut s'en servir : regarder la visite
-  // telle qu'un lecteur la reçoit (relevé sur le site le 2026-09-06, l'affichage
-  // standard étant celui où l'auteur travaille).
+  // ⛔ IL PARAÎT POUR TOUT LE MONDE (demande de l'auteur, 2026-09-06 au soir). Il fut
+  // d'abord un outil d'atelier, réservé à l'administration ; mais une visite ne se
+  // montre qu'une FOIS, et rien ne la rendait au lecteur qui l'avait passée trop vite
+  // ou voulait la revoir. C'est le seul chemin de retour, l'adresse `?visite=1` ne
+  // s'inventant pas.
+  // ⚠️ Il ne paraît QUE là où une page en offre une (voir demandeDeVisite.ts) : un
+  // contrôle sans effet sur les trois quarts du site serait une promesse en l'air.
+  // ⚠️ Sa place est parmi les outils du LECTEUR, avant « Soutenir le projet », et non
+  // plus dans le bloc d'administration où il est né.
   // ⚠️ Le mot dit « Visite », comme le site l'appelle partout ailleurs ; c'est
-  // l'infobulle qui porte le geste. À l'étroit, elle reste seule, ce que fait déjà
-  // l'interrupteur d'à côté.
+  // l'infobulle qui porte le geste. À l'étroit, l'icône reste seule, ce que fait déjà
+  // le lien d'à côté.
   // ⚠️ Sur téléphone il passe par « actionMobile », qui referme le panneau AVANT
   // d'agir : déplié, il couvrirait la visite qu'on vient de rappeler.
-  const boutonVisite = (mobile: boolean) => (estAdmin || estAdminEmail) && visiteOfferte && (
+  const boutonVisite = (mobile: boolean) => visiteOfferte && (
     mobile
       ? actionMobile("Revoir la visite", <IconBoussole />, 0, lancerLaVisite)
       : (
@@ -1930,10 +1932,12 @@ export default function Navbar() {
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
           <div data-visite="nav-compte" className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "0.125rem", paddingLeft: "0.25rem" }}>
             {toggleAdmin(false)}
-            {boutonVisite(false)}
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
+            {/* ⚠️ APRÈS le filet, avec les outils du lecteur : le bouton de la visite
+                n'appartient plus au bloc d'administration, où il est né. */}
+            {boutonVisite(false)}
             {/* À l'étroit, le cœur seul : l'intitulé revient en infobulle. */}
             <Link href="/soutenir" style={soutenirCompact
               ? { ...styleLienDiscret("/soutenir"), padding: "0.25rem 0.4375rem" }
@@ -2050,12 +2054,12 @@ export default function Navbar() {
               )}
             </div>
             {blocRecherche(true)}
+            {boutonVisite(true)}
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)}
               style={{ display: "flex", alignItems: "center", gap: "6px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none" }}>
               <IconCoeur /> Soutenir le projet
             </Link>
             {toggleAdmin(true)}
-            {boutonVisite(true)}
             {/* ⛔ Messagerie et notifications ne vivaient QUE dans le bloc `hidden lg:flex` :
                 sous 1024px, deux fonctions entières de l'espace du lecteur n'avaient aucun
                 accès, la route /notifications renvoyant à l'accueil. Elles se prennent ici,

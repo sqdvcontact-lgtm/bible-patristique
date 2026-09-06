@@ -6434,21 +6434,28 @@ qui montrent la colonne d'actions du verset désigné — `[data-visite-cible="a
 en `!important`, l'opacité de ces boutons et l'affichage du pavé tactile étant portés en
 style en ligne.
 
-**Pour la revoir** : le bouton « Visite » de la barre de navigation, ou `?visite=1` sur
-l'adresse de la page. Le passage est retenu dès l'OUVERTURE de la visite, non à sa
+**Pour la revoir** : le bouton « Visite » de la barre de navigation — visible de tous,
+sur les seules pages qui en offrent une — ou `?visite=1` sur l'adresse de la page. Le passage est retenu dès l'OUVERTURE de la visite, non à sa
 dernière étape.
 
 **Le bouton passe par `app/lib/demandeDeVisite.ts`**, et la barre n'apprend rien du
 scénario : la page OFFRE une fonction d'ouverture (`offrirLaVisite`, rendue au
 démontage), la barre la lit par `useVisiteOfferte` et l'appelle par `lancerLaVisite`.
-⛔ Il ne paraît que si la page courante en offre une — un contrôle sans effet sur les
-trois quarts du site est une promesse en l'air — et il suit les DROITS, non
-`estAdminAffiche` : `modeUtilisateurStandard` gouverne ce que la PAGE montre, non le poste
-de commande de la barre, où l’onglet « Administration » et l’interrupteur lui-même se
-tiennent déjà. Accroché à lui, le bouton disparaissait dans le cas même où l’on veut s’en
-servir — regarder la visite telle qu’un lecteur la reçoit. ⚠️ Sur téléphone il passe par `actionMobile`, qui referme
-le panneau AVANT d'agir, sinon celui-ci couvrirait la visite qu'on vient de rappeler.
+
+⛔ **IL PARAÎT POUR TOUT LE MONDE** (décision de l'auteur, 2026-09-06 au soir). Il fut
+d'abord un outil d'atelier, réservé à l'administration ; mais une visite ne se montre
+qu'une FOIS, et rien ne la rendait au lecteur qui l'avait passée trop vite ou qui
+voulait la revoir — l'adresse `?visite=1` ne s'invente pas. Sa place est donc parmi les
+outils du LECTEUR, après le filet de l'administration et avant « Soutenir le projet »,
+non plus dans le bloc où il est né.
+⛔ Il ne paraît que si la page courante en OFFRE une : un contrôle sans effet sur les
+trois quarts du site serait une promesse en l'air. ⚠️ Sur téléphone il passe par
+`actionMobile`, qui referme le panneau AVANT d'agir, sinon celui-ci couvrirait la visite
+qu'on vient de rappeler ; il s'y range avec la recherche et le soutien.
 ⚠️ Une visite à la fois : deux pages ne sont jamais montées ensemble.
+⚠️ Il pèse désormais sur la LARGEUR de la barre pour tout le monde, et non plus pour le
+seul administrateur : `visiteOfferte` est dans les dépendances de la mesure de repli, et
+l'intitulé cède à `soutenirCompact` dès le premier cran, comme le lien d'à côté.
 
 ⛔ **L'état de la visite est un COMPTEUR, non un drapeau** (`BibleLayout`) : rappelée
 alors qu'elle est déjà ouverte, elle doit repartir de son grand message, et le composant
