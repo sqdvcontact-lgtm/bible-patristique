@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rangDuSiecle, siecleNormalise, SIECLE_INCONNU } from './siecles'
+import { decouperSiecles, rangDuSiecle, siecleNormalise, sieclesEnHtml, SIECLE_INCONNU } from './siecles'
 
 // La garde du CLASSEMENT par siècle. Elle ne juge pas la composition typographique
 // des siècles, qui a la sienne ; elle tient la lecture du champ libre
@@ -57,5 +57,49 @@ describe('nommer le siècle d’un auteur', () => {
     // ⛔ Sans ce garde-fou, le rang de secours (99) se composerait en « XCIXe siècle ».
     expect(siecleNormalise(null)).toBe('Siècle indéterminé')
     expect(siecleNormalise('vers 400')).toBe('Siècle indéterminé')
+  })
+})
+
+// ── L'abréviation de « numéro » (2026-09-06) ──────────────────────────────────
+// Relevé de l'auteur sur une notice de Sources chrétiennes : « le "o" de "no" doit
+// être en exposant ». C'est le même geste que l'ordinal d'un siècle, et il vit donc
+// dans le même découpage.
+
+describe('composer l’abréviation de numéro', () => {
+  const morceaux = (t: string) => decouperSiecles(t).map(f => `${f.t}:${f.v}`)
+
+  it('met le « o » en exposant devant un chiffre', () => {
+    expect(morceaux('Sources chrétiennes, no 618')).toEqual([
+      'texte:Sources chrétiennes, ', 'texte:n', 'ordinal:o', 'texte: 618',
+    ])
+    // Sans espace, la forme reste reconnue.
+    expect(morceaux('no27')).toEqual(['texte:n', 'ordinal:o', 'texte:27'])
+  })
+
+  it('⛔ ne touche NI le possessif « nos », NI un « no » à l’intérieur d’un mot', () => {
+    for (const intact of ['nos 27 lettres', 'Bruno 27', 'Arno 12', 'no lettres', 'canon 27']) {
+      expect(morceaux(intact), intact).toEqual([`texte:${intact}`])
+    }
+  })
+
+  it('⛔ laisse « n° », qui est une autre écriture', () => {
+    expect(morceaux('édition n° 21')).toEqual(['texte:édition n° 21'])
+  })
+
+  it('compose un siècle ET un numéro dans la même chaîne', () => {
+    expect(morceaux('Sources chrétiennes, no 27, XIIe siècle')).toEqual([
+      'texte:Sources chrétiennes, ', 'texte:n', 'ordinal:o', 'texte: 27, ',
+      'romain:XII', 'ordinal:e', 'texte: siècle',
+    ])
+  })
+
+  it('rend la chaîne INTACTE quand elle ne porte rien à composer', () => {
+    expect(decouperSiecles('Paris, Éditions du Cerf, 2021'))
+      .toEqual([{ t: 'texte', v: 'Paris, Éditions du Cerf, 2021' }])
+  })
+
+  it('compose aussi dans du HTML déjà écrit, sans doubler un exposant', () => {
+    expect(sieclesEnHtml('coll. Sources chrétiennes, no 618')).toContain('n<sup')
+    expect(sieclesEnHtml('n<sup>o</sup> 618')).not.toContain('<sup><sup>')
   })
 })

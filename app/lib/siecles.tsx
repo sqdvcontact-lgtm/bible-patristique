@@ -35,6 +35,24 @@ const EMPAN = new RegExp(
 )
 const UN_SIECLE = new RegExp(`\\b([IVXLCDM]+)(${ORDINAL})\\b`, 'g')
 
+/* ── L'abréviation de « numéro » ──────────────────────────────────────────────
+ *
+ *  Le « o » de « no » se compose EN EXPOSANT, comme l'ordinal d'un siècle : c'est
+ *  le même geste typographique, et c'est pourquoi il vit dans ce module plutôt que
+ *  dans un second. À plat, « no 618 » se lit comme la négation anglaise (relevé de
+ *  l'auteur, 2026-09-06, sur une notice de Sources chrétiennes).
+ *
+ *  ⚠️ 832 notices du catalogue portent la forme dans `collection_nom` — « Sources
+ *  chrétiennes, no 27 », « Bibliothèque Augustinienne, no 21 » — et la composition
+ *  se fait donc AU RENDU, jamais dans la donnée (charte § 3.2).
+ *
+ *  ⛔ Le motif exige un CHIFFRE derrière, et rien d'autre : « nos » (le possessif)
+ *  n'est pas touché, et « Bruno 27 » ne l'est pas non plus, la frontière de mot
+ *  tombant à l'intérieur. ⛔ Et « n° », le signe degré, est laissé tel quel : c'est
+ *  une autre écriture, employée à dessein ailleurs dans le dépôt.
+ */
+const ABREV_NUMERO = /\bno(?=\s*\d)/g
+
 /** Petites capitales : `all-small-caps` et non `small-caps` — voir en tête. */
 export const STYLE_ROMAIN: React.CSSProperties = { fontVariantCaps: 'all-small-caps' }
 // L'ordinal en exposant. ⚠️ On NE laisse PAS le `vertical-align: super` par défaut du
@@ -106,6 +124,24 @@ export function decouperSiecles(texte: string | null | undefined): FragmentSiecl
     dernier = EMPAN.lastIndex
   }
   pousserTexte(t.slice(dernier))
+  // ⚠️ SECONDE PASSE, sur les seuls fragments restés en texte : le siècle est repéré
+  // d'abord, et l'abréviation ne peut donc pas venir couper un empan déjà composé.
+  return frags.flatMap(f => (f.t === 'texte' ? decouperNumero(f.v) : [f]))
+}
+
+/** « Sources chrétiennes, no 27 » → …, « n », exposant « o », « 27 ». */
+function decouperNumero(v: string): FragmentSiecle[] {
+  if (!v) return []
+  const frags: FragmentSiecle[] = []
+  let dernier = 0, m: RegExpExecArray | null
+  ABREV_NUMERO.lastIndex = 0
+  while ((m = ABREV_NUMERO.exec(v))) {
+    if (m.index > dernier) frags.push({ t: 'texte', v: v.slice(dernier, m.index) })
+    frags.push({ t: 'texte', v: 'n' }, { t: 'ordinal', v: 'o' })
+    dernier = ABREV_NUMERO.lastIndex
+  }
+  if (frags.length === 0) return [{ t: 'texte', v }]
+  if (dernier < v.length) frags.push({ t: 'texte', v: v.slice(dernier) })
   return frags
 }
 
@@ -130,10 +166,15 @@ export function rendreSiecles(texte: string | null | undefined): React.ReactNode
 /** Même règle, mais sur du HTML déjà composé (éditeur de traductions, notes).
  *  L'ordinal peut déjà porter un `<sup>` : on l'absorbe pour ne pas le doubler. */
 export function sieclesEnHtml(html: string): string {
-  return html.replace(
-    new RegExp(`\\b([IVXLCDM]+)(?:<sup>)?(${ORDINAL})(?:</sup>)?(\\s*(?:siècles?|s\\.))`, 'g'),
-    '<span style="font-variant-caps:all-small-caps">$1</span><sup style="font-size:0.62em !important;line-height:1;vertical-align:baseline;position:relative;top:-0.5em">$2</sup>$3',
-  )
+  const EXPOSANT = 'font-size:0.62em !important;line-height:1;vertical-align:baseline;position:relative;top:-0.5em'
+  return html
+    .replace(
+      new RegExp(`\\b([IVXLCDM]+)(?:<sup>)?(${ORDINAL})(?:</sup>)?(\\s*(?:siècles?|s\\.))`, 'g'),
+      `<span style="font-variant-caps:all-small-caps">$1</span><sup style="${EXPOSANT}">$2</sup>$3`,
+    )
+    // ⚠️ Un « o » déjà en exposant est absorbé, pour ne pas le doubler — même parti
+    // que l'ordinal ci-dessus.
+    .replace(/\bn(?:<sup>)?o(?:<\/sup>)?(?=\s*\d)/g, `n<sup style="${EXPOSANT}">o</sup>`)
 }
 
 /** Siècle donné par son numéro — négatif pour « av. J.-C. ». */
