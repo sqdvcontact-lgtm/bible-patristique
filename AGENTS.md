@@ -6250,3 +6250,59 @@ la colonne étroite d'une fiche, elle ne se lit pas.
   nom (« Dépôt lxx-swete »).
 - ⚠️ Une coupe qui ne laisserait rien n'est pas une coupe : on rend alors la phrase
   entière. Mieux vaut long que vide.
+
+# LA VISITE — le tutoriel de première ouverture (2026-09-06)
+
+La doctrine est dans la charte, § 46 : ce qu'une visite dit, ce qu'elle ne dit pas, et
+sa forme (case / trait / case). Ici, sa mécanique.
+
+**Trois fichiers, et un seul porte du DOM.**
+- `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
+  trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
+  (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
+- `app/lib/visiteBibleClassique.ts` — le scénario, en données. Une visite par page.
+- `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang 2800
+  (au-dessus des modales du site, qui montent à 2700).
+
+**Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
+Cinq aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
+(NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique). Deux étapes
+visent des classes qui existaient déjà (`.verset-row`, `.verset-actions`).
+⛔ Ne pas les retirer en remaniant un volet : rien ne casse à la compilation, l'étape
+disparaît simplement du parcours. ⚠️ NavLivres est partagé avec la Polyglotte, qui porte
+donc les mêmes repères — c'est voulu, sa visite les trouvera déjà posés.
+
+**Le sujet est suivi par une boucle d'images** (`requestAnimationFrame`) tant que la
+visite est ouverte, et l'état ne change que si le rectangle a bougé. ⛔ Pas de mesure
+unique : l'étape du verset remplit le volet de droite, `scrollIntoView` déplace la
+colonne, un onglet se monte sur téléphone. ⚠️ Le défilement est INSTANTANÉ (pas de
+`behavior: 'smooth'`) : la case, elle, se déplace en 300 ms, et deux mouvements de
+durées différentes se poursuivraient l'un l'autre.
+
+**Le sujet s'annonce à la page depuis la boucle, à l'instant où on le TROUVE**, jamais
+depuis un effet qui guetterait la mesure : l'étape change avant que la boucle n'ait
+tourné, et un tel effet annonçait le nouveau sujet en tendant l'ancien élément (la page
+choisissait alors « le verset 0 »).
+
+**Les rappels de la page passent par des références**, rafraîchies dans un effet — jamais
+pendant le rendu, qu'un rendu concurrent lirait à l'envers. La page les redéclare à chaque
+rendu (ce sont des flèches dans son JSX), et un effet qui les prendrait en dépendance
+rejouerait sans fin.
+
+**`:has()` est protégé par un `try`** : un navigateur qui l'ignore lève une erreur de
+SYNTAXE sur `querySelector`, laquelle emporterait toute la visite au lieu d'une étape.
+
+**Le voile porte sa teinte tant qu'aucune case n'est posée**, et la case la porte ensuite
+(ombre de 9 999 px). ⛔ La condition est sur la MESURE, non sur l'étape : réglée sur
+l'étape, la page paraissait en pleine lumière le temps d'une image, entre le message qui
+se ferme et la case qui se pose.
+
+**Ce que la feuille de styles tient** (`globals.css`, « LA VISITE ») : l'animation qui
+retarde le trait (les extrémités d'une ligne SVG sont des ATTRIBUTS, non des propriétés
+CSS : elles ne se transitionnent pas), le déplacement des deux cases, et les trois règles
+qui montrent la colonne d'actions du verset désigné — `.verset-actions[data-visite-cible]`,
+en `!important`, l'opacité de ces boutons et l'affichage du pavé tactile étant portés en
+style en ligne.
+
+**Pour la revoir** : `?visite=1` sur l'adresse de la page. Le passage est retenu dès
+l'OUVERTURE de la visite, non à sa dernière étape.

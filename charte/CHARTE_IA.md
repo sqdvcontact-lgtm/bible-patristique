@@ -5631,3 +5631,34 @@ moment du clic.
 ⚠️ **Élargir un TYPE ne coûte rien quand les colonnes voyagent déjà** ; c'est le `select`
 nommé, posé en même temps, qui allège. La page tirait la vue entière — soixante-trois
 colonnes dont dix-huit que le rendu ne regarde jamais.
+
+
+## 46. LA VISITE — ce qu’une page montre d’elle-même à la première ouverture
+
+Une page qu’un lecteur ouvre pour la première fois se présente. Elle ne le fait qu’une fois, et jamais deux. Demande de l’auteur du 6 septembre 2026 ; la Bible classique en donne le modèle, et toute page qui recevra une visite le suit.
+
+**Le mot.** Le site dit « la visite », et ce mot seul. ⛔ Ni « tutoriel », ni « fonctionnalités », ni « comment utiliser le site » : les deux premiers sont des mots de logiciel, le troisième annonce une difficulté avant d’avoir rien montré. Le code porte le même mot que l’écran (`visiteGuidee`), afin qu’une phrase lue à l’écran se retrouve dans les sources en la cherchant.
+
+**La forme, et elle ne varie pas.** Trois objets : une CASE qui cerne le sujet, un TRAIT qui la relie à la seconde, une CASE qui explique. ⛔ La case du sujet n’est pas un cadre posé sur un voile : elle EST le voile, tenu à distance par une ombre portée. Une seule boîte fait donc l’assombrissement de la page et la découpe du sujet, et les deux ne peuvent pas se désaccorder.
+
+**La case ne couvre jamais son sujet** tant qu’un côté peut la recevoir. On explique une chose en la montrant, et une explication posée dessus l’efface au moment même où on la regarde. ⚠️ Le piège est de BORNER la position au lieu de changer de côté : ramener la case dans l’écran quand la place manque ne fait pas de place, cela la couche sur le sujet. On choisit le côté d’abord, on borne ensuite. Même règle que les cellules d’actions (§ 12), et pour la même raison. Quand aucun côté ne suffit — un volet qui occupe tout l’écran d’un téléphone —, la case se range à l’extrémité la plus éloignée du sujet et le trait tombe : un trait tracé DANS une case ne relie rien, il salit.
+
+**Le grand message d’ouverture.** Une case centrée, le fleuron du site en tête, une phrase qui dit ce qui va se passer, et deux boutons de MÊME taille : commencer, passer. ⛔ Refuser la visite doit être aussi simple que la commencer, et se voir aussi bien. Le renoncement ne quitte ensuite le pied de la case à aucune étape.
+
+**Deux phrases par étape, jamais trois.** Une visite se lit debout, entre deux clics. Ce qui demande un paragraphe n’est pas une explication mais un mode d’emploi, et un mode d’emploi ne se lit pas.
+
+**Une visite DÉSIGNE, elle ne fabrique pas.** Le sujet de chaque étape est un élément déjà rendu par la page, retrouvé par un repère `data-visite` posé dans le composant qui le dessine. ⛔ Jamais un sélecteur de structure — « le troisième bloc du volet » — : il se casse au premier remaniement, sans que rien ne le signale, et le lecteur reçoit alors une case posée sur du vide. ⛔ Et jamais une copie du sujet dans un calque : elle vieillirait à part de l’original qu’elle copie.
+
+**Une étape dont le sujet est absent de l’écran s’efface.** La carte de l’édition n’existe pas sur un téléphone, une bible sans apparat n’a pas de sommaire, un chapitre sans lien patristique n’a pas de nombre dans la marge. La visite compte alors une étape de moins, et son compteur avec elle : ⛔ elle ne promet jamais ce qu’elle ne montrera pas. Les sujets se déclarent donc en LISTE, du plus précis au plus général, et le premier qui répond gagne.
+
+**Ce qu’une étape annonce, elle le fait.** L’étape qui dit « cliquez sur un verset et le volet de droite se remplit » sélectionne ce verset, et le volet se remplit pour de bon. Sans quoi les étapes suivantes expliqueraient un volet vide, où la phrase « Cliquez sur un verset » est encore écrite.
+
+**La page est inerte pendant la visite.** Le voile prend les événements de pointeur, y compris au-dessus du sujet éclairé : on regarde, on ne manœuvre pas. Un clic changerait la page sous la case qui l’explique, et la visite parlerait d’un écran qui n’est plus là.
+
+**Le sujet se suit image par image.** Le volet de droite se remplit, la colonne défile pour l’amener au centre, un onglet s’ouvre sur téléphone : toutes ces choses déplacent le sujet APRÈS que la case s’est posée, et une mesure prise une fois serait fausse une image plus tard.
+
+**Elle ne revient jamais d’elle-même.** Le passage est retenu dès l’OUVERTURE, non à la dernière étape : passer la visite et l’abandonner en chemin sont le même geste, celui de quelqu’un qui veut lire. Une visite qui reviendrait faute d’avoir été menée à son terme serait exactement l’objet qu’on cherche à ne pas faire. L’adresse `?visite=1` la rejoue. ⚠️ Le passage se retient dans le navigateur, non dans le compte : la visite s’adresse d’abord à qui n’en a pas.
+
+**L’ordre des étapes est celui du regard**, non celui de l’importance : sur une page à trois volets, le volet de gauche, la colonne du texte, le volet de droite. C’est le seul ordre qui n’oblige pas le lecteur à revenir sur ses pas.
+
+**La visite de la Bible classique**, qui est le modèle, compte sept arrêts : l’édition qu’on lit, la recherche d’un livre, la liste des livres et la teinte de leurs cases de chapitre, le titre et le menu des bibles, le verset et le nombre d’œuvres inscrit dans sa marge, la colonne d’actions, le volet des Pères avec ses filtres et son onglet de commentaires.
