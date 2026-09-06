@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
-  styleParagrapheApparat, styleParagrapheLecture,
+  CORPS_LECTURE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
+  placeDeLaSignature, styleParagrapheApparat, styleParagrapheLecture,
 } from './compositionOeuvre'
 
 /**
@@ -75,10 +75,12 @@ describe('ce qui peut porter la lettrine', () => {
  */
 describe('le bloc de signatures', () => {
   it('l’apparat porte la dérogation de nature, comme la lecture', () => {
-    const apparat = styleParagrapheApparat({ signature: true })
-    expect(apparat.textAlign).toBe('right')
-    expect(apparat.lineHeight).toBe('1.32')
-    expect(apparat).toEqual(styleParagrapheLecture({ signature: true }))
+    for (const place of ['suite', 'fin'] as const) {
+      const apparat = styleParagrapheApparat({ signature: place })
+      expect(apparat.textAlign).toBe('right')
+      expect(apparat.lineHeight).toBe('1.32')
+      expect(apparat).toEqual(styleParagrapheLecture({ signature: place }))
+    }
   })
 
   it('sans forme, l’apparat compose sa prose comme la lecture', () => {
@@ -87,9 +89,31 @@ describe('le bloc de signatures', () => {
     expect(styleParagrapheApparat()).toEqual(styleParagrapheLecture())
   })
 
-  it('⛔ le blanc d’une signature est celui d’une LISTE, non d’un paragraphe', () => {
-    expect(styleParagrapheLecture({ signature: true }).margin).toBe('0 0 0.3rem')
+  it('⛔ le blanc qui SUIT une signature n’est pas celui qui la précède', () => {
+    // Entre deux signatures, une COUTURE : elles sont une liste, un seul objet.
+    expect(styleParagrapheLecture({ signature: 'suite' }).margin).toBe('0 0 0.3rem')
+    // Quand la pièce reprend, une COUPURE : une ligne de prose entière, plus large que
+    // le blanc de paragraphe. C'est ce qui manquait le 6 septembre 2026 au matin, et
+    // « Signé Du Bray. » se collait à l'acte qui suit.
+    expect(styleParagrapheLecture({ signature: 'fin' }).margin).toBe('0 0 1.32rem')
     expect(styleParagrapheLecture().margin).toBe('0 0 0.72rem')
+  })
+
+  it('la coupure vaut UNE LIGNE de prose, et se recalcule si le corps change', () => {
+    // ⚠️ 1,32 rem est une hauteur de ligne (1,62 × 0,8125 rem), non l'interligne 1,32
+    // de la signature : les deux nombres se ressemblent et ne disent pas la même chose.
+    const corps = Number.parseFloat(CORPS_LECTURE)
+    const interligne = Number.parseFloat(String(styleParagrapheLecture().lineHeight))
+    const coupure = Number.parseFloat(String(styleParagrapheLecture({ signature: 'fin' }).margin).split(' ')[2])
+    expect(coupure).toBeCloseTo(corps * interligne, 2)
+  })
+
+  it('la place d’une signature se juge sur le bloc SUIVANT', () => {
+    expect(placeDeLaSignature(true, true)).toBe('suite')
+    expect(placeDeLaSignature(true, false)).toBe('fin')
+    // ⛔ Ce qui n'est pas une signature ne prend aucune des deux formes.
+    expect(placeDeLaSignature(false, false)).toBeUndefined()
+    expect(placeDeLaSignature(false, true)).toBeUndefined()
   })
 
   it('un bloc n’est de signatures que si TOUTES ses lignes en sont', () => {

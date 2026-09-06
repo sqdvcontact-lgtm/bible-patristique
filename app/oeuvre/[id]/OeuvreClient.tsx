@@ -52,7 +52,7 @@ import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETRO
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
   NATURE_SIGNATURE, STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
-  accepteLaLettrine, estBlocDeSignatures, margeArgument,
+  accepteLaLettrine, estBlocDeSignatures, margeArgument, placeDeLaSignature,
   styleArgument, styleBlocDeVers, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
@@ -2934,7 +2934,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       parallèles) : fondre le poème en regard n'en garderait qu'un seul
                       et jetterait les autres. En français seul, rien ne s'apparie et
                       le poème se refait. */}
-                  {blocsDeLecture(itemsReels).map((chunk) => {
+                  {blocsDeLecture(itemsReels).map((chunk, iBloc, blocs) => {
                     const original = originalDuBloc(chunk)
                     // Le bloc PORTE-t-il l'original, ou le prolonge-t-il ? Un groupe qui
                     // enjambe deux sections ne le compose que dans la première.
@@ -2950,7 +2950,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // ⚠️ AUCUN segment du corpus ne l'atteint aujourd'hui — les onze
                     // `signature` vivent toutes dans l'apparat (compositionOeuvre.ts) — mais
                     // `NATURES_CORPS` la porte pour les imports sans espace explicite.
+                    // ⛔ Le blanc qui suit une signature se juge sur le bloc SUIVANT : cousu
+                    // s'il en est une (c'est une liste), coupé sinon (elle ferme sa pièce).
                     const toutSignature = estBlocDeSignatures(chunk.ids.map(sid => segMap.get(sid)?.nature))
+                    const signatureSuit = estBlocDeSignatures(
+                      (blocs[iBloc + 1]?.ids ?? []).map(sid => segMap.get(sid)?.nature),
+                    )
+                    const placeSignature = placeDeLaSignature(toutSignature, signatureSuit)
                     // Strophe : un poème ne se compose pas comme de la prose. Toute la
                     // règle vit dans `app/lib/compositionVers.ts`, que les traductions
                     // parallèles emploient aussi — une seule composition, deux surfaces.
@@ -3037,7 +3043,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           })}
                         </div>
                       ) : (
-                      <p lang={langueCorps} style={styleParagrapheLecture({ signature: toutSignature, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
+                      <p lang={langueCorps} style={styleParagrapheLecture({ signature: placeSignature, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
                         {regrouperCitationsStructurelles(
                           chunk.ids,
                           sid => segMap.get(sid)?.nature === 'citation',
@@ -3188,7 +3194,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           {sousTitre2 && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(sousTitre2, notesTitre)}</p>}
                         </div>
                       )}
-                      {paragraphesDe(groupe.itemIds, segMapApparat).map(chunk => {
+                      {paragraphesDe(groupe.itemIds, segMapApparat).map((chunk, iChunk, chunks) => {
                         // ⛔ L'APPARAT compose ses vers comme la lecture les siens.
                         // La nature y vaut `apparat_critique` — c'est par là que le
                         // segment est SÉLECTIONNÉ — et elle ne peut pas dire en plus
@@ -3226,10 +3232,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // réduit entre lignes de même nature. ⛔ C'est la SEULE surface où
                         // la forme s'applique : les onze signatures du corpus sont toutes
                         // dans l'apparat, et la lecture ne l'a jamais composée.
+                        // ⛔ Et le blanc qui la SUIT se juge sur le bloc suivant : 0,3 rem
+                        // entre deux signatures, qui sont une liste ; une ligne de prose
+                        // entière quand la pièce reprend — sans quoi « Signé Du Bray. » se
+                        // colle à l'acte qui vient après.
                         const toutSignature = estBlocDeSignatures(chunk.ids.map(sid => segMapApparat.get(sid)?.nature))
+                        const signatureSuit = estBlocDeSignatures(
+                          (chunks[iChunk + 1]?.ids ?? []).map(sid => segMapApparat.get(sid)?.nature),
+                        )
                         return (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang={langueCorps} style={styleParagrapheApparat({ signature: toutSignature })}>
+                          <p lang={langueCorps} style={styleParagrapheApparat({ signature: placeDeLaSignature(toutSignature, signatureSuit) })}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null

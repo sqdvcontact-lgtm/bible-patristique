@@ -33,13 +33,53 @@ export const STYLE_NUMERO_SEGMENT: CSSProperties = {
   lineHeight: 1,
 }
 
+/**
+ * Le blanc qui COUD deux lignes d'une même liste de signatures : elles sont un seul
+ * objet, et deux blancs de paragraphe en feraient deux.
+ */
+const COUTURE_SIGNATURE = '0.3rem'
+
+/**
+ * Le blanc qui FERME un bloc de signatures, quand ce n'est pas une autre signature qui
+ * suit : une ligne de prose entière, `1,62 × 0,8125 rem`.
+ *
+ * ⚠️ 1,32 rem est ici une HAUTEUR DE LIGNE, non l'interligne 1,32 de la signature : les
+ * deux nombres se ressemblent et ne disent pas la même chose.
+ */
+const COUPURE_SIGNATURE = '1.32rem'
+
+/** Le blanc ordinaire entre deux paragraphes de prose. */
+const BLANC_PARAGRAPHE = '0.72rem'
+
 export type FormeParagraphe = {
-  /** Bloc de signatures : au fer à droite, interligne resserré, blanc réduit. */
-  signature?: boolean
+  /**
+   * Bloc de signatures : au fer à droite, interligne resserré.
+   *
+   * ⛔ Le blanc qui la suit n'est PAS symétrique de celui qui la précède, et les deux
+   * valeurs ne disent pas la même chose : `'suite'` — une autre signature vient après,
+   * et le blanc COUD une liste ; `'fin'` — elle ferme le bloc, et le blanc devient une
+   * COUPURE. Une seule valeur pour les deux serrait le privilège du Roy contre la
+   * signature de son secrétaire.
+   */
+  signature?: 'suite' | 'fin'
   /** Rubrique éditoriale : centrée, en italique. */
   rubrique?: boolean
   /** Masqué parce que la page ne montre que l'original. */
   masque?: boolean
+}
+
+/**
+ * La place d'une signature dans son bloc, d'où dépend le blanc qui la suit.
+ *
+ * ⚠️ Elle se juge sur le bloc SUIVANT, jamais sur le segment : deux signatures voisines
+ * font deux blocs, chacun sa ligne, et c'est leur voisinage qui les réunit en liste.
+ */
+export function placeDeLaSignature(
+  estSignature: boolean,
+  suivieDUneSignature: boolean,
+): 'suite' | 'fin' | undefined {
+  if (!estSignature) return undefined
+  return suivieDUneSignature ? 'suite' : 'fin'
 }
 
 /** Le paragraphe de prose de la lecture, avec ses deux dérogations de nature. */
@@ -53,7 +93,9 @@ export function styleParagrapheLecture({ signature, rubrique, masque }: FormePar
     textAlign: signature ? 'right' : rubrique ? 'center' : 'justify',
     textJustify: 'inter-word',
     fontStyle: rubrique ? 'italic' : undefined,
-    margin: signature ? '0 0 0.3rem' : '0 0 0.72rem',
+    margin: `0 0 ${signature === 'suite' ? COUTURE_SIGNATURE
+      : signature === 'fin' ? COUPURE_SIGNATURE
+      : BLANC_PARAGRAPHE}`,
     wordSpacing: '-0.025em',
     letterSpacing: 0,
     hyphens: 'auto',

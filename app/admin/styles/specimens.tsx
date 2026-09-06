@@ -589,9 +589,9 @@ const OEUVRES: Unite[] = [
     alerte: '⛔ AUCUN segment ne compose ici, et l’épreuve est donc un cas d’école. La nature appartient bien à `NATURES_CORPS`, pour les imports sans espace explicite ; mais les ONZE `signature` du corpus portent toutes `espace_textuel = apparat_critique`. La forme vivante est `patristique_apparat/signature`, plus bas. ⚠️ Elle ne s’y appliquait pas jusqu’au 6 septembre 2026 : `styleParagrapheApparat` ne prenait aucune dérogation de nature, et les quatre curés du Mépris du monde se composaient en prose justifiée. Une forme rendue sur une surface où sa donnée ne va jamais est une forme morte, et cette fiche-ci ne le disait pas. ⛔ Ne pas la confondre avec `apparat_editeur`, qui porte le paratexte RÉDIGÉ de l’éditeur, quand `signature` n’en porte que les noms et les qualités.',
     contenu: (
       <>
-        <p style={styleParagrapheLecture({ signature: true })}><Segment>Fr. Jean de Sainte-Marie, censeur.</Segment></p>
-        <p style={styleParagrapheLecture({ signature: true })}><Segment>Fr. Étienne Dubois, prieur.</Segment></p>
-        <p style={styleParagrapheLecture({ signature: true })}><Segment>Achevé d’imprimer le troisième jour de mai.</Segment></p>
+        <p style={styleParagrapheLecture({ signature: 'suite' })}><Segment>Fr. Jean de Sainte-Marie, censeur.</Segment></p>
+        <p style={styleParagrapheLecture({ signature: 'suite' })}><Segment>Fr. Étienne Dubois, prieur.</Segment></p>
+        <p style={styleParagrapheLecture({ signature: 'fin' })}><Segment>Achevé d’imprimer le troisième jour de mai.</Segment></p>
       </>
     ),
   },
@@ -651,17 +651,19 @@ const APPARAT_OEUVRES: Unite[] = [
   },
   {
     style: 'patristique_apparat/signature',
-    note: 'Le bloc de signatures LÀ OÙ IL VIT : les approbateurs d’une Approbation des docteurs, le secrétaire d’un privilège, le souscripteur d’une épître dédicatoire. Au fer à droite, interligne resserré à 1,32, et 0,3 rem entre deux lignes de même nature au lieu des 0,72 rem d’un paragraphe. Onze segments du corpus la portent, dans trois œuvres.',
-    alerte: '⛔ Elle ne composait PAS jusqu’au 6 septembre 2026 : `styleParagrapheApparat` ne prenait aucune forme, au motif qu’une nature dérogeante n’atteindrait jamais l’apparat — l’exact inverse de ce que dit la donnée. ⚠️ Et un bloc ne se ferre à droite que si TOUTES ses lignes sont des signatures : `paragraphesDe` sort donc la signature du paragraphe qui la précède, quatre d’entre elles y étant rangées par l’import (les trois de Boèce, le Privilège des Confessions).',
+    note: 'Le bloc de signatures LÀ OÙ IL VIT : les approbateurs d’une Approbation des docteurs, le secrétaire d’un privilège, le souscripteur d’une épître dédicatoire. Au fer à droite, interligne resserré à 1,32, et onze segments du corpus le portent, dans trois œuvres. ⛔ Le blanc qui suit une signature n’est PAS celui qui la précède : 0,3 rem entre deux signatures, qui sont une LISTE ; 1,32 rem — une ligne de prose entière — quand la pièce reprend. C’est ce que l’épreuve ci-contre montre, du haut en bas.',
+    alerte: '⛔ Elle ne composait PAS jusqu’au 6 septembre 2026 : `styleParagrapheApparat` ne prenait aucune forme, au motif qu’une nature dérogeante n’atteindrait jamais l’apparat — l’exact inverse de ce que dit la donnée. ⚠️ Et le blanc de sortie a manqué le même matin : posé symétrique, il serrait « Signé Du Bray. » contre l’acte qui le suit. La place de la signature dans son bloc se juge sur le bloc SUIVANT (`placeDeLaSignature`), jamais sur le segment. ⚠️ Enfin un bloc ne se ferre à droite que si TOUTES ses lignes sont des signatures : `paragraphesDe` sort donc la signature du paragraphe qui la précède, quatre d’entre elles y étant rangées par l’import (les trois de Boèce, le Privilège des Confessions).',
     contenu: (
       <>
         <p style={styleParagrapheApparat()}>
-          <Segment n={28}>C’est le jugement que nous portons de cette excellente Traduction.</Segment>
+          <Segment n={36}>Registré sur le livre de la Communauté des Libraires &amp; Imprimeurs de cette ville de Paris, le dixiéme Septembre 1662.</Segment>
         </p>
-        <p style={styleParagrapheApparat({ signature: true })}><Segment n={29}>A. Debreda Curé de S. André.</Segment></p>
-        <p style={styleParagrapheApparat({ signature: true })}><Segment n={30}>T. Fortin Proviseur du College de Harcourt.</Segment></p>
-        <p style={styleParagrapheApparat({ signature: true })}><Segment n={31}>Grenet Curé de S. Benoist.</Segment></p>
-        <p style={styleParagrapheApparat({ signature: true })}><Segment n={32}>N. Gobillon Curé de S. Laurent.</Segment></p>
+        <p style={styleParagrapheApparat({ signature: 'suite' })}><Segment n={29}>A. Debreda Curé de S. André.</Segment></p>
+        <p style={styleParagrapheApparat({ signature: 'suite' })}><Segment n={30}>T. Fortin Proviseur du College de Harcourt.</Segment></p>
+        <p style={styleParagrapheApparat({ signature: 'fin' })}><Segment n={37}>Signé Du Bray.</Segment></p>
+        <p style={styleParagrapheApparat()}>
+          <Segment n={38}>Nous soussigné avons cedé &amp; transporté au sieur le Petit Imprimeur &amp; Libraire ordinaire du Roy, le present Privilege pour la Traduction du Latin en François de S. Eucher, du Mépris du monde.</Segment>
+        </p>
       </>
     ),
   },
