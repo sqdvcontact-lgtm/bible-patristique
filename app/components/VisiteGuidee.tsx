@@ -216,7 +216,15 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           // ⛔ UN SUJET QUI VIT DANS LA BARRE NE SE FAIT PAS DÉFILER : elle est
           // fixe, il est donc déjà à l'écran, et le centrer demanderait à la page
           // de remonter au-dessus de son propre haut.
-          if (el.getBoundingClientRect().top >= hautNavbar) el.scrollIntoView({ block: 'center', inline: 'nearest' })
+          // ⛔ MAIS ON NE JUGE PAS SUR LE SEUL BORD HAUT. Écrite « top >= hautNavbar »,
+          // la garde écartait aussi tout sujet passé AU-DESSUS de la fenêtre, dont le
+          // haut est négatif : un retour en arrière après avoir descendu la page
+          // laissait alors le cadre échoué en haut de l'écran, réduit à deux pixels
+          // par le bornage à la vue. Il faut que le sujet tienne TOUT ENTIER dans la
+          // bande de la barre, ce qui n'est vrai que de la barre elle-même.
+          const brut = el.getBoundingClientRect()
+          const dansLaBarre = brut.top >= 0 && brut.bottom <= hautNavbar
+          if (!dansLaBarre) el.scrollIntoView({ block: 'center', inline: 'nearest' })
         }
         const r = el.getBoundingClientRect()
         const vue = { largeur: window.innerWidth, hauteur: window.innerHeight }

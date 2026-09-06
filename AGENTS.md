@@ -6329,6 +6329,12 @@ par une case invisible. ⚠️ Deux corollaires dans la géométrie, tous deux g
 tests : `cadreDuSujet` cesse de réserver la bande de la barre quand le sujet y VIT (la
 réserve empêche un cadre de glisser SOUS elle, elle n'a rien à protéger dans ce cas), et
 la boucle ne fait pas défiler un sujet de la barre, qui est fixe et déjà à l'écran.
+⛔ **Cette seconde garde se juge sur les DEUX bords du sujet**, non sur le seul bord
+haut. Écrite « top >= hautNavbar », elle écartait aussi tout sujet passé AU-DESSUS de
+la fenêtre, dont le haut est négatif : un retour en arrière après avoir descendu la
+page laissait alors le cadre échoué en haut de l'écran, réduit à deux pixels par le
+bornage à la vue. Un sujet ne se dispense du défilement que s'il tient TOUT ENTIER dans
+la bande de la barre, ce qui n'est vrai que de la barre elle-même.
 ⚠️ Au-delà de 3200 ne subsistent que le carton d'une notification (4000) et les
 infobulles de note (9999), que la page inerte n'ouvre pas.
 
