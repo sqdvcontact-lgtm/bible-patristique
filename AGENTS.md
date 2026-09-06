@@ -6298,35 +6298,58 @@ la colonne étroite d'une fiche, elle ne se lit pas.
 La doctrine est dans la charte, § 46 : ce qu'une visite dit, ce qu'elle ne dit pas, et
 sa forme (case / trait / case). Ici, sa mécanique.
 
-⛔ **AUCUNE ÉTAPE SUR LA BARRE DE NAVIGATION** (décision de l'auteur, 2026-09-06 au
-soir). Les trois visites en ont porté une, sur un contresens de ma part : « présenter
-la recherche » visait le champ du VOLET, non celui de la barre. La règle qui en reste :
-**une visite montre la PAGE qu'on vient d'ouvrir**, et la barre n'est d'aucune page en
-particulier. ⚠️ Elle coûtait en outre au dessin — voir le rang d'empilement ci-dessous.
+⛔ **AUCUNE ÉTAPE SUR LA BARRE, SAUF DANS LA VISITE DE L'ACCUEIL** (décisions de
+l'auteur, 2026-09-06 au soir, dans cet ordre). Les visites de page en ont porté une, sur
+un contresens de ma part : « présenter la recherche » visait le champ du VOLET. La
+règle : **une visite montre la PAGE qu'on vient d'ouvrir**, et la barre n'est d'aucune
+page en particulier. ⚠️ **L'accueil est l'exception, et il la confirme** : il n'a pas
+d'autre objet que d'être une PORTE, et la barre est la porte. Sa visite le DÉCLARE
+(`Visite.couvreLaBarre`), et c'est ce drapeau — non une constante du composant — qui
+fait passer le voile par-dessus la barre, pour elle seule.
 
-**Quatre fichiers, et un seul porte du DOM.**
+**Cinq fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
-- `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts` et
-  `app/lib/visiteBibliotheque.ts` — les scénarios, en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
+- `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts`,
+  `app/lib/visiteBibliotheque.ts` et `app/lib/visiteAccueil.ts` — les scénarios, en
+  données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
   de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
 - `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **2800**
   (au-dessus des modales du site, qui montent à 2700), et **sous la barre de
-  navigation**, qui monte à 3000 et garde donc sa lumière pendant la visite.
+  navigation**, qui monte à 3000 et garde donc sa lumière. ⚠️ **3200** quand le scénario
+  pose `couvreLaBarre` : la barre passe alors sous le voile, et ses onglets peuvent être
+  cernés. Au-delà ne subsistent que le carton d'une notification (4000) et les infobulles
+  de note (9999), que la page inerte n'ouvre pas.
 
-⚠️ **CE QU'UNE ÉTAPE SUR LA BARRE A COÛTÉ, le temps qu'elle a duré, et ce qu'il faudrait
-reprendre pour en refaire une.** Le voile est passé PAR-DESSUS la barre (rang 3200),
-faute de quoi aucun cadre ne pouvait s'y poser ; la barre s'assombrissait alors comme le
-reste, à chaque étape de chaque visite. Il a fallu en outre deux gardes de géométrie :
-`cadreDuSujet` cessant de réserver la bande de la barre quand le sujet y VIT, et la
-boucle ne faisant pas défiler un sujet fixe. ⛔ Et cette seconde garde s'est révélée
-fausse : écrite « top >= hautNavbar », elle écartait aussi tout sujet passé AU-DESSUS de
+⚠️ **`couvreLaBarre` EMPORTE DEUX CONSÉQUENCES DE GÉOMÉTRIE**, et il faut les deux.
+`cadreDuSujet` cesse de réserver la bande de la barre — la réserve n'existe que pour
+qu'un cadre ne glisse pas SOUS elle, et il n'y a plus rien dessous. ⛔ Mais la CASE
+explicative garde sa réserve : elle explique la barre, elle ne la couvre pas. Et l'on ne
+fait pas défiler un sujet FIXE, qui est déjà à l'écran. ⚠️ Cette dernière garde se juge
+sur `position: fixed` en remontant l'arbre, jamais sur l'ordonnée du sujet : écrite
+« top >= hautNavbar » le matin même, elle écartait aussi tout sujet passé AU-DESSUS de
 la fenêtre, dont le haut est négatif, si bien qu'un retour en arrière après avoir
 descendu la page laissait le cadre échoué en haut de l'écran, réduit à deux pixels par
-le bornage à la vue. Les trois sont retirées avec l'étape ; on ne garde pas une garde
-que plus rien n'exerce.
+le bornage à la vue.
+
+⛔ **DEUX SUJETS PAR ÉTAPE AU PLUS** (`EtapeVisite.sujetBis`, 2026-09-06). Le second est
+cerné et fléché comme le premier ; il ORNE l'étape, il ne la commande pas — absent,
+l'étape se donne quand même. ⚠️ Il a fallu changer la technique du VOILE : celui-ci
+était l'ombre portée de la case, et une ombre ne sait ouvrir qu'un trou (deux ombres
+superposées assombrissent deux fois le dehors et une fois chaque trou, si bien
+qu'aucun sujet n'est en pleine lumière). Le voile est donc un aplat que sa DÉCOUPE
+troue, `decoupeDuVoile` en donnant le tracé. La règle de la charte tient : un seul
+tracé fait l'assombrissement ET la découpe.
+⛔ Trois précautions, toutes trois sous garde. L'anneau extérieur tourne dans le sens
+INVERSE des trous, pour n'avoir pas à demander `evenodd` à un navigateur qui pourrait
+l'ignorer — une règle de découpe refusée ne découpe rien du tout, et le voile
+couvrirait le sujet qu'il doit montrer. Le tracé garde le MÊME nombre de commandes
+d'une étape à l'autre, un second trou absent s'écrivant à taille nulle au centre du
+premier, sans quoi il ne s'interpolerait pas et sauterait là où les cases glissent. Et
+la couche qui rend la page INERTE est désormais à part, pleine : la découpe retire ses
+trous du test de pointeur, et un clic dans le sujet éclairé retomberait sur la page.
 
 ⛔ **CE QU'UNE ÉTAPE ANNONCE, LA PAGE LE FAIT, et le REND ensuite.** Trois scènes
 aujourd'hui (`SceneVisite`) : `volet` ouvre l'onglet d'un téléphone, `choisirVerset`
@@ -6337,12 +6360,18 @@ la visite. ⛔ Et un pli imposé ne se referme pas d'une étape à l'autre quand
 suivante vit dedans — celle de l'étoile est dans la carte que la précédente a ouverte.
 
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Treize aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
+Vingt aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
 (NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique) ;
 `poly-colonnes`, `poly-entete` et `poly-notes` sur la Polyglotte ; `bib-onglets`,
-`bib-recherche`, `bib-auteur`, `bib-oeuvres` et `bib-edition` sur la Bibliothèque.
-Quatre étapes visent des classes qui existaient déjà (`.verset-row`,
-`.verset-actions`, `.poly-row`, `.poly-texte-cell`).
+`bib-recherche`, `bib-auteur`, `bib-oeuvres` et `bib-edition` sur la Bibliothèque ;
+`nav-barre`, `nav-bibles`, `nav-patristique`, `nav-communaute`, `nav-plus-loin`,
+`nav-recherche` et `nav-compte` dans la barre, pour l'accueil. Six étapes visent des
+classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
+`.poly-texte-cell`, `.ac-bible`, `.ac-patristique`).
+⚠️ `nav-bibles` se pose TROIS fois, une par état de l'onglet des bibles : deux liens
+enveloppés, l'onglet qui se fend, le menu déroulant. ⛔ L'enveloppe du premier état
+reprend l'écart de la barre (`gap-1`, 0,25 rem) : un fragment n'a pas de boîte, et
+sans elle la visite ne pourrait pas cerner les deux bibles d'un seul trait.
 ⛔ Ne pas les retirer en remaniant un volet : rien ne casse à la compilation, l'étape
 disparaît simplement du parcours. ⚠️ NavLivres est partagé par les deux pages, et son
 repère `livres` sert donc les deux visites — c'était prévu, et il n'a rien coûté.
