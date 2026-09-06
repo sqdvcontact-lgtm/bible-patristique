@@ -7,13 +7,17 @@ import { decouperSiecles, STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { decouperOrdinaux } from './ordinauxFrise'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import {
-  type RangFrise, type Densite, DENSITES, coulFamille, passeDensite,
+  type RangFrise, type ModeLecture, type RelationFrise, type SerieFrise,
+  type LienDEvenement, type PlaceDansSerie,
+  MODES_LECTURE, coulFamille, passeMode, passeTraditions, modeDepuisUrl,
+  liensDesEvenements, placesDansSeries, decouperEnPeriodes,
   libelleSource, estUrl, siecleDe,
 } from '@/app/lib/frise'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { colorMix } from '@/app/lib/couleurs'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 // Frise générale de l'histoire de l'Église.
 // Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
@@ -53,15 +57,20 @@ type Filtres = {
   familles: Set<string>
   genres: Set<string>
   zones: Set<string>
+  /** Latine, grecque, syriaque… 19 traditions, 1 529 rattachements, une couverture
+   *  totale : la coupe qui manquait le plus à un corpus patristique. */
+  traditions: Set<string>
   pays: string
   sDe: number | null
   sA: number | null
 }
 const FILTRES_VIDES: Filtres = {
-  familles: new Set(), genres: new Set(), zones: new Set(), pays: '', sDe: null, sA: null,
+  familles: new Set(), genres: new Set(), zones: new Set(), traditions: new Set(),
+  pays: '', sDe: null, sA: null,
 }
 const aucunFiltre = (f: Filtres) =>
-  !f.familles.size && !f.genres.size && !f.zones.size && !f.pays && f.sDe == null && f.sA == null
+  !f.familles.size && !f.genres.size && !f.zones.size && !f.traditions.size
+  && !f.pays && f.sDe == null && f.sA == null
 
 function sansAccents(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -124,9 +133,11 @@ function rendreFrise(texte: string | null | undefined, q: string): React.ReactNo
     : <React.Fragment key={`n${i}`}>{rendreSegment(p, `n${i}`, q)}</React.Fragment>)
 }
 
-export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
+export default function HistoireClient(
+  { evs, series, relations }: { evs: RangFrise[]; series: SerieFrise[]; relations: RelationFrise[] },
+) {
   const mobile = useEstMobile(900)
-  const [densite, setDensite] = useState<Densite>('etendu')
+  const [mode, setMode] = useState<ModeLecture>('reperes')
   const [f, setF] = useState<Filtres>(FILTRES_VIDES)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
   const [recherche, setRecherche] = useState('')
@@ -141,10 +152,10 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
     const p = new URLSearchParams(window.location.search)
     const liste = (c: string) => new Set((p.get(c) || '').split('|').filter(Boolean))
     const nb = (c: string) => (p.get(c) ? Number(p.get(c)) : null)
-    const d = p.get('densite')
-    if (d === 'essentiel' || d === 'etendu' || d === 'complet') setDensite(d)
+    setMode(modeDepuisUrl(p.get('mode'), p.get('densite')))
     setF({
       familles: liste('famille'), genres: liste('genre'), zones: liste('zone'),
+      traditions: liste('tradition'),
       pays: p.get('pays') || '', sDe: nb('de'), sA: nb('a'),
     })
     initUrlFaite.current = true
@@ -156,24 +167,33 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
     if (f.familles.size) p.set('famille', [...f.familles].join('|'))
     if (f.genres.size) p.set('genre', [...f.genres].join('|'))
     if (f.zones.size) p.set('zone', [...f.zones].join('|'))
+    if (f.traditions.size) p.set('tradition', [...f.traditions].join('|'))
     if (f.pays) p.set('pays', f.pays)
     if (f.sDe != null) p.set('de', String(f.sDe))
     if (f.sA != null) p.set('a', String(f.sA))
-    if (densite !== 'etendu') p.set('densite', densite)
+    // ⚠️ Le paramètre change de NOM : « densite » disait un rabattage fait dans le
+    // client, « mode » dit le classement éditorial. Les anciennes adresses restent
+    // lues (voir modeDepuisUrl), elles ne se réécrivent simplement plus.
+    if (mode !== 'reperes') p.set('mode', mode)
     const q = p.toString()
     window.history.replaceState(null, '', q ? `?${q}${window.location.hash}` : window.location.pathname + window.location.hash)
-  }, [f, densite])
+  }, [f, mode])
 
   // ── Répertoires pour les filtres, tirés de la réponse de la vue ──────────
   const rep = useMemo(() => {
     const familles = new Map<string, number>()
     const zones = new Set<string>()
     const pays = new Set<string>()
+    const traditions = new Map<string, number>()
     const siecles = new Set<number>()
     evs.forEach(e => {
       if (e.famille) familles.set(e.famille, e.famille_id ?? 999)
       if (e.zone_geographique) zones.add(e.zone_geographique)
       ;(e.pays_filtres ?? []).forEach(p => pays.add(p))
+      // ⚠️ Les traditions se rangent par EFFECTIF, non par ordre alphabétique : la
+      // latine et la grecque portent le corpus, et une liste de dix-neuf entrées qui
+      // ouvrirait sur « arménienne » ferait chercher l'essentiel au milieu.
+      ;(e.traditions ?? []).forEach(t => traditions.set(t, (traditions.get(t) ?? 0) + 1))
       const s = siecleDe(e.date_debut)
       if (s != null) siecles.add(s)
     })
@@ -181,6 +201,9 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
       familles: [...familles.keys()].sort((a, b) => (familles.get(a)! - familles.get(b)!) || a.localeCompare(b, 'fr')),
       zones: [...zones].sort((a, b) => a.localeCompare(b, 'fr')),
       pays: [...pays].sort((a, b) => a.localeCompare(b, 'fr')),
+      traditions: [...traditions.entries()]
+        .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0], 'fr'))
+        .map(([nom, n]) => ({ nom, n })),
       siecles: [...siecles].sort((a, b) => a - b),
     }
   }, [evs])
@@ -198,7 +221,9 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   // ── Application des filtres. L'ordre de la vue est conservé tel quel. ─────
   const q = sansAccents(recherche.trim())
   const visibles = useMemo(() => evs.filter(e => {
-    if (!passeDensite(e.importance_code, densite)) return false
+    // ⛔ Le classement est ÉDITORIAL : il se lit dans la vue, il ne se calcule plus ici.
+    if (!passeMode(e, mode)) return false
+    if (!passeTraditions(e, f.traditions)) return false
     // Recherche en direct dans le titre ou la notice (combinée aux autres filtres).
     if (q && !sansAccents(`${e.titre} ${e.notice ?? ''}`).includes(q)) return false
     if (f.familles.size && !(e.famille && f.familles.has(e.famille))) return false
@@ -213,7 +238,20 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
       if (f.sA != null && s > f.sA) return false
     }
     return true
-  }), [evs, densite, f, q])
+  }), [evs, mode, f, q])
+
+  // Le graphe et les fils, indexés une seule fois : 616 relations et 181 séries pour
+  // 1 170 événements, et une carte n'a plus qu'à demander les siens.
+  const liensParEvenement = useMemo(() => liensDesEvenements(relations), [relations])
+  const placesParEvenement = useMemo(() => {
+    const par = new Map<string, PlaceDansSerie[]>()
+    for (const e of evs) {
+      const places = placesDansSeries(series, e.id)
+      if (places.length) par.set(e.id, places)
+    }
+    return par
+  }, [evs, series])
+  const titresParId = useMemo(() => new Map(evs.map(e => [e.id, e.titre])), [evs])
 
   // Une occurrence trouvée DANS une notice force l'ouverture de toutes les notices,
   // sinon le passage surligné resterait masqué (les notices sont repliées par défaut).
@@ -223,7 +261,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   )
   const notesOuvertes = toutesNotes || matchNotice
 
-  const basculer = useCallback((cle: 'familles' | 'genres' | 'zones', v: string) => {
+  const basculer = useCallback((cle: 'familles' | 'genres' | 'zones' | 'traditions', v: string) => {
     setF(prev => {
       const s = new Set(prev[cle])
       s.has(v) ? s.delete(v) : s.add(v)
@@ -232,6 +270,32 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   }, [])
 
   const reinitialiser = () => setF(FILTRES_VIDES)
+
+  // ── SUIVRE UN FIL — la série, la relation ────────────────────────────────
+  //
+  // ⛔ Un lien qui mène à un événement ÉCARTÉ par les filtres ne peut pas ne rien
+  // faire : c'est le défaut qu'on corrige ici, non celui qu'on introduit. Quand la
+  // cible est à l'écran, on y va ; sinon on rouvre la frise — le mode passe à « tout »,
+  // les filtres tombent — puis on y va au rendu suivant.
+  // ⚠️ La cible attend dans une RÉFÉRENCE : la liste n'est pas encore rendue au moment
+  // du clic, et un défilement demandé trop tôt ne trouverait rien.
+  const cibleFil = useRef<string | null>(null)
+  const allerAEvenement = useCallback((id: string) => {
+    const noeud = document.getElementById(id)
+    if (noeud) { noeud.scrollIntoView({ block: 'center' }); return }
+    cibleFil.current = id
+    setMode('tout')
+    setF(FILTRES_VIDES)
+    setRecherche('')
+  }, [])
+  useEffect(() => {
+    const id = cibleFil.current
+    if (!id) return
+    const noeud = document.getElementById(id)
+    if (!noeud) return
+    cibleFil.current = null
+    noeud.scrollIntoView({ block: 'center' })
+  }, [visibles])
 
   // Ancre : si l'URL désigne un événement, on l'amène en vue une fois chargé.
   useEffect(() => {
@@ -268,21 +332,41 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
         {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
       </button>
 
-      <GroupeFiltre label="Densité">
-        <div style={{ display: 'flex', border: `1px solid ${BORD}`, borderRadius: '999px', overflow: 'hidden' }} role="group" aria-label="Densité de la frise">
-          {DENSITES.map((d, i) => (
-            <button key={d.cle} onClick={() => setDensite(d.cle)} aria-pressed={densite === d.cle}
+      {/* ⛔ LE CLASSEMENT EST ÉDITORIAL. La « Densité » d'avant rabattait
+          `importance_code` dans le navigateur : le jugement de ce qui est essentiel se
+          prenait à l'affichage. La base porte un classement contrôlé, avec sa
+          justification et son verrou, et c'est lui qu'on lit. Quatre crans : 411, 1 061,
+          1 117 et 1 170 événements. */}
+      <GroupeFiltre label="Lecture">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {MODES_LECTURE.map(m => (
+            <button key={m.cle} onClick={() => setMode(m.cle)} aria-pressed={mode === m.cle}
+              className="cs-option-volet"
               style={{
-                flex: 1, fontSize: '0.6875rem', padding: '5px 4px', border: 'none',
-                borderLeft: i > 0 ? `1px solid ${BORD}` : 'none', cursor: 'pointer',
-                background: densite === d.cle ? VERT : 'var(--cs-surface)', color: densite === d.cle ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
-                fontFamily: 'inherit', fontWeight: densite === d.cle ? 600 : 400, whiteSpace: 'nowrap',
+                display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
+                border: 'none', borderRadius: '4px', padding: '2px 7px',
+                fontFamily: 'inherit', fontSize: '0.71875rem', lineHeight: 1.3,
+                background: mode === m.cle ? VERT : 'transparent',
+                color: mode === m.cle ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
+                fontWeight: mode === m.cle ? 600 : 400,
               }}>
-              {d.label}
+              {m.label}
             </button>
           ))}
         </div>
       </GroupeFiltre>
+
+      {rep.traditions.length > 1 && (
+        <GroupeFiltre label="Tradition">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+            {rep.traditions.map(t => (
+              <LigneCase key={t.nom} actif={f.traditions.has(t.nom)} onClick={() => basculer('traditions', t.nom)}>
+                {t.nom}
+              </LigneCase>
+            ))}
+          </div>
+        </GroupeFiltre>
+      )}
 
       {rep.siecles.length > 1 && (
         <GroupeFiltre label="Période">
@@ -377,7 +461,7 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
             <>
               <button onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="frise-filtres"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: '#5a5044' }}>
-                <span>Filtres et densité{filtresActifs ? ' (actifs)' : ''}</span>
+                <span>Filtres et lecture{filtresActifs ? ' (actifs)' : ''}</span>
                 <span aria-hidden style={{ color: TEXTE2, fontSize: '0.6875rem' }}>{panneauOuvert ? '▲' : '▼'}</span>
               </button>
               {panneauOuvert && <div id="frise-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
@@ -412,7 +496,9 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
                 )}
               </div>
             ) : (
-              <ListeFrise items={visibles} mobile={mobile} toutesNotes={notesOuvertes} recherche={recherche.trim()} />
+              <ListeFrise items={visibles} mobile={mobile} toutesNotes={notesOuvertes} recherche={recherche.trim()}
+                liensParEvenement={liensParEvenement} placesParEvenement={placesParEvenement}
+                titresParId={titresParId} allerAEvenement={allerAEvenement} />
             )}
           </div>
         </section>
@@ -421,12 +507,48 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   )
 }
 
-// ── Liste verticale : une carte par événement (plus de repères de siècle). ──
-function ListeFrise({ items, mobile, toutesNotes, recherche }: { items: RangFrise[]; mobile: boolean; toutesNotes: boolean; recherche: string }) {
+// ── Liste verticale : une carte par événement, sous le repère de sa PÉRIODE. ──
+//
+// ⛔ Le séparateur se pose au CHANGEMENT de période dans la liste rendue, jamais depuis
+// des bornes de dates : la liste suit l'ordre éditorial de la vue (voir
+// decouperEnPeriodes). Quinze bornes qui donnent au lecteur le sentiment d'où il est.
+function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, placesParEvenement, titresParId, allerAEvenement }: {
+  items: RangFrise[]; mobile: boolean; toutesNotes: boolean; recherche: string
+  liensParEvenement: Map<string, LienDEvenement[]>
+  placesParEvenement: Map<string, PlaceDansSerie[]>
+  titresParId: Map<string, string>
+  allerAEvenement: (id: string) => void
+}) {
+  const tranches = decouperEnPeriodes(items)
   return (
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-      {items.map(e => <CarteEvenement key={e.id} e={e} mobile={mobile} toutesNotes={toutesNotes} recherche={recherche} />)}
-    </ul>
+    <>
+      {tranches.map((t, i) => (
+        <section key={`${t.code ?? 'sans'}-${i}`}>
+          {t.nom && (
+            /* ⚠️ Collant sous la BARRE, dont la hauteur se compose et ne se recopie
+               jamais en pixels (charte, Responsive). Le repère porte le fond de la
+               page : sans lui, les cartes défileraient au travers. */
+            <h2 style={{
+              position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 2, margin: 0,
+              padding: '9px 0 5px', background: FOND,
+              fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700,
+              letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)',
+            }}>
+              {t.nom}
+            </h2>
+          )}
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {t.items.map(e => (
+              <CarteEvenement key={e.id} e={e} mobile={mobile} toutesNotes={toutesNotes} recherche={recherche}
+                liens={liensParEvenement.get(e.id) ?? []}
+                places={placesParEvenement.get(e.id) ?? []}
+                titresParId={titresParId}
+                allerAEvenement={allerAEvenement} />
+            ))}
+          </ul>
+        </section>
+      ))}
+    </>
   )
 }
 
@@ -443,15 +565,26 @@ function formaterDateHistoire(d: string | null | undefined): string {
 
 // ── Carte : colonnes date · famille · intitulé (une seule ligne chacune) ; un clic
 //    sur l'intitulé déplie la notice correspondante. ─────────────────────────────
-function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; mobile: boolean; toutesNotes: boolean; recherche: string }) {
+function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titresParId, allerAEvenement }: {
+  e: RangFrise; mobile: boolean; toutesNotes: boolean; recherche: string
+  liens: LienDEvenement[]
+  places: PlaceDansSerie[]
+  titresParId: Map<string, string>
+  allerAEvenement: (id: string) => void
+}) {
   const [detailOuvert, setDetailOuvert] = useState(false)
   const [noticeOuverte, setNoticeOuverte] = useState(false)
   const c = coulFamille(e.famille)
   const idCarte = `d-${e.id}`
+  // ⚠️ Le dépli s'ouvre aussi pour un événement SANS notice qui tient dans une série ou
+  // porte des relations : sinon son fil resterait derrière un titre qu'on ne peut pas
+  // cliquer, et rien ne dirait qu'il existe.
   const aNotice = !!(
     (e.notice && e.notice.trim())
     || (e.date_precision_affichage && e.date_precision_affichage.trim())
     || (e.note_datation && e.note_datation.trim())
+    || places.length > 0
+    || liens.length > 0
   )
   // La notice s'affiche si le mode global est actif OU si l'on a cliqué sur l'intitulé.
   const afficheNotice = toutesNotes || noticeOuverte
@@ -523,6 +656,50 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
         </p>
       )}
 
+      {/* ── LE FIL : la série, et où l'on s'y tient ─────────────────────────
+          705 événements sur 1 170 appartiennent à une série, chacune avec son ORDRE
+          éditorial et un RÔLE par membre — origine, étape, principal, prolongement,
+          conclusion. C'est ce qui transforme une liste en récit, pour le moins de
+          travail. ⚠️ L'ordre est celui de l'éditeur, non la date : une série fait
+          remonter son origine avant son événement principal quelle que soit l'année. */}
+      {afficheNotice && places.map(pl => (
+        <div key={pl.code} style={{ marginTop: '6px' }}>
+          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>
+            {pl.titre} · {pl.rang} sur {pl.total}{pl.role ? ` · ${pl.role}` : ''}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginTop: '2px' }}>
+            {pl.precedentId && (
+              <LienFil id={pl.precedentId} titre={titresParId.get(pl.precedentId)} sens="avant" aller={allerAEvenement} />
+            )}
+            {pl.suivantId && (
+              <LienFil id={pl.suivantId} titre={titresParId.get(pl.suivantId)} sens="apres" aller={allerAEvenement} />
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* ── AUTOUR : le graphe, en phrases ──────────────────────────────────
+          618 relations entre événements, que le site rendait en liste plate.
+          ⛔ Surtout PAS de visualisation en réseau : coûteuse, illisible au delà de
+          trente nœuds, et elle ne dirait rien de plus que la phrase. */}
+      {afficheNotice && liens.length > 0 && (
+        <div style={{ marginTop: '6px' }}>
+          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>Autour</p>
+          <ul style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {liens.map((l, i) => (
+              <li key={`${l.autreId}-${i}`} style={{ fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.35, color: 'var(--cs-texte-second)' }}>
+                <span style={{ color: 'var(--cs-texte-doux)' }}>{l.libelle}</span>{' '}
+                <button onClick={() => allerAEvenement(l.autreId)}
+                  title="Aller à cet événement dans la frise"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: VERT, textAlign: 'left' }}>
+                  {l.autreTitre}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {afficheNotice && (
         <div style={{ marginTop: '5px' }}>
           <button onClick={() => setDetailOuvert(o => !o)} aria-expanded={detailOuvert} aria-controls={idCarte}
@@ -565,6 +742,22 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche }: { e: RangFrise; m
         )}
       </article>
     </li>
+  )
+}
+
+/** Un pas dans le fil d'une série. ⚠️ Le titre de la cible vient de la frise, non d'une
+ *  seconde liste : les 1 170 titres sont déjà là. Un membre que la frise ne porte pas —
+ *  cas qui n'existe pas aujourd'hui, la série ne rassemblant que des événements publiés —
+ *  ne rend rien plutôt qu'un lien muet. */
+function LienFil({ id, titre, sens, aller }: { id: string; titre: string | undefined; sens: 'avant' | 'apres'; aller: (id: string) => void }) {
+  if (!titre) return null
+  return (
+    <button onClick={() => aller(id)} title="Aller à cet événement dans la frise"
+      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.35, color: VERT, textAlign: 'left', maxWidth: '100%', display: 'inline-flex', alignItems: 'baseline', gap: '4px', minWidth: 0 }}>
+      {sens === 'avant' && <span aria-hidden style={{ color: 'var(--cs-texte-doux)' }}>‹</span>}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titre}</span>
+      {sens === 'apres' && <span aria-hidden style={{ color: 'var(--cs-texte-doux)' }}>›</span>}
+    </button>
   )
 }
 
