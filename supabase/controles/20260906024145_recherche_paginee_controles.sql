@@ -33,10 +33,12 @@ begin
   select r.n into m from public.recherche_versets_v2_repartition(array['dieu'], 'prefixe', 'ALL') r where r.livre = 'GEN';
   if n <> least(m, 100) then raise exception 'ÉCHEC 2 quater : Genèse rend % lignes pour % comptées.', n, m; end if;
 
-  -- 3. Les passages : le total par œuvre est celui de la recherche d'avant (« charité »
-  --    en préfixe rendait 1 741 passages publiés), et l'original y est compté.
+  -- 3. Les passages : le total par œuvre est celui du corpus PUBLIC (« charité » en
+  --    préfixe : 1 707 passages sous la garde de publication ; la recherche d'avant en
+  --    rendait 1 741 sous le rôle postgres, textes par défaut non publics compris), et
+  --    l'original y est compté.
   select coalesce(sum(r.n), 0) into n from public.recherche_segments_v2_repartition(array['charité'], 'prefixe') r;
-  if n < 1741 then raise exception 'ÉCHEC 3 : « charité » compte % passages, au moins 1 741 attendus.', n; end if;
+  if n < 1700 then raise exception 'ÉCHEC 3 : « charité » compte % passages, au moins 1 700 attendus.', n; end if;
   select count(*) into n from public.recherche_segments_v2_corresp(array['jesus'], 'prefixe') c where c.match_orig;
   if n < 5 then raise exception 'ÉCHEC 3 bis : « jesus » ne répond que dans % original(aux).', n; end if;
   select count(*) into n from public.recherche_segments_v2_corresp(array['iesus'], 'prefixe') c where c.match_orig;
@@ -71,9 +73,9 @@ begin
   --    garde la meilleure : la base est partagée et vivante, et le premier appel paie le
   --    cache (mesuré après application : 6 631 ms à froid, 310 ms à chaud, sur le même
   --    plan). C'est le plan qu'on éprouve, non l'état du cache.
-  select least(a, b) into ms from (
-    select (extract(epoch from (clock_timestamp() - t0)) * 1000)::integer as a, 0 as b from (select clock_timestamp() as t0, count(*) from public.recherche_segments_v2_repartition(array['dieu'], 'prefixe')) x
-  ) y;
+  t0 := clock_timestamp();
+  select count(*) into n from public.recherche_segments_v2_repartition(array['dieu'], 'prefixe');
+  ms := (extract(epoch from (clock_timestamp() - t0)) * 1000)::integer;
   t0 := clock_timestamp();
   select count(*) into n from public.recherche_segments_v2_repartition(array['dieu'], 'prefixe');
   ms := least(ms, (extract(epoch from (clock_timestamp() - t0)) * 1000)::integer);
@@ -109,6 +111,25 @@ begin
      or has_function_privilege('anon', 'public.recherche_versets_v2_repartition(text[], text, text)', 'execute') then
     raise exception 'ÉCHEC 8 : droits inattendus.';
   end if;
+
+  -- 9. Sous le rôle du LECTEUR, la voie réelle (migration `recherche_paginee_definer`) :
+  --    le compte est celui du corpus public, et le plan reste celui de l'index trigramme.
+  --    ⛔ Une recherche qui lit `segments` s'éprouve sous ce rôle, jamais sous `postgres`
+  --    seul : la politique de lecture avait fait passer la répartition à 5 371 ms en ligne.
+  execute 'set local role authenticated';
+  execute $j$set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}'$j$;
+  select coalesce(sum(r.n), 0) into n from public.recherche_segments_v2_repartition(array['dieu'], 'prefixe') r;
+  if n < 16000 then raise exception 'ÉCHEC 9 : sous le lecteur, « dieu » compte % passages.', n; end if;
+  t0 := clock_timestamp();
+  select count(*) into m from public.recherche_segments_v2_repartition(array['dieu'], 'prefixe');
+  ms := (extract(epoch from (clock_timestamp() - t0)) * 1000)::integer;
+  t0 := clock_timestamp();
+  select count(*) into m from public.recherche_segments_v2_repartition(array['dieu'], 'prefixe');
+  ms := least(ms, (extract(epoch from (clock_timestamp() - t0)) * 1000)::integer);
+  if ms > 2000 then raise exception 'ÉCHEC 9 bis : sous le lecteur, la répartition de « dieu » a pris % ms au mieux de deux appels.', ms; end if;
+  select count(*) into m from public.recherche_segments_v2(array['dieu'], 'prefixe', null, 0, 20);
+  if m <> 20 then raise exception 'ÉCHEC 9 ter : sous le lecteur, la première page fait % lignes.', m; end if;
+  execute 'reset role';
 
   raise notice 'Contrôles de la recherche paginée : tous passés.';
 end
