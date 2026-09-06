@@ -71,7 +71,7 @@ export default function BibleSourceReader({
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '1.25rem clamp(1rem, 4vw, 3rem) 3rem' }}>
+    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', padding: '1.25rem clamp(1rem, 4vw, 3rem) 3rem' }}>
       <header style={{ maxWidth: '58rem', margin: '0 auto 1rem', display: 'grid', gap: '0.875rem' }}>
         <p style={{ margin: 0, color: 'var(--cs-texte-faible)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Lecture du témoin

@@ -221,7 +221,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   return (
     <div style={mobile
       ? { display: 'flex', flexDirection: 'column', background: 'var(--cs-fond)' }
-      : { display: 'flex', height: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)' }}>
+      : { display: 'flex', height: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)' }}>
       <style>{`
         /* ⛔ La composition du corps vient du module compositionEssai, jamais d'ici :
            la lecture, l'éditeur et le composeur en dérivent tous les trois. Trois copies
@@ -306,7 +306,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
       {/* Zone de lecture — scroll indépendant */}
       <div style={{ flex: 1, overflowY: mobile ? 'visible' : 'auto', minWidth: 0, paddingBottom: mobile ? '3.25rem' : undefined }}>
-        <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '0 56px 80px' }}>
+        <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: mobile ? '0 20px 80px' : '0 56px 80px' }}>
 
           {essai.statut === 'en_attente' && (
             <p style={{ fontSize: '0.71875rem', color: 'var(--cs-attente)', background: 'var(--cs-fond-clair)', border: '1px solid #e4c4a0', borderRadius: '8px', padding: '8px 12px', margin: '24px 0 0' }}>

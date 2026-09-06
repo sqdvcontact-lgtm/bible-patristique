@@ -223,7 +223,10 @@ const DESSIN = `
    degrés : sous auto-fill, un rayon de trois s'étire et ses cases n'ont plus la
    largeur de celles du rayon voisin. Une collection se lit en colonnes. */
 .hf-rayon { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-@media (max-width: 30rem) { .hf-rayon { grid-template-columns: repeat(2, 1fr); } }
+/* ⚠️ 640px, un seuil de la liste admise, et non les 30rem d'avant, qui valaient
+   480 : entre 481 et 640 les quatre jetons se partageaient une centaine de pixels
+   pour un nom de deux lignes (audit du 2026-09-06). */
+@media (max-width: 640px) { .hf-rayon { grid-template-columns: repeat(2, 1fr); } }
 
 /* ⛔ LE TEXTE EST CENTRÉ, sur les deux axes (auteur, 1er septembre 2026 : « centrer
    le texte, le faire élégant »). C'est la composition du carton de l'accueil, dont

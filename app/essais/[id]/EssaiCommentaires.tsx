@@ -175,7 +175,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
                 « {c.passage_cite} »
               </blockquote>
             )}
-            <div style={{ fontSize: '0.75rem', color: c.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.5 }}>{rendreTexteEnrichi(c.texte)}</div>
+            <div style={{ fontSize: '0.75rem', color: c.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.5, overflowWrap: 'anywhere' }}>{rendreTexteEnrichi(c.texte)}</div>
             <LigneActions c={c} />
           </div>
         )}
@@ -207,7 +207,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
                 {r.passage_cite && (
                   <blockquote style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
                 )}
-                <div style={{ fontSize: '0.71875rem', color: r.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.48 }}>{rendreTexteEnrichi(r.texte)}</div>
+                <div style={{ fontSize: '0.71875rem', color: r.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.48, overflowWrap: 'anywhere' }}>{rendreTexteEnrichi(r.texte)}</div>
                 <LigneActions c={r} petit />
               </div>
             )}

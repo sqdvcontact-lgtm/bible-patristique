@@ -1767,7 +1767,7 @@ export default function PolyglottePage() {
     : chapitrePassage != null ? `${nomPassage} ${chapitrePassage}` : nomPassage;
 
   return (
-    <div style={{ background: FOND, minHeight: "calc(100vh - 3.5rem)" }}>
+    <div style={{ background: FOND, minHeight: "calc(100dvh - 3.5rem)" }}>
       {/* La comparaison en colonnes exige une largeur d'écran : indisponible sur téléphone. */}
       <style>{`
         .poly-outil { display: block; }
@@ -1794,6 +1794,10 @@ export default function PolyglottePage() {
         .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
         .poly-curseur-actif .poly-texte-cell:hover .poly-act { opacity: .9; }
         .poly-act:hover { opacity: 1 !important; color: var(--cs-texte-second); }
+        /* ⛔ Sur un écran tactile, rien ne se survole : entre 821 et ~1100px la page
+           s'affiche (le seuil de refus est à 820) mais copier et signaler restaient
+           hors d'atteinte. Le critère est la capacité du pointeur, non la largeur. */
+        @media (hover: none) { .poly-act { opacity: .9; } }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
         .poly-notes-head .lbl-notes { transition: opacity .15s ease; }
@@ -1907,7 +1911,7 @@ export default function PolyglottePage() {
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
           pour les deux pages, donc une seule navigation à maintenir et à apprendre. */}
       <div className="poly-outil">
-        <div style={{ display: "flex", alignItems: "flex-start", minHeight: "calc(100vh - 3.5rem)" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", minHeight: "calc(100dvh - 3.5rem)" }}>
         {/* `top: 0` collait le volet au bord du viewport, c'est-à-dire DERRIÈRE la
             navbar fixe : sa barre de recherche disparaissait sous elle dès qu'on
             descendait. Le volet se cale donc sous la navbar, et n'occupe que la

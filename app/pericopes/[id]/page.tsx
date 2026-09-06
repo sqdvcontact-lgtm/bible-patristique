@@ -86,7 +86,7 @@ const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 function Etat({ children }: { children: React.ReactNode }) {
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: FOND, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: FOND, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <p style={{ color: 'var(--cs-texte-doux)', fontSize: '0.875rem' }}>{children}</p>
     </main>
   )
@@ -500,7 +500,7 @@ export default function PericopePage() {
   if (mobile) {
     // Empilé : titre + texte, puis infos/options/notices, puis apparat patristique.
     return (
-      <main style={{ background: FOND, minHeight: 'calc(100vh - 3.5rem)', padding: '1.5rem 1.1rem 3rem' }}>
+      <main style={{ background: FOND, minHeight: 'calc(100dvh - 3.5rem)', padding: '1.5rem 1.1rem 3rem' }}>
         <div style={{ maxWidth: '44rem', margin: '0 auto' }}>
           {centre}
           <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '8px' }}>{voletDroit}</div>

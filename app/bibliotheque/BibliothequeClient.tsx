@@ -655,8 +655,8 @@ function LigneFiltres({ label, mobile, children }: { label: string; mobile: bool
 // Deux listes d'auteurs sur cette page — la bibliothèque et le catalogue — et une
 // seule façon d'en tourner les pages : des flèches fixées aux bords de l'écran,
 // toujours sous la main, doublées d'un pied « Page 1 sur 3 » qui dit où l'on en est.
-function Pagination({ page, nbPages, onChanger }: {
-  page: number; nbPages: number; onChanger: (delta: number) => void
+function Pagination({ page, nbPages, onChanger, mobile }: {
+  page: number; nbPages: number; onChanger: (delta: number) => void; mobile: boolean
 }) {
   if (nbPages <= 1) return null
   const auDebut = page === 0
@@ -681,8 +681,11 @@ function Pagination({ page, nbPages, onChanger }: {
   )
   return (
     <>
-      <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flecheFixe('gauche', auDebut)}>{chevron('gauche', 14)}</button>
-      <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flecheFixe('droite', aLaFin)}>{chevron('droite', 14)}</button>
+      {/* ⛔ Pas de flèche FIXE sur un téléphone : posées à 18px des bords, larges de
+          42, elles recouvraient 42px de texte de chaque côté d'une carte qui n'en fait
+          que 288 (audit de responsiveness, 2026-09-06). Le pied suffit alors. */}
+      {!mobile && <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flecheFixe('gauche', auDebut)}>{chevron('gauche', 14)}</button>}
+      {!mobile && <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flecheFixe('droite', aLaFin)}>{chevron('droite', 14)}</button>}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
         <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flechePied(auDebut)}>{chevron('gauche', 12)}</button>
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
@@ -995,6 +998,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
 }
 
 function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
+  const estMobile = useEstMobile()
   // Croisement des formes de nom : la recherche sur un auteur du catalogue doit répondre
   // aussi bien à sa forme moderne qu'ancienne/originale. On indexe, pour chaque forme
   // rencontrée dans `auteurs` (nom + nom_original), l'ensemble des formes de cet auteur.
@@ -1203,7 +1207,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
             ))}
           </div>
 
-          <Pagination page={pageActive} nbPages={nbPages} onChanger={changerPage} />
+          <Pagination page={pageActive} nbPages={nbPages} onChanger={changerPage} mobile={estMobile} />
         </>
       )}
 
@@ -1952,7 +1956,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois : 107px entre la barre et le titre au lieu de 38.
-      minHeight: 'calc(100vh - 3.5rem)',
+      minHeight: 'calc(100dvh - 3.5rem)',
     }}>
       {erreurChargement && (
         <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
@@ -2092,7 +2096,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                     <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux} />
                   ))}
                 </div>
-                <Pagination page={pageAuteursActive} nbPages={nbPagesAuteurs} onChanger={changerPageAuteurs} />
+                <Pagination page={pageAuteursActive} nbPages={nbPagesAuteurs} onChanger={changerPageAuteurs} mobile={estMobile} />
               </>
             )}
           </>

@@ -473,7 +473,7 @@ export default function PrelevementsPage() {
   const listeActive = onglet === "biblique" ? bibliques : patristiques;
 
   return (
-    <main style={{ background: "var(--cs-fond-doux)", minHeight: "calc(100vh - 3.5rem)" }}>
+    <main style={{ background: "var(--cs-fond-doux)", minHeight: "calc(100dvh - 3.5rem)" }}>
       <style>{`
         .prel-item {
           display: flex; align-items: flex-start; gap: 0;

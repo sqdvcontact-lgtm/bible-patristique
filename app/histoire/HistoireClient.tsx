@@ -349,14 +349,14 @@ export default function HistoireClient({ evs }: { evs: RangFrise[] }) {
   )
 
   return (
-    <main style={{ background: FOND, minHeight: 'calc(100vh - 3.5rem)' }}>
+    <main style={{ background: FOND, minHeight: 'calc(100dvh - 3.5rem)' }}>
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
         {/* ── Volet des filtres. Sur mobile, un panneau repliable. ───────── */}
         <aside style={{
           flexShrink: 0, width: mobile ? '100%' : '15.5rem',
           position: mobile ? 'static' : 'sticky', top: '3.5rem',
-          height: mobile ? 'auto' : 'calc(100vh - 3.5rem)',
+          height: mobile ? 'auto' : 'calc(100dvh - 3.5rem)',
           display: 'flex', flexDirection: 'column',
           background: 'var(--cs-fond-clair)',
           borderRight: mobile ? 'none' : `1px solid ${BORD}`,

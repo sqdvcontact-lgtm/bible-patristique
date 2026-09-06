@@ -12,7 +12,7 @@ export const metadata = { title: 'Page introuvable' }
 
 export default function Introuvable() {
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', display: 'grid', placeItems: 'start center', padding: '14vh 1.5rem 4rem', background: 'var(--cs-fond)' }}>
+    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', display: 'grid', placeItems: 'start center', padding: '14vh 1.5rem 4rem', background: 'var(--cs-fond)' }}>
       <div style={{ maxWidth: '30rem', textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>
           Cette adresse ne mène à rien

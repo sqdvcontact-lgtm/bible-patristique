@@ -110,7 +110,7 @@ export default function ProfilPublicPage() {
   }, [pseudo])
 
   if (erreur) return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
@@ -150,7 +150,7 @@ export default function ProfilPublicPage() {
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', padding: '48px 20px 96px' }}>
+    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', padding: '48px 20px 96px' }}>
       <style>{`
         .profil-section {
           background: var(--cs-fond-clair);

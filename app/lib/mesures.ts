@@ -21,8 +21,12 @@
 // (voir SOMMET_CORPS dans polyglotte).
 export const HAUTEUR_NAVBAR = '3.5rem'
 
-/** Le reste de l'écran, sous la barre de navigation. */
-export const HAUTEUR_SOUS_NAVBAR = `calc(100vh - ${HAUTEUR_NAVBAR})`
+/** Le reste de l'écran, sous la barre de navigation.
+ *  ⛔ `dvh` et non `vh` : sur un téléphone, `100vh` mesure l'écran SANS la barre
+ *  d'adresse du navigateur. Posée en `height` avec `overflow: hidden` — l'écran
+ *  d'attente de la page Bible — la valeur rognait de soixante à cent pixels sous
+ *  cette barre tant qu'elle est déployée (audit de responsiveness, 2026-09-06). */
+export const HAUTEUR_SOUS_NAVBAR = `calc(100dvh - ${HAUTEUR_NAVBAR})`
 
 /** Hauteur du bandeau de navigation mobile (bas de page, page Bible) : forme
  *  abrégée « Gn ❧ 1 » + flèches de chapitre. Sert aussi à décaler la barre

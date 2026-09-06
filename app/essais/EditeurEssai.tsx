@@ -530,7 +530,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   return (
-    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100vh - 3.5rem)', paddingRight: '320px' }}>
+    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', paddingRight: '320px' }}>
       <style>{`
         /* La pastille de choix montre la couverture TELLE QU'ELLE PARAÎTRA : en Cuir
            le rayon est en reliures de cuir, et un nuancier vert y mentirait. */
@@ -759,7 +759,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {/* Barre d'outils et zone de rédaction */}
             <div style={{ display: 'flex', gap: '20px', paddingLeft: '128px' }}>
               <div style={{
-                position: 'fixed', top: '3.5rem', left: 0, width: '8rem', height: 'calc(100vh - 3.5rem)',
+                position: 'fixed', top: '3.5rem', left: 0, width: '8rem', height: 'calc(100dvh - 3.5rem)',
                 background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', padding: '20px 14px', overflowY: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '5px',
               }}>

@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { FEUILLE_ESPACE } from '@/app/compte/piecesEspace'
 
 export type ProfilLecteur = {
@@ -133,7 +133,7 @@ export default function CadreEspace({ children }: { children: React.ReactNode })
 
   return (
     <Contexte.Provider value={{ user, profil, majProfil }}>
-      <main style={{ minHeight: `calc(100vh - ${HAUTEUR_NAVBAR})`, background: 'var(--cs-fond)' }}>
+      <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)' }}>
         <style>{FEUILLE_ESPACE}</style>
         {children}
       </main>
@@ -169,7 +169,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
       <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '12px', padding: '32px 36px', width: '100%', maxWidth: '23.75rem' }}>
         <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, marginBottom: '8px' }}>Choisissez votre pseudonyme</h1>
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', marginBottom: '20px', lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>

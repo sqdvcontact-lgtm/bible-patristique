@@ -175,7 +175,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                 </div>
                 <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', lineHeight: 1.35, color: ENCRE_TON[n.ton], margin: '2px 0 0' }}>{n.objet}</p>
                 {n.message && (
-                  <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45, whiteSpace: 'pre-wrap', margin: '4px 0 0' }}>{n.message}</p>
+                  <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', margin: '4px 0 0' }}>{n.message}</p>
                 )}
                 {n.href && (
                   <Link href={n.href} onClick={() => { archiver(n); onFermer() }}

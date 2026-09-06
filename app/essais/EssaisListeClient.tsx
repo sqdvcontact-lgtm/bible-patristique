@@ -115,7 +115,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois — c'est la règle déjà appliquée à la Bibliothèque et aux traductions.
-      minHeight: 'calc(100vh - 3.5rem)',
+      minHeight: 'calc(100dvh - 3.5rem)',
     }}>
       {/* ⛔ La MESURE reste celle de la Communauté, 71rem : elle porte trois
           couvertures de front, quand la Bibliothèque n'a que du texte à ranger sur

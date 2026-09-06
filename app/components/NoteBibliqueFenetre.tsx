@@ -168,7 +168,7 @@ export default function AppelNoteBiblique({
             </span>
             <button
               onClick={() => setOuvert(false)}
-              aria-label="Fermer"
+              aria-label="Fermer" className="cs-cible-fine"
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
             >
               ×

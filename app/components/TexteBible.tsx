@@ -643,6 +643,12 @@ export default function TexteBible({
             .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
             @media (max-width: 900px) { .verset-actions .bouton-action-verset { opacity: 1 !important; } }
+            /* ⛔ Et sur TOUT écran tactile, quelle que soit sa largeur. Le repli par la
+               largeur laissait les actions à « opacity: 0 » sur une tablette de 1024px en
+               paysage, où le drapeau mobile est faux : ni pavé flottant, ni survol possible, donc
+               des boutons présents et invisibles. Le critère est la CAPACITÉ du pointeur,
+               comme pour « useSansSurvol » (audit de responsiveness, 2026-09-06). */
+            @media (hover: none) { .bouton-action-verset { opacity: 1 !important; } }
           `}</style>
 
           {pieceAffichee ? surAxeTexte(

@@ -44,7 +44,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main style={{ background: "var(--cs-fond)", minHeight: "calc(100vh - 3.5rem)", padding: "56px 24px 80px" }}>
+    <main style={{ background: "var(--cs-fond)", minHeight: "calc(100dvh - 3.5rem)", padding: "56px 24px 80px" }}>
       <div style={{ maxWidth: "35rem", margin: "0 auto" }}>
         <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px" }}>
           Nous écrire
@@ -71,7 +71,7 @@ export default function ContactPage() {
             {erreur && (
               <p role="alert" style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.5 }}>{erreur}</p>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))", gap: "14px" }}>
               <div>
                 <label htmlFor="ct-nom" style={labelStyle}>NOM (facultatif)</label>
                 <input id="ct-nom" type="text" value={nom} maxLength={120} autoComplete="name"

@@ -40,7 +40,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
   const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, anonyme, couverture, embleme, verset_en_tete').eq('id', id).single()
   if (!essai) {
     return (
-      <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: 'var(--cs-texte-gris)' }}>Essai introuvable.</p>
       </main>
     )
@@ -53,7 +53,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
     const autorise = estProprietaire || await estAdmin()
     if (!autorise) {
       return (
-        <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p style={{ color: 'var(--cs-texte-gris)' }}>Cet essai n’est pas encore publié.</p>
         </main>
       )

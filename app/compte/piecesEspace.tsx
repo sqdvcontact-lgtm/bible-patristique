@@ -190,6 +190,13 @@ export const FEUILLE_ESPACE = `
 
 .esp-rangee { display: grid; grid-template-columns: 8.5rem 1fr; gap: 14px;
   align-items: start; padding: 7px 0; }
+/* ⛔ La colonne d'étiquettes de 8,5rem ne laissait que 122px au champ sur un
+   téléphone de 320, 177 sur un de 375 : sous 640 l'étiquette monte au-dessus de
+   ce qu'elle nomme, et le champ prend la mesure entière. */
+@media (max-width: 640px) {
+  .esp-rangee { grid-template-columns: 1fr; gap: 4px; }
+  .esp-rangee > label, .esp-etiquette { padding-top: 0; }
+}
 .esp-rangee > label, .esp-etiquette { font-size: 0.625rem; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--cs-texte-doux); padding-top: 7px; }
 .esp-note { display: block; font-size: 0.625rem; color: var(--cs-texte-faible);
@@ -217,10 +224,12 @@ export const FEUILLE_ESPACE = `
   font-family: inherit; font-size: inherit; color: var(--cs-texte-doux); }
 .esp-pied button.esp-danger { color: var(--cs-danger); }
 
-/* ⚠️ Sous 60rem le sommaire ne peut plus tenir à gauche : il passe au-dessus, en
+/* ⚠️ Sous 900px le sommaire ne peut plus tenir à gauche : il passe au-dessus, en
    ligne, et ne garde que les deux onglets — une liste d'ancres empilée y ferait un
-   rouleau avant le premier mot de la page. */
-@media (max-width: 60rem) {
+   rouleau avant le premier mot de la page.
+   ⚠️ 900px, le seuil de la charte, et non les 60rem d'avant : ils valaient 960 et
+   n'appartenaient à aucun des huit seuils admis (audit du 2026-09-06). */
+@media (max-width: 900px) {
   .esp-cadre { flex-direction: column; gap: 18px; }
   .esp-sommaire { width: 100%; position: static; }
   .esp-groupe { display: none; }

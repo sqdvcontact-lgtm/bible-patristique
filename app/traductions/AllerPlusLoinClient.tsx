@@ -374,7 +374,7 @@ export default function AllerPlusLoinClient() {
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois : 107px entre la barre et le titre au lieu de 38.
-      minHeight: 'calc(100vh - 3.5rem)',
+      minHeight: 'calc(100dvh - 3.5rem)',
     }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
