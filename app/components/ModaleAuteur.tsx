@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { LIVRES } from '@/app/lib/bible'
 import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
@@ -46,6 +47,25 @@ type Auteur = {
   photo_position?: unknown
   oeuvres: OeuvreResumee[]
 }
+
+// ── Le pied de fiche : ce que la base savait déjà et que la fenêtre taisait ─────
+// Trois renseignements SECONDAIRES, et qui doivent le rester : l'empreinte de
+// l'auteur dans l'Écriture, les éditions françaises répertoriées qui ne sont pas
+// encore ici, et les ouvrages savants qui l'éditent. Chacun ne paraît que s'il a
+// quelque chose à dire ; le pied entier disparaît si les trois se taisent.
+type EmpreinteLivre = { livre: string; liens: number; versets: number }
+type Empreinte = { liens: number; versets: number; livres: number; tete: EmpreinteLivre[] }
+type EditionCataloguee = {
+  id: number; titre_stable: string | null; titre_edition: string | null
+  traducteur: string | null; date_edition_affichage_courte: string | null
+}
+type OuvrageSavant = { id: number; titre: string; annee: number | null; collection: string | null }
+type PiedFiche = {
+  empreinte: Empreinte | null
+  editions: EditionCataloguee[]; nbEditions: number
+  ouvrages: OuvrageSavant[]; nbOuvrages: number
+}
+const PIED_VIDE: PiedFiche = { empreinte: null, editions: [], nbEditions: 0, ouvrages: [], nbOuvrages: 0 }
 
 const POS_DEFAUT: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
 
@@ -428,7 +448,91 @@ function DetailChrono({ label, children }: { label?: string; children: ReactNode
   )
 }
 
-function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () => void; evenements: RangChrono[] }) {
+// ── Pied de fiche ──────────────────────────────────────────────────────────────
+// ⚠️ TOUT y est plus petit et plus pâle que la fiche : c'est un pied de page, non une
+// quatrième section. Les titres reprennent la clé technique des colonnes étroites
+// (0,5 rem, capitales, `--cs-texte-faible`), les valeurs descendent d'un cran sous la
+// prose. Rien n'y est cliquable : ce sont des renseignements, pas une navigation.
+const NOM_LIVRE: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
+const nombreFr = (n: number) => n.toLocaleString('fr-FR')
+
+function TitrePied({ children }: { children: ReactNode }) {
+  return <p style={{ ...CLE_EMPILEE, margin: '0 0 5px' }}>{children}</p>
+}
+
+function PiedDeFiche({ pied }: { pied: PiedFiche }) {
+  const empreinte = pied.empreinte && pied.empreinte.liens > 0 ? pied.empreinte : null
+  const aEditions = pied.nbEditions > 0
+  const aOuvrages = pied.nbOuvrages > 0
+  if (!empreinte && !aEditions && !aOuvrages) return null
+
+  return (
+    <section aria-label="Renseignements complémentaires"
+      style={{ marginTop: '26px', paddingTop: '15px', borderTop: '1px solid var(--cs-fond-doux)', clear: 'left' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.5rem, 1fr))', gap: '18px 26px', alignItems: 'start' }}>
+
+        {empreinte && (
+          <div style={{ minWidth: 0 }}>
+            <TitrePied>Dans l’Écriture</TitrePied>
+            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '0 0 6px', lineHeight: 1.45 }}>
+              {nombreFr(empreinte.liens)} renvois, sur {nombreFr(empreinte.versets)} versets
+              {empreinte.livres > 1 ? ` de ${empreinte.livres} livres` : ''}.
+            </p>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: '1fr max-content', columnGap: '10px', rowGap: '2px', alignItems: 'baseline' }}>
+              {empreinte.tete.map(l => (
+                <li key={l.livre} style={{ display: 'contents' }}>
+                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{NOM_LIVRE[l.livre] ?? l.livre}</span>
+                  <span title={`${nombreFr(l.versets)} versets`} style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontVariantNumeric: 'tabular-nums' }}>{nombreFr(l.liens)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {aEditions && (
+          <div style={{ minWidth: 0 }}>
+            <TitrePied>Éditions répertoriées</TitrePied>
+            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '0 0 6px', lineHeight: 1.45 }}>
+              {/* Le catalogue tient ce que le site n'a pas encore : le dire ici évite au
+                  lecteur de conclure d'une fiche courte que l'auteur est peu traduit. */}
+              {nombreFr(pied.nbEditions)} traduction{pied.nbEditions > 1 ? 's' : ''} française{pied.nbEditions > 1 ? 's' : ''} au catalogue, pas encore ici.
+            </p>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {pied.editions.map(e => (
+                <li key={e.id} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  title={[e.titre_stable, e.titre_edition, e.traducteur].filter(Boolean).join(' · ')}>
+                  {e.titre_stable || e.titre_edition}
+                  {e.date_edition_affichage_courte && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.65625rem' }}> {e.date_edition_affichage_courte}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {aOuvrages && (
+          <div style={{ minWidth: 0 }}>
+            <TitrePied>Éditions savantes</TitrePied>
+            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '0 0 6px', lineHeight: 1.45 }}>
+              {nombreFr(pied.nbOuvrages)} ouvrage{pied.nbOuvrages > 1 ? 's' : ''} de la bibliographie.
+            </p>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {pied.ouvrages.map(o => (
+                <li key={o.id} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  title={[o.titre, o.collection, o.annee ? String(o.annee) : null].filter(Boolean).join(' · ')}>
+                  {o.titre}
+                  {o.annee && <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.65625rem' }}> {o.annee}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+      </div>
+    </section>
+  )
+}
+
+function Contenu({ auteur, onClose, evenements, pied }: { auteur: Auteur; onClose: () => void; evenements: RangChrono[]; pied: PiedFiche }) {
   const datesAuteur = espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates))
   // Dates, langue et traditions sur une même ligne d'étiquettes : la langue y prend
   // donc la capitale, comme le siècle et la tradition qui l'encadrent.
@@ -541,6 +645,9 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
           blocChrono
         )}
       </div>
+      {/* Le pied court sous les DEUX colonnes : il ne relève ni de la vie ni de la
+          chronologie, et il se tait tant qu'il n'a rien à dire. */}
+      <PiedDeFiche pied={pied} />
     </>
   )
 }
@@ -548,6 +655,7 @@ function Contenu({ auteur, onClose, evenements }: { auteur: Auteur; onClose: () 
 export default function ModaleAuteur({ id, onClose }: { id: string | null; onClose: () => void }) {
   const [auteur, setAuteur] = useState<Auteur | null>(null)
   const [evenements, setEvenements] = useState<RangChrono[]>([])
+  const [pied, setPied] = useState<PiedFiche>(PIED_VIDE)
   const [erreur, setErreur] = useState(false)
 
   useEffect(() => {
@@ -584,6 +692,56 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       .then(({ data }) => setEvenements((data ?? []) as RangChrono[]))
   }, [id])
 
+  // ── Le pied de fiche, EN SECONDE VAGUE ───────────────────────────────────────
+  // ⛔ Il ne retarde pas la fiche : la notice, les œuvres et la frise partent seules
+  // dans l'effet ci-dessus, et ces trois lectures viennent après, chacune tombant si
+  // elle échoue. Une fenêtre d'auteur ne doit pas attendre un renseignement de pied.
+  useEffect(() => {
+    if (!id) { setPied(PIED_VIDE); return }
+    let annule = false
+    setPied(PIED_VIDE)
+    Promise.all([
+      // L'empreinte biblique passe par une fonction : l'agrégat est impossible en
+      // PostgREST, et les politiques de `segments` et `liens_bibliques` sont des EXISTS
+      // corrélés qu'un agrégat paierait 67 734 fois (voir la migration).
+      supabase.rpc('empreinte_biblique_auteur', { p_id_auteur: id, p_limite: 6 }),
+      // Le catalogue : MÊME garde que la Bibliothèque — pas encore sur le site, non
+      // refusée. Trois titres suffisent, le compte exact vient de l'en-tête.
+      supabase.from('v_catalogue_notices_dates')
+        .select('id, titre_stable, titre_edition, traducteur, date_edition_affichage_courte', { count: 'exact' })
+        .eq('id_auteur', id).eq('presence_sur_le_site', false).eq('refuse_admin', false)
+        .order('titre_stable').limit(3),
+      // La bibliographie : l'auteur ancien y est la SOURCE, jamais le contributeur
+      // savant. Même garde d'admissibilité que la page de péricope
+      // (`bibliographie_admissible`) : ni rejeté, et retenu ou secondaire.
+      // ⚠️ L'OUVRAGE est la table de tête, et la table des contributeurs n'est qu'une
+      // jointure de filtrage : c'est la seule façon de trier et de compter sur les
+      // colonnes de l'ouvrage. Prendre les contributeurs pour tête laissait le tri à
+      // une ressource embarquée, où PostgREST ne range QUE l'embarqué — et l'on tirait
+      // trois ouvrages au hasard. Les deux tables tiennent en mille lignes : le piège
+      // du `!inner` sur `segments` (charte) ne s'applique pas ici.
+      supabase.from('ouvrages_bibliographiques')
+        .select('id, titre, annee, collection, ouvrage_contributeurs_scientifiques!inner(auteur_id, role_contributeur)', { count: 'exact' })
+        .eq('ouvrage_contributeurs_scientifiques.auteur_id', id)
+        .eq('ouvrage_contributeurs_scientifiques.role_contributeur', 'auteur_source')
+        .neq('statut_editorial', 'rejete')
+        .in('statut_scientifique', ['retenu', 'secondaire'])
+        .order('annee', { ascending: false, nullsFirst: false })
+        .limit(3),
+    ]).then(([empreinteRes, catalogueRes, biblioRes]) => {
+      if (annule) return
+      const brut = empreinteRes.data as Empreinte | null
+      setPied({
+        empreinte: empreinteRes.error ? null : brut,
+        editions: catalogueRes.error ? [] : ((catalogueRes.data ?? []) as EditionCataloguee[]),
+        nbEditions: catalogueRes.error ? 0 : (catalogueRes.count ?? 0),
+        ouvrages: biblioRes.error ? [] : ((biblioRes.data ?? []) as unknown as OuvrageSavant[]),
+        nbOuvrages: biblioRes.error ? 0 : (biblioRes.count ?? 0),
+      })
+    })
+    return () => { annule = true }
+  }, [id])
+
   // Échap ferme ; le défilement de fond est gelé tant que la fenêtre est ouverte.
   useEffect(() => {
     if (!id) return
@@ -615,7 +773,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
         ) : !auteur ? (
           <MotAttente centre marge="30px 0" />
         ) : (
-          <Contenu auteur={auteur} onClose={onClose} evenements={evenements} />
+          <Contenu auteur={auteur} onClose={onClose} evenements={evenements} pied={pied} />
         )}
 
         <style>{`
