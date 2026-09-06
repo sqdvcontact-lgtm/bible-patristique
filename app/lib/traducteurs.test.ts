@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { libelleTrad, enumererNoms, nomsTraducteurs, mentionTraducteurs } from './traducteurs'
+import { libelleTrad, enumererNoms, nomsTraducteurs, mentionTraducteurs, estReserveDAttribution, mentionCatalogueLisible } from './traducteurs'
 
 describe('enumererNoms', () => {
   it('remplace les points-virgules du catalogue par une énumération française', () => {
@@ -129,5 +129,50 @@ describe('libelleTrad — cas ordinaires inchangés', () => {
   it('masque les mentions de travail gardées en base', () => {
     expect(libelleTrad('Jeannin — prénom non établi')).toBe('Traduction de Jeannin')
     expect(libelleTrad('Michel Rubellin signalé')).toBe('Traduction par Michel Rubellin')
+  })
+})
+
+// ── La mention du CATALOGUE, telle qu'une notice peut la porter ──────────────
+// Le champ `catalogue_notices.traducteur` est de la PROSE, écrite par le
+// dépouillement des notices : il y voisine des noms, des réserves d'attribution et
+// des notes d'atelier. Le moteur bibliographique en faisait « trad. Attribution non
+// fixée : … » (relevé de l'auteur, 2026-09-06). Les cas ci-dessous sont RÉELS,
+// recopiés de la base le même jour.
+describe('mention du catalogue', () => {
+  it('⛔ une RÉSERVE d’attribution ne nomme personne, et ne se compose pas', () => {
+    for (const brut of [
+      'Attribution non fixée : Antoine Arnauld ou Jean Segui ; Philippe Goibaud-Dubois également signalé dans certaines références',
+      'Attribution discutée : Nicolas Fontaine selon la BnF ; Jean-Baptiste Morvan de Bellegarde sur l’exemplaire numérique',
+      'Non établi',
+      'Traducteur non établi',
+    ]) {
+      expect(estReserveDAttribution(brut), brut).toBe(true)
+      expect(mentionCatalogueLisible(brut), brut).toBeNull()
+    }
+  })
+
+  it('⛔ « Anonyme » N’EST PAS une réserve : c’est un fait éditorial', () => {
+    expect(estReserveDAttribution('Anonyme')).toBe(false)
+    expect(mentionCatalogueLisible('Anonyme')).toBe('Anonyme')
+    expect(mentionCatalogueLisible('Traduction anonyme dans l’édition Charpentier'))
+      .toBe('Traduction anonyme dans l’édition Charpentier')
+  })
+
+  it('la réserve se juge sur la TÊTE : une mention qui nomme se compose', () => {
+    const nomme = 'Nicolas Fontaine — attribution retenue par la BnF ; attribution ancienne également proposée à Jean-Baptiste Morvan de Bellegarde'
+    expect(estReserveDAttribution(nomme)).toBe(false)
+    expect(mentionCatalogueLisible(nomme)).toBe(nomme)
+  })
+
+  it('retire la note d’atelier FINALE, jamais un crochet de tête', () => {
+    expect(mentionCatalogueLisible('Nicolas Fontaine [attribution générale du recueil ; attribution analytique à contrôler]'))
+      .toBe('Nicolas Fontaine')
+    expect(mentionCatalogueLisible('[Traducteur du recueil]')).toBe('[Traducteur du recueil]')
+  })
+
+  it('rend null sur le vide, jamais une chaîne vide', () => {
+    expect(mentionCatalogueLisible('')).toBeNull()
+    expect(mentionCatalogueLisible(null)).toBeNull()
+    expect(mentionCatalogueLisible('   ')).toBeNull()
   })
 })

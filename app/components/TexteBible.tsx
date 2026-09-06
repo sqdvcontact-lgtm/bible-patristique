@@ -20,7 +20,7 @@ import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
-  STYLE_DENSITE, STYLE_DENSITE_MOBILE,
+  styleDensiteVerset, STYLE_DENSITE_MOBILE,
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
 } from '@/app/lib/compositionBible'
@@ -836,7 +836,11 @@ export default function TexteBible({
                       place même invisibles. */}
                   {!mobile && densites.get(v.id_verset) && (
                     <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
-                      style={STYLE_DENSITE}>
+                      /* ⛔ Un verset PRÉLEVÉ garde son signet visible sans survol, au fer
+                         de la gouttière : la marque s'y posait par-dessus. Elle passe à
+                         droite du signet — et à cette seule condition, le signet n'étant
+                         rendu que sous une session et hors ligne éditoriale. */
+                      style={styleDensiteVerset({ decale: !!userId && !ligneSource && sauvegardes.has(v.verset) })}>
                       {densites.get(v.id_verset)!.oeuvres}
                     </span>
                   )}

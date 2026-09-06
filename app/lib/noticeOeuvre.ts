@@ -27,7 +27,7 @@
 import { formaterDateHistorique } from './datesHistoriques'
 import { normaliserNomEditeur, type IndexEditeurs } from './editeursNormalisation'
 import type { NoticeBibliographique } from './referenceBibliographique'
-import { nomsTraducteurs } from './traducteurs'
+import { nomsTraducteurs, mentionCatalogueLisible } from './traducteurs'
 
 /** Ce que `oeuvres` porte de l'identité bibliographique d'une œuvre. Les noms sont
  *  ceux des propriétés déjà employées par les boutons de copie, non ceux des
@@ -167,6 +167,8 @@ export function noticeDuCatalogue(
     contributeurs: [],
     auteursTexte: null,
     directeursTexte: null,
-    traducteursTexte: propre(edition.traducteur),
+    // ⛔ Une RÉSERVE d'attribution ne se compose pas en « trad. » : elle ne nomme
+    // personne, et la note d'atelier entre crochets tombe avec (voir `traducteurs.ts`).
+    traducteursTexte: mentionCatalogueLisible(edition.traducteur),
   }
 }

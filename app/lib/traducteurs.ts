@@ -17,6 +17,44 @@ const TITRE_MINUSCULE_RE = /^(Abbé|Dom|Père|Frère|Sœur|Chanoine|Cardinal|Mon
 // Mention de travail gardée en base quand le traducteur n'est pas identifié.
 const EST_NON_ETABLI = /^non établi/i
 
+// ── Réserves d'attribution ───────────────────────────────────────────────────
+// ⛔ Une mention qui OUVRE sur une réserve ne nomme personne à la place d'un nom :
+// « Attribution non fixée : Antoine Arnauld ou Jean Segui ; Philippe Goibaud-Dubois
+// également signalé » n'est pas un traducteur, c'est un dossier. Composée par le
+// moteur bibliographique, elle donnait « trad. Attribution non fixée : … » au milieu
+// d'une notice (relevé de l'auteur, 2026-09-06). Le champ reste INTACT en base et se
+// lit tel quel là où le catalogue se montre en tant que tel ; c'est l'APPAREIL
+// bibliographique qui se tait.
+// ⚠️ « Anonyme » n'en est PAS une : c'est un fait éditorial, et « trad. anonyme » est
+// une mention bibliographique reçue. Ne pas l'ajouter ici.
+// ⚠️ Et la réserve se juge sur la TÊTE de la mention : « Nicolas Fontaine — attribution
+// retenue par la BnF » nomme quelqu'un, et se compose.
+const RESERVE_ATTRIBUTION_RE = /^(attributions?\s+(non\s+fix|discut|incertain|contest|à\s+(contrôler|établir))|traduct(eur|rice|ion)\s+non\s+(établie?|identifiée?)|non\s+(établi|identifié))/i
+
+// Note d'atelier accolée à un nom : « Nicolas Fontaine [attribution générale du recueil ;
+// attribution analytique à contrôler] ». Le crochet FINAL est un carnet de travail, non
+// une partie de la mention. ⚠️ Un crochet en TÊTE ne se retire pas : il porterait alors
+// tout ce que la mention a à dire.
+const NOTE_ATELIER_RE = /\s*\[[^\]]*\]\s*$/
+
+/** La mention est-elle une RÉSERVE d'attribution plutôt qu'un nom ? */
+export function estReserveDAttribution(trad: string | null | undefined): boolean {
+  return RESERVE_ATTRIBUTION_RE.test((trad ?? '').trim())
+}
+
+/** La mention du catalogue telle qu'une NOTICE peut la porter : sans sa note d'atelier
+ *  finale, et `null` sur une réserve d'attribution comme sur le vide. Dans les deux cas
+ *  il n'y a pas de traducteur à nommer, et une notice sans mention vaut mieux qu'une
+ *  mention qui n'en est pas une. */
+export function mentionCatalogueLisible(trad: string | null | undefined): string | null {
+  const brut = (trad ?? '').trim()
+  if (!brut || estReserveDAttribution(brut)) return null
+  // ⚠️ Le crochet ne se retire QUE s'il reste un nom devant lui : une mention qui
+  //    n'est qu'un crochet y porte tout ce qu'elle a à dire.
+  const sansNote = brut.replace(NOTE_ATELIER_RE, '').trim()
+  return sansNote || brut
+}
+
 // ── Mentions de responsabilité collective ─────────────────────────────────────
 // Le champ ne porte alors pas un nom de personne mais une formule entière. La
 // préfixer de « Traduction par » donnait « Traduction par Sous la direction de

@@ -167,20 +167,48 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
   fontStyle: 'italic',
 }
 
-/** LA MARQUE DE DENSITÉ, dans la gouttière d'actions : le nombre d'œuvres qui parlent
- *  du verset. ⚠️ Elle est la plus ténue de la page, et il le faut : elle accompagne
- *  chaque verset commenté, soit un sur trois, et un repère qui se répète autant ne peut
- *  pas peser. ⛔ Chiffres tabulaires : deux marques voisines doivent s'aligner. */
-export const STYLE_DENSITE: CSSProperties = {
-  position: 'absolute',
-  top: '0.28125rem',
-  left: '0.5rem',
-  fontSize: '0.5625rem',
-  lineHeight: 1.2,
-  color: 'var(--cs-texte-faible)',
-  fontVariantNumeric: 'tabular-nums',
-  pointerEvents: 'none',
-  transition: 'opacity 0.12s',
+/**
+ * LA MARQUE DE DENSITÉ, dans la gouttière d'actions : le nombre d'œuvres qui parlent
+ * du verset. ⚠️ Elle est la plus ténue de la page, et il le faut : elle accompagne
+ * chaque verset commenté, soit un sur trois, et un repère qui se répète autant ne peut
+ * pas peser. ⛔ Chiffres tabulaires : deux marques voisines doivent s'aligner.
+ *
+ * ⛔ ELLE SE POSE SUR LA PREMIÈRE LIGNE DE BASE DU VERSET, non en haut de la gouttière.
+ * Elle valait « top: 0.28125rem », c'est-à-dire le rembourrage de la colonne d'actions —
+ * la hauteur des BOUTONS, qui ne veut rien dire pour un chiffre. La marque flottait donc
+ * au-dessus du premier mot, comme posée sur rien. La valeur ci-dessous met sa ligne de
+ * base sur celle du verset :
+ *
+ *   verset : rembourrage du bloc 0,0625 + demi-interligne −0,0018 + montante 1,024 × 0,875
+ *   marque : demi-interligne −0,063 + montante 1,024 × 0,5625
+ *   écart  : 0,9568 − 0,513 = 0,4438 rem, rabattu au cran de la grille.
+ *
+ * ⚠️ Elle s'écrit en REM, et elle le peut : rembourrages, corps et rapports de fonte sont
+ * tous proportionnels à la racine, si bien que l'alignement tient de 16 à 22 px de police
+ * racine. ⛔ Ne pas la reprendre en pixels — c'est le piège payé sur la Polyglotte (§ 38.14).
+ *
+ * ⛔ ET ELLE CÈDE LA PLACE AU SIGNET DE PRÉLÈVEMENT (relevé de l'auteur, 2026-09-06).
+ * Un verset prélevé garde son signet visible sans survol, à gauche de la gouttière,
+ * exactement là où la marque se pose : les deux se chevauchaient. La marque passe alors
+ * À DROITE du signet — 0,5 rem de rembourrage plus 1,125 rem de bouton, plus un cheveu.
+ * ⚠️ Deux chiffres au plus (17 œuvres au maximum du corpus, mesuré le 2026-09-06) : la
+ * marque déborde de cinq pixels sur le rembourrage du conteneur de lecture, jamais sur
+ * l'écran, et n'ouvre donc aucun défilement horizontal.
+ */
+export function styleDensiteVerset({ decale }: { decale?: boolean } = {}): CSSProperties {
+  return {
+    position: 'absolute',
+    top: '0.4375rem',
+    left: decale ? '1.8125rem' : '0.5rem',
+    fontSize: '0.5625rem',
+    lineHeight: 1.2,
+    color: 'var(--cs-texte-faible)',
+    fontVariantNumeric: 'tabular-nums',
+    // ⚠️ À neuf pixels, deux chiffres collés se lisent comme un seul nombre plus grand.
+    letterSpacing: '0.02em',
+    pointerEvents: 'none',
+    transition: 'opacity 0.12s, left 0.12s',
+  }
 }
 
 /** La même, au doigt : sous le verset et en toutes lettres, la marge droite n'existant
