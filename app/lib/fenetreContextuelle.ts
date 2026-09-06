@@ -9,14 +9,23 @@
 /** Marge conservée entre la fenêtre et les bords utiles de l'écran. */
 export const MARGE_FENETRE = 12
 
+/** La police racine, en pixels, à l'instant du calcul. Elle est FLUIDE
+ *  (`clamp(16px, calc(7px + 0.625vw), 22px)`, cf. globals.css) : tout ce qui
+ *  s'exprime en `rem` grandit avec elle sur un grand écran, et un blanc calculé en
+ *  JavaScript doit suivre le même mouvement, faute de quoi il se resserre à mesure
+ *  que le reste s'aère. */
+export function tailleRacinePx(): number {
+  if (typeof window === 'undefined') return 16
+  const racine = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return Number.isFinite(racine) ? racine : 16
+}
+
 /** Hauteur de la barre de navigation, en pixels, à l'instant du calcul.
- *  ⚠️ `HAUTEUR_NAVBAR` vaut `3.5rem` et la police racine est FLUIDE (elle grandit
- *  jusqu'à ×1,375 sur grand écran, cf. AGENTS.md) : la barre ne mesure donc pas
- *  56 px partout. On la mesure, on ne la suppose pas. */
+ *  ⚠️ `HAUTEUR_NAVBAR` vaut `3.5rem` et la police racine est FLUIDE : la barre ne
+ *  mesure donc pas 56 px partout. On la mesure, on ne la suppose pas. */
 export function hauteurNavbarPx(): number {
   if (typeof window === 'undefined') return 56
-  const racine = parseFloat(getComputedStyle(document.documentElement).fontSize)
-  return (Number.isFinite(racine) ? racine : 16) * 3.5
+  return tailleRacinePx() * 3.5
 }
 
 /** Le rectangle du déclencheur. `right` n'entre pas dans le calcul : la fenêtre
