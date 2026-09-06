@@ -1,0 +1,235 @@
+name: Corpus Scriptura reader remediation pass 1
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/corpus-scriptura-pass1-reader-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-reader:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Apply the reader fix and its regression tests
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              Path(path).write_text(text, encoding='utf-8')
+
+          def replace_exact(path, old, new, expected=1):
+              text = read(path)
+              found = text.count(old)
+              if found != expected:
+                  raise SystemExit(f'{path}: expected {expected} occurrence(s), found {found}: {old[:120]!r}')
+              write(path, text.replace(old, new))
+
+          selects = 'app/lib/oeuvreSelects.ts'
+          replace_exact(
+              selects,
+              "export function estSegmentDuCorps(segment: SegmentPourSurface): boolean {\n  return surfaceDuSegment(segment) === 'corps'\n}\n",
+              """/**
+ * Un liminaire synthétique n'est JAMAIS déduit du seul `ref_niv1` absent.
+ * Il faut que la donnée déclare explicitement l'espace `introduction` : un corps
+ * sans division reste un corps sans division et ne reçoit aucun titre fabriqué.
+ */
+export function estLiminaireSansNiveau(
+  segment: SegmentPourSurface & { ref_niv1?: string | null },
+): boolean {
+  return String(segment.espace_textuel ?? '').trim() === ESPACE_TEXTUEL_INTRODUCTION
+    && segment.ref_niv1 === null
+}
+
+export function estSegmentDuCorps(segment: SegmentPourSurface): boolean {
+  return surfaceDuSegment(segment) === 'corps'
+}
+""",
+          )
+          replace_exact(
+              selects,
+              "type RequeteSurface = {\n  or(filtres: string): RequeteSurface\n}\n\n/** Applique le contrat partagé aux requêtes serveur et client. */",
+              """type RequeteSurface = {
+  or(filtres: string): RequeteSurface
+}
+
+type RequeteLiminaireSansNiveau = {
+  eq(colonne: string, valeur: string): RequeteLiminaireSansNiveau
+  is(colonne: string, valeur: null): RequeteLiminaireSansNiveau
+}
+
+/**
+ * Filtre partagé du pseudo-niveau technique `LIMINAIRES`.
+ *
+ * ⛔ `ref_niv1 IS NULL` seul est interdit ici : il attraperait tout texte réellement
+ * sans niveaux. L'espace documentaire `introduction` est la condition qui distingue
+ * le liminaire du corps indivis.
+ */
+export function limiterRequeteAuxLiminairesSansNiveau<T>(requete: T): T {
+  const q = requete as unknown as RequeteLiminaireSansNiveau
+  return q.eq('espace_textuel', ESPACE_TEXTUEL_INTRODUCTION).is('ref_niv1', null) as unknown as T
+}
+
+/** Applique le contrat partagé aux requêtes serveur et client. */""",
+          )
+
+          page = 'app/oeuvre/[id]/page.tsx'
+          replace_exact(
+              page,
+              "  estSegmentDeLApparat,\n  limiterRequeteSegmentsALaSurface,",
+              "  estLiminaireSansNiveau,\n  estSegmentDeLApparat,\n  limiterRequeteAuxLiminairesSansNiveau,\n  limiterRequeteSegmentsALaSurface,",
+          )
+          replace_exact(
+              page,
+              "else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)",
+              "else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = limiterRequeteAuxLiminairesSansNiveau(q)",
+              expected=2,
+          )
+          replace_exact(
+              page,
+              "type PassageVise = { id: number; ref_niv1: string | null; nature: string | null; reprise: boolean }\n  async function resoudrePassage(): Promise<PassageVise | null> {\n    const colonnes = 'id,ref_niv1,nature'",
+              "type PassageVise = { id: number; ref_niv1: string | null; nature: string | null; espace_textuel: string | null; reprise: boolean }\n  async function resoudrePassage(): Promise<PassageVise | null> {\n    const colonnes = 'id,ref_niv1,nature,espace_textuel'",
+          )
+          replace_exact(
+              page,
+              "      const niv1 = passage?.ref_niv1 ?? sp.niv1?.trim() ?? ''\n      if (!niv1) return null",
+              """      const niv1 = passage?.ref_niv1
+        ?? (passage && estLiminaireSansNiveau(passage) ? NIV1_LIMINAIRES : null)
+        ?? sp.niv1?.trim()
+        ?? ''
+      if (!niv1) return null""",
+          )
+          replace_exact(
+              page,
+              """    limiterRequeteSegmentsALaSurface(
+      supabase.from('segments').select('id', { count: 'exact', head: true })
+        .eq('id_oeuvre', id).eq('id_texte', idTexte)
+        .is('ref_niv1', null),
+      'corps',
+    ),""",
+              """    limiterRequeteAuxLiminairesSansNiveau(
+      limiterRequeteSegmentsALaSurface(
+        supabase.from('segments').select('id', { count: 'exact', head: true })
+          .eq('id_oeuvre', id).eq('id_texte', idTexte),
+        'corps',
+      ),
+    ),""",
+          )
+          replace_exact(
+              page,
+              """  const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
+    ? segmentCible.ref_niv1
+    : niv1Demande ?? niv1List[0] ?? null""",
+              """  const niv1DuPassage = segmentCible?.ref_niv1
+    ?? (segmentCible && estLiminaireSansNiveau(segmentCible) ? NIV1_LIMINAIRES : null)
+  const premierNiv1 = vueInitiale === 'texte' && niv1DuPassage
+    ? niv1DuPassage
+    : niv1Demande ?? niv1List[0] ?? null""",
+          )
+
+          client = 'app/oeuvre/[id]/OeuvreClient.tsx'
+          replace_exact(
+              client,
+              "  limiterRequeteSegmentsALaSurface,\n  segmentsDeLaSurface,",
+              "  limiterRequeteAuxLiminairesSansNiveau,\n  limiterRequeteSegmentsALaSurface,\n  segmentsDeLaSurface,",
+          )
+          replace_exact(
+              client,
+              "q = n1 === NIV1_LIMINAIRES ? q.is('ref_niv1', null) : q.eq('ref_niv1', n1)",
+              "q = n1 === NIV1_LIMINAIRES ? limiterRequeteAuxLiminairesSansNiveau(q) : q.eq('ref_niv1', n1)",
+              expected=2,
+          )
+
+          tests = 'app/lib/oeuvreSelects.test.ts'
+          replace_exact(
+              tests,
+              "  estSegmentDeLApparat,\n  estSegmentDuCorps,",
+              "  estLiminaireSansNiveau,\n  estSegmentDeLApparat,\n  estSegmentDuCorps,",
+          )
+          replace_exact(
+              tests,
+              "  FILTRE_CORPS_POSTGREST,\n  limiterRequeteSegmentsALaSurface,",
+              "  FILTRE_CORPS_POSTGREST,\n  limiterRequeteAuxLiminairesSansNiveau,\n  limiterRequeteSegmentsALaSurface,",
+          )
+          replace_exact(
+              tests,
+              "describe('espace_textuel prime sur la nature', () => {",
+              """describe('un corps sans niveau ne devient jamais un liminaire', () => {
+  it('réserve le pseudo-niveau aux introductions explicitement déclarées et sans ref_niv1', () => {
+    expect(estLiminaireSansNiveau({ espace_textuel: ESPACE_TEXTUEL_INTRODUCTION, nature: 'apparat_editeur', ref_niv1: null })).toBe(true)
+    expect(estLiminaireSansNiveau({ espace_textuel: ESPACE_TEXTUEL_CORPS, nature: 'texte', ref_niv1: null })).toBe(false)
+    expect(estLiminaireSansNiveau({ espace_textuel: ESPACE_TEXTUEL_INTRODUCTION, nature: 'apparat_editeur', ref_niv1: 'Avis' })).toBe(false)
+    expect(estLiminaireSansNiveau({ espace_textuel: null, nature: 'introduction', ref_niv1: null })).toBe(false)
+  })
+
+  it('traduit la même règle dans la requête PostgREST', () => {
+    const appels: [string, string, unknown][] = []
+    const requete = {
+      eq(colonne: string, valeur: string) {
+        appels.push(['eq', colonne, valeur])
+        return this
+      },
+      is(colonne: string, valeur: null) {
+        appels.push(['is', colonne, valeur])
+        return this
+      },
+    }
+    limiterRequeteAuxLiminairesSansNiveau(requete)
+    expect(appels).toEqual([
+      ['eq', 'espace_textuel', ESPACE_TEXTUEL_INTRODUCTION],
+      ['is', 'ref_niv1', null],
+    ])
+  })
+
+  it('interdit aux lecteurs le filtre nu ref_niv1 IS NULL pour le pseudo-niveau', () => {
+    for (const chemin of ['app/oeuvre/[id]/page.tsx', 'app/oeuvre/[id]/OeuvreClient.tsx']) {
+      const source = lire(chemin)
+      expect(source).toContain('limiterRequeteAuxLiminairesSansNiveau')
+      expect(source).not.toContain("NIV1_LIMINAIRES ? q.is('ref_niv1', null)")
+      expect(source).not.toContain("v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)")
+    }
+  })
+})
+
+describe('espace_textuel prime sur la nature', () => {""",
+          )
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run focused tests
+        run: npx vitest run app/lib/oeuvreSelects.test.ts
+
+      - name: Lint touched reader files
+        run: npx eslint app/lib/oeuvreSelects.ts app/lib/oeuvreSelects.test.ts 'app/oeuvre/[id]/page.tsx' 'app/oeuvre/[id]/OeuvreClient.tsx'
+
+      - name: Check diff
+        run: git diff --check
+
+      - name: Commit pass 1
+        shell: bash
+        run: |
+          git config user.name 'Corpus Scriptura'
+          git config user.email 'actions@users.noreply.github.com'
+          git add app/lib/oeuvreSelects.ts app/lib/oeuvreSelects.test.ts 'app/oeuvre/[id]/page.tsx' 'app/oeuvre/[id]/OeuvreClient.tsx'
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: distinguish unlevelled body from liminaries'
+          git push origin HEAD:master
