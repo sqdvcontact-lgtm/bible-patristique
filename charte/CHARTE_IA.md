@@ -1189,7 +1189,9 @@ Un groupe de cardinalité `1:0` — une addition du traducteur — ne met rien e
 
 ⚠️ La lecture bilingue n’est offerte au lecteur que si **les deux** textes sont publics : la RLS des trois tables d’alignement l’exige. Un original laissé en `review` réserve donc le bilingue à l’administration, sans que rien ne le signale au visiteur.
 
-⛔ **Garde de clôture du bilingue.** Une version en langue originale correctement importée, même `published`, et un alignement achevé en staging ne prouvent jamais que le mode bilingue fonctionne. Une mission qui crée, reprend ou publie un couple de textes parallèles ne peut être déclarée close qu’après vérification de la chaîne **live** complète : (1) les deux `id_texte` réellement consommés par la lecture existent dans `oeuvre_textes` avec les statuts et la visibilité voulus ; (2) leurs unités et segments sont matérialisés en base active ; (3) `texte_alignement_ensembles` relie exactement ces deux textes ; (4) les groupes et membres attendus sont présents, sans membre perdu, dupliqué ni groupe vide ; (5) les recompositions des deux témoins sont exactes ; (6) la visibilité RLS correspond au public visé — deux textes publics pour le visiteur, ou accès d’administration explicitement assumé ; (7) le **chemin de lecture réellement utilisé par le site** a été contrôlé sur ce couple. Un compteur de staging, `publication_ready=true`, la présence d’un latin public ou la seule existence d’un crosswalk ne valent pas test du mode « Français–Latin ». Tant que ce contrôle de surface n’est pas passé, le centre de contrôle conserve la mission en cours.
+⛔ **Garde technique de clôture du bilingue.** Une version en langue originale correctement importée, même `published`, et un alignement achevé en staging ne prouvent jamais, à eux seuls, que la chaîne bilingue est exploitable. Une mission qui crée, reprend ou publie un couple de textes parallèles ne peut être déclarée **techniquement close** qu’après vérification déterministe de la chaîne **live** : (1) les deux `id_texte` réellement consommés par la lecture existent dans `oeuvre_textes` avec les statuts et la visibilité voulus ; (2) leurs unités et segments sont matérialisés en base active ; (3) `texte_alignement_ensembles` relie exactement ces deux textes ; (4) les groupes et membres attendus sont présents, sans membre perdu, dupliqué ni groupe vide ; (5) les recompositions des deux témoins sont exactes ; (6) la visibilité RLS correspond au public visé — deux textes publics pour le visiteur, ou accès d’administration explicitement assumé ; (7) le **chemin de lecture réellement utilisé par le site** a été contrôlé autant que possible par des moyens déterministes — lecture du code courant, requêtes reproduisant les appels du lecteur, tests automatisés ou autre vérification technique équivalente — afin de confirmer qu’il sélectionne bien cette paire et cet ensemble. Un compteur de staging, `publication_ready=true`, la présence d’un latin public ou la seule existence d’un crosswalk ne suffisent pas à cette garde technique.
+
+👁 **Contrôle visuel final de l’interface — responsabilité de l’éditeur humain.** L’observation du rendu réel dans le navigateur appartient à l’éditeur : présence et comportement des modes « Français », « Français–Latin » et « Latin », composition des deux colonnes, blancs ou répétitions anormales, notes et infobulles, navigation, responsive et qualité visuelle générale. Ce contrôle n’est **pas une dette technique de l’assistant** et son absence ne maintient pas, à elle seule, une mission technique ouverte ni n’interdit une publication techniquement prête. Il peut être consigné comme `contrôle éditorial utilisateur à faire`. L’assistant ne revendique jamais un contrôle visuel humain sans confirmation explicite de l’éditeur. Si l’éditeur lui délègue explicitement ce contrôle et qu’un navigateur ou un outil de surface est disponible, l’assistant peut l’exécuter ; sinon il s’arrête aux vérifications déterministes ci-dessus.
 
 Dans chaque ensemble, l’ordre des membres doit rester monotone dans chaque version. Un segment n’est ni perdu ni dupliqué sans justification explicite. Les limites sémantiques difficiles sont relues ; les groupes automatiques demeurent candidats tant qu’ils n’ont pas atteint le statut de contrôle prévu par le chantier.
 
@@ -1547,7 +1549,7 @@ Le rendu doit distinguer légèrement cette matière du texte canonique par les 
 
 **Un surnuméraire peut s’insérer À L’INTÉRIEUR d’un verset canonique, entre deux portions de celui-ci.** La donnée le porte sans perte : le segment canonique garde deux empans disjoints, le surnuméraire prend celui du milieu, et l’ordre matériel est dit par des `alignment_order` intercalés. La convention de frontière est celle de `GEN.EXTRA.GLOSS.25.21`, reprise par `MAT.1.EXTRA.25A` : chaque fragment porte son propre séparateur final, la reprise se joint en `join_before = 'none'`, et la couverture reste exacte, point de code par point de code. Le segment canonique reçoit alors `discontinuous: true` et `intra_verse_extra`, le surnuméraire `intra_verse: true` avec `after_text` et `before_text`.
 
-⚠️ **LA LECTURE, ELLE, NE SAIT PAS L’INSÉRER.** L’ordre de lecture est celui des alignements, et un verset canonique n’en porte qu’un seul : le surnuméraire ne peut donc paraître qu’avant ou après le verset ENTIER, jamais entre ses deux portions. Sur Mt 1,25 le lecteur voit « et ne la conut pas desi que ele ot enfant son enfant premier ne. Et ioseph apela lenfant ihesum. » puis la glose, là où le manuscrit intercale la glose entre les deux. ⛔ On ne fabrique ni faux verset, ni suffixe, ni `canon_id` artificiel pour rattraper l’ordre à l’affichage : la donnée reste juste et la restitution demeure approchée tant que le modèle de rendu n’aura pas d’ordre INTRA-verset. `GEN.EXTRA.GLOSS.25.21` est dans le même cas depuis le 19 août 2026.
+✅ **ORDRE INTRA-VERSÉ — projection backend disponible.** `internal.v_bible899_material_runs` projette chaque segment TR0009 en un ou plusieurs runs matériels selon l’intercalation réelle des empans éditoriaux ; un segment canonique discontinu peut ainsi être rendu `canon — surnuméraire — reprise du canon` sans faux verset, faux suffixe ni `canon_id` artificiel. Le lecteur doit ordonner ces runs par `material_run_order` et rendre les surnuméraires qui s’intercalent entre eux ; la concaténation des runs d’un même segment, avec `segment_rejoin_prefix`, doit reconstruire exactement `v_bible899_verse_recomposed`. `GEN.25.21 / GEN.EXTRA.GLOSS.25.21` et `MAT.1.25 / MAT.1.EXTRA.25A` sont les cas de régression obligatoires. ⚠️ La vue est dans `internal` : `anon` et `authenticated` n’ont pas `USAGE` sur ce schéma. Le raccordement se fait donc dans la couche backend privilégiée ; ⛔ ne jamais ouvrir globalement `internal` au public pour permettre le rendu. Tant que le code lecteur n’est pas raccordé à cette projection, son affichage intra-verset reste approximatif, mais la donnée éditoriale ne doit pas être dégradée pour le compenser.
 
 Le redécoupage d’un surnuméraire ne modifie jamais `bible_source_unit_texts`. Il agit seulement sur les segments éditoriaux, leurs mappings source et les alignements. Toute opération conserve exactement la couverture matérielle, l’ordre des unités, les empreintes des couches source et les invariants de séquence.
 
@@ -1876,7 +1878,7 @@ Le cas qui l’a imposé. Le 5 septembre 2026, pendant qu’une écriture en bas
 
 - **CONFIRMÉ — les surnuméraires de TR0013 ne sont jamais rendus.** `chargerVersetsCanoniquesV2` (app/lib/bibleEditorialServer.ts) lit `versets_v2` par `.in('canon_id', lot)`. Une ligne surnuméraire porte `canon_id = NULL` par construction, conformément au § 15.4 : elle est donc invisible à l’unique chemin de lecture de la traduction moderne. La matière est en base, traduite et ordonnée par `ordre_slot`, mais aucune page ne la montre. Cela vaut pour les gloses de Luc, de Jean, d’Exode, de Genèse et d’Esther comme pour `MAT.1.EXTRA.25A`. ⛔ Ne pas donner de `canon_id` à ces lignes pour les faire paraître : c’est au lecteur de `versets_v2` d’aller les chercher par `(livre, ch_orig, ordre_slot)`, comme le fait déjà le chemin Bible 899 par `alignment_order`.
 
-- **CONFIRMÉ — l’apparat ne sait pas s’ancrer sur un surnuméraire.** Les 8 630 notes de TR0013 portent toutes un `canon_id`, et aucune n’en est dépourvue. Une note qui commente une glose ne peut donc être rattachée qu’au verset canonique voisin. Sur Mt 1,25 la note `tr0013-mat-1-25-textual-01` a été réécrite pour dire la discontinuité et nommer `MAT.1.EXTRA.25A` ; c’est un pis-aller. Le modèle demande soit une ancre de segment (`bible_verse_note_anchors.target_segment_id`, aujourd’hui inutilisée pour cette source), soit un `canon_id` nullable réellement lu.
+- **CONFIRMÉ — ancrage segmentaire d’apparat disponible.** Une note conserve son `canon_id` canonique pour la navigation et peut, en parallèle, viser précisément un segment source par `bible_verse_note_anchors.target_segment_id`, avec `target_member_id`, `target_source_id` et `target_segmentation_id`. `internal.v_bible_verse_note_anchors_resolved` résout en une seule projection la note, le membre, la source, le segment cible, sa nature et ses alignements. Lorsqu’une ancre `validated` existe, le rendu d’apparat doit la préférer pour placer la note ; le `canon_id` reste le contexte canonique, non un substitut à l’ancre. Le cas de régression est `tr0013-mat-1-25-textual-01` → `MAT.1.EXTRA.25A`. ⛔ Ne pas rendre `canon_id` nullable pour contourner ce problème et ne pas créer de doublon d’ancre pour une même `note_id` / `anchor_key`. Comme la vue résolue vit dans `internal`, sa consommation relève du backend privilégié, sans octroyer `USAGE` public au schéma.
 
 - **ÉTAT COURANT — Control V2 couvre `bible_editorial_segment` et `bible_verse_note_block`.** `internal.controle_v2_etat_liens_objet` et `internal.controle_v2_dependances` acceptent les deux types, ainsi que les tables de checks et d’audit ; l’identifiant d’un bloc de note s’écrit `<note_id>#<block_id>`. Le préflight photographie notamment alignements, empans source, empreinte de couverture, ancres et liens dépendants, puis le postcheck exhaustif se referme comme pour un verset. ⚠️ Il n’existe toujours ni garde bloquante ni trigger d’audit imposant ce protocole sur ces deux tables. Par conséquent, la discipline Control V2 est obligatoire au niveau des agents : aucune écriture directe n’est admise, même si PostgreSQL l’accepterait techniquement.
 
@@ -3195,6 +3197,18 @@ Le protocole est **vivant** : lorsqu’une erreur nouvelle révèle une faibless
 **Preuve différentielle d’intégrité.** Lorsqu’une passe modifie légitimement `text_features`, une empreinte de la ligne JSON complète diffère nécessairement et ne suffit pas à prouver que la source est intacte. La sauvegarde et le postcontrôle calculent séparément une empreinte de surface source sur `text_content` et `source_markup`, puis comparent les parties non autorisées de `text_features` en excluant seulement les chemins annoncés comme modifiables. Ils vérifient aussi que les paragraphes non ciblés et tous les champs de blocs autres que ceux autorisés sont identiques. La clôture exige : empreinte source exacte, zéro champ inattendu modifié, miroir exact et spans dans leurs bornes.
 
 **Passe 10 — Sondage indépendant et clôture.** Après la dernière correction, effectuer au moins deux sondages reproductibles répartis entre types d’objets et divisions. Toute erreur trouvée rouvre la famille correspondante : rechercher tous les analogues, corriger, rejouer les passes dépendantes et refaire les sondages. La clôture distingue au minimum : `structure close`, `continuité close`, `titres close`, `notes close`, `typographie/langues close`, `références/bibliographie close`, `lecture directe close`, `rendu contrôlé`, puis `relecture éditoriale exhaustive close`. Aucun statut humain n’est attribué automatiquement.
+
+**Retour d’expérience Exode–Lévitique — discipline renforcée du Pentateuque.** Pour les livres du Pentateuque Fillion, les règles suivantes spécialisent le cycle 0–10 et prévalent sur la taille ordinaire de trois à quatre chapitres lorsqu’il s’agit de lecture directe corrective.
+
+- **Un chapitre imprimé à la fois.** La passe 7 corrective se ferme chapitre imprimé par chapitre imprimé. On n’ouvre le chapitre suivant qu’après contrôle déterministe et journalisation du précédent. Les lots de plusieurs chapitres restent admis pour les audits en lecture seule, les recherches transversales et les transformations mécaniques homogènes dont l’invariant est démontrable.
+- **Numérotation imprimée et projection canonique sont deux axes distincts.** `scope_label` décrit la numérotation native/imprimée de Fillion ; `canon_id_start` et `canon_id_end` décrivent la projection canonique. ⛔ Ne jamais supposer leur identité, notamment aux frontières où la Vulgate et la numérotation canonique courante décalent un chapitre. Les statistiques de progression de la lecture Fillion sont calculées d’abord selon la numérotation imprimée ; la projection canonique est contrôlée séparément.
+- **Contrôler la frontière matérielle avant le texte du chapitre.** Avant toute recollation, lire l’ordre matériel du titre, des commentaires et des blocs immédiatement précédents et suivants. Rechercher les fragments attribués au mauvais chapitre, les titres reconstruits placés après leur fragment source et les portées trop étroites ou trop larges. Corriger les portées démontrablement fautives avant de corriger le texte. Un parent sémantique matérialisé après un fragment n’est pas automatiquement une erreur : s’il s’agit d’un fragment source et que la relation analytique est prouvée, conserver l’ordre matériel et documenter le cas au lieu de renuméroter artificiellement.
+- **Le témoin brut reste immuable.** Dans le modèle Pentateuque, `bible_source_unit_texts.text_content` est le témoin OCR/diplomatique ; la lecture corrigée vit dans `text_features->editorial_normalization`. On ne réécrit jamais le témoin pour faire disparaître une faute OCR. Quand ce modèle est utilisé, une unité effectivement corrigée porte le stade `direct_witness_ocr_typography_and_language_spans` ; une unité relue et déjà conforme peut porter `direct_witness_review_no_text_change`, sans réécriture factice du texte.
+- **Coupures de page et en-têtes ne créent pas de paragraphes.** Un mot ou une phrase scindé par changement de page, folio, en-tête ou pied de page est réuni dans la couche éditoriale ; le témoin et ses offsets restent conservés. De même, les tableaux ou tarifs artificiellement éclatés par l’OCR peuvent être recomposés en paragraphes éditoriaux cohérents si la continuité matérielle est démontrée.
+- **Traçabilité littérale obligatoire.** Pour toute transformation fondée sur le témoin, la valeur `source` doit reproduire exactement la chaîne effectivement présente dans le témoin brut ; une source déjà corrigée, approximative ou échappée différemment est une anomalie de provenance. Après toute modification du `reading_text`, recalculer le miroir, `paragraph_count` et les offsets Unicode des spans ; vérifier l’absence de chevauchement et vérifier que les sources des transformations concernées sont retrouvables dans le témoin. Les compteurs hérités d’une passe antérieure ne font jamais foi : ils sont recalculés en SQL depuis l’état courant.
+- **Réserves : Phase 2 explicite, jamais conjecturale.** Une translittération, forme grecque, référence ou lecture trop dégradée reste d’abord marquée comme non résolue avec sa classe. Après la lecture directe de tous les chapitres, extraire cette liste en SQL et mener une passe dédiée sur le témoin. Une confirmation lexicale externe peut départager une graphie OCR seulement si elle est compatible avec le témoin ; le niveau de confiance doit alors distinguer lecture directe et lecture confirmée lexicalement. Aucune graphie ne devient certaine par simple vraisemblance philologique.
+- **Contrôle du texte biblique séparé en fin de livre.** Vérifier la symétrie FR/LA des unités et de la projection canonique ; effectuer un balayage mécanique du français ; pour le latin du Pentateuque, comparer à TR0004 après neutralisation des seules différences éditoriales autorisées. Les alignements `MATCH` se contrôlent directement unité par unité ; les `MERGED`/`SPLIT` se contrôlent par zones de frontière, et non comme de faux écarts verset à verset. Un multiensemble lexical identique au niveau du livre est une preuve de non-divergence lexicale, non une preuve de collation pixel.
+- **Clôture d’un livre = audit de toutes ses couches.** Après la dernière réserve, contrôler non seulement les commentaires mais tous les `block_kind` : titres et hiérarchie sémantique, introductions, notes/blocs/ancres, unités bibliques FR/LA, alignements, assets et fichiers. Pour les assets, distinguer complétude technique, revue IA/documentaire et validation humaine. `validation_status=review` ou `requires_review=true` peuvent légitimement subsister après clôture technique lorsque aucune validation humaine n’est revendiquée.
 
 **Clôture transversale d’un ensemble de livres.** Lorsqu’un ensemble cohérent est traité livre après livre — notamment Matthieu, Marc, Luc et Jean — le dernier livre n’autorise pas à passer immédiatement au suivant hors ensemble. Il faut d’abord exécuter un contre-audit déterministe transversal sur **tous** les livres de l’ensemble avec l’état final courant. Ce contre-audit recherche les familles rencontrées pendant les livres successifs, compare les mêmes surfaces et ne corrige que les écarts réellement mesurés : une donnée déjà conforme n’est jamais réécrite pour uniformiser artificiellement le lot. Pour les Évangiles Fillion, cette clôture MAT–MRK–LUK–JHN précède l’ouverture d’Actes. Une erreur nouvelle rouvre la famille et les passes dépendantes dans tous les livres concernés ; un audit à zéro se clôt sans écriture redondante.
 
@@ -5466,3 +5480,72 @@ Demande de l’auteur, le jour même : « optimise la page ». Relevé sur le si
 **La Polyglotte des résultats reproduit le tableau de la page Polyglotte** (demande de l’auteur, le même jour) : la barre d’en-tête de la page de lecture, le nom de l’édition en sérif et son millésime dessous, un menu par colonne que le chevron annonce, le livre qui change en titre collant, vert et centré, et la colonne composée par la même feuille. Deux surfaces, un seul tableau.
 
 ⚠️ **Un alias masqué qui répond se dit** (complément du § 38.18). « Homme » rendait « Je ne fais pas le bien que je veux » sans un mot pour dire pourquoi : la paraphrase « Homme malheureux que je suis », masquée, l’avait trouvée. Un alias masqué ne paraît pas parmi les noms d’une péricope ; mais quand c’est lui qui répond à la recherche, la ligne « Correspond à » le nomme, sans quoi le résultat paraît incohérent. Seul un alias inexact se tait, visible ou non : c’est l’usage qui décide, non le drapeau de visibilité.
+
+
+## 43.1 LA RECHERCHE EST TRILINGUE, et sa normalisation effaçait le grec
+
+Relevé le 6 septembre 2026, en construisant le lexique grec que l'auteur avait demandé.
+La normalisation de recherche — `norm_fr`, qui alimente `versets_recherche.texte_norm`
+et la colonne engendrée `segments.texte_norm` — finissait sur une classe qui ne garde
+que les lettres ASCII et les chiffres. Le français et le latin y survivent, la
+translittération d'accents les ayant déjà rendus à l'ASCII ; **le grec disparaissait
+entièrement**.
+
+⛔ **La Septante n'était donc PAS cherchable, et rien ne le disait.** Mesuré :
+`versets_recherche` portait 26 731 lignes pour elle, dont **26 349 au texte normalisé
+VIDE** ; le mot grec de « Dieu » rendait zéro quand la colonne du texte le porte dans
+225 versets. Le défaut ne fait rien échouer — la recherche répond, elle répond « aucun
+résultat ». C'est la famille de défauts la plus coûteuse : ceux qui ressemblent à une
+absence de données.
+
+⚠️ Le commentaire de `recherche_segments_v2_corresp` le décrivait déjà sans le nommer —
+« le grec en a besoin, et λόγος disparaîtrait de la normalisation française » — et
+l'avait contourné sur le seul texte original des segments. Un contournement local qui
+nomme la cause est un défaut qui attend.
+
+**La règle : une seule normalisation, et elle sert les trois langues du corpus.** Le nom
+`norm_fr` reste, et il est devenu un abus de langage : le renommer toucherait une colonne
+engendrée de 109 125 lignes, une vue matérialisée et cinq fonctions. On garde le nom et
+on écrit ce qu'il fait. Trois ajouts, tous bornés au grec : le sigma FINAL se ramène au
+sigma ordinaire, une passe de décomposition retire les signes que la translittération
+laisse (esprits, iota souscrit, tréma), et la classe finale garde les vingt-quatre
+lettres grecques, écrites en toutes lettres — une plage de alpha à oméga dépendrait de
+l'ordre de la collation, non de l'alphabet.
+
+⛔ **ON NE TOUCHE AU CŒUR DE LA RECHERCHE QU'APRÈS AVOIR MESURÉ SUR TOUT LE CORPUS**, et
+c'est la seule chose qui autorisait ce changement. Sur `versets_lecture` : Sacy, Segond,
+Crampon et la Vulgate ne bougent pas d'une ligne — zéro différence sur 138 198 — et les
+26 731 lignes de la Septante changent toutes, chacune expliquée par le seul grec rendu.
+Sur `segments` : 1 193 lignes sur 109 125, et retirer les lettres grecques du nouveau
+résultat redonne l'ancien AU CARACTÈRE PRÈS. Une équivalence se prouve dans les deux
+sens, sur la donnée réelle, avant l'écriture.
+
+⚠️ **Et la relecture de la page suit la même règle** (§ 43) : `normaliser` plie le sigma
+final lui aussi, sans quoi la page rejetterait ce que la base vient de rendre. La règle
+ajoutée garde la longueur, comme toutes celles qui passent côté page.
+
+### 43.2 Le LEXIQUE GREC répond à une saisie latine, et il le faut
+
+⛔ **Un lexique grec qui n'accepte que le grec ne sert qu'à qui a un clavier grec.**
+Chaque forme du lexique porte donc TROIS clés : la forme **attestée** — accents compris,
+la seule qui retrouve le texte, et c'est elle que la suggestion insère —, la forme
+**désaccentuée**, et une **clé latine réduite**. « theos » propose le mot grec de Dieu,
+« kyrio » celui de Seigneur, « pneum » celui d'Esprit.
+
+⚠️ **La clé latine est une RÉDUCTION, non une translittération savante**, et les deux
+côtés — le mot grec et ce que le lecteur tape — passent par la MÊME fonction. C'est tout
+ce qu'on lui demande : thêta, phi, khi, psi et xi y perdent leur h ; upsilon et y se
+confondent en u ; c, q et k se confondent ; gamma-gamma et ng aussi. ⛔ Elle ne s'affiche
+jamais, et elle n'est pas une graphie : c'est une clé de rapprochement.
+
+⛔ **Le lexique DÉRIVE du corpus et ne se corrige pas à la main** : la Septante, les
+textes dont la langue déclare le grec, et la colonne du texte original. On garde la forme
+la plus fréquente de chaque groupe désaccentué, comme le fait le lexique français.
+Passe du 6 septembre 2026 : 51 078 formes.
+
+⛔ **Et le motif d'une suggestion entre en CONSTANTE**, comme celui des trois RPC de
+recherche. La première écriture prenait ses deux préfixes dans un CTE d'une ligne : le
+planificateur ne voyant pas la valeur, aucun index de préfixe ne pouvait servir, et la
+fonction mettait **11 897 ms** pour un délai d'attente de huit secondes. En constante,
+**6,4 ms**. La règle avait déjà été payée une fois ; elle vaut pour toute fonction de
+recherche, si petite soit-elle.
