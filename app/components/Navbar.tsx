@@ -1592,7 +1592,11 @@ export default function Navbar() {
   // survol, donc pas de glose, et le dessin est alors le seul indice de ce que la
   // page contient. Le panneau garde une ligne par entrée — quinze entrées à deux
   // lignes en feraient un rouleau.
-  const lienMobile = (href: string, label: string, embleme = false) => {
+  // ⚠️ `dit` : la glose du menu de bureau, et la MÊME phrase — une rubrique ne se
+  // présente pas de deux façons selon l'écran. Le panneau mobile portait l'emblème
+  // sans elle : six mots alignés, sans un indice de ce qu'ils ouvrent, quand le
+  // bureau les explique depuis le 2026-08-30.
+  const lienMobile = (href: string, label: string, embleme = false, dit?: string) => {
     const chemin = href.split("?")[0] || "/";
     const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
     return (
@@ -1602,9 +1606,23 @@ export default function Navbar() {
         // les liens sont enfants d'un <div> bloc (et non du flex-colonne principal) ; sans
         // cela, les <a> restent inline et se chevauchent (pastilles superposées, texte
         // illisible). Avec un emblème, le flex range les deux sur une ligne.
-        style={{ display: embleme ? "flex" : "block", alignItems: "center", gap: "10px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
-        {embleme && <EmblemeNavigation href={chemin} taille={18} />}
-        {label}
+        style={{ display: embleme ? "flex" : "block", alignItems: dit ? "flex-start" : "center", gap: "11px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", textDecoration: "none", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        {embleme && (
+          // Glosé, l'emblème se cale sur la première ligne du nom, qui est ici en corps
+          // de lecture (16 px) : deux pixels suffisent à l'y poser.
+          <span style={{ display: "flex", flexShrink: 0, paddingTop: dit ? "2px" : undefined }}>
+            <EmblemeNavigation href={chemin} taille={18} />
+          </span>
+        )}
+        {dit ? (
+          <span style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
+            <span>{label}</span>
+            {/* ⚠️ 68 % de blanc, et c'est mesuré : sur le fond profond du panneau la
+                glose rend 4,8 de contraste, au-dessus des 4,5 qu'un texte de 13 px
+                réclame. Plus effacée, elle passerait sous le seuil. */}
+            <span style={{ fontSize: "0.8125rem", lineHeight: 1.35, color: "rgba(255,255,255,0.68)" }}>{dit}</span>
+          </span>
+        ) : label}
       </Link>
     );
   };
@@ -1677,6 +1695,19 @@ export default function Navbar() {
              débordement au lieu de le montrer — et rendait la mesure aveugle. Le trop-plein
              doit se voir pour être mesuré, puis résorbé en repliant les outils. */
           .cs-nav-principale > * { flex-shrink: 0; }
+
+          /* LA MARQUE — le chiffre CS, en masque, peint par l'encre du nom.
+             ⚠️ 1,625 rem et non les 1,875 du monogramme d'avant : le chiffre est LARGE
+             (535 sur 512) quand la lettrine était haute et étroite (464 sur 671). À
+             hauteur égale il aurait pesé un tiers de plus dans la barre la plus disputée
+             du site. Mesuré sur planche, à cette taille sa hauteur de capitale répond à
+             celle de « Corpus Scriptura » posé contre elle. */
+          .cs-marque {
+            display: block; height: 1.625rem; aspect-ratio: 535 / 512; width: auto;
+            background-color: currentColor;
+            -webkit-mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
+            mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
+          }
 
           @keyframes cs-toast-jauge { from { transform: scaleX(1) } to { transform: scaleX(0) } }
           .cs-toast-jauge {
@@ -1805,25 +1836,40 @@ export default function Navbar() {
              partage ce dernier et n'a rien à faire de dix-sept entrées à rallonge.
              ⚠️ La phrase S'ENROULE, donc le menu se borne en largeur : sans
              maximum, il s'étirerait à la plus longue et couvrirait la moitié de
-             la barre. */
-          .cs-plus-menu--riche { max-width: 24rem; padding: 5px; }
-          /* Seule la largeur MINIMALE sépare les deux menus qui glosent : cinq pages
+             la barre.
+             ⚠️ Le maximum passe de 24 à 27 rem le 2026-09-06, et ce n'est pas de
+             l'aisance : à 24 rem, DEUX gloses sur six s'enroulaient et une troisième
+             laissait un mot seul sur sa ligne. Les six rangées avaient donc trois
+             hauteurs, et une liste dont rien ne s'aligne se lit mal. Mesurée à la
+             chasse réelle, la plus longue demande 352 px : la boîte se règle d'elle-même
+             sur elle, chaque rubrique tient en deux lignes, et le menu ne s'étire pas
+             pour autant — c'est un MAXIMUM, il rendra la place le jour où les gloses
+             raccourciront. */
+          .cs-plus-menu--riche { max-width: 27rem; padding: 5px; }
+          /* Seule la largeur MINIMALE sépare les deux menus qui glosent : six pages
              décrites d'un côté, quelques titres d'œuvres de l'autre. */
-          .cs-plus-menu--pages { min-width: 21rem; }
+          .cs-plus-menu--pages { min-width: 24rem; }
           .cs-plus-menu--oeuvres { min-width: 17rem; }
           /* Deux entrées de deux mots : la boîte des bibles se borne à sa mesure. */
           .cs-plus-menu--bibles { min-width: 9.5rem; }
           .cs-plus-riche {
-            display: flex; align-items: flex-start; gap: 10px;
-            padding: 7px 10px; border-radius: 4px; text-decoration: none;
+            display: flex; align-items: flex-start; gap: 11px;
+            padding: 8px 10px; border-radius: 4px; text-decoration: none;
           }
           .cs-plus-riche:hover { background: rgba(var(--cs-vert-rgb),0.08); }
-          /* L'emblème se cale sur la LIGNE DE BASE du nom, non sur le haut de la
-             boîte : posé au ras, il flotte au-dessus du texte qu'il annonce. */
-          .cs-plus-riche-emb { display: flex; padding-top: 2px; color: var(--cs-vert); }
+          /* ⛔ L'emblème se MESURE EN REM, jamais par l'attribut du composant : la police
+             racine du site est fluide, et un dessin posé en pixels rapetissait à mesure
+             que le nom grandissait. ⚠️ À 1,1875 rem il vaut la LIGNE du nom (0,875 × 1,3
+             = 1,1375 rem) au dixième de pixel près : c'est ce qui le cale sur elle, et le
+             décalage de deux pixels écrit à la main n'a plus lieu d'être. Il valait 17 px
+             pour un nom de 13 et se lisait comme une tache plutôt que comme un dessin. */
+          .cs-plus-riche-emb { display: flex; color: var(--cs-vert); }
+          .cs-plus-riche-emb svg { width: 1.1875rem; height: 1.1875rem; }
           .cs-plus-riche:hover .cs-plus-riche-emb { color: var(--cs-vert-fonce); }
-          .cs-plus-riche-texte { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-          .cs-plus-riche-nom { font-size: 0.8125rem; line-height: 1.3; color: var(--cs-encre); }
+          .cs-plus-riche-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+          /* Le nom monte d'un rang, 13 → 14 px : c'est LUI qu'on vient chercher, et deux
+             pixels et un gris le séparaient seuls de la glose qui l'explique. */
+          .cs-plus-riche-nom { font-size: 0.875rem; line-height: 1.3; color: var(--cs-encre); }
           /* Un TITRE D'ŒUVRE, non un nom de page : il prend le romain à empattements du
              site, comme partout ailleurs où une œuvre est nommée. */
           .cs-plus-riche-nom--oeuvre { font-family: var(--font-source-serif), Georgia, serif; }
@@ -1835,7 +1881,7 @@ export default function Navbar() {
              lignes, l'italique se lit moins bien qu'un gris franc, et le site
              réserve l'italique aux titres cités. */
           .cs-plus-riche-dit {
-            font-size: 0.6875rem; line-height: 1.35; color: var(--cs-texte-gris);
+            font-size: 0.6875rem; line-height: 1.4; color: var(--cs-texte-gris);
             white-space: normal;
           }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
@@ -1865,13 +1911,18 @@ export default function Navbar() {
             title={nomSiteMasque ? "Corpus Scriptura" : undefined}
             aria-label={nomSiteMasque ? "Corpus Scriptura, retour à l’accueil" : undefined}
             style={{ color: "rgba(255,255,255,0.93)", textDecoration: "none" }}>
-            {/* Le monogramme du site remplace le fleuron ✦. En crème plutôt qu'en
-                encre, la barre étant verte, et en <img> : l'optimiseur de Next
-                aplatit par intermittence la couche alpha sur du blanc (charte,
-                « Les ornements se DÉTOURENT »), et l'on verrait le rectangle. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo/monogramme-creme.png" alt="" aria-hidden="true"
-              style={{ height: "1.875rem", width: "auto", display: "block", opacity: 0.92 }} />
+            {/* ⛔ LA MARQUE DU SITE EST LE CHIFFRE, et il n'y en a plus qu'une (demande de
+                l'auteur, 2026-09-06). La barre portait le monogramme gothique quand le bas
+                de l'accueil portait le chiffre didone : deux dessins pour une seule maison,
+                si bien qu'aucun des deux ne pouvait devenir la marque. C'est celui qui ferme
+                la page d'accueil.
+                ⛔ En MASQUE, jamais en image : la planche ne sert que d'ALPHA, et c'est
+                l'ENCRE DU NOM qui peint (charte, « le détourage ne sert que l'alpha : la
+                couleur, on la repose »). La marque appartient ainsi à la ligne au lieu d'y
+                trancher, elle suit le Cuir sans être déclinée deux fois, et le piège de
+                l'optimiseur de Next — qui aplatit par intermittence une couche alpha sur du
+                blanc — ne peut plus se poser, faute d'image. */}
+            <span className="cs-marque" aria-hidden="true" />
             {/* Dernier cran de repli : le nom et sa mention de version s'effacent, et le
                 monogramme porte seul le retour à l'accueil. Le nom complet revient alors en
                 infobulle sur le lien, posée plus haut. */}
@@ -2021,7 +2072,7 @@ export default function Navbar() {
               {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/librairies")].map(({ href, label }) => lienMobile(href, label))}
 
               <p style={styleSectionMobile}>Aller plus loin</p>
-              {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label, true))}
+              {LIENS_ALLER_PLUS_LOIN.map(({ href, label, dit }) => lienMobile(href, label, true, dit))}
 
               {(estAdmin || estAdminEmail) && (
                 <>

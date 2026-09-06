@@ -42,7 +42,7 @@ export const FONCTIONS = {
   },
   'identite': {
     titre: 'Porter l’identité',
-    propos: 'Monogramme, vignette de partage, icônes d’onglet. Ce sont les seules images que l’on voit hors du site, dans un onglet ou dans un message.',
+    propos: 'Le chiffre CS, la vignette de partage, les icônes d’onglet. Le chiffre est la marque du site depuis le 6 septembre 2026, et il est la SEULE : la barre de navigation portait jusque-là un monogramme gothique quand le bas de l’accueil portait ce chiffre-ci, deux dessins pour une seule maison. Les autres sont les seules images que l’on voit HORS du site, dans un onglet ou dans un message.',
   },
   'marque': {
     titre: 'Signer une édition',
@@ -315,11 +315,8 @@ export const ILLUSTRATIONS: Illustration[] = [
   {
     chemin: '/logo/monogramme-creme.png',
     nom: 'Monogramme, crème',
-    fonction: 'identite',
-    emploi: 'Le même tracé en crème. Sert de retour à l’accueil dans la barre de navigation, dans les deux thèmes. C’est désormais la seule pose de la marque sur le site.',
-    lieu: { href: '/accueil', label: 'Accueil', repere: 'Dans la barre du haut, à gauche, contre le nom du site — sur toutes les pages.' },
-    source: 'app/components/Navbar.tsx',
-    traitement: { opacite: 0.92, pose: { hauteur: '1.875rem', sol: 'vert' } },
+    fonction: 'reserve',
+    emploi: 'Le même tracé en crème. Il a porté le retour à l’accueil dans la barre de navigation jusqu’au 6 septembre 2026, où le CHIFFRE l’a remplacé : le site avait deux marques, et n’en imposait donc aucune. Aucune page ne l’appelle plus. La planche reste au dépôt, et le patron de fabrication continue de la produire — c’est elle, en vert, qui donne l’icône d’onglet.',
   },
   {
     chemin: '/og-image.png',
@@ -406,9 +403,9 @@ export const ILLUSTRATIONS: Illustration[] = [
   {
     chemin: '/ornements/chiffre-cs.png',
     nom: 'Chiffre CS',
-    fonction: 'coiffer',
-    emploi: 'Le C et le S entrelacés, en capitales didones, qui ferment la page d’accueil sous le colophon. Y remplace le fleuron ❧ depuis le 27 août 2026 : un caractère dont le dessin dépendait de la police que le système voulait bien donner, et qui ne disait rien du site. ⚠️ À ne pas confondre avec le monogramme du frontispice, qui est une lettrine gothique : deux dessins, deux emplois, deux fichiers.',
-    lieu: { href: '/accueil', label: 'Accueil', repere: 'Tout en bas, sous le colophon « en l’An de grâce MMXXVI », avant les liens légaux.' },
+    fonction: 'identite',
+    emploi: 'Le C et le S entrelacés, en capitales didones : LA marque du site. Elle ferme la page d’accueil sous le colophon, d’or sur le papier, depuis le 27 août 2026 — elle y remplace le fleuron ❧, un caractère dont le dessin dépendait de la police que le système voulait bien donner et qui ne disait rien du site. Et depuis le 6 septembre 2026 elle OUVRE la barre de navigation, dans l’encre du nom, à la place du monogramme gothique. ⚠️ Une seule planche, deux encres : posée en MASQUE des deux côtés, elle ne sert que d’alpha et c’est le fond de l’élément qui peint. La pose relevée ci-dessous est celle du colophon ; dans la barre elle vaut 1,625 rem, le chiffre étant large là où la lettrine d’avant était haute.',
+    lieu: { href: '/accueil', label: 'Accueil', repere: 'Tout en bas, sous le colophon « en l’An de grâce MMXXVI », avant les liens légaux — et tout en haut, dans la barre, sur chaque page du site.' },
     source: 'app/accueil/page.tsx',
     traitement: { masque: true, pose: { hauteur: '1.75rem', sol: 'papier' } },
   },

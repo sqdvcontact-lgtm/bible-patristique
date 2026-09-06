@@ -157,8 +157,11 @@ export default async function AccueilPage() {
            disait rien du site. C'est maintenant le CHIFFRE de Corpus Scriptura, gravé
            pour lui. ⛔ La planche ne sert que d'ALPHA : elle est posée en MASQUE, et
            c'est le fond de l'élément qui peint.
-           ⚠️ Ce chiffre n'est PAS le monogramme de la barre de navigation : celui-là est
-           une lettrine gothique, celui-ci une capitale didone. */
+           ⚠️ C'est la MÊME marque que la barre de navigation depuis le 2026-09-06, et
+           c'est tout ce qui a changé : la barre portait jusque-là une lettrine gothique,
+           si bien que le site avait deux marques et n'en imposait aucune. Ici elle est
+           d'or et ferme un colophon ; là-haut elle prend l'encre du nom et ouvre la
+           barre. Une seule planche, deux encres. */
         .colophon-marque {
           display: inline-block; height: 1.75rem; aspect-ratio: 535 / 512; width: auto;
           background-color: var(--cs-or);
