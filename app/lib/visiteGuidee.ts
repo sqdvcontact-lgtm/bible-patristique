@@ -52,6 +52,15 @@ export type SceneVisite = {
    *  verset et le volet de droite se remplit » ; il se remplit donc pour de bon, et
    *  les étapes suivantes ont quelque chose à montrer. */
   choisirVerset?: boolean
+  /**
+   * Polyglotte : la colonne des notes s'OUVRE le temps de l'étape. Repliée, elle
+   * n'est qu'un rail de vingt-six pixels, et la cerner reviendrait à désigner une
+   * boîte dont rien ne dit ce qu'elle contient — le défaut relevé sur la colonne
+   * d'actions de la page Bible.
+   * ⛔ La page REND son état à la fin de la visite : le pli de cette colonne est un
+   * réglage du lecteur, gardé dans son navigateur, et une visite ne le change pas.
+   */
+  ouvrirNotes?: boolean
 }
 
 export type EtapeVisite = {

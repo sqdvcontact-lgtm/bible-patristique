@@ -102,8 +102,13 @@ export const VISITE_POLYGLOTTE: Visite = {
       titre: 'Vos notes',
       texte: [
         'La dernière colonne vous laisse écrire une note sur chaque verset.',
-        'Elle est gardée sur votre compte, et la colonne se referme d’un clic.',
+        'Elle est gardée sur votre compte, et vous la retrouvez d’une visite à l’autre.',
+        'Elle se referme d’un clic, et le crayon qui la remplace la rouvre.',
       ],
+      // ⚠️ L'étape OUVRE la colonne, que le lecteur garde souvent repliée : sans
+      // cela elle cernerait un rail de vingt-six pixels. La page rend son état à la
+      // fin de la visite — le pli est un réglage, non un décor.
+      scene: { ouvrirNotes: true },
       cote: 'gauche',
     },
   ],

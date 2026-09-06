@@ -32,7 +32,7 @@ import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useEstMobile } from "@/app/lib/useEstMobile";
 import VisiteGuidee from "@/app/components/VisiteGuidee";
 import { CLE_VISITE_POLYGLOTTE, VISITE_POLYGLOTTE } from "@/app/lib/visitePolyglotte";
-import { oublierVisite, visiteFaite } from "@/app/lib/visiteGuidee";
+import { oublierVisite, visiteFaite, type SceneVisite } from "@/app/lib/visiteGuidee";
 import { offrirLaVisite } from "@/app/lib/demandeDeVisite";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
@@ -1754,6 +1754,26 @@ export default function PolyglottePage() {
     return offrirLaVisite(() => setVisite(n => n + 1));
   }, [visitePrete]);
 
+  // ⛔ L'ÉTAPE DES NOTES OUVRE LA COLONNE, ET LA PAGE LA REND. Repliée — ce que le
+  // lecteur garde souvent, le réglage étant enregistré dans son navigateur — elle
+  // n'est qu'un rail de vingt-six pixels, et la cerner désignerait une boîte dont
+  // rien ne dit ce qu'elle contient. On l'ouvre donc le temps de le montrer, puis on
+  // remet le pli tel qu'il était : une visite explique, elle ne règle pas la page à
+  // la place de celui qui la lit.
+  const pliDesNotesRef = useRef<boolean | null>(null);
+  const preparerScene = useCallback((scene: SceneVisite | undefined) => {
+    if (!scene?.ouvrirNotes) return;
+    setNotesReduites(plie => {
+      if (pliDesNotesRef.current === null) pliDesNotesRef.current = plie;
+      return false;
+    });
+  }, []);
+  const rendreLePliDesNotes = useCallback(() => {
+    const plie = pliDesNotesRef.current;
+    pliDesNotesRef.current = null;
+    if (plie !== null) setNotesReduites(plie);
+  }, []);
+
   // Sous le titre canonique du livre, la désignation que lui donnent les éditions affichées
   // quand elle diffère. C'est la seule façon pour le lecteur de savoir que la Sacy de 1730
   // appelle « Rois, livre troisième » ce que le canon nomme « 1 Rois ».
@@ -2443,7 +2463,8 @@ export default function PolyglottePage() {
       {/* La visite, en portail vers <body> : elle passe au-dessus de tout ce que la
           page peut ouvrir, la fenêtre d'édition d'un verset comprise. */}
       {visite > 0 && (
-        <VisiteGuidee key={visite} visite={VISITE_POLYGLOTTE} onFin={() => setVisite(0)} />
+        <VisiteGuidee key={visite} visite={VISITE_POLYGLOTTE} onScene={preparerScene}
+          onFin={() => { setVisite(0); rendreLePliDesNotes(); }} />
       )}
 
       {cibleEdition && (
