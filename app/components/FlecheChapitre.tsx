@@ -73,6 +73,9 @@ export default function FlecheChapitre({ livre, chapitre, sens, variante, onAlle
     transition: 'color 0.15s',
   } as const
 
+  // ⚠️ La zone de frappe (`cs-cible-fine`, cf. globals.css) ne va qu’à la flèche
+  //    ACTIVE : une cible de 44px qui n’obéit pas avalerait les taps de sa voisine.
+
   if (!actif) {
     // ⛔ Ni `onClick`, ni `className` de survol, ni `title` : une flèche inerte ne
     // promet rien, et `disabled` fait que le navigateur n'émet aucun clic.
@@ -87,7 +90,7 @@ export default function FlecheChapitre({ livre, chapitre, sens, variante, onAlle
     <button
       type="button"
       onClick={() => onAller(chapitreVise(chapitre, sens))}
-      className="nav-chap-arrow"
+      className="nav-chap-arrow cs-cible-fine"
       aria-label={libelle}
       title={variante === 'entete' ? libelle : undefined}
       style={style}

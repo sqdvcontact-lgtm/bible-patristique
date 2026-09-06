@@ -1046,6 +1046,65 @@ button:focus-visible,
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   LE DOIGT — garde iOS et zone de frappe (audit de responsiveness, 2026-09-06)
+
+   Deux règles, un seul constat : la mise en page du site bascule à 900px, la
+   GÉOMÉTRIE de ses contrôles ne bascule pas. Boutons, onglets, croix et appels
+   ont gardé le gabarit du bureau, où l'on vise à la souris.
+
+   ⚠️ L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une fenêtre étroite
+   sur un ordinateur garde sa souris, une tablette de 1024px n'en a pas. C'est
+   déjà la règle de `useSansSurvol` (cf. app/lib/useEstMobile.ts).
+   ──────────────────────────────────────────────────────────────────────────── */
+@media (hover: none) {
+  /* ⛔ LA GARDE iOS EST GLOBALE, JAMAIS PAR PAGE. Elle n'existait que dans
+     `app/chantier/page.tsx`, pour les seuls champs de `.cs-ouverture` sous 640px,
+     alors que la doctrine du dépôt l'annonçait partout (AGENTS.md, § Responsive).
+     Une trentaine de champs étaient servis entre 11 et 13,5px — la recherche du
+     site à 13,5, celle de la bibliothèque à 12,5, le filtre de la Communauté à 11,
+     les quatre champs de /contact, qui est publique. Safari iOS agrandit la page
+     à chaque prise de foyer sur un champ sous 16px, et ne la rend jamais. Dans un
+     tiroir en `position: fixed` — le composeur de commentaires — ce zoom décale
+     le bouton d'envoi hors de l'écran.
+
+     ⛔ `!important` est NÉCESSAIRE : la quasi-totalité de ces champs porte sa
+     taille en style EN LIGNE, qui bat toute règle de feuille sans lui.
+     ⚠️ Ni case à cocher ni bouton radio : ils n'ont pas de texte, et leur imposer
+     un corps changerait leur taille dessinée sans rien résoudre. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  textarea,
+  select,
+  [contenteditable]:not([contenteditable='false']) {
+    font-size: 1rem !important;
+  }
+
+  /* La ZONE DE FRAPPE s'agrandit, le DESSIN ne bouge pas. Patron de
+     `.etoile-favori` ci-dessus, porté à la mesure voulue : WCAG 2.2 § 2.5.8
+     fixe le plancher à 24px (niveau AA), Apple et Google visent 44.
+     ⚠️ Le débord de l'étoile (`inset: -7px -6px`) porte un glyphe de 12px à
+     26 sur 24 : tout juste le plancher, jamais les 44. Ici, `-12px` rend 44
+     autour d'un glyphe de 20 et 38 autour d'un glyphe de 14 — au-dessus du
+     plancher dans les deux cas, sans que rien ne se déplace.
+     ⛔ `position: relative` est obligatoire sur l'hôte, et l'hôte ne doit pas
+     vivre dans un `overflow: hidden` plus étroit que son débord. */
+  .cs-cible-fine { position: relative; }
+  .cs-cible-fine::after { content: ''; position: absolute; inset: -12px; }
+
+  /* ⛔ L'APPEL DE NOTE a sa propre mesure, et il la faut plus étroite : deux appels
+     qui se suivent (« 2 & 3 ») ne sont séparés que par leur esperluette, et un
+     débord de 12px ferait que l'un avale les taps de l'autre. `-8px -9px` porte un
+     appel de 6 sur 8 à 24 sur 24, le plancher AA, sans mordre sur son voisin.
+     ⚠️ `position: relative` est déjà posé par `styleAppelNote` (app/lib/appelsDeNote.ts). */
+  .cs-appel-cible::after { content: ''; position: absolute; inset: -8px -9px; }
+
+  /* Les contrôles qui portent déjà une classe se haussent par leur PLANCHER :
+     inutile d'y poser une zone de frappe, la boîte elle-même peut grandir. */
+  .cs-onglet { min-height: 2.75rem; }
+  .cs-option-volet { min-height: 2.75rem; }
+  .cs-notif-archiver { min-height: 2.75rem; display: inline-flex; align-items: center; padding: 0 0.5rem; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    Page Bible — deux hiérarchies, T1 à T6 et I1 à I6
 
    `T` dit la PROFONDEUR d'un titre structurel attesté, `I` dit l'ÉTENDUE qu'un

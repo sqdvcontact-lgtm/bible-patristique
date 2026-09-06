@@ -24,6 +24,7 @@ import {
   type DegreEtat, type SerieEtat,
 } from '@/app/lib/hautsFaits'
 import { ENCRE_RELIURE, degradeReliure } from '@/app/lib/reliuresHautsFaits'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 /** La petite vignette dure ce que dure celle de la barre. La belle annonce reste
  *  plus longtemps : elle porte une notice à lire, non une ligne à voir passer.
@@ -171,7 +172,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
         position: 'fixed',
         // Sous la barre, comme la vignette de notification : c'est la place que le
         // lecteur connaît déjà pour ce genre d'annonce.
-        top: 'calc(3.5rem + 0.75rem)',
+        top: `calc(${HAUTEUR_NAVBAR} + 0.75rem)`,
         right: '18px',
         width: grande ? '22rem' : '18.5rem',
         maxWidth: 'calc(100vw - 36px)',

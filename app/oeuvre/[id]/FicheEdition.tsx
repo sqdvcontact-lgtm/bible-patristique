@@ -328,7 +328,7 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: Z_FICHE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
       <div role="dialog" aria-modal="true" aria-labelledby="fiche-edition-titre" onClick={e => e.stopPropagation()} className="fiche-edition-cadre"
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
-        <button onClick={onFermer} aria-label="Fermer" title="Fermer"
+        <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
           style={{ position: 'sticky', float: 'right', top: '0', marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         <ContenuFicheEdition donnees={donnees} photoPosition={photoPosition} chrono={chrono} onOuvrirAuteur={onOuvrirAuteur} />
       </div>

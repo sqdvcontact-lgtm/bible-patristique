@@ -108,7 +108,7 @@ export default function ModaleLivreAbsent({
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-absent-titre"
         style={{ position: 'relative', background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '22rem', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)', padding: '20px 24px 22px' }}>
 
-        <button onClick={onFermer} aria-label="Fermer" title="Fermer"
+        <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
           style={{ position: 'absolute', top: '14px', right: '16px', fontSize: '0.875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
 
         {/* La tête : rubrique, nom du livre, filet. C'est celle de la fiche

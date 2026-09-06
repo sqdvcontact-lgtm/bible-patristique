@@ -959,7 +959,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
         style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte)', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
-          <button onClick={tenterFermer} aria-label="Fermer" style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={tenterFermer} aria-label="Fermer" className="cs-cible-fine" style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ padding: '0 22px' }}>
           <OngletProposer valeursInitiales={{ auteur_nom: auteur, titre }} onDirtyChange={d => { modifieRef.current = d }} />

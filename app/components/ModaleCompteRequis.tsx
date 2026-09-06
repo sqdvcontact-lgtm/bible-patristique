@@ -32,7 +32,7 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
 
         {/* Bandeau — teinte vert d'encre, emblème discret (plume). */}
         <div style={{ position: 'relative', padding: '22px 24px 18px', background: 'linear-gradient(180deg, var(--cs-vert-pale) 0%, var(--cs-fond-clair) 100%)', borderBottom: '1px solid var(--cs-bord-clair)' }}>
-          <button onClick={onClose} aria-label="Fermer"
+          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine"
             style={{ position: 'absolute', top: '12px', right: '14px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
           <div aria-hidden="true"
             style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.30)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '11px' }}>

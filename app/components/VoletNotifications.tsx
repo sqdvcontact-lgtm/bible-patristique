@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import {
   chargerNotificationsUtilisateur,
   cleArchivesNotifications,
@@ -116,8 +117,8 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
       <div onClick={onFermer} style={{ position: 'fixed', inset: 0, zIndex: 2400 }} />
       <div role="dialog" aria-label="Notifications"
         style={{
-          position: 'fixed', top: 'calc(3.5rem + 6px)', right: '12px',
-          width: 'min(26rem, calc(100vw - 20px))', maxHeight: 'calc(100vh - 3.5rem - 22px)',
+          position: 'fixed', top: `calc(${HAUTEUR_NAVBAR} + 6px)`, right: '12px',
+          width: 'min(26rem, calc(100vw - 20px))', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 22px)`,
           background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px',
           boxShadow: 'var(--cs-ombre-modale)', zIndex: 2500,
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -130,7 +131,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                 Tout archiver
               </button>
             )}
-            <button onClick={onFermer} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.9375rem', lineHeight: 1, padding: 0 }}>✕</button>
+            <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.9375rem', lineHeight: 1, padding: 0 }}>✕</button>
           </div>
         </div>
 

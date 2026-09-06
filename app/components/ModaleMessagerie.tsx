@@ -179,7 +179,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           <span style={{ flex: 1, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {pseudoActif ?? 'Messages'}
           </span>
-          <button onClick={onClose} aria-label="Fermer" style={{ width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
         </div>
 
         {connecte === false ? (

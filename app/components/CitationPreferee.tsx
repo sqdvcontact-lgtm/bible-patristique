@@ -183,7 +183,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
             style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
             Voulez-vous remplacer votre citation favorite ?
           </h2>
-          <button onClick={onAnnuler} aria-label="Fermer"
+          <button onClick={onAnnuler} aria-label="Fermer" className="cs-cible-fine"
             style={{ position: 'absolute', top: '11px', right: '13px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
 

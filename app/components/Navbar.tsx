@@ -1584,6 +1584,21 @@ export default function Navbar() {
     );
   };
   const styleSectionMobile: React.CSSProperties = { fontSize: "0.65625rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: "8px 10px 2px" };
+  // Une entrée du panneau mobile qui OUVRE quelque chose au lieu de naviguer : la
+  // messagerie et les notifications, qui n'ont pas de route à elles. Même géométrie
+  // qu'un `lienMobile` à emblème, pour que le rang ne se distingue pas du reste.
+  const actionMobile = (label: string, icone: React.ReactNode, compte: number, onClick: () => void) => (
+    <button type="button" onClick={() => { setMobileOuvert(false); onClick(); }}
+      style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 10px", borderRadius: "8px", fontSize: "1rem", color: "var(--cs-sur-aplat)", background: "none", border: "none", cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit" }}>
+      {icone}
+      {label}
+      {compte > 0 && (
+        <span style={{ marginLeft: "auto", minWidth: "1.25rem", height: "1.25rem", background: "var(--cs-danger-aplat)", color: "var(--cs-sur-aplat)", borderRadius: "999px", fontSize: "0.6875rem", fontWeight: 700, lineHeight: "1.25rem", textAlign: "center", padding: "0 0.3125rem", boxSizing: "border-box" }}>
+          {compte > 99 ? "99+" : compte}
+        </span>
+      )}
+    </button>
+  );
 
   return (
     <>
@@ -1895,7 +1910,6 @@ export default function Navbar() {
                 )}
               </button>
             )}
-            {user && notifsOuvertes && <VoletNotifications uid={user.id} onFermer={() => setNotifsOuvertes(false)} />}
             <div style={{ position: "relative", marginLeft: "4px" }}>
               {blocCompte(false)}
             </div>
@@ -1903,7 +1917,10 @@ export default function Navbar() {
 
           {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
           <button onClick={() => setMobileOuvert(!mobileOuvert)} className="lg:hidden"
-            style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--cs-sur-aplat)", padding: "6px", cursor: "pointer" }}
+            // La commande la plus employée du téléphone : 44px de zone de frappe pour un
+            // glyphe de 20 (WCAG 2.2, § 2.5.8 ; Apple et Google visent 44). Le rembourrage
+            // agrandit la CIBLE, il ne change pas le dessin.
+            style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", width: "2.75rem", height: "2.75rem", background: "none", border: "none", color: "var(--cs-sur-aplat)", padding: 0, cursor: "pointer" }}
             aria-label="Menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               {mobileOuvert ? (
@@ -1924,7 +1941,15 @@ export default function Navbar() {
 
         {/* ── Panneau mobile déplié ───────────────────────────────────────────── */}
         {mobileOuvert && (
-          <div className="lg:hidden" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          // ⛔ Le panneau DÉFILE, et ce n'est pas une politesse. Il vit dans un <header>
+          //    `position: fixed` : ce qui dépasse du bas de l'écran n'est pas seulement
+          //    invisible, il est INATTEIGNABLE, le défilement de la page ne remontant pas
+          //    un bloc fixe. Mesuré le 2026-09-06, session d'administrateur : 1009px de
+          //    contenu dans une fenêtre de 746, « Mode sombre » et « Se déconnecter » hors
+          //    d'atteinte, et cent pixels de plus perdus sur un iPhone SE. La hauteur se
+          //    compose sur HAUTEUR_NAVBAR, jamais sur un nombre recopié, et en `dvh` :
+          //    la barre d'adresse d'iOS mange le `vh`.
+          <div className="lg:hidden cs-defilement-discret" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px", maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`, overflowY: "auto", overscrollBehavior: "contain" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
@@ -1970,12 +1995,22 @@ export default function Navbar() {
               <IconCoeur /> Soutenir le projet
             </Link>
             {toggleAdmin(true)}
+            {/* ⛔ Messagerie et notifications ne vivaient QUE dans le bloc `hidden lg:flex` :
+                sous 1024px, deux fonctions entières de l'espace du lecteur n'avaient aucun
+                accès, la route /notifications renvoyant à l'accueil. Elles se prennent ici,
+                avec leurs pastilles, et ouvrent les MÊMES surfaces que sur un bureau. */}
+            {user && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                {actionMobile("Messages", <IconParchemin />, nbMessages, () => setMessagerieOuverte(true))}
+                {actionMobile("Notifications", <IconAngeTrompette />, nbNotifications, () => setNotifsOuvertes(true))}
+              </div>
+            )}
             {blocCompte(true)}
           </div>
         )}
         {toastNotification && (
           <div key={toastNotification.id} role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: "calc(3.5rem + 0.75rem)", right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert-aplat)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
+            style={{ position: "fixed", top: `calc(${HAUTEUR_NAVBAR} + 0.75rem)`, right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert-aplat)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
             <p style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
@@ -1989,6 +2024,10 @@ export default function Navbar() {
       </header>
       {/* Messagerie EN FENÊTRE (plus une page) : ouverte depuis l'icône parchemin. */}
       {messagerieOuverte && <ModaleMessagerie ouvert onClose={() => { setMessagerieOuverte(false); }} />}
+      {/* ⚠️ Le volet des notifications vit ICI, hors du bloc `hidden lg:flex` d'où il
+          était appelé : les deux surfaces l'ouvrent, et il ne dépend plus du fait qu'un
+          portail échappe au `display: none` de son parent. */}
+      {user && notifsOuvertes && <VoletNotifications uid={user.id} onFermer={() => setNotifsOuvertes(false)} />}
     </>
   );
 }

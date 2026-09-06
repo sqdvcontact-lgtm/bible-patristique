@@ -135,7 +135,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           ) : (
             <button
               onClick={fermer}
-              aria-label="Fermer"
+              aria-label="Fermer" className="cs-cible-fine"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 color: 'rgba(242,237,230,0.55)', fontSize: '0.875rem', lineHeight: 1,

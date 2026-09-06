@@ -79,7 +79,9 @@ describe('flèche active', () => {
   it('Gn 49 : le clic mène à Gn 50 et acquitte la navigation', () => {
     const { props, onAller } = rendre({ chapitre: 49, sens: 'suivant' })
     expect(props.disabled).toBeUndefined()
-    expect(props.className).toBe('nav-chap-arrow')
+    // `cs-cible-fine` agrandit la ZONE DE FRAPPE au doigt sans changer la boîte
+    // (globals.css, § LE DOIGT) ; `nav-chap-arrow` porte le survol à la souris.
+    expect(props.className).toBe('nav-chap-arrow cs-cible-fine')
     expect(props.title).toBe('Chapitre suivant')
     ;(props.onClick as () => void)()
     expect(onAller).toHaveBeenCalledTimes(1)

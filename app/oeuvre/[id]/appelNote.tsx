@@ -287,7 +287,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
         {figee && (
           <button
             onClick={fermer}
-            aria-label="Fermer"
+            aria-label="Fermer" className="cs-cible-fine"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
           >×</button>
         )}
@@ -311,6 +311,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
         role="button"
         tabIndex={0}
         aria-label={`${libelle} ${numeroVisible}`}
+        className="cs-appel-cible"
         style={styleAppelNote(variante)}
       >
         {numeroVisible}

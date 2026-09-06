@@ -121,7 +121,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
           style={{ position: 'fixed', left: placement.left, top: placement.top, width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: placement.hauteurMax, overflowY: 'auto', background: 'var(--cs-fond)', border: '1px solid var(--cs-or-doux)', borderRadius: 4, boxShadow: 'var(--cs-ombre-flottante)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: 'var(--cs-texte-fort)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>{libelle} {note.noteNumber}</span>
-            <button onClick={() => setOuvert(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
+            <button onClick={() => setOuvert(false)} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
           </div>
           <ContenuNoteStructuree note={note} />
         </div>,

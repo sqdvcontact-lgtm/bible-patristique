@@ -51,7 +51,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
             <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '4px', background: 'var(--cs-danger-aplat)' }} />
             {titreFenetre}
           </p>
-          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.9375rem', color: '#c09a86', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ fontSize: '0.9375rem', color: '#c09a86', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
 
         {statut === 'ok' ? (
