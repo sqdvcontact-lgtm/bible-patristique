@@ -169,10 +169,10 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
         if (el !== cibleRef.current) {
           cibleRef.current?.removeAttribute('data-visite-cible')
           cibleRef.current = el
-          // ⚠️ La marque sert au dessin de la page, non au nôtre : elle fait
-          // paraître la colonne d'actions, qui ne se montre qu'au survol (voir
-          // globals.css, « La visite »).
-          el.setAttribute('data-visite-cible', '')
+          // ⚠️ La marque sert au dessin de la page, non au nôtre : c'est elle qui
+          // fait paraître ce qui ne se montre qu'au survol, et sa VALEUR dit quoi
+          // (voir `revele`, et globals.css, « La visite »).
+          el.setAttribute('data-visite-cible', etape.revele ?? '')
           // ⛔ LE SUJET S'ANNONCE ICI, à l'instant où on le TROUVE, et non dans un
           // effet qui guetterait la mesure : l'étape change avant que la boucle
           // n'ait tourné, si bien qu'un tel effet annoncerait le nouveau sujet en

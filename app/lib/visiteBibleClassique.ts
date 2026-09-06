@@ -84,9 +84,15 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     },
     {
       cle: 'actions',
-      // ⚠️ Les mêmes sélecteurs que l'étape précédente, dans le même ordre : la
-      // colonne montrée est donc celle du verset qu'on vient de choisir.
-      sujet: ['.verset-row:has(.marque-densite) .verset-actions', '.verset-row .verset-actions'],
+      // ⛔ LA MÊME RANGÉE QUE L'ÉTAPE PRÉCÉDENTE, et non la seule colonne
+      // d'actions. Mesurée sur la page servie, celle-ci fait trente pixels sur
+      // vingt-cinq : cernée seule, elle devient une petite boîte isolée au milieu
+      // du texte, dont rien ne dit à quoi elle se rattache, et la case explicative
+      // va se poser au milieu des versets pour la rejoindre. La case ne bouge donc
+      // pas d'une étape à l'autre ; ce qui change, c'est que la colonne s'allume
+      // dedans — et c'est précisément ce dont l'étape parle.
+      sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
+      revele: 'actions',
       titre: 'Garder, copier, signaler',
       texte: 'Au survol d’un passage, une colonne d’actions paraît dans la marge, ici comme dans le volet de droite. Elle copie le verset avec sa référence, le prélève pour votre espace de lecture, ou nous signale une erreur.',
       cote: 'gauche',

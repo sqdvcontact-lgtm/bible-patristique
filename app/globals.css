@@ -2975,7 +2975,10 @@ main.lecture-entree [data-cs-bloc],
    l'affichage du pavé tactile sont portés en style EN LIGNE, que seule une
    déclaration importante bat.
    ⚠️ La marque de densité s'efface alors, exactement comme elle le fait au survol :
-   les deux occupent la même gouttière et ne s'y rencontrent jamais. */
-.verset-actions[data-visite-cible] { display: flex !important; }
-.verset-actions[data-visite-cible] .bouton-action-verset { opacity: 1 !important; }
-.verset-actions[data-visite-cible] .marque-densite { opacity: 0; }
+   les deux occupent la même gouttière et ne s'y rencontrent jamais.
+   ⚠️ Le sélecteur porte sur la VALEUR de la marque, non sur sa seule présence : la
+   rangée d'un verset est le sujet de deux étapes de suite, et la première parle du
+   nombre que la seconde efface (voir `revele`, app/lib/visiteGuidee.ts). */
+[data-visite-cible="actions"] .verset-actions { display: flex !important; }
+[data-visite-cible="actions"] .bouton-action-verset { opacity: 1 !important; }
+[data-visite-cible="actions"] .marque-densite { opacity: 0; }

@@ -59,6 +59,18 @@ export type EtapeVisite = {
   texte: string
   cote?: CoteCarte
   scene?: SceneVisite
+  /**
+   * Ce que l'étape doit RÉVÉLER dans son sujet, quand une part de celui-ci ne
+   * paraît qu'au survol. La valeur se pose sur le sujet en `data-visite-cible`,
+   * et la feuille de styles en tire ce qu'il faut montrer.
+   *
+   * ⛔ C'est l'ÉTAPE qui le déclare, non le sélecteur : deux étapes peuvent
+   * cerner la même boîte et n'en montrer pas la même chose. Sur la page Bible,
+   * la rangée d'un verset est le sujet de deux étapes de suite — la première dit
+   * le nombre inscrit dans la marge, la seconde y allume la colonne d'actions,
+   * qui prend la place de ce nombre.
+   */
+  revele?: string
 }
 
 export type Visite = {

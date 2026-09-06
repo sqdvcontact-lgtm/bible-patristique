@@ -6300,7 +6300,7 @@ se ferme et la case qui se pose.
 **Ce que la feuille de styles tient** (`globals.css`, « LA VISITE ») : l'animation qui
 retarde le trait (les extrémités d'une ligne SVG sont des ATTRIBUTS, non des propriétés
 CSS : elles ne se transitionnent pas), le déplacement des deux cases, et les trois règles
-qui montrent la colonne d'actions du verset désigné — `.verset-actions[data-visite-cible]`,
+qui montrent la colonne d'actions du verset désigné — `[data-visite-cible="actions"]`,
 en `!important`, l'opacité de ces boutons et l'affichage du pavé tactile étant portés en
 style en ligne.
 
