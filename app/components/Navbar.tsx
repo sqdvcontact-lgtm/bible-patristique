@@ -105,7 +105,11 @@ const LIENS_ALLER_PLUS_LOIN: { href: string; label: string; dit: string }[] = [
   { href: "/traductions", label: "Les traductions", dit: "Chaque bible servie ici, sa notice et l’édition dont elle vient." },
   // L'outil bibliographique (2026-09-06) : entre ce qu'on LIT ici et où l'on ACHÈTE,
   // ce sur quoi les notices s'appuient, à chercher et à citer.
-  { href: "/bibliographie", label: "Bibliographie", dit: "Les ouvrages qui fondent les notices : commentaires, éditions, études, à citer." },
+  // ⚠️ Elle disait « Les ouvrages qui fondent les notices : commentaires, éditions,
+  // études, à citer ». C'était la seule des six à passer 20 rem, donc la seule à
+  // s'enrouler, et sa rangée prenait une hauteur à elle. Ce sont les GENRES d'ouvrage
+  // qui disent ce que la page porte ; « à citer » se lit dans la page même.
+  { href: "/bibliographie", label: "Bibliographie", dit: "Les commentaires, éditions et études qui fondent les notices." },
   { href: "/librairies", label: "Acheter des livres", dit: "Où trouver les éditions imprimées, neuves ou anciennes." },
   { href: "/statistiques", label: "Statistiques", dit: "Les versets les plus cités par les Pères, et les plus lus ici." },
   { href: "/pericopes", label: "Péricopes", dit: "Les passages nommés de l’Écriture, et ce que les Pères en disent." },
@@ -1701,10 +1705,16 @@ export default function Navbar() {
              (535 sur 512) quand la lettrine était haute et étroite (464 sur 671). À
              hauteur égale il aurait pesé un tiers de plus dans la barre la plus disputée
              du site. Mesuré sur planche, à cette taille sa hauteur de capitale répond à
-             celle de « Corpus Scriptura » posé contre elle. */
+             celle de « Corpus Scriptura » posé contre elle.
+             ⛔ La LARGEUR est écrite, elle ne se déduit pas du rapport. Un
+             « aspect-ratio » suffit au colophon, qui vit dans un bloc ordinaire ; ici la
+             marque est un ENFANT DE FLEX, et la largeur qu'un moteur transfère depuis le
+             rapport y est le point faible des implémentations. Une marque effondrée à
+             zéro ne se verrait sur AUCUNE page, et c'est la première chose que le lecteur
+             regarde. Le « calc » garde le rapport exact sans rien demander à personne. */
           .cs-marque {
-            display: block; height: 1.625rem; aspect-ratio: 535 / 512; width: auto;
-            background-color: currentColor;
+            display: block; height: 1.625rem; width: calc(1.625rem * 535 / 512);
+            flex-shrink: 0; background-color: currentColor;
             -webkit-mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
             mask: url("/ornements/chiffre-cs.png") no-repeat center / contain;
           }
@@ -1837,17 +1847,24 @@ export default function Navbar() {
              ⚠️ La phrase S'ENROULE, donc le menu se borne en largeur : sans
              maximum, il s'étirerait à la plus longue et couvrirait la moitié de
              la barre.
-             ⚠️ Le maximum passe de 24 à 27 rem le 2026-09-06, et ce n'est pas de
-             l'aisance : à 24 rem, DEUX gloses sur six s'enroulaient et une troisième
-             laissait un mot seul sur sa ligne. Les six rangées avaient donc trois
-             hauteurs, et une liste dont rien ne s'aligne se lit mal. Mesurée à la
-             chasse réelle, la plus longue demande 352 px : la boîte se règle d'elle-même
-             sur elle, chaque rubrique tient en deux lignes, et le menu ne s'étire pas
-             pour autant — c'est un MAXIMUM, il rendra la place le jour où les gloses
-             raccourciront. */
+             ⛔ ET C'EST LA BORNE BASSE QUI GOUVERNE, JAMAIS LA HAUTE. Un menu est en
+             « position: absolute » et son bloc conteneur est l'ONGLET, large d'une
+             centaine de pixels : la largeur idéale d'un bloc ajusté à son contenu se
+             borne à la place DISPONIBLE, si bien que la boîte retombe toujours sur son
+             « min-width » et n'atteint jamais son maximum. Relevé sur le site : à 21 rem
+             de minimum elle mesurait 21 rem, à 24 elle mesure 24, la borne haute valant
+             27. ⚠️ Une glose qui s'enroule ne se corrige donc PAS en relevant le
+             maximum — essayé le 2026-09-06, la boîte n'a pas bougé d'un pixel. */
           .cs-plus-menu--riche { max-width: 27rem; padding: 5px; }
           /* Seule la largeur MINIMALE sépare les deux menus qui glosent : six pages
-             décrites d'un côté, quelques titres d'œuvres de l'autre. */
+             décrites d'un côté, quelques titres d'œuvres de l'autre.
+             ⚠️ 24 rem est MESURÉ, non choisi. Les six gloses demandent de 15,7 à
+             18,5 rem à la chasse réelle, et le chrome — bords, les deux rembourrages,
+             l'écart et l'emblème — vaut 3,9 rem à la racine 16 et 3,1 à la racine 22,
+             ses pixels ne suivant pas la police racine. La plus longue tient donc sur
+             UNE ligne aux deux bouts de l'échelle, avec un rem et demi de reste.
+             ⛔ Au-delà de 20 rem, une glose s'enroule et sa rangée prend une hauteur à
+             elle : c'est la GLOSE qu'on raccourcit, pas la boîte qu'on élargit. */
           .cs-plus-menu--pages { min-width: 24rem; }
           .cs-plus-menu--oeuvres { min-width: 17rem; }
           /* Deux entrées de deux mots : la boîte des bibles se borne à sa mesure. */
