@@ -894,6 +894,14 @@ export default function RechercheClient() {
         .ctrl-sel:focus { background:var(--cs-fond-doux); color:var(--cs-encre); }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
         .expl-wrap { position:relative; display:inline-flex; }
+        /* ⛔ Au doigt, ces trois contrôles se haussent au-dessus du plancher WCAG
+           (24px) : la rangée de ventilation faisait 19,4px de haut, la pagination 27,
+           et l'aide des modes 13. Le corps ne bouge pas, seule la boîte grandit. */
+        @media (hover: none) {
+          .brk-row { padding:8px 6px; }
+          .pag-btn { padding:10px 16px; }
+          .expl-badge { width:1.5rem; height:1.5rem; font-size:0.6875rem; }
+        }
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
         .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }

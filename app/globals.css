@@ -1097,6 +1097,18 @@ button:focus-visible,
      ⚠️ `position: relative` est déjà posé par `styleAppelNote` (app/lib/appelsDeNote.ts). */
   .cs-appel-cible::after { content: ''; position: absolute; inset: -8px -9px; }
 
+  /* ⛔ Les boutons d'ACTION vivent en grappe — quatre dans le pavé d'un verset, cinq
+     dans une carte patristique — et une zone de frappe débordante y ferait que l'un
+     avale les taps de l'autre. C'est donc la BOÎTE qui grandit, de 18 et 16px à 36.
+     ⚠️ 2,25rem et non 2,75 : la gouttière d'actions de la page Bible fait 2,375rem,
+     et un bouton plus large en déborderait. 36px passe le plancher AA de 24.
+     ⚠️ Le point d'exclamation est nécessaire : ces deux familles portent leur taille
+     en style EN LIGNE, qui bat toute règle de feuille sans lui. */
+  .bouton-action-verset, .cs-bouton-fin {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+  }
+
   /* Les contrôles qui portent déjà une classe se haussent par leur PLANCHER :
      inutile d'y poser une zone de frappe, la boîte elle-même peut grandir. */
   .cs-onglet { min-height: 2.75rem; }

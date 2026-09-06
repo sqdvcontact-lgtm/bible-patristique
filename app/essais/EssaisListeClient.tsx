@@ -455,6 +455,14 @@ function OngletCommunaute({
 
         @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, 14.5rem); gap: 1.4rem 1.2rem; } }
         @media (max-width: 520px) { .rayon { grid-template-columns: 14.5rem; } }
+        /* ⛔ Deux couvertures de 14,5rem et leur gouttière font 483px ; avec les 64px
+           de rembourrage de la page, le rayon en réclamait 547 quand il ne passe à une
+           colonne qu'à 520. Entre les deux, jusqu'à 27px de débordement. Le rembourrage
+           tombe à 16px sous 640, comme celui de la Bibliothèque, et les deux colonnes
+           tiennent alors dès 516px. Le point d'exclamation : il est posé en ligne. */
+        @media (max-width: 640px) {
+          .essais-corps { padding-left: 16px !important; padding-right: 16px !important; }
+        }
 
         /* Tactile : rien ne se survole. La face reste, le dos ne s'affiche jamais ;
            le résumé se lit sur la page de la publication, à un doigt de là. */

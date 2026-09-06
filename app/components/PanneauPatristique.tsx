@@ -218,7 +218,7 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
   }
   return (
     <button onClick={handle} title="Copier ce segment"
-      style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
+      className="cs-bouton-fin" style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
       {copie ? '✓' : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
           <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
@@ -269,14 +269,14 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
   if (idPrelev) {
     return (
       <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        style={{ ...ACTION_BTN, color:'var(--cs-vert)' }}>
+        className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-vert)' }}>
         {loading ? '…' : <IconeSignet plein />}
       </button>
     )
   }
   return (
     <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
-      style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
+      className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
       {loading ? '…' : <IconeSignet />}
     </button>
   )
@@ -294,7 +294,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
     return (
       <button onClick={e => { e.stopPropagation(); setConfirme(true) }}
         title={`Supprimer ${colonneLien}`}
-        style={{ ...ACTION_BTN, fontSize:'1.125rem', color:'var(--cs-bord)' }}>
+        className="cs-bouton-fin" style={{ ...ACTION_BTN, fontSize:'1.125rem', color:'var(--cs-bord)' }}>
         ×
       </button>
     )
@@ -385,7 +385,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
               collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
             />
             <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
-              style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
+              className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
               <IconeDrapeau />
             </button>
             <BoutonSupprimerLien

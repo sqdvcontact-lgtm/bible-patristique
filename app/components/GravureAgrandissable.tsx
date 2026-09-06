@@ -89,6 +89,19 @@ export function GravureAgrandissable({
               cursor: 'default',
             }}
           >
+            {/* ⛔ Une croix de fermeture, et elle est nécessaire au DOIGT : la figure
+                fait min(100%, 60rem), donc toute la largeur sur un téléphone, et il ne
+                restait que les 24px de marge du calque pour toucher hors d'elle. Échap
+                n'existe pas au doigt (audit de responsiveness, 2026-09-06). */}
+            <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer"
+              style={{
+                position: 'sticky', top: 0, float: 'right', zIndex: 1,
+                width: '2.75rem', height: '2.75rem', display: 'inline-flex',
+                alignItems: 'center', justifyContent: 'center',
+                background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)',
+                borderRadius: '999px', color: 'var(--cs-texte-doux)',
+                fontSize: '0.9375rem', lineHeight: 1, cursor: 'pointer',
+              }}>✕</button>
             {agrandi}
             {legende && (
               <figcaption style={{
