@@ -13,6 +13,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeCopier from '@/app/components/IconeCopier'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
@@ -97,12 +98,9 @@ function BoutonCopie({ texte }: { texte: string }) {
     <button onClick={handle} title="Copier ce verset" className="bouton-action-verset"
       style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
       aria-label="Copier">
-      {copie ? '✓' : (
-        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
-          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
-        </svg>
-      )}
+      {/* ⚠️ Le glyphe vient d'`IconeCopier` : la VISITE le reproduit dans son
+          illustration, et les deux ne doivent pas diverger. */}
+      {copie ? '✓' : <IconeCopier />}
     </button>
   )
 }

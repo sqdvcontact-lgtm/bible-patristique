@@ -31,6 +31,14 @@
 export type CoteCarte = 'droite' | 'gauche' | 'dessous' | 'dessus'
 
 /**
+ * Les figures qu'une étape peut montrer. ⛔ Vocabulaire CLOS : une clé nouvelle
+ * demande un dessin dans `VisiteGuidee`, et le compilateur le rappelle.
+ * `actions-verset` reproduit la colonne d'actions d'un passage, trop petite pour
+ * qu'on y lise ses trois boutons.
+ */
+export type IllustrationVisite = 'actions-verset'
+
+/**
  * Ce que la page doit préparer avant qu'une étape paraisse. ⚠️ C'est une
  * DEMANDE, pas un ordre : la page la reçoit et fait ce qu'elle sait faire (voir
  * `BibleLayout`). Une page qui n'en tient aucun compte garde une visite juste,
@@ -55,8 +63,20 @@ export type EtapeVisite = {
    */
   sujet: string[]
   titre: string
-  /** Deux phrases au plus. Une visite qui se lit longuement n'est pas lue. */
-  texte: string
+  /**
+   * UN PARAGRAPHE PAR IDÉE (demande de l'auteur, 2026-09-06). Deux ou trois, jamais
+   * davantage : une visite se lit debout, entre deux clics. ⛔ Ce n'est pas un texte
+   * qu'on coupe au rendu — la coupure est une décision d'écriture, et elle se prend
+   * ici, phrase par phrase, non par une règle qui devinerait où changer d'idée.
+   */
+  texte: string[]
+  /**
+   * Ce que l'étape MONTRE en plus de ce qu'elle dit. La valeur est une CLÉ, et le
+   * dessin vit dans le composant : le scénario reste une donnée, sans JSX.
+   * ⛔ Une illustration ne remplace jamais le texte ; elle reproduit ce que la case
+   * du sujet est trop petite pour donner à lire.
+   */
+  illustration?: IllustrationVisite
   cote?: CoteCarte
   scene?: SceneVisite
   /**
@@ -78,8 +98,8 @@ export type Visite = {
   cle: string
   /** Le grand message d'ouverture, en toutes lettres. */
   titre: string
-  /** La phrase qui le suit, et qui dit ce qui va se passer. */
-  accroche: string
+  /** Ce qui le suit, et qui dit ce qui va se passer. Un paragraphe par idée. */
+  accroche: string[]
   etapes: EtapeVisite[]
 }
 
@@ -105,6 +125,10 @@ export const MARGE_VISITE = 14
 export const ECART_VISITE = 22
 /** Le trait ne s'accroche pas au coin d'une case : il rentre d'autant. */
 const RENTREE_TRAIT = 18
+/** En deçà, deux côtés sont tenus pour aussi bien alignés, et l'ordre de préférence
+ *  du scénario tranche. ⛔ Sans cette tolérance, trois pixels feraient sauter la case
+ *  explicative d'un côté du sujet à l'autre. */
+const TOLERANCE_ALIGNEMENT = 8
 
 const borner = (v: number, min: number, max: number) => Math.max(min, Math.min(v, max))
 
@@ -151,28 +175,53 @@ export function placerCarteVisite({
   const tient = (c: CoteCarte) =>
     place[c] >= (c === 'droite' || c === 'gauche' ? carte.largeur : carte.hauteur)
 
+  /** La case posée d'un côté donné, déjà bornée à la bande utile. */
+  const poser = (c: CoteCarte) => {
+    let top: number
+    let left: number
+    if (c === 'droite' || c === 'gauche') {
+      left = c === 'droite' ? droite + ecart : cadre.left - ecart - carte.largeur
+      top = cadre.top + cadre.height / 2 - carte.hauteur / 2
+    } else {
+      top = c === 'dessous' ? bas + ecart : cadre.top - ecart - carte.hauteur
+      left = cadre.left + cadre.width / 2 - carte.largeur / 2
+    }
+    return {
+      left: borner(left, gaucheUtile, Math.max(gaucheUtile, droiteUtile - carte.largeur)),
+      top: borner(top, hautUtile, Math.max(hautUtile, basUtile - carte.hauteur)),
+    }
+  }
+
+  /** De combien la case manque le centre du sujet, sur l'axe TRAVERS. C'est le seul
+   *  axe où le bornage à l'écran peut la décaler : l'autre est fixé par le côté. */
+  const desalignement = (c: CoteCarte, pos: { top: number; left: number }) =>
+    c === 'droite' || c === 'gauche'
+      ? Math.abs((pos.top + carte.hauteur / 2) - (cadre.top + cadre.height / 2))
+      : Math.abs((pos.left + carte.largeur / 2) - (cadre.left + cadre.width / 2))
+
   // ⚠️ La préférence du scénario passe d'abord, mais elle ne s'impose pas : elle
   // dit d'où l'on regarde le sujet (un volet de gauche s'explique à sa droite),
   // non ce que l'écran peut porter.
   const ordre: CoteCarte[] = ['droite', 'gauche', 'dessous', 'dessus']
   const candidats = prefere ? [prefere, ...ordre.filter(c => c !== prefere)] : ordre
-  const choisi = candidats.find(tient)
+
+  // ⛔ ENTRE DEUX CÔTÉS QUI TIENNENT, ON PREND CELUI QUI S'ALIGNE. Un côté peut
+  // recevoir la case et l'obliger pourtant à glisser au bord de l'écran, si bien que
+  // les deux boîtes cessent de se regarder : c'est ce que l'auteur a relevé le
+  // 2026-09-06, « selon la taille de la fenêtre, l'encart lumineux n'est pas bien
+  // centré ». La tolérance rend l'ordre de préférence maître des quasi-égalités :
+  // sans elle, trois pixels feraient sauter la case d'un côté à l'autre.
+  const poses = candidats.filter(tient).map(c => {
+    const pos = poser(c)
+    return { cote: c, pos, ecart: desalignement(c, pos) }
+  })
+  const meilleur = poses.length > 0 ? Math.min(...poses.map(p => p.ecart)) : 0
+  const retenu = poses.find(p => p.ecart <= meilleur + TOLERANCE_ALIGNEMENT)
 
   // Aucun côté ne suffit : on se range à l'opposé du centre du sujet, au plus loin.
-  const cote: CoteCarte = choisi
+  const cote: CoteCarte = retenu?.cote
     ?? (cadre.top + cadre.height / 2 < (hautUtile + basUtile) / 2 ? 'dessous' : 'dessus')
-
-  let top: number
-  let left: number
-  if (cote === 'droite' || cote === 'gauche') {
-    left = cote === 'droite' ? droite + ecart : cadre.left - ecart - carte.largeur
-    top = cadre.top + cadre.height / 2 - carte.hauteur / 2
-  } else {
-    top = cote === 'dessous' ? bas + ecart : cadre.top - ecart - carte.hauteur
-    left = cadre.left + cadre.width / 2 - carte.largeur / 2
-  }
-  left = borner(left, gaucheUtile, Math.max(gaucheUtile, droiteUtile - carte.largeur))
-  top = borner(top, hautUtile, Math.max(hautUtile, basUtile - carte.hauteur))
+  const { top, left } = retenu?.pos ?? poser(cote)
 
   return { top, left, cote, trait: tracerTrait({ cadre, carte: { top, left, ...carte }, cote }) }
 }

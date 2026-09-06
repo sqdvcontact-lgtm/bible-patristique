@@ -10,7 +10,7 @@ const NAVBAR = 56
 const CARTE = { largeur: 336, hauteur: 160 }
 
 const etape = (cle: string, sujet: string[]): EtapeVisite =>
-  ({ cle, sujet, titre: cle, texte: cle })
+  ({ cle, sujet, titre: cle, texte: [cle] })
 
 describe('placement de la case explicative', () => {
   it('se pose à droite du sujet quand la place y est', () => {
@@ -41,6 +41,26 @@ describe('placement de la case explicative', () => {
     const cadre: Cadre = { top: 80, left: 500, width: 400, height: 60 }
     const p = placerCarteVisite({ cadre, carte: CARTE, vue: VUE, hautNavbar: NAVBAR, cote: 'dessus' })
     expect(p.cote).not.toBe('dessus')
+  })
+
+  it('préfère le côté où la case FAIT FACE au sujet', () => {
+    // Un sujet menu contre le haut de l'écran, et une case haute. La droite peut la
+    // recevoir, mais elle y glisse contre la barre de navigation et regarde deux cents
+    // pixels plus bas ; le dessous la laisse presque en face. C'est le défaut relevé
+    // par l'auteur le 2026-09-06 (« l'encart lumineux n'est pas bien centré »).
+    const cadre: Cadre = { top: 60, left: 10, width: 120, height: 30 }
+    const p = placerCarteVisite({
+      cadre, carte: { largeur: 336, hauteur: 400 }, vue: VUE, hautNavbar: NAVBAR,
+    })
+    expect(p.cote).toBe('dessous')
+  })
+
+  it('garde le côté demandé quand deux côtés s’alignent aussi bien', () => {
+    // ⛔ La tolérance existe pour cela : sans elle, trois pixels d'écart feraient
+    // sauter la case d'un côté du sujet à l'autre.
+    const cadre: Cadre = { top: 400, left: 600, width: 200, height: 100 }
+    const p = placerCarteVisite({ cadre, carte: CARTE, vue: VUE, hautNavbar: NAVBAR, cote: 'gauche' })
+    expect(p.cote).toBe('gauche')
   })
 
   it('ne passe jamais sous la barre de navigation ni hors de l’écran', () => {

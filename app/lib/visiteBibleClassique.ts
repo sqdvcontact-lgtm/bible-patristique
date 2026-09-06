@@ -18,9 +18,11 @@
  * porte le nombre dont elle parle — et retombe sur n'importe quel verset ;
  * l'étape disparaît si le chapitre n'en a aucun (voir `etapesPresentes`).
  *
- * ⚠️ Les textes tiennent en deux phrases. Une visite se lit debout, entre deux
- * clics ; ce qui demande un paragraphe n'est pas une explication mais un mode
- * d'emploi, et un mode d'emploi ne se lit pas.
+ * ⛔ UN PARAGRAPHE PAR IDÉE (demande de l'auteur, 2026-09-06) : on change de
+ * paragraphe quand on change de chose à dire, et l'on s'arrête à deux ou trois.
+ * Une visite se lit debout, entre deux clics ; ce qui demande un développement
+ * n'est pas une explication mais un mode d'emploi, et un mode d'emploi ne se lit
+ * pas.
  */
 
 import type { Visite } from './visiteGuidee'
@@ -36,13 +38,19 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
   // l'auteur, 2026-09-06) : le premier annonce une difficulté, le second est un
   // mot de logiciel. La phrase dit ce qui va se passer, et rien de plus.
   titre: 'Faisons le tour de la page.',
-  accroche: 'À gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit. Quelques étapes suffisent à vous montrer où tout se trouve.',
+  accroche: [
+    'À gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit.',
+    'Quelques étapes suffisent à vous montrer où tout se trouve.',
+  ],
   etapes: [
     {
       cle: 'edition',
       sujet: ['[data-visite="edition"]'],
       titre: 'Ce que vous lisez',
-      texte: 'Cette carte nomme la bible ouverte, son traducteur et l’édition d’où le texte est tiré. Cliquez sur son nom pour ouvrir sa fiche.',
+      texte: [
+        'Cette carte nomme la bible ouverte, son traducteur et l’édition d’où le texte est tiré.',
+        'Cliquez sur son nom pour ouvrir sa fiche.',
+      ],
       cote: 'droite',
       scene: { volet: 'livres' },
     },
@@ -50,7 +58,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       cle: 'recherche',
       sujet: ['[data-visite="recherche-livre"]'],
       titre: 'Trouver un livre',
-      texte: 'Tapez un nom pour le retrouver dans la liste. Une référence entière fonctionne aussi, comme Jean 3, 16, et vous y mène d’un clic.',
+      texte: [
+        'Tapez un nom pour le retrouver dans la liste.',
+        'Une référence entière fonctionne aussi, comme Jean 3, 16, et vous y mène d’un clic.',
+      ],
       cote: 'droite',
       scene: { volet: 'livres' },
     },
@@ -58,7 +69,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       cle: 'livres',
       sujet: ['[data-visite="livres"]'],
       titre: 'Les livres et leurs chapitres',
-      texte: 'Ouvrez un livre pour voir ses chapitres. Plus la case d’un chapitre est verte, plus les Pères de l’Église y ont commenté de versets.',
+      texte: [
+        'Ouvrez un livre pour voir ses chapitres.',
+        'Plus la case d’un chapitre est verte, plus les Pères de l’Église y ont commenté de versets.',
+      ],
       cote: 'droite',
       scene: { volet: 'livres' },
     },
@@ -66,7 +80,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       cle: 'entete',
       sujet: ['[data-visite="entete-lecture"]'],
       titre: 'Changer de bible',
-      texte: 'Le titre rappelle le livre et le chapitre ouverts. Le menu juste dessous passe d’une traduction à l’autre sans quitter le passage.',
+      texte: [
+        'Le titre rappelle le livre et le chapitre ouverts.',
+        'Le menu juste dessous passe d’une traduction à l’autre sans quitter le passage.',
+      ],
       cote: 'dessous',
       scene: { volet: 'texte' },
     },
@@ -75,7 +92,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // ⚠️ Un verset COMMENTÉ d'abord : lui seul porte le nombre dont l'étape parle.
       sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
       titre: 'Cliquez sur un verset',
-      texte: 'Le volet de droite se remplit alors de ce que les Pères en ont dit. Le nombre inscrit dans la marge compte les œuvres en ligne qui le commentent.',
+      texte: [
+        'Le volet de droite se remplit alors de ce que les Pères en ont dit.',
+        'Le nombre inscrit dans la marge compte les œuvres en ligne qui le commentent.',
+      ],
       // ⚠️ La carte se pose à GAUCHE, sur le volet des livres : à droite elle
       // couvrirait le volet qui se remplit à l'instant même, c'est-à-dire la
       // seule chose que l'étape donne à voir.
@@ -94,7 +114,14 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
       revele: 'actions',
       titre: 'Garder, copier, signaler',
-      texte: 'Au survol d’un passage, une colonne d’actions paraît dans la marge, ici comme dans le volet de droite. Elle copie le verset avec sa référence, le prélève pour votre espace de lecture, ou nous signale une erreur.',
+      // ⚠️ Les trois boutons sont NOMMÉS un par un dans l'illustration, avec leur
+      // dessin réel : à onze pixels dans la marge, on ne les reconnaît pas de la
+      // seule prose (demande de l'auteur, 2026-09-06).
+      texte: [
+        'Au survol d’un passage, une colonne d’actions paraît dans sa marge.',
+        'On la retrouve partout où le site donne un texte, ici comme dans le volet de droite.',
+      ],
+      illustration: 'actions-verset',
       cote: 'gauche',
       scene: { volet: 'texte' },
     },
@@ -102,7 +129,11 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       cle: 'peres',
       sujet: ['[data-visite="peres"]'],
       titre: 'Les Pères, en regard',
-      texte: 'Ce volet réunit les œuvres qui citent ou commentent le verset choisi, rangées par nature. Les filtres les trient par auteur, par siècle ou par tradition, et l’onglet Commentaires vous laisse écrire le vôtre.',
+      texte: [
+        'Ce volet réunit les œuvres qui citent ou commentent le verset choisi, rangées par nature.',
+        'Les filtres les trient par auteur, par siècle ou par tradition.',
+        'L’onglet Commentaires vous laisse écrire le vôtre.',
+      ],
       cote: 'gauche',
       scene: { volet: 'commentaires' },
     },

@@ -32,11 +32,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
+import { hauteurNavbarPx, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeSignet from '@/app/components/IconeSignet'
+import IconeCopier from '@/app/components/IconeCopier'
+import IconeDrapeau from '@/app/components/IconeDrapeau'
 import {
   cadreDuSujet, marquerVisiteFaite, placerCarteVisite,
-  type Cadre, type EtapeVisite, type SceneVisite, type Visite, type Vue,
+  type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Visite, type Vue,
 } from '@/app/lib/visiteGuidee'
 
 /** Au-dessus de tout ce que la page peut ouvrir : les modales du site montent à
@@ -46,6 +49,12 @@ const Z_VISITE = 2800
 /** Au-delà, on tient l'étape pour impossible et l'on passe. ⚠️ Généreux à dessein :
  *  un volet de téléphone se monte, le volet de droite interroge la base. */
 const DELAI_SUJET_MS = 1000
+
+/** La pointe de la flèche, en pixels. ⚠️ Elle ne suit pas la police racine : c'est
+ *  une marque, non un blanc, et une pointe qui grandirait avec l'écran finirait par
+ *  peser plus que la case qu'elle désigne. */
+const POINTE_LONGUEUR = 9
+const POINTE_LARGEUR = 7
 
 /** Ce que la page a préparé, et ce qu'on lui demande de préparer. */
 export type VisiteProps = {
@@ -59,7 +68,7 @@ export type VisiteProps = {
   onFin: () => void
 }
 
-type Mesure = { cadre: Cadre; vue: Vue; hautNavbar: number }
+type Mesure = { cadre: Cadre; vue: Vue; hautNavbar: number; ecart: number }
 
 const memeCadre = (a: Cadre | null, b: Cadre) =>
   !!a && Math.abs(a.top - b.top) < 0.5 && Math.abs(a.left - b.left) < 0.5
@@ -148,6 +157,17 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
     if (!etape) return
     const selecteurs = etape.sujet
     const hautNavbar = hauteurNavbarPx()
+    // ⚠️ LES BLANCS DE LA VISITE SUIVENT LA POLICE RACINE, qui est fluide : sur un
+    // grand écran elle monte à 22 px, et tout le site s'aère avec elle. Un souffle
+    // et un écart figés en pixels s'y resserraient à contretemps — mesuré le
+    // 2026-09-06 sur un écran de 2 560 px, où le trait tenait dans 22 px pendant que
+    // la case explicative en faisait 462 de large.
+    // ⚠️ L'écart est passé de 1,25 à 1,6 fois la racine le 2026-09-06 : la flèche a
+    // gagné une pointe, et une pointe de huit pixels dans un écart de vingt ne laisse
+    // plus de hampe — on ne lisait plus une flèche, mais un triangle collé au cadre.
+    const racine = tailleRacinePx()
+    const souffle = Math.round(racine * 0.375)
+    const ecart = Math.round(racine * 1.6)
     const debut = performance.now()
     let image = 0
     let arrete = false
@@ -193,11 +213,11 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
         const vue = { largeur: window.innerWidth, hauteur: window.innerHeight }
         const cadre = cadreDuSujet({
           sujet: { top: r.top, left: r.left, width: r.width, height: r.height },
-          vue, hautNavbar,
+          vue, hautNavbar, souffle,
         })
         setMesure(m => (memeCadre(m?.cadre ?? null, cadre) && m?.vue.largeur === vue.largeur && m?.vue.hauteur === vue.hauteur
           ? m
-          : { cadre, vue, hautNavbar }))
+          : { cadre, vue, hautNavbar, ecart }))
       }
       image = requestAnimationFrame(tourner)
     }
@@ -259,7 +279,7 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
   const placement = etape && mesure && taille
     ? placerCarteVisite({
         cadre: mesure.cadre, carte: taille, vue: mesure.vue,
-        hautNavbar: mesure.hautNavbar, cote: etape.cote,
+        hautNavbar: mesure.hautNavbar, cote: etape.cote, ecart: mesure.ecart,
       })
     : null
 
@@ -291,6 +311,11 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
             position: 'absolute',
             top: mesure.cadre.top, left: mesure.cadre.left,
             width: mesure.cadre.width, height: mesure.cadre.height,
+            // ⛔ `border-box`, faute de quoi le filet s'ajoute À L'EXTÉRIEUR des mesures
+            // et la découpe glisse d'un pixel et demi vers le bas et vers la droite :
+            // la case cesse d'être centrée sur son sujet, et cela se voit d'autant plus
+            // que le sujet est petit.
+            boxSizing: 'border-box',
             borderRadius: '8px',
             border: '1.5px solid var(--cs-or)',
             boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)',
@@ -299,14 +324,39 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
         />
       )}
 
-      {/* LE TRAIT. Il ne se trace qu'une fois les deux cases posées (voir la règle
-          d'animation dans globals.css) et disparaît lorsqu'elles se recouvrent. */}
+      {/* LA FLÈCHE. Elle part de la case explicative et POINTE le sujet : sans pointe,
+          on ne savait pas laquelle des deux boîtes désignait l'autre.
+          ⛔ BLANCHE ET ÉPAISSE (demande de l'auteur, 2026-09-06 : « on ne voit pas bien
+          la flèche entre les cadres »). Un filet d'un pixel dans l'or du site se perdait
+          sur la page assombrie ; le blanc est la seule encre qui tienne sur un voile à
+          moitié noir, et c'est celle de la case d'où la flèche sort.
+          ⚠️ Elle ne se trace qu'une fois les deux cases posées (voir la règle d'animation
+          dans globals.css) et disparaît lorsqu'elles se recouvrent. */}
       {etape && placement?.trait && (
         <svg key={etape.cle} className="cs-visite-trait" aria-hidden="true"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
-          <line x1={placement.trait.x1} y1={placement.trait.y1} x2={placement.trait.x2} y2={placement.trait.y2}
-            stroke="var(--cs-or)" strokeWidth="1" />
-          <circle cx={placement.trait.x1} cy={placement.trait.y1} r="2.5" fill="var(--cs-or)" />
+          {(() => {
+            const t = placement.trait!
+            // La hampe s'arrête au PIED de la pointe : passée dessous, elle en
+            // déborderait sur les côtés dès que le trait penche.
+            const dx = t.x1 - t.x2
+            const dy = t.y1 - t.y2
+            const d = Math.hypot(dx, dy) || 1
+            const ux = dx / d
+            const uy = dy / d
+            const piedX = t.x1 - ux * POINTE_LONGUEUR
+            const piedY = t.y1 - uy * POINTE_LONGUEUR
+            const nx = -uy * (POINTE_LARGEUR / 2)
+            const ny = ux * (POINTE_LARGEUR / 2)
+            return (
+              <>
+                <line x1={t.x2} y1={t.y2} x2={piedX} y2={piedY}
+                  stroke="var(--cs-sur-aplat)" strokeWidth="2" strokeLinecap="round" />
+                <polygon points={`${t.x1},${t.y1} ${piedX + nx},${piedY + ny} ${piedX - nx},${piedY - ny}`}
+                  fill="var(--cs-sur-aplat)" />
+              </>
+            )
+          })()}
         </svg>
       )}
 
@@ -331,6 +381,12 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           borderRadius: '12px',
           boxShadow: 'var(--cs-ombre-modale)',
           padding: etape ? '15px 17px 13px' : '30px 32px 26px',
+          // ⚠️ Une case qui porte trois paragraphes et une illustration peut dépasser
+          // une fenêtre basse : elle se borne alors et défile en dedans, comme toute
+          // fenêtre contextuelle du site. La hauteur MESURÉE est celle qui en résulte,
+          // si bien que le placement travaille sur la boîte réelle.
+          maxHeight: 'calc(100dvh - 6rem)',
+          overflowY: 'auto',
           // ⚠️ TANT QUE LA CASE N'EST PAS PLACÉE, elle se tient au centre de l'écran
           // et ne se voit pas. C'est là qu'était le grand message, et c'est de là
           // qu'elle glisse vers son premier sujet : la transition part donc du
@@ -358,7 +414,16 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
                 {position} / {restantes.length}
               </span>
             </div>
-            <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.65 }}>{etape.texte}</p>
+            {/* ⛔ UN PARAGRAPHE PAR IDÉE, avec un vrai blanc entre eux (demande de
+                l'auteur, 2026-09-06). Le blanc n'est pas un ornement : c'est lui qui
+                dit qu'on change de chose, et il coûte quelques pixels pour que trois
+                phrases cessent de se lire comme un bloc. La coupure est écrite dans le
+                scénario, jamais devinée ici. */}
+            {etape.texte.map((paragraphe, rang) => (
+              <p key={rang} style={{ margin: rang === 0 ? 0 : '0.55em 0 0', fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.6 }}>{paragraphe}</p>
+            ))}
+
+            {etape.illustration && <Illustration nom={etape.illustration} />}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px' }}>
               {/* ⛔ « Passer la visite » NE SE CACHE JAMAIS, à aucune étape (demande
@@ -380,9 +445,11 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
               fontFamily: 'var(--font-source-serif), Georgia, serif',
               fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, lineHeight: 1.3,
             }}>{visite.titre}</h2>
-            <p style={{ margin: '0 auto 24px', maxWidth: '22rem', fontSize: '0.84375rem', color: 'var(--cs-texte-second)', lineHeight: 1.7 }}>
-              {visite.accroche}
-            </p>
+            <div style={{ margin: '0 auto 24px', maxWidth: '22rem' }}>
+              {visite.accroche.map((paragraphe, rang) => (
+                <p key={rang} style={{ margin: rang === 0 ? 0 : '0.6em 0 0', fontSize: '0.84375rem', color: 'var(--cs-texte-second)', lineHeight: 1.7 }}>{paragraphe}</p>
+              ))}
+            </div>
             {/* ⚠️ Les deux boutons ont la MÊME taille : refuser la visite doit être
                 aussi simple que la commencer, et se voir aussi bien. */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -399,6 +466,37 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
       </div>
     </div>,
     document.body,
+  )
+}
+
+// ── Les illustrations ────────────────────────────────────────────────────────
+//
+// ⛔ ELLES REPRENNENT LES DESSINS RÉELS, jamais un croquis qui leur ressemble : une
+// légende qui montre autre chose que le bouton qu'elle nomme apprend à reconnaître
+// ce qui n'existe pas. `IconeSignet`, `IconeCopier` et `IconeDrapeau` sont les
+// composants mêmes que la colonne d'actions d'un verset emploie.
+//
+// ⚠️ Les icônes y prennent une encre LISIBLE (`--cs-texte-gris`) et non la teinte
+// très pâle qu'elles ont au repos dans la marge : on illustre ce que le bouton EST,
+// non l'état où il attend qu'on le survole.
+
+const ACTIONS_VERSET: { icone: React.ReactNode; nom: string; dit: string }[] = [
+  { icone: <IconeSignet />, nom: 'Garder', dit: 'le passage rejoint vos prélèvements, dans votre espace de lecture. Il y faut un compte.' },
+  { icone: <IconeCopier />, nom: 'Copier', dit: 'le texte part avec sa référence, prêt à coller ailleurs.' },
+  { icone: <IconeDrapeau />, nom: 'Signaler', dit: 'vous nous avertissez d’une coquille ou d’une erreur.' },
+]
+
+function Illustration({ nom }: { nom: IllustrationVisite }) {
+  if (nom !== 'actions-verset') return null
+  return (
+    <ul style={{ listStyle: 'none', margin: '0.8em 0 0', padding: '9px 11px', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+      {ACTIONS_VERSET.map(action => (
+        <li key={action.nom} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.5 }}>
+          <span aria-hidden="true" style={{ flexShrink: 0, paddingTop: '2px', color: 'var(--cs-texte-gris)' }}>{action.icone}</span>
+          <span><span style={{ fontWeight: 600, color: 'var(--cs-texte)' }}>{action.nom}</span> : {action.dit}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
