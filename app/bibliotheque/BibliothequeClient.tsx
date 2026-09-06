@@ -23,6 +23,10 @@ import { useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
+import VisiteGuidee from '@/app/components/VisiteGuidee'
+import { CLE_VISITE_BIBLIOTHEQUE, VISITE_BIBLIOTHEQUE } from '@/app/lib/visiteBibliotheque'
+import { oublierVisite, visiteFaite, type SceneVisite } from '@/app/lib/visiteGuidee'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 // ⚠️ La même fonction que la citation : elle saute les marques de tête et ne touche pas
@@ -197,13 +201,17 @@ const LIGNES_NOTICE_AU_DEPART = 3
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // ── Bandeau auteur ────────────────────────────────────────────────────────────
-function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, originaux, ouvertParDefaut = false, compact = false }: {
+function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, onOuvrirAuteur, originaux, ouvertParDefaut = false, compact = false, ouvertImpose }: {
   auteur: Auteur; recherche: string
   favorisOeuvres: Set<string>; toggleFavoriOeuvre: (id: string) => void
   onOuvrirAuteur: (id: string) => void
   originaux?: Set<string>
   ouvertParDefaut?: boolean
   compact?: boolean
+  /** La visite déplie la carte le temps d'une étape. ⚠️ Elle IMPOSE, elle ne pose
+   *  pas : le pli du lecteur reste dessous, intact, et reparaît dès que la visite
+   *  rend la main (charte § 46, « la page rend son état »). */
+  ouvertImpose?: boolean
 }) {
   // La liste est pilotée par des styles INLINE : une média-query ne peut pas les
   // surcharger, d'où la détection en JS (patron de la charte, § Responsive).
@@ -216,7 +224,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
   const oeuvreCorrespondante = q ? oeuvresTriees.find(o => sansAccents(o.titre).includes(q)) : null
   const [ouvert, setOuvert] = useState(ouvertParDefaut)
   const [imgErreur, setImgErreur] = useState(false)
-  const listeOuverte = ouvert || !!oeuvreCorrespondante
+  const listeOuverte = (ouvertImpose ?? ouvert) || !!oeuvreCorrespondante
   const nb = auteur.oeuvres.length
   const nbMot = enLettres(nb)
   const photoPos = parseAuteurPhotoPositions(auteur.photo_position).carte
@@ -256,6 +264,10 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 
   return (
     <div
+      /* Repère de la visite (app/lib/visiteBibliotheque.ts). ⚠️ Pas sur la carte
+         COMPACTE de l'onglet Favoris : deux repères du même nom, et la visite
+         cernerait celui que le hasard du document met en premier. */
+      data-visite={compact ? undefined : 'bib-auteur'}
       // Le survol NE POSE PLUS de filet vert clair. Sur le parchemin de la page, ce
       // #a7d3b6 franc — la seule couleur saturée de la carte — cerclait le bloc d'un
       // trait qui criait plus fort que tout ce qu'il entourait. La carte se détache
@@ -348,7 +360,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       </div>
 
       {listeOuverte && (
-        <div style={{ borderTop: '1px solid var(--cs-fond-doux)', padding: '8px 0 12px' }}>
+        <div data-visite="bib-oeuvres" style={{ borderTop: '1px solid var(--cs-fond-doux)', padding: '8px 0 12px' }}>
           <style>{`
             .bib-ligne { display: flex; align-items: stretch; transition: background-color 0.18s ease; }
             .bib-ligne:hover:not(.bib-correspond) { background-color: rgba(var(--cs-vert-rgb),0.055); }
@@ -464,7 +476,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                         // traduction pour retrouver l’original. Le texte original n’ayant pas de
                         // ligne d’œuvre à lui, sa référence prend le suffixe « #la »
                         // (voir app/lib/refsFavoris.ts).
-                        <div className="bib-ligne" style={{ marginTop: iv === 0 ? MARGE_APRES_TITRE : MARGE_ENTRE_LIGNES, alignItems: 'center' }}>
+                        <div data-visite="bib-edition" className="bib-ligne" style={{ marginTop: iv === 0 ? MARGE_APRES_TITRE : MARGE_ENTRE_LIGNES, alignItems: 'center' }}>
                           <div className="bib-etoile" style={{ display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: '20px' }}>
                             <EtoileFavori actif={favorisOeuvres.has(refFavoriOriginal(o.id_oeuvre))}
                               onToggle={() => toggleFavoriOeuvre(refFavoriOriginal(o.id_oeuvre))} size={12}
@@ -490,7 +502,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           la PREMIÈRE du groupe, qui prend le blanc d'après-titre : ici,
                           c'est la ligne de traduction quand l'œuvre n'a pas de texte
                           original à mettre au-dessus d'elle. */}
-                      <div className="bib-ligne" style={{ marginTop: iv === 0 && !aOriginal ? MARGE_APRES_TITRE : MARGE_ENTRE_LIGNES, alignItems: 'center' }}>
+                      <div data-visite="bib-edition" className="bib-ligne" style={{ marginTop: iv === 0 && !aOriginal ? MARGE_APRES_TITRE : MARGE_ENTRE_LIGNES, alignItems: 'center' }}>
                         {/* Favori en tête de ligne, en guise de puce, à gauche de la traduction.
                             Montée au titre, l'étoile laisse ici la même cale que la ligne de texte
                             original, pour que les libellés restent alignés entre eux. */}
@@ -686,7 +698,7 @@ function Pagination({ page, nbPages, onChanger, mobile }: {
           que 288 (audit de responsiveness, 2026-09-06). Le pied suffit alors. */}
       {!mobile && <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flecheFixe('gauche', auDebut)}>{chevron('gauche', 14)}</button>}
       {!mobile && <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flecheFixe('droite', aLaFin)}>{chevron('droite', 14)}</button>}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
+      <div data-visite="bib-pagination" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
         <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flechePied(auDebut)}>{chevron('gauche', 12)}</button>
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
           Page {page + 1} sur {nbPages}
@@ -1950,6 +1962,43 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
     requestAnimationFrame(() => listeAuteursRef.current?.scrollIntoView({ block: 'start' }))
   }
 
+  // ── LA VISITE ──────────────────────────────────────────────────────────────
+  // Ce que la page montre d'elle-même la première fois qu'on l'ouvre (charte § 46).
+  //
+  // ⚠️ Elle attend que la LISTE soit là, et que l'on soit sous l'onglet qu'elle
+  // DÉCRIT : les cartes viennent du serveur, mais une visite ouverte sur une liste
+  // vide, ou sur le catalogue, cernerait des sujets qui n'y sont pas.
+  // ⚠️ L'état est un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle
+  // est déjà ouverte, la visite repart de son grand message, et le composant ne s'y
+  // remet qu'en se REMONTANT. Le compteur lui sert de clé.
+  // ⛔ Et l'offre ne se fait qu'UNE fois : sans le témoin, revenir sur cet onglet
+  // rouvrirait la visite à chaque aller-retour.
+  const [visite, setVisite] = useState(0)
+  const listePrete = onglet === 'bibliotheque' && auteursPage.length > 0
+  const visiteProposee = useRef(false)
+  useEffect(() => {
+    if (!listePrete || visiteProposee.current) return
+    visiteProposee.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLIOTHEQUE)
+    else if (visiteFaite(CLE_VISITE_BIBLIOTHEQUE)) return
+    const depart = window.setTimeout(() => setVisite(1), 260)
+    return () => window.clearTimeout(depart)
+  }, [listePrete])
+
+  // La page OFFRE sa visite à la barre de navigation, qui porte un bouton
+  // d'administration pour la rappeler (voir app/lib/demandeDeVisite.ts).
+  useEffect(() => offrirLaVisite(() => setVisite(n => n + 1)), [])
+
+  // ⚠️ L'ÉTAPE DES ŒUVRES DÉPLIE POUR DE BON la première carte : une visite qui
+  // décrirait ce geste sans le faire laisserait l'étape suivante cerner une ligne
+  // d'édition qui n'existe pas. ⛔ Le pli ne se referme PAS d'une étape à l'autre —
+  // celle de l'étoile vit dans la carte ouverte — il se rend à la FIN de la visite,
+  // comme la colonne des notes de la Polyglotte.
+  const [carteDepliee, setCarteDepliee] = useState<boolean | undefined>(undefined)
+  const preparerScene = useCallback((scene: SceneVisite | undefined) => {
+    if (scene?.ouvrirOeuvres) setCarteDepliee(true)
+  }, [setCarteDepliee])
   return (
     <main style={{
       background: 'var(--cs-fond)',
@@ -1974,6 +2023,9 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
         </div>
 
         {/* Onglets — modèle commun du site, cf. `.cs-onglets` dans globals.css. */}
+        {/* Repère de la visite : l'enveloppe, non la barre — le modèle commun des
+            onglets ne porte pas d'attribut de données, et l'envelopper ne coûte rien. */}
+        <div data-visite="bib-onglets">
         <OngletsPage
           intitule="Sections de la bibliothèque"
           actif={onglet}
@@ -1985,12 +2037,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             { cle: 'catalogue' as Onglet, libelle: 'Catalogue des traductions' },
           ]}
         />
+        </div>
 
         {/* Contenu onglet Bibliothèque */}
         {onglet === 'bibliotheque' && (
           <>
             {/* Recherche + bouton Filtres, côte à côte. */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: '0 auto 12px', maxWidth: '30rem' }}>
+            <div data-visite="bib-recherche" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: '0 auto 12px', maxWidth: '30rem' }}>
               <div style={{ position: 'relative', flex: 1, maxWidth: '21.25rem' }}>
                 <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                   placeholder="Rechercher un auteur ou une œuvre"
@@ -2092,8 +2145,10 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             ) : (
               <>
                 <div ref={listeAuteursRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
-                  {auteursPage.map(auteur => (
-                    <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux} />
+                  {auteursPage.map((auteur, rang) => (
+                    <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux}
+                      // ⚠️ La visite ne déplie que la PREMIÈRE carte : c'est la seule qu'elle cerne.
+                      ouvertImpose={rang === 0 ? carteDepliee : undefined} />
                   ))}
                 </div>
                 <Pagination page={pageAuteursActive} nbPages={nbPagesAuteurs} onChanger={changerPageAuteurs} mobile={estMobile} />
@@ -2120,6 +2175,16 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
         {/* Contenu onglet Proposer */}
         {onglet === 'proposer' && <OngletProposer />}
       </div>
+      {/* La visite, en dernier : elle se rend dans un portail vers le corps du
+          document, et son rang d'empilement passe au-dessus de la barre. */}
+      {visite > 0 && (
+        <VisiteGuidee
+          key={visite}
+          visite={VISITE_BIBLIOTHEQUE}
+          onScene={preparerScene}
+          onFin={() => { setVisite(0); setCarteDepliee(undefined) }}
+        />
+      )}
       <ModaleAuteur id={auteurModal} onClose={() => setAuteurModal(null)} />
     </main>
   )

@@ -61,6 +61,13 @@ export type SceneVisite = {
    * réglage du lecteur, gardé dans son navigateur, et une visite ne le change pas.
    */
   ouvrirNotes?: boolean
+  /**
+   * Bibliothèque : la carte du premier auteur DÉPLIE ses œuvres. Repliée, elle ne
+   * porte qu'un pied de carte, et l'étape qui parle des éditions n'aurait rien à
+   * cerner. Même règle que la colonne des notes : ce qu'une étape annonce, elle le
+   * fait, et la page rend son état à la fin de la visite.
+   */
+  ouvrirOeuvres?: boolean
 }
 
 export type EtapeVisite = {

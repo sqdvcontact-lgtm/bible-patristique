@@ -6300,19 +6300,21 @@ sa forme (case / trait / case). Ici, sa mécanique.
 
 ⛔ **L'ARRÊT DE LA BARRE EST PARTAGÉ, il ne se recopie pas** (2026-09-06).
 `app/lib/visiteBarreDuSite.ts` porte `ETAPE_RECHERCHE_SITE`, et les deux scénarios
-l'ouvrent en tête. La barre est la seule chose qui ne change pas d'une page à l'autre :
+l'ouvrent en tête, la troisième aussi. La barre est la seule chose qui ne change pas
+d'une page à l'autre :
 deux exemplaires de la même explication divergeraient au premier ajustement, et le
 lecteur qui ferait deux visites lirait deux fois la même chose de deux façons.
 ⚠️ Elle ne se répète pas pour autant : chaque page ne montre la sienne qu'une fois, et
 rien ne dit qu'un lecteur passera par la Bible classique avant d'ouvrir la Polyglotte.
 
-**Quatre fichiers, et un seul porte du DOM.**
+**Cinq fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
 - `app/lib/visiteBarreDuSite.ts` — l'arrêt commun à toutes les visites, la barre du
   site ne changeant pas d'une page à l'autre.
-- `app/lib/visiteBibleClassique.ts` et `app/lib/visitePolyglotte.ts` — les scénarios,
+- `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts` et
+  `app/lib/visiteBibliotheque.ts` — les scénarios,
   en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
   de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
@@ -6330,12 +6332,22 @@ la boucle ne fait pas défiler un sujet de la barre, qui est fixe et déjà à l
 ⚠️ Au-delà de 3200 ne subsistent que le carton d'une notification (4000) et les
 infobulles de note (9999), que la page inerte n'ouvre pas.
 
+⛔ **CE QU'UNE ÉTAPE ANNONCE, LA PAGE LE FAIT, et le REND ensuite.** Trois scènes
+aujourd'hui (`SceneVisite`) : `volet` ouvre l'onglet d'un téléphone, `choisirVerset`
+sélectionne le verset dont l'étape parle, `ouvrirNotes` déplie la colonne des notes de
+la Polyglotte, `ouvrirOeuvres` déplie la première carte de la Bibliothèque. ⚠️ Les deux
+dernières IMPOSENT sans poser : l'état du lecteur reste dessous et reparaît à la fin de
+la visite. ⛔ Et un pli imposé ne se referme pas d'une étape à l'autre quand l'étape
+suivante vit dedans — celle de l'étoile est dans la carte que la précédente a ouverte.
+
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Neuf aujourd'hui : `recherche-site` (Navbar), `edition` (EncartTraduction),
+Quinze aujourd'hui : `recherche-site` (Navbar), `edition` (EncartTraduction),
 `recherche-livre` et `livres` (NavLivres), `entete-lecture` (TexteBible), `peres`
-(PanneauPatristique), plus `poly-colonnes`, `poly-entete` et `poly-notes` sur la
-Polyglotte. Quatre étapes visent des classes qui existaient déjà (`.verset-row`,
-`.verset-actions`, `.poly-row`, `.poly-texte-cell`).
+(PanneauPatristique) ; `poly-colonnes`, `poly-entete` et `poly-notes` sur la
+Polyglotte ; `bib-onglets`, `bib-recherche`, `bib-auteur`, `bib-oeuvres`,
+`bib-edition` et `bib-pagination` sur la Bibliothèque. Quatre étapes visent des
+classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
+`.poly-texte-cell`).
 ⛔ Ne pas les retirer en remaniant un volet : rien ne casse à la compilation, l'étape
 disparaît simplement du parcours. ⚠️ NavLivres est partagé par les deux pages, et son
 repère `livres` sert donc les deux visites — c'était prévu, et il n'a rien coûté.
