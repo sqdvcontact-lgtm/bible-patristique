@@ -34,7 +34,7 @@ const commentaire = [
   '',
   "⛔ Et une visite DÉCRIT une page : elle vieillit dès que la page bouge, sans que rien ne le signale. Ni les types, ni les tests, ni aucune garde ne voient qu'un repère `data-visite` a disparu d'un composant refondu — l'arrêt sort alors du parcours en silence — ni qu'un arrêt décrit un volet qui n'existe plus. La reprise suit donc chaque refonte d'interface, et c'est ce que cette mission tient ouvert.",
   '',
-  "⚠️ Quatre pages sur les onze qui comptent ont leur visite. Les autres — l'œuvre, la recherche, la Communauté, le compte, la bibliographie — n'en ont aucune, et rien ne dit encore si elles en veulent une.",
+  "⚠️ Quatre pages ont leur visite. Les autres — l'œuvre, la recherche, la Communauté, l'espace du lecteur, la bibliographie — n'en ont aucune, et rien ne dit encore si elles en veulent une.",
 ].join('\n')
 
 const taches = [
