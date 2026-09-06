@@ -89,7 +89,9 @@ const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 // La fiche s'ouvre au-dessus de la page de lecture.
-const Z_FICHE = 1200
+// ⛔ Même échelle que la planche agrandie : au-dessus des barres mobiles de la page
+// Bible (1300 et 1250), sous la barre de navigation (3000). Voir GravureAgrandissable.
+const Z_FICHE = 2700
 
 /** Fiche de présentation — la vue porte déjà l'édition source jointe. */
 export type InfoTrad = {

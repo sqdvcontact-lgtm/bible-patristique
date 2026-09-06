@@ -5,6 +5,7 @@ import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { useEstMobile } from '@/app/lib/useEstMobile'
 
 export type ChampLienBiblique = 'lien_1' | 'lien_2' | 'lien_3' | 'lien_4'
 
@@ -176,14 +177,20 @@ export default function ModalLienBiblique({
     })
   }
 
+  // ⛔ La grille de bureau pose 460px de PISTES FIXES (210 + 250) dans une boîte
+  //    qui n'en fait que 331 sur un téléphone : la colonne centrale tombait à zéro
+  //    et les deux volets débordaient. Le repli est un prop en JS, la boîte étant
+  //    pilotée par des styles en ligne qu'aucune média-query ne surcharge.
+  const mobile = useEstMobile()
+
   const valider = async () => {
     if (selectionListe.length === 0 || enregistrement) return
     await onValider(champ, selectionListe)
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '22px', background: 'rgba(20, 25, 20, 0.32)', backdropFilter: 'blur(2px)' }}>
-      <div style={{ width: 'min(940px, 100%)', maxHeight: 'min(760px, calc(100vh - 44px))', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mobile ? '10px' : '22px', background: 'rgba(20, 25, 20, 0.32)', backdropFilter: 'blur(2px)' }}>
+      <div style={{ width: 'min(940px, 100%)', maxHeight: mobile ? 'calc(100dvh - 20px)' : 'min(760px, calc(100dvh - 44px))', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
           <div>
             <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: '#8b7a5c', fontWeight: 700 }}>Lien biblique</p>
@@ -193,7 +200,22 @@ export default function ModalLienBiblique({
           <button onClick={onFermer} style={{ border: 0, background: 'transparent', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '1.125rem', lineHeight: 1, padding: '2px 4px' }}>×</button>
         </div>
 
-        <div style={{ minHeight: 0, display: 'grid', gridTemplateColumns: '210px minmax(0, 1fr) 250px' }}>
+        <div style={{ minHeight: 0, display: 'grid', gridTemplateColumns: mobile ? '1fr' : '210px minmax(0, 1fr) 250px', gridTemplateRows: mobile ? 'auto minmax(0, 1fr) auto' : undefined }}>
+          {mobile ? (
+            // Deux colonnes de soixante-treize livres ne tiennent pas dans 300px :
+            // le choix passe par un menu natif, qui se déroule par-dessus la fenêtre.
+            <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)' }}>
+              <select aria-label="Livre biblique" value={livre}
+                onChange={e => { setChargementLivre(true); setLivre(e.target.value) }}
+                style={{ width: '100%', boxSizing: 'border-box', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '9px 10px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)' }}>
+                {(['AT', 'NT'] as const).map(testament => (
+                  <optgroup key={testament} label={testament === 'AT' ? 'Ancien Testament' : 'Nouveau Testament'}>
+                    {livresParTestament[testament].map(l => <option key={l.code} value={l.code}>{l.nom}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+          ) : (
           <aside style={{ minHeight: 0, overflowY: 'auto', borderRight: '1px solid var(--cs-fond-doux)', padding: '14px 12px', background: 'var(--cs-fond-clair)' }}>
             {(['AT', 'NT'] as const).map(testament => (
               <div key={testament} style={{ marginBottom: '16px' }}>
@@ -209,8 +231,9 @@ export default function ModalLienBiblique({
               </div>
             ))}
           </aside>
+          )}
 
-          <main style={{ minHeight: 0, overflowY: 'auto', padding: '14px 16px 16px' }}>
+          <main style={{ minHeight: 0, overflowY: 'auto', padding: mobile ? '12px 12px 14px' : '14px 16px 16px' }}>
             <input
               value={recherche}
               onChange={e => {
@@ -269,7 +292,7 @@ export default function ModalLienBiblique({
             )}
           </main>
 
-          <aside style={{ minHeight: 0, overflowY: 'auto', borderLeft: '1px solid var(--cs-fond-doux)', padding: '14px 14px', background: 'var(--cs-fond-clair)' }}>
+          <aside style={{ minHeight: 0, overflowY: 'auto', padding: '14px 14px', background: 'var(--cs-fond-clair)', ...(mobile ? { borderTop: '1px solid var(--cs-fond-doux)', maxHeight: '38dvh' } : { borderLeft: '1px solid var(--cs-fond-doux)' }) }}>
             <p style={{ margin: '0 0 8px', fontSize: '0.5625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', fontWeight: 700 }}>Type de lien</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
               {TYPES_LIEN.filter(t => champs.includes(t.champ)).map(t => (
@@ -297,7 +320,7 @@ export default function ModalLienBiblique({
           </aside>
         </div>
 
-        <div style={{ padding: '12px 18px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', background: 'var(--cs-fond-clair)' }}>
+        <div style={{ padding: '12px 18px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px 12px', background: 'var(--cs-fond-clair)' }}>
           <p style={{ margin: 0, color: 'var(--cs-texte-gris)', fontSize: '0.71875rem' }}>
             {selectionListe.length > 0 ? `${selectionListe.length} verset(s) sélectionné(s)` : 'Aucun verset sélectionné'}
           </p>

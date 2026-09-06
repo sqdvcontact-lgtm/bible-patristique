@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 // Modale de signalement UNIQUE, partagée par toutes les pages (Bible, Œuvre,
 // Polyglotte, Panneau patristique…). Même mise en forme partout.
@@ -43,9 +44,15 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
   if (typeof document === 'undefined') return null
   return createPortal(
     <div onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      // ⛔ 2800, non 2000 : le signalement s'ouvre DEPUIS le tiroir des commentaires d'un
+      //    essai (voile 2400, tiroir 2401) et depuis les fiches (2700). À 2000 il paraissait
+      //    SOUS le voile de ce qui l'avait appelé. Il reste sous la barre (3000).
+      // ⛔ Le calque part du BAS DE LA BARRE, jamais de `inset: 0` : centré sur tout
+      //    l'écran en paysage, son en-tête et sa croix passaient sous la barre, peinte
+      //    par-dessus, et devenaient inatteignables (charte, § Fenêtres contextuelles).
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()}
-        style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-danger-bord)', width: '100%', maxWidth: '26.25rem', boxShadow: 'var(--cs-ombre-modale)', display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 40px)', overflow: 'hidden' }}>
+        style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-danger-bord)', width: '100%', maxWidth: '26.25rem', boxShadow: 'var(--cs-ombre-modale)', display: 'flex', flexDirection: 'column', maxHeight: '100%', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'linear-gradient(180deg, var(--cs-danger-fond) 0%, var(--cs-danger-fond) 100%)', flexShrink: 0 }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '9px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#7a2f18', margin: 0 }}>
             <span aria-hidden="true" style={{ display: 'inline-block', width: '3px', height: '17px', borderRadius: '4px', background: 'var(--cs-danger-aplat)' }} />

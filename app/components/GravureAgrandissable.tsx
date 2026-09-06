@@ -30,7 +30,11 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 /** Au-dessus de la barre de navigation et des volets, sous rien d'autre. */
-const Z_PLANCHE = 1201
+// ⛔ AU-DESSUS des barres mobiles de la page Bible (onglets 1300, bandeau 1250) et
+// du tiroir des commentaires d'un essai (2401), SOUS la barre de navigation (3000).
+// À 1201, la planche agrandie s'ouvrait derrière elles, qui restaient tapables
+// par-dessus le dialogue (audit de responsiveness, 2026-09-06).
+const Z_PLANCHE = 2700
 
 export function GravureAgrandissable({
   legende, alt, enfant, agrandi,

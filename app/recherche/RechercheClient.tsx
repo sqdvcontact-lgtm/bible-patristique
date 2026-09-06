@@ -727,7 +727,16 @@ export default function RechercheClient() {
   const fin   = Math.min((pageActive + 1) * PAGE, totalActive)
   // 44 px : la mesure de la marge de référence sur la page Polyglotte (`LARGEUR_REF`).
   // L'en-tête et le corps partagent la grille.
-  const polyTmpl = `44px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
+  //
+  // ⛔ UNE SEULE COLONNE SUR TÉLÉPHONE, et c'est la doctrine de la page Polyglotte
+  //    prise par l'autre bout. Trois colonnes de sérif JUSTIFIÉ à 14px se partageaient
+  //    (375 − 44 − 44) / 3 = 96 px, soit une douzaine de signes par ligne : la page de
+  //    lecture, elle, refuse l'outil sous 820 px plutôt que de le comprimer (charte,
+  //    § Responsive). Ici l'onglet ne peut pas se refuser — il porte les résultats —
+  //    mais la comparaison n'a pas de sens dans 96 px. On garde donc la PREMIÈRE colonne
+  //    retenue, en pleine mesure, et le menu de colonne reste ouvert pour en changer.
+  const colAffichees = mobile ? colTrads.slice(0, 1) : colTrads
+  const polyTmpl = `44px ${colAffichees.map(() => 'minmax(0, 1fr)').join(' ')}`
 
   // Maintien enfoncé sur « Précédent »/« Suivant » : les pages défilent vite. Un premier
   // pas immédiat, puis, après une courte retenue, une répétition rapide jusqu'au relâché.
@@ -1183,10 +1192,10 @@ export default function RechercheClient() {
               déployer ; ici les bibles n'en ont pas, et un menu natif les groupe par
               langue sans qu'on écrive un panneau de plus. */}
           {done && onglet==='polyglotte' && versetsTotalFiltre > 0 && (
-            <div className="poly-hd" style={{ gridTemplateColumns: polyTmpl, flexShrink:0, margin:'12px 22px 0' }}>
+            <div className="poly-hd" style={{ gridTemplateColumns: polyTmpl, flexShrink:0, margin: mobile ? '12px 12px 0' : '12px 22px 0' }}>
               {/* La marge de la référence : la réglure ne commence qu'après elle. */}
               <div />
-              {colTrads.map((code, i) => {
+              {colAffichees.map((code, i) => {
                 const autresChoisies = new Set(colTrads.filter((_, j) => j !== i))
                 const trad = traductions.find(t => t.code === code)
                 const groupes = [
@@ -1223,7 +1232,7 @@ export default function RechercheClient() {
           )}
 
           {/* Résultats */}
-          <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsTotalFiltre > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
+          <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsTotalFiltre > 0) ? (mobile ? '0 12px 4px' : '0 22px 4px') : (mobile ? '6px 12px 4px' : '6px 22px 4px') }}>
 
             {!done && !loading && !reference && (
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
@@ -1459,7 +1468,7 @@ export default function RechercheClient() {
                                   <span>{v.chapitre}, {v.verset}</span>
                                 </div>
                                 {/* Une colonne par traduction */}
-                                {colTrads.map((code, i) => {
+                                {colAffichees.map((code, i) => {
                                   const lang = traductions.find(t => t.code === code)?.lang ?? 'fr'
                                   // `original` garde l'enrichissement (`<i>` de Sacy, etc.) pour l'affichage ;
                                   // `brut` (dépouillé) sert à détecter l'absence du mot et à césurer le grec.

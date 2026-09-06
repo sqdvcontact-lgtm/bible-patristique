@@ -368,8 +368,10 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
   const btnEd: React.CSSProperties = { fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', cursor:'pointer' }
   const gardeSel = (e: React.MouseEvent) => e.preventDefault()
 
+  // 2700 : la fenêtre d'édition passe au-dessus des barres mobiles de la page Bible
+  // (onglets 1300, bandeau 1250), et sous la barre de navigation (3000).
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:2700, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
           <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
