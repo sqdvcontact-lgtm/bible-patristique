@@ -22,6 +22,11 @@ import {
   type NoticeBibliographique,
 } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
+import {
+  libelleDuLien, nomsAttestes, noticeDeSource,
+  type LienDAttestation, type NomAtteste, type SourcePericope,
+} from '@/app/lib/provenanceNoms'
+import { hoteDeLAdresse } from '@/app/lib/sourceNumerique'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
 import { ABREV_FR } from '@/app/lib/bible'
@@ -74,6 +79,23 @@ type Occurrence = {
   niveau: number; est_principale: boolean; fiabilite: string | null
 }
 type Variante = { id: number; nom: string; usage_recherche: string | null }
+
+/** Une ligne de `pericope_noms` avec son dossier documentaire embarqué.
+ *  ⛔ On interroge les NOMS et l'on embarque les liens, jamais l'inverse : c'est la
+ *  table qu'on sait filtrer par son index (`pericope_id`), et la règle du § 18 vaut
+ *  ici comme ailleurs. */
+type LigneNom = {
+  id: number; nom: string; usage_recherche: string | null
+  est_principal: boolean; ordre: number | null
+  pericope_nom_sources: {
+    statut_lien: string | null; degre_preuve: string | null
+    reference_interne: string | null; note: string | null; source_code: string
+  }[] | null
+}
+type LigneSource = {
+  code: string; auteur: string | null; titre: string; annee: number | null
+  editeur: string | null; url: string | null; est_externe: boolean
+}
 
 const FOND = 'var(--cs-fond)'
 const PANEL = 'var(--cs-fond-clair)'
@@ -191,6 +213,7 @@ export default function PericopePage() {
   const [peri, setPeri] = useState<Pericope | null>(null)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
   const [variantes, setVariantes] = useState<Variante[]>([])
+  const [attestations, setAttestations] = useState<NomAtteste[]>([])
   const [biblio, setBiblio] = useState<RefBiblio[]>([])
   const [trad, setTrad] = useState<string>('TR0001')
   const [textes, setTextes] = useState<Record<number, VersetPericope[]>>({})
@@ -245,23 +268,52 @@ export default function PericopePage() {
         // afficher « introuvable » sur une simple erreur réseau était trompeur.
         if (error) { setEtat('erreur'); return }
         if (!p) { setEtat('introuvable'); return }
-        const [{ data: occ }, { data: noms }, { data: refs }] = await Promise.all([
+        const [{ data: occ }, { data: noms }, { data: refs }, { data: sources }] = await Promise.all([
           supabase.from('pericope_occurrences')
             .select('id, livre, canon_id_debut, canon_id_fin, niveau, est_principale, fiabilite')
             .eq('pericope_id', id)
             .order('est_principale', { ascending: false }).order('niveau').order('id'),
+          // ⚠️ Le nom PRINCIPAL entre dans cette lecture, à la différence d'avant : il est
+          // le titre de la page, et c'est le nom le mieux documenté du lot. Les
+          // « Appellations » se dérivent ensuite, elles ne se demandent plus à part.
           supabase.from('pericope_noms')
-            .select('id, nom, usage_recherche, est_principal, ordre')
-            .eq('pericope_id', id).eq('visible_public', true).eq('est_principal', false)
+            .select('id, nom, usage_recherche, est_principal, ordre, pericope_nom_sources(statut_lien, degre_preuve, reference_interne, note, source_code)')
+            .eq('pericope_id', id).eq('visible_public', true)
             .order('ordre'),
           supabase.from('bibliographie_admissible')
             .select('ouvrage_id, rubrique, importance, auteurs, titre, sous_titre, directeurs, collection, numero_collection, lieu, editeur, annee, pages, reference_passage')
             .eq('pericope_id', id),
+          // Le registre des sources : vingt-cinq lignes, lues d'un trait. ⚠️ Il part avec
+          // la vague, il ne l'attend pas — une attestation sans son registre ne se compose
+          // pas, et une attestation absente ne ferme pas la page.
+          supabase.from('sources_pericopes').select('code, auteur, titre, annee, editeur, url, est_externe'),
         ])
         if (annule) return
         setPeri(p as Pericope)
         setOccurrences((occ ?? []) as Occurrence[])
-        setVariantes((noms ?? []) as Variante[])
+        const lignesNoms = (noms ?? []) as unknown as LigneNom[]
+        setVariantes(lignesNoms.filter(n => !n.est_principal).map(n => ({ id: n.id, nom: n.nom, usage_recherche: n.usage_recherche })))
+        const registre = new Map<string, SourcePericope>(
+          ((sources ?? []) as LigneSource[]).map(s => [s.code, {
+            code: s.code, auteur: s.auteur, titre: s.titre, annee: s.annee,
+            editeur: s.editeur, url: s.url, estExterne: s.est_externe,
+          }]),
+        )
+        const liens: LienDAttestation[] = lignesNoms.flatMap(n =>
+          (n.pericope_nom_sources ?? []).flatMap(l => {
+            const source = registre.get(l.source_code)
+            // ⛔ Un lien dont le registre ignore la source ne se compose pas : on ne
+            // nomme pas un témoin qu'on ne sait pas nommer.
+            return source ? [{
+              nomId: n.id, statut: l.statut_lien, degre: l.degre_preuve,
+              referenceInterne: l.reference_interne, note: l.note, source,
+            }] : []
+          }),
+        )
+        setAttestations(nomsAttestes(
+          lignesNoms.map(n => ({ id: n.id, nom: n.nom, estPrincipal: n.est_principal, ordre: n.ordre })),
+          liens,
+        ))
         const references = (refs ?? []) as RefBiblio[]
         setBiblio(references)
         setEtat('ok')
@@ -461,6 +513,67 @@ export default function PericopePage() {
         </section>
       )}
 
+      {/* ATTESTATION DES NOMS — la signature éditoriale du site, et elle ne paraissait
+          nulle part. Nommer un passage est la seule écriture entièrement propre au site :
+          « Les noces de Cana », « Le premier signe » ne se lisent dans aucun texte biblique.
+          Chaque nom porte en base son dossier documentaire, et 785 de ces liens désignent
+          une source EXTERNE sur un nom visible, dans les 249 péricopes du catalogue.
+          ⛔ La section se pose ENTRE la notice et la bibliographie : c'est de l'apparat,
+          et les deux apparats de cette colonne se composent par le même moteur.
+          ⚠️ Ce qui l'ouvre est la liste des attestations, non le nombre de noms : un nom
+          que rien d'externe n'atteste ne paraît pas ici (voir app/lib/provenanceNoms.ts). */}
+      {attestations.length > 0 && (
+        <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
+          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Attestation des noms</p>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '13px' }}>
+            {attestations.map(n => (
+              <li key={n.nomId}>
+                {/* Le nom se compose comme partout ailleurs sur la page : c'est le même
+                    objet, et un nom cité dans son propre dossier ne change pas de face. */}
+                <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-encre)', margin: '0 0 5px', lineHeight: 1.3 }}>
+                  {rendreTexteEnrichi(typo(n.nom))}
+                </p>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {n.liens.map((l, i) => (
+                    <li key={`${l.source.code}-${i}`} style={{ borderLeft: `2px solid ${SEP}`, paddingLeft: '8px' }}>
+                      <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>
+                        {libelleDuLien(l)}
+                      </p>
+                      <div style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.4 }}>
+                        <ReferenceBibliographique notice={noticeDeSource(l.source, i)} />
+                        {/* ⛔ Jamais d'adresse brute : le nom de domaine, et le lien
+                            dessus (charte § 26). */}
+                        {l.source.url && hoteDeLAdresse(l.source.url) && (
+                          <>
+                            {' '}
+                            <a href={l.source.url} target="_blank" rel="noopener noreferrer"
+                              style={{ color: 'var(--cs-vert)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                              {hoteDeLAdresse(l.source.url)}
+                            </a>
+                          </>
+                        )}
+                      </div>
+                      {l.referenceInterne && (
+                        <p style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0', lineHeight: 1.35 }}>
+                          {typo(l.referenceInterne)}
+                        </p>
+                      )}
+                      {/* La voix de l'éditeur : ce que ce lien établit, et ce qu'il
+                          n'établit pas. C'est elle qui vaut le détour, non le renvoi. */}
+                      {l.note && (
+                        <p style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-mention)', margin: '3px 0 0', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto' } as React.CSSProperties}>
+                          {rendreTexteEnrichi(typo(l.note))}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Bibliographie : liste SIMPLE et élégante des ouvrages (vue bibliographie_admissible,
           qui écarte les exclus/à vérifier). Au plus bref : pas de regroupement par discipline,
           pas de renvoi de passage. Les groupes sont aplatis puis dédupliqués. */}
