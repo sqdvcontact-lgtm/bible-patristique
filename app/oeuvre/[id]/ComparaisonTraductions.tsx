@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -628,7 +629,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
           </div>
         </div>
       )}
-      {chargement && <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.75rem' }}>Chargement de la division…</p>}
+      {chargement && <MotAttente>Chargement de la division…</MotAttente>}
       {erreur && <p role="alert" style={{ color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
       {!chargement && !erreur && groupesAffiches.length === 0 && (
         <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.75rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>

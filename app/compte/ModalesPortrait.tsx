@@ -3,6 +3,7 @@
 // Les deux modales du portrait : le CHOIX d'une illustration, puis son CADRAGE.
 
 import React, { useEffect, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Image from 'next/image'
 import { CADRAGE_PAR_DEFAUT, urlPortrait, ZOOM_MAX, ZOOM_MIN, type Cadrage } from '@/app/lib/portraits'
 
@@ -52,7 +53,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
         {erreur && <p style={{ fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', margin: '0 0 12px' }}>{erreur}</p>}
 
         {!familles && !erreur && (
-          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', padding: '30px 0' }}>Chargement…</p>
+          <MotAttente centre marge="30px 0" />
         )}
 
         {familles && (

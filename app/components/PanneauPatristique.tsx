@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { parseNotes } from '@/app/lib/notes'
@@ -752,7 +753,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       {/* Liste défilante : occupe la place disponible pour que la zone de saisie
           reste épinglée au bas du volet. */}
       <div style={{ flex:1, minHeight:0, overflowY:'auto' }}>
-        {loading && <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Chargement…</p>}
+        {loading && <MotAttente />}
         {!loading && commentaires.length === 0 && (
           <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'12px', padding:'8px 0' }}>
             {/* Même carapace que le volet d'une œuvre, et posée de la même façon : au MILIEU

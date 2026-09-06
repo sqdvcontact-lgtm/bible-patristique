@@ -252,15 +252,14 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           margin-bottom: 1mm !important;
           text-indent: 0 !important;
         }
-        @keyframes essai-note-spin { to { transform: rotate(360deg) } }
         @keyframes essai-note-progress { from { width: 0% } to { width: 100% } }
         .essai-note-spinner {
           display: inline-block;
           width: 14px; height: 14px;
-          border: 2px solid var(--cs-bord-clair);
+          border: 2px solid var(--cs-bord);
           border-top-color: var(--cs-vert);
           border-radius: 50%;
-          animation: essai-note-spin 0.65s linear infinite;
+          animation: spin 0.7s linear infinite;
         }
       `}</style>
 

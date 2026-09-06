@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { EcranAttente } from '@/app/lib/attenteEnCreux'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -118,11 +119,7 @@ export default function ProfilPublicPage() {
     </main>
   )
 
-  if (!profil) return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>Chargement…</p>
-    </main>
-  )
+  if (!profil) return <EcranAttente />
 
   const rang = profil.lecture ? calculerRang(profil.lecture.nb_auteurs, profil.lecture.total_auteurs) : null
   const couleurs = rang ? couleurRang(rang.rang) : null

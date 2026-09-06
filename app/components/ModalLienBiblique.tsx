@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -252,7 +253,7 @@ export default function ModalLienBiblique({
                   ))}
                 </div>
                 {chargementLivre ? (
-                  <p style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontSize: '0.75rem' }}>Chargement du livre...</p>
+                  <MotAttente>Chargement du livre…</MotAttente>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '7px' }}>
                     {versetsChapitre.map(v => (

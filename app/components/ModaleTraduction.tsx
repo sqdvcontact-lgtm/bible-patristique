@@ -60,6 +60,7 @@
 // pas rendre la fiche si tout tenait dans un seul composant.
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
@@ -406,7 +407,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
             )}
           </header>
           {info === null ? (
-            <p className="trad-bloc" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '30px 0', textAlign: 'center' }}>Chargement…</p>
+            <MotAttente centre marge="30px 0" />
           ) : (
             <>
               {i.bio_courte && (

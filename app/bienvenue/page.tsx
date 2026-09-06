@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { EcranAttente } from '@/app/lib/attenteEnCreux'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -18,11 +19,7 @@ export default function BienvenuePage() {
     })
   }, [router])
 
-  if (!pret) return (
-    <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
-    </main>
-  )
+  if (!pret) return <EcranAttente />
 
   return (
     <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>

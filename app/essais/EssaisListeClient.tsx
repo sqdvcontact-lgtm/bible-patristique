@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { CATEGORIES_ESSAIS } from './EtapeMetadonnees'
@@ -577,7 +578,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       </div>
     )
   }
-  if (connecte === null) return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (connecte === null) return <MotAttente centre />
   return (
     <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '30px 34px', textAlign: 'center' }}>
       <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
@@ -684,7 +685,7 @@ function OngletMesEcrits({
   if (connecte === false) {
     return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
   }
-  if (essais === null) return <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (essais === null) return <MotAttente />
   if (essais.length === 0) return <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun écrit pour l&apos;instant.</p>
 
   const filtreActif = FILTRES_ECRITS.find(f => f.cle === filtre) ?? FILTRES_ECRITS[0]
@@ -882,9 +883,9 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
   return (
     <div style={{ maxWidth: '35rem', margin: '0 auto', textAlign: 'center', paddingTop: '8px' }}>
       {!verset ? (
-        <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '20px' }}>
-          {chargement ? 'Chargement…' : 'Impossible de charger une suggestion.'}
-        </p>
+        chargement ? <MotAttente marge="20px 0 0" /> : (
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '20px' }}>Impossible de charger une suggestion.</p>
+        )
       ) : (
         <>
           <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '34px 36px 28px', marginBottom: '18px' }}>

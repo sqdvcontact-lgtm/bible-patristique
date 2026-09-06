@@ -1,5 +1,6 @@
 ﻿'use client'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '@/app/lib/supabase'
@@ -348,7 +349,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
     contenu = (
       <div>
         <BoutonRetour onClick={() => setChapitre(null)}>{NOM_LIVRE[livre] ?? ABREV_FR[livre]}, chapitres</BoutonRetour>
-        {chargement ? <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p> : (
+        {chargement ? <MotAttente /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {versets.map(v => {
               const ref = labelVerset(livre, chapitre, v.verset)
@@ -426,7 +427,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
           placeholder="Chercher une œuvre (titre ou auteur)…"
           style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '12px', outline: 'none' }} />
         {oeuvres === null ? (
-          <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement du catalogue…</p>
+          <MotAttente>Chargement du catalogue…</MotAttente>
         ) : resultats.length === 0 ? (
           <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{q ? 'Aucune œuvre ne correspond.' : 'Aucune œuvre disponible.'}</p>
         ) : (
@@ -501,7 +502,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         placeholder="Chercher un passage dans cette œuvre…"
         style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '10px', outline: 'none', flexShrink: 0 }} />
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-        {chargement ? <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p> : (
+        {chargement ? <MotAttente /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {segmentsFiltres.map(s => {
               const sel = selection.has(s.id)
@@ -549,7 +550,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
     setRecherche(''); setOeuvreSel('')
   }, [source])
 
-  if (items === null) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+  if (items === null) return <MotAttente />
   if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l’instant.</p>
 
   const choisir = async (it: any) => {

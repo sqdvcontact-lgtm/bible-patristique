@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
@@ -128,7 +129,7 @@ export default function ConversationPage() {
         {erreur ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#c87070', fontStyle: 'italic' }}>{erreur}</p>
         ) : messages === null ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+          <MotAttente centre />
         ) : messages.length === 0 ? (
           <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', marginTop: '40px' }}>
             Début de votre conversation avec {pseudo}.

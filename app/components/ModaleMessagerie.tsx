@@ -8,6 +8,7 @@
 // clic hors du cadre, ou Échap.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -190,7 +191,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           <>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 14px 8px' }}>
               {messages === null ? (
-                <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '24px' }}>Chargement…</p>
+                <MotAttente centre marge="24px 0 0" />
               ) : erreurConversation ? (
                 <p role="alert" style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', marginTop: '24px' }}>{erreurConversation}</p>
               ) : messages.length === 0 ? (
@@ -256,7 +257,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 14px' }}>
               {conversations === null ? (
-                <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '24px' }}>Chargement…</p>
+                <MotAttente centre marge="24px 0 0" />
               ) : erreurConversations ? (
                 <p role="alert" style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', marginTop: '24px' }}>{erreurConversations}</p>
               ) : convsFiltrees.length === 0 ? (

@@ -1,5 +1,6 @@
 'use client'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MarqueAttente } from '@/app/lib/attenteNavigation'
@@ -2574,7 +2575,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 division (comme cliquer un niveau 1 charge sa section). */}
             {modeComparaisonActif && (
               comparaisonDivisions.length === 0 ? (
-                <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', lineHeight: 1.45, margin: '4px 0 0' }}>Chargement des divisions…</p>
+                <MotAttente marge="4px 0 0">Chargement des divisions…</MotAttente>
               ) : (
                 Array.from(new Set(comparaisonDivisions.map(d => d.book))).map(bk => {
                   const estActif = comparaisonBook === bk
@@ -2763,7 +2764,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       Réessayer
                     </button>
                   </span>
-                ) : niv1Loading ? <span style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)' }}>Chargement…</span> : (
+                ) : niv1Loading ? <MotAttente enLigne /> : (
                   <>
                     {(() => {
                       const intitule = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif

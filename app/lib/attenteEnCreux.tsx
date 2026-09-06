@@ -1,13 +1,28 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 /**
- * Les pièces d'un écran d'attente dessiné EN CREUX : la page vide, aux largeurs
- * réelles de ses volets, le temps que le texte arrive. Deux écrans les partagent,
- * la Bible (`app/loading.tsx`) et l'œuvre (`app/oeuvre/[id]/loading.tsx`) ; une
- * forme recopiée à deux endroits ne reste identique que par accident.
+ * UNE SEULE APPARENCE POUR TOUT CE QUI ATTEND, celle de la page Bible (demande de
+ * l'auteur, 2026-09-06 : « uniformiser l'apparence des chargements sur le modèle de
+ * la page Bible classique »). Le site disait « Chargement… » de vingt-cinq façons :
+ * cinq corps, deux encres, trois polices, des points de suspension tantôt composés
+ * tantôt tapés, et le mot venait tantôt d'un coup, tantôt jamais. Il n'y a plus que
+ * trois pièces, et chacune vient d'ici :
+ *  - `MotAttente`, le mot, là où un bloc VIDE attend son premier contenu ;
+ *  - `Anneau`, l'anneau qui tourne, là où un contenu DÉJÀ LÀ se remplace
+ *    (`MarqueAttente` et `MarqueAttenteVolet`, `attenteNavigation.tsx`) ;
+ *  - `EcranAttente`, la page entière réduite au mot, pour les pages qui n'ont
+ *    pas de volets à dessiner en creux.
+ * ⛔ Écrire un « Chargement… » ailleurs qu'ici, c'est rouvrir la dérive.
  *
- * ⚠️ Aucun crochet ici : le module sert un composant client (la Bible lit son
- * chemin) et un composant serveur (l'œuvre), et doit rester importable des deux.
+ * Les pièces d'un écran d'attente dessiné EN CREUX complètent le tout : la page
+ * vide, aux largeurs réelles de ses volets, le temps que le texte arrive. Trois
+ * écrans les partagent, la Bible (`app/loading.tsx`), l'œuvre
+ * (`app/oeuvre/[id]/loading.tsx`) et la publication (`app/essais/[id]/loading.tsx`) ;
+ * une forme recopiée à plusieurs endroits ne reste identique que par accident.
+ *
+ * ⚠️ Aucun crochet ici : le module sert des composants client (la Bible lit son
+ * chemin) et des composants serveur (l'œuvre), et doit rester importable des deux.
  *
  * Le mot ne vient qu'au bout d'un instant (`cs-attente-paraitre`, `globals.css`) :
  * une arrivée rapide ne montre que le châssis, et rien ne clignote. Il se centre
@@ -19,6 +34,58 @@ export const MOT_ATTENTE: CSSProperties = {
   color: 'var(--cs-texte-faible)',
   fontStyle: 'italic',
   animation: 'cs-attente-paraitre 0.3s ease-out 0.45s both',
+}
+
+/** Le mot d'attente. Il hérite la police de son bloc, comme sur la Bible : ce sont
+ *  le corps, l'encre, l'italique et le délai qui font son apparence, pas la fonte. */
+export function MotAttente({ children = 'Chargement…', centre = false, marge, enLigne = false }: {
+  children?: ReactNode
+  /** Centré dans la largeur de son bloc. */
+  centre?: boolean
+  /** La marge autour du mot, quand le bloc qui l'attend en demande une. */
+  marge?: CSSProperties['margin']
+  /** Un `<span>` au lieu d'un paragraphe, là où un paragraphe n'a pas sa place (un titre). */
+  enLigne?: boolean
+}) {
+  const style: CSSProperties = { ...MOT_ATTENTE, margin: marge, textAlign: centre ? 'center' : undefined }
+  if (enLigne) return <span style={style}>{children}</span>
+  return <p style={style}>{children}</p>
+}
+
+/** L'anneau qui tourne : la marque d'attente de la page et des volets
+ *  (`attenteNavigation.tsx`), et de tout ce qui, ailleurs, tourne en attendant. Une
+ *  seule forme : deux pixels de filet, le bord du site pour la piste, le vert pour la
+ *  part qui tourne, sept dixièmes de seconde par tour. En relief, il se pose sur un
+ *  voile et porte un fond et une ombre, pour se détacher du texte qu'on lit dessous. */
+export function Anneau({ taille = '2.25rem', enRelief = false }: { taille?: string; enRelief?: boolean }) {
+  return (
+    <span
+      style={{
+        display: 'block',
+        width: taille,
+        height: taille,
+        borderRadius: '50%',
+        border: '2px solid var(--cs-bord)',
+        borderTopColor: 'var(--cs-vert)',
+        animation: 'spin 0.7s linear infinite',
+        ...(enRelief ? { background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-flottante)' } : {}),
+      }}
+    />
+  )
+}
+
+/** L'écran d'attente entier, pour une page sans volets à dessiner en creux : le
+ *  fond du site sous la barre, et le mot au centre. C'est l'écran de route des pages
+ *  qui n'en ont pas de propre (`app/loading.tsx`), et celui que montrent les pages
+ *  CLIENT le temps de leur première lecture (compte, profil, prélèvements, péricope),
+ *  pour que le passage de l'un à l'autre ne se voie pas.
+ *  ⛔ Pas de rembourrage sous la barre : `#cs-corps` le pose déjà (AGENTS.md). */
+export function EcranAttente({ children }: { children?: ReactNode }) {
+  return (
+    <main aria-busy="true" style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <MotAttente>{children}</MotAttente>
+    </main>
+  )
 }
 
 /** Une ligne de texte figurée, aux largeurs qu'on lui donne. */

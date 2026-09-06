@@ -1117,8 +1117,7 @@ export default function Navbar() {
     <div style={{ position: "relative", width: mobile ? "100%" : "fit-content" }}>
       <style>{`
         .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
-        @keyframes spin-search { to { transform: rotate(360deg); } }
-        .spinner-search { animation: spin-search 0.8s linear infinite; }
+        .spinner-search { animation: spin 0.7s linear infinite; }
         /* ── LES GROUPES DE LA LISTE, au modèle de la page de résultats ──────────
            Une rubrique en aplat, puis un bloc lavé de la même famille dont les
            lignes se séparent d'un filet. La famille se pose une fois, par --fam

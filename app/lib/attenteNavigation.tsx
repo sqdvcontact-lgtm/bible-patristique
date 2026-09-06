@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type MutableRefObject, type ReactNode } from 'react'
+import { Anneau } from '@/app/lib/attenteEnCreux'
 import { useRouter } from 'next/navigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
@@ -144,17 +145,7 @@ export function MarqueAttenteVolet({ enAttente }: { enAttente: boolean }) {
   if (!enAttente || !allume) return null
   return (
     <div aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', padding: '22px 0' }}>
-      <span
-        style={{
-          display: 'block',
-          width: '1.5rem',
-          height: '1.5rem',
-          borderRadius: '50%',
-          border: '2px solid var(--cs-bord)',
-          borderTopColor: 'var(--cs-vert)',
-          animation: 'spin 0.7s linear infinite',
-        }}
-      />
+      <Anneau taille="1.5rem" />
     </div>
   )
 }
@@ -218,19 +209,7 @@ export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR }: {
           justifyContent: 'center',
         }}
       >
-        <span
-          style={{
-            display: 'block',
-            width: '2.25rem',
-            height: '2.25rem',
-            borderRadius: '50%',
-            border: '2px solid var(--cs-bord)',
-            borderTopColor: 'var(--cs-vert)',
-            animation: 'spin 0.7s linear infinite',
-            background: 'var(--cs-surface)',
-            boxShadow: 'var(--cs-ombre-flottante)',
-          }}
-        />
+        <Anneau enRelief />
       </div>
     </div>
   )

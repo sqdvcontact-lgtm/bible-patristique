@@ -8,6 +8,7 @@
 // répertoriées mais non encore présentes.
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
@@ -612,7 +613,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
         {erreur ? (
           <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
         ) : !auteur ? (
-          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', margin: '30px 0' }}>Chargement…</p>
+          <MotAttente centre marge="30px 0" />
         ) : (
           <Contenu auteur={auteur} onClose={onClose} evenements={evenements} />
         )}

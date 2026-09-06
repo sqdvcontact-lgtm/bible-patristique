@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
-import { Barre, Blanc, MOT_ATTENTE, StyleVoletsEnCreux, VoletEnCreux } from '@/app/lib/attenteEnCreux'
+import { Barre, Blanc, EcranAttente, MotAttente, StyleVoletsEnCreux, VoletEnCreux } from '@/app/lib/attenteEnCreux'
 
 /**
  * L'écran d'attente des pages qui n'en ont pas de propre (l'œuvre et la publication
@@ -18,7 +18,8 @@ import { Barre, Blanc, MOT_ATTENTE, StyleVoletsEnCreux, VoletEnCreux } from '@/a
  * au survol du lien : le châssis paraît alors sans attendre le serveur.
  *
  * Les pièces (barres, volets, le mot et son délai) vivent dans
- * `app/lib/attenteEnCreux.tsx`, partagées avec l'écran de l'œuvre.
+ * `app/lib/attenteEnCreux.tsx`, partagées avec l'écran de l'œuvre, celui de la
+ * publication, et tout ce qui attend sur le site.
  *
  * ⛔ Pas de rembourrage sous la barre : `#cs-corps` le pose déjà (AGENTS.md).
  */
@@ -43,7 +44,7 @@ function AttenteBible() {
           <Barre largeur="7rem" />
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={MOT_ATTENTE}>Chargement…</p>
+          <MotAttente />
         </div>
       </div>
       <VoletEnCreux largeur="clamp(260px, 20vw, 460px)" fond="var(--cs-surface)" cote="droite">
@@ -60,9 +61,5 @@ function AttenteBible() {
 export default function AttentePage() {
   const chemin = usePathname()
   if (chemin === '/') return <AttenteBible />
-  return (
-    <main aria-busy="true" style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={MOT_ATTENTE}>Chargement…</p>
-    </main>
-  )
+  return <EcranAttente />
 }

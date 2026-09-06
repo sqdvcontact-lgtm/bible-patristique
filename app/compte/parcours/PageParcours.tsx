@@ -11,6 +11,7 @@
 // l'on regarde, là l'on règle. On ne revient pas voir son mot de passe.
 
 import { useEffect, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from '@/app/lib/supabase'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { CADRAGE_PAR_DEFAUT } from '@/app/lib/portraits'
@@ -113,13 +114,13 @@ export default function PageParcours() {
         <Section id="rang" titre="Rang">
           {lecture
             ? <BarreRang nbAuteurs={lecture.nb_auteurs} totalAuteurs={lecture.total_auteurs} />
-            : <p className="esp-note">Chargement…</p>}
+            : <MotAttente />}
         </Section>
 
         <Section id="premiers-pas" titre="Premiers pas">
           {marques
             ? <ParcoursDecouverte marques={marques} aUnPortrait={!!profil.avatar_ref} aUneBio={!!profil.bio?.trim()} />
-            : <p className="esp-note">Chargement…</p>}
+            : <MotAttente />}
         </Section>
 
         {hautsFaits && <ContenuHautsFaits etat={hautsFaits} />}

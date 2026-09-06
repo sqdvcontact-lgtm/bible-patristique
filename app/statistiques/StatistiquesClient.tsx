@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -101,7 +102,7 @@ export default function StatistiquesClient() {
           titre="Les plus cités et commentés par les Pères"
           intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />
         {cites === null ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
+          <MotAttente centre />
         ) : erreur ? (
           <p role="alert" style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)' }}>
             Le classement n&apos;a pas pu être chargé.

@@ -7,6 +7,7 @@
 // patristique (doublon du volet de la page Bible). Lecture avec la session normale.
 
 import { useEffect, useMemo, useState } from 'react'
+import { EcranAttente, MotAttente } from '@/app/lib/attenteEnCreux'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -317,7 +318,7 @@ export default function PericopePage() {
   const onPreleve = (cle: string, id: string) => setPrelevements(prev => new Map(prev).set(cle, id))
   const onRetire = (cle: string) => setPrelevements(prev => { const n = new Map(prev); n.delete(cle); return n })
 
-  if (etat === 'chargement') return <Etat>Chargement…</Etat>
+  if (etat === 'chargement') return <EcranAttente />
   if (etat === 'erreur') return (
     <Etat>
       <span>Le chargement a échoué.{' '}
@@ -387,7 +388,7 @@ export default function PericopePage() {
                 </div>
               )}
               {texteLoading ? (
-                <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', margin: 0 }}>Chargement du texte…</p>
+                <MotAttente>Chargement du texte…</MotAttente>
               ) : vs.length === 0 ? (
                 <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Texte indisponible dans cette traduction.</p>
               ) : <BlocVersets vs={vs} ctx={{ ...ctxBase, livre: o.livre }} />}

@@ -1,5 +1,5 @@
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
-import { Barre, Blanc, MOT_ATTENTE, StyleVoletsEnCreux, VoletEnCreux } from '@/app/lib/attenteEnCreux'
+import { Barre, Blanc, MotAttente, StyleVoletsEnCreux, VoletEnCreux } from '@/app/lib/attenteEnCreux'
 
 // L'écran d'attente d'une œuvre. Il ne paraît qu'en changeant de ROUTE, c'est-à-dire
 // d'œuvre : un autre texte de la même œuvre garde la page courante jusqu'à ce que la
@@ -30,7 +30,7 @@ export default function OeuvreLoading() {
         <Barre largeur="66%" />
       </VoletEnCreux>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={MOT_ATTENTE}>Chargement…</p>
+        <MotAttente />
       </div>
       <VoletEnCreux largeur="clamp(280px, 21vw, 480px)" fond="var(--cs-surface)" cote="droite">
         <Barre largeur="40%" />

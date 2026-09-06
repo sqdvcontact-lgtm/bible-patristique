@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -1172,7 +1173,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
       </div>
 
       {chargement ? (
-        <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>Chargement…</p>
+        <MotAttente />
       ) : erreur ? (
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           Le catalogue n’a pas pu être chargé.{' '}
@@ -1723,7 +1724,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
   }, [oeuvresFavorites])
 
   if (!favorisPret) {
-    return <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement des favoris…</p>
+    return <MotAttente centre>Chargement des favoris…</MotAttente>
   }
 
   if (oeuvresFavorites.length === 0) {

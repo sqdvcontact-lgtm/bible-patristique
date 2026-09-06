@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 import { inlineVersHtml, htmlVersSyntaxe } from './serialisationEssai'
@@ -157,7 +158,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
             <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '10px' }}>{elementActif.label}</p>
           )}
           {chargement ? (
-            <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement...</p>
+            <MotAttente />
           ) : elementActif.type === 'note' && editionNote?.actif && onEnregistrerNote ? (
             <EditeurNoteWysiwyg
               key={cleEdition}

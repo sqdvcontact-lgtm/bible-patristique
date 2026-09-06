@@ -18,6 +18,7 @@
 // pour un visiteur qui lit un chapitre de la Genèse.
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { EcranAttente } from '@/app/lib/attenteEnCreux'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
@@ -80,11 +81,7 @@ export function useEspace(): Espace {
   return espace
 }
 
-const attente = (
-  <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>
-  </main>
-)
+const attente = <EcranAttente />
 
 export default function CadreEspace({ children }: { children: React.ReactNode }) {
   const router = useRouter()

@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -367,7 +368,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
       {/* Liste défilante : occupe la place disponible pour que le formulaire de saisie
           reste épinglé au bas du volet. */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingTop: '2px' }}>
-        {loading && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Chargement…</p>}
+        {loading && <MotAttente />}
         {!loading && commentaires.length === 0 && (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '8px 0' }}>
             {/* La carapace vide tient le volet tant que personne n'a parlé, et elle se pose au

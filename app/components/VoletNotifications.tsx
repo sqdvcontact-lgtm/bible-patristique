@@ -28,6 +28,7 @@
 // était hors d'atteinte au doigt et invisible au clavier.
 
 import { useEffect, useMemo, useState } from 'react'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import {
@@ -149,7 +150,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
             volet, et c'est leur filet qui les sépare. Le rembourrage est DANS la rangée,
             à la mesure de l'en-tête, pour que les trois fers tombent au même endroit. */}
         <div style={{ overflowY: 'auto' }}>
-          {items === null ? messageVide('Chargement…')
+          {items === null ? <MotAttente centre marge="22px 14px" />
             : erreurChargement ? (
               <p role="alert" style={{ fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', textAlign: 'center', padding: '22px 14px', margin: 0 }}>
                 Les notifications n’ont pas pu être chargées. Réessayez.
