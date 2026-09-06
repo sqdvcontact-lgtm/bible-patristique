@@ -6350,8 +6350,9 @@ descend entière.
 ⚠️ **La règle vaut pour TOUTE visite, et la Polyglotte prenait la sienne à l'envers** :
 son bloc des traductions visibles ouvre le volet à 154 px du haut, sa liste des livres
 n'y vient qu'à 354, et la visite descendait pourtant de la seconde au premier. On ne
-remonte pas un volet qu'on vient de descendre. Corrigé le 2026-09-06 au soir ; elle
-compte sept arrêts.
+remonte pas un volet qu'on vient de descendre, et l'on n'en saute pas un cran : la
+recherche d'un livre y manquait, quand c'était elle que l'auteur visait. Corrigé le
+2026-09-06 au soir ; elle compte huit arrêts.
 
 ⚠️ **La recherche du site ne se montre QU'EN ÉCRAN LARGE**, et son étape s'efface
 ailleurs : sur un téléphone la barre range sa recherche dans le menu déplié, et déplier

@@ -1,17 +1,17 @@
 /**
  * LA VISITE DE LA POLYGLOTTE — la seconde, au patron de la première.
  *
- * Sept arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
+ * Huit arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
  * droite (règle de l'auteur, 2026-09-06). La barre du site d'abord, puis le volet
- * de gauche (combien de colonnes, quel passage), puis le tableau lui-même, de
- * l'en-tête à la rangée et de la rangée à la cellule, la colonne des notes pour
- * finir.
+ * de gauche (combien de colonnes, comment trouver un livre, quel passage), puis le
+ * tableau lui-même, de l'en-tête à la rangée et de la rangée à la cellule, la
+ * colonne des notes pour finir.
  *
- * ⚠️ LE NOMBRE DE COLONNES PRÉCÈDE LE CHOIX DU PASSAGE, et c'est l'inverse de ce
- * que la visite disait jusqu'au 2026-09-06 au soir. Mesuré sur la page servie,
- * fenêtre de 2 560 px : le bloc des traductions visibles ouvre le volet à 154 px
- * du haut, la liste des livres n'y vient qu'à 354. On ne remonte pas un volet
- * qu'on vient de descendre.
+ * ⚠️ LE VOLET SE DESCEND DANS L'ORDRE OÙ IL SE VOIT, et c'est l'inverse de ce que
+ * la visite faisait jusqu'au 2026-09-06 au soir. Mesuré sur la page servie, fenêtre
+ * de 2 560 px : le bloc des traductions visibles ouvre le volet à 154 px du haut,
+ * le champ de recherche vient à 308, la liste des livres à 354. On ne remonte pas
+ * un volet qu'on vient de descendre.
  *
  * ⛔ CE QUI DISTINGUE CETTE PAGE de la Bible classique, et que la visite doit
  * dire, tient en trois faits : une rangée est un créneau du CANON, non un verset
@@ -25,15 +25,12 @@
  * page ne montre la sienne qu'une fois, et rien ne dit qu'un lecteur passera par
  * la Bible classique avant d'ouvrir la Polyglotte.
  *
- * ⛔ PAS D'ÉTAPE SUR LA RECHERCHE D'UN LIVRE, ni sur les VERSETS SURNUMÉRAIRES,
- * et ce sont deux arbitrages. La première est le champ de la Bible classique, mot
- * pour mot, et le volet est partagé : la redire ici allongerait la visite sans
- * rien apprendre. Les secondes — les rangées violettes, propres à la Septante et
- * hors de l'ossature canonique — méritent une explication, mais elles ne
- * paraissent que sur une minorité de chapitres : l'étape s'effacerait le plus
- * souvent, au prix d'une seconde d'attente pour tout le monde (voir
- * « DELAI_SUJET_MS »). Une visite ne paie pas ce prix à chaque lecteur pour un cas
- * qui ne se présente pas.
+ * ⛔ PAS D'ÉTAPE SUR LES VERSETS SURNUMÉRAIRES, et c'est un arbitrage. Les rangées
+ * violettes, propres à la Septante et hors de l'ossature canonique, méritent une
+ * explication, mais elles ne paraissent que sur une minorité de chapitres :
+ * l'étape s'effacerait le plus souvent, au prix d'une seconde d'attente pour tout
+ * le monde (voir « DELAI_SUJET_MS »). Une visite ne paie pas ce prix à chaque
+ * lecteur pour un cas qui ne se présente pas.
  *
  * ⚠️ UNE SEULE SCÈNE À PRÉPARER, celle des notes : sous 820 px la page ne se rend
  * pas du tout et renvoie à un écran large, si bien qu'il n'y a ici ni onglets ni
@@ -65,6 +62,20 @@ export const VISITE_POLYGLOTTE: Visite = {
       texte: [
         'Auto en met autant que votre écran peut en porter.',
         'Vous pouvez aussi en fixer le nombre, de deux à cinq.',
+      ],
+      cote: 'droite',
+    },
+    {
+      cle: 'recherche-livre',
+      // ⚠️ Le champ est celui de la Bible classique, au repère près : les deux pages
+      // partagent « NavLivres ». Ce qu'il FAIT diffère pourtant, et l'étape le dit :
+      // une référence n'emmène pas ailleurs, elle vise le verset dans le tableau
+      // (« appliquerRefParsee », branche « onChoisirVerset »).
+      sujet: ['[data-visite="recherche-livre"]'],
+      titre: 'Trouver un livre',
+      texte: [
+        'Tapez un nom de livre pour le retrouver dans la liste.',
+        'Une référence entière fonctionne aussi, comme Jean 3, 16 : le tableau s’ouvre dessus et vise le verset.',
       ],
       cote: 'droite',
     },
