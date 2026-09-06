@@ -1902,12 +1902,7 @@ export default function Navbar() {
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} actif={estCheminActif("/admin", false)} />
             )}
-            {/* ⚠️ LE REPÈRE DE LA VISITE se pose sur le bloc qui porte le champ OU
-                la loupe, jamais sur le champ : à l'étroit celui-ci se replie, et un
-                repère posé dessus s'évanouirait au moment même où la recherche
-                devient la plus difficile à trouver. Il n'existe qu'en écran large,
-                la barre du téléphone rangeant sa recherche dans le menu déplié. */}
-            <div data-visite="recherche-site" style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {/* Le champ de recherche est le plus large des outils (13,75rem) : c'est lui
                   qui cède le premier. À l'étroit il se replie en loupe et se déploie sous la
                   barre, sur toute sa largeur — la même vue que sur téléphone. */}

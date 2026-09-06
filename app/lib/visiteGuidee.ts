@@ -291,11 +291,6 @@ function tracerTrait({ cadre, carte, cote }: {
  * à l'élément : un cadre posé au ras d'un champ de saisie se lit comme sa bordure
  * et non comme une désignation. ⛔ Elle reste dans la bande utile : un sujet qui
  * commence sous la barre de navigation ne fait pas monter le cadre derrière elle.
- *
- * ⛔ SAUF SI LE SUJET VIT DANS LA BARRE. La réserve existe pour qu'un cadre ne
- * glisse pas SOUS elle ; un sujet dont le haut tombe dans sa bande n'a rien à quoi
- * se dérober, et l'en écarter reviendrait à cerner autre chose que lui. C'est le
- * cas de la recherche du site, premier arrêt de la Bible classique.
  */
 export function cadreDuSujet({ sujet, vue, hautNavbar, souffle = 6 }: {
   sujet: Cadre
@@ -303,8 +298,7 @@ export function cadreDuSujet({ sujet, vue, hautNavbar, souffle = 6 }: {
   hautNavbar: number
   souffle?: number
 }): Cadre {
-  const plancher = sujet.top < hautNavbar ? 2 : hautNavbar + 2
-  const haut = Math.max(sujet.top - souffle, plancher)
+  const haut = Math.max(sujet.top - souffle, hautNavbar + 2)
   const bas = Math.min(sujet.top + sujet.height + souffle, vue.hauteur - 2)
   const gauche = Math.max(sujet.left - souffle, 2)
   const droite = Math.min(sujet.left + sujet.width + souffle, vue.largeur - 2)

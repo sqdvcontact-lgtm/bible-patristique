@@ -6,10 +6,9 @@
  * PAGE, qui est aussi celui de sa route : « Patristique » nomme une section de la
  * barre, non l'écran qu'on ouvre.
  *
- * Sept arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas (règle de
- * l'auteur, 2026-09-06). La barre du site d'abord, puis les trois sections, puis
- * ce qui restreint la liste, puis une carte d'auteur, ce qu'elle déplie, ce qu'une
- * ligne d'édition offre, et la façon de tourner les pages.
+ * Cinq arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas (règle de
+ * l'auteur, 2026-09-06). Les trois sections, ce qui restreint la liste, une carte
+ * d'auteur, ce qu'elle déplie, et ce qu'une ligne d'édition offre.
  *
  * ⚠️ UNE SEULE COLONNE, donc pas de question d'ordre entre volets : tout se lit de
  * haut en bas. Mesuré sur la page servie le 2026-09-06, fenêtre de 2 560 px : les
@@ -26,12 +25,19 @@
  * Bible classique la présente déjà ; le second ne paraît que sous l'onglet du
  * catalogue, donc jamais au moment où la visite passe.
  *
+ * ⛔ NI SUR LA PAGINATION, NI SUR LA BARRE DU SITE, retirées toutes deux par
+ * l'auteur le 6 septembre 2026 au soir. Le pied de la liste écrit lui-même « Page
+ * 1 sur 2 », et l'on n'explique pas ce qui s'écrit ; quant à la barre, une visite
+ * montre la PAGE qu'on vient d'ouvrir, et elle n'est d'aucune page en particulier.
+ * ⚠️ L'étape de la pagination coûtait de surcroît la descente de toute la liste,
+ * pour remonter ensuite : le plus long défilement qu'une visite du site ait
+ * demandé.
+ *
  * ⚠️ L'ÉTAPE DES ŒUVRES DÉPLIE LA PREMIÈRE CARTE, que la page garde repliée :
  * sans cela, celle des éditions n'aurait rien à cerner. La page rend son état à la
  * fin de la visite (voir « ouvrirOeuvres »).
  */
 
-import { ETAPE_RECHERCHE_SITE } from './visiteBarreDuSite'
 import type { Visite } from './visiteGuidee'
 
 /** ⛔ La clé de mémoire ne change JAMAIS sans raison : elle est le seul lien
@@ -46,9 +52,6 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
     'Quelques étapes suffisent à vous montrer où tout se trouve.',
   ],
   etapes: [
-    // ⚠️ La barre du site est la même partout : son étape est PARTAGÉE, et se lit
-    // dans « visiteBarreDuSite ».
-    ETAPE_RECHERCHE_SITE,
     {
       cle: 'onglets',
       sujet: ['[data-visite="bib-onglets"]'],
@@ -104,16 +107,6 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
       texte: [
         'L’étoile en tête de ligne range l’édition parmi vos favoris.',
         'Vous la retrouvez sous l’onglet Favoris, en haut de la page.',
-      ],
-      cote: 'droite',
-    },
-    {
-      cle: 'pagination',
-      sujet: ['[data-visite="bib-pagination"]'],
-      titre: 'Tourner les pages',
-      texte: [
-        'La liste se donne dix auteurs à la fois.',
-        'Sur un écran large, deux flèches rondes en font autant depuis les bords, sans qu’on descende jusqu’ici.',
       ],
       cote: 'droite',
     },

@@ -698,7 +698,7 @@ function Pagination({ page, nbPages, onChanger, mobile }: {
           que 288 (audit de responsiveness, 2026-09-06). Le pied suffit alors. */}
       {!mobile && <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flecheFixe('gauche', auDebut)}>{chevron('gauche', 14)}</button>}
       {!mobile && <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flecheFixe('droite', aLaFin)}>{chevron('droite', 14)}</button>}
-      <div data-visite="bib-pagination" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
         <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flechePied(auDebut)}>{chevron('gauche', 12)}</button>
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
           Page {page + 1} sur {nbPages}

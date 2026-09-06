@@ -6298,45 +6298,35 @@ la colonne étroite d'une fiche, elle ne se lit pas.
 La doctrine est dans la charte, § 46 : ce qu'une visite dit, ce qu'elle ne dit pas, et
 sa forme (case / trait / case). Ici, sa mécanique.
 
-⛔ **L'ARRÊT DE LA BARRE EST PARTAGÉ, il ne se recopie pas** (2026-09-06).
-`app/lib/visiteBarreDuSite.ts` porte `ETAPE_RECHERCHE_SITE`, et les deux scénarios
-l'ouvrent en tête, la troisième aussi. La barre est la seule chose qui ne change pas
-d'une page à l'autre :
-deux exemplaires de la même explication divergeraient au premier ajustement, et le
-lecteur qui ferait deux visites lirait deux fois la même chose de deux façons.
-⚠️ Elle ne se répète pas pour autant : chaque page ne montre la sienne qu'une fois, et
-rien ne dit qu'un lecteur passera par la Bible classique avant d'ouvrir la Polyglotte.
+⛔ **AUCUNE ÉTAPE SUR LA BARRE DE NAVIGATION** (décision de l'auteur, 2026-09-06 au
+soir). Les trois visites en ont porté une, sur un contresens de ma part : « présenter
+la recherche » visait le champ du VOLET, non celui de la barre. La règle qui en reste :
+**une visite montre la PAGE qu'on vient d'ouvrir**, et la barre n'est d'aucune page en
+particulier. ⚠️ Elle coûtait en outre au dessin — voir le rang d'empilement ci-dessous.
 
-**Cinq fichiers, et un seul porte du DOM.**
+**Quatre fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
-- `app/lib/visiteBarreDuSite.ts` — l'arrêt commun à toutes les visites, la barre du
-  site ne changeant pas d'une page à l'autre.
 - `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts` et
-  `app/lib/visiteBibliotheque.ts` — les scénarios,
-  en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
+  `app/lib/visiteBibliotheque.ts` — les scénarios, en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
   de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
-- `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **3200**
-  (au-dessus des modales du site, qui montent à 2700, ET de la barre de navigation, qui
-  monte à 3000).
+- `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **2800**
+  (au-dessus des modales du site, qui montent à 2700), et **sous la barre de
+  navigation**, qui monte à 3000 et garde donc sa lumière pendant la visite.
 
-⛔ **LE VOILE PASSE AU-DESSUS DE LA BARRE, et il le faut** (2026-09-06). Il montait à
-2800, donc dessous : la barre restait en pleine lumière quand le reste s'assombrissait,
-et surtout **aucun cadre ne pouvait s'y poser** — la recherche du site aurait été cernée
-par une case invisible. ⚠️ Deux corollaires dans la géométrie, tous deux gardés par des
-tests : `cadreDuSujet` cesse de réserver la bande de la barre quand le sujet y VIT (la
-réserve empêche un cadre de glisser SOUS elle, elle n'a rien à protéger dans ce cas), et
-la boucle ne fait pas défiler un sujet de la barre, qui est fixe et déjà à l'écran.
-⛔ **Cette seconde garde se juge sur les DEUX bords du sujet**, non sur le seul bord
-haut. Écrite « top >= hautNavbar », elle écartait aussi tout sujet passé AU-DESSUS de
-la fenêtre, dont le haut est négatif : un retour en arrière après avoir descendu la
-page laissait alors le cadre échoué en haut de l'écran, réduit à deux pixels par le
-bornage à la vue. Un sujet ne se dispense du défilement que s'il tient TOUT ENTIER dans
-la bande de la barre, ce qui n'est vrai que de la barre elle-même.
-⚠️ Au-delà de 3200 ne subsistent que le carton d'une notification (4000) et les
-infobulles de note (9999), que la page inerte n'ouvre pas.
+⚠️ **CE QU'UNE ÉTAPE SUR LA BARRE A COÛTÉ, le temps qu'elle a duré, et ce qu'il faudrait
+reprendre pour en refaire une.** Le voile est passé PAR-DESSUS la barre (rang 3200),
+faute de quoi aucun cadre ne pouvait s'y poser ; la barre s'assombrissait alors comme le
+reste, à chaque étape de chaque visite. Il a fallu en outre deux gardes de géométrie :
+`cadreDuSujet` cessant de réserver la bande de la barre quand le sujet y VIT, et la
+boucle ne faisant pas défiler un sujet fixe. ⛔ Et cette seconde garde s'est révélée
+fausse : écrite « top >= hautNavbar », elle écartait aussi tout sujet passé AU-DESSUS de
+la fenêtre, dont le haut est négatif, si bien qu'un retour en arrière après avoir
+descendu la page laissait le cadre échoué en haut de l'écran, réduit à deux pixels par
+le bornage à la vue. Les trois sont retirées avec l'étape ; on ne garde pas une garde
+que plus rien n'exerce.
 
 ⛔ **CE QU'UNE ÉTAPE ANNONCE, LA PAGE LE FAIT, et le REND ensuite.** Trois scènes
 aujourd'hui (`SceneVisite`) : `volet` ouvre l'onglet d'un téléphone, `choisirVerset`
@@ -6347,13 +6337,12 @@ la visite. ⛔ Et un pli imposé ne se referme pas d'une étape à l'autre quand
 suivante vit dedans — celle de l'étoile est dans la carte que la précédente a ouverte.
 
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Quinze aujourd'hui : `recherche-site` (Navbar), `edition` (EncartTraduction),
-`recherche-livre` et `livres` (NavLivres), `entete-lecture` (TexteBible), `peres`
-(PanneauPatristique) ; `poly-colonnes`, `poly-entete` et `poly-notes` sur la
-Polyglotte ; `bib-onglets`, `bib-recherche`, `bib-auteur`, `bib-oeuvres`,
-`bib-edition` et `bib-pagination` sur la Bibliothèque. Quatre étapes visent des
-classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
-`.poly-texte-cell`).
+Treize aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
+(NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique) ;
+`poly-colonnes`, `poly-entete` et `poly-notes` sur la Polyglotte ; `bib-onglets`,
+`bib-recherche`, `bib-auteur`, `bib-oeuvres` et `bib-edition` sur la Bibliothèque.
+Quatre étapes visent des classes qui existaient déjà (`.verset-row`,
+`.verset-actions`, `.poly-row`, `.poly-texte-cell`).
 ⛔ Ne pas les retirer en remaniant un volet : rien ne casse à la compilation, l'étape
 disparaît simplement du parcours. ⚠️ NavLivres est partagé par les deux pages, et son
 repère `livres` sert donc les deux visites — c'était prévu, et il n'a rien coûté.
@@ -6363,22 +6352,19 @@ repère `livres` sert donc les deux visites — c'était prévu, et il n'a rien 
 jamais par bandes horizontales : mesuré sur la page servie, la carte de l'édition,
 l'en-tête du texte et le volet des Pères ouvrent tous trois leur colonne à 77 px du
 haut, et les ranger par ordonnée ferait sauter le regard d'un bord de l'écran à l'autre
-trois fois de suite. La barre du site vient donc en premier, puis chaque colonne se
-descend entière.
+trois fois de suite. Chaque colonne se descend donc entière avant qu'on passe à la
+suivante.
 ⚠️ **La règle vaut pour TOUTE visite, et la Polyglotte prenait la sienne à l'envers** :
 son bloc des traductions visibles ouvre le volet à 154 px du haut, sa liste des livres
 n'y vient qu'à 354, et la visite descendait pourtant de la seconde au premier. On ne
 remonte pas un volet qu'on vient de descendre, et l'on n'en saute pas un cran : la
 recherche d'un livre y manquait, quand c'était elle que l'auteur visait. Corrigé le
-2026-09-06 au soir ; elle compte huit arrêts.
+2026-09-06 au soir ; elle compte sept arrêts.
 
-⚠️ **La recherche du site ne se montre QU'EN ÉCRAN LARGE**, et son étape s'efface
-ailleurs : sur un téléphone la barre range sa recherche dans le menu déplié, et déplier
-ce menu couvrirait la page qu'on explique. Elle coûte alors la seconde de
-`DELAI_SUJET_MS`, comme l'étape de la carte d'édition, absente elle aussi du téléphone.
-⛔ Et son repère se pose sur le bloc qui porte le champ **OU** la loupe, jamais sur le
-champ : à l'étroit celui-ci se replie, et un repère posé dessus s'évanouirait au moment
-même où la recherche devient la plus difficile à trouver.
+⛔ **ON N'EXPLIQUE PAS CE QUI S'ÉCRIT DÉJÀ.** L'étape de la pagination de la
+Bibliothèque est retirée le même soir : le pied de la liste porte « Page 1 sur 2 » en
+toutes lettres. ⚠️ Elle coûtait en outre la descente de toute la liste pour remonter
+ensuite, le plus long défilement qu'une visite du site ait demandé.
 
 ⛔ **UNE VISITE NE S'OUVRE QUE LÀ OÙ SA PAGE PEUT LA PORTER.** La Bible classique
 attend que son texte, rendu par le serveur, ait fini son fondu d'ouverture ; la

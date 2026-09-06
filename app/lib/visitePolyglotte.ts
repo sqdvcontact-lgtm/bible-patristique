@@ -1,11 +1,11 @@
 /**
  * LA VISITE DE LA POLYGLOTTE — la seconde, au patron de la première.
  *
- * Huit arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
- * droite (règle de l'auteur, 2026-09-06). La barre du site d'abord, puis le volet
- * de gauche (combien de colonnes, comment trouver un livre, quel passage), puis le
- * tableau lui-même, de l'en-tête à la rangée et de la rangée à la cellule, la
- * colonne des notes pour finir.
+ * Sept arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
+ * droite (règle de l'auteur, 2026-09-06). Le volet de gauche d'abord (combien de
+ * colonnes, comment trouver un livre, quel passage), puis le tableau lui-même, de
+ * l'en-tête à la rangée et de la rangée à la cellule, la colonne des notes pour
+ * finir.
  *
  * ⚠️ LE VOLET SE DESCEND DANS L'ORDRE OÙ IL SE VOIT, et c'est l'inverse de ce que
  * la visite faisait jusqu'au 2026-09-06 au soir. Mesuré sur la page servie, fenêtre
@@ -19,11 +19,9 @@
  * toujours ; et les actions appartiennent à la CELLULE, donc à une traduction, et
  * non au verset en général. Tout le reste est du réglage.
  *
- * ⚠️ LE PREMIER ARRÊT EST PARTAGÉ avec les autres visites : la barre du site ne
- * change pas d'une page à l'autre, et son étape vit dans « visiteBarreDuSite ».
- * ⛔ Elle NE se répète PAS d'une visite à l'autre pour le même lecteur : chaque
- * page ne montre la sienne qu'une fois, et rien ne dit qu'un lecteur passera par
- * la Bible classique avant d'ouvrir la Polyglotte.
+ * ⛔ AUCUNE ÉTAPE SUR LA BARRE DU SITE (retirée par l'auteur le 6 septembre 2026,
+ * le soir) : une visite montre la PAGE qu'on vient d'ouvrir, et la barre n'est
+ * d'aucune page en particulier.
  *
  * ⛔ PAS D'ÉTAPE SUR LES VERSETS SURNUMÉRAIRES, et c'est un arbitrage. Les rangées
  * violettes, propres à la Septante et hors de l'ossature canonique, méritent une
@@ -37,7 +35,6 @@
  * volets à ouvrir. La visite ne s'ouvre que là où le tableau existe (voir la page).
  */
 
-import { ETAPE_RECHERCHE_SITE } from './visiteBarreDuSite'
 import type { Visite } from './visiteGuidee'
 
 /** ⛔ La clé de mémoire ne change JAMAIS sans raison : elle est le seul lien
@@ -52,9 +49,6 @@ export const VISITE_POLYGLOTTE: Visite = {
     'Quelques étapes suffisent à vous montrer où tout se règle.',
   ],
   etapes: [
-    // ⚠️ La barre du site est la même partout : son étape est PARTAGÉE, et se lit
-    // dans « visiteBarreDuSite ».
-    ETAPE_RECHERCHE_SITE,
     {
       cle: 'colonnes',
       sujet: ['[data-visite="poly-colonnes"]'],

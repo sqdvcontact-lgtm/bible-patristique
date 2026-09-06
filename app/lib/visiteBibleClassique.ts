@@ -1,11 +1,11 @@
 /**
  * LA VISITE DE LA BIBLE CLASSIQUE — le premier scénario, et le modèle des autres.
  *
- * Huit arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
- * droite (demande de l'auteur, 2026-09-06). La barre du site d'abord, puisqu'elle
- * couronne le reste ; le volet de gauche ensuite (ce qu'on lit, comment on trouve
- * un livre, où l'on va) ; la colonne du texte (de quelle bible il s'agit, ce que
- * fait un clic sur un verset, ce que la marge offre) ; le volet de droite enfin.
+ * Sept arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
+ * droite (demande de l'auteur, 2026-09-06). Le volet de gauche d'abord (ce qu'on
+ * lit, comment on trouve un livre, où l'on va) ; la colonne du texte ensuite (de
+ * quelle bible il s'agit, ce que fait un clic sur un verset, ce que la marge
+ * offre) ; le volet de droite enfin.
  * C'est l'ordre de la mise en page, et c'est le seul qui n'oblige pas le lecteur à
  * revenir sur ses pas.
  *
@@ -27,15 +27,11 @@
  * porte le nombre dont elle parle — et retombe sur n'importe quel verset ;
  * l'étape disparaît si le chapitre n'en a aucun (voir « etapesPresentes »).
  *
- * ⚠️ LE PREMIER ARRÊT EST PARTAGÉ avec les autres visites : la barre du site ne
- * change pas d'une page à l'autre, et son étape vit dans « visiteBarreDuSite ».
- * Elle ne se montre qu'en écran large, et s'efface ailleurs comme celle de la
- * carte d'édition, qui n'existe pas non plus sur un téléphone.
- *
- * ⛔ LES DEUX RECHERCHES SE DISTINGUENT DÈS LEUR PREMIÈRE PHRASE. Celle de la
- * barre porte sur tout le site, celle du volet sur les seuls livres de la bible
- * ouverte ; présentées à quelques étapes l'une de l'autre, elles se confondraient
- * sans cela, et le lecteur croirait à un doublon.
+ * ⛔ AUCUNE ÉTAPE SUR LA BARRE DU SITE. Elle y a figuré le 6 septembre 2026, sur
+ * un contresens de ma part, et l'auteur l'a retirée le soir même : une visite
+ * montre la PAGE qu'on vient d'ouvrir, et la barre n'est d'aucune page en
+ * particulier. Elle coûtait de surcroît au dessin, le voile devant passer
+ * par-dessus la barre pour qu'un cadre pût s'y poser.
  *
  * ⛔ UN PARAGRAPHE PAR IDÉE (demande de l'auteur, 2026-09-06) : on change de
  * paragraphe quand on change de chose à dire, et l'on s'arrête à deux ou trois.
@@ -44,7 +40,6 @@
  * pas.
  */
 
-import { ETAPE_RECHERCHE_SITE } from './visiteBarreDuSite'
 import type { Visite } from './visiteGuidee'
 
 /** ⛔ La clé de mémoire ne change JAMAIS sans raison : elle est le seul lien
@@ -59,13 +54,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
   // mot de logiciel. La phrase dit ce qui va se passer, et rien de plus.
   titre: 'Faisons le tour de la page.',
   accroche: [
-    'En haut la recherche, à gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit.',
+    'À gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit.',
     'Quelques étapes suffisent à vous montrer où tout se trouve.',
   ],
   etapes: [
-    // ⚠️ La barre du site est la même partout : son étape est PARTAGÉE, et se lit
-    // dans « visiteBarreDuSite ».
-    ETAPE_RECHERCHE_SITE,
     {
       cle: 'edition',
       sujet: ['[data-visite="edition"]'],
@@ -82,7 +74,7 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       sujet: ['[data-visite="recherche-livre"]'],
       titre: 'Trouver un livre',
       texte: [
-        'Ce champ-ci ne cherche que dans les livres de la bible ouverte.',
+        'Ce champ ne cherche que dans les livres de la bible ouverte.',
         'Une référence entière fonctionne aussi, comme Jean 3, 16, et vous y mène d’un clic.',
       ],
       cote: 'droite',
