@@ -2913,10 +2913,23 @@ sa donnée vit. Règles de code :
   qui n'a marqué le passage à la ligne que par `join_before`. ⚠️ Le garde-fou porte sur la
   NATURE d'un segment, à côté de son `paragraphe` : c'est le second axe de découpe du bloc,
   et le seul.
+- ⛔ **`FormeParagraphe.signature` vaut `'suite'` ou `'fin'`, jamais un booléen.** Le blanc
+  qui suit une signature n'est pas celui qui la précède : entre deux signatures une
+  COUTURE (0,3 rem, elles sont une liste) ; quand la pièce reprend une COUPURE, qui vaut
+  **une ligne de prose entière** (1,62 × 0,8125 rem = 1,32 rem). Posé symétrique, il
+  serrait « Signé Du Bray. » contre l'acte qui le suit. ⚠️ 1,32 rem est une HAUTEUR DE
+  LIGNE, non l'interligne 1,32 de la signature : les deux nombres se ressemblent et ne
+  disent pas la même chose, et un test recalcule la coupure depuis `CORPS_LECTURE` pour
+  qu'elle suive le corps de la lecture.
+- ⚠️ **La place d'un bloc se juge sur le bloc SUIVANT** (`placeDeLaSignature`), jamais sur
+  le segment : deux signatures voisines font deux blocs, chacun sa ligne, et c'est leur
+  voisinage qui les réunit. Les deux branches passent donc l'index et le tableau à leur
+  `.map(...)`. ⛔ Le blanc de sortie d'un bloc en FIN de groupe se fond dans les 2,8 rem du
+  titre suivant : inutile de l'y garder, mais inoffensif.
 - ⚠️ **L'épreuve des styles montre désormais la forme du côté où elle SERT**
-  (`patristique_apparat/signature`), et la fiche du corps dit qu'aucun segment ne
-  l'atteint. Une planche qui montre une forme sur la mauvaise surface fait autorité contre
-  la page qu'elle décrit.
+  (`patristique_apparat/signature`), avec la prose avant ET après pour que les deux blancs
+  se voient ; la fiche du corps dit qu'aucun segment ne l'atteint. Une planche qui montre
+  une forme sur la mauvaise surface fait autorité contre la page qu'elle décrit.
 
 ## ⛔ Un titre PORTÉ par un bloc, et un titre qui vit dans son FLUX (2026-08-30)
 

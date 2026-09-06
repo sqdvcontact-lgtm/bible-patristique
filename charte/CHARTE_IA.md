@@ -1017,6 +1017,21 @@ paragraphe qu'elle clôt — 4 des 11 signatures y sont, l'import n'ayant marqu�
 la ligne que par `join_before`. C'est au RENDU de l'en sortir, non à la donnée d'être
 réécrite pour lui plaire.
 
+⛔ **ET LE BLANC QUI FERME UN BLOC N'EST PAS CELUI QUI LE COUD.** Posé symétrique le même
+jour, à 0,3 rem des deux côtés, il cousait « Signé Du Bray. » à l'acte qui le suit : le
+privilège du Roy et la signature de son secrétaire se lisaient d'un seul tenant, et
+l'auteur l'a relevé à vue. Les deux blancs ne disent pourtant pas la même chose — entre
+deux signatures une COUTURE, elles sont une liste, un seul objet ; quand la pièce reprend
+une COUPURE, qui vaut **une ligne de prose entière** (1,62 × 0,8125 rem). C'est la règle
+déjà payée sur le blanc qui cerne un bloc de versets (§ 35.17), prise par l'autre bout, et
+c'est la deuxième fois qu'un blanc de bloc est posé symétrique avant d'être repris.
+
+⚠️ **La place d'une ligne dans son bloc se juge sur le bloc SUIVANT, jamais sur le
+segment** (`placeDeLaSignature`) : deux signatures voisines font deux blocs, chacun sa
+ligne, et c'est leur voisinage qui les réunit en liste. ⛔ Corollaire de méthode : quand
+une forme change le blanc, elle en change DEUX, et il faut les nommer séparément avant de
+poser un chiffre.
+
 ## 8. Notes structurées et références présentes dans le texte
 
 **Références parenthétiques en note.** Lorsqu’un bloc de note est constitué d’une référence biblique ou bibliographique mise entre parenthèses, les parenthèses suffisent : on ne les encadre pas en plus de guillemets. Écrire `(Rm 6, 11 ; 1 P 2, 24).` et non `« (Rm 6, 11 ; 1 P 2, 24). »`. Cette règle ne supprime pas les guillemets qui auraient une fonction citationnelle propre à l’intérieur du contenu de la note.
