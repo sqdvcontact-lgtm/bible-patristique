@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   analyserRequetePericope,
+  correspondanceVisible,
   filtrerCatalogue,
   normaliserRecherche,
   pericopeCouvre,
@@ -145,5 +146,28 @@ describe('premierePhraseNotice', () => {
   it('rend une chaîne vide sur une notice absente', () => {
     expect(premierePhraseNotice(null)).toBe('')
     expect(premierePhraseNotice('   ')).toBe('')
+  })
+})
+
+// « Homme » rendait « Je ne fais pas le bien que je veux » sans un mot pour dire pourquoi
+// (relevé de l'auteur, 2026-09-06) : la paraphrase masquée qui l'avait trouvée se taisait.
+describe('correspondanceVisible', () => {
+  const base = { titre: 'Je ne fais pas le bien que je veux', correspondance_visible: false, usage_recherche: 'paraphrase' }
+  it('dit l’alias masqué mais exact par lequel la péricope a répondu', () => {
+    expect(correspondanceVisible({ ...base, correspondance: 'Homme malheureux que je suis' }))
+      .toBe('Homme malheureux que je suis')
+  })
+  it('dit un alias visible', () => {
+    expect(correspondanceVisible({ ...base, correspondance: 'Le combat intérieur', correspondance_visible: true, usage_recherche: 'equivalent' }))
+      .toBe('Le combat intérieur')
+  })
+  it('tait un alias INEXACT, fût-il masqué ou visible', () => {
+    expect(correspondanceVisible({ titre: 'Jonas et le grand poisson', correspondance: 'Jonas dans la baleine', correspondance_visible: false, usage_recherche: 'populaire_inexact' })).toBeNull()
+    expect(correspondanceVisible({ titre: 'Jonas et le grand poisson', correspondance: 'Jonas dans la baleine', correspondance_visible: true, usage_recherche: 'populaire_inexact' })).toBeNull()
+  })
+  it('ne redit pas le titre, et se tait sans correspondance', () => {
+    expect(correspondanceVisible({ ...base, correspondance: base.titre, correspondance_visible: true })).toBeNull()
+    expect(correspondanceVisible({ ...base, correspondance: null })).toBeNull()
+    expect(correspondanceVisible({ ...base, correspondance: '' })).toBeNull()
   })
 })

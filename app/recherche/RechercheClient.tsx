@@ -1,14 +1,15 @@
 'use client'
 import { LIVRES } from '@/app/lib/bible'
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { useSearchParams } from 'next/navigation'
 import IconeChevron from '@/app/components/IconeChevron'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import { texteSansEnrichissement, rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
-import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { rendreEnrichi, sansEnrichissements } from '@/app/lib/enrichissements'
+import { millesimeEdition } from '@/app/lib/millesimeEdition'
 import { cesurerGrec, codeLangue, copierSansCesures } from '@/app/lib/grec'
 import { MENTION_ABSENT, MENTION_ABSENT_TITRE, STYLE_MENTION } from '@/app/lib/compositionBible'
 import { STYLE_TERME_TAPE } from '@/app/lib/surlignageRecherche'
@@ -16,7 +17,7 @@ import { STYLE_TERME_TAPE } from '@/app/lib/surlignageRecherche'
 // (audit du 2026-09-06) : les termes, le mode, la référence biblique tapée, la
 // frontière de mot telle que la BASE la voit. Cette page n'en garde que le rendu.
 import {
-  compterMarque, contientMarque, contientTousOriginal, graphiesVariantes as graphiesLatines, marqueDe,
+  compterMarque, contientMarque, graphiesVariantes as graphiesLatines, marqueDe,
   modeDepuisParametre, normaliser, referenceBiblique, regexMarque, termesRecherche,
   type Marque, type ModeRecherche, type ReferenceBiblique,
 } from '@/app/lib/rechercheRequete'
@@ -47,15 +48,17 @@ import { codesTraductionsLecture } from '@/app/lib/traductions'
 // Une seule source, donc : tout livre ajouté à LIVRES est nommé partout du même coup.
 const NOMS_LIVRES: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 
-// Ordre canonique (Genèse → Apocalypse, puis apocryphes) DÉRIVÉ de `LIVRES` : l'index dans
-// le tableau est le rang du livre. Sert à trier les résultats de recherche biblique.
-const ORDRE_LIVRE: Record<string, number> = Object.fromEntries(LIVRES.map((l, i) => [l.code, i]))
-function comparerVersets(a: VersetResult, b: VersetResult): number {
-  return (ORDRE_LIVRE[a.livre] ?? 9999) - (ORDRE_LIVRE[b.livre] ?? 9999)
-    || a.chapitre - b.chapitre || a.verset - b.verset
-}
+// (L'ordre canonique des résultats bibliques vient de la BASE, qui range les versets par
+// `ordre` et les livres par leur premier verset : plus de tri ni de rang de livre ici.)
 
-const TRADUCTIONS_FALLBACK = [
+type TraductionRecherche = { code: string; label: string; lang: string; millesime?: string | null }
+// Les trois groupes de langue du menu des colonnes, ceux de la page Polyglotte.
+const GROUPES_LANG: { code: string; label: string }[] = [
+  { code: 'fr', label: 'Français' },
+  { code: 'la', label: 'Latin' },
+  { code: 'grc', label: 'Grec' },
+]
+const TRADUCTIONS_FALLBACK: TraductionRecherche[] = [
   { code: 'TR0001', label: 'Bible de Sacy', lang: 'fr' },
   { code: 'TR0002', label: 'Bible Segond', lang: 'fr' },
   { code: 'TR0003', label: 'Bible Crampon', lang: 'fr' },
@@ -70,7 +73,7 @@ type SegmentResult = {
   id: number; segment_texte: string; id_oeuvre: string; id_texte: string
   ref_niv1: string | null; ref_niv3: string | null
   auteur_nom: string; oeuvre_titre: string
-  texte_original?: string | null; langue?: string; matchFr?: boolean; matchOrig?: boolean
+  texte_original?: string | null; langue?: string | null; matchFr?: boolean; matchOrig?: boolean
 }
 type EssaiResult = {
   id: number; titre: string; sous_titre: string | null; resume: string | null; contenu: string; categories: string[]
@@ -187,19 +190,42 @@ function grouperConsecutifs<T>(liste: T[], cle: (x: T) => string): { cle: string
   return tranches
 }
 
-// PostgREST plafonne CHAQUE réponse à 1000 lignes (réglage max-rows), quel que soit le
-// `.limit()` demandé : c'est ce plafond qui bornait la recherche à mille résultats. Pour
-// le dépasser, on pagine par `.range()` jusqu'à un plafond de sécurité.
-async function pagine<T = any>(make: (de: number, a: number) => any, signal: AbortSignal, cap = 6000): Promise<T[]> {
-  const out: T[] = []
-  for (let de = 0; de < cap; de += 1000) {
-    const { data, error } = await make(de, de + 999).abortSignal(signal)
-    if (error || signal.aborted) break
-    const lot = (data ?? []) as T[]
-    out.push(...lot)
-    if (lot.length < 1000) break
+// ⛔ LA BASE PAGINE ET COMPTE (demande de l'auteur, 2026-09-06 : « optimise la page »).
+// La page rapatriait TOUT ce que la base trouvait — jusqu'à 6 000 versets avec leurs
+// cinq bibles et 5 000 passages entiers, cinq à six méga-octets sur « Dieu » —, puis
+// en montrait vingt, comptait les livres et les œuvres dans le navigateur et paginait
+// sur place : dix à quinze secondes avant la première ligne, et un plafond au-delà
+// duquel elle annonçait « résultats trop nombreux ». Elle ne demande plus que deux
+// RÉPARTITIONS (les livres et les œuvres avec leur effectif, dont le total se déduit)
+// et une PAGE de vingt lignes à la fois, que la base range et filtre
+// (`recherche_versets_v2`, `recherche_segments_v2` et leurs `_repartition`).
+// ⚠️ La base fait foi : la page ne rejette plus rien de ce qu'elle rend, elle marque ce
+// qu'elle reconnaît.
+type Requete = { cle: string; termes: string[]; mode: Mode; scope: string }
+type RepartitionLivre = { livre: string; n: number }
+type RepartitionOeuvre = { id_oeuvre: string; auteur_nom: string; oeuvre_titre: string; n: number }
+type PageVersets = { cle: string; lignes: VersetResult[] }
+type PageSegments = { cle: string; lignes: SegmentResult[] }
+
+/** La clé d'une page : la requête, le rang de page et le filtre, ce qui la définit. */
+function cleDePage(requete: Requete | null, page: number, filtre: string | null): string {
+  return requete ? `${requete.cle}|${page}|${filtre ?? ''}` : ''
+}
+
+/** Un passage tel que la base le rend, dans la forme que la page compose. */
+function segmentDepuisRpc(r: Record<string, unknown>): SegmentResult {
+  return {
+    id: Number(r.id), segment_texte: String(r.segment_texte ?? ''), id_oeuvre: String(r.id_oeuvre ?? ''), id_texte: String(r.id_texte ?? ''),
+    ref_niv1: (r.ref_niv1 as string | null) ?? null, ref_niv3: (r.ref_niv3 as string | null) ?? null,
+    auteur_nom: String(r.auteur_nom ?? ''), oeuvre_titre: String(r.oeuvre_titre ?? ''),
+    texte_original: (r.texte_original as string | null) ?? null, langue: (r.langue as string | null) ?? null,
+    matchFr: !!r.match_fr, matchOrig: !!r.match_orig,
   }
-  return out
+}
+
+/** Le voile d'une liste dont la page demandée n'est pas encore là. */
+function styleAttente(attente: boolean): React.CSSProperties {
+  return { opacity: attente ? 0.55 : 1, transition: 'opacity .15s' }
 }
 
 // (Le décompte des occurrences par livre, œuvre ou publication passe par `compterMarque`,
@@ -254,9 +280,25 @@ export default function RechercheClient() {
   // Polyglotte de recherche : TROIS colonnes au maximum (au modèle de la page Polyglotte).
   const [colTrads, setColTrads] = useState<string[]>(['TR0001','TR0002','TR0003'])
   const [traductions, setTraductions] = useState(TRADUCTIONS_FALLBACK)
-  const [versetsRes, setVersetsRes] = useState<VersetResult[]>([])
-  const [segmentsRes, setSegmentsRes] = useState<SegmentResult[]>([])
+  // ── Ce que la base a rendu de la recherche affichée ──
+  // La REQUÊTE active (ses termes, son mode, son périmètre) — c'est elle que les pages
+  // redemandent —, les deux RÉPARTITIONS (par livre, par œuvre), dont les totaux se
+  // déduisent, et la PAGE courante de chaque corpus, avec la clé qui dit à quelle
+  // demande elle répond. Une page dont la clé n'est pas celle qu'on demande est en
+  // attente : l'attente se DÉDUIT, sans témoin à éteindre (le patron de la Polyglotte).
+  const [requete, setRequete] = useState<Requete | null>(null)
+  const [repartitionLivres, setRepartitionLivres] = useState<RepartitionLivre[]>([])
+  const [repartitionOeuvres, setRepartitionOeuvres] = useState<RepartitionOeuvre[]>([])
+  const [versetsPage, setVersetsPage] = useState<PageVersets>({ cle: '', lignes: [] })
+  const [segmentsPage, setSegmentsPage] = useState<PageSegments>({ cle: '', lignes: [] })
   const [essaisRes, setEssaisRes] = useState<EssaiResult[]>([])
+  // Une recherche qui échoue le DIT (audit du 2026-09-02 : l'erreur n'était jamais lue,
+  // et un échec se rendait « aucun résultat »).
+  const [erreur, setErreur] = useState<string | null>(null)
+  // Numérote les recherches : deux recherches identiques n'ont pas la même clé de page.
+  const sequenceRef = useRef(0)
+  // La position de défilement à rendre quand la page d'une recherche reprise arrive.
+  const scrollCibleRef = useRef<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [lastQuery, setLastQuery] = useState('')
@@ -273,7 +315,6 @@ export default function RechercheClient() {
   const paramsSigRef = useRef<string | null>(null)
   const [sugg, setSugg]         = useState<{ mot: string; freq: number }[]>([])
   const [showSugg, setShowSugg] = useState(false)
-  const [tronque, setTronque]   = useState<string[]>([])
   const inputRef   = useRef<HTMLInputElement>(null)
   const suggTimer  = useRef<ReturnType<typeof setTimeout>>(undefined)
   const suggRef    = useRef<HTMLUListElement>(null)
@@ -321,14 +362,17 @@ export default function RechercheClient() {
     // ⚠️ Le filtre se corrige tout seul : le jour où une de ces bibles est matérialisée
     // dans la vue, elle reparaît dans les menus sans qu'on touche à ce fichier.
     void (async () => {
+      // ⚠️ Le MILLÉSIME sert l'en-tête de la Polyglotte, sous le nom de chaque bible,
+      // dérivé comme sur la page Polyglotte (`millesimeEdition`, module pur : le dernier
+      // millésime de la notice d'édition, à défaut la fin de la publication).
       const { data } = await supabase
-        .from('traductions').select('trad_id, nom, langue')
+        .from('traductions').select('trad_id, nom, langue, source_edition, publication_fin_annee')
         .eq('est_biblique', true).order('ordre', { ascending: true })
       if (!data?.length) return
       const lisibles = new Set(await codesTraductionsLecture(supabase))
-      const trads = (data as { trad_id: string; nom: string; langue: string }[])
+      const trads: TraductionRecherche[] = (data as { trad_id: string; nom: string; langue: string; source_edition: string | null; publication_fin_annee: number | null }[])
         .filter(t => lisibles.has(t.trad_id))
-        .map(t => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue) }))
+        .map(t => ({ code: t.trad_id, label: t.nom, lang: codeLangue(t.langue), millesime: millesimeEdition(t) }))
       if (!trads.length) return
       setTraductions(trads)
       setColTrads(trads.slice(0, 3).map(t => t.code))
@@ -395,8 +439,8 @@ export default function RechercheClient() {
     lancerAbortRef.current = new AbortController()
     const signal = lancerAbortRef.current.signal
 
-    setLoading(true); setDone(false); setTronque([])
-    setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
+    setLoading(true); setDone(false); setErreur(null)
+    setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([])
     setPageV(0); setPageS(0); setPageE(0)
     setFiltres({ livre: null, oeuvre: null, essai: null })
     setLexemes([])
@@ -413,13 +457,12 @@ export default function RechercheClient() {
       // ⛔ UNE SEULE VOIE, un mot ou plusieurs (audit du 2026-09-06). La base reçoit les
       // TERMES et le MODE ; elle les normalise comme ses textes (`norm_fr` : accents,
       // casse, graphies anciennes — « était » trouve « étoit » chez Sacy), exige chaque
-      // terme dans la MÊME bible ou le même segment, et ne rend que ce qui se lit. Avant,
-      // deux mots passaient par un `ilike` sur le texte BRUT, sensible aux accents, et
-      // les graphies latines se cherchaient en autant d'appels successifs, sur le
-      // français normalisé aussi, qui ne les connaît pas.
+      // terme dans la MÊME bible ou le même segment, et ne rend que ce qui se lit. Le
+      // texte original (latin, grec) est cherché dans le même appel, sous ses graphies
+      // latines, et chaque passage dit par quel texte il a répondu.
       const termes = termesRecherche(q)
-      const chercheTout = scopeActif === 'ALL'
-      const tradCodes = traductions.map(t => t.code)
+      const scope = scopeActif === 'ALL' ? 'ALL' : scopeActif
+      const requeteNeuve: Requete = { cle: `${++sequenceRef.current}|${q}|${modeActif}|${scope}`, termes, mode: modeActif, scope }
 
       // Essais — construit sans await, part immédiatement en parallèle
       const reqE = (() => {
@@ -433,79 +476,49 @@ export default function RechercheClient() {
       // Les racines du mode « famille » : ce que la page marquera dans le texte.
       const reqLexemes = modeActif === 'famille'
         ? supabase.rpc('lexemes_recherche', { p_termes: termes }).abortSignal(signal)
-        : Promise.resolve({ data: null as string[] | null })
+        : Promise.resolve({ data: null as string[] | null, error: null })
 
-      // Versets, segments, original et essais lancés en parallèle. Versets et segments
-      // sont PAGINÉS (voir `pagine`) pour dépasser le plafond de 1000 de PostgREST.
-      const [frRows, origRows, versetsArr, resE, resLex] = await Promise.all([
-        pagine((de, a) => supabase.rpc('recherche_segments_v2', { p_termes: termes, p_mode: modeActif }).range(de, a), signal),
-        // Le texte original (latin, grec) : chaque terme sous ses graphies latines, en
-        // début de mot ou entier — la famille de mots n'a pas de racines pour lui.
-        pagine((de, a) => supabase.rpc('recherche_segments_original_v2', { p_termes: termes, p_exact: modeActif === 'exact' }).range(de, a), signal),
-        pagine((de, a) => supabase.rpc('recherche_versets_v2', { p_termes: termes, p_mode: modeActif, p_scope: chercheTout ? 'ALL' : scopeActif }).range(de, a), signal),
+      // ⛔ CE QUI PART, ET RIEN DE PLUS : les deux RÉPARTITIONS (ce que le volet
+      // affiche, et d'où les totaux se déduisent), la PREMIÈRE PAGE de chaque corpus
+      // — pour que la première ligne paraisse sans un second aller-retour —, les
+      // publications et les racines. Six requêtes, ensemble ; la plus lourde (« dieu »,
+      // 18 000 passages) rend en un tiers de seconde ce qui en coûtait quinze.
+      const [resRepV, resRepS, resPageV, resPageS, resE, resLex] = await Promise.all([
+        supabase.rpc('recherche_versets_v2_repartition', { p_termes: termes, p_mode: modeActif, p_scope: scope }).abortSignal(signal),
+        supabase.rpc('recherche_segments_v2_repartition', { p_termes: termes, p_mode: modeActif }).abortSignal(signal),
+        supabase.rpc('recherche_versets_v2', { p_termes: termes, p_mode: modeActif, p_scope: scope, p_livre: null, p_decalage: 0, p_taille: PAGE }).abortSignal(signal),
+        supabase.rpc('recherche_segments_v2', { p_termes: termes, p_mode: modeActif, p_id_oeuvre: null, p_decalage: 0, p_taille: PAGE }).abortSignal(signal),
         reqE,
         reqLexemes,
       ])
 
       if (signal.aborted) return
+      const echec = resRepV.error ?? resRepS.error ?? resPageV.error ?? resPageS.error ?? resE.error ?? resLex.error
+      if (echec) throw echec
 
       const lexemesRecus = ((resLex as { data?: string[] | null }).data ?? []) as string[]
       setLexemes(lexemesRecus)
       // Ce que la page marque et relit : les termes, ou les racines en mode famille.
       const marqueLocale = marqueDe(termes, modeActif, lexemesRecus)
-      // En mode famille la base a jugé sur les racines ; la page ne rejette rien de ce
-      // qu'elle a rendu — elle marque ce qu'elle reconnaît, et ne marque pas faux.
       const relire = (texte: string) => modeActif === 'famille' || contientMarque(texte, marqueLocale)
 
-      // Fusion par id : un segment peut répondre côté français, côté original, ou les deux.
-      const byId = new Map<number, any>()
-      for (const r of frRows as any[]) byId.set(r.id, { ...r, matchFr: true })
-      for (const r of origRows as any[]) {
-        const e = byId.get(r.id)
-        if (e) { e.texte_original = r.texte_original ?? e.texte_original; e.matchOrig = true }
-        else byId.set(r.id, { ...r, matchOrig: true })
-      }
-      const segsFromRpc = [...byId.values()]
-
-      // Détection troncature — seuils alignés sur les plafonds des RPC (6000 versets,
-      // 5000 segments) et de la pagination.
-      const avertissements: string[] = []
-      if (versetsArr.length >= 6000) avertissements.push('Bible')
-      if (frRows.length >= 5000 || origRows.length >= 5000) avertissements.push('Pères de l’Église')
-      if ((resE.data?.length ?? 0) >= 500) avertissements.push('Publications')
-      if (avertissements.length) setTronque(avertissements)
-
-      // Versets : la base a exigé tous les termes dans une même bible ; la page ne
-      // garde que les versets où elle RETROUVE la marque dans une bible du périmètre
-      // (c'est aussi ce qui dit, ligne par ligne, quelles bibles portent le mot).
-      const versetsRaw = versetsArr as unknown as VersetResult[]
-      const colsFiltre = chercheTout ? tradCodes : [scopeActif]
-      const versets = versetsRaw.filter(v => colsFiltre.some(c => relire(String(v[c] ?? ''))))
-      setVersetsRes(versets)
-
+      const repV = (resRepV.data ?? []) as RepartitionLivre[]
+      const repS = (resRepS.data ?? []) as RepartitionOeuvre[]
       // Essais : chaque terme quelque part (la vue), puis tous les termes ensemble.
-      const essais = (resE.data ?? []) as EssaiResult[]
-      setEssaisRes(termes.length > 1 ? essais.filter(e => relire([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '))) : essais)
+      const essaisBruts = (resE.data ?? []) as EssaiResult[]
+      const essais = termes.length > 1 ? essaisBruts.filter(e => relire([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '))) : essaisBruts
 
-      // Segments : le français se relit par la marque, l'original par ses graphies.
-      const segs = (segsFromRpc as any[]).filter((s: any) =>
-        (s.matchFr && relire(s.segment_texte ?? ''))
-        || (s.matchOrig && contientTousOriginal(s.texte_original ?? '', termes, modeActif === 'exact')))
-      const oeuvreIds = [...new Set(segs.map((s: any) => s.id_oeuvre))]
-      const oeuvreMap: Record<string, { titre: string; auteur: string; langue: string }> = {}
-      if (oeuvreIds.length) {
-        const { data: oeuvres } = await supabase.from('oeuvres').select('id_oeuvre, titre, acces_public, langue_originale, auteurs!oeuvres_id_auteur_fkey(nom)')
-          .in('id_oeuvre', oeuvreIds).limit(oeuvreIds.length).abortSignal(signal)
-        if (signal.aborted) return
-        ;((oeuvres ?? []) as any[]).filter(estOeuvrePubliee).forEach((o: any) => { oeuvreMap[o.id_oeuvre] = { titre: o.titre, auteur: o.auteurs?.nom || '', langue: o.langue_originale || '' } })
-      }
-      const segsPublies = segs.filter((s: any) => oeuvreMap[s.id_oeuvre])
-      setSegmentsRes(segsPublies.map((s: any) => ({ ...s, auteur_nom: oeuvreMap[s.id_oeuvre]?.auteur || '', oeuvre_titre: oeuvreMap[s.id_oeuvre]?.titre || '', langue: oeuvreMap[s.id_oeuvre]?.langue || '' })))
-
+      setRepartitionLivres(repV)
+      setRepartitionOeuvres(repS)
+      setEssaisRes(essais)
+      setVersetsPage({ cle: cleDePage(requeteNeuve, 0, null), lignes: (resPageV.data ?? []) as VersetResult[] })
+      setSegmentsPage({ cle: cleDePage(requeteNeuve, 0, null), lignes: ((resPageS.data ?? []) as Record<string, unknown>[]).map(segmentDepuisRpc) })
+      setRequete(requeteNeuve)
       setLastQuery(q); setLastScope(scopeActif)
       setLoading(false); setDone(true)
+      if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = 0
 
-      const counts = { bible: versets.length, patristique: segsPublies.length, essais: essais.length }
+      const counts = { bible: repV.reduce((s, r) => s + r.n, 0), patristique: repS.reduce((s, r) => s + r.n, 0), essais: essais.length }
       setOnglet(prev => {
         if (prev === 'polyglotte') return 'polyglotte'
         if (Object.values(counts).every(c => c === 0)) return prev
@@ -515,8 +528,10 @@ export default function RechercheClient() {
         if (counts.bible >= counts.essais) return 'bible'
         return 'essais'
       })
-    } catch (err: any) {
-      if (err?.name === 'AbortError' || signal.aborted) return
+    } catch (err: unknown) {
+      if ((err as { name?: string })?.name === 'AbortError' || signal.aborted) return
+      console.error('[recherche] la recherche a échoué', err)
+      setErreur('La recherche n’a pas abouti.')
       setLoading(false)
     }
   }
@@ -534,8 +549,8 @@ export default function RechercheClient() {
     // repart de zéro plutôt que de garder les résultats précédents à l'écran.
     if (!q) {
       lancerAbortRef.current?.abort()
-      setQuery(''); setDone(false); setLoading(false); setTronque([])
-      setVersetsRes([]); setSegmentsRes([]); setEssaisRes([])
+      setQuery(''); setDone(false); setLoading(false); setErreur(null)
+      setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([])
       setPageV(0); setPageS(0); setPageE(0)
       return
     }
@@ -602,21 +617,22 @@ export default function RechercheClient() {
     setQuery(snap.query)
     await lancer(snap.query, snap.mode, snap.tradScope)
     // `lancer` a remis les pages à zéro et choisi un onglet au jugé : on rétablit l'état
-    // exact qui avait été enregistré, puis la position de défilement une fois le DOM peint.
+    // exact qui avait été enregistré, puis la position de défilement.
+    // ⚠️ Une page au-delà de la première se REDEMANDE à la base : la position se rend
+    // alors quand cette page arrive (voir les effets de page), non sur une minuterie
+    // qui la poserait sur la page d'avant.
     setOnglet(snap.onglet)
     setPageV(snap.pageV); setPageS(snap.pageS); setPageE(snap.pageE)
     const cible = snap.scrollTop
-    setTimeout(() => { if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = cible }, 120)
+    const attendUnePage = (snap.onglet === 'patristique' && snap.pageS > 0)
+      || ((snap.onglet === 'bible' || snap.onglet === 'polyglotte') && snap.pageV > 0)
+    if (attendUnePage) scrollCibleRef.current = cible
+    else setTimeout(() => { if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = cible }, 120)
   }
 
   // La MARQUE de la recherche affichée : les termes tapés, ou les racines rendues par
   // la base en mode famille. Tout ce que la page relit ou surligne passe par elle.
   const marque = useMemo(() => marqueDe(termesRecherche(lastQuery), mode, lexemes), [lastQuery, mode, lexemes])
-
-  // Résultats bibliques TRIÉS dans l'ordre canonique (Genèse → Apocalypse, puis chapitre,
-  // puis verset), pour l'onglet Bible ET l'onglet Polyglotte. L'ancien tri « mot absent de
-  // la traduction affichée → en bas » est abandonné au profit de l'ordre biblique demandé.
-  const versetsTries = useMemo(() => [...versetsRes].sort(comparerVersets), [versetsRes])
 
   // Le SIGLE de chaque bible, calculé une fois sur la liste ENTIÈRE : c'est à cette
   // condition seulement que deux bibles ne peuvent pas recevoir le même (voir
@@ -633,55 +649,85 @@ export default function RechercheClient() {
     entier: mode === 'exact',
   }), [lastQuery, mode])
 
-  // Résultats patristiques TRIÉS par nom d'auteur (alphabétique), puis œuvre, puis segment.
-  const segmentsTries = useMemo(() => [...segmentsRes].sort((a, b) =>
-    a.auteur_nom.localeCompare(b.auteur_nom, 'fr') ||
-    a.oeuvre_titre.localeCompare(b.oeuvre_titre, 'fr') ||
-    a.id - b.id), [segmentsRes])
-
-  // ── Répartitions pour le volet gauche (nombre d'occurrences par regroupement) ──
-  // Bible / Polyglotte : par livre, dans l'ordre canonique.
-  const repartitionLivres = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const v of versetsRes) m.set(v.livre, (m.get(v.livre) ?? 0) + 1)
-    return [...m.entries()].sort((a, b) => (ORDRE_LIVRE[a[0]] ?? 9999) - (ORDRE_LIVRE[b[0]] ?? 9999))
-  }, [versetsRes])
-  // Pères de l'Église : par œuvre (auteur + titre), triée par auteur.
-  const repartitionOeuvres = useMemo(() => {
-    const m = new Map<string, { auteur: string; titre: string; n: number }>()
-    for (const s of segmentsRes) {
-      const k = s.auteur_nom + '¦' + s.oeuvre_titre
-      const e = m.get(k) ?? { auteur: s.auteur_nom, titre: s.oeuvre_titre, n: 0 }
-      e.n++; m.set(k, e)
-    }
-    return [...m.values()].sort((a, b) =>
-      a.auteur.localeCompare(b.auteur, 'fr') || a.titre.localeCompare(b.titre, 'fr'))
-  }, [segmentsRes])
-  // Publications de la communauté : par publication, occurrences décroissantes.
+  // ── LES COMPTES VIENNENT DE LA BASE, ET LES PAGES AUSSI (2026-09-06) ──
+  // Les deux répartitions portent l'effectif de chaque livre et de chaque œuvre, dans
+  // l'ordre du canon et de l'auteur ; le total s'en déduit, et le total FILTRÉ est
+  // l'effectif de la ligne retenue. Plus de liste entière dans le navigateur, donc plus
+  // de tri, de découpe ni de plafond ici.
+  const versetsTotal = useMemo(() => repartitionLivres.reduce((s, r) => s + r.n, 0), [repartitionLivres])
+  const segmentsTotal = useMemo(() => repartitionOeuvres.reduce((s, r) => s + r.n, 0), [repartitionOeuvres])
+  const versetsTotalFiltre = filtres.livre ? (repartitionLivres.find(r => r.livre === filtres.livre)?.n ?? 0) : versetsTotal
+  const segmentsTotalFiltre = filtres.oeuvre ? (repartitionOeuvres.find(r => r.id_oeuvre === filtres.oeuvre)?.n ?? 0) : segmentsTotal
+  // Publications de la communauté : par publication, occurrences décroissantes. Elles
+  // restent chargées entières — une trentaine de textes — et se filtrent ici.
   const repartitionEssais = useMemo(() =>
     essaisRes.map(e => ({
       id: e.id, titre: e.titre,
       n: compterMarque([e.titre, e.sous_titre, e.resume, e.contenu].filter(Boolean).join(' '), marque) || 1,
     })).sort((a, b) => b.n - a.n), [essaisRes, marque])
-
-  // Listes FILTRÉES par le volet gauche (livre / œuvre / publication). Sans filtre,
-  // ce sont les listes triées complètes.
-  const versetsFiltres = useMemo(() => filtres.livre ? versetsTries.filter(v => v.livre === filtres.livre) : versetsTries, [versetsTries, filtres.livre])
-  const segmentsFiltres = useMemo(() => filtres.oeuvre ? segmentsTries.filter(s => (s.auteur_nom + '¦' + s.oeuvre_titre) === filtres.oeuvre) : segmentsTries, [segmentsTries, filtres.oeuvre])
   const essaisFiltres = useMemo(() => filtres.essai != null ? essaisRes.filter(e => e.id === filtres.essai) : essaisRes, [essaisRes, filtres.essai])
-
-  const versetsPage      = versetsFiltres.slice(pageV * PAGE, (pageV + 1) * PAGE)
-  const versetsPageBible = versetsFiltres.slice(pageV * PAGE, (pageV + 1) * PAGE)
-  const segmentsPage = segmentsFiltres.slice(pageS * PAGE, (pageS + 1) * PAGE)
   const essaisPage   = essaisFiltres.slice(pageE * PAGE, (pageE + 1) * PAGE)
 
-  const totalActive  = onglet === 'bible' || onglet === 'polyglotte' ? versetsFiltres.length
-    : onglet === 'patristique' ? segmentsFiltres.length : essaisFiltres.length
+  // La page DEMANDÉE de chaque corpus, et celle qui est là. Quand les deux clés
+  // diffèrent, la page est EN ATTENTE : l'effet ci-dessous la redemande, et les lignes
+  // d'avant restent sous un voile le temps qu'elle vienne. ⚠️ Rien ne s'allume ni ne
+  // s'éteint dans un effet : l'attente se lit sur les clés, et retombe seule.
+  const cleV = cleDePage(requete, pageV, filtres.livre)
+  const cleS = cleDePage(requete, pageS, filtres.oeuvre)
+  const versetsEnAttente = !!requete && versetsPage.cle !== cleV
+  const segmentsEnAttente = !!requete && segmentsPage.cle !== cleS
+
+  // Une page qui arrive remonte le défileur — ou lui rend la position qu'une recherche
+  // reprise attendait. Seule la page de l'onglet AFFICHÉ y touche.
+  const poserDefilement = useCallback((ongletDeLaPage: boolean) => {
+    const zone = zoneResultatsRef.current
+    if (!zone) return
+    if (scrollCibleRef.current != null) { zone.scrollTop = scrollCibleRef.current; scrollCibleRef.current = null }
+    else if (ongletDeLaPage) zone.scrollTop = 0
+  }, [])
+
+  useEffect(() => {
+    if (!requete || versetsPage.cle === cleV) return
+    const ctrl = new AbortController()
+    const ongletDeLaPage = onglet === 'bible' || onglet === 'polyglotte'
+    void (async () => {
+      const { data, error } = await supabase
+        .rpc('recherche_versets_v2', { p_termes: requete.termes, p_mode: requete.mode, p_scope: requete.scope, p_livre: filtres.livre, p_decalage: pageV * PAGE, p_taille: PAGE })
+        .abortSignal(ctrl.signal)
+      if (ctrl.signal.aborted) return
+      if (error) { console.error('[recherche] page biblique', error); setErreur('La page demandée n’a pas pu être chargée.'); return }
+      setVersetsPage({ cle: cleV, lignes: (data ?? []) as VersetResult[] })
+      poserDefilement(ongletDeLaPage)
+    })()
+    return () => ctrl.abort()
+  }, [requete, cleV, versetsPage.cle, filtres.livre, pageV, onglet, poserDefilement])
+
+  useEffect(() => {
+    if (!requete || segmentsPage.cle === cleS) return
+    const ctrl = new AbortController()
+    const ongletDeLaPage = onglet === 'patristique'
+    void (async () => {
+      const { data, error } = await supabase
+        .rpc('recherche_segments_v2', { p_termes: requete.termes, p_mode: requete.mode, p_id_oeuvre: filtres.oeuvre, p_decalage: pageS * PAGE, p_taille: PAGE })
+        .abortSignal(ctrl.signal)
+      if (ctrl.signal.aborted) return
+      if (error) { console.error('[recherche] page patristique', error); setErreur('La page demandée n’a pas pu être chargée.'); return }
+      setSegmentsPage({ cle: cleS, lignes: ((data ?? []) as Record<string, unknown>[]).map(segmentDepuisRpc) })
+      poserDefilement(ongletDeLaPage)
+    })()
+    return () => ctrl.abort()
+  }, [requete, cleS, segmentsPage.cle, filtres.oeuvre, pageS, onglet, poserDefilement])
+
+  const totalActive  = onglet === 'bible' || onglet === 'polyglotte' ? versetsTotalFiltre
+    : onglet === 'patristique' ? segmentsTotalFiltre : essaisFiltres.length
   const pageActive   = onglet === 'patristique' ? pageS : onglet === 'essais' ? pageE : pageV
   const setPageActive = onglet === 'patristique' ? setPageS : onglet === 'essais' ? setPageE : setPageV
   const pagesTotal   = Math.ceil(totalActive / PAGE)
   const debut = pageActive * PAGE + 1
   const fin   = Math.min((pageActive + 1) * PAGE, totalActive)
+  // 44 px : la mesure de la marge de référence sur la page Polyglotte (`LARGEUR_REF`).
+  // L'en-tête et le corps partagent la grille.
+  const polyTmpl = `44px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
 
   // Maintien enfoncé sur « Précédent »/« Suivant » : les pages défilent vite. Un premier
   // pas immédiat, puis, après une courte retenue, une répétition rapide jusqu'au relâché.
@@ -771,20 +817,38 @@ export default function RechercheClient() {
         .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
         /* (« .mode-btn » est parti avec le contrôle segmenté : le mode se prend désormais
            en options de volet, dont la forme vit dans « stylesVoletLecture ».) */
-        /* ── Polyglotte : palette de la page « Polyglotte » (vert), 3 colonnes ── */
-        .poly-outer { border-radius:0 0 8px 8px; border:1px solid var(--cs-bord); border-top:none; box-shadow:var(--cs-ombre-flottante); overflow:hidden; }
-        .poly-hd { background:var(--cs-vert-aplat-profond); display:grid; gap:0; overflow:hidden; border-radius:8px 8px 0 0; }
-        .poly-hd-col { display:flex; align-items:center; gap:6px; padding:0 12px; height:38px; border-right:1px solid rgba(255,255,255,0.14); }
-        .poly-hd-col:last-child { border-right:none; }
-        .poly-hd-sel { font-size:0.625rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; text-align:center; text-align-last:center; color:rgba(255,255,255,0.9); background:transparent; border:none; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; padding:2px 16px; flex:1; transition:color 0.12s; }
-        .poly-hd-sel:hover { color:var(--cs-vert-clair); }
-        .poly-hd-sel option { background:var(--cs-encre); color:var(--cs-vert-pale); font-weight:400; text-transform:none; font-size:0.75rem; }
-        .poly-hd-sel option:disabled { color:#6a8474; }
-        .poly-hd-chevron { color:var(--cs-vert); pointer-events:none; flex-shrink:0; transition:color 0.12s; }
-        .poly-hd-col:hover .poly-hd-chevron { color:var(--cs-vert-clair); }
+        /* ── Polyglotte : LA FORME DE LA PAGE POLYGLOTTE, telle qu'elle est depuis le
+           2026-09-04 (demande de l'auteur, 2026-09-06 : « s'inspirer du nouveau modèle »).
+           ⛔ Ni cadre, ni ombre, ni coins arrondis : le corps EST la page. L'en-tête
+           n'est plus un bandeau vert profond à capitales espacées : c'est la barre claire
+           de la page de lecture — le nom de chaque bible en sérif, son année dessous, un
+           filet fin entre les colonnes. Les filets et le sol sont ceux de la page. */
+        .poly-outer { overflow:hidden; }
+        /* L'en-tête : la grille du corps, le sol de la page, un filet dessous. Chaque cellule
+           porte le filet de gauche qui ouvre la réglure, et le rembourrage qui donne de
+           l'air au bloc teinté du titre (mesures de la page Polyglotte, 2026-09-04). */
+        .poly-hd { display:grid; gap:0; min-height:52px; font-size:0.75rem; background:var(--cs-fond); border-bottom:1px solid var(--cs-bord); }
+        .poly-hd-cell { border-left:1px solid var(--cs-bord-clair); padding:5px 6px; display:flex; align-items:stretch; justify-content:center; min-width:0; }
+        /* Le titre de colonne : le nom en sérif de l'échelle haute, le millésime un rang
+           plus bas en capitales espacées, le chevron plus bas encore — une marque
+           d'ouverture, pas un accent. Le fond du survol et du menu ouvert vit ICI, dans la
+           feuille : une déclaration en ligne le rendrait mort (piège consigné). */
+        .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:7px 18px 7px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background .15s; }
+        .poly-hd-pick:hover, .poly-hd-pick:has(select:focus-visible) { background:rgba(var(--cs-vert-rgb),0.07); }
+        .poly-hd-titre { min-width:0; text-align:center; line-height:1.12; }
+        .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-source-serif), Georgia, serif; font-size:0.875rem; color:var(--cs-encre-fonce); }
+        .poly-hd-millesime { display:block; margin-top:3px; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.5625rem; font-weight:600; letter-spacing:0.15em; text-indent:0.15em; color:var(--cs-texte-gris); }
+        .poly-hd-chevron { position:absolute; right:7px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cs-texte-doux); }
+        /* Le menu natif couvre le titre, invisible : c'est lui qu'on clique, et c'est lui
+           que le clavier atteint. */
+        .poly-hd-select { position:absolute; inset:0; width:100%; height:100%; margin:0; border:none; opacity:0; cursor:pointer; }
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
-        .poly-livre-hd { margin:0; padding:2px 12px; font-family:var(--font-source-serif), Georgia, serif; font-size:0.78125rem; line-height:1.35; color:var(--cs-encre); background:var(--cs-vert-clair); border-top:1px solid var(--cs-vert-clair); border-bottom:1px solid var(--cs-vert-clair); text-align:center; }
+        /* Le livre qui change, dans la course des versets : le titre de la page de
+           lecture — sérif vert, centré sur les colonnes de texte, deux filets pâles —,
+           et COLLANT comme là-bas, pour que le nom reste en vue tant que ses versets
+           défilent. Le rembourrage de gauche vaut la marge de référence. */
+        .poly-livre-hd { margin:0; padding:10px 12px 10px 44px; font-family:var(--font-source-serif), Georgia, serif; font-size:1rem; font-weight:400; line-height:1.3; color:var(--cs-vert); background:var(--cs-fond); border-top:1px solid var(--cs-vert-pale); border-bottom:1px solid var(--cs-vert-pale); text-align:center; position:sticky; top:0; z-index:3; }
         /* ⛔ LA COLONNE SE COMPOSE COMME CELLE DE LA PAGE POLYGLOTTE, et la composition
            vit dans « globals.css » — une seule déclaration, deux surfaces (demande de
            l'auteur, 2026-09-04). Le commentaire d'au-dessus promettait des classes
@@ -799,9 +863,17 @@ export default function RechercheClient() {
            ⚠️ Le corps monte de 13 à 14 px, celui de la page de lecture : la cellule le
            tient de sa rangée, et c'est de lui que la lettrine tire la hauteur de son
            étui (une ligne de texte, exactement). */
-        .poly-row { display:grid; border-top:1px solid var(--cs-vert-pale); font-size:0.875rem; text-decoration:none; }
-        .poly-texte-cell { border-left:1px solid var(--cs-vert-pale); }
-        .poly-texte-cell--absent { background:var(--cs-danger-fond); color:var(--cs-danger-fonce); }
+        /* ⚠️ Pas de filet entre les rangées, comme sur la page de lecture : le blanc entre
+           versets vient de la cellule, et la réglure verticale court sans interruption.
+           Le survol assombrit la rangée d'un cheveu, comme là-bas. */
+        .poly-row { display:grid; font-size:0.875rem; text-decoration:none; color:inherit; background:var(--cs-fond); transition:filter 0.12s; }
+        .poly-row:hover { filter:brightness(0.955); }
+        .poly-texte-cell { border-left:1px solid var(--cs-bord-clair); color:var(--cs-encre-fonce); }
+        /* La cellule dont la bible ne porte pas le mot : le fond d'absence, et rien
+           d'autre — l'encre reste celle du texte. Elle se lisait en rouge sombre, ce qui
+           faisait d'un verset ordinaire une alerte. */
+        .poly-texte-cell--absent { background:var(--cs-danger-fond); }
+        @media (prefers-reduced-motion: reduce) { .poly-row { transition:none; } }
         /* ⛔ UN MENU DU VOLET NE PORTE NI CADRE NI FOND. Neuf bibles ne se posent pas en
            neuf lignes dans un volet — c'est pourquoi ces deux axes gardent un menu là où
            le mode passe en options —, mais le menu se dépouille comme tout le reste : il
@@ -843,7 +915,7 @@ export default function RechercheClient() {
                   ⚠️ La page n'avait AUCUN titre de niveau 1 : c'en est un maintenant. */}
               <h1 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
               {done && (() => {
-                const total = versetsRes.length + segmentsRes.length + essaisRes.length
+                const total = versetsTotal + segmentsTotal + essaisRes.length
                 return <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-faible)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
               })()}
             </div>
@@ -875,7 +947,7 @@ export default function RechercheClient() {
                 className="cs-volet-recherche"
                 style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box' }} />
               {query ? (
-                <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setVersetsRes([]); setSegmentsRes([]); setEssaisRes([]); setShowSugg(false) }}
+                <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
               ) : (
                 <svg style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', color:'var(--cs-bord)', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
@@ -980,9 +1052,9 @@ export default function RechercheClient() {
               {/* Enregistrer / Reprendre : deux boutons de même hauteur, resserrés. Un clic
                   « Enregistrer » mémorise mot(s), page et position ; si une AUTRE recherche est
                   déjà mémorisée, une fenêtre demande d'abord confirmation d'écrasement. */}
-              {((done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0) || rechercheSauvee) && (
+              {((done && (versetsTotal + segmentsTotal + essaisRes.length) > 0) || rechercheSauvee) && (
                 <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
-                  {done && (versetsRes.length + segmentsRes.length + essaisRes.length) > 0 && (
+                  {done && (versetsTotal + segmentsTotal + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
                       style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'transparent', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' }}
                       onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.08)')}
@@ -1023,9 +1095,9 @@ export default function RechercheClient() {
           {done && (
             <nav style={{ flex:1, minHeight:0, maxHeight: mobile ? '45vh' : undefined, overflowY:'auto', borderTop:'1px solid var(--cs-bord-clair)', padding:'6px 0 10px' }}>
               {([
-                { k:'bible', label:'Bible', n:versetsRes.length },
-                { k:'polyglotte', label:'Polyglotte', n:versetsRes.length },
-                { k:'patristique', label:'Pères de l’Église', n:segmentsRes.length },
+                { k:'bible', label:'Bible', n:versetsTotal },
+                { k:'polyglotte', label:'Polyglotte', n:versetsTotal },
+                { k:'patristique', label:'Pères de l’Église', n:segmentsTotal },
                 { k:'essais', label:'Publications de la communauté', n:essaisRes.length },
               ] as { k:Onglet; label:string; n:number }[]).map(o => {
                 const actif = onglet===o.k
@@ -1043,7 +1115,7 @@ export default function RechercheClient() {
                         regroupement ; un second clic sur la même ligne annule le filtre. */}
                     {actif && o.n > 0 && (
                       <div style={{ ...styleFamille(o.k), padding:'2px 14px 8px 26px', display:'flex', flexDirection:'column', gap:'1px' }}>
-                        {(o.k==='bible' || o.k==='polyglotte') && repartitionLivres.map(([code, n]) => {
+                        {(o.k==='bible' || o.k==='polyglotte') && repartitionLivres.map(({ livre: code, n }) => {
                           const sel = filtres.livre === code
                           return (
                             <button key={code} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
@@ -1054,16 +1126,19 @@ export default function RechercheClient() {
                             </button>
                           )
                         })}
-                        {o.k==='patristique' && repartitionOeuvres.map((r, i) => {
-                          const cle = r.auteur + '¦' + r.titre
+                        {/* Une œuvre se désigne par son IDENTIFIANT : c'est lui que la base
+                            reçoit en filtre, et deux œuvres d'un même auteur peuvent porter
+                            le même titre. */}
+                        {o.k==='patristique' && repartitionOeuvres.map(r => {
+                          const cle = r.id_oeuvre
                           const sel = filtres.oeuvre === cle
                           return (
-                            <button key={i} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
+                            <button key={cle} className={`brk-row${sel ? ' brk-row--actif' : ''}`}
                               onClick={() => { setFiltres(f => ({ ...f, oeuvre: f.oeuvre === cle ? null : cle })); setPageS(0) }}
-                              title={sel ? 'Retirer le filtre' : `N'afficher que ${r.auteur}${r.titre ? ' — ' + r.titre : ''}`}>
+                              title={sel ? 'Retirer le filtre' : `N'afficher que ${r.auteur_nom}${r.oeuvre_titre ? ' — ' + r.oeuvre_titre : ''}`}>
                               <span style={{ minWidth:0 }}>
-                                <span style={{ color: sel ? 'inherit' : 'var(--cs-texte)' }}>{r.auteur}</span>
-                                {r.titre && <span style={{ color: sel ? 'inherit' : 'var(--cs-texte-doux)', fontStyle:'italic' }}> — {r.titre}</span>}
+                                <span style={{ color: sel ? 'inherit' : 'var(--cs-texte)' }}>{r.auteur_nom}</span>
+                                {r.oeuvre_titre && <span style={{ color: sel ? 'inherit' : 'var(--cs-texte-doux)', fontStyle:'italic' }}> — {r.oeuvre_titre}</span>}
                               </span>
                               <span className="brk-count">{r.n}</span>
                             </button>
@@ -1092,38 +1167,54 @@ export default function RechercheClient() {
         {/* ── TABLEAU DE RÉSULTATS : tout l'espace libre ── */}
         <main style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', overflow: mobile ? 'visible' : 'hidden' }}>
 
-          {/* Bannière troncature */}
-          {done && tronque.length > 0 && (
-            <div style={{ flexShrink:0, background:'var(--cs-danger-fond)', border:'1px solid #e8c96a', borderRadius:'8px', padding:'7px 14px', margin:'12px 24px 0', display:'flex', alignItems:'center', gap:'8px' }}>
-              <span style={{ fontSize:'0.8125rem' }}>⚠️</span>
-              <span style={{ fontSize:'0.71875rem', color:'#7a5a10' }}>
-                Résultats trop nombreux dans {tronque.join(', ')} — seuls les premiers affichés. Affinez votre recherche ou utilisez le mode <strong>Mot exact</strong>.
-              </span>
-            </div>
-          )}
+          {/* (La bannière « résultats trop nombreux » est partie avec les plafonds : la
+              base compte tout, et la page le pagine.) */}
 
-          {/* En-tête polyglotte — hors du scroll (badge « recherche » retiré) */}
-          {done && onglet==='polyglotte' && versetsRes.length > 0 && (
-            <div className="poly-hd" style={{ gridTemplateColumns:`44px repeat(${colTrads.length},minmax(0,1fr))`, flexShrink:0, margin:'12px 22px 0' }}>
-              {/* Cellule vide au-dessus de la marge de référence (44px), pour aligner l'en-tête
-                  sur la grille du corps. */}
-              <div style={{ borderRight:'1px solid rgba(255,255,255,0.14)' }} />
+          {/* ── En-tête de la Polyglotte — hors du défilement, LA BARRE DE LA PAGE
+              POLYGLOTTE telle qu'elle est depuis le 2026-09-04 (demande de l'auteur,
+              2026-09-06 : « il y a une nouvelle version du tableau dans la page
+              Polyglotte ; il faut la reproduire »). Une seule ligne et un unique filet
+              dessous : en tête de chaque colonne, le nom de l'édition en sérif, son
+              millésime en capitales espacées, et un chevron qui dit que le nom est un
+              menu. La cellule donne de l'air au bloc teinté du survol (5 px en haut et en
+              bas, 6 sur les côtés), comme là-bas.
+              ⚠️ Le menu est un <select> NATIF posé, invisible, sur le titre : la page de
+              lecture compose le sien à la main parce qu'elle a des FAMILLES d'éditions à
+              déployer ; ici les bibles n'en ont pas, et un menu natif les groupe par
+              langue sans qu'on écrive un panneau de plus. */}
+          {done && onglet==='polyglotte' && versetsTotalFiltre > 0 && (
+            <div className="poly-hd" style={{ gridTemplateColumns: polyTmpl, flexShrink:0, margin:'12px 22px 0' }}>
+              {/* La marge de la référence : la réglure ne commence qu'après elle. */}
+              <div />
               {colTrads.map((code, i) => {
                 const autresChoisies = new Set(colTrads.filter((_, j) => j !== i))
+                const trad = traductions.find(t => t.code === code)
+                const groupes = [
+                  ...GROUPES_LANG.map(g => ({ ...g, membres: traductions.filter(t => t.lang === g.code) })),
+                  { code: 'autres', label: 'Autres', membres: traductions.filter(t => !GROUPES_LANG.some(g => g.code === t.lang)) },
+                ].filter(g => g.membres.length)
                 return (
-                  <div key={i} className="poly-hd-col">
-                    <div style={{ position:'relative', flex:1, display:'flex', alignItems:'center' }}>
-                      <select className="poly-hd-sel" value={code}
-                        onChange={e => setColTrads(prev => prev.map((c,j) => j===i ? e.target.value : c))}>
-                        {traductions.map(t => (
-                          <option key={t.code} value={t.code} disabled={autresChoisies.has(t.code)}>
-                            {t.label}{autresChoisies.has(t.code) ? ' ✕' : ''}
-                          </option>
-                        ))}
-                      </select>
-                      <svg className="poly-hd-chevron" width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ position:'absolute', right:0 }}>
+                  <div key={i} className="poly-hd-cell">
+                    <div className="poly-hd-pick" title="Changer de traduction">
+                      <span aria-hidden="true" className="poly-hd-titre">
+                        <span className="poly-hd-nom">{trad ? rendreEnrichi(trad.label) : 'Choisir une traduction'}</span>
+                        {trad?.millesime && <span className="poly-hd-millesime">{trad.millesime}</span>}
+                      </span>
+                      <svg aria-hidden="true" className="poly-hd-chevron" width="9" height="9" viewBox="0 0 10 10" fill="none">
                         <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
+                      <select className="poly-hd-select" value={code} aria-label="Bible de cette colonne"
+                        onChange={e => setColTrads(prev => prev.map((c, j) => j === i ? e.target.value : c))}>
+                        {groupes.map(g => (
+                          <optgroup key={g.code} label={g.label}>
+                            {g.membres.map(t => (
+                              <option key={t.code} value={t.code} disabled={autresChoisies.has(t.code)}>
+                                {sansEnrichissements(t.label)}{t.millesime ? ` · ${t.millesime}` : ''}{autresChoisies.has(t.code) ? ' (déjà affichée)' : ''}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 )
@@ -1132,7 +1223,7 @@ export default function RechercheClient() {
           )}
 
           {/* Résultats */}
-          <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsRes.length > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
+          <div ref={zoneResultatsRef} style={{ flex:1, minHeight: mobile ? '40vh' : undefined, overflowY: mobile ? 'visible' : 'auto', scrollbarGutter:'stable', padding: (done && onglet==='polyglotte' && versetsTotalFiltre > 0) ? '0 22px 4px' : '6px 22px 4px' }}>
 
             {!done && !loading && !reference && (
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
@@ -1166,6 +1257,16 @@ export default function RechercheClient() {
                 <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Recherche en cours…</p>
               </div>
             )}
+            {/* Une panne se DIT, et propose de réessayer : un échec rendu « aucun
+                résultat » est la pire des réponses. */}
+            {erreur && !loading && (
+              <div style={{ textAlign:'center', marginTop:'40px' }}>
+                <p style={{ fontSize:'0.8125rem', color:'var(--cs-danger-fonce)', fontStyle:'italic', margin:0 }}>
+                  {erreur}{' '}
+                  <button onClick={() => lancer(lastQuery || query)} className="pag-btn" style={{ marginLeft:'8px', fontStyle:'normal' }}>Réessayer</button>
+                </p>
+              </div>
+            )}
 
             {/* ── Le PASSAGE que la saisie désigne ──
                 « Jean 3, 16 » ou « Genèse 22 » n'est pas un mot à chercher, c'est un
@@ -1188,16 +1289,16 @@ export default function RechercheClient() {
 
             {/* ── Bible ── */}
             {done && onglet==='bible' && (
-              versetsFiltres.length===0
+              versetsTotalFiltre===0
                 ? <Vide texte="Aucun verset trouvé." />
-                : <div style={styleFamille('bible')}>
+                : <div style={{ ...styleFamille('bible'), ...styleAttente(versetsEnAttente) }}>
                   {/* Un groupe par LIVRE. Les versets arrivant dans l'ordre canonique, une
                       tranche consécutive est exactement un livre. Le nom du livre monte donc
                       dans la rubrique et la référence de chaque ligne retombe à « 18, 2 ».
                       ⛔ Aucun COMPTE dans la rubrique : celui de la page mentirait sur le
                       livre, celui du livre mentirait sur la page. Les comptes complets vivent
                       dans le volet gauche, et le total sous la pagination. */}
-                  {grouperConsecutifs(versetsPageBible, v => v.livre).map(tranche => (
+                  {grouperConsecutifs(versetsPage.lignes, v => v.livre).map(tranche => (
                     <div className="grp" key={tranche.cle}>
                       <div className="grp-hd">
                         <span className="nom">{NOMS_LIVRES[tranche.cle] ?? tranche.cle}</span>
@@ -1247,14 +1348,14 @@ export default function RechercheClient() {
 
             {/* ── Patristique ── */}
             {done && onglet==='patristique' && (
-              segmentsFiltres.length===0
+              segmentsTotalFiltre===0
                 ? <Vide texte="Aucun passage trouvé." />
-                : <div style={styleFamille('patristique')}>
-                  {/* Un groupe par ŒUVRE (auteur puis titre). Les segments arrivent triés par
-                      nom d'auteur puis par œuvre : une tranche consécutive est exactement une
-                      œuvre. L'auteur et le titre cessent donc d'être répétés à chaque passage,
-                      et la ligne ne porte plus que sa cote. */}
-                  {grouperConsecutifs(segmentsPage, s => s.auteur_nom + '¦' + (s.oeuvre_titre ?? '')).map(tranche => (
+                : <div style={{ ...styleFamille('patristique'), ...styleAttente(segmentsEnAttente) }}>
+                  {/* Un groupe par ŒUVRE. La base range les passages par auteur puis par
+                      œuvre : une tranche consécutive est exactement une œuvre. L'auteur et
+                      le titre cessent donc d'être répétés à chaque passage, et la ligne ne
+                      porte plus que sa cote. */}
+                  {grouperConsecutifs(segmentsPage.lignes, s => s.id_oeuvre).map(tranche => (
                     <div className="grp" key={tranche.cle}>
                       <div className="grp-hd">
                         <span className="nom">{tranche.items[0].auteur_nom}</span>
@@ -1326,33 +1427,25 @@ export default function RechercheClient() {
                 de référence canonique en marge (44px) + une colonne par traduction, lettrine
                 d'origine, texte justifié et césuré, zébrage vert, en-tête de livre = NOM SEUL. */}
             {done && onglet==='polyglotte' && (
-              versetsFiltres.length===0
+              versetsTotalFiltre===0
                 ? <Vide texte="Aucun verset trouvé." />
                 : (() => {
-                    // 44 px : la mesure de la marge de référence sur la page Polyglotte
-                    // (`LARGEUR_REF`). Les deux colonnes de tête se répondent enfin.
-                    const polyTmpl = `44px ${colTrads.map(() => 'minmax(0, 1fr)').join(' ')}`
                     const livresVus = new Set<string>()
                     return (
-                      <div className="poly-outer">
-                        {versetsPage.map((v, idx) => {
+                      <div className="poly-outer" style={styleAttente(versetsEnAttente)}>
+                        {versetsPage.lignes.map(v => {
                           const estNouveauLivre = !livresVus.has(v.livre)
                           if (estNouveauLivre) livresVus.add(v.livre)
-                          // Pas d'alternance : un fond uniforme, très clair. Le zébrage
-                          // n'apporte rien ici et brouillait la lecture des colonnes.
-                          const fond = 'var(--cs-surface)'
                           return (
                             <Fragment key={v.id_verset}>
-                              {/* En-tête de livre : NOM SEUL, centré sur les colonnes de
-                                  TRADUCTION uniquement (la colonne canonique de 46 px est
-                                  exclue du centrage), comme sur la page Polyglotte. */}
+                              {/* Le livre qui change : le titre COLLANT de la page Polyglotte,
+                                  en sérif vert, centré sur les colonnes de texte (le
+                                  rembourrage de gauche vaut la marge de référence), qui reste
+                                  en vue tant que ses versets défilent. */}
                               {estNouveauLivre && (
-                                <div className="poly-livre-hd" style={{ display:'grid', gridTemplateColumns:polyTmpl, padding:0 }}>
-                                  <div />
-                                  <div style={{ gridColumn:'2 / -1', textAlign:'center', padding:'2px 12px' }}>{NOMS_LIVRES[v.livre] ?? v.livre}</div>
-                                </div>
+                                <h2 className="poly-livre-hd">{NOMS_LIVRES[v.livre] ?? v.livre}</h2>
                               )}
-                              <a className="poly-row" style={{ gridTemplateColumns:polyTmpl, background:fond }}
+                              <a className="poly-row" style={{ gridTemplateColumns:polyTmpl }}
                                 href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
                                 target="_blank" rel="noopener noreferrer">
                                 {/* ⛔ LA RÉFÉRENCE CANONIQUE EST EN MARGE, non dans une colonne

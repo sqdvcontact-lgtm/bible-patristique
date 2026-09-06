@@ -5444,5 +5444,21 @@ Demande de l’auteur, 6 septembre 2026 : « se pencher sur le système de reche
 
 - Les RPC d’avant restent en place pour ce qui pourrait les appeler hors du site. Deux fonctions seulement sont parties : elles lisaient une table qui n’existe plus (`versets`), et l’une d’elles rendait l’appel `recherche_versets(text, text)` ambigu.
 - Les publications de la communauté se cherchent encore sur le texte brut de la vue `essais_publies` : vingt-cinq textes, sans index ; leur normalisation attend une décision sur ce qu’on y cherche.
-- Le grec ne se désaccentue pas : « λόγος » et « λογος » ne se trouvent pas l’un l’autre. Le plafond reste de 6 000 versets et 5 000 segments par recherche, dans un ordre stable désormais.
+- Le grec ne se désaccentue pas : « λόγος » et « λογος » ne se trouvent pas l’un l’autre. Le plafond de 6 000 versets et 5 000 segments par recherche est tombé le jour même : la base compte et pagine (§ 43.4).
 - Les suggestions viennent d’un lexique reconstruit chaque mois par la base, et non de la recherche elle-même.
+
+### 43.4 La page pagine et compte en base (2026-09-06)
+
+Demande de l’auteur, le jour même : « optimise la page ». Relevé sur le site : sur « Dieu » ou « était », la page rapatriait tout ce que la base trouvait, jusqu’à 6 000 versets avec leurs cinq bibles et 5 000 passages entiers, cinq à six méga-octets, puis en montrait vingt et comptait le reste dans le navigateur : dix à quinze secondes avant la première ligne, et un plafond au-delà duquel elle annonçait « résultats trop nombreux ».
+
+⛔ **LA BASE COMPTE, LA BASE PAGINE ; LA PAGE MONTRE.** Une recherche ne demande plus que deux répartitions, les livres et les œuvres avec leur effectif, dont les totaux se déduisent, et une page de vingt lignes à la fois, que la base range dans l’ordre du canon pour l’Écriture, de l’auteur puis de l’œuvre pour les Pères, et filtre sur un livre ou une œuvre. Plus de plafond : « Dieu » compte ses 18 000 passages et ses 5 500 versets, exactement. Mesuré : la recherche la plus lourde du corpus rend en un tiers de seconde ce qui en coûtait quinze.
+
+⛔ **La page ne rejette rien de ce que la base rend.** Elle relisait chaque ligne pour n’en garder que celles où elle retrouvait le mot, et une relecture qui ne connaît pas une graphie jette ce que la base a trouvé (§ 43.2). La base fait foi ; la page marque ce qu’elle reconnaît.
+
+⚠️ **Le texte original rejoint la recherche des passages** : un passage répond en français, en latin ou en grec, ou dans les deux, dans une seule liste et un seul ordre. Deux listes paginées ne se fondent pas, et la langue rendue avec un passage est celle de l’original, jamais celle de la traduction lue.
+
+⚠️ **Trouvaille, qui vaut pour toute recherche écrite en base : un motif passé en paramètre à une fonction se planifie à l’aveugle.** Le planificateur ne connaît pas la valeur d’un paramètre, estime au hasard ce qu’une expression rationnelle retient, et bascule sur un parcours complet de la table dès que le plan générique lui paraît bon marché : la même condition coûtait 110 millisecondes écrite en constante, de 230 à 4 700 en paramètre, et le banc d’essai l’a vue à 2 700 sur la répartition. Les motifs entrent donc dans la requête en constantes, à chaque appel, et le plan se fait sur eux.
+
+**La Polyglotte des résultats reproduit le tableau de la page Polyglotte** (demande de l’auteur, le même jour) : la barre d’en-tête de la page de lecture, le nom de l’édition en sérif et son millésime dessous, un menu par colonne que le chevron annonce, le livre qui change en titre collant, vert et centré, et la colonne composée par la même feuille. Deux surfaces, un seul tableau.
+
+⚠️ **Un alias masqué qui répond se dit** (complément du § 38.18). « Homme » rendait « Je ne fais pas le bien que je veux » sans un mot pour dire pourquoi : la paraphrase « Homme malheureux que je suis », masquée, l’avait trouvée. Un alias masqué ne paraît pas parmi les noms d’une péricope ; mais quand c’est lui qui répond à la recherche, la ligne « Correspond à » le nomme, sans quoi le résultat paraît incohérent. Seul un alias inexact se tait, visible ou non : c’est l’usage qui décide, non le drapeau de visibilité.

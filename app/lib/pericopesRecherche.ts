@@ -176,3 +176,33 @@ export function filtrerCatalogue(
 
   return { items: list, via, reference: req.livre && req.chapitre != null ? req : null }
 }
+
+// ── La ligne « Correspond à : … » de la barre de recherche ──────────────────
+/** Ce qu'il faut d'un résultat de `rechercher_pericopes` pour dire par quel nom il a répondu. */
+export type CorrespondancePericope = {
+  titre: string
+  correspondance: string | null
+  correspondance_visible: boolean
+  usage_recherche: string
+}
+
+/**
+ * L'appellation par laquelle la péricope a été trouvée, quand ce n'est pas son titre ;
+ * `null` s'il n'y a rien à dire.
+ *
+ * ⛔ Un alias INEXACT ne s'affiche jamais, visible ou non (`populaire_inexact` :
+ * « baleine » mène à « Jonas et le grand poisson », et la page ne dit pas « Jonas dans
+ * la baleine »). C'est l'USAGE qui le dit, non le drapeau de visibilité.
+ * ⚠️ Un alias MASQUÉ mais exact s'affiche, lui, depuis le 2026-09-06 (relevé de
+ * l'auteur : « Homme » rendait « Je ne fais pas le bien que je veux » sans un mot pour
+ * dire pourquoi — la paraphrase « Homme malheureux que je suis », masquée, l'avait
+ * trouvée). Un alias masqué ne paraît pas parmi les NOMS d'une péricope, sur sa page ;
+ * mais quand c'est lui qui répond à la recherche, le taire rend le résultat incohérent.
+ * `correspondance_visible` ne décide donc plus de cette ligne ; il reste porté pour la
+ * page de la péricope, qui a sa propre règle.
+ */
+export function correspondanceVisible(r: CorrespondancePericope): string | null {
+  if (!r.correspondance || r.correspondance === r.titre) return null
+  if (r.usage_recherche === 'populaire_inexact') return null
+  return r.correspondance
+}

@@ -2,13 +2,14 @@
 //
 // Le RPC `rechercher_pericopes(p_requete, p_limite, p_livre, p_chapitre, p_verset)`
 // n'est accessible qu'aux utilisateurs AUTHENTIFIÉS et renvoie une ligne par péricope
-// (jamais une par appellation, même si plusieurs correspondent). On n'affiche jamais
-// un alias masqué ou inexact (`correspondance_visible === false`).
+// (jamais une par appellation, même si plusieurs correspondent). La ligne « Correspond
+// à : … » dit l'appellation qui a répondu, sauf un alias INEXACT (`populaire_inexact`) ;
+// un alias masqué s'y dit depuis le 2026-09-06 (voir `correspondanceVisible`).
 
 import { supabase } from './supabase'
 import { formaterPlageCanonique, parsePointCanonique } from './referencesBibliques'
 import { estOeuvrePubliee } from './oeuvresPublication'
-import { analyserRequetePericope, premierePhraseNotice } from './pericopesRecherche'
+import { analyserRequetePericope, correspondanceVisible, premierePhraseNotice } from './pericopesRecherche'
 
 export type PericopeUsageRecherche =
   | 'principal'
@@ -101,15 +102,9 @@ export function referencePericope(r: PericopeSearchResult): string | null {
   return formaterPlageCanonique(occ.debut, occ.fin)
 }
 
-/**
- * Ligne « Correspond à : … » — affichée seulement lorsque l'appellation trouvée est
- * VISIBLE et diffère du titre principal. Renvoie `null` sinon (jamais d'alias masqué).
- */
-export function correspondanceVisible(r: PericopeSearchResult): string | null {
-  return r.correspondance_visible && r.correspondance && r.correspondance !== r.titre
-    ? r.correspondance
-    : null
-}
+// La ligne « Correspond à : … » se décide dans le module PUR (`pericopesRecherche`,
+// testé) : ce fichier ouvre un client Supabase dès son import et ne se teste pas.
+export { correspondanceVisible }
 
 // ── Catalogue : toutes les péricopes, groupées par livre ─────────────────────
 export type PericopeCatalogueItem = {
