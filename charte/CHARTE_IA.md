@@ -5549,3 +5549,85 @@ planificateur ne voyant pas la valeur, aucun index de préfixe ne pouvait servir
 fonction mettait **11 897 ms** pour un délai d'attente de huit secondes. En constante,
 **6,4 ms**. La règle avait déjà été payée une fois ; elle vaut pour toute fonction de
 recherche, si petite soit-elle.
+
+
+## 44 L'ATTESTATION D'UN NOM DE PÉRICOPE
+
+Nommer un passage est la seule écriture entièrement propre au site : « Les noces de
+Cana », « Le premier signe », « Le chant du Serviteur » ne se lisent dans aucun texte
+biblique. Chaque nom porte donc en base son dossier documentaire — un registre de
+sources, un statut, un degré de preuve, un renvoi interne et une note rédigée — et rien
+de tout cela ne paraissait avant le 6 septembre 2026.
+
+⛔ **ON NE PUBLIE QUE LES SOURCES EXTERNES.** Les sources internes sont des traces
+d'ATELIER, et le registre le dit lui-même : le lot d'import « n'a aucune autorité
+éditoriale », la révision d'août est une « provenance technique », l'ossature canonique
+« ne valide pas les délimitations », les notices antérieures sont de « provenance
+indéterminée ». Le document servi au lecteur n'est pas un carnet de travail.
+
+⚠️ **Corollaire MESURÉ, et il commande le titre de la rubrique** : une fois les sources
+internes écartées, le statut « provenance » ne paraît plus JAMAIS — les 785 liens publiés
+sont 650 témoins et 135 appuis. La rubrique s'appelle donc « Attestation des noms », et
+non « Provenance » : ce qu'on montre est ce qui atteste, non d'où le nom est venu. Le
+vocabulaire garde ses trois valeurs, la donnée pouvant les employer demain.
+
+⛔ **Le vocabulaire est CLOS, et une valeur qu'on ne sait pas nommer ne se compose pas** :
+son lien s'écarte plutôt que de paraître sous un nom inventé. Le degré dit le CHEMIN de
+la preuve et non sa nature, faute de quoi « Appui · appui contextuel » bégaierait.
+
+⛔ **Un nom que rien d'externe n'atteste ne PARAÎT PAS dans la rubrique.** Une entrée vide
+sous un nom laisserait croire qu'il n'est attesté par rien, quand il l'est par une source
+qu'on a choisi de ne pas montrer.
+
+⛔ **La référence se compose par le MOTEUR bibliographique**, comme la bibliographie qui
+la suit dans la même colonne : deux apparats voisins se composent pareil ou pas du tout.
+⚠️ Le registre ne porte pas de lieu d'édition : la notice n'en invente pas.
+
+**La voix de l'éditeur vaut le détour, non le renvoi.** Chaque lien porte une phrase qui
+dit ce qu'il établit ET ce qu'il n'établit pas — « le passage biblique fournit le contexte
+de l'appellation sans en attester nécessairement la formulation ». C'est elle qu'on lit ;
+le renvoi interne ne fait que dire où regarder.
+
+## 45 LA FRISE — ce que sa vue lui tendait
+
+La vue de la frise calcule pour chaque événement sa période, ses traditions, ses séries,
+ses relations et quatre modes de lecture éditoriaux. Le type que le site lisait n'en
+reprenait rien, et six vues faites pour cela n'étaient lues par personne. Cinq greffes,
+le 6 septembre 2026 :
+
+⛔ **LE CLASSEMENT EST ÉDITORIAL, il ne se calcule plus dans le client.** La « Densité »
+d'avant rabattait un code d'importance à l'affichage : le jugement de ce qui est essentiel
+se prenait dans le navigateur. La base porte un classement contrôlé, justifié et
+verrouillable ; c'est lui qui décide. ⚠️ Un paramètre d'adresse qui change de nom continue
+d'être LU sous son ancien nom : une adresse partagée ne cesse pas de dire ce qu'elle
+disait.
+
+⛔ **UNE LISTE DE FILTRES SE RANGE PAR EFFECTIF, non par alphabet**, quand ses valeurs
+sont très inégales. Deux traditions portent la moitié du corpus ; une liste de dix-neuf
+entrées ouvrant sur la plus rare ferait chercher l'essentiel au milieu.
+
+**La SÉRIE est ce qui transforme une liste en récit, pour le moins de travail.** Chaque
+série porte un ordre éditorial et un rôle par membre — origine, étape, principal,
+prolongement, conclusion. ⚠️ L'ordre est celui de l'ÉDITEUR, non la date : une série fait
+remonter son origine avant son événement principal quelle que soit l'année, et cela ne se
+recalcule pas.
+
+⛔ **UN GRAPHE SE REND EN PHRASES, jamais en réseau.** Une visualisation de graphe est
+coûteuse, illisible au delà de trente nœuds, et elle ne dirait rien de plus que « Prépare :
+le concile de Nicée ». ⚠️ Une relation se range aux DEUX bouts, et le sens entrant se
+formule en français plutôt qu'en passif mécanique : « Clos par », non « auquel met fin ».
+
+⛔ **UN SÉPARATEUR DE PÉRIODE SE POSE AU CHANGEMENT DANS LA LISTE RENDUE**, jamais depuis
+des bornes de dates : la liste suit un ordre éditorial, et un événement daté « vers 380 »
+peut y précéder un événement de 375. Le repère dit où l'on est dans CETTE liste, non dans
+un calendrier. Même patron que le regroupement des résultats de recherche.
+
+⛔ **UN LIEN QUI MÈNE À CE QUE LES FILTRES ÉCARTENT NE PEUT PAS NE RIEN FAIRE.** C'est le
+défaut qu'on corrige, non celui qu'on introduit : quand la cible est à l'écran on y va,
+sinon on rouvre la frise — mode le plus large, filtres remis à zéro — puis on y va au
+rendu suivant. ⚠️ La cible attend dans une référence : la liste n'est pas encore rendue au
+moment du clic.
+
+⚠️ **Élargir un TYPE ne coûte rien quand les colonnes voyagent déjà** ; c'est le `select`
+nommé, posé en même temps, qui allège. La page tirait la vue entière — soixante-trois
+colonnes dont dix-huit que le rendu ne regarde jamais.
