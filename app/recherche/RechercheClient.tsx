@@ -1382,7 +1382,9 @@ export default function RechercheClient() {
                               </p>
                             ) : (
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
-                                {rendreEtSurligner(nettoyerFin(s.segment_texte), marque)}
+                                {/* Un appel de note matériel « [[1772]] » n'a pas de note à ouvrir
+                                    ici : il s'efface de l'extrait, avec l'espace qui le précède. */}
+                                {rendreEtSurligner(nettoyerFin(s.segment_texte.replace(/[ \t]*\[\[\d+\]\]/g, '')), marque)}
                               </p>
                             )}
                           </a>
