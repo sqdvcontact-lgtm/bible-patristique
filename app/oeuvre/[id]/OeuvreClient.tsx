@@ -51,7 +51,8 @@ import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, 
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
-  STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE, accepteLaLettrine, margeArgument,
+  NATURE_SIGNATURE, STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
+  accepteLaLettrine, estBlocDeSignatures, margeArgument,
   styleArgument, styleBlocDeVers, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
@@ -2142,12 +2143,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // consécutifs de même paragraphe → un bloc coulant. Un `paragraphe` nul isole
   // le segment (garde-fou).
   const paragraphesDe = (itemIds: number[], source: Map<number, SegData> = segMap): { ids: number[] }[] => {
-    const chunks: { par: number | null | undefined; ids: number[] }[] = []
+    const chunks: { par: number | null | undefined; signature: boolean; ids: number[] }[] = []
     for (const sid of itemIds) {
       const par = source.get(sid)?.paragraphe
+      // ⛔ Une SIGNATURE ne coule pas dans la prose qu'elle clôt : elle se compose au fer à
+      // droite, et un bloc ne peut pas être justifié d'un côté et ferré de l'autre. Elle
+      // sort donc du paragraphe, que la donnée l'y range ou non — et la donnée l'y range
+      // souvent : 4 des 11 signatures du corpus portent le `paragraphe` du texte qui les
+      // précède (les trois de Boèce, le Privilège des Confessions), héritage d'un import
+      // qui n'a marqué le passage à la ligne que par `join_before`.
+      const signature = source.get(sid)?.nature === NATURE_SIGNATURE
       const dernier = chunks[chunks.length - 1]
-      if (dernier && par != null && dernier.par === par) dernier.ids.push(sid)
-      else chunks.push({ par, ids: [sid] })
+      if (dernier && par != null && dernier.par === par && dernier.signature === signature) dernier.ids.push(sid)
+      else chunks.push({ par, signature, ids: [sid] })
     }
     for (const c of chunks) c.ids.sort((a, b) => {
       const ra = source.get(a)?.rang, rb = source.get(b)?.rang
@@ -2939,7 +2947,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const clotGroupe = !bornes || bornes.dernier === chunk.ids[chunk.ids.length - 1]
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
-                    const toutSignature = chunk.ids.every(sid => segMap.get(sid)?.nature === 'signature')
+                    // ⚠️ AUCUN segment du corpus ne l'atteint aujourd'hui — les onze
+                    // `signature` vivent toutes dans l'apparat (compositionOeuvre.ts) — mais
+                    // `NATURES_CORPS` la porte pour les imports sans espace explicite.
+                    const toutSignature = estBlocDeSignatures(chunk.ids.map(sid => segMap.get(sid)?.nature))
                     // Strophe : un poème ne se compose pas comme de la prose. Toute la
                     // règle vit dans `app/lib/compositionVers.ts`, que les traductions
                     // parallèles emploient aussi — une seule composition, deux surfaces.
@@ -3211,9 +3222,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             </div>
                           )
                         }
+                        // Bloc de SIGNATURES : au fer à droite, interligne resserré, blanc
+                        // réduit entre lignes de même nature. ⛔ C'est la SEULE surface où
+                        // la forme s'applique : les onze signatures du corpus sont toutes
+                        // dans l'apparat, et la lecture ne l'a jamais composée.
+                        const toutSignature = estBlocDeSignatures(chunk.ids.map(sid => segMapApparat.get(sid)?.nature))
                         return (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang={langueCorps} style={styleParagrapheApparat()}>
+                          <p lang={langueCorps} style={styleParagrapheApparat({ signature: toutSignature })}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null

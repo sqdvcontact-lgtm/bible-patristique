@@ -584,9 +584,9 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'patristique/signature',
+    style: 'patristique/signature — ÉPREUVE SEULE',
     note: 'Un bloc d’approbations, de censeurs, de souscripteurs — ce qui ferme un volume ancien. Au fer à droite, interligne resserré à 1,32, et un blanc de 0,3 rem seulement entre lignes de même nature : c’est une liste, non une suite de paragraphes.',
-    alerte: '⚠️ La base la REFUSAIT jusqu’au 29 août 2026 : le rendu existait, la donnée ne pouvait pas l’atteindre, et zéro segment la portait — pour cause. Contrainte élargie depuis ; `chk_segments_nature` porte les treize natures de `NATURE_VALIDES`. ⛔ Ne pas la confondre avec `apparat_editeur`, qui porte le paratexte RÉDIGÉ de l’éditeur, quand `signature` n’en porte que les noms et les qualités.',
+    alerte: '⛔ AUCUN segment ne compose ici, et l’épreuve est donc un cas d’école. La nature appartient bien à `NATURES_CORPS`, pour les imports sans espace explicite ; mais les ONZE `signature` du corpus portent toutes `espace_textuel = apparat_critique`. La forme vivante est `patristique_apparat/signature`, plus bas. ⚠️ Elle ne s’y appliquait pas jusqu’au 6 septembre 2026 : `styleParagrapheApparat` ne prenait aucune dérogation de nature, et les quatre curés du Mépris du monde se composaient en prose justifiée. Une forme rendue sur une surface où sa donnée ne va jamais est une forme morte, et cette fiche-ci ne le disait pas. ⛔ Ne pas la confondre avec `apparat_editeur`, qui porte le paratexte RÉDIGÉ de l’éditeur, quand `signature` n’en porte que les noms et les qualités.',
     contenu: (
       <>
         <p style={styleParagrapheLecture({ signature: true })}><Segment>Fr. Jean de Sainte-Marie, censeur.</Segment></p>
@@ -647,6 +647,22 @@ const APPARAT_OEUVRES: Unite[] = [
         <Segment n={5}>A MONSEIGNEVR PIERRE SCARRON, EVESQVE ET PRINCE DE GRENOBLE. MONSEIGNEVR, cette composition étant vn remede contre les disgraces de la fortune, ie n’ay creu la pouuoir mieux adresser qu’à celuy que la fortune n’a iamais pû esbranler.</Segment>{' '}
         <Segment n={6}>Permis d’imprimer, et ce durant le temps et espace de vingt ans, avec deffences à tous Libraires, Imprimeurs et autres de les imprimer ou faire imprimer.</Segment>
       </p>
+    ),
+  },
+  {
+    style: 'patristique_apparat/signature',
+    note: 'Le bloc de signatures LÀ OÙ IL VIT : les approbateurs d’une Approbation des docteurs, le secrétaire d’un privilège, le souscripteur d’une épître dédicatoire. Au fer à droite, interligne resserré à 1,32, et 0,3 rem entre deux lignes de même nature au lieu des 0,72 rem d’un paragraphe. Onze segments du corpus la portent, dans trois œuvres.',
+    alerte: '⛔ Elle ne composait PAS jusqu’au 6 septembre 2026 : `styleParagrapheApparat` ne prenait aucune forme, au motif qu’une nature dérogeante n’atteindrait jamais l’apparat — l’exact inverse de ce que dit la donnée. ⚠️ Et un bloc ne se ferre à droite que si TOUTES ses lignes sont des signatures : `paragraphesDe` sort donc la signature du paragraphe qui la précède, quatre d’entre elles y étant rangées par l’import (les trois de Boèce, le Privilège des Confessions).',
+    contenu: (
+      <>
+        <p style={styleParagrapheApparat()}>
+          <Segment n={28}>C’est le jugement que nous portons de cette excellente Traduction.</Segment>
+        </p>
+        <p style={styleParagrapheApparat({ signature: true })}><Segment n={29}>A. Debreda Curé de S. André.</Segment></p>
+        <p style={styleParagrapheApparat({ signature: true })}><Segment n={30}>T. Fortin Proviseur du College de Harcourt.</Segment></p>
+        <p style={styleParagrapheApparat({ signature: true })}><Segment n={31}>Grenet Curé de S. Benoist.</Segment></p>
+        <p style={styleParagrapheApparat({ signature: true })}><Segment n={32}>N. Gobillon Curé de S. Laurent.</Segment></p>
+      </>
     ),
   },
   {

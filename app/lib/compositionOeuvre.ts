@@ -63,9 +63,38 @@ export function styleParagrapheLecture({ signature, rubrique, masque }: FormePar
   } as CSSProperties
 }
 
-/** Le paragraphe de l'APPARAT : la même prose, sans dérogation de nature. */
-export function styleParagrapheApparat(): CSSProperties {
-  return styleParagrapheLecture()
+/** La nature d'un bloc de SIGNATURES : approbations, censeurs, souscripteurs. */
+export const NATURE_SIGNATURE = 'signature'
+
+/**
+ * Un bloc de signatures : toutes ses lignes en portent la nature, et il n'est pas vide.
+ *
+ * ⚠️ Même contrat que `estBlocVersets`, et pour la même raison : c'est le BLOC qui change
+ * de composition, jamais la ligne seule. Une signature perdue au milieu de la prose ne
+ * ferre pas le paragraphe à droite ; elle en sort d'abord.
+ */
+export function estBlocDeSignatures(natures: readonly (string | null | undefined)[]): boolean {
+  return natures.length > 0 && natures.every(nature => nature === NATURE_SIGNATURE)
+}
+
+/**
+ * Le paragraphe de l'APPARAT : la même prose, et LES MÊMES DÉROGATIONS DE NATURE.
+ *
+ * ⛔ Il n'en prenait aucune jusqu'au 6 septembre 2026, au motif qu'une nature dérogeante
+ * n'atteindrait jamais l'apparat. C'était faux, et faux à l'envers exact : les ONZE
+ * `signature` du corpus — les quatre approbateurs du Mépris du monde, ceux de Boèce, le
+ * Privilège des Confessions — portent TOUTES `espace_textuel = 'apparat_critique'`, et
+ * pas une seule ne vit dans le corps. La composition au fer à droite existait donc dans
+ * le code, avait sa nature en base et sa fiche à l'épreuve des styles, et ne touchait
+ * AUCUN segment du site : « A. Debreda Curé de S. André. » se composait en prose
+ * justifiée, comme l'approbation qu'il signe.
+ *
+ * ⚠️ Une forme rendue sur une surface où sa donnée ne va jamais est une forme morte, et
+ * l'épreuve ne le disait pas : elle montrait la signature à l'épreuve du CORPS, là où il
+ * n'y en a pas.
+ */
+export function styleParagrapheApparat(forme: FormeParagraphe = {}): CSSProperties {
+  return styleParagrapheLecture(forme)
 }
 
 
