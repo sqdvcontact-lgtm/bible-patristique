@@ -411,6 +411,19 @@ export default async function StatistiquesControlePage() {
             ci-dessous, l’atelier d’alignement étant le préalable de toutes.
           </p>
         </Carte>
+
+        {/* 11. La visite — le tutoriel de première ouverture. Carte SANS tuiles, et pour
+            une raison qui n'est pas le coût : les visites vivent dans le CODE, en données
+            de scénario, et la base ne sait rien d'elles. Il n'y a donc rien à compter ici
+            qui ne soit déjà dans la note. */}
+        <Carte titre="La visite — le tutoriel de première ouverture" note={sec('visite').commentaire_ia} cle="visite" todos={sec('visite').todos} majLe={sec('visite').maj_le}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+            Une visite montre la page qu’on vient d’ouvrir, dans l’ordre où la page se lit, et la barre
+            de navigation ne s’explique que sur l’accueil, qui n’est qu’une porte. Quatre pages en ont
+            une, vingt-six arrêts en tout. Les textes n’ont jamais été relus d’un trait, et une visite
+            vieillit avec la page qu’elle décrit sans qu’aucune garde ne le dise.
+          </p>
+        </Carte>
       </div>
     </main>
   )
