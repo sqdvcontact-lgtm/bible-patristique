@@ -6304,5 +6304,27 @@ qui montrent la colonne d'actions du verset désigné — `[data-visite-cible="a
 en `!important`, l'opacité de ces boutons et l'affichage du pavé tactile étant portés en
 style en ligne.
 
-**Pour la revoir** : `?visite=1` sur l'adresse de la page. Le passage est retenu dès
-l'OUVERTURE de la visite, non à sa dernière étape.
+**Pour la revoir** : le bouton « Visite » de la barre de navigation, ou `?visite=1` sur
+l'adresse de la page. Le passage est retenu dès l'OUVERTURE de la visite, non à sa
+dernière étape.
+
+**Le bouton passe par `app/lib/demandeDeVisite.ts`**, et la barre n'apprend rien du
+scénario : la page OFFRE une fonction d'ouverture (`offrirLaVisite`, rendue au
+démontage), la barre la lit par `useVisiteOfferte` et l'appelle par `lancerLaVisite`.
+⛔ Il ne paraît que si la page courante en offre une — un contrôle sans effet sur les
+trois quarts du site est une promesse en l'air — et il suit `estAdminAffiche`, non les
+droits réels : l'interrupteur « Admin » existe pour voir le site en lecteur, et un outil
+d'atelier n'a rien à y faire. ⚠️ Sur téléphone il passe par `actionMobile`, qui referme
+le panneau AVANT d'agir, sinon celui-ci couvrirait la visite qu'on vient de rappeler.
+⚠️ Une visite à la fois : deux pages ne sont jamais montées ensemble.
+
+⛔ **L'état de la visite est un COMPTEUR, non un drapeau** (`BibleLayout`) : rappelée
+alors qu'elle est déjà ouverte, elle doit repartir de son grand message, et le composant
+ne s'y remet qu'en se REMONTANT — le compteur lui sert de clé. Une fermeture suivie
+d'une réouverture à l'image suivante ne marcherait pas : une image ne se joue pas dans un
+onglet caché.
+
+⚠️ **L'offre se pose dans un effet à dépendances vides**, la fonction se fermant sur le
+seul `setVisite`, que React garantit stable. La passer par un `useCallback` fait renoncer
+le compilateur à mémoriser tout le composant (« existing memoization could not be
+preserved ») pour une référence qui l'était déjà.

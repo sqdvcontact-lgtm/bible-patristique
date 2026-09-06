@@ -17,6 +17,7 @@ import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
 import { chercherPericopes, referencePericope, correspondanceVisible, libelleCategoriePericope, type PericopeSearchResult } from "@/app/lib/pericopes";
 import { STYLE_TERME_TAPE } from "@/app/lib/surlignageRecherche";
+import { lancerLaVisite, useVisiteOfferte } from "@/app/lib/demandeDeVisite";
 import { referenceBiblique } from "@/app/lib/rechercheRequete";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
@@ -566,6 +567,19 @@ function IconCoeur() {
   );
 }
 
+// La BOUSSOLE de la visite. ⚠️ L'aiguille est PLEINE et le cercle au trait : à
+// treize pixels, deux traits concentriques se referment en une tache, quand un
+// plein garde sa silhouette. Même parti que les emblèmes de couverture, qui ne se
+// jugent qu'à leur taille réelle.
+function IconBoussole() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <circle cx="6" cy="6" r="4.6" stroke="currentColor" strokeWidth="1.1" />
+      <path d="M8.4 3.6 6.9 6.9 3.6 8.4 5.1 5.1Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 function IconParchemin() {
   return (
     <span
@@ -708,6 +722,9 @@ export default function Navbar() {
   // garde le lien entier sous une infobulle.
   const nomSiteMasque = cran >= 4;
   const { modeUtilisateurStandard, setModeUtilisateurStandard } = useAffichageAdmin();
+  // La page courante offre-t-elle une visite ? Elle seule le sait (voir
+  // app/lib/demandeDeVisite.ts). Aujourd'hui, la Bible classique et elle seule.
+  const visiteOfferte = useVisiteOfferte();
   const estAdminEmail = !!(user && user.email && user.email.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase());
   const estAdminAffiche = (estAdmin || estAdminEmail) && !modeUtilisateurStandard;
 
@@ -1004,7 +1021,7 @@ export default function Navbar() {
     planifier();
     window.addEventListener('resize', planifier);
     return () => { cancelAnimationFrame(image); window.removeEventListener('resize', planifier); };
-  }, [cran, user, pseudo, estAdmin, estAdminEmail, nbNotifications, nbMessages, pathname]);
+  }, [cran, user, pseudo, estAdmin, estAdminEmail, nbNotifications, nbMessages, pathname, visiteOfferte]);
 
   useEffect(() => {
     if (!user?.id) { setNbMessages(0); return }
@@ -1600,6 +1617,35 @@ export default function Navbar() {
     </button>
   );
 
+  // ── Revoir la visite — ADMINISTRATION SEULEMENT ──────────────────────────────
+  // La visite ne se montre qu'une fois par lecteur et par page (charte § 46) : sans
+  // ce bouton, l'éprouver demanderait de vider le stockage du navigateur ou de taper
+  // « ?visite=1 » à la main. Il est là pour les essais de l'auteur, et pour rien d'autre.
+  //
+  // ⛔ Il ne paraît QUE si la page courante offre une visite : un contrôle qui ne
+  // ferait rien sur les trois quarts du site est une promesse en l'air, ce que la
+  // charte refuse ailleurs pour un simple curseur d'aide.
+  // ⛔ Et il suit « estAdminAffiche », non les droits réels : l'interrupteur « Admin »
+  // existe pour voir le site en lecteur, et un outil d'atelier n'a rien à y faire.
+  // ⚠️ Le mot dit « Visite », comme le site l'appelle partout ailleurs ; c'est
+  // l'infobulle qui porte le geste. À l'étroit, elle reste seule, ce que fait déjà
+  // l'interrupteur d'à côté.
+  // ⚠️ Sur téléphone il passe par « actionMobile », qui referme le panneau AVANT
+  // d'agir : déplié, il couvrirait la visite qu'on vient de rappeler.
+  const boutonVisite = (mobile: boolean) => estAdminAffiche && visiteOfferte && (
+    mobile
+      ? actionMobile("Revoir la visite", <IconBoussole />, 0, lancerLaVisite)
+      : (
+        <button type="button" onClick={lancerLaVisite}
+          title="Revoir la visite de cette page"
+          aria-label="Revoir la visite de cette page"
+          style={{ display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: soutenirCompact ? "0 0.375rem" : "0 0.5rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", fontFamily: "inherit", fontSize: "0.78125rem", letterSpacing: "0.01em", cursor: "pointer", flexShrink: 0 }}>
+          <IconBoussole />
+          {!soutenirCompact && "Visite"}
+        </button>
+      )
+  );
+
   return (
     <>
       {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
@@ -1871,6 +1917,7 @@ export default function Navbar() {
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
           <div className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "0.125rem", paddingLeft: "0.25rem" }}>
             {toggleAdmin(false)}
+            {boutonVisite(false)}
             {(estAdmin || estAdminEmail) && (
               <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
             )}
@@ -1995,6 +2042,7 @@ export default function Navbar() {
               <IconCoeur /> Soutenir le projet
             </Link>
             {toggleAdmin(true)}
+            {boutonVisite(true)}
             {/* ⛔ Messagerie et notifications ne vivaient QUE dans le bloc `hidden lg:flex` :
                 sous 1024px, deux fonctions entières de l'espace du lecteur n'avaient aucun
                 accès, la route /notifications renvoyant à l'accueil. Elles se prennent ici,

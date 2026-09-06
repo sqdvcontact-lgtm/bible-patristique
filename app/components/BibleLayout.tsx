@@ -28,6 +28,7 @@ import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import VisiteGuidee from './VisiteGuidee'
 import { CLE_VISITE_BIBLE, VISITE_BIBLE_CLASSIQUE } from '@/app/lib/visiteBibleClassique'
 import { oublierVisite, visiteFaite, type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { modesLectureAlternatifs, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 
 type Livre = { code: string; nom: string; testament: string }
@@ -561,14 +562,28 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // ⚠️ Elle attend que la page se soit POSÉE. Le texte paraît en fondu à
   // l'ouverture (voir `passage`, plus haut), et une case qui cernerait un verset
   // pendant qu'il monte en opacité désignerait un objet à moitié là.
-  const [visiteOuverte, setVisiteOuverte] = useState(false)
+  // ⚠️ L'état est un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle
+  // est déjà ouverte, la visite doit repartir de son grand message, et le composant
+  // ne s'y remet qu'en se REMONTANT. Le compteur lui sert de clé.
+  // ⛔ Pas de fermeture suivie d'une réouverture à l'image suivante : une image ne se
+  // joue pas dans un onglet caché, et le rappel resterait alors sans effet.
+  const [visite, setVisite] = useState(0)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLE)
     else if (visiteFaite(CLE_VISITE_BIBLE)) return
-    const depart = window.setTimeout(() => setVisiteOuverte(true), DUREE_OUVERTURE_MS + 180)
+    const depart = window.setTimeout(() => setVisite(1), DUREE_OUVERTURE_MS + 180)
     return () => window.clearTimeout(depart)
   }, [])
+
+  // La page OFFRE sa visite à la barre de navigation, qui porte un bouton
+  // d'administration pour la rappeler (voir app/lib/demandeDeVisite.ts). ⛔ La barre
+  // n'apprend rien du scénario : elle ne fait qu'appeler ce que la page lui tend.
+  // ⚠️ L'offre se pose UNE fois, et la fonction se ferme sur le seul `setVisite`,
+  // que React garantit stable : passer par un `useCallback` ferait renoncer le
+  // compilateur à mémoriser le composant (« existing memoization could not be
+  // preserved »), pour une référence qui l'est déjà.
+  useEffect(() => offrirLaVisite(() => setVisite(n => n + 1)), [])
 
   // Ce que la visite demande à la page de préparer. Sur un écran large, les trois
   // volets sont là et il n'y a rien à faire ; sur un téléphone, ce sont des
@@ -770,12 +785,13 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
 
       {/* La visite, en dernier : elle se rend dans un portail vers <body> et son
           rang d'empilement passe au-dessus de tout ce que la page peut ouvrir. */}
-      {visiteOuverte && (
+      {visite > 0 && (
         <VisiteGuidee
+          key={visite}
           visite={VISITE_BIBLE_CLASSIQUE}
           onScene={preparerScene}
           onSujet={montrerSujet}
-          onFin={() => setVisiteOuverte(false)}
+          onFin={() => setVisite(0)}
         />
       )}
 
