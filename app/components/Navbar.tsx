@@ -1625,14 +1625,19 @@ export default function Navbar() {
   // ⛔ Il ne paraît QUE si la page courante offre une visite : un contrôle qui ne
   // ferait rien sur les trois quarts du site est une promesse en l'air, ce que la
   // charte refuse ailleurs pour un simple curseur d'aide.
-  // ⛔ Et il suit « estAdminAffiche », non les droits réels : l'interrupteur « Admin »
-  // existe pour voir le site en lecteur, et un outil d'atelier n'a rien à y faire.
+  // ⛔ Il suit les DROITS, non « estAdminAffiche », et c'est la convention de cette
+  // barre : l'onglet « Administration » et l'interrupteur d'à côté s'y tiennent tous
+  // deux. `modeUtilisateurStandard` gouverne ce que la PAGE montre — les crayons, les
+  // pastilles de file — non le poste de commande de la barre. Accroché à lui, le bouton
+  // disparaissait précisément dans le cas où l'on veut s'en servir : regarder la visite
+  // telle qu'un lecteur la reçoit (relevé sur le site le 2026-09-06, l'affichage
+  // standard étant celui où l'auteur travaille).
   // ⚠️ Le mot dit « Visite », comme le site l'appelle partout ailleurs ; c'est
   // l'infobulle qui porte le geste. À l'étroit, elle reste seule, ce que fait déjà
   // l'interrupteur d'à côté.
   // ⚠️ Sur téléphone il passe par « actionMobile », qui referme le panneau AVANT
   // d'agir : déplié, il couvrirait la visite qu'on vient de rappeler.
-  const boutonVisite = (mobile: boolean) => estAdminAffiche && visiteOfferte && (
+  const boutonVisite = (mobile: boolean) => (estAdmin || estAdminEmail) && visiteOfferte && (
     mobile
       ? actionMobile("Revoir la visite", <IconBoussole />, 0, lancerLaVisite)
       : (

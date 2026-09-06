@@ -6312,9 +6312,11 @@ dernière étape.
 scénario : la page OFFRE une fonction d'ouverture (`offrirLaVisite`, rendue au
 démontage), la barre la lit par `useVisiteOfferte` et l'appelle par `lancerLaVisite`.
 ⛔ Il ne paraît que si la page courante en offre une — un contrôle sans effet sur les
-trois quarts du site est une promesse en l'air — et il suit `estAdminAffiche`, non les
-droits réels : l'interrupteur « Admin » existe pour voir le site en lecteur, et un outil
-d'atelier n'a rien à y faire. ⚠️ Sur téléphone il passe par `actionMobile`, qui referme
+trois quarts du site est une promesse en l'air — et il suit les DROITS, non
+`estAdminAffiche` : `modeUtilisateurStandard` gouverne ce que la PAGE montre, non le poste
+de commande de la barre, où l’onglet « Administration » et l’interrupteur lui-même se
+tiennent déjà. Accroché à lui, le bouton disparaissait dans le cas même où l’on veut s’en
+servir — regarder la visite telle qu’un lecteur la reçoit. ⚠️ Sur téléphone il passe par `actionMobile`, qui referme
 le panneau AVANT d'agir, sinon celui-ci couvrirait la visite qu'on vient de rappeler.
 ⚠️ Une visite à la fois : deux pages ne sont jamais montées ensemble.
 
