@@ -598,8 +598,11 @@ export default function TexteBible({
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
 
-      {/* En-tête */}
-      <div style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: '14px 32px 10px' }}>
+      {/* En-tête. `data-visite` : le repère de la visite guidée
+          (app/lib/visiteBibleClassique.ts). L'étape parle des DEUX choses que ce bloc
+          porte — le passage ouvert et le menu des bibles —, et il n'en existe pas de
+          plus petit qui les tienne toutes deux. */}
+      <div data-visite="entete-lecture" style={{ borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', padding: '14px 32px 10px' }}>
 
         {/* Titre + navigation chapitres. Calé sur LE MÊME gabarit que les versets
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré

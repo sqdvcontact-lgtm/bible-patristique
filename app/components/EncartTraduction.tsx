@@ -135,7 +135,12 @@ export default function EncartTraduction({ trad, onReduire }: {
     // la mise en page, ce qui laissait un blanc de deux lignes dès que la référence
     // s'effaçait. Elle prend la hauteur de ce qu'elle porte, et plus rien ne la fait
     // varier — ce qu'elle porte ne dépend plus de la largeur du volet.
-    <div className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: 'calc(var(--volet-air) + 1px) calc(var(--volet-gouttiere) + 2px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: 'var(--volet-air-fin)' }}>
+    /* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
+       ⚠️ Il est posé sur ce que le lecteur doit VOIR, non sur ce qui se trouve
+       commode à sélectionner : la carte entière, puisque c'est d'elle que l'étape
+       parle. Un sélecteur de structure tenu au loin se casserait au premier
+       remaniement, sans que rien ne le signale. */
+    <div data-visite="edition" className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box', overflow: 'hidden', padding: 'calc(var(--volet-air) + 1px) calc(var(--volet-gouttiere) + 2px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: 'var(--volet-air-fin)' }}>
       {/* Le NOM de la bible ouvre la carte, et il en est la première ligne — plus de
           rangée partagée avec une étiquette, puisqu'il n'y a plus d'étiquette.
           ⚠️ Le nom est donc un enfant DIRECT du flex en colonne : il s'y étire sur la

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState, useRef } from 'react'
 import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
@@ -25,6 +25,9 @@ import FlecheChapitre from './FlecheChapitre'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
+import VisiteGuidee from './VisiteGuidee'
+import { CLE_VISITE_BIBLE, VISITE_BIBLE_CLASSIQUE } from '@/app/lib/visiteBibleClassique'
+import { oublierVisite, visiteFaite, type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { modesLectureAlternatifs, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 
 type Livre = { code: string; nom: string; testament: string }
@@ -550,6 +553,49 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // du libellé au bouton, le serveur a commencé. Une fois par adresse.
   const preparerModeLecture = (cible: CibleLectureAlternative) => { precharger(urlDuMode(cible)) }
 
+  // ── LA VISITE ──────────────────────────────────────────────────────────────
+  // Ce que la page montre d'elle-même la première fois qu'on l'ouvre. Elle ne
+  // revient jamais d'elle-même : `marquerVisiteFaite` retient le passage dès
+  // l'ouverture, et l'adresse `?visite=1` est la seule voie pour la rejouer.
+  //
+  // ⚠️ Elle attend que la page se soit POSÉE. Le texte paraît en fondu à
+  // l'ouverture (voir `passage`, plus haut), et une case qui cernerait un verset
+  // pendant qu'il monte en opacité désignerait un objet à moitié là.
+  const [visiteOuverte, setVisiteOuverte] = useState(false)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLE)
+    else if (visiteFaite(CLE_VISITE_BIBLE)) return
+    const depart = window.setTimeout(() => setVisiteOuverte(true), DUREE_OUVERTURE_MS + 180)
+    return () => window.clearTimeout(depart)
+  }, [])
+
+  // Ce que la visite demande à la page de préparer. Sur un écran large, les trois
+  // volets sont là et il n'y a rien à faire ; sur un téléphone, ce sont des
+  // onglets, et le sujet d'une étape n'existe pas tant que le sien est fermé.
+  const preparerScene = useCallback((scene: SceneVisite | undefined) => {
+    if (!mobile || !scene?.volet) return
+    setVoletMobile(scene.volet === 'texte' ? null : scene.volet)
+  }, [mobile])
+
+  // ⚠️ L'ÉTAPE DU VERSET SÉLECTIONNE POUR DE BON celui qu'elle désigne : elle
+  // annonce que le volet de droite se remplit d'un clic, et il se remplit. Une
+  // visite qui décrirait ce geste sans le faire laisserait les étapes suivantes
+  // expliquer un volet vide, sur lequel la phrase « Cliquez sur un verset » est
+  // encore écrite.
+  // ⛔ Le verset se retrouve par l'identifiant de sa RANGÉE (`verset-N`, posé par
+  // `TexteBible`), non par un rang dans la liste : les rangées sont filtrées au
+  // rendu — une édition qui ne porte pas tous les versets en saute — et le
+  // n-ième affiché n'est pas le n-ième de `versets`.
+  const montrerSujet = useCallback((etape: EtapeVisite, sujet: HTMLElement) => {
+    if (!etape.scene?.choisirVerset) return
+    const rangee = sujet.closest<HTMLElement>('[id^="verset-"]') ?? sujet
+    const numero = Number(rangee.id.replace('verset-', ''))
+    if (!Number.isFinite(numero)) return
+    const cible = versets.find(v => v.verset === numero && v.chapitre === chapitreActif)
+    if (cible) setVersetSelectionne(cible)
+  }, [versets, chapitreActif])
+
   return (
     // `h-screen` valait 100vh, mais ce bloc est déjà décalé de la hauteur de la
     // navbar par le layout : la page dépassait donc l'écran d'autant et défilait,
@@ -720,6 +766,17 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           }}>
           Rétablir les proportions
         </button>
+      )}
+
+      {/* La visite, en dernier : elle se rend dans un portail vers <body> et son
+          rang d'empilement passe au-dessus de tout ce que la page peut ouvrir. */}
+      {visiteOuverte && (
+        <VisiteGuidee
+          visite={VISITE_BIBLE_CLASSIQUE}
+          onScene={preparerScene}
+          onSujet={montrerSujet}
+          onFin={() => setVisiteOuverte(false)}
+        />
       )}
 
     </div>

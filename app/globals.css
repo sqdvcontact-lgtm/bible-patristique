@@ -2925,3 +2925,57 @@ main.lecture-entree [data-cs-bloc],
   font-family: var(--font-source-serif), Georgia, serif;
   text-align: right;
 }
+
+/* ── LA VISITE ────────────────────────────────────────────────────────────────
+   Ce qu'une page montre d'elle-même la première fois qu'on l'ouvre : une case qui
+   cerne le sujet, un trait, une case qui explique (app/components/VisiteGuidee.tsx).
+   La géométrie vit dans `app/lib/visiteGuidee.ts` ; ne restent ici que les trois
+   choses qu'un style en ligne ne sait pas faire. */
+
+/* ⚠️ LE TRAIT PARAÎT APRÈS QUE LES DEUX CASES SE SONT POSÉES, et c'est cette
+   animation qui le retient. Les extrémités d'une ligne SVG (x1, y1…) sont des
+   ATTRIBUTS de présentation, non des propriétés CSS : elles ne se transitionnent
+   pas. Tracé pendant le déplacement, le trait joindrait donc, pendant trois
+   dixièmes de seconde, deux boîtes qui ne sont plus là. Il se tait, puis se tire
+   d'un bord à l'autre — ce qui vaut mieux qu'un trait qui suit, et se lit comme
+   l'ordre des choses : on désigne, puis on relie. */
+@keyframes cs-visite-trait {
+  0%, 55% { opacity: 0; }
+  100%    { opacity: 1; }
+}
+.cs-visite-trait { animation: cs-visite-trait 460ms ease-out both; }
+
+/* ⚠️ LA CASE DU SUJET SE DÉPLACE, elle ne saute pas d'une étape à l'autre : c'est
+   UN SEUL objet qui parcourt la page, et le regard le suit au lieu de le
+   rechercher. La case explicative l'accompagne, mais sans sa hauteur : celle-ci
+   dépend du texte, et l'animer ferait respirer la boîte à chaque étape. */
+.cs-visite-cadre {
+  transition: top 300ms cubic-bezier(0.4, 0, 0.2, 1), left 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 300ms cubic-bezier(0.4, 0, 0.2, 1), height 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cs-visite-carte {
+  transition: top 300ms cubic-bezier(0.4, 0, 0.2, 1), left 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Le propos change pendant que la case se déplace : il se pose en fondu, à l'abri
+   du mouvement, plutôt que de sauter d'un texte à l'autre à mi-course. */
+@keyframes cs-visite-propos {
+  0%, 40% { opacity: 0; }
+  100%    { opacity: 1; }
+}
+.cs-visite-propos { animation: cs-visite-propos 420ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-visite-cadre, .cs-visite-carte { transition: none; }
+  .cs-visite-trait, .cs-visite-propos { animation: none; }
+}
+
+/* ⛔ UNE ÉTAPE QUI PARLE DE LA COLONNE D'ACTIONS DOIT LA MONTRER. Elle ne paraît
+   qu'au survol de la ligne (page Bible), et une visite ne survole rien : elle
+   désigne. Le point d'exclamation est nécessaire — l'opacité de ces boutons et
+   l'affichage du pavé tactile sont portés en style EN LIGNE, que seule une
+   déclaration importante bat.
+   ⚠️ La marque de densité s'efface alors, exactement comme elle le fait au survol :
+   les deux occupent la même gouttière et ne s'y rencontrent jamais. */
+.verset-actions[data-visite-cible] { display: flex !important; }
+.verset-actions[data-visite-cible] .bouton-action-verset { opacity: 1 !important; }
+.verset-actions[data-visite-cible] .marque-densite { opacity: 0; }

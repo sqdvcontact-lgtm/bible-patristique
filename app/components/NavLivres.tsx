@@ -714,7 +714,10 @@ export default function NavLivres({
           l'onglet « Sommaire » : on ne cherche pas un livre dans les pièces liminaires,
           et le repli ne dépend plus d'elle. */}
       {!sommaireOuvert && (
-      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
+      /* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
+         Il est posé sur la RANGÉE et non sur le champ : la case de la visite cerne le
+         bloc tel qu'il se voit, gouttières comprises, et non la boîte de saisie. */
+      <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
         <input
           type="text"
           className="cs-volet-recherche"
@@ -772,7 +775,10 @@ export default function NavLivres({
           s'enclenchait jamais. Le volet s'allongeait à la hauteur des soixante-treize livres
           et emportait la barre de recherche hors de l'écran dès qu'on descendait. */}
       {!sommaireOuvert && !refParsee && (
-      <div ref={scrollRef} style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
+      /* `data-visite` : le repère de la visite guidée. Le DÉFILEUR entier, non le
+         premier livre : l'étape parle de la liste et de la teinte de ses cases de
+         chapitre, c'est-à-dire de tout ce bloc. */
+      <div ref={scrollRef} data-visite="livres" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
         {AT.length > 0 && (
           <>
             <button onClick={() => setAtOuvert(!atOuvert)} style={{

@@ -1,0 +1,104 @@
+/**
+ * LA VISITE DE LA BIBLE CLASSIQUE — le premier scénario, et le modèle des autres.
+ *
+ * Sept arrêts, dans l'ordre où le regard traverse la page : le volet de gauche
+ * d'abord (ce qu'on lit, comment on cherche, où l'on va), la colonne du texte
+ * ensuite (de quelle bible il s'agit, ce que fait un clic sur un verset, ce que
+ * la marge offre), le volet de droite enfin. C'est l'ordre de la mise en page, et
+ * c'est le seul qui n'oblige pas le lecteur à revenir sur ses pas.
+ *
+ * ⛔ CHAQUE ÉTAPE VISE UN ÉLÉMENT DÉJÀ RENDU, par un `data-visite` posé dans le
+ * composant qui le dessine ou par une classe qui existait déjà. Aucune n'est
+ * décrite par un sélecteur de structure (« le troisième div du volet ») : une
+ * visite qui se règle sur la forme du DOM se casse au premier remaniement, sans
+ * que rien ne le signale, et le lecteur reçoit alors une case posée sur du vide.
+ *
+ * ⚠️ Les sujets sont donnés en LISTE, du plus précis au plus général. L'étape du
+ * verset vise d'abord un verset que les Pères commentent — c'est le seul qui
+ * porte le nombre dont elle parle — et retombe sur n'importe quel verset ;
+ * l'étape disparaît si le chapitre n'en a aucun (voir `etapesPresentes`).
+ *
+ * ⚠️ Les textes tiennent en deux phrases. Une visite se lit debout, entre deux
+ * clics ; ce qui demande un paragraphe n'est pas une explication mais un mode
+ * d'emploi, et un mode d'emploi ne se lit pas.
+ */
+
+import type { Visite } from './visiteGuidee'
+
+/** ⛔ La clé de mémoire ne change JAMAIS sans raison : elle est le seul lien
+ *  entre cette visite et les lecteurs qui l'ont déjà vue. La changer la rendrait
+ *  à tout le monde, y compris à ceux qui l'ont passée. */
+export const CLE_VISITE_BIBLE = 'bible-classique'
+
+export const VISITE_BIBLE_CLASSIQUE: Visite = {
+  cle: CLE_VISITE_BIBLE,
+  // ⛔ Ni « Comment utiliser le site », ni « les fonctionnalités » (demande de
+  // l'auteur, 2026-09-06) : le premier annonce une difficulté, le second est un
+  // mot de logiciel. La phrase dit ce qui va se passer, et rien de plus.
+  titre: 'Faisons le tour de la page.',
+  accroche: 'À gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit. Quelques étapes suffisent à vous montrer où tout se trouve.',
+  etapes: [
+    {
+      cle: 'edition',
+      sujet: ['[data-visite="edition"]'],
+      titre: 'Ce que vous lisez',
+      texte: 'Cette carte nomme la bible ouverte, son traducteur et l’édition d’où le texte est tiré. Cliquez sur son nom pour ouvrir sa fiche.',
+      cote: 'droite',
+      scene: { volet: 'livres' },
+    },
+    {
+      cle: 'recherche',
+      sujet: ['[data-visite="recherche-livre"]'],
+      titre: 'Trouver un livre',
+      texte: 'Tapez un nom pour le retrouver dans la liste. Une référence entière fonctionne aussi, comme Jean 3, 16, et vous y mène d’un clic.',
+      cote: 'droite',
+      scene: { volet: 'livres' },
+    },
+    {
+      cle: 'livres',
+      sujet: ['[data-visite="livres"]'],
+      titre: 'Les livres et leurs chapitres',
+      texte: 'Ouvrez un livre pour voir ses chapitres. Plus la case d’un chapitre est verte, plus les Pères de l’Église y ont commenté de versets.',
+      cote: 'droite',
+      scene: { volet: 'livres' },
+    },
+    {
+      cle: 'entete',
+      sujet: ['[data-visite="entete-lecture"]'],
+      titre: 'Changer de bible',
+      texte: 'Le titre rappelle le livre et le chapitre ouverts. Le menu juste dessous passe d’une traduction à l’autre sans quitter le passage.',
+      cote: 'dessous',
+      scene: { volet: 'texte' },
+    },
+    {
+      cle: 'verset',
+      // ⚠️ Un verset COMMENTÉ d'abord : lui seul porte le nombre dont l'étape parle.
+      sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
+      titre: 'Cliquez sur un verset',
+      texte: 'Le volet de droite se remplit alors de ce que les Pères en ont dit. Le nombre inscrit dans la marge compte les œuvres en ligne qui le commentent.',
+      // ⚠️ La carte se pose à GAUCHE, sur le volet des livres : à droite elle
+      // couvrirait le volet qui se remplit à l'instant même, c'est-à-dire la
+      // seule chose que l'étape donne à voir.
+      cote: 'gauche',
+      scene: { volet: 'texte', choisirVerset: true },
+    },
+    {
+      cle: 'actions',
+      // ⚠️ Les mêmes sélecteurs que l'étape précédente, dans le même ordre : la
+      // colonne montrée est donc celle du verset qu'on vient de choisir.
+      sujet: ['.verset-row:has(.marque-densite) .verset-actions', '.verset-row .verset-actions'],
+      titre: 'Garder, copier, signaler',
+      texte: 'Au survol d’un passage, une colonne d’actions paraît dans la marge, ici comme dans le volet de droite. Elle copie le verset avec sa référence, le prélève pour votre espace de lecture, ou nous signale une erreur.',
+      cote: 'gauche',
+      scene: { volet: 'texte' },
+    },
+    {
+      cle: 'peres',
+      sujet: ['[data-visite="peres"]'],
+      titre: 'Les Pères, en regard',
+      texte: 'Ce volet réunit les œuvres qui citent ou commentent le verset choisi, rangées par nature. Les filtres les trient par auteur, par siècle ou par tradition, et l’onglet Commentaires vous laisse écrire le vôtre.',
+      cote: 'gauche',
+      scene: { volet: 'commentaires' },
+    },
+  ],
+}

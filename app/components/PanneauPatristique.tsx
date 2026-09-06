@@ -1344,7 +1344,10 @@ export default function PanneauPatristique({
         toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, le
         panneau monte depuis le bas par-dessus le texte, avec un fond assombri. */}
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
-    <div ref={refPanel} style={mobile
+    {/* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
+        Le volet ENTIER : l'étape parle de ce qu'il réunit, de ses filtres et de son
+        onglet de commentaires, et les trois n'ont pas de boîte commune plus étroite. */}
+    <div ref={refPanel} data-visite="peres" style={mobile
       ? (presentation === 'inline'
         ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
         : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'var(--cs-ombre-modale-haut)' })
