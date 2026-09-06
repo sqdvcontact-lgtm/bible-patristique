@@ -38,8 +38,8 @@ import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import {
-  cadreDuSujet, marquerVisiteFaite, placerCarteVisite,
-  type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Visite, type Vue,
+  cadreDuSujet, decoupeDuVoile, marquerVisiteFaite, placerCarteVisite, traitVersSujet,
+  type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Trait, type Visite, type Vue,
 } from '@/app/lib/visiteGuidee'
 
 /** Au-dessus de tout ce que la page peut ouvrir : les modales du site montent à
@@ -51,6 +51,13 @@ import {
  *  remonter ce rang, et reprendre avec lui les deux gardes de géométrie qui
  *  l'accompagnaient. */
 const Z_VISITE = 2800
+
+/** Le rang d'une visite qui parle de la BARRE : au-dessus d'elle (3000) et du menu
+ *  de compte (3100). ⛔ Il ne se prend que sur demande du scénario
+ *  (« couvreLaBarre ») : partout ailleurs la barre garde sa lumière. ⚠️ Au-delà ne
+ *  subsistent que le carton d'une notification (4000) et les infobulles de note
+ *  (9999), que la page inerte n'ouvre pas. */
+const Z_VISITE_BARRE = 3200
 
 /** Au-delà, on tient l'étape pour impossible et l'on passe. ⚠️ Généreux à dessein :
  *  un volet de téléphone se monte, le volet de droite interroge la base. */
@@ -74,11 +81,69 @@ export type VisiteProps = {
   onFin: () => void
 }
 
-type Mesure = { cadre: Cadre; vue: Vue; hautNavbar: number; ecart: number }
+type Mesure = { cadre: Cadre; cadreBis: Cadre | null; vue: Vue; hautNavbar: number; ecart: number }
 
 const memeCadre = (a: Cadre | null, b: Cadre) =>
   !!a && Math.abs(a.top - b.top) < 0.5 && Math.abs(a.left - b.left) < 0.5
   && Math.abs(a.width - b.width) < 0.5 && Math.abs(a.height - b.height) < 0.5
+
+/** Les deux peuvent manquer : un second sujet n'existe pas à toutes les étapes. */
+const memeCadreOuNul = (a: Cadre | null, b: Cadre | null) =>
+  (a === null && b === null) || (b !== null && memeCadre(a, b))
+
+/** Un sujet FIXE est déjà à l'écran : le faire défiler demanderait à la page de
+ *  remonter au-dessus de son propre haut. ⚠️ On remonte l'arbre, la barre étant
+ *  fixe par son en-tête et non par l'onglet qu'on cerne. */
+function estFixe(el: HTMLElement): boolean {
+  for (let n: HTMLElement | null = el; n && n !== document.body; n = n.parentElement) {
+    if (getComputedStyle(n).position === 'fixed') return true
+  }
+  return false
+}
+
+/** Une case de sujet : le filet d'or autour d'un trou du voile. */
+function CadreSujet({ cadre, visible }: { cadre: Cadre; visible: boolean }) {
+  return (
+    <div
+      className="cs-visite-cadre"
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        top: cadre.top, left: cadre.left, width: cadre.width, height: cadre.height,
+        // ⛔ `border-box`, faute de quoi le filet s'ajoute À L'EXTÉRIEUR des mesures
+        // et la case cesse d'être centrée sur son sujet — d'autant plus qu'il est petit.
+        boxSizing: 'border-box',
+        borderRadius: '8px',
+        border: '1.5px solid var(--cs-or)',
+        opacity: visible ? 1 : 0,
+        pointerEvents: 'none',
+      }}
+    />
+  )
+}
+
+/** Une flèche : une hampe et sa pointe, de la case explicative vers un sujet. */
+function Fleche({ t }: { t: Trait }) {
+  // La hampe s'arrête au PIED de la pointe : passée dessous, elle en déborderait
+  // sur les côtés dès que le trait penche.
+  const dx = t.x1 - t.x2
+  const dy = t.y1 - t.y2
+  const d = Math.hypot(dx, dy) || 1
+  const ux = dx / d
+  const uy = dy / d
+  const piedX = t.x1 - ux * POINTE_LONGUEUR
+  const piedY = t.y1 - uy * POINTE_LONGUEUR
+  const nx = -uy * (POINTE_LARGEUR / 2)
+  const ny = ux * (POINTE_LARGEUR / 2)
+  return (
+    <>
+      <line x1={t.x2} y1={t.y2} x2={piedX} y2={piedY}
+        stroke="var(--cs-sur-aplat)" strokeWidth="2" strokeLinecap="round" />
+      <polygon points={`${t.x1},${t.y1} ${piedX + nx},${piedY + ny} ${piedX - nx},${piedY - ny}`}
+        fill="var(--cs-sur-aplat)" />
+    </>
+  )
+}
 
 /** Le premier sélecteur qui trouve un élément VISIBLE gagne. ⚠️ Le `try` n'est pas
  *  décoratif : `:has()` lève une erreur de syntaxe sur un navigateur qui l'ignore,
@@ -163,6 +228,9 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
     if (!etape) return
     const selecteurs = etape.sujet
     const hautNavbar = hauteurNavbarPx()
+    // ⛔ La CASE explicative garde la réserve quoi qu'il arrive : elle explique la
+    // barre, elle ne la couvre pas. Seule la case du SUJET s'en affranchit.
+    const reserve = visite.couvreLaBarre ? 0 : hautNavbar
     // ⚠️ LES BLANCS DE LA VISITE SUIVENT LA POLICE RACINE, qui est fluide : sur un
     // grand écran elle monte à 22 px, et tout le site s'aère avec elle. Un souffle
     // et un écart figés en pixels s'y resserraient à contretemps — mesuré le
@@ -213,23 +281,33 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           // ⛔ Sans défilement DOUX : la case, elle, se déplace en 300 ms, et deux
           // mouvements de durées différentes se poursuivraient l'un l'autre. La
           // page se pose d'un coup, et la case glisse ensuite jusqu'à elle.
-          el.scrollIntoView({ block: 'center', inline: 'nearest' })
+          // ⛔ Et l'on ne fait pas défiler un sujet FIXE : il est déjà à l'écran.
+          if (!estFixe(el)) el.scrollIntoView({ block: 'center', inline: 'nearest' })
         }
         const r = el.getBoundingClientRect()
         const vue = { largeur: window.innerWidth, hauteur: window.innerHeight }
-        const cadre = cadreDuSujet({
-          sujet: { top: r.top, left: r.left, width: r.width, height: r.height },
-          vue, hautNavbar, souffle,
+        // ⚠️ Quand la visite couvre la barre, il n'y a plus rien sous quoi une case
+        // pourrait glisser : la réserve tombe, et un onglet de la barre peut enfin
+        // être cerné là où il est.
+        const mesurer = (b: DOMRect) => cadreDuSujet({
+          sujet: { top: b.top, left: b.left, width: b.width, height: b.height },
+          vue, hautNavbar: reserve, souffle,
         })
-        setMesure(m => (memeCadre(m?.cadre ?? null, cadre) && m?.vue.largeur === vue.largeur && m?.vue.hauteur === vue.hauteur
+        const cadre = mesurer(r)
+        // ⚠️ Le SECOND sujet se mesure comme le premier, et son absence n'arrête
+        // rien : il ORNE l'étape, il ne la commande pas.
+        const elBis = etape.sujetBis ? trouverSujet(etape.sujetBis) : null
+        const cadreBis = elBis ? mesurer(elBis.getBoundingClientRect()) : null
+        setMesure(m => (memeCadre(m?.cadre ?? null, cadre) && memeCadreOuNul(m?.cadreBis ?? null, cadreBis)
+          && m?.vue.largeur === vue.largeur && m?.vue.hauteur === vue.hauteur
           ? m
-          : { cadre, vue, hautNavbar, ecart }))
+          : { cadre, cadreBis, vue, hautNavbar, ecart }))
       }
       image = requestAnimationFrame(tourner)
     }
     image = requestAnimationFrame(tourner)
     return () => { arrete = true; cancelAnimationFrame(image) }
-  }, [etape, rang, rangSuivant, terminer, visite.etapes.length])
+  }, [etape, rang, rangSuivant, terminer, visite.couvreLaBarre, visite.etapes.length])
 
   // La marque de la visite s'en va avec elle, quoi qu'il arrive.
   useEffect(() => () => { cibleRef.current?.removeAttribute('data-visite-cible') }, [])
@@ -289,8 +367,17 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
       })
     : null
 
+  // ⚠️ Le trait du SECOND sujet part de la case DÉJÀ POSÉE : c'est le premier sujet
+  // qui décide où elle se met, le second ne fait que recevoir une flèche de plus.
+  const traitBis = etape && mesure?.cadreBis && taille && placement
+    ? traitVersSujet({
+        cadre: mesure.cadreBis,
+        carte: { top: placement.top, left: placement.left, largeur: taille.largeur, hauteur: taille.hauteur },
+      })
+    : null
+
   return createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: Z_VISITE, pointerEvents: 'none' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: visite.couvreLaBarre ? Z_VISITE_BARRE : Z_VISITE, pointerEvents: 'none' }}>
 
       {/* Le voile qui rend la page inerte. Il ne porte de teinte que TANT QU'AUCUNE
           case ne cerne un sujet — le grand message d'ouverture, et l'instant où la
@@ -300,33 +387,38 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           elle rendait la page en pleine lumière le temps d'une image, entre le
           message qui se ferme et la case qui se pose. */}
       <div
-        onClick={e => e.stopPropagation()}
+        className={etape && mesure ? 'cs-visite-voile' : undefined}
+        aria-hidden="true"
         style={{
-          position: 'absolute', inset: 0, pointerEvents: 'auto',
-          background: etape && mesure ? 'transparent' : 'rgba(0,0,0,0.5)',
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'rgba(0,0,0,0.5)',
+          clipPath: etape && mesure
+            ? `path("${decoupeDuVoile({ vue: mesure.vue, cadre: mesure.cadre, cadreBis: mesure.cadreBis })}")`
+            : undefined,
         }}
       />
 
-      {/* LA CASE DU SUJET. Son ombre portée est le voile ; son intérieur reste la
-          page, telle qu'elle se rend elle-même. */}
+      {/* CE QUI REND LA PAGE INERTE — une couche À PART, et pleine. ⛔ La découpe du
+          voile retire ses trous du test de pointeur : sans cette couche, un clic dans
+          le sujet éclairé retomberait sur la page, qui changerait sous la case qui
+          l'explique. On regarde, on ne manœuvre pas. */}
+      <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }} />
+
+      {/* LES CASES DES SUJETS : le filet d'or autour des trous du voile. Elles ne
+          portent plus l'ombre qui faisait l'assombrissement — c'est le tracé du voile
+          qui creuse, et les deux se calculent des mêmes mesures, dans le même rendu.
+          ⚠️ LA SECONDE EST TOUJOURS RENDUE, à taille nulle et transparente quand
+          l'étape n'a qu'un sujet : montée et démontée, elle sauterait d'une carte à
+          l'autre là où la première glisse. */}
+      {etape && mesure && <CadreSujet cadre={mesure.cadre} visible />}
       {etape && mesure && (
-        <div
-          className="cs-visite-cadre"
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: mesure.cadre.top, left: mesure.cadre.left,
-            width: mesure.cadre.width, height: mesure.cadre.height,
-            // ⛔ `border-box`, faute de quoi le filet s'ajoute À L'EXTÉRIEUR des mesures
-            // et la découpe glisse d'un pixel et demi vers le bas et vers la droite :
-            // la case cesse d'être centrée sur son sujet, et cela se voit d'autant plus
-            // que le sujet est petit.
-            boxSizing: 'border-box',
-            borderRadius: '8px',
-            border: '1.5px solid var(--cs-or)',
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)',
-            pointerEvents: 'none',
+        <CadreSujet
+          cadre={mesure.cadreBis ?? {
+            top: mesure.cadre.top + mesure.cadre.height / 2,
+            left: mesure.cadre.left + mesure.cadre.width / 2,
+            width: 0, height: 0,
           }}
+          visible={!!mesure.cadreBis}
         />
       )}
 
@@ -338,31 +430,11 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           moitié noir, et c'est celle de la case d'où la flèche sort.
           ⚠️ Elle ne se trace qu'une fois les deux cases posées (voir la règle d'animation
           dans globals.css) et disparaît lorsqu'elles se recouvrent. */}
-      {etape && placement?.trait && (
+      {etape && (placement?.trait || traitBis) && (
         <svg key={etape.cle} className="cs-visite-trait" aria-hidden="true"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'visible' }}>
-          {(() => {
-            const t = placement.trait!
-            // La hampe s'arrête au PIED de la pointe : passée dessous, elle en
-            // déborderait sur les côtés dès que le trait penche.
-            const dx = t.x1 - t.x2
-            const dy = t.y1 - t.y2
-            const d = Math.hypot(dx, dy) || 1
-            const ux = dx / d
-            const uy = dy / d
-            const piedX = t.x1 - ux * POINTE_LONGUEUR
-            const piedY = t.y1 - uy * POINTE_LONGUEUR
-            const nx = -uy * (POINTE_LARGEUR / 2)
-            const ny = ux * (POINTE_LARGEUR / 2)
-            return (
-              <>
-                <line x1={t.x2} y1={t.y2} x2={piedX} y2={piedY}
-                  stroke="var(--cs-sur-aplat)" strokeWidth="2" strokeLinecap="round" />
-                <polygon points={`${t.x1},${t.y1} ${piedX + nx},${piedY + ny} ${piedX - nx},${piedY - ny}`}
-                  fill="var(--cs-sur-aplat)" />
-              </>
-            )
-          })()}
+          {placement?.trait && <Fleche t={placement.trait} />}
+          {traitBis && <Fleche t={traitBis} />}
         </svg>
       )}
 

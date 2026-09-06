@@ -2951,8 +2951,15 @@ main.lecture-entree [data-cs-bloc],
    dépend du texte, et l'animer ferait respirer la boîte à chaque étape. */
 .cs-visite-cadre {
   transition: top 300ms cubic-bezier(0.4, 0, 0.2, 1), left 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              width 300ms cubic-bezier(0.4, 0, 0.2, 1), height 300ms cubic-bezier(0.4, 0, 0.2, 1);
+              width 300ms cubic-bezier(0.4, 0, 0.2, 1), height 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* Le voile n'est plus l'ombre portée d'une case : c'est un aplat que sa DÉCOUPE
+   troue, une fois par sujet. Il glisse donc pour son compte, à la même durée et
+   sur la même courbe, faute de quoi les trous sauteraient là où les cases
+   glissent. ⚠️ Le tracé garde d'une étape à l'autre le même nombre de commandes
+   (voir `decoupeDuVoile`) : sans quoi il ne s'interpolerait pas du tout. */
+.cs-visite-voile { transition: clip-path 300ms cubic-bezier(0.4, 0, 0.2, 1); }
 .cs-visite-carte {
   transition: top 300ms cubic-bezier(0.4, 0, 0.2, 1), left 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -2965,7 +2972,7 @@ main.lecture-entree [data-cs-bloc],
 .cs-visite-propos { animation: cs-visite-propos 420ms ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cs-visite-cadre, .cs-visite-carte { transition: none; }
+  .cs-visite-cadre, .cs-visite-carte, .cs-visite-voile { transition: none; }
   .cs-visite-trait, .cs-visite-propos { animation: none; }
 }
 

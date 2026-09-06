@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  cadreDuSujet, ecrireVisites, etapesPresentes, lireVisites, placerCarteVisite,
+  cadreDuSujet, decoupeDuVoile, ecrireVisites, etapesPresentes, lireVisites,
+  placerCarteVisite, traitVersSujet,
   type Cadre, type EtapeVisite,
 } from './visiteGuidee'
 
@@ -121,6 +122,50 @@ describe('la case du sujet', () => {
     })
     expect(c.left + c.width).toBeLessThanOrEqual(VUE.largeur)
     expect(c.top + c.height).toBeLessThanOrEqual(VUE.hauteur)
+  })
+})
+
+describe('le voile et ses trous', () => {
+  const CADRE: Cadre = { top: 100, left: 200, width: 300, height: 80 }
+
+  it('cerne l’écran entier, puis creuse les sujets', () => {
+    const d = decoupeDuVoile({ vue: VUE, cadre: CADRE })
+    // Trois tracés : l'anneau extérieur, le trou du sujet, et le second, à taille nulle.
+    expect(d.split('M').length - 1).toBe(3)
+    // ⛔ L'anneau descend d'abord, les trous partent vers la droite : les deux sens
+    //    sont opposés, et c'est ce qui creuse sous la règle non nulle.
+    expect(d.startsWith('M0 0L0 900L1400 900L1400 0Z')).toBe(true)
+  })
+
+  it('garde le MÊME nombre de commandes sans second sujet', () => {
+    // Sans quoi le tracé ne s'interpolerait pas, et le voile sauterait d'une étape
+    // à l'autre là où les cases glissent.
+    const seul = decoupeDuVoile({ vue: VUE, cadre: CADRE })
+    const deux = decoupeDuVoile({ vue: VUE, cadre: CADRE, cadreBis: { top: 400, left: 500, width: 120, height: 60 } })
+    const compter = (s: string, c: string) => s.split(c).length - 1
+    for (const c of ['M', 'L', 'A', 'Z']) expect(compter(seul, c)).toBe(compter(deux, c))
+  })
+
+  it('pose le trou absent au centre du premier, à taille nulle', () => {
+    expect(decoupeDuVoile({ vue: VUE, cadre: CADRE })).toContain('M350 140L350 140')
+  })
+})
+
+describe('la flèche vers un second sujet', () => {
+  const carte = { top: 300, left: 600, largeur: 336, hauteur: 160 }
+
+  it('sort par le HAUT de la case quand le sujet est au-dessus', () => {
+    const t = traitVersSujet({ cadre: { top: 10, left: 640, width: 200, height: 40 }, carte })
+    expect(t).not.toBeNull()
+    expect(t!.y1).toBe(50)
+    expect(t!.y2).toBe(carte.top)
+  })
+
+  it('sort par le CÔTÉ quand le sujet est franchement à gauche', () => {
+    const t = traitVersSujet({ cadre: { top: 320, left: 100, width: 120, height: 60 }, carte })
+    expect(t).not.toBeNull()
+    expect(t!.x1).toBe(220)
+    expect(t!.x2).toBe(carte.left)
   })
 })
 

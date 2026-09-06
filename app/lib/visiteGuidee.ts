@@ -78,6 +78,15 @@ export type EtapeVisite = {
    * verset ; et qu'elle disparaît d'elle-même quand aucun ne répond.
    */
   sujet: string[]
+  /**
+   * Un SECOND sujet, cerné et fléché comme le premier — la carte de l'accueil que
+   * désigne un onglet de la barre, par exemple.
+   * ⚠️ C'est un ORNEMENT de l'étape, non son objet : s'il manque, l'étape se donne
+   * quand même, avec une case et une flèche. Le premier sujet, lui, la commande.
+   * ⛔ Deux, jamais trois : au delà, le voile devient une dentelle et l'on ne sait
+   * plus ce que la case explique.
+   */
+  sujetBis?: string[]
   titre: string
   /**
    * UN PARAGRAPHE PAR IDÉE (demande de l'auteur, 2026-09-06). Deux ou trois, jamais
@@ -117,6 +126,17 @@ export type Visite = {
   /** Ce qui le suit, et qui dit ce qui va se passer. Un paragraphe par idée. */
   accroche: string[]
   etapes: EtapeVisite[]
+  /**
+   * La visite passe AU-DESSUS de la barre de navigation, et peut donc cerner ce
+   * qu'elle porte.
+   * ⛔ À ne poser que pour une visite qui parle de la BARRE : partout ailleurs, la
+   * barre garde sa lumière pendant que la page s'assombrit, et c'est ce qu'on veut
+   * — une visite montre la page qu'on vient d'ouvrir.
+   * ⚠️ Elle emporte deux conséquences de géométrie, toutes deux dans le composant :
+   * la case d'un sujet cesse de réserver la bande de la barre (il n'y a plus rien
+   * sous quoi glisser), et un sujet FIXE ne se fait pas défiler, étant déjà là.
+   */
+  couvreLaBarre?: boolean
 }
 
 // ── La géométrie ─────────────────────────────────────────────────────────────
@@ -303,6 +323,75 @@ export function cadreDuSujet({ sujet, vue, hautNavbar, souffle = 6 }: {
   const gauche = Math.max(sujet.left - souffle, 2)
   const droite = Math.min(sujet.left + sujet.width + souffle, vue.largeur - 2)
   return { top: haut, left: gauche, width: Math.max(0, droite - gauche), height: Math.max(0, bas - haut) }
+}
+
+/**
+ * Le trait qui relie la case explicative à un SECOND sujet.
+ *
+ * ⚠️ Le côté ne vient pas du scénario : la case est déjà posée par le premier
+ * sujet, et c'est la position RELATIVE des deux boîtes qui dit par quelle arête le
+ * trait sort. On prend l'axe où elles s'écartent le plus, faute de quoi un trait
+ * presque diagonal partirait par le mauvais bord.
+ */
+export function traitVersSujet({ cadre, carte }: {
+  cadre: Cadre
+  carte: { top: number; left: number; largeur: number; hauteur: number }
+}): Trait | null {
+  const cx = cadre.left + cadre.width / 2
+  const cy = cadre.top + cadre.height / 2
+  const kx = carte.left + carte.largeur / 2
+  const ky = carte.top + carte.hauteur / 2
+  const cote: CoteCarte = Math.abs(kx - cx) >= Math.abs(ky - cy)
+    ? (kx >= cx ? 'droite' : 'gauche')
+    : (ky >= cy ? 'dessous' : 'dessus')
+  return tracerTrait({ cadre, carte, cote })
+}
+
+// ── Le voile et ses trous ────────────────────────────────────────────────────
+
+/** Le rayon des coins d'un trou, accordé à celui de la case du sujet. */
+const RAYON_TROU = 8
+
+/**
+ * Le tracé du voile : l'écran entier, moins les cases des sujets.
+ *
+ * ⛔ UN SEUL TRACÉ FAIT L'ASSOMBRISSEMENT ET LA DÉCOUPE — c'est la règle de la
+ * charte (§ 46), et elle tient : les deux ne peuvent pas se désaccorder. Le voile
+ * n'est plus l'OMBRE PORTÉE d'une case, parce qu'une ombre ne sait ouvrir qu'un
+ * trou : deux ombres superposées assombrissent deux fois le dehors et une fois
+ * chaque trou, si bien qu'aucun sujet n'est en pleine lumière.
+ *
+ * ⚠️ L'anneau extérieur tourne dans le sens INVERSE des trous : c'est ainsi qu'ils
+ * se creusent sous la règle non nulle, sans avoir à demander « evenodd » à un
+ * navigateur qui pourrait l'ignorer. Une règle de découpe refusée ne découpe rien
+ * du tout, et le voile couvrirait alors le sujet qu'il doit montrer.
+ *
+ * ⛔ LE NOMBRE DE COMMANDES NE CHANGE PAS d'une étape à l'autre : un second trou
+ * absent s'écrit à taille NULLE, au centre du premier, plutôt que d'être omis.
+ * Sans quoi le tracé cesserait de s'interpoler et le voile sauterait là où la case
+ * glisse.
+ */
+export function decoupeDuVoile({ vue, cadre, cadreBis }: {
+  vue: Vue
+  cadre: Cadre
+  cadreBis?: Cadre | null
+}): string {
+  const n = (v: number) => Math.round(v * 10) / 10
+  const exterieur = `M0 0L0 ${n(vue.hauteur)}L${n(vue.largeur)} ${n(vue.hauteur)}L${n(vue.largeur)} 0Z`
+  const trou = (c: Cadre) => {
+    const r = Math.max(0, Math.min(RAYON_TROU, c.width / 2, c.height / 2))
+    const x = n(c.left), y = n(c.top)
+    const x2 = n(c.left + c.width), y2 = n(c.top + c.height)
+    const a = `A${n(r)} ${n(r)} 0 0 1 `
+    return `M${n(c.left + r)} ${y}L${n(c.left + c.width - r)} ${y}${a}${x2} ${n(c.top + r)}`
+      + `L${x2} ${n(c.top + c.height - r)}${a}${n(c.left + c.width - r)} ${y2}`
+      + `L${n(c.left + r)} ${y2}${a}${x} ${n(c.top + c.height - r)}`
+      + `L${x} ${n(c.top + r)}${a}${n(c.left + r)} ${y}Z`
+  }
+  const nul: Cadre = {
+    top: cadre.top + cadre.height / 2, left: cadre.left + cadre.width / 2, width: 0, height: 0,
+  }
+  return exterieur + trou(cadre) + trou(cadreBis ?? nul)
 }
 
 // ── Les étapes réellement montrables ─────────────────────────────────────────

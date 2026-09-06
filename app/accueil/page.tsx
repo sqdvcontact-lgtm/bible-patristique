@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AccueilCards from "../components/AccueilCards";
+import VisiteDeLAccueil from "./VisiteDeLAccueil";
 import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/auteursDuCorpus";
@@ -576,6 +577,10 @@ export default async function AccueilPage() {
         <div id="cartes" style={{ width: "100%", scrollMarginTop: "3.5rem", marginTop: "clamp(26px, 4.5vh, 52px)" }}>
           <AccueilCards />
         </div>
+
+        {/* La visite de la barre. Elle ne rend rien tant qu'elle ne s'ouvre pas, et
+            rien du tout sur un écran étroit (voir le composant). */}
+        <VisiteDeLAccueil />
 
         <GalerieAuteurs auteurs={auteurs} />
 

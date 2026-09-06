@@ -306,18 +306,22 @@ function useMenuSurvol(auSurvol?: () => void) {
  * interchangeables : le groupe englobe le menu, l'onglet non. Le premier ferme,
  * le second guette la main qui se pose (voir useMenuSurvol).
  */
-function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, children }: {
+function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, repere, children }: {
   href: string;
   label: string;
   style: React.CSSProperties;
   actif?: boolean;
   classeMenu?: string;
   auSurvol?: () => void;
+  /** Le repère de la visite de l'accueil, posé sur le GROUPE : c'est lui qui porte
+   *  l'onglet et son menu, et sa boîte est celle de l'onglet tant que rien n'est
+   *  ouvert (voir app/lib/visiteAccueil.ts). */
+  repere?: string;
   children?: React.ReactNode;
 }) {
   const { ouvert, groupe, onglet } = useMenuSurvol(auSurvol);
   return (
-    <span className={ouvert ? "cs-plus cs-plus--ouvert" : "cs-plus"} {...groupe}>
+    <span data-visite={repere} className={ouvert ? "cs-plus cs-plus--ouvert" : "cs-plus"} {...groupe}>
       <Link href={href} className="cs-nav-onglet" aria-current={actif ? "page" : undefined} {...onglet}
         style={{ ...style, display: "inline-flex", alignItems: "center", gap: "3px" }}>
         {label}
@@ -349,7 +353,7 @@ function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, children 
 function OngletPatristique({ href, label, style, actif }: { href: string; label: string; style: React.CSSProperties; actif?: boolean }) {
   const [recentes, setRecentes] = useState<OeuvreRecente[]>([]);
   return (
-    <OngletMenu href={href} label={label} style={style} actif={actif}
+    <OngletMenu href={href} label={label} style={style} actif={actif} repere="nav-patristique"
       classeMenu="cs-plus-menu--riche cs-plus-menu--oeuvres"
       auSurvol={() => setRecentes(lireOeuvresRecentes())}>
       {/* ⛔ LA PORTE DE LA RUBRIQUE, EN TÊTE DE SON PROPRE MENU. Le libellé de
@@ -388,7 +392,7 @@ function OngletAllerPlusLoin({ label, style, actif }: { label: string; style: Re
     // Le menu DIT ce que chaque page contient, et le montre d'un emblème.
     // « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
     // une liste de cinq mots laissait le lecteur ouvrir au hasard.
-    <OngletMenu href="/librairies" label={label} style={style} actif={actif}
+    <OngletMenu href="/librairies" label={label} style={style} actif={actif} repere="nav-plus-loin"
       classeMenu="cs-plus-menu--riche cs-plus-menu--pages">
       {LIENS_ALLER_PLUS_LOIN.map(l => (
         <Link key={l.href} href={l.href} className="cs-plus-riche">
@@ -461,19 +465,23 @@ function OngletBibles({ etat, pathname, styleLien }: {
   // plus clair du site — on lit ce qu'il offre sans avoir à survoler quoi que ce soit.
   if (etat === 'deux') {
     return (
-      <>
+      // ⚠️ Les deux onglets sont ENVELOPPÉS, et c'est le seul état où il le faut : la
+      // visite de l'accueil cerne les bibles d'un seul trait, et un fragment n'a pas
+      // de boîte. L'écart repris ici est celui de la barre (gap-1, 0,25rem), si bien
+      // que rien ne bouge d'un pixel.
+      <span data-visite="nav-bibles" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
         <Link href={hrefBible} className="cs-nav-onglet" aria-current={surClassique ? "page" : undefined}
           style={styleLien("/", true, true)}>Bible classique</Link>
         <Link href="/polyglotte" className="cs-nav-onglet" aria-current={surPolyglotte ? "page" : undefined}
           style={styleLien("/polyglotte", undefined, true)}>Bible polyglotte</Link>
-      </>
+      </span>
     );
   }
 
   // Large : un seul onglet, qui se fend au survol sans que la barre bouge d'un pixel.
   if (etat === 'fendu') {
     return (
-      <div className="cs-bible">
+      <div className="cs-bible" data-visite="nav-bibles">
         <Link href={hrefBible} className="cs-bible-face">Les Saintes Écritures</Link>
         <div className="cs-bible-split">
           <Link href={hrefBible} aria-current={surClassique ? "page" : undefined} className={`cs-bible-seg${surClassique ? " cs-bible-seg--actif" : ""}`}>Classique</Link>
@@ -491,7 +499,7 @@ function OngletBibles({ etat, pathname, styleLien }: {
   return (
     // Deux entrées seulement : le menu se borne à sa mesure, au lieu des 13rem
     // qu'appellent « Aller plus loin » et « Administration ».
-    <OngletMenu href={hrefBible} label={etat === 'long' ? "La Bible" : "Bible"}
+    <OngletMenu href={hrefBible} label={etat === 'long' ? "La Bible" : "Bible"} repere="nav-bibles"
       style={styleFace} actif={surClassique} classeMenu="cs-plus-menu--bibles">
       <Link href={hrefBible} className="cs-plus-lien" aria-current={surClassique ? "page" : undefined}>Bible classique</Link>
       <Link href="/polyglotte" className="cs-plus-lien" aria-current={surPolyglotte ? "page" : undefined}>Bible polyglotte</Link>
@@ -1655,7 +1663,7 @@ export default function Navbar() {
     <>
       {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
           barre de navigation : rien à naviguer tant que le site est fermé. */}
-      <header data-cs-navbar className="fixed top-0 left-0 right-0 border-b"
+      <header data-cs-navbar data-visite="nav-barre" className="fixed top-0 left-0 right-0 border-b"
         style={{ background: "var(--cs-barre-fond)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
         <style>{`
           /* Jauge de la vignette de notification : elle se vide de la droite vers la
@@ -1897,12 +1905,12 @@ export default function Navbar() {
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
                 ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
-                : <Link key={href} href={href} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
+                : <Link key={href} href={href} data-visite={href === "/essais" ? "nav-communaute" : undefined} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} actif={estCheminActif("/admin", false)} />
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
+            <div data-visite="nav-recherche" style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "0.25rem", paddingLeft: "0.5rem", minWidth: 0, borderLeft: "1px solid rgba(255,255,255,0.30)", boxShadow: "inset 1px 0 0 rgba(0,0,0,0.08)" }}>
               {/* Le champ de recherche est le plus large des outils (13,75rem) : c'est lui
                   qui cède le premier. À l'étroit il se replie en loupe et se déploie sous la
                   barre, sur toute sa largeur — la même vue que sur téléphone. */}
@@ -1920,7 +1928,7 @@ export default function Navbar() {
           </nav>
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
-          <div className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "0.125rem", paddingLeft: "0.25rem" }}>
+          <div data-visite="nav-compte" className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "0.125rem", paddingLeft: "0.25rem" }}>
             {toggleAdmin(false)}
             {boutonVisite(false)}
             {(estAdmin || estAdminEmail) && (
