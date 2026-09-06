@@ -390,6 +390,13 @@ export default function RechercheClient() {
 
   const suggAbortRef = useRef<AbortController | null>(null)
 
+  // La langue du périmètre choisi. « ALL » cherche dans toutes les bibles, donc en
+  // français, qui est la langue de la plupart d'entre elles et de la boîte de recherche.
+  const langueScope = useMemo(
+    () => (tradScope === 'ALL' ? 'fr' : traductions.find(t => t.code === tradScope)?.lang ?? 'fr'),
+    [tradScope, traductions],
+  )
+
   // Autocomplétion (même RPC que la concordance)
   useEffect(() => {
     const val = normaliser(query)
@@ -406,8 +413,13 @@ export default function RechercheClient() {
         // déjà par une RPC préfixe.)
         const valOr = val.replace(/,/g, ' ').trim()
         const prefixeOr = (col: string) => [`${col}.ilike.${valOr}%`, `${col}.ilike.% ${valOr}%`, `${col}.ilike.%'${valOr}%`, `${col}.ilike.%’${valOr}%`].join(',')
+        // Le lexique suit la LANGUE du périmètre : chercher dans la Vulgate et se voir
+        // proposer « miséricorde » n'aide personne. `suggestions_concordance_la` existait
+        // depuis toujours et n'était appelée par rien (relevé le 2026-09-06). Le grec n'a
+        // pas encore de lexique : il retombe sur le français, faute de mieux.
+        const rpcLexique = langueScope === 'la' ? 'suggestions_concordance_la' : 'suggestions_concordance_fr'
         const [{ data: dataBible }, { data: dataAuteurs }, { data: dataOeuvres }] = await Promise.all([
-          supabase.rpc('suggestions_concordance_fr', { p_prefixe: val, p_limit: 8 }).abortSignal(signal),
+          supabase.rpc(rpcLexique, { p_prefixe: val, p_limit: 8 }).abortSignal(signal),
           supabase.from('auteurs').select('nom').or(prefixeOr('nom')).limit(3).abortSignal(signal),
           supabase.from('oeuvres').select('titre').or(prefixeOr('titre')).limit(3).abortSignal(signal),
         ])
@@ -425,7 +437,7 @@ export default function RechercheClient() {
       }
     }, 180)
     return () => { clearTimeout(suggTimer.current); suggAbortRef.current?.abort() }
-  }, [query])
+  }, [query, langueScope])
 
   const lancerAbortRef = useRef<AbortController | null>(null)
 

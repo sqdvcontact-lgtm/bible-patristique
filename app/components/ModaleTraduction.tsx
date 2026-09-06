@@ -10,7 +10,7 @@
 // même chose d'objets voisins ; elles ne gagnaient rien à se présenter chacune à sa
 // façon, et celle-ci était restée une liste d'étiquettes.
 //
-// Sources : `v_traductions_page` (par `trad_id`), `v_chronologie_traductions`, et,
+// Sources : `v_traductions_page` (par `trad_id`), `v_chronologie_traductions_dates`, et,
 // pour une édition qui appartient à une famille, `bible_edition_members` →
 // `v_bible_editorial_bibliography_entries`.
 //
@@ -542,7 +542,11 @@ export default function ModaleTraduction({ code, nomFallback, onFermer }: { code
     // Source unique : la vue de présentation, chargée par trad_id.
     supabase.from('v_traductions_page').select('*').eq('trad_id', code).maybeSingle()
       .then(({ data }) => { if (!annule) setInfo((data as InfoTrad | null) ?? ({} as InfoTrad)) })
-    supabase.from('v_chronologie_traductions').select('*').eq('trad_id', code).order('ordre_affichage')
+    // ⚠️ La vue en `_dates`, jamais `v_chronologie_traductions` : elle seule porte
+    // `date_affichage_courte` et `date_precision_affichage`, et c'est ce manque qui
+    // laissait la colonne des dates VIDE sur toute chronologie de traduction. La vue
+    // nue est un sous-ensemble strict de celle-ci ; rien d'autre ne change.
+    supabase.from('v_chronologie_traductions_dates').select('*').eq('trad_id', code).order('ordre_affichage')
       .then(({ data }) => { if (!annule) setChrono((data ?? []) as unknown as RangChrono[]) })
     // Les ouvrages cités appartiennent à la FAMILLE ÉDITORIALE, non à la traduction :
     // une édition bilingue les cite une fois pour ses deux textes, dans un appareil
