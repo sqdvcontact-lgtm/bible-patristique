@@ -1,22 +1,42 @@
 /**
  * LA VISITE DE LA BIBLE CLASSIQUE — le premier scénario, et le modèle des autres.
  *
- * Sept arrêts, dans l'ordre où le regard traverse la page : le volet de gauche
- * d'abord (ce qu'on lit, comment on cherche, où l'on va), la colonne du texte
- * ensuite (de quelle bible il s'agit, ce que fait un clic sur un verset, ce que
- * la marge offre), le volet de droite enfin. C'est l'ordre de la mise en page, et
- * c'est le seul qui n'oblige pas le lecteur à revenir sur ses pas.
+ * Huit arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
+ * droite (demande de l'auteur, 2026-09-06). La barre du site d'abord, puisqu'elle
+ * couronne le reste ; le volet de gauche ensuite (ce qu'on lit, comment on trouve
+ * un livre, où l'on va) ; la colonne du texte (de quelle bible il s'agit, ce que
+ * fait un clic sur un verset, ce que la marge offre) ; le volet de droite enfin.
+ * C'est l'ordre de la mise en page, et c'est le seul qui n'oblige pas le lecteur à
+ * revenir sur ses pas.
  *
- * ⛔ CHAQUE ÉTAPE VISE UN ÉLÉMENT DÉJÀ RENDU, par un `data-visite` posé dans le
- * composant qui le dessine ou par une classe qui existait déjà. Aucune n'est
- * décrite par un sélecteur de structure (« le troisième div du volet ») : une
- * visite qui se règle sur la forme du DOM se casse au premier remaniement, sans
- * que rien ne le signale, et le lecteur reçoit alors une case posée sur du vide.
+ * ⚠️ LES COLONNES SE PRENNENT L'UNE APRÈS L'AUTRE, jamais par bandes
+ * horizontales. Mesuré sur la page servie le 2026-09-06, fenêtre de 2 560 px : la
+ * carte de l'édition, l'en-tête du texte et le volet des Pères ouvrent tous trois
+ * leur colonne à 77 px du haut. Les ranger par ordonnée ferait sauter le regard
+ * d'un bord de l'écran à l'autre trois fois de suite ; on descend donc une colonne
+ * entière avant de passer à la suivante, comme on lit une page à trois colonnes.
+ *
+ * ⛔ CHAQUE ÉTAPE VISE UN ÉLÉMENT DÉJÀ RENDU, par un repère « data-visite » posé
+ * dans le composant qui le dessine, ou par une classe qui existait déjà. Aucune
+ * n'est décrite par un sélecteur de structure (« le troisième div du volet ») :
+ * une visite qui se règle sur la forme du DOM se casse au premier remaniement,
+ * sans que rien ne le signale, et le lecteur reçoit une case posée sur du vide.
  *
  * ⚠️ Les sujets sont donnés en LISTE, du plus précis au plus général. L'étape du
  * verset vise d'abord un verset que les Pères commentent — c'est le seul qui
  * porte le nombre dont elle parle — et retombe sur n'importe quel verset ;
- * l'étape disparaît si le chapitre n'en a aucun (voir `etapesPresentes`).
+ * l'étape disparaît si le chapitre n'en a aucun (voir « etapesPresentes »).
+ *
+ * ⚠️ LA RECHERCHE DU SITE NE SE MONTRE QU'EN ÉCRAN LARGE, et son étape s'efface
+ * ailleurs : sur un téléphone la barre range sa recherche dans le menu déplié, et
+ * déplier ce menu couvrirait la page qu'on explique. L'étape coûte alors la
+ * seconde d'attente de « DELAI_SUJET_MS », comme celle de la carte d'édition, qui
+ * n'existe pas non plus sur un téléphone.
+ *
+ * ⛔ LES DEUX RECHERCHES SE DISTINGUENT DÈS LEUR PREMIÈRE PHRASE. Celle de la
+ * barre porte sur tout le site, celle du volet sur les seuls livres de la bible
+ * ouverte ; présentées à quelques étapes l'une de l'autre, elles se confondraient
+ * sans cela, et le lecteur croirait à un doublon.
  *
  * ⛔ UN PARAGRAPHE PAR IDÉE (demande de l'auteur, 2026-09-06) : on change de
  * paragraphe quand on change de chose à dire, et l'on s'arrête à deux ou trois.
@@ -39,10 +59,21 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
   // mot de logiciel. La phrase dit ce qui va se passer, et rien de plus.
   titre: 'Faisons le tour de la page.',
   accroche: [
-    'À gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit.',
+    'En haut la recherche, à gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit.',
     'Quelques étapes suffisent à vous montrer où tout se trouve.',
   ],
   etapes: [
+    {
+      cle: 'recherche-site',
+      sujet: ['[data-visite="recherche-site"]'],
+      titre: 'Chercher dans tout le site',
+      texte: [
+        'Ici, la recherche porte sur tout le site : œuvres des Pères, livres bibliques, auteurs, péricopes.',
+        'Elle répond à mesure que vous tapez, et la touche Entrée ouvre la page des résultats.',
+        'Celle-ci cherche dans le texte même, celui des bibles comme celui des Pères.',
+      ],
+      cote: 'dessous',
+    },
     {
       cle: 'edition',
       sujet: ['[data-visite="edition"]'],
@@ -55,11 +86,11 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       scene: { volet: 'livres' },
     },
     {
-      cle: 'recherche',
+      cle: 'recherche-livre',
       sujet: ['[data-visite="recherche-livre"]'],
       titre: 'Trouver un livre',
       texte: [
-        'Tapez un nom pour le retrouver dans la liste.',
+        'Ce champ-ci ne cherche que dans les livres de la bible ouverte.',
         'Une référence entière fonctionne aussi, comme Jean 3, 16, et vous y mène d’un clic.',
       ],
       cote: 'droite',

@@ -108,6 +108,24 @@ describe('la case du sujet', () => {
     expect(c.top + c.height).toBe(58 + 120 + 6)
   })
 
+  it('cerne un sujet qui vit DANS la barre de navigation', () => {
+    // La recherche du site. La réserve empêche un cadre de glisser SOUS la barre ;
+    // elle n'a rien à protéger quand le sujet est dans la barre lui-même, et l'en
+    // écarter reviendrait à cerner autre chose que lui.
+    const c = cadreDuSujet({
+      sujet: { top: 18, left: 1000, width: 300, height: 41 }, vue: VUE, hautNavbar: NAVBAR,
+    })
+    expect(c.top).toBe(12)
+    expect(c.top + c.height).toBe(65)
+  })
+
+  it('garde la réserve pour un sujet qui commence AU RAS de la barre', () => {
+    const c = cadreDuSujet({
+      sujet: { top: NAVBAR, left: 40, width: 200, height: 120 }, vue: VUE, hautNavbar: NAVBAR,
+    })
+    expect(c.top).toBe(NAVBAR + 2)
+  })
+
   it('ne déborde pas de l’écran', () => {
     const c = cadreDuSujet({
       sujet: { top: 700, left: 1380, width: 60, height: 300 }, vue: VUE, hautNavbar: NAVBAR,

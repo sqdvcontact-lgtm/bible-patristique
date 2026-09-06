@@ -6293,18 +6293,45 @@ sa forme (case / trait / case). Ici, sa mécanique.
   en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
   de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
-- `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang 2800
-  (au-dessus des modales du site, qui montent à 2700).
+- `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **3200**
+  (au-dessus des modales du site, qui montent à 2700, ET de la barre de navigation, qui
+  monte à 3000).
+
+⛔ **LE VOILE PASSE AU-DESSUS DE LA BARRE, et il le faut** (2026-09-06). Il montait à
+2800, donc dessous : la barre restait en pleine lumière quand le reste s'assombrissait,
+et surtout **aucun cadre ne pouvait s'y poser** — la recherche du site aurait été cernée
+par une case invisible. ⚠️ Deux corollaires dans la géométrie, tous deux gardés par des
+tests : `cadreDuSujet` cesse de réserver la bande de la barre quand le sujet y VIT (la
+réserve empêche un cadre de glisser SOUS elle, elle n'a rien à protéger dans ce cas), et
+la boucle ne fait pas défiler un sujet de la barre, qui est fixe et déjà à l'écran.
+⚠️ Au-delà de 3200 ne subsistent que le carton d'une notification (4000) et les
+infobulles de note (9999), que la page inerte n'ouvre pas.
 
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Huit aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
-(NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique), plus
-`poly-colonnes`, `poly-entete` et `poly-notes` sur la Polyglotte. Quatre étapes visent
-des classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
-`.poly-texte-cell`).
+Neuf aujourd'hui : `recherche-site` (Navbar), `edition` (EncartTraduction),
+`recherche-livre` et `livres` (NavLivres), `entete-lecture` (TexteBible), `peres`
+(PanneauPatristique), plus `poly-colonnes`, `poly-entete` et `poly-notes` sur la
+Polyglotte. Quatre étapes visent des classes qui existaient déjà (`.verset-row`,
+`.verset-actions`, `.poly-row`, `.poly-texte-cell`).
 ⛔ Ne pas les retirer en remaniant un volet : rien ne casse à la compilation, l'étape
 disparaît simplement du parcours. ⚠️ NavLivres est partagé par les deux pages, et son
 repère `livres` sert donc les deux visites — c'était prévu, et il n'a rien coûté.
+
+⛔ **L'ORDRE DES ÉTAPES EST CELUI DE LA PAGE : de haut en bas, de gauche à droite**
+(demande de l'auteur, 2026-09-06). ⚠️ Les colonnes se prennent l'une après l'autre,
+jamais par bandes horizontales : mesuré sur la page servie, la carte de l'édition,
+l'en-tête du texte et le volet des Pères ouvrent tous trois leur colonne à 77 px du
+haut, et les ranger par ordonnée ferait sauter le regard d'un bord de l'écran à l'autre
+trois fois de suite. La barre du site vient donc en premier, puis chaque colonne se
+descend entière.
+
+⚠️ **La recherche du site ne se montre QU'EN ÉCRAN LARGE**, et son étape s'efface
+ailleurs : sur un téléphone la barre range sa recherche dans le menu déplié, et déplier
+ce menu couvrirait la page qu'on explique. Elle coûte alors la seconde de
+`DELAI_SUJET_MS`, comme l'étape de la carte d'édition, absente elle aussi du téléphone.
+⛔ Et son repère se pose sur le bloc qui porte le champ **OU** la loupe, jamais sur le
+champ : à l'étroit celui-ci se replie, et un repère posé dessus s'évanouirait au moment
+même où la recherche devient la plus difficile à trouver.
 
 ⛔ **UNE VISITE NE S'OUVRE QUE LÀ OÙ SA PAGE PEUT LA PORTER.** La Bible classique
 attend que son texte, rendu par le serveur, ait fini son fondu d'ouverture ; la

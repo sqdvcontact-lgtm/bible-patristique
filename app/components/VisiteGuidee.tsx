@@ -42,9 +42,15 @@ import {
   type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Visite, type Vue,
 } from '@/app/lib/visiteGuidee'
 
-/** Au-dessus de tout ce que la page peut ouvrir : les modales du site montent à
- *  2700 (fiche de traduction, planche de gravure). La visite les couvre toutes. */
-const Z_VISITE = 2800
+/** Au-dessus de tout ce que la page peut ouvrir, BARRE DE NAVIGATION COMPRISE.
+ *  Elle monte à 3000, et le voile passait dessous : la barre restait en pleine
+ *  lumière quand tout le reste s'assombrissait, et surtout aucun cadre ne pouvait
+ *  s'y poser — la recherche du site, premier arrêt de la Bible classique, aurait
+ *  été cernée par une case invisible. Les modales du site montent à 2700, le menu
+ *  de compte à 3100 : 3200 les couvre toutes.
+ *  ⚠️ Au-delà ne subsistent que le carton d'une notification (4000) et les
+ *  infobulles de note (9999), que la page inerte n'ouvre pas. */
+const Z_VISITE = 3200
 
 /** Au-delà, on tient l'étape pour impossible et l'on passe. ⚠️ Généreux à dessein :
  *  un volet de téléphone se monte, le volet de droite interroge la base. */
@@ -207,7 +213,10 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           // ⛔ Sans défilement DOUX : la case, elle, se déplace en 300 ms, et deux
           // mouvements de durées différentes se poursuivraient l'un l'autre. La
           // page se pose d'un coup, et la case glisse ensuite jusqu'à elle.
-          el.scrollIntoView({ block: 'center', inline: 'nearest' })
+          // ⛔ UN SUJET QUI VIT DANS LA BARRE NE SE FAIT PAS DÉFILER : elle est
+          // fixe, il est donc déjà à l'écran, et le centrer demanderait à la page
+          // de remonter au-dessus de son propre haut.
+          if (el.getBoundingClientRect().top >= hautNavbar) el.scrollIntoView({ block: 'center', inline: 'nearest' })
         }
         const r = el.getBoundingClientRect()
         const vue = { largeur: window.innerWidth, hauteur: window.innerHeight }
