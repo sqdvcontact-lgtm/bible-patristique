@@ -100,6 +100,18 @@ export function surfaceDuSegment(segment: SegmentPourSurface): SurfaceOeuvre | n
   return null
 }
 
+/**
+ * Un liminaire synthétique n'est JAMAIS déduit du seul `ref_niv1` absent.
+ * Il faut que la donnée déclare explicitement l'espace `introduction` : un corps
+ * sans division reste un corps sans division et ne reçoit aucun titre fabriqué.
+ */
+export function estLiminaireSansNiveau(
+  segment: SegmentPourSurface & { ref_niv1?: string | null },
+): boolean {
+  return String(segment.espace_textuel ?? '').trim() === ESPACE_TEXTUEL_INTRODUCTION
+    && segment.ref_niv1 === null
+}
+
 export function estSegmentDuCorps(segment: SegmentPourSurface): boolean {
   return surfaceDuSegment(segment) === 'corps'
 }
@@ -129,6 +141,23 @@ export const FILTRE_APPARAT_POSTGREST =
 
 type RequeteSurface = {
   or(filtres: string): RequeteSurface
+}
+
+type RequeteLiminaireSansNiveau = {
+  eq(colonne: string, valeur: string): RequeteLiminaireSansNiveau
+  is(colonne: string, valeur: null): RequeteLiminaireSansNiveau
+}
+
+/**
+ * Filtre partagé du pseudo-niveau technique `LIMINAIRES`.
+ *
+ * ⛔ `ref_niv1 IS NULL` seul est interdit ici : il attraperait tout texte réellement
+ * sans niveaux. L'espace documentaire `introduction` est la condition qui distingue
+ * le liminaire du corps indivis.
+ */
+export function limiterRequeteAuxLiminairesSansNiveau<T>(requete: T): T {
+  const q = requete as unknown as RequeteLiminaireSansNiveau
+  return q.eq('espace_textuel', ESPACE_TEXTUEL_INTRODUCTION).is('ref_niv1', null) as unknown as T
 }
 
 /** Applique le contrat partagé aux requêtes serveur et client. */
