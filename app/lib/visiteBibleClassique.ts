@@ -27,11 +27,10 @@
  * porte le nombre dont elle parle — et retombe sur n'importe quel verset ;
  * l'étape disparaît si le chapitre n'en a aucun (voir « etapesPresentes »).
  *
- * ⚠️ LA RECHERCHE DU SITE NE SE MONTRE QU'EN ÉCRAN LARGE, et son étape s'efface
- * ailleurs : sur un téléphone la barre range sa recherche dans le menu déplié, et
- * déplier ce menu couvrirait la page qu'on explique. L'étape coûte alors la
- * seconde d'attente de « DELAI_SUJET_MS », comme celle de la carte d'édition, qui
- * n'existe pas non plus sur un téléphone.
+ * ⚠️ LE PREMIER ARRÊT EST PARTAGÉ avec les autres visites : la barre du site ne
+ * change pas d'une page à l'autre, et son étape vit dans « visiteBarreDuSite ».
+ * Elle ne se montre qu'en écran large, et s'efface ailleurs comme celle de la
+ * carte d'édition, qui n'existe pas non plus sur un téléphone.
  *
  * ⛔ LES DEUX RECHERCHES SE DISTINGUENT DÈS LEUR PREMIÈRE PHRASE. Celle de la
  * barre porte sur tout le site, celle du volet sur les seuls livres de la bible
@@ -45,6 +44,7 @@
  * pas.
  */
 
+import { ETAPE_RECHERCHE_SITE } from './visiteBarreDuSite'
 import type { Visite } from './visiteGuidee'
 
 /** ⛔ La clé de mémoire ne change JAMAIS sans raison : elle est le seul lien
@@ -63,17 +63,9 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     'Quelques étapes suffisent à vous montrer où tout se trouve.',
   ],
   etapes: [
-    {
-      cle: 'recherche-site',
-      sujet: ['[data-visite="recherche-site"]'],
-      titre: 'Chercher dans tout le site',
-      texte: [
-        'Ici, la recherche porte sur tout le site : œuvres des Pères, livres bibliques, auteurs, péricopes.',
-        'Elle répond à mesure que vous tapez, et la touche Entrée ouvre la page des résultats.',
-        'Celle-ci cherche dans le texte même, celui des bibles comme celui des Pères.',
-      ],
-      cote: 'dessous',
-    },
+    // ⚠️ La barre du site est la même partout : son étape est PARTAGÉE, et se lit
+    // dans « visiteBarreDuSite ».
+    ETAPE_RECHERCHE_SITE,
     {
       cle: 'edition',
       sujet: ['[data-visite="edition"]'],

@@ -1,10 +1,17 @@
 /**
  * LA VISITE DE LA POLYGLOTTE — la seconde, au patron de la première.
  *
- * Six arrêts, dans l'ordre où l'on prend la page : le volet de gauche (quel
- * passage, combien de colonnes), l'en-tête (quelle bible dans chaque colonne),
- * puis le tableau lui-même, de la rangée à la cellule, et la colonne des notes
- * pour finir.
+ * Sept arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas, de gauche à
+ * droite (règle de l'auteur, 2026-09-06). La barre du site d'abord, puis le volet
+ * de gauche (combien de colonnes, quel passage), puis le tableau lui-même, de
+ * l'en-tête à la rangée et de la rangée à la cellule, la colonne des notes pour
+ * finir.
+ *
+ * ⚠️ LE NOMBRE DE COLONNES PRÉCÈDE LE CHOIX DU PASSAGE, et c'est l'inverse de ce
+ * que la visite disait jusqu'au 2026-09-06 au soir. Mesuré sur la page servie,
+ * fenêtre de 2 560 px : le bloc des traductions visibles ouvre le volet à 154 px
+ * du haut, la liste des livres n'y vient qu'à 354. On ne remonte pas un volet
+ * qu'on vient de descendre.
  *
  * ⛔ CE QUI DISTINGUE CETTE PAGE de la Bible classique, et que la visite doit
  * dire, tient en trois faits : une rangée est un créneau du CANON, non un verset
@@ -12,18 +19,28 @@
  * toujours ; et les actions appartiennent à la CELLULE, donc à une traduction, et
  * non au verset en général. Tout le reste est du réglage.
  *
- * ⛔ PAS D'ÉTAPE SUR LES VERSETS SURNUMÉRAIRES, et c'est un arbitrage. Les
- * rangées violettes — les versets propres à la Septante, hors de l'ossature
- * canonique — méritent une explication, mais elles ne paraissent que sur une
- * minorité de chapitres : l'étape s'effacerait le plus souvent, au prix d'une
- * seconde d'attente pour tout le monde (voir `DELAI_SUJET_MS`). Une visite ne
- * paie pas ce prix à chaque lecteur pour un cas qui ne se présente pas.
+ * ⚠️ LE PREMIER ARRÊT EST PARTAGÉ avec les autres visites : la barre du site ne
+ * change pas d'une page à l'autre, et son étape vit dans « visiteBarreDuSite ».
+ * ⛔ Elle NE se répète PAS d'une visite à l'autre pour le même lecteur : chaque
+ * page ne montre la sienne qu'une fois, et rien ne dit qu'un lecteur passera par
+ * la Bible classique avant d'ouvrir la Polyglotte.
  *
- * ⚠️ AUCUNE SCÈNE À PRÉPARER : sous 820 px la page ne se rend pas du tout et
- * renvoie à un écran large, si bien qu'il n'y a ici ni onglets ni volets à
- * ouvrir. La visite ne s'ouvre que là où le tableau existe (voir la page).
+ * ⛔ PAS D'ÉTAPE SUR LA RECHERCHE D'UN LIVRE, ni sur les VERSETS SURNUMÉRAIRES,
+ * et ce sont deux arbitrages. La première est le champ de la Bible classique, mot
+ * pour mot, et le volet est partagé : la redire ici allongerait la visite sans
+ * rien apprendre. Les secondes — les rangées violettes, propres à la Septante et
+ * hors de l'ossature canonique — méritent une explication, mais elles ne
+ * paraissent que sur une minorité de chapitres : l'étape s'effacerait le plus
+ * souvent, au prix d'une seconde d'attente pour tout le monde (voir
+ * « DELAI_SUJET_MS »). Une visite ne paie pas ce prix à chaque lecteur pour un cas
+ * qui ne se présente pas.
+ *
+ * ⚠️ UNE SEULE SCÈNE À PRÉPARER, celle des notes : sous 820 px la page ne se rend
+ * pas du tout et renvoie à un écran large, si bien qu'il n'y a ici ni onglets ni
+ * volets à ouvrir. La visite ne s'ouvre que là où le tableau existe (voir la page).
  */
 
+import { ETAPE_RECHERCHE_SITE } from './visiteBarreDuSite'
 import type { Visite } from './visiteGuidee'
 
 /** ⛔ La clé de mémoire ne change JAMAIS sans raison : elle est le seul lien
@@ -38,18 +55,9 @@ export const VISITE_POLYGLOTTE: Visite = {
     'Quelques étapes suffisent à vous montrer où tout se règle.',
   ],
   etapes: [
-    {
-      cle: 'passage',
-      // ⚠️ Le volet est celui de la Bible classique, au repère près : les deux pages
-      // partagent `NavLivres`, et la visite y trouve un `data-visite` déjà posé.
-      sujet: ['[data-visite="livres"]'],
-      titre: 'Choisir le passage',
-      texte: [
-        'Ouvrez un livre, puis un chapitre : le tableau s’ouvre dessus.',
-        'Livre entier met le livre d’un seul tenant sur les colonnes.',
-      ],
-      cote: 'droite',
-    },
+    // ⚠️ La barre du site est la même partout : son étape est PARTAGÉE, et se lit
+    // dans « visiteBarreDuSite ».
+    ETAPE_RECHERCHE_SITE,
     {
       cle: 'colonnes',
       sujet: ['[data-visite="poly-colonnes"]'],
@@ -57,6 +65,18 @@ export const VISITE_POLYGLOTTE: Visite = {
       texte: [
         'Auto en met autant que votre écran peut en porter.',
         'Vous pouvez aussi en fixer le nombre, de deux à cinq.',
+      ],
+      cote: 'droite',
+    },
+    {
+      cle: 'passage',
+      // ⚠️ Le volet est celui de la Bible classique, au repère près : les deux pages
+      // partagent « NavLivres », et la visite y trouve un « data-visite » déjà posé.
+      sujet: ['[data-visite="livres"]'],
+      titre: 'Choisir le passage',
+      texte: [
+        'Ouvrez un livre, puis un chapitre : le tableau s’ouvre dessus.',
+        'Livre entier met le livre d’un seul tenant sur les colonnes.',
       ],
       cote: 'droite',
     },

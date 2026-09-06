@@ -6298,10 +6298,20 @@ la colonne étroite d'une fiche, elle ne se lit pas.
 La doctrine est dans la charte, § 46 : ce qu'une visite dit, ce qu'elle ne dit pas, et
 sa forme (case / trait / case). Ici, sa mécanique.
 
-**Trois fichiers, et un seul porte du DOM.**
+⛔ **L'ARRÊT DE LA BARRE EST PARTAGÉ, il ne se recopie pas** (2026-09-06).
+`app/lib/visiteBarreDuSite.ts` porte `ETAPE_RECHERCHE_SITE`, et les deux scénarios
+l'ouvrent en tête. La barre est la seule chose qui ne change pas d'une page à l'autre :
+deux exemplaires de la même explication divergeraient au premier ajustement, et le
+lecteur qui ferait deux visites lirait deux fois la même chose de deux façons.
+⚠️ Elle ne se répète pas pour autant : chaque page ne montre la sienne qu'une fois, et
+rien ne dit qu'un lecteur passera par la Bible classique avant d'ouvrir la Polyglotte.
+
+**Quatre fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
+- `app/lib/visiteBarreDuSite.ts` — l'arrêt commun à toutes les visites, la barre du
+  site ne changeant pas d'une page à l'autre.
 - `app/lib/visiteBibleClassique.ts` et `app/lib/visitePolyglotte.ts` — les scénarios,
   en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
@@ -6337,6 +6347,11 @@ l'en-tête du texte et le volet des Pères ouvrent tous trois leur colonne à 77
 haut, et les ranger par ordonnée ferait sauter le regard d'un bord de l'écran à l'autre
 trois fois de suite. La barre du site vient donc en premier, puis chaque colonne se
 descend entière.
+⚠️ **La règle vaut pour TOUTE visite, et la Polyglotte prenait la sienne à l'envers** :
+son bloc des traductions visibles ouvre le volet à 154 px du haut, sa liste des livres
+n'y vient qu'à 354, et la visite descendait pourtant de la seconde au premier. On ne
+remonte pas un volet qu'on vient de descendre. Corrigé le 2026-09-06 au soir ; elle
+compte sept arrêts.
 
 ⚠️ **La recherche du site ne se montre QU'EN ÉCRAN LARGE**, et son étape s'efface
 ailleurs : sur un téléphone la barre range sa recherche dans le menu déplié, et déplier
