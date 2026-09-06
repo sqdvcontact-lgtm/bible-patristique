@@ -134,3 +134,27 @@ describe('graphies latines', () => {
     expect(contientTousOriginal('Iesus Christus Dominus', ['petrus'], false)).toBe(false)
   })
 })
+
+// ── Le GREC ─────────────────────────────────────────────────────────────────
+// `norm_fr` garde les lettres grecques depuis le 2026-09-06 (la Septante n'était
+// cherchable dans aucune de ses 26 731 lignes avant cette date) et y plie le sigma
+// FINAL. La relecture de la page doit plier le même, sans quoi elle rejetterait ce
+// que la base vient de rendre — le défaut déjà payé sur la graphie ancienne.
+describe('normaliser : le grec', () => {
+  it('⛔ ne supprime aucune lettre grecque', () => {
+    expect(normaliser('Λόγος')).toBe('λογοσ')
+    expect(normaliser('Ὁ Θεός')).toBe('ο θεοσ')
+  })
+  it('plie le sigma final, comme l’index', () => {
+    expect(normaliser('λόγος')).toBe(normaliser('λογοσ'))
+  })
+  it('garde la LONGUEUR : le marquage se repose par index', () => {
+    for (const mot of ['λόγος', 'ἀγάπη', 'πνεῦμα', 'Χριστός']) {
+      expect(normaliser(mot).length, mot).toBe(mot.length)
+    }
+  })
+  it('ne touche pas au français', () => {
+    expect(normaliser('Miséricorde')).toBe('misericorde')
+    expect(normaliser('il étoit')).toBe('il etait')
+  })
+})

@@ -64,6 +64,11 @@ export function termesRecherche(q: string): string[] {
  */
 export function normaliser(s: string): string {
   return (s ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’ʼ']/g, "'")
+    // ⛔ Le sigma FINAL se ramène au sigma ordinaire, comme le fait `norm_fr` depuis le
+    //    2026-09-06 : sans lui, la page REJETTERAIT « λόγος » que la base vient de rendre,
+    //    l'index ayant plié le sigma et la relecture non. Règle qui garde la longueur,
+    //    donc admise ici (charte § 43).
+    .replace(/ς/g, 'σ')
     // connoître, paroissoit, accroître… : « oi » devant t, tr, ss dans ces radicaux.
     .replace(/(conn|reconn|par|appar|compar|acc|croi|dec|empl|nett)oi(t|tr|ss)/g, '$1ai$2')
     // étoit, avoit, disoit → était, avait, disait ; étoient → étaient.

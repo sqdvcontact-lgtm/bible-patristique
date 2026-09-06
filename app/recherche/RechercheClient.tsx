@@ -415,9 +415,15 @@ export default function RechercheClient() {
         const prefixeOr = (col: string) => [`${col}.ilike.${valOr}%`, `${col}.ilike.% ${valOr}%`, `${col}.ilike.%'${valOr}%`, `${col}.ilike.%’${valOr}%`].join(',')
         // Le lexique suit la LANGUE du périmètre : chercher dans la Vulgate et se voir
         // proposer « miséricorde » n'aide personne. `suggestions_concordance_la` existait
-        // depuis toujours et n'était appelée par rien (relevé le 2026-09-06). Le grec n'a
-        // pas encore de lexique : il retombe sur le français, faute de mieux.
-        const rpcLexique = langueScope === 'la' ? 'suggestions_concordance_la' : 'suggestions_concordance_fr'
+        // depuis toujours et n'était appelée par rien (relevé le 2026-09-06).
+        // ⛔ Le grec a le sien depuis le même jour, et il répond AUSSI à une saisie
+        // latine : « theos » propose θεός, « kyrio » propose Κύριος. Ce n'est pas un
+        // agrément — un lecteur français n'a pas de clavier grec, et sans cela le lexique
+        // ne servirait qu'à qui en a un. ⚠️ La suggestion insère la forme ATTESTÉE, la
+        // seule qui retrouve le texte.
+        const rpcLexique = langueScope === 'grc' ? 'suggestions_concordance_gr'
+          : langueScope === 'la' ? 'suggestions_concordance_la'
+          : 'suggestions_concordance_fr'
         const [{ data: dataBible }, { data: dataAuteurs }, { data: dataOeuvres }] = await Promise.all([
           supabase.rpc(rpcLexique, { p_prefixe: val, p_limit: 8 }).abortSignal(signal),
           supabase.from('auteurs').select('nom').or(prefixeOr('nom')).limit(3).abortSignal(signal),
