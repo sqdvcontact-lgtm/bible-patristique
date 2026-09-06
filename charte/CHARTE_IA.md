@@ -484,6 +484,22 @@ Toute correction touchant `espace_textuel`, les liminaires, la bibliographie ou 
 
 
 
+
+### 7.0 ter. Audit obligatoire des natures de segment
+
+Toute reprise, importation, resegmentation, correction d’apparat ou audit final doit vérifier la **nature réelle de chaque segment du périmètre**. Le contrôle d’intégrité ne se limite jamais à constater que la valeur appartient au vocabulaire autorisé : il faut vérifier qu’elle décrit bien la fonction documentaire du segment.
+
+**Procédure obligatoire.**
+
+1. Produire au début de la passe une matrice `nature × espace_textuel × type_unite/source_kind`, avec les effectifs réels et des exemples représentatifs de chaque combinaison.
+2. Relire chaque pièce et chaque changement de fonction dans son contexte matériel : corps, liminaire, approbation, privilège, dédicace, souscription, rubrique, citation, lemme, texte absent, etc. La source et le fac-similé priment sur l’apparence produite par l’interface.
+3. Utiliser la casse, la longueur, la ponctuation, les mots comme « Signé », les noms propres, qualités et offices uniquement comme **signaux de détection**. ⛔ Aucun reclassement automatique par expression régulière ou heuristique n’est admis : la nature se décide par la fonction documentaire attestée.
+4. **Signatures.** Toute ligne autonome qui donne le nom d’un signataire, éventuellement suivi de sa qualité ou de son office, et qui clôt ou authentifie une approbation, un privilège, une dédicace, une souscription ou une pièce analogue porte `nature = 'signature'`. Une suite matérielle de signataires est contrôlée ligne par ligne. Elle ne reste pas en `apparat_editeur` sous prétexte qu’elle appartient à une pièce éditoriale. À l’inverse, la simple occurrence du mot « signé » à l’intérieur d’une phrase continue ne suffit pas à créer une signature autonome si le témoin ne sépare pas matériellement la ligne.
+5. Vérifier de même les frontières `texte` / `citation` / `lemme` / `rubrique` / `introduction` / `apparat_auteur` / `apparat_editeur` / `signature` / `texte absent` et toute autre nature autorisée applicable. Une resegmentation ou une fusion rouvre ce contrôle pour les segments touchés et leurs voisins.
+6. Après toute écriture structurelle, rejouer la matrice et rechercher les contradictions sémantiques : segment de signature encore classé comme prose, prose narrative classée signature, citation longue classée texte malgré une fonction de bloc, rubrique absorbée dans le corps, etc.
+
+**Contrôles bloquants.** La passe ne peut être close que si : (a) 100 % des segments du périmètre ont une nature autorisée ; (b) 0 candidat de nature signalé par l’audit reste non arbitré ; (c) 0 segment présente une fonction documentaire contradictoire avec sa nature ; (d) toute combinaison inhabituelle `nature × espace_textuel` est justifiée ; (e) la relecture finale reproduit les mêmes effectifs après les dernières écritures. Les décomptes sont consignés dans le journal de mission.
+
 ### 7.1. Les trois axes d’un style, et les règles de leur attribution
 
 Un style se déclare sur **trois axes qui ne se confondent jamais**.
@@ -968,6 +984,38 @@ d'information ont été fondues le 29 août 2026 parce qu'aucune ne portait un s
 et qu'aucune ne composait autrement. ⛔ Une grille complète n'est pas une vertu : celle
 du paratexte biblique comptait 23 styles jamais employés, et c'est elle qui a permis à
 deux tomes de nommer différemment la même chose.
+
+### 7.7. Un style ne vit que sur la SURFACE où sa donnée vit
+
+⛔ **Une forme rendue là où sa donnée ne va jamais est une forme MORTE**, et rien ne le
+dit : elle a son nom au vocabulaire, sa contrainte en base, sa fiche à l'épreuve des
+styles, et pas un segment ne la reçoit. Éprouvé le 6 septembre 2026 sur `signature`, le
+bloc d'approbations, de censeurs et de souscripteurs qui ferme un volume ancien. La
+composition au fer à droite existait depuis l'origine dans la branche de la LECTURE ; or
+les **onze** `signature` du corpus — les quatre approbateurs du Mépris du monde, les trois
+de Boèce, le Privilège des Confessions — portent **toutes** `espace_textuel =
+'apparat_critique'`, et pas une seule ne vit dans le corps. Le fer à droite était donc
+rendu là où il n'y a personne, et absent là où ils sont tous : « A. Debreda Curé de
+S. André. » se composait en prose justifiée, comme l'approbation qu'il signe.
+
+⛔ **Un style se vérifie donc sur DEUX axes, jamais sur le premier seul.** Le vocabulaire
+dit ce qu'une donnée a le droit d'être ; l'ESPACE TEXTUEL dit où elle se lit. Les deux
+sont indépendants — `signature` appartient bien à `NATURES_CORPS`, pour les imports sans
+espace explicite, et aucun de ses segments n'est dans le corps — et une composition qui
+n'en regarde qu'un compose à côté.
+
+⚠️ **La question se pose en un compte, et il faut le prendre avant de croire une fiche
+d'épreuve** : `select nature, espace_textuel, count(*) from segments group by 1, 2`. Un
+style dont toutes les lignes sont d'un côté et dont la forme est de l'autre est un défaut,
+non un cas de repli. ⛔ Et une planche de styles qui montre une forme sur la mauvaise
+surface ne se contente pas de se taire : elle FAIT AUTORITÉ contre la page qu'elle décrit,
+ce qui est le reproche déjà consigné au § 35.6.2.
+
+⚠️ **Corollaire, qui vaut au delà de la composition.** Un bloc ne change de forme que si
+TOUTES ses lignes la portent ; or la donnée range souvent la ligne dérogeante dans le
+paragraphe qu'elle clôt — 4 des 11 signatures y sont, l'import n'ayant marqué le passage à
+la ligne que par `join_before`. C'est au RENDU de l'en sortir, non à la donnée d'être
+réécrite pour lui plaire.
 
 ## 8. Notes structurées et références présentes dans le texte
 
@@ -2031,7 +2079,7 @@ Les références bibliques suivent la règle du § 8 : une référence grammatic
 
 2. **Établir l’autorité documentaire.** Identifier l’édition ou le témoin exact, sa source de vérité, son étendue matérielle, son statut juridique et éditorial, ses éventuels textes parallèles et le régime de transcription applicable. Vérifier la notice et les métadonnées indispensables (§§ 2, 5, 11, 14, 16, 19). Aucune correction de fond ne précède cette identification.
 
-3. **Faire l’état des lieux en lecture seule.** Mesurer l’existant et cartographier toutes les surfaces réellement utilisées : unités source, segments, niveaux, paragraphes, rangs, pages, natures, raccords, offsets, empreintes, titres et chapeaux, enrichissements, notes et apparats, métadonnées, textes parallèles, alignements, liens existants et projections de rendu. Classer chaque constat comme erreur certaine, anomalie à examiner, réserve documentée ou dette étrangère au périmètre. Le diagnostic ne modifie rien (§ 23.1).
+3. **Faire l’état des lieux en lecture seule.** Mesurer l’existant et cartographier toutes les surfaces réellement utilisées : unités source, segments, niveaux, paragraphes, rangs, pages, natures, raccords, offsets, empreintes, titres et chapeaux, enrichissements, notes et apparats, métadonnées, textes parallèles, alignements, liens existants et projections de rendu. **L’inventaire des natures est obligatoire : matrice `nature × espace_textuel × type_unite/source_kind`, effectifs, exemples et recherche des contradictions sémantiques selon le § 7.0 ter.** Classer chaque constat comme erreur certaine, anomalie à examiner, réserve documentée ou dette étrangère au périmètre. Le diagnostic ne modifie rien (§ 23.1).
 
 4. **Rétablir d’abord la structure réelle de l’édition.** Comparer le sommaire, les têtes, les lemmes, les divisions et le fac-similé ; distinguer titre d’œuvre, paratexte, chapitre, sous-titre, chapeau, lemme, subdivision numérotée, paragraphe et simple repère. Supprimer les niveaux inventés, doublons structurels et contenants techniques sans fonction ; restituer les natures et les espaces textuels corrects. Les paragraphes, rangs, pagination et segmentation sont ensuite remis en cohérence avec cette structure (§§ 6, 7, 20, 22). L’interface ne commande jamais la structure.
 
@@ -2047,11 +2095,11 @@ Les références bibliques suivent la règle du § 8 : une référence grammatic
 
 10. **Nettoyer les métadonnées et résidus de chantier.** Réconcilier les compteurs, statuts, niveaux déclarés, notices, provenances et métadonnées avec l’état réel. Rechercher les champs vides artificiels, marqueurs obsolètes, anciens niveaux, unités sans fonction, copies d’import et données devenues redondantes. Ce nettoyage suit le principe de nécessité ci-dessus et les règles de suppression du § 23.8 ; il ne supprime jamais une preuve documentaire unique.
 
-11. **Clore la phase A par une vérification exhaustive.** Rejouer les contrôles structurels (§ 20), contrôler les apparats, rechercher les omissions et doublons, relire directement les zones à risque et effectuer des sondages reproductibles répartis (§§ 14.7–14.8, 21). Une erreur trouvée par sondage définit une famille : rechercher tous les cas analogues, corriger la famille entière, puis rejouer les contrôles. La phase A n’est close que si le périmètre annoncé a été effectivement relu, que les invariants applicables sont conformes et que les réserves restantes sont explicitement nommées.
+11. **Clore la phase A par une vérification exhaustive.** Rejouer les contrôles structurels (§ 20), contrôler les apparats, rechercher les omissions et doublons, relire directement les zones à risque et effectuer des sondages reproductibles répartis (§§ 14.7–14.8, 21). **Rejouer intégralement l’audit des natures du § 7.0 ter : 100 % des segments du périmètre doivent être classés et 0 candidat de nature ne peut rester non arbitré.** Une erreur trouvée par sondage définit une famille : rechercher tous les cas analogues, corriger la famille entière, puis rejouer les contrôles. La phase A n’est close que si le périmètre annoncé a été effectivement relu, que les invariants applicables sont conformes et que les réserves restantes sont explicitement nommées.
 
 12. **N’ouvrir la phase B qu’après clôture explicite de la phase A.** Les liens bibliques constituent une révision distincte (§§ 1.3, 9, 10, 24, 25). Ils sont relus sur le texte stabilisé, avec leurs cibles, types, étendues, motifs et fiabilités. Si la phase B révèle une erreur du texte, de la structure, d’une note ou d’un alignement, la phase A est rouverte sur le périmètre nécessaire avant de reprendre les liens dépendants.
 
-13. **Effectuer l’audit final indépendant.** Après la dernière écriture, relire l’état depuis la base et non le plan de correction ; recomposer les unités et projections, vérifier les empreintes et dépendances, rechercher les résidus des familles déjà rencontrées et effectuer un dernier sondage indépendant. **Rejouer obligatoirement le balayage de casse d’affichage du § 3.5 sur toutes les surfaces de titres du périmètre et consigner son décompte ; la clôture exige 0 séquence de capitales non justifiée.** Si la présentation a été affectée, vérifier également le rendu réel. Les procédures des §§ 23.1–23.11 s’appliquent à chaque mutation intermédiaire comme à cette passe finale.
+13. **Effectuer l’audit final indépendant.** Après la dernière écriture, relire l’état depuis la base et non le plan de correction ; recomposer les unités et projections, vérifier les empreintes et dépendances, rechercher les résidus des familles déjà rencontrées et effectuer un dernier sondage indépendant. **Rejouer obligatoirement le balayage de casse d’affichage du § 3.5 sur toutes les surfaces de titres du périmètre et consigner son décompte ; la clôture exige 0 séquence de capitales non justifiée. Rejouer aussi la matrice des natures du § 7.0 ter et vérifier que 0 nature contradictoire ou non arbitrée subsiste après les dernières écritures.** Si la présentation a été affectée, vérifier également le rendu réel. Les procédures des §§ 23.1–23.11 s’appliquent à chaque mutation intermédiaire comme à cette passe finale.
 
 14. **Clore sans surdéclarer.** Mettre à jour uniquement la mission correspondante dans le centre de contrôle avec des chiffres issus de requêtes, consigner les réserves, retirer l’état « en cours » et conserver les sauvegardes et preuves utiles. Une clôture technique ou éditoriale ne crée jamais une validation humaine, une publication ou un statut scientifique qui n’a pas été explicitement accordé. La publication est une décision distincte, soumise aux droits, à la sécurité et aux conditions de livraison (§§ 17, 27, 31.6).
 

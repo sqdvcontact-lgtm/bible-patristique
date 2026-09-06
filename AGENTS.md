@@ -2891,6 +2891,33 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   que la ligne se compose pareil partout tandis que chaque surface apporte sa seule
   police.
 
+## ⛔ La SIGNATURE — un style, UNE surface, et c'est l'APPARAT (2026-09-06)
+
+Doctrine : charte `parametres.charte_ia`, **§ 7.7** — un style ne vit que sur la surface où
+sa donnée vit. Règles de code :
+
+- ⛔ **`styleParagrapheApparat(forme)` prend la MÊME `FormeParagraphe` que la lecture.** Il
+  n'en prenait aucune, au motif qu'une nature dérogeante n'atteindrait jamais l'apparat :
+  or les **onze** `signature` du corpus portent toutes `espace_textuel =
+  'apparat_critique'`, et pas une seule n'est dans le corps. La composition au fer à droite
+  était rendue là où il n'y a personne — les quatre curés du Mépris du monde se composaient
+  en prose justifiée. ⚠️ `signature` reste dans `NATURES_CORPS` : c'est le repli des imports
+  sans espace explicite, et l'y retirer ferait disparaître un tel segment le jour où il
+  arrive.
+- ⛔ **Le jugement s'écrit une fois** : `NATURE_SIGNATURE` et `estBlocDeSignatures`
+  (`compositionOeuvre.ts`), sur le contrat d'`estBlocVersets` — tout ou rien, et une liste
+  vide n'est pas un bloc. Les deux branches, corps et apparat, y passent.
+- ⛔ **`paragraphesDe` sort la signature du paragraphe qui la précède**, que la donnée l'y
+  range ou non : un bloc ne peut pas être justifié d'un côté et ferré de l'autre. Quatre
+  des onze y sont rangées par l'import (les trois de Boèce, le Privilège des Confessions),
+  qui n'a marqué le passage à la ligne que par `join_before`. ⚠️ Le garde-fou porte sur la
+  NATURE d'un segment, à côté de son `paragraphe` : c'est le second axe de découpe du bloc,
+  et le seul.
+- ⚠️ **L'épreuve des styles montre désormais la forme du côté où elle SERT**
+  (`patristique_apparat/signature`), et la fiche du corps dit qu'aucun segment ne
+  l'atteint. Une planche qui montre une forme sur la mauvaise surface fait autorité contre
+  la page qu'elle décrit.
+
 ## ⛔ Un titre PORTÉ par un bloc, et un titre qui vit dans son FLUX (2026-08-30)
 
 Deux objets que rien ne distingue dans le document — même balise, même classe de
