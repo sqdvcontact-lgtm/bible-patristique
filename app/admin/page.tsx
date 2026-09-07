@@ -48,8 +48,14 @@ async function actionMarquerTraite(id: number | string) {
     await supabaseAdmin.from('quiz_signalements').update({ traite: true }).eq('id', String(id).replace(/^quiz_/, ''))
     return
   }
+  // ⚠️ `decision` compte : c'est ELLE, et non `traite`, qui déclenche les dix points du
+  // lecteur (trigger `points_signalements`). Elle n'était écrite nulle part, si bien que
+  // seul le point du dépôt était jamais accordé (corrigé le 2026-09-07). On remercie
+  // parce que le signalement était juste : le geste et la décision disent la même chose.
+  // Le bouton « Traité » sans remerciement, lui, ne tranche rien et laisse `decision` nulle.
   await supabaseAdmin.from('signalements').update({
     traite: true,
+    decision: 'accepté',
     message_admin: 'Merci pour votre signalement. Il a été transmis à la modération et marqué comme traité.',
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
@@ -173,6 +179,9 @@ export default async function AdminPage() {
     // Commentaires privés des œuvres : table à part, sans droit de lecture pour
     // anon ni authenticated — elle ne s'atteint donc que par la clé de service.
     supabaseAdmin.from('oeuvres_commentaires_prives').select('id_oeuvre, commentaire'),
+    // Le courrier non relevé, pour la pastille de l'onglet. La table est fermée par
+    // RLS : seule la clé de service la voit (voir app/admin/SectionCourrier.tsx).
+    supabaseAdmin.from('messages_contact').select('id', { count: 'exact', head: true }).is('traite_le', null),
   ])
   const [
     { data: commentaires },
@@ -189,8 +198,10 @@ export default async function AdminPage() {
     { data: nbVerifRaw },
     { data: commentairesPublicationsRaw },
     { data: commentairesPrivesOeuvres },
+    courrierResult,
   ] = vague1
   const nbVerifications = (nbVerifRaw as number | null) ?? 0
+  const nbCourrier = courrierResult.count ?? 0
 
   // Signalements : fallback si la colonne id_verset manque
   let signalements = signResult.data
@@ -364,6 +375,7 @@ export default async function AdminPage() {
       auteurs={auteurs}
       traductions={traductions ?? []}
       nbVerifications={nbVerifications ?? 0}
+      nbCourrier={nbCourrier}
       erreurChargement={erreurChargement}
       actionDeconnexion={actionDeconnexion}
       actionValider={actionValiderCommentaire}

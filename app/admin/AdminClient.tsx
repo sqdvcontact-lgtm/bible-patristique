@@ -8,6 +8,7 @@ import SectionVerifications from './SectionVerifications'
 import SectionTraductions from './SectionTraductions'
 import SectionEditeurs from './SectionEditeurs'
 import SectionModeration from './SectionModeration'
+import SectionCourrier from './SectionCourrier'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
 import SectionCharte from './SectionCharte'
 import SectionCharteAccentuation from './SectionCharteAccentuation'
@@ -29,6 +30,7 @@ import { FAMILLES_ADMIN, ENTREES_ADMIN, ONGLETS_VALIDES, type FamilleAdmin } fro
 export default function AdminClient({
   commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, traductions,
   nbVerifications,
+  nbCourrier,
   erreurChargement,
   actionValider, actionSupprimerCommentaire, actionValiderCommentaireEssai, actionSupprimerCommentaireEssai,
   actionMarquerTraite, actionMarquerTraiteSilencieux, actionSupprimerSignalement,
@@ -40,6 +42,9 @@ export default function AdminClient({
   const [nbVerif, setNbVerif] = useState(nbVerifications)
   const [nbMod, setNbMod] = useState(commentaires.length + commentairesPublications.length + signalements.length + demandesCertification.length)
   const [nbEssais, setNbEssais] = useState(essaisEnAttente.length + essaisModification.length)
+  // Le courrier arrive compté par le serveur, la table étant fermée à l'API ; la
+  // section le recompte pour elle-même dès qu'on relève une lettre.
+  const [nbCourrierAffiche, setNbCourrierAffiche] = useState(nbCourrier)
 
   // Arrivée via ?onglet=<clé> : le menu Administration de la navbar renvoie à chaque
   // section. Toute clé d'onglet valide est acceptée (pas seulement « controle-oeuvres »).
@@ -87,7 +92,7 @@ export default function AdminClient({
   // reste le filet de sous-groupe, que la table écrit (celui de la bibliographie).
   const COUL_FAMILLE: Record<FamilleAdmin, string> = { corpus: 'var(--cs-vert)', communaute: 'var(--cs-or)', systeme: 'var(--cs-systeme)' }
   const LABEL_FAMILLE = Object.fromEntries(FAMILLES_ADMIN.map(f => [f.cle, f.label])) as Record<FamilleAdmin, string>
-  const BADGES: Partial<Record<Onglet, number>> = { essais: nbEssais, verifications: nbVerif, moderation: nbMod }
+  const BADGES: Partial<Record<Onglet, number>> = { essais: nbEssais, verifications: nbVerif, moderation: nbMod, courrier: nbCourrierAffiche }
   const ENTREES = ENTREES_ADMIN.map(e => ({ ...e, badge: e.onglet ? BADGES[e.onglet] : undefined }))
 
   // Le contenu garde une largeur propre à chaque section ; le sommaire, lui, a la
@@ -253,6 +258,7 @@ export default function AdminClient({
         {onglet === 'charte'               && <SectionCharte />}
         {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
+        {onglet === 'courrier'       && <SectionCourrier onCountChange={setNbCourrierAffiche} />}
         {onglet === 'lexique'        && <SectionLexique />}
         {onglet === 'styles'         && <SectionStyles />}
         {onglet === 'mecenes'        && <SectionMecenes />}

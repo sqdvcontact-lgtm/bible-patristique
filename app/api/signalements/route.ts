@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const importance: number = importanceStr === 'bloquant' ? 3 : importanceStr === 'mineur' ? 1 : 2
     const urlSource = typeof body?.url_source === 'string' && body.url_source ? body.url_source.slice(0, 500) : null
     const idSegmentRaw = body?.id_segment
-    let idSegment = typeof idSegmentRaw === 'number' && Number.isFinite(idSegmentRaw)
+    const idSegment = typeof idSegmentRaw === 'number' && Number.isFinite(idSegmentRaw)
       ? idSegmentRaw
       : typeof idSegmentRaw === 'string' && /^\d+$/.test(idSegmentRaw)
       ? Number(idSegmentRaw)
@@ -75,27 +75,29 @@ export async function POST(request: Request) {
       referenceStockee = `Profil @${profilCible.pseudo}`
     }
 
-    if (!idSegment && idVerset) {
-      // Validation du format id_verset avant usage dans ILIKE (prévient l'injection de
-      // wildcards `%`/`_`). On accepte l'ancien format (« B000139 ») ET le format canon
-      // issu de la bascule versets_v2 (« PSA.54.5 », « 1CO.7.38 ») : lettres, chiffres et
-      // points seulement — ni `%` ni `_`, donc sûr pour le ILIKE ci-dessous.
-      if (!/^[A-Z0-9.]{2,20}$/.test(idVerset)) {
-        return NextResponse.json({ error: 'Format id_verset invalide.' }, { status: 400 })
-      }
-      const colonnes = ['lien_1', 'lien_2', 'lien_3', 'lien_4'] as const
-      for (const colonne of colonnes) {
-        const { data: segmentLie } = await supabaseAdmin
-          .from('segments')
-          .select('id')
-          .ilike(colonne, `%${idVerset}%`)
-          .limit(1)
-          .maybeSingle()
-        if (segmentLie?.id) {
-          idSegment = segmentLie.id
-          break
-        }
-      }
+    // Contrôle de forme de l'identifiant de verset : on accepte l'ancien format
+    // (« B000139 ») ET le format canon issu de la bascule versets_v2 (« PSA.54.5 »,
+    // « 1CO.7.38 ») — lettres, chiffres et points seulement. Il ne s'agit plus de se
+    // prémunir d'une injection, seulement de ne pas consigner n'importe quoi.
+    //
+    // ⛔ ON NE CHERCHE PLUS LE SEGMENT LIÉ AU VERSET. La route parcourait
+    // `segments.lien_1` à `lien_4` en `ilike '%id%'` pour renseigner `id_segment`.
+    // Deux raisons de l'avoir retiré (2026-09-07) :
+    //   1. ces quatre colonnes sont VIDES sur les 109 683 segments depuis que les liens
+    //      vivent dans `liens_bibliques` (20 juillet 2026, charte §24.1) : la boucle ne
+    //      trouvait plus jamais rien, et coûtait trois parcours complets d'une table de
+    //      1,5 Go, soit près de cinq secondes d'attente à chaque signalement de verset ;
+    //   2. la rétablir sur `liens_bibliques` serait pire : la modération localise un
+    //      signalement par `id_segment` D'ABORD (app/admin/SectionModeration.tsx). Un
+    //      lecteur qui signale « Gn 1, 1 » depuis la Bible serait alors envoyé vers un
+    //      passage patristique au lieu de son verset. Le point de départ doit rester
+    //      celui d'où le lecteur a parlé.
+    //
+    // ⚠️ Le contrôle reste borné au cas SANS segment, comme avant. La page d'œuvre
+    // envoie les deux (`id_segment` + l'identifiant du verset lié, qui peut être un
+    // uuid de `versets_v2`) : l'élargir refuserait ce signalement-là.
+    if (!idSegment && idVerset && !/^[A-Z0-9.]{2,20}$/.test(idVerset)) {
+      return NextResponse.json({ error: 'Format id_verset invalide.' }, { status: 400 })
     }
 
     // Faute de colonne dédiée, la référence de page ou de profil est portée en tête du

@@ -432,7 +432,9 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           onClose={() => setCommentaireSignale(null)}
           onEnvoyer={async (msg) => {
             if (segActif === null) throw new Error('Segment actif manquant.')
-            await insererSignalement({ id_segment: segActif, message: `Commentaire #${commentaireSignale.id} : ${msg}` })
+            // `url_source` : la page D'OÙ l'on signale. Sans elle, la modération ne
+            // savait ramener qu'au passage, jamais au commentaire visé.
+            await insererSignalement({ id_segment: segActif, message: `Commentaire #${commentaireSignale.id} : ${msg}`, url_source: window.location.href })
           }}
         />
       )}

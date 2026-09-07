@@ -6746,3 +6746,73 @@ onglet caché.
 seul `setVisite`, que React garantit stable. La passer par un `useCallback` fait renoncer
 le compilateur à mémoriser tout le composant (« existing memoization could not be
 preserved ») pour une référence qui l'était déjà.
+
+# ⛔ CE QUI ARRIVE DOIT SE RELEVER — audit des envois du site (2026-09-07)
+
+Question de l'auteur : « tous les messages, transferts d'informations, via toutes les
+pages, sont-ils fonctionnels, et peut-on identifier l'auteur et le point de départ du
+signal ? » Tout partait ; cinq retours ne revenaient pas. Ce qui suit est la règle, et
+le défaut qui l'a fait écrire.
+
+⛔ **UN ENVOI N'EST FONCTIONNEL QUE S'IL SE RELÈVE QUELQUE PART.** Écrire en base « pour
+ne rien perdre » n'est pas recevoir : `/api/contact` et `/api/catalogue/proposer`
+enregistrent dans `messages_contact` puis tentent un courriel SI `RESEND_API_KEY`
+existe — elle n'existe pas en production, et AUCUNE page ne lisait cette table. Deux
+lettres y dormaient depuis juillet. D'où l'onglet **Courrier**
+(`app/admin/SectionCourrier.tsx`, `app/api/admin/courrier/route.ts`), qui ne dépend
+d'aucun service tiers : il lit la table avec la clé de service, et c'est tout. ⚠️ Poser
+un jour la clé Resend n'en ferait pas un doublon : l'écran reste le filet, le courriel
+la commodité.
+
+⛔ **UNE COLONNE SE LIT DANS SON TYPE.** `signalements.importance` est un **smallint**
+(1 mineur, 2 important, 3 bloquant), ce que la route d'envoi y écrit ;
+`styleImportance` comparait des CHAÎNES, aucun cas ne tombait jamais juste, et TOUS les
+signalements paraissaient gris et sans étiquette — un « Bloquant » comme un « Mineur ».
+La traduction se fait par `NIVEAU_SIGNALEMENT` (`SectionModeration.tsx`), qui accepte
+les deux écritures. ⚠️ Le type TypeScript ne protégeait de rien : `adminTypes.ts`
+déclarait `importance?: string`, et PostgREST ne vérifie pas ce qu'on lui promet.
+
+⛔ **UNE RLS QUI FILTRE NE SE PLAINT PAS.** `notificationsClient.ts` lit
+`signalements` avec la SESSION DU LECTEUR ; la seule politique de lecture était
+`is_admin()`. La requête rendait donc toujours zéro ligne, sans erreur, et le
+remerciement écrit par « Traité et remercier » n'atteignait personne. Migration
+`20260907133401_retour_signalement_au_lecteur` : lecture de SA PROPRE ligne, et
+insertion resserrée sur `user_id = auth.uid()` (elle acceptait `null`, donc un
+signalement non signé déposé hors de la route). ⚠️ Un chemin de lecture qui passe par la
+session du lecteur s'ÉPROUVE depuis sa place (`set local role authenticated` +
+`request.jwt.claims`), jamais depuis le compte de l'auteur, qui est administrateur et
+ne voit jamais rien manquer.
+
+⛔ **UN TRIGGER SE DÉCLENCHE SUR CE QUE L'INTERFACE ÉCRIT, OU IL NE SE DÉCLENCHE PAS.**
+`points_signalements` accorde dix points sur `decision = 'accepté'` ; l'interface
+n'écrivait `decision` NULLE PART, et 0 ligne sur 10 en portait une. « Traité et
+remercier » la pose désormais : on remercie parce que le signalement était juste, le
+geste et la décision disent la même chose. ⚠️ « Traité » sans remerciement ne tranche
+rien et laisse `decision` nulle. Le CHECK n'admet que `accepté` et `rejeté`.
+
+⛔ **UNE CASE À COCHER QUI N'EST LUE PAR PERSONNE EST UNE PROMESSE EN L'AIR.**
+`propositions_oeuvres.afficher_nom` (« Faire apparaître mon nom ou pseudo comme
+apporteur de cette contribution ») était écrite et relue nulle part ; et
+`SectionPropositions` affichait `auteur_nom`, qui est l'auteur de L'ŒUVRE, jamais le
+proposant, dont le `user_id` arrivait pourtant jusqu'à l'écran. La route joint
+désormais `profils` (`proposant_pseudo`) et la ligne dit le vœu d'être nommé.
+⚠️ Honorer ce vœu sur la page publique d'une œuvre reste à faire : c'est une décision
+d'auteur, pas un raccordement.
+
+⛔ **UNE RECHERCHE QUI NE TROUVE JAMAIS RIEN COÛTE QUAND MÊME.**
+`/api/signalements` parcourait `segments.lien_1` à `lien_4` en `ilike '%id%'`
+pour renseigner `id_segment` depuis un `id_verset`. Ces quatre colonnes sont **VIDES
+sur les 109 683 segments** depuis que les liens vivent dans `liens_bibliques`
+(§ 24.1) : la boucle ne trouvait plus rien, et coûtait trois parcours complets d'une
+table de 1,5 Go, soit près de cinq secondes à chaque signalement de verset (`lien_1`
+seul porte un index). ⛔ Et la rétablir sur `liens_bibliques` serait PIRE : la
+modération localise par `id_segment` D'ABORD, si bien qu'un lecteur signalant « Gn 1, 1 »
+depuis la Bible serait envoyé vers un passage patristique. **Le point de départ est
+celui d'où le lecteur a parlé.** La boucle est retirée.
+
+⚠️ **CE QUI RESTE OUVERT** : `NEXT_PUBLIC_EMAIL_INVITE` manquait à l'environnement de
+production, si bien que `aUnCompte` (`contexteCompte.tsx`) tenait le compte de
+démonstration PARTAGÉ pour un compte personnel — tout ce qu'un invité signale, commente
+ou écrit était attribué au pseudo « invite ». La variable est posée ; ⛔ elle ne prend
+effet qu'au prochain déploiement. Et `/quiz` (404) écrit dans `quiz_signalements`,
+table qui n'existe pas : sans effet aujourd'hui, à reprendre avec Holy Guessr.

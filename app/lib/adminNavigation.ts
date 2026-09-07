@@ -66,6 +66,10 @@ export const ENTREES_ADMIN: EntreeAdmin[] = [
   { href: '/admin?onglet=verifications',        label: 'Vérifications',       famille: 'communaute', onglet: 'verifications' },
   { href: '/admin?onglet=constituer-liens',     label: 'Constituer liens',    famille: 'communaute', onglet: 'constituer-liens' },
   { href: '/admin?onglet=moderation',           label: 'Modération',          famille: 'communaute', onglet: 'moderation' },
+  // Le courrier du site : formulaire de contact et propositions d'œuvre du catalogue.
+  // Il se tient à côté de la modération parce que c'est le même geste, relever ce qui
+  // arrive ; mais il ne juge personne, il répond.
+  { href: '/admin?onglet=courrier',             label: 'Courrier',            famille: 'communaute', onglet: 'courrier' },
   { href: '/admin?onglet=lexique',              label: 'Lexique',             famille: 'communaute', onglet: 'lexique' },
   { href: '/admin?onglet=propositions',         label: 'Propositions',        famille: 'communaute', onglet: 'propositions' },
   // Le registre des dons et la marque qui en découle. Il vit dans la Communauté, avec

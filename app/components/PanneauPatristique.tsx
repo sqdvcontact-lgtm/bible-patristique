@@ -827,7 +827,9 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
             const res = await fetch('/api/signalements', {
               method: 'POST',
               headers,
-              body: JSON.stringify({ id_verset: verset.id_verset, message: `Commentaire #${commentaireSignale.id} : ${msg}` }),
+              // `url_source` : la page D'OÙ l'on signale. Sans elle, la modération ne
+              // savait ramener qu'au verset, jamais au commentaire visé.
+              body: JSON.stringify({ id_verset: verset.id_verset, message: `Commentaire #${commentaireSignale.id} : ${msg}`, url_source: window.location.href }),
             })
             if (!res.ok) {
               const details = await res.json().catch(() => null)

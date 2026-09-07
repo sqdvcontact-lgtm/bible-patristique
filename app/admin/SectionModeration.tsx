@@ -89,7 +89,20 @@ function localiserSignalement(
 }
 
 // Dégradé de rouges selon la gravité (mineur → bloquant), pour teinter le bloc.
-function styleImportance(imp: string | null | undefined) {
+//
+// ⛔ `signalements.importance` est un SMALLINT — 1 mineur, 2 important, 3 bloquant —,
+// c'est ce que la route d'envoi y écrit (app/api/signalements/route.ts). Cette fonction
+// comparait des CHAÎNES : aucun cas ne tombait jamais juste, et TOUS les signalements
+// paraissaient gris et sans étiquette, un « Bloquant » comme un « Mineur » (corrigé le
+// 2026-09-07). On traduit donc le code avant de choisir la teinte, en acceptant les deux
+// écritures : celles du quiz n'en portent aucune, et restent neutres.
+const NIVEAU_SIGNALEMENT: Record<string, 'mineur' | 'important' | 'bloquant'> = {
+  '1': 'mineur', '2': 'important', '3': 'bloquant',
+  mineur: 'mineur', important: 'important', bloquant: 'bloquant',
+}
+
+function styleImportance(brut: number | string | null | undefined) {
+  const imp = brut === null || brut === undefined ? undefined : NIVEAU_SIGNALEMENT[String(brut)]
   switch (imp) {
     case 'bloquant':  return { fond: 'var(--cs-fond-doux)', bord: '#db988c', accent: '#8a1f1f', label: 'Bloquant' as string | null }
     case 'important': return { fond: 'var(--cs-danger-fond)', bord: '#e6ab95', accent: '#b0442a', label: 'Important' as string | null }

@@ -10,6 +10,10 @@ type Proposition = {
   ville: string | null; date_publication: string | null; siecle: string | null
   langue: string | null; note: string | null; texte: string | null
   statut: string; created_at: string; nb_30j?: number | null
+  // ⚠️ `auteur_nom` est l'auteur de L'ŒUVRE proposée. Le PROPOSANT, lui, est ici :
+  // son pseudo, et le vœu qu'il a formé d'être nommé comme apporteur.
+  proposant_pseudo?: string | null
+  afficher_nom?: boolean | null
 }
 
 const STATUTS: Record<string, { label: string; couleur: string; bg: string }> = {
@@ -141,6 +145,13 @@ export default function SectionPropositions() {
                     <div style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>{[p.traducteur ? `trad. ${p.traducteur}` : null, p.editeur, formaterDateHistorique(p.date_publication)].filter(Boolean).join(' · ')}</span>
                       <span>{new Date(p.created_at).toLocaleDateString('fr-FR')}</span>
+                      {/* Le proposant. Sans lui, on ne savait pas de qui venait la
+                          contribution, et la case « me nommer comme apporteur » ne
+                          pouvait être honorée par personne. */}
+                      <span style={{ color: 'var(--cs-texte-second)' }}>
+                        proposé par {p.proposant_pseudo ?? 'un compte sans pseudonyme'}
+                        {p.afficher_nom ? ' · demande à être nommé' : ''}
+                      </span>
                       {p.nb_30j != null && p.nb_30j > 1 && (
                         <span style={{ fontSize: '0.71875rem', fontWeight: 600, padding: '1px 6px', borderRadius: '8px', background: p.nb_30j >= 3 ? 'var(--cs-danger-fond)' : 'var(--cs-danger-fond)', color: p.nb_30j >= 3 ? 'var(--cs-danger)' : 'var(--cs-attente)' }}>
                           {p.nb_30j} propositions / 30 j
