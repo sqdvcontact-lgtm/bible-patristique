@@ -6329,13 +6329,13 @@ d'autre objet que d'être une PORTE, et la barre est la porte. Sa visite le DÉC
 (`Visite.couvreLaBarre`), et c'est ce drapeau — non une constante du composant — qui
 fait passer le voile par-dessus la barre, pour elle seule.
 
-**Cinq fichiers, et un seul porte du DOM.**
+**Six fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
 - `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts`,
-  `app/lib/visiteBibliotheque.ts` et `app/lib/visiteAccueil.ts` — les scénarios, en
-  données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
+  `app/lib/visiteBibliotheque.ts`, `app/lib/visiteAccueil.ts` et `app/lib/visiteOeuvre.ts`
+  — les scénarios, en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
   de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
 - `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **2800**
@@ -6373,23 +6373,29 @@ premier, sans quoi il ne s'interpolerait pas et sauterait là où les cases glis
 la couche qui rend la page INERTE est désormais à part, pleine : la découpe retire ses
 trous du test de pointeur, et un clic dans le sujet éclairé retomberait sur la page.
 
-⛔ **CE QU'UNE ÉTAPE ANNONCE, LA PAGE LE FAIT, et le REND ensuite.** Trois scènes
+⛔ **CE QU'UNE ÉTAPE ANNONCE, LA PAGE LE FAIT, et le REND ensuite.** Cinq scènes
 aujourd'hui (`SceneVisite`) : `volet` ouvre l'onglet d'un téléphone, `choisirVerset`
-sélectionne le verset dont l'étape parle, `ouvrirNotes` déplie la colonne des notes de
+sélectionne le verset dont l'étape parle, `choisirSegment` retient le passage dont le
+volet de droite d'une œuvre va répondre, `ouvrirNotes` déplie la colonne des notes de
 la Polyglotte, `ouvrirOeuvres` déplie la première carte de la Bibliothèque. ⚠️ Les deux
 dernières IMPOSENT sans poser : l'état du lecteur reste dessous et reparaît à la fin de
 la visite. ⛔ Et un pli imposé ne se referme pas d'une étape à l'autre quand l'étape
 suivante vit dedans — celle de l'étoile est dans la carte que la précédente a ouverte.
 
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Vingt aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
+Vingt-six aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
 (NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique) ;
 `poly-colonnes`, `poly-entete` et `poly-notes` sur la Polyglotte ; `bib-onglets`,
 `bib-recherche`, `bib-auteur`, `bib-oeuvres` et `bib-edition` sur la Bibliothèque ;
 `nav-barre`, `nav-bibles`, `nav-patristique`, `nav-communaute`, `nav-plus-loin`,
-`nav-recherche` et `nav-compte` dans la barre, pour l'accueil. Six étapes visent des
-classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
-`.poly-texte-cell`, `.ac-bible`, `.ac-patristique`).
+`nav-recherche` et `nav-compte` dans la barre, pour l'accueil ; `oeuvre-tete`,
+`oeuvre-lecture`, `oeuvre-apparat`, `oeuvre-sommaire` et `oeuvre-bible` sur la page
+d'une œuvre. Sept étapes visent des classes qui existaient déjà (`.verset-row`,
+`.verset-actions`, `.poly-row`, `.poly-texte-cell`, `.ac-bible`, `.ac-patristique`,
+`.seg-inline`).
+⛔ `oeuvre-frontispice` se pose sur la RACINE de `PageTitre`, jamais sur une enveloppe
+qu'on lui ajouterait dans la page : une enveloppe de plus romprait la chaîne de largeurs
+dont ce bloc dépend (voir « toute enveloppe posée autour DOIT porter une largeur »).
 ⚠️ `nav-bibles` se pose TROIS fois, une par état de l'onglet des bibles : deux liens
 enveloppés, l'onglet qui se fend, le menu déroulant. ⛔ L'enveloppe du premier état
 reprend l'écart de la barre (`gap-1`, 0,25 rem) : un fragment n'a pas de boîte, et
