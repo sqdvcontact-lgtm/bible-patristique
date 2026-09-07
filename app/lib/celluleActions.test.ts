@@ -131,3 +131,59 @@ describe('le gabarit de la cellule', () => {
     expect(positionCellule(ligne, { droite: ECRAN, largeur: largeurGabarit(2) }).cote).toBe('droite')
   })
 })
+
+// ── ET SI LE DESSUS EST BOUCHÉ ? ──────────────────────────────────────────────
+// La règle n'avait que deux réponses, et bornait la troisième au sommet : une ligne
+// posée juste sous un en-tête collant recevait donc sa cellule PAR-DESSUS. Relevé en
+// mesurant la Polyglotte servie, le 2026-09-07 — le premier verset visible, c'est-à-dire
+// celui qu'on survole d'abord en arrivant sur la page.
+describe('quand ni la droite ni le dessus ne sont libres', () => {
+  const COLONNE = { gauche: 400, droite: 700, largeur: largeurGabarit(3), sommet: 139 }
+  // Le cas mesuré : cellule de tableau haute de 60, posée AU RAS de l'en-tête collant.
+  const AU_RAS = { top: 139, right: 700, bottom: 199 }
+
+  it('passe DESSOUS', () => {
+    expect(positionCellule(AU_RAS, { ...COLONNE, pied: 900 }).cote).toBe('dessous')
+  })
+
+  it('ne recouvre alors aucun pixel de la ligne', () => {
+    const p = positionCellule(AU_RAS, { ...COLONNE, pied: 900 })
+    expect(p.top).toBeGreaterThanOrEqual(AU_RAS.bottom)
+  })
+
+  // ⛔ Le défaut exact, pour n'y pas revenir : borner au sommet posait la cellule SUR le
+  // texte, et le côté annoncé restait « dessus ».
+  it('ne se borne plus au sommet, qui la posait sur le texte', () => {
+    const p = positionCellule(AU_RAS, { ...COLONNE, pied: 900 })
+    expect(p.top).not.toBe(COLONNE.sommet)
+  })
+
+  // ⚠️ Un bloc plus haut que la fenêtre n'a ni dessus ni dessous VISIBLES : une cellule
+  // posée hors de l'écran vaut moins qu'une cellule qui mord. On revient au sommet.
+  it('revient au sommet quand le bloc dépasse la fenêtre des deux côtés', () => {
+    const geant = { top: 139, right: 700, bottom: 2000 }
+    const p = positionCellule(geant, { ...COLONNE, pied: 900 })
+    expect(p.cote).toBe('dessus')
+    expect(p.top).toBe(COLONNE.sommet)
+  })
+
+  // ⚠️ Sans « pied », on ne sait pas où finit l'écran : on descend quand même, ce qui
+  // reste préférable à mordre. C'est le cas des appelants qui ne le passent pas.
+  it('descend sans borne de pied plutôt que de mordre', () => {
+    expect(positionCellule(AU_RAS, COLONNE).cote).toBe('dessous')
+  })
+
+  // ⛔ Mais on ne descend pas sous un bloc dont on IGNORE le bas : la forme d'origine,
+  // « { top, right } », garde le bornage au sommet plutôt qu'une pose au jugé.
+  it('sans le bas de la ligne, garde la règle d’hier', () => {
+    const p = positionCellule({ top: 139, right: 700 }, { ...COLONNE, pied: 900 })
+    expect(p.cote).toBe('dessus')
+    expect(p.top).toBe(COLONNE.sommet)
+  })
+
+  // Le dessus garde la main dès qu'il y a la place : on ne descend pas par défaut.
+  it('garde le dessus quand il est libre', () => {
+    const bas = { top: 400, right: 700, bottom: 460 }
+    expect(positionCellule(bas, { ...COLONNE, pied: 900 }).cote).toBe('dessus')
+  })
+})

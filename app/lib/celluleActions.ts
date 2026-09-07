@@ -52,7 +52,7 @@ export const MARGE_CELLULE = 6
  *  quelques pixels trop haut sur un très grand écran. */
 export const SOMMET_PAR_DEFAUT = 56
 
-export type PositionCellule = { top: number; left: number; cote: 'droite' | 'dessus' }
+export type PositionCellule = { top: number; left: number; cote: 'droite' | 'dessus' | 'dessous' }
 
 /** L'espace où la cellule a le droit de se poser. */
 export type EspaceCellule = {
@@ -64,16 +64,19 @@ export type EspaceCellule = {
   largeur?: number
   /** Ligne au-dessus de laquelle on ne monte pas. */
   sommet?: number
+  /** Ligne en dessous de laquelle on ne descend pas (bas de la fenêtre). */
+  pied?: number
 }
 
 /** Position en coordonnées de FENÊTRE (la cellule est `position: fixed`).
  *
- *  @param ligne   rectangle de la ligne survolée (`getBoundingClientRect`)
+ *  @param ligne   rectangle de la ligne survolée (`getBoundingClientRect`) ; son `bottom`
+ *                 n'est lu que pour la poser DESSOUS, quand le dessus est bouché
  *  @param espace  largeur utile de la fenêtre, ou les bornes de l'espace disponible
  *  @param sommet  ligne au-dessus de laquelle on ne monte pas (bas de la navbar)
  */
 export function positionCellule(
-  ligne: { top: number; right: number },
+  ligne: { top: number; right: number; bottom?: number },
   espace: number | EspaceCellule,
   sommet = SOMMET_PAR_DEFAUT,
 ): PositionCellule {
@@ -86,15 +89,36 @@ export function positionCellule(
   if (tientADroite) {
     return { top: Math.max(ligne.top - 4, haut), left: ligne.right + MARGE_CELLULE, cote: 'droite' }
   }
-  // Au-dessus, alignée sur la FIN de la ligne : le regard la retrouve là où il était,
-  // et elle ne recouvre que le blanc de l'interligne précédent.
+
+  // Alignée sur la FIN de la ligne : le regard la retrouve là où il était.
   // ⚠️ La borne gauche l'emporte sur l'alignement à droite : dans une colonne étroite,
   // mieux vaut déborder d'un cheveu à droite que d'aller couvrir la colonne d'à côté.
-  return {
-    top: Math.max(ligne.top - HAUTEUR_CELLULE - MARGE_CELLULE, haut),
-    left: Math.max(Math.min(ligne.right, e.droite - MARGE_CELLULE) - largeur, gauche),
-    cote: 'dessus',
+  const left = Math.max(Math.min(ligne.right, e.droite - MARGE_CELLULE) - largeur, gauche)
+
+  // Au-dessus : elle ne recouvre que le blanc de l'interligne précédent.
+  const dessus = ligne.top - HAUTEUR_CELLULE - MARGE_CELLULE
+  if (dessus >= haut) return { top: dessus, left, cote: 'dessus' }
+
+  // ⛔ ET SI LE DESSUS EST BOUCHÉ, ON PASSE DESSOUS (2026-09-07). La règle n'avait que
+  // deux réponses et bornait la troisième par `Math.max(dessus, sommet)` : une ligne
+  // posée juste sous un en-tête collant se voyait donc coiffer sa cellule PAR-DESSUS,
+  // c'est-à-dire l'inverse de la règle. Mesuré sur la Polyglotte en ligne, le premier
+  // verset visible sous l'en-tête des éditions — un cas ordinaire, non un cas limite :
+  // c'est la ligne qu'on survole d'abord en arrivant sur la page.
+  // ⚠️ Le blanc de l'interligne SUIVANT vaut celui du précédent : dessous ne coûte pas
+  // plus que dessus, il ne se lit simplement pas d'abord.
+  // ⛔ ON NE DESCEND PAS SOUS UN BLOC DONT ON IGNORE LE BAS. Un appelant qui ne passe
+  // que `{ top, right }` — la forme d'origine — garde donc le bornage au sommet : mieux
+  // vaut la règle d'hier qu'une cellule posée au jugé.
+  const dessous = ligne.bottom === undefined ? null : ligne.bottom + MARGE_CELLULE
+  if (dessous !== null && dessous >= haut && (e.pied === undefined || dessous + HAUTEUR_CELLULE <= e.pied)) {
+    return { top: dessous, left, cote: 'dessous' }
   }
+
+  // ⚠️ Dernier recours : un bloc plus haut que la fenêtre n'a ni dessus ni dessous
+  // VISIBLES, et une cellule posée hors de l'écran vaut moins qu'une cellule qui mord.
+  // On la borne alors au sommet, ce que la règle faisait jusqu'ici en toute circonstance.
+  return { top: haut, left, cote: 'dessus' }
 }
 
 /** Durée d'un appui long, au tactile, avant que la cellule paraisse. Même valeur que

@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  positionCellule, largeurGabarit, GRACE_SURVOL_MS, STYLE_CELLULE,
+  positionCellule, largeurGabarit, GRACE_SURVOL_MS, MARGE_CELLULE, STYLE_CELLULE,
   type EspaceCellule, type PositionCellule,
 } from '@/app/lib/celluleActions'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
@@ -149,7 +149,13 @@ function CelluleAncree<K, D>({
     // cellule flotter au-dessus d'un texte qu'on ne voit plus.
     if (r.bottom < 0 || r.top > window.innerHeight) { onFermer(); return }
 
-    const espace: EspaceCellule = { droite: window.innerWidth, sommet: ancre.sommet ?? hauteurNavbarPx() }
+    const espace: EspaceCellule = {
+      droite: window.innerWidth,
+      sommet: ancre.sommet ?? hauteurNavbarPx(),
+      // ⚠️ Le PIED sert le troisième côté : quand le dessus est bouché, la cellule passe
+      // dessous, mais seulement si elle y reste visible.
+      pied: window.innerHeight - MARGE_CELLULE,
+    }
     if (ancre.borne) {
       const b = ancre.borne.getBoundingClientRect()
       espace.droite = b.right
@@ -161,6 +167,8 @@ function CelluleAncree<K, D>({
     const mesuree = ref.current?.getBoundingClientRect().width
     espace.largeur = mesuree && mesuree > 0 ? mesuree : largeurGabarit(boutons ?? 4)
 
+    // ⛔ On passe le rectangle ENTIER : `bottom` est ce qui permet de descendre sous le
+    // texte quand ni la droite ni le dessus ne sont libres.
     const p = positionCellule(r, espace)
     setPos(prev =>
       prev && prev.top === p.top && prev.left === p.left && prev.cote === p.cote ? prev : p)
