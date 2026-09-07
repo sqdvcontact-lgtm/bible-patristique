@@ -46,6 +46,11 @@ type Etat = {
   nomTrad: string
 }
 
+/** Le blanc entre le lemme et ses scholies. ⚠️ Plus large que celui qui sépare deux
+ *  scholies (11 px) : le texte biblique se cerne d'un blanc plus large que son apparat
+ *  (charte, § 35.12), et les scholies d'un même verset se lisent en suite. */
+const BLANC_SOUS_LEMME = '15px'
+
 const dateLisible = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
 
@@ -203,7 +208,13 @@ function Entree({ entree, lemme, trad, etroit }: {
       <div>
         {entree.livre && (
           lemme
-            ? <p className="chn-lemme" style={styleTexteVerset({ mobile: etroit })}>{rendreTexteEnrichi(lemme)}</p>
+            // ⛔ Le blanc SOUS le lemme se pose EN LIGNE, jamais dans la feuille :
+            // `styleTexteVerset` porte `margin: 0`, et un style en ligne bat toute règle
+            // de feuille sans `!important`. Mesuré sur la page servie, le lemme touchait
+            // sa première scholie (0 px) quand les scholies s'écartaient de 11.
+            ? <p className="chn-lemme" style={{ ...styleTexteVerset({ mobile: etroit }), marginBottom: BLANC_SOUS_LEMME }}>
+              {rendreTexteEnrichi(lemme)}
+            </p>
             : <p className="chn-lemme chn-absent">Absent de cette traduction</p>
         )}
         {entree.gloses.map(glose => <Scholie key={glose.cle} glose={glose} />)}
@@ -275,11 +286,13 @@ const FEUILLE_CHAINE = `
 .chn-ref:hover, .chn-ref:focus-visible { text-decoration: underline; }
 .chn-ref--morte { color: var(--cs-texte-second); font-weight: normal; }
 
-.chn-lemme { margin: 0 0 9px; }
+/* ⚠️ La marge basse ne sert QUE la mention d’absence : le lemme, lui, la reçoit en
+   ligne, son style en ligne écrasant toute règle de feuille. */
+.chn-lemme { margin: 0 0 15px; }
 .chn-absent { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.78125rem;
   font-style: italic; color: var(--cs-mention); }
 
-.chn-scholie + .chn-scholie { margin-top: 11px; }
+.chn-scholie + .chn-scholie { margin-top: 10px; }
 .chn-texte { font-size: 0.78125rem; line-height: 1.5; color: var(--cs-texte); margin: 0;
   white-space: pre-line; text-align: left; hyphens: auto; -webkit-hyphens: auto;
   overflow-wrap: break-word; }
