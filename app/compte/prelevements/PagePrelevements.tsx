@@ -28,6 +28,7 @@ import { PLAFOND_SEGMENTS_ELIDES, numerosDeLEcart, regrouperCitations, texteDuGr
 import { lotsPourClauseIn } from "@/app/lib/paginationSupabase";
 import { replier } from "@/app/lib/bibleBibliographieOuvrages";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
+import OngletsPage from "@/app/components/OngletsPage";
 
 // Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
 const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
@@ -210,27 +211,26 @@ function BoutonLien({ href }: { href: string }) {
 }
 
 // ── Groupe repliable ──────────────────────────────────────────────────────────
+//
+// ⛔ LE LIVRE ET L'AUTEUR PRENNENT LE TITRE DE SECTION DE L'ESPACE — sérif italique vert,
+// le rang que « Ma chaîne » donne déjà à un livre. Ils portaient une bande verte à
+// capitales espacées, c'est-à-dire le vocabulaire d'une interface là où les trois autres
+// pages de l'espace composent un titre. Le compte et le chevron se rangent sur la même
+// ligne : c'est le titre lui-même qui déplie.
 function GroupeRepliable({ ancre, label, count, ouvert, onToggle, children }: {
   ancre: string; label: React.ReactNode; count: number; ouvert: boolean; onToggle: () => void; children: React.ReactNode;
 }) {
   return (
-    // ⚠️ Le décalage d’ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels : la barre
+    // ⚠️ Le décalage d'ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels : la barre
     // mesure 56 px à la racine 16 et 77 à la racine 22 (charte, « Responsive »).
-    <div id={ancre} style={{ borderTop: "2px solid var(--cs-or-doux)", scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 1.5rem)` }}>
-      <button onClick={onToggle} aria-expanded={ouvert}
-        style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(var(--cs-vert-rgb),0.05)", border: "none", cursor: "pointer", padding: "11px 10px 10px", width: "100%", textAlign: "left" }}>
-        <span style={{ fontSize: "0.59375rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
-          {label}
-        </span>
-        <span style={{ fontSize: "0.59375rem", color: "var(--cs-texte-faible)", background: "transparent", padding: "0 4px", letterSpacing: "0.04em" }}>{count}</span>
-        <span style={{ fontSize: "0.5rem", color: "var(--cs-texte-faible)", marginLeft: "auto", transition: "transform 0.18s", display: "inline-block", transform: ouvert ? "rotate(180deg)" : "none" }}>▼</span>
+    <section id={ancre} className="prel-groupe" style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 1.5rem)` }}>
+      <button type="button" className="prel-groupe-tete" onClick={onToggle} aria-expanded={ouvert}>
+        <h2>{label}</h2>
+        <span className="prel-groupe-compte">{count}</span>
+        <span className="prel-groupe-chevron" data-ouvert={ouvert} aria-hidden="true">▾</span>
       </button>
-      {ouvert && (
-        <div style={{ paddingBottom: "4px" }}>
-          {children}
-        </div>
-      )}
-    </div>
+      {ouvert && <div>{children}</div>}
+    </section>
   );
 }
 
@@ -531,16 +531,61 @@ export default function PagePrelevements() {
 
       <div className="esp-page">
       <style>{`
+        /* Le titre d'un groupe : celui d'une section de l'espace, et le geste de dépli
+           avec lui. Le filet qui sépare deux groupes est celui des sections. */
+        .prel-groupe + .prel-groupe { margin-top: 28px; padding-top: 22px;
+          border-top: 1px solid var(--cs-bord-clair); }
+        .prel-groupe-tete { display: flex; align-items: baseline; gap: 9px; width: 100%;
+          padding: 0 0 9px; background: none; border: none; cursor: pointer;
+          text-align: left; font-family: inherit; }
+        .prel-groupe-tete h2 { font-family: var(--font-source-serif), Georgia, serif;
+          font-style: italic; font-weight: normal; font-size: 0.84375rem;
+          color: var(--cs-vert); margin: 0; }
+        .prel-groupe-compte { font-size: 0.625rem; letter-spacing: 0.06em;
+          color: var(--cs-texte-second); }
+        .prel-groupe-chevron { margin-left: auto; font-size: 0.625rem;
+          color: var(--cs-texte-doux); transition: transform 0.18s; display: inline-block; }
+        .prel-groupe-chevron[data-ouvert="false"] { transform: rotate(-90deg); }
+
+        /* ⛔ UNE CITATION SE COMPOSE COMME LE VERSET QU'ELLE EST : la référence en
+           MANCHETTE, dans sa colonne, le texte au fer à côté d'elle, les actions au bout.
+           Elle était en trois lignes empilées — texte, puis référence et provenance en
+           9 px gris, sous le seuil de contraste — si bien que ce qui identifie le passage
+           était ce qu'on lisait le moins. C'est la composition de « Ma chaîne », et les
+           deux pages de l'espace montrent le même corpus. */
         .prel-item {
-          display: flex; align-items: flex-start; gap: 0;
-          padding: 9px 10px 9px 12px;
+          display: grid;
+          grid-template-columns: 7rem minmax(0, 1fr) auto;
+          gap: 0 16px;
+          align-items: start;
+          padding: 10px 10px 11px 0;
           border-bottom: 1px solid var(--cs-bord-clair);
           position: relative;
-          border-left: 2px solid transparent;
           transition: background 0.12s;
         }
         .prel-item:last-child { border-bottom: none; }
         .prel-item:hover { background: rgba(var(--cs-vert-rgb),0.03); }
+
+        /* La manchette NOMME, elle ne mène nulle part : la gouttière d'actions porte déjà
+           le chemin vers le passage, et deux façons d'y aller en font une de trop. Sur
+           « Ma chaîne », qui n'a pas de gouttière, la même manchette est un lien. */
+        .prel-ref { font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.8125rem; font-weight: 600; line-height: 1.35;
+          color: var(--cs-texte-fort); padding-top: 1px; }
+        /* ⛔ Le texte cité est du CORPUS : il se compose en sérif, comme le verset de la
+           page Bible et comme le lemme de la chaîne. Il était en sans, si bien que deux
+           pages voisines rendaient le même texte dans deux polices. */
+        .prel-texte { font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.875rem; line-height: 1.42; color: var(--cs-texte-fort); margin: 0;
+          text-align: left; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
+        /* La provenance est une RUBRIQUE, la même que la tête d'une scholie. */
+        .prel-provenance { font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase;
+          color: var(--cs-texte-second); margin: 4px 0 0; }
+
+        @media (max-width: 640px) {
+          .prel-item { grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; }
+          .prel-ref { grid-column: 1 / -1; padding-top: 0; }
+        }
 
         /* Citation favorite — encadrement doré complet.
            ⚠️ L'or passe par le TOKEN, plus par ses composantes en dur : la teinte
@@ -587,7 +632,7 @@ export default function PagePrelevements() {
         {/* Filet à quadrilobe. C'est la MÊME marque que le bouton de choix dans la liste :
             l'emblème enseigne le geste, sans mode d'emploi. ⚠️ Il a perdu le titre qu'il
             soulignait, que le bandeau porte désormais, mais non son office. */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", maxWidth: "13rem", margin: "-8px auto 22px", color: "var(--cs-or-doux)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "-10px 0 20px", color: "var(--cs-or-doux)" }}>
           <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
           <MarqueCitation taille={22} />
           <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
@@ -596,30 +641,26 @@ export default function PagePrelevements() {
         {chargement && <MotAttente />}
         {!chargement && (<>
 
-        {/* ── Onglets ── */}
-        <div style={{ display: "flex", justifyContent: "center", borderBottom: "1px solid var(--cs-bord)", marginBottom: "20px" }}>
-          {(["biblique", "patristique"] as TypePrelevement[]).map(t => (
-            <button key={t} onClick={() => setOnglet(t)}
-              style={{
-                padding: "9px 22px", fontSize: "0.75rem", fontFamily: "var(--font-source-sans), Arial, sans-serif",
-                fontWeight: onglet === t ? 600 : 400,
-                color: onglet === t ? "var(--cs-texte-fort)" : "var(--cs-texte-doux)",
-                background: "transparent", border: "none",
-                borderBottom: onglet === t ? "1.5px solid var(--cs-vert)" : "1.5px solid transparent",
-                cursor: "pointer", letterSpacing: "0.01em", transition: "color 0.12s",
-                marginBottom: "-1px",
-              }}>
-              {t === "biblique" ? "Versets bibliques" : "Textes patristiques"}
-              <span style={{ marginLeft: "7px", fontSize: "0.59375rem", color: onglet === t ? "var(--cs-or)" : "var(--cs-texte-faible)" }}>
-                {t === "biblique" ? bibliques.length : patristiques.length}
-              </span>
-            </button>
-          ))}
-        </div>
+        {/* ── Onglets ──
+            ⛔ AU MODÈLE DU SITE, non redessinés : la barre était la septième composée en
+            styles en ligne, ce que l'en-tête d'`OngletsPage` proscrit depuis sa création.
+            ⚠️ Le COMPTE entre dans le libellé, le modèle ne connaissant pas de badge — et
+            c'est lui qui réserve d'avance la largeur en graisse 600, si bien qu'un compte
+            qui change ne déplace pas son voisin. */}
+        <OngletsPage
+          onglets={[
+            { cle: "biblique" as TypePrelevement, libelle: `Versets bibliques (${bibliques.length})` },
+            { cle: "patristique" as TypePrelevement, libelle: `Textes patristiques (${patristiques.length})` },
+          ]}
+          actif={onglet}
+          choisir={setOnglet}
+          intitule="Corpus des citations"
+          style={{ marginBottom: "18px" }}
+        />
 
         {/* ── Sélecteur de traduction ── */}
         {onglet === "biblique" && traductions.length > 0 && listeActive.length > 0 && (
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div style={{ marginBottom: "18px" }}>
             <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
               className="prel-trad-sel">
               {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
@@ -652,19 +693,12 @@ export default function PagePrelevements() {
                       const nomTrad = nomTraduction(g.traduction);
                       return (
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.45, margin: "0 0 3px" }}>
+                          <span className="prel-ref" style={estPref ? { color: "var(--cs-or)" } : undefined}>{ref}</span>
+                          <div>
+                            <p className="prel-texte">
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texte)))}&#8201;»
                             </p>
-                            <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                              <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "var(--cs-texte-gris)" }}>{ref}</span>
-                              {nomTrad && (
-                                <>
-                                  <span style={{ opacity: 0.4 }}>·</span>
-                                  <span>Prélevé dans la {nomTrad}</span>
-                                </>
-                              )}
-                            </p>
+                            {nomTrad && <p className="prel-provenance">Prélevé dans la {nomTrad}</p>}
                           </div>
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
@@ -721,17 +755,15 @@ export default function PagePrelevements() {
                       const estPref = citationPreferee != null && ids.includes(citationPreferee.id);
                       return (
                         <div key={ids.join("_")} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.8125rem", color: "var(--cs-texte-fort)", lineHeight: 1.45, margin: "0 0 3px" }}>
+                          {/* ⚠️ La manchette tient sa colonne même vide : un passage sans
+                              référence de niveau ne doit pas décaler le fer de ses voisins. */}
+                          <span className="prel-ref" style={estPref ? { color: "var(--cs-or)" } : undefined}>
+                            {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
+                          </span>
+                          <div>
+                            <p className="prel-texte">
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texteReuni)))}&#8201;»
                             </p>
-                            {(p.ref_niv1 || p.ref_niv2) && (
-                              <p style={{ fontSize: "0.5625rem", color: "var(--cs-texte-doux)", margin: 0, letterSpacing: "0.06em", fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
-                                <span style={{ fontWeight: 600, color: estPref ? "var(--cs-or)" : "var(--cs-texte-gris)" }}>
-                                  {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
-                                </span>
-                              </p>
-                            )}
                           </div>
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, texte: texteReuni, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />

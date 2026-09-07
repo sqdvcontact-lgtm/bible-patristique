@@ -224,21 +224,27 @@ function Entree({ entree, lemme, trad, etroit }: {
 }
 
 function Scholie({ glose }: { glose: GloseLecteur }) {
-  // ⚠️ Le texte garde ses alinéas (`pre-line`) : il ne se justifie donc jamais, il se
-  // ferre et se césure (charte, § 41.4).
-  const repere = [
-    dateLisible(glose.date),
-    glose.enReponse ? 'en réponse' : null,
-    glose.enRevision ? 'en révision' : null,
-  ].filter(Boolean).join(' · ')
-
+  // ⛔ La scholie porte une TÊTE, et sa nature n'est plus un mot en italique verte au fil
+  // du texte : trois objets de la page portaient ce vert — le titre du livre, la référence
+  // du verset et la marque de la glose — et deux d'entre eux se composaient de la même
+  // façon, à un pixel de corps près. Deux rangs voisins doivent différer sur DEUX axes.
+  // La tête est donc une RUBRIQUE, comme celles du volet de lecture, et elle réunit ce qui
+  // s'éparpillait : la nature, la date et l'état.
+  //
+  // ⚠️ Le texte garde ses alinéas (`pre-line`) : il ne se justifie donc jamais, il se ferre
+  // et se césure (charte, § 41.4).
   return (
     <div className="chn-scholie">
+      <p className="chn-tete">
+        <span className="chn-nature">{glose.nature === 'note' ? 'Note' : 'Commentaire'}</span>
+        {glose.date && <><span className="chn-sep" aria-hidden="true">·</span>{dateLisible(glose.date)}</>}
+        {glose.enReponse && <><span className="chn-sep" aria-hidden="true">·</span>en réponse</>}
+        {glose.enRevision && <><span className="chn-sep" aria-hidden="true">·</span>
+          <span className="chn-attente">en révision</span></>}
+      </p>
       <p className="chn-texte">
-        <span className="chn-nature">{glose.nature === 'note' ? 'Note.' : 'Commentaire.'}</span>{' '}
         {glose.nature === 'note' ? glose.texte : rendreTexteEnrichi(glose.texte)}
       </p>
-      {repere && <p className="chn-repere">{repere}</p>}
     </div>
   )
 }
@@ -292,14 +298,24 @@ const FEUILLE_CHAINE = `
 .chn-absent { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.78125rem;
   font-style: italic; color: var(--cs-mention); }
 
-.chn-scholie + .chn-scholie { margin-top: 10px; }
+/* ⛔ LA SCHOLIE RENTRE SOUS SON LEMME. C'est la composition d'une chaîne imprimée : le
+   texte de l'Écriture au fer, les gloses en retrait, et l'œil sait d'un coup ce qui
+   commente quoi. Le blanc seul ne le disait pas. */
+.chn-scholie { padding-left: 1.1rem; }
+.chn-scholie + .chn-scholie { margin-top: 13px; }
+
+/* La tête d'une scholie : ce qu'une chaîne imprimée met en petites capitales devant la
+   glose, le nom du glossateur. Ici, sa nature, sa date, son état. */
+.chn-tete { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px;
+  font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--cs-texte-second); margin: 0 0 3px; }
+.chn-nature { font-weight: 600; }
+.chn-sep { opacity: 0.45; }
+.chn-attente { color: var(--cs-danger-fonce); font-weight: 600; }
+
 .chn-texte { font-size: 0.78125rem; line-height: 1.5; color: var(--cs-texte); margin: 0;
   white-space: pre-line; text-align: left; hyphens: auto; -webkit-hyphens: auto;
   overflow-wrap: break-word; }
-/* La marque de la scholie, à la place où une chaîne imprimée nomme son glossateur. */
-.chn-nature { font-family: var(--font-source-serif), Georgia, serif; font-style: italic;
-  color: var(--cs-vert); }
-.chn-repere { font-size: 0.625rem; color: var(--cs-texte-second); margin: 3px 0 0; }
 
 .chn-vide { max-width: 30rem; }
 .chn-vide p { font-size: 0.78125rem; line-height: 1.5; color: var(--cs-texte-second);
@@ -315,5 +331,8 @@ const FEUILLE_CHAINE = `
 @media (max-width: 640px) {
   .chn-entree { grid-template-columns: 1fr; gap: 3px; }
   .chn-ref { padding-top: 0; }
+  /* Le retrait de la glose se resserre : sur une mesure étroite, il prendrait au texte
+     ce qu’il donne à la hiérarchie. */
+  .chn-scholie { padding-left: 0.7rem; }
 }
 `
