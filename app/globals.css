@@ -2971,6 +2971,75 @@ main.lecture-entree [data-cs-bloc],
 }
 .cs-visite-propos { animation: cs-visite-propos 420ms ease-out both; }
 
+/* ── LES COMMANDES DE LA CASE ─────────────────────────────────────────────────
+   Trois rangs, et trois seulement : ce qui fait avancer (aplat vert), ce qui revient
+   (contour), ce qui renonce (texte seul). Leur DESSIN vit dans `compositionVisite.ts`,
+   leur MESURE ici — elle change avec le pointeur, et un style en ligne battrait la
+   règle sans qu'on s'en aperçoive.
+   ⚠️ `display: inline-flex` n'est pas un ornement : c'est lui qui centre le libellé
+   dans la boîte quand celle-ci grandit au doigt. */
+.cs-visite-bouton {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; line-height: 1.35;
+  padding: 7px 14px; border-radius: 8px;
+}
+.cs-visite-bouton--second { padding: 7px 12px; }
+.cs-visite-passer { padding: 7px 0; }
+.cs-visite-bouton--large { font-size: 0.8125rem; padding: 10px 20px; }
+
+/* ⛔ AU DOIGT, LA GRAPPE DU PIED GRANDIT SA BOÎTE (charte, § « LE DOIGT »). Trois
+   boutons collés ne peuvent pas recevoir la zone de frappe débordante d'un contrôle
+   isolé : elle s'avalerait l'une l'autre. Mesuré avant reprise, ils faisaient trente
+   pixels — au-dessus du plancher de 24 que WCAG 2.2 impose, sous les 44 que le site
+   vise sur un chemin de lecture ; et le pied d'une visite EST ce chemin, puisqu'il
+   n'y a rien d'autre à toucher.
+   ⛔ L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une fenêtre étroite sur
+   un ordinateur garde sa souris, et une tablette de 1 024 px n'en a pas.
+   ⚠️ Le rembourrage vertical tombe à zéro : la boîte tient sa hauteur du plancher, et
+   l'y ajouter la porterait à cinquante-huit pixels dans une case qui en fait deux
+   cents. */
+@media (hover: none) {
+  .cs-visite-bouton { min-height: 2.75rem; padding-top: 0; padding-bottom: 0; }
+  .cs-visite-bouton--fort, .cs-visite-bouton--second { padding-left: 15px; padding-right: 15px; }
+}
+
+/* ⛔ LE PIED S'ENROULE QUAND LA CASE NE PEUT PLUS LE TENIR SUR UNE LIGNE, et il ne se
+   laisse pas rogner. Ses trois libellés portent `white-space: nowrap` : trop à
+   l'étroit, ils débordaient de la case sans que rien ne se plaigne — ni les types, ni
+   les tests, et le défaut n'apparaît qu'en dessous d'une largeur d'écran qu'on n'a
+   pas sous la main. « Passer la visite » passe donc SOUS les deux autres, sur sa
+   propre ligne, et l'on renonce toujours d'un geste séparé de celui qui avance.
+   ⚠️ L'AXE EST LA LARGEUR DE LA CASE, non celle de l'écran : c'est elle qui porte les
+   boutons, et sa mesure est une valeur de dessin (21 rem) qui peut changer demain.
+   Même parti que le volet de lecture, dont la charte dit que le tableau des seuils ne
+   gouverne pas cet axe. */
+.cs-visite-carte { container-type: inline-size; container-name: visite; }
+/* ⚠️ LE SEUIL EST MESURÉ, ET C'EST UN FILET, NON UN ÉTAT ORDINAIRE. Sur la planche
+   (`tmp/planche-visite-mobile.mts`), les trois boutons demandent au pire 241,3 px —
+   l'arrêt qui finit par « Terminer », plus long que « Suivant » — quand la case en
+   offre 300 sur un téléphone de 375 px et 256 sur un de 320. Le pied tient donc
+   partout où l'on lit, et ne s'enroule qu'en deçà de 305 px d'écran : la règle est un
+   garde-fou contre un libellé plus long ou une police plus large, elle ne se voit pas.
+   ⛔ UNE REQUÊTE DE CONTENEUR SE COMPARE À LA BOÎTE DE CONTENU, non à la largeur
+   déclarée : la case fait 21 rem et son conteneur 300 px, rembourrage et filets
+   déduits. Posé à 19,5 rem, le seuil se déclenchait dès 375 px et « Passer la visite »
+   prenait une ligne entière sur tous les téléphones. */
+@container visite (max-width: 15.5rem) {
+  .cs-visite-pied:not(.cs-visite-pied--message) { flex-wrap: wrap; row-gap: 8px; justify-content: flex-end; }
+  .cs-visite-pied:not(.cs-visite-pied--message) .cs-visite-espace { display: none; }
+  .cs-visite-pied:not(.cs-visite-pied--message) .cs-visite-passer { order: 2; flex-basis: 100%; justify-content: center; }
+}
+/* ⚠️ Le message d'ouverture est plus large (27 rem) et son rembourrage l'est aussi :
+   sur un téléphone de 320 px, ses trente-deux pixels de marge ne laissaient que deux
+   cent vingt-huit pixels de mesure à une accroche qui en demande davantage. */
+/* ⚠️ Mesuré : 226 px de mesure sur un téléphone de 320, 281 sur un de 375. Vingt
+   pixels de rembourrage lui en rendent vingt-quatre, et le seuil ne mord que là où la
+   case a déjà cédé sur sa largeur : au delà de 460 px d'écran elle fait ses 27 rem
+   pleins, son conteneur 366, et la règle ne s'applique plus. */
+@container visite (max-width: 20rem) {
+  .cs-visite-carte--message { padding-left: 20px; padding-right: 20px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cs-visite-cadre, .cs-visite-carte, .cs-visite-voile { transition: none; }
   .cs-visite-trait, .cs-visite-propos { animation: none; }

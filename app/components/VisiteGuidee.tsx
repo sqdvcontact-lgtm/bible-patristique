@@ -46,14 +46,22 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { hauteurNavbarPx, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
-import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE_CARTE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import {
+  STYLE_ACCROCHE,
+  STYLE_COMPTEUR, STYLE_FLEURON, STYLE_ILLUSTRATION, STYLE_ILLUSTRATION_ICONE,
+  STYLE_ILLUSTRATION_LIGNE, STYLE_ILLUSTRATION_NOM, STYLE_PASSER, STYLE_PIED, STYLE_PIED_MESSAGE,
+  STYLE_PRINCIPAL, STYLE_SECOND, STYLE_TETE, STYLE_TITRE, STYLE_TITRE_MESSAGE, styleAccroche,
+  styleCarte, styleParagraphe,
+} from '@/app/lib/compositionVisite'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { normaliserEspaces } from '@/app/lib/typographie'
 import {
-  cadreDuSujet, decoupeDuVoile, marquerVisiteFaite, placerCarteVisite, traitVersSujet,
+  cadreDuSujet, decoupeDuVoile, defilementDuSujet, marquerVisiteFaite, placerCarteVisite,
+  traitVersSujet,
   type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Trait, type Visite, type Vue,
 } from '@/app/lib/visiteGuidee'
 
@@ -105,6 +113,31 @@ const memeCadre = (a: Cadre | null, b: Cadre) =>
 /** Les deux peuvent manquer : un second sujet n'existe pas à toutes les étapes. */
 const memeCadreOuNul = (a: Cadre | null, b: Cadre | null) =>
   (a === null && b === null) || (b !== null && memeCadre(a, b))
+
+/**
+ * LA HAUTEUR RÉELLEMENT VISIBLE, et non celle de la mise en page.
+ *
+ * ⛔ Sur un téléphone, `window.innerHeight` ne dit pas ce qu'on voit. Safari iOS rend
+ * la fenêtre LARGE — celle qu'on aurait si les barres du navigateur se rétractaient —
+ * si bien qu'une case posée au ras du bas se retrouve derrière la barre d'outils, et
+ * qu'aucun défilement ne la ramène : elle est fixée à la fenêtre de mise en page, non
+ * au document. C'est le vieux défaut de `100vh`, et la case le portait entière.
+ *
+ * ⚠️ On prend donc la PLUS PETITE des deux, jamais la fenêtre visuelle seule : elle
+ * seule ne peut que rétrécir la bande utile, ce qui est toujours sûr. Le pincement de
+ * l'écran la rétrécit aussi, et la case s'y fera plus petite qu'il ne faudrait — un
+ * défaut sans gravité, et le seul que ce parti puisse produire.
+ *
+ * ⚠️ `maxHeight` de la case emploie déjà `100dvh` : les deux disaient jusqu'ici des
+ * choses différentes, l'une la fenêtre dynamique et l'autre la fenêtre de mise en
+ * page, et le placement travaillait sur une bande que la case pouvait dépasser.
+ */
+function hauteurVisible(): number {
+  const visuelle = window.visualViewport?.height
+  return typeof visuelle === 'number' && visuelle > 0
+    ? Math.min(window.innerHeight, visuelle)
+    : window.innerHeight
+}
 
 /** Un sujet FIXE est déjà à l'écran : le faire défiler demanderait à la page de
  *  remonter au-dessus de son propre haut. ⚠️ On remonte l'arbre, la barre étant
@@ -182,6 +215,10 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
   const [mesure, setMesure] = useState<Mesure | null>(null)
   const [taille, setTaille] = useState<{ largeur: number; hauteur: number } | null>(null)
   const carteRef = useRef<HTMLDivElement>(null)
+  /** La taille de la case, tenue à jour par le même effet de mise en page que
+   *  l'état : la boucle du sujet la lit pour décider où faire défiler la page, et
+   *  elle tourne dans un rendu où l'état porte encore la taille d'avant. */
+  const tailleRef = useRef<{ largeur: number; hauteur: number } | null>(null)
   const cibleRef = useRef<HTMLElement | null>(null)
   /** L'étape dont le sujet a déjà été annoncé à la page : elle ne l'est qu'une
    *  fois, y compris si l'on revient dessus. */
@@ -297,10 +334,32 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           // mouvements de durées différentes se poursuivraient l'un l'autre. La
           // page se pose d'un coup, et la case glisse ensuite jusqu'à elle.
           // ⛔ Et l'on ne fait pas défiler un sujet FIXE : il est déjà à l'écran.
-          if (!estFixe(el)) el.scrollIntoView({ block: 'center', inline: 'nearest' })
+          if (!estFixe(el)) {
+            // ⛔ ON NE POSE PLUS LE SUJET AU CENTRE SANS REGARDER (voir
+            // `defilementDuSujet`) : sur un téléphone, la case est aussi large que la
+            // bande utile, elle ne peut donc se poser qu'au-dessus ou au-dessous, et
+            // le centre est la seule place qui n'en laisse assez ni d'un côté ni de
+            // l'autre. On fait de la place AVANT, au lieu de borner la case après.
+            const b = el.getBoundingClientRect()
+            const d = defilementDuSujet({
+              sujet: { top: b.top, left: b.left, width: b.width, height: b.height },
+              carte: tailleRef.current ?? { largeur: 0, hauteur: 0 },
+              vue: { largeur: window.innerWidth, hauteur: hauteurVisible() },
+              hautNavbar: reserve, ecart, souffle,
+            })
+            // ⚠️ `scrollIntoView` ne connaît que quatre alignements grossiers : le
+            // blanc à réserver passe donc par `scroll-margin-top`, posé sur le sujet
+            // le temps du défilement et retiré aussitôt. ⛔ C'est une marque de rendu,
+            // de la même nature que `data-visite-cible`, et elle ne survit pas à la
+            // ligne suivante : on ne laisse rien derrière soi dans la page.
+            const avant = el.style.scrollMarginTop
+            if (d.marge) el.style.scrollMarginTop = `${d.marge}px`
+            el.scrollIntoView({ block: d.bloc, inline: 'nearest' })
+            el.style.scrollMarginTop = avant
+          }
         }
         const r = el.getBoundingClientRect()
-        const vue = { largeur: window.innerWidth, hauteur: window.innerHeight }
+        const vue = { largeur: window.innerWidth, hauteur: hauteurVisible() }
         // ⚠️ Quand la visite couvre la barre, il n'y a plus rien sous quoi une case
         // pourrait glisser : la réserve tombe, et un onglet de la barre peut enfin
         // être cerné là où il est.
@@ -338,6 +397,10 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
     const el = carteRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
+    // ⚠️ LA MÊME MESURE VA DANS UNE RÉFÉRENCE, et ce n'est pas un doublon : la boucle
+    // du sujet en a besoin pour décider OÙ FAIRE DÉFILER LA PAGE, et elle tourne dans
+    // le rendu COURANT, où l'état porte encore la taille de l'étape précédente.
+    tailleRef.current = { largeur: r.width, hauteur: r.height }
     setTaille(t => (t && Math.abs(t.largeur - r.width) < 0.5 && Math.abs(t.hauteur - r.height) < 0.5
       ? t
       : { largeur: r.width, hauteur: r.height }))
@@ -348,6 +411,7 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
       const el = carteRef.current
       if (!el) return
       const r = el.getBoundingClientRect()
+      tailleRef.current = { largeur: r.width, hauteur: r.height }
       setTaille({ largeur: r.width, hauteur: r.height })
     }
     window.addEventListener('resize', remesurer)
@@ -462,24 +526,11 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
         aria-modal="true"
         aria-labelledby="cs-visite-titre"
         tabIndex={-1}
-        className={etape ? 'cs-visite-carte' : undefined}
+        className={etape ? 'cs-visite-carte' : 'cs-visite-carte cs-visite-carte--message'}
         style={{
+          ...styleCarte(!etape),
           position: 'absolute',
-          width: etape ? 'min(21rem, calc(100vw - 1.75rem))' : 'min(27rem, calc(100vw - 1.75rem))',
-          boxSizing: 'border-box',
           pointerEvents: 'auto',
-          outline: 'none',
-          background: 'var(--cs-surface)',
-          border: '1px solid var(--cs-bord)',
-          borderRadius: '12px',
-          boxShadow: 'var(--cs-ombre-modale)',
-          padding: etape ? '15px 17px 13px' : '30px 32px 26px',
-          // ⚠️ Une case qui porte trois paragraphes et une illustration peut dépasser
-          // une fenêtre basse : elle se borne alors et défile en dedans, comme toute
-          // fenêtre contextuelle du site. La hauteur MESURÉE est celle qui en résulte,
-          // si bien que le placement travaille sur la boîte réelle.
-          maxHeight: 'calc(100dvh - 6rem)',
-          overflowY: 'auto',
           // ⚠️ TANT QUE LA CASE N'EST PAS PLACÉE, elle se tient au centre de l'écran
           // et ne se voit pas. C'est là qu'était le grand message, et c'est de là
           // qu'elle glisse vers son premier sujet : la transition part donc du
@@ -490,79 +541,103 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
             ? placement
               ? { top: placement.top, left: placement.left, visibility: 'visible' as const }
               : { top: '50%', left: '50%', visibility: 'hidden' as const }
-            : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' as const }),
+            : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }),
         }}>
 
-        {etape ? (
-          <div key={etape.cle} className="cs-visite-propos">
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '7px' }}>
-              <h2 id="cs-visite-titre" style={{
-                flex: 1, minWidth: 0, margin: 0,
-                fontFamily: 'var(--font-source-serif), Georgia, serif',
-                fontSize: '1.0625rem', fontWeight: GRAISSE_TITRE, color: 'var(--cs-encre)', lineHeight: 1.3,
-              }}>{etape.titre}</h2>
-              {/* Où l'on en est. ⚠️ Le total ne compte que les étapes qui ont un
-                  sujet à l'écran : une visite ne promet pas ce qu'elle ne montrera pas. */}
-              <span aria-hidden="true" style={{ flexShrink: 0, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontVariantNumeric: 'tabular-nums' }}>
-                {position} / {restantes.length}
-              </span>
-            </div>
-            {/* ⛔ UN PARAGRAPHE PAR IDÉE, avec un vrai blanc entre eux (demande de
-                l'auteur, 2026-09-06). Le blanc n'est pas un ornement : c'est lui qui
-                dit qu'on change de chose, et il coûte quelques pixels pour que trois
-                phrases cessent de se lire comme un bloc. La coupure est écrite dans le
-                scénario, jamais devinée ici. */}
-            {etape.texte.map((paragraphe, rang) => (
-              <p key={rang} style={{ margin: rang === 0 ? 0 : '0.55em 0 0', fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.6 }}>
-                {rendreMarquesNote(normaliserEspaces(paragraphe), rang)}
-              </p>
-            ))}
-
-            {etape.illustration && <Illustration nom={etape.illustration} />}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px' }}>
-              {/* ⛔ « Passer la visite » NE SE CACHE JAMAIS, à aucune étape (demande
-                  de l'auteur : « un bouton évident pour passer le tutoriel »). Il est
-                  posé à gauche, où l'on ne clique pas par mégarde en enchaînant. */}
-              <button onClick={terminer} style={STYLE_PASSER}>Passer la visite</button>
-              <div style={{ flex: 1 }} />
-              <button onClick={() => aller(-1)} style={STYLE_SECOND}>Retour</button>
-              <button onClick={() => aller(1)} style={STYLE_PRINCIPAL}>{derniere ? 'Terminer' : 'Suivant'}</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* LE GRAND MESSAGE. Le fleuron du site le coiffe, comme il coiffe le
-                volet des Pères en attente d'un verset : c'est la même main. */}
-            <div aria-hidden="true" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', color: 'var(--cs-or)', lineHeight: 1, marginBottom: '14px' }}>❧</div>
-            <h2 id="cs-visite-titre" style={{
-              margin: '0 0 12px',
-              fontFamily: 'var(--font-source-serif), Georgia, serif',
-              fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, lineHeight: 1.3,
-            }}>{visite.titre}</h2>
-            <div style={{ margin: '0 auto 24px', maxWidth: '22rem' }}>
-              {visite.accroche.map((paragraphe, rang) => (
-                <p key={rang} style={{ margin: rang === 0 ? 0 : '0.6em 0 0', fontSize: '0.84375rem', color: 'var(--cs-texte-second)', lineHeight: 1.7 }}>
-                  {rendreMarquesNote(normaliserEspaces(paragraphe), rang)}
-                </p>
-              ))}
-            </div>
-            {/* ⚠️ Les deux boutons ont la MÊME taille : refuser la visite doit être
-                aussi simple que la commencer, et se voir aussi bien. */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              {/* ⚠️ `aller(1)` et non un saut direct à la première étape : lui seul
-                  sait quoi faire d'un scénario dont toutes les étapes se seraient
-                  dérobées — il termine, au lieu de rouvrir le grand message. */}
-              <button onClick={() => aller(1)} style={STYLE_PRINCIPAL_LARGE}>
-                Commencer la visite
-              </button>
-              <button onClick={terminer} style={STYLE_SECOND_LARGE}>Passer</button>
-            </div>
-          </>
-        )}
+        <ProposVisite
+          visite={visite}
+          etape={etape}
+          position={position}
+          total={restantes.length}
+          derniere={derniere}
+          onAller={aller}
+          onTerminer={terminer}
+        />
       </div>
     </div>,
     document.body,
+  )
+}
+
+// ── LE PROPOS DE LA CASE ─────────────────────────────────────────────────────
+//
+// ⛔ SÉPARÉ DE LA FENÊTRE, comme `ContenuFicheTraduction` l'est de sa modale, et
+// pour la même raison : `createPortal` n'existe pas hors du navigateur, et sans
+// cette coupure aucune planche ne pourrait rendre la case pour la MESURER. C'est
+// par lui que `tmp/planche-visite-mobile.mjs` compose les trente-neuf arrêts à
+// toutes les largeurs de téléphone, avec la composition RÉELLE.
+//
+// ⚠️ AUCUN CROCHET ICI : le composant doit se rendre sous `renderToStaticMarkup`.
+
+export function ProposVisite({ visite, etape, position, total, derniere, onAller, onTerminer }: {
+  visite: Visite
+  etape: EtapeVisite | null
+  position: number
+  total: number
+  derniere: boolean
+  onAller: (sens: 1 | -1) => void
+  onTerminer: () => void
+}) {
+  return (
+    <>
+    {etape ? (
+      <div key={etape.cle} className="cs-visite-propos">
+        <div style={STYLE_TETE}>
+          <h2 id="cs-visite-titre" style={STYLE_TITRE}>{etape.titre}</h2>
+          {/* Où l'on en est. ⚠️ Le total ne compte que les étapes qui ont un
+              sujet à l'écran : une visite ne promet pas ce qu'elle ne montrera pas. */}
+          <span aria-hidden="true" style={STYLE_COMPTEUR}>{position} / {total}</span>
+        </div>
+        {/* ⛔ UN PARAGRAPHE PAR IDÉE, avec un vrai blanc entre eux (demande de
+            l'auteur, 2026-09-06). Le blanc n'est pas un ornement : c'est lui qui
+            dit qu'on change de chose, et il coûte quelques pixels pour que trois
+            phrases cessent de se lire comme un bloc. La coupure est écrite dans le
+            scénario, jamais devinée ici. */}
+        {etape.texte.map((paragraphe, rang) => (
+          <p key={rang} style={styleParagraphe(rang)}>
+            {rendreMarquesNote(normaliserEspaces(paragraphe), rang)}
+          </p>
+        ))}
+
+        {etape.illustration && <Illustration nom={etape.illustration} />}
+
+        <div className="cs-visite-pied" style={STYLE_PIED}>
+          {/* ⛔ « Passer la visite » NE SE CACHE JAMAIS, à aucune étape (demande
+              de l'auteur : « un bouton évident pour passer le tutoriel »). Il est
+              posé à gauche, où l'on ne clique pas par mégarde en enchaînant. */}
+          <button onClick={onTerminer} className="cs-visite-bouton cs-visite-passer" style={STYLE_PASSER}>Passer la visite</button>
+          <div className="cs-visite-espace" style={{ flex: 1 }} />
+          <button onClick={() => onAller(-1)} className="cs-visite-bouton cs-visite-bouton--second" style={STYLE_SECOND}>Retour</button>
+          <button onClick={() => onAller(1)} className="cs-visite-bouton cs-visite-bouton--fort" style={STYLE_PRINCIPAL}>{derniere ? 'Terminer' : 'Suivant'}</button>
+        </div>
+      </div>
+    ) : (
+      <>
+        {/* LE GRAND MESSAGE. Le fleuron du site le coiffe, comme il coiffe le
+            volet des Pères en attente d'un verset : c'est la même main. */}
+        <div aria-hidden="true" style={STYLE_FLEURON}>❧</div>
+        <h2 id="cs-visite-titre" style={{ ...STYLE_TITRE_MESSAGE, fontSize: TITRE_CARTE, color: ENCRE_TITRE_CARTE }}>{visite.titre}</h2>
+        <div style={STYLE_ACCROCHE}>
+          {visite.accroche.map((paragraphe, rang) => (
+            <p key={rang} style={styleAccroche(rang)}>
+              {rendreMarquesNote(normaliserEspaces(paragraphe), rang)}
+            </p>
+          ))}
+        </div>
+        {/* ⚠️ Les deux boutons ont la MÊME taille : refuser la visite doit être
+            aussi simple que la commencer, et se voir aussi bien. */}
+        <div className="cs-visite-pied cs-visite-pied--message" style={STYLE_PIED_MESSAGE}>
+          {/* ⚠️ `aller(1)` et non un saut direct à la première étape : lui seul
+              sait quoi faire d'un scénario dont toutes les étapes se seraient
+              dérobées — il termine, au lieu de rouvrir le grand message. */}
+          <button onClick={() => onAller(1)} className="cs-visite-bouton cs-visite-bouton--fort cs-visite-bouton--large" style={STYLE_PRINCIPAL}>
+            Commencer la visite
+          </button>
+          <button onClick={onTerminer} className="cs-visite-bouton cs-visite-bouton--second cs-visite-bouton--large" style={STYLE_SECOND}>Passer</button>
+        </div>
+      </>
+    )}
+    </>
   )
 }
 
@@ -586,11 +661,11 @@ const ACTIONS_VERSET: { icone: React.ReactNode; nom: string; dit: string }[] = [
 function Illustration({ nom }: { nom: IllustrationVisite }) {
   if (nom !== 'actions-verset') return null
   return (
-    <ul style={{ listStyle: 'none', margin: '0.8em 0 0', padding: '9px 11px', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+    <ul style={STYLE_ILLUSTRATION}>
       {ACTIONS_VERSET.map(action => (
-        <li key={action.nom} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.5 }}>
-          <span aria-hidden="true" style={{ flexShrink: 0, paddingTop: '2px', color: 'var(--cs-texte-gris)' }}>{action.icone}</span>
-          <span><span style={{ fontWeight: 600, color: 'var(--cs-texte)' }}>{action.nom}</span> : {action.dit}</span>
+        <li key={action.nom} style={STYLE_ILLUSTRATION_LIGNE}>
+          <span aria-hidden="true" style={STYLE_ILLUSTRATION_ICONE}>{action.icone}</span>
+          <span><span style={STYLE_ILLUSTRATION_NOM}>{action.nom}</span> : {action.dit}</span>
         </li>
       ))}
     </ul>
@@ -602,23 +677,3 @@ function Illustration({ nom }: { nom: IllustrationVisite }) {
 // revient (contour), ce qui renonce (texte seul). Ils reprennent le dessin des
 // boutons de `ModaleCompteRequis`, à la mesure d'une case plus petite.
 
-const STYLE_PRINCIPAL: React.CSSProperties = {
-  fontSize: '0.75rem', fontWeight: 600, padding: '7px 14px', borderRadius: '8px',
-  border: '1px solid var(--cs-vert-aplat)', background: 'var(--cs-vert-aplat)',
-  color: 'var(--cs-sur-aplat)', cursor: 'pointer', whiteSpace: 'nowrap',
-}
-
-const STYLE_SECOND: React.CSSProperties = {
-  fontSize: '0.75rem', padding: '7px 12px', borderRadius: '8px',
-  border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)',
-  color: 'var(--cs-texte-second)', cursor: 'pointer', whiteSpace: 'nowrap',
-}
-
-const STYLE_PASSER: React.CSSProperties = {
-  fontSize: '0.75rem', padding: '7px 0', border: 'none', background: 'none',
-  color: 'var(--cs-texte-gris)', cursor: 'pointer', textDecoration: 'underline',
-  textUnderlineOffset: '3px', whiteSpace: 'nowrap',
-}
-
-const STYLE_PRINCIPAL_LARGE: React.CSSProperties = { ...STYLE_PRINCIPAL, fontSize: '0.8125rem', padding: '10px 20px' }
-const STYLE_SECOND_LARGE: React.CSSProperties = { ...STYLE_SECOND, fontSize: '0.8125rem', padding: '10px 20px' }

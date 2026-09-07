@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   cadreDuSujet, decoupeDuVoile, ecrireVisites, etapesPresentes, lireVisites,
-  placerCarteVisite, traitVersSujet,
+  defilementDuSujet, placerCarteVisite, traitVersSujet,
   type Cadre, type EtapeVisite,
 } from './visiteGuidee'
 
@@ -71,6 +71,60 @@ describe('placement de la case explicative', () => {
     expect(p.left).toBeGreaterThanOrEqual(14)
     expect(p.left + CARTE.largeur).toBeLessThanOrEqual(VUE.largeur - 14)
     expect(p.top + CARTE.hauteur).toBeLessThanOrEqual(VUE.hauteur - 14)
+  })
+})
+
+describe('où poser le sujet pour que sa case tienne à côté de lui', () => {
+  // Un téléphone : la case y est aussi large que la bande utile.
+  const TEL = { largeur: 375, hauteur: 667 }
+  // ⚠️ La hauteur est MESURÉE, non supposée : c est celle de l arret « Modes » de la
+  // recherche, relevee dans le navigateur a 375 px (tmp/planche-visite-mobile.mts).
+  const CARTE_TEL = { largeur: 336, hauteur: 306 }
+
+  it('laisse le sujet au CENTRE quand un côté horizontal peut recevoir la case', () => {
+    const d = defilementDuSujet({
+      sujet: { top: 400, left: 20, width: 300, height: 40 },
+      carte: CARTE, vue: VUE, hautNavbar: NAVBAR,
+    })
+    expect(d.bloc).toBe('center')
+    expect(d.marge).toBe(0)
+  })
+
+  it('pose le sujet EN TÊTE quand la case ne peut aller qu’au-dessous', () => {
+    const d = defilementDuSujet({
+      sujet: { top: 300, left: 12, width: 351, height: 40 },
+      carte: CARTE_TEL, vue: TEL, hautNavbar: NAVBAR,
+    })
+    expect(d.bloc).toBe('start')
+    expect(d.marge).toBe(NAVBAR + 14)
+  })
+
+  it('rend au centre lorsque la bande ne peut porter ni le sujet ni la case', () => {
+    const d = defilementDuSujet({
+      sujet: { top: 100, left: 12, width: 351, height: 420 },
+      carte: CARTE_TEL, vue: TEL, hautNavbar: NAVBAR,
+    })
+    expect(d.bloc).toBe('center')
+  })
+
+  it('fait vraiment de la place : la case ne recouvre plus son sujet', () => {
+    const sujet = { top: 300, left: 12, width: 351, height: 40 }
+    const vue = TEL
+    const carte = CARTE_TEL
+    const d = defilementDuSujet({ sujet, carte, vue, hautNavbar: NAVBAR })
+    const apres = { ...sujet, top: d.bloc === 'start' ? d.marge : (vue.hauteur - sujet.height) / 2 }
+    const cadre = cadreDuSujet({ sujet: apres, vue, hautNavbar: NAVBAR })
+    const p = placerCarteVisite({ cadre, carte, vue, hautNavbar: NAVBAR })
+    expect(p.cote).toBe('dessous')
+    expect(p.top).toBeGreaterThanOrEqual(cadre.top + cadre.height)
+    expect(p.trait).not.toBeNull()
+  })
+
+  it('le centre RECOUVRAIT le sujet — c’est ce qu’on corrige', () => {
+    const sujet = { top: (667 - 40) / 2, left: 12, width: 351, height: 40 }
+    const cadre = cadreDuSujet({ sujet, vue: TEL, hautNavbar: NAVBAR })
+    const p = placerCarteVisite({ cadre, carte: CARTE_TEL, vue: TEL, hautNavbar: NAVBAR })
+    expect(p.trait).toBeNull()
   })
 })
 

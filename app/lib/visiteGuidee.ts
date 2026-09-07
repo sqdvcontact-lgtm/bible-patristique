@@ -270,6 +270,83 @@ export function placerCarteVisite({
   return { top, left, cote, trait: tracerTrait({ cadre, carte: { top, left, ...carte }, cote }) }
 }
 
+/**
+ * OÙ POSER LE SUJET DANS L'ÉCRAN pour que sa case tienne À CÔTÉ de lui.
+ *
+ * ⛔ SUR UN TÉLÉPHONE, LA CASE EST AUSSI LARGE QUE LA BANDE UTILE : elle vaut
+ * `min(21rem, 100vw - 1.75rem)`, c'est-à-dire exactement ce que l'écran offre entre
+ * ses deux marges. Aucun côté horizontal ne peut donc la recevoir, et elle se pose
+ * forcément au-dessus ou au-dessous. Or la page amenait son sujet AU CENTRE — la
+ * pire place qui soit : il ne reste alors la moitié de la bande de chaque côté, et
+ * une case de deux cent cinquante pixels n'y tient ni d'un côté ni de l'autre.
+ *
+ * ⚠️ MESURÉ AVANT CETTE FONCTION (`tmp/controle-placement-visite.mts`, hauteurs de
+ * case relevées dans le navigateur) : sur les cinq téléphones et les cinq tailles de
+ * sujet qu'on rencontre, la case RECOUVRAIT son sujet 210 fois sur 450, et le trait
+ * tombait avec elle — 59 % sur un iPhone SE dont le navigateur montre ses barres.
+ * C'est-à-dire que la visite y expliquait, une fois sur deux, un sujet qu'elle venait
+ * de cacher, et sans flèche pour dire lequel.
+ *
+ * La règle est celle de la charte, § 46, appliquée une étape plus tôt : on ne borne
+ * pas la case après coup, on fait de la place AVANT. Trois cas, et le premier laisse
+ * les grands écrans exactement où ils étaient.
+ *
+ * ⚠️ Le premier se juge sur l'ABSCISSE du sujet, que le défilement vertical ne change
+ * pas : la réponse est donc valable avant même d'avoir bougé.
+ */
+export type DefilementVisite = {
+  /** Ce que `scrollIntoView` reçoit. */
+  bloc: 'center' | 'start'
+  /** Le blanc réservé au-dessus du sujet, posé en `scroll-margin-top` le temps du
+   *  défilement. Nul quand le sujet se centre. */
+  marge: number
+}
+
+export function defilementDuSujet({
+  sujet, carte, vue, hautNavbar, marge = MARGE_VISITE, ecart = ECART_VISITE, souffle = 0,
+}: {
+  sujet: Cadre
+  carte: { largeur: number; hauteur: number }
+  vue: Vue
+  hautNavbar: number
+  marge?: number
+  ecart?: number
+  /** Le souffle que `cadreDuSujet` ajoutera autour du sujet : c'est la case AGRANDIE
+   *  qu'il faudra loger, non le seul élément. */
+  souffle?: number
+}): DefilementVisite {
+  const centre: DefilementVisite = { bloc: 'center', marge: 0 }
+  const hauteur = sujet.height + souffle * 2
+
+  // 1. Un côté HORIZONTAL peut la recevoir : rien à changer, et c'est le cas de tous
+  //    les écrans larges, où le sujet se centre comme il l'a toujours fait.
+  const placeDroite = (vue.largeur - marge) - (sujet.left + sujet.width + ecart)
+  const placeGauche = (sujet.left - ecart) - marge
+  if (placeDroite >= carte.largeur || placeGauche >= carte.largeur) return centre
+
+  // 2. LE CENTRE SUFFIT DÉJÀ : on n'y touche pas. Sur un grand écran la bande est
+  //    haute, et un sujet centré laisse encore la place qu'il faut au-dessous ; faire
+  //    remonter la page n'y gagnerait rien et déplacerait le regard pour rien.
+  const hautUtile = hautNavbar + marge
+  const basUtile = vue.hauteur - marge
+  const topCentre = (vue.hauteur - hauteur) / 2
+  const sousLeCentre = basUtile - (topCentre + hauteur + ecart)
+  const surLeCentre = (topCentre - ecart) - hautUtile
+  if (sousLeCentre >= carte.hauteur || surLeCentre >= carte.hauteur) return centre
+
+  // 3. La bande utile peut porter le sujet ET sa case, mais pas s'il est au milieu :
+  //    on pose le sujet EN TÊTE, et tout ce qui reste dessous est pour elle.
+  //    ⚠️ On préfère le DESSOUS parce qu'on lit de haut en bas : le sujet d'abord, ce
+  //    qu'on en dit ensuite.
+  if (hauteur + ecart + carte.hauteur <= basUtile - hautUtile) return { bloc: 'start', marge: hautUtile }
+
+  // 4. Ni l'un ni l'autre : un volet qui occupe tout l'écran d'un téléphone. On garde
+  //    le sujet au centre — il est au moins ENTIER sous les yeux — et `placerCarteVisite`
+  //    range la case au plus loin de lui, sans trait. C'est le cas dégradé que la charte
+  //    prévoit, et il redevient l'exception qu'il doit être.
+  return centre
+}
+
 /** Vrai quand les deux cases se recouvrent, si peu que ce soit. */
 function seRecouvrent(cadre: Cadre, carte: { top: number; left: number; largeur: number; hauteur: number }): boolean {
   return carte.left < cadre.left + cadre.width
