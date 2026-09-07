@@ -6874,3 +6874,60 @@ constante de ce nom, `.ts` compris (deux feuilles vivent dans des modules sans c
   laissent un deux-points que le parseur refuse. C'est un hasard heureux, non la règle :
   la charte rappelle que le cas ordinaire passe le parseur et fait disparaître la feuille
   en silence.
+
+# MES CITATIONS dans l'espace du lecteur (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, § 40.10. Règles de code :
+
+- **La page est `app/compte/prelevements/PagePrelevements.tsx`**, sous `/compte/prelevements` ;
+  `app/prelevements/page.tsx` ne fait plus que `permanentRedirect('/compte/prelevements')`.
+  ⛔ **308, jamais 307** : le déplacement est définitif, et seul le permanent transmet les
+  signaux (audit du 2026-08-25, où trois déplacements du site étaient servis en temporaire).
+- ⛔ **Elle ne garde AUCUNE garde de session** : le cadre de l'espace (`EspaceCompte`) la fait,
+  et `useEspace()` lui rend l'utilisateur et son profil. `getSession`, le renvoi vers
+  `/chantier` et la lecture de `traduction_defaut` sont partis avec ; `profils` n'est plus
+  interrogé QUE pour la citation favorite, que le type `ProfilLecteur` ne porte pas.
+- ⛔ **Ni `<main>` ni fond** : la page est un `.esp-cadre` + `.esp-page`, et le sol vient du
+  cadre. ⚠️ Son bloc `<style>` descend DANS la colonne de contenu : un `<style>` posé en
+  enfant direct d'un flex ne prend pas de place (l'agent pose `display: none`), mais on ne
+  laisse pas traîner un enfant qui n'en est pas un.
+- ⚠️ **Le compte que la tête disait passe dans les repères du bandeau** (« 38 citations
+  enregistrées »), et le filet à quadrilobe reste : il enseigne la marque qu'on retrouve
+  dans la liste (charte § 34.2), et il a seulement perdu le titre qu'il soulignait.
+- **`SommaireEspace` prend un `surAncre`** : ce que la page a à faire AVANT le saut. Ici,
+  déplier le groupe visé. ⛔ Il ne doit rien déplacer AU-DESSUS de la cible — ce qui s'ouvre
+  s'ouvre SOUS elle, donc la place du titre ne bouge pas, et `allerAAncre` vise juste.
+  Mesuré en ligne : le groupe se pose à 110 px du haut, soit la barre plus 1,5 rem.
+- ⛔ **L'ancre d'un groupe se dérive de son LABEL, jamais de son rang** : un rang change dès
+  qu'un passage est retiré, et le sommaire mènerait ailleurs. Le repli des accents passe par
+  `replier` (`bibleBibliographieOuvrages.ts`), l'écriture du moteur bibliographique : une
+  seconde façon de replier une chaîne finirait par ne plus s'accorder avec la première.
+- ⚠️ **`scrollMarginTop` se compose sur `HAUTEUR_NAVBAR`**, jamais en pixels : la barre mesure
+  56 px à la racine 16 et 77 à la racine 22.
+- **Les liens à suivre quand une page de l'espace déménage** : le menu de compte
+  (`Navbar.tsx`), `audienceLibelles.ts` (le libellé d'une vue), `audience.ts` (la rubrique —
+  ⚠️ l'ancienne entrée se GARDE, les vues déjà enregistrées la portent), et la liste
+  `HORS_INDEX_ATTENDU` de `metadonneesPages.test.ts`, qui compte les layouts.
+
+## ⛔ LES PAGES DE L'ESPACE SE LISENT EN COLONNE
+
+Elles étaient en onglets ; à quatre, elles demandaient **288 px dans une colonne qui en offre
+216**, et « Mon parcours » se coupait en deux. Elles prennent donc `.esp-lien`, la rangée des
+ancres du même sommaire — la forme des options d'un volet de lecture — et `.esp-pages` pose le
+filet qui sépare ce qui NAVIGUE de ce qui SAUTE.
+
+- ⛔ **Pas de barre sur deux rangées** : l'arbitrage a été rendu le 2026-08-22 sur la
+  sous-barre de l'administration, et une barre sur deux rangées n'est plus une barre.
+- ⛔ **Pas de libellés abrégés** non plus : « Mon compte » et « Mon parcours » sont des noms
+  que l'auteur a donnés. Une mesure est un réglage, un nom est une décision.
+- ⚠️ Sous 900 px, les pages repassent EN LIGNE (`flex-wrap`) et reprennent leur rang : le
+  débord de sept pixels de chaque côté n'a de sens que dans une colonne étroite.
+
+## ⚠️ Ce qui reste ouvert sur cette page
+
+- La barre d'onglets INTERNE (« Versets bibliques » / « Textes patristiques ») est encore
+  composée en styles en ligne, alors que le site a un modèle unique depuis le 2026-08-28
+  (`OngletsPage`). Elle porte un COMPTE que le modèle ne connaît pas : l'y faire entrer
+  demande de mettre le compte dans le libellé, ce qui change le dessin et n'a pas été demandé.
+- Trois défauts de lint ANTÉRIEURS au déménagement y demeurent : deux `setState` en corps
+  d'effet (la citation favorite lue du stockage local, le dépliage des groupes) et un `any`.
