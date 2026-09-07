@@ -12,7 +12,7 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import MarqueMecene from '@/app/components/MarqueMecene'
 
@@ -220,7 +220,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         </svg>
       </BoutonPartage>
       <BoutonPartage label="Signaler" onClick={() => { if (exigerCompte('signaler cette publication')) setSignalerOuvert(true) }}>
-        <IconeDrapeau size={14} />
+        <IconeSignalement size={14} />
       </BoutonPartage>
     </>
   )

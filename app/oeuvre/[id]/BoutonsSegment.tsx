@@ -9,7 +9,7 @@ import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
@@ -147,7 +147,7 @@ export function BoutonSignalerSegment({ segId, texteObjet, titreOeuvre, classNam
           className={className}
           style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}
           aria-label="Signaler une erreur">
-          <IconeDrapeau />
+          <IconeSignalement />
         </button>
       </Bulle>
       {ouvert && (

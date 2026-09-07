@@ -22,9 +22,9 @@ import { supabase } from "@/app/lib/supabase";
 import NavLivres from "@/app/components/NavLivres";
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from "@/app/lib/chapitresCanon";
 import IconeCrayon from "@/app/components/IconeCrayon";
-import IconeDrapeau from "@/app/components/IconeDrapeau";
+import IconeSignalement from "@/app/components/IconeSignalement";
 import IconeSignet from "@/app/components/IconeSignet";
-// La cellule d'actions du site : au-dessus du texte survole, jamais dessus.
+// La cellule d'actions du site : au-dessus du texte survolé, jamais dessus.
 import { CelluleActions, useCelluleActions } from "@/app/components/CelluleActions";
 import { STYLE_BOUTON_ACTION } from "@/app/lib/celluleActions";
 import IconeChevron from "@/app/components/IconeChevron";
@@ -575,12 +575,12 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 
 // ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
 // Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
-// citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
-// ⛔ Le gabarit vient du module partage : les quatre surfaces montraient le meme
-// drapeau dans des boites de 16, 18 et 19 px. Le signet aussi — la Polyglotte en
-// gardait une copie, au trace pres identique a `IconeSignet`.
+// citations », le point d'exclamation ouvre un signalement. Discrets, révélés au survol.
+// ⛔ Le gabarit vient du module partagé : les quatre surfaces montraient la même
+// marque dans des boîtes de 16, 18 et 19 px. Le signet aussi — la Polyglotte en
+// gardait une copie, au tracé près identique à `IconeSignet`.
 const ACT_BTN = STYLE_BOUTON_ACTION;
-// Signalement : le composant partagé IconeDrapeau (SVG), au même gabarit exact que le
+// Signalement : le composant partagé IconeSignalement (SVG), au même gabarit exact que le
 // signet de prélèvement — les deux SVG restent donc toujours de la même taille.
 
 // Bouton « citer » à bascule : ajoute le verset à « mes citations » s'il n'y est pas,
@@ -640,7 +640,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte("signaler une erreur")) setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "var(--cs-texte-faible)" }} aria-label="Signaler"><IconeDrapeau /></button>
+        style={{ ...ACT_BTN, color: "var(--cs-texte-faible)" }} aria-label="Signaler"><IconeSignalement /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );

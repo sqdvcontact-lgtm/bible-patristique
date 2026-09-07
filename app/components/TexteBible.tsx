@@ -15,7 +15,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
 import IconeCrayon from '@/app/components/IconeCrayon'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
@@ -142,7 +142,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
         className="bouton-action-verset"
         title="Signaler une erreur"
         style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-        <IconeDrapeau />
+        <IconeSignalement />
       </button>
       {ouvert && <ModalSignalement titre={ref} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>

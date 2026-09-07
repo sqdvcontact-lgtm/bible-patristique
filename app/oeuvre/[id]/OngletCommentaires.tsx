@@ -7,7 +7,7 @@ import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { insererSignalement } from './signalements'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
@@ -315,7 +315,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           )}
           <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire"
             style={{ color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: userId === c.user_id || (estAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
-            <IconeDrapeau />
+            <IconeSignalement />
           </button>
         </div>
         </>

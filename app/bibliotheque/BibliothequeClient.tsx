@@ -12,7 +12,7 @@ import EtoileFavori from '@/app/components/EtoileFavori'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import IconeChevron from '@/app/components/IconeChevron'
 import OngletsPage from '@/app/components/OngletsPage'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { serieDeLAuteur } from '@/app/lib/langueBude'
 import { partagerOpuscules } from '@/app/lib/opuscules'
@@ -775,7 +775,7 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }} title="Signaler une erreur sur cette traduction"
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: 'var(--cs-or-doux)', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}
         onMouseEnter={e => (e.currentTarget.style.color = '#b0442a')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}><IconeDrapeau /></button>
+        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}><IconeSignalement /></button>
       {ouvert && <ModalSignalement titre={reference} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   )

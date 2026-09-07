@@ -7,7 +7,7 @@ import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/t
 import { parseNotes } from '@/app/lib/notes'
 import { lireSuiteAppels, detacherDernierMot, separateurAppels } from '@/app/oeuvre/[id]/appelNote'
 import NoteTooltip from '@/app/lib/NoteTooltip'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { anneeChronologique, comparerChronologie } from '@/app/lib/chronologiePatristique'
@@ -386,7 +386,7 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
             />
             <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
               className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
-              <IconeDrapeau />
+              <IconeSignalement />
             </button>
             <BoutonSupprimerLien
               segmentId={s.idLien} colonneLien={colonneLien}
@@ -700,7 +700,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           )}
           <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire"
             style={{ color:'var(--cs-bord)', background:'none', border:'none', cursor:'pointer', padding:0, marginLeft: userId === c.user_id || (isAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink:0, display:'inline-flex', alignItems:'center' }}>
-            <IconeDrapeau />
+            <IconeSignalement />
           </button>
         </div>
         </>

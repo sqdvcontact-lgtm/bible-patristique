@@ -56,7 +56,7 @@ import {
 } from '@/app/lib/compositionVisite'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { normaliserEspaces } from '@/app/lib/typographie'
 import {
@@ -645,7 +645,7 @@ export function ProposVisite({ visite, etape, position, total, derniere, onAller
 //
 // ⛔ ELLES REPRENNENT LES DESSINS RÉELS, jamais un croquis qui leur ressemble : une
 // légende qui montre autre chose que le bouton qu'elle nomme apprend à reconnaître
-// ce qui n'existe pas. `IconeSignet`, `IconeCopier` et `IconeDrapeau` sont les
+// ce qui n'existe pas. `IconeSignet`, `IconeCopier` et `IconeSignalement` sont les
 // composants mêmes que la colonne d'actions d'un verset emploie.
 //
 // ⚠️ Les icônes y prennent une encre LISIBLE (`--cs-texte-gris`) et non la teinte
@@ -655,7 +655,7 @@ export function ProposVisite({ visite, etape, position, total, derniere, onAller
 const ACTIONS_VERSET: { icone: React.ReactNode; nom: string; dit: string }[] = [
   { icone: <IconeSignet />, nom: 'Garder', dit: 'le passage rejoint vos prélèvements, dans votre espace de lecture. Il y faut un compte.' },
   { icone: <IconeCopier />, nom: 'Copier', dit: 'le texte part avec sa référence, prêt à coller ailleurs.' },
-  { icone: <IconeDrapeau />, nom: 'Signaler', dit: 'vous nous avertissez d’une coquille ou d’une erreur.' },
+  { icone: <IconeSignalement />, nom: 'Signaler', dit: 'vous nous avertissez d’une coquille ou d’une erreur.' },
 ]
 
 function Illustration({ nom }: { nom: IllustrationVisite }) {

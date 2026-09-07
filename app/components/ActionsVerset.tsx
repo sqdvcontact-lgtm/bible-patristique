@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignet from '@/app/components/IconeSignet'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
@@ -133,7 +133,7 @@ export default function ActionsVerset({
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}
         className="bouton-action-verset" title="Signaler une erreur" aria-label="Signaler"
         style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
-        <IconeDrapeau />
+        <IconeSignalement />
       </button>
 
       {erreur && <span role="alert" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 5, width: '15rem', padding: '5px 7px', borderRadius: '4px', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.625rem', lineHeight: 1.35 }}>{erreur}</span>}

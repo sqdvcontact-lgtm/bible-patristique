@@ -9,7 +9,7 @@ import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
-import IconeDrapeau from '@/app/components/IconeDrapeau'
+import IconeSignalement from '@/app/components/IconeSignalement'
 import { citationBiblique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
@@ -86,7 +86,7 @@ export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { ve
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
-        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeDrapeau /></button>
+        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeSignalement /></button>
       {ouvert && (
         <ModalSignalement
           titre={label}

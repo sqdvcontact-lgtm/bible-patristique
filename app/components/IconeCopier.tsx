@@ -1,6 +1,6 @@
 /** Deux feuillets superposés — le bouton « Copier » des colonnes d'actions.
  *
- *  Même gabarit que `IconeSignet` (11 × 12) et `IconeDrapeau` : les trois occupent
+ *  Même gabarit que `IconeSignet` (11 × 12) et `IconeSignalement` : les trois occupent
  *  strictement la même place dans la gouttière d'un verset. Hérite de la couleur.
  *
  *  ⚠️ Le glyphe vit en SEPT exemplaires dans le dépôt (page Bible, volet patristique,
