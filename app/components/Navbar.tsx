@@ -202,6 +202,18 @@ const VITESSE_POSE_PX_MS = 0.35;
 // soit la cellule, ne le laisse jamais échoir.
 const DELAI_REPOS_MS = 90;
 
+// ⛔ CE QUI SÉPARE LE BAS D'UN CONTRÔLE DU BAS DE LA BARRE, et sert à poser les deux
+// menus qui s'ouvrent au CLIC — le panneau de recherche et le menu de compte. Un
+// contrôle de 1,875 rem est centré dans une rangée de HAUTEUR_NAVBAR : il reste donc
+// la moitié du jeu sous lui, plus le filet d'un pixel qui ferme la barre.
+// ⚠️ Les deux mesures sont des constantes de ce fichier, et la formule les LIT : si la
+// hauteur de la barre ou celle des contrôles bouge, elle bouge avec elles. ⛔ Ne pas la
+// remplacer par le nombre qu'elle vaut aujourd'hui — la police racine est fluide, et un
+// pixel écrit ici serait juste à une seule taille d'écran.
+// ⚠️ Les menus au SURVOL, eux, ne passent pas par là : ils s'ouvrent au bas de leur
+// onglet, lequel s'étire jusqu'au bas de la barre (voir « .cs-plus » dans la feuille).
+const SOUS_LA_BARRE = `calc((${HAUTEUR_NAVBAR} - 1.875rem) / 2 + 1px)`;
+
 // ── LE POULS DU CURSEUR ──────────────────────────────────────────────────────
 // Un seul écouteur pour toute la barre. Un onglet a besoin de savoir, à l'instant
 // où le curseur entre sur lui, s'il file ou s'il se pose — et cela ne se lit pas
@@ -1240,7 +1252,7 @@ export default function Navbar() {
            la gauche, sur la place libre du milieu de la barre : c'est le seul côté où
            l'on est sûr de ne buter contre rien. La largeur reste en rem, donc accordée
            à la police racine, qui grandit avec la fenêtre au-delà de 1 440 px. */
-        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: "calc(100% + 8px)", left: mobile ? 0 : "auto", right: 0, width: mobile ? "100%" : "min(32rem, calc(100vw - 3rem))", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: `calc(100% + ${SOUS_LA_BARRE})`, left: mobile ? 0 : "auto", right: 0, width: mobile ? "100%" : "min(32rem, calc(100vw - 3rem))", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "var(--cs-fond-clair)" }}>
@@ -1499,7 +1511,7 @@ export default function Navbar() {
           <span style={{ fontSize: "0.625rem", opacity: 0.6 }}>▼</span>
         </button>
       )}
-      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: "calc(100% + 6px)", right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
+      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: `calc(100% + ${SOUS_LA_BARRE})`, right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
           <div style={{ display: "flex", alignItems: "center", gap: "9px", padding: "10px 14px 9px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={30} />
@@ -1817,7 +1829,23 @@ export default function Navbar() {
 
              overscroll-behavior:contain — sans lui, la molette poursuivie au bas de la liste
              emporte la PAGE, et le menu se ferme sous le curseur qui a bougé avec elle. */
-          .cs-plus { position: relative; display: inline-flex; }
+          /* ⛔ UN MENU S'OUVRE AU BAS DE LA BARRE, JAMAIS AU BAS DE SON ONGLET.
+             L'onglet est centré dans la rangée et se ferme une vingtaine de pixels avant
+             elle : un menu posé à « top: 100 % » de l'onglet ouvrait donc son coin DANS
+             la barre, et le filet du bas passait derrière lui — relevé par l'auteur le
+             2026-09-06 au soir, et vu sur planche.
+             ⚠️ On ne corrige PAS en décalant le menu d'un nombre de pixels : le décalage
+             vaut la moitié du jeu sous l'onglet, il suit donc la police racine, qui est
+             fluide. C'est l'ANCRE qu'on étire — l'onglet et la barre de navigation qui le
+             porte — et « top: 100 % » retombe alors de lui-même au bas de la rangée.
+             ⛔ Et c'est nécessaire, non pas élégant : le menu s'ouvre au SURVOL, et se
+             ferme dès que le curseur quitte le groupe formé par l'onglet et sa boîte.
+             Décalé sans être étiré, le menu aurait laissé un vide de vingt pixels HORS du
+             groupe, et il se serait fermé sous la main qui vient le chercher.
+             ⚠️ La barre garde son « items-center » : les onglets restent centrés, et rien
+             ne change à ce qui se voit dans la rangée. */
+          .cs-nav-principale { align-self: stretch; }
+          .cs-plus { position: relative; display: inline-flex; align-self: stretch; align-items: center; }
           .cs-plus-menu { position: absolute; top: 100%; left: 0; min-width: 13rem; background: var(--cs-surface); border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-modale); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 1.5rem); z-index: 3000; padding: 3px; display: none; }
           /* ⚠️ DEUX RÈGLES, et non une seule à deux sélecteurs : un navigateur qui
              ignore :has() jette la déclaration ENTIÈRE dès qu'un sélecteur inconnu
