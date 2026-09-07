@@ -6931,3 +6931,40 @@ filet qui sépare ce qui NAVIGUE de ce qui SAUTE.
   demande de mettre le compte dans le libellé, ce qui change le dessin et n'a pas été demandé.
 - Trois défauts de lint ANTÉRIEURS au déménagement y demeurent : deux `setState` en corps
   d'effet (la citation favorite lue du stockage local, le dépliage des groupes) et un `any`.
+
+# ⛔ LA GRAMMAIRE DE L'ESPACE DU LECTEUR (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, § 40.11. Relevé de l'auteur : « la mise en forme
+n'est pas très claire ». Ce qu'il faut savoir pour composer une page de l'espace :
+
+| Ce qu'on montre | Comment | Où c'est écrit |
+|---|---|---|
+| un LIVRE, un AUTEUR | titre de section : sérif italique vert | `.esp-section h2`, `.prel-groupe-tete h2` |
+| une RÉFÉRENCE | manchette, colonne fixe de 7 rem, sérif 0,8125 rem | `.chn-ref`, `.prel-ref` |
+| le CORPUS (verset, citation) | sérif, `styleTexteVerset` ou sa copie | `.chn-lemme`, `.prel-texte` |
+| ce que le LECTEUR a écrit | sans 0,78125 rem, RENTRÉ sous son texte | `.chn-scholie` |
+| un REPÈRE (nature, date, état) | rubrique : petites capitales, `--cs-texte-second` | `.chn-tete` |
+| une glose qui SE RÉPÈTE | italique grise, sans capitales | `.prel-provenance` |
+
+- ⛔ **Le VERT ne dit qu'une chose à la fois.** Il portait trois objets sur « Ma chaîne » :
+  le titre du livre, la référence et la marque de la glose ; deux d'entre eux se
+  composaient à l'identique, sérif italique vert, à un pixel près. C'est le jeton des LIENS
+  et l'encre des TITRES ; une marque d'appareil prend le gris.
+- ⛔ **Une référence ne vit pas SOUS son texte.** Mesuré avant reprise : 9 px, `#8a8278`,
+  contraste **3,4** là où la règle exige 4,5 — l'information qui identifie le passage était
+  la moins lisible de la page. En manchette : **13,8**.
+- ⛔ **Une note et un commentaire RENTRENT sous le texte qu'ils commentent** (1,1 rem ;
+  0,7 sur une mesure étroite). Le blanc seul ne dit pas ce qui commente quoi.
+- ⚠️ **Un repère se réunit sur UNE ligne.** La date pendait sous chaque glose : la colonne
+  comptait deux fois plus de blocs qu'il n'y avait de scholies, et rien ne disait où l'une
+  finissait. Nature, date et état tiennent sur la tête, séparés par un point médian à 45 %
+  d'opacité ; « en révision » y prend `--cs-danger-fonce`.
+- ⛔ **Le corpus se compose en SÉRIF, partout.** Les citations étaient en sans : deux pages
+  voisines rendaient le même verset dans deux polices. Le sans reste à ce que le lecteur
+  écrit, et la distinction se lit alors sans un mot.
+- ⛔ **Tout se ferre sur la mesure.** Trois objets de « Mes citations » se centraient dans
+  une page ferrée — la barre d'onglets, le sélecteur, l'emblème. La barre passe à
+  `OngletsPage` (son compte entre dans le libellé, le modèle ne connaissant pas de badge),
+  le sélecteur se ferre, l'emblème prend la mesure entière.
+- ⚠️ **`OngletsPage` réserve la largeur d'après `data-libelle`** : un compte qui change dans
+  le libellé ne déplace donc pas son voisin.

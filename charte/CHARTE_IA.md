@@ -6033,3 +6033,25 @@ Demande de l’auteur, 2026-09-07 : « il faut déplacer mes prélèvements dans
 ⛔ **L’ANCIENNE ADRESSE REDIRIGE EN 308, jamais en 307** : le déplacement est définitif, et seul le permanent transmet les signaux. L’adresse a circulé — elle est dans les favoris des lecteurs de la bêta, et le menu de compte l’a portée un mois durant. ⚠️ La rubrique d’audience `prelevements` est gardée pour l’HISTORIQUE : les vues d’avant ce jour la portent encore.
 
 ⚠️ **CE QUI RESTE OUVERT** : la barre d’onglets INTERNE de la page (« Versets bibliques » / « Textes patristiques ») est encore composée en styles en ligne, alors que le site a un modèle unique depuis le 2026-08-28 (`OngletsPage`, § 36). Elle porte un compte que le modèle ne connaît pas ; l’y faire entrer demande de mettre le compte dans le libellé, ce qui change le dessin de la page et n’a pas été demandé.
+
+
+### 40.11 LA GRAMMAIRE DE L’ESPACE — un rang, une forme, et le vert ne dit qu’une chose
+
+Relevé de l’auteur, 2026-09-07, devant « Ma chaîne » et « Mes citations » : « la mise en forme n’est pas très claire ; revois tout ça ». Trois défauts, mesurés sur les pages servies, et le premier explique les autres.
+
+⛔ **TROIS OBJETS PORTAIENT LE MÊME VERT** sur une seule page : le titre du livre, la référence du verset et la marque de la glose. Deux d’entre eux se composaient de la même façon — sérif italique vert — à un pixel de corps près. C’est la règle du § 35.10 prise à l’envers : deux rangs voisins doivent différer sur DEUX axes au moins, et ici trois rangs n’en changeaient aucun. **Le vert est le jeton des LIENS et l’encre des TITRES de section ; il ne peut pas être en plus la marque d’un appareil.**
+
+⛔ **LA RÉFÉRENCE ÉTAIT CE QU’ON LISAIT LE MOINS.** Sur « Mes citations », elle se composait à 9 px en gris clair au bas de chaque item, sous le seuil de contraste (3,4 mesuré, quand la règle en exige 4,5 sous 24 px), alors que c’est elle qui identifie le passage. Elle passe en MANCHETTE, dans sa colonne, et rend 13,8.
+
+⛔ **ET LE MÊME CORPUS SE COMPOSAIT DANS DEUX POLICES** : les citations en sans sur une page, les lemmes en sérif sur l’autre. Une citation biblique ou patristique est du CORPUS : elle prend le sérif du verset, celui de la page de lecture. Le sans est réservé à ce que le LECTEUR écrit — ses notes, ses commentaires — et la distinction se lit alors sans un mot.
+
+**La grammaire, pour les quatre pages :**
+
+- un LIVRE ou un AUTEUR est un titre de SECTION : sérif italique vert, le rang que l’espace donne déjà à ses sections. ⛔ Jamais une bande à capitales espacées, qui est le vocabulaire d’une interface ;
+- une RÉFÉRENCE est une MANCHETTE : sérif, colonne de largeur fixe, ⛔ jamais une ligne sous le texte. Elle est VERTE quand elle mène au passage, à l’encre du texte quand elle ne fait que le nommer — là où une gouttière d’actions porte déjà le chemin, deux façons d’y aller en font une de trop ;
+- le CORPUS se compose en sérif, à la mesure et à l’interligne du verset ;
+- ce que le LECTEUR a écrit se compose en sans, un cran plus petit, et RENTRE sous le texte qu’il commente : c’est la composition d’une chaîne imprimée, et c’est elle qui dit ce qui commente quoi ;
+- un REPÈRE — la nature d’une glose, sa date, son état — est une RUBRIQUE : petites capitales espacées, `--cs-texte-second`, réunies sur UNE ligne de tête. ⚠️ Réunies, précisément : la date pendait sous chaque texte et hachait la colonne en deux fois plus de blocs qu’il n’y avait de gloses ;
+- ⚠️ une glose qui se RÉPÈTE n’est pas une rubrique. « Prélevé dans la Bible de Sacy » paraît vingt fois sur une page ; en petites capitales elle appelait l’œil autant que la référence. Elle se compose en italique grise. *Un état qui ne varie pas n’informe pas* (§ 38.12), et il ne doit pas peser comme s’il informait.
+
+⛔ **TOUT SE FERRE SUR LA MESURE.** Une page de l’espace est au fer à gauche ; trois de ses objets se centraient — la barre d’onglets, le sélecteur de traduction, l’emblème de la page — si bien que l’œil ne trouvait aucun bord commun. La barre passe au MODÈLE du site (§ 36), le sélecteur se ferre, et l’emblème prend la mesure entière, où il sépare au lieu de flotter. ⚠️ Un ornement CENTRÉ reste légitime (§ 41.5), mais alors il tient toute la mesure : centré sur treize rem au milieu de huit cents pixels, il ne sépare rien.
