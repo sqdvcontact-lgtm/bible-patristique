@@ -2360,7 +2360,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            les laisse en deux blocs, et le filet tiré entre eux annoncerait une frontière
            que l'alignement ne reconnaît pas. Le blanc se resserre au lieu de s'ouvrir :
            les deux moitiés appartiennent au même empan, dont le grec est resté au-dessus.
-           ⚠️ Le paragraphe, lui, se sépare quand même : le `<p>` garde son propre blanc. */
+           ⚠️ Le paragraphe, lui, se sépare quand même : le « <p> » garde son propre blanc. */
         .para-bilingue--suite { border-bottom: none; margin-bottom: 0.5rem; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
