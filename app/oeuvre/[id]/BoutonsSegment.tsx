@@ -12,14 +12,14 @@ import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
+import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 
-// Style partagé par tous les petits boutons d'action (segment ET verset)
-export const BTN_STYLE: React.CSSProperties = {
-  background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
-  borderRadius:'4px', width:'16px', height:'16px', display:'inline-flex',
-  alignItems:'center', justifyContent:'center', fontSize:'0.75rem',
-  lineHeight:1, flexShrink:0, transition:'color 0.15s',
-}
+// ⛔ LE GABARIT D'UN BOUTON D'ACTION S'ÉCRIT UNE SEULE FOIS, dans app/lib/celluleActions.ts.
+// Les quatre surfaces montraient le même drapeau dans des boîtes de 16, 18 et 19 px : la
+// lecture d'une œuvre ici, la Bible et les péricopes à 18, la Polyglotte à 19. Le dessin
+// ne changeait pas, seulement sa boîte, et rien ne disait laquelle avait raison.
+// ⚠️ Le nom demeure : « BoutonsVerset » et « OeuvreClient » l'importent d'ici.
+export const BTN_STYLE = STYLE_BOUTON_ACTION
 
 // ── Bouton enregistrer segment ────────────────────────────────────────────────
 /**

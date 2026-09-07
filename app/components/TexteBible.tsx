@@ -16,6 +16,7 @@ import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
+import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
@@ -45,12 +46,10 @@ import {
   type BibleEditionDisplayBodyBlock,
 } from '@/app/lib/bibleEdition'
 
-const VERSET_ACTION_BTN: React.CSSProperties = {
-  background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
-  borderRadius:'4px', width:'18px', height:'18px', display:'inline-flex',
-  alignItems:'center', justifyContent:'center', fontSize:'0.84375rem',
-  lineHeight:1, flexShrink:0, transition:'color 0.15s',
-}
+// ⛔ Le gabarit vient du module partagé : un bouton d'action a la même boîte sur les
+// cinq surfaces, qu'il vive dans la gouttière d'un verset, dans le pavé flottant du
+// doigt ou dans la cellule d'actions d'un segment.
+const VERSET_ACTION_BTN = STYLE_BOUTON_ACTION
 
 
 type Verset = {

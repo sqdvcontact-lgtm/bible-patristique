@@ -13,13 +13,10 @@ import IconeSignet from '@/app/components/IconeSignet'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
+import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 
-const BTN: React.CSSProperties = {
-  background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px',
-  borderRadius: '4px', width: '18px', height: '18px', display: 'inline-flex',
-  alignItems: 'center', justifyContent: 'center', fontSize: '0.84375rem',
-  lineHeight: 1, flexShrink: 0, transition: 'color 0.15s',
-}
+// ⛔ Le gabarit vient du module partagé (voir app/lib/celluleActions.ts).
+const BTN = STYLE_BOUTON_ACTION
 
 export type ActionsVersetProps = {
   idVerset: string

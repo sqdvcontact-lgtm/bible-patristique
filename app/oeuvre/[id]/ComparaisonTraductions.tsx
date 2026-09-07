@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
-import { useEstMobile } from '@/app/lib/useEstMobile'
+import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi, texteSansEnrichissement } from './texteEnrichi'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 // Forme de l'appel de note : une seule définition pour tout le site (jamais de
@@ -12,6 +12,10 @@ import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { styleAppelNote, styleSeparateurAppels, lireSuiteAppels, separateurAppels } from './appelNote'
 import { BadgeStatutAlignement } from './ComparaisonStatut'
 import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
+// La cellule d'actions du site : à droite du texte, au-dessus si la place manque,
+// jamais par-dessus. ⛔ Elle est BORNÉE PAR LA COLONNE ici — à droite d'une colonne de
+// comparaison il y a l'autre traduction, non du blanc.
+import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
@@ -460,8 +464,8 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
   const [oeuvresMeta, setOeuvresMeta] = useState<Map<string, OeuvreMeta>>(new Map())
   const [sauvegardes, setSauvegardes] = useState<Set<number>>(new Set())
   const [segActif, setSegActif] = useState<number | null>(null)
-  const [segSurvol, setSegSurvol] = useState<{ id: number; top: number; left: number } | null>(null)
-  const timerSurvol = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cellule = useCelluleActions<number>()
+  const sansSurvol = useSansSurvol()
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState<string | null>(null)
 
@@ -543,30 +547,23 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
     return map
   }, [segments])
 
-  // Cellule d'actions flottante d'un segment (comme en lecture) : survol/clic pour
-  // l'ancrer, prélever / copier / signaler. Le CSS `.seg-inline` vient du parent.
-  const positionnerToolbar = (el: HTMLElement, id: number) => {
-    if (timerSurvol.current) clearTimeout(timerSurvol.current)
-    const r = el.getBoundingClientRect()
-    const largeur = typeof window !== 'undefined' ? window.innerWidth : 1200
-    setSegSurvol({ id, top: Math.max(r.top - 4, 56), left: Math.min(r.right + 6, largeur - 132) })
-  }
-  const masquerToolbar = (id: number) => {
-    timerSurvol.current = setTimeout(() => setSegSurvol(prev => (prev && prev.id === id ? null : prev)), 200)
-  }
+  // Cellule d'actions du segment (comme en lecture) : survol/clic pour l'ancrer,
+  // prélever / copier / signaler. Le CSS `.seg-inline` vient du parent.
+  //
+  // ⛔ ELLE EST BORNÉE PAR LA COLONNE, et c'est ce qui la fait passer AU-DESSUS du texte
+  // au lieu de mordre dessus. Le calcul d'avant bridait la position sur la largeur de la
+  // FENÊTRE — `Math.min(r.right + 6, largeur - 132)` —, c'est-à-dire précisément le
+  // contre-exemple que `celluleActions.ts` donne depuis le 2026-08-22 : quand la place
+  // manque, brider ne fait pas de place, cela ramène la cellule sur la fin de la ligne.
+  // Et même corrigé, « à droite » d'une colonne de comparaison tombe sur l'AUTRE
+  // traduction : l'espace disponible est la colonne, jamais la fenêtre.
+  const espaceDe = (el: HTMLElement) => ({ borne: el.closest<HTMLElement>('[data-colonne-comparaison]') })
+  const positionnerToolbar = (el: HTMLElement, id: number) => cellule.ancrer(el, id, espaceDe(el))
+  const masquerToolbar = (id: number) => cellule.relacher(id)
   const clicSegment = (el: HTMLElement, id: number, actif: boolean) => {
-    if (actif) { setSegActif(null); if (mobile) setSegSurvol(null) }
-    else { setSegActif(id); positionnerToolbar(el, id) }
+    if (actif) { setSegActif(null); cellule.fermer() }
+    else { setSegActif(id); cellule.ancrer(el, id, espaceDe(el)) }
   }
-  // Mobile : referme la barre au tap hors barre/segment et au défilement.
-  useEffect(() => {
-    if (!mobile || !segSurvol) return
-    const auTapDehors = (e: Event) => { const c = e.target as Element | null; if (c && !c.closest('[data-seg-toolbar]') && !c.closest('.seg-inline')) setSegSurvol(null) }
-    const auDefilement = () => setSegSurvol(null)
-    document.addEventListener('pointerdown', auTapDehors, true)
-    window.addEventListener('scroll', auDefilement, { passive: true })
-    return () => { document.removeEventListener('pointerdown', auTapDehors, true); window.removeEventListener('scroll', auDefilement) }
-  }, [mobile, segSurvol])
   // ⛔ Le geste DIT ce qu'il a fait, on ne le devine pas en inversant l'appartenance.
   // La bascule reposait sur une croyance fausse — « la barre flottante est remontée à
   // chaque affichage » —, alors qu'elle se déplace d'un segment à l'autre sans se
@@ -603,7 +600,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       { label: alignement.referenceLabel, members: refMembres, empty: `Pas de correspondant dans ${alignement.referenceLabel}`, langue: alignement.referenceLangue },
       { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}`, langue: alignement.alignedLangue },
     ] as const).map(colonne => (
-      <div key={colonne.label} style={{ minWidth: 0 }}>
+      <div key={colonne.label} data-colonne-comparaison="" style={{ minWidth: 0 }}>
         {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
         <ColonneLecture membres={colonne.members} segments={segments} notes={notes} ancres={ancresNotes} vide={colonne.empty} langue={colonne.langue}
           segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment} mobile={mobile} />
@@ -671,22 +668,20 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
         )
       })}
 
-      {/* Cellule d'actions flottante (prélever / copier / signaler) du segment ancré. */}
-      {segSurvol && typeof document !== 'undefined' && (() => {
-        const s = segParId.get(segSurvol.id)
-        if (!s) return null
+      {/* Cellule d'actions (prélever / copier / signaler) du segment ancré. */}
+      {(() => {
+        const s = cellule.ancre ? segParId.get(cellule.ancre.cle) : null
+        if (!cellule.ancre || !s) return null
         const meta = oeuvresMeta.get(s.id_oeuvre)
         const segData = { id: s.id, idTexte: s.id_texte, numeroSource: s.segment_numero, texte: s.segment_texte } as unknown as SegData
-        return createPortal(
-          // ⛔ La CLÉ est le segment : sans elle, la cellule est un seul objet pour
-          // toute la page, et l'état de ses boutons suit le pointeur (cf. `OeuvreClient`).
-          <div key={s.id} data-seg-toolbar="" onMouseEnter={() => { if (timerSurvol.current) clearTimeout(timerSurvol.current) }} onMouseLeave={() => masquerToolbar(segSurvol.id)}
-            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '2px 4px' }}>
+        return (
+          <CelluleActions
+            ancre={cellule.ancre} onRetenir={cellule.retenir} onRelacher={cellule.relacher}
+            onFermer={cellule.fermer} sansSurvol={sansSurvol} boutons={userId ? 3 : 2}>
             {userId && s.id_oeuvre && <BoutonEnregistrerSegment seg={segData} auteur={auteur} titreOeuvre={meta?.titre ?? ''} idOeuvre={s.id_oeuvre} userId={userId} dejaSauvegarde={sauvegardes.has(s.id)} onChangement={preleve => marquerSauvegarde(s.id, preleve)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.segment_texte)} auteur={auteur} titre={meta?.titre} sousTitre={meta?.sous_titre ?? undefined} tradAuteur={meta?.trad_auteur ?? undefined} editeur={meta?.editeur ?? undefined} collection={meta?.collection ?? undefined} ville={meta?.ville ?? undefined} datePublication={meta?.date_publication ?? undefined} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.segment_texte)} titreOeuvre={meta?.titre ?? ''} />
-          </div>,
-          document.body,
+          </CelluleActions>
         )
       })()}
     </section>

@@ -40,7 +40,7 @@ import {
 import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normaliserEspacesOriginal } from './texteEnrichi'
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
-import { positionCellule } from '@/app/lib/celluleActions'
+import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import {
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
@@ -90,7 +90,7 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
-import { useEstMobile } from '@/app/lib/useEstMobile'
+import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
@@ -671,8 +671,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   // Survol d'un segment en mode paragraphes : cellule d'actions flottante ancrée
   // sur le segment (via portail, pour n'être pas clippée par le corps).
-  const [segSurvol, setSegSurvol] = useState<{ id: number; top: number; left: number } | null>(null)
-  const timerSurvolRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // La cellule d'actions du site : à droite du segment, au-dessus si la place manque,
+  // jamais par-dessus. Elle sert la lecture en paragraphes ET les arguments hissés en
+  // tête de division, qui la posaient jusqu'ici EN ABSOLU dans leur coin haut droit,
+  // c'est-à-dire sur leur première ligne.
+  const cellule = useCelluleActions<number>()
+  // ⛔ L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une tablette de 1024 px en
+  // paysage n'a pas de souris, et « mobile » y est faux (charte, « LE DOIGT »).
+  const sansSurvol = useSansSurvol()
   // null = largeur AUTO (responsive, s'adapte à l'écran, plancher de lisibilité) ;
   // number = largeur fixée à la main (drag), en px.
   const [navWidth, setNavWidth] = useState<number | null>(null)
@@ -2229,42 +2235,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       notesVides: {},
     })
 
-  // Cellule d'actions flottante d'un segment (mode paragraphes), ancrée sur le
-  // segment survolé ou sélectionné.
-  // La règle de position vit dans app/lib/celluleActions.ts, avec ses tests : à droite
-  // de la ligne, au-dessus si la droite est trop étroite, jamais par-dessus. Elle est
-  // partagée par toutes les surfaces de lecture.
-  const positionnerToolbar = (el: HTMLElement, sid: number) => {
-    if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current)
-    const r = el.getBoundingClientRect()
-    const largeurEcran = typeof window !== 'undefined' ? window.innerWidth : 1200
-    const { top, left } = positionCellule(r, largeurEcran)
-    setSegSurvol({ id: sid, top, left })
-  }
-  const masquerToolbar = (sid: number) => {
-    timerSurvolRef.current = setTimeout(() => setSegSurvol(prev => (prev && prev.id === sid ? null : prev)), 200)
-  }
+  // Survol d'un segment : la règle de position vit dans app/lib/celluleActions.ts, avec
+  // ses tests, et le suivi au défilement, la grâce de sortie et la fermeture au tap
+  // dehors vivent dans app/components/CelluleActions.tsx. Il ne reste ici que le
+  // rapport entre la cellule et la SÉLECTION du segment, qui appartient à la page.
+  const positionnerToolbar = (el: HTMLElement, sid: number) => cellule.ancrer(el, sid)
+  const masquerToolbar = (sid: number) => cellule.relacher(sid)
 
-  // Tap sur un segment (mode paragraphes). Sur mobile la barre flottante n'a pas de
-  // survol pour se refermer : re-taper le segment actif la referme (bascule), au lieu
+  // Tap sur un segment. Sur un écran sans survol, la cellule n'a pas de sortie de
+  // curseur pour se refermer : re-taper le segment actif la referme (bascule), au lieu
   // de la repositionner indéfiniment.
   const tapSegmentParagraphe = (el: HTMLElement, sid: number, actif: boolean) => {
-    if (actif) { setSegActif(null); if (mobile) setSegSurvol(null) }
-    else { setSegActif(sid); positionnerToolbar(el, sid) }
+    if (actif) { setSegActif(null); cellule.fermer() }
+    else { setSegActif(sid); cellule.ancrer(el, sid) }
   }
-  // Mobile : referme aussi la barre flottante au tap hors barre/segment et au
-  // défilement (elle est en position fixe et se détacherait du texte sinon).
-  useEffect(() => {
-    if (!mobile || !segSurvol) return
-    const auTapDehors = (e: Event) => {
-      const cible = e.target as Element | null
-      if (cible && !cible.closest('[data-seg-toolbar]') && !cible.closest('.seg-inline')) setSegSurvol(null)
-    }
-    const auDefilement = () => setSegSurvol(null)
-    document.addEventListener('pointerdown', auTapDehors, true)
-    window.addEventListener('scroll', auDefilement, { passive: true })
-    return () => { document.removeEventListener('pointerdown', auTapDehors, true); window.removeEventListener('scroll', auDefilement) }
-  }, [mobile, segSurvol])
 
   // ── LA VISITE ──────────────────────────────────────────────────────────────
   // Ce que la page montre d'elle-même la première fois qu'on l'ouvre (charte § 46).
@@ -2320,21 +2304,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .seg-wrapper { position: relative; }
         .seg-p { transition: background 0.12s; }
         .seg-p:hover { background: rgba(var(--cs-vert-rgb),0.05) !important; }
-        .seg-actions { opacity: 0; transition: opacity 0.15s; position: relative; z-index: 2; pointer-events: auto; }
-        .seg-wrapper:hover .seg-actions { opacity: 1; }
-        .seg-wrapper--actif .seg-actions { opacity: 0.5; }
-        .seg-wrapper:hover .seg-btn-enreg { opacity: 1 !important; }
-        .seg-wrapper .seg-btn-enreg { opacity: 0; }
-        .seg-wrapper--actif .seg-btn-enreg { opacity: 0.5; }
-        .seg-wrapper:hover .seg-btn-action { opacity: 1 !important; }
-        .seg-wrapper .seg-btn-action { opacity: 0; }
-        .seg-wrapper--actif .seg-btn-action { opacity: 0.5; }
-        /* ⛔ Écran tactile : les trois familles d'actions restaient invisibles ET
-           tapables (« pointer-events: auto » sur .seg-actions), donc elles interceptaient
-           des taps sans se montrer. Au doigt on les rend pleines. */
-        @media (hover: none) {
-          .seg-actions, .seg-btn-enreg, .seg-btn-action { opacity: 1 !important; }
-        }
+        /* ⛔ Plus aucune règle d'opacité sur les actions d'un argument : elles ne vivent
+           plus DANS le bloc (« .seg-actions », posé en absolu dans son coin haut droit,
+           donc sur sa première ligne), mais dans la cellule d'actions du site, qui est en
+           portail vers <body>. Ces sélecteurs, qui exigeaient un ancêtre « .seg-wrapper »,
+           n'y atteignent plus rien : les laisser aurait été trois familles de règles
+           mortes, et la garde du tactile qu'elles portaient n'a plus d'objet — une
+           cellule qui paraît est pleine, et elle ne paraît que si on la demande. */
         /* Segments coulant dans un même bloc, délimités au survol. */
         .seg-inline { border-radius: 4px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: rgba(var(--cs-vert-rgb),0.09); }
@@ -2916,14 +2892,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               intros.map(s => ({ ids: [s.id] })),
               ids => estBlocDeVers(ids.map(sid => introParId.get(sid))),
             )
-            // La cellule d'actions d'un argument : la même sur les deux compositions.
-            const actionsArgument = (s: SegData) => (
-              <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
-                {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
-                <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
-                <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
-              </div>
-            )
+            // ⛔ L'ARGUMENT N'A PLUS DE PAVÉ EN ABSOLU (2026-09-07). Il en portait un,
+            // « .seg-actions », posé à deux pixels du coin haut droit de son bloc : les
+            // trois boutons couvraient donc la fin de sa PREMIÈRE LIGNE, au moment même
+            // où l'on venait de la survoler pour les faire paraître. Il reçoit les mêmes
+            // gestes qu'un segment de lecture, et la même cellule les sert.
+            const gestesArgument = (s: SegData) => ({
+              onClick: (e: React.MouseEvent<HTMLElement>) =>
+                tapSegmentParagraphe(e.currentTarget, s.id, segActif === s.id),
+              onMouseEnter: sansSurvol ? undefined : (e: React.MouseEvent<HTMLElement>) =>
+                positionnerToolbar(e.currentTarget, s.id),
+              onMouseLeave: sansSurvol ? undefined : () => masquerToolbar(s.id),
+            })
             const corpsArgument = (s: SegData) =>
               rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})
             return (<>
@@ -2937,11 +2917,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
                   return (
                     <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: margeArgument({ memeParagraphe }) }}>
-                      <div lang={langueCorps} onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
+                      <div lang={langueCorps} className="seg-p" {...gestesArgument(s)}
                         style={styleArgument({ actif: segActif === s.id })}>
                         {corpsArgument(s)}
                       </div>
-                      {actionsArgument(s)}
                     </div>
                   )
                 }
@@ -2953,7 +2932,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   <div key={`intro-poeme-${segs[0].id}`} lang={langueCorps} style={styleBlocArgumentEnVers()}>
                     {segs.map((s, i) => (
                       <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: 0 }}>
-                        <div onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
+                        <div className="seg-p" {...gestesArgument(s)}
                           style={styleLigneArgumentEnVers({
                             rang: rangs[i],
                             ouvreStrophe: ouvreStrophe(
@@ -2964,7 +2943,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           })}>
                           {corpsArgument(s)}
                         </div>
-                        {actionsArgument(s)}
                       </div>
                     ))}
                   </div>
@@ -3653,19 +3631,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         )}
       </div>
 
-      {/* Mode paragraphes : cellule d'actions flottante du segment survolé/sélectionné. */}
-      {segSurvol && vue === 'texte' && typeof document !== 'undefined' && (() => {
-        const s = segMap.get(segSurvol.id)
-        if (!s) return null
-        return createPortal(
-          // ⛔ La CLÉ est le segment, et sans elle la cellule ne fait qu'un seul objet
-          // pour toute la page : React réutilise l'instance quand elle se déplace d'un
-          // segment au suivant, et l'état des boutons passe avec elle — le « ✓ » de la
-          // copie, la fenêtre de signalement ouverte, et le signet, dont c'était le
-          // défaut le plus coûteux (voir `BoutonsSegment`).
-          <div key={s.id} data-seg-toolbar="" onMouseEnter={() => { if (timerSurvolRef.current) clearTimeout(timerSurvolRef.current) }}
-            onMouseLeave={() => masquerToolbar(segSurvol.id)}
-            style={{ position: 'fixed', top: segSurvol.top, left: segSurvol.left, zIndex: 1500, display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '2px 4px' }}>
+      {/* La cellule d'actions du segment survolé ou retenu : lecture en paragraphes et
+          arguments de tête. La position, le suivi au défilement et la fermeture au tap
+          dehors vivent dans le composant partagé. */}
+      {vue === 'texte' && (() => {
+        const s = cellule.ancre ? segMap.get(cellule.ancre.cle) : null
+        if (!cellule.ancre || !s) return null
+        return (
+          <CelluleActions
+            ancre={cellule.ancre} onRetenir={cellule.retenir} onRelacher={cellule.relacher}
+            onFermer={cellule.fermer} sansSurvol={sansSurvol}
+            boutons={(userId ? 1 : 0) + 2 + (estAdmin ? 1 : 0)}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
@@ -3673,8 +3649,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
                 style={{ ...BTN_STYLE, color: 'var(--cs-bord)' }}><IconeCrayon size={12} /></button>
             )}
-          </div>,
-          document.body
+          </CelluleActions>
         )
       })()}
 

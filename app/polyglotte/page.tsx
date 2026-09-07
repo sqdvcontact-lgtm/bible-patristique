@@ -23,13 +23,17 @@ import NavLivres from "@/app/components/NavLivres";
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from "@/app/lib/chapitresCanon";
 import IconeCrayon from "@/app/components/IconeCrayon";
 import IconeDrapeau from "@/app/components/IconeDrapeau";
+import IconeSignet from "@/app/components/IconeSignet";
+// La cellule d'actions du site : au-dessus du texte survole, jamais dessus.
+import { CelluleActions, useCelluleActions } from "@/app/components/CelluleActions";
+import { STYLE_BOUTON_ACTION } from "@/app/lib/celluleActions";
 import IconeChevron from "@/app/components/IconeChevron";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { DUREE_ENTREE_MS, ordonnerBlocsVisibles, ordonnerColonnesVisibles } from "@/app/lib/passageTexte";
 import { LIVRE_PAR_DEFAUT, ouvertureDeLaPolyglotte, retenirPositionPolyglotte } from "@/app/lib/repriseLecture";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
-import { useEstMobile } from "@/app/lib/useEstMobile";
+import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 import VisiteGuidee from "@/app/components/VisiteGuidee";
 import { CLE_VISITE_POLYGLOTTE, VISITE_POLYGLOTTE } from "@/app/lib/visitePolyglotte";
 import { oublierVisite, visiteFaite, type SceneVisite } from "@/app/lib/visiteGuidee";
@@ -123,7 +127,7 @@ type Surnum = { cle: string; livre: string; ch: number; v: number; ancre: string
 
 function texteEnrichi(t: string | null, transform?: (s: string, cle: string) => React.ReactNode) {
   if (!t) return null;
-  // Rendu commun au reste du site (gras **, italique <i>/*, petites capitales ++,
+  // Rendu commun au reste du site (gras **, italique <i> ou * … *, petites capitales ++,
   // exposant ^^, siècles en romain). Compat : l'ancien balisage <b> devient **.
   const norm = t.replace(/<b>([\s\S]*?)<\/b>/g, "**$1**");
   return rendreTexteEnrichi(norm, transform);
@@ -486,6 +490,16 @@ function corrigerTexteEnCache(id: string, texte: string) {
 // surnuméraire, un bandeau de livre. Le haut de la lecture est le bas de l'en-tête
 // collant, sinon la barre.
 const SELECTEUR_BLOCS_POLYGLOTTE = ".poly-row, .poly-surnum-row, h2";
+/** Ce qu'il faut pour composer les actions d'une cellule. ⚠️ Le TEXTE est celui de la
+ *  cellule, versets d'origine réunis ; `citer` manque sur un surnuméraire, qui n'a pas
+ *  de référence canonique où ranger un prélèvement. */
+type ActionsDeCellule = {
+  cle: string;
+  refLisible: string;
+  texte: string;
+  citer: { cle: string; refLivre: string; refAbr: string; chapitre: number; verset: number; traductionLabel: string } | null;
+};
+
 const hautDeLecture = (entete: HTMLElement | null) => entete?.getBoundingClientRect().bottom ?? hauteurNavbarPx();
 
 type Onglet = "AT" | "PSA" | "NT" | "AUTRES";
@@ -562,14 +576,10 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 // ── Petites actions de la colonne N° (lecteur) : citer, signaler ──────────────────────
 // Mêmes symboles que les pages Bible et Œuvre : le signet ajoute le verset à « mes
 // citations », le fanion ouvre un signalement. Discrets, révélés au survol de la ligne.
-const ACT_BTN: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 0, width: 19, height: 19, borderRadius: 4, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: '0.875rem', lineHeight: 1, transition: "color .15s" };
-function IconeSignet({ rempli }: { rempli?: boolean }) {
-  return (
-    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ display: "block" }}>
-      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill={rempli ? "currentColor" : "none"} />
-    </svg>
-  );
-}
+// ⛔ Le gabarit vient du module partage : les quatre surfaces montraient le meme
+// drapeau dans des boites de 16, 18 et 19 px. Le signet aussi — la Polyglotte en
+// gardait une copie, au trace pres identique a `IconeSignet`.
+const ACT_BTN = STYLE_BOUTON_ACTION;
 // Signalement : le composant partagé IconeDrapeau (SVG), au même gabarit exact que le
 // signet de prélèvement — les deux SVG restent donc toujours de la même taille.
 
@@ -608,7 +618,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
       style={{ ...ACT_BTN, color: montrerCroix ? "var(--cs-danger)" : saved ? VERT : "var(--cs-texte-faible)" }}
       aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
-      {busy ? "…" : montrerCroix ? "✕" : <IconeSignet rempli={!!saved} />}
+      {busy ? "…" : montrerCroix ? "✕" : <IconeSignet plein={!!saved} />}
     </button>
   );
 }
@@ -1175,28 +1185,16 @@ export default function PolyglottePage() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [notesReduites]);
-  // Actions « Prélever / Signaler » : visibles au survol TANT QUE le curseur bouge.
-  // Après une seconde sans mouvement, on retire la classe et les boutons s'effacent,
-  // pour ne pas encombrer la lecture. (Classe basculée sur le nœud, sans re-rendu.)
-  useEffect(() => {
-    const el = refTable.current;
-    if (!el) return;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    // Petit seuil : de menus tremblements du curseur ne rallument pas les boutons ;
-    // il faut un déplacement franc (> SEUIL px depuis le dernier point retenu).
-    const SEUIL = 10;
-    let refX = 0, refY = 0, initialise = false;
-    const onMove = (e: MouseEvent) => {
-      if (!initialise) { refX = e.clientX; refY = e.clientY; initialise = true; }
-      if (Math.hypot(e.clientX - refX, e.clientY - refY) < SEUIL) return;   // trop léger : on ignore
-      refX = e.clientX; refY = e.clientY;
-      el.classList.add("poly-curseur-actif");
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => el.classList.remove("poly-curseur-actif"), 1000);
-    };
-    el.addEventListener("mousemove", onMove);
-    return () => { el.removeEventListener("mousemove", onMove); if (timer) clearTimeout(timer); };
-  }, []);
+  // ⛔ LE GARDE-FOU DU CURSEUR EN MOUVEMENT EST RETIRÉ (2026-09-07), et ce n'est pas un
+  // oubli. Une classe « poly-curseur-actif » allumait les actions au survol TANT QUE le
+  // curseur bougeait, et les effaçait après une seconde d'immobilité « pour ne pas
+  // encombrer la lecture ». Elle n'existait que parce que le pavé se posait DANS la
+  // cellule, en haut à droite, c'est-à-dire sur la première ligne du verset qu'on venait
+  // de survoler — le défaut même que l'auteur a relevé le 2026-09-07. La cellule d'actions
+  // passe désormais AU-DESSUS du texte, hors du chemin de lecture : le garde-fou n'a plus
+  // rien à garder, et une surface qui se comporterait autrement que les quatre autres
+  // rouvrirait la disparité qu'on vient de fermer. ⚠️ Une seconde d'immobilité effaçait
+  // aussi les boutons sous le curseur qui les visait.
   // Ajuste le nombre de slots à la largeur : préserve les traductions déjà choisies,
   // complète par des slots vides, ou retire les colonnes qui ne tiennent plus.
   useEffect(() => {
@@ -1237,6 +1235,21 @@ export default function PolyglottePage() {
   const [prelevs, setPrelevs] = useState<Map<string, string>>(new Map());
   const marquerCite = useCallback((cle: string, id: string) => setPrelevs(m => new Map(m).set(cle, id)), []);
   const retirerCite = useCallback((cle: string) => setPrelevs(m => { const n = new Map(m); n.delete(cle); return n; }), []);
+
+  // ── LA CELLULE D'ACTIONS ─────────────────────────────────────────────────────
+  // Elle se pose AU-DESSUS du verset survolé, jamais dessus : dans une colonne de
+  // tableau, « à droite de la ligne » tombe sur la traduction voisine, et la règle
+  // (app/lib/celluleActions.ts) le sait dès qu'on lui donne la colonne pour bornes.
+  //
+  // ⚠️ Ce que porte l'ancre : la donnée d'une cellule vit au fond de quatre boucles
+  // imbriquées (livre, ligne du canon, colonne, versets d'origine réunis), et la
+  // retrouver au-dehors demanderait autant d'index. L'ancre l'emporte avec elle.
+  const celluleActions = useCelluleActions<string, ActionsDeCellule>();
+  const sansSurvol = useSansSurvol();
+  // Le haut de la lecture est le BAS de l'en-tête collant, non celui de la barre de
+  // navigation : une cellule qui monterait plus haut passerait derrière les noms
+  // d'édition. Mesuré à l'ancrage, la racine du site étant fluide.
+  // (`ancrerActions` vit plus bas, avec `enteteRef`, dont il lit la boîte.)
   // Notes personnelles par verset (colonne « Notes ») : canon_id → texte. Enregistrées
   // sur le compte (table polyglotte_notes, RLS par utilisateur). Écriture débouncée.
   const [notes, setNotes] = useState<Map<string, string>>(new Map());
@@ -1570,6 +1583,15 @@ export default function PolyglottePage() {
   const [passage, setPassage] = useState<"sortie" | "entree" | null>(null);
   const corpsRef = useRef<HTMLDivElement>(null);
   const enteteRef = useRef<HTMLDivElement>(null);
+  // Le haut de la lecture est le BAS de l'en-tête collant, non celui de la barre de
+  // navigation : une cellule d'actions qui monterait plus haut passerait derrière les
+  // noms d'édition. Mesuré à l'ancrage, la racine du site étant fluide.
+  // ⚠️ La dépendance est `ancrer`, non l'objet rendu par le crochet : celui-ci est un
+  // littéral neuf à chaque rendu, et le rappel se refabriquerait pour rien.
+  const ancrerCellule = celluleActions.ancrer;
+  const ancrerActions = useCallback((el: HTMLElement, donnees: ActionsDeCellule) => {
+    ancrerCellule(el, donnees.cle, { borne: el, sommet: hautDeLecture(enteteRef.current), donnees });
+  }, [ancrerCellule]);
   const porteeRendueRef = useRef<Portee | null>(null);
   useLayoutEffect(() => {
     if (!attenteGlobale || passage === "sortie") return;
@@ -1832,28 +1854,14 @@ export default function PolyglottePage() {
           .poly-outil { display: none; }
           .poly-mobile { display: block; }
         }
-        /* Citer / signaler : un jeu DANS chaque cellule (une action par traduction),
-           posé en haut à droite, révélé au seul survol de la cellule. */
-        .poly-cellact {
-          position: absolute; top: 2px; right: 4px; z-index: 2;
-          display: flex; align-items: center; gap: 8px;
-          padding: 2px 7px; border-radius: 8px;
-          background: transparent; box-shadow: none;
-          transition: background .12s, box-shadow .12s;
-        }
-        /* Le bandeau clair n'apparaît qu'au survol de la cellule ET tant que le curseur
-           bouge : la classe poly-curseur-actif est retirée après une seconde d'immobilité
-           (JS), ce qui efface les actions pour ne pas gêner la lecture. */
-        .poly-curseur-actif .poly-texte-cell:hover .poly-cellact {
-          background: var(--cs-surface); box-shadow: var(--cs-ombre-nette);
-        }
-        .poly-act { opacity: 0; transition: opacity .12s, color .15s; }
-        .poly-curseur-actif .poly-texte-cell:hover .poly-act { opacity: .9; }
-        .poly-act:hover { opacity: 1 !important; color: var(--cs-texte-second); }
-        /* ⛔ Sur un écran tactile, rien ne se survole : entre 821 et ~1100px la page
-           s'affiche (le seuil de refus est à 820) mais copier et signaler restaient
-           hors d'atteinte. Le critère est la capacité du pointeur, non la largeur. */
-        @media (hover: none) { .poly-act { opacity: .9; } }
+        /* ⛔ Citer / copier / signaler ne vivent PLUS dans la cellule : la cellule
+           d'actions du site se pose au-dessus du verset survolé, dans un portail
+           (voir app/components/CelluleActions.tsx). Il ne reste ici que la teinte de
+           survol d'un bouton ; son opacité et sa boîte viennent du module partagé, et
+           l'ancien « .poly-act { opacity: 0 } » les aurait rendus invisibles dans le
+           portail, où aucun sélecteur de cette page ne peut plus les atteindre. */
+        .poly-act { transition: color .15s; }
+        .poly-act:hover { color: var(--cs-texte-second); }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
         .poly-notes-head .lbl-notes { transition: opacity .15s ease; }
@@ -2232,8 +2240,19 @@ export default function PolyglottePage() {
                 </div>
                 {slotCols.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
+                  // Un surnuméraire n'a pas de référence canonique : on signale sur sa
+                  // numérotation d'origine, et l'on n'y prélève pas.
+                  const actionsSurnum: ActionsDeCellule | null = r && sc.trad ? {
+                    cle: `surnum|${cle}|${sc.trad.trad_id}`,
+                    refLisible: `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`,
+                    texte: r.texte ?? "",
+                    citer: null,
+                  } : null;
                   return (
                     <div key={i} className="poly-texte-cell" lang={sc.trad?.lang} onCopy={copierSansCesures}
+                      onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
+                      onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
+                      onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
                       style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)' }}>
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
                           la référence d'origine est ici la seule qui existe. */}
@@ -2244,15 +2263,6 @@ export default function PolyglottePage() {
                               <span className="poly-lettrine-ch" style={{ color: 'var(--cs-surnum-doux)' }}>{r.ch_orig},</span> {r.v_orig}
                             </span>
                           </span>
-                        </span>
-                      )}
-                      {/* Signalement au survol : un surnuméraire n'a pas de référence canonique,
-                          on signale donc sur sa numérotation d'origine. */}
-                      {r && sc.trad && (
-                        <span className="poly-cellact" onClick={e => e.stopPropagation()}>
-                          <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"
-                            texte={citationBiblique(r.texte ?? "", `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`)} />
-                          <BoutonSignalerVerset refLisible={`${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`} texte={r.texte ?? undefined} />
                         </span>
                       )}
                       {!sc.trad ? "" : r ? texteCesure(r.texte, sc.trad.lang) : <CelluleAbsente />}
@@ -2364,8 +2374,18 @@ export default function PolyglottePage() {
                         // lettrine ni actions (rien à citer), et non par la case « absente » générique.
                         const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
+                        // ⚠️ Une lacune du témoin n'a rien à citer ni à copier : pas d'actions.
+                        const actionsCell: ActionsDeCellule | null = cs.length > 0 && !lacuneCell ? {
+                          cle: `${r.id}|${t.trad_id}`,
+                          refLisible,
+                          texte: texteCell,
+                          citer: { cle: cleCite, refLivre: l.nom_fr, refAbr: abr, chapitre: r.ch_canon, verset: r.v_canon, traductionLabel: t.nom },
+                        } : null;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesures}
+                            onMouseEnter={actionsCell ? e => ancrerActions(e.currentTarget, actionsCell) : undefined}
+                            onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
+                            onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>
                             {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
                                 le texte habille. Plusieurs versets de l'édition peuvent partager un
@@ -2396,15 +2416,6 @@ export default function PolyglottePage() {
                                     )}
                                   </span>
                                 ))}
-                              </span>
-                            )}
-                            {/* Citer / signaler cette traduction — au survol de la cellule. */}
-                            {cs.length > 0 && !lacuneCell && (
-                              <span className="poly-cellact" onClick={e => e.stopPropagation()}>
-                                <BoutonCiterVerset userId={userId} saved={prelevs.get(cleCite) ?? null} cle={cleCite} refLivre={l.nom_fr} refAbr={abr} chapitre={r.ch_canon} verset={r.v_canon} texte={texteCell} traductionLabel={t.nom} onSaved={marquerCite} onRemoved={retirerCite} />
-                                <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"
-                                  texte={citationBiblique(texteCell ?? "", refLisible)} />
-                                <BoutonSignalerVerset refLisible={refLisible} texte={texteCell} />
                               </span>
                             )}
                             {cs.length === 0 ? (
@@ -2459,6 +2470,35 @@ export default function PolyglottePage() {
       </div>
         </div>
       </div>
+
+      {/* La cellule d'actions du verset survolé : citer, copier, signaler. En portail
+          vers <body>, au-dessus du texte et jamais dessus (app/lib/celluleActions.ts).
+          ⛔ Les boutons ne portent plus « poly-act » pour leur opacité : dans un portail,
+          aucun sélecteur de cette page ne les atteint — c'est la cellule qui paraît ou
+          non, et la classe ne garde que la teinte de survol. */}
+      {celluleActions.ancre?.donnees && (
+        <CelluleActions
+          ancre={celluleActions.ancre} onRetenir={celluleActions.retenir}
+          onRelacher={celluleActions.relacher} onFermer={celluleActions.fermer}
+          sansSurvol={sansSurvol}
+          boutons={celluleActions.ancre.donnees.citer && userId ? 3 : 2}>
+          {celluleActions.ancre.donnees.citer && (
+            <BoutonCiterVerset
+              userId={userId} saved={prelevs.get(celluleActions.ancre.donnees.citer.cle) ?? null}
+              cle={celluleActions.ancre.donnees.citer.cle}
+              refLivre={celluleActions.ancre.donnees.citer.refLivre}
+              refAbr={celluleActions.ancre.donnees.citer.refAbr}
+              chapitre={celluleActions.ancre.donnees.citer.chapitre}
+              verset={celluleActions.ancre.donnees.citer.verset}
+              texte={celluleActions.ancre.donnees.texte}
+              traductionLabel={celluleActions.ancre.donnees.citer.traductionLabel}
+              onSaved={marquerCite} onRemoved={retirerCite} />
+          )}
+          <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"
+            texte={citationBiblique(celluleActions.ancre.donnees.texte, celluleActions.ancre.donnees.refLisible)} />
+          <BoutonSignalerVerset refLisible={celluleActions.ancre.donnees.refLisible} texte={celluleActions.ancre.donnees.texte} />
+        </CelluleActions>
+      )}
 
       {/* La visite, en portail vers <body> : elle passe au-dessus de tout ce que la
           page peut ouvrir, la fenêtre d'édition d'un verset comprise. */}

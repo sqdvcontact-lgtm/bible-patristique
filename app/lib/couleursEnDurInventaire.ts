@@ -115,7 +115,16 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'oeuvre/[id]/FicheEdition.tsx': ['rgba(30,26,20,0.42)'],
   'oeuvre/[id]/OeuvreClient.tsx': ['#9a958d', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
   'oeuvre/[id]/OngletCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
-  'polyglotte/page.tsx': ['rgba(90,75,156,0.22)'],
+  // ⚠️ 'rgba(30,25,20,0.4)' n'est PAS une teinte neuve : elle est dans ce fichier depuis
+  // l'origine, et la garde ne la voyait pas. Un « /* » écrit dans un commentaire de LIGNE
+  // — « italique <i>/* » — ouvrait pour le motif une région de bloc qui courait sur
+  // QUATRE CENTS lignes, et tout ce qu'elle contenait était lu comme du commentaire.
+  // Le commentaire est réécrit le 2026-09-07, et la teinte entre au registre : c'est le
+  // CALQUE d'une modale, la même forme et la même raison que celui de FicheEdition —
+  // brun très sombre plutôt que noir neutre, le site étant chaud jusque dans son ombre.
+  // ⛔ Corollaire de méthode : une garde qui LIT du texte au motif a des angles morts, et
+  // celui-ci n'a coûté qu'une teinte parce que la zone masquée était pauvre en couleurs.
+  'polyglotte/page.tsx': ['rgba(30,25,20,0.4)', 'rgba(90,75,156,0.22)'],
   'profil/[pseudo]/page.tsx': ['#7a8a6e', '#c8a858', '#c8c0b8', '#e2c98d', '#e2ca91', '#e4cc91', '#e4d7b6', '#ead9a9', 'rgba(198,169,100,.42)', 'rgba(222,190,111,.18)', 'rgba(222,190,111,.20)', 'rgba(222,190,111,.34)', 'rgba(233,204,136,.24)', 'rgba(233,204,136,.28)', 'rgba(233,204,136,.30)', 'rgba(235,218,175,.46)', 'rgba(235,218,175,.7)'],
   // ⬇ Trois teintes retirées le 2026-08-28, avec la refonte des résultats de recherche :
   //    #4a453f (nom d'auteur d'une ligne de répartition) est passé à --cs-texte ;

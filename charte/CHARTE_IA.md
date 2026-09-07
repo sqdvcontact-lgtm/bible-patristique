@@ -5871,3 +5871,38 @@ Une page qu’un lecteur ouvre pour la première fois se présente. Elle ne le f
 ⚠️ **Ce qu’une étape sur la barre coûterait, si l’on y revenait.** Il a fallu faire passer le voile par-dessus elle, faute de quoi aucun cadre ne pouvait s’y poser — et la barre s’assombrissait alors à chaque étape de chaque visite. Il a fallu de surcroît deux gardes de géométrie, dont l’une s’est révélée fausse à son premier essai : écrite sur le seul bord haut du sujet, elle écartait aussi tout sujet passé AU-DESSUS de la fenêtre, si bien qu’un retour en arrière après avoir descendu la page laissait le cadre échoué en haut de l’écran. ⛔ Les trois sont retirées avec l’étape : on ne garde pas une garde que plus rien n’exerce.
 
 ⛔ **ON N’EXPLIQUE PAS CE QUI S’ÉCRIT DÉJÀ.** L’étape de la pagination de la Bibliothèque est retirée le même soir : le pied de la liste porte « Page 1 sur 2 » en toutes lettres. ⚠️ Elle coûtait en outre la descente de toute la liste pour remonter ensuite, le plus long défilement qu’une visite du site ait demandé.
+
+### 38.25 La CELLULE D’ACTIONS — un seul objet, et il ne couvre jamais ce qu’il commande
+
+Relevé de l’auteur, le 7 septembre 2026 : « le système signaler / copier / prélever n’est pas uniforme, et parfois il cache le texte qu’on survole et le masque en partie ».
+
+⛔ **LA RÈGLE N’A PAS CHANGÉ, ELLE VAUT DÉSORMAIS PARTOUT.** À DROITE du segment ou du verset quand la place y est ; AU-DESSUS de son bloc de texte quand elle manque ; JAMAIS par-dessus. Elle est écrite depuis le 22 août 2026 dans `app/lib/celluleActions.ts`, avec ses tests, et deux surfaces sur cinq ne l’appliquaient pas.
+
+**Ce que l’audit a trouvé — cinq surfaces, quatre systèmes :**
+
+| Surface | Ce qu’elle faisait | Verdict |
+|---|---|---|
+| Bible classique, écran large | gouttière réservée de 2,375 rem à droite du bloc | conforme |
+| Bible classique, au doigt | pavé flottant au-dessus du verset, après un appui long | conforme |
+| Lecture d’une œuvre, paragraphes | cellule flottante par `positionCellule` | conforme, c’est la règle même |
+| **Traductions en regard** | `Math.min(droite + 6, largeurEcran − 132)` | ⛔ le calcul BRIDÉ que le module donne en contre-exemple |
+| **Polyglotte** | `position: absolute; top: 2px; right: 4px` DANS la cellule | ⛔ posé sur la première ligne du verset |
+| **Arguments d’une œuvre** | idem, dans le coin haut droit du bloc | ⛔ même défaut |
+
+⛔ **BRIDER N’EST PAS DÉPLACER**, et c’est la même faute qu’en août : quand la place manque, `Math.min` ne fait pas de place, il ramène la cellule sur la fin de la ligne. Le module le disait en toutes lettres et portait le test qui l’interdit ; les traductions en regard avaient gardé le calcul d’avant, sans que rien ne le signale — un contre-exemple écrit dans un module ne protège que ceux qui l’emploient.
+
+⛔ **L’ESPACE DISPONIBLE N’EST PAS TOUJOURS LA FENÊTRE.** Dans une grille de colonnes — la Polyglotte, les traductions en regard —, « à droite de la ligne » tombe sur la colonne voisine, c’est-à-dire sur un AUTRE texte. La règle prend donc les bornes de l’espace où la cellule a le droit de se poser : la fenêtre en lecture ordinaire, la COLONNE en grille. Une colonne étant par construction aussi large que sa ligne, la cellule y passe toujours au-dessus, ce qui est le bon résultat. ⚠️ Et la borne GAUCHE l’emporte sur l’alignement à droite : dans une colonne plus étroite que la cellule, mieux vaut déborder d’un cheveu à droite que couvrir la colonne d’à côté.
+
+⛔ **LA CELLULE SE MESURE ELLE-MÊME.** Le gabarit ne sert qu’au premier placement ; un effet de MISE EN PAGE le corrige avant la peinture, si bien que le lecteur ne voit jamais la position estimée. Sans cela il faudrait supposer à la cellule son plus grand gabarit — quatre boutons — et elle passerait au-dessus là où trois tiennent à droite. ⚠️ Le gabarit d’avant valait 132 px pour une cellule qui en fait 88 au plus.
+
+⚠️ **ELLE SUIT SON TEXTE AU DÉFILEMENT.** Elle est en `position: fixed` : une molette actionnée pendant qu’elle est ouverte la laissait sur place tandis que le texte glissait dessous, c’est-à-dire le défaut qu’on corrige, sous une autre forme. L’écoute se fait en CAPTURE sur la fenêtre — un événement de défilement ne remonte pas, mais il descend, et c’est la seule façon d’entendre un défileur interne sans savoir lequel c’est. ⛔ Au doigt elle se referme : un repositionnement continu y est saccadé.
+
+⚠️ **LE SOMMET SE MESURE, il ne vaut pas 56.** `HAUTEUR_NAVBAR` vaut 3,5 rem et la racine du site est fluide : la barre fait 56 px à la racine 16 et 77 à la racine 22. Une page qui porte en outre un en-tête COLLANT — la Polyglotte — passe le bas de cet en-tête, sans quoi la cellule monte derrière les noms d’édition.
+
+⛔ **LE GARDE-FOU DU CURSEUR EN MOUVEMENT DE LA POLYGLOTTE EST RETIRÉ.** Une classe allumait ses actions au survol tant que le curseur bougeait, et les effaçait après une seconde d’immobilité « pour ne pas encombrer la lecture ». Elle n’existait que parce que le pavé se posait SUR le texte : c’est le défaut lui-même qui avait engendré son pansement. La cellule passant au-dessus, il n’a plus rien à garder, et une surface qui se comporterait autrement que les quatre autres rouvrirait la disparité qu’on vient de fermer. ⚠️ Une seconde d’immobilité effaçait au demeurant les boutons sous le curseur qui les visait.
+
+⛔ **UN BOUTON D’ACTION A LA MÊME BOÎTE PARTOUT** (`COTE_BOUTON`, 18 px). Le même drapeau se montrait dans des boîtes de 16, 18 et 19 px selon la page ; le dessin ne changeait pas, seulement sa boîte, et rien ne disait laquelle avait raison. Le pavé aussi : filet, rayon, rembourrage et ombre viennent d’une seule déclaration, `--cs-ombre-nette` étant l’élévation que la charte donne déjà à « un petit objet qui flotte : bascule, infobulle, cellule d’actions ».
+
+⚠️ **UNE CELLULE EN PORTAIL NE REÇOIT PLUS LE CSS DE SA PAGE**, et c’est le piège de la migration. Les règles qui l’éteignaient au repos — `.poly-act { opacity: 0 }`, `.seg-wrapper .seg-btn-action` — exigent un ancêtre que le portail n’a pas : laissées en place, elles n’auraient RIEN atteint, ni pour éteindre ni pour allumer. Elles sont retirées avec ce qu’elles gardaient ; c’est la cellule qui paraît ou non, et une cellule qui paraît est pleine.
+
+⚠️ **CE QUI NE BOUGE PAS, ET POURQUOI** : la gouttière de 2,375 rem de la Bible classique. Elle est « à droite quand la place y est », donc conforme, et la charte interdit depuis le 22 août de « corriger » le décalage de dix-neuf pixels qu’elle impose au titre — il aligne le titre sur ce qu’on lit.
