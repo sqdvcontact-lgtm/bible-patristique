@@ -2504,6 +2504,72 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 .cs-option-volet[aria-pressed='true']:hover,
 .cs-option-volet[aria-pressed='true']:focus-visible { background: rgba(var(--cs-vert-rgb), 0.10); color: var(--cs-encre); }
 
+/* ── LE BOUTON-LIEN — une action secondaire posée sous son bloc ────────────────
+   Demande de l'auteur, 2026-09-07 : « Sources et détail », « En savoir plus… », etc.,
+   « il faut uniformiser, partout, ce type de boutons-liens. Je propose : souligné ;
+   en romain ; corps plus petit. »
+
+   ⛔ IL Y AVAIT ONZE FORMES POUR UN SEUL OBJET, et le désordre se comptait : six corps
+   (de 9,5 à 13 px), cinq encres, trois styles — romain, italique, gras 500/600/700 —
+   et trois décorations, le trait plein, le pointillé et un soulignement TRANSPARENT au
+   repos. Un lecteur ne pouvait pas apprendre ce qu'est un bouton-lien sur ce site.
+
+   ⛔ DEUX FAMILLES, ET LA DISTINCTION EST LA VRAIE RÈGLE. Celle-ci est le bouton-lien
+   AUTONOME : il se tient seul sous ou à côté d'un bloc, il a donc un corps À LUI. Un
+   lien pris DANS UNE PHRASE (« Le chargement a échoué. Réessayer. », un renvoi au fil
+   d'une note) garde « font: inherit » et ne prend d'ici que le trait et la teinte :
+   rapetissé, il creuserait un trou dans sa ligne.
+
+   ⚠️ LE CORPS EST ABSOLU, non relatif, et c'est ce que « uniformiser » demande : ces
+   boutons vivent dans des cartes, des volets et des fiches dont les corps vont de 10 à
+   14 px, et une mesure relative les ferait tous différer. 0,625 rem est le rang que
+   quatre d'entre eux portaient déjà — la valeur dominante, comme le veut la méthode de
+   l'échelle — et il est plus petit que le plus petit des textes qu'ils accompagnent.
+
+   ⛔ L'ENCRE EST L'ACCENT, et ce n'est pas un goût. Cinq d'entre eux portaient un gris
+   de l'échelle de TEXTE : mesuré sur le papier, « --cs-texte-doux » rend 2,6 et
+   « --cs-texte-faible » 2,0, quand la charte en exige 4,5 sous 24 px. Un bouton-lien
+   n'est pas une ombre d'interface, c'est un LIEN, et le jeton des liens est le vert :
+   5,6 sur le papier, 10,1 sur le cuir.
+
+   ⚠️ LA ZONE DE FRAPPE DÉBORDE EN HAUTEUR SEULEMENT. Dix pixels de haut, c'est moins
+   de la moitié du plancher de WCAG 2.2 ; sept pixels de part et d'autre portent la
+   cible à 24. ⛔ Pas de débord LATÉRAL comme « .cs-cible-fine » : ces boutons se
+   posent souvent au ras d'une liste de pastilles, et douze pixels de chaque côté y
+   avaleraient les taps du voisin — c'est le raisonnement de « .cs-appel-cible ». */
+.cs-bouton-lien {
+  font-family: inherit;
+  font-size: 0.625rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--cs-vert);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.cs-bouton-lien::after { content: ''; position: absolute; inset: -7px 0; }
+.cs-bouton-lien:hover { color: var(--cs-vert-fonce); }
+
+/* Le lien pris DANS UNE PHRASE : il garde le corps de son hôte, et ne prend d'ici que
+   le trait PLEIN — jamais le pointillé, qui promettait une infobulle qui n'existe pas —
+   et la teinte des liens. */
+.cs-lien-phrase {
+  font: inherit;
+  color: var(--cs-vert);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.cs-lien-phrase:hover { color: var(--cs-vert-fonce); }
+
 /* ── UNE NOTIFICATION EST UNE RANGÉE, non une carte ───────────────────────────
    ⛔ Elle était une CARTE — fond propre, filet, coins arrondis, rembourrage — posée
    dans un volet qui a déjà tout cela, avec un bandeau vert au flanc gauche : deux

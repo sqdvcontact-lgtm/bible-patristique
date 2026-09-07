@@ -65,7 +65,7 @@ export default function BienvenuePage() {
         </div>
 
         <button onClick={() => router.push('/compte')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: 'var(--cs-texte-faible)', textDecoration: 'underline', padding: 0 }}>
+          className="cs-bouton-lien">
           Aller à mon compte
         </button>
       </div>

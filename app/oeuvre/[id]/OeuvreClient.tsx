@@ -329,7 +329,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
                       <p key={v.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-fort)', margin: '2px 0 0', lineHeight: 1.4 }}>{v.label}</p>
                     ))}
                     <button type="button" onClick={() => setSelection(null)}
-                      style={{ marginTop: '6px', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                      className="cs-bouton-lien" style={{ marginTop: '6px' }}>
                       Retirer ce choix
                     </button>
                   </div>
@@ -2427,7 +2427,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           .para-bilingue > .texte-original { padding-left: 0.85rem; border-left: 2px solid var(--cs-bord); }
         }
         .toc-lien-n1:hover, .toc-lien-n2:hover { color: var(--cs-vert) !important; }
-        .lien-fiche:hover { color: var(--cs-vert) !important; text-decoration: underline; }
         .ref-lien:hover { color: var(--cs-vert) !important; }
         .onglet-btn { transition: color 0.12s, border-color 0.12s; }
         .onglet-btn:hover { color: var(--cs-vert) !important; }
@@ -2508,15 +2507,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 menu « Lecture », à mi-chemin de deux blocs sans appartenir à aucun. Deux
                 pixels, et il se lit comme la suite du titre.
 
-                ⚠️ Plus de soulignement PERMANENT : dans un volet où rien d'autre n'en
-                porte, il tirait l'œil plus que le titre au-dessus de lui. Le survol le
-                souligne et le fait verdir, comme le nom d'auteur (`NomVolet`) et comme
-                les rangs du sommaire. La ligne se compose en serif italique : elle est du
-                même corps de texte que le titre qu'elle suit, et l'italique dit qu'elle en
-                parle au lieu de le continuer. */}
+                ⛔ RECTIFICATION DU 2026-09-07 : IL PREND LA FORME COMMUNE DES
+                BOUTONS-LIENS (`.cs-bouton-lien`, globals.css). Il portait jusque-là un
+                dessin à lui — serif italique, pas de soulignement au repos —, décidé le
+                2026-09-03 au motif que « dans un volet où rien d'autre n'en porte, il
+                tirait l'œil plus que le titre au-dessus de lui ». Le motif était juste
+                DANS CE VOLET, et c'est précisément ce que la règle générale refuse : un
+                bouton-lien qui se dessine selon son voisinage ne s'apprend nulle part.
+                L'auteur a tranché en le nommant parmi les exemples du désordre. */}
             {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.date_composition || oeuvreAffichee.genres?.length || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1) && (
-              <button onClick={() => setInfoEditionOuverte(true)} className="lien-fiche"
-                style={{ display: 'block', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.6875rem', lineHeight: 1.35, color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: '2px', textAlign: 'left', textUnderlineOffset: '2px' }}>
+              <button onClick={() => setInfoEditionOuverte(true)} className="cs-bouton-lien"
+                style={{ display: 'block', marginTop: '2px', textAlign: 'left' }}>
                 À propos de cette édition
               </button>
             )}

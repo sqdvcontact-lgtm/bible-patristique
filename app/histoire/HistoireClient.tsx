@@ -703,7 +703,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
       {afficheNotice && (
         <div style={{ marginTop: '5px' }}>
           <button onClick={() => setDetailOuvert(o => !o)} aria-expanded={detailOuvert} aria-controls={idCarte}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: '0.625rem', color: 'var(--cs-texte-doux)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+            className="cs-bouton-lien" style={{ fontFamily: SANS }}>
             {detailOuvert ? 'Réduire' : 'Sources et détail'}
           </button>
         </div>

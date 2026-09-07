@@ -40,7 +40,7 @@ function ContenuNote({ el, onNaviguer }: {
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => onNaviguer({ type: type as 'verset' | 'segment', id, label })}
-          style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textDecorationStyle: 'dotted', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
+          className="cs-lien-phrase">
           {label}
         </button>
       )
@@ -145,7 +145,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
 
   const declencheur = isRef ? (
     <button onMouseEnter={traiterEntrer} onMouseLeave={traiterSortir} onClick={traiterClic}
-      style={{ color: 'var(--cs-vert)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, textDecoration: 'underline', textDecorationStyle: 'dotted', font: 'inherit' }}>
+      className="cs-lien-phrase">
       {lettre}
     </button>
   ) : (

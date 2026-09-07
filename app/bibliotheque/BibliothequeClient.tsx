@@ -1194,7 +1194,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
           Le catalogue n’a pas pu être chargé.{' '}
           <button onClick={() => { void charger() }}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', font: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+            className="cs-lien-phrase" style={{ color: 'inherit' }}>
             Réessayer
           </button>
         </p>
@@ -2105,7 +2105,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                   }}>
                     {!estMobile && <span />}
                     <button onClick={effacerLesFiltres}
-                      style={{ justifySelf: 'start', fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: 0 }}>
+                      className="cs-bouton-lien" style={{ justifySelf: 'start' }}>
                       Tout effacer
                     </button>
                   </div>
@@ -2121,7 +2121,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                   <Jeton key={f.cle} onRetirer={f.retirer}>{f.libelle}</Jeton>
                 ))}
                 <button onClick={effacerLesFiltres}
-                  style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '2px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '0 4px' }}>
+                  className="cs-bouton-lien" style={{ padding: '0 4px' }}>
                   Tout effacer
                 </button>
               </div>

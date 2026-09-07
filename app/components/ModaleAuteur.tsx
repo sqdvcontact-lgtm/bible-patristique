@@ -344,9 +344,11 @@ export function RangeeEmpilee({ c, italique, children }: { c: string; italique?:
   )
 }
 
-/** Lien vers une source extérieure. Rien du tout si l'adresse n'en est pas une. */
+/** Lien vers une source extérieure. Rien du tout si l'adresse n'en est pas une.
+ *  ⚠️ C'est un bouton-lien AUTONOME — il se tient seul au bout d'une rangée —, il prend
+ *  donc la forme commune et son corps à lui (globals.css, « LE BOUTON-LIEN »). */
 export const Consulter = ({ url, libelle }: { url: string | null | undefined; libelle: string }) => (url && estUrl(url))
-  ? <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{libelle}</a> : null
+  ? <a href={url} target="_blank" rel="noopener noreferrer" className="cs-bouton-lien">{libelle}</a> : null
 
 // ── Frise agrégée de l'auteur ──────────────────────────────────────────────────
 // Trois brins, distingués par la couleur du point : Vie (le parcours de l'auteur),

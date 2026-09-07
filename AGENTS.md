@@ -2295,6 +2295,17 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 
 ⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
 
+# ⛔ LE BOUTON-LIEN — `.cs-bouton-lien` / `.cs-lien-phrase` (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.27**. Ici, ce qu'il faut savoir pour y toucher.
+
+- ⛔ **DEUX CLASSES, ET ON NE LES CONFOND PAS.** `.cs-bouton-lien` est l'action secondaire posée SEULE sous ou à côté d'un bloc : elle a un corps à elle (0,625 rem), l'encre des liens, le romain, le trait plein et une zone de frappe. `.cs-lien-phrase` est le lien pris DANS une phrase : il garde `font: inherit` et ne prend que le trait et la teinte. ⚠️ Rapetisser le second creuserait un trou dans sa ligne.
+- ⛔ **LE CORPS EST ABSOLU.** Une mesure relative ferait différer tous ces boutons — cartes, volets et fiches vont de 10 à 14 px — c'est-à-dire exactement le désordre qu'on défait. 0,625 rem est la valeur DOMINANTE d'avant (4 sur 11), donc l'ancre au sens de la méthode de l'échelle.
+- ⛔ **LES DÉCLARATIONS VIVENT DANS LA FEUILLE, pas en style en ligne** : un style en ligne bat toute règle de feuille sans `!important`, et le survol comme `@media (hover: none)` seraient morts. Les sites ne gardent que leur MISE EN PAGE (`marginTop`, `justifySelf`, `display`) et, pour un fond coloré, la teinte littérale.
+- ⚠️ **La zone de frappe déborde EN HAUTEUR SEULEMENT** (`inset: -7px 0`) : dix pixels de haut portés à vingt-quatre, sans voler les taps du voisin. ⛔ Pas `.cs-cible-fine`, dont les douze pixels latéraux mordraient sur les pastilles de filtre au ras desquelles ces boutons se posent.
+- ⚠️ **Ce qui n'en est PAS** : un hyperlien de prose dans une page légale (déjà d'accord avec ses pareils), la VALEUR d'un champ d'administration rendue en lien parce qu'elle est une adresse (son corps suit le champ, un commentaire le dit sur place), le nom d'auteur d'une fiche (un nom dans une phrase, dont le soulignement ne paraît qu'au survol), et le bouton rond à flèche de la bibliothèque, qui est une icône.
+- ⚠️ **`.lien-fiche` est SUPPRIMÉ** avec sa règle de survol : « À propos de cette édition » était son seul appelant.
+
 # ⛔ UNE SEULE CELLULE D'ACTIONS — `app/components/CelluleActions.tsx` (2026-09-07)
 
 Doctrine : charte `parametres.charte_ia`, **§ 38.25**. Ici, ce qu'il faut savoir pour y toucher.

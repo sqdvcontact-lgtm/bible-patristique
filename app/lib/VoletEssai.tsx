@@ -123,7 +123,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
       const [, label, type, id] = m
       morceaux.push(
         <button key={k++} onClick={() => setElementInterne({ type: type as 'verset' | 'segment', id, label })}
-          style={{ color: 'var(--cs-vert)', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}>
+          className="cs-lien-phrase">
           {label}
         </button>
       )

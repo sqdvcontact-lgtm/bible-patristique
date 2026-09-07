@@ -269,7 +269,7 @@ export default function ProfilPublicPage() {
                   </a>
                 ) : (
                   <button onClick={() => setEmailVisible(true)}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#ead9a9', fontSize: '0.625rem', letterSpacing: '0.05em', fontFamily: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
+                    className="cs-lien-phrase" style={{ color: '#ead9a9' }}>
                     Afficher l&apos;adresse mail
                   </button>
                 )}

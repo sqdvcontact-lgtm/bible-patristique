@@ -263,7 +263,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
           <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)', minWidth: '44px', textAlign: 'center' }}>{Math.round(activePos.scale * 100)} %</span>
           <button onClick={() => zoomer(+0.1)} style={btnZ}>+</button>
           <button onClick={() => setPositions(prev => ({ ...prev, [active]: active === 'bandeau' ? { ...POS_DEFAUT } : { ...POS_DEFAUT_ENCART } }))}
-            style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '0 4px' }}>
+            className="cs-bouton-lien" style={{ padding: '0 4px' }}>
             Réinit.
           </button>
         </div>

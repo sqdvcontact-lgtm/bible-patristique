@@ -5943,3 +5943,25 @@ Relevé de l’auteur, le 7 septembre 2026 : « le système signaler / copier / 
 ⛔ **LE COMPOSANT EST RENOMMÉ `IconeSignalement`**, et ce n’est pas un rangement : un fichier qui s’appelle `IconeDrapeau` et qui ne dessine plus de drapeau ment sur ce qu’il contient, et c’est ainsi qu’un dessin finit par revenir à son nom. Dix surfaces l’importent ; il n’y a toujours qu’un seul tracé, à un seul endroit.
 
 ⚠️ **MÉTHODE, et elle a servi deux fois de suite** : les onze tracés du second tour ont été rendus sur une planche, à leur TAILLE RÉELLE dans la cellule, agrandis cinq fois, sur les DEUX sols, et une fois de plus au bout d’une ligne de lecture. C’est à cette échelle-là que deux d’entre eux sont tombés — le fanion évidé, dont le crénelage fait un « P », et le point d’exclamation posé sur un filet, dont le filet se confond avec un soulignement. ⛔ Un dessin ne se juge ni dans l’éditeur ni au quintuple : au quintuple, tous les tracés se ressemblent.
+
+
+### 38.27 Le BOUTON-LIEN — souligné, en romain, plus petit
+
+Demande de l’auteur, 2026-09-07, devant « Sources et détail » et « En savoir plus… » : « il faut uniformiser, partout, ce type de boutons-liens. Je propose : souligné ; en romain ; corps plus petit. »
+
+⛔ **IL Y AVAIT ONZE FORMES POUR UN SEUL OBJET**, et le désordre se compte : **six corps** (de 9,5 à 13 px), **cinq encres**, **trois styles** — romain, italique, gras 500, 600 et 700 — et **trois décorations**, le trait plein, le pointillé et un soulignement TRANSPARENT au repos. C’est la dérive déjà connue des tailles de texte et des rayons d’angle, transposée aux contrôles : un lecteur ne pouvait pas apprendre ce qu’est un bouton-lien sur ce site, puisqu’il n’en avait jamais vu deux pareils.
+
+⛔ **DEUX FAMILLES, ET LA DISTINCTION EST LA VRAIE RÈGLE.**
+
+- Le **BOUTON-LIEN** se tient SEUL sous ou à côté d’un bloc — « Sources et détail », « À propos de cette édition », « Afficher plus », « Tout effacer », « Consulter la source », « Réinit. ». Il a donc un corps À LUI, et c’est là que la forme commune s’applique tout entière (`.cs-bouton-lien`).
+- Le **LIEN PRIS DANS UNE PHRASE** — « Le chargement a échoué. **Réessayer**. », un renvoi au fil d’une note, une adresse rendue en lien — garde `font: inherit` et ne prend de la forme que le TRAIT et la TEINTE (`.cs-lien-phrase`). ⚠️ Rapetissé, il creuserait un trou dans sa ligne.
+
+⚠️ **LE CORPS EST ABSOLU, non relatif, et c’est ce que « uniformiser » demande.** Ces boutons vivent dans des cartes, des volets et des fiches dont les corps vont de 10 à 14 px : une mesure relative les ferait tous différer, c’est-à-dire exactement ce qu’on défait. **0,625 rem** est le rang que quatre d’entre eux portaient déjà — la valeur dominante, comme le veut la méthode de l’échelle — et il est plus petit que le plus petit des textes qu’ils accompagnent, ce qui est la condition pour qu’aucun ne paraisse plus gros que son hôte.
+
+⛔ **L’ENCRE EST L’ACCENT, ET CE N’EST PAS UN GOÛT.** Cinq d’entre eux portaient un gris de l’échelle de TEXTE. Mesuré sur le papier, `--cs-texte-doux` rend **2,6** et `--cs-texte-faible` **2,0**, quand la charte en exige 4,5 sous 24 px : la moitié de la famille était donc illisible au sens de la règle, et ce depuis l’origine. Un bouton-lien n’est pas une ombre d’interface, c’est un LIEN, et le jeton des liens est le vert — **5,6** sur le papier, **10,1** sur le cuir. ⚠️ Un bouton-lien posé sur un fond COLORÉ garde une teinte littérale (l’en-tête sombre d’un profil) : c’est la règle des couleurs posées sur un sol qui ne suit aucun thème.
+
+⚠️ **LA ZONE DE FRAPPE DÉBORDE EN HAUTEUR SEULEMENT.** Dix pixels de haut, c’est moins de la moitié du plancher de WCAG 2.2 ; sept pixels de part et d’autre portent la cible à 24. ⛔ Pas de débord LATÉRAL comme `.cs-cible-fine` : ces boutons se posent souvent au ras d’une liste de pastilles, et douze pixels de chaque côté y avaleraient les taps du voisin — c’est le raisonnement déjà tenu pour `.cs-appel-cible`.
+
+⛔ **UN BOUTON-LIEN NE SE DESSINE PAS SELON SON VOISINAGE.** « À propos de cette édition » portait un dessin à lui — serif italique, sans soulignement au repos — décidé le 2026-09-03 au motif que « dans un volet où rien d’autre n’en porte, il tirait l’œil plus que le titre au-dessus de lui ». Le motif était juste DANS CE VOLET, et c’est précisément ce que la règle générale refuse : une forme accordée à chaque voisinage ne s’apprend nulle part, et c’est ainsi qu’on obtient onze formes. La rectification est de l’auteur, qui a nommé ce lien parmi les exemples du désordre.
+
+⚠️ **CE QUI RESTE HORS DE LA RÈGLE, et il faut le savoir** : les hyperliens de PROSE des pages légales et des textes enrichis (`<a>` au fil d’un paragraphe). Ils sont déjà d’accord entre eux — vert, souligné, corps hérité — et leur seule variance est un décalage de soulignement tantôt posé, tantôt non. ⚠️ Et la VALEUR d’un champ d’administration rendue en lien parce qu’elle se trouve être une adresse n’est pas un bouton-lien : son corps suit celui du champ, et la rapetisser ferait qu’un champ change de taille selon ce qu’il contient.

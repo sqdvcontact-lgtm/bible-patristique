@@ -374,7 +374,7 @@ export default function PericopePage() {
   if (etat === 'erreur') return (
     <Etat>
       <span>Le chargement a échoué.{' '}
-        <button onClick={() => location.reload()} style={{ color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }}>
+        <button onClick={() => location.reload()} className="cs-lien-phrase">
           Réessayer
         </button>
       </span>

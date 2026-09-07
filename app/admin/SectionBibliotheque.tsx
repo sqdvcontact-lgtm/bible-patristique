@@ -354,6 +354,10 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
             {erreur && <span style={{ fontSize: '0.65625rem', color: '#b3261e', lineHeight: 1.25, marginTop: '1px', display: 'block' }}>{erreur}</span>}
           </>
         ) : estUrl ? (
+          // ⚠️ Ce lien n'est pas un BOUTON-LIEN : c'est la VALEUR du champ, rendue en
+          // lien parce qu'elle se trouve être une adresse. Son corps suit celui du
+          // « span » d'à côté, qui rend la même valeur en texte ; le rapetisser ferait
+          // qu'un champ change de taille selon ce qu'il contient.
           <a href={texte} target="_blank" rel="noopener noreferrer"
             style={{ fontSize: '0.8125rem', fontWeight: accent ? 700 : 400, color: 'var(--cs-vert)', textDecoration: 'underline', textUnderlineOffset: '2px', lineHeight: 1.4, wordBreak: 'break-all' }}>{texte}</a>
         ) : (

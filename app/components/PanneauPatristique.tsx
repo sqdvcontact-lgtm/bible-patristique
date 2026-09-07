@@ -448,9 +448,8 @@ function GroupeTags({ titre, children }: { titre: string; children: React.ReactN
         {children}
       </div>
       {hauteur2 != null && (
-        // Collé aux tags, mais distinct : petit lien souligné (pas une pastille).
-        <button onClick={() => setOuvert(o => !o)}
-          style={{ marginTop: '1px', fontSize: '0.59375rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px', fontWeight: 600, fontStyle: 'italic', textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+        // Collé aux tags, mais distinct : c'est un bouton-lien, pas une pastille.
+        <button onClick={() => setOuvert(o => !o)} className="cs-bouton-lien" style={{ marginTop: '1px' }}>
           {ouvert ? 'Afficher moins' : 'Afficher plus'}
         </button>
       )}
@@ -1620,7 +1619,7 @@ export default function PanneauPatristique({
                         setFiltreAuteursIds(new Set()); setFiltreAuteursBlancs([])
                         setFiltreTraditions(new Set()); setFiltreSiecles(new Set()); setFiltreGenres(new Set())
                         setPageItems(0)
-                      }} style={{ marginTop: '8px', fontSize: '0.625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                      }} className="cs-bouton-lien" style={{ marginTop: '8px' }}>
                         Tout effacer
                       </button>
                     )}

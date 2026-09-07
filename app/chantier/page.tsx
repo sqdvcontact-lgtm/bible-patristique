@@ -688,7 +688,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               {mode === "connexion" ? "Pas encore de compte ?" : "Déjà un compte ?"}
               {" "}
               <button onClick={() => { setMode(mode === "connexion" ? "inscription" : "connexion"); setErreur(null); setMdp(""); setPseudo(""); }}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78125rem", color: "var(--cs-vert)", fontWeight: 500, padding: 0, textDecoration: "underline" }}>
+                className="cs-lien-phrase">
                 {mode === "connexion" ? "Créer un compte" : "Se connecter"}
               </button>
             </p>
