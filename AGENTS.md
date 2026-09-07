@@ -6456,6 +6456,69 @@ d'une étape et ceux de l'accroche passent désormais par
   partagés, longueurs, emploi du gras) est CALCULÉE à chaque exécution. ⛔ Ne jamais
   y écrire un constat à la main : il devient faux au premier réglage.
 
+⛔ **SUR UN PETIT ÉCRAN, C'EST LE DÉFILEMENT QUI FAIT DE LA PLACE, PAS LE PLACEMENT**
+(mesuré et repris le 2026-09-07). La doctrine est à la charte, § 46 ; ici, ce qu'il
+faut savoir pour y toucher.
+- **`defilementDuSujet` (`visiteGuidee.ts`, pur, 5 tests)** dit où poser le sujet
+  AVANT que `placerCarteVisite` ne place la case, et rend `{ bloc, marge }` que
+  `scrollIntoView` sait recevoir. Trois réponses, dans cet ordre : `center` si un côté
+  HORIZONTAL peut recevoir la case — la réponse de tous les grands écrans, et elle se
+  juge sur l'abscisse, que le défilement vertical ne change pas ; `center` encore si le
+  centre suffit DÉJÀ ; `start` sinon, le sujet posé sous la barre et tout le reste pour
+  la case. ⚠️ Elle reçoit le `souffle`, sans quoi elle logerait le sujet et non son
+  cadre, et se tromperait de douze pixels.
+- ⚠️ **Le blanc passe par `scroll-margin-top`**, posé sur le sujet le temps du
+  défilement et retiré à la ligne suivante : `scrollIntoView` ne connaît que quatre
+  alignements grossiers. ⛔ C'est une marque de rendu, de la nature de
+  `data-visite-cible`, et elle ne survit pas au geste — on ne laisse rien dans la page.
+- ⚠️ **La boucle lit la taille de la case dans une RÉFÉRENCE**, non dans l'état : elle
+  tourne dans le rendu courant, où l'état porte encore la taille de l'étape d'avant.
+  `tailleRef` est tenue par le même effet de mise en page que `setTaille`.
+- ⛔ **`hauteurVisible()` remplace `window.innerHeight`** : Safari iOS rend la fenêtre
+  LARGE, et une case posée au ras du bas se retrouvait derrière la barre d'outils. On
+  prend `Math.min(innerHeight, visualViewport.height)` — la seule direction sûre — et
+  le placement travaille enfin sur la même bande que le `100dvh` du plafond de la case.
+- ⚠️ **Ce que la mesure a donné** (`tmp/controle-placement-visite.mts`, hauteurs de
+  case relevées dans le navigateur) : la case recouvrait son sujet **210 fois sur 450**
+  avant, **108 après**, et le résidu est à 90 % le sujet qui prend tout l'écran — un
+  volet, un panneau — que rien ne peut loger. ⛔ Ne pas juger cette règle à l'œil sur un
+  cas : elle se rejoue.
+
+⛔ **CE QUI DÉPEND DU DOIGT OU DE LA LARGEUR N'EST PAS EN STYLE EN LIGNE.** Un style en
+ligne bat toute règle de feuille : la mesure des boutons du pied vit donc dans
+`globals.css`, sur les classes `cs-visite-bouton*`, et leur seul DESSIN dans
+`compositionVisite.ts`. Les deux se lisent ensemble.
+- **44 px sous `@media (hover: none)`** : les trois boutons faisaient trente pixels,
+  au-dessus du plancher de 24 de WCAG 2.2 et sous les 44 que le site vise sur un chemin
+  de lecture — et le pied d'une visite EST ce chemin. ⛔ L'axe est le POINTEUR, jamais
+  la largeur.
+- **Deux requêtes de CONTENEUR, aux seuils MESURÉS** : le pied s'enroule sous 15,5 rem
+  de conteneur, le rembourrage du message se resserre sous 20 rem. ⛔ Une requête de
+  conteneur se compare à la BOÎTE DE CONTENU : la case fait 21 rem et son conteneur
+  300 px, rembourrage et filets déduits. Posé à 19,5 rem, le seuil du pied se
+  déclenchait dès 375 px et « Passer la visite » prenait une ligne entière sur tous les
+  téléphones. ⚠️ Le pied demande au pire 241,3 px et la case en offre 256 sur un
+  téléphone de 320 : la règle est un garde-fou, elle ne se voit pas.
+
+**La case se MESURE hors de la page** : `app/lib/compositionVisite.ts` porte sa
+composition (largeurs, rembourrages, styles, `styleCarte`), et `ProposVisite`
+(`VisiteGuidee.tsx`) son propos, séparé de la fenêtre comme `ContenuFicheTraduction`
+l'est de sa modale — `createPortal` n'existe pas hors du navigateur. `tmp/planche-visite-mobile.mts`
+rend ainsi les 39 arrêts et les 6 messages avec la composition RÉELLE, et l'on relève
+leurs hauteurs dans le panneau navigateur à 320, 360, 375, 390 et 414 px.
+- ⚠️ La planche inline `globals.css` telle quelle : il faut y remettre à la main les
+  quelques déclarations de la préflight de Tailwind qui touchent un bouton
+  (`font-family: inherit`), sinon il retombe sur la police du système et sa largeur
+  n'est plus celle du site.
+- ⚠️ Un onglet du panneau navigateur qui n'a pas reçu `resize_window` n'a PAS de
+  fenêtre : `window.innerWidth` y vaut 0 et toutes les mesures sont fausses. Et chaque
+  `navigate` ouvre un onglet NEUF, qu'il faut redimensionner.
+
+⚠️ **QUELLES VISITES S'OUVRENT SUR UN TÉLÉPHONE** : la Bible classique, la Bibliothèque
+et la recherche, et elles seules. L'accueil attend la barre déployée, la Polyglotte un
+écran de 820 px, la page d'œuvre refuse le mobile (ses volets y sont des tiroirs
+fermés). ⛔ Une visite nouvelle dit elle-même si elle s'y ouvre : rien ne le devine.
+
 ⛔ **AUCUNE ÉTAPE SUR LA BARRE, SAUF DANS LA VISITE DE L'ACCUEIL** (décisions de
 l'auteur, 2026-09-06 au soir, dans cet ordre). Les visites de page en ont porté une, sur
 un contresens de ma part : « présenter la recherche » visait le champ du VOLET. La
