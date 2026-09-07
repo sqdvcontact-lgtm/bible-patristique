@@ -1870,7 +1870,9 @@ Elle se rabat donc, **comme les 112 tailles de texte sur 32 rangs et les rayons 
 
 ⛔ **Un nouvel import de vers renseigne `stanza_before` sur CHAQUE ligne**, `false` compris. Le laisser à `paragraphe` rouvre exactement la divergence qu'on vient de fermer.
 
-**Le repli reste, comme filet.** `ouvreStrophe` lit la métadonnée quand elle existe, le changement de `paragraphe` sinon. ⚠️ **Il EST exercé par le corpus, et ce paragraphe a dit le contraire jusqu'au 2026-09-07** : mesuré ce jour-là, **587 segments en vers sur 2 923 portent `stanza_before` à `null`**, sur cinq textes — le latin de Boèce (429), le *Manuel* de Dhuoda (79 vers d'introduction, 56 de corps, 19 de citation), les citations en vers des Confessions (8) et l'apparat de Mirandol (7). Seules les deux traductions françaises de Boèce renseignent la marque. Le filet n'est donc pas une réserve : c'est ce qui compose réellement la strophe de ces cinq textes, et il compose au `paragraphe`, qui ne dit pas toujours une strophe. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le filet : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
+**Le repli reste, comme filet.** `ouvreStrophe` lit la métadonnée quand elle existe, le changement de `paragraphe` sinon. ⚠️ **Il EST exercé par le corpus, et ce paragraphe a dit le contraire jusqu'au 2026-09-07** : mesuré ce jour-là, **602 segments en vers sur 2 907 portent `stanza_before` à `null`**, sur cinq textes — le latin de Boèce (429), le *Manuel* de Dhuoda (79 vers d'introduction, 56 de corps, 19 de citation), les citations en vers des Confessions (8), l'apparat de Mirandol (7) et la dédicace du Discours 38 (4). Le filet n'est donc pas une réserve : c'est ce qui compose réellement la strophe de ces cinq textes, et il compose au `paragraphe`, qui ne dit pas toujours une strophe.
+
+⛔ **ET LE CORPUS N'A QU'UN SEUL TÉMOIN ATTESTÉ.** Les 2 305 marques renseignées ne se valent pas : celles de **Ceriziers ont été LUES sur la page** à l'import (1 210 sans provenance, plus 3 corrigées sur le fac-similé), tandis que les **1 092 de Mirandol portent `derive_paragraphe`** — elles ont été DÉDUITES du `paragraphe` par la passe du 2026-08-23, et ne sont donc qu'un repli matérialisé. ⚠️ Ce fichier les a données pour attestées le 2026-09-07, et en a tiré un raisonnement faux ; c'est `stanza_before_source` qui tranche, et lui seul. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le filet : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
 
 ## ⚠️ Le découpage par `paragraphe` est faux pour des vers — on refait le POÈME
 
@@ -1901,12 +1903,27 @@ et `--detail <id_texte>` liste les frontières. ⛔ Le script n'a aucune règle 
 
 *ouvertes* = frontières de strophe posées après une ligne qui NE ferme PAS sa phrase.
 
-⛔ **UNE FRONTIÈRE OUVERTE NE PROUVE RIEN À ELLE SEULE**, et c'est le relevé qui l'a
-montré : Mirandol, dont les 1 092 marques sont ATTESTÉES, en compte **16 sur 34, soit
-47 %** — exactement le taux de Dhuoda (8 sur 17). L'enjambement d'une strophe à l'autre
-est une figure ordinaire, et l'irrégularité des groupes ne dit rien non plus, les deux
-textes attestés allant de 1 à 66 vers. ⚠️ Un raisonnement tiré de ces deux signaux seuls
-est donc faux ; il a été tenu puis retiré le jour même.
+⛔ **LA COLONNE « OUVERTES » SE LIT CONTRE LE SEUL TÉMOIN ATTESTÉ, ET LE PARTAGE EST NET.**
+
+| provenance de la marque | strophes | ouvertes | part |
+|---|---:|---:|---:|
+| Ceriziers — **lue sur la page** | 78 | 6 | **7,7 %** |
+| Mirandol — `derive_paragraphe` | 34 | 16 | 47,1 % |
+| Boèce latin — repli sur `paragraphe` | 34 | 15 | 44,1 % |
+| Dhuoda, introduction — repli | 17 | 8 | 47,1 % |
+| Confessions, citations — repli | 7 | 7 | 100 % |
+
+⚠️ **Tout ce qui vient de `paragraphe` pose une frontière sur deux au milieu d'une
+phrase ; la seule édition dont les strophes ont été LUES en pose une sur treize.**
+L'enjambement d'une strophe à l'autre existe — Ceriziers le prouve, six fois — mais il
+reste l'exception, quand le repli en fait la règle. ⛔ Ce n'est pas une preuve, c'est un
+faisceau : il ne dit pas où sont les strophes de ces cinq textes, il dit seulement que
+`paragraphe` ne les porte vraisemblablement pas.
+
+⚠️ **Deux affirmations fausses ont été tenues le 2026-09-07 avant ce tableau**, et
+toutes deux par défaut de mesure : que l'irrégularité des groupes trahissait la fiction
+(Ceriziers, attesté, va de 1 à 66 vers), puis que les marques de Mirandol étaient
+attestées (elles sont dérivées). **On lit `stanza_before_source` avant de comparer.**
 
 ⛔ **UN SEUL CAS EST CERTAIN, ET IL EST FLAGRANT** : les **8 vers cités dans les
 Confessions** (`A0010O0001T0002`) portent un `paragraphe` différent CHACUN, si bien que
