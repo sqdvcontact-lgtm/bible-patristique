@@ -390,6 +390,26 @@ describe('la répartition des groupes sur les blocs', () => {
       { ids: ['fr-5'], groupes: ['g3'], couvert: true, clot: true },
     ])
   })
+  // ⛔ L'ARGUMENT, dont le chunk de départ est le SEGMENT et non le paragraphe — « un
+  // argument fait bloc à lui seul ». Quatorze blocs d'un seul vers, tous du même empan :
+  // UN seul le compose, les treize autres restent couverts. C'est le défaut du *Manuel*
+  // de Dhuoda, relevé le 2026-09-07 : ses 94 segments français sont des introductions,
+  // lesquelles vivent hors des groupes structurels et ne figuraient donc pas dans la
+  // liste où les bornes se comptent. Faute de bornes, le repli ci-dessus s'appliquait à
+  // chacun des quatorze rangs, et la colonne latine portait quatorze fois la strophe.
+  it('⛔ un ARGUMENT découpé segment par segment ne compose son empan qu’UNE fois', () => {
+    const vers = Array.from({ length: 14 }, (_, i) => `v${i + 1}`)
+    const blocs = () => vers.map(id => ({ ids: [id] }))
+    const rangs = repartirGroupes(blocs(), () => 'g13', new Map([['g13', { premier: 'v1', dernier: 'v14' }]]))
+    expect(rangs.filter(r => r.groupes.length > 0)).toEqual([
+      { ids: ['v1'], groupes: ['g13'], couvert: true, clot: true },
+    ])
+    // Les treize autres gardent leur grille : le français ne reprend pas toute la
+    // largeur au milieu d'un poème.
+    expect(rangs.every(r => r.couvert)).toBe(true)
+    // Et voici ce que coûte l'oubli d'une borne, dit en clair.
+    expect(repartirGroupes(blocs(), () => 'g13', new Map()).filter(r => r.groupes.length > 0)).toHaveLength(14)
+  })
 })
 
 describe('le poème refait dans la lecture en regard', () => {

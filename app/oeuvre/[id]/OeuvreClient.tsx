@@ -1662,7 +1662,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // sur un groupe structurel, sans quoi un empan à cheval sur deux sections se
   // recomposerait dans chacune. ⚠️ L'ordre de `segmentsFiltres` fait foi, et c'est bien
   // l'ordre de lecture (`segment_numero`), qu'aucun filtre ne dérange.
-  const bornesGroupes = bornesDesGroupes(segmentsFiltres)
+  //
+  // ⛔ ET LES INTRODUCTIONS EN SONT (2026-09-07, le soir). Elles sont hissées en tête,
+  // hors des groupes structurels, donc absentes de `segmentsFiltres` : leur empan
+  // n'avait AUCUNE borne, et `repartirGroupes` fait alors composer l'original par
+  // chaque rang qu'il touche — c'est son repli, et il est juste tant qu'on ne sait
+  // rien. Or un argument vaut un bloc à lui seul : l'original se recopiait donc
+  // autant de fois que le groupe compte de segments. Mesuré sur le *Manuel* de
+  // Dhuoda, dont les 94 segments français sont tous des introductions : l'épigramme
+  // tient un seul groupe de quatorze vers, et la colonne latine portait quatorze
+  // fois la strophe entière, chaque vers latin paraissant quatorze fois.
+  // ⛔ La liste des bornes est donc EXACTEMENT celle que la page rend, dans l'ordre
+  // où elle la rend : c'est la seule garantie qu'un empan ne se compose qu'une fois.
+  // ⚠️ Les introductions ne sont rendues que sur la PREMIÈRE page — les compter
+  // ailleurs viderait la colonne d'un empan que la page compose pourtant.
+  const introsEnTete = useMemo(
+    () => (pageActuelle === 0 ? segments.filter(s => s.nature === 'introduction') : []),
+    [segments, pageActuelle],
+  )
+  const bornesGroupes = bornesDesGroupes([...introsEnTete, ...segmentsFiltres])
 
   // Une note appelée dans un TITRE n'est pas toujours définie sur le premier
   // segment de son groupe : dans les imports à notes structurées, son ancre tombe
@@ -2974,7 +2992,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             // c'est-à-dire exactement ce que `paireDeLecture` avait été écrit pour
             // empêcher : la garde vérifie qu'une colonne PEUT se composer, jamais que la
             // surface qui rend ce texte SAIT la composer.
-            const intros = pageActuelle === 0 ? segments.filter(s => s.nature === 'introduction') : []
+            // ⛔ La MÊME liste que celle des bornes, et non une seconde filtrée ici :
+            // deux listes qui doivent s'accorder finissent par diverger, et c'est
+            // justement leur désaccord qui faisait paraître l'original quatorze fois.
+            const intros = introsEnTete
             const introParId = new Map(intros.map(s => [s.id, s]))
             const rangDansIntros = new Map(intros.map((s, i) => [s.id, i]))
             // Les blocs de l'argument, découpés comme ceux de la lecture. ⚠️ Le chunk de
