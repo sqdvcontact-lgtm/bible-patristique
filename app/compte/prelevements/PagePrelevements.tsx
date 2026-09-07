@@ -578,8 +578,11 @@ export default function PagePrelevements() {
         .prel-texte { font-family: var(--font-source-serif), Georgia, serif;
           font-size: 0.875rem; line-height: 1.42; color: var(--cs-texte-fort); margin: 0;
           text-align: left; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
-        /* La provenance est une RUBRIQUE, la même que la tête d'une scholie. */
-        .prel-provenance { font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase;
+        /* ⚠️ La provenance est une GLOSE, non une rubrique : elle se répète à chaque
+           ligne, presque toujours la même, et en petites capitales espacées elle appelait
+           l'œil autant que la référence. L'italique dit qu'elle n'est pas du texte, le gris
+           qu'elle vient en second. */
+        .prel-provenance { font-size: 0.625rem; font-style: italic;
           color: var(--cs-texte-second); margin: 4px 0 0; }
 
         @media (max-width: 640px) {
