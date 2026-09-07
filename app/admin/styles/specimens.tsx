@@ -42,7 +42,7 @@ import { separateurAppels, styleAppelNote, styleSeparateurAppels } from '@/app/l
 import type { VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import type { OuvrageBibliographique } from '@/app/lib/bibleBibliographieOuvrages'
 import {
-  MENTION_ABSENT, MENTION_LACUNE, MENTION_LACUNE_TITRE,
+  MENTION_ABSENT, MENTION_EMPAN_TITRE, MENTION_LACUNE, MENTION_LACUNE_TITRE, mentionEmpan,
   STYLE_INVITE, STYLE_LACUNE, STYLE_MENTION, STYLE_MENTION_LACUNE,
   STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
@@ -279,6 +279,12 @@ const BIBLE: Unite[] = [
     note: 'Dans une grille de comparaison, une case vide ne se dit pas par un tiret : rien n’indiquerait de quoi il est le signe. La mention prend la parole à la place du texte, en sérif italique, dans la teinte propre des mentions — un sépia pris sur l’axe chaud du site, à moins de la moitié de la chroma de l’ocre des lacunes. Elle est centrée dans sa cellule, en hauteur comme en largeur.',
     alerte: '⛔ La teinte est `--cs-mention`, et non `--cs-texte-faible`, qui est un rang d’INTERFACE. Mesuré le 2026-08-30 : l’ancienne teinte rendait 2,14 sur le fond de la grille et 1,87 sur celui d’une suscription, là où la charte demande 4,5 sous 24 px. La nouvelle tient 4,70 au pire des six fonds.',
     contenu: <CellulePolyglotte><span style={STYLE_MENTION}>{MENTION_ABSENT}</span></CellulePolyglotte>,
+  },
+  {
+    style: 'polyglotte/mention — case couverte par un empan',
+    note: 'Même voix et même teinte que l’absence : c’est encore l’éditeur qui parle à la place d’un texte que la case ne porte pas. Mais ici le texte n’est pas absent, il est PLUS HAUT — l’édition réunit en un seul verset ce que le canon compte en plusieurs, et `versets_v2.canon_id_fin` le dit. La mention renvoie au verset où on le lit, dans la numérotation de l’édition.',
+    alerte: '⛔ La référence est celle de l’ÉDITION, jamais le numéro du canon (charte § 15.1.2). ⚠️ Le texte n’est PAS répété : un verset ne se lit qu’une fois. La Polyglotte ne lisait pas cette colonne jusqu’au 2026-09-07 et écrivait « Absent de cette traduction » sur 32 cellules que l’édition porte bel et bien, dont trois dans la colonne de l’AELF, qui est la référence de l’ossature.',
+    contenu: <CellulePolyglotte><span title={MENTION_EMPAN_TITRE} style={{ ...STYLE_MENTION, cursor: 'help' }}>{mentionEmpan('18')}</span></CellulePolyglotte>,
   },
   {
     style: 'polyglotte/mention — lacune du témoin',

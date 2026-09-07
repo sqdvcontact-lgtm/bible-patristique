@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   COUVERTURE_MINIMALE, TEMOINS_MINIMUM,
-  absences, compresserChapitres, compresserReference, couperCanonId, couverture, decalages,
+  absences, compresserChapitres, compresserReference, couperCanonId, couverture,
+  creneauxCouverts, decalages, indexerCanon,
   partagerParLot, referenceOrigine, regroupements, scissions, surnumeraires,
 } from './_audit-structure-regles.mjs'
 
@@ -53,6 +54,62 @@ describe('absences', () => {
       ligneDe('TR0005', 'GEN', 1, 1), ligneDe('TR0005', 'GEN', 1, 2),
     ]
     expect(absences(canon, lignes).some(a => a.trad_id === 'TR0005')).toBe(false)
+  })
+})
+
+describe('créneaux couverts par un verset étalé', () => {
+  // ⚠️ Les identifiants sont posés à DESSEIN dans un ordre que le texte trie mal :
+  // « NUM.15.10 » précède « NUM.15.2 » à l'alphabet, jamais au canon.
+  const canon = [
+    { id: 'NUM.15.2', livre: 'NUM', ch_canon: 15, v_canon: 2, ordre: 2 },
+    { id: 'NUM.15.10', livre: 'NUM', ch_canon: 15, v_canon: 10, ordre: 10 },
+    { id: 'NUM.15.11', livre: 'NUM', ch_canon: 15, v_canon: 11, ordre: 11 },
+    { id: 'NUM.15.12', livre: 'NUM', ch_canon: 15, v_canon: 12, ordre: 12 },
+  ]
+  const index = indexerCanon(canon)
+
+  it('range le livre par `ordre`, non par l’identifiant', () => {
+    expect(index.parLivre.get('NUM').map(c => c.id))
+      .toEqual(['NUM.15.2', 'NUM.15.10', 'NUM.15.11', 'NUM.15.12'])
+  })
+  it('rend le seul créneau de départ quand rien ne s’étale', () => {
+    expect(creneauxCouverts({ livre: 'NUM', canon_id: 'NUM.15.11', canon_id_fin: null }, index))
+      .toEqual(['NUM.15.11'])
+    expect(creneauxCouverts({ livre: 'NUM', canon_id: 'NUM.15.11', canon_id_fin: 'NUM.15.11' }, index))
+      .toEqual(['NUM.15.11'])
+  })
+  it('rend TOUS les créneaux de l’empan, bornes comprises', () => {
+    expect(creneauxCouverts({ livre: 'NUM', canon_id: 'NUM.15.10', canon_id_fin: 'NUM.15.12' }, index))
+      .toEqual(['NUM.15.10', 'NUM.15.11', 'NUM.15.12'])
+  })
+  it('⛔ ne devine RIEN d’un empan inversé : la ligne ne couvre que son départ', () => {
+    expect(creneauxCouverts({ livre: 'NUM', canon_id: 'NUM.15.12', canon_id_fin: 'NUM.15.10' }, index))
+      .toEqual(['NUM.15.12'])
+  })
+  it('se tait sur une ligne sans créneau', () => {
+    expect(creneauxCouverts({ livre: 'NUM', canon_id: null }, index)).toEqual([])
+  })
+})
+
+describe('absences — un créneau COUVERT n’est pas absent', () => {
+  const canon = Array.from({ length: COUVERTURE_MINIMALE + 1 }, (_, i) => ({
+    id: `NUM.15.${i + 1}`, livre: 'NUM', ch_canon: 15, v_canon: i + 1, ordre: i + 1,
+  }))
+  const porteur = trad => canon.map(c => ligneDe(trad, 'NUM', 15, c.v_canon))
+
+  it('la Vulgate qui étale un verset sur deux créneaux ne manque à aucun des deux', () => {
+    const etale = porteur('TR0004').filter(l => l.canon_id !== 'NUM.15.16')
+    etale.find(l => l.canon_id === 'NUM.15.15').canon_id_fin = 'NUM.15.16'
+    const lignes = [...etale, ...porteur('TR0001'), ...porteur('TR0002'), ...porteur('TR0003')]
+    expect(absences(canon, lignes)).toEqual([])
+  })
+
+  it('mais un créneau qu’aucun empan ne recouvre reste absent', () => {
+    const lignes = [
+      ...porteur('TR0004').filter(l => l.canon_id !== 'NUM.15.16'),
+      ...porteur('TR0001'), ...porteur('TR0002'), ...porteur('TR0003'),
+    ]
+    expect(absences(canon, lignes)).toMatchObject([{ trad_id: 'TR0004', canon_id: 'NUM.15.16' }])
   })
 })
 

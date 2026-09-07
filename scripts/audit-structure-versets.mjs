@@ -100,7 +100,7 @@ function enCas(lot, { type, statut, phrase, parChapitre = false, horsOssature = 
 const coordCreneau = c => couperCanonId(c.canon_id)
 
 // ── Marche ───────────────────────────────────────────────────────────────────
-const canon = await pager('versets_canon', 'id, livre, ch_canon, v_canon')
+const canon = await pager('versets_canon', 'id, livre, ch_canon, v_canon, ordre')
 const lignes = await pager(
   'versets_v2',
   'trad_id, livre, ch_orig, v_orig, v_orig_suffixe, canon_id, canon_id_fin',

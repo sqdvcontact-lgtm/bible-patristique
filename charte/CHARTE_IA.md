@@ -1315,13 +1315,13 @@ Les cardinalités `1:1`, `1:n`, `n:1`, `n:m`, `1:0` et `0:1` sont admises lorsqu
 
 #### Le grain de l’empan — trois règles, dans cet ordre
 
-**1. Le paragraphe de l’édition traduite fait loi.** Quand la traduction porte le paragraphage de son édition, l’alignement l’épouse : l’empan naît et meurt avec le paragraphe. ⛔ Le paragraphe est une **frontière sémantique absolue** — aucun groupe ne l’enjambe, jamais, quelque commodité qu’on trouverait à le faire du côté de l’original. La langue originale, elle, n’oppose aucune frontière : ses propres paragraphes, ses sections numérotées et ses divisions se traversent librement, puisque c’est la traduction qui se lit.
+**1. L’unité de traduction fait loi.** Lorsqu’une traduction possède des unités explicites et qu’une unité française a été produite à partir d’un empan déterminé de l’original, cette unité constitue un groupe d’alignement. ⛔ Le groupe contient **toute l’unité traduite et seulement ce qu’elle traduit dans l’original**. On ne fusionne jamais plusieurs unités françaises dans un groupe plus large sous prétexte qu’elles appartiennent au même paragraphe, à la même page ou au même chapitre. Si l’unité française traduit plusieurs segments originaux, le groupe peut être `n:1` ou `n:m` ; s’il s’agit d’une traduction directe `1:1`, le groupe reste `1:1`.
 
-**2. À défaut de paragraphage, on pose les frontières à la main.** Une édition qui ne paragraphe pas, ou dont l’importation n’a pas retenu les alinéas, n’autorise pas pour autant l’empan long. On constitue alors des frontières aux **jonctions sémantiques** de l’ouvrage : changement d’objet, de destinataire, de mouvement de l’argument. Elles sont éditoriales, se justifient dans `texte_alignements.justification`, et ne se déduisent ni d’un compte de signes ni d’une limite de page. Mais la première tâche reste de rendre au texte traduit les paragraphes de son édition lorsque c’est l’importation qui les a perdus : la règle 1 vaut toujours mieux que la règle 2.
+**2. Le paragraphe compose ; il ne remplace pas l’unité d’alignement.** Le paragraphe de l’édition traduite est une frontière absolue de composition : aucun groupe ne l’enjambe. Mais un même paragraphe peut contenir plusieurs unités et donc plusieurs groupes successifs. Ces groupes se **cousent** dans la lecture : pas de blanc, pas de filet, pas de faux alinéa entre eux. La colonne d’en face change d’empan exactement au même rang de grille, de sorte que chaque unité française reste face au latin qu’elle traduit. La langue originale peut avoir un autre paragraphage ; celui-ci ne doit ni élargir ni déplacer l’empan de la traduction.
 
-**3. L’empan reste bref, mais la subdivision est un remède à la longueur, non une manière de faire.** Tant que le paragraphe de l’édition traduite reste sous la limite haute, le groupe l’épouse tout entier : ⛔ **un paragraphe de 1 500 signes ou moins ne se subdivise pas.** Le repère d’environ 900 signes sert à observer le confort de lecture ; il ne déclenche aucune coupe. Ce n’est qu’au-delà de la limite haute de 1 500 signes qu’une subdivision devient admissible, à une jonction sémantique située à l’intérieur du paragraphe. Le compteur autorise alors le remède ; le sens seul place la coupe. Le cas qui a révélé ce plancher est *De la vanité des idoles* de Cyprien dans la traduction Guillon de 1837 : 45 paragraphes, aucun au-delà de 547 signes, avaient été artificiellement détaillés en 128 groupes ; l’alignement a été repris en 45 empans paragraphaires le 31 août 2026.
+**3. À défaut d’unités explicites, les frontières sont établies sémantiquement.** Une édition ou une traduction qui ne fournit pas d’unités plus fines que le paragraphe peut employer le paragraphe comme candidat de groupe lorsque celui-ci forme réellement une unité de sens. Sinon, on pose les frontières aux jonctions sémantiques : changement d’objet, de destinataire, de mouvement de l’argument. La longueur sert seulement de signal de confort ; elle ne crée ni ne supprime une frontière. ⛔ Il n’existe donc pas de seuil de signes autorisant à fusionner des unités déjà établies. Toute frontière d’alignement doit pouvoir se justifier par la correspondance réelle entre les deux textes.
 
-Le témoin est l’alignement des *Confessions* : 932 groupes pour 932 paragraphes, aucun chevauchement, 876 signes de médiane. ⛔ **Un ensemble déclaré `division` n’est pas une dispense.** Aligner question contre question ou chapitre contre chapitre est un point de départ, non un état publiable : c’est ainsi que les *Questions sur l’Heptateuque* mettent 56 585 signes en regard d’un seul bloc. Un ensemble reste `candidate` tant que son grain n’a pas été repris.
+Le contrôle décisif est simple : pour chaque groupe, relire ensemble le français et le latin ; le français ne doit contenir rien que l’empan latin ne traduise, et le latin ne doit contenir rien qui appartienne à l’unité française suivante ou précédente. `texte_alignements` porte cette correspondance ; `paragraphe` porte seulement la composition.
 
 Un groupe qui enjambe deux blocs se rend en plusieurs blocs — deux divisions, qui se composent séparément sous leur titre, ou deux paragraphes, ce que la règle 1 proscrit et que la donnée fait pourtant encore. L’original ne paraît alors qu’en regard du **premier** ; les suivants gardent leur grille, colonne d’en face vide, pour que la traduction ne reprenne pas toute la largeur au milieu d’un empan. Le filet, qui marque l’appariement empan par empan, ne se tire qu’au **dernier** : tiré entre deux blocs d’un même groupe, il annoncerait une frontière que l’alignement ne reconnaît pas. ⚠️ Le paragraphe, lui, se sépare quand même : un empan à cheval décale la correspondance horizontale, il n’efface pas une coupure que l’édition a voulue.
 
@@ -1359,7 +1359,7 @@ Deux colonnes ne tiennent pas dans la mesure d’une seule. La lecture bilingue 
 
 Règle posée par l’auteur le 30 août 2026 : « je ne veux pas que les textes poétiques soient alignés entre eux ; le latin, tout du long, doit respecter sa forme d’origine, sans gros blancs artificiels, et inversement ».
 
-⛔ **La prose s’apparie empan par empan, le vers ne s’apparie pas.** Chaque empan de prose fait un rang de grille, et un rang prend la hauteur de la plus haute de ses deux cellules : trois vers français en regard d’un distique latin creusent donc un blanc au bas de la colonne latine. Le poème s’en trouve scandé de silences que l’édition n’a pas écrits, et la forme d’origine est perdue des deux côtés à la fois.
+⛔ **Deux poèmes indépendants ne s’apparient pas artificiellement vers à vers.** Chaque empan de prose fait un rang de grille, et un rang prend la hauteur de la plus haute de ses deux cellules : trois vers français en regard d’un distique latin creusent donc un blanc au bas de la colonne latine. Le poème s’en trouve scandé de silences que l’édition n’a pas écrits, et la forme d’origine est perdue des deux côtés à la fois. ⚠️ **Exception : une traduction nouvelle produite explicitement ligne par ligne depuis l’original, avec conservation de la même ligne de vers, possède de véritables unités de traduction 1:1.** Dans ce cas, chaque ligne française peut former avec la ligne originale qu’elle traduit un groupe strict `1:1`, conformément à la règle de l’unité ci-dessus. Cette exception ne s’étend jamais à deux poèmes de versification indépendante.
 
 ⚠️ **Ce n’est pas un défaut marginal, c’est la moitié de la page.** Mesuré sur le mètre I du Livre premier de Boèce, colonne par colonne : le français porte 437 px d’encre pour **406 px de blanc**, et le latin **435 px de blanc pour 389 px d’encre** — plus de vide que de texte. Treize trous par colonne, jusqu’à 49 px, sur un poème de quatorze groupes d’alignement. Le seul blanc voulu, celui qui sépare les deux strophes, s’y noyait.
 
@@ -6208,3 +6208,71 @@ native n'ont été touchés. Le versement dans `points_sensibles` est un geste s
 (`scripts/points-sensibles-verser-audit-structure.mjs`), et chaque ligne versée porte sa
 provenance dans ses notes : le lot entier se retrouve et se retire d'une requête, ce qui
 est la condition pour qu'une passe automatique n'abîme jamais les points écrits à la main.
+
+### 38.29 Une case COUVERTE n’est pas une case vide
+
+Contrôle philologique du 2026-09-07, sur les créneaux que le relevé structurel donnait pour
+absents.
+
+⛔ **UN VERSET ÉTALÉ PORTE TOUS LES CRÉNEAUX QU’IL COUVRE, ET PAS SEULEMENT LE PREMIER.**
+`canon_id` dit où il commence, `canon_id_fin` où il finit, et ce qui est entre les deux
+n’est pas absent. La règle vaut pour qui LIT cette donnée comme pour qui la mesure :
+
+- **le relevé** l’ignorait et annonçait 28 absences qui n’en étaient pas — dont Nb 15, 14
+  et 15, 16, que la Vulgate couvre bel et bien d’un seul verset. Corrigé : 1 714 absences
+  au lieu de 1 742, 62 isolées au lieu de 66 ;
+- **la Polyglotte** ne lisait pas cette colonne du tout, et écrivait « Absent de cette
+  traduction » sur **32 cellules** que l’édition porte. Trois d’entre elles étaient dans la
+  colonne de l’AELF, c’est-à-dire dans la référence même de l’ossature.
+
+⚠️ **La case couverte renvoie au verset où le texte se lit, elle ne le RÉPÈTE pas** : un
+verset ne se lit qu’une fois. Et elle y renvoie dans la numérotation de l’ÉDITION, jamais
+par le numéro du canon (§ 15.1.2).
+
+⛔ **UN EMPAN DONT LA FIN PRÉCÈDE LE DÉPART EST UNE DONNÉE FAUTIVE, ET L’ON NE DEVINE PAS
+L’INTENTION** : la ligne ne couvre alors que son créneau de départ, ni plus ni moins.
+
+⚠️ **Corollaire de méthode, et il est plus large que ce cas** : une colonne d’alignement que
+personne ne lit finit par ne plus rien vouloir dire. `versets_v2.canon_id_fin` était
+renseignée, exacte, documentée par la charte — et aucune surface du site ne la demandait.
+La donnée était juste et l’écran mentait. *Avant de conclure qu’un texte manque, vérifier
+que la surface qui le dit sait lire ce qui le porte.*
+
+### 38.29.1 Ce que le contrôle des cinq divergences a établi
+
+Cinq créneaux manquaient à DEUX témoins indépendants à la fois, ce qui fait soupçonner la
+case plutôt que le texte. Confrontation faite, **l’alignement était juste dans les cinq
+cas**, et l’absence est une divergence réelle de la tradition vulgate, que les comptes de
+versets natifs confirment :
+
+| créneau | ce que dit l’édition |
+|---|---|
+| `GEN.49.32` | Gn 49 compte 32 versets dans la Vulgate et chez Sacy, 33 au canon ; leur v. 32 répond au v. 33 |
+| `EXO.40.14` | leur v. 13 couvre les v. 13 et 15 du canon ; le v. 14 n’a pas d’équivalent |
+| `NUM.15.12` | leurs v. 11 et 12 répondent ensemble au v. 11 du canon |
+| `SIR.22.17` | l’Ecclésiastique latin relève d’une autre recension : 33 versets au chapitre contre 27 |
+| `SNG.1.1` | l’édition ne numérote pas le titre du livre ; son v. 1 répond au v. 2, et le chapitre compte 16 versets contre 17 |
+
+⛔ **Rien n’a été réaligné là où l’alignement était juste**, et rien n’a été ajouté dans une
+case vide. Chacune de ces cinq divergences a reçu une **note éditoriale courte** sur la
+première ligne où la numérotation diverge — celle que le lecteur voit —, qui nomme la
+référence native et la correspondance TOL/AELF sans déclarer fautive une tradition qui est
+seulement différente. ⚠️ Deux de ces lignes portaient déjà une note : elle a été ALLONGÉE,
+jamais réécrite.
+
+### 38.29.2 Deux empans manquaient à l’AELF elle-même
+
+⛔ **Sg 9, 18 et 1 M 12, 53 de la TOL/AELF couvrent chacun DEUX créneaux du canon**, et ne
+le déclaraient pas : la colonne de la référence était vide en Sg 9, 19 et en 1 M 12, 54.
+Mesuré : l’AELF compte 18 versets en Sg 9 quand l’ossature en compte 19, et 53 en 1 M 12
+quand l’ossature en compte 54 ; le texte de son verset porte, mot pour mot, ce que les
+autres traductions rangent dans le créneau suivant.
+
+⚠️ **C’est un champ d’ALIGNEMENT, et le § 15.1.1 permet expressément de le corriger** : « la
+référence native AELF doit rester reconstructible et inchangée. Les champs d’alignement
+peuvent être corrigés ; le texte de `TR0012` ne doit pas l’être. » Le texte, la
+numérotation native et l’ordre n’ont pas bougé — postcheck à zéro sur les deux lignes.
+
+⚠️ **L’ossature et l’AELF ne coïncident donc pas partout**, ce que la charte signale déjà
+comme une dette ouverte. Ces deux cas la documentent d’un exemple mesuré : ce ne sont pas
+des versets manquants, ce sont des versets réunis.

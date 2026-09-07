@@ -50,7 +50,7 @@ import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs8
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
-  MENTION_ABSENT, MENTION_ATTENTE, MENTION_DEUTERO, MENTION_LACUNE, MENTION_LACUNE_TITRE,
+  MENTION_ABSENT, MENTION_ATTENTE, MENTION_DEUTERO, MENTION_EMPAN_TITRE, MENTION_LACUNE, MENTION_LACUNE_TITRE, mentionEmpan,
   STYLE_INVITE, STYLE_MENTION, STYLE_MENTION_LACUNE,
 } from '@/app/lib/compositionBible'
 // ⛔ `colorMix` est parti avec les pilules de « Traductions visibles » : plus aucun
@@ -89,7 +89,7 @@ const couche899De = (id: string): Couche899 => (id === TRAD_ID_899_DIPLO ? "dipl
 const editionTrad = millesimeEdition;
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
-type V2Row = { id: string; canon_id: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
+type V2Row = { id: string; canon_id: string | null; canon_id_fin: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
 
 // ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
 // Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
@@ -371,6 +371,10 @@ function lignes899(brutes: Brutes899, tradId: string): V2Row[] {
       // diplomatique se lisent côte à côte, et leurs lignes ne se confondent pas.
       id: `899:${tradId}:${l.canon_id}`,
       canon_id: l.canon_id,
+      // ⚠️ La couche 899 porte SA propre borne de fin (`bible_canonical_alignments`), que
+      // la recomposition par créneau a déjà résolue : une ligne y vaut un créneau, et il
+      // n'y a donc pas d'empan à reporter ici.
+      canon_id_fin: null,
       livre: l.livre ?? "",
       trad_id: tradId,
       ch_orig: l.chapitre ?? 0,
@@ -461,7 +465,7 @@ async function completerCache(demande: Portee): Promise<void> {
     const lots = scope === "*" ? [g.livres] : g.livres.map(l => [l]);
     for (const livres of lots) {
       taches.push(partager(`texte|${g.trads.join(",")}|${livres.join(",")}|${scope}`, () =>
-        fetchPaged<V2Row>("versets_v2", "id, canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
+        fetchPaged<V2Row>("versets_v2", "id, canon_id, canon_id_fin, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
           q => { const x = q.in("livre", livres).in("trad_id", g.trads); return scope !== "*" ? x.like("canon_id", `${livres[0]}.${scope}.%`) : x; })
           .then(rows => {
             for (const trad of g.trads) for (const livre of livres) {
@@ -681,6 +685,21 @@ function CelluleAbsente({ deutero }: { deutero?: boolean }) {
       style={{ ...STYLE_MENTION, cursor: "help" }}>
       {MENTION_DEUTERO}
     </span>
+  );
+}
+
+// ⛔ La case qu'un verset COUVRE sans y commencer : elle dit où le texte se lit, et elle
+// le dit dans la numérotation de l'ÉDITION — jamais dans celle du canon (charte § 15.1.2 :
+// « les références natives du témoin restent accessibles et ne sont jamais remplacées par
+// le numéro AELF »). ⚠️ Le texte n'est PAS répété : un verset ne se lit qu'une fois.
+// ⚠️ Le suffixe natif se tait pour la Vulgate, comme il se tait dans sa lettrine.
+function CelluleEmpan({ ligne, chapitreDuCreneau, sansSuffixe }: { ligne: V2Row; chapitreDuCreneau: number; sansSuffixe?: boolean }) {
+  const suffixe = sansSuffixe ? "" : (ligne.v_orig_suffixe ?? "");
+  const ref = ligne.ch_orig === chapitreDuCreneau
+    ? `${ligne.v_orig}${suffixe}`
+    : `${ligne.ch_orig}, ${ligne.v_orig}${suffixe}`;
+  return (
+    <span title={MENTION_EMPAN_TITRE} style={{ ...STYLE_MENTION, cursor: "help" }}>{mentionEmpan(ref)}</span>
   );
 }
 
@@ -1702,6 +1721,28 @@ export default function PolyglottePage() {
     for (const r of canon) m.set(r.livre, [...(m.get(r.livre) ?? []), r]);
     return m;
   }, [canon]);
+  // ⛔ UN CRÉNEAU COUVERT PAR UN EMPAN N'EST PAS UN CRÉNEAU VIDE. Quand une édition réunit
+  // en un seul verset ce que le canon compte en plusieurs, `canon_id_fin` le dit — et la
+  // colonne n'a rien à mettre dans les créneaux SUIVANTS, non parce qu'elle ne les porte
+  // pas, mais parce qu'on les lit plus haut. La Polyglotte n'a jamais lu cette colonne :
+  // 32 cellules déclaraient « Absent de cette traduction » sur des versets bel et bien
+  // portés, dont trois dans la colonne de l'AELF, qui est la référence de l'ossature.
+  // ⚠️ On ne retient QUE les créneaux qui suivent le départ : celui du départ porte le
+  // texte, et l'écraser masquerait le verset.
+  const empans = useMemo(() => {
+    const m = new Map<string, V2Row>();
+    for (const r of v2) {
+      if (!r.canon_id || !r.canon_id_fin || r.canon_id_fin === r.canon_id) continue;
+      const liste = parLivre.get(r.livre);
+      if (!liste) continue;
+      const debut = liste.findIndex(c => c.id === r.canon_id);
+      const fin = liste.findIndex(c => c.id === r.canon_id_fin);
+      // ⚠️ Un empan dont la fin PRÉCÈDE le départ est une donnée fautive : on ne devine pas.
+      if (debut < 0 || fin <= debut) continue;
+      for (let k = debut + 1; k <= fin; k++) m.set(`${liste[k].id}|${r.trad_id}`, r);
+    }
+    return m;
+  }, [v2, parLivre]);
   // Le chapitre à montrer quand les données portent le livre ENTIER : le chapitre
   // choisi. Quand elles ne portent qu'un chapitre, on montre ce qu'elles portent —
   // y compris le chapitre d'AVANT, sous la marque d'attente, le temps que le suivant
@@ -2385,6 +2426,9 @@ export default function PolyglottePage() {
                         if (!sc.trad) return <div key={i} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
                         const t = sc.trad;
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
+                        // La case n'a pas de texte à elle : est-elle COUVERTE par un verset
+                        // qu'on lit plus haut, ou l'édition ne la porte-t-elle pas du tout ?
+                        const couvrant = cs.length === 0 ? empans.get(`${r.id}|${t.trad_id}`) : undefined;
                         // Actions propres à CETTE cellule : citer / signaler la traduction qu'elle
                         // porte. Clé de citation étendue au nom d'édition pour que chaque colonne
                         // ait son propre état « enregistré ».
@@ -2440,7 +2484,11 @@ export default function PolyglottePage() {
                             {cs.length === 0 ? (
                               // ⚠️ Une colonne dont le texte n'est pas encore venu n'est pas
                               // une colonne qui ne porte pas le verset : voir `tradsEnAttente`.
-                              tradsEnAttente.has(t.trad_id) ? <CelluleEnAttente /> : <CelluleAbsente deutero={deuterocanonique(r.id)} />
+                              // ⛔ Et une case COUVERTE par un empan n'est pas une case absente :
+                              // elle renvoie au verset de l'édition où le texte se lit.
+                              tradsEnAttente.has(t.trad_id) ? <CelluleEnAttente />
+                                : couvrant ? <CelluleEmpan ligne={couvrant} chapitreDuCreneau={r.ch_canon} sansSuffixe={t.trad_id === "TR0004"} />
+                                : <CelluleAbsente deutero={deuterocanonique(r.id)} />
                             ) : lacuneCell ? (
                               // Fait du témoin, et non défaut de traduction : la mention garde la
                               // forme commune (STYLE_MENTION) et n'en change que la teinte, l'ocre des

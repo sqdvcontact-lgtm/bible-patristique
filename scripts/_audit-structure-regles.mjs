@@ -46,17 +46,21 @@ export const CHAPITRE_MINIMUM = 3
 
 /**
  * Créneaux distincts portés par chaque traduction dans chaque livre.
- * @param {Array<{trad_id, livre, canon_id}>} lignes
+ * ⚠️ Un verset étalé les compte TOUS quand l'ossature est fournie : c'est la même
+ * question que celle des absences, et deux comptes qui ne s'accordent pas feraient
+ * couvrir un livre ici et pas là.
+ * @param {Array<{trad_id, livre, canon_id, canon_id_fin}>} lignes
+ * @param {ReturnType<typeof indexerCanon>} [index]
  * @returns {Map<string, number>} clé « trad|livre »
  */
-export function couverture(lignes) {
+export function couverture(lignes, index) {
   const vus = new Map()
   for (const l of lignes) {
     if (!l.canon_id) continue
     const cle = `${l.trad_id}|${l.livre}`
     let s = vus.get(cle)
     if (!s) { s = new Set(); vus.set(cle, s) }
-    s.add(l.canon_id)
+    for (const id of (index ? creneauxCouverts(l, index) : [l.canon_id])) s.add(id)
   }
   return new Map([...vus].map(([cle, s]) => [cle, s.size]))
 }
@@ -64,22 +68,66 @@ export function couverture(lignes) {
 // ── Les cinq détecteurs ──────────────────────────────────────────────────────
 
 /**
+ * L'ossature indexée : le rang de chaque créneau, et les créneaux de chaque livre RANGÉS.
+ *
+ * ⛔ On ne se fie JAMAIS à l'ordre du tableau reçu : `versets_canon.id` est du TEXTE, et
+ * un tri sur lui met « GEN.1.10 » avant « GEN.1.2 ». C'est `ordre` qui dit la suite du
+ * canon. À défaut de cette colonne, on retombe sur (chapitre, verset), qui la redonne.
+ */
+export function indexerCanon(canon) {
+  const rang = new Map()
+  const parLivre = new Map()
+  for (const c of canon) {
+    const o = c.ordre != null ? Number(c.ordre) : (c.ch_canon ?? 0) * 1000 + (c.v_canon ?? 0)
+    rang.set(c.id, o)
+    if (!parLivre.has(c.livre)) parLivre.set(c.livre, [])
+    parLivre.get(c.livre).push(c)
+  }
+  for (const liste of parLivre.values()) liste.sort((a, b) => rang.get(a.id) - rang.get(b.id))
+  return { rang, parLivre }
+}
+
+/**
+ * Les créneaux qu'une ligne COUVRE, et non le seul créneau où elle commence.
+ *
+ * ⛔ Un verset source étalé sur plusieurs créneaux les porte TOUS : `canon_id` dit où il
+ * commence, `canon_id_fin` où il finit, et ce qui est entre les deux n'est pas absent.
+ * Le détecteur l'a ignoré jusqu'au 2026-09-07 et annonçait 28 absences qui n'en étaient
+ * pas — dont Nb 15, 14 et 15, 16, que la Vulgate couvre bel et bien d'un seul verset.
+ *
+ * ⚠️ Un `canon_id_fin` qui PRÉCÈDE son début est une donnée fautive : on ne devine pas
+ * l'intention, la ligne ne couvre alors que son créneau de départ.
+ */
+export function creneauxCouverts(ligne, index) {
+  if (!ligne.canon_id) return []
+  const fin = ligne.canon_id_fin
+  if (!fin || fin === ligne.canon_id) return [ligne.canon_id]
+  const debutRang = index.rang.get(ligne.canon_id)
+  const finRang = index.rang.get(fin)
+  if (debutRang == null || finRang == null || finRang < debutRang) return [ligne.canon_id]
+  const liste = index.parLivre.get(ligne.livre) ?? []
+  return liste.filter(c => index.rang.get(c.id) >= debutRang && index.rang.get(c.id) <= finRang).map(c => c.id)
+}
+
+/**
  * ABSENCES : un créneau que la traduction ne porte pas, alors qu'elle couvre le livre
  * et qu'au moins `TEMOINS_MINIMUM` autres traductions le portent.
  *
- * @param {Array<{id, livre}>} canon        l'ossature (`versets_canon`)
- * @param {Array<{trad_id, livre, canon_id}>} lignes
+ * @param {Array<{id, livre, ch_canon, v_canon, ordre}>} canon  l'ossature (`versets_canon`)
+ * @param {Array<{trad_id, livre, canon_id, canon_id_fin}>} lignes
  */
 export function absences(canon, lignes) {
-  const couv = couverture(lignes)
+  const index = indexerCanon(canon)
+  const couv = couverture(lignes, index)
   const porte = new Set()                      // « trad|canon_id »
   const temoins = new Map()                    // canon_id → nb de traductions
   for (const l of lignes) {
-    if (!l.canon_id) continue
-    const cle = `${l.trad_id}|${l.canon_id}`
-    if (porte.has(cle)) continue
-    porte.add(cle)
-    temoins.set(l.canon_id, (temoins.get(l.canon_id) || 0) + 1)
+    for (const id of creneauxCouverts(l, index)) {
+      const cle = `${l.trad_id}|${id}`
+      if (porte.has(cle)) continue
+      porte.add(cle)
+      temoins.set(id, (temoins.get(id) || 0) + 1)
+    }
   }
   const traductions = [...new Set(lignes.map(l => l.trad_id))].sort()
 

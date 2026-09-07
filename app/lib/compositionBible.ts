@@ -321,6 +321,17 @@ export const STYLE_INVITE: CSSProperties = {
  * entière passe à l'infobulle, pour qui la cherche. */
 export const MENTION_ABSENT = 'Absent de cette traduction'
 export const MENTION_ABSENT_TITRE = 'Cette traduction ne porte pas ce verset.'
+/**
+ * ⛔ UNE CASE OCCUPÉE PAR UN VERSET QU'ON LIT PLUS HAUT N'EST PAS UNE CASE VIDE.
+ * Quand une édition réunit en un seul verset ce que le canon compte en plusieurs,
+ * `versets_v2.canon_id_fin` le dit, et les créneaux suivants sont COUVERTS : y écrire
+ * « Absent de cette traduction » est un mensonge sur l'édition. Relevé le 2026-09-07 :
+ * 32 cellules dans ce cas, dont trois dans la colonne de l'AELF, qui est la référence.
+ * ⚠️ La mention ne répète pas le texte — un verset ne se lit qu'une fois — elle dit où
+ * il se lit, et la référence est celle de l'ÉDITION, jamais le numéro du canon.
+ */
+export const mentionEmpan = (referenceNative: string) => `Compris dans le verset ${referenceNative}`
+export const MENTION_EMPAN_TITRE = 'Cette édition réunit en un seul verset ce que le canon compte en plusieurs : le texte se lit au verset indiqué.'
 /** Le texte d'une colonne qu'on vient de choisir, et qui arrive. ⛔ Jamais « Absent de
  *  cette traduction » pendant ce temps-là : ce serait un mensonge d'une seconde. */
 export const MENTION_ATTENTE = 'Chargement…'

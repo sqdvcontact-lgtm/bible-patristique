@@ -7292,3 +7292,76 @@ ouvertes** (donc rouges) et 239 closes (infobulle seule).
 non des corrections. Les trancher est un travail de LECTURE, cas par cas, et il relève des
 décisions philologiques — l'outil sait dire où regarder, il ne sait pas dire ce qu'il faut
 écrire.
+
+# ⛔ `canon_id_fin` — une case COUVERTE n'est pas une case vide (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.29**. Ici, ce qu'il faut savoir pour y
+toucher.
+
+- ⛔ **`creneauxCouverts(ligne, index)` (`scripts/_audit-structure-regles.mjs`) est la seule
+  écriture de la question « quels créneaux cette ligne porte-t-elle ».** `absences` et
+  `couverture` y passent toutes deux : deux comptes qui ne s'accordent pas feraient couvrir
+  un livre ici et pas là. ⚠️ Le détecteur les ignorait jusqu'au 2026-09-07 et annonçait 28
+  absences qui n'en étaient pas ; le relevé tombe de 1 742 à 1 714 absences, 66 à 62 isolées,
+  5 040 à 5 012 couples touchés.
+- ⛔ **`indexerCanon` ne se fie JAMAIS à l'ordre du tableau reçu** : `versets_canon.id` est du
+  TEXTE, et un tri sur lui met « GEN.1.10 » avant « GEN.1.2 ». C'est `ordre` qui dit la suite
+  du canon — d'où son ajout au `select` de `audit-structure-versets.mjs`. ⚠️ Le repli
+  `(ch_canon, v_canon)` la redonne quand la colonne manque. La Polyglotte, elle, trie déjà
+  par `(livre, ch_canon, v_canon)` dans `trierCanon` : son `parLivre` est donc utilisable tel
+  quel.
+- ⛔ **Un empan dont la fin PRÉCÈDE le départ ne se devine pas** : la ligne ne couvre que son
+  créneau de départ. Même garde des deux côtés, mesure et rendu.
+
+## Le rendu — `CelluleEmpan` (`app/polyglotte/page.tsx`)
+
+⛔ **`versets_v2.canon_id_fin` n'était lu par AUCUNE surface du site.** Les occurrences de ce
+nom dans `app/` appartiennent à `bible_canonical_alignments` (Bible 899) et à
+`pericope_occurrences` — deux autres tables. La Polyglotte écrivait donc « Absent de cette
+traduction » sur **32 cellules** que l'édition porte : 23 dans la Septante, 3 chez Sacy, 3
+dans la Vulgate, **3 dans la colonne de l'AELF**, qui est la référence de l'ossature.
+
+- **`empans` est un second index**, à côté de `cellule` : `« canon|trad » → la ligne qui
+  couvre ce créneau sans y commencer`. ⚠️ On ne retient QUE les créneaux qui SUIVENT le
+  départ — celui du départ porte le texte, et l'écraser masquerait le verset.
+- **`mentionEmpan` / `MENTION_EMPAN_TITRE` vivent dans `app/lib/compositionBible.ts`**, avec
+  les autres mentions : c'est la même voix, l'éditeur qui parle à la place d'un texte que la
+  case ne porte pas. ⛔ Ne pas recomposer une mention dans une page.
+- ⛔ **La référence est celle de l'ÉDITION, jamais le numéro du canon** (charte § 15.1.2). Le
+  chapitre ne s'écrit que s'il diffère de celui du créneau, et le suffixe natif se tait pour
+  la Vulgate, comme il se tait dans sa lettrine.
+- ⚠️ **Le texte n'est PAS répété** : un verset ne se lit qu'une fois.
+- ⚠️ **La Polyglotte de la page RECHERCHE porte le même défaut**, non traité : elle compose
+  ses cellules depuis une RPC, par un autre chemin, et `MENTION_ABSENT` y est écrit sans
+  qu'aucun empan soit consulté.
+- ⚠️ **La Bible classique n'est pas concernée de la même façon** : elle lit `versets_lecture`,
+  vue matérialisée qui agrège par créneau. Si un empan doit s'y voir, c'est la vue qu'il faut
+  reprendre, non la page.
+
+## Les notes éditoriales de divergence
+
+- ⛔ **La colonne est `versets_v2.notes`**, et elle seule : `note_edition` porte la référence
+  native AELF (`AELF:Sg:9:18`, 35 760 lignes), `note_structure` les constats d'alignement
+  datés, `note_travail` le journal d'atelier. Seule `notes` se lit au survol du crayon de la
+  Polyglotte.
+- ⚠️ **Une note existante s'ALLONGE, elle ne se réécrit pas** (charte § 15.3, § 14.3) : deux
+  des dix lignes notées le 2026-09-07 portaient déjà le constat d'un regroupement, auquel
+  s'ajoute celui de l'omission.
+- ⚠️ **La note se pose sur la première ligne où la numérotation DIVERGE**, jamais sur toutes
+  celles qu'un décalage traverse : c'est là que le lecteur bute, et une note répétée sur
+  seize versets d'un même chapitre cesse d'être une note.
+- **Sauvegardes et postcheck** : `internal.backup_versets_notes_divergences_20260907` (10
+  lignes), `internal.backup_versets_empans_aelf_20260907` (2 lignes). Postcheck sur les deux
+  lots : texte, coordonnées natives, `canon_id`, `ordre_slot` et les autres colonnes de note
+  strictement inchangés.
+
+## ⚠️ Ce que le contrôle a relevé sans le traiter
+
+- **La Vulgate porte des suffixes natifs INVENTÉS** : `v_orig_suffixe` vaut `a` et `b` sur
+  les fragments d'Ex 40, 13, quand Sacy — correctement — répète le même `13` sans suffixe sur
+  chacun de ses fragments. La charte l'interdit expressément (§ 4.2, « ne jamais inventer de
+  suffixes a, b, c »). ⚠️ Le site le sait déjà et le masque : la lettrine de la Polyglotte
+  écrit `t.trad_id === "TR0004" ? "" : suffixe`. Un pansement sur une donnée fautive, à
+  reprendre à la source.
+- **TR0013 concentre 30 des 62 absences isolées** (Marc, Actes, Jean, Ruth, Juges…). C'est le
+  chantier de la Bible 899, tenu par l'auteur et par GPT : relevé, non touché.
