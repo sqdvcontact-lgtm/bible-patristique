@@ -6329,13 +6329,13 @@ d'autre objet que d'être une PORTE, et la barre est la porte. Sa visite le DÉC
 (`Visite.couvreLaBarre`), et c'est ce drapeau — non une constante du composant — qui
 fait passer le voile par-dessus la barre, pour elle seule.
 
-**Six fichiers, et un seul porte du DOM.**
+**Sept fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
   trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
   (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
 - `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts`,
-  `app/lib/visiteBibliotheque.ts`, `app/lib/visiteAccueil.ts` et `app/lib/visiteOeuvre.ts`
-  — les scénarios, en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
+  `app/lib/visiteBibliotheque.ts`, `app/lib/visiteAccueil.ts`, `app/lib/visiteOeuvre.ts` et
+  `app/lib/visiteRecherche.ts` — les scénarios, en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
   de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
 - `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **2800**
@@ -6383,16 +6383,17 @@ la visite. ⛔ Et un pli imposé ne se referme pas d'une étape à l'autre quand
 suivante vit dedans — celle de l'étoile est dans la carte que la précédente a ouverte.
 
 **Les repères sont des `data-visite`, posés dans le composant qui dessine le sujet.**
-Vingt-six aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
+Trente et un aujourd'hui : `edition` (EncartTraduction), `recherche-livre` et `livres`
 (NavLivres), `entete-lecture` (TexteBible), `peres` (PanneauPatristique) ;
 `poly-colonnes`, `poly-entete` et `poly-notes` sur la Polyglotte ; `bib-onglets`,
 `bib-recherche`, `bib-auteur`, `bib-oeuvres` et `bib-edition` sur la Bibliothèque ;
 `nav-barre`, `nav-bibles`, `nav-patristique`, `nav-communaute`, `nav-plus-loin`,
 `nav-recherche` et `nav-compte` dans la barre, pour l'accueil ; `oeuvre-tete`,
 `oeuvre-lecture`, `oeuvre-apparat`, `oeuvre-sommaire` et `oeuvre-bible` sur la page
-d'une œuvre. Sept étapes visent des classes qui existaient déjà (`.verset-row`,
-`.verset-actions`, `.poly-row`, `.poly-texte-cell`, `.ac-bible`, `.ac-patristique`,
-`.seg-inline`).
+d'une œuvre ; `recherche-champ`, `recherche-mode`, `recherche-perimetre`,
+`recherche-garder` et `recherche-onglets` sur la page des résultats. Huit étapes visent
+des classes qui existaient déjà (`.verset-row`, `.verset-actions`, `.poly-row`,
+`.poly-texte-cell`, `.ac-bible`, `.ac-patristique`, `.seg-inline`, `.grp-ligne`).
 ⛔ `oeuvre-frontispice` se pose sur la RACINE de `PageTitre`, jamais sur une enveloppe
 qu'on lui ajouterait dans la page : une enveloppe de plus romprait la chaîne de largeurs
 dont ce bloc dépend (voir « toute enveloppe posée autour DOIT porter une largeur »).
@@ -6422,6 +6423,14 @@ recherche d'un livre y manquait, quand c'était elle que l'auteur visait. Corrig
 Bibliothèque est retirée le même soir : le pied de la liste porte « Page 1 sur 2 » en
 toutes lettres. ⚠️ Elle coûtait en outre la descente de toute la liste pour remonter
 ensuite, le plus long défilement qu'une visite du site ait demandé.
+
+⛔ **ET LA PAGE DOIT PORTER DE QUOI LA DONNER, non seulement être prête** (posé sur la
+recherche, 2026-09-07). Quatre des six arrêts de la recherche n'existent pas sur une page
+VIDE : ni les onglets, ni leur répartition, ni le bouton qui garde la recherche, ni le
+moindre résultat. La visite n'y est donc offerte que `done` ET des résultats en main, et
+l'offre à la barre suit la même condition — le bouton disparaît sur une page vide et
+reparaît dès qu'une recherche répond. ⛔ Et l'on ne tape PAS à la place du lecteur pour se
+donner une visite : elle montre la page telle qu'il l'a ouverte.
 
 ⛔ **UNE VISITE NE S'OUVRE QUE LÀ OÙ SA PAGE PEUT LA PORTER.** La Bible classique
 attend que son texte, rendu par le serveur, ait fini son fondu d'ouverture ; la
