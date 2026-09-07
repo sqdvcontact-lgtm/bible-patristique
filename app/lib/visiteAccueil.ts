@@ -39,10 +39,9 @@ export const CLE_VISITE_ACCUEIL = 'accueil'
 
 export const VISITE_ACCUEIL: Visite = {
   cle: CLE_VISITE_ACCUEIL,
-  titre: 'Bienvenue. Voici par où l’on entre.',
+  titre: 'L’accueil',
   accroche: [
-    'La barre du haut mène à tout le site, et elle ne quitte aucune page.',
-    'Quelques étapes suffisent à vous montrer ce qu’elle porte.',
+    'La barre supérieure donne accès aux principales parties du site. Elle reste visible d’une page à l’autre.',
   ],
   // ⛔ La seule visite qui le demande : le voile passe au-dessus de la barre, sans
   // quoi aucune case ne pourrait s'y poser.
@@ -51,10 +50,9 @@ export const VISITE_ACCUEIL: Visite = {
     {
       cle: 'barre',
       sujet: ['[data-visite="nav-barre"]'],
-      titre: 'La barre du site',
+      titre: 'Navigation',
       texte: [
-        'Elle vous suit de page en page, et tout le site s’y trouve.',
-        'À gauche les lectures, à droite la recherche et vos affaires.',
+        'À gauche se trouvent les lectures. À droite, la recherche et les fonctions liées à votre compte.',
       ],
       cote: 'dessous',
     },
@@ -62,11 +60,11 @@ export const VISITE_ACCUEIL: Visite = {
       cle: 'bibles',
       sujet: ['[data-visite="nav-bibles"]'],
       sujetBis: ['.ac-bible'],
-      titre: 'Les deux bibles',
+      titre: 'Bible',
       texte: [
-        'Classique donne un chapitre dans la traduction de votre choix, et ce que les Pères en ont dit.',
-        'Polyglotte met jusqu’à cinq traductions côte à côte, verset par verset.',
-        'La carte du même nom, plus bas, mène à la même lecture.',
+        '**Classique** affiche un chapitre dans la traduction de votre choix, avec les passages des Pères qui s’y rapportent.',
+        '**Polyglotte** place jusqu’à cinq traductions côte à côte, verset par verset.',
+        'Les cartes de l’accueil mènent aux mêmes lectures.',
       ],
       cote: 'dessous',
     },
@@ -74,51 +72,50 @@ export const VISITE_ACCUEIL: Visite = {
       cle: 'patristique',
       sujet: ['[data-visite="nav-patristique"]'],
       sujetBis: ['.ac-patristique'],
-      titre: 'Les Pères de l’Église',
+      titre: 'Pères de l’Église',
       texte: [
-        'La bibliothèque range les auteurs, leurs œuvres et les éditions dans lesquelles on les lit.',
-        'Le menu de l’onglet garde les dernières que vous avez ouvertes.',
-        'La carte du même nom y mène aussi.',
+        'La Bibliothèque rassemble les auteurs, leurs œuvres et les éditions disponibles.',
+        'Le menu conserve les dernières œuvres que vous avez ouvertes. La carte de l’accueil mène également à la Bibliothèque.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'communaute',
       sujet: ['[data-visite="nav-communaute"]'],
-      titre: 'La Communauté',
+      titre: 'Communauté',
       texte: [
-        'Les écrits des lecteurs : études, notes de lecture, essais.',
-        'Avec un compte, vous y publiez les vôtres.',
+        'La Communauté rassemble les études, notes de lecture et essais publiés par les lecteurs.',
+        'Avec un compte, vous pouvez y publier vos propres textes.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'plus-loin',
       sujet: ['[data-visite="nav-plus-loin"]'],
-      titre: 'Aller plus loin',
+      titre: 'Ressources',
       texte: [
-        'Cinq pages sous un même onglet : les traductions, les péricopes, l’histoire de l’Église, les statistiques, et où acheter des livres.',
-        'Le menu s’ouvre en posant la main dessus, et dit ce que chacune contient.',
+        'Cet onglet réunit les traductions, les péricopes, l’histoire de l’Église, les statistiques et une page consacrée aux librairies.',
+        'Le menu s’ouvre au survol et présente brièvement chacune de ces pages.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'recherche',
       sujet: ['[data-visite="nav-recherche"]'],
-      titre: 'Chercher',
+      titre: 'Recherche',
       texte: [
-        'Ce champ répond à mesure que vous tapez : œuvres des Pères, livres bibliques, auteurs, péricopes.',
-        'La touche Entrée ouvre la page des résultats, qui cherche dans le texte même.',
+        'La recherche propose des œuvres, des livres bibliques, des auteurs et des péricopes à mesure que vous écrivez.',
+        'La touche Entrée ouvre la recherche complète dans les textes.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'compte',
       sujet: ['[data-visite="nav-compte"]'],
-      titre: 'Vos affaires',
+      titre: 'Compte',
       texte: [
-        'Le soutien au projet, vos messages, vos notifications.',
-        'Et votre compte, qui garde vos favoris, vos prélèvements et vos lectures en cours.',
+        'Vous trouvez ici le soutien au projet, vos messages, vos notifications et votre compte.',
+        'Celui-ci conserve vos favoris, vos prélèvements et vos lectures en cours.',
       ],
       cote: 'gauche',
     },

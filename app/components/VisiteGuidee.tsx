@@ -28,6 +28,19 @@
  * ⚠️ Une étape dont le sujet reste introuvable au bout d'une seconde s'efface, et
  * la visite passe à la suivante. C'est la seule tolérance à la panne : ni case
  * vide, ni explication qui montre le vide.
+ *
+ * ⛔ LE TEXTE D'UNE VISITE EST ENRICHI, et il passe par le renderer du site.
+ * `rendreMarquesNote` (`texteEnrichiEssai`) est la SEULE écriture de `**gras**`,
+ * `*italique*`, `++petites capitales++` et `^^exposant^^` — celle que servent déjà
+ * la fiche d'auteur, la bulle d'une note et le volet d'un essai. Une visite nomme
+ * des commandes de l'interface (« **Classique** », « **Livre entier** »), et un nom
+ * de commande se compose en gras : sans lui, les astérisques du scénario
+ * s'imprimeraient. ⛔ Ne pas écrire ici un second lecteur de ces marques.
+ *
+ * ⚠️ Et la typographie se pose au RENDU, jamais dans le scénario (charte § 3.2) :
+ * `normaliserEspaces` met la fine insécable dans « Jean 3, 16 » et l'insécable
+ * devant un deux-points. Elle CONVERTIT le type d'espace et ne change pas la
+ * longueur du texte ; le scénario reste écrit au clavier.
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -37,6 +50,8 @@ import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarc
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
 import IconeDrapeau from '@/app/components/IconeDrapeau'
+import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
+import { normaliserEspaces } from '@/app/lib/typographie'
 import {
   cadreDuSujet, decoupeDuVoile, marquerVisiteFaite, placerCarteVisite, traitVersSujet,
   type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Trait, type Visite, type Vue,
@@ -498,7 +513,9 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
                 phrases cessent de se lire comme un bloc. La coupure est écrite dans le
                 scénario, jamais devinée ici. */}
             {etape.texte.map((paragraphe, rang) => (
-              <p key={rang} style={{ margin: rang === 0 ? 0 : '0.55em 0 0', fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.6 }}>{paragraphe}</p>
+              <p key={rang} style={{ margin: rang === 0 ? 0 : '0.55em 0 0', fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.6 }}>
+                {rendreMarquesNote(normaliserEspaces(paragraphe), rang)}
+              </p>
             ))}
 
             {etape.illustration && <Illustration nom={etape.illustration} />}
@@ -525,7 +542,9 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
             }}>{visite.titre}</h2>
             <div style={{ margin: '0 auto 24px', maxWidth: '22rem' }}>
               {visite.accroche.map((paragraphe, rang) => (
-                <p key={rang} style={{ margin: rang === 0 ? 0 : '0.6em 0 0', fontSize: '0.84375rem', color: 'var(--cs-texte-second)', lineHeight: 1.7 }}>{paragraphe}</p>
+                <p key={rang} style={{ margin: rang === 0 ? 0 : '0.6em 0 0', fontSize: '0.84375rem', color: 'var(--cs-texte-second)', lineHeight: 1.7 }}>
+                  {rendreMarquesNote(normaliserEspaces(paragraphe), rang)}
+                </p>
               ))}
             </div>
             {/* ⚠️ Les deux boutons ont la MÊME taille : refuser la visite doit être

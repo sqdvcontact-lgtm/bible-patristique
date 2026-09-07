@@ -43,18 +43,17 @@ export const CLE_VISITE_POLYGLOTTE = 'polyglotte'
 
 export const VISITE_POLYGLOTTE: Visite = {
   cle: CLE_VISITE_POLYGLOTTE,
-  titre: 'Plusieurs bibles, côte à côte.',
+  titre: 'La Bible polyglotte',
   accroche: [
-    'Chaque colonne porte une traduction, chaque rangée un même verset.',
-    'Quelques étapes suffisent à vous montrer où tout se règle.',
+    'Plusieurs traductions sont placées côte à côte. Chaque ligne présente le même verset.',
   ],
   etapes: [
     {
       cle: 'colonnes',
       sujet: ['[data-visite="poly-colonnes"]'],
-      titre: 'Combien de colonnes',
+      titre: 'Colonnes',
       texte: [
-        'Auto en met autant que votre écran peut en porter.',
+        'Le mode **Auto** affiche autant de colonnes que l’écran le permet.',
         'Vous pouvez aussi en fixer le nombre, de deux à cinq.',
       ],
       cote: 'droite',
@@ -66,10 +65,10 @@ export const VISITE_POLYGLOTTE: Visite = {
       // une référence n'emmène pas ailleurs, elle vise le verset dans le tableau
       // (« appliquerRefParsee », branche « onChoisirVerset »).
       sujet: ['[data-visite="recherche-livre"]'],
-      titre: 'Trouver un livre',
+      titre: 'Recherche',
       texte: [
-        'Tapez un nom de livre pour le retrouver dans la liste.',
-        'Une référence entière fonctionne aussi, comme Jean 3, 16 : le tableau s’ouvre dessus et vise le verset.',
+        'Tapez le nom d’un livre pour le retrouver.',
+        'Vous pouvez aussi saisir une référence complète, comme « Jean 3, 16 », pour ouvrir directement le passage.',
       ],
       cote: 'droite',
     },
@@ -78,31 +77,30 @@ export const VISITE_POLYGLOTTE: Visite = {
       // ⚠️ Le volet est celui de la Bible classique, au repère près : les deux pages
       // partagent « NavLivres », et la visite y trouve un « data-visite » déjà posé.
       sujet: ['[data-visite="livres"]'],
-      titre: 'Choisir le passage',
+      titre: 'Passage',
       texte: [
-        'Ouvrez un livre, puis un chapitre : le tableau s’ouvre dessus.',
-        'Livre entier met le livre d’un seul tenant sur les colonnes.',
+        'Choisissez un livre puis un chapitre pour l’afficher.',
+        '**Livre entier** présente tout le livre d’un seul tenant dans les différentes colonnes.',
       ],
       cote: 'droite',
     },
     {
       cle: 'entete',
       sujet: ['[data-visite="poly-entete"]'],
-      titre: 'Changer une bible',
+      titre: 'Traductions',
       texte: [
-        'Chaque en-tête ouvre la liste des bibles, rangées par langue.',
-        'En choisir une déjà affichée ailleurs échange les deux colonnes.',
+        'Chaque en-tête ouvre la liste des Bibles, classées par langue.',
+        'Si vous choisissez une traduction déjà affichée dans une autre colonne, les deux échangent leur place.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'rangee',
       sujet: ['.poly-row'],
-      titre: 'Une rangée, un verset',
+      titre: 'Versets',
       texte: [
-        'Une rangée porte le même verset dans toutes les colonnes.',
-        'En marge, à gauche, la référence du canon.',
-        'Dans chaque cellule, le petit numéro de tête est celui de l’édition, qui ne compte pas toujours comme le canon.',
+        'Chaque ligne présente le même verset dans toutes les traductions.',
+        'La marge de gauche indique la référence canonique. Le petit numéro placé au début de chaque cellule reprend la numérotation propre à l’édition, qui peut en différer.',
       ],
       cote: 'dessous',
     },
@@ -113,10 +111,10 @@ export const VISITE_POLYGLOTTE: Visite = {
       // la rangée entière, sa colonne d'actions étant unique.
       sujet: ['.poly-row .poly-texte-cell'],
       revele: 'actions',
-      titre: 'Garder, copier, signaler',
+      titre: 'Actions',
       texte: [
-        'Au survol d’une cellule, trois boutons paraissent dans son coin.',
-        'Ils ne portent que sur cette colonne : on cite la traduction qu’on a sous les yeux.',
+        'Au survol d’une cellule, trois boutons apparaissent dans son coin.',
+        'Ils ne concernent que cette traduction : le texte copié ou cité est bien celui de la colonne choisie.',
       ],
       illustration: 'actions-verset',
       cote: 'dessous',
@@ -124,11 +122,11 @@ export const VISITE_POLYGLOTTE: Visite = {
     {
       cle: 'notes',
       sujet: ['[data-visite="poly-notes"]'],
-      titre: 'Vos notes',
+      titre: 'Notes',
       texte: [
-        'La dernière colonne vous laisse écrire une note sur chaque verset.',
-        'Elle est gardée sur votre compte, et vous la retrouvez d’une visite à l’autre.',
-        'Elle se referme d’un clic, et le crayon qui la remplace la rouvre.',
+        'La dernière colonne permet d’écrire une note sur chaque verset.',
+        'Vos notes sont conservées avec votre compte et restent disponibles d’une visite à l’autre.',
+        'Vous pouvez fermer cette colonne et la rouvrir avec le bouton en forme de crayon.',
       ],
       // ⚠️ L'étape OUVRE la colonne, que le lecteur garde souvent repliée : sans
       // cela elle cernerait un rail de vingt-six pixels. La page rend son état à la

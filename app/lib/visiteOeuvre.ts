@@ -47,60 +47,59 @@ export const CLE_VISITE_OEUVRE = 'oeuvre'
 
 export const VISITE_OEUVRE: Visite = {
   cle: CLE_VISITE_OEUVRE,
-  titre: 'Une œuvre, et de quoi la lire.',
+  titre: 'Une œuvre',
   accroche: [
-    'Le texte au milieu, ce qui le situe à gauche, ce qu’il cite à droite.',
-    'Quelques arrêts suffisent à savoir où regarder.',
+    'Le texte se lit au centre. Les informations sur l’œuvre sont à gauche. Les références liées au passage choisi sont à droite.',
   ],
   etapes: [
     {
       cle: 'oeuvre',
       sujet: ['[data-visite="oeuvre-tete"]'],
-      titre: 'L’œuvre et son auteur',
+      titre: 'Œuvre et auteur',
       texte: [
-        'Le nom de l’auteur ouvre sa fiche : sa vie, sa chronologie et toutes ses œuvres.',
-        'L’étoile range l’œuvre parmi vos favoris, que vous retrouvez dans la Bibliothèque.',
-        'Sous le titre, un lien mène à la fiche de l’édition dans laquelle vous lisez.',
+        'Le nom de l’auteur ouvre sa fiche, avec sa notice, sa chronologie et ses œuvres.',
+        'L’étoile ajoute l’œuvre à vos favoris.',
+        'Sous le titre, un lien ouvre la fiche de l’édition suivie.',
       ],
       cote: 'droite',
     },
     {
       cle: 'lecture',
       sujet: ['[data-visite="oeuvre-lecture"]'],
-      titre: 'Dans quelle langue',
+      titre: 'Langues',
       texte: [
-        'Quand l’édition porte l’original, on peut lire la traduction seule, les deux en regard, ou l’original seul.',
-        'Vous ne perdez pas votre place : le passage que vous lisiez se retrouve dans l’autre texte.',
+        'Lorsque l’édition comprend le texte original, vous pouvez lire la traduction seule, l’original seul ou les deux en regard.',
+        'Le changement de mode conserve votre place dans le texte.',
       ],
       cote: 'droite',
     },
     {
       cle: 'apparat',
       sujet: ['[data-visite="oeuvre-apparat"]'],
-      titre: 'L’apparat critique',
+      titre: 'Apparat critique',
       texte: [
-        'Ce que l’éditeur a relevé sous son texte : les leçons des manuscrits, ses sources, ses remarques.',
-        'Il se lit à part, division par division, et n’encombre pas la page.',
+        'L’apparat critique rassemble les indications données par l’éditeur : leçons des manuscrits, sources et remarques.',
+        'Il s’ouvre séparément, division par division, sans alourdir la lecture du texte.',
       ],
       cote: 'droite',
     },
     {
       cle: 'sommaire',
       sujet: ['[data-visite="oeuvre-sommaire"]'],
-      titre: 'Le sommaire',
+      titre: 'Sommaire',
       texte: [
-        'Les divisions de l’œuvre, telles que l’édition les donne.',
-        'Un clic ouvre la section, et le texte s’y rend.',
+        'Le sommaire reprend les divisions de l’œuvre telles que les donne l’édition.',
+        'Un clic ouvre directement la section choisie.',
       ],
       cote: 'droite',
     },
     {
       cle: 'frontispice',
       sujet: ['[data-visite="oeuvre-frontispice"]'],
-      titre: 'La page de titre',
+      titre: 'Page de titre',
       texte: [
-        'Chaque œuvre s’ouvre comme un livre, sur son titre et le nom de qui l’a traduite.',
-        'Au bas, le colophon dit l’édition suivie et l’année de sa mise en ligne.',
+        'L’œuvre s’ouvre sur une page de titre avec son titre et le nom du traducteur.',
+        'Le colophon indique l’édition suivie et l’année de sa mise en ligne.',
       ],
       cote: 'droite',
     },
@@ -109,27 +108,27 @@ export const VISITE_OEUVRE: Visite = {
       // ⚠️ La classe existait déjà : un segment du corps, celui que le survol éclaire
       // et que le clic retient. Aucun repère à poser dans la page pour cet arrêt.
       sujet: ['.seg-inline'],
-      titre: 'Le texte',
+      titre: 'Texte',
       texte: [
-        'Le texte est découpé en passages, tels que l’édition les paragraphe.',
-        'Cliquez sur l’un d’eux : il se retient, et le volet de droite répond.',
-        'Les appels de note ouvrent la note de l’éditeur sans quitter la ligne.',
+        'Le découpage du texte suit les paragraphes de l’édition.',
+        'Cliquez sur un passage pour le sélectionner. Le volet de droite affiche alors ce qui s’y rapporte.',
+        'Les appels de note ouvrent les notes de l’éditeur sans quitter le passage.',
       ],
       cote: 'droite',
     },
     {
       cle: 'bible',
       sujet: ['[data-visite="oeuvre-bible"]'],
-      titre: 'Ce que le passage cite',
+      titre: 'Bible et commentaires',
       // ⚠️ TROIS paragraphes, et le deuxième n'est pas un ornement : éprouvé sur les
       // Confessions le 2026-09-07, la première division est l'avertissement du
       // traducteur, où AUCUN passage ne cite l'Écriture. Le volet dit alors qu'il n'y a
       // rien, et une étape qui aurait promis des versets aurait promis en l'air. Une
       // étape dit ce que la page fait, y compris quand elle n'a rien à montrer.
       texte: [
-        'Bible donne les versets que le passage retenu cite, dans la traduction de votre choix.',
-        'Quand il n’en cite aucun, le volet vous le dit plutôt que de rester muet.',
-        'Commentaires porte ce que les lecteurs en ont écrit, et vous permet d’y répondre.',
+        'L’onglet **Bible** affiche les versets cités par le passage choisi, dans la traduction de votre choix.',
+        'S’il n’en cite aucun, le volet l’indique.',
+        'L’onglet **Commentaires** rassemble les textes des lecteurs et permet d’y répondre.',
       ],
       scene: { choisirSegment: true },
       cote: 'gauche',

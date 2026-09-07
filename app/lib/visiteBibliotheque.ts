@@ -46,40 +46,39 @@ export const CLE_VISITE_BIBLIOTHEQUE = 'bibliotheque'
 
 export const VISITE_BIBLIOTHEQUE: Visite = {
   cle: CLE_VISITE_BIBLIOTHEQUE,
-  titre: 'Le fonds, auteur par auteur.',
+  titre: 'La Bibliothèque',
   accroche: [
-    'Les Pères de l’Église, leurs œuvres, et les éditions dans lesquelles on les lit.',
-    'Quelques étapes suffisent à vous montrer où tout se trouve.',
+    'La Bibliothèque rassemble les Pères de l’Église, leurs œuvres et les éditions dans lesquelles vous pouvez les lire.',
   ],
   etapes: [
     {
       cle: 'onglets',
       sujet: ['[data-visite="bib-onglets"]'],
-      titre: 'Trois sections',
+      titre: 'Sections',
       texte: [
-        'Bibliothèque réunit les auteurs dont une œuvre au moins se lit ici.',
-        'Favoris garde celles que vous avez marquées.',
-        'Catalogue des traductions recense ce qui existe ailleurs et n’est pas encore en ligne.',
+        '**Bibliothèque** présente les auteurs dont au moins une œuvre est disponible.',
+        '**Favoris** rassemble les éditions que vous avez conservées.',
+        '**Catalogue des traductions** recense les traductions connues qui ne sont pas encore en ligne.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'recherche',
       sujet: ['[data-visite="bib-recherche"]'],
-      titre: 'Restreindre la liste',
+      titre: 'Recherche',
       texte: [
-        'Le champ cherche un auteur comme un titre d’œuvre.',
-        'Filtres la restreint par période, par langue et par tradition.',
+        'Le champ recherche un auteur ou un titre d’œuvre.',
+        'Les filtres permettent de limiter la liste par période, par langue ou par tradition.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'auteur',
       sujet: ['[data-visite="bib-auteur"]'],
-      titre: 'Un auteur, une carte',
+      titre: 'Auteur',
       texte: [
-        'Le portrait, les dates et une notice qui dit l’essentiel de sa vie.',
-        'Cliquez sur son nom pour ouvrir sa fiche, avec sa chronologie et toutes ses œuvres.',
+        'Chaque carte donne le portrait de l’auteur, ses dates et une courte notice biographique.',
+        'Cliquez sur son nom pour ouvrir sa fiche, avec sa chronologie et l’ensemble de ses œuvres.',
       ],
       cote: 'droite',
     },
@@ -88,11 +87,11 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
       // ⚠️ Le sujet n'existe qu'une fois la carte dépliée : la scène s'en charge, et
       // la boucle attend le temps qu'il faut avant de renoncer (« DELAI_SUJET_MS »).
       sujet: ['[data-visite="bib-oeuvres"]'],
-      titre: 'Ce que l’on peut lire',
+      titre: 'Œuvres',
       texte: [
-        'Le pied de la carte déplie les œuvres de l’auteur qui sont en ligne.',
-        'Sous chaque titre, une ligne par édition : le traducteur, puis la ville, l’éditeur et l’année.',
-        'Quand l’original latin ou grec est là, il a sa propre ligne.',
+        'Le bas de la carte déploie les œuvres de l’auteur disponibles sur le site.',
+        'Chaque édition occupe une ligne avec le traducteur, la ville, l’éditeur et l’année.',
+        'Lorsqu’un texte latin ou grec est disponible, il possède sa propre ligne.',
       ],
       scene: { ouvrirOeuvres: true },
       cote: 'droite',
@@ -103,10 +102,10 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
       // pour elle-même, elle devient une petite boîte isolée dont rien ne dit à quoi
       // elle se rattache — le défaut relevé sur la colonne d'actions d'un verset.
       sujet: ['[data-visite="bib-edition"]'],
-      titre: 'Garder une édition',
+      titre: 'Favoris',
       texte: [
-        'L’étoile en tête de ligne range l’édition parmi vos favoris.',
-        'Vous la retrouvez sous l’onglet Favoris, en haut de la page.',
+        'L’étoile placée au début d’une ligne ajoute cette édition à vos favoris.',
+        'Vous la retrouverez dans l’onglet **Favoris**.',
       ],
       cote: 'droite',
     },

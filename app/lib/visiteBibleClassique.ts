@@ -34,10 +34,27 @@
  * par-dessus la barre pour qu'un cadre pût s'y poser.
  *
  * ⛔ UN PARAGRAPHE PAR IDÉE (demande de l'auteur, 2026-09-06) : on change de
- * paragraphe quand on change de chose à dire, et l'on s'arrête à deux ou trois.
- * Une visite se lit debout, entre deux clics ; ce qui demande un développement
- * n'est pas une explication mais un mode d'emploi, et un mode d'emploi ne se lit
- * pas.
+ * paragraphe quand on change de chose à dire. Une visite se lit debout, entre deux
+ * clics ; ce qui demande un développement n'est pas une explication mais un mode
+ * d'emploi, et un mode d'emploi ne se lit pas.
+ * ⚠️ Deux ou trois paragraphes, et QUATRE quand l'arrêt présente un axe qui a
+ * quatre états : le « Modes » de la recherche nomme les trois façons de chercher,
+ * puis dit où leur explication se trouve. Ce n'est pas une idée de plus, c'est la
+ * liste que l'écran porte, et la couper serait en taire un morceau.
+ *
+ * ⛔ LE REGISTRE EST CELUI D'UN MANUEL (reprise de l'auteur, 2026-09-07). Les six
+ * scénarios ont été réécrits ce jour-là : le titre d'un arrêt est un NOM, court et
+ * nominal (« Édition », « Verset », « Actions »), jamais une phrase ni une formule
+ * d'accueil ; le texte énonce ce que la chose FAIT, sans s'adresser au lecteur par
+ * une tournure engageante ; et l'accroche d'une visite tient en UNE phrase qui
+ * situe la page. ⛔ La formule « Quelques étapes suffisent à vous montrer… », qui
+ * fermait les six accroches, est retirée : une visite n'a pas à se présenter
+ * elle-même, ses boutons le font.
+ *
+ * ⚠️ UN NOM DE COMMANDE SE COMPOSE EN GRAS, par la syntaxe `**…**` du site :
+ * « **Classique** », « **Livre entier** », « **Famille de mots** ». C'est le seul
+ * enrichissement qu'emploient les six scénarios, et il est RENDU (voir le
+ * doc-comment de `VisiteGuidee.tsx`) : écrit sans lui, l'astérisque s'imprimerait.
  */
 
 import type { Visite } from './visiteGuidee'
@@ -52,19 +69,18 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
   // ⛔ Ni « Comment utiliser le site », ni « les fonctionnalités » (demande de
   // l'auteur, 2026-09-06) : le premier annonce une difficulté, le second est un
   // mot de logiciel. La phrase dit ce qui va se passer, et rien de plus.
-  titre: 'Faisons le tour de la page.',
+  titre: 'La Bible classique',
   accroche: [
-    'À gauche les livres, au centre le texte, à droite ce que les Pères de l’Église en ont dit.',
-    'Quelques étapes suffisent à vous montrer où tout se trouve.',
+    'Les livres sont à gauche, le texte au centre, les Pères de l’Église à droite.',
   ],
   etapes: [
     {
       cle: 'edition',
       sujet: ['[data-visite="edition"]'],
-      titre: 'Ce que vous lisez',
+      titre: 'Édition',
       texte: [
-        'Cette carte nomme la bible ouverte, son traducteur et l’édition d’où le texte est tiré.',
-        'Cliquez sur son nom pour ouvrir sa fiche.',
+        'Cette carte indique la Bible ouverte, son traducteur et l’édition suivie.',
+        'Cliquez sur son nom pour ouvrir la fiche de l’édition.',
       ],
       cote: 'droite',
       scene: { volet: 'livres' },
@@ -72,10 +88,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     {
       cle: 'recherche-livre',
       sujet: ['[data-visite="recherche-livre"]'],
-      titre: 'Trouver un livre',
+      titre: 'Recherche',
       texte: [
-        'Ce champ ne cherche que dans les livres de la bible ouverte.',
-        'Une référence entière fonctionne aussi, comme Jean 3, 16, et vous y mène d’un clic.',
+        'Ce champ cherche parmi les livres de la Bible ouverte.',
+        'Vous pouvez aussi saisir une référence complète, comme « Jean 3, 16 », pour ouvrir directement le passage.',
       ],
       cote: 'droite',
       scene: { volet: 'livres' },
@@ -83,10 +99,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     {
       cle: 'livres',
       sujet: ['[data-visite="livres"]'],
-      titre: 'Les livres et leurs chapitres',
+      titre: 'Livres et chapitres',
       texte: [
-        'Ouvrez un livre pour voir ses chapitres.',
-        'Plus la case d’un chapitre est verte, plus les Pères de l’Église y ont commenté de versets.',
+        'Ouvrez un livre pour afficher ses chapitres.',
+        'Plus la case d’un chapitre est verte, plus ce chapitre contient de versets commentés par les Pères.',
       ],
       cote: 'droite',
       scene: { volet: 'livres' },
@@ -94,10 +110,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     {
       cle: 'entete',
       sujet: ['[data-visite="entete-lecture"]'],
-      titre: 'Changer de bible',
+      titre: 'Traduction',
       texte: [
-        'Le titre rappelle le livre et le chapitre ouverts.',
-        'Le menu juste dessous passe d’une traduction à l’autre sans quitter le passage.',
+        'Le titre indique le livre et le chapitre ouverts.',
+        'Le menu placé dessous permet de changer de traduction sans quitter le passage.',
       ],
       cote: 'dessous',
       scene: { volet: 'texte' },
@@ -106,10 +122,10 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       cle: 'verset',
       // ⚠️ Un verset COMMENTÉ d'abord : lui seul porte le nombre dont l'étape parle.
       sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
-      titre: 'Cliquez sur un verset',
+      titre: 'Verset',
       texte: [
-        'Le volet de droite se remplit alors de ce que les Pères en ont dit.',
-        'Le nombre inscrit dans la marge compte les œuvres en ligne qui le commentent.',
+        'Cliquez sur un verset pour afficher à droite ce que les Pères en ont dit.',
+        'Le nombre placé dans la marge indique combien d’œuvres en ligne le commentent.',
       ],
       // ⚠️ La carte se pose à GAUCHE, sur le volet des livres : à droite elle
       // couvrirait le volet qui se remplit à l'instant même, c'est-à-dire la
@@ -128,13 +144,13 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // dedans — et c'est précisément ce dont l'étape parle.
       sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
       revele: 'actions',
-      titre: 'Garder, copier, signaler',
+      titre: 'Actions',
       // ⚠️ Les trois boutons sont NOMMÉS un par un dans l'illustration, avec leur
       // dessin réel : à onze pixels dans la marge, on ne les reconnaît pas de la
       // seule prose (demande de l'auteur, 2026-09-06).
       texte: [
-        'Au survol d’un passage, une colonne d’actions paraît dans sa marge.',
-        'On la retrouve partout où le site donne un texte, ici comme dans le volet de droite.',
+        'Au survol d’un passage, les actions apparaissent dans la marge.',
+        'Elles permettent de le conserver, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
       ],
       illustration: 'actions-verset',
       cote: 'gauche',
@@ -143,11 +159,11 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     {
       cle: 'peres',
       sujet: ['[data-visite="peres"]'],
-      titre: 'Les Pères, en regard',
+      titre: 'Pères de l’Église',
       texte: [
-        'Ce volet réunit les œuvres qui citent ou commentent le verset choisi, rangées par nature.',
-        'Les filtres les trient par auteur, par siècle ou par tradition.',
-        'L’onglet Commentaires vous laisse écrire le vôtre.',
+        'Le volet de droite rassemble les œuvres qui citent ou commentent le verset choisi.',
+        'Vous pouvez les filtrer par auteur, par siècle ou par tradition.',
+        'L’onglet **Commentaires** permet d’écrire le vôtre.',
       ],
       cote: 'gauche',
       scene: { volet: 'commentaires' },
