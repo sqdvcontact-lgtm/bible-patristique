@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon, lireSuiteAppels, detacherDernierMot, separateurAppels, rendreTexteAvecNotes } from './appelNote'
+import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon, lireSuiteAppels, detacherDernierMot, separateurAppels, rendreTexteAvecNotes, styleAppelNote, styleSeparateurAppels } from './appelNote'
+import { styleLigneDeVers } from '@/app/lib/compositionVers'
 
 // Écrite en toutes lettres : dans un fichier de test, une espace insécable
 // littérale ne se distingue pas d'une espace ordinaire à la lecture, et une
@@ -182,5 +183,27 @@ describe('l’appel emmène toujours ce qui le précède', () => {
 
   it('emmène l’italique entière quand elle n’a qu’un mot', () => {
     expect(texteDe(nowrap('la <i>gloire</i>[[A1]].'))).toContain('gloire')
+  })
+})
+
+// ── L'appel ne prend jamais l'alinéa du bloc qui le porte ────────────────────
+// ⛔ `text-indent` s’hérite, et un `inline-block` est un conteneur de BLOC : il
+// l’applique à sa propre première ligne. Dans une ligne de vers, dont le retrait de
+// suite est négatif, le chiffre sortait de sa boîte par la GAUCHE et venait s’imprimer
+// dans le mot qui le porte, la boîte se refermant sur son seul rembourrage (2 px).
+// Relevé le 2026-09-07 sur le Manuel de Dhuoda, 83 appels d’une seule division.
+describe('l’appel ne prend pas l’alinéa du bloc', () => {
+  it('remet le retrait à zéro, sur les trois variantes et sur le séparateur', () => {
+    for (const variante of ['corps', 'titre', 'frontispice'] as const) {
+      expect(styleAppelNote(variante).textIndent).toBe(0)
+    }
+    expect(styleSeparateurAppels().textIndent).toBe(0)
+  })
+
+  // Les deux moitiés du défaut, tenues ensemble : sans le `inline-block` la remise à
+  // zéro serait inutile, sans le retrait négatif du vers elle ne se verrait pas.
+  it('⛔ parce que l’appel est une BOÎTE, et que le vers pend son retrait', () => {
+    expect(styleAppelNote().display).toBe('inline-block')
+    expect(String(styleLigneDeVers({ rang: 0 }).textIndent)).toMatch(/^-/)
   })
 })

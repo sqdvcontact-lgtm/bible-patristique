@@ -86,6 +86,18 @@ export function styleAppelNote(variante: VarianteAppelNote = 'corps'): CSSProper
     userSelect: 'none',
     letterSpacing: 0,
     display: 'inline-block',
+    // ⛔ L'ALINÉA DU BLOC NE RENTRE PAS DANS L'APPEL. `text-indent` s'hérite, et un
+    // `inline-block` est un conteneur de BLOC : il applique donc à sa PROPRE première
+    // ligne — la seule qu'il ait — le retrait destiné au paragraphe qui l'accueille.
+    // Dans une ligne de vers, dont le retrait de suite vaut -1,15 em (`styleLigneDeVers`),
+    // le chiffre était tiré 19 px à GAUCHE de sa boîte, par-dessus les lettres qui le
+    // précèdent, tandis que la boîte, vidée de sa chasse, se refermait sur ses 2 px de
+    // rembourrage et laissait le texte d'après se recoller par-dessus. Mesuré le
+    // 2026-09-07 sur le Manuel de Dhuoda : les 83 appels de la division des
+    // Prolégomènes, tous illisibles, l'appel imprimé dans le mot qui le porte.
+    // ⚠️ Le mal n'est pas propre au vers : toute mesure qui porte un alinéa le
+    // passerait de même — retrait suspendu des bibliographies, alinéa positif des essais.
+    textIndent: 0,
     lineHeight: 1,
     padding: '0 1px',
     ...TEINTE_APPEL[variante],
