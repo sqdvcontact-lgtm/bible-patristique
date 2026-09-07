@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  positionCellule, largeurGabarit, GRACE_SURVOL_MS, MARGE_CELLULE, STYLE_CELLULE,
+  positionCellule, largeurGabarit, GRACE_SURVOL_MS, DELAI_REANCRAGE_MS, MARGE_CELLULE, STYLE_CELLULE,
   type EspaceCellule, type PositionCellule,
 } from '@/app/lib/celluleActions'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
@@ -67,41 +67,79 @@ export type AncreCellule<K, D = undefined> = {
 export type OptionsAncrage<D = undefined> = { borne?: HTMLElement | null; sommet?: number; donnees?: D }
 
 /** Le survol, le tap, la grâce de sortie et la fermeture. Toute la mécanique que les
- *  surfaces réécrivaient chacune pour soi. */
+ *  surfaces réécrivaient chacune pour soi.
+ *
+ *  ⛔ DEUX MINUTEURS, ET ILS NE FONT PAS LE MÊME OFFICE. La FERMETURE laisse le temps
+ *  d'aller du texte jusqu'aux boutons ; le RÉANCRAGE exige un temps de pose avant qu'une
+ *  cellule déjà ouverte ne se déplace vers une autre cible. Sans le second, la cellule
+ *  s'enfuit : dans une grille, elle se pose au-dessus de la cellule survolée, c'est-à-dire
+ *  SUR la ligne d'au-dessus, qui est elle-même survolable — monter vers les boutons
+ *  faisait donc prendre l'ancre à cette ligne, et la cellule remontait d'un rang. */
 export function useCelluleActions<K, D = undefined>() {
   const [ancre, setAncre] = useState<AncreCellule<K, D> | null>(null)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // ⚠️ Miroir de l'état, écrit dans les GESTES et jamais pendant le rendu : les minuteurs
+  // ont besoin de l'ancre courante, et la lire dans l'état ferait dépendre `ancrer` de
+  // lui — donc changer d'identité à chaque rendu, et faire se réabonner à chaque fois les
+  // écoutes de défilement de la cellule.
+  const courante = useRef<AncreCellule<K, D> | null>(null)
+  const fermeture = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const attente = useRef<{ cle: K; minuteur: ReturnType<typeof setTimeout> } | null>(null)
 
-  const retenir = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null }
+  const poser = useCallback((a: AncreCellule<K, D> | null) => { courante.current = a; setAncre(a) }, [])
+  const arreterFermeture = useCallback(() => {
+    if (fermeture.current) { clearTimeout(fermeture.current); fermeture.current = null }
   }, [])
+  const arreterAttente = useCallback(() => {
+    if (attente.current) { clearTimeout(attente.current.minuteur); attente.current = null }
+  }, [])
+
+  /** Le curseur est ENTRÉ dans la cellule : elle ne se ferme plus, et aucune cible ne
+   *  peut plus la lui prendre. ⚠️ Le navigateur émet la SORTIE avant l'ENTRÉE (la
+   *  spécification l'impose) : `relacher` a donc déjà armé la fermeture, et c'est ici
+   *  qu'on la désarme. */
+  const retenir = useCallback(() => { arreterFermeture(); arreterAttente() }, [arreterFermeture, arreterAttente])
 
   const ancrer = useCallback((el: HTMLElement, cle: K, options?: OptionsAncrage<D>) => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null }
-    setAncre({ cle, el, borne: options?.borne ?? null, sommet: options?.sommet, donnees: options?.donnees })
-  }, [])
+    arreterFermeture()
+    const poserIci = () => poser({
+      cle, el, borne: options?.borne ?? null, sommet: options?.sommet, donnees: options?.donnees,
+    })
+    // Rien d'ouvert, ou la MÊME cible : à l'instant. ⚠️ Une première cellule ne se fait
+    // jamais attendre — le délai ne gouverne que le DÉPLACEMENT d'une cellule posée.
+    if (!courante.current || Object.is(courante.current.cle, cle)) { arreterAttente(); poserIci(); return }
+    if (attente.current && Object.is(attente.current.cle, cle)) return   // déjà en attente
+    arreterAttente()
+    attente.current = {
+      cle,
+      minuteur: setTimeout(() => { attente.current = null; poserIci() }, DELAI_REANCRAGE_MS),
+    }
+  }, [poser, arreterFermeture, arreterAttente])
 
-  /** Sortie du texte : on laisse le temps d'aller du dernier mot jusqu'aux boutons. */
+  /** Sortie d'une cible : on laisse le temps d'aller du dernier mot jusqu'aux boutons. */
   const relacher = useCallback((cle: K) => {
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(
-      () => setAncre(prev => (prev && Object.is(prev.cle, cle) ? null : prev)),
-      GRACE_SURVOL_MS,
-    )
-  }, [])
+    // On quitte la cible qui ATTENDAIT son tour : elle ne l'aura pas.
+    if (attente.current && Object.is(attente.current.cle, cle)) arreterAttente()
+    // ⛔ LA FERMETURE NE VISE PAS UNE CLÉ, elle ferme ce qui est ouvert. Traverser un
+    // voisin en chemin vers la cellule appelle `relacher` avec la clé du VOISIN, et un
+    // minuteur retenu sur cette clé-là ne fermerait jamais la cellule qu'on a quittée.
+    arreterFermeture()
+    fermeture.current = setTimeout(() => { fermeture.current = null; poser(null) }, GRACE_SURVOL_MS)
+  }, [poser, arreterFermeture, arreterAttente])
 
   const fermer = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null }
-    setAncre(null)
-  }, [])
+    arreterFermeture(); arreterAttente(); poser(null)
+  }, [poser, arreterFermeture, arreterAttente])
 
-  /** Tap : re-taper la cible active referme, au lieu de replacer la cellule indéfiniment. */
+  /** Tap : re-taper la cible active referme, au lieu de replacer la cellule indéfiniment.
+   *  ⛔ Un tap ne s'attend pas : il POSE. Le temps de pose vaut pour une main qui glisse,
+   *  non pour un doigt qui désigne. */
   const basculer = useCallback((el: HTMLElement, cle: K, actif: boolean, options?: OptionsAncrage<D>) => {
-    if (actif) fermer()
-    else ancrer(el, cle, options)
-  }, [ancrer, fermer])
+    arreterFermeture(); arreterAttente()
+    if (actif) poser(null)
+    else poser({ cle, el, borne: options?.borne ?? null, sommet: options?.sommet, donnees: options?.donnees })
+  }, [poser, arreterFermeture, arreterAttente])
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+  useEffect(() => () => { arreterFermeture(); arreterAttente() }, [arreterFermeture, arreterAttente])
 
   return { ancre, ancrer, relacher, retenir, fermer, basculer }
 }

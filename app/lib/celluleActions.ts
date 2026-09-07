@@ -127,8 +127,29 @@ export function positionCellule(
 export const APPUI_LONG_MS = 450
 
 /** Délai de grâce entre la sortie du texte et la disparition de la cellule : le temps
- *  d'aller du dernier mot jusqu'aux boutons sans que tout s'efface en chemin. */
-export const GRACE_SURVOL_MS = 200
+ *  d'aller du dernier mot jusqu'aux boutons sans que tout s'efface en chemin.
+ *
+ *  ⛔ IL VALAIT 200 ms, ET C'ÉTAIT TROP COURT (relevé de l'auteur, 2026-09-07 : « le petit
+ *  encart qui s'ouvre au survol est difficile à atteindre avant sa disparition »). Le
+ *  trajet n'est pas la marge de six pixels, qui se franchit en un clin d'œil : la cellule
+ *  se pose au HAUT du segment survolé, et l'on part souvent de sa dernière ligne. Mesuré
+ *  sur la lecture d'une œuvre servie, un segment de cinq lignes met la cellule à quelque
+ *  cent soixante pixels en diagonale — de deux à trois cents millisecondes à la vitesse
+ *  ordinaire d'une main. Deux cents ne suffisaient donc qu'aux trajets les plus courts. */
+export const GRACE_SURVOL_MS = 400
+
+/** Temps de POSE exigé d'une cible AUTRE que celle qui porte déjà la cellule.
+ *
+ *  ⛔ Sans lui, la cellule S'ENFUIT. Dans une grille — la Polyglotte —, elle se pose
+ *  au-dessus de la cellule survolée, c'est-à-dire SUR la ligne d'au-dessus, qui est
+ *  elle-même survolable : monter vers les boutons faisait donc entrer le pointeur dans
+ *  cette ligne, qui prenait aussitôt l'ancre, et la cellule remontait d'un rang. On la
+ *  poursuivait sans jamais l'atteindre.
+ *  ⚠️ Il ne retarde RIEN quand rien n'est ouvert : une première cellule paraît à
+ *  l'instant. Il ne s'applique qu'au DÉPLACEMENT d'une cellule déjà posée, où il rend en
+ *  outre le balayage d'un texte plus calme — la cellule ne clignote plus d'un segment à
+ *  l'autre quand le regard ne fait que passer. */
+export const DELAI_REANCRAGE_MS = 140
 
 // ── LA FORME DE LA CELLULE ────────────────────────────────────────────────────
 // Une seule définition pour les quatre surfaces. Elles montraient le même drapeau
