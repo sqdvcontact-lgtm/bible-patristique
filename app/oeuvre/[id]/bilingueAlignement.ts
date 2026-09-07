@@ -23,17 +23,22 @@
  * qu'endure aussi maintenant le Verbe… », « aussi ont faict les Juifs… » — là où Morel
  * n'en a écrit qu'un, dont ces minuscules sont justement la preuve.
  *
- * ⛔ LA RÈGLE : le bloc de lecture est le PARAGRAPHE, découpé sur la clé éditoriale
- * entière — `id_texte`, `espace_textuel`, `ref_niv*`, `paragraphe` — ses segments rangés
- * par `rang` et joints par `join_before`. Les groupes d'alignement se RÉPARTISSENT sur
- * ces blocs sans jamais les couper : chacun compose son original dans le PREMIER bloc
- * qu'il touche, et les blocs suivants du même empan gardent leur grille, colonne de
- * droite vide (voir `repartirGroupes`).
+ * ⛔ LA RÈGLE, EN DEUX TEMPS. La COMPOSITION appartient au PARAGRAPHE de l'édition —
+ * clé éditoriale entière (`id_texte`, `espace_textuel`, `ref_niv*`, `paragraphe`),
+ * segments rangés par `rang` et joints par `join_before` : lui seul pose un filet, un
+ * blanc et un alinéa. La MISE EN REGARD appartient au GROUPE : lui seul tient les deux
+ * colonnes en face l'une de l'autre, et il lui faut pour cela son propre rang de grille.
+ * `repartirGroupes` découpe donc aux DEUX, et COUD les rangs d'un même paragraphe : ils
+ * se touchent, sans filet, sans blanc et sans retrait.
  *
- * ⚠️ Un groupe qui enjambe deux paragraphes décale donc la correspondance HORIZONTALE :
- * 28 des 57 groupes de la Didachè le font. C'est le prix, et il est accepté — une
- * frontière d'alignement ne doit jamais poser un blanc, un filet ni un `<p>` là où le
- * paragraphe de l'édition continue.
+ * ⚠️ Il reste une coupure de LIGNE à chaque empan, et elle est irréductible : aucune
+ * écriture CSS ne fait couler un texte d'un rang de grille au suivant en gardant deux
+ * colonnes accordées. Une page en regard se paie de ce prix ; elle ne se paie pas de
+ * soixante-seize faux paragraphes.
+ *
+ * ⚠️ Un groupe qui enjambe deux paragraphes décale la correspondance HORIZONTALE : 28 des
+ * 57 groupes de la Didachè le font. La coupure de l'ÉDITION l'emporte alors ; le rang
+ * suivant garde sa grille, colonne de droite vide, l'empan étant composé au-dessus.
  *
  * ⚠️ `texte_original` reste lu en REPLI, le temps que les sept œuvres dont l'original
  * n'a pas encore de texte propre (Consolation de Mirandol, Ratramne, Hexaéméron,
@@ -485,54 +490,75 @@ export type BlocEnRegard<T> = {
    *  garde sa grille même sans rien composer : le français ne reprend pas toute la
    *  largeur au milieu d'un empan. */
   couvert: boolean
-  /** Aucun groupe de ce bloc ne se poursuit au-delà : le filet peut se tirer. */
+  /**
+   * Ce bloc FERME un paragraphe de l'édition : filet et blanc de paragraphe.
+   *
+   * ⛔ Faux, le bloc est COUSU au suivant — ni filet, ni blanc, ni retrait : les deux
+   * rangs appartiennent au même paragraphe, et seule la mise en regard demandait de les
+   * séparer en deux rangs de grille.
+   */
   clot: boolean
 }
 
 /**
- * Répartit les groupes d'alignement sur les blocs de lecture, sans jamais les découper.
+ * Découpe chaque PARAGRAPHE en rangs de grille, un par groupe d'alignement.
  *
- * ⛔ LE BLOC EST DONNÉ, il ne se calcule pas ici : c'est le paragraphe de l'édition, que
- * l'appelant a découpé sur sa clé éditoriale. Ce module lui dit seulement quel original
- * il met en regard. C'est l'inverse de ce qu'il faisait jusqu'au 2026-09-07, où il
- * ouvrait un bloc à chaque changement de groupe — et hachait ainsi en 76 paragraphes le
- * paragraphe unique du Discours 38.
+ * ⛔ DEUX DÉCOUPES, ET ELLES NE DISENT PAS LA MÊME CHOSE. Le paragraphe est l'unité de
+ * la COMPOSITION : c'est lui, et lui seul, qui pose un filet, un blanc et un alinéa.
+ * Le groupe est l'unité de la MISE EN REGARD : c'est lui qui tient les deux colonnes en
+ * face l'une de l'autre, et il ne peut le faire qu'en occupant son propre rang de
+ * grille — aucune écriture CSS ne fait couler un texte d'un rang à l'autre en gardant
+ * deux colonnes accordées.
  *
- * ⛔ Un groupe ne se compose qu'UNE fois, dans le premier bloc qui le touche : les blocs
- * suivants du même empan le déclarent `couvert` sans le composer. Sans quoi le grec
- * d'un empan à cheval sur deux paragraphes paraîtrait deux fois de suite.
+ * ⚠️ Les deux se sont chassées l'une l'autre en un jour, le 7 septembre 2026, et il faut
+ * savoir les deux échecs. Découper au GROUPE seul faisait de chaque empan un paragraphe :
+ * les 76 groupes du Discours 38 rendaient 76 filets et 76 blancs sur un corps qui n'a que
+ * deux paragraphes. Découper au PARAGRAPHE seul fondait les 76 empans en un rang unique :
+ * plus un filet, mais plus rien en regard non plus, une colonne de français contre une
+ * colonne de grec que rien ne raccordait.
  *
- * ⚠️ Les segments qu'aucun groupe ne couvre ne sont plus mis à part. Ils coulent dans
- * leur paragraphe, comme le français seul les compose : les isoler pour ne pas les
- * mettre « en regard d'un original qu'ils ne traduisent pas » revenait à ouvrir un
- * paragraphe là où l'édition n'en ouvre aucun, et c'était payer trop cher une précision
- * que la correspondance horizontale ne tient de toute façon plus qu'au paragraphe.
+ * ⛔ On découpe donc aux DEUX, et c'est la COUTURE qui répare : un rang par groupe, mais
+ * les rangs d'un même paragraphe se touchent — `clot` faux — sans filet, sans blanc et
+ * sans retrait. Seul le dernier rang d'un paragraphe le ferme. Il reste une coupure de
+ * ligne à chaque empan, et elle est irréductible : c'est le prix de toute page en regard.
+ *
+ * ⛔ Un groupe ne se compose qu'UNE fois, dans le premier rang qui le touche : les rangs
+ * suivants du même empan le déclarent `couvert` sans le composer. Sans quoi le grec d'un
+ * empan à cheval sur deux paragraphes paraîtrait deux fois de suite.
  */
 export function repartirGroupes<T>(
-  blocs: readonly { ids: T[] }[],
+  paragraphes: readonly { ids: T[] }[],
   groupeDe: (item: T) => string | null | undefined,
   bornes: ReadonlyMap<string, { premier: T; dernier: T }>,
 ): BlocEnRegard<T>[] {
-  return blocs.map(({ ids }) => {
-    const dansLeBloc = new Set<T>(ids)
-    const couverts: string[] = []
+  const sortie: BlocEnRegard<T>[] = []
+  for (const { ids } of paragraphes) {
+    // Un rang par suite d'items de MÊME groupe. Un groupe interrompu puis repris dans le
+    // même paragraphe rouvre un rang : l'ordre de lecture prime.
+    const rangs: { ids: T[]; groupe: string | null }[] = []
     for (const item of ids) {
-      const groupe = groupeDe(item)
-      if (groupe && !couverts.includes(groupe)) couverts.push(groupe)
+      const groupe = groupeDe(item) ?? null
+      const dernier = rangs[rangs.length - 1]
+      if (dernier && dernier.groupe === groupe) dernier.ids.push(item)
+      else rangs.push({ ids: [item], groupe })
     }
-    // Faute de borne — un groupe annoncé dont rien n'est encore chargé — le bloc le
-    // compose et le clôt : c'est le seul qu'on lui connaisse.
-    const borneDans = (groupe: string, cote: 'premier' | 'dernier') => {
-      const borne = bornes.get(groupe)
-      return !borne || dansLeBloc.has(borne[cote])
+    for (const [i, rang] of rangs.entries()) {
+      // Faute de borne — un groupe annoncé dont rien n'est encore chargé — le rang le
+      // compose : c'est le seul qu'on lui connaisse.
+      const borne = rang.groupe ? bornes.get(rang.groupe) : undefined
+      const porte = Boolean(rang.groupe) && (!borne || rang.ids.includes(borne.premier))
+      sortie.push({
+        ids: rang.ids,
+        groupes: porte && rang.groupe ? [rang.groupe] : [],
+        couvert: rang.groupe !== null,
+        // ⛔ Le filet et le blanc appartiennent au PARAGRAPHE : seul son dernier rang le
+        // ferme. Un empan à cheval sur deux paragraphes n'y change rien — la coupure que
+        // l'édition a voulue se voit, et c'est le décalage horizontal qui cède.
+        clot: i === rangs.length - 1,
+      })
     }
-    return {
-      ids: [...ids],
-      groupes: couverts.filter(groupe => borneDans(groupe, 'premier')),
-      couvert: couverts.length > 0,
-      clot: couverts.every(groupe => borneDans(groupe, 'dernier')),
-    }
-  })
+  }
+  return sortie
 }
 
 /**

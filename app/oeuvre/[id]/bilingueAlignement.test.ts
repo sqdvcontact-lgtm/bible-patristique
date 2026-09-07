@@ -323,9 +323,10 @@ describe('l’original mis en regard', () => {
 })
 
 describe('la répartition des groupes sur les blocs', () => {
-  // ⛔ Le bloc est DONNÉ : c'est le paragraphe de l'édition, découpé par l'appelant. Le
-  // Discours 38 pose 76 groupes sur un corps de deux paragraphes, et le lecteur en tirait
-  // 76 blocs, chacun sous son filet.
+  // ⛔ DEUX DÉCOUPES : le paragraphe COMPOSE (filet, blanc, alinéa), le groupe MET EN
+  // REGARD (son propre rang de grille). Le Discours 38 a démenti la première règle —
+  // 76 groupes rendus en 76 paragraphes — et la seconde l'a été le même jour : fondre
+  // le paragraphe en un rang unique ne laissait plus rien en regard.
   const groupeDe = (id: string) => ({
     'fr-1': 'g1', 'fr-2': 'g1', 'fr-3': 'g2', 'fr-4': 'g2', 'fr-5': 'g3',
   } as Record<string, string | undefined>)[id]
@@ -335,52 +336,56 @@ describe('la répartition des groupes sur les blocs', () => {
     ['g3', { premier: 'fr-5', dernier: 'fr-5' }],
   ])
 
-  it('réunit dans UN bloc tous les groupes du paragraphe', () => {
+  // Un rang par empan : c'est lui qui tient les deux colonnes en face l'une de l'autre.
+  it('ouvre un rang par groupe À L’INTÉRIEUR du paragraphe', () => {
     expect(repartirGroupes([{ ids: ['fr-1', 'fr-2', 'fr-3', 'fr-4'] }], groupeDe, bornes)).toEqual([
-      { ids: ['fr-1', 'fr-2', 'fr-3', 'fr-4'], groupes: ['g1', 'g2'], couvert: true, clot: true },
+      { ids: ['fr-1', 'fr-2'], groupes: ['g1'], couvert: true, clot: false },
+      { ids: ['fr-3', 'fr-4'], groupes: ['g2'], couvert: true, clot: true },
     ])
+  })
+
+  // ⛔ La COUTURE : seul le DERNIER rang d'un paragraphe le ferme. Les autres se touchent
+  // — ni filet, ni blanc, ni retrait — et rien ne dit qu'on change de paragraphe.
+  it('ne fait clore que le dernier rang du paragraphe', () => {
+    const rangs = repartirGroupes([{ ids: ['fr-1', 'fr-3', 'fr-5'] }], groupeDe, bornes)
+    expect(rangs.map(r => r.clot)).toEqual([false, false, true])
   })
 
   // ⛔ Un empan à cheval ne se compose qu'une fois : le grec de la troisième section de la
   // Didachè paraissait deux fois de suite.
-  it('ne compose un groupe à cheval que dans le PREMIER bloc qu’il touche', () => {
-    expect(repartirGroupes([{ ids: ['fr-1', 'fr-2', 'fr-3'] }, { ids: ['fr-4'] }], groupeDe, bornes)).toEqual([
-      { ids: ['fr-1', 'fr-2', 'fr-3'], groupes: ['g1', 'g2'], couvert: true, clot: false },
+  it('ne compose un groupe à cheval que dans le PREMIER rang qu’il touche', () => {
+    expect(repartirGroupes([{ ids: ['fr-1', 'fr-3'] }, { ids: ['fr-4'] }], groupeDe, bornes)).toEqual([
+      { ids: ['fr-1'], groupes: ['g1'], couvert: true, clot: false },
+      { ids: ['fr-3'], groupes: ['g2'], couvert: true, clot: true },
       { ids: ['fr-4'], groupes: [], couvert: true, clot: true },
     ])
   })
 
-  // Le filet se tire au BOUT de l'empan : tiré entre deux blocs qu'un même groupe réunit,
-  // il annoncerait une frontière que l'alignement ne reconnaît pas.
-  it('ne clôt pas un bloc dont un groupe se poursuit au-delà', () => {
-    const [premier, second] = repartirGroupes([{ ids: ['fr-3'] }, { ids: ['fr-4'] }], groupeDe, bornes)
-    expect(premier.clot).toBe(false)
-    expect(second.clot).toBe(true)
+  // ⛔ La coupure de l'ÉDITION l'emporte : un paragraphe se ferme même si l'empan continue.
+  it('ferme le paragraphe même quand l’empan se poursuit au-delà', () => {
+    const [premier] = repartirGroupes([{ ids: ['fr-3'] }, { ids: ['fr-4'] }], groupeDe, bornes)
+    expect(premier.clot).toBe(true)
   })
 
-  // ⚠️ Les segments hors alignement ne sont plus mis à part : ils coulent dans leur
-  // paragraphe, comme le français seul les compose.
-  it('laisse couler dans son bloc un segment qu’aucun groupe ne couvre', () => {
+  // Un segment hors alignement fait son rang, sans original en face, mais reste cousu à
+  // son paragraphe : rien ne le donne pour un paragraphe à lui.
+  it('rend son rang à un segment qu’aucun groupe ne couvre', () => {
     expect(repartirGroupes([{ ids: ['fr-1', 'fr-x', 'fr-2'] }], groupeDe, bornes)).toEqual([
-      { ids: ['fr-1', 'fr-x', 'fr-2'], groupes: ['g1'], couvert: true, clot: true },
+      { ids: ['fr-1'], groupes: ['g1'], couvert: true, clot: false },
+      { ids: ['fr-x'], groupes: [], couvert: false, clot: false },
+      { ids: ['fr-2'], groupes: [], couvert: true, clot: true },
     ])
   })
 
-  it('rend un bloc nu quand aucun groupe ne le couvre', () => {
+  it('rend un rang nu quand aucun groupe ne couvre le paragraphe', () => {
     expect(repartirGroupes([{ ids: ['fr-x', 'fr-y'] }], groupeDe, bornes)).toEqual([
       { ids: ['fr-x', 'fr-y'], groupes: [], couvert: false, clot: true },
     ])
   })
 
-  // Un groupe interrompu puis repris dans le même bloc ne se compose qu'une fois.
-  it('ne retient qu’une fois un groupe qui revient dans le même bloc', () => {
-    expect(repartirGroupes([{ ids: ['fr-1', 'fr-3', 'fr-2'] }], groupeDe, bornes)[0].groupes)
-      .toEqual(['g1', 'g2'])
-  })
-
-  // Faute de borne — un groupe annoncé dont rien n'est encore chargé — le bloc le compose
-  // et le clôt : c'est le seul qu'on lui connaisse.
-  it('compose et clôt un groupe dont on ne connaît pas les bornes', () => {
+  // Faute de borne — un groupe annoncé dont rien n'est encore chargé — le rang le compose :
+  // c'est le seul qu'on lui connaisse.
+  it('compose un groupe dont on ne connaît pas les bornes', () => {
     expect(repartirGroupes([{ ids: ['fr-5'] }], groupeDe, new Map())).toEqual([
       { ids: ['fr-5'], groupes: ['g3'], couvert: true, clot: true },
     ])

@@ -2165,19 +2165,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   /**
-   * Découpe de la lecture, en regard comme seule : un bloc par PARAGRAPHE.
+   * Découpe de la lecture : le PARAGRAPHE compose, le GROUPE met en regard.
    *
-   * ⛔ ALIGNEMENT N'EST PAS PARAGRAPHAGE (décision de l'auteur, 2026-09-07). Le bloc se
-   * découpe sur la clé éditoriale — `espace_textuel`, `ref_niv*`, `paragraphe`, rangé
-   * par `rang` et joint par `join_before` —, jamais sur la frontière d'un groupe
-   * d'alignement. Le Discours 38 l'a démontré : 76 groupes posés sur un corps de deux
-   * paragraphes, et le lecteur en tirait soixante-seize blocs, chacun sous son filet et
-   * son blanc, dont la plupart s'ouvraient en minuscule parce qu'ils continuaient la
-   * phrase d'avant — « ces choses là… », « aussi ont faict les Juifs… ».
+   * ⛔ ALIGNEMENT N'EST PAS PARAGRAPHAGE (décision de l'auteur, 2026-09-07). Le filet,
+   * le blanc et l'alinéa appartiennent au paragraphe de l'édition — clé éditoriale
+   * entière, segments rangés par « rang » et joints par « join_before » —, jamais à la
+   * frontière d'un groupe. Le Discours 38 l'a démontré : 76 groupes posés sur un corps
+   * de deux paragraphes, et le lecteur en tirait soixante-seize blocs sous leur filet,
+   * dont la plupart s'ouvraient en minuscule parce qu'ils continuaient la phrase
+   * d'avant — « ces choses là… », « aussi ont faict les Juifs… ».
    *
-   * Les groupes se répartissent ENSUITE sur ces blocs (`repartirGroupes`) : ils disent
-   * ce que la colonne de droite met en regard, non où le texte se coupe. Hors bilingue,
-   * ou faute d'alignement, rien ne change.
+   * ⛔ Mais le GROUPE garde son rang de grille, sans quoi il n'y a plus rien EN REGARD :
+   * fondre un paragraphe entier en un seul rang met une colonne de français contre une
+   * colonne de grec que rien ne raccorde (essayé, et défait le même jour).
+   * « repartirGroupes » découpe donc aux deux, et COUD les rangs d'un même paragraphe.
+   * Hors bilingue, ou faute d'alignement, le paragraphe reste seul maître.
    */
   const blocsDeLecture = (itemIds: number[]): BlocEnRegard<number>[] => {
     const enRegard = affichageBilingue || afficherOriginalSeul
@@ -2356,12 +2358,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            trait à chaque respiration du poème. Un blanc dit la même chose sans rien
            dessiner, et c'est ce que fait la page imprimée. */
         .para-bilingue--vers { border-bottom: none; margin-bottom: 1.15rem; }
-        /* ⛔ La SUITE d'un empan : un groupe d'alignement qui enjambe deux paragraphes
-           les laisse en deux blocs, et le filet tiré entre eux annoncerait une frontière
-           que l'alignement ne reconnaît pas. Le blanc se resserre au lieu de s'ouvrir :
-           les deux moitiés appartiennent au même empan, dont le grec est resté au-dessus.
-           ⚠️ Le paragraphe, lui, se sépare quand même : le « <p> » garde son propre blanc. */
-        .para-bilingue--suite { border-bottom: none; margin-bottom: 0.5rem; }
+        /* ⛔ LA COUTURE : deux rangs d'un MÊME paragraphe se touchent. Ils ne sont deux
+           que parce que la mise en regard l'exige — un empan ne tient les deux colonnes
+           en face l'une de l'autre qu'en occupant son propre rang de grille —, et rien
+           ne doit dire au lecteur qu'il change de paragraphe : ni filet, ni blanc, ni
+           retrait. Seul le DERNIER rang d'un paragraphe le ferme.
+           ⚠️ Il reste une coupure de LIGNE à chaque empan : aucune écriture CSS ne fait
+           couler un texte d'un rang au suivant en gardant deux colonnes accordées.
+           ⚠️ Deux classes au sélecteur, sinon .para-bilingue > p l'emporterait. */
+        .para-bilingue--couture { border-bottom: none; margin-bottom: 0; }
+        .para-bilingue--couture > p, .para-bilingue--couture > div { margin-bottom: 0 !important; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
            différence de police distingue les deux colonnes d'un coup d'œil, mieux
@@ -2998,9 +3004,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // page en regard. C'est `couvert` qui le dit, non la présence d'un
                     // original.
                     const grilleBilingue = affichageBilingue && (Boolean(original) || chunk.couvert)
-                    // Le filet marque l'appariement empan par empan : il ne se tire qu'au
-                    // BOUT du groupe, jamais entre deux blocs qu’un même empan réunit.
-                    const clotGroupe = chunk.clot
+                    // ⛔ Le filet et le blanc appartiennent au PARAGRAPHE : seul son
+                    // dernier rang le ferme. Les rangs d'un même paragraphe se COUSENT —
+                    // ils ne sont deux que parce que la mise en regard l'exige.
+                    const clotParagraphe = chunk.clot
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     // ⚠️ AUCUN segment du corpus ne l'atteint aujourd'hui — les onze
@@ -3030,7 +3037,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Le repli n'en sait rien et suit la colonne française, comme avant.
                     const originalEnVers = original?.toutVers ?? toutVers
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={grilleBilingue ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotGroupe ? '' : ' para-bilingue--suite'}` : undefined}>
+                    <div key={`para-${chunk.ids[0]}`} className={grilleBilingue ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotParagraphe ? '' : ' para-bilingue--couture'}` : undefined}>
                       {toutVers ? (
                         /* ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne.
                            Un seul `<p>` ne peut pas rentrer chaque ligne : `text-indent`
