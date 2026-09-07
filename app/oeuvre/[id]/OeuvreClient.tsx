@@ -54,7 +54,8 @@ import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
   NATURE_SIGNATURE, STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
   accepteLaLettrine, estBlocDeSignatures, margeArgument, placeDeLaSignature,
-  styleArgument, styleBlocDeVers, styleParagrapheApparat, styleParagrapheLecture,
+  styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
+  styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
@@ -2888,23 +2889,72 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             // Introductions (arguments) hissées en tête de l'homélie, hors des groupes
             // et de la pagination : police plus petite et plus claire, marges latérales.
             // Rendues depuis l'état complet des segments, et seulement sur la 1re page.
+            //
+            // ⛔ ET LA POÉSIE S'Y COMPOSE EN VERS (2026-09-07). C'est la CINQUIÈME surface
+            // du vers, et la seule qui l'ignorait : les 79 vers du Manuel de Dhuoda s'y
+            // rendaient en prose justifiée et césurée, un bloc par vers, avec un blanc à
+            // chaque changement de « paragraphe ». On refait donc le POÈME par
+            // « fusionnerBlocs », comme la lecture ordinaire, et chaque ligne prend
+            // « styleLigneArgumentEnVers » — la géométrie du vers, la face de l'argument.
             const intros = pageActuelle === 0 ? segments.filter(s => s.nature === 'introduction') : []
+            const introParId = new Map(intros.map(s => [s.id, s]))
+            const rangDansIntros = new Map(intros.map((s, i) => [s.id, i]))
+            const blocsIntro = fusionnerBlocs(
+              intros.map(s => ({ ids: [s.id] })),
+              ids => estBlocDeVers(ids.map(sid => introParId.get(sid))),
+            )
+            // La cellule d'actions d'un argument : la même sur les deux compositions.
+            const actionsArgument = (s: SegData) => (
+              <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
+                {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
+                <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
+                <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
+              </div>
+            )
+            const corpsArgument = (s: SegData) =>
+              rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})
             return (<>
-              {intros.map((s, index) => {
-                const suivant = intros[index + 1]
-                const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
+              {blocsIntro.map((bloc) => {
+                const segs = bloc.ids.map(id => introParId.get(id)).filter((s): s is SegData => Boolean(s))
+                if (segs.length === 0) return null
+                if (!estBlocDeVers(segs)) {
+                  // Prose : un argument par bloc, la composition de toujours.
+                  const s = segs[0]
+                  const suivant = intros[(rangDansIntros.get(s.id) ?? 0) + 1]
+                  const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
+                  return (
+                    <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: margeArgument({ memeParagraphe }) }}>
+                      <div lang={langueCorps} onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
+                        style={styleArgument({ actif: segActif === s.id })}>
+                        {corpsArgument(s)}
+                      </div>
+                      {actionsArgument(s)}
+                    </div>
+                  )
+                }
+                // ⛔ L'ombre de la LETTRINE se retire avant de composer, comme dans le
+                // corps : une capitale ornée pousse les premiers vers vers la droite, et
+                // l'océrisation mesure ce déplacement comme un alinéa.
+                const rangs = ombreDeLettrine(niveauxAlinea(segs.map(s => s.alinea)))
                 return (
-                <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: margeArgument({ memeParagraphe }) }}>
-                  <div lang={langueCorps} onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
-                    style={styleArgument({ actif: segActif === s.id })}>
-                    {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
+                  <div key={`intro-poeme-${segs[0].id}`} lang={langueCorps} style={styleBlocArgumentEnVers()}>
+                    {segs.map((s, i) => (
+                      <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: 0 }}>
+                        <div onClick={() => setSegActif(segActif === s.id ? null : s.id)} className="seg-p"
+                          style={styleLigneArgumentEnVers({
+                            rang: rangs[i],
+                            ouvreStrophe: ouvreStrophe(
+                              { strophe_avant: s.stropheAvant, paragraphe: s.paragraphe },
+                              i > 0 ? segs[i - 1] : undefined,
+                            ),
+                            actif: segActif === s.id,
+                          })}>
+                          {corpsArgument(s)}
+                        </div>
+                        {actionsArgument(s)}
+                      </div>
+                    ))}
                   </div>
-                  <div className="seg-actions" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '2px', alignItems: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-nette)', padding: '2px 4px' }}>
-                    {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
-                    <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
-                    <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
-                  </div>
-                </div>
                 )
               })}
               {groupesFiltres.map((groupe) => {

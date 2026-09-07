@@ -49,7 +49,8 @@ import {
 } from '@/app/lib/compositionBible'
 import {
   STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE, margeArgument,
-  styleArgument, styleBlocDeVers, styleParagrapheApparat, styleParagrapheLecture,
+  styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
+  styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
 import type { RangTitreOeuvre } from '@/app/lib/compositionOeuvre'
@@ -396,6 +397,26 @@ const OEUVRES: Unite[] = [
           montre que la diversité même de leurs récits est la meilleure preuve qu’ils ne se sont
           point concertés.
         </div>
+      </div>
+    ),
+  },
+  {
+    style: 'patristique/introduction — l’argument EN VERS',
+    note: 'La CINQUIÈME surface de la poésie, trouvée le 7 septembre 2026. L’argument prête sa FACE — sérif, petit corps, italique, encre effacée — et le vers garde sa GÉOMÉTRIE : une boîte par ligne, l’alinéa de base, le retrait de suite, et ni justification ni césure. Le blanc de strophe se lit dans `stanza_before` ; à défaut, dans un changement de `paragraphe`.',
+    alerte: '⛔ Ce chemin ignorait `forme = vers` : les 79 vers du Manuel de Dhuoda s’y rendaient en prose justifiée et césurée, un bloc par vers. Or le poème demande qu’on lise l’INITIALE de chaque vers — « Lector qui cupis formulam hanc nostram… capita perquiras apta versorum » —, et la ligne y porte donc le sens même.',
+    contenu: (
+      <div style={styleBlocArgumentEnVers()}>
+        {[
+          'Deus summe, lucis conditor poli',
+          'Syderumque ductor, rex æterne, agius,',
+          'Hoc a me cœptum tu perfice clemens.',
+          'Quanquam ignara, ad te perquiro sensum,',
+          'Ut tua capax placita perquiram,',
+        ].map((vers, i) => (
+          <div key={vers} className="seg-wrapper" style={{ position: 'relative', margin: 0 }}>
+            <div className="seg-p" style={styleLigneArgumentEnVers({ rang: 0, ouvreStrophe: i === 3 })}>{vers}</div>
+          </div>
+        ))}
       </div>
     ),
   },

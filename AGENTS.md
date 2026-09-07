@@ -1870,7 +1870,7 @@ Elle se rabat donc, **comme les 112 tailles de texte sur 32 rangs et les rayons 
 
 ⛔ **Un nouvel import de vers renseigne `stanza_before` sur CHAQUE ligne**, `false` compris. Le laisser à `paragraphe` rouvre exactement la divergence qu'on vient de fermer.
 
-**Le repli reste, comme filet.** `ouvreStrophe` lit la métadonnée quand elle existe, le changement de `paragraphe` sinon. Il n'est plus exercé par le corpus ; il protège l'import qui oublierait la règle ci-dessus. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le filet : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
+**Le repli reste, comme filet.** `ouvreStrophe` lit la métadonnée quand elle existe, le changement de `paragraphe` sinon. ⚠️ **Il EST exercé par le corpus, et ce paragraphe a dit le contraire jusqu'au 2026-09-07** : mesuré ce jour-là, **587 segments en vers sur 2 923 portent `stanza_before` à `null`**, sur cinq textes — le latin de Boèce (429), le *Manuel* de Dhuoda (79 vers d'introduction, 56 de corps, 19 de citation), les citations en vers des Confessions (8) et l'apparat de Mirandol (7). Seules les deux traductions françaises de Boèce renseignent la marque. Le filet n'est donc pas une réserve : c'est ce qui compose réellement la strophe de ces cinq textes, et il compose au `paragraphe`, qui ne dit pas toujours une strophe. ⛔ **D'où la distinction entre `false` et `null`**, qui porte tout le filet : `false` veut dire « l'édition a répondu non », `null` veut dire « l'édition n'a rien dit », et seul le second retombe sur le paragraphe. Une lecture en `Boolean(...)` les confondait.
 
 ## ⚠️ Le découpage par `paragraphe` est faux pour des vers — on refait le POÈME
 
@@ -2849,20 +2849,39 @@ de l'auteur (« le verrou de Boèce ne tient plus »), migration
 `20260829140000_boece_verrou_leve.sql`. ⚠️ **La FONCTION est conservée**, seul le
 déclencheur tombe : le reposer ne demande qu'une ligne, écrite en tête de la migration.
 
-## ⛔ Le VERS — un style, QUATRE surfaces (2026-08-29)
+## ⛔ Le VERS — un style, CINQ surfaces (2026-08-29 ; la cinquième le 2026-09-07)
 
 Doctrine : charte **§ 7.4**. Ce qui fait qu'un vers est un vers ne dépend d'aucune
 surface : ni justification ni césure — on ne coupe pas un alexandrin —, alinéa
 poétique, strophe, retrait de suite. La règle vit dans **`styleLigneDeVers`**
-(`app/lib/compositionVers.ts`), et les quatre surfaces la partagent. ⚠️ Seuls la
+(`app/lib/compositionVers.ts`), et les cinq surfaces la partagent. ⚠️ Seuls la
 police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC.
 
 | Surface | Déclaration | Bloc |
 |---|---|---|
 | Corps d'une œuvre | `segment_metadata.forme = 'vers'` | `styleBlocDeVers` |
 | Apparat d'une œuvre | `segment_metadata.forme = 'vers'` **seulement** | `styleBlocDeVers` |
+| **Introduction d'une œuvre** | `segment_metadata.forme = 'vers'` | `styleBlocArgumentEnVers` |
 | Apparat d'une bible | `form: 'verse'` sur le paragraphe | `STYLE_CORPS` |
 | Texte biblique | *(reste à déclarer)* | `styleTexteVerset({ enVers })` |
+
+- ⛔ **L'INTRODUCTION est une surface, et elle a vécu sans le vers.** L'argument hissé
+  en tête d'une division se rend hors des groupes, par un chemin à lui, qui ne savait
+  rien de `forme = vers` : les **79 vers** de l'*Epigramma* de Dhuoda (*Manuel pour mon
+  fils*, Bondurand 1887) s'y composaient en prose justifiée et césurée, un bloc par
+  vers, avec un blanc à chaque changement de `paragraphe`. Or ce poème demande qu'on
+  lise l'INITIALE de chaque vers — « Lector qui cupis formulam hanc nosse, capita
+  perquiras apta versorum » —, et la ligne y porte donc le sens même. Le chemin refait
+  désormais le POÈME par `fusionnerBlocs`, comme la lecture ordinaire.
+- ⚠️ **La FACE de l'argument et la GÉOMÉTRIE du vers se séparent** :
+  `styleBlocArgumentEnVers` ne porte que le sérif, le petit corps, l'italique et l'encre
+  effacée ; `styleLigneArgumentEnVers` n'ajoute à `styleLigneDeVers` que la cible
+  cliquable. ⛔ Ses rembourrages se posent en LONGHAND : le raccourci `padding`
+  écraserait le `padding-left` de la ligne, qui EST le retrait de suite.
+- ⚠️ **Seuls les segments de `nature = 'introduction'` passent par ce chemin.** Un vers
+  de l'espace `introduction` qui porte une autre nature — les quatre lignes de dédicace
+  du Discours 38, `apparat_editeur` — reste dans le flux du corps et se composait déjà
+  juste. La garde est `app/lib/versCinqSurfaces.test.ts`.
 
 - ⛔ **Dans l'apparat, la NATURE est déjà prise** : un segment y vaut
   `apparat_critique`, c'est par là qu'il est SÉLECTIONNÉ, et il ne peut pas dire en
@@ -2911,7 +2930,7 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   serait inventer une prosodie. Le style est posé, éprouvé et montré sur la planche ;
   il attend. *Poser un style avant sa donnée est légitime ; deviner la donnée depuis
   le style ne l'est pas.*
-- **Garde** : `app/lib/versQuatreSurfaces.test.ts` (10 tests) tient les deux moitiés —
+- **Garde** : `app/lib/versCinqSurfaces.test.ts` (12 tests) tient les deux moitiés —
   la déclaration sous ses deux enveloppes, le refus de la nature disparue, et le fait
   que la ligne se compose pareil partout tandis que chaque surface apporte sa seule
   police.

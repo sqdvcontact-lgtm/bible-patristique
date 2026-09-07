@@ -2,13 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { estEnVers, estBlocDeVers, formeDeSegment, styleLigneDeVers, FORME_VERS } from './compositionVers'
 import { NATURE_VALIDES } from './naturesSegments'
 import { styleTexteVerset } from './compositionBible'
-import { styleBlocDeVers } from './compositionOeuvre'
+import { styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers } from './compositionOeuvre'
 
 /**
- * ⛔ UN STYLE, QUATRE SURFACES (2026-08-29).
+ * ⛔ UN STYLE, CINQ SURFACES (2026-08-29, cinquième le 2026-09-07).
  *
  * Demande de l'auteur : la poésie doit avoir son style dans le corps d'une œuvre, dans
- * l'apparat d'une œuvre, dans l'apparat d'une bible, et dans le texte biblique.
+ * l'apparat d'une œuvre, dans l'apparat d'une bible, et dans le texte biblique. La
+ * CINQUIÈME — l'introduction, c'est-à-dire l'argument hissé en tête d'une division — a
+ * été trouvée le 7 septembre 2026 : elle se rend par un chemin à elle, qui ne savait
+ * rien de `forme = vers`, et les 79 vers du *Manuel* de Dhuoda s'y composaient en prose
+ * justifiée et césurée.
  *
  * Ce qui fait qu'un vers est un vers ne dépend d'aucune surface : on ne le justifie
  * pas, on ne le coupe pas — on ne coupe pas un alexandrin —, il porte son alinéa et
@@ -101,5 +105,38 @@ describe('chaque SURFACE apporte sa police, jamais la règle du vers', () => {
     const prose = styleTexteVerset()
     expect(prose.textAlign).toBe('justify')
     expect(prose.hyphens).toBe('auto')
+  })
+
+  // ⛔ La CINQUIÈME surface : l'argument hissé en tête d'une division. Elle a vécu sans
+  // le vers jusqu'au 2026-09-07, et le Manuel de Dhuoda y rendait 79 vers en prose.
+  it('⛔ l’ARGUMENT en vers garde la face de l’argument et la géométrie du vers', () => {
+    const bloc = styleBlocArgumentEnVers()
+    const prose = styleArgument()
+    // La FACE est celle de l'argument, au caractère près : un poème d'argument ne se
+    // compose pas dans un autre corps que l'argument qui le précède.
+    expect(bloc.fontSize).toBe(prose.fontSize)
+    expect(bloc.fontStyle).toBe(prose.fontStyle)
+    expect(bloc.color).toBe(prose.color)
+    expect(bloc.fontFamily).toBe(prose.fontFamily)
+    // ⛔ Et rien de la PROSE : ni justification, ni césure.
+    expect(bloc.textAlign).toBeUndefined()
+    expect(bloc.hyphens).toBeUndefined()
+    expect(prose.textAlign).toBe('justify')
+    expect(prose.hyphens).toBe('auto')
+  })
+
+  it('⛔ la ligne d’argument est la ligne de vers, retrait de suite compris', () => {
+    const ligne = styleLigneArgumentEnVers({ rang: 2 })
+    const vers = styleLigneDeVers({ rang: 2 })
+    expect(ligne.marginLeft).toBe(vers.marginLeft)
+    expect(ligne.textIndent).toBe(vers.textIndent)
+    expect(ligne.lineHeight).toBe(vers.lineHeight)
+    expect(ligne.hyphens).toBe('none')
+    // ⛔ Le raccourci `padding` écraserait le retrait de suite : les rembourrages du
+    // chrome se posent en longhand, et `paddingLeft` reste celui du vers.
+    expect(ligne.paddingLeft).toBe(vers.paddingLeft)
+    expect(ligne.padding).toBeUndefined()
+    // La strophe ouvre son blanc là comme ailleurs.
+    expect(styleLigneArgumentEnVers({ rang: 0, ouvreStrophe: true }).marginTop).toBe('0.6rem')
   })
 })

@@ -16,7 +16,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { FORME_VERS } from './compositionVers'
+import { FORME_VERS, styleLigneDeVers } from './compositionVers'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
@@ -179,28 +179,86 @@ export function styleBlocDeVers({ masque }: { masque?: boolean } = {}): CSSPrope
  * homélie… ». Hissé en tête, hors des groupes et de la pagination : plus petit,
  * en italique, d'une encre plus claire.
  */
+/**
+ * La FACE d'un argument — sérif, petit corps, italique, encre effacée.
+ *
+ * ⛔ C'est tout ce qui appartient à la SURFACE, et rien d'autre : la prose y ajoute sa
+ * justification, le vers sa géométrie. Les deux la partagent, sinon un poème d'argument
+ * se composerait dans un autre corps que l'argument qui le précède.
+ */
+const FACE_ARGUMENT = {
+  fontFamily: SERIF,
+  fontSize: '0.75rem',
+  fontStyle: 'italic',
+  color: 'var(--cs-texte-second)',
+} as const
+
+/** Le blanc qui ferme un argument, quand il ne partage pas son paragraphe. */
+const BLANC_ARGUMENT = '0.55rem'
+
+/** La cible cliquable d'un argument : son arrondi et sa surbrillance. */
+function chromeArgument(actif?: boolean) {
+  return {
+    cursor: 'pointer',
+    borderRadius: '4px',
+    background: actif ? 'var(--cs-vert-pale)' : 'transparent',
+  } as const
+}
+
 export function styleArgument({ actif }: { actif?: boolean } = {}): CSSProperties {
   return {
-    fontFamily: SERIF,
-    fontSize: '0.75rem',
-    fontStyle: 'italic',
-    color: 'var(--cs-texte-second)',
+    ...FACE_ARGUMENT,
     lineHeight: 1.6,
     textAlign: 'justify',
     textJustify: 'inter-word',
     hyphens: 'auto',
     WebkitHyphens: 'auto',
-    cursor: 'pointer',
-    borderRadius: '4px',
     padding: '2px 6px',
     margin: 0,
-    background: actif ? 'var(--cs-vert-pale)' : 'transparent',
+    ...chromeArgument(actif),
+  } as CSSProperties
+}
+
+/**
+ * Le BLOC d'un argument EN VERS — la CINQUIÈME surface de la poésie (2026-09-07).
+ *
+ * ⛔ L'introduction se rend hors des groupes, par un chemin à elle, et ce chemin ne
+ * savait rien de `forme = vers` : les 79 vers du *Manuel* de Dhuoda s'y composaient en
+ * prose justifiée et césurée, un bloc par vers, avec un blanc à chaque changement de
+ * `paragraphe`. Le poème demande pourtant qu'on lise l'initiale de chaque vers — « Lector
+ * qui cupis formulam hanc nostram… capita perquiras apta versorum » —, et la ligne y
+ * porte donc le sens même.
+ *
+ * ⚠️ Le bloc n'apporte que la FACE. La géométrie du vers — alinéa, retrait de suite,
+ * interligne, absence de césure — vient de `styleLigneDeVers`, comme sur les quatre
+ * autres surfaces.
+ */
+export function styleBlocArgumentEnVers(): CSSProperties {
+  return { ...FACE_ARGUMENT, margin: `0 0 ${BLANC_ARGUMENT}` }
+}
+
+/**
+ * Une LIGNE de vers dans un argument : la géométrie du VERS, le chrome de l'ARGUMENT.
+ *
+ * ⛔ Les rembourrages se posent en LONGHAND, jamais par le raccourci `padding` : celui-ci
+ * écraserait le `padding-left` de la ligne de vers, qui EST le retrait de suite, et une
+ * ligne trop longue ne se distinguerait plus du vers d'après.
+ */
+export function styleLigneArgumentEnVers(
+  { rang, ouvreStrophe, actif }: { rang: number; ouvreStrophe?: boolean; actif?: boolean },
+): CSSProperties {
+  return {
+    ...styleLigneDeVers({ rang, ouvreStrophe }),
+    paddingTop: '2px',
+    paddingBottom: '2px',
+    paddingRight: '6px',
+    ...chromeArgument(actif),
   } as CSSProperties
 }
 
 /** Le blanc entre deux arguments : resserré quand ils partagent leur paragraphe. */
 export function margeArgument({ memeParagraphe }: { memeParagraphe?: boolean } = {}): string {
-  return `0 0 ${memeParagraphe ? '0.18rem' : '0.55rem'}`
+  return `0 0 ${memeParagraphe ? '0.18rem' : BLANC_ARGUMENT}`
 }
 
 // ── Les TITRES du corps d'une œuvre ──────────────────────────────────────────
