@@ -2239,7 +2239,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ses tests, et le suivi au défilement, la grâce de sortie et la fermeture au tap
   // dehors vivent dans app/components/CelluleActions.tsx. Il ne reste ici que le
   // rapport entre la cellule et la SÉLECTION du segment, qui appartient à la page.
-  const positionnerToolbar = (el: HTMLElement, sid: number) => cellule.ancrer(el, sid)
+  //
+  // ⛔ EN LECTURE EN REGARD, LA BORNE EST LA COLONNE, comme dans une grille de la
+  // Polyglotte : à droite du français il y a le LATIN. Sans elle, la cellule tenait « à
+  // droite » et se posait sur l'original — le défaut relevé le 2026-09-07 sur la
+  // Polyglotte, à l'identique, sur une surface qu'on avait crue hors de cause.
+  // ⚠️ La colonne est l'enfant DIRECT de la grille qui porte le segment : le français y
+  // est composé tantôt en paragraphe, tantôt en bloc de vers, tantôt en versets, et
+  // marquer chacune de ces trois formes ferait trois endroits où l'oublier.
+  const colonneDuSegment = (el: HTMLElement): HTMLElement | null => {
+    const grille = el.closest<HTMLElement>('[data-grille-bilingue]')
+    if (!grille) return null
+    let n: HTMLElement | null = el
+    while (n && n.parentElement !== grille) n = n.parentElement
+    return n
+  }
+  const positionnerToolbar = (el: HTMLElement, sid: number) =>
+    cellule.ancrer(el, sid, { borne: colonneDuSegment(el) })
   const masquerToolbar = (sid: number) => cellule.relacher(sid)
 
   // Tap sur un segment. Sur un écran sans survol, la cellule n'a pas de sortie de
@@ -2247,7 +2263,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // de la repositionner indéfiniment.
   const tapSegmentParagraphe = (el: HTMLElement, sid: number, actif: boolean) => {
     if (actif) { setSegActif(null); cellule.fermer() }
-    else { setSegActif(sid); cellule.ancrer(el, sid) }
+    else { setSegActif(sid); cellule.ancrer(el, sid, { borne: colonneDuSegment(el) }) }
   }
 
   // ── LA VISITE ──────────────────────────────────────────────────────────────
@@ -3078,7 +3094,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Le repli n'en sait rien et suit la colonne française, comme avant.
                     const originalEnVers = original?.toutVers ?? toutVers
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={grilleBilingue ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotParagraphe ? '' : ' para-bilingue--couture'}` : undefined}>
+                    // ⚠️ « data-grille-bilingue » borne la cellule d'actions à la colonne
+                    // FRANÇAISE : c'est par lui que « colonneDuSegment » la retrouve, et
+                    // il n'est posé que lorsque la grille existe vraiment.
+                    <div key={`para-${chunk.ids[0]}`} data-grille-bilingue={grilleBilingue ? '' : undefined} className={grilleBilingue ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotParagraphe ? '' : ' para-bilingue--couture'}` : undefined}>
                       {toutVers ? (
                         /* ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne.
                            Un seul `<p>` ne peut pas rentrer chaque ligne : `text-indent`
