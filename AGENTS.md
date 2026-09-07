@@ -1880,9 +1880,70 @@ Corollaire direct de ce qui précède, et il touche le RENDU. La lecture ordinai
 
 ⚠️ **Un bloc qui porte un texte ORIGINAL n'est jamais fondu** : la grille bilingue apparie un original par bloc.
 
-## ⚠️ Dhuoda — un troisième modèle, qui est un DÉFAUT de segmentation
+### ⚠️ Ce que le REPLI de `ouvreStrophe` compose vraiment — relevé du 2026-09-07
 
-`TXT_A0176O0001_1887_BONDURAND` (« Manuel pour mon fils ») compte 20 segments de nature `vers`, et **aucun n'est une ligne** : chacun porte plusieurs vers courus ensemble (« Deus summe, lucis conditor poli Syderumque ductor, rex æterne, … »). Il n'a donc pas été uniformisé : y écrire une marque de strophe reviendrait à encoder une fiction par-dessus un défaut. C'est une **re-segmentation** qu'il lui faut, pas une métadonnée.
+**Question de DONNÉES, laissée à GPT** (arbitrage de l'auteur, 2026-09-07). Rejouable :
+`node --env-file=.env.local node_modules/tsx/dist/cli.mjs scripts/strophes-controle.mts`,
+et `--detail <id_texte>` liste les frontières. ⛔ Le script n'a aucune règle à lui :
+`ouvreStrophe`, `estEnVers` et `marqueStrophe` viennent du module que la page emploie.
+
+| texte · espace / nature | vers | marque | strophes | par repli | groupes | ouvertes |
+|---|---:|---:|---:|---:|---|---:|
+| Ceriziers · corps | 1 213 | **1 213** | 78 | 0 | 1-66 | 6 |
+| Mirandol · corps | 1 092 | **1 092** | 34 | 0 | 1-32 | 16 |
+| **Boèce latin (Migne)** · corps | 429 | 0 | 34 | **34** | 1-19 | 15 |
+| **Dhuoda · introduction** | 79 | 0 | 17 | **17** | 1-14 | 8 |
+| Dhuoda · corps | 56 | 0 | 1 | 1 | 6-20 | 0 |
+| Dhuoda · citations | 19 | 0 | 0 | 0 | 3-5 | 0 |
+| **Confessions · citations** | 8 | 0 | 7 | **7** | 1-1 | 7 |
+| Mirandol · apparat | 7 | 0 | 0 | 0 | 1-4 | 0 |
+| Morel (Discours 38) · introduction | 4 | 0 | 0 | 0 | 4-4 | 0 |
+
+*ouvertes* = frontières de strophe posées après une ligne qui NE ferme PAS sa phrase.
+
+⛔ **UNE FRONTIÈRE OUVERTE NE PROUVE RIEN À ELLE SEULE**, et c'est le relevé qui l'a
+montré : Mirandol, dont les 1 092 marques sont ATTESTÉES, en compte **16 sur 34, soit
+47 %** — exactement le taux de Dhuoda (8 sur 17). L'enjambement d'une strophe à l'autre
+est une figure ordinaire, et l'irrégularité des groupes ne dit rien non plus, les deux
+textes attestés allant de 1 à 66 vers. ⚠️ Un raisonnement tiré de ces deux signaux seuls
+est donc faux ; il a été tenu puis retiré le jour même.
+
+⛔ **UN SEUL CAS EST CERTAIN, ET IL EST FLAGRANT** : les **8 vers cités dans les
+Confessions** (`A0010O0001T0002`) portent un `paragraphe` différent CHACUN, si bien que
+le repli en fait huit strophes d'UN vers — un blanc entre chaque ligne d'un poème qui
+n'est qu'une seule période : « … Dieu dont le pouvoir par un art sans pareil / Regle des
+feux du Ciel l'inconstante carriere : / Qui fais briller le jour d'une vive lumiere, /
+Et respans sur la nuit les charmes du sommeil ; … ». Aucune lecture ne rend cela.
+
+⚠️ **Le LATIN de Boèce (Migne) est le plus exposé** : 429 vers, 34 strophes toutes
+déduites, et c'est la colonne que la lecture en regard met en face de Ceriziers et de
+Mirandol, dont les marques, elles, sont attestées. Les deux colonnes ne respirent donc
+pas au même endroit.
+
+### ⛔ 310 segments en vers PORTENT PLUSIEURS VERS, et la lecture ordinaire les recolle
+
+Toujours le latin de Boèce (`A0064O0001T0001`, PUBLIÉ) : **310 de ses 429 segments en
+vers contiennent un saut de ligne**, 490 en tout — « Vitrea dudum,\nParque serenis\nUnda
+diebus, ». C'est le défaut que Dhuoda portait avant sa re-segmentation.
+
+⚠️ **Il ne se voit que d'un côté.** En lecture EN REGARD, la colonne originale passe par
+`lignesDeVers`, qui découpe sur le saut : chaque vers y a sa boîte. Lu SEUL — le mode
+« Latin », que rien n'interdit puisque le texte est public —, le segment passe par la
+composition ordinaire, et ⛔ ni `styleBlocDeVers` ni `styleLigneDeVers` ne portent
+`white-space` : les sauts retombent en espaces et les vers se recollent sur une ligne.
+
+⛔ **Le remède n'est PAS `white-space: pre-line` sur la ligne** : `text-indent` ne
+s'applique qu'à la première ligne d'un bloc et jamais après un saut forcé, si bien que
+le retrait de suite et l'alinéa ne serviraient que le premier vers du segment. C'est la
+règle déjà écrite au § 7.4. Il faut découper par `lignesDeVers` et rendre une BOÎTE par
+vers, comme le fait la colonne en regard — en gardant une seule unité cliquable par
+segment. Non fait : relevé le 2026-09-07, hors du chantier demandé.
+
+## ⚠️ Dhuoda — le défaut de segmentation est RENDU, la strophe reste ouverte
+
+⚠️ **Cette section a dit le contraire jusqu’au 2026-09-07.** `TXT_A0176O0001_1887_BONDURAND` (« Manuel pour mon fils ») portait 20 segments dont aucun n’était une ligne — chacun courait plusieurs vers ensemble. Le texte a été RE-SEGMENTÉ depuis : ses 79 vers d’introduction, ses 56 de corps et ses 19 de citation sont désormais des lignes, jointes par un `join_before` qui porte le saut de ligne. La note qui réclamait cette re-segmentation est donc soldée.
+
+⛔ **Ce qui reste ouvert est la STROPHE**, et c’est une question de données : `stanza_before` est nul sur les 154 vers de l’œuvre. Voir le relevé ci-dessus.
 
 ## Les colonnes de `segments` s'écrivent en UN seul endroit
 
