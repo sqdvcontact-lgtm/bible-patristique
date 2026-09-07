@@ -1529,7 +1529,7 @@ export default function Navbar() {
           // rien ne disait qu'elle menait à ce que les autres voient.
           ...(pagePublique ? [{ href: pagePublique.href, label: pagePublique.label, badge: 0, icone: "sortant" }] : []),
           { href: "/compte", label: "Réglages du compte", badge: 0, icone: null },
-          { href: "/prelevements", label: "Mes citations", badge: 0, icone: null },
+          { href: "/compte/prelevements", label: "Mes citations", badge: 0, icone: null },
           // Le lien Administration reste toujours accessible à un vrai admin, quel que
           // soit l'état de l'interrupteur d'affichage « mode utilisateur standard ».
           ...((estAdmin || estAdminEmail) ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),

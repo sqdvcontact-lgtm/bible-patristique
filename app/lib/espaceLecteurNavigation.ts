@@ -21,12 +21,13 @@
  *  visitent ni à la même heure ni pour la même raison. Elles étaient deux du 1er au
  *  7 septembre 2026, et la troisième ne découpe pas les deux premières : la chaîne du
  *  lecteur n'est ni un réglage ni une gratification, c'est sa matière à lui. */
-export type PageEspace = 'compte' | 'parcours' | 'chaine'
+export type PageEspace = 'compte' | 'parcours' | 'chaine' | 'citations'
 
 export const PAGES_ESPACE: { cle: PageEspace; href: string; label: string }[] = [
   { cle: 'compte', href: '/compte', label: 'Mon compte' },
   { cle: 'parcours', href: '/compte/parcours', label: 'Mon parcours' },
   { cle: 'chaine', href: '/compte/chaine', label: 'Ma chaîne' },
+  { cle: 'citations', href: '/compte/prelevements', label: 'Mes citations' },
 ]
 
 /** Une entrée du sommaire : le titre d'une section, et l'ancre où elle se trouve. */
@@ -102,5 +103,15 @@ export function ancresChaine(
 export function pageCourante(chemin: string): PageEspace {
   if (chemin.startsWith('/compte/parcours')) return 'parcours'
   if (chemin.startsWith('/compte/chaine')) return 'chaine'
+  if (chemin.startsWith('/compte/prelevements')) return 'citations'
   return 'compte'
+}
+
+/** Le sommaire de « Mes citations » : les livres ou les auteurs qu'on a retenus, selon
+ *  le corpus qu'on regarde. ⚠️ Les groupes sont ceux de l'onglet COURANT, et ils sont
+ *  repliables : sauter à l'un d'eux le DÉPLIE, sans quoi l'ancre mènerait à un titre
+ *  fermé. */
+export function ancresCitations(rubrique: string, groupes: { ancre: string; nom: string }[]): GroupeAncres[] {
+  if (!groupes.length) return []
+  return [{ rubrique, ancres: groupes.map(g => ({ id: g.ancre, label: g.nom })) }]
 }

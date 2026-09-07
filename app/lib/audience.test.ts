@@ -92,6 +92,8 @@ describe('rubriqueDuChemin', () => {
   })
 
   it('regroupe ce qui relève du compte', () => {
+    expect(rubriqueDuChemin('/compte/prelevements')).toBe('compte')
+    // L'ancienne adresse, que les vues d'avant le 7 septembre 2026 portent encore.
     expect(rubriqueDuChemin('/prelevements')).toBe('compte')
     expect(rubriqueDuChemin('/notifications')).toBe('compte')
   })

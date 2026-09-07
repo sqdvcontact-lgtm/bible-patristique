@@ -125,6 +125,8 @@ const RUBRIQUES: Record<string, string> = {
   quiz: 'quiz',
   profil: 'profils',
   compte: 'compte',
+  // ⚠️ Gardé pour l’HISTORIQUE : la page a rejoint /compte/prelevements le 7 septembre
+  // 2026, mais les vues d’avant portent encore l’ancienne adresse.
   prelevements: 'compte',
   notifications: 'compte',
   messagerie: 'compte',

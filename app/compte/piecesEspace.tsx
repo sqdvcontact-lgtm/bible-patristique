@@ -45,15 +45,28 @@ function useSectionEnVue(ids: string[]): string | null {
   return active
 }
 
-export function SommaireEspace({ page, groupes }: { page: PageEspace; groupes: GroupeAncres[] }) {
+export function SommaireEspace({ page, groupes, surAncre }: {
+  page: PageEspace
+  groupes: GroupeAncres[]
+  /** Ce que la page a à faire AVANT le saut — déplier le groupe visé, par exemple.
+   *  ⚠️ Il s'appelle avant `allerAAncre`, et il ne doit rien déplacer AU-DESSUS de la
+   *  cible : ce qui s'ouvre sous elle ne change pas sa place. */
+  surAncre?: (id: string) => void
+}) {
   const ids = groupes.flatMap(g => g.ancres.map(a => a.id))
   const active = useSectionEnVue(ids)
 
   return (
     <nav className="esp-sommaire" aria-label="Sommaire">
-      <div className="esp-onglets">
+      {/* ⛔ Les pages se lisent EN COLONNE, une par ligne, depuis qu'elles sont quatre.
+          En onglets, elles demandaient 288 px dans une colonne qui en offre 216, et
+          « Mon parcours » se coupait en deux. La forme est celle des options d'un volet
+          de lecture, et c'est déjà celle des ancres qui suivent : une seule grammaire
+          pour toute la colonne. */}
+      <div className="esp-pages">
         {PAGES_ESPACE.map(p => (
-          <Link key={p.cle} href={p.href} aria-current={p.cle === page ? 'page' : undefined}>
+          <Link key={p.cle} className="esp-lien" href={p.href}
+            aria-current={p.cle === page ? 'page' : undefined}>
             {p.label}
           </Link>
         ))}
@@ -71,7 +84,7 @@ export function SommaireEspace({ page, groupes }: { page: PageEspace; groupes: G
               // ⛔ Jamais un `scrollIntoView` doux et nu : il ne s'exécute pas sur
               // certains postes, et la navigation serait alors MORTE (charte,
               // « Défilement doux »). `allerAAncre` vérifie et rattrape.
-              onClick={e => { if (allerAAncre(a.id)) e.preventDefault() }}
+              onClick={e => { surAncre?.(a.id); if (allerAAncre(a.id)) e.preventDefault() }}
             >
               {a.label}
             </a>
@@ -198,15 +211,15 @@ export const FEUILLE_ESPACE = `
 /* ⛔ Le sommaire suit le VOLET DE LA BIBLE : rubrique en casse ordinaire, rangée
    pleine largeur qui déborde de sept pixels, et l'entrée courante marquée d'une
    PASTILLE et de rien d'autre. L'auteur a refusé le filet à gauche le 1er septembre
-   2026 ; les valeurs sont celles de app/lib/stylesVoletLecture.ts. */
-.esp-onglets { display: flex; margin: 0 0 16px; border-bottom: 1px solid var(--cs-bord-clair); }
-/* ⚠️ Le rembourrage tombe de 4 à 2 px, et le libellé ne se coupe plus : trois onglets
-   dans une colonne, la place se prend d'abord sur les blancs. */
-.esp-onglets a { flex: 1; text-align: center; padding: 0 2px 7px; font-size: 0.71875rem;
-  white-space: nowrap; text-decoration: none; color: var(--cs-texte-second);
-  border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.esp-onglets a[aria-current] { color: var(--cs-vert); font-weight: 600;
-  border-bottom-color: var(--cs-vert); }
+   2026 ; les valeurs sont celles de app/lib/stylesVoletLecture.ts.
+
+   ⛔ Les PAGES prennent la même rangée que les ancres, et le filet dit ce qui les
+   sépare : au-dessus on NAVIGUE, au-dessous on saute dans la page qu'on lit. La barre
+   d'onglets qu'elles portaient jusqu'au 7 septembre 2026 tenait à deux, se serrait à
+   trois et débordait à quatre — une barre d'onglets sur deux rangées n'est plus une
+   barre mais une grille (la sous-barre de l'administration a tranché ce cas). */
+.esp-pages { margin: 0 0 14px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--cs-bord-clair); }
 .esp-rubrique { display: block; font-size: 0.59375rem; font-weight: 600; letter-spacing: 0.06em;
   color: var(--cs-texte-faible); margin: 0 0 1px; }
 .esp-groupe + .esp-groupe { margin-top: 14px; }
@@ -271,13 +284,17 @@ export const FEUILLE_ESPACE = `
 .esp-pied button.esp-danger { color: var(--cs-danger); }
 
 /* ⚠️ Sous 900px le sommaire ne peut plus tenir à gauche : il passe au-dessus, en
-   ligne, et ne garde que les deux onglets — une liste d'ancres empilée y ferait un
+   ligne, et ne garde que les quatre PAGES — une liste d'ancres empilée y ferait un
    rouleau avant le premier mot de la page.
    ⚠️ 900px, le seuil de la charte, et non les 60rem d'avant : ils valaient 960 et
-   n'appartenaient à aucun des huit seuils admis (audit du 2026-09-06). */
+   n'appartenaient à aucun des huit seuils admis (audit du 2026-09-06).
+   ⚠️ Les pages y reprennent le RANG : en colonne elles débordent de sept pixels de
+   chaque côté, ce qui n'a de sens que dans une colonne étroite. */
 @media (max-width: 900px) {
   .esp-cadre { flex-direction: column; gap: 18px; }
   .esp-sommaire { width: 100%; position: static; }
   .esp-groupe { display: none; }
+  .esp-pages { display: flex; flex-wrap: wrap; gap: 2px 6px; }
+  .esp-pages .esp-lien { width: auto; margin: 0; }
 }
 `
