@@ -1212,6 +1212,24 @@ Un agent peut inscrire `vérifié` uniquement après lecture effective du segmen
 
 ## 11. Format d’échange et import des versions textuelles
 
+### 11.0 Manifeste des traductions nouvelles
+
+Une traduction nouvelle produite pour Corpus Scriptura est un texte éditorial dérivé d’un original identifié. Elle ne se substitue jamais au témoin source et ne doit jamais être présentée comme une traduction historique. Lorsqu’elle est produite, même partiellement, par une intelligence artificielle, cette origine est indiquée sans ambiguïté dans la version, la notice et les métadonnées : **« Traduction produite par intelligence artificielle »**, avec le modèle, l’organisme et la date ou la campagne de production. Une validation humaine n’est jamais déduite d’une relecture technique ou d’un accord global : elle n’est déclarée que si elle a réellement eu lieu et selon son périmètre exact.
+
+La traduction part du texte original établi dans Corpus Scriptura. Les traductions antérieures peuvent servir de témoins de contrôle, jamais de texte à paraphraser silencieusement. Tout emprunt volontaire, toute dépendance substantielle ou toute comparaison décisive avec une traduction existante est documenté.
+
+**Principe de langue.** La fidélité lexicale, morphologique, sémantique et, lorsqu’elle éclaire le sens, étymologique prime sur l’élégance moderne. On conserve autant que le français le permet les répétitions, les familles de mots, les parallélismes, les termes techniques, les images et les étrangetés signifiantes de l’original. On ne lisse pas une syntaxe rugueuse simplement pour rendre la phrase plus plaisante. Le français doit rester intelligible, grammatical et exact ; il peut être savant, rare ou légèrement étrange si cette étrangeté répond à celle du texte. ⛔ Aucun archaïsme décoratif, aucun faux médiévisme et aucune amplification rhétorique ne sont ajoutés pour donner une couleur ancienne.
+
+Une transposition syntaxique n’est admise que lorsqu’une conservation plus étroite produirait un contresens, une ambiguïté indue ou un français réellement inintelligible. Dans ce cas, le mouvement logique de la phrase, les rapports de dépendance et les reprises lexicales sont conservés autant que possible. Les mots ajoutés pour la seule intelligibilité restent minimaux.
+
+**Lexique de contrôle.** Les dictionnaires sont employés selon leur domaine, non selon une hiérarchie mécanique : Albert Blaise pour le latin chrétien ; Niermeyer et Du Cange pour le latin médiéval ; Gaffiot et, au besoin, Lewis & Short pour le fonds classique et les filiations sémantiques. Les emplois bibliques sont contrôlés contre la Vulgate ou le témoin scripturaire pertinent. Le contexte de l’auteur et du passage prévaut toujours sur une équivalence de dictionnaire isolée. Une traduction destinée à être stabilisée tient un relevé des termes récurrents et de leurs choix français afin d’éviter les variations gratuites.
+
+**Notes de traduction.** Une note est requise lorsqu’un choix difficile infléchit sensiblement le sens, lorsqu’un terme chrétien ou médiéval possède une valeur technique, lorsqu’un mot français rare ou étymologiquement proche risque d’être mal compris, lorsqu’une ambiguïté de l’original ne peut être conservée sans explication, ou lorsqu’un problème textuel affecte la traduction. La note indique aussi brièvement que nécessaire le lemme ou la construction source, le choix retenu, l’alternative importante et la raison de l’arbitrage ; le dictionnaire de contrôle peut être nommé lorsqu’il a réellement déterminé la décision. Les choix évidents ne sont pas surannotés.
+
+**Forme littéraire.** La forme de la traduction cible est déclarée par mission. Le vers de l’original n’impose jamais à lui seul une versification de la traduction : si la mission demande une traduction en prose, le mètre, la rime et la ligne de vers ne sont pas recréés. La structure poétique de l’original demeure conservée dans son propre texte et ses métadonnées ; les effets poétiques indispensables au sens peuvent être signalés en note.
+
+**Phase d’essai.** Des essais peuvent être produits hors publication avant création ou promotion d’une version textuelle. Tant que le protocole lexical et stylistique n’est pas approuvé, ces essais restent expérimentaux, privés et non validés humainement. La matérialisation en base ne commence qu’après fixation du profil de traduction de la mission, de son étiquetage d’origine et de sa méthode d’alignement avec l’original.
+
 ### 11.1 Objets et identifiants
 
 Une œuvre (`oeuvres`) peut posséder plusieurs versions textuelles dans `oeuvre_textes` lorsqu’elles relèvent de la même œuvre éditoriale : traductions, éditions ou états distincts destinés à rester sous le même `id_oeuvre`. Toute nouvelle importation textuelle reçoit un `id_texte` stable et appartient à un seul `id_oeuvre`. **Un original latin ou grec destiné à exister comme œuvre autonome n’est pas une simple version de la traduction : il reçoit sa propre ligne dans `oeuvres`, conformément au § 12.1 et au § 19.2.**
@@ -2245,6 +2263,16 @@ OneDrive peut recevoir une sauvegarde ou une copie lorsque cela est utile ; il n
 ### 23.11 Fidélité des caractères
 
 Les sauvegardes, transformations et comparaisons préservent Unicode, les espaces insécables, les accents, les écritures grecque et hébraïque, ainsi que les retours significatifs. Ne pas appliquer `trim()` ou une normalisation globale lorsqu’elle détruirait une distinction contrôlée.
+
+### 23.11 bis Contrôle matériel exhaustif des liminaires et paratextes
+
+Lorsqu’un témoin comporte des liminaires, sommaires, lemmes, chapeaux, épigraphes, préambules ou autres paratextes susceptibles d’être absents de l’import courant, leur contrôle ne peut pas se limiter aux lignes déjà présentes dans le staging ou dans `segments`. Avant toute promotion, établir un **inventaire matériel page par page** du témoin et comparer cet inventaire à toutes les lignes déjà matérialisées. La clôture exige donc non seulement 100 % des candidats existants vérifiés, mais aussi **0 texte matériel du périmètre resté hors staging**.
+
+Le fac-similé exact est l’autorité de promotion. Une concordance entre plusieurs OCR, transcriptions secondaires ou fichiers dérivés peut servir à préparer ou à prioriser une lecture, mais ne vaut pas contrôle pixel et ne permet pas de poser `facsimile_verified`, `facsimile_pixels_checked` ou un statut équivalent. Les pages de source sont déterminées depuis la structure documentaire ou les données de staging puis vérifiées directement ; elles ne sont jamais déduites seulement d’un décalage supposé entre page imprimée et page PDF.
+
+Toute promotion de liminaires suit ce cycle : 1) inventaire matériel du périmètre ; 2) comparaison fac-similé ↔ staging, y compris recherche de texte absent ; 3) correction étroite des seules lignes fautives ; 4) recomposition et validation de toutes les projections ; 5) contrôle des clés, numéros, paragraphes, rangs, notes, ancres, références et liens dépendants ; 6) promotion atomique ; 7) contre-audit live établissant le nombre exact de lignes attendues et promues, ainsi que 0 réserve non nommée. Une découverte tardive d’un préambule ou d’un liminaire non stagé rouvre cette étape et interdit de considérer le lot comme complet tant qu’il n’est pas intégré ou explicitement documenté comme hors corpus.
+
+La sauvegarde antérieure à la promotion doit couvrir à la fois les lignes de staging concernées et les lignes live susceptibles de changer d’ordre, de rang, de numéro ou de rattachement. Les contrôles finaux doivent distinguer sans ambiguïté : `staged`, `facsimile_verified`, `promoted`, `unstaged_detected`, `unstaged_resolved` et les éventuelles réserves restantes. Aucun de ces décomptes ne peut être estimé.
 
 ## 24. Contrôle des liens en base
 
@@ -5965,3 +5993,26 @@ Demande de l’auteur, 2026-09-07, devant « Sources et détail » et « En savo
 ⛔ **UN BOUTON-LIEN NE SE DESSINE PAS SELON SON VOISINAGE.** « À propos de cette édition » portait un dessin à lui — serif italique, sans soulignement au repos — décidé le 2026-09-03 au motif que « dans un volet où rien d’autre n’en porte, il tirait l’œil plus que le titre au-dessus de lui ». Le motif était juste DANS CE VOLET, et c’est précisément ce que la règle générale refuse : une forme accordée à chaque voisinage ne s’apprend nulle part, et c’est ainsi qu’on obtient onze formes. La rectification est de l’auteur, qui a nommé ce lien parmi les exemples du désordre.
 
 ⚠️ **CE QUI RESTE HORS DE LA RÈGLE, et il faut le savoir** : les hyperliens de PROSE des pages légales et des textes enrichis (`<a>` au fil d’un paragraphe). Ils sont déjà d’accord entre eux — vert, souligné, corps hérité — et leur seule variance est un décalage de soulignement tantôt posé, tantôt non. ⚠️ Et la VALEUR d’un champ d’administration rendue en lien parce qu’elle se trouve être une adresse n’est pas un bouton-lien : son corps suit celui du champ, et la rapetisser ferait qu’un champ change de taille selon ce qu’il contient.
+
+
+### 40.9 LA CHAÎNE DU LECTEUR — ce qu’il a écrit, rangé dans l’ordre du canon
+
+Demande de l’auteur, 2026-09-07 : « une liste des versets commentés et des notes (polyglotte), pour que l’utilisateur puisse retrouver une chaîne exégétique, à l’ancienne, avec ses commentaires ».
+
+Le lecteur écrit sur les versets à DEUX endroits, et ne les revoyait jamais ensemble : une NOTE dans la colonne de droite de la Polyglotte, qui ne regarde que lui, un COMMENTAIRE sous le verset de la page Bible, qui s’adresse aux autres. Les deux disent la même chose de la même main sur le même verset, et il fallait retrouver le chapitre pour retrouver ce qu’on y avait pensé.
+
+⛔ **C’EST UNE TROISIÈME NATURE, ET C’EST À CE TITRE SEULEMENT QU’ELLE A UNE PAGE.** Le § 40 partageait l’espace en deux — ce qu’on RÈGLE, ce qu’on GAGNE — et la règle disait « deux, et pas une de plus ». Elle tient : une page ne s’ajoute que si elle porte une nature que les autres n’ont pas. La chaîne n’est ni un réglage ni une gratification, c’est la MATIÈRE du lecteur, ce qu’il a écrit lui-même. ⚠️ Elle ne découpe donc pas les deux premières, et rien n’en est retiré.
+
+⛔ **LA FORME EST CELLE D’UNE CHAÎNE, non celle d’un journal.** Un lemme — la référence en manchette, puis le verset dans la bible du lecteur —, et sous lui les scholies qu’il a écrites, dans l’ordre où elles sont venues. Les entrées se suivent dans l’ordre du CANON, jamais par date : c’est ce qui fait une chaîne, et c’est ainsi qu’on la relit, par le livre qu’on étudie. Le sommaire porte les livres sous leur testament, comme le volet de la Bible porte les siens.
+
+⛔ **RIEN NE SÉPARE DEUX ENTRÉES QU’UN BLANC** : ni filet, ni fond, ni carte. C’est la règle de la manchette (§ 35.9), et une chaîne imprimée ne fait pas autrement. La manchette tient sa COLONNE, et sa largeur ne suit pas son texte, faute de quoi le fer des scholies sauterait d’une entrée à l’autre.
+
+⛔ **ELLE NE MODIFIE RIEN.** Une note se reprend là où elle s’écrit, dans la Polyglotte ; un commentaire dans le fil où il a été posté. Deux surfaces qui écrivent la même donnée divergent au premier réglage, et celle-ci n’a rien à décider : elle rassemble. La référence est donc le seul lien de la page, et elle mène au passage.
+
+⚠️ **UNE GLOSE VIDE NE PARAÎT PAS.** La colonne « Notes » de la Polyglotte enregistre dès qu’on y touche : une note ouverte puis refermée laisse une ligne de texte vide, qui n’est pas une pensée mais la trace d’un clic. Un commentaire SUPPRIMÉ ne paraît pas davantage — il ne reste en base que pour ne pas trouer un fil de réponses. Le compte du bandeau se fait sur la chaîne COMPOSÉE, une fois les vides écartés, jamais sur les lignes brutes.
+
+⚠️ **CE QUI ATTEND LA MODÉRATION LE DIT**, du même mot que le panneau de la Bible : « en révision ». Un commentaire écrit en réponse à un autre le dit aussi, faute de quoi il paraîtrait comme une pensée qu’il n’est pas.
+
+⛔ **UN IDENTIFIANT QUI NE DÉSIGNE PLUS RIEN NE SE PERD PAS.** Les identifiants du premier modèle — « B000015 » — ne se résolvent dans aucune table : ni livre, ni chapitre, ni verset. Ce sont pourtant des lignes que le lecteur a écrites, et une page qui les tairait lui ferait croire qu’il n’a rien écrit là. Elles se rangent ensemble, en fin de chaîne, sous leur identifiant nu et sans lien.
+
+⚠️ **CE QUI RESTE OUVERT**, et qui n’est pas un oubli : la table des commentaires porte une colonne pour les SEGMENTS d’œuvres, qu’aucun commentaire du corpus n’emploie (mesuré à zéro le 2026-09-07) ; le jour où l’on commentera un passage patristique, la chaîne aura une seconde matière, et il faudra décider si elle se range avec les versets ou à côté. Rien n’est prévu non plus pour EXPORTER la chaîne : elle se lit, elle ne se copie pas encore.

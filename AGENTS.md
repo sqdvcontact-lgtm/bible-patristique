@@ -6816,3 +6816,61 @@ démonstration PARTAGÉ pour un compte personnel — tout ce qu'un invité signa
 ou écrit était attribué au pseudo « invite ». La variable est posée ; ⛔ elle ne prend
 effet qu'au prochain déploiement. Et `/quiz` (404) écrit dans `quiz_signalements`,
 table qui n'existe pas : sans effet aujourd'hui, à reprendre avec Holy Guessr.
+
+# MA CHAÎNE — la troisième page de l'espace du lecteur (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, § 40.9 (ce qu'elle est, ce qu'elle ne fait pas).
+Ici, ce qu'il faut savoir pour y toucher.
+
+- **La composition vit dans `app/lib/chaineExegetique.ts`** (module PUR, 10 tests) :
+  fusion des deux sources par verset, ordre canonique, groupement par livre, comptes,
+  et `versetsAResoudre`, qui dit les seuls identifiants que `versets_lecture` sait
+  résoudre. ⛔ Ni Supabase ni React n'y entrent : l'ordre du canon et l'écart des gloses
+  vides sont des règles, non des détails de rendu.
+- **La page est `app/compte/chaine/PageChaine.tsx`**, et son style d'entrée reprend celui
+  de la lecture : le lemme se compose par `styleTexteVerset` (`compositionBible.ts`),
+  ⛔ jamais par une copie de ses valeurs. Le texte d'une glose garde ses alinéas
+  (`pre-line`), donc il ne se justifie jamais : il se ferre et se césure (charte § 41.4).
+- ⛔ **La colonne de traduction est CALCULÉE, donc elle passe par `codesTraductionsLecture`** :
+  nommer une bible non matérialisée dans `versets_lecture` fait échouer TOUTE la requête
+  des lemmes, en silence. C'est la garde `traductionsLisibles.test.ts`, et elle vaut ici
+  comme ailleurs. Les identifiants partent par `lotsPourClauseIn`.
+- ⛔ **L'attente se DÉDUIT d'une CLÉ de demande** (`${user.id}|${traduction}|${essai}`),
+  posée AVEC les données : rien ne se remet à zéro dans le corps d'un effet, qui n'y
+  déclencherait qu'un rendu en cascade (patron de la Polyglotte, refusé par le linter).
+  Un échec retient la clé qui a échoué, si bien que « Réessayer » a quelque chose à faire.
+- **Le BANDEAU des trois pages vit dans `piecesEspace.tsx`** (`BandeauLecteur`) : les deux
+  pages d'avant portaient chacune leur copie du cadrage du portrait, et la troisième en
+  aurait fait trois. ⚠️ Le lecteur y est décrit par sa FORME, non par le type
+  `ProfilLecteur` : celui-ci vit dans le cadre, qui importe déjà la feuille d'ici, et les
+  deux modules se noueraient.
+- ⚠️ **Le sommaire de l'espace tient TROIS onglets**, d'où `.esp-sommaire` à 13,5 rem et un
+  rembourrage d'onglet ramené à 2 px. Mesuré sur la composition réelle : la barre demande
+  216 px, le plus large des libellés 65,3 px dans une case de 72. ⛔ On élargit la colonne
+  plutôt que d'abréger ce que l'auteur a nommé — une mesure est un réglage, un nom est une
+  décision.
+- ⚠️ **La référence porte `align-self: start`** : un item de grille s'étire sur toute la
+  hauteur de sa rangée, et le lien couvrait les 177 px d'une entrée entière. Un
+  soulignement qui s'allume à deux centimètres du mot ne désigne plus rien.
+
+## ⛔ UNE FEUILLE RANGÉE DANS UNE CONSTANTE COURT LE MÊME RISQUE QU'UN BLOC `<style>`
+
+Payé le jour même sur cette page : un commentaire CSS qui nommait une propriété entre
+accents graves a fermé le gabarit de `FEUILLE_CHAINE`, et la feuille de la page a disparu.
+
+⚠️ **La garde ne visait que les gabarits écrits DANS le bloc**, et **onze feuilles du site
+vivent ailleurs** — `FEUILLE_ESPACE`, `CSS_CONTROLE`, `CSS_AUDIENCE`, `STYLES_FICHE`,
+`DESSIN`, `DAMIER`… `blocsStyleSansAccentGrave.test.ts` les couvre désormais : il relève
+les noms posés par `<style>{NOM}</style>` dans tout `app/`, puis relit le corps de chaque
+constante de ce nom, `.ts` compris (deux feuilles vivent dans des modules sans composant).
+
+- ⚠️ **La fin d'une feuille se reconnaît à la CONVENTION du dépôt**, un accent grave seul
+  en tête de ligne : se fier au « premier accent grave » déplacerait la borne avant le
+  défaut qu'on cherche.
+- ⛔ **La garde a été éprouvée DANS LES DEUX SENS** : verte sur le dépôt, rouge sur un
+  accent grave posé dans `FEUILLE_ESPACE`. C'est ce qui avait manqué le 2026-09-07 au
+  matin, et une garde qu'on n'a pas vue rouge ne garde rien.
+- ⚠️ Ici, le fichier ne s'est PAS parsé — deux accents graves entourant `align-self: start`
+  laissent un deux-points que le parseur refuse. C'est un hasard heureux, non la règle :
+  la charte rappelle que le cas ordinaire passe le parseur et fait disparaître la feuille
+  en silence.
