@@ -22,7 +22,7 @@ import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { blocsBilingues, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes } from './bilingueAlignement'
+import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 import { construireNavigationApparat } from './apparatNavigation'
 import {
@@ -1599,15 +1599,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     : null
   const segMapApparat = new Map(segmentsApparat.map(s => [s.id, s]))
   const segMapActive = vue === 'texte' ? segMap : segMapApparat
-  // `segment_key` → groupe d'alignement, pour découper le bilingue. Bâtie sur les
-  // segments COURANTS (et non sur ceux du premier rendu) : changer de division en
-  // recharge d'autres, avec leurs propres groupes.
-  const groupeParCle = new Map<string, string>(
-    [...segments, ...segmentsApparat]
-      .flatMap(s => (s.segmentKey && s.groupeOriginal) ? [[s.segmentKey, s.groupeOriginal] as [string, string]] : []),
-  )
-  // Un groupe qui enjambe deux sections ne compose son original qu'une fois : voir
-  // `premiersBlocsDeGroupe`. ⚠️ L'ordre de `segmentsFiltres` fait foi, et c'est bien
+  // Un groupe qui enjambe deux blocs ne compose son original qu'une fois, dans le
+  // premier : voir `repartirGroupes`. Les bornes se prennent sur TOUTE la page, et non
+  // sur un groupe structurel, sans quoi un empan à cheval sur deux sections se
+  // recomposerait dans chacune. ⚠️ L'ordre de `segmentsFiltres` fait foi, et c'est bien
   // l'ordre de lecture (`segment_numero`), qu'aucun filtre ne dérange.
   const bornesGroupes = bornesDesGroupes(segmentsFiltres)
 
@@ -2170,19 +2165,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   /**
-   * Découpe de la lecture bilingue : un bloc par GROUPE D'ALIGNEMENT.
+   * Découpe de la lecture, en regard comme seule : un bloc par PARAGRAPHE.
    *
-   * ⛔ Le groupe d'alignement est le paragraphe du bilingue, et `paragraphe` ne peut pas
-   * en tenir lieu : il ne vaut que dans UN texte à la fois. 28 des 57 groupes de la
-   * Didachè enjambent deux sections numérotées, et 4 des 1 036 groupes de la Cité de
-   * Dieu enjambent deux paragraphes. Découper au paragraphe remettrait les colonnes en
-   * désaccord — c'est-à-dire défaire ce que l'alignement établit.
+   * ⛔ ALIGNEMENT N'EST PAS PARAGRAPHAGE (décision de l'auteur, 2026-09-07). Le bloc se
+   * découpe sur la clé éditoriale — `espace_textuel`, `ref_niv*`, `paragraphe`, rangé
+   * par `rang` et joint par `join_before` —, jamais sur la frontière d'un groupe
+   * d'alignement. Le Discours 38 l'a démontré : 76 groupes posés sur un corps de deux
+   * paragraphes, et le lecteur en tirait soixante-seize blocs, chacun sous son filet et
+   * son blanc, dont la plupart s'ouvraient en minuscule parce qu'ils continuaient la
+   * phrase d'avant — « ces choses là… », « aussi ont faict les Juifs… ».
    *
-   * Les segments qu'aucun groupe ne couvre retombent sur `paragraphesDe`, leur
-   * composition de toujours. Hors bilingue, ou faute d'alignement, rien ne change.
+   * Les groupes se répartissent ENSUITE sur ces blocs (`repartirGroupes`) : ils disent
+   * ce que la colonne de droite met en regard, non où le texte se coupe. Hors bilingue,
+   * ou faute d'alignement, rien ne change.
    */
-  const blocsDeLecture = (itemIds: number[]): { ids: number[]; groupe: string | null; poeme?: string[] | null }[] => {
+  const blocsDeLecture = (itemIds: number[]): BlocEnRegard<number>[] => {
     const enRegard = affichageBilingue || afficherOriginalSeul
+    // Un bloc que rien ne met en regard : la lecture ordinaire, et celle des œuvres sans
+    // alignement, qui se composent à pleine largeur.
+    const seul = (chunks: readonly { ids: number[] }[]): BlocEnRegard<number>[] =>
+      chunks.map(c => ({ ids: c.ids, groupes: [], couvert: false, clot: true }))
     // Hors lecture en regard, rien ne change : découpe par `paragraphe`, et le POÈME se
     // refait par-dessus (⚠️ on ne fond QUE là — le latin d'une strophe vit sur son vers
     // de rang 1, et fondre le poème en regard n'en garderait qu'un seul).
@@ -2192,15 +2194,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       // paragraphe pour toute la citation ici, un par verset là. Sans fusion, le même
       // style rendrait un bloc d'un côté et autant de blocs que de versets de l'autre,
       // avec deux blancs différents entre les lignes. Le bloc est la CITATION.
-      return fusionnerBlocs(
+      return seul(fusionnerBlocs(
         fusionnerBlocs(
           paragraphesDe(itemIds),
           ids => estBlocDeVers(ids.map(sid => segMap.get(sid))),
         ),
         ids => estBlocVersets(ids.map(sid => segMap.get(sid)?.nature)),
-      ).map(c => ({ ids: c.ids, groupe: null as string | null }))
+      ))
     }
-    if (!blocsAlignes) return paragraphesDe(itemIds).map(c => ({ ids: c.ids, groupe: null as string | null }))
+    if (!blocsAlignes) return seul(paragraphesDe(itemIds))
     // ⛔ DEUX POÈMES NE S'ALIGNENT PAS L'UN SUR L'AUTRE (décision de l'auteur,
     // 2026-08-30). Un rang de grille prend la hauteur de la plus haute de ses deux
     // cellules : trois vers français en regard d'un distique creusaient donc un blanc
@@ -2208,20 +2210,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // l'édition n'a pas écrits. Fondus, les deux poèmes coulent chacun dans SA colonne,
     // avec ses strophes et son seul blanc de fin.
     return fusionnerBlocsDeVers(
-      blocsBilingues(itemIds, sid => segMap.get(sid)?.segmentKey, groupeParCle)
-        .flatMap(bloc => bloc.groupe
-          ? [{ ids: bloc.ids, groupe: bloc.groupe }]
-          : paragraphesDe(bloc.ids).map(c => ({ ids: c.ids, groupe: null as string | null }))),
+      repartirGroupes(paragraphesDe(itemIds), sid => segMap.get(sid)?.groupeOriginal, bornesGroupes),
       ids => estBlocDeVers(ids.map(sid => segMap.get(sid))),
     )
   }
 
   /** L'original mis en regard d'un bloc. La règle vit dans `bilingueAlignement.ts`,
    *  avec ses tests ; ici on ne fait que lui présenter les segments du bloc. */
-  const originalDuBloc = (chunk: { ids: number[]; groupe: string | null; poeme?: string[] | null }) =>
+  const originalDuBloc = (chunk: BlocEnRegard<number>) =>
     originalEnRegard<Record<string, NoteAffichee>>({
-      groupe: chunk.groupe,
-      groupes: chunk.poeme,
+      groupes: chunk.groupes,
+      couvert: chunk.couvert,
       blocs: blocsOriginalEtat,
       segmentsDuBloc: chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
       notesVides: {},
@@ -2346,18 +2345,22 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            à 1,4 rem, ce qui rend 3 px à chaque colonne. */
         .para-bilingue { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1.4rem; align-items: start; border-bottom: 1px solid rgba(var(--cs-bord-rgb),0.55); margin-bottom: 0.85rem; }
         .para-bilingue > p { margin-bottom: 0.85rem !important; }
+        /* ⛔ Le filet ferme un PARAGRAPHE, jamais un groupe d'alignement (2026-09-07).
+           Le bloc est le paragraphe de l'edition ; une frontiere d'alignement, elle, ne
+           pose ni blanc ni trait. Sur le Discours 38, dont l'alignement est au segment,
+           le lecteur recevait 76 filets pour deux paragraphes.
+           ⚠️ Aucun accent grave dans ce bloc : il vit dans un litteral de gabarit. */
         /* ⛔ Une STROPHE ne se sépare pas par un filet, mais par un BLANC (décision de
-           l'auteur, 2026-08-23). Le filet de para-bilingue marque l'appariement empan
-           par empan de la PROSE ; posé entre deux strophes — et le latin d'une strophe
-           vivant sur son vers de rang 1, chaque strophe EST un empan — il tirait un
+           l'auteur, 2026-08-23). Le poème se refait bloc par bloc, et le latin d'une
+           strophe vivant sur son vers de rang 1, un filet entre deux strophes tirait un
            trait à chaque respiration du poème. Un blanc dit la même chose sans rien
-           dessiner, et c'est ce que fait la page imprimée.
-           ⚠️ Aucun accent grave dans ce bloc : il vit dans un littéral de gabarit. */
+           dessiner, et c'est ce que fait la page imprimée. */
         .para-bilingue--vers { border-bottom: none; margin-bottom: 1.15rem; }
-        /* ⛔ La SUITE d'un empan : un groupe d'alignement qui enjambe deux sections se
-           rend en deux blocs, et le filet tiré entre eux annoncerait une frontière que
-           l'alignement ne reconnaît pas. Le blanc se resserre au lieu de s'ouvrir : les
-           deux moitiés appartiennent au même empan, dont le grec est resté au-dessus. */
+        /* ⛔ La SUITE d'un empan : un groupe d'alignement qui enjambe deux paragraphes
+           les laisse en deux blocs, et le filet tiré entre eux annoncerait une frontière
+           que l'alignement ne reconnaît pas. Le blanc se resserre au lieu de s'ouvrir :
+           les deux moitiés appartiennent au même empan, dont le grec est resté au-dessus.
+           ⚠️ Le paragraphe, lui, se sépare quand même : le `<p>` garde son propre blanc. */
         .para-bilingue--suite { border-bottom: none; margin-bottom: 0.5rem; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
@@ -2989,15 +2992,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       le poème se refait. */}
                   {blocsDeLecture(itemsReels).map((chunk, iBloc, blocs) => {
                     const original = originalDuBloc(chunk)
-                    // Le bloc PORTE-t-il l'original, ou le prolonge-t-il ? Un groupe qui
-                    // enjambe deux sections ne le compose que dans la première.
-                    // ⚠️ Un POÈME fondu n'a plus d'empan à borner : il réunit à lui seul
-                    // tous ses groupes, il porte donc son original et il se clôt.
-                    const bornes = !chunk.poeme && chunk.groupe ? bornesGroupes.get(chunk.groupe) : undefined
-                    const porteOriginal = !bornes || bornes.premier === chunk.ids[0]
+                    // ⛔ La GRILLE se garde même sans original à composer, dès lors que
+                    // l'alignement couvre le bloc : un paragraphe dont l'empan est
+                    // composé plus haut ne reprend pas toute la largeur au milieu d'une
+                    // page en regard. C'est `couvert` qui le dit, non la présence d'un
+                    // original.
+                    const grilleBilingue = affichageBilingue && (Boolean(original) || chunk.couvert)
                     // Le filet marque l'appariement empan par empan : il ne se tire qu'au
                     // BOUT du groupe, jamais entre deux blocs qu’un même empan réunit.
-                    const clotGroupe = !bornes || bornes.dernier === chunk.ids[chunk.ids.length - 1]
+                    const clotGroupe = chunk.clot
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
                     // ⚠️ AUCUN segment du corpus ne l'atteint aujourd'hui — les onze
@@ -3027,7 +3030,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // Le repli n'en sait rien et suit la colonne française, comme avant.
                     const originalEnVers = original?.toutVers ?? toutVers
                     return (
-                    <div key={`para-${chunk.ids[0]}`} className={affichageBilingue && original ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotGroupe ? '' : ' para-bilingue--suite'}` : undefined}>
+                    <div key={`para-${chunk.ids[0]}`} className={grilleBilingue ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${clotGroupe ? '' : ' para-bilingue--suite'}` : undefined}>
                       {toutVers ? (
                         /* ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne.
                            Un seul `<p>` ne peut pas rentrer chaque ligne : `text-indent`
@@ -3143,7 +3146,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         })}
                       </p>
                       )}
-                      {(affichageBilingue || afficherOriginalSeul) && original && porteOriginal && (
+                      {(affichageBilingue || afficherOriginalSeul) && original && (
                         originalEnVers ? (
                           /* ⛔ L'ORIGINAL d'un poème se compose en vers, lui aussi. Le latin
                              d'une strophe entière vit sur le vers de rang 1, ses lignes

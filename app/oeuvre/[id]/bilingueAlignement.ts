@@ -11,12 +11,29 @@
  * passer par la colonne, et la lecture bilingue n'a plus rien eu à mettre en regard.
  *
  * La correspondance entre les deux textes vit donc là où elle doit vivre : dans
- * `texte_alignement_ensembles` / `texte_alignements` / `texte_alignement_membres`. Un
- * GROUPE d'alignement est le paragraphe de la lecture bilingue — l'unité qui se recoupe
- * d'une colonne à l'autre. C'est lui qui découpe les deux colonnes, et non `paragraphe`,
- * qui ne vaut que dans un seul texte à la fois : sur les 57 groupes de la Didachè, 28
- * enjambent deux sections numérotées, et sur la Cité de Dieu 4 groupes enjambent deux
- * paragraphes. Découper au paragraphe aurait remis les colonnes en désaccord.
+ * `texte_alignement_ensembles` / `texte_alignements` / `texte_alignement_membres`.
+ *
+ * ⛔ ALIGNEMENT N'EST PAS PARAGRAPHAGE (décision de l'auteur, 2026-09-07). Un groupe
+ * d'alignement dit ce qui se répond d'une colonne à l'autre ; il ne dit RIEN de la
+ * découpe du texte, qui appartient à l'édition seule et se lit dans `paragraphe`. Ce
+ * module a tenu l'inverse jusqu'au 2026-09-07, et le Discours 38 de Grégoire de Nazianze
+ * l'a démenti : son alignement, posé au SEGMENT, compte 76 groupes sur un corps de deux
+ * paragraphes, et le lecteur en tirait 76 blocs, chacun sous son filet et son blanc. On
+ * lisait donc soixante-seize paragraphes ouverts en minuscule — « ces choses là… », « ce
+ * qu'endure aussi maintenant le Verbe… », « aussi ont faict les Juifs… » — là où Morel
+ * n'en a écrit qu'un, dont ces minuscules sont justement la preuve.
+ *
+ * ⛔ LA RÈGLE : le bloc de lecture est le PARAGRAPHE, découpé sur la clé éditoriale
+ * entière — `id_texte`, `espace_textuel`, `ref_niv*`, `paragraphe` — ses segments rangés
+ * par `rang` et joints par `join_before`. Les groupes d'alignement se RÉPARTISSENT sur
+ * ces blocs sans jamais les couper : chacun compose son original dans le PREMIER bloc
+ * qu'il touche, et les blocs suivants du même empan gardent leur grille, colonne de
+ * droite vide (voir `repartirGroupes`).
+ *
+ * ⚠️ Un groupe qui enjambe deux paragraphes décale donc la correspondance HORIZONTALE :
+ * 28 des 57 groupes de la Didachè le font. C'est le prix, et il est accepté — une
+ * frontière d'alignement ne doit jamais poser un blanc, un filet ni un `<p>` là où le
+ * paragraphe de l'édition continue.
  *
  * ⚠️ `texte_original` reste lu en REPLI, le temps que les sept œuvres dont l'original
  * n'a pas encore de texte propre (Consolation de Mirandol, Ratramne, Hexaéméron,
@@ -74,6 +91,16 @@ export type BlocOriginal = {
   notes: Record<string, NoteStructuree>
   /** Le groupe est entièrement en vers : la colonne se compose ligne à ligne. */
   toutVers: boolean
+  /**
+   * Le `join_before` du PREMIER segment original du groupe — le liant qui rattache ce
+   * groupe à celui qui le précède, quand un même paragraphe en réunit plusieurs.
+   *
+   * ⛔ Sans lui, `fondreOriginaux` n'avait qu'un saut de ligne à poser, et le grec de
+   * deux groupes voisins d'un même paragraphe se lisait sur deux lignes au lieu de
+   * couler. Le liant du premier segment ne servait à personne à l'intérieur du groupe,
+   * où il ne joint rien ; il sert ici, où il joint deux groupes.
+   */
+  joinBefore: string | null
 }
 
 export type ProjectionBilingue = {
@@ -213,7 +240,10 @@ export function projeterBilingue(params: {
     const notes: Record<string, NoteStructuree> = {}
     for (const s of segments) Object.assign(notes, notesOriginales[s.segment_key] ?? {})
 
-    blocParGroupe.set(alignmentId, { alignmentId, texte, texteAffichage, notes, toutVers })
+    blocParGroupe.set(alignmentId, {
+      alignmentId, texte, texteAffichage, notes, toutVers,
+      joinBefore: segments[0].join_before,
+    })
   }
 
   // Un segment traduit dont le groupe n'a pas d'original (cardinalité `1:0`, une
@@ -229,19 +259,22 @@ export function projeterBilingue(params: {
 /**
  * Le premier et le dernier segment traduit de chaque groupe, dans l'ordre de lecture.
  *
- * ⛔ Un groupe d'alignement peut ENJAMBER deux sections — 28 des 57 groupes de la
- * Didachè le font — et les sections se rendent séparément, chacune sous son titre. La
- * découpe en blocs ne peut donc pas les réunir, et il faut deux bornes pour rendre
- * l'empan quand même :
+ * ⛔ Un groupe d'alignement peut ENJAMBER deux blocs de lecture — deux sections, 28 des
+ * 57 groupes de la Didachè le font, ou deux paragraphes, ce qui est le cas ordinaire
+ * depuis que le bloc est le paragraphe. Le bloc ne peut alors pas le contenir, et il
+ * faut deux bornes pour rendre l'empan quand même :
  *
- * - le PREMIER porte l'original. Sans cette borne, il se recomposait dans chaque section
- *   traversée : le grec de la troisième section de la Didachè paraissait deux fois de
+ * - le PREMIER porte l'original. Sans cette borne, il se recomposait dans chaque bloc
+ *   traversé : le grec de la troisième section de la Didachè paraissait deux fois de
  *   suite, en regard de « Et voici l'enseignement… » puis de « Abstiens-toi… ».
  *   Les blocs suivants gardent leur grille, colonne de droite vide, pour que le français
  *   ne reprenne pas toute la largeur au milieu d'un empan.
  * - le DERNIER porte le filet. Celui-ci marque l'appariement empan par empan : tiré
  *   entre deux blocs d'un MÊME groupe, il annonce une frontière que l'alignement ne
  *   reconnaît pas, et les deux moitiés d'un empan se lisent comme deux empans.
+ *
+ * ⚠️ Les bornes se comptent sur TOUT ce qui est à l'écran, jamais sur un seul bloc :
+ * c'est ce qui permet à `repartirGroupes` de savoir qu'un empan vient de plus haut.
  */
 export function bornesDesGroupes(
   segments: readonly { id: number; groupeOriginal?: string | null }[],
@@ -257,14 +290,20 @@ export function bornesDesGroupes(
 }
 
 /**
- * Fond les originaux d'un POÈME refait, dans l'ordre de lecture.
+ * Fond les originaux qu'un même bloc de lecture met en regard, dans l'ordre de lecture.
  *
- * ⚠️ Les lignes se joignent par un SAUT, jamais par une espace : la colonne les
- * recompose ligne à ligne (`lignesDeVers`), et deux strophes jointes par une espace
- * couleraient en prose. C'est la même jonction qu'à l'intérieur d'un groupe.
+ * ⛔ La PROSE se joint par `join_before`, exactement comme deux segments d'un même
+ * groupe. Un paragraphe qui réunit plusieurs groupes — c'est le cas ordinaire depuis
+ * que le bloc est le paragraphe — doit couler d'un seul tenant dans la colonne de
+ * droite : le grec de Grégoire n'a pas plus de raison de sauter une ligne entre deux
+ * groupes que le français d'en face n'en a d'ouvrir un paragraphe.
  *
- * Rend `null` si aucun des groupes ne porte d'original : le poème se compose alors
- * seul, sans ouvrir une colonne vide.
+ * ⚠️ Les VERS, eux, se joignent par un SAUT : la colonne les recompose ligne à ligne
+ * (`lignesDeVers`), et deux strophes jointes par une espace couleraient en prose. La
+ * jonction se juge donc bloc par bloc, sur `toutVers`, et non une fois pour toutes.
+ *
+ * Rend `null` si aucun des groupes ne porte d'original : le bloc se compose alors seul,
+ * sans ouvrir une colonne vide.
  */
 export function fondreOriginaux(
   groupes: readonly string[],
@@ -273,12 +312,19 @@ export function fondreOriginaux(
   const presents = groupes.map(g => blocs[g]).filter((b): b is BlocOriginal => Boolean(b))
   if (presents.length === 0) return null
   if (presents.length === 1) return presents[0]
+  const joindre = (lire: (b: BlocOriginal) => string) => presents.reduce(
+    (acc, b, i) => i === 0
+      ? lire(b)
+      : acc + (b.toutVers ? '\n' : liantAvantSegment(b.joinBefore)) + lire(b),
+    '',
+  )
   return {
     alignmentId: presents[0].alignmentId,
-    texte: presents.map(b => b.texte).join('\n'),
-    texteAffichage: presents.map(b => b.texteAffichage).join('\n'),
+    texte: joindre(b => b.texte),
+    texteAffichage: joindre(b => b.texteAffichage),
     notes: Object.assign({}, ...presents.map(b => b.notes)) as Record<string, NoteStructuree>,
     toutVers: presents.every(b => b.toutVers),
+    joinBefore: presents[0].joinBefore,
   }
 }
 
@@ -306,10 +352,14 @@ export type OriginalEnRegard<N> = {
  * sans ouvrir une grille bilingue vide.
  */
 export function originalEnRegard<N>(params: {
-  groupe: string | null
-  /** Les groupes d'un POÈME refait, dans l'ordre de lecture. Leurs originaux se
-   *  suivent alors dans une seule colonne — voir `fusionnerBlocsDeVers`. */
-  groupes?: readonly string[] | null
+  /** Les groupes que CE bloc compose, dans l'ordre de lecture — ceux dont il est le
+   *  premier à porter l'empan. Leurs originaux se suivent dans une seule colonne, et
+   *  s'y joignent comme le paragraphe d'en face (voir `fondreOriginaux`). */
+  groupes: readonly string[]
+  /** Le bloc est COUVERT par l'alignement sans rien avoir à composer : son empan l'a
+   *  été par un bloc précédent. Sa colonne de droite reste vide, et il ne va surtout
+   *  pas chercher la copie — elle redirait ce que la colonne porte déjà plus haut. */
+  couvert?: boolean
   blocs: Record<string, BlocOriginal>
   /** Les segments TRADUITS du bloc, dans l'ordre de lecture — pour le seul repli. */
   segmentsDuBloc: readonly {
@@ -321,23 +371,18 @@ export function originalEnRegard<N>(params: {
   /** La table de notes vide, faute de savoir la fabriquer sur un type générique. */
   notesVides: N
 }): OriginalEnRegard<N> | null {
-  const { groupe, groupes, blocs, segmentsDuBloc, notesVides } = params
-  const fondu = groupes && groupes.length > 0 ? fondreOriginaux(groupes, blocs) : null
+  const { groupes, couvert, blocs, segmentsDuBloc, notesVides } = params
+  const fondu = groupes.length > 0 ? fondreOriginaux(groupes, blocs) : null
   if (fondu) return {
     texte: fondu.texte,
     affichage: fondu.texteAffichage,
     notes: fondu.notes as N,
     toutVers: fondu.toutVers,
   }
-  if (groupe) {
-    const bloc = blocs[groupe]
-    if (bloc) return {
-      texte: bloc.texte,
-      affichage: bloc.texteAffichage,
-      notes: bloc.notes as N,
-      toutVers: bloc.toutVers,
-    }
-  }
+  // ⛔ Le bloc n'a rien à composer et son empan est ailleurs : sa colonne reste vide.
+  // Retomber ici sur la copie ferait paraître deux fois le même original, une fois dans
+  // le bloc qui porte l'empan et une fois dans chacun de ceux qui le prolongent.
+  if (groupes.length === 0 && couvert) return null
   const seg = segmentsDuBloc.find(s => Boolean(s?.texteOriginal?.trim()))
   if (!seg?.texteOriginal) return null
   return {
@@ -430,34 +475,64 @@ export async function chargerProjectionBilingue(
   })
 }
 
+/** Un bloc de lecture — un PARAGRAPHE — et ce que l'alignement lui met en regard. */
+export type BlocEnRegard<T> = {
+  ids: T[]
+  /** Les groupes que ce bloc COMPOSE, dans l'ordre de lecture : ceux dont il porte le
+   *  premier segment. Vide quand l'empan est composé plus haut, ou qu'il n'y en a pas. */
+  groupes: string[]
+  /** Au moins un groupe couvre ce bloc, qu'il le compose ou le prolonge. Un bloc couvert
+   *  garde sa grille même sans rien composer : le français ne reprend pas toute la
+   *  largeur au milieu d'un empan. */
+  couvert: boolean
+  /** Aucun groupe de ce bloc ne se poursuit au-delà : le filet peut se tirer. */
+  clot: boolean
+}
+
 /**
- * Découpe une suite de segments traduits en blocs de lecture bilingue : un bloc par
- * groupe d'alignement, dans l'ordre de lecture.
+ * Répartit les groupes d'alignement sur les blocs de lecture, sans jamais les découper.
  *
- * ⛔ On ne fond JAMAIS au groupe voisin un segment que l'alignement ne couvre pas : ce
- * serait le mettre en regard d'un original qu'il ne traduit pas. Les segments hors
- * alignement sortent donc en suites à `groupe: null`, que l'appelant redécoupe par
- * `paragraphe` — leur composition ordinaire, celle du français seul.
+ * ⛔ LE BLOC EST DONNÉ, il ne se calcule pas ici : c'est le paragraphe de l'édition, que
+ * l'appelant a découpé sur sa clé éditoriale. Ce module lui dit seulement quel original
+ * il met en regard. C'est l'inverse de ce qu'il faisait jusqu'au 2026-09-07, où il
+ * ouvrait un bloc à chaque changement de groupe — et hachait ainsi en 76 paragraphes le
+ * paragraphe unique du Discours 38.
  *
- * ⚠️ Aucun tri interne, à la différence de `paragraphesDe`, qui range ses segments par
- * `rang`. Un groupe d'alignement peut enjamber deux paragraphes (28 des 57 groupes de la
- * Didachè enjambent deux sections), et `rang` repart à 1 à chaque paragraphe : trier
- * dessus mêlerait les deux moitiés du groupe. L'ordre de lecture reçu fait foi.
+ * ⛔ Un groupe ne se compose qu'UNE fois, dans le premier bloc qui le touche : les blocs
+ * suivants du même empan le déclarent `couvert` sans le composer. Sans quoi le grec
+ * d'un empan à cheval sur deux paragraphes paraîtrait deux fois de suite.
+ *
+ * ⚠️ Les segments qu'aucun groupe ne couvre ne sont plus mis à part. Ils coulent dans
+ * leur paragraphe, comme le français seul les compose : les isoler pour ne pas les
+ * mettre « en regard d'un original qu'ils ne traduisent pas » revenait à ouvrir un
+ * paragraphe là où l'édition n'en ouvre aucun, et c'était payer trop cher une précision
+ * que la correspondance horizontale ne tient de toute façon plus qu'au paragraphe.
  */
-export function blocsBilingues<T>(
-  itemIds: readonly T[],
-  cleDe: (item: T) => string | null | undefined,
-  groupeParCle: ReadonlyMap<string, string>,
-): { ids: T[]; groupe: string | null }[] {
-  const blocs: { ids: T[]; groupe: string | null }[] = []
-  for (const item of itemIds) {
-    const cle = cleDe(item)
-    const groupe = (cle && groupeParCle.get(cle)) || null
-    const dernier = blocs[blocs.length - 1]
-    if (dernier && dernier.groupe === groupe) dernier.ids.push(item)
-    else blocs.push({ ids: [item], groupe })
-  }
-  return blocs
+export function repartirGroupes<T>(
+  blocs: readonly { ids: T[] }[],
+  groupeDe: (item: T) => string | null | undefined,
+  bornes: ReadonlyMap<string, { premier: T; dernier: T }>,
+): BlocEnRegard<T>[] {
+  return blocs.map(({ ids }) => {
+    const dansLeBloc = new Set<T>(ids)
+    const couverts: string[] = []
+    for (const item of ids) {
+      const groupe = groupeDe(item)
+      if (groupe && !couverts.includes(groupe)) couverts.push(groupe)
+    }
+    // Faute de borne — un groupe annoncé dont rien n'est encore chargé — le bloc le
+    // compose et le clôt : c'est le seul qu'on lui connaisse.
+    const borneDans = (groupe: string, cote: 'premier' | 'dernier') => {
+      const borne = bornes.get(groupe)
+      return !borne || dansLeBloc.has(borne[cote])
+    }
+    return {
+      ids: [...ids],
+      groupes: couverts.filter(groupe => borneDans(groupe, 'premier')),
+      couvert: couverts.length > 0,
+      clot: couverts.every(groupe => borneDans(groupe, 'dernier')),
+    }
+  })
 }
 
 /**
@@ -476,29 +551,27 @@ export function blocsBilingues<T>(
  * rang 1, si bien que fondre les blocs n'en gardait qu'un original et jetait les
  * autres. C'est `fondreOriginaux` qui lève l'obstacle, en les faisant tous suivre.
  *
- * Le bloc rendu porte la LISTE de ses groupes, dans l'ordre de lecture : elle sert à
- * composer l'original, et elle dit qu'un poème s'est refait — auquel cas les bornes
- * d'empan n'ont plus rien à borner, le poème entier étant un seul bloc.
+ * Le bloc fondu réunit les groupes de tous ceux qu'il absorbe, dans l'ordre de lecture,
+ * et prend le `clot` du DERNIER : c'est lui qui décide si le filet se tire.
  */
 export function fusionnerBlocsDeVers<T>(
-  blocs: readonly { ids: T[]; groupe: string | null }[],
+  blocs: readonly BlocEnRegard<T>[],
   toutEnVers: (ids: readonly T[]) => boolean,
-): { ids: T[]; groupe: string | null; poeme: string[] | null }[] {
-  const sortie: { ids: T[]; groupe: string | null; poeme: string[] | null }[] = []
+): BlocEnRegard<T>[] {
+  const sortie: BlocEnRegard<T>[] = []
   let precedentEnVers = false
   for (const bloc of blocs) {
     const enVers = bloc.ids.length > 0 && toutEnVers(bloc.ids)
     const dernier = sortie[sortie.length - 1]
     if (enVers && precedentEnVers && dernier) {
       dernier.ids.push(...bloc.ids)
-      if (bloc.groupe) (dernier.poeme ??= []).push(bloc.groupe)
+      dernier.groupes.push(...bloc.groupes)
+      dernier.couvert = dernier.couvert || bloc.couvert
+      dernier.clot = bloc.clot
     } else {
-      sortie.push({ ids: [...bloc.ids], groupe: bloc.groupe, poeme: enVers && bloc.groupe ? [bloc.groupe] : null })
+      sortie.push({ ids: [...bloc.ids], groupes: [...bloc.groupes], couvert: bloc.couvert, clot: bloc.clot })
     }
     precedentEnVers = enVers
   }
-  // Un poème d'un seul groupe n'a rien fondu : on le rend au cas ordinaire, pour que
-  // rien ne change là où il n'y avait rien à refaire.
-  for (const bloc of sortie) if (bloc.poeme && bloc.poeme.length < 2) bloc.poeme = null
   return sortie
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  blocsBilingues,
+  repartirGroupes,
   choisirEnsembleBilingue,
   fondreOriginaux,
   fusionnerBlocsDeVers,
@@ -265,6 +265,7 @@ describe('l’original mis en regard', () => {
     texteAffichage: 'Ὁδοὶ δύο εἰσί[[1]]',
     notes: { n1: { noteKey: 'n1', noteNumber: 1, blocks: [] } },
     toutVers: false,
+    joinBefore: ' ',
   }
   type Notes = Record<string, unknown>
   const segAvecCopie: { texteOriginal: string; texteOriginalAffichage: string; notesOriginal: Notes } = {
@@ -274,19 +275,19 @@ describe('l’original mis en regard', () => {
   }
 
   it('compose depuis l’alignement quand le bloc en a un', () => {
-    const r = originalEnRegard({ groupe: 'g1', blocs: { g1: bloc }, segmentsDuBloc: [], notesVides: {} })
+    const r = originalEnRegard({ groupes: ['g1'], blocs: { g1: bloc }, segmentsDuBloc: [], notesVides: {} })
     expect(r).toEqual({ texte: 'Ὁδοὶ δύο εἰσί', affichage: 'Ὁδοὶ δύο εἰσί[[1]]', notes: bloc.notes, toutVers: false })
   })
 
   // ⛔ Les Confessions portent les DEUX : le latin comme texte à part entière, et sa
   // copie dans les 932 segments de la traduction. C'est le texte qui fait foi.
   it('préfère l’alignement à la copie quand les deux existent', () => {
-    const r = originalEnRegard({ groupe: 'g1', blocs: { g1: bloc }, segmentsDuBloc: [segAvecCopie], notesVides: {} })
+    const r = originalEnRegard({ groupes: ['g1'], blocs: { g1: bloc }, segmentsDuBloc: [segAvecCopie], notesVides: {} })
     expect(r?.texte).toBe('Ὁδοὶ δύο εἰσί')
   })
 
   it('retombe sur `texte_original` faute d’alignement', () => {
-    const r = originalEnRegard({ groupe: null, blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })
+    const r = originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })
     expect(r).toEqual({
       texte: 'copie latine', affichage: 'copie latine[[9]]',
       notes: { n9: 'note du latin' }, toutVers: null,
@@ -296,63 +297,92 @@ describe('l’original mis en regard', () => {
   // Le repli n'a qu'une chaîne : il ne sait pas si l'original est en vers, et c'est la
   // colonne française qui tranchera. `null` porte cette ignorance, `false` la nierait.
   it('ne prononce rien sur les vers en repli, mais le dit en alignement', () => {
-    expect(originalEnRegard({ groupe: null, blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })?.toutVers).toBeNull()
-    expect(originalEnRegard({ groupe: 'g1', blocs: { g1: { ...bloc, toutVers: true } }, segmentsDuBloc: [], notesVides: {} })?.toutVers).toBe(true)
+    expect(originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })?.toutVers).toBeNull()
+    expect(originalEnRegard({ groupes: ['g1'], blocs: { g1: { ...bloc, toutVers: true } }, segmentsDuBloc: [], notesVides: {} })?.toutVers).toBe(true)
   })
 
   // Un groupe annoncé mais dont l'original n'est pas chargé (division voisine encore en
   // vol) ne doit pas faire perdre la copie qui, elle, est là.
   it('retombe sur la copie quand le groupe annoncé n’a pas encore son bloc', () => {
-    expect(originalEnRegard({ groupe: 'g-absent', blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })?.texte).toBe('copie latine')
+    expect(originalEnRegard({ groupes: ['g-absent'], blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })?.texte).toBe('copie latine')
   })
 
   it('rend `null` quand il n’y a rien à mettre en regard', () => {
-    expect(originalEnRegard({ groupe: null, blocs: {}, segmentsDuBloc: [{ texteOriginal: '   ' }], notesVides: {} })).toBeNull()
-    expect(originalEnRegard({ groupe: null, blocs: {}, segmentsDuBloc: [], notesVides: {} })).toBeNull()
+    expect(originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [{ texteOriginal: '   ' }], notesVides: {} })).toBeNull()
+    expect(originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [], notesVides: {} })).toBeNull()
   })
 
   // La colonne latine porte l'apparat de SON texte ; à défaut seulement, celui de la
   // traduction. Les mêler ferait sortir l'apparat de Knöll chez Arnauld d'Andilly.
   it('ne sert les notes de la traduction que faute de notes propres', () => {
-    const propres = originalEnRegard({ groupe: null, blocs: {}, notesVides: {}, segmentsDuBloc: [{ texteOriginal: 'x', notesOriginal: { a: 1 }, notes: { b: 2 } }] })
+    const propres = originalEnRegard({ groupes: [], blocs: {}, notesVides: {}, segmentsDuBloc: [{ texteOriginal: 'x', notesOriginal: { a: 1 }, notes: { b: 2 } }] })
     expect(propres?.notes).toEqual({ a: 1 })
-    const sansPropres = originalEnRegard({ groupe: null, blocs: {}, notesVides: {}, segmentsDuBloc: [{ texteOriginal: 'x', notes: { b: 2 } }] })
+    const sansPropres = originalEnRegard({ groupes: [], blocs: {}, notesVides: {}, segmentsDuBloc: [{ texteOriginal: 'x', notes: { b: 2 } }] })
     expect(sansPropres?.notes).toEqual({ b: 2 })
   })
 })
 
-describe('découpe en blocs de lecture', () => {
-  const groupes = new Map([['fr-1', 'g1'], ['fr-2', 'g1'], ['fr-4', 'g2']])
-  const cleDe = (id: string) => id
+describe('la répartition des groupes sur les blocs', () => {
+  // ⛔ Le bloc est DONNÉ : c'est le paragraphe de l'édition, découpé par l'appelant. Le
+  // Discours 38 pose 76 groupes sur un corps de deux paragraphes, et le lecteur en tirait
+  // 76 blocs, chacun sous son filet.
+  const groupeDe = (id: string) => ({
+    'fr-1': 'g1', 'fr-2': 'g1', 'fr-3': 'g2', 'fr-4': 'g2', 'fr-5': 'g3',
+  } as Record<string, string | undefined>)[id]
+  const bornes = new Map([
+    ['g1', { premier: 'fr-1', dernier: 'fr-2' }],
+    ['g2', { premier: 'fr-3', dernier: 'fr-4' }],
+    ['g3', { premier: 'fr-5', dernier: 'fr-5' }],
+  ])
 
-  it('réunit les segments consécutifs d’un même groupe', () => {
-    expect(blocsBilingues(['fr-1', 'fr-2'], cleDe, groupes)).toEqual([{ ids: ['fr-1', 'fr-2'], groupe: 'g1' }])
-  })
-
-  // Un segment hors alignement ne se fond pas au groupe voisin : ce serait le mettre en
-  // regard d'un original qu'il ne traduit pas.
-  it('sépare des groupes voisins les segments qu’aucun ne couvre', () => {
-    expect(blocsBilingues(['fr-1', 'fr-3', 'fr-4'], cleDe, groupes)).toEqual([
-      { ids: ['fr-1'], groupe: 'g1' },
-      { ids: ['fr-3'], groupe: null },
-      { ids: ['fr-4'], groupe: 'g2' },
+  it('réunit dans UN bloc tous les groupes du paragraphe', () => {
+    expect(repartirGroupes([{ ids: ['fr-1', 'fr-2', 'fr-3', 'fr-4'] }], groupeDe, bornes)).toEqual([
+      { ids: ['fr-1', 'fr-2', 'fr-3', 'fr-4'], groupes: ['g1', 'g2'], couvert: true, clot: true },
     ])
   })
 
-  // Les segments hors alignement sortent en SUITE, pour que l'appelant les redécoupe par
-  // `paragraphe` : isolés un par un, ils auraient perdu la coulée de leur paragraphe.
-  it('réunit en une suite les segments hors alignement consécutifs', () => {
-    expect(blocsBilingues(['fr-3', 'fr-5'], cleDe, groupes)).toEqual([
-      { ids: ['fr-3', 'fr-5'], groupe: null },
+  // ⛔ Un empan à cheval ne se compose qu'une fois : le grec de la troisième section de la
+  // Didachè paraissait deux fois de suite.
+  it('ne compose un groupe à cheval que dans le PREMIER bloc qu’il touche', () => {
+    expect(repartirGroupes([{ ids: ['fr-1', 'fr-2', 'fr-3'] }, { ids: ['fr-4'] }], groupeDe, bornes)).toEqual([
+      { ids: ['fr-1', 'fr-2', 'fr-3'], groupes: ['g1', 'g2'], couvert: true, clot: false },
+      { ids: ['fr-4'], groupes: [], couvert: true, clot: true },
     ])
   })
 
-  // Un même groupe interrompu puis repris rouvre un bloc : l'ordre de lecture prime.
-  it('rouvre un bloc quand un groupe revient après une interruption', () => {
-    expect(blocsBilingues(['fr-1', 'fr-3', 'fr-2'], cleDe, groupes)).toEqual([
-      { ids: ['fr-1'], groupe: 'g1' },
-      { ids: ['fr-3'], groupe: null },
-      { ids: ['fr-2'], groupe: 'g1' },
+  // Le filet se tire au BOUT de l'empan : tiré entre deux blocs qu'un même groupe réunit,
+  // il annoncerait une frontière que l'alignement ne reconnaît pas.
+  it('ne clôt pas un bloc dont un groupe se poursuit au-delà', () => {
+    const [premier, second] = repartirGroupes([{ ids: ['fr-3'] }, { ids: ['fr-4'] }], groupeDe, bornes)
+    expect(premier.clot).toBe(false)
+    expect(second.clot).toBe(true)
+  })
+
+  // ⚠️ Les segments hors alignement ne sont plus mis à part : ils coulent dans leur
+  // paragraphe, comme le français seul les compose.
+  it('laisse couler dans son bloc un segment qu’aucun groupe ne couvre', () => {
+    expect(repartirGroupes([{ ids: ['fr-1', 'fr-x', 'fr-2'] }], groupeDe, bornes)).toEqual([
+      { ids: ['fr-1', 'fr-x', 'fr-2'], groupes: ['g1'], couvert: true, clot: true },
+    ])
+  })
+
+  it('rend un bloc nu quand aucun groupe ne le couvre', () => {
+    expect(repartirGroupes([{ ids: ['fr-x', 'fr-y'] }], groupeDe, bornes)).toEqual([
+      { ids: ['fr-x', 'fr-y'], groupes: [], couvert: false, clot: true },
+    ])
+  })
+
+  // Un groupe interrompu puis repris dans le même bloc ne se compose qu'une fois.
+  it('ne retient qu’une fois un groupe qui revient dans le même bloc', () => {
+    expect(repartirGroupes([{ ids: ['fr-1', 'fr-3', 'fr-2'] }], groupeDe, bornes)[0].groupes)
+      .toEqual(['g1', 'g2'])
+  })
+
+  // Faute de borne — un groupe annoncé dont rien n'est encore chargé — le bloc le compose
+  // et le clôt : c'est le seul qu'on lui connaisse.
+  it('compose et clôt un groupe dont on ne connaît pas les bornes', () => {
+    expect(repartirGroupes([{ ids: ['fr-5'] }], groupeDe, new Map())).toEqual([
+      { ids: ['fr-5'], groupes: ['g3'], couvert: true, clot: true },
     ])
   })
 })
@@ -362,65 +392,62 @@ describe('le poème refait dans la lecture en regard', () => {
   // rang de grille, dans une colonne latine de 209 px où deux vers sur trois
   // s'enroulaient : c'est ce hachage que la fusion défait.
   const enVers = (ids: readonly string[]) => ids.every(id => id.startsWith('v'))
+  const bloc = (ids: string[], groupes: string[], clot = true) => ({ ids, groupes, couvert: groupes.length > 0, clot })
 
   it('réunit les blocs de vers voisins, et retient leurs groupes dans l’ordre', () => {
     expect(fusionnerBlocsDeVers([
-      { ids: ['v1'], groupe: 'g1' },
-      { ids: ['v2', 'v3'], groupe: 'g2' },
-      { ids: ['v4'], groupe: 'g3' },
+      bloc(['v1'], ['g1']),
+      bloc(['v2', 'v3'], ['g2']),
+      bloc(['v4'], ['g3']),
     ], enVers)).toEqual([
-      { ids: ['v1', 'v2', 'v3', 'v4'], groupe: 'g1', poeme: ['g1', 'g2', 'g3'] },
+      { ids: ['v1', 'v2', 'v3', 'v4'], groupes: ['g1', 'g2', 'g3'], couvert: true, clot: true },
     ])
   })
 
-  // ⛔ La prose garde son empan : c'est l'unité que l'alignement établit, et la fusion
-  // ne vaut que là où l'empan n'est pas la bonne unité.
+  // ⛔ La prose garde son paragraphe : c'est l'unité que l'édition établit, et la fusion
+  // ne vaut que là où le paragraphe n'est pas la bonne unité.
   it('ne fond jamais deux blocs de prose', () => {
-    expect(fusionnerBlocsDeVers([
-      { ids: ['p1'], groupe: 'g1' },
-      { ids: ['p2'], groupe: 'g2' },
-    ], enVers)).toEqual([
-      { ids: ['p1'], groupe: 'g1', poeme: null },
-      { ids: ['p2'], groupe: 'g2', poeme: null },
+    expect(fusionnerBlocsDeVers([bloc(['p1'], ['g1']), bloc(['p2'], ['g2'])], enVers)).toEqual([
+      { ids: ['p1'], groupes: ['g1'], couvert: true, clot: true },
+      { ids: ['p2'], groupes: ['g2'], couvert: true, clot: true },
     ])
   })
 
   it('s’arrête à la prose qui borde le poème', () => {
     expect(fusionnerBlocsDeVers([
-      { ids: ['p1'], groupe: 'g1' },
-      { ids: ['v1'], groupe: 'g2' },
-      { ids: ['v2'], groupe: 'g3' },
-      { ids: ['p2'], groupe: 'g4' },
+      bloc(['p1'], ['g1']),
+      bloc(['v1'], ['g2']),
+      bloc(['v2'], ['g3']),
+      bloc(['p2'], ['g4']),
     ], enVers)).toEqual([
-      { ids: ['p1'], groupe: 'g1', poeme: null },
-      { ids: ['v1', 'v2'], groupe: 'g2', poeme: ['g2', 'g3'] },
-      { ids: ['p2'], groupe: 'g4', poeme: null },
-    ])
-  })
-
-  // Rien n'a été fondu : le bloc repasse par le cas ordinaire, et les bornes d'empan
-  // continuent de le gouverner comme avant.
-  it('ne déclare pas un poème là où un seul groupe se présente', () => {
-    expect(fusionnerBlocsDeVers([{ ids: ['v1'], groupe: 'g1' }], enVers)).toEqual([
-      { ids: ['v1'], groupe: 'g1', poeme: null },
+      { ids: ['p1'], groupes: ['g1'], couvert: true, clot: true },
+      { ids: ['v1', 'v2'], groupes: ['g2', 'g3'], couvert: true, clot: true },
+      { ids: ['p2'], groupes: ['g4'], couvert: true, clot: true },
     ])
   })
 
   it('fond un poème dont une strophe échappe à l’alignement', () => {
     expect(fusionnerBlocsDeVers([
-      { ids: ['v1'], groupe: 'g1' },
-      { ids: ['v2'], groupe: null },
-      { ids: ['v3'], groupe: 'g2' },
+      bloc(['v1'], ['g1']),
+      bloc(['v2'], []),
+      bloc(['v3'], ['g2']),
     ], enVers)).toEqual([
-      { ids: ['v1', 'v2', 'v3'], groupe: 'g1', poeme: ['g1', 'g2'] },
+      { ids: ['v1', 'v2', 'v3'], groupes: ['g1', 'g2'], couvert: true, clot: true },
     ])
+  })
+
+  // Le filet se tire au bout du DERNIER bloc fondu : c'est lui qui sait si l'empan
+  // se poursuit au-delà du poème.
+  it('prend le `clot` du dernier bloc fondu', () => {
+    expect(fusionnerBlocsDeVers([bloc(['v1'], ['g1']), bloc(['v2'], ['g2'], false)], enVers)[0].clot)
+      .toBe(false)
   })
 })
 
-describe('les originaux d’un poème refait', () => {
+describe('les originaux fondus dans un même bloc', () => {
   const strophe = (id: string, texte: string) => ({
     alignmentId: id, texte, texteAffichage: texte,
-    notes: { [id]: { noteKey: id, noteNumber: 1, blocks: [] } }, toutVers: true,
+    notes: { [id]: { noteKey: id, noteNumber: 1, blocks: [] } }, toutVers: true, joinBefore: ' ',
   })
   const blocs = { g1: strophe('g1', 'Carmina qui quondam'), g2: strophe('g2', 'Flebilis, heu!') }
 
@@ -428,6 +455,20 @@ describe('les originaux d’un poème refait', () => {
   // strophes jointes par une espace couleraient en prose.
   it('joint les strophes par un saut de ligne', () => {
     expect(fondreOriginaux(['g1', 'g2'], blocs)?.texte).toBe('Carmina qui quondam\nFlebilis, heu!')
+  })
+
+  // ⛔ La PROSE, elle, se joint par `join_before` : un paragraphe qui réunit plusieurs
+  // groupes doit couler d'un seul tenant dans la colonne de droite.
+  it('joint la prose par `join_before`, comme deux segments d’un même groupe', () => {
+    const prose = (id: string, texte: string, joinBefore: string | null) => ({
+      alignmentId: id, texte, texteAffichage: texte, notes: {}, toutVers: false, joinBefore,
+    })
+    const suite = {
+      g1: prose('g1', 'ἐκεῖνα μὲν', null),
+      g2: prose('g2', 'τῆς εὐδοκίας', ' '),
+      g3: prose('g3', ', τὰ δὲ', ''),
+    }
+    expect(fondreOriginaux(['g1', 'g2', 'g3'], suite)?.texte).toBe('ἐκεῖνα μὲν τῆς εὐδοκίας, τὰ δὲ')
   })
 
   it('fait suivre les notes de toutes les strophes', () => {
@@ -444,15 +485,24 @@ describe('les originaux d’un poème refait', () => {
     expect(fondreOriginaux(['g1', 'g2'], {})).toBeNull()
   })
 
-  it('compose le poème depuis `groupes`, et non depuis le seul premier groupe', () => {
-    const r = originalEnRegard({ groupe: 'g1', groupes: ['g1', 'g2'], blocs, segmentsDuBloc: [], notesVides: {} })
+  it('compose depuis TOUS les groupes du bloc, et non depuis le seul premier', () => {
+    const r = originalEnRegard({ groupes: ['g1', 'g2'], blocs, segmentsDuBloc: [], notesVides: {} })
     expect(r?.texte).toBe('Carmina qui quondam\nFlebilis, heu!')
     expect(r?.toutVers).toBe(true)
   })
 
-  // Hors poème, rien ne change : c'est la garantie que la prose n'est pas touchée.
-  it('garde le cas ordinaire quand aucun poème ne se déclare', () => {
-    expect(originalEnRegard({ groupe: 'g1', groupes: null, blocs, segmentsDuBloc: [], notesVides: {} })?.texte)
+  it('compose le seul groupe du bloc quand il n’y en a qu’un', () => {
+    expect(originalEnRegard({ groupes: ['g1'], blocs, segmentsDuBloc: [], notesVides: {} })?.texte)
       .toBe('Carmina qui quondam')
+  })
+
+  // ⛔ Un bloc COUVERT qui ne compose rien garde sa colonne vide : l'empan est plus haut,
+  // et retomber sur la copie ferait paraître deux fois le même original.
+  it('ne retombe pas sur la copie quand l’empan est composé plus haut', () => {
+    const r = originalEnRegard({
+      groupes: [], couvert: true, blocs,
+      segmentsDuBloc: [{ texteOriginal: 'copie latine' }], notesVides: {},
+    })
+    expect(r).toBeNull()
   })
 })
