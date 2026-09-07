@@ -1066,7 +1066,7 @@ export default function RechercheClient() {
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
-                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'var(--cs-texte-doux)', marginBottom:'7px' }}>Les deux modes</span>
+                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'var(--cs-texte-doux)', marginBottom:'7px' }}>Les trois modes</span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Début de mot</span>
