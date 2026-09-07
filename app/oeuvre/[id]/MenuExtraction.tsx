@@ -116,6 +116,14 @@ export default function MenuExtraction({ donnees, onFermer }: {
         const dit = await reponse.json().catch(() => null)
         throw new Error(dit?.erreur ?? `L'extraction a échoué (${reponse.status}).`)
       }
+      // ⛔ LE VERROU RENVOIE UNE REDIRECTION, PAS UNE ERREUR (charte, « Appels aux
+      // routes admin »). Une session expirée renvoie vers `/chantier`, `fetch` suit, et
+      // l'on reçoit un 200 porteur de HTML : sans ce contrôle, le lecteur téléchargerait
+      // une page de connexion sous le nom d'un document Word.
+      const type = reponse.headers.get('content-type') ?? ''
+      if (reponse.redirected || !type.includes('wordprocessingml')) {
+        throw new Error('Votre session a expiré. Rechargez la page, puis réessayez.')
+      }
       const nom = nomPropose(reponse.headers.get('content-disposition'))
       const blob = await reponse.blob()
       const url = URL.createObjectURL(blob)
