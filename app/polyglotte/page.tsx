@@ -215,19 +215,34 @@ const ORDRE_NT = 52;
 const ORDRE_CANON_MAX = 78;     // au-delà : écrits non canoniques
 const FOND = "var(--cs-fond)";   // le fond du site, celui de --cs-fond
 
+// ⛔ LE ROUGE DIT « À VÉRIFIER », IL NE DIT PAS « ON EN A PARLÉ ». Un point clos — corrigé,
+// documenté, constaté — a été traité : le teindre comme un point ouvert use le seul signal
+// dont l'administrateur dispose pour retrouver son travail. La liste comptait déjà 124
+// points clos sur 210 quand le relevé structurel du 2026-09-07 l'a portée à 634 ; sans ce
+// partage, « Lignes problématiques » aurait cessé de désigner quoi que ce soit.
+// ⚠️ La liste nomme les statuts CLOS, non les statuts ouverts : un statut qu'on n'aurait pas
+// prévu tombe alors du côté rouge, c'est-à-dire du côté qui se voit. Une valeur inconnue
+// mérite un regard, pas un silence.
+const STATUTS_CLOS = new Set(["corrigé", "documenté", "constate", "resolu", "verifie", "validé"]);
+const pointOuvert = (p: Point) => !STATUTS_CLOS.has((p.statut ?? "").trim());
+
 // ── Analyse des points sensibles → ensembles de versets/chapitres concernés ──
 function construireSensibilite(points: Point[]) {
   const chap = new Set<string>();
   const vers = new Set<string>();
   const libelle = new Map<string, string[]>();
-  const addChap = (l: string, c: number, desc: string) => { chap.add(`${l}|${c}`); const k = `${l}|${c}`; libelle.set(k, [...(libelle.get(k) ?? []), desc]); };
-  const addVers = (l: string, c: number, v: number, desc: string) => { vers.add(`${l}|${c}|${v}`); const k = `${l}|${c}`; libelle.set(k, [...(libelle.get(k) ?? []), desc]); };
+  // ⚠️ Le LIBELLÉ se nourrit de TOUS les points, la teinte des seuls points ouverts : ce
+  // qu'un point clos a établi reste à lire au survol de la marge, et c'est souvent là que
+  // se trouve l'explication d'une case vide.
+  const addChap = (l: string, c: number, desc: string, ouvert: boolean) => { if (ouvert) chap.add(`${l}|${c}`); const k = `${l}|${c}`; libelle.set(k, [...(libelle.get(k) ?? []), desc]); };
+  const addVers = (l: string, c: number, v: number, desc: string, ouvert: boolean) => { if (ouvert) vers.add(`${l}|${c}|${v}`); const k = `${l}|${c}`; libelle.set(k, [...(libelle.get(k) ?? []), desc]); };
 
   for (const p of points) {
     const ref = (p.reference ?? "").trim();
     const desc = `${p.type ?? ""} — ${p.description ?? ""}`.trim();
-    if (/^([1-4]?[A-Z]{2,3})(\/[1-4]?[A-Z]{2,3})+$/.test(ref)) { for (const code of ref.split("/")) addChap(code, 0, desc); continue; }
-    if (/\(\d+\s+psaumes?\)/i.test(ref) && p.notes) { const nums = (p.notes.match(/\d+/g) ?? []).map(Number).filter(n => n >= 1 && n <= 150); for (const n of nums) addChap("PSA", n, desc); continue; }
+    const ouvert = pointOuvert(p);
+    if (/^([1-4]?[A-Z]{2,3})(\/[1-4]?[A-Z]{2,3})+$/.test(ref)) { for (const code of ref.split("/")) addChap(code, 0, desc, ouvert); continue; }
+    if (/\(\d+\s+psaumes?\)/i.test(ref) && p.notes) { const nums = (p.notes.match(/\d+/g) ?? []).map(Number).filter(n => n >= 1 && n <= 150); for (const n of nums) addChap("PSA", n, desc, ouvert); continue; }
     let dernierLivre = p.livre && /^[1-4]?[A-Z]{2,3}$/.test(p.livre) ? p.livre : "";
     for (let tok of ref.split(/[\/,]/)) {
       tok = tok.trim(); if (!tok) continue;
@@ -235,9 +250,9 @@ function construireSensibilite(points: Point[]) {
       if (!m) continue;
       const l = m[1] || dernierLivre; if (!l) continue; dernierLivre = l;
       const c = Number(m[2]);
-      if (m[3]) { const v1 = Number(m[3]); const v2 = m[4] ? Number(m[4]) : v1; for (let v = v1; v <= v2; v++) addVers(l, c, v, desc); }
-      else if (m[5]) { for (let cc = c; cc <= Number(m[5]); cc++) addChap(l, cc, desc); }
-      else addChap(l, c, desc);
+      if (m[3]) { const v1 = Number(m[3]); const v2 = m[4] ? Number(m[4]) : v1; for (let v = v1; v <= v2; v++) addVers(l, c, v, desc, ouvert); }
+      else if (m[5]) { for (let cc = c; cc <= Number(m[5]); cc++) addChap(l, cc, desc, ouvert); }
+      else addChap(l, c, desc, ouvert);
     }
   }
   const estSensible = (l: string, c: number, v: number) => chap.has(`${l}|0`) || chap.has(`${l}|${c}`) || vers.has(`${l}|${c}|${v}`);
@@ -2358,7 +2373,11 @@ export default function PolyglottePage() {
                           tombent tous au même fer, et calée sur la première ligne du texte.
                           ⚠️ Le filet ne subsiste que sur un point signalé, où il DIT quelque
                           chose ; ailleurs, la marge est nue. */}
-                      <div title={signaler ? desc : undefined} className="poly-marge-ref"
+                      {/* ⚠️ L'infobulle paraît dès qu'un point — ouvert ou CLOS — a été
+                          consigné sur ce chapitre : c'est là que se lit l'explication d'une
+                          case vide, et un point corrigé garde tout son pouvoir d'explication
+                          quand il a cessé d'être une tâche. */}
+                      <div title={estAdmin && desc ? desc : undefined} className="poly-marge-ref"
                         style={{ color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
                         <span>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</span>
                       </div>

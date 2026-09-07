@@ -7212,3 +7212,83 @@ qu'un calque est une OMBRE et non une couleur. Il était écrit en dur dans cinq
 `couleursEnDurInventaire.ts` — le registre décroît, comme la charte l'exige. ⛔ Les trois
 autres (`BibliothequeClient`, `ModaleAuteur`, `ModaleMessagerie`) restent au registre : les
 migrer est un rangement à part, non un effet de bord d'un chantier voisin.
+
+# ⛔ LE ROUGE DE LA POLYGLOTTE SUIT LE STATUT, et le relevé structurel (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.28**. Ici, ce qu'il faut savoir pour y
+toucher.
+
+- ⛔ **`STATUTS_CLOS` et `pointOuvert` (`app/polyglotte/page.tsx`) décident de la TEINTE, et
+  d'elle seule.** `construireSensibilite` nourrit `libelle` de TOUS les points et ne verse
+  dans `chap` / `vers` que les points ouverts : le filtre « Lignes problématiques » et le
+  rouge désignent la file de travail, l'infobulle garde le savoir. ⚠️ L'infobulle de la
+  marge paraît donc désormais sur un chapitre dont le point est CLOS
+  (`title={estAdmin && desc ? desc : undefined}`), là où elle était liée à `signaler`.
+- ⚠️ **La liste nomme les statuts CLOS**, non les statuts ouverts : un statut imprévu tombe
+  du côté rouge, c'est-à-dire du côté qui se voit. ⛔ Ne pas l'inverser pour « fermer » un
+  statut nouveau : c'est en base que le vocabulaire se tient, non dans ce garde-fou.
+- ⚠️ **`points_sensibles` ne se charge que pour l'administrateur** (règle antérieure) : cette
+  passe ne change donc rien pour le lecteur.
+
+## Le RELEVÉ structurel — `scripts/audit-structure-versets.mjs`
+
+Il regarde l'OSSATURE quand `audit-versets.mjs` regarde le TEXTE, et les deux se complètent
+sans se recouvrir. ⛔ Il n'écrit rien en base : le versement dans `points_sensibles` est un
+second geste, `scripts/points-sensibles-verser-audit-structure.mjs`.
+
+- ⛔ **Les règles vivent dans `scripts/_audit-structure-regles.mjs`** (module PUR, 23 tests),
+  jamais dans le script : les seuils s'y discutent sans relancer un audit complet, et c'est
+  le seul endroit où l'on peut les éprouver. `SEUIL_SYSTEMATIQUE` y est IMPORTÉ de
+  `_audit-versets-regles.mjs` — deux définitions du même seuil divergeraient au premier
+  ajustement.
+- ⛔ **AUCUNE LISTE DE TRADUCTIONS EN DUR.** L'outil d'août ne voyait que les cinq clés de
+  `FACTEURS`, si bien que l'AELF et la traduction moderne du témoin de 1899 — entrées au
+  corpus depuis — n'avaient jamais été auditées : 876 absences et 487 surnuméraires
+  invisibles. Celui-ci lit les traductions que porte `versets_v2`. *Un outil qui nomme son
+  périmètre dans une constante cesse de voir le corpus dès qu'il grandit.*
+- ⛔ **Un écart de numérotation CONSTANT n'est pas un défaut.** `decalages` prend l'écart le
+  plus porté du chapitre pour RÉGIME et ne signale que ce qui s'en écarte ; un chapitre dont
+  aucun écart ne tient la moitié des versets (`PART_REGIME`) se rend en entier, chapitre et
+  non versets. Mesuré : 3 138 versets hors régime sans cette règle, 2 145 avec, et les 993
+  de différence étaient soixante-dix chapitres qu'on aurait désignés au hasard.
+- ⛔ **On ne mesure l'écart que sur les créneaux UN-POUR-UN** : un regroupement ou une
+  scission fait varier la numérotation par construction, et le compter là signalerait deux
+  fois la même chose.
+- ⛔ **`compresserReference` rend une référence que la POLYGLOTTE SAIT RELIRE**, et un test
+  la confronte à l'expression exacte de `construireSensibilite` : « JOS 3:5-7, 4:1 », le
+  livre écrit une seule fois en tête, les jetons suivants en héritant. ⚠️ Un constat qui
+  porte sur le CHAPITRE passe par `compresserChapitres`, qui écrit le chapitre NU
+  (« PSA 9, 17-19 ») : écrire « 9:1 » ne teindrait que le premier verset d'un chapitre à
+  relire d'un bout à l'autre.
+- ⛔ **UN SURNUMÉRAIRE NE REÇOIT PAS DE RÉFÉRENCE CANONIQUE** (option `horsOssature`) : il
+  n'en a pas, c'est sa définition, et lui en donner une teindrait le créneau qui porte par
+  hasard le même numéro dans l'édition. Sa désignation reste en clair et ses coordonnées
+  d'origine vont aux notes.
+- ⚠️ **Le partage systématique / isolé passe par `partagerParLot`**, généralisation de
+  `partagerAbsents` : c'est lui qui rend un relevé de 5 040 versets utilisable, en écartant
+  ce qui relève d'une recension différente ou d'un canon plus court.
+
+## Le VERSEMENT — provenance, idempotence, sauvegarde
+
+- ⛔ **Toute ligne versée porte sa provenance dans `notes`** (`scripts/audit-structure-versets.mjs`
+  + la date). Le lot entier se retrouve et se retire d'une requête : c'est la condition pour
+  qu'une passe automatique n'abîme jamais les 210 points écrits à la main. Le script REFUSE
+  de s'exécuter si le relevé est déjà versé, sauf `--remplacer`, qui retire d'abord.
+- ⚠️ **Sauvegarde AVANT écriture, dans `internal`** (charte) :
+  `internal.backup_points_sensibles_20260907`, 210 lignes.
+- ⚠️ **Pas de `process.exit(0)` sur le chemin nominal** : le client Supabase garde des
+  handles ouverts, et Windows lève une assertion libuv à la sortie forcée.
+- ⚠️ **`audit/` est ignoré par git** : le rapport et le CSV du relevé ne sont pas versionnés,
+  seul l'outil l'est. Le rejouer les refait.
+
+## État au 2026-09-07
+
+**5 040 couples (traduction, créneau)** portent au moins un défaut d'ossature, en **424 cas**
+— 1 742 créneaux absents, 1 131 regroupés, 1 128 surnuméraires, 31 scindés, 2 145 décalés,
+70 chapitres sans régime. `points_sensibles` passe de 210 à **634 lignes**, dont **395
+ouvertes** (donc rouges) et 239 closes (infobulle seule).
+
+⚠️ **Ce qui reste, et qui n'est pas du rendu** : les 306 cas de la file sont des constats,
+non des corrections. Les trancher est un travail de LECTURE, cas par cas, et il relève des
+décisions philologiques — l'outil sait dire où regarder, il ne sait pas dire ce qu'il faut
+écrire.
