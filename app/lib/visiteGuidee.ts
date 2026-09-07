@@ -68,6 +68,14 @@ export type SceneVisite = {
    * fait, et la page rend son état à la fin de la visite.
    */
   ouvrirOeuvres?: boolean
+  /**
+   * Page d'œuvre : la page RETIENT un passage, celui que le volet de droite va
+   * commenter. ⛔ Le premier qui vise réellement un verset, non le premier venu :
+   * sans cela le volet montrerait son écran vide, et l'étape promettrait ce qu'elle
+   * ne montre pas. C'est la même règle que « choisirVerset » sur la page Bible, et
+   * la même raison : ce qu'une étape annonce, la page le fait.
+   */
+  choisirSegment?: boolean
 }
 
 export type EtapeVisite = {

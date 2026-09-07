@@ -81,6 +81,10 @@ import ModaleAuteur from '@/app/components/ModaleAuteur'
 import NomVolet from '@/app/components/NomVolet'
 import { FeuilleVigne } from './Ornements'
 import EtoileFavori from '@/app/components/EtoileFavori'
+import VisiteGuidee from '@/app/components/VisiteGuidee'
+import { CLE_VISITE_OEUVRE, VISITE_OEUVRE } from '@/app/lib/visiteOeuvre'
+import { oublierVisite, visiteFaite, type SceneVisite } from '@/app/lib/visiteGuidee'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import OngletCommentaires from './OngletCommentaires'
@@ -2260,6 +2264,54 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     return () => { document.removeEventListener('pointerdown', auTapDehors, true); window.removeEventListener('scroll', auDefilement) }
   }, [mobile, segSurvol])
 
+  // ── LA VISITE ──────────────────────────────────────────────────────────────
+  // Ce que la page montre d'elle-même la première fois qu'on l'ouvre (charte § 46).
+  //
+  // ⚠️ Elle attend que le TEXTE soit là : la moitié de ses arrêts vivent dans les
+  // volets, mais celui du corps cerne un passage, et une visite ouverte sur une
+  // colonne vide renoncerait à son arrêt le plus important.
+  // ⚠️ L'état est un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle
+  // est déjà ouverte, la visite repart de son grand message, et le composant ne s'y
+  // remet qu'en se REMONTANT. Le compteur lui sert de clé.
+  // ⛔ Et l'offre ne se fait qu'UNE fois : sans le témoin, changer de division la
+  // rouvrirait à chaque rechargement de tranche.
+  const [visite, setVisite] = useState(0)
+  const textePret = segments.length > 0
+  const visiteProposee = useRef(false)
+  useEffect(() => {
+    // ⛔ PAS DE VISITE SUR TÉLÉPHONE, et ce n'est pas un oubli : les deux volets y
+    // sont des TIROIRS, fermés à l'ouverture de la page. Quatre arrêts sur sept
+    // cerneraient donc des sujets absents, et la visite ne serait plus qu'une
+    // attente entre deux cases. La page qu'elle décrit n'est pas celle qu'on voit.
+    if (mobile || !textePret || visiteProposee.current) return
+    visiteProposee.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_OEUVRE)
+    else if (visiteFaite(CLE_VISITE_OEUVRE)) return
+    const depart = window.setTimeout(() => setVisite(1), 260)
+    return () => window.clearTimeout(depart)
+  }, [mobile, textePret])
+
+  // La page OFFRE sa visite à la barre de navigation, qui porte le bouton qui la
+  // rappelle (voir app/lib/demandeDeVisite.ts). Sur téléphone elle n'en offre pas :
+  // un bouton qui ouvrirait une visite dégradée vaut moins que pas de bouton.
+  useEffect(() => { if (mobile) return; return offrirLaVisite(() => setVisite(n => n + 1)) }, [mobile])
+
+  // ⚠️ L'ARRÊT DU VOLET DE DROITE RETIENT UN PASSAGE POUR DE BON : une étape qui
+  // dirait « cliquez, le volet répond » devant un volet vide ne montrerait rien.
+  // ⛔ Le premier passage qui vise RÉELLEMENT un verset, non le premier venu ; à
+  // défaut, le premier, le volet disant alors lui-même que rien n'est cité.
+  // ⚠️ AUCUN useCallback ici, et ce n'est pas un oubli : VisiteGuidee range ce rappel
+  // dans une RÉFÉRENCE qu'un effet rafraîchit à chaque rendu, si bien que son identité
+  // n'a aucune importance. Mémoïsé sur « segments », qui change à chaque tranche
+  // chargée, il faisait au contraire renoncer le compilateur React à optimiser tout le
+  // composant (« existing memoization could not be preserved »).
+  const preparerScene = (scene: SceneVisite | undefined) => {
+    if (!scene?.choisirSegment) return
+    const vise = segments.find(s => s.versets.length > 0) ?? segments[0]
+    if (vise) setSegActif(vise.id)
+  }
+
   return (
     <div style={{ background: 'var(--cs-fond)', minHeight: HAUTEUR_SOUS_NAVBAR }}>
       <style>{`
@@ -2396,7 +2448,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               e.currentTarget.style.boxShadow = 'none'
             }}
           />}
-          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
+          <div data-visite="oeuvre-tete" style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <NomsAuteurs />
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
@@ -2464,7 +2516,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 Les deux sont partis avec le mode segments, et le menu ne parle donc plus
                 que de LANGUE. */}
             {modesLecture.length > 0 && (
-              <div style={{ marginTop: 'var(--volet-air, 10px)' }}>
+              <div data-visite="oeuvre-lecture" style={{ marginTop: 'var(--volet-air, 10px)' }}>
                 <span style={RUBRIQUE_AXE}>Lecture</span>
                 {modesLecture.map(m => {
                   const url = urlDuModeOuNull(m.cibleOeuvre, m.cibleMt, m.cibleTexte)
@@ -2546,7 +2598,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
             {!modeComparaisonActif && tocApparatLocal.length > 0 && (
-              <div style={{ ...(apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
+              <div data-visite="oeuvre-apparat" style={{ ...(apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                   <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>APPARAT CRITIQUE</span>
@@ -2574,7 +2626,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             )}
 
             {sommaireAQuoiSommer && (
-            <div style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
+            <div data-visite="oeuvre-sommaire" style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                 <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>SOMMAIRE</span>
@@ -3289,7 +3341,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         <>
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
-        <aside ref={refAside} style={mobile ? {
+        <aside ref={refAside} data-visite="oeuvre-bible" style={mobile ? {
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
         } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100dvh - 3.5rem)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
           <div onMouseDown={e => {
@@ -3571,6 +3623,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
       {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}
       <ModaleAuteur id={auteurModalId} onClose={() => setAuteurModalId(null)} />
+
+      {/* La visite, en dernier : elle se rend dans un portail vers le corps du
+          document, et son voile passe au-dessus de tout ce que la page porte. */}
+      {visite > 0 && (
+        <VisiteGuidee
+          key={visite}
+          visite={VISITE_OEUVRE}
+          onScene={preparerScene}
+          onFin={() => setVisite(0)}
+        />
+      )}
 
       {estAdmin && configOuverte && typeof document !== 'undefined' && createPortal(
         /* ⛔ Le voile part SOUS la barre de navigation, et sa mesure se compose sur

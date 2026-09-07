@@ -123,7 +123,11 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
     ? new Date(oeuvre.date_mise_en_ligne).getFullYear()
     : null
   return (
-    <div style={{
+    // ⚠️ Le repère de la visite se pose ICI, sur la racine du frontispice, et non sur
+    // une enveloppe posée autour dans la page : une enveloppe de plus romprait la
+    // chaîne de largeurs dont ce bloc dépend (charte, « toute enveloppe posée autour
+    // DOIT porter une largeur »).
+    <div data-visite="oeuvre-frontispice" style={{
       minHeight: '60vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', fontFamily: SERIF,
       // ⛔ Rembourrage SYMÉTRIQUE. Il ne l'était pas : le côté droit valait 110px contre
