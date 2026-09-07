@@ -28,6 +28,10 @@ import {
 // veille. Une rubrique d'axe, des options en liste verticale, l'option retenue sur
 // pastille verte : trois formes recopiées de moins.
 import { RUBRIQUE_AXE, OPTION_VOLET } from '@/app/lib/stylesVoletLecture'
+import VisiteGuidee from '@/app/components/VisiteGuidee'
+import { CLE_VISITE_RECHERCHE, VISITE_RECHERCHE } from '@/app/lib/visiteRecherche'
+import { oublierVisite, visiteFaite } from '@/app/lib/visiteGuidee'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
@@ -774,6 +778,41 @@ export default function RechercheClient() {
   }
   useEffect(() => arreterDefilement, [])
 
+  // ── LA VISITE ──────────────────────────────────────────────────────────────
+  // Ce que la page montre d'elle-même la première fois qu'on l'ouvre (charte § 46).
+  //
+  // ⛔ ELLE ATTEND DES RÉSULTATS, et c'est le point qui commande tout le reste :
+  // quatre de ses six arrêts n'existent pas sur une page vide — ni les onglets, ni
+  // leur répartition, ni le bouton qui garde la recherche, ni le moindre résultat.
+  // ⛔ Et l'on ne tape PAS à la place du lecteur pour s'en donner : une visite montre
+  // la page telle qu'il l'a ouverte.
+  // ⚠️ L'état est un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle
+  // est déjà ouverte, la visite repart de son grand message, et le composant ne s'y
+  // remet qu'en se REMONTANT. Le compteur lui sert de clé.
+  // ⛔ Et l'offre ne se fait qu'UNE fois : sans le témoin, chaque recherche nouvelle
+  // la rouvrirait.
+  const [visite, setVisite] = useState(0)
+  const resultatsPrets = done && (versetsTotal + segmentsTotal + essaisRes.length) > 0
+  const visiteProposee = useRef(false)
+  useEffect(() => {
+    if (!resultatsPrets || visiteProposee.current) return
+    visiteProposee.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_RECHERCHE)
+    else if (visiteFaite(CLE_VISITE_RECHERCHE)) return
+    const depart = window.setTimeout(() => setVisite(1), 260)
+    return () => window.clearTimeout(depart)
+  }, [resultatsPrets])
+
+  // La page OFFRE sa visite à la barre de navigation, qui porte le bouton qui la
+  // rappelle (voir app/lib/demandeDeVisite.ts). ⚠️ Elle ne l'offre que TANT QU'IL Y A
+  // DES RÉSULTATS : le bouton disparaît sur une page vide, où la visite n'aurait rien
+  // à cerner, et reparaît dès qu'une recherche répond.
+  useEffect(() => {
+    if (!resultatsPrets) return
+    return offrirLaVisite(() => setVisite(n => n + 1))
+  }, [resultatsPrets])
+
   return (
     <>
       <style>{`
@@ -962,7 +1001,7 @@ export default function RechercheClient() {
                 DANS le champ, rien autour, un filet en pied qui le sépare de ce qu'il
                 commande, et un fond léger au seul foyer. */}
             {/* Champ principal */}
-            <div style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)' }}>
+            <div data-visite="recherche-champ" style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)' }}>
               <input ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
@@ -1021,7 +1060,7 @@ export default function RechercheClient() {
             <div style={{ display:'flex', flexDirection:'column', gap:'11px' }}>
               {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
                   explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
-              <div>
+              <div data-visite="recherche-mode">
                 <p style={{ ...RUBRIQUE_AXE, margin:'0 0 3px', display:'flex', alignItems:'center', gap:'4px' }}>
                   Mode de recherche
                   <span className="expl-wrap">
@@ -1065,7 +1104,7 @@ export default function RechercheClient() {
               {/* « Chercher dans » (périmètre) et « Afficher en » (traduction montrée),
                   côte à côte pour tenir sur une seule ligne. « Afficher en » ne disparaît
                   jamais : il commande l'affichage quel que soit le périmètre. */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
+              <div data-visite="recherche-perimetre" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
                 <div>
                   <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Chercher dans</p>
                   <select className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
@@ -1088,7 +1127,7 @@ export default function RechercheClient() {
                   « Enregistrer » mémorise mot(s), page et position ; si une AUTRE recherche est
                   déjà mémorisée, une fenêtre demande d'abord confirmation d'écrasement. */}
               {((done && (versetsTotal + segmentsTotal + essaisRes.length) > 0) || rechercheSauvee) && (
-                <div style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
+                <div data-visite="recherche-garder" style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsTotal + segmentsTotal + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
                       style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'transparent', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' }}
@@ -1128,7 +1167,7 @@ export default function RechercheClient() {
               défilent si l'écran est court. Les libellés longs passent à la ligne au lieu
               d'être coupés. */}
           {done && (
-            <nav style={{ flex:1, minHeight:0, maxHeight: mobile ? '45vh' : undefined, overflowY:'auto', borderTop:'1px solid var(--cs-bord-clair)', padding:'6px 0 10px' }}>
+            <nav data-visite="recherche-onglets" style={{ flex:1, minHeight:0, maxHeight: mobile ? '45vh' : undefined, overflowY:'auto', borderTop:'1px solid var(--cs-bord-clair)', padding:'6px 0 10px' }}>
               {([
                 { k:'bible', label:'Bible', n:versetsTotal },
                 { k:'polyglotte', label:'Polyglotte', n:versetsTotal },
@@ -1572,6 +1611,12 @@ export default function RechercheClient() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* La visite, en dernier : elle se rend dans un portail vers le corps du
+          document, et son voile passe au-dessus de tout ce que la page porte. */}
+      {visite > 0 && (
+        <VisiteGuidee key={visite} visite={VISITE_RECHERCHE} onFin={() => setVisite(0)} />
       )}
     </>
   )
