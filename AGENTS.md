@@ -6320,6 +6320,36 @@ la colonne étroite d'une fiche, elle ne se lit pas.
 La doctrine est dans la charte, § 46 : ce qu'une visite dit, ce qu'elle ne dit pas, et
 sa forme (case / trait / case). Ici, sa mécanique.
 
+⛔ **LE TEXTE D'UNE VISITE EST ENRICHI, ET IL PASSE PAR LE RENDERER DU SITE**
+(reprise de l'auteur, 2026-09-07). `VisiteGuidee.tsx` rendait `{paragraphe}` brut :
+un scénario qui écrit `**Classique**` imprimait ses astérisques. Les paragraphes
+d'une étape et ceux de l'accroche passent désormais par
+`rendreMarquesNote(normaliserEspaces(p), rang)`.
+- ⛔ **`rendreMarquesNote` (`app/lib/texteEnrichiEssai.tsx`) est la SEULE écriture** de
+  `**gras**`, `*italique*`, `++petites capitales++` et `^^exposant^^` sur le site :
+  elle sert déjà la fiche d'auteur, la bulle d'une note et le volet d'un essai. Ne pas
+  écrire ici un second lecteur de ces marques. ⚠️ Ce n'est PAS `rendreEnrichi`
+  (`enrichissements.tsx`), qui ne connaît que l'italique et les siècles, ni
+  `rendreTexteEnrichi`, qui appartient au corpus et pose des appels de note.
+- ⚠️ **La typographie se pose au RENDU, jamais dans le scénario** (charte § 3.2) :
+  `normaliserEspaces` met la fine insécable dans « Jean 3, 16 » et l'insécable devant
+  un deux-points. Elle CONVERTIT le type d'espace et ne change pas la longueur.
+- ⚠️ **Le gras nomme une COMMANDE de l'interface**, jamais une emphase : ces mots-là
+  sont écrits à l'écran, à l'endroit que la case désigne. 20 paragraphes sur 89 en
+  portent (relevé du 2026-09-07). Les TITRES restent nus.
+- ⚠️ **Le registre est celui d'un MANUEL** : titre d'arrêt nominal et court (39 sur 39
+  sans verbe en tête), texte qui énonce ce que la chose fait, accroche d'une phrase,
+  et le titre du message d'ouverture est le NOM de la page. ⛔ La formule « Quelques
+  étapes suffisent à vous montrer… », qui fermait les six accroches, est retirée.
+- ⚠️ **Un arrêt peut porter QUATRE paragraphes** quand il présente un axe à quatre
+  états — le « Modes » de la recherche, seul cas sur les 39. La règle de la charte
+  (« deux ou trois ») le dit désormais.
+- **Le relevé se refait, il ne se recopie pas** : `tmp/extraire-visites.mts` importe
+  les six scénarios et dumpe `tmp/visites.json` ; `tmp/faire-textes-visite.mjs` en
+  tire `tmp/textes-visite.txt`, dont la section de fin (titres répétés, paragraphes
+  partagés, longueurs, emploi du gras) est CALCULÉE à chaque exécution. ⛔ Ne jamais
+  y écrire un constat à la main : il devient faux au premier réglage.
+
 ⛔ **AUCUNE ÉTAPE SUR LA BARRE, SAUF DANS LA VISITE DE L'ACCUEIL** (décisions de
 l'auteur, 2026-09-06 au soir, dans cet ordre). Les visites de page en ont porté une, sur
 un contresens de ma part : « présenter la recherche » visait le champ du VOLET. La
