@@ -11,6 +11,8 @@ import Link from 'next/link'
 import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { PAGES_ESPACE, type GroupeAncres, type PageEspace } from '@/app/lib/espaceLecteurNavigation'
+import PortraitLecteur from '@/app/components/PortraitLecteur'
+import { CADRAGE_PAR_DEFAUT } from '@/app/lib/portraits'
 
 // ── Le sommaire ──────────────────────────────────────────────────────────────
 
@@ -108,6 +110,43 @@ export function BandeauEspace({ visage, pseudo, reperes, hrefPublic }: {
   )
 }
 
+/** Le bandeau d'une page de l'espace, portrait compris.
+ *
+ *  ⛔ Les trois pages le composaient chacune pour elle-même : douze lignes de cadrage
+ *  recopiées, dont deux exemplaires seulement avant que la chaîne n'en demande un
+ *  troisième. Trois copies d'une même forme ne restent identiques que par accident.
+ *
+ *  ⚠️ Le lecteur est décrit par sa FORME et non par le type `ProfilLecteur` : celui-ci
+ *  vit dans le cadre (`EspaceCompte`), qui importe déjà la feuille d'ici, et les deux
+ *  modules se noueraient. */
+export type LecteurDuBandeau = {
+  pseudo: string
+  avatar_ref: string | null
+  avatar_pos_x: number | null
+  avatar_pos_y: number | null
+  avatar_zoom: number | null
+}
+
+export function BandeauLecteur({ lecteur, reperes }: { lecteur: LecteurDuBandeau; reperes: string }) {
+  return (
+    <BandeauEspace
+      pseudo={lecteur.pseudo}
+      reperes={reperes}
+      hrefPublic={`/profil/${encodeURIComponent(lecteur.pseudo)}`}
+      visage={
+        <PortraitLecteur
+          refPortrait={lecteur.avatar_ref}
+          cadrage={{
+            posX: lecteur.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
+            posY: lecteur.avatar_pos_y ?? CADRAGE_PAR_DEFAUT.posY,
+            zoom: lecteur.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
+          }}
+          initiale={lecteur.pseudo}
+          taille={52} />
+      } />
+  )
+}
+
 // ── Une section de page, et son titre ────────────────────────────────────────
 
 export function Section({ id, titre, children }: { id: string; titre: string; children: React.ReactNode }) {
@@ -148,7 +187,12 @@ export function Rangee({ label, pour, children, note }: {
 export const FEUILLE_ESPACE = `
 .esp-cadre { display: flex; gap: 34px; max-width: 54rem; margin: 0 auto;
   padding: 28px 24px 90px; align-items: flex-start; }
-.esp-sommaire { width: 12.5rem; flex-shrink: 0; position: sticky; top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
+/* ⚠️ 13,5rem et non 12,5 depuis que les onglets sont TROIS : « Mon compte » et
+   « Mon parcours » en demandaient 135 px à eux deux, « Ma chaîne » en ajoute une
+   soixantaine, et les libellés se coupaient en deux lignes. On élargit la colonne
+   plutôt que d'abréger ce que l'auteur a nommé — une mesure est un réglage, un nom
+   est une décision. */
+.esp-sommaire { width: 13.5rem; flex-shrink: 0; position: sticky; top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
 .esp-page { flex: 1; min-width: 0; }
 
 /* ⛔ Le sommaire suit le VOLET DE LA BIBLE : rubrique en casse ordinaire, rangée
@@ -156,9 +200,11 @@ export const FEUILLE_ESPACE = `
    PASTILLE et de rien d'autre. L'auteur a refusé le filet à gauche le 1er septembre
    2026 ; les valeurs sont celles de app/lib/stylesVoletLecture.ts. */
 .esp-onglets { display: flex; margin: 0 0 16px; border-bottom: 1px solid var(--cs-bord-clair); }
-.esp-onglets a { flex: 1; text-align: center; padding: 0 4px 7px; font-size: 0.71875rem;
-  text-decoration: none; color: var(--cs-texte-second); border-bottom: 2px solid transparent;
-  margin-bottom: -1px; }
+/* ⚠️ Le rembourrage tombe de 4 à 2 px, et le libellé ne se coupe plus : trois onglets
+   dans une colonne, la place se prend d'abord sur les blancs. */
+.esp-onglets a { flex: 1; text-align: center; padding: 0 2px 7px; font-size: 0.71875rem;
+  white-space: nowrap; text-decoration: none; color: var(--cs-texte-second);
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .esp-onglets a[aria-current] { color: var(--cs-vert); font-weight: 600;
   border-bottom-color: var(--cs-vert); }
 .esp-rubrique { display: block; font-size: 0.59375rem; font-weight: 600; letter-spacing: 0.06em;

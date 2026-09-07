@@ -24,10 +24,9 @@ import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { themeValide, type Theme } from '@/app/lib/theme'
 import { useEspace } from '@/app/compte/EspaceCompte'
-import { BandeauEspace, Rangee, Section, SommaireEspace } from '@/app/compte/piecesEspace'
+import { BandeauLecteur, Rangee, Section, SommaireEspace } from '@/app/compte/piecesEspace'
 import { ANCRES_COMPTE } from '@/app/lib/espaceLecteurNavigation'
 import { Interrupteur, inputStyle, LigneEnregistrer, type Statut } from '@/app/compte/champsCompte'
-import PortraitLecteur from '@/app/components/PortraitLecteur'
 import { CADRAGE_PAR_DEFAUT, type Cadrage } from '@/app/lib/portraits'
 import { ModaleCadrage, ModalePortrait, type PortraitChoisi } from '@/app/compte/ModalesPortrait'
 import BlocConnexion from '@/app/compte/BlocConnexion'
@@ -143,21 +142,7 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
       <SommaireEspace page="compte" groupes={ANCRES_COMPTE} />
 
       <div className="esp-page">
-        <BandeauEspace
-          pseudo={profil.pseudo}
-          reperes={reperes || 'Votre compte'}
-          hrefPublic={`/profil/${encodeURIComponent(profil.pseudo)}`}
-          visage={
-            <PortraitLecteur
-              refPortrait={profil.avatar_ref}
-              cadrage={{
-                posX: profil.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
-                posY: profil.avatar_pos_y ?? CADRAGE_PAR_DEFAUT.posY,
-                zoom: profil.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
-              }}
-              initiale={profil.pseudo}
-              taille={52} />
-          } />
+        <BandeauLecteur lecteur={profil} reperes={reperes || 'Votre compte'} />
 
         <Section id="identite" titre="Identité">
           <Rangee label="Portrait" note="Choisi parmi les visages qui illustrent déjà les Pères et les traducteurs.">

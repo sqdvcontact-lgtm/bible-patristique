@@ -14,10 +14,8 @@ import { useEffect, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from '@/app/lib/supabase'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
-import { CADRAGE_PAR_DEFAUT } from '@/app/lib/portraits'
-import PortraitLecteur from '@/app/components/PortraitLecteur'
 import { useEspace } from '@/app/compte/EspaceCompte'
-import { BandeauEspace, Section, SommaireEspace } from '@/app/compte/piecesEspace'
+import { BandeauLecteur, Section, SommaireEspace } from '@/app/compte/piecesEspace'
 import { ancresParcours } from '@/app/lib/espaceLecteurNavigation'
 import type { MarquesLecteur } from '@/app/lib/parcoursLecteur'
 import ParcoursDecouverte from '@/app/compte/ParcoursDecouverte'
@@ -95,21 +93,7 @@ export default function PageParcours() {
       <SommaireEspace page="parcours" groupes={ancresParcours(hautsFaits?.series ?? [])} />
 
       <div className="esp-page">
-        <BandeauEspace
-          pseudo={profil.pseudo}
-          reperes={reperes || 'Votre parcours'}
-          hrefPublic={`/profil/${encodeURIComponent(profil.pseudo)}`}
-          visage={
-            <PortraitLecteur
-              refPortrait={profil.avatar_ref}
-              cadrage={{
-                posX: profil.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
-                posY: profil.avatar_pos_y ?? CADRAGE_PAR_DEFAUT.posY,
-                zoom: profil.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
-              }}
-              initiale={profil.pseudo}
-              taille={52} />
-          } />
+        <BandeauLecteur lecteur={profil} reperes={reperes || 'Votre parcours'} />
 
         <Section id="rang" titre="Rang">
           {lecture

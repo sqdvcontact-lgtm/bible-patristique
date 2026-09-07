@@ -34,6 +34,51 @@ function fichiersTsx(dossier: string): string[] {
   return sortie
 }
 
+/** ⚠️ Une feuille peut vivre dans un module SANS composant — `stylesControle.ts`,
+ *  `stylesAudience.ts` — et la posture d'origine, qui ne lisait que les `.tsx`, ne les
+ *  aurait jamais ouverts. */
+function fichiersTs(dossier: string): string[] {
+  const sortie: string[] = []
+  for (const nom of readdirSync(dossier)) {
+    const chemin = join(dossier, nom)
+    if (statSync(chemin).isDirectory()) sortie.push(...fichiersTs(chemin))
+    else if (nom.endsWith('.ts') && !nom.endsWith('.test.ts') && !nom.endsWith('.d.ts')) sortie.push(chemin)
+  }
+  return sortie
+}
+
+/** Les feuilles rangées dans une CONSTANTE et posées par `<style>{NOM}</style>`.
+ *
+ *  ⛔ La garde ne visait que les gabarits écrits DANS le bloc, et onze feuilles du site
+ *  vivent ailleurs — `FEUILLE_ESPACE`, `CSS_CONTROLE`, `STYLES_FICHE`… Elles courent
+ *  exactement le même risque, et le trou s'est payé le 2026-09-07 sur « Ma chaîne » : un
+ *  commentaire CSS qui nommait une propriété entre accents graves a fermé le gabarit, et
+ *  la feuille de la page a disparu. ⚠️ Là, le fichier ne s'est PAS parsé — c'est un
+ *  hasard heureux, non la règle : deux accents graves qui se referment sur un texte sans
+ *  ponctuation JS passent le parseur, et la feuille s'en va en silence. */
+function nomsDesFeuilles(sources: string[]): Set<string> {
+  const noms = new Set<string>()
+  for (const source of sources) {
+    const motif = /<style>\{\s*([A-Za-z_$][\w$]*)\s*\}<\/style>/gu
+    let trouve: RegExpExecArray | null
+    while ((trouve = motif.exec(source))) noms.add(trouve[1])
+  }
+  return noms
+}
+
+/** Le corps d'une feuille de constante : du gabarit ouvrant à la ligne qui le ferme.
+ *
+ *  ⚠️ On ne peut pas se fier au « premier accent grave » pour trouver la fin : c'est
+ *  justement le défaut qu'on cherche, et il déplacerait la borne avant lui. La borne est
+ *  donc la CONVENTION du dépôt, un accent grave seul en tête de ligne. */
+function corpsDeFeuille(source: string, nom: string): { debut: number; contenu: string } | null {
+  const ouverture = new RegExp(`const\\s+${nom}\\s*=\\s*\``, 'u').exec(source)
+  if (!ouverture) return null
+  const debut = ouverture.index + ouverture[0].length
+  const fin = /^`/mu.exec(source.slice(debut))
+  return { debut, contenu: source.slice(debut, fin ? debut + fin.index : source.length) }
+}
+
 /** Les blocs `<style>` de gabarit d'un fichier, avec leur position. */
 function blocsDeStyle(source: string): { debut: number; contenu: string }[] {
   const blocs: { debut: number; contenu: string }[] = []
@@ -89,5 +134,44 @@ describe('les blocs `<style>` de gabarit', () => {
     const blocs = blocsDeStyle(piege)
     expect(blocs).toHaveLength(1)
     expect(blocs[0].contenu).toContain('`')
+  })
+})
+
+describe('les feuilles rangées dans une constante', () => {
+  const fichiers = [...fichiersTsx(RACINE), ...fichiersTs(RACINE)]
+  const sources = new Map(fichiers.map(f => [f, readFileSync(f, 'utf8')]))
+  const noms = nomsDesFeuilles([...sources.values()])
+
+  it('sont bien trouvées, et elles sont nombreuses', () => {
+    // Un balayage qui ne trouve plus rien est un balayage cassé, non un dépôt propre.
+    expect(noms.size).toBeGreaterThan(5)
+  })
+
+  it('ne portent aucun accent grave, qui refermerait le gabarit', () => {
+    const fautifs: string[] = []
+    for (const [fichier, source] of sources) {
+      for (const nom of noms) {
+        const corps = corpsDeFeuille(source, nom)
+        if (!corps) continue
+        const motif = /`/gu
+        let trouve: RegExpExecArray | null
+        while ((trouve = motif.exec(corps.contenu))) {
+          const position = trouve.index
+          // Même exception que ci-dessus : un gabarit ÉPISSÉ borde un opérateur.
+          if (/^\s*\+/u.test(corps.contenu.slice(position + 1)) || /\+\s*$/u.test(corps.contenu.slice(0, position))) continue
+          const ligne = source.slice(0, corps.debut + position).split('\n').length
+          const extrait = corps.contenu.slice(Math.max(0, position - 50), position + 20).replace(/\s+/gu, ' ')
+          fautifs.push(`${fichier.replace(process.cwd(), '')}:${ligne} (${nom}) — …${extrait}…`)
+        }
+      }
+    }
+    expect(fautifs).toEqual([])
+  })
+
+  it('refuse l’accent grave posé au milieu d’une feuille de constante', () => {
+    const piege = 'const FEUILLE_X = `\n/* la propriété `gap` se pose ici */\n.a { gap: 4px; }\n`\n'
+    const corps = corpsDeFeuille(piege, 'FEUILLE_X')
+    expect(corps).not.toBeNull()
+    expect(corps!.contenu).toContain('`')
   })
 })

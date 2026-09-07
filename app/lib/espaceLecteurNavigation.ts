@@ -16,13 +16,17 @@
 // qui saute à une ancre de la page courante n'a rien à expliquer, puisque la section
 // est sous les yeux.
 
-/** Les deux pages de l'espace. ⛔ Deux, et pas une de plus : ce qu'on REGARDE et ce
- *  qu'on RÈGLE ne se visitent ni à la même heure ni pour la même raison. */
-export type PageEspace = 'compte' | 'parcours'
+/** Les pages de l'espace. ⛔ Une page ne s'ajoute ici que si elle porte une NATURE que
+ *  les autres n'ont pas : ce qu'on RÈGLE, ce qu'on REGARDE, ce qu'on a ÉCRIT ne se
+ *  visitent ni à la même heure ni pour la même raison. Elles étaient deux du 1er au
+ *  7 septembre 2026, et la troisième ne découpe pas les deux premières : la chaîne du
+ *  lecteur n'est ni un réglage ni une gratification, c'est sa matière à lui. */
+export type PageEspace = 'compte' | 'parcours' | 'chaine'
 
 export const PAGES_ESPACE: { cle: PageEspace; href: string; label: string }[] = [
   { cle: 'compte', href: '/compte', label: 'Mon compte' },
   { cle: 'parcours', href: '/compte/parcours', label: 'Mon parcours' },
+  { cle: 'chaine', href: '/compte/chaine', label: 'Ma chaîne' },
 ]
 
 /** Une entrée du sommaire : le titre d'une section, et l'ancre où elle se trouve. */
@@ -71,10 +75,32 @@ export function ancresParcours(series: { serie: string; nom: string }[]): Groupe
   return groupes
 }
 
+/** Le sommaire de « Ma chaîne » : les livres qu'on a glosés, sous leur rubrique.
+ *
+ *  ⚠️ Comme celui du parcours, il se déduit de ce que la page PORTE : un lecteur ne
+ *  glose pas deux fois le même canon, et un sommaire qui listerait les soixante-treize
+ *  livres serait une table de ce qu'il n'a pas écrit.
+ *
+ *  ⛔ Le paramètre est décrit par sa FORME, non par le type `GroupeChaine` : le module
+ *  de la chaîne connaît déjà celui-ci, et s'importer l'un l'autre les nouerait. */
+export function ancresChaine(
+  groupes: { ancre: string; nom: string; rubrique: string }[],
+): GroupeAncres[] {
+  const par = new Map<string, AncreEspace[]>()
+  for (const g of groupes) {
+    const ancres = par.get(g.rubrique)
+    if (ancres) ancres.push({ id: g.ancre, label: g.nom })
+    else par.set(g.rubrique, [{ id: g.ancre, label: g.nom }])
+  }
+  return [...par.entries()].map(([rubrique, ancres]) => ({ rubrique, ancres }))
+}
+
 /** Quelle page on regarde, d'après le chemin.
  *
- *  ⛔ Ne pas se contenter d'un `startsWith` : « /compte » est le préfixe de
- *  « /compte/parcours », et l'onglet resterait allumé sur les deux. */
+ *  ⛔ Ne pas se contenter d'un `startsWith` : « /compte » est le préfixe des deux
+ *  autres, et l'onglet resterait allumé sur les trois. */
 export function pageCourante(chemin: string): PageEspace {
-  return chemin.startsWith('/compte/parcours') ? 'parcours' : 'compte'
+  if (chemin.startsWith('/compte/parcours')) return 'parcours'
+  if (chemin.startsWith('/compte/chaine')) return 'chaine'
+  return 'compte'
 }
