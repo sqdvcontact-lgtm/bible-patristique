@@ -2367,7 +2367,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            ⚠️ Il reste une coupure de LIGNE à chaque empan : aucune écriture CSS ne fait
            couler un texte d'un rang au suivant en gardant deux colonnes accordées.
            ⚠️ Deux classes au sélecteur, sinon .para-bilingue > p l'emporterait. */
-        .para-bilingue--couture { border-bottom: none; margin-bottom: 0; }
+        /* ⛔ DEUX RANGS DE SÉPARATEUR, et ils ne disent pas la même chose (2026-09-07,
+           le soir). Le filet PLEIN — 0,55 et deux blancs de 0,85 rem — ferme le
+           paragraphe. Le filet PÂLE — 0,22 et un cheveu de 0,18 rem de part et d'autre —
+           marque l'empan : c'est l'unité qui tient les deux colonnes en face l'une de
+           l'autre, et sans lui la page en regard redevient un mur. Le blanc va de 1,7 rem
+           à 0,36, la teinte de 0,55 à 0,22 : personne ne prendra l'un pour l'autre.
+           ⚠️ Cousu SANS aucune marque, l'empan cessait d'être visible : c'est le reproche
+           de l'auteur le soir même, et il est juste — un empan qu'on ne voit pas ne met
+           plus rien en regard. Jugé sur planche (tmp/planche-filet-empan.html), qui rend
+           les quatre valeurs sur le passage réel du Discours 38.
+           ⚠️ La COULEUR seule est reprise : le style et l'épaisseur viennent de
+           .para-bilingue, et .para-bilingue--vers, qui pose « none », garde la main —
+           une strophe ne se sépare toujours pas par un filet. */
+        .para-bilingue--couture { border-bottom-color: rgba(var(--cs-bord-rgb),0.22); padding-bottom: 0.18rem; margin-bottom: 0.18rem; }
         .para-bilingue--couture > p, .para-bilingue--couture > div { margin-bottom: 0 !important; }
         /* Le texte en langue originale se lit en sérif comme le reste de l'œuvre.
            SEULE exception : mis EN REGARD du français, il passe en sans-serif. La
