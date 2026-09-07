@@ -303,6 +303,28 @@ Si une unité mélange matériellement la dernière entrée du sommaire et le co
 
 Dans la prose courante, aucune espace ne se place immédiatement après une parenthèse ouvrante ni immédiatement avant une parenthèse fermante. Les formes `( mot )`, `( mot)` et `(mot )` sont normalisées en `(mot)`, sauf nécessité explicitement imposée par un contenu technique ou un fac-similé dont l’espace est lui-même sémantique. Cette règle vaut également dans les notes structurées.
 
+### 3.10 Une minuscule d’ouverture : émendation ou défaut d’import
+
+Décision de l’auteur, 7 septembre 2026. Une édition ancienne ouvre souvent une phrase par une minuscule, le point y marquant une respiration rhétorique plutôt qu’une fin de période. **Cette forme ne se conserve pas.** Elle se corrige, de deux façons et jamais d’une troisième : la CAPITALE portée à l’initiale, ou le POINT-VIRGULE mis à la place du point, la minuscule étant alors gardée. C’est une émendation typographique au sens du § 14.3, non une modernisation de la langue au sens du § 1.1 : ni le vocabulaire, ni les désinences, ni la syntaxe, ni l’orthographe historique ne sont touchés.
+
+⛔ **L’arbitrage est CAS PAR CAS, jamais une règle passée sur un texte entier.** Aucun critère mécanique ne distingue la période qui s’achève de celle qui se poursuit ; seule la lecture le fait. Un relevé peut proposer, il ne décide pas.
+
+⛔ **Après `?` ou `!`, seule la capitale est possible** : un point-virgule y ferait perdre l’interrogation ou l’exclamation.
+
+⚠️ **On ne touche pas à une minuscule qui suit une ponctuation FAIBLE.** Après une virgule, un deux-points ou un point-virgule, la minuscule est correcte, en 1604 comme aujourd’hui : la phrase continue, et il n’y a rien à corriger. Relevé sur le *Discours 38* (Morel 1604) : des 60 segments qui ouvrent en minuscule, **30 sont dans ce cas**, soit la moitié du relevé brut. Un chantier qu’on ne borne pas d’abord est deux fois plus gros qu’il n’est.
+
+⛔ **Un point d’abréviation n’est pas une fin de phrase.** « ceste victime esgalle d’aage à N. S. sacrifié auparavant la nouvelle hostie » : `N. S.` est *Nostre Seigneur*, et « sacrifié » un participe ; capitaliser y casserait la phrase. ⚠️ Et la garde se borne à la CAPITALE ISOLÉE : un mot court capitalisé — « se cacha de devant Dieu. », « le retour au premier Adam. » — ferme une vraie phrase, et l’écarter ferait manquer trois corrections légitimes sur le seul *Discours 38*.
+
+**Une émendation n’est pas une réparation d’import.** Avant de corriger, on établit lequel des deux on regarde, et cela ne se devine pas au premier segment venu.
+
+Le test est INTERNE au segment : on compte ce que l’édition fait, à l’intérieur d’un même segment, après une ponctuation forte. Si elle y met tantôt la capitale et tantôt la minuscule, c’est son habitude, la minuscule d’ouverture est attestée, et l’émendation est un choix éditorial. Mesuré sur le *Discours 38* : **14 capitales contre 15 minuscules** sur 29 occurrences internes. L’édition fait les deux, délibérément.
+
+⛔ **Si l’édition met la capitale à l’intérieur et jamais en tête de segment, la minuscule ne vient pas d’elle.** C’est l’import qui a retiré quelque chose, et corriger effacerait la trace du défaut au lieu de le réparer — ce que le § 12.2 interdit. Relevé le 7 septembre 2026, la *Somme théologique* porte **1 757** segments dans ce cas, pour une traduction de 1984 qui n’a aucune raison d’avoir la ponctuation d’un imprimé de 1604 : c’est la formule du *sed contra* qui a sauté à l’import, et le compte le prouve — **103 segments portent encore « En sens contraire » ou « Cependant », 1 815 ouvrent en minuscule**. Ces cas se RÉPARENT, ils ne se capitalisent pas.
+
+⚠️ **Le corpus porte les deux familles ensemble**, et il faut les séparer avant tout geste. Au 7 septembre 2026, minuscules ouvrant après une ponctuation forte : *Somme théologique* 1 757, Heptateuque latin de Zycha 289, Homélies sur la Genèse (Jeannin) 157, Confessions françaises 35, Cité de Dieu latine 32, *Discours 38* (Morel) 30. Un même geste passé sur les six serait juste une fois et faux cinq fois.
+
+**La leçon d’origine se conserve**, selon le § 14.3 : la correction retenue et la leçon imprimée restent distinctes, et une émendation discutable porte sa note éditoriale. ⛔ Une passe de correction qui ne laisserait aucune trace de ce qu’elle a changé n’est pas une émendation, c’est une perte.
+
 ## 4. Lacunes, absences et alignement biblique
 
 ### 4.1 Lacune d’une œuvre
@@ -1265,7 +1287,7 @@ Les cardinalités `1:1`, `1:n`, `n:1`, `n:m`, `1:0` et `0:1` sont admises lorsqu
 
 ⚠️ La règle inverse a valu du 24 août au 7 septembre 2026, et le *Discours 38* de Grégoire de Nazianze l’a démentie : son alignement, posé au SEGMENT, compte 76 groupes sur un corps de deux paragraphes, et le lecteur en tirait 76 blocs, chacun sous son filet et son blanc. On y lisait donc soixante-seize paragraphes ouverts en minuscule — « ces choses là… », « ce qu’endure aussi maintenant le Verbe… », « aussi ont faict les Juifs… » — là où Morel n’en a écrit qu’un, dont ces minuscules sont justement la preuve.
 
-⛔ **Une frontière d’alignement ne pose jamais un blanc, un filet ni un `<p>` là où le paragraphe de l’édition continue.** Un changement de groupe peut décaler la correspondance HORIZONTALE entre les colonnes ; il ne crée pas une rupture verticale. Et l’on ne « corrige » jamais en base une minuscule d’ouverture pour masquer un défaut d’affichage : cette minuscule est la trace d’une phrase qui continue, et l’effacer détruirait la preuve au lieu du défaut.
+⛔ **Une frontière d’alignement ne pose jamais un blanc, un filet ni un `<p>` là où le paragraphe de l’édition continue.** Un changement de groupe peut décaler la correspondance HORIZONTALE entre les colonnes ; il ne crée pas une rupture verticale. Et l’on ne « corrige » jamais en base une minuscule d’ouverture pour masquer un défaut d’affichage : cette minuscule est la trace d’une phrase qui continue, et l’effacer détruirait la preuve au lieu du défaut. ⚠️ Une fois le rendu juste, corriger cette même minuscule redevient possible ; mais c’est alors une émendation délibérée, arbitrée cas par cas, et elle relève du § 3.10.
 
 ⛔ **LA COUTURE.** Les rangs d’un même paragraphe se TOUCHENT : ni filet, ni blanc, ni retrait, et rien ne dit au lecteur qu’il change de paragraphe. Seul le DERNIER rang d’un paragraphe le ferme. ⚠️ Il reste une coupure de LIGNE à chaque empan, et elle est irréductible : aucune écriture CSS ne fait couler un texte d’un rang de grille au suivant en gardant deux colonnes accordées. Une page en regard se paie de ce prix-là ; elle ne se paie pas de soixante-seize faux paragraphes.
 
