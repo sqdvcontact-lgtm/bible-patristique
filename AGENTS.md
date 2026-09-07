@@ -7365,3 +7365,33 @@ dans la Vulgate, **3 dans la colonne de l'AELF**, qui est la référence de l'os
   reprendre à la source.
 - **TR0013 concentre 30 des 62 absences isolées** (Marc, Actes, Jean, Ruth, Juges…). C'est le
   chantier de la Bible 899, tenu par l'auteur et par GPT : relevé, non touché.
+
+# ⛔ Réalignement de la Vulgate — le témoin qui traduit tranche (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.30**. Règles de code et de méthode :
+
+- ⛔ **DEUX TÉMOINS QUI PORTENT LE MÊME VERSET SOUS LE MÊME NUMÉRO ET TOMBENT DANS DEUX
+  CRÉNEAUX DIFFÉRENTS SIGNALENT UN FAUX.** Sacy traduit la Vulgate : leurs alignements ne
+  peuvent pas diverger sans que l'un des deux soit faux, et c'est le texte de la TOL/AELF
+  qui tranche. Le contrôle du 2026-09-07 a joué ce critère deux fois, et Sacy était juste
+  les deux fois. ⚠️ C'est un critère de RELEVÉ à ajouter un jour au détecteur : aujourd'hui
+  il ne compare pas deux témoins entre eux, seulement chacun au canon.
+- **Lv 15, 20-23 et Nb 20, 29 de la Vulgate ont changé de créneau** ; `ordre_slot` suit.
+  ⛔ Ni le texte, ni `ch_orig`, `v_orig`, `v_orig_suffixe`, ni `canon_id_fin` n'ont bougé —
+  postcheck à zéro sur les dix lignes. Sauvegarde
+  `internal.backup_versets_realign_vulgate_20260907`, retour arrière
+  `sql/rollback_realignement_vulgate_20260907.sql`.
+- ⚠️ **Le relevé compte désormais UNE ABSENCE DE PLUS chez la Vulgate, et c'est un progrès** :
+  le décalage occupait Lv 15, 23 d'un verset qui n'est pas le sien et masquait ainsi une
+  absence réelle. Un compte qui monte après une correction n'est pas une régression.
+- ⛔ **Une note DEVENUE FAUSSE se remplace ; une note exacte à laquelle il manque quelque
+  chose s'allonge.** Nb 20, 30 de la Vulgate se disait « surnuméraire, sans créneau dans
+  l'ossature » alors qu'il en a un.
+- ⛔ **Deux lignes MANQUENT et ne se reconstituent pas** (§ 4.1) — le deuil d'Aaron chez Sacy
+  (Nb 20, 30) et la suscription du Ps 12 dans la Vulgate. Inscrites à `points_sensibles`
+  **à la main**, donc SANS la marque de provenance du relevé : c'est ce qui les fait
+  survivre à un `--remplacer` du verseur.
+- ⚠️ **Le critère qui sépare une lacune d'une divergence** : une absence ISOLÉE dans une
+  série que la même édition tient partout ailleurs est une ligne perdue ; un chapitre entier
+  plus court que le canon est une tradition. Les 67 suscriptions du Psautier en sont la
+  mesure : TR0001, TR0003 et TR0005 en portent 67, TR0004 en porte 66.
