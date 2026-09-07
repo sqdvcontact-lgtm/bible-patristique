@@ -722,7 +722,7 @@ une seconde vérité qui attend de contredire la première — `semantic_level` 
 `embedded_title_level` étaient écrits, exposés par la vue, lus par personne, et
 divergeaient déjà quand on les a regardés.
 
-### 7.4. Le VERS — un style, quatre surfaces
+### 7.4. Le VERS — un style, cinq surfaces
 
 La poésie est le premier style qui doive exister PARTOUT. Elle sert surtout le corps
 des œuvres des Pères — la *Consolation* de Boèce en compte 2 305 vers —, mais un
@@ -732,7 +732,7 @@ apparat peut citer un poème, et un livre biblique peut en être un.
 pas ; on ne le coupe pas — on ne coupe pas un alexandrin ; il porte son alinéa
 poétique, sa strophe, et un retrait de suite qui distingue une ligne trop longue du
 vers d'après. Cette règle vit en un seul endroit, `styleLigneDeVers`
-(`app/lib/compositionVers.ts`), et les quatre surfaces la partagent.
+(`app/lib/compositionVers.ts`), et les cinq surfaces la partagent.
 
 ⚠️ **Seuls la police, le corps et l'encre appartiennent à la surface**, et vivent dans
 le BLOC qui porte les lignes. C'est la même distinction que partout ailleurs : le style
@@ -742,8 +742,29 @@ dit ce que la chose est, la surface dit comment elle se compose.
 |---|---|---|
 | Corps d'une œuvre | `segment_metadata.forme = 'vers'` | `styleBlocDeVers` |
 | Apparat d'une œuvre | `segment_metadata.forme = 'vers'` **seulement** | `styleBlocDeVers` |
+| **Introduction d'une œuvre** | `segment_metadata.forme = 'vers'` | `styleBlocArgumentEnVers` |
 | Apparat d'une bible | `form: 'verse'` sur le paragraphe | `STYLE_CORPS` |
 | Texte biblique | *(reste à déclarer — voir plus bas)* | `styleTexteVerset({ enVers })` |
+
+#### L'INTRODUCTION est une surface, et elle a vécu sans le vers
+
+⛔ **Une surface se reconnaît à son CHEMIN de rendu, non à sa place dans la page.**
+L'argument hissé en tête d'une division se rend hors des groupes et hors de la
+pagination : c'est un chemin à part, et il ne savait rien de `forme = vers`. Les 79
+vers de l'*Epigramma* de Dhuoda (*Manuel pour mon fils*, Bondurand 1887) s'y
+composaient en prose justifiée et césurée, un bloc par vers, avec un blanc à chaque
+changement de `paragraphe` (relevé de l'auteur, 7 septembre 2026).
+
+⚠️ Le poème demande pourtant qu'on lise l'INITIALE de chaque vers — « Lector qui
+cupis formulam hanc nosse, capita perquiras apta versorum ». La ligne y porte le sens
+même, et la justification le détruisait. ⛔ C'est le cas général : un vers est une
+unité de SENS autant que de forme, et aucune surface n'a le droit de l'effacer.
+
+⚠️ Seuls les segments de `nature = 'introduction'` empruntent ce chemin. Un vers de
+l'espace `introduction` qui porte une autre nature — les quatre lignes de dédicace du
+*Discours 38*, `apparat_editeur` — reste dans le flux du corps et s'y composait déjà
+juste. **Deux segments voisins d'un même espace peuvent donc suivre deux chemins :
+c'est la nature qui aiguille, et c'est pourquoi une surface se compte au chemin.**
 
 #### Une seule écriture, et c'est l'APPARAT qui l'a imposée
 
