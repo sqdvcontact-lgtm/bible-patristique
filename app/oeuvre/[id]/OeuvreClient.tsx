@@ -42,6 +42,7 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { positionCellule } from '@/app/lib/celluleActions'
 import {
+  limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
@@ -1283,7 +1284,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         'corps',
       ).order('segment_numero').range(from, from + 999)
       if (!lectureTexteEntier && !texteSansNiveaux && n1) {
-        q = n1 === NIV1_LIMINAIRES ? q.is('ref_niv1', null) : q.eq('ref_niv1', n1)
+        q = n1 === NIV1_LIMINAIRES ? limiterRequeteAuxLiminairesSansNiveau(q) : q.eq('ref_niv1', n1)
       }
       return q
     }
@@ -1292,7 +1293,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       'corps',
     ).order('segment_numero').range(0, 999)
     if (!lectureTexteEntier && !texteSansNiveaux && n1) {
-      premierReq = n1 === NIV1_LIMINAIRES ? premierReq.is('ref_niv1', null) : premierReq.eq('ref_niv1', n1)
+      premierReq = n1 === NIV1_LIMINAIRES ? limiterRequeteAuxLiminairesSansNiveau(premierReq) : premierReq.eq('ref_niv1', n1)
     }
     const premier = await premierReq
     if (premier.error) {

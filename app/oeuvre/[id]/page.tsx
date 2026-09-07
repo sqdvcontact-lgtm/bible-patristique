@@ -1,7 +1,9 @@
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
 import { numeroVersetLisible } from '@/app/lib/compositionVersets'
 import {
+  estLiminaireSansNiveau,
   estSegmentDeLApparat,
+  limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
@@ -459,7 +461,7 @@ export default async function OeuvrePage({
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = limiterRequeteSegmentsALaSurface(q, 'corps')
         else if (k === 'nature' && v === 'apparat') q = limiterRequeteSegmentsALaSurface(q, 'apparat')
-        else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
+        else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = limiterRequeteAuxLiminairesSansNiveau(q)
         else q = q.eq(k, v)
       }
       return q
@@ -504,7 +506,7 @@ export default async function OeuvrePage({
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = limiterRequeteSegmentsALaSurface(q, 'corps')
         else if (k === 'nature' && v === 'apparat') q = limiterRequeteSegmentsALaSurface(q, 'apparat')
-        else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = q.is('ref_niv1', null)
+        else if (k === 'ref_niv1' && v === NIV1_LIMINAIRES) q = limiterRequeteAuxLiminairesSansNiveau(q)
         else q = q.eq(k, v)
       }
       return q
@@ -740,9 +742,9 @@ export default async function OeuvrePage({
   // sienne propre pour le chemin inverse). Les deux derniers sont une REPRISE : changer
   // de texte ne ramène pas au début, on retombe sur le même passage, sans le
   // sélectionner. Le client compose ces adresses dans `passageTexte.ts`.
-  type PassageVise = { id: number; ref_niv1: string | null; nature: string | null; reprise: boolean }
+  type PassageVise = { id: number; ref_niv1: string | null; nature: string | null; espace_textuel: string | null; reprise: boolean }
   async function resoudrePassage(): Promise<PassageVise | null> {
-    const colonnes = 'id,ref_niv1,nature'
+    const colonnes = 'id,ref_niv1,nature,espace_textuel'
     if (Number.isFinite(segmentCibleId) && segmentCibleId > 0) {
       const { data } = await supabase.from('segments').select(colonnes)
         .eq('id_oeuvre', id).eq('id_texte', idTexte).eq('id', segmentCibleId).maybeSingle()
@@ -800,7 +802,10 @@ export default async function OeuvrePage({
   const promesseTranche: Promise<{ niv1: string; tranche: { segments: Segment[]; partiel: boolean } } | null> =
     lectureTexteEntier ? Promise.resolve(null) : (async () => {
       const passage = await promessePassage
-      const niv1 = passage?.ref_niv1 ?? sp.niv1?.trim() ?? ''
+      const niv1 = passage?.ref_niv1
+        ?? (passage && estLiminaireSansNiveau(passage) ? NIV1_LIMINAIRES : null)
+        ?? sp.niv1?.trim()
+        ?? ''
       if (!niv1) return null
       return { niv1, tranche: await chargerTrancheTexte({ ref_niv1: niv1, nature: 'texte' }) }
     })().catch((error): null => {
@@ -818,11 +823,12 @@ export default async function OeuvrePage({
     tolerer(degradations, { quoi: 'le texte des versets cités', publique: true }, () => chargerCodesTraductions(supabase), () => [] as string[]),
     tolerer(degradations, { quoi: 'les notes de l’apparat', publique: true }, () => chargerNotesStructurees(idTexte), AUCUNE_NOTE),
     tolerer(degradations, { quoi: 'les notes du texte original', publique: true }, () => chargerNotesStructurees(idTexteEnRegard), AUCUNE_NOTE),
-    limiterRequeteSegmentsALaSurface(
-      supabase.from('segments').select('id', { count: 'exact', head: true })
-        .eq('id_oeuvre', id).eq('id_texte', idTexte)
-        .is('ref_niv1', null),
-      'corps',
+    limiterRequeteAuxLiminairesSansNiveau(
+      limiterRequeteSegmentsALaSurface(
+        supabase.from('segments').select('id', { count: 'exact', head: true })
+          .eq('id_oeuvre', id).eq('id_texte', idTexte),
+        'corps',
+      ),
     ),
     candidatsBilingues.length > 1
       ? Promise.all(candidatsBilingues.map(async alignement => ({
@@ -875,8 +881,10 @@ export default async function OeuvrePage({
   // d'un côté, « Livre premier » de l'autre). Sinon, le premier, comme avant.
   const niv1Nomme = sp.niv1?.trim() ?? ''
   const niv1Demande = niv1Nomme && niv1List.includes(niv1Nomme) ? niv1Nomme : null
-  const premierNiv1 = vueInitiale === 'texte' && segmentCible?.ref_niv1
-    ? segmentCible.ref_niv1
+  const niv1DuPassage = segmentCible?.ref_niv1
+    ?? (segmentCible && estLiminaireSansNiveau(segmentCible) ? NIV1_LIMINAIRES : null)
+  const premierNiv1 = vueInitiale === 'texte' && niv1DuPassage
+    ? niv1DuPassage
     : niv1Demande ?? niv1List[0] ?? null
 
   // ── Vague 2 : PREMIÈRE TRANCHE du texte du premier niv1 (apparat exclus) ──
