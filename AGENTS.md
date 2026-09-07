@@ -6968,3 +6968,91 @@ n'est pas très claire ». Ce qu'il faut savoir pour composer une page de l'espa
   le sélecteur se ferre, l'emblème prend la mesure entière.
 - ⚠️ **`OngletsPage` réserve la largeur d'après `data-libelle`** : un compte qui change dans
   le libellé ne déplace donc pas son voisin.
+
+# ⛔ LE REGARD EST UNE QUESTION QU'ON POSE À CHAQUE SURFACE (2026-09-07)
+
+Doctrine : charte `parametres.charte_ia`, **§ 12.3**. Ici, ce qu'il faut savoir pour y
+toucher.
+
+- ⛔ **L'INTRODUCTION COMPOSE SA COLONNE EN REGARD**, comme le corps. Elle ne le faisait
+  pas : la grille ne vit que dans la boucle des groupes d'`OeuvreClient`, laquelle écarte
+  les segments d'introduction (`itemsReels`) et rend `null` sur un groupe qui n'en porte
+  pas d'autres. Le chemin de l'argument, lui, n'en savait rien. C'est le défaut du vers
+  (§ 7.4) repris par l'autre bout, le même jour : **cette surface a reçu le vers le matin
+  et le bilingue le soir.**
+- **Le cas témoin est le *Manuel pour mon fils* de Dhuoda** (`A0176O0001`) : ses treize
+  segments français sont tous de nature `introduction`, l'alignement
+  `A0176O0001:BONDURAND1887-CSIA2026:LA-FR:PARAGRAPH` existe et les couvre EXACTEMENT en
+  cinq groupes, `enRegardSurPlace` vaut vrai, le menu offre « Français & latin », et le
+  lecteur n'obtenait qu'une colonne. ⚠️ Ni les types, ni les 2 138 tests, ni la relecture
+  de `paireDeLecture` ne pouvaient le voir : le module est juste, c'est la SURFACE qui ne
+  savait pas s'en servir.
+- ⛔ **`blocsIntro` se découpe comme `blocsDeLecture`**, et par les mêmes fonctions :
+  `repartirGroupes` quand l'alignement porte, `fusionnerBlocsDeVers` par-dessus (deux
+  poèmes ne s'alignent pas l'un sur l'autre), `seul(...)` hors regard. ⚠️ Le morceau de
+  départ reste le SEGMENT et non le paragraphe : un argument fait bloc à lui seul, et
+  c'est `margeArgument` qui resserre le blanc quand deux voisins partagent leur
+  paragraphe.
+- ⛔ **Faute d'alignement, on ne fond RIEN** : le repli `texte_original` vit sur chaque
+  segment, et fondre un poème n'en garderait qu'un seul original. Même règle, même
+  raison, que dans le corps.
+
+## ⛔ La colonne originale est une COMPOSITION, et elle cachait deux tailles hors grille
+
+`styleColonneOriginale({ surface, seul, grec, vers })` (`app/lib/compositionOeuvre.ts`)
+porte désormais les deux colonnes originales du site — celle de la lecture, celle de
+l'argument. ⛔ Ne plus écrire un bloc `.texte-original` en styles en ligne : la forme y
+était recopiée DEUX fois (prose et vers) dans `OeuvreClient`.
+
+- ⛔ **Et c'est cette recopie qui a laissé passer `0.79rem` (12,64 px) et `0.82rem`
+  (13,12 px)**, dont aucun rang de l'échelle n'existe. Rabattues sur 12,5 et 13 px, soit
+  0,14 et 0,12 px de déplacement, très au-dessous du seuil de perception. ⚠️ 13 px n'est
+  pas un chiffre rond : c'est `CORPS_LECTURE`, et le commentaire de la page promettait
+  déjà qu'en « Latin seul » l'original prend le gabarit du français « mêmes taille et
+  teinte ». Il ne le tenait pas.
+- ⚠️ **Le corps d'une colonne d'ARGUMENT** vaut `0.75rem` seule (le gabarit du français
+  qu'elle remplace) et `0.71875rem` en regard (un rang au-dessous). Son ENCRE reste
+  `--cs-texte-second` des deux côtés : voir la charte § 12.3, la mesure y est.
+
+## ⛔ LA GARDE DE L'ÉCHELLE NE VOYAIT RIEN DANS UN TERNAIRE
+
+`echelleTypographique.test.ts` exigeait la taille immédiatement après `fontSize:`, entre
+guillemets. Une écriture conditionnelle lui échappait donc TOUT ENTIÈRE, et c'est ainsi
+que les deux valeurs ci-dessus ont vécu. ⚠️ **C'est trait pour trait le trou que la garde
+CHROMATIQUE avait déjà payé**, où trente-sept teintes se cachaient dans des ternaires, et
+pour la même raison : le motif avait été écrit d'après la forme la plus FRÉQUENTE, non
+d'après la propriété.
+
+- La garde borne désormais à la fin de la DÉCLARATION (`DECLARATION`), puis relit chaque
+  valeur en rem à l'intérieur (`VALEUR_REM`).
+- ⚠️ **Les `clamp(…)` restent exemptés**, et l'exemption est NOMMÉE (`EST_COMPOSITION`) :
+  ce sont des compositions, où la taille fait partie du dessin. Une exception qu'on VOIT
+  vaut mieux qu'un angle mort.
+- ⛔ **Les commentaires se retirent avant la mesure** (`sansCommentaires`, la même
+  écriture que sa sœur `couleursEnDur.test.ts`) : dès qu'elle a su lire une déclaration
+  entière, la garde s'en est prise à sa PROPRE note, qui cite les deux valeurs fautives.
+  ⚠️ Le `//` ne se coupe qu'en TÊTE de ligne, jamais au milieu : une adresse en porte deux.
+- ⚠️ **Elle a été éprouvée dans les DEUX formes** avant d'être crue — rouge sur un ternaire
+  injecté, rouge sur la forme simple, verte sur le dépôt. Une garde qu'on n'a pas vue
+  rouge ne garde rien. Après passe, le seul résidu hors grille du site est dans des
+  `clamp(…)`.
+
+## ⚠️ Une planche qui SÉRIALISE des styles React doit connaître les valeurs sans unité
+
+`tmp/planche-argument-en-regard.mts` rend les deux états (avant / après) avec les VRAIS
+objets de style, la vraie `globals.css` et le bloc `<style>` d'`OeuvreClient` extrait tel
+quel. ⛔ Sa première écriture ajoutait « px » à tout nombre : `lineHeight: 1.6` sortait en
+`line-height: 1.6px`, et les huit lignes du prologue se serraient dans une boîte de 17 px.
+**La planche annonçait un défaut de composition qui n'existait que dans la planche.**
+React tient une liste de propriétés sans unité (`lineHeight`, `fontWeight`, `opacity`,
+`zIndex`, `order`, `flex`…) ; un sérialiseur qui l'ignore ment.
+
+⚠️ Et deux pièges du panneau navigateur, déjà consignés, payés de nouveau : chaque
+`navigate` ouvre un onglet NEUF, qu'il faut redimensionner (sans quoi la média-query de
+980 px empile les colonnes et l'on croit la grille cassée) ; et une capture exige que le
+panneau soit AFFICHÉ, quand les mesures par JavaScript, elles, restent exactes.
+
+**Mesuré sur la planche, fenêtre de 1 600 px** : deux rangées de grille, français à
+x=821 (346 px) et latin à x=1 190 (288 px), les deux cellules de chaque rangée à la même
+ordonnée ; filet de 1 px sous la prose, aucun sous le poème (`--vers`) ; douze vers de
+chaque côté, chacun coulant dans sa colonne.

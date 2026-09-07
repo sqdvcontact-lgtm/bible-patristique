@@ -55,7 +55,7 @@ import {
   NATURE_SIGNATURE, STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
   accepteLaLettrine, estBlocDeSignatures, margeArgument, placeDeLaSignature,
   styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
-  styleParagrapheApparat, styleParagrapheLecture,
+  styleColonneOriginale, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
@@ -623,6 +623,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const modeTexteEffectif = modeDeLectureEffectif(modeTexte, paireDeLecture)
   const affichageBilingue = modeTexteEffectif === 'bilingue'
   const afficherOriginalSeul = modeTexteEffectif === 'la'
+  // ⚠️ Une colonne originale se compose dans les DEUX modes : en regard du français, ou
+  // seule à sa place. Les deux surfaces qui la portent — la lecture et l'argument — le
+  // demandent, et il n'y a qu'une façon de le dire.
+  const enRegardTexte = affichageBilingue || afficherOriginalSeul
   // ⚠️ Le rattrapage d'un lien « ?mt=bilingue » incohérent est plus bas, avec `router` :
   // il déplace le lecteur, et non seulement le mode. Voir « UN LIEN QUI NE MÈNE À RIEN ».
   // Libellés du choix de lecture selon la langue de l'original (grec ou, par défaut, latin).
@@ -2189,7 +2193,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
    * Hors bilingue, ou faute d'alignement, le paragraphe reste seul maître.
    */
   const blocsDeLecture = (itemIds: number[]): BlocEnRegard<number>[] => {
-    const enRegard = affichageBilingue || afficherOriginalSeul
+    const enRegard = enRegardTexte
     // Un bloc que rien ne met en regard : la lecture ordinaire, et celle des œuvres sans
     // alignement, qui se composent à pleine largeur.
     const seul = (chunks: readonly { ids: number[] }[]): BlocEnRegard<number>[] =>
@@ -2902,13 +2906,43 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             // chaque changement de « paragraphe ». On refait donc le POÈME par
             // « fusionnerBlocs », comme la lecture ordinaire, et chaque ligne prend
             // « styleLigneArgumentEnVers » — la géométrie du vers, la face de l'argument.
+            //
+            // ⛔ ET ELLE COMPOSE SA COLONNE EN REGARD (2026-09-07, le soir). C'était le
+            // même défaut pris une seconde fois dans la même journée, et par l'autre
+            // bout : ce chemin ne savait rien du BILINGUE non plus. La grille ne vit que
+            // dans la boucle des groupes, quelques lignes plus bas, et celle-ci écarte
+            // les segments d'introduction — un groupe qui n'en porte que rend `null`.
+            // Le *Manuel pour mon fils* de Dhuoda en fait la démonstration : ses treize
+            // segments français sont TOUS de nature `introduction` (la traduction a
+            // commencé par les prolégomènes), l'alignement latin-français existe, il est
+            // complet, `enRegardSurPlace` est vrai, le menu offre « Français & latin »…
+            // et le lecteur n'obtenait qu'une colonne. Bouton allumé, rien en face,
+            // c'est-à-dire exactement ce que `paireDeLecture` avait été écrit pour
+            // empêcher : la garde vérifie qu'une colonne PEUT se composer, jamais que la
+            // surface qui rend ce texte SAIT la composer.
             const intros = pageActuelle === 0 ? segments.filter(s => s.nature === 'introduction') : []
             const introParId = new Map(intros.map(s => [s.id, s]))
             const rangDansIntros = new Map(intros.map((s, i) => [s.id, i]))
-            const blocsIntro = fusionnerBlocs(
-              intros.map(s => ({ ids: [s.id] })),
-              ids => estBlocDeVers(ids.map(sid => introParId.get(sid))),
-            )
+            // Les blocs de l'argument, découpés comme ceux de la lecture. ⚠️ Le chunk de
+            // départ est le SEGMENT et non le paragraphe : un argument fait bloc à lui
+            // seul, c'est la règle de cette surface, et `margeArgument` resserre le blanc
+            // quand deux arguments voisins partagent leur paragraphe.
+            const blocsIntro = ((): BlocEnRegard<number>[] => {
+              const morceaux = intros.map(s => ({ ids: [s.id] }))
+              const seul = (cs: readonly { ids: number[] }[]): BlocEnRegard<number>[] =>
+                cs.map(c => ({ ids: c.ids, groupes: [], couvert: false, clot: true }))
+              const enVers = (ids: readonly number[]) => estBlocDeVers(ids.map(sid => introParId.get(sid)))
+              // Hors regard, rien ne change : le POÈME se refait par-dessus les segments.
+              if (!enRegardTexte) return seul(fusionnerBlocs(morceaux, enVers))
+              // ⛔ Faute d'alignement, on ne fond RIEN : le repli `texte_original` vit sur
+              // chaque segment, et fondre un poème n'en garderait qu'un seul original.
+              // Même règle et même raison que `blocsDeLecture`.
+              if (!blocsAlignes) return seul(morceaux)
+              return fusionnerBlocsDeVers(
+                repartirGroupes(morceaux, sid => introParId.get(sid)?.groupeOriginal, bornesGroupes),
+                enVers,
+              )
+            })()
             // ⛔ L'ARGUMENT N'A PLUS DE PAVÉ EN ABSOLU (2026-09-07). Il en portait un,
             // « .seg-actions », posé à deux pixels du coin haut droit de son bloc : les
             // trois boutons couvraient donc la fin de sa PREMIÈRE LIGNE, au moment même
@@ -2927,26 +2961,79 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               {blocsIntro.map((bloc) => {
                 const segs = bloc.ids.map(id => introParId.get(id)).filter((s): s is SegData => Boolean(s))
                 if (segs.length === 0) return null
-                if (!estBlocDeVers(segs)) {
+                const original = originalDuBloc(bloc)
+                // ⛔ La GRILLE se garde même sans original à composer, dès lors que
+                // l'alignement COUVRE le bloc : un argument dont l'empan est composé plus
+                // haut ne reprend pas toute la largeur au milieu d'une page en regard.
+                // Même règle, et même raison, que dans la boucle des groupes.
+                const grille = affichageBilingue && (Boolean(original) || bloc.couvert)
+                const toutVers = estBlocDeVers(segs)
+                // L'original a sa PROPRE nature : un latin en vers se compose en vers même
+                // si le français d'en face est en prose, et l'inverse.
+                const originalEnVers = original?.toutVers ?? toutVers
+                const classesGrille = grille
+                  ? `para-bilingue${(toutVers || originalEnVers) ? ' para-bilingue--vers' : ''}${bloc.clot ? '' : ' para-bilingue--couture'}`
+                  : undefined
+                // ⚠️ « data-grille-bilingue » borne la cellule d'actions à la colonne
+                // FRANÇAISE : à droite de l'argument il y a le latin, et sans lui le pavé
+                // se posait dessus. Il n'est posé que là où la grille existe vraiment.
+                // ⚠️ HORS GRILLE, ON N'ENVELOPPE RIEN : un `div` de plus autour de chaque
+                // argument ferait une boîte que la lecture ordinaire n'a jamais eue, et
+                // c'est la lecture ordinaire qui est le cas de presque tout le corpus.
+                // En « Latin seul », le français masqué et son original sont FRÈRES, comme
+                // ils le sont dans le corps.
+                const enveloppe = (cle: string, contenu: React.ReactNode) => {
+                  const colonnes = (<>
+                    {contenu}
+                    {enRegardTexte && original && (
+                      originalEnVers ? (
+                        <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original"
+                          style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
+                          {lignesDeVers(original.affichage).map((ligne, i) => (
+                            <span key={i} style={styleLigneDeVers({ rang: 0 })}>
+                              {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original"
+                          style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec })}>
+                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
+                        </p>
+                      )
+                    )}
+                  </>)
+                  return grille
+                    ? <div key={cle} data-grille-bilingue="" className={classesGrille}>{colonnes}</div>
+                    : <Fragment key={cle}>{colonnes}</Fragment>
+                }
+                if (!toutVers) {
                   // Prose : un argument par bloc, la composition de toujours.
                   const s = segs[0]
                   const suivant = intros[(rangDansIntros.get(s.id) ?? 0) + 1]
                   const memeParagraphe = suivant?.paragraphe != null && suivant.paragraphe === s.paragraphe
-                  return (
-                    <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: margeArgument({ memeParagraphe }) }}>
+                  return enveloppe(`intro-${s.id}`, (
+                    // ⚠️ En « Latin seul », c'est l'ENVELOPPE qui s'efface, non le texte
+                    // qu'elle porte : masquer le seul contenu laisserait une boîte vide
+                    // qui garde sa marge, donc un blanc fantôme entre deux arguments.
+                    <div className="seg-wrapper" style={{
+                      position: 'relative',
+                      display: afficherOriginalSeul ? 'none' : undefined,
+                      margin: margeArgument({ memeParagraphe, enRegard: grille }),
+                    }}>
                       <div lang={langueCorps} className="seg-p" {...gestesArgument(s)}
                         style={styleArgument({ actif: segActif === s.id })}>
                         {corpsArgument(s)}
                       </div>
                     </div>
-                  )
+                  ))
                 }
                 // ⛔ L'ombre de la LETTRINE se retire avant de composer, comme dans le
                 // corps : une capitale ornée pousse les premiers vers vers la droite, et
                 // l'océrisation mesure ce déplacement comme un alinéa.
                 const rangs = ombreDeLettrine(niveauxAlinea(segs.map(s => s.alinea)))
-                return (
-                  <div key={`intro-poeme-${segs[0].id}`} lang={langueCorps} style={styleBlocArgumentEnVers()}>
+                return enveloppe(`intro-poeme-${segs[0].id}`, (
+                  <div lang={langueCorps} style={styleBlocArgumentEnVers({ enRegard: grille, masque: afficherOriginalSeul })}>
                     {segs.map((s, i) => (
                       <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: 0 }}>
                         <div className="seg-p" {...gestesArgument(s)}
@@ -2963,7 +3050,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       </div>
                     ))}
                   </div>
-                )
+                ))
               })}
               {groupesFiltres.map((groupe) => {
               const itemsReels = groupe.itemIds.filter(id => segMap.get(id)?.nature !== 'introduction')
@@ -3225,7 +3312,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                              ⚠️ Pas de rang d'alinéa ici : la source ne mesure l'indentation
                              que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
                              le retrait de suite, qui appartiennent à la composition. */
-                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0 }}>
+                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                             {lignesDeVers(original.affichage).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
                                 {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
@@ -3237,7 +3324,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // français (mêmes taille et teinte). La langue de l'original commande la
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
-                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={{ fontSize: afficherOriginalSeul ? '0.82rem' : '0.79rem', color: afficherOriginalSeul ? 'var(--cs-texte-fort)' : undefined, lineHeight: afficherOriginalSeul ? '1.62' : '1.58', textAlign: 'justify', textJustify: 'inter-word', margin: '0 0 0.72rem', wordSpacing: estGrec ? '-0.01em' : '-0.025em', letterSpacing: 0, hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', whiteSpace: 'pre-line' } as React.CSSProperties}>
+                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec })}>
                           {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
                         </p>
                         )

@@ -233,8 +233,14 @@ export function styleArgument({ actif }: { actif?: boolean } = {}): CSSPropertie
  * interligne, absence de césure — vient de `styleLigneDeVers`, comme sur les quatre
  * autres surfaces.
  */
-export function styleBlocArgumentEnVers(): CSSProperties {
-  return { ...FACE_ARGUMENT, margin: `0 0 ${BLANC_ARGUMENT}` }
+export function styleBlocArgumentEnVers(
+  { enRegard, masque }: { enRegard?: boolean; masque?: boolean } = {},
+): CSSProperties {
+  return {
+    ...FACE_ARGUMENT,
+    display: masque ? 'none' : undefined,
+    margin: enRegard ? 0 : `0 0 ${BLANC_ARGUMENT}`,
+  } as CSSProperties
 }
 
 /**
@@ -256,9 +262,100 @@ export function styleLigneArgumentEnVers(
   } as CSSProperties
 }
 
-/** Le blanc entre deux arguments : resserré quand ils partagent leur paragraphe. */
-export function margeArgument({ memeParagraphe }: { memeParagraphe?: boolean } = {}): string {
+/**
+ * Le blanc entre deux arguments : resserré quand ils partagent leur paragraphe.
+ *
+ * ⛔ DANS UNE GRILLE EN REGARD, LE BLANC APPARTIENT À LA RANGÉE, NON À LA CELLULE. Les
+ * deux colonnes doivent rester de niveau : un blanc posé par le seul français pousserait
+ * le français et laisserait le latin en arrière. C'est le raisonnement qui a mis le blanc
+ * sur `.para-bilingue` dès l'origine, et il vaut ici comme là. La cellule rend donc sa
+ * marge, et la rangée reprend le rythme de la lecture en regard.
+ */
+export function margeArgument(
+  { memeParagraphe, enRegard }: { memeParagraphe?: boolean; enRegard?: boolean } = {},
+): string | number {
+  if (enRegard) return 0
   return `0 0 ${memeParagraphe ? '0.18rem' : BLANC_ARGUMENT}`
+}
+
+// ── La colonne en LANGUE ORIGINALE ────────────────────────────────────
+
+/**
+ * La SURFACE qui porte une colonne originale. Les deux composent leur français
+ * autrement, donc elles composent autrement le latin qu'on met en face.
+ */
+export type SurfaceOriginale = 'lecture' | 'argument'
+
+/**
+ * La colonne en LANGUE ORIGINALE — en regard du français, ou seule à sa place.
+ *
+ * ⛔ ELLE ÉTAIT ÉCRITE EN LIGNE, DANS LA PAGE, ET DEUX FOIS (prose et vers). C'est ce
+ * qui a permis à deux tailles de rester HORS DE L'ÉCHELLE sans que rien ne le dise :
+ * `0.79rem` vaut 12,64 px et `0.82rem` 13,12 px, et aucun de ces deux rangs n'existe
+ * (`echelleTypographique.ts`). Elles étaient invisibles à la garde, qui ne lisait la
+ * taille qu'immédiatement après `fontSize:` et ne voyait donc rien dans un TERNAIRE
+ * — le trou même que la garde chromatique avait déjà payé, où trente-sept teintes se
+ * cachaient. Rabattues sur leur rang le plus proche : 12,5 et 13 px, soit 0,14 et
+ * 0,12 px de déplacement, très au-dessous du seuil de perception (méthode de l'échelle,
+ * dont le rabattage maximal fut de 0,86 px).
+ *
+ * ⚠️ Et 13 px n'est pas un chiffre rond : c'est `CORPS_LECTURE`, le corps du français.
+ * Le commentaire de la page promettait déjà qu'en « Latin seul » l'original occupe la
+ * colonne « au gabarit du français (mêmes taille et teinte) » ; il ne le tenait pas.
+ *
+ * ⛔ LE CORPS ET L'ENCRE VIENNENT DE LA SURFACE, jamais d'une valeur recopiée. Une
+ * colonne SEULE prend le gabarit du français qu'elle remplace ; une colonne EN REGARD
+ * descend d'un rang, pour que l'œil sache laquelle des deux il lit. Ce qui sépare les
+ * deux colonnes reste la POLICE — le sans de `.para-bilingue > .texte-original` —,
+ * comme la charte le dit depuis l'origine : « le change de caractère les sépare, mieux
+ * qu'un filet ».
+ *
+ * ⛔ L'ENCRE D'UN ARGUMENT NE PEUT PAS ÊTRE `--cs-original`, ET C'EST MESURÉ. L'échelle
+ * du Clair est `--cs-texte` #3a3530, `--cs-original` #575048, `--cs-texte-second`
+ * #6b6560 : l'encre de l'original est plus FONCÉE que celle d'un argument. En regard du
+ * corps elle s'efface, en regard d'un argument elle pèserait davantage que le français
+ * qu'elle accompagne, et la relation s'inverserait d'une surface à l'autre. Au Cuir elle
+ * ne s'inverse pas (#e6ded0 › #cdc2ab › #bdb3a0), si bien que le même jeton dirait deux
+ * choses contraires selon le thème — exactement le défaut relevé sur
+ * `--cs-danger-fonce`, transposé à l'envers. L'argument garde donc SON encre des deux
+ * côtés, et la police suffit à séparer les colonnes.
+ *
+ * ⚠️ Un bloc de VERS ne porte ni justification, ni césure, ni interligne : ses lignes
+ * les portent elles-mêmes (`styleLigneDeVers`, `compositionVers.ts`), sur les cinq
+ * surfaces du vers.
+ */
+export function styleColonneOriginale(
+  { surface, seul, grec, vers }: {
+    surface: SurfaceOriginale
+    seul?: boolean
+    grec?: boolean
+    vers?: boolean
+  },
+): CSSProperties {
+  const argument = surface === 'argument'
+  const commun: CSSProperties = {
+    // Le gabarit du français qu'on remplace, ou un rang au-dessous quand on l'accompagne.
+    fontSize: argument
+      ? (seul ? '0.75rem' : '0.71875rem')
+      : (seul ? CORPS_LECTURE : '0.78125rem'),
+    // ⚠️ `undefined` laisse parler `.texte-original`, qui pose `--cs-original`.
+    color: argument ? 'var(--cs-texte-second)' : seul ? 'var(--cs-texte-fort)' : undefined,
+    margin: `0 0 ${argument ? BLANC_ARGUMENT : '0.72rem'}`,
+    // Le latin se resserre, le grec beaucoup moins : ses signes diacritiques portent.
+    wordSpacing: grec ? '-0.01em' : '-0.025em',
+    letterSpacing: 0,
+  }
+  if (vers) return commun as CSSProperties
+  return {
+    ...commun,
+    lineHeight: argument ? 1.6 : seul ? 1.62 : 1.58,
+    textAlign: 'justify',
+    textJustify: 'inter-word',
+    hyphens: 'auto',
+    WebkitHyphens: 'auto',
+    overflowWrap: 'break-word',
+    whiteSpace: 'pre-line',
+  } as CSSProperties
 }
 
 // ── Les TITRES du corps d'une œuvre ──────────────────────────────────────────
