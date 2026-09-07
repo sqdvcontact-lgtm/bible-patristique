@@ -121,8 +121,14 @@ export const VISITE_OEUVRE: Visite = {
       cle: 'bible',
       sujet: ['[data-visite="oeuvre-bible"]'],
       titre: 'Ce que le passage cite',
+      // ⚠️ TROIS paragraphes, et le deuxième n'est pas un ornement : éprouvé sur les
+      // Confessions le 2026-09-07, la première division est l'avertissement du
+      // traducteur, où AUCUN passage ne cite l'Écriture. Le volet dit alors qu'il n'y a
+      // rien, et une étape qui aurait promis des versets aurait promis en l'air. Une
+      // étape dit ce que la page fait, y compris quand elle n'a rien à montrer.
       texte: [
-        'Bible donne les versets que le passage retenu vise, dans la traduction de votre choix.',
+        'Bible donne les versets que le passage retenu cite, dans la traduction de votre choix.',
+        'Quand il n’en cite aucun, le volet vous le dit plutôt que de rester muet.',
         'Commentaires porte ce que les lecteurs en ont écrit, et vous permet d’y répondre.',
       ],
       scene: { choisirSegment: true },
