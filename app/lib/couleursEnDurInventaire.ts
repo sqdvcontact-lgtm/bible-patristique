@@ -112,7 +112,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // Le CALQUE d'une modale : une forme que la charte prescrit, et qui ne se
   // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
   // la page qu'il assombrit — le site est chaud jusque dans son ombre.
-  'oeuvre/[id]/FicheEdition.tsx': ['rgba(30,26,20,0.42)'],
   'oeuvre/[id]/OeuvreClient.tsx': ['#9a958d', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
   'oeuvre/[id]/OngletCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
   // ⚠️ 'rgba(30,25,20,0.4)' n'est PAS une teinte neuve : elle est dans ce fichier depuis

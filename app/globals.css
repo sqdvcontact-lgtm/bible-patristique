@@ -382,6 +382,11 @@
   --cs-ombre-flottante: 0 4px 16px rgba(45, 35, 25, 0.16);
   --cs-ombre-modale: 0 12px 40px rgba(0, 0, 0, 0.18);
   --cs-ombre-modale-haut: 0 -10px 28px rgba(45, 35, 25, 0.22);
+  /* Le VOILE d'une fenêtre. Une seule valeur pour les deux thèmes, et c'est la règle :
+     un calque est une OMBRE, non une couleur, et il rend la même chose sur le papier
+     comme sur le cuir (charte, « Encre contre aplat »). Il était écrit en dur dans
+     cinq fenêtres ; deux le lisent ici, les trois autres restent au registre. */
+  --cs-calque-modale: rgba(30, 26, 20, 0.42);
 
   /* ── Le corps de l'APPARAT ──
      Le commentaire de Fillion se compose un cran sous le texte biblique. ⛔ Ce

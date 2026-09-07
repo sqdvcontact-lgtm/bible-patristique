@@ -325,7 +325,7 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
        mesure 56 px à la racine 16 et 77 à la racine 22, si bien qu'un `top: 48` faisait
        remonter le voile DERRIÈRE elle sur un grand écran (charte, § Responsive). */
     <div onClick={onFermer} className="fiche-edition-calque"
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: Z_FICHE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_FICHE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
       <div role="dialog" aria-modal="true" aria-labelledby="fiche-edition-titre" onClick={e => e.stopPropagation()} className="fiche-edition-cadre"
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
         <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"

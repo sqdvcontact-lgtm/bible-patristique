@@ -119,6 +119,53 @@ export function estBlocDeSignatures(natures: readonly (string | null | undefined
   return natures.length > 0 && natures.every(nature => nature === NATURE_SIGNATURE)
 }
 
+/** Ce qu'il faut savoir d'un segment pour le ranger dans son paragraphe. */
+export type SegmentAParagrapher = {
+  paragraphe?: number | null
+  rang?: number | null
+  nature?: string | null
+}
+
+/**
+ * La découpe d'une suite de segments en PARAGRAPHES (colonne `paragraphe`, charte § 6.1).
+ *
+ * Segments consécutifs de même paragraphe : un bloc coulant, ordonné en interne par
+ * `rang`. Un `paragraphe` nul isole le segment — garde-fou : une œuvre dont les segments
+ * n'ont pas de numéro se lit sans dommage, chacun dans son propre bloc.
+ *
+ * ⛔ Une SIGNATURE ne coule pas dans la prose qu'elle clôt : elle se compose au fer à
+ * droite, et un bloc ne peut pas être justifié d'un côté et ferré de l'autre. Elle sort
+ * donc du paragraphe, que la donnée l'y range ou non — et la donnée l'y range souvent :
+ * 4 des 11 signatures du corpus portent le `paragraphe` du texte qui les précède (les
+ * trois de Boèce, le Privilège des Confessions), héritage d'un import qui n'a marqué le
+ * passage à la ligne que par `join_before`.
+ *
+ * ⚠️ Elle vivait dans `OeuvreClient` (`paragraphesDe`), donc hors d'atteinte de toute
+ * autre surface : l'extraction d'une œuvre en a eu besoin à son tour, et une découpe
+ * recopiée ne reste identique que par accident. Générique sur l'identifiant, pour servir
+ * la lecture (qui range ses segments dans une `Map`) comme l'extraction (qui les tient
+ * dans l'ordre).
+ */
+export function paragraphesDeSegments<T>(
+  identifiants: readonly T[],
+  lire: (identifiant: T) => SegmentAParagrapher | undefined,
+): T[][] {
+  const blocs: { par: number | null | undefined; signature: boolean; ids: T[] }[] = []
+  for (const identifiant of identifiants) {
+    const segment = lire(identifiant)
+    const par = segment?.paragraphe
+    const signature = segment?.nature === NATURE_SIGNATURE
+    const dernier = blocs[blocs.length - 1]
+    if (dernier && par != null && dernier.par === par && dernier.signature === signature) dernier.ids.push(identifiant)
+    else blocs.push({ par, signature, ids: [identifiant] })
+  }
+  for (const bloc of blocs) bloc.ids.sort((a, b) => {
+    const ra = lire(a)?.rang, rb = lire(b)?.rang
+    return (ra != null && rb != null) ? ra - rb : 0
+  })
+  return blocs.map(bloc => bloc.ids)
+}
+
 /**
  * Le paragraphe de l'APPARAT : la même prose, et LES MÊMES DÉROGATIONS DE NATURE.
  *

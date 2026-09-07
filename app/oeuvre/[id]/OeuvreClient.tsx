@@ -52,8 +52,8 @@ import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, 
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
-  NATURE_SIGNATURE, STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
-  accepteLaLettrine, estBlocDeSignatures, margeArgument, placeDeLaSignature,
+  STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
+  accepteLaLettrine, estBlocDeSignatures, margeArgument, paragraphesDeSegments, placeDeLaSignature,
   styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
   styleColonneOriginale, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
@@ -74,6 +74,7 @@ import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
 import FicheEdition from './FicheEdition'
+import MenuExtraction from './MenuExtraction'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import BandeauDegradations from './BandeauDegradations'
 import { useEditeursCharges } from '@/app/lib/editeurs'
@@ -263,6 +264,27 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 // ⛔ La sélection ne s'enregistre pas : elle n'est qu'une façon commode d'ÉCRIRE une
 // référence sans se tromper de chiffre. Ce qui part est une proposition, que la
 // modération lira.
+/**
+ * Un bouton d'icône de la TÊTE DU VOLET — la rangée de la roue crantée, de l'étoile et du
+ * chevron. ⛔ Il reprend leur géométrie au pixel près : une rangée dont un bouton se
+ * dessine autrement cesse d'être une rangée. La forme vit ici et non en style recopié,
+ * pour que les deux gestes de sortie (partager, extraire) ne divergent jamais.
+ */
+function BoutonVolet({ titre, onClick, children }: {
+  titre: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button type="button" onClick={onClick} title={titre} aria-label={titre}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', lineHeight: 1, transition: 'color 0.15s' }}
+      onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
+      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-faible)' }}>
+      {children}
+    </button>
+  )
+}
+
 function ProposerLienBiblique({ segId }: { segId: number }) {
   const [ouvert, setOuvert] = useState(false)
   const [texte, setTexte] = useState('')
@@ -433,6 +455,31 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Mobile : actions de segment masquées, révélées à l'appui long (comme les
   // versets de la page Bible).
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
+  // Le menu d'extraction, et le témoin du lien copié quand le partage natif manque.
+  const [extractionOuverte, setExtractionOuverte] = useState(false)
+  const [lienCopie, setLienCopie] = useState(false)
+  /**
+   * PARTAGER LA PAGE. ⚠️ Le partage natif du système quand il existe (un téléphone), la
+   * copie du lien sinon : c'est le geste qui compte, non l'outil. ⛔ Aucun réseau nommé
+   * ici — un site qui envoie chez l'un d'eux choisit à la place du lecteur.
+   */
+  const partagerLOeuvre = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    const url = window.location.href
+    const titre = `${oeuvre.titre}${auteur ? ` — ${auteur}` : ''}`
+    if (navigator.share) {
+      // Un partage abandonné n'est pas une erreur : on ne dit rien.
+      await navigator.share({ title: titre, text: `${titre}, à lire sur Corpus Scriptura`, url }).catch(() => {})
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setLienCopie(true)
+      setTimeout(() => setLienCopie(false), 1800)
+    } catch {
+      console.error('[partage] le presse-papiers est refusé')
+    }
+  }, [auteur, oeuvre.titre])
   // Identifiant de l'auteur dont la fiche est ouverte (null = aucune). Une œuvre
   // pouvant être signée à deux, il ne suffit plus de savoir QU'une fiche est
   // ouverte : il faut savoir LAQUELLE.
@@ -2150,30 +2197,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   // Mode paragraphes : découpe les segments d'un groupe en paragraphes (colonne
-  // `paragraphe`, charte §6.1), ordonnés en interne par `rang`. Segments
-  // consécutifs de même paragraphe → un bloc coulant. Un `paragraphe` nul isole
-  // le segment (garde-fou).
-  const paragraphesDe = (itemIds: number[], source: Map<number, SegData> = segMap): { ids: number[] }[] => {
-    const chunks: { par: number | null | undefined; signature: boolean; ids: number[] }[] = []
-    for (const sid of itemIds) {
-      const par = source.get(sid)?.paragraphe
-      // ⛔ Une SIGNATURE ne coule pas dans la prose qu'elle clôt : elle se compose au fer à
-      // droite, et un bloc ne peut pas être justifié d'un côté et ferré de l'autre. Elle
-      // sort donc du paragraphe, que la donnée l'y range ou non — et la donnée l'y range
-      // souvent : 4 des 11 signatures du corpus portent le `paragraphe` du texte qui les
-      // précède (les trois de Boèce, le Privilège des Confessions), héritage d'un import
-      // qui n'a marqué le passage à la ligne que par `join_before`.
-      const signature = source.get(sid)?.nature === NATURE_SIGNATURE
-      const dernier = chunks[chunks.length - 1]
-      if (dernier && par != null && dernier.par === par && dernier.signature === signature) dernier.ids.push(sid)
-      else chunks.push({ par, signature, ids: [sid] })
-    }
-    for (const c of chunks) c.ids.sort((a, b) => {
-      const ra = source.get(a)?.rang, rb = source.get(b)?.rang
-      return (ra != null && rb != null) ? ra - rb : 0
-    })
-    return chunks.map(c => ({ ids: c.ids }))
-  }
+  // `paragraphe`, charte §6.1). ⛔ La règle vit dans `paragraphesDeSegments`
+  // (`app/lib/compositionOeuvre.ts`), que l'extraction d'une œuvre emploie aussi :
+  // une découpe recopiée ne reste identique que par accident.
+  const paragraphesDe = (itemIds: number[], source: Map<number, SegData> = segMap): { ids: number[] }[] =>
+    paragraphesDeSegments(itemIds, sid => source.get(sid)).map(ids => ({ ids }))
 
   /**
    * Découpe de la lecture : le PARAGRAPHE compose, le GROUPE met en regard.
@@ -2482,6 +2510,32 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       ? (nomFavori ? `Retirer ${nomFavori} des favoris` : 'Retirer des favoris')
                       : (nomFavori ? `Ajouter ${nomFavori} aux favoris` : 'Ajouter aux favoris')} />
                 )}
+                {/* ⚠️ Les deux gestes qui font SORTIR l'œuvre de la page se posent à côté de
+                    l'étoile, qui est l'autre marque du lecteur : partager le lien, extraire
+                    le texte. Ils prennent la géométrie de leurs voisins — une icône de
+                    treize pixels dans trois de rembourrage — pour que la rangée reste une
+                    rangée. ⚠️ Leur cible tactile reste celle du groupe, sous les 24 px de
+                    WCAG : la dette est celle de la rangée entière (roue crantée, étoile,
+                    chevron), et elle se traitera d'un coup, non par un cinquième
+                    traitement inventé ici. */}
+                <BoutonVolet titre="Partager cette page" onClick={partagerLOeuvre}>
+                  {lienCopie ? (
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.4l3.1 3.1 6.5-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ) : (
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="3.4" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
+                      <circle cx="12" cy="12.6" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
+                      <circle cx="3.7" cy="8" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
+                      <path d="M5.4 7.1l4.9-2.7M5.4 8.9l4.9 2.7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
+                    </svg>
+                  )}
+                </BoutonVolet>
+                <BoutonVolet titre="Extraire cette œuvre en document Word" onClick={() => setExtractionOuverte(true)}>
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M8 1.8v8.2M4.8 6.9L8 10.1l3.2-3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </BoutonVolet>
                 <button onClick={() => setNavOuverte(false)} title="Réduire le sommaire"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -3774,6 +3828,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           }}
           onOuvrirAuteur={setAuteurModalId}
           onFermer={() => setInfoEditionOuverte(false)} />
+      )}
+
+      {/* ⛔ Le menu n'offre QUE les axes qui se posent : pas de division, pas d'étendue à
+          choisir ; pas de colonne originale, pas de regard ; pas d'apparat, pas de case.
+          Et il extrait l'édition qu'on LIT — le choix d'une édition se prend au volet. */}
+      {extractionOuverte && (
+        <MenuExtraction
+          donnees={{
+            idOeuvre,
+            idTexte,
+            edition: versionsTextuelles.length > 1 && versionActive ? libelleVersionComplet(versionActive) : null,
+            division: niv1Actif && niv1Actif !== NIV1_LIMINAIRES ? niv1Actif : null,
+            divisionLibelle: niv1Actif
+              ? (niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif)
+              : null,
+            original: aTexteOriginal,
+            apparat: tocApparat.length > 0 || segmentsApparat.length > 0,
+            nbSignes: oeuvre.nb_signes ?? null,
+          }}
+          onFermer={() => setExtractionOuverte(false)} />
       )}
 
       {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}

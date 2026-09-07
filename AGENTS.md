@@ -7056,3 +7056,156 @@ panneau soit AFFICHÉ, quand les mesures par JavaScript, elles, restent exactes.
 x=821 (346 px) et latin à x=1 190 (288 px), les deux cellules de chaque rangée à la même
 ordonnée ; filet de 1 px sous la prose, aucun sous le poème (`--vers`) ; douze vers de
 chaque côté, chacun coulant dans sa colonne.
+
+# L'EXTRACTION D'UNE ŒUVRE en document Word (2026-09-07)
+
+Le volet de lecture porte, à côté de l'étoile des favoris, deux gestes qui font SORTIR
+l'œuvre de la page : **partager** le lien, **extraire** le texte. L'extraction rend un
+`.docx` composé, et elle est ouverte à tout lecteur qui peut lire l'œuvre.
+
+## ⛔ AUCUNE DÉPENDANCE, ET C'EST LA MARGE VERCEL QUI TRANCHE
+
+`docx` (avec `jszip` et `pako`) pèse **4,5 Mo déballé**. Les fonctions de ce projet montent
+déjà à quelque 240 Mo pour un plafond de 250, et le déploiement qui crève la marge ÉCHOUE
+sans que le dépôt en dise rien (`next.config.ts`, « Déploiement Vercel »). Un `.docx` n'est
+qu'une archive ZIP de fichiers XML : elle est écrite à la main, en **deux cents lignes**.
+
+- **`app/lib/docx/zip.ts`** — l'archive. Sans dossier, sans chiffrement, sans Zip64 : le
+  corps d'une œuvre reste très loin des quatre gigaoctets où Zip64 devient obligatoire.
+  ⚠️ **L'horodatage est FIGÉ au 1er janvier 1980** : deux extractions du même texte rendent
+  le même octet, et une différence de fichier signale une différence de TEXTE. La date de
+  l'extraction se lit dans le document, là où un lecteur la cherche.
+- **`app/lib/docx/ooxml.ts`** — le modèle de document, la feuille de styles, l'empaquetage.
+- **`app/lib/docx/documentOeuvre.ts`** — l'œuvre composée en blocs. PUR, sans requête.
+- **`app/lib/extractionOeuvre.ts`** — les options, lues des deux côtés de l'adresse.
+- **`app/api/oeuvre/[id]/extraction/route.ts`** — le chargement, et rien d'autre.
+
+## ⛔ CE FICHIER N'EST PAS UNE PAGE WEB
+
+Même avertissement qu'`EssaiPDF.tsx`, et pour une raison voisine : Word ne connaît ni
+`rem`, ni `var(--cs-…)`, ni feuille en cascade. Dans `app/lib/docx/`, des **vingtièmes de
+point** (twips, 1 440 par pouce), des **demi-points** pour les corps, des **hexadécimaux
+littéraux** pour les teintes. ⛔ Exclure ce dossier de toute passe de bascule sur `app/`.
+
+## ⛔ « PROPRE » VEUT DIRE : UN STYLE NOMMÉ PAR PARAGRAPHE
+
+Un `.docx` propre n'est pas un document dont chaque paragraphe porte sa mise en forme :
+c'est un document dont chaque paragraphe porte un STYLE, et dont la mise en forme vit dans
+la feuille. C'est à cette condition que le lecteur recompose tout d'un geste au lieu de
+reprendre trois mille paragraphes. **Aucune mise en forme directe**, sauf ce qu'un style ne
+peut pas porter parce qu'il varie d'un paragraphe à l'autre : le retrait d'un vers, le
+blanc d'une strophe.
+
+⚠️ **Les styles de titre portent les noms INTÉGRÉS de Word** (`heading 1`, `Title`,
+`Quote`, `footnote text`, `TOC Heading`), non des noms à nous : c'est ce qui les fait
+paraître traduits dans la galerie (« Titre 1 »), reconnaître par le volet de navigation, et
+ramasser par le sommaire automatique. Un style maison prend `w:customStyle="1"`.
+
+⛔ **Le titre du SOMMAIRE ne figure pas dans le sommaire** : `Titresommaire` porte le nom
+intégré « TOC Heading » et un rang de plan de 9. Sans lui, la table des matières
+s'annonçait elle-même en première ligne — vu à l'épreuve, pas à la lecture.
+
+## ⛔ LA COMPOSITION EST CELLE DE LA LECTURE, ET ELLE NE SE RÉÉCRIT PAS
+
+Le composeur emprunte aux modules que la page emploie : `paragraphesDeSegments`,
+`recomposerSegments`, `fusionnerBlocs`, `niveauxAlinea`, `ombreDeLettrine`, `lignesDeVers`,
+`ouvreStrophe`, `estBlocVersets`, `estBlocDeSignatures`, `complementDeTitre`,
+`normaliserEspaces`. Un document extrait qui composerait autrement que l'écran ne serait
+pas le même texte.
+
+- ⚠️ **`paragraphesDeSegments` a QUITTÉ `OeuvreClient` pour `compositionOeuvre.ts`** : la
+  découpe en paragraphes y vivait hors d'atteinte de toute autre surface, et une découpe
+  recopiée ne reste identique que par accident.
+- ⚠️ **`chargerNotesStructurees` a quitté `app/oeuvre/[id]/page.tsx` pour
+  `app/lib/notesStructureesChargement.ts`**, pour la même raison. Le client y est REÇU,
+  jamais importé.
+- ⛔ **La colonne ORIGINALE prend `normaliserEspacesOriginal`**, qui AJOUTE la fine
+  insécable là où l'édition latine colle sa ponctuation, quand le français ne fait que
+  CONVERTIR le type d'une espace déjà posée. Écrite avec la fonction française, la colonne
+  latine rendait « credens in te: » là où le site rend « credens in te : ».
+- ⛔ **L'APPARAT CRITIQUE ne passe par AUCUNE normalisation** : `texteApparatAffiche` en
+  retire le seul numéro de ligne imprimée, et rien d'autre. Le composeur le reconnaît au
+  drapeau `brut` du bloc de note, que le chargeur pose — lui seul connaît la nature. Sans
+  lui, la première épreuve imprimait « 9 plana M; faciunt] fecerunt aut f. Q ».
+- ⛔ **Un groupe d'alignement qui enjambe deux paragraphes ne compose son original QU'UNE
+  fois**, et les paragraphes suivants **gardent leur rangée, colonne de droite VIDE** : le
+  français ne reprend pas toute la largeur au milieu d'un empan. Même règle que la lecture
+  en regard de la Bible.
+- ⚠️ **Ce qui n'est PAS repris, et c'est délibéré** : la lettrine (un flottant, que Word ne
+  rend qu'au prix d'un cadre qu'on ne saurait pas régler), la citation sortie détectée au
+  fil du texte (elle se reconnaît sur la mise en page de l'écran, non sur une page A4), les
+  liens bibliques. Le TEXTE ne perd rien : ces trois-là sont des ornements de lecture.
+
+## ⛔ LA GARDE DÉBALLE CE QU'ELLE VIENT D'EMPAQUETER
+
+`app/lib/docx/ooxml.test.ts` relit l'archive — compteurs, décalages, sommes de contrôle —
+et repasse **chaque partie à `XMLValidator`**. Deux choses ne peuvent pas se vérifier à
+l'œil, et ce sont les deux qui rendent le fichier illisible sans rien dire : la structure
+du ZIP, et la bonne formation de l'XML. ⛔ Un seul caractère de commande C0 suffit à faire
+dire à Word « contenu illisible » sans dire où : `echapperXml` les RETIRE, il ne les
+échappe pas — XML 1.0 les interdit jusque dans une référence numérique.
+
+⚠️ **Et la garde ne remplace pas WORD.** L'épreuve se fait avec `tmp/controle-extraction-docx.mts`,
+qui rejoue la chaîne de la route hors serveur sur une œuvre réelle, puis :
+
+```
+$w = New-Object -ComObject Word.Application ; $doc = $w.Documents.Open($chemin, $false, $true)
+$doc.Fields.Update() ; $doc.ExportAsFixedFormat($pdf, 17)
+```
+
+Word 16 est installé sur le poste : il ouvre le fichier, remplit le sommaire, compte les
+notes et exporte un PDF, que `pdftoppm` (WSL Ubuntu-24.04) rend en images. **C'est là, et
+là seulement, qu'on a vu le sommaire s'annoncer lui-même et le numéro de ligne de Knöll
+s'imprimer au milieu de l'apparat.** Relevé du 2026-09-07, Confessions livre premier en
+regard : 52 pages, 507 notes, 20 tableaux ; Boèce livre premier : 22 pages, 39 notes.
+
+## ⚠️ L'ORDRE DES PROPRIÉTÉS DE PARAGRAPHE EST IMPOSÉ PAR LE SCHÉMA
+
+`pStyle`, `pageBreakBefore`, `spacing`, `ind`, `contextualSpacing` (CT_PPr). Un élément
+posé hors de sa place rend le document illisible, et Word ne dit pas où. Un test le tient.
+⛔ Et `Vers` porte un espacement CONTEXTUEL, qui supprime tout blanc entre deux paragraphes
+du même style : le blanc de strophe ne s'applique qu'accompagné de `contextualSpacing 0`.
+
+## Le menu, et les deux boutons
+
+- ⛔ **Un axe ne paraît que s'il SE POSE** : pas de division, pas d'étendue à choisir ; pas
+  de texte original, pas de regard ; pas d'apparat, pas de case. Offrir un réglage sans
+  objet, c'est laisser croire qu'on a réglé quelque chose (règle des niveaux d'affichage).
+- ⛔ **Le menu ne choisit PAS l'édition** : il extrait celle qu'on LIT, et il le dit. Le
+  choix d'une édition se prend au volet, sous « Éditions de ce texte » ; un second endroit
+  pour le même geste ferait deux vérités.
+- ⚠️ **Il propose d'emblée la DIVISION au-delà de 400 000 signes** : une extraction de six
+  cents pages qu'on n'a pas voulue se paie en attente, puis en fichier inutile.
+- **Les axes se composent comme ceux d'un volet** (`OPTION_VOLET`, `RUBRIQUE_AXE`) : une
+  option par ligne, toutes montrées, la retenue sur pastille verte.
+- **Le partage** prend `navigator.share` quand il existe, la copie du lien sinon. ⛔ Aucun
+  réseau nommé : un site qui envoie chez l'un d'eux choisit à la place du lecteur.
+- ⚠️ **DETTE TACTILE, et elle est celle de la RANGÉE entière.** Les cinq boutons de la tête
+  du volet — roue crantée, étoile, partage, extraction, chevron — font 19 px de cible pour
+  24 exigés. `.cs-cible-fine` (débord de 12 px) les ferait s'avaler l'un l'autre à 4 px
+  d'écart, et `.cs-bouton-fin` (36 px) ne tient pas dans un volet de 200. Les deux boutons
+  neufs prennent donc la géométrie de leurs voisins : une rangée dont un bouton se dessine
+  autrement cesse d'être une rangée. **À traiter d'un coup, pas par un cinquième traitement
+  inventé au passage.**
+
+## ⛔ L'ACCÈS SE GARDE À LA ROUTE, ET NULLE PART AILLEURS
+
+La route lit avec la SESSION DU VISITEUR (`creerSupabaseServeur`), jamais avec la clé de
+service : la base est fermée au rôle anonyme, et la politique de `segments` exige à la fois
+`oeuvres.acces_public` et `oeuvre_textes.is_public`. Ce que le lecteur peut LIRE, il peut
+l'extraire. **Le jour où l'extraction se paiera, le verrou se posera ICI** — elle seule
+connaît la session — jamais dans le menu, qu'un lecteur contourne.
+
+⚠️ `Cache-Control: private, no-store` : le document dépend de la session (une édition
+privée ne sort que pour l'administrateur), et un cache de bord le servirait à d'autres.
+⚠️ Le nom du fichier voyage en DEUX formes, `filename` en ASCII et `filename*` en UTF-8 :
+un titre accentué se perd sans la seconde.
+
+## ⚠️ Le VOILE d'une fenêtre a désormais son jeton
+
+`--cs-calque-modale` (`globals.css`) : **une seule valeur pour les deux thèmes**, parce
+qu'un calque est une OMBRE et non une couleur. Il était écrit en dur dans cinq fenêtres ;
+`FicheEdition` et le menu d'extraction le lisent, et l'entrée de la première a QUITTÉ
+`couleursEnDurInventaire.ts` — le registre décroît, comme la charte l'exige. ⛔ Les trois
+autres (`BibliothequeClient`, `ModaleAuteur`, `ModaleMessagerie`) restent au registre : les
+migrer est un rangement à part, non un effet de bord d'un chantier voisin.
