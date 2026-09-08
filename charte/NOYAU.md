@@ -658,6 +658,8 @@
 
 - ⛔ Tant que le site est fermé, le rôle `anon` n'a AUCUN droit dans le schéma `public` — ni `select` sur une table, une vue ou une vue matérialisée, ni `execute` sur une fonction.
 - ⛔ Une fonction `SECURITY DEFINER` contourne la RLS par définition.
+- ⛔ `PUBLIC` n'est pas `anon`, et `revoke … from anon` ne l'entame pas.
+- ⚠️ Un 404 de PostgREST ne prouve pas une fermeture.
 
 **§ 17.2 — Les sauvegardes de travail vivent dans `internal`, et se purgent**
 

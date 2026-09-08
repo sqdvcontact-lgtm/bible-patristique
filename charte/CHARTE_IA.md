@@ -2381,6 +2381,10 @@ Le verrou du `proxy` — redirection 307 vers `/chantier`, 403 aux robots d'IA d
 
 ⛔ **Une fonction `SECURITY DEFINER` contourne la RLS par définition.** Exposée à `anon` sur `/rest/v1/rpc/`, elle rend ce que la politique refuse — le texte d'un verset, le vocabulaire du corpus et ses fréquences. Son `execute` se révoque pour tout rôle qui n'en a pas l'usage démontré.
 
+⛔ **`PUBLIC` n'est pas `anon`, et `revoke … from anon` ne l'entame pas.** Postgres accorde `execute` à `PUBLIC` — « tout le monde » — à la création de toute fonction. Un `revoke` nominatif laisse donc la porte ouverte : au 8 septembre 2026, 85 fonctions sur 112 restaient joignables en anonyme après un premier passage qui croyait avoir tout fermé. Le geste juste tient en trois temps : figer l'existant en grants NOMINATIFS là où le rôle a déjà le droit, retirer `PUBLIC`, puis refermer les privilèges par défaut — faute de quoi la fonction suivante naît ouverte à tous.
+
+⚠️ **Un 404 de PostgREST ne prouve pas une fermeture.** Son cache de schéma met un moment à suivre un changement de droits, et rend 404 entre-temps — sur une route qui, une minute plus tard, sert de nouveau le texte. Ce qui atteste est le CORPS de la réponse : « permission denied », code 42501. Un contrôle de sécurité qui se contente du code HTTP conclut à l'envers.
+
 ### 17.2 Les sauvegardes de travail vivent dans `internal`, et se purgent
 
 ⛔ **Une sauvegarde prise avant une écriture (§1.4) vit dans le schéma `internal`, jamais dans `public`.** `public` est exposé à PostgREST, et une table créée par `create table … as select` y hérite des privilèges par défaut : lisible ET modifiable — insertion, mise à jour, suppression — par tout compte connecté, sans RLS pour la borner. Une sauvegarde qu'un tiers peut réécrire ne sauvegarde rien.
