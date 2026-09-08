@@ -1,5 +1,4 @@
 import React from 'react'
-import { SEPARATEUR_INTERVALLE_AFFICHE } from './datesHistoriques'
 
 /* ── Les siècles, en un seul endroit ──────────────────────────────────────────
  *
@@ -216,33 +215,36 @@ export function siecleNormalise(texte: string | null | undefined): string {
   return rang === SIECLE_INCONNU ? 'Siècle indéterminé' : siecleEnTexte(rang)
 }
 
-/** Siècle donné par son numéro, composé. Négatif pour « av. J.-C. ». */
-export function Siecle({ n }: { n: number }) {
+/** Le seul NUMÉRO d'un siècle — « IVe » —, sans le mot.
+ *
+ *  ⚠️ Il sert là où la rubrique dit déjà de quoi il s'agit et où le mot se répéterait :
+ *  le rang de filtres de la bibliothèque aligne treize siècles, et treize fois « siècle »
+ *  y ferait un mur de mots pour un seul renseignement, qui est le RANG. Partout ailleurs,
+ *  on emploie `Siecle`, qui nomme la chose. */
+export function SiecleNumero({ n }: { n: number }) {
   const abs = Math.abs(n)
   return (
     <span>
       <span style={STYLE_ROMAIN}>{enChiffresRomains(abs)}</span>
       <sup style={STYLE_ORDINAL}>{abs === 1 ? 'er' : 'e'}</sup>
+    </span>
+  )
+}
+
+/** Siècle donné par son numéro, composé. Négatif pour « av. J.-C. ». */
+export function Siecle({ n }: { n: number }) {
+  return (
+    <span>
+      <SiecleNumero n={n} />
       {' siècle'}
       {n < 0 ? ' av. J.-C.' : ''}
     </span>
   )
 }
 
-/** Empan de deux siècles : « Ier - IIe siècle ». Employé par les filtres.
- *
- *  Le séparateur est celui de toutes les dates du site : un trait d'union entre
- *  deux espaces insécables. Le demi-cadratin serré qu'on employait ici collait les
- *  deux siècles l'un à l'autre. */
-export function EmpanSiecles({ de, a }: { de: number; a: number }) {
-  return (
-    <span>
-      <span style={STYLE_ROMAIN}>{enChiffresRomains(de)}</span>
-      <sup style={STYLE_ORDINAL}>{de === 1 ? 'er' : 'e'}</sup>
-      {SEPARATEUR_INTERVALLE_AFFICHE}
-      <span style={STYLE_ROMAIN}>{enChiffresRomains(a)}</span>
-      <sup style={STYLE_ORDINAL}>{a === 1 ? 'er' : 'e'}</sup>
-      {' siècle'}
-    </span>
-  )
-}
+/* ⛔ « EmpanSiecles » est PARTI le 2026-09-08, avec les cinq empans du filtre de la
+   bibliothèque : les siècles s'y rangent désormais un à un (demande de l'auteur), et ce
+   composant n'avait pas d'autre appelant. Une pièce que rien n'emploie finit par ne plus
+   dire ce que la page montre — c'est la raison qui avait déjà emporté `LANGUES` et
+   `GENRES` du même écran. ⚠️ Le séparateur d'intervalle des dates part du même coup de
+   ce module, qui ne l'employait que là ; il vit toujours dans `datesHistoriques`. */

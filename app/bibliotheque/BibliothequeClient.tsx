@@ -20,7 +20,7 @@ import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from '@/app/
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { mentionsAdresseEdition, SEPARATEUR_ADRESSE } from '@/app/lib/adresseEdition'
 import { useEditeursCharges } from '@/app/lib/editeurs'
-import { EmpanSiecles } from '@/app/lib/siecles'
+import { Siecle, SiecleNumero, SIECLE_INCONNU, rangDuSiecle, siecleEnTexte } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
@@ -116,17 +116,19 @@ function comparerTitres(a: string, b: string): number {
   return cleTriTitre(a).localeCompare(cleTriTitre(b), 'fr') || a.localeCompare(b, 'fr');
 }
 
-// Numéro de siècle à partir de la chaîne stockée (« IVe », « 4 », « IVe-Ve »… → 4).
-const ROMAINS_SIECLE: Record<string, number> = {
-  i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9, x: 10, xi: 11, xii: 12, xiii: 13,
-};
+/**
+ * Le siècle où l'auteur entre en scène, tiré du champ libre `auteurs.siecle`.
+ *
+ * ⛔ IL SE LIT PAR `rangDuSiecle`, ET NON PAR UN MOTIF ÉCRIT ICI. Cette page en portait un
+ * second — un tableau de treize romains et un `^[ivx]+` ancré au début — et deux lecteurs
+ * du même champ finissent toujours par ne plus le lire de la même façon : celui-ci
+ * rendait « rien » sur « Fin du IVe siècle-Début du Ve siècle », que le motif du module
+ * lit sans peine, et il s'arrêtait au XIIIᵉ siècle par construction. La charte le dit au
+ * mot près (§ Classer par siècle) : tout classement par siècle passe par ce module.
+ */
 function siecleEnNombre(s: string | null | undefined): number | null {
-  if (!s) return null;
-  const t = s.trim().toLowerCase();
-  const rom = t.match(/^[ivx]+/);
-  if (rom && ROMAINS_SIECLE[rom[0]] != null) return ROMAINS_SIECLE[rom[0]];
-  const ar = t.match(/\d+/);
-  return ar ? parseInt(ar[0]) : null;
+  const rang = rangDuSiecle(s)
+  return rang === SIECLE_INCONNU ? null : rang
 }
 
 const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
@@ -545,14 +547,19 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 }
 
 // ── Filtres ───────────────────────────────────────────────────────────────────
-type Periode = { jsx: React.ReactNode; min: number; max: number }
-const PERIODES: Periode[] = [
-  { jsx: <EmpanSiecles de={1} a={2} />, min: 1, max: 2 },
-  { jsx: <EmpanSiecles de={3} a={4} />, min: 3, max: 4 },
-  { jsx: <EmpanSiecles de={5} a={6} />, min: 5, max: 6 },
-  { jsx: <EmpanSiecles de={7} a={9} />, min: 7, max: 9 },
-  { jsx: <EmpanSiecles de={10} a={13} />, min: 10, max: 13 },
-]
+//
+// ⛔ LES SIÈCLES SE RANGENT UN À UN, et non plus par empans (demande de l'auteur,
+// 2026-09-08 : « tous les siècles doivent être représentés, un à un »). Cinq empans —
+// I-II, III-IV, V-VI, VII-IX, X-XIII — pesaient chacun deux à quatre siècles, si bien
+// qu'on ne pouvait NI demander le seul IVᵉ, où la bibliothèque est la plus fournie, NI
+// voir où elle est vide : le rang disait « X-XIII » sans dire lequel des quatre il porte.
+// Un rang de treize numéros est une frise, et il se lit d'un coup d'œil.
+//
+// ⚠️ Le dernier siècle du rang n'est PAS une constante : c'est le plus grand du
+// XIIIᵉ et de ce que les données portent. Un auteur du XVIᵉ importé demain ouvrirait
+// sinon une étagère qu'aucun filtre n'atteindrait.
+const SIECLE_PREMIER = 1
+const SIECLE_DERNIER_PLANCHER = 13
 // ⛔ DEUX LISTES MORTES retirées le 2026-09-04 : `LANGUES` doublait `languesDispo`, qui
 // vient des DONNÉES, et `GENRES` servait une facette qui n'existe plus — la tradition a
 // remplacé le genre il y a longtemps. Une liste que rien ne lit finit par contredire ce
@@ -569,23 +576,43 @@ const PERIODES: Periode[] = [
  * avec les thèmes (charte : le registre ne peut que décroître).
  *
  * ⚠️ LE COMPTE N'EST PAS UN ORNEMENT : c'est ce qui dit qu'un filtre ne servira à rien
- * avant qu'on l'essaie. La bibliothèque compte QUATORZE auteurs ; une facette qui en rend
- * huit ne mérite pas qu'on la cherche, et une qui en rend zéro ne se montre pas du tout.
+ * avant qu'on l'essaie.
+ *
+ * ⛔ ET UNE FACETTE QUI REND ZÉRO SE MONTRE, GRISÉE (demande de l'auteur, 2026-09-08 :
+ * « ne pas faire disparaître si 0 occurrences, mais griser, rendre un peu transparent ;
+ * tout afficher donc »). Elle disparaissait, et le rang se réarrangeait à chaque clic :
+ * le lecteur ne savait plus si une facette n'existait pas, si elle avait été écartée par
+ * son choix précédent, ou s'il l'avait rêvée. Un panneau de filtres est une CARTE du
+ * fonds — il doit montrer les creux comme les pleins, et rester en place.
  */
 /**
- * La forme COMMUNE de la pastille, dans ses deux états. Elle sert le panneau (où l'on
+ * La forme COMMUNE de la pastille, dans ses trois états. Elle sert le panneau (où l'on
  * choisit) ET le rappel des filtres retenus (où l'on retire) : deux surfaces, un seul
  * objet, et pas deux définitions qui divergeraient au premier réglage.
+ *
+ * ⚠️ Le VIDE n'a pas de teinte à lui : c'est la pastille ordinaire, à demi effacée. Une
+ * couleur de plus aurait fait de l'absence un ÉTAT, quand elle n'est qu'un compte à zéro
+ * ; l'opacité dit « rien à prendre ici » sans rien ajouter à la palette.
+ *
+ * ⚠️ ÉTROITE pour les SIÈCLES, et la raison est typographique : leur libellé fait deux à
+ * quatre signes (« Ier », « XIII ») quand celui d'une tradition en fait vingt-six
+ * (« Spiritualité et monachisme »). Le même rembourrage de dix pixels y pèse plus que le
+ * mot, et les treize pastilles débordaient de soixante pixels sur une seconde ligne — un
+ * rang de siècles est une FRISE, elle se lit d'un trait ou elle ne dit plus l'échelle.
+ * Mesuré : 759 px demandés pour 703 disponibles, 655 après.
  */
-function stylePastille(actif: boolean): React.CSSProperties {
+function stylePastille(actif: boolean, vide = false, etroite = false): React.CSSProperties {
+  const eteinte = vide && !actif
   return {
-    display: 'inline-flex', alignItems: 'baseline', gap: '7px',
-    padding: '3px 10px', borderRadius: '4px', fontSize: '0.71875rem',
+    display: 'inline-flex', alignItems: 'baseline', gap: etroite ? '5px' : '7px',
+    padding: etroite ? '3px 6px' : '3px 10px', borderRadius: '4px', fontSize: '0.71875rem',
     border: `1px solid ${actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`,
     background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
     color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
-    cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
+    cursor: eteinte ? 'default' : 'pointer',
+    fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
     transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
+    ...(eteinte ? { opacity: 0.42 } : null),
   }
 }
 
@@ -594,11 +621,21 @@ const SUFFIXE_PASTILLE: React.CSSProperties = {
   fontStyle: 'normal', fontSize: '0.625rem', fontVariantNumeric: 'tabular-nums', opacity: 0.68,
 }
 
-function Chip({ actif, compte, onClick, children }: {
-  actif: boolean; compte: number; onClick: () => void; children: React.ReactNode
+/**
+ * ⚠️ UNE PASTILLE VIDE EST DÉSACTIVÉE, et pas seulement pâlie. Les facettes d'un même
+ * rang s'additionnent : en cliquer une qui rend zéro ne peut RIEN faire d'autre que vider
+ * la liste — ou rien du tout si une autre du rang agit déjà. Un bouton qui ne peut pas
+ * agir se dit tel, au doigt comme au clavier ; l'infobulle porte la raison.
+ * ⛔ Sauf si elle est ACTIVE : on ne verrouille jamais un filtre qu'on a posé, sans quoi
+ * on ne pourrait plus le retirer.
+ */
+function Chip({ actif, compte, onClick, titreVide, etroite, children }: {
+  actif: boolean; compte: number; onClick: () => void; titreVide?: string; etroite?: boolean; children: React.ReactNode
 }) {
+  const vide = compte === 0 && !actif
   return (
-    <button onClick={onClick} aria-pressed={actif} style={stylePastille(actif)}>
+    <button onClick={onClick} aria-pressed={actif} disabled={vide} style={stylePastille(actif, compte === 0, etroite)}
+      title={vide ? (titreVide ?? 'Aucun auteur ici') : undefined}>
       {children}
       <span style={SUFFIXE_PASTILLE}>{compte}</span>
     </button>
@@ -1845,7 +1882,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   // Filtres à facettes, sur le modèle du volet droit de la page Bible : période (siècle),
   // langue et tradition, dépliés depuis un bouton posé à côté de la barre de recherche.
   const [filtresOuverts, setFiltresOuverts] = useState(false)
-  const [periodesActives, setPeriodesActives] = useState<Set<number>>(new Set())
+  const [sieclesActifs, setSieclesActifs] = useState<Set<number>>(new Set())
   const [languesActives, setLanguesActives] = useState<Set<string>>(new Set())
   const [famillesActives, setFamillesActives] = useState<Set<string>>(new Set())
   const basculer = <T,>(setter: React.Dispatch<React.SetStateAction<Set<T>>>, v: T) =>
@@ -1858,11 +1895,20 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   // Les traditions ne paraissent plus une à une : seize auteurs en alignaient
   // soixante-dix, et le panneau était illisible. Elles se rangent par familles
   // (voir app/lib/traditions.ts) ; la fiche de l'auteur garde le détail.
-  const famillesDispo = useMemo(() => {
-    const présentes = new Set(auteurs.flatMap(a => famillesDesTraditions(a.traditions)))
-    return FAMILLES_TRADITION.filter(f => présentes.has(f.cle))
+  // ⚠️ LES SEPT FAMILLES PARAISSENT TOUTES, y compris celles que le fonds ne porte pas
+  // encore : c'est un vocabulaire CLOS et court, comme les siècles, et le rang dit alors
+  // ce que la bibliothèque couvre autant que ce qu'elle contient. La langue, elle, n'a pas
+  // de liste close et reste tirée des données — nommer les langues absentes du monde
+  // n'aurait aucun sens.
+  const famillesDispo = FAMILLES_TRADITION
+  // ── LE RANG DES SIÈCLES ───────────────────────────────────────────────────
+  // Un à un, du Iᵉʳ au dernier que porte le fonds (au moins le XIIIᵉ).
+  const siecles = useMemo(() => {
+    const dernier = auteurs.reduce(
+      (max, a) => Math.max(max, siecleEnNombre(a.siecle) ?? 0), SIECLE_DERNIER_PLANCHER)
+    return Array.from({ length: dernier - SIECLE_PREMIER + 1 }, (_, k) => SIECLE_PREMIER + k)
   }, [auteurs])
-  const nbFiltres = periodesActives.size + languesActives.size + famillesActives.size
+  const nbFiltres = sieclesActifs.size + languesActives.size + famillesActives.size
 
   const qNorm = sansAccents(recherche.trim())
 
@@ -1873,44 +1919,38 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   // quatorze auteurs, il ne coûte rien.
   const passeRecherche = useCallback((a: Auteur) =>
     !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)), [qNorm])
-  const dansPeriode = (a: Auteur, i: number) => {
-    const n = siecleEnNombre(a.siecle)
-    return n != null && n >= PERIODES[i].min && n <= PERIODES[i].max
-  }
-  const auteursSauf = (axe: 'periode' | 'langue' | 'famille') => auteurs.filter(a => {
+  const dansSiecle = (a: Auteur, n: number) => siecleEnNombre(a.siecle) === n
+  const auteursSauf = (axe: 'siecle' | 'langue' | 'famille') => auteurs.filter(a => {
     if (!passeRecherche(a)) return false
-    if (axe !== 'periode' && periodesActives.size && ![...periodesActives].some(i => dansPeriode(a, i))) return false
+    if (axe !== 'siecle' && sieclesActifs.size && ![...sieclesActifs].some(n => dansSiecle(a, n))) return false
     if (axe !== 'langue' && languesActives.size && !(a.langue_principale && languesActives.has(a.langue_principale))) return false
     if (axe !== 'famille' && famillesActives.size && !famillesDesTraditions(a.traditions).some(c => famillesActives.has(c))) return false
     return true
   })
-  const comptePeriode = (i: number) => auteursSauf('periode').filter(a => dansPeriode(a, i)).length
+  const compteSiecle = (n: number) => auteursSauf('siecle').filter(a => dansSiecle(a, n)).length
   const compteLangue = (l: string) => auteursSauf('langue').filter(a => a.langue_principale === l).length
   const compteFamille = (c: string) => auteursSauf('famille').filter(a => famillesDesTraditions(a.traditions).includes(c)).length
-  // ⛔ Une facette qui ne rendrait RIEN ne se montre pas — mais une facette ACTIVE reste
-  // toujours visible, active-t-elle sur le vide : on ne cache jamais un filtre qui agit,
-  // sans quoi le lecteur ne saurait plus pourquoi sa liste est courte.
-  const aMontrer = (compte: number, actif: boolean) => compte > 0 || actif
-  const periodesVues = PERIODES.map((p, i) => ({ i, p, compte: comptePeriode(i) }))
-    .filter(x => aMontrer(x.compte, periodesActives.has(x.i)))
+  // ⛔ PLUS AUCUN FILTRAGE ICI : les trois rangs se rendent ENTIERS, et une facette à zéro
+  // se pâlit au lieu de s'effacer (voir `stylePastille`). Le tri qui vivait là — « une
+  // facette qui ne rendrait rien ne se montre pas » — faisait danser les rangs à chaque
+  // clic et cachait les creux du fonds, qui sont un renseignement comme les pleins.
+  const sieclesVus = siecles.map(n => ({ n, compte: compteSiecle(n) }))
   const languesVues = languesDispo.map(l => ({ l, compte: compteLangue(l) }))
-    .filter(x => aMontrer(x.compte, languesActives.has(x.l)))
   const famillesVues = famillesDispo.map(famille => ({ famille, compte: compteFamille(famille.cle) }))
-    .filter(x => aMontrer(x.compte, famillesActives.has(x.famille.cle)))
 
   const auteursFiltres = useMemo(() => auteurs
     .filter(a => !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)))
     .filter(a => {
-      if (periodesActives.size) {
+      if (sieclesActifs.size) {
         const n = siecleEnNombre(a.siecle)
-        if (n == null || ![...periodesActives].some(i => n >= PERIODES[i].min && n <= PERIODES[i].max)) return false
+        if (n == null || !sieclesActifs.has(n)) return false
       }
       if (languesActives.size && !(a.langue_principale && languesActives.has(a.langue_principale))) return false
       if (famillesActives.size && !famillesDesTraditions(a.traditions).some(c => famillesActives.has(c))) return false
       return true
     })
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr')),
-  [auteurs, qNorm, periodesActives, languesActives, famillesActives])
+  [auteurs, qNorm, sieclesActifs, languesActives, famillesActives])
 
   // La liste est-elle RESTREINTE ? (une recherche, un filtre, ou les deux)
   const listeRestreinte = auteursFiltres.length !== auteurs.length
@@ -1921,15 +1961,17 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   // d’auteurs répondent : seul le pied « Page 1 sur 3 » le laissait deviner, et le
   // total ne se lisait qu’en tournant les pages jusqu’au bout.
   const filtresRetenus: { cle: string; libelle: React.ReactNode; retirer: () => void }[] = [
-    ...PERIODES.map((p, i) => ({ i, p })).filter(({ i }) => periodesActives.has(i))
-      .map(({ i, p }) => ({ cle: `p${i}`, libelle: p.jsx, retirer: () => basculer(setPeriodesActives, i) })),
+    // ⚠️ Le jeton d'un siècle retenu porte le mot, lui : hors du rang, « IVe » tout seul
+    // ne dit plus de quel axe il vient.
+    ...siecles.filter(n => sieclesActifs.has(n))
+      .map(n => ({ cle: `s${n}`, libelle: <Siecle n={n} />, retirer: () => basculer(setSieclesActifs, n) })),
     ...languesDispo.filter(l => languesActives.has(l))
       .map(l => ({ cle: `l${l}`, libelle: libelleLangue(l), retirer: () => basculer(setLanguesActives, l) })),
     ...famillesDispo.filter(f => famillesActives.has(f.cle))
       .map(f => ({ cle: `f${f.cle}`, libelle: f.libelle, retirer: () => basculer(setFamillesActives, f.cle) })),
   ]
   const effacerLesFiltres = () => {
-    setPeriodesActives(new Set()); setLanguesActives(new Set()); setFamillesActives(new Set())
+    setSieclesActifs(new Set()); setLanguesActives(new Set()); setFamillesActives(new Set())
   }
 
   // La liste se tourne par pages de DIX auteurs. Chaque fiche fait deux cents
@@ -1943,7 +1985,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   // Toute recherche et tout filtre ramènent à la première page. Ajusté PENDANT le
   // rendu et non dans un effet : sinon l'on verrait un instant la cinquième page
   // d'une liste qui n'en a plus qu'une (même patron que le catalogue).
-  const critereListe = [qNorm, [...periodesActives].sort().join('+'), [...languesActives].sort().join('+'), [...famillesActives].sort().join('+')].join('|')
+  const critereListe = [qNorm, [...sieclesActifs].sort().join('+'), [...languesActives].sort().join('+'), [...famillesActives].sort().join('+')].join('|')
   const [critereRecu, setCritereRecu] = useState(critereListe)
   if (critereRecu !== critereListe) { setCritereRecu(critereListe); setPageAuteurs(0) }
 
@@ -2063,33 +2105,31 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             {/* Panneau de filtres à facettes (période · langue · tradition). */}
             {filtresOuverts && (
               <div style={{ maxWidth: '52rem', margin: '0 auto 14px', padding: '14px 20px 15px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '11px' }}>
-                {/* ⛔ Chaque rang ne paraît que s'il lui reste une facette à offrir. La
-                    PÉRIODE ne se dérivait pas des données, à la différence des deux autres :
-                    ses cinq empans s'affichaient toujours, et l'on pouvait cliquer un
-                    siècle que la bibliothèque ne porte pas. */}
-                {periodesVues.length > 0 && (
-                  <LigneFiltres label="Période" mobile={estMobile}>
-                    {periodesVues.map(({ i, p, compte }) => (
-                      <Chip key={i} compte={compte} actif={periodesActives.has(i)} onClick={() => basculer(setPeriodesActives, i)}>{p.jsx}</Chip>
-                    ))}
-                  </LigneFiltres>
-                )}
-                {languesVues.length > 0 && (
-                  <LigneFiltres label="Langue" mobile={estMobile}>
-                    {languesVues.map(({ l, compte }) => (
-                      // La valeur reste celle de la base (« latin »), la pastille porte
-                      // l'étiquette (« Latin ») : voir app/lib/langues.ts.
-                      <Chip key={l} compte={compte} actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
-                    ))}
-                  </LigneFiltres>
-                )}
-                {famillesVues.length > 0 && (
-                  <LigneFiltres label="Tradition" mobile={estMobile}>
-                    {famillesVues.map(({ famille, compte }) => (
-                      <Chip key={famille.cle} compte={compte} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
-                    ))}
-                  </LigneFiltres>
-                )}
+                {/* ⛔ LES TROIS RANGS PARAISSENT ENTIERS, et rien n'y est retiré : une
+                    facette à zéro se pâlit et se verrouille, elle ne s'efface pas. Le
+                    panneau est une CARTE du fonds, et une carte montre les creux.
+                    ⚠️ La rubrique du premier rang dit « Siècle » et non « Période » : elle
+                    porte treize numéros et non cinq empans, et le mot « siècle » n'est
+                    donc écrit qu'une fois, en marge, au lieu de treize fois dans le rang. */}
+                <LigneFiltres label="Siècle" mobile={estMobile}>
+                  {sieclesVus.map(({ n, compte }) => (
+                    <Chip key={n} compte={compte} actif={sieclesActifs.has(n)} etroite
+                      titreVide={`Aucun auteur du ${siecleEnTexte(n)}`}
+                      onClick={() => basculer(setSieclesActifs, n)}><SiecleNumero n={n} /></Chip>
+                  ))}
+                </LigneFiltres>
+                <LigneFiltres label="Langue" mobile={estMobile}>
+                  {languesVues.map(({ l, compte }) => (
+                    // La valeur reste celle de la base (« latin »), la pastille porte
+                    // l'étiquette (« Latin ») : voir app/lib/langues.ts.
+                    <Chip key={l} compte={compte} actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
+                  ))}
+                </LigneFiltres>
+                <LigneFiltres label="Tradition" mobile={estMobile}>
+                  {famillesVues.map(({ famille, compte }) => (
+                    <Chip key={famille.cle} compte={compte} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
+                  ))}
+                </LigneFiltres>
                 {/* ⚠️ « Tout effacer » se range sous la COLONNE DES PASTILLES, non au bord du
                     panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus
                     loin, il ne se rattachait à rien et faisait un objet de plus en bas d'écran. */}
