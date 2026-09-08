@@ -721,7 +721,7 @@ export default function SectionControleOeuvres({ auteurs }: { auteurs: Auteur[] 
       }
       // Les liens vivent dans `liens_bibliques` depuis le 20 juillet 2026 (§24.1) :
       // `segments.lien_1` à `lien_4` subsistent mais sont VIDES, si bien que cette
-      // section n'affichait plus aucun lien — sans la moindre erreur. Le §24.5 prévoit
+      // section n'affichait plus aucun lien — sans la moindre erreur. Le § 9 prévoit
       // exactement ce cas : `hydraterLiensHerites` reconstitue ces colonnes en mémoire
       // pour les écrans anciens. Un seul appel les remet en service.
       try {

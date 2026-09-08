@@ -5920,7 +5920,7 @@ sait.** Le FICHIER passe en `validated` : c'est technique, et c'est vérifié. U
 ACTIF reste en `review` et passe par la voie que la base ouvre pour cela,
 `technical_publication_override` avec `editorial_validation_claimed = false`. Les
 ancres et les légendes sont le travail d'un autre ; on n'écrit pas qu'on a validé
-ce qu'on n'a pas relu (§ 11.7).
+ce qu’on n’a pas relu (§ 23.12).
 
 ⚠️ Une garde SQL impose l'ordre : **le dérivé web d'abord, l'actif ensuite.** Bien
 vu — une illustration déclarée publique sans fichier servi serait une promesse en

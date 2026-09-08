@@ -90,10 +90,10 @@ export function analyserCorpus(s: EntreeCorpus): Verdict {
   // Au moins DEUX capitales romaines : « [IVXLCDM]+ » prenait le L de « Le », le C de
   // « Ce » et le D de « De » pour des ordinaux, et noyait la boîte sous du bruit.
   const ordinaux = texte.match(/\b\d+(?:e|è|ème|eme|°)\b|\b[IVXLCDM]{2,}(?:e|è|ème|°)\b/g)
-  if (ordinaux) fauter(2, `Ordinal en chiffres : ${ordinaux.slice(0, 3).map(o => `« ${o} »`).join(', ')}. La charte §3.16 impose les lettres — « Quarantième », non « 40e ».`)
+  if (ordinaux) fauter(2, `Ordinal en chiffres : ${ordinaux.slice(0, 3).map(o => `« ${o} »`).join(', ')}. La charte § 3.2 impose les lettres — « Quarantième », non « 40e ».`)
 
   const siecles = texte.match(/\b[IVXLCDM]{1,7}e\s+si[èe]cle/gi)
-  if (siecles) fauter(1, `Siècle sans exposant ni petites capitales : « ${siecles[0]} » (charte §3.15).`)
+  if (siecles) fauter(1, `Siècle sans exposant ni petites capitales : « ${siecles[0]} » (charte § 3.2).`)
 
   // — Découpage
   if (texte.length > 2600) fauter(4, `Segment de ${texte.length} signes : le découpage n'a pas eu lieu, le lien biblique ne pourra pas être précis.`)
