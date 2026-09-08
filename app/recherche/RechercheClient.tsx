@@ -1,5 +1,5 @@
 'use client'
-import { LIVRES } from '@/app/lib/bible'
+import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -756,7 +756,15 @@ export default function RechercheClient() {
   //    mais la comparaison n'a pas de sens dans 96 px. On garde donc la PREMIÈRE colonne
   //    retenue, en pleine mesure, et le menu de colonne reste ouvert pour en changer.
   const colAffichees = mobile ? colTrads.slice(0, 1) : colTrads
-  const polyTmpl = `44px ${colAffichees.map(() => 'minmax(0, 1fr)').join(' ')}`
+  // ⚠️ La marge de référence passe de 44 px à 4 rem, et c'est le SIGLE DU LIVRE qui
+  // l'exige : la bande « Genèse » qui coupait le tableau à chaque changement de livre est
+  // retirée (demande de l'auteur, 2026-09-08), et sans elle rien ne dirait plus d'où vient
+  // un verset — la page de lecture peut se taire là-dessus, elle ne montre qu'un livre à
+  // la fois ; une page de résultats, non. Mesuré sur Source Sans en chiffres tabulaires,
+  // la référence la plus large du canon (« Ps 119, 176 ») tient en 53,9 px à 10 px de
+  // corps, plus les 8 px de gouttière : 4 rem la portent. ⛔ En rem et non en pixels,
+  // pour qu'elle suive le corps du texte si la racine grandit.
+  const polyTmpl = `4rem ${colAffichees.map(() => 'minmax(0, 1fr)').join(' ')}`
 
   // Maintien enfoncé sur « Précédent »/« Suivant » : les pages défilent vite. Un premier
   // pas immédiat, puis, après une courte retenue, une répétition rapide jusqu'au relâché.
@@ -895,28 +903,36 @@ export default function RechercheClient() {
         /* L'en-tête : la grille du corps, le sol de la page, un filet dessous. Chaque cellule
            porte le filet de gauche qui ouvre la réglure, et le rembourrage qui donne de
            l'air au bloc teinté du titre (mesures de la page Polyglotte, 2026-09-04). */
-        .poly-hd { display:grid; gap:0; min-height:52px; font-size:0.75rem; background:var(--cs-fond); border-bottom:1px solid var(--cs-bord); }
-        .poly-hd-cell { border-left:1px solid var(--cs-bord-clair); padding:5px 6px; display:flex; align-items:stretch; justify-content:center; min-width:0; }
-        /* Le titre de colonne : le nom en sérif de l'échelle haute, le millésime un rang
-           plus bas en capitales espacées, le chevron plus bas encore — une marque
-           d'ouverture, pas un accent. Le fond du survol et du menu ouvert vit ICI, dans la
-           feuille : une déclaration en ligne le rendrait mort (piège consigné). */
-        .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:7px 18px 7px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background .15s; }
+        .poly-hd { display:grid; gap:0; min-height:30px; font-size:0.75rem; background:var(--cs-fond); border-bottom:1px solid var(--cs-bord); }
+        .poly-hd-cell { border-left:1px solid var(--cs-bord-clair); padding:2px 6px; display:flex; align-items:stretch; justify-content:center; min-width:0; }
+        /* Le titre de colonne : le nom de la bible en sérif, le chevron plus bas — une
+           marque d'ouverture, pas un accent. Le fond du survol et du menu ouvert vit ICI,
+           dans la feuille : une déclaration en ligne le rendrait mort (piège consigné).
+           ⛔ LE MILLÉSIME NE PARAÎT PLUS (demande de l'auteur, 2026-09-08). Il tenait un
+           second rang sous chaque nom, en capitales espacées, et coûtait à lui seul la
+           moitié de la hauteur du bandeau — pour une donnée qu'on ne lit qu'une fois,
+           quand on choisit sa colonne. ⚠️ Il n'est pas perdu : le MENU le porte toujours,
+           « Fillion · 1904 », et c'est là qu'on compare des éditions. La barre, elle, n'a
+           qu'à nommer celle qu'on lit. */
+        .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:4px 16px 4px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background .15s; }
         .poly-hd-pick:hover, .poly-hd-pick:has(select:focus-visible) { background:rgba(var(--cs-vert-rgb),0.07); }
         .poly-hd-titre { min-width:0; text-align:center; line-height:1.12; }
-        .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-source-serif), Georgia, serif; font-size:0.875rem; color:var(--cs-encre-fonce); }
-        .poly-hd-millesime { display:block; margin-top:3px; font-family:var(--font-source-sans), Arial, sans-serif; font-size:0.5625rem; font-weight:600; letter-spacing:0.15em; text-indent:0.15em; color:var(--cs-texte-gris); }
-        .poly-hd-chevron { position:absolute; right:7px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cs-texte-doux); }
+        .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-source-serif), Georgia, serif; font-size:0.8125rem; color:var(--cs-encre-fonce); }
+        .poly-hd-chevron { position:absolute; right:6px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cs-texte-doux); }
         /* Le menu natif couvre le titre, invisible : c'est lui qu'on clique, et c'est lui
            que le clavier atteint. */
         .poly-hd-select { position:absolute; inset:0; width:100%; height:100%; margin:0; border:none; opacity:0; cursor:pointer; }
         /* ── Corps de la Polyglotte : classes REPRISES TELLES QUELLES de la page de
            lecture (app/polyglotte/page.tsx) — grille, lettrine, césure, espacement. ── */
-        /* Le livre qui change, dans la course des versets : le titre de la page de
-           lecture — sérif vert, centré sur les colonnes de texte, deux filets pâles —,
-           et COLLANT comme là-bas, pour que le nom reste en vue tant que ses versets
-           défilent. Le rembourrage de gauche vaut la marge de référence. */
-        .poly-livre-hd { margin:0; padding:10px 12px 10px 44px; font-family:var(--font-source-serif), Georgia, serif; font-size:1rem; font-weight:400; line-height:1.3; color:var(--cs-vert); background:var(--cs-fond); border-top:1px solid var(--cs-vert-pale); border-bottom:1px solid var(--cs-vert-pale); text-align:center; position:sticky; top:0; z-index:3; }
+        /* ⛔ LA BANDE DU LIVRE EST RETIRÉE (demande de l'auteur, 2026-09-08). Le nom du
+           livre paraissait en sérif vert entre deux filets pâles, collant, à chaque
+           changement de livre. C'est la forme de la page de LECTURE, où elle a son
+           emploi : on y descend un livre entier, et le titre reste en vue. Une page de
+           RÉSULTATS ne descend rien — elle saute d'un livre à l'autre —, et la bande y
+           coupait le tableau en tranches là où l'œil veut une liste continue.
+           ⚠️ Ce que la bande disait ne se perd pas pour autant : le SIGLE DU LIVRE passe
+           dans la marge de référence, sur chaque rangée. C'est moins de hauteur et plus
+           de précision — un verset se nomme entier, où qu'il tombe dans la page. */
         /* ⛔ LA COLONNE SE COMPOSE COMME CELLE DE LA PAGE POLYGLOTTE, et la composition
            vit dans « globals.css » — une seule déclaration, deux surfaces (demande de
            l'auteur, 2026-09-04). Le commentaire d'au-dessus promettait des classes
@@ -947,6 +963,27 @@ export default function RechercheClient() {
            l'auteur, 2026-09-08). Le jeton dédié tient la même famille à la dose d'un fond
            qui parle seul. */
         .poly-texte-cell--absent { background:var(--cs-absence-fond); }
+        /* ── LE RESSERREMENT DE CETTE SURFACE, ET D'ELLE SEULE ────────────────────
+           Demande de l'auteur, 2026-09-08 : « condenser un peu l'ensemble ». ⛔ Il se
+           fait par les TROIS VARIABLES que « globals.css » pose sur la rangée, et jamais
+           en redéclarant les classes : la composition de la colonne est une déclaration
+           unique pour deux surfaces, et la retoucher ici ferait maigrir la page de
+           LECTURE, qui n'a rien demandé. Portée à « .poly-outer », qui n'existe que sur
+           cette page, la surcharge ne peut pas fuir.
+           ⚠️ Le CORPS du texte ne bouge pas — il est à 14 px, celui de la page de
+           lecture, et c'est une décision du 2026-09-04. On resserre le BLANC : la
+           gouttière, l'air du haut, l'interligne. La lettrine suit d'elle-même,
+           puisqu'elle tire la hauteur de son étui de « --poly-interligne ». */
+        .poly-outer .poly-row { --poly-marge-x:11px; --poly-air-haut:6px; --poly-interligne:1.28; }
+        .poly-outer .poly-texte-cell { padding-bottom:7px; }
+        /* Le sigle du livre, devant la référence : il dit le livre que la bande retirée
+           nommait, et il ne prend pas un rang à lui. ⚠️ Un cran SOUS le numéro en encre —
+           la référence entière reste verte, mais le nom du livre, qui se répète de rangée
+           en rangée, n'a pas à peser autant que le chiffre, qui change. */
+        .poly-outer .poly-marge-ref > span { font-size:0.625rem; font-weight:600; }
+        /* ⛔ L'écart au chiffre est une ESPACE, non une marge : la référence se copie, et
+           « Pr9, 10 » n'est pas une référence. */
+        .poly-outer .poly-livre-sigle { font-weight:500; opacity:0.78; }
         @media (prefers-reduced-motion: reduce) { .poly-row { transition:none; } }
         /* ⛔ UN MENU DU VOLET NE PORTE NI CADRE NI FOND. Neuf bibles ne se posent pas en
            neuf lignes dans un volet — c'est pourquoi ces deux axes gardent un menu là où
@@ -1256,16 +1293,19 @@ export default function RechercheClient() {
               POLYGLOTTE telle qu'elle est depuis le 2026-09-04 (demande de l'auteur,
               2026-09-06 : « il y a une nouvelle version du tableau dans la page
               Polyglotte ; il faut la reproduire »). Une seule ligne et un unique filet
-              dessous : en tête de chaque colonne, le nom de l'édition en sérif, son
-              millésime en capitales espacées, et un chevron qui dit que le nom est un
-              menu. La cellule donne de l'air au bloc teinté du survol (5 px en haut et en
-              bas, 6 sur les côtés), comme là-bas.
+              dessous : en tête de chaque colonne, le nom de l'édition en sérif et un
+              chevron qui dit que le nom est un menu. La cellule donne de l'air au bloc
+              teinté du survol.
+              ⛔ LE MILLÉSIME N'Y PARAÎT PLUS (demande de l'auteur, 2026-09-08), et la
+              barre se resserre d'autant : c'est là que cette surface s'écarte de la page
+              de lecture, où le second rang a son emploi. Il reste au MENU — « Fillion ·
+              1904 » —, c'est-à-dire à l'endroit où l'on compare des éditions.
               ⚠️ Le menu est un <select> NATIF posé, invisible, sur le titre : la page de
               lecture compose le sien à la main parce qu'elle a des FAMILLES d'éditions à
               déployer ; ici les bibles n'en ont pas, et un menu natif les groupe par
               langue sans qu'on écrive un panneau de plus. */}
           {done && onglet==='polyglotte' && versetsTotalFiltre > 0 && (
-            <div className="poly-hd" style={{ gridTemplateColumns: polyTmpl, flexShrink:0, margin: mobile ? '12px 12px 0' : '12px 22px 0' }}>
+            <div className="poly-hd" style={{ gridTemplateColumns: polyTmpl, flexShrink:0, margin: mobile ? '8px 12px 0' : '8px 22px 0' }}>
               {/* La marge de la référence : la réglure ne commence qu'après elle. */}
               <div />
               {colAffichees.map((code, i) => {
@@ -1280,7 +1320,6 @@ export default function RechercheClient() {
                     <div className="poly-hd-pick" title="Changer de traduction">
                       <span aria-hidden="true" className="poly-hd-titre">
                         <span className="poly-hd-nom">{trad ? rendreEnrichi(trad.label) : 'Choisir une traduction'}</span>
-                        {trad?.millesime && <span className="poly-hd-millesime">{trad.millesime}</span>}
                       </span>
                       <svg aria-hidden="true" className="poly-hd-chevron" width="9" height="9" viewBox="0 0 10 10" fill="none">
                         <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1508,37 +1547,32 @@ export default function RechercheClient() {
             )}
 
             {/* ── Polyglotte — structure REPRISE de la page de lecture : grille avec colonne
-                de référence canonique en marge (44px) + une colonne par traduction, lettrine
-                d'origine, texte justifié et césuré, zébrage vert, en-tête de livre = NOM SEUL. */}
+                de référence canonique en marge (4 rem) + une colonne par traduction, lettrine
+                d'origine, texte justifié et césuré.
+                ⛔ PLUS DE BANDE DE LIVRE : la référence de marge porte le sigle, rangée par
+                rangée. Une liste de résultats se lit d'une traite ; c'est la page de lecture
+                qui a besoin d'un titre collant, parce qu'elle descend un livre entier. */}
             {done && onglet==='polyglotte' && (
               versetsTotalFiltre===0
                 ? <Vide texte="Aucun verset trouvé." />
-                : (() => {
-                    const livresVus = new Set<string>()
-                    return (
-                      <div className="poly-outer" style={styleAttente(versetsEnAttente)}>
-                        {versetsPage.lignes.map(v => {
-                          const estNouveauLivre = !livresVus.has(v.livre)
-                          if (estNouveauLivre) livresVus.add(v.livre)
-                          return (
-                            <Fragment key={v.id_verset}>
-                              {/* Le livre qui change : le titre COLLANT de la page Polyglotte,
-                                  en sérif vert, centré sur les colonnes de texte (le
-                                  rembourrage de gauche vaut la marge de référence), qui reste
-                                  en vue tant que ses versets défilent. */}
-                              {estNouveauLivre && (
-                                <h2 className="poly-livre-hd">{NOMS_LIVRES[v.livre] ?? v.livre}</h2>
-                              )}
-                              <a className="poly-row" style={{ gridTemplateColumns:polyTmpl }}
-                                href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
-                                target="_blank" rel="noopener noreferrer">
+                : (
+                    <div className="poly-outer" style={styleAttente(versetsEnAttente)}>
+                      {versetsPage.lignes.map(v => (
+                        <a key={v.id_verset} className="poly-row" style={{ gridTemplateColumns:polyTmpl }}
+                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                          target="_blank" rel="noopener noreferrer">
                                 {/* ⛔ LA RÉFÉRENCE CANONIQUE EST EN MARGE, non dans une colonne
                                     bordée : elle accompagne le verset au lieu de l'encadrer, et
                                     elle emprunte le strut de la cellule pour poser sa ligne de
                                     base sur celle du texte. C'est la forme de la page Polyglotte
-                                    depuis le 2026-09-04. */}
-                                <div className="poly-marge-ref" style={{ color:'var(--cs-vert)' }}>
-                                  <span>{v.chapitre}, {v.verset}</span>
+                                    depuis le 2026-09-04.
+                                    ⚠️ Elle porte ICI le SIGLE DU LIVRE, que la page de lecture
+                                    n'a pas à porter : là-bas le livre est celui de la page, ici
+                                    il change d'une rangée à l'autre. Le nom entier reste en
+                                    « title », comme partout où le site abrège. */}
+                                <div className="poly-marge-ref" style={{ color:'var(--cs-vert)' }}
+                                  title={`${NOMS_LIVRES[v.livre] ?? v.livre} ${v.chapitre}, ${v.verset}`}>
+                                  <span><span className="poly-livre-sigle">{ABREV_FR[v.livre] ?? v.livre}</span> {v.chapitre}, {v.verset}</span>
                                 </div>
                                 {/* Une colonne par traduction */}
                                 {colAffichees.map((code, i) => {
@@ -1574,12 +1608,9 @@ export default function RechercheClient() {
                                   )
                                 })}
                               </a>
-                            </Fragment>
-                          )
-                        })}
-                      </div>
-                    )
-                  })()
+                      ))}
+                    </div>
+                  )
             )}
           </div>
 
