@@ -13,6 +13,9 @@ import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetr
 // Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
 import { EncartNote } from '@/app/components/EncartNote'
 import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+// La manchette : un renvoi qui s'y compose n'a plus d'appel, seulement un repère
+// sans chasse à l'endroit où l'exposant se tenait.
+import { STYLE_ANCRE_MANCHETTE } from '@/app/lib/manchetteRenvois'
 // L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une tablette de 1024 px
 // en paysage n'a pas de souris (charte, « LE DOIGT »).
 import { useSansSurvol } from '@/app/lib/useEstMobile'
@@ -315,10 +318,23 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
 }
 
 // Variante de rendreTexteEnrichi qui gère aussi les marqueurs [[A]] de notes.
+/**
+ * Ce que le rendu d'un texte à notes accepte de plus.
+ *
+ * ⛔ `enManchette` rend CE QU'IL FAUT POSER DANS LA MARGE, ou `null` si la note
+ * garde son appel. La surface décide de la règle ET de la composition — la lecture
+ * d'une œuvre la passe, un titre et l'apparat ne la passent pas —, et le moteur ne
+ * fait que poser le repère au bon endroit du texte.
+ */
+export type OptionsRenduNotes = {
+  enManchette?: (contenu: NoteAffichee) => React.ReactNode | null
+}
+
 export function rendreTexteAvecNotes(
   texte: string,
   notes: Record<string, NoteAffichee>,
   variante: VarianteAppelNote = 'corps',
+  options: OptionsRenduNotes = {},
 ): React.ReactNode {
   const texteRendu = normaliserTypographieLecture(texte)
   const noeuds: React.ReactNode[] = []
@@ -345,11 +361,11 @@ export function rendreTexteAvecNotes(
     if (m.index > dernierIndex) noeuds.push(texteRendu.slice(dernierIndex, m.index))
     // Un appel de note peut se trouver à l'intérieur d'une emphase. Le contenu
     // doit donc repasser par le même moteur au lieu d'être rendu comme texte brut.
-    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante)}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante)}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante)}</em>)
+    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{rendreTexteAvecNotes(m[1], notes, variante, options)}</strong>)
+    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante, options)}</sup>)
+    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante, options)}</em>)
     else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante)}</a>
+      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante, options)}</a>
     )
     else if (m[6] !== undefined) {
       // L’appel n’est pas rendu seul : on lit la suite entière (appels collés,
@@ -385,10 +401,30 @@ export function rendreTexteAvecNotes(
         }
       }
       const appels: React.ReactNode[] = []
+      // ⚠️ Le séparateur d'une suite ne compte que les appels VISIBLES : « 2 & 3 »
+      // n'a de sens qu'entre deux exposants, et un renvoi parti en manchette n'en
+      // laisse aucun. Une suite dont tous les appels s'en vont ne rend donc que ses
+      // repères, sans une esperluette qui séparerait du vide.
+      // ⚠️ On ne demande la manchette QU'UNE fois par appel : la fonction rend un
+      // nœud React, et l'appeler deux fois en construirait deux.
+      const manchettes = marqueurs.map(marqueur => options.enManchette?.(notes[marqueur] ?? '') ?? null)
+      const visibles = marqueurs.filter((_, rang) => !manchettes[rang])
+      let rangVisible = 0
       marqueurs.forEach((marqueur, rang) => {
-        if (rang > 0) appels.push(
-          <sup key={k++} style={styleSeparateurAppels(variante)}>{separateurAppels(rang, marqueurs.length)}</sup>
+        const manchette = manchettes[rang]
+        if (manchette) {
+          // ⛔ Le repère est SANS CHASSE : le lecteur ne doit rien voir là où
+          // l'exposant se tenait. Il ne sert qu'à donner au renvoi, posé en absolu,
+          // la position statique de sa ligne.
+          appels.push(
+            <span key={k++} data-renvoi-manchette="" style={STYLE_ANCRE_MANCHETTE}>{manchette}</span>
+          )
+          return
+        }
+        if (rangVisible > 0) appels.push(
+          <sup key={k++} style={styleSeparateurAppels(variante)}>{separateurAppels(rangVisible, visibles.length)}</sup>
         )
+        rangVisible++
         const contenu = notes[marqueur] ?? ''
         const numeroVisible = typeof contenu === 'string'
           ? numeroDe(marqueur)
@@ -405,10 +441,10 @@ export function rendreTexteAvecNotes(
       noeuds.push(m[9])
     }
     else if (m[10] !== undefined) {
-      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes, variante)}</em>)
+      noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[10], notes, variante, options)}</em>)
     }
     else if (m[11] !== undefined) {
-      noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteAvecNotes(m[11], notes, variante)}</span>)
+      noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteAvecNotes(m[11], notes, variante, options)}</span>)
     }
     dernierIndex = regex.lastIndex
   }

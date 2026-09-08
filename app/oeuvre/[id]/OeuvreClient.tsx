@@ -20,7 +20,7 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
 import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
-import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, VersionTextuelle } from './oeuvreTypes'
+import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
@@ -69,7 +69,11 @@ import {
   regrouperCitationsStructurelles,
   textesCitationStructurelleSansEncadrement,
 } from '@/app/lib/citationSortie'
-import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
+import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte, type OptionsRenduNotes } from './appelNote'
+// LA MANCHETTE — un renvoi biblique se lit dans la marge, il ne s'ouvre pas.
+import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
+import { estRenvoiSeul, STYLE_RENVOI_MANCHETTE } from '@/app/lib/manchetteRenvois'
+import { CLASSE_RENVOI_MANCHETTE, useManchetteRenvois } from './useManchetteRenvois'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
 import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
@@ -899,6 +903,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   //     sur `<main>`, animations dans `globals.css`) ;
   //  3. rien de tout cela ne coûte une requête de plus.
   const mainRef = useRef<HTMLElement>(null)
+  // La COLONNE de lecture : c'est elle que la manchette borde, et c'est son
+  // `position: relative` qui fait le bloc conteneur des renvois posés en marge.
+  const colonneRef = useRef<HTMLDivElement>(null)
   const [sortie, setSortie] = useState(false)
   // Vrai dès le PREMIER rendu quand on arrive d'un autre texte : la classe doit être là
   // avant la première peinture, sinon la page paraît entière, s'efface, et reparaît.
@@ -2138,6 +2145,29 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     setSegments(prev => prev.map(s => s.id === segId ? { ...s, versets: s.versets.filter(v => !aRetirer.has(v.id)) } : s))
   }
 
+  // ── LA MANCHETTE DES RENVOIS ────────────────────────────────────────────────
+  // ⛔ Un renvoi biblique ne s'ouvre pas : il est IMPRIMÉ dans la marge, à hauteur
+  // de la ligne où son appel se tenait, et il n'a plus d'appel du tout. La règle
+  // vit dans `app/lib/manchetteRenvois.ts` (charte § 13.14) ; ici, on ne fait que
+  // la passer au moteur qui compose le corps.
+  //
+  // ⚠️ Le critère n'est PAS la place, c'est la NATURE de la note. La place ne
+  // décide que d'une chose : si la marge est trop étroite pour porter une
+  // manchette, le renvoi reprend son appel et son encart, comme avant.
+  const manchetteActive = useManchetteRenvois(colonneRef, `${niv1Actif}|${pageActuelle}|${modeTexte}`)
+  const optionsNotesCorps = useMemo<OptionsRenduNotes>(() => ({
+    enManchette: contenu => manchetteActive && estRenvoiSeul(contenu)
+      ? (
+        <span className={CLASSE_RENVOI_MANCHETTE} style={STYLE_RENVOI_MANCHETTE}>
+          {/* ⛔ EN LIGNE, et il le faut : un `<div>` dans un `<p>` ferme le
+              paragraphe, et le renvoi vit DANS le texte qu'il borde. La composition
+              reste celle de l'encart — mêmes fonctions de normalisation. */}
+          <ContenuRenvoiEnLigne note={contenu as NoteStructuree} />
+        </span>
+      )
+      : null,
+  }), [manchetteActive])
+
   // Lettrine (drop cap) du tout premier segment.
   const preparerTexteSegment = (texte: string) => idTexte.endsWith('_LEGACY')
     ? nettoyerFin(normaliserEspaces(texte))
@@ -2152,7 +2182,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const t = preparerTexteSegment(texte)
     const chars = [...t]
     const li = chars.findIndex(ch => /\p{L}/u.test(ch))
-    if (li < 0) return rendreTexteAvecNotes(t, notes)
+    if (li < 0) return rendreTexteAvecNotes(t, notes, 'corps', optionsNotesCorps)
     const prefix = chars.slice(0, li).join('')
     const lettre = chars[li]
     const suite = chars.slice(li + 1).join('')
@@ -2162,10 +2192,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             paragraphe (`p:has(> .seg-inline > .cs-lettrine)`). Le style, lui, reste
             dans `compositionOeuvre.ts` avec toute la composition de la lecture. */}
         <span className="cs-lettrine" style={STYLE_LETTRINE}>
-          {prefix && <span style={STYLE_PREFIXE_LETTRINE}>{rendreTexteAvecNotes(prefix, notes)}</span>}
+          {prefix && <span style={STYLE_PREFIXE_LETTRINE}>{rendreTexteAvecNotes(prefix, notes, 'corps', optionsNotesCorps)}</span>}
           {lettre}
         </span>
-        {rendreTexteAvecNotes(suite, notes)}
+        {rendreTexteAvecNotes(suite, notes, 'corps', optionsNotesCorps)}
       </>
     )
   }
@@ -2190,7 +2220,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // paragraphe, autour de tous ses segments. La détection textuelle ne doit pas
     // créer ici un second bloc imbriqué : elle ne traite que les citations encore
     // signalées par leurs guillemets dans un segment ordinaire.
-    if (texteCitationStructurelle != null) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
+    if (texteCitationStructurelle != null) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {}, 'corps', optionsNotesCorps)}</>
     // Un VERSET est déjà dans le bloc de sa citation : le sortir une seconde fois y
     // imbriquerait un retrait dans un retrait, pour dire ce qui est déjà dit. Cela vaut
     // qu'il compose dans son bloc ou dans le fil.
@@ -2215,21 +2245,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           {marque === null ? null : marque.forme === 'verset'
             ? <sup className="num-verset">{marque.valeur}</sup>
             : <sup style={STYLE_NUMERO_SEGMENT}>{marque.valeur}</sup>}
-          {rendreTexteAvecNotes(texte, s.notes ?? {})}
+          {rendreTexteAvecNotes(texte, s.notes ?? {}, 'corps', optionsNotesCorps)}
         </>
       )
     }
     // `sansAnnonce` : réservé à la prose. Une réplique de dialogue est elle aussi
     // entre guillemets et n'est pas une citation d'auteur (Boèce).
     const sortie = detecterCitationSortie(texte, { sansAnnonce: s.nature === 'texte' })
-    if (!sortie) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {})}</>
+    if (!sortie) return <>{numero}{rendreTexteAvecNotes(texte, s.notes ?? {}, 'corps', optionsNotesCorps)}</>
     // Segment entièrement cité : le numéro entre dans le bloc, il n'y a rien d'autre.
-    if (!sortie.avant) return <span className="citation-sortie">{numero}{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
+    if (!sortie.avant) return <span className="citation-sortie">{numero}{rendreTexteAvecNotes(sortie.citation, s.notes ?? {}, 'corps', optionsNotesCorps)}</span>
     return (
       <>
         {numero}
-        {rendreTexteAvecNotes(sortie.avant, s.notes ?? {})}
-        <span className="citation-sortie">{rendreTexteAvecNotes(sortie.citation, s.notes ?? {})}</span>
+        {rendreTexteAvecNotes(sortie.avant, s.notes ?? {}, 'corps', optionsNotesCorps)}
+        <span className="citation-sortie">{rendreTexteAvecNotes(sortie.citation, s.notes ?? {}, 'corps', optionsNotesCorps)}</span>
       </>
     )
   }
@@ -2867,7 +2897,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             efface tout le bloc, et l'anneau s'effacerait avec le texte qu'il annonce.
             Aucune transformation ici non plus, pour la même raison que sur `<main>`. */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', position: 'relative' }}>
-        <main ref={mainRef} lang="fr" className={sortie ? 'lecture-sortie' : entree ? 'lecture-entree' : undefined} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+        <main ref={mainRef} lang="fr" className={sortie ? 'lecture-sortie' : entree ? 'lecture-entree' : undefined} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div ref={colonneRef} style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
           {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles) : même
               composant, même rembourrage symétrique, le titre centré sur toute la largeur
               du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus

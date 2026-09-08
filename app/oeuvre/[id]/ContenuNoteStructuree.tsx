@@ -144,6 +144,49 @@ function estReferenceRattachee(block: NoteBlocData) {
  * parenthèses. Le champ `rendering` décide seul si une référence reste un
  * paragraphe, suit sa cible en ligne, ou vient après un retour dans des vers.
  */
+/**
+ * UN RENVOI EN LIGNE — le même texte que l'encart, dans une boîte INLINE.
+ *
+ * ⛔ Il en faut une, et le HTML l'impose : `ContenuNoteStructuree` compose ses blocs
+ * en `<div>`, et un `<div>` DANS un `<p>` ferme le paragraphe. L'analyseur du
+ * navigateur n'y voit pas une imbrication à corriger : il clôt le `<p>`, remonte le
+ * `<div>` d'un cran, et le reste du texte repart dans un paragraphe implicite. Vu sur
+ * la planche du 8 septembre 2026, où quatre renvois de la manchette rendaient une
+ * boîte VIDE, la même note se rendant très bien hors du paragraphe. ⚠️ Ce n'est pas
+ * affaire de CSS : `position: absolute` fait bien une boîte de bloc, mais l'analyseur
+ * ne lit que le nom de la balise.
+ *
+ * ⛔ Rien n'est rejoué pour autant : le texte passe par `texteBloc` et `texteFinal`,
+ * les fonctions mêmes de l'encart — normalisation des références, typographie de
+ * lecture, point final posé une seule fois —, et par `rendreTexteEnrichi`. Seule la
+ * BOÎTE change, et elle doit changer.
+ *
+ * ⚠️ La NOTICE BIBLIOGRAPHIQUE n'y est pas, et c'est mesuré : au 8 septembre 2026,
+ * AUCUN des 11 829 renvois purs du corpus ne porte de lien vers un ouvrage (244 blocs
+ * en portent un, tous dans des notes qui disent autre chose). Le jour où l'un en
+ * portera, il faudra le rendre à l'encart plutôt que de lui servir sa citation source
+ * en clair : la manchette ne doit jamais dire MOINS que la note.
+ */
+export function ContenuRenvoiEnLigne({ note }: { note: NoteStructuree }) {
+  const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
+  return (
+    <>
+      {blocks.map((bloc, rang) => (
+        <span
+          key={bloc.blockId}
+          lang={bloc.language ?? undefined}
+          data-block-id={bloc.blockId}
+          data-kind={bloc.kind}
+          style={{ fontStyle: estBlocEnLatin(bloc) ? 'italic' : undefined }}
+        >
+          {rang > 0 ? ' ' : null}
+          {rendreTexteEnrichi(texteFinal(texteBloc(bloc), rang === blocks.length - 1))}
+        </span>
+      ))}
+    </>
+  )
+}
+
 export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
   const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
   const apparatCritique = estNoteApparatCritique(note)
