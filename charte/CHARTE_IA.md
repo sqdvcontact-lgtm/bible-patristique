@@ -4895,6 +4895,28 @@ Relevé de l’auteur, 2026-09-07, devant « Ma chaîne » et « Mes citations �
 
 ⛔ **TOUT SE FERRE SUR LA MESURE.** Une page de l’espace est au fer à gauche ; trois de ses objets se centraient — la barre d’onglets, le sélecteur de traduction, l’emblème de la page — si bien que l’œil ne trouvait aucun bord commun. La barre passe au MODÈLE du site (§ 36), le sélecteur se ferre, et l’emblème prend la mesure entière, où il sépare au lieu de flotter. ⚠️ Un ornement CENTRÉ reste légitime (§ 3.11.5), mais alors il tient toute la mesure : centré sur treize rem au milieu de huit cents pixels, il ne sépare rien.
 
+### 40.12 MA PAGE — ce que le lecteur donne à voir de lui
+
+Demande de l’auteur, 2026-09-08 : « revoir légèrement la page ; elle doit être simple, épurée, propre, et l’utilisateur doit en être fier ; ajouter les citations préférées quelque part ». « Ma page » est la page PUBLIQUE d’un lecteur, `/profil/<pseudo>`, celle que le menu de compte nomme « Ma page publique ».
+
+⛔ **ELLE MONTRE LES DEUX CORPUS, ou elle ment sur ce qu’est ce site.** Sa section ne portait que les VERSETS, quand « Mes citations » en garde deux — l’Écriture et les Pères. Un site qui s’annonce « l’Écriture, et ce que les Pères en ont dit » ne peut pas donner à voir la moitié d’un florilège. Les deux natures se suivent dans une SEULE liste, du plus récent au plus ancien, et c’est la ligne de référence qui dit laquelle on lit : « Gn 1, 16 · Bible de Sacy » d’un côté, « Augustin d’Hippone, Du symbole » de l’autre. ⛔ Ni deux sections, ni deux couleurs de manchette : la nature d’un passage se lit dans sa référence, elle n’a pas à être annoncée deux fois.
+
+⚠️ **Chaque passage RAMÈNE à sa source, quand elle est ouverte au visiteur** — le chapitre pour un verset, l’œuvre au bon segment pour un Père. La référence et le lien se composent dans l’API, jamais dans la page : elle seule sait quelles œuvres sont publiées et quel code de livre mène à la Bible.
+
+⛔ **LA CITATION D’HONNEUR NE SE RÉPÈTE PAS dans la liste.** Elle paraît en tête, dans son encadrement doré, sous la marque du quadrilobe (§ 34.2) ; la revoir six lignes plus bas ferait croire à un doublon plutôt qu’à un choix.
+
+⛔ **ET LE TITRE D’UNE ŒUVRE RETIRÉE DE LA LECTURE N’Y PARAÎT PAS.** La ligne de prélèvement garde une copie du titre, écrite au jour du prélèvement, que dépublier l’œuvre ne rattrape pas. Même garde que la bibliothèque du même profil, et pour la même raison.
+
+⚠️ **L’interrupteur du compte nomme ce qu’il GOUVERNE**, non ce qu’il gouvernait : « Citations retenues », et non plus « Versets enregistrés ». ⛔ La COLONNE, elle, garde son nom (`pub_favoris_versets`) : le déclencheur `profils_garde_colonnes` la nomme aussi, et un renommage se paierait des deux côtés pour un mot d’écran.
+
+⛔ **L’EN-TÊTE EST UN APLAT, ET IL SE RETOURNAIT EN CUIR — cinquième fois.** Son dégradé se composait de `--cs-vert-fonce` et de `--cs-encre`, qui sont des ENCRES : en Cuir elles valent #ead2a2 et #cdbb98, c’est-à-dire des crèmes, et toute la carte y devenait un bloc beige. Mesuré sur la page servie, la date y rendait **1,97**. C’est le piège que le § 18 nomme « encre contre aplat », et il ne se voit jamais en lisant le fichier : il faut ouvrir la page dans l’autre thème.
+
+⚠️ **Et son revers, qu’on ne voit qu’une fois le sol rétabli** : sur un fond redevenu sombre, les encres de la carte s’inversent à leur tour — le pseudonyme en `--cs-fond-doux` rendait **1,16**. **Une carte qui reste SOMBRE dans les deux thèmes prend la famille `-clair`**, la seule qui reste claire de part et d’autre : le nom et le portrait en `--cs-vert-clair` (5,14 au Clair, 8,95 en Cuir), toutes les mentions dorées en `--cs-or-clair` (4,68 et 7,14). ⚠️ La charte réservait cette famille au panneau mobile ; elle vaut pour tout aplat qui ne suit pas le sol de la page.
+
+⚠️ **La RÉFÉRENCE d’une citation porte SEULE l’identité du passage**, donc le seuil de 4,5 s’applique — la même règle qu’au § 40.11, sur une autre page et un autre gris : elle rendait 3,57 à 13 px en `--cs-texte-gris`, elle en rend 5,9 en `--cs-texte-second`. ⛔ L’ÉTIQUETTE de section, elle, garde `--cs-etiquette` : une rubrique EST faite pour s’effacer, et confondre les deux cas ferait remonter tout ce que le site a calibré pour se taire.
+
+⚠️ **Un FLEURON ferme la page.** Une page qui s’arrête sur sa dernière ligne paraît coupée ; il ne paraît que s’il y a quelque chose à clore.
+
 ## 42. L’outil bibliographique — la page « Bibliographie »
 
 Décision de l’auteur, 6 septembre 2026 : « Mise en place d’un outil bibliographique dédié au religieux, dans Aller plus loin. » La page `/bibliographie` donne à consulter, à chercher et à citer les ouvrages sur lesquels s’appuient les notices du site — commentaires, éditions critiques, études d’exégèse, de théologie et d’histoire de la réception. Elle entre au menu « Aller plus loin » entre « Les traductions » et « Acheter des livres » : ce qu’on lit ici, ce sur quoi l’on s’appuie, où l’on trouve les livres.

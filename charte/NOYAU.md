@@ -1875,6 +1875,21 @@
 - ⚠️ une glose qui se RÉPÈTE n’est pas une rubrique.
 - ⚠️ Un ornement CENTRÉ reste légitime (§ 3.11.5), mais alors il tient toute la mesure : centré sur treize rem au milieu de huit cents pixels, il ne sépare rien.
 
+**§ 40.12 — MA PAGE — ce que le lecteur donne à voir de lui**
+
+- ⛔ ELLE MONTRE LES DEUX CORPUS, ou elle ment sur ce qu’est ce site.
+- ⛔ Ni deux sections, ni deux couleurs de manchette : la nature d’un passage se lit dans sa référence, elle n’a pas à être annoncée deux fois.
+- ⚠️ Chaque passage RAMÈNE à sa source, quand elle est ouverte au visiteur — le chapitre pour un verset, l’œuvre au bon segment pour un Père.
+- ⛔ LA CITATION D’HONNEUR NE SE RÉPÈTE PAS dans la liste.
+- ⛔ ET LE TITRE D’UNE ŒUVRE RETIRÉE DE LA LECTURE N’Y PARAÎT PAS.
+- ⚠️ L’interrupteur du compte nomme ce qu’il GOUVERNE — non ce qu’il gouvernait : « Citations retenues », et non plus « Versets enregistrés ».
+- ⛔ La COLONNE, elle, garde son nom (`pub_favoris_versets`) : le déclencheur `profils_garde_colonnes` la nomme aussi, et un renommage se paierait des deux côtés pour un mot d’écran.
+- ⛔ L’EN-TÊTE EST UN APLAT, ET IL SE RETOURNAIT EN CUIR — cinquième fois.
+- ⚠️ Et son revers, qu’on ne voit qu’une fois le sol rétabli — sur un fond redevenu sombre, les encres de la carte s’inversent à leur tour — le pseudonyme en `--cs-fond-doux` rendait **1,16**.
+- ⚠️ La charte réservait cette famille au panneau mobile ; elle vaut pour tout aplat qui ne suit pas le sol de la page.
+- ⚠️ La RÉFÉRENCE d’une citation porte SEULE l’identité du passage — donc le seuil de 4,5 s’applique — la même règle qu’au § 40.11, sur une autre page et un autre gris : elle rendait 3,57 à 13 px en `--cs-texte-gris`, elle en rend 5,9 en `--cs-texte-second`.
+- ⛔ L’ÉTIQUETTE de section, elle, garde `--cs-etiquette` : une rubrique EST faite pour s’effacer, et confondre les deux cas ferait remonter tout ce que le site a calibré pour se taire.
+
 ## § 42. L’outil bibliographique — la page « Bibliographie »
 
 **§ 42.1 — Ce qu’elle montre, et ce qu’elle tait**
