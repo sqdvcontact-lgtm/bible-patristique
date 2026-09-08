@@ -189,7 +189,11 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
                 ['pub_rang', 'Rang'],
                 ['pub_essais', 'Publications'],
                 ['pub_favoris_oeuvre', 'Œuvres favorites'],
-                ['pub_favoris_versets', 'Versets enregistrés'],
+                // ⚠️ La COLONNE s'appelle encore `pub_favoris_versets` : elle ne gardait
+                // que les versets jusqu'au 8 septembre 2026, et elle gouverne désormais
+                // tout ce que « Mes citations » retient, les Pères compris. On ne la
+                // renomme pas — le trigger `profils_garde_colonnes` la nomme aussi.
+                ['pub_favoris_versets', 'Citations retenues'],
                 ['pub_mecene', 'Marque de mécène'],
               ] as const).filter(([cle]) => cle !== 'pub_mecene' || estMecene).map(([cle, libelle]) => (
                 <Interrupteur key={cle} libelle={libelle} actif={vis[cle]}

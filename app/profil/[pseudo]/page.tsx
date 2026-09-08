@@ -20,15 +20,40 @@ type ProfilPublic = {
   lecture?: { nb_auteurs: number; total_auteurs: number }
   bibliotheque?: { id: string; mt?: 'la'; titre: string; auteur: string }[]
   essais?: { id: number; titre: string; sous_titre: string | null; categories: string[]; publie_at: string | null; nb_vues: number }[]
-  oeuvre_favorite?: { titre: string; auteur: string; id: string; n: number } | null
-  versets_favoris?: { ref_livre_abr: string | null; ref_chapitre: number | null; ref_verset: number | null; texte: string; traduction: string | null }[]
+  citations?: CitationPubliee[]
   avatar?: { imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
   citation_preferee?: CitationPreferee | null
   /** L'année du premier don, ou nul. Voir app/components/MarqueMecene.tsx. */
   mecene_depuis?: number | null
 }
 
+/**
+ * Un passage retenu par le lecteur, biblique ou patristique.
+ *
+ * ⚠️ La page ne compose RIEN : l'API a déjà fabriqué la référence et le lien, parce
+ * qu'elle seule sait quelles œuvres sont publiées et quel code de livre mène à la
+ * Bible. Ici on ne fait que poser ce qu'elle envoie.
+ */
+type CitationPubliee = {
+  type: 'biblique' | 'patristique'
+  texte: string
+  /** « Gn 25,1 », ou « Augustin d’Hippone, Les Confessions ». */
+  ref: string
+  /** La traduction, pour un verset. Rien pour un passage patristique. */
+  precision: string | null
+  lien: string | null
+}
+
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
+
+/** Les appels de note ([[A]], [[B1]]…) n’ont rien à faire dans une citation. */
+const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, '')
+
+/** Un extrait composable : sans balisage, sans appels de note, et borné. */
+function extrait(texte: string, max: number): string {
+  const t = texteSansEnrichissement(sansAppelsNote(texte)).replace(/\s+/g, ' ').trim()
+  return t.length > max ? `${t.slice(0, max).trimEnd()}…` : t
+}
 
 // ── Filet ornemental ─────────────────────────────────────────────────────────
 function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: React.ReactNode; maxWidth?: string }) {
@@ -44,7 +69,7 @@ function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200
 // ── Étiquette de section ──────────────────────────────────────────────────────
 function Etiquette({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#7a8a6e', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+    <p style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
       {children}
     </p>
   )
@@ -113,7 +138,7 @@ export default function ProfilPublicPage() {
     <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>Profil introuvable</p>
-        <p style={{ fontSize: '0.78125rem', color: '#c8c0b8' }}>@{pseudo}</p>
+        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>@{pseudo}</p>
         <Link href="/" style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
     </main>
@@ -124,10 +149,10 @@ export default function ProfilPublicPage() {
   const rang = profil.lecture ? calculerRang(profil.lecture.nb_auteurs, profil.lecture.total_auteurs) : null
   const couleurs = rang ? couleurRang(rang.rang) : null
   const annee = new Date(profil.membre_depuis).getFullYear()
-  const aVersets = profil.versets_favoris && profil.versets_favoris.length > 0
+  const aCitations = profil.citations && profil.citations.length > 0
   const aBibliotheque = profil.bibliotheque && profil.bibliotheque.length > 0
   const aEssais = profil.essais && profil.essais.length > 0
-  const rienDePublic = !profil.lecture && !aEssais && !aVersets && !profil.bio && !profil.contact_email && !aBibliotheque
+  const rienDePublic = !profil.lecture && !aEssais && !aCitations && !profil.bio && !profil.contact_email && !aBibliotheque
 
   const envoyerSignalementProfil = async (message: string) => {
     const { supabase } = await import('@/app/lib/supabase')
@@ -152,9 +177,12 @@ export default function ProfilPublicPage() {
   return (
     <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', padding: '48px 20px 96px' }}>
       <style>{`
+        /* ⚠️ Le cadre était en --cs-danger-bord, c'est-à-dire ROSE : la passe de
+           jetons du 19 août 2026 avait rangé le sable #d8cdb0 dans la famille du
+           danger, faute d'un nom plus proche. Le bord du site s'appelle --cs-bord. */
         .profil-section {
           background: var(--cs-fond-clair);
-          border: 1px solid var(--cs-danger-bord);
+          border: 1px solid var(--cs-bord);
           border-radius: 8px;
           padding: 28px 32px;
           margin-bottom: 10px;
@@ -175,6 +203,26 @@ export default function ProfilPublicPage() {
         }
         .profil-essai-link:last-child { border-bottom: none; }
         .profil-essai-link:hover { opacity: 0.75; }
+        /* Un passage retenu. La manchette verte est la même que portaient les versets ;
+           elle vaut maintenant pour les deux natures de citation, l'Écriture et les
+           Pères, que seule la ligne de référence distingue. ⚠️ Elle SUIT le thème
+           (--cs-vert-clair passe au sable en Cuir), contrairement à un vert écrit. */
+        .profil-citation {
+          display: block; padding-left: 12px; text-decoration: none;
+          border-left: 2px solid var(--cs-vert-clair);
+          transition: border-color 0.12s;
+        }
+        a.profil-citation:hover { border-left-color: var(--cs-or); }
+        .profil-citation-texte {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.8125rem; font-style: italic; line-height: 1.6;
+          color: var(--cs-texte-fort); margin: 0 0 4px;
+        }
+        .profil-citation-ref {
+          font-family: var(--font-source-serif), Georgia, serif;
+          font-size: 0.59375rem; letter-spacing: 0.04em;
+          color: var(--cs-texte-gris); margin: 0;
+        }
         .profil-action {
           display: inline-flex; align-items: center; justify-content: center; gap: 7px;
           min-height: 34px; border-radius: 999px; padding: 7px 16px;
@@ -246,8 +294,11 @@ export default function ProfilPublicPage() {
             )}
           </h1>
 
+          {/* Même correction que le cadre des sections : le sable #d7ccb1 avait été
+              rangé dans la famille du danger, et le vrai nom paraissait en rose sur
+              le vert sombre. C'est l'or doux qui porte les mentions de cet en-tête. */}
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-danger-bord)', margin: '0 0 6px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-or-doux)', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
@@ -288,8 +339,11 @@ export default function ProfilPublicPage() {
               <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'normal', color: '#e2c98d' }}>
                 {rang.rang}
               </span>
-              <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', marginLeft: '8px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                · {profil.lecture!.nb_auteurs} Père{profil.lecture!.nb_auteurs !== 1 ? 's' : ''} retenu{profil.lecture!.nb_auteurs !== 1 ? 's' : ''}
+              {/* ⚠️ Le point médian sépare à lui seul : la marge de 8 px qu'il portait
+                  en plus ouvrait un blanc d'un côté et pas de l'autre, et le titre
+                  paraissait détaché de son compte. */}
+              <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                {' · '}{profil.lecture!.nb_auteurs} Père{profil.lecture!.nb_auteurs !== 1 ? 's' : ''} retenu{profil.lecture!.nb_auteurs !== 1 ? 's' : ''}
               </span>
             </div>
           )}
@@ -332,7 +386,7 @@ export default function ProfilPublicPage() {
                 le site (œuvres, versets) : elle promettait ici une autre action. */}
             <Filet couleur='#c8a858' symbole={<MarqueCitation taille={15} />} maxWidth='80px' />
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-fort)', lineHeight: 1.45, margin: '10px 0 8px' }}>
-              «&#8201;{(() => { const t = texteSansEnrichissement(citationPreferee.texte); return t.length > 220 ? t.slice(0, 220) + '…' : t })()}&#8201;»
+              «&#8201;{extrait(citationPreferee.texte, 220)}&#8201;»
             </p>
             {(citationPreferee.ref || citationPreferee.auteur) && (
               <p style={{ fontSize: '0.625rem', color: 'var(--cs-or)', margin: 0, letterSpacing: '0.10em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
@@ -363,22 +417,34 @@ export default function ProfilPublicPage() {
           </div>
         )}
 
-        {/* ── VERSETS FAVORIS ───────────────────────────────────────────────── */}
-        {aVersets && (
+        {/* ── CITATIONS ─────────────────────────────────────────────────────────
+            Ce que le lecteur a retenu, et qui ne paraissait nulle part : la section
+            ne montrait que les VERSETS, quand « Mes citations » en garde deux corpus.
+            Un site qui s'annonce « l'Écriture, et ce que les Pères en ont dit » ne
+            pouvait pas donner à voir la moitié d'un florilège. Les deux natures se
+            suivent donc dans une seule liste, du plus récent au plus ancien, et c'est
+            la ligne de référence qui dit laquelle on lit.
+            ⚠️ La citation d'honneur, elle, ne se répète pas ici : l'API la retire. */}
+        {aCitations && (
           <div className="profil-section">
-            <Etiquette>Versets</Etiquette>
+            <Etiquette>Citations</Etiquette>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {profil.versets_favoris!.map((v, i) => (
-                <div key={i} style={{ paddingLeft: '10px', borderLeft: '2px solid var(--cs-vert-clair)' }}>
-                  <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.6, margin: '0 0 4px', fontStyle: 'italic' }}>
-                    «&#8201;{v.texte.length > 160 ? v.texte.slice(0, 160) + '…' : v.texte}&#8201;»
-                  </p>
-                  <p style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-gris)', margin: 0, letterSpacing: '0.04em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                    {v.ref_livre_abr} {v.ref_chapitre},{v.ref_verset}
-                    {v.traduction && <span style={{ marginLeft: '5px', opacity: 0.65 }}>· {v.traduction}</span>}
-                  </p>
-                </div>
-              ))}
+              {profil.citations!.map((c, i) => {
+                const corps = (
+                  <>
+                    <p className="profil-citation-texte">«&#8201;{extrait(c.texte, 200)}&#8201;»</p>
+                    <p className="profil-citation-ref">
+                      {c.ref}
+                      {c.precision && <span style={{ opacity: 0.65 }}> · {c.precision}</span>}
+                    </p>
+                  </>
+                )
+                // Le passage ramène à sa source quand elle est ouverte au visiteur —
+                // le chapitre pour un verset, l'œuvre au bon segment pour un Père.
+                return c.lien
+                  ? <Link key={i} href={c.lien} className="profil-citation">{corps}</Link>
+                  : <div key={i} className="profil-citation">{corps}</div>
+              })}
             </div>
           </div>
         )}
@@ -409,6 +475,15 @@ export default function ProfilPublicPage() {
           <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
             Ce profil ne partage pas encore d&apos;informations publiques.
           </p>
+        )}
+
+        {/* Le fleuron de clôture. Une page qui s'arrête sur sa dernière ligne paraît
+            coupée ; c'est le seul rôle de ce filet, et il ne paraît que s'il y a
+            quelque chose à clore. */}
+        {!rienDePublic && (
+          <div style={{ marginTop: '26px' }}>
+            <Filet couleur='var(--cs-bord)' symbole='❦' maxWidth='150px' />
+          </div>
         )}
 
       </div>

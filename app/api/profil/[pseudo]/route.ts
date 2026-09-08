@@ -2,12 +2,35 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { estRefOriginal, idOeuvreDeRef } from '@/app/lib/refsFavoris'
+import { ABREV_FR } from '@/app/lib/bible'
 import { familleDeRef, identifiantDeRef, refPortraitValide, urlPortrait } from '@/app/lib/portraits'
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+/** L'inverse d'ABREV_FR : « Gn » → « GEN ». Un prélèvement biblique ne garde que
+ *  l'abréviation française, quand la page Bible ne connaît que le code : sans cette
+ *  table, une citation ne saurait pas ramener à son chapitre. */
+const CODE_PAR_ABREV: Record<string, string> = Object.fromEntries(
+  Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, code])
+)
+
+/** Une ligne de `prelevements`, telle qu'on la lit pour la page publique. */
+type PrelevementLu = {
+  id: string
+  type: 'biblique' | 'patristique'
+  texte: string
+  ref_livre_abr: string | null
+  ref_chapitre: number | null
+  ref_verset: number | null
+  traduction: string | null
+  auteur: string | null
+  titre_oeuvre: string | null
+  id_oeuvre: string | null
+  segment_numero: number | null
+}
 
 /** Le nom du visage choisi, lu de la table qui fait autorité.
  *
@@ -68,7 +91,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   }
 
   // Toutes les sections conditionnelles exécutées en parallèle (réduction de N requêtes séquentielles → 1 batch)
-  const [classementRes, essaisRes, favsRes, versetsRes, nomReelRes] = await Promise.all([
+  const [classementRes, essaisRes, favsRes, prelevementsRes, nomReelRes] = await Promise.all([
     // ⛔ Le rang se lit dans `lecture_utilisateurs`, et non plus dans le classement :
     // il mesure la LECTURE et non la conversation depuis le 1er septembre 2026.
     // Voir app/lib/classement.ts.
@@ -89,11 +112,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
           .eq('user_id', profil.id).eq('type', 'oeuvre')
           .order('created_at', { ascending: false })
       : null,
+    // ⚠️ Les DEUX corpus, et non plus les seuls versets : ce que le lecteur retient
+    // des Pères est de même nature que ce qu'il retient de l'Écriture, et « Mes
+    // citations » les garde côte à côte. On en lit large (30) pour n'en montrer que
+    // six : les passages d'une œuvre dépubliée se retirent ensuite, et une liste
+    // arrêtée à six d'avance aurait pu se vider entièrement.
     profil.pub_favoris_versets
       ? sb.from('prelevements')
-          .select('ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, created_at')
-          .eq('user_id', profil.id).eq('type', 'biblique')
-          .order('created_at', { ascending: false }).limit(6)
+          .select('id, type, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, id_oeuvre, segment_numero, created_at')
+          .eq('user_id', profil.id)
+          .order('created_at', { ascending: false }).limit(30)
       : null,
     sb.from('essais').select('id')
       .eq('user_id', profil.id).eq('statut', 'publie')
@@ -154,8 +182,53 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
     }
   }
 
+  // ── Les passages retenus ────────────────────────────────────────────────────
   if (profil.pub_favoris_versets) {
-    rep.versets_favoris = versetsRes?.data ?? []
+    const lues = (prelevementsRes?.data ?? []) as unknown as PrelevementLu[]
+
+    // La citation d'honneur paraît déjà en tête de la page : l'y voir deux fois
+    // ferait croire à un doublon plutôt qu'à un choix.
+    const idHonneur = (profil.citation_preferee as { id?: string } | null)?.id ?? null
+
+    // ⛔ Le TITRE d'une œuvre retirée de la lecture ne doit pas paraître. La ligne de
+    // prélèvement en garde une copie, écrite au jour du prélèvement, que dépublier
+    // l'œuvre ne rattrape pas : c'est la même garde que la bibliothèque, plus haut.
+    const idsOeuvres = [...new Set(lues.filter(p => p.type === 'patristique' && p.id_oeuvre).map(p => p.id_oeuvre!))]
+    const publiees = new Set<string>()
+    if (idsOeuvres.length) {
+      const { data: oeuvresCitees } = await sb
+        .from('oeuvres').select('id_oeuvre, acces_public').in('id_oeuvre', idsOeuvres)
+      for (const o of (oeuvresCitees ?? []) as { id_oeuvre: string; acces_public: boolean | null }[]) {
+        if (estOeuvrePubliee(o)) publiees.add(o.id_oeuvre)
+      }
+    }
+
+    rep.citations = lues
+      .filter(p => p.id !== idHonneur)
+      .filter(p => p.type === 'biblique' || (p.id_oeuvre != null && publiees.has(p.id_oeuvre)))
+      .slice(0, 6)
+      .map(p => {
+        if (p.type === 'biblique') {
+          const code = CODE_PAR_ABREV[p.ref_livre_abr ?? '']
+          return {
+            type: 'biblique' as const,
+            texte: p.texte,
+            ref: [p.ref_livre_abr, [p.ref_chapitre, p.ref_verset].filter(v => v != null).join(',')]
+              .filter(Boolean).join(' '),
+            precision: p.traduction ?? null,
+            lien: code && p.ref_chapitre
+              ? `/?livre=${code}&chapitre=${p.ref_chapitre}${p.ref_verset ? `&verset=${p.ref_verset}` : ''}`
+              : null,
+          }
+        }
+        return {
+          type: 'patristique' as const,
+          texte: p.texte,
+          ref: [p.auteur, p.titre_oeuvre].filter(Boolean).join(', '),
+          precision: null,
+          lien: `/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`,
+        }
+      })
   }
 
   // Nom réel — exposé uniquement si l'utilisateur a publié au moins un essai sous son vrai nom
