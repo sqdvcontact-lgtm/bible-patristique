@@ -95,3 +95,40 @@ Cent quatre-vingts copies COMPLÈTES de la charte, écrites l'une après l'autre
 | poids logique | 239 Mo | **53 Mo** |
 
 Les 94 sauvegardes gardées sont celles des trois derniers jours ; elles tomberont d'elles-mêmes. Règle posée en charte § 27.1, tenue par `public.purger_sauvegardes_parametres()` et le travail périodique `purger_sauvegardes`, chaque nuit à 3 h 20. ⚠️ Le poids sur DISQUE reste à 99 Mo le temps que l'autovacuum reprenne les tuples morts : c'est normal, et ce n'est pas une purge incomplète.
+
+### 2026-09-08 — Concordance des numéros après la coupe du § 35 et du § 38
+
+Un ancien numéro doit rester résoluble : voici où chaque chose est passée.
+
+| ancien | neuf | ce que c'est |
+|---|---|---|
+| 35.6, 35.6.1 à 35.6.7 | **47.0 à 47.7** | la notice bibliographique |
+| 35.8 | **48.0** | le protocole d'océrisation d'une bible |
+| 35.8.0 à 35.8.7 | **48.1 à 48.8** | ⚠️ décalés d'un rang, le `.0` devenant `.1` |
+| 35.8.2.1 | **48.3.1** | postconditions des transformations |
+| 35.16, 35.16.1 à 35.16.23 | **49.0 à 49.23** | les gravures |
+| 38.3 · 38.9 · 38.21 · 38.28 · 38.29 · 38.30 | **50.1 à 50.6** | la Polyglotte (les enfants suivent : 38.28.1 → 50.4.1) |
+| 38.25 · 38.26 · 38.27 · 38.17 · 38.12 | **51.1 à 51.5** | les objets d'interface partagés |
+| 41, 41.1 à 41.6 | **3.11, 3.11.1 à 3.11.6** | le gris typographique, entré au § 3 |
+
+⛔ **Le numéro 41 reste VACANT.** Refermer le trou coûterait la renumérotation de dix chapitres et de deux cents renvois, pour un gain purement cosmétique.
+
+**Ce que la coupe a rendu :**
+
+| § | avant | après | sous-sections |
+|---|---:|---:|---:|
+| 38 | 142 424 | **85 456** | 34 → 19 |
+| 35 | 210 426 | **79 270** | 75 → 41 |
+| les deux ensemble | **38 %** de la charte | **17,6 %** | |
+
+**Contrôle** — c'est lui qui rendait l'opération faisable. Un relevé compte tous les renvois numérotés du dépôt (charte, `AGENTS.md`, `app/`, `scripts/`, `sql/`, `supabase/`) et confronte chacun aux titres réels de la charte :
+
+| | avant | après |
+|---|---:|---:|
+| renvois numérotés | 1 386 | 1 398 |
+| numéros distincts | 266 | 271 |
+| **renvois pendants** | **18** | **17** |
+
+Un de moins qu'au départ, aucun cassé. ⚠️ Les 17 pendants sont pour la plupart des faux positifs — WCAG § 2.5.8, CSS 2.1 § 10.4, un « § 1127 » qui est un numéro de colonne de Migne — et quatre vrais, dans de vieux scripts qui citent des sections disparues avant aujourd'hui.
+
+⚠️ **Neuf fichiers portant des chantiers d'autrui n'ont pas été indexés**, bien que mes réécritures de renvoi s'y soient appliquées sur le disque : elles partiront avec leur travail. Si l'un d'eux est annulé, un renvoi ancien y reparaîtra — le relevé le dira.
