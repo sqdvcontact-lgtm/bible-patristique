@@ -1,4 +1,4 @@
--- § 35.6.4 — Une variante ne laisse pas debout l’autorité qu’elle remplace.
+-- § 47.4 — Une variante ne laisse pas debout l’autorité qu’elle remplace.
 -- 29 août 2026.
 --
 -- Le mal : on inscrivait « Veuve Jean Camusat ; Pierre Le Petit » parmi les variantes
@@ -263,7 +263,7 @@ create trigger editeurs_valeur_absorber
 
 -- ── Contrôle de clôture ─────────────────────────────────────────────────────
 -- Ce qui resterait à fusionner, les deux référentiels ensemble et l’un contre l’autre.
--- Une passe bibliographique n’est achevée que si cette liste est vide (charte § 35.6.4).
+-- Une passe bibliographique n’est achevée que si cette liste est vide (charte § 47.4).
 
 create or replace function public.autorites_editeurs_a_fusionner()
 returns table (referentiel text, id bigint, forme text, autorite text, ou text)

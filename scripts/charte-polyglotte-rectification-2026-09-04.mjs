@@ -1,5 +1,5 @@
 /**
- * § 38.3, rectification du soir : l'échelle en cases, le gris rendu au texte, la
+ * § 50.1, rectification du soir : l'échelle en cases, le gris rendu au texte, la
  * date seule sous le nom d'une colonne, et l'anneau posé en dedans.
  *
  * Cinq demandes de l'auteur du 4 septembre 2026, en seconde passe sur la page
@@ -7,7 +7,7 @@
  * avait chaque fois retiré un ornement de trop.
  *
  * ⛔ N'écrit QUE dans `parametres.charte_ia` ; le miroir s'en régénère.
- * ⚠️ Le texte s'insère APRÈS le § 38.3 et AVANT le § 38.4, à sa place.
+ * ⚠️ Le texte s'insère APRÈS le § 50.1 et AVANT le § 38.4, à sa place.
  * Usage : node scripts/charte-polyglotte-rectification-2026-09-04.mjs [--dry]
  */
 import { readFileSync } from 'node:fs'
@@ -19,7 +19,7 @@ const essaiSeul = process.argv.includes('--dry')
 
 const MARQUE = 'RECTIFICATION DU MÊME JOUR, AU SOIR'
 
-// Ancre : la dernière phrase du § 38.3, recopiée de `parametres.charte_ia`. Le
+// Ancre : la dernière phrase du § 50.1, recopiée de `parametres.charte_ia`. Le
 // § 38.4 la suit désormais ; le texte neuf se glisse entre les deux.
 const ANCRE = 'Avant de retirer un état visible, mesurer celui qui est censé le remplacer.'
 

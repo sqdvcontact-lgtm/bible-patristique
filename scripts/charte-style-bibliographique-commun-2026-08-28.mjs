@@ -1,5 +1,5 @@
 /**
- * § 35.6 : un SEUL style bibliographique, et il vient de la donnée.
+ * § 47.0 : un SEUL style bibliographique, et il vient de la donnée.
  *
  * Décisions de l'auteur du 28 août 2026, valant pour toutes les bibliographies
  * de l'apparat — « Du même auteur », toute pièce « Bibliographie », tout bloc
@@ -38,12 +38,12 @@ const SECTION = [
 
 const REMPLACEMENTS = [
   {
-    nom: 'retrait suspendu (§ 35.6)',
+    nom: 'retrait suspendu (§ 47.0)',
     avant: 'avec le retrait de première ligne des bibliographies imprimées, un blanc très fin entre l’annonce et la première entrée',
     apres: 'avec le retrait suspendu des bibliographies imprimées — la première ligne au bord, les suivantes légèrement rentrées —, un blanc très fin entre l’annonce et la première entrée',
   },
   {
-    nom: 'retrait suspendu et corps (§ 35.6.1)',
+    nom: 'retrait suspendu et corps (§ 47.1)',
     avant: 'alignement à gauche, retrait de première ligne des bibliographies imprimées, blanc léger entre deux références, et un corps légèrement inférieur au corps courant.',
     apres: 'alignement à gauche, retrait suspendu, blanc léger entre deux références, et un corps légèrement inférieur au texte de l’apparat. ⚠️ Le retrait suspendu remplace le retrait de première ligne prescrit jusque-là (décision de l’auteur du 28 août 2026).',
   },

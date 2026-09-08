@@ -4,11 +4,11 @@
  *   npx tsx --env-file=.env.local scripts/fillion/auditer-illustrations.mts
  *
  * ⛔ TOUT SE MESURE À LA TAILLE D'AFFICHAGE, jamais au double : c'est là que la
- *    gravure se juge, et la charte l'a payé deux fois (§ 35.16.9).
+ *    gravure se juge, et la charte l'a payé deux fois (§ 49.9).
  * ⛔ ET LA MESURE NE CONCLUT PAS. Elle dit où REGARDER. Le registre distingue ce
  *    qui est mesuré de ce qui est VU : trois mesures ont déjà accusé à tort — les
  *    coins d'un fichier rogné, la confrontation au scan, le filet d'un cadre
- *    gravé pris pour un filet de page (§ 35.16.20).
+ *    gravé pris pour un filet de page (§ 49.20).
  *
  * Il n'écrit rien en base et ne remplace aucun fichier servi. Il tire au besoin
  * les dérivés dans `tmp/`, qui n'est pas versionné.
@@ -37,7 +37,7 @@ const SEUILS = {
   /** Sous un pixel, la hachure ne se rend plus : elle se moud en gris. Médiane du corpus 1,88 px. */
   traitFin: 1.0,
   traitTresFin: 0.8,
-  /** Le fichier se sert au DOUBLE de sa taille d'affichage (§ 35.16.7). */
+  /** Le fichier se sert au DOUBLE de sa taille d'affichage (§ 49.7). */
   rapportBas: 1.75,
   rapportHaut: 2.3,
   /** Ce que la chaîne rend du master réduit à la même taille. Médiane 99 %, minimum 86. */
@@ -47,7 +47,7 @@ const SEUILS = {
   hauteurTresGrande: 640,
   /** Le plancher relève la LARGEUR, et la hauteur suit. Facteur médian 1,35. */
   plancherFort: 2.0,
-  /** Masse du pic de papier : une demi-teinte rend 2,7 à 9,2 %, un bois 10,4 à 44 (§ 35.16.20). */
+  /** Masse du pic de papier : une demi-teinte rend 2,7 à 9,2 %, un bois 10,4 à 44 (§ 49.20). */
   massePapier: 10,
   /** Un voile est PLAT : part de la surface sur UNE valeur d'alpha faible. Médiane 0,53 %. */
   voile: 3,
@@ -299,7 +299,7 @@ for (const a of actifs!) {
 
   // ⛔ UNE PLANCHE TOURNÉE EST MONTRÉE 1,6 FOIS PLUS PETITE QU'UNE PLANCHE DEBOUT.
   //    Fillion imprime en paysage, sur une page portrait, les planches qui ne
-  //    tiendraient pas autrement ; on les redresse (§ 35.16). Mais le site borne
+  //    tiendraient pas autrement ; on les redresse (§ 49.0). Mais le site borne
   //    la LARGEUR : une planche redressée présente alors sa longue dimension aux
   //    440 px de la colonne, quand une planche debout n'y présente que sa courte.
   //    Son contenu tombe à 0,157 de sa taille au lieu de 0,256, et ses légendes

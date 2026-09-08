@@ -1,5 +1,5 @@
 /**
- * § 35.6.4 : déclarer une variante d’éditeur, c’est FUSIONNER.
+ * § 47.4 : déclarer une variante d’éditeur, c’est FUSIONNER.
  *
  * Le mal constaté le 29 août 2026 : on inscrivait « Veuve Jean Camusat ; Pierre Le
  * Petit » parmi les variantes de « Veuve Jean Camusat et Pierre Le Petit », et
@@ -43,7 +43,7 @@ const { data, error } = await db.from('parametres').select('valeur').eq('cle', '
 if (error) throw error
 
 const n = data.valeur.split(ANCRE).length - 1
-if (n !== 1) throw new Error(`ancre § 35.6.4 : ${n} occurrence(s), 1 attendue.`)
+if (n !== 1) throw new Error(`ancre § 47.4 : ${n} occurrence(s), 1 attendue.`)
 if (data.valeur.includes('Déclarer une variante, c’est FUSIONNER')) {
   console.log('La règle est déjà dans la charte : rien à écrire.')
   process.exit(0)

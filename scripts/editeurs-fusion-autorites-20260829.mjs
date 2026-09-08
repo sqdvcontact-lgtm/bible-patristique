@@ -1,5 +1,5 @@
 /**
- * § 35.6.4 — Passe rétroactive de fusion des autorités d’éditeurs.
+ * § 47.4 — Passe rétroactive de fusion des autorités d’éditeurs.
  *
  * Aucune graphie ne doit rester une autorité quand une autre fiche la déclare
  * variante. La passe ne décide rien par elle-même : elle se contente de RÉÉCRIRE
@@ -54,7 +54,7 @@ const ouvragesAvant = await lire(db.from('ouvrages_bibliographiques').select('id
 const collectionsAvant = await lire(db.from('collections_editeurs').select('collection_id, editeur_id'))
 
 const retour = [
-  `-- Retour arrière de la passe § 35.6.4 du 29 août 2026 (fusion des autorités d’éditeurs).`,
+  `-- Retour arrière de la passe § 47.4 du 29 août 2026 (fusion des autorités d’éditeurs).`,
   `-- État relevé avant la passe : ${editeursAvant.length} maisons, ${valeursAvant.length} autorités,`,
   `-- ${ouvragesAvant.length} notices rattachées, ${collectionsAvant.length} liens de collection.`,
   `-- ⚠️ Les déclencheurs de fusion refuseraient de rendre une graphie à son autorité :`,

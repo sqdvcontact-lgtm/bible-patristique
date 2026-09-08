@@ -97,7 +97,7 @@ export type SegmentReference = FragmentNotice
 /**
  * Les pièces où le TITRE porte déjà l'auteur, et où le répéter serait le dire
  * quinze fois. « Du même auteur » est de celles-là — sa rubrique établit
- * l'auteur commun, la charte le dit (§35.6.1), et l'auteur du site l'a
+ * l'auteur commun, la charte le dit (§47.1), et l'auteur du site l'a
  * réaffirmé. ⚠️ La liste est nommée, non devinée : une autre pièce
  * bibliographique affiche ses auteurs, c'est la règle générale.
  */

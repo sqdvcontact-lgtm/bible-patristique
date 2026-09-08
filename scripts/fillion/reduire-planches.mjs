@@ -7,7 +7,7 @@
 // ⛔ POURQUOI CE SCRIPT EXISTE. `detourer-gravures.mjs` saute les planches — « une
 // planche ne se détoure jamais » — et les leur laissait donc telles que leur
 // chaîne d'origine les avait faites : 1273 à 1600 px pour 440 affichés, soit
-// jusqu'à 3,64×, là où la règle veut le DOUBLE au plus (charte § 35.16.5). Deux
+// jusqu'à 3,64×, là où la règle veut le DOUBLE au plus (charte § 49.5). Deux
 // réductions successives moyennent le trait en un gris mou, et c'est exactement le
 // défaut que la règle existe pour empêcher.
 //
@@ -51,7 +51,7 @@ const NETTETE_TON = { sigma: 1.3, m1: 0, m2: 3, y2: 4, y3: 5 }
 
 /** ⛔ LE PLANCHER DIT CE QUI EST DU PAPIER — il ne dit pas ce qu'on blanchit.
  *
- *  Il est celui de la rampe alpha (charte § 35.16.1) et se mesure de la même façon :
+ *  Il est celui de la rampe alpha (charte § 49.1) et se mesure de la même façon :
  *  la demi-largeur du pic prise de son côté CLAIR, le seul qu'aucune encre ne
  *  peuple. Tout ce qui est plus clair que ce pied EST du papier.
  *
@@ -87,7 +87,7 @@ function bornesDuPapier(gris, total) {
  *  Porter au blanc TOUT ce qui est plus clair que le plancher nettoie parfaitement
  *  et coûte **11 % de l'encre** — jusqu'à 17 % sur les gravures au trait FIN, dont
  *  les traits minces ont justement des valeurs claires. ⚠️ L'œil ne le voit pas ;
- *  seul le témoin le dit, et c'est pour cela qu'on le mesure (§ 35.16.15).
+ *  seul le témoin le dit, et c'est pour cela qu'on le mesure (§ 49.15).
  *
  *  Un trait clair est TOUJOURS bordé de trait plus sombre ; le papier ouvert, jamais.
  *  On part donc d'un étalement au PIC, qui ne perd rien, et l'on ne pousse au blanc

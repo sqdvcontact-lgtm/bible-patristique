@@ -1,5 +1,5 @@
 /**
- * §§ 38.21 et 38.22 : la LACUNE du témoin garde ses crochets et les met en forme ;
+ * §§ 50.3 et 38.22 : la LACUNE du témoin garde ses crochets et les met en forme ;
  * le panneau de filtres de la bibliothèque met sa rubrique en marge, et un filtre
  * qui agit se montre.
  *
@@ -46,7 +46,7 @@ Demande de l’auteur, 2026-09-05 : revoir les filtres de la bibliothèque, en t
 
 ⛔ **ET LE BOUTON CESSE DE COMPTER CE QUE LES JETONS NOMMENT** : « ❷ » se lisait à quarante pixels des deux jetons, soit deux comptes de la même chose sur une seule ligne, dont l’un ne dit pas lesquels. Ce que le bouton doit encore porter — qu’un filtre agit — son encre et son filet le disent.
 
-**La page ne disait nulle part combien d’auteurs répondent** : seul le pied « Page 1 sur 3 » le laissait deviner, et le total ne se lisait qu’en tournant les pages jusqu’au bout. Une ligne discrète le dit dès qu’une recherche ou un filtre restreint la liste — « Trois auteurs sur quinze » —, et elle donne le total au passage. ⛔ Elle ne paraît PAS quand rien ne restreint : un compte qui ne bouge jamais n’est pas une information (§ 38.12).
+**La page ne disait nulle part combien d’auteurs répondent** : seul le pied « Page 1 sur 3 » le laissait deviner, et le total ne se lisait qu’en tournant les pages jusqu’au bout. Une ligne discrète le dit dès qu’une recherche ou un filtre restreint la liste — « Trois auteurs sur quinze » —, et elle donne le total au passage. ⛔ Elle ne paraît PAS quand rien ne restreint : un compte qui ne bouge jamais n’est pas une information (§ 51.5).
 
 ⚠️ **« Tout effacer » se range sous la COLONNE DES PASTILLES**, non au bord du panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus loin, il ne se rattachait à rien et faisait un objet de plus en bas d’écran.
 

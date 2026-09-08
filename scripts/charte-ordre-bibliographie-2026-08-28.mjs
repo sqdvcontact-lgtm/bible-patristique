@@ -1,5 +1,5 @@
 /**
- * § 35.6.3 : l'ordre d'une bibliographie se CALCULE.
+ * § 47.3 : l'ordre d'une bibliographie se CALCULE.
  *
  * Décision de l'auteur du 28 août 2026 : le rangement d'une liste
  * bibliographique ne se lit plus dans la donnée. D'abord la vedette — nom de
@@ -30,7 +30,7 @@ const REMPLACEMENTS = [
   {
     nom: 'display_order n’est plus l’ordre d’affichage',
     avant: '`bible_editorial_bibliography_entries` donne l’appartenance à la pièce et l’ordre d’affichage,',
-    apres: '`bible_editorial_bibliography_entries` donne l’appartenance à la pièce et le rang de la page imprimée (⚠️ non l’ordre d’affichage, qui se calcule : § 35.6.3),',
+    apres: '`bible_editorial_bibliography_entries` donne l’appartenance à la pièce et le rang de la page imprimée (⚠️ non l’ordre d’affichage, qui se calcule : § 47.3),',
   },
   {
     nom: 'section 35.6.3',

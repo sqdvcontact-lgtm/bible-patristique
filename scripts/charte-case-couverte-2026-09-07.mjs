@@ -1,5 +1,5 @@
 /**
- * Charte — § 38.29 : une case couverte n'est pas une case vide.
+ * Charte — § 50.5 : une case couverte n'est pas une case vide.
  *
  * ⛔ La doctrine vit dans Supabase `parametres.charte_ia`, et nulle part ailleurs.
  * `charte/CHARTE_IA.md` n'en est qu'un miroir, régénéré par
@@ -36,7 +36,7 @@ const attendu = distant.trimEnd() + '\n' + SECTION
 
 // Garde 1 — la section ne doit pas déjà être là.
 if (distant.includes('### 38.29 Une case COUVERTE')) {
-  console.log('⚠️  La section § 38.29 est déjà dans la charte : rien à faire.')
+  console.log('⚠️  La section § 50.5 est déjà dans la charte : rien à faire.')
   process.exit(0)
 }
 // Garde 2 — le texte nouveau PROLONGE le distant, il ne le réécrit pas.
@@ -46,7 +46,7 @@ const ajoute = attendu.length - distant.trimEnd().length
 if (ajoute !== SECTION.length + 1) throw new Error(`ajout inattendu : ${ajoute} signes`)
 
 console.log(`charte : ${distant.length} signes, mise à jour le ${avant.mis_a_jour}`)
-console.log(`ajout  : ${SECTION.length} signes (§ 38.29)`)
+console.log(`ajout  : ${SECTION.length} signes (§ 50.5)`)
 if (!ECRIRE) { console.log('\n(simulation — relancer avec --ecrire)'); process.exit(0) }
 
 // Sauvegarde de la ligne AVANT toute écriture.

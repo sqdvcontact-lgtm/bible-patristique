@@ -43,7 +43,7 @@ import {
  *
  * ⛔ Chaque référence se compose par LE moteur bibliographique du site
  * (`ReferenceBibliographique`) : cette page n'a aucune règle de composition à elle,
- * et le bouton « Copier » sort la même référence par les mêmes sorties (§ 35.6.6).
+ * et le bouton « Copier » sort la même référence par les mêmes sorties (§ 47.6).
  *
  * ⛔ Rien ici ne dit le RANG d'un ouvrage : ni score, ni « secondaire », ni motif
  * (charte § 29.1). Ce que le lecteur voit, c'est ce qu'un catalogue montre.
@@ -108,7 +108,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
  * « Copier la référence » : au presse-papiers en RICHE (l'italique et les petites
  * capitales survivent au collage dans un traitement de texte) et en texte nu pour
  * ce qui ne lit que le texte. Les deux formes viennent des sorties du moteur
- * (§ 35.6.6) ; ce bouton ne compose rien.
+ * (§ 47.6) ; ce bouton ne compose rien.
  * ⚠️ `ClipboardItem` manque à quelques navigateurs : le texte nu suffit alors.
  */
 function BoutonCopierReference({ entree }: { entree: EntreeBibliographie }) {

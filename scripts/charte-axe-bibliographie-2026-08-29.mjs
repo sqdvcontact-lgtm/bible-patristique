@@ -22,8 +22,8 @@ qualifient celui que le bloc porte déjà.
 deux axes peuvent déclarer — \`notice_subtype = bibliography\` sur une notice entière,
 \`leading_paragraph_style = bibliographie\` sur le premier paragraphe d'un bloc. Elle se
 compose alors dans la famille \`cs-apparat-bibliographie\`, une seule pour tout
-l'apparat (§ 35.6.2), et ses entrées se raccordent au catalogue par \`ouvrage_id\`
-(§ 35.6.4). ⛔ Lui donner un style à elle seule aurait mis dans le NOM ce que la
+l'apparat (§ 47.2), et ses entrées se raccordent au catalogue par \`ouvrage_id\`
+(§ 47.4). ⛔ Lui donner un style à elle seule aurait mis dans le NOM ce que la
 matière dit déjà — c'est le produit croisé qu'on a défait.`
 const env = Object.fromEntries(readFileSync(resolve(racine, '.env.local'), 'utf8').split(/\r?\n/u)
   .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/u)).filter(Boolean)

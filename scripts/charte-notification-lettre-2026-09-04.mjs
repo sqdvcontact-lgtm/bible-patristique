@@ -1,5 +1,5 @@
 /**
- * § 38.17 : une notification est une LETTRE, et un bloc ne se pose pas dans un bloc.
+ * § 51.4 : une notification est une LETTRE, et un bloc ne se pose pas dans un bloc.
  *
  * ⛔ N'écrit QUE dans `parametres.charte_ia` ; le miroir s'en régénère.
  * Usage : node scripts/charte-notification-lettre-2026-09-04.mjs [--dry]

@@ -1,5 +1,5 @@
 /**
- * § 41 : la densité des textes, le gris typographique.
+ * § 3.11 : la densité des textes, le gris typographique.
  *
  * Décision de l'auteur du 5 septembre 2026, à la suite de l'audit de densité
  * (`audit/densite-typographique-2026-09-05.md`) : « J'aime les textes serrés, césurés,
@@ -41,9 +41,9 @@ La règle vise **ce qui se lit en paragraphe, non ce qui se lit d’un coup d’
 2. \`hyphens: auto\` et \`-webkit-hyphens: auto\` ;
 3. \`word-spacing\` négatif, qui ramène l’espace au quart de cadratin : −0,03 em pour le sans, −0,025 em pour le sérif ;
 4. \`letter-spacing: 0\` — aucun interlettrage sur un corps de texte ;
-5. un \`line-height\` pris au barème du § 41.3.
+5. un \`line-height\` pris au barème du § 3.11.3.
 
-⛔ **UN TEXTE JUSTIFIÉ EST TOUJOURS CÉSURÉ, et cela ne dépend pas de sa longueur.** Justifié sans césure, rien ne borne l’étirement des espaces : mesuré dans ce dépôt jusqu’à 1,609 em, six fois le quart de cadratin, et aucune propriété CSS ne le borne — c’est la mécanique du procédé, non un défaut de réglage. La césure REMPLIT les lignes ; l’espace resserrée les tasse. Deux lignes suffisent à creuser une lézarde : le seuil du § 41.1 décide si l’on JUSTIFIE, jamais si l’on césure quand on a justifié. ⚠️ Relevé du 5 septembre 2026 : sur trente paragraphes justifiés du site, quinze n’étaient pas césurés.
+⛔ **UN TEXTE JUSTIFIÉ EST TOUJOURS CÉSURÉ, et cela ne dépend pas de sa longueur.** Justifié sans césure, rien ne borne l’étirement des espaces : mesuré dans ce dépôt jusqu’à 1,609 em, six fois le quart de cadratin, et aucune propriété CSS ne le borne — c’est la mécanique du procédé, non un défaut de réglage. La césure REMPLIT les lignes ; l’espace resserrée les tasse. Deux lignes suffisent à creuser une lézarde : le seuil du § 3.11.1 décide si l’on JUSTIFIE, jamais si l’on césure quand on a justifié. ⚠️ Relevé du 5 septembre 2026 : sur trente paragraphes justifiés du site, quinze n’étaient pas césurés.
 
 ⚠️ **La césure automatique n’agit que si la langue est déclarée.** \`<html lang="fr">\` la porte pour tout le site ; un texte d’une autre langue déclare la sienne sur son propre bloc. Le latin et le grec reçoivent leurs coupes du site, aucun navigateur ne sachant les syllaber (§ 18).
 

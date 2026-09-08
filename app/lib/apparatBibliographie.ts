@@ -64,7 +64,7 @@ export const CLASSES_BIBLIOGRAPHIE = {
  * tombent et en héritent la composition.
  *
  * ⚠️ Étendu de deux valeurs le 5 septembre 2026, pour l'article et la
- * contribution (charte § 35.6.2) : le titre d'un article se compose en romain
+ * contribution (charte § 47.2) : le titre d'un article se compose en romain
  * entre guillemets, l'intitulé de son hôte en italique.
  */
 export const STYLES_CARACTERE_BIBLIOGRAPHIE = [

@@ -19,7 +19,7 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
  *
  * ⚠️ AUCUN NOUVEAU DÉRIVÉ N'EST NÉCESSAIRE, et c'est ce qui rend la correction
  * si peu coûteuse : le fichier servi fait déjà le DOUBLE de sa taille
- * d'affichage (charte § 35.16.7). Le montrer à sa taille naturelle porte le
+ * d'affichage (charte § 49.7). Le montrer à sa taille naturelle porte le
  * contenu d'une planche tournée à 0,313 — mieux que ce qu'une planche debout
  * obtient dans le fil du texte.
  *

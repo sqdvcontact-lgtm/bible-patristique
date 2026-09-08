@@ -13,7 +13,7 @@ const essaiSeul = process.argv.includes('--dry')
 
 const MARQUE = '### 38.13 Les deux SÉRIES du Budé'
 
-// Ancre : la dernière phrase du § 38.12, recopiée de `parametres.charte_ia`.
+// Ancre : la dernière phrase du § 51.5, recopiée de `parametres.charte_ia`.
 const ANCRE = 'Et l’on dit UNE fois pourquoi ces cases ne s’ouvrent pas : un champ figé sans un mot se lit comme un champ en panne.'
 
 const SECTION = `
@@ -32,7 +32,7 @@ Demande de l’auteur du 4 septembre 2026 : « pour rendre hommage discrètement
 
 ⚠️ **La langue se prend sur la PREMIÈRE nommée**, le champ étant du texte libre qui porte souvent une chaîne de transmission : « grec ; version latine de Rufin », « grec perdu ; version syriaque conservée ». L’original ouvre la phrase, et c’est lui qui décide — une œuvre grecque conservée en latin reste grecque. ⛔ On ne cherche pas la langue ailleurs que dans la tête : « ancien français » ne doit pas devenir du latin parce que le mot y paraîtrait plus loin.
 
-⚠️ **Une information portée par la seule COULEUR n’est lisible que de qui connaît le code** : la case porte donc aussi son mot, « Œuvres en latin », « Œuvres en grec ». Ce n’est pas l’infobulle en l’air du § 38.12 : celle-ci dit ce que la couleur seule ne peut pas dire.`
+⚠️ **Une information portée par la seule COULEUR n’est lisible que de qui connaît le code** : la case porte donc aussi son mot, « Œuvres en latin », « Œuvres en grec ». Ce n’est pas l’infobulle en l’air du § 51.5 : celle-ci dit ce que la couleur seule ne peut pas dire.`
 
 const env = Object.fromEntries(
   readFileSync(resolve(racine, '.env.local'), 'utf8').split(/\r?\n/u)

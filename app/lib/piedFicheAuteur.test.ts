@@ -52,7 +52,7 @@ describe('pied de la fiche d’auteur', () => {
   })
 
   it('compose les DEUX bibliographies par le moteur, jamais à la main', () => {
-    // Charte § 35.6.5 : il n'y a qu'une composition bibliographique sur le site.
+    // Charte § 47.5 : il n'y a qu'une composition bibliographique sur le site.
     expect(modale).toContain('<ReferenceBibliographique')
     expect(modale).toContain('noticeDuCatalogue({')
     expect(modale).toContain('chargerNoticesBibliographiques(supabase, idsOuvrages)')

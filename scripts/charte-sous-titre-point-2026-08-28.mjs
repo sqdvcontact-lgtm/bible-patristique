@@ -1,5 +1,5 @@
 /**
- * § 35.6.1 : un sous-titre se détache par un POINT.
+ * § 47.1 : un sous-titre se détache par un POINT.
  *
  * Décision de l'auteur du 28 août 2026, la troisième du jour sur ce joint et
  * celle qui tient : `*Évangile selon saint Jean. Introduction critique et
@@ -19,7 +19,7 @@ const essaiSeul = process.argv.includes('--dry')
 
 const REMPLACEMENTS = [
   {
-    nom: 'prescription du joint (§ 35.6.1)',
+    nom: 'prescription du joint (§ 47.1)',
     avant: 'ils se composent tous deux en italique et se joignent par un **deux-points**, précédé de son espace insécable `U+00A0`, non par une virgule ni par un point : `*Évangile selon saint Jean : Introduction critique et commentaires*`. ⚠️ Décision de l’auteur du 28 août 2026, qui remplace la virgule prescrite jusque-là.',
     apres: 'ils se composent tous deux en italique et se joignent par un **point** : `*Évangile selon saint Jean. Introduction critique et commentaires*`. Un sous-titre EST un sous-titre, non une apposition qu’un deux-points introduirait. ⚠️ Décision de l’auteur du 28 août 2026, qui remplace le deux-points prescrit le matin même, lequel remplaçait la virgule : ⛔ ni virgule, ni deux-points, ni l’espace insécable qui précédait celui-ci. ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n’en reçoit pas une seconde, sa ponctuation attestée détachant à elle seule : `*Où en est la question biblique ? Réponse à quelques objections*`.',
   },
@@ -29,7 +29,7 @@ const REMPLACEMENTS = [
     apres: 'La forme affichée est donc : intitulé, lieu, éditeur normalisé, année, point final — `*Évangile selon saint Jean. Introduction critique et commentaires*, Paris, Lethielleux, 1887.`',
   },
   {
-    nom: 'ponctuation sans style propre (§ 35.6.2)',
+    nom: 'ponctuation sans style propre (§ 47.2)',
     avant: 'elle appartient à la séquence où elle tombe et en hérite — le deux-points qui joint le titre au sous-titre reste ainsi dans l’italique du titre.',
     apres: 'elle appartient à la séquence où elle tombe et en hérite — le point qui joint le titre au sous-titre reste ainsi dans l’italique du titre.',
   },

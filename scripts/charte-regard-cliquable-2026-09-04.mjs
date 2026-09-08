@@ -16,7 +16,7 @@ const essaiSeul = process.argv.includes('--dry')
 
 const MARQUE = '### 38.10 La lecture EN REGARD'
 
-// Ancre : la dernière phrase du § 38.9, recopiée de `parametres.charte_ia`.
+// Ancre : la dernière phrase du § 50.2, recopiée de `parametres.charte_ia`.
 const ANCRE = 'c’est le prix d’une colonne étroite justifiée, et l’on ne le paie pas en inventant des coupures.'
 
 const SECTION = `

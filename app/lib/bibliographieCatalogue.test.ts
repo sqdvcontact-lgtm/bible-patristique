@@ -25,7 +25,7 @@ import type { NoticeBibliographique } from './referenceBibliographique'
 
 // L'outil bibliographique range, filtre et cherche dans les ouvrages que la charte
 // permet de montrer. Ces tests figent trois choses : ce qui PARAÎT (§ 29.1), l'ORDRE
-// (§ 35.6.3, par le comparateur commun) et ce qu'une recherche TROUVE.
+// (§ 47.3, par le comparateur commun) et ce qu'une recherche TROUVE.
 
 const notice = (o: Partial<NoticeBibliographique> & { id: number; titre: string }): NoticeBibliographique => ({
   forme: null, sousTitre: null, titreHote: null, tomaison: null, pages: null, dateAffichee: null,

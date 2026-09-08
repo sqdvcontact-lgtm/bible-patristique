@@ -17,7 +17,7 @@ const essaiSeul = process.argv.includes('--dry')
 
 const MARQUE = 'L’OUTIL BIBLIOGRAPHIQUE EST UNE SURFACE DU MOTEUR, NON UN MOTEUR DE PLUS'
 
-// La section s'ajoute EN FIN de charte, après le § 41.6 : l'ancre est la dernière
+// La section s'ajoute EN FIN de charte, après le § 3.11.6 : l'ancre est la dernière
 // phrase du document, vérifiée pour elle-même avant toute écriture.
 const ANCRE_FIN = '⚠️ **Une règle CSS que rien ne porte fausse un relevé comme elle fausse une lecture.** `.cs-chapeau` portait 1,75 sur la page du chantier et n’était posée sur aucun élément ; l’audit l’avait d’abord comptée parmi les écarts.'
 
@@ -35,9 +35,9 @@ Décision de l’auteur, 6 septembre 2026 : « Mise en place d’un outil biblio
 
 ### 42.2 Une surface du moteur
 
-⛔ **L’OUTIL BIBLIOGRAPHIQUE EST UNE SURFACE DU MOTEUR, NON UN MOTEUR DE PLUS** (§ 35.6.5). Chaque référence se compose par \`ReferenceBibliographique\` depuis \`v_references_bibliographiques\`, par le même chargement que toute autre surface qui cite ; la page n’a aucune règle de composition à elle, et le bouton « Copier la référence » sort la même référence par les sorties du § 35.6.6 — en HTML riche pour un traitement de texte, en texte nu pour ce qui ne lit que le texte. La forme de la liste est celle de toute bibliographie du site (§ 35.6.2) : retrait suspendu, ferrée à gauche, aucune puce, aucun cadre.
+⛔ **L’OUTIL BIBLIOGRAPHIQUE EST UNE SURFACE DU MOTEUR, NON UN MOTEUR DE PLUS** (§ 47.5). Chaque référence se compose par \`ReferenceBibliographique\` depuis \`v_references_bibliographiques\`, par le même chargement que toute autre surface qui cite ; la page n’a aucune règle de composition à elle, et le bouton « Copier la référence » sort la même référence par les sorties du § 47.6 — en HTML riche pour un traitement de texte, en texte nu pour ce qui ne lit que le texte. La forme de la liste est celle de toute bibliographie du site (§ 47.2) : retrait suspendu, ferrée à gauche, aucune puce, aucun cadre.
 
-**L’ordre se calcule** (§ 35.6.3), par le comparateur commun : la vedette, puis le titre sans son article. La vedette est le premier auteur structuré — scientifique ou source —, dont l’autorité dit si elle se coupe en prénom et nom de famille ; à défaut le texte libre ; à défaut le titre. La marge du catalogue porte la LETTRE de cette vedette, collante comme le nom d’un livre au catalogue des péricopes, et une entrée qui ne commence pas par une lettre se range sous « # ».
+**L’ordre se calcule** (§ 47.3), par le comparateur commun : la vedette, puis le titre sans son article. La vedette est le premier auteur structuré — scientifique ou source —, dont l’autorité dit si elle se coupe en prénom et nom de famille ; à défaut le texte libre ; à défaut le titre. La marge du catalogue porte la LETTRE de cette vedette, collante comme le nom d’un livre au catalogue des péricopes, et une entrée qui ne commence pas par une lettre se range sous « # ».
 
 ### 42.3 Le volet
 

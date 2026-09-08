@@ -1,5 +1,5 @@
 /**
- * § 38.3 : la Bible polyglotte — un réglage n'est pas un bouton, une colonne prise se
+ * § 50.1 : la Bible polyglotte — un réglage n'est pas un bouton, une colonne prise se
  * grise, le menu se range par millésime, et le titre d'une colonne porte sa date.
  *
  * Sept demandes de l'auteur du 4 septembre 2026, sur le volet et sur les en-têtes de

@@ -1,7 +1,7 @@
 
 ### 38.30 Deux décalages de la Vulgate, corrigés ; deux lacunes, signalées
 
-Suite du contrôle du 2026-09-07. Les cinq divergences du § 38.29.1 étaient des faits de
+Suite du contrôle du 2026-09-07. Les cinq divergences du § 50.5.1 étaient des faits de
 tradition ; les trois créneaux qui restaient à Sacy et à la Vulgate ne l’étaient pas.
 
 ⛔ **QUAND DEUX TÉMOINS PORTENT LE MÊME VERSET SOUS LE MÊME NUMÉRO ET TOMBENT DANS DEUX

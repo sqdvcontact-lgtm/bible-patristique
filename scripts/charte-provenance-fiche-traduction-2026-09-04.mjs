@@ -17,7 +17,7 @@ const essaiSeul = process.argv.includes('--dry')
 
 const MARQUE = '### 38.4 La PROVENANCE d’un texte biblique'
 
-// Ancre : la dernière phrase du § 38.3, recopiée de `parametres.charte_ia`.
+// Ancre : la dernière phrase du § 50.1, recopiée de `parametres.charte_ia`.
 const ANCRE = 'Avant de retirer un état visible, mesurer celui qui est censé le remplacer.'
 
 const SECTION = `
@@ -36,7 +36,7 @@ Six demandes de l’auteur du 4 septembre 2026, en seconde passe sur la page « 
 
 ⚠️ **UNE MENTION D’ÉDITION NE SE COMPOSE QUE SI ELLE APPREND QUELQUE CHOSE.** « Édition révisée » est une vraie mention de page de titre et prend sa place après l’intitulé. Deux cas la font taire, et tous deux sont dans la donnée réelle : un TÉMOIN MANUSCRIT n’en a pas — « Témoin manuscrit » est une classification, et la cote suit deux mots plus loin —, et une mention que le TITRE contient déjà ne se répète pas (« La Bible : traduction officielle liturgique »). C’est la règle du complément qui redit son titre, appliquée à l’adresse d’une édition.
 
-⚠️ **UNE BIBLIOGRAPHIE PREND LE RETRAIT SUSPENDU, où qu’elle paraisse** (« pour la bibliographie, il faut un retrait négatif pour les secondes lignes d’un paragraphe »). Les listes que portent les notices éditoriales sont des bibliographies — « Études sur cette traduction », cinq références chez la Bible du XIIIe siècle —, et une référence de deux lignes ne se lit que si la seconde rentre : c’est ce qui sépare deux notices à l’œil. Même mesure que toutes les bibliographies du site (§ 35.6.2), et la puce part avec le retrait : une liste à puces et une bibliographie ne sont pas la même chose.
+⚠️ **UNE BIBLIOGRAPHIE PREND LE RETRAIT SUSPENDU, où qu’elle paraisse** (« pour la bibliographie, il faut un retrait négatif pour les secondes lignes d’un paragraphe »). Les listes que portent les notices éditoriales sont des bibliographies — « Études sur cette traduction », cinq références chez la Bible du XIIIe siècle —, et une référence de deux lignes ne se lit que si la seconde rentre : c’est ce qui sépare deux notices à l’œil. Même mesure que toutes les bibliographies du site (§ 47.2), et la puce part avec le retrait : une liste à puces et une bibliographie ne sont pas la même chose.
 
 **LA CHRONOLOGIE D’UNE BIBLE SE COMPOSE COMME CELLE D’UN AUTEUR** (« ajouter une chronologie assez petite inspirée du modèle de la page auteur ; composer pour l’occasion des liens chronologiques »). ⛔ Composer une chronologie, ce n’est PAS inventer des faits datés : c’est CHOISIR et ORDONNER ce que le corpus sait déjà. On ne rattache que des événements existants, datés, sourcés et validés, et le lien porte « à contrôler » — l’interface choisit, l’auteur valide. Inventer un événement pour garnir une frise serait une décision philologique prise par une décision d’interface. ⚠️ Trois brins pour une bible : ce qui l’a FORMÉE, l’ÉDITION servie, sa RÉCEPTION, plus le CONTEXTE qui l’explique ; cinq entrées suffisent, et l’ordre est chronologique.
 

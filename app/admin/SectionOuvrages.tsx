@@ -458,7 +458,7 @@ function Sommaire({ total, comptes, nbValides }: { total: number; comptes: { sci
 
 // ── Citation composée, telle qu'elle paraît en documentation ────────────────
 // La citation de la fiche est LA référence que le lecteur verra, composée par le même
-// moteur que la page (charte § 35.6.1) : l'administrateur ne relit pas une autre notice.
+// moteur que la page (charte § 47.1) : l'administrateur ne relit pas une autre notice.
 // Elle se construit sur la vue `v_references_bibliographiques` (autorités jointes : nom
 // de famille en petites capitales, éditeur normalisé), recouverte des champs en cours de
 // saisie pour suivre la frappe.

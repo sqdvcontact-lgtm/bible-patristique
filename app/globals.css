@@ -748,7 +748,7 @@ h6 {
    officiel de bibliographie, et la mise en forme officielle »). La classe « trad-article »
    réglait ses paragraphes, ses titres, son gras et son italique, et n'avait jamais rien
    dit de ses listes.
-   ⚠️ LES MESURES SONT CELLES DE TOUTE BIBLIOGRAPHIE DU SITE (charte § 35.6.2) :
+   ⚠️ LES MESURES SONT CELLES DE TOUTE BIBLIOGRAPHIE DU SITE (charte § 47.2) :
    interligne SERRÉ, blanc LARGE entre deux références, retrait suspendu, aucune puce.
    Une référence de deux lignes ne se lit que si la seconde rentre — c'est ce qui sépare
    deux notices à l'œil.
@@ -1961,7 +1961,7 @@ button:focus-visible,
    « Bibliographie », et tout bloc que la donnée déclare
    `presentation.style = bibliographie` — l'édition, l'auteur et l'intitulé de la
    pièce n'y changent rien. ⛔ Aucune classe ne porte le nom d'une pièce : « Du
-   même auteur » nomme une pièce, pas une composition (charte §35.6).
+   même auteur » nomme une pièce, pas une composition (charte §47.0).
 
    Une bibliographie se distingue du texte courant sans devenir un encadré : un
    corps d'un cran en dessous, un interligne resserré, du blanc entre les
@@ -2104,7 +2104,7 @@ button:focus-visible,
   letter-spacing: 0.02em;
 }
 
-/* L'ARTICLE et son HÔTE (charte § 35.6.2, étendu le 5 septembre 2026). Le titre
+/* L'ARTICLE et son HÔTE (charte § 47.2, étendu le 5 septembre 2026). Le titre
    d'une contribution se compose en ROMAIN entre guillemets français — les
    guillemets et leurs fines sont dans le texte des fragments, la feuille ne les
    fabrique pas — et l'intitulé du périodique ou du collectif qui l'accueille
@@ -2273,7 +2273,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   margin: 0.5rem calc(8mm - 4px);
   padding: 0.12rem 4px;
   font-size: 0.95em;
-  /* ⛔ JUSTIFIÉE, DONC CÉSURÉE (charte § 41.2, posée le 2026-09-05). Elle se justifiait
+  /* ⛔ JUSTIFIÉE, DONC CÉSURÉE (charte § 3.11.2, posée le 2026-09-05). Elle se justifiait
      nue : sur les quatre cent trente-huit signes qui ont fait naître cette règle, rien
      ne bornait l'étirement des espaces, et la citation se lisait plus lâche que le
      paragraphe qui la porte. Le retrait de 8 mm de chaque côté lui laisse une mesure

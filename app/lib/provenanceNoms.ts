@@ -12,7 +12,7 @@
  * 24 juillet « n'a aucune autorité éditoriale », la révision du 3 août est une
  * « provenance technique », l'ossature canonique « ne valide pas les délimitations », et
  * les notices antérieures sont de « provenance indéterminée ». Le document servi au
- * lecteur n'est pas un carnet de travail (charte, § 35.16.15 et suivants).
+ * lecteur n'est pas un carnet de travail (charte, § 49.15 et suivants).
  *
  * ⚠️ Corollaire MESURÉ, et il commande le titre de la section : une fois les sources
  * internes écartées, le statut `provenance` ne paraît plus JAMAIS — les 785 liens publiés
@@ -148,7 +148,7 @@ function comparerLiens(a: LienDAttestation, b: LienDAttestation): number {
 }
 
 /**
- * La source, dans le vocabulaire du MOTEUR bibliographique (charte § 35.6.5). ⛔ On ne
+ * La source, dans le vocabulaire du MOTEUR bibliographique (charte § 47.5). ⛔ On ne
  * recompose pas une référence ici : la page en porte déjà une, celle de la bibliographie
  * de la péricope, et deux apparats dans la même colonne se composent pareil ou pas du
  * tout.

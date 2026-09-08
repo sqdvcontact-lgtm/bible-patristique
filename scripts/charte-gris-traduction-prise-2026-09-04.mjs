@@ -1,5 +1,5 @@
 /**
- * § 38.3, suite : l'encre d'une colonne déjà prise descend d'un rang.
+ * § 50.1, suite : l'encre d'une colonne déjà prise descend d'un rang.
  *
  * Demande de l'auteur du 4 septembre 2026, au soir : « dans le menu déroulant de
  * choix des traductions, griser un peu plus le texte des non disponibles ».

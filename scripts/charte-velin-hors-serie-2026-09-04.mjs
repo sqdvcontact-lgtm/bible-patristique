@@ -14,7 +14,7 @@ const essaiSeul = process.argv.includes('--dry')
 const MARQUE = 'ET LA TROISIÈME CASE N’EST PAS UN GRIS VIDE'
 
 // Ancre : la dernière phrase du § 38.13, recopiée de `parametres.charte_ia`.
-const ANCRE = 'Ce n’est pas l’infobulle en l’air du § 38.12 : celle-ci dit ce que la couleur seule ne peut pas dire.'
+const ANCRE = 'Ce n’est pas l’infobulle en l’air du § 51.5 : celle-ci dit ce que la couleur seule ne peut pas dire.'
 
 const SECTION = `
 

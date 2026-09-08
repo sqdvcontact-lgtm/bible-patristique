@@ -1,5 +1,5 @@
 /**
- * § 35.6.4 : « A ; B » n’est pas une maison, c’est une COÉDITION.
+ * § 47.4 : « A ; B » n’est pas une maison, c’est une COÉDITION.
  *
  * Règle donnée par l’auteur le 29 août 2026 : le point-virgule est la norme pour dire
  * que deux éditeurs différents ont travaillé au même ouvrage. Une forme composée n’est
@@ -37,7 +37,7 @@ const { data, error } = await db.from('parametres').select('valeur').eq('cle', '
 if (error) throw error
 
 const n = data.valeur.split(ANCRE).length - 1
-if (n !== 1) throw new Error(`ancre § 35.6.4 : ${n} occurrence(s), 1 attendue.`)
+if (n !== 1) throw new Error(`ancre § 47.4 : ${n} occurrence(s), 1 attendue.`)
 if (data.valeur.includes('n’entre jamais dans le nom de l’une')) {
   console.log('La règle est déjà dans la charte : rien à écrire.')
   process.exit(0)

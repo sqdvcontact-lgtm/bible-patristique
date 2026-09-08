@@ -3,7 +3,7 @@
  *
  * Trois mentions, un ordre, et c'est la charte qui le fixe (§ 5, rappelé par l'auteur
  * le 5 septembre 2026) : la VILLE, puis l'ÉDITEUR, puis l'ANNÉE. C'est l'ordre de la
- * notice bibliographique (§ 35.6.1), et il n'y a aucune raison qu'un libellé court dise
+ * notice bibliographique (§ 47.1), et il n'y a aucune raison qu'un libellé court dise
  * les mêmes trois choses dans un autre ordre.
  *
  * ⛔ Elle était écrite à SEPT endroits, et quatre d'entre eux la disaient à l'envers —
@@ -25,7 +25,7 @@
  * Module PUR : ni React, ni Supabase. Testé dans `adresseEdition.test.ts`.
  */
 
-/** La virgule qui sépare deux mentions d'une même adresse (charte § 35.6.1). */
+/** La virgule qui sépare deux mentions d'une même adresse (charte § 47.1). */
 export const SEPARATEUR_ADRESSE = ', '
 
 export type AdresseEdition = {

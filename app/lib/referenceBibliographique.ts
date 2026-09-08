@@ -1,6 +1,6 @@
 /**
- * LE MOTEUR DE RENDU BIBLIOGRAPHIQUE — la seule logique du site (charte § 35.6.1 et
- * § 35.6.2, étendus le 5 septembre 2026).
+ * LE MOTEUR DE RENDU BIBLIOGRAPHIQUE — la seule logique du site (charte § 47.1 et
+ * § 47.2, étendus le 5 septembre 2026).
  *
  * Il reçoit une NOTICE — les champs structurés d'un ouvrage, ses contributeurs et ses
  * éditeurs déjà résolus sur leurs autorités — et rend des FRAGMENTS typés : ce que
@@ -112,7 +112,7 @@ export type FragmentNotice = {
 }
 
 // Le POINT qui détache un sous-titre de son titre, et la virgule qui sépare les
-// mentions d'une même notice (charte § 35.6.1). ⚠️ Décision de l'auteur du 28 août
+// mentions d'une même notice (charte § 47.1). ⚠️ Décision de l'auteur du 28 août
 // 2026 : un sous-titre EST un sous-titre, non une apposition — il se détache par un
 // POINT, ⛔ ni deux-points, ni virgule. Un intitulé qui se ferme déjà sur une
 // ponctuation forte ne reçoit pas un second point (charte § 3.4).
@@ -176,7 +176,7 @@ function enumerer(personnes: FragmentNotice[][]): FragmentNotice[] {
 }
 
 /**
- * Un AUTEUR, en tête de notice (charte § 35.6.1).
+ * Un AUTEUR, en tête de notice (charte § 47.1).
  *
  * Un chercheur dont l'autorité porte prénom et nom de famille : le prénom en romain,
  * le nom en PETITES CAPITALES. Une autorité que ce couple ne décrit pas — un ancien,
@@ -251,7 +251,7 @@ function mentionsDeRole(
 
 /**
  * L'ÉDITEUR du lieu : les maisons liées par rang (éditeur, coéditeur, imprimeur),
- * jointes par la barre à fines de la charte § 35.6.4 — jamais le point-virgule du
+ * jointes par la barre à fines de la charte § 47.4 — jamais le point-virgule du
  * catalogue. Un diffuseur ou un réimprimeur n'est pas l'éditeur de l'ouvrage.
  */
 function fragmentsEditeurs(notice: NoticeBibliographique): FragmentNotice[] {
@@ -268,7 +268,7 @@ function fragmentsEditeurs(notice: NoticeBibliographique): FragmentNotice[] {
 
 export type OptionsReference = {
   /** L'auteur paraît en tête. Faux quand le titre de la pièce l'établit déjà pour toutes
-   *  ses entrées (« Du même auteur », charte § 35.6.1). */
+   *  ses entrées (« Du même auteur », charte § 47.1). */
   avecAuteur?: boolean
 }
 

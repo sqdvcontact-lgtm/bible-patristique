@@ -1,5 +1,5 @@
 /**
- * § 38.12 : un état qui ne varie pas n'informe pas ; ce qui est prérempli est figé.
+ * § 51.5 : un état qui ne varie pas n'informe pas ; ce qui est prérempli est figé.
  *
  * Trois points de l'auteur du 4 septembre 2026, sur le catalogue des traductions.
  *

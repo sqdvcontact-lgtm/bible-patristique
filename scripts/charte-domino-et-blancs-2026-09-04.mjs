@@ -1,5 +1,5 @@
 /**
- * § 38.9 : l'ouverture en domino, le clic qui choisit, et les blancs de la
+ * § 50.2 : l'ouverture en domino, le clic qui choisit, et les blancs de la
  * justification.
  *
  * Quatre demandes de l'auteur du 4 septembre 2026, sur la Polyglotte.

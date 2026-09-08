@@ -1,5 +1,5 @@
 /**
- * § 38.9, rectification du soir : la lettrine revient au FER DU TEXTE, et un voile
+ * § 50.2, rectification du soir : la lettrine revient au FER DU TEXTE, et un voile
  * d'attente couvre tout ce qui attend, en-tête compris.
  *
  * ⛔ N'écrit QUE dans `parametres.charte_ia` ; le miroir s'en régénère.

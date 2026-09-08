@@ -1,5 +1,5 @@
 /**
- * § 35.6.5 : UN moteur de rendu bibliographique, et la base est la source.
+ * § 47.5 : UN moteur de rendu bibliographique, et la base est la source.
  *
  * Mission de l'auteur du 5 septembre 2026 (« moteur centralisé de rendu bibliographique
  * automatique ») : la référence se compose depuis la base, jamais depuis un texte
@@ -30,7 +30,7 @@ const NOUVEAU = [
   '',
   '**La FORME d’une notice** (monographie, article de périodique, contribution à un collectif, entrée de dictionnaire) décide de sa composition, non de sa valeur scientifique. Cinq champs la portent : `forme_notice`, `titre_hote`, `tomaison`, `pages`, `date_affichee`. Une forme absente se déduit : un titre hôte fait un article ; sans hôte, une monographie. ⛔ Jamais de ville, de date ni d’éditeur inventés pour obtenir une notice « complète » : un champ absent emporte son séparateur, et la notice dit ce que la base sait.',
   '',
-  '**Typographie générée, jamais tapée.** Auteur moderne : prénom en romain, NOM DE FAMILLE en petites capitales, tiré de `auteurs_valeur.prenom` et `nom_famille` ; ⛔ jamais par découpe de la chaîne affichée, et une autorité sans rubriques, un auteur ancien, se compose ENTIER en petites capitales. Un nom en texte libre reste en romain. Titre de monographie en italique ; titre d’article ou de contribution en romain entre guillemets français à fines, puis l’hôte en italique, « dans » devant un collectif ou un dictionnaire, jamais devant un périodique. « éd. Nom », « trad. Nom », « dir. Nom ». Coéditeurs joints par la barre à fines du § 35.6.4. « p. » suivi d’une insécable, tiret demi-cadratin entre deux pages. Insécables et fines devant la haute ponctuation, apostrophe courbe, un seul point final, jamais deux espaces. Les petites capitales s’écrivent `font-variant-caps: small-caps`, ⛔ jamais par `text-transform`.',
+  '**Typographie générée, jamais tapée.** Auteur moderne : prénom en romain, NOM DE FAMILLE en petites capitales, tiré de `auteurs_valeur.prenom` et `nom_famille` ; ⛔ jamais par découpe de la chaîne affichée, et une autorité sans rubriques, un auteur ancien, se compose ENTIER en petites capitales. Un nom en texte libre reste en romain. Titre de monographie en italique ; titre d’article ou de contribution en romain entre guillemets français à fines, puis l’hôte en italique, « dans » devant un collectif ou un dictionnaire, jamais devant un périodique. « éd. Nom », « trad. Nom », « dir. Nom ». Coéditeurs joints par la barre à fines du § 47.4. « p. » suivi d’une insécable, tiret demi-cadratin entre deux pages. Insécables et fines devant la haute ponctuation, apostrophe courbe, un seul point final, jamais deux espaces. Les petites capitales s’écrivent `font-variant-caps: small-caps`, ⛔ jamais par `text-transform`.',
   '',
   '⚠️ **La police servie ne dessine pas les petites capitales.** Source Serif 4, telle que Google Fonts la livre au site (version 4.004), n’a ni `smcp` ni `c2sc` : le navigateur les synthétise en capitales réduites. L’amont Adobe (4.005) les dessine, en romain seulement ; les avoir vraies demande d’auto-héberger la police. Décision d’auteur en attente.',
   '',

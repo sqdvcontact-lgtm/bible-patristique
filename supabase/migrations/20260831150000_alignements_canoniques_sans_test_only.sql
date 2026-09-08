@@ -19,7 +19,7 @@
 -- La condition sur `test_only` est retirée, et RIEN D'AUTRE : la branche reste
 -- bornée aux deux membres de la famille Fillion, exige toujours l'autorisation
 -- technique explicite, et refuse toujours qu'on revendique une validation
--- éditoriale. C'est exactement l'état que le § 35.16.21 décrit pour les actifs.
+-- éditoriale. C'est exactement l'état que le § 49.21 décrit pour les actifs.
 --
 -- Retour en arrière : sql/rollback_alignements_canoniques_test_only_20260831.sql
 

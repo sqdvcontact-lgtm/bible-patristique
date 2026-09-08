@@ -1,4 +1,4 @@
--- Retour arrière de la passe § 35.6.4 du 29 août 2026 (fusion des autorités d’éditeurs).
+-- Retour arrière de la passe § 47.4 du 29 août 2026 (fusion des autorités d’éditeurs).
 -- État relevé avant la passe : 703 maisons, 698 autorités,
 -- 621 notices rattachées, 47 liens de collection.
 -- ⚠️ Les déclencheurs de fusion refuseraient de rendre une graphie à son autorité :

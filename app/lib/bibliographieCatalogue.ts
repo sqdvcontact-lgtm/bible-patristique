@@ -8,7 +8,7 @@
  * ⛔ Il ne compose AUCUNE référence : la notice de chaque entrée est celle du moteur
  * bibliographique (`referenceBibliographique.ts`), lue depuis
  * `v_references_bibliographiques`, et c'est `ReferenceBibliographique` qui la rend.
- * L'outil est une CINQUIÈME surface du moteur, pas un moteur de plus (charte § 35.6.5).
+ * L'outil est une CINQUIÈME surface du moteur, pas un moteur de plus (charte § 47.5).
  *
  * ⛔ Il ne montre que ce que la charte permet de montrer (§ 29.1) : les ouvrages
  * `retenu` et `secondaire`. Un ouvrage `exclu` ne paraît nulle part, un ouvrage
@@ -16,7 +16,7 @@
  * d'une source secondaire ne s'affiche jamais. Le filtre est posé à la lecture (page
  * serveur) ET revérifié ici : deux barrières pour une règle qui protège des personnes.
  *
- * L'ordre est celui de TOUTE bibliographie du site (charte § 35.6.3) : la vedette,
+ * L'ordre est celui de TOUTE bibliographie du site (charte § 47.3) : la vedette,
  * puis le titre sans son article — calculé par `comparerOuvrages`, ⛔ jamais réécrit.
  *
  * ⚠️ CE QUI PART AU NAVIGATEUR EST MESURÉ. Les entrées sont sérialisées dans la page :
@@ -106,7 +106,7 @@ export function siecleDeParution(annee: number | null | undefined): number | nul
 }
 
 /**
- * L'ouvrage tel que le TRI le lit (`comparerOuvrages`, charte § 35.6.3) : sa vedette
+ * L'ouvrage tel que le TRI le lit (`comparerOuvrages`, charte § 47.3) : sa vedette
  * est le premier auteur structuré — scientifique ou source, par ordre —, dont
  * l'autorité dit si elle se coupe en prénom et nom de famille ; à défaut, le texte
  * libre des auteurs ; à défaut, rien, et l'entrée se range à son titre.

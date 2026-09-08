@@ -11,7 +11,7 @@
  * ⛔ ELLE NE SE LIT PLUS DANS UNE CHAÎNE PRÉCOMPOSÉE. Elle se construit champ par
  * champ depuis `editions_sources` — titre, sous-titre, lieu, éditeur, millésimes,
  * nombre de tomes —, comme toute notice bibliographique du site (charte
- * § 35.6.1). La ponctuation est produite par le rendu à partir des champs
+ * § 47.1). La ponctuation est produite par le rendu à partir des champs
  * PRÉSENTS : un champ absent emporte son séparateur.
  *
  * ⛔ AUCUN AUTEUR EN TÊTE. La fiche le nomme deux lignes plus haut — « Traduction
@@ -23,7 +23,7 @@
  * ⛔ Le NOMBRE DE TOMES est la seule donnée matérielle admise, et à dessein : la
  * rubrique répond des VOLUMES utilisés, et « 8 vol. » est ce qui les compte. La
  * charte écarte de la description matérielle le format, la pagination, les
- * planches, les figures et les dimensions (§ 35.6.1) — le nombre de volumes n'en
+ * planches, les figures et les dimensions (§ 47.1) — le nombre de volumes n'en
  * est pas, il appartient à l'adresse d'une édition multivolume.
  *
  * ⚠️ LES MILLÉSIMES SONT UN TEXTE, non une année. « 1888-1904 », « vol. I : 1909 ;

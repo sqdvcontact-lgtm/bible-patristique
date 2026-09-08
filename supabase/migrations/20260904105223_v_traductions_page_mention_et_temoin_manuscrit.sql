@@ -1,5 +1,5 @@
 -- La fiche « À propos de cette traduction » compose la référence des volumes
--- servis CHAMP PAR CHAMP (charte § 35.6.1). Trois champs d'`editions_sources`
+-- servis CHAMP PAR CHAMP (charte § 47.1). Trois champs d'`editions_sources`
 -- lui manquaient, et elle allait donc chercher ce qu'ils disent dans la notice
 -- rédigée `traductions.source_edition` : la mention d'édition (« Édition
 -- révisée »), et — pour un témoin manuscrit — son dépôt et sa cote.

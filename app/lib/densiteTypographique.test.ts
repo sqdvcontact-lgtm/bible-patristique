@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// ⛔ UN TEXTE JUSTIFIÉ EST TOUJOURS CÉSURÉ (charte § 41.2, posée le 2026-09-05).
+// ⛔ UN TEXTE JUSTIFIÉ EST TOUJOURS CÉSURÉ (charte § 3.11.2, posée le 2026-09-05).
 // Justifié sans césure, rien ne borne l'étirement des espaces : mesuré ailleurs dans ce
 // dépôt jusqu'à 1,609 em, six fois le quart de cadratin, et aucune propriété CSS ne le
 // borne. C'est la mécanique du procédé, non un défaut de réglage — la césure REMPLIT les
@@ -109,7 +109,7 @@ describe('densité des textes : le justifié appelle la césure', () => {
         fautifs.push(`${relatif}:${ligne} (feuille)`)
       }
     }
-    expect(fautifs, `Justifié sans césure — ajouter hyphens: auto (charte § 41.2) :\n${fautifs.join('\n')}`).toEqual([])
+    expect(fautifs, `Justifié sans césure — ajouter hyphens: auto (charte § 3.11.2) :\n${fautifs.join('\n')}`).toEqual([])
   })
 
   it('garde une raison écrite pour chaque exemption', () => {

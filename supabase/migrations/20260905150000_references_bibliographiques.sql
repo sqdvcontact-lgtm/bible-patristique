@@ -1,4 +1,4 @@
--- LE RENDU BIBLIOGRAPHIQUE LIT LA BASE, D'UN SEUL TENANT (charte § 35.6.1).
+-- LE RENDU BIBLIOGRAPHIQUE LIT LA BASE, D'UN SEUL TENANT (charte § 47.1).
 -- 5 septembre 2026.
 --
 -- Cinq colonnes que le modèle n'avait pas et qu'une référence savante demande :
@@ -43,7 +43,7 @@ comment on column public.ouvrages_bibliographiques.titre_hote is
 comment on column public.ouvrages_bibliographiques.tomaison is
   'Tome, série, section, partie de l’hôte, tels qu’ils s’affichent : « 1re section, t. XI ».';
 comment on column public.ouvrages_bibliographiques.pages is
-  'Pages de la contribution dans son hôte : « 282-292 ». Le rendu écrit « p. 282–292 ». ⛔ Jamais la pagination d’un exemplaire (charte § 35.6.1).';
+  'Pages de la contribution dans son hôte : « 282-292 ». Le rendu écrit « p. 282–292 ». ⛔ Jamais la pagination d’un exemplaire (charte § 47.1).';
 comment on column public.ouvrages_bibliographiques.date_affichee is
   'Date telle qu’elle s’affiche quand l’année ne suffit pas : « juin 1837 ». annee reste la clé de tri.';
 

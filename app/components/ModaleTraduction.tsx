@@ -465,7 +465,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                     elle-même un span (charte § 38.4).
                     ⛔ Pas de justification : la colonne fait environ 314 px, soit
                     quarante-cinq signes par ligne, et le justifié y creuse des
-                    blancs (charte § 38.9). */}
+                    blancs (charte § 50.2). */}
                 <RangeeEmpilee c="Particularités">{i.particularites
                   ? <span style={{ display: 'block', lineHeight: 1.5, hyphens: 'auto' }}>{enProse(i.particularites)}</span>
                   : null}</RangeeEmpilee>

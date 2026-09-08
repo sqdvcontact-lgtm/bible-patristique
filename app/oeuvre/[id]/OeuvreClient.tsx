@@ -1053,7 +1053,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const [groupesApparat, setGroupesApparat] = useState<GroupeData[]>(groupesApparatInit)
   const [segmentsApparat, setSegmentsApparat] = useState<SegData[]>(segmentsApparatInit)
   // Les notices des ouvrages que cite l'apparat, par `ouvrage_id` : un segment qui en
-  // porte un se compose depuis la BASE (moteur bibliographique, charte § 35.6.1), non
+  // porte un se compose depuis la BASE (moteur bibliographique, charte § 47.1), non
   // depuis son texte. Le serveur les envoie avec l'apparat ; le rechargement les complète.
   const [noticesBibliographiques, setNoticesBibliographiques] = useState<Record<number, NoticeBibliographique>>(noticesBibliographiquesInit)
   const [niv1Loading, setNiv1Loading] = useState(false)
@@ -3535,7 +3535,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               const actif = segActif === sid
                               // Un segment qui cite un OUVRAGE se compose depuis la base, par le
                               // moteur bibliographique ; son texte n'est plus que la projection de
-                              // secours, servie si la notice n'a pu être lue (charte § 35.6.1).
+                              // secours, servie si la notice n'a pu être lue (charte § 47.1).
                               const notice = s.ouvrageId != null ? noticesBibliographiques[s.ouvrageId] : undefined
                               return (
                                 <Fragment key={sid}>

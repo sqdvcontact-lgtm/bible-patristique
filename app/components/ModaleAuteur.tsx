@@ -519,7 +519,7 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
           <div style={{ minWidth: 0 }}>
             <TitrePied>Éditions répertoriées</TitrePied>
             {/* ⛔ La notice se compose par le MOTEUR bibliographique, comme partout
-                ailleurs sur le site (charte § 35.6.5) : ordre, liants et ponctuation
+                ailleurs sur le site (charte § 47.5) : ordre, liants et ponctuation
                 viennent de lui, et `noticeDuCatalogue` ne fait que nommer les champs.
                 ⚠️ `avecAuteur={false}` : la fiche porte déjà le nom en tête. */}
             <ul className="cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote pied-biblio"

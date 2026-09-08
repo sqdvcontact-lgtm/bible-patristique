@@ -584,7 +584,7 @@ export default function PericopePage() {
             {(() => {
               const vus = new Set<string>()
               return groupesBiblio.flatMap(g => g.refs).filter(r => {
-                // L'identité d'une entrée est `ouvrage_id` (charte § 35.6.1) ; les champs
+                // L'identité d'une entrée est `ouvrage_id` (charte § 47.1) ; les champs
                 // libres ne départagent que les lignes qui n'en portent pas.
                 const cle = r.ouvrage_id != null
                   ? `ouvrage:${r.ouvrage_id}`
@@ -657,7 +657,7 @@ function LigneInfo({ label, children }: { label: string; children: React.ReactNo
  * ⛔ Elle ne se compose pas à part : ce sont les mêmes champs, passés au même moteur,
  * qui rendent l'ordre, la ponctuation et le point final. ⚠️ Aucune petite capitale
  * ici — elles viennent des autorités, que seule la notice structurée porte (charte
- * § 35.6.1). ⚠️ Les PAGES restent hors de la notice : celles d'une entrée de péricope
+ * § 47.1). ⚠️ Les PAGES restent hors de la notice : celles d'une entrée de péricope
  * sont les pages du LIEN, et elles suivent la référence.
  *
  * Le repli sert deux cas : une entrée sans ouvrage_id, et une vue des références qui

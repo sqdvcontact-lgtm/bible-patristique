@@ -63,7 +63,7 @@ function propre(valeur: string | null | undefined): string | null {
  * L'œuvre, dans la forme que lit le moteur.
  *
  * ⚠️ L'AUTEUR SE COMPOSE EN PETITES CAPITALES. Ce n'est pas un nom en texte libre :
- * c'est la forme d'autorité d'une fiche d'`auteurs`, et la charte (§ 35.6.1) veut que
+ * c'est la forme d'autorité d'une fiche d'`auteurs`, et la charte (§ 47.1) veut que
  * les autorités antiques et médiévales, qu'aucun couple prénom/nom moderne ne décrit,
  * se composent ENTIÈRES en petites capitales. Le corpus n'en connaît pas d'autres.
  *

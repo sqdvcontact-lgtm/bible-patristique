@@ -63,7 +63,7 @@ export default function PageChaine() {
   const cle = `${user.id}|${profil.traduction_defaut}|${essai}`
   // ⚠️ Le seuil est celui de la GRILLE de l'entrée, non celui du téléphone : sous 640 px
   // la référence passe au-dessus du lemme et la mesure devient trop étroite pour se
-  // justifier sans lézarder (charte, § 41.4).
+  // justifier sans lézarder (charte, § 3.11.4).
   const etroit = useEstMobile(640)
 
   useEffect(() => {
@@ -232,7 +232,7 @@ function Scholie({ glose }: { glose: GloseLecteur }) {
   // s'éparpillait : la nature, la date et l'état.
   //
   // ⚠️ Le texte garde ses alinéas (`pre-line`) : il ne se justifie donc jamais, il se ferre
-  // et se césure (charte, § 41.4).
+  // et se césure (charte, § 3.11.4).
   return (
     <div className="chn-scholie">
       <p className="chn-tete">

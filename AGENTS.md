@@ -278,7 +278,7 @@ Le JavaScript est irréprochable : les **onze** appels à `useEstMobile` passent
 
 # Densité des textes — le gris typographique (2026-09-05)
 
-La doctrine est à la **charte § 41** ; ce qui suit est ce qu'il faut savoir pour écrire du code sans la rouvrir.
+La doctrine est à la **charte § 3.11** ; ce qui suit est ce qu'il faut savoir pour écrire du code sans la rouvrir.
 
 **La règle en une ligne** : au-delà de deux cent cinquante signes servis, soit environ trois lignes pleines, un texte se compose `text-align: justify` + `text-justify: inter-word`, `hyphens: auto` (+ `-webkit-hyphens`), `word-spacing: -0.03em` en sans ou `-0.025em` en sérif, `letter-spacing: 0`, et un interligne pris au barème : **1,38–1,40** pour l'appareil, **1,50–1,52** pour une notice ou une page fixe, **1,62** au plus, réservé au corps qu'on lit d'un bout à l'autre. En dessous du seuil, on ne touche à rien : un libellé, un message d'état, une légende n'ont pas de gris.
 
@@ -1472,7 +1472,7 @@ Relevé de l'auteur : « la page Polyglotte n'a pas d'indicateur de chargement ;
 
 ## Le DOMINO de l'ouverture, et les BLANCS de la justification (2026-09-04)
 
-Doctrine : charte `parametres.charte_ia`, § 38.9. Règles de code :
+Doctrine : charte `parametres.charte_ia`, § 50.2. Règles de code :
 
 - **`ordonnerColonnesVisibles` (`passageTexte.ts`)** prend le rang sur la COLONNE — le bord
   gauche de la cellule, arrondi au pixel — au lieu de la hauteur. ⚠️ Le pas DOUBLE
@@ -2301,7 +2301,7 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 
 # ⛔ LE BOUTON-LIEN — `.cs-bouton-lien` / `.cs-lien-phrase` (2026-09-07)
 
-Doctrine : charte `parametres.charte_ia`, **§ 38.27**. Ici, ce qu'il faut savoir pour y toucher.
+Doctrine : charte `parametres.charte_ia`, **§ 51.3**. Ici, ce qu'il faut savoir pour y toucher.
 
 - ⛔ **DEUX CLASSES, ET ON NE LES CONFOND PAS.** `.cs-bouton-lien` est l'action secondaire posée SEULE sous ou à côté d'un bloc : elle a un corps à elle (0,625 rem), l'encre des liens, le romain, le trait plein et une zone de frappe. `.cs-lien-phrase` est le lien pris DANS une phrase : il garde `font: inherit` et ne prend que le trait et la teinte. ⚠️ Rapetisser le second creuserait un trou dans sa ligne.
 - ⛔ **LE CORPS EST ABSOLU.** Une mesure relative ferait différer tous ces boutons — cartes, volets et fiches vont de 10 à 14 px — c'est-à-dire exactement le désordre qu'on défait. 0,625 rem est la valeur DOMINANTE d'avant (4 sur 11), donc l'ancre au sens de la méthode de l'échelle.
@@ -2312,7 +2312,7 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.27**. Ici, ce qu'il faut savoi
 
 # ⛔ UNE SEULE CELLULE D'ACTIONS — `app/components/CelluleActions.tsx` (2026-09-07)
 
-Doctrine : charte `parametres.charte_ia`, **§ 38.25**. Ici, ce qu'il faut savoir pour y toucher.
+Doctrine : charte `parametres.charte_ia`, **§ 51.1**. Ici, ce qu'il faut savoir pour y toucher.
 
 - ⛔ **Deux modules, et ils ne font pas la même chose.** `app/lib/celluleActions.ts` porte la RÈGLE — pure, testée (17 cas), sans une ligne de React : `positionCellule`, `largeurGabarit`, le gabarit d'un bouton (`STYLE_BOUTON_ACTION`) et la forme du pavé (`STYLE_CELLULE`). `app/components/CelluleActions.tsx` porte le GESTE : `useCelluleActions` (survol, tap, grâce de sortie, fermeture) et `<CelluleActions>` (le portail, la mesure, le suivi au défilement). ⛔ Ne recomposer ni l'un ni l'autre dans une page : cinq surfaces l'avaient fait, et deux couvraient le texte qu'on venait de survoler.
 - ⛔ **`positionCellule` prend un ESPACE, non une largeur d'écran.** `{ droite, gauche?, largeur?, sommet? }` — la fenêtre en lecture ordinaire, la COLONNE en grille. La forme numérique (`positionCellule(ligne, 1280)`) reste admise et vaut « la fenêtre » : c'est ce qui a permis de généraliser sans réécrire les tests d'août.
@@ -2336,7 +2336,7 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.25**. Ici, ce qu'il faut savoi
 - ⚠️ **`courante` est un MIROIR de l'état, écrit dans les gestes et jamais pendant le rendu** : les minuteurs ont besoin de l'ancre courante, et la lire dans l'état ferait dépendre `ancrer` de lui — donc changer d'identité à chaque rendu, et faire se réabonner à chaque fois les écoutes de défilement de la cellule. Toutes les mutations passent par `poser`.
 - ⚠️ **Le navigateur émet la SORTIE avant l'ENTRÉE** (la spécification l'impose) : entrer dans la cellule déclenche d'abord `relacher` sur le texte quitté, puis `retenir`, qui désarme. Ne pas inverser ce raisonnement.
 
-- ⛔ **LA MARQUE DU SIGNALEMENT EST `IconeSignalement`, un point d'exclamation dans un cercle** (2026-09-07, décision de l'auteur ; doctrine à la charte § 38.26). Le fanion disait la DÉNONCIATION quand le geste avertit d'une coquille. ⚠️ Le fichier est RENOMMÉ, et ce n'est pas un rangement : un `IconeDrapeau` qui ne dessine plus de drapeau ment sur ce qu'il contient, et c'est ainsi qu'un dessin revient à son nom. Dix surfaces l'importent ; un seul tracé, à un seul endroit. ⚠️ Le gabarit ne bouge pas — même boîte que `IconeSignet` et `IconeCopier` (11 × 12, `viewBox 0 0 12 13`), pour que les trois occupent toujours la même place.
+- ⛔ **LA MARQUE DU SIGNALEMENT EST `IconeSignalement`, un point d'exclamation dans un cercle** (2026-09-07, décision de l'auteur ; doctrine à la charte § 51.2). Le fanion disait la DÉNONCIATION quand le geste avertit d'une coquille. ⚠️ Le fichier est RENOMMÉ, et ce n'est pas un rangement : un `IconeDrapeau` qui ne dessine plus de drapeau ment sur ce qu'il contient, et c'est ainsi qu'un dessin revient à son nom. Dix surfaces l'importent ; un seul tracé, à un seul endroit. ⚠️ Le gabarit ne bouge pas — même boîte que `IconeSignet` et `IconeCopier` (11 × 12, `viewBox 0 0 12 13`), pour que les trois occupent toujours la même place.
 - ⚠️ **Huit marques essayées, puis onze tracés** : la planche a été rendue à la TAILLE RÉELLE dans la cellule, au quintuple et sur les deux sols. C'est à cette échelle que deux tracés sont tombés — le fanion évidé, dont le crénelage fait un « P », et le point d'exclamation posé sur un filet, dont le filet se confond avec un soulignement. ⛔ Au quintuple, tous les tracés se ressemblent : on juge dans le bouton.
 
 ⚠️ **TROUVAILLE AU PASSAGE — la garde chromatique était AVEUGLE sur 412 lignes.** `app/polyglotte/page.tsx` portait, dans un commentaire de LIGNE, la suite « italique <i>/* » : le motif de `couleursEnDur.test.ts` y voyait l'ouverture d'un commentaire de BLOC, qui courait jusqu'au `*/` suivant, quatre cents lignes plus bas. Tout ce qu'elle contenait était lu comme du commentaire, et `rgba(30,25,20,0.4)` — le calque de la modale — y dormait hors registre depuis toujours. Le commentaire est réécrit, la teinte inscrite avec sa raison (même forme et même motif que le calque de `FicheEdition`). ⛔ **Corollaire : une garde qui LIT du texte au motif a des angles morts.** Celui-ci n'a coûté qu'une teinte parce que la zone masquée était pauvre en couleurs ; repérage : `grep -n '/*' app/**/*.tsx` doit rendre autant d'ouvertures que de fermetures, et une ligne `//` qui contient `/*` est un piège.
@@ -2617,13 +2617,13 @@ Les deux libellés étaient composés à la main, en **capitales espacées** : d
 
 ### ⛔ « Du même auteur » se compose depuis les CHAMPS, non depuis une notice précomposée (2026-08-28)
 
-Doctrine : charte **§ 35.6.1**, refondu ce jour. Règles de code :
+Doctrine : charte **§ 47.1**, refondu ce jour. Règles de code :
 
 - **Un module pur, `app/lib/bibleBibliographieOuvrages.ts`** (19 tests, plus 10 sur le rendu) : `grouperBibliographiesParPiece`, `bibliographieDesBlocs`, `segmentsReference`, `texteReference`. ⛔ Ne recomposer une référence nulle part ailleurs, et ne jamais y ajouter de découpe d'un ancien texte de lecture : ce qui n'est pas dans un champ n'est pas affiché.
 - **La lecture passe par `v_bible_editorial_bibliography_entries`**, qui réunit déjà les quatre tables et **coalesce l'éditeur sur `editeurs_valeur.nom`**. ⛔ Ne pas recoder ici un dictionnaire d'éditeurs, ni une expression régulière pour décider d'un nom : c'est la vue qui apparie l'autorité. Chargeur : `chargerBibliographiesEdition` (`bibleEditionServer.ts`), qui ne part **que si une pièce est demandée**.
 - ⛔ **La pièce ne se reconnaît pas à son titre passé au tamis d'une translittération.** Chaque entrée désigne le bloc matériel dont elle est issue (`source_body_block_id`), et `bibliographieDesBlocs` apparie les blocs de la pièce à cette appartenance. Un titre slugifié serait une heuristique de plus, sur une donnée qui porte déjà le lien. ⚠️ La pièce prend ensuite TOUTES les entrées de sa clé, y compris celles qu'aucun bloc ne porte : une bibliographie tronquée sans que rien ne le signale serait pire qu'une bibliographie absente.
 - **`ouvrage_id` est l'identité**, donc la clé React (`key={ouvrage.id}`) et l'ancre (`id="ouvrage-<id>"`). ⛔ Jamais le rang du tableau.
-- ⛔ **L'ORDRE se calcule, il ne se lit plus dans `display_order`** (charte § 35.6.3, 2026-08-28). `comparerOuvrages` range par vedette — nom de famille de l'auteur, ou titre pour une œuvre anonyme, qui se file DANS la même suite et non dans un bloc à part —, puis par prénom, titre, sous-titre, année, et enfin par rang imprimé. Les clés passent par `replier` (NFD, accents ôtés, bas de casse, apostrophe et trait d'union rendus à l'espace) puis, pour un titre seulement, par `clefDeTitre`, qui retire l'article ou le déterminant initial. ⚠️ Deux gardes à ne pas défaire : **le titre AFFICHÉ garde son article** — le retrait ne vaut que pour la clé — et **`ARTICLES_ET_DETERMINANTS` exclut à dessein `a`, `de`, `in`, `ex`, `ad`, `pro`, `una`, `uno`**, qui sont des mots LATINS : « A solis ortus cardine » se range à A, « De civitate Dei » à D. ⚠️ `display_order` sert encore à dédoublonner de façon stable (la première occurrence imprimée l'emporte) et à départager à égalité parfaite. ⛔ Ne pas s'en servir comme repère dans un test : `ouvrageDuRang` dit le rang IMPRIMÉ, `ouvrages[0]` ne dit plus rien.
+- ⛔ **L'ORDRE se calcule, il ne se lit plus dans `display_order`** (charte § 47.3, 2026-08-28). `comparerOuvrages` range par vedette — nom de famille de l'auteur, ou titre pour une œuvre anonyme, qui se file DANS la même suite et non dans un bloc à part —, puis par prénom, titre, sous-titre, année, et enfin par rang imprimé. Les clés passent par `replier` (NFD, accents ôtés, bas de casse, apostrophe et trait d'union rendus à l'espace) puis, pour un titre seulement, par `clefDeTitre`, qui retire l'article ou le déterminant initial. ⚠️ Deux gardes à ne pas défaire : **le titre AFFICHÉ garde son article** — le retrait ne vaut que pour la clé — et **`ARTICLES_ET_DETERMINANTS` exclut à dessein `a`, `de`, `in`, `ex`, `ad`, `pro`, `una`, `uno`**, qui sont des mots LATINS : « A solis ortus cardine » se range à A, « De civitate Dei » à D. ⚠️ `display_order` sert encore à dédoublonner de façon stable (la première occurrence imprimée l'emporte) et à départager à égalité parfaite. ⛔ Ne pas s'en servir comme repère dans un test : `ouvrageDuRang` dit le rang IMPRIMÉ, `ouvrages[0]` ne dit plus rien.
 - **La ponctuation vient du RENDU.** `segmentsReference` rend des fragments typés — `champ` (la colonne d'origine, `null` pour la ponctuation), `style` (la fonction bibliographique, `null` pour la ponctuation) et `composition` (`romain`, `italique`, `petites-capitales`) —, et `BibliographieOuvrages.tsx` ne fait que les baliser. ⚠️ Le `data-champ` posé sur chaque fragment n'est pas un ornement : c'est par lui que les tests vérifient qu'un titre et son sous-titre n'ont pas été fondus, et qu'aucune donnée matérielle n'est passée.
 - ⛔ **Ou la liste structurée, ou le repli matériel, jamais un mélange.** `PieceLiminaire` compose les blocs quand `bibliographie` est vide, et eux seuls sinon. Les quinze blocs restent en base pour la provenance et le témoin source.
 - **Le composant reste GÉNÉRIQUE** : c'est `auteurPorteParLeTitreDeLaPiece` — une liste NOMMÉE, non une devinette — qui dit que « du-meme-auteur » établit déjà son auteur commun. Ailleurs, le nom paraît, nom de famille en petites capitales tiré de `auteurs_valeur.nom_famille`, ⛔ jamais par découpe de la chaîne affichée.
@@ -2632,7 +2632,7 @@ Doctrine : charte **§ 35.6.1**, refondu ce jour. Règles de code :
 
 ### ⛔ Un SEUL style bibliographique pour tout l'apparat (2026-08-28)
 
-Doctrine : charte **§ 35.6.2**. Une seule famille sert « Du même auteur », toute pièce ou section « Bibliographie », et tout bloc que la donnée déclare bibliographique. Règles de code :
+Doctrine : charte **§ 47.2**. Une seule famille sert « Du même auteur », toute pièce ou section « Bibliographie », et tout bloc que la donnée déclare bibliographique. Règles de code :
 
 - **La famille se déclare UNE fois**, dans `app/lib/apparatBibliographie.ts` : `cs-apparat-bibliographie` (le bloc), `__liste`, `__entree`, `__auteur`, `__nom-auteur`, `__titre-ouvrage`, `__sous-titre`, `__donnees`, plus le seul modificateur `--sans-hote`. ⛔ Ne pas réécrire ces chaînes dans un composant : deux copies d'une famille divergent au premier ajout, et c'est précisément ce qui était arrivé — `.cs-bible-bibliographie` et `.cs-bibliographie-ouvrages` disaient la même chose de deux manières.
 - ⛔ **Un rôle de caractère se pend AU BLOC, jamais à sa seule classe** : `.cs-apparat-bibliographie .cs-apparat-bibliographie__titre-ouvrage`, et non `.cs-apparat-bibliographie__titre-ouvrage`. Mesuré le 2026-08-28 en retirant chaque classe dans le navigateur : quatre des cinq ne changeaient RIEN, l'italique tenant par le `<em>` et le romain par le `<span>` — la feuille déclarait ce qu'elle ne décidait pas. Et sous une règle d'ambiance visant la balise (`.cs-notice-italique em`, spécificité (0,1,1)), le titre sortait en romain avec la classe comme sans elle. Le sélecteur à deux classes (0,2,0) l'emporte, et chaque rôle déclare désormais `font-style` ET `font-variant-caps` — ⚠️ `font-variant-caps` et non le raccourci `font-variant`, qui remettrait à zéro les chiffres elzéviriens d'un bloc de titre. Garde dans `apparatBibliographie.test.tsx`.
@@ -3825,7 +3825,7 @@ licence** : il ne pourrait de toute façon pas servir une image publiée.
 
 ### ⛔ LE RATTRAPAGE SE RÈGLE APRÈS LA SECONDE RÉDUCTION, ET ON RECOUD CE QU'ELLE A DILUÉ (2026-08-30)
 
-Doctrine : charte `parametres.charte_ia`, **§ 35.16.7 à 35.16.9**. Règles de code,
+Doctrine : charte `parametres.charte_ia`, **§ 49.7 à 49.9**. Règles de code,
 toutes dans `scripts/fillion/detourer-gravures.mjs`, `processing_version` 4.1.0 :
 
 - ⛔ **`NETTETE_TRAIT` (σ 1,6 · m2 3) pour les gravures au TRAIT, `NETTETE`
@@ -3855,7 +3855,7 @@ toutes dans `scripts/fillion/detourer-gravures.mjs`, `processing_version` 4.1.0 
 
 ### ⛔ L'EXPORT D'UNE ILLUSTRATION — LE CONTRÔLE PASSE PAR LE VRAI CHARGEUR (2026-08-30)
 
-Doctrine : charte `parametres.charte_ia`, **§ 35.16.15**, qui dit les deux
+Doctrine : charte `parametres.charte_ia`, **§ 49.15**, qui dit les deux
 exemplaires (`master` neutre / `web` servi), le report en base, la version de
 traitement et l'arbitrage en attente. Règles de code :
 
@@ -3876,7 +3876,7 @@ traitement et l'arbitrage en attente. Règles de code :
 - **État au 30 août 2026** : 31 chapitres du Pentateuque portent une planche
   (12 GEN, 7 EXO, 3 LEV, 5 NUM, 5 DEU ; Genèse 24 en porte deux), servies sous
   `?trad=TR0010`. Vérifié par le chargeur, non par une requête.
-- ⛔ **LE PAPIER SE NETTOIE CHIRURGICALEMENT** (charte § 35.16.16). Ni l'étalement
+- ⛔ **LE PAPIER SE NETTOIE CHIRURGICALEMENT** (charte § 49.16). Ni l'étalement
   au pic (qui laisse la moucheture et l'aggrave) ni le plancher dur (qui **mange
   11 % de l'encre**, 17 % sur le trait fin) ne suffisent : on part de l'étalement au
   pic et l'on ne blanchit que les pixels clairs **sans encre dans un rayon de 3**.
@@ -4154,7 +4154,7 @@ accordée à la chaîne par un test. Le lot de 1 Samuel, rempli par une autre ch
 posé sur vingt-trois vignettes, largeur imprimée rangée dans `metadata.source`, dix étiquettes
 libres dans `metadata.composition_regime`), l'a mise en défaut sans qu'aucun test le voie :
 une lyre de monnaie composée en planche hors-texte, au double de sa taille. Le genre de ces
-vingt-trois actifs est corrigé en `illustration`. Doctrine : charte § 35.16.23.
+vingt-trois actifs est corrigé en `illustration`. Doctrine : charte § 49.23.
 
 ## La PRÉSENTATION vient de `metadata`, et le rendu n'en sort pas (2026-08-25)
 
@@ -4286,7 +4286,7 @@ La table `editeurs` tient le nom complet de chaque maison et les formes sous les
 
 ## ⛔ Déclarer une variante, c’est FUSIONNER (2026-08-29)
 
-Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le mal : on inscrivait « Veuve Jean Camusat ; Pierre Le Petit » parmi les variantes de « Veuve Jean Camusat et Pierre Le Petit », et l’ancienne graphie continuait de figurer dans la liste des éditeurs répertoriés, comme si deux maisons portaient ce nom. Règles de code :
+Doctrine : charte `parametres.charte_ia`, **§ 47.4**. Le mal : on inscrivait « Veuve Jean Camusat ; Pierre Le Petit » parmi les variantes de « Veuve Jean Camusat et Pierre Le Petit », et l’ancienne graphie continuait de figurer dans la liste des éditeurs répertoriés, comme si deux maisons portaient ce nom. Règles de code :
 
 - ⛔ **La fusion est en BASE, pas dans l’écran de saisie** : `sql/20260829_fusion_autorites_editeurs.sql` pose deux déclencheurs par table. Le BEFORE nettoie les variantes (ni vide, ni doublon de clé, ni renvoi d’une fiche à elle-même), refuse les collisions, et lègue à l’autorité retenue les variantes et les rubriques de celle qu’elle absorbe ; l’AFTER transfère les rattachements puis supprime la ligne. ⚠️ **La suppression ne peut PAS se faire dans le BEFORE** : à l’insertion, la ligne d’accueil n’existe pas encore et rien ne peut s’y rattacher — la clé étrangère refuserait le transfert. Même parti que le verrou de modération : ce qui doit tenir quel que soit l’écrivain se met en base.
 - **Une seule écriture de la clé**, et les deux doivent rendre la MÊME chose : `public.cle_editeur` en SQL, `cleEditeur` (`app/lib/editeursNormalisation.ts`) en TypeScript. ⛔ `SectionEditeurs` en portait une COPIE, qui n’avait pas encore dérivé.
@@ -4301,7 +4301,7 @@ Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le mal : on inscrivait 
 
 ## ⛔ « A ; B » n’est pas une maison, c’est une COÉDITION (2026-08-29)
 
-Doctrine : charte `parametres.charte_ia`, **§ 35.6.4**. Le point-virgule est la norme du catalogage pour dire que deux éditeurs ont travaillé au même ouvrage. Règles de code :
+Doctrine : charte `parametres.charte_ia`, **§ 47.4**. Le point-virgule est la norme du catalogage pour dire que deux éditeurs ont travaillé au même ouvrage. Règles de code :
 
 - **Tout passe par `app/lib/editeursNormalisation.ts`** : `partiesCoedition` (découpe sur « ; » et rien d’autre), `estCoedition`, `SEPARATEUR_COEDITEURS`. ⛔ Ne pas recomposer un découpage ailleurs.
 - ⛔ **`estCoedition` ne regarde QUE le point-virgule.** La barre oblique appartient à de vrais noms de maison — « Centre Thomas More / CADIR », « Leuven University Press / Peeters », « Studies in Religion / Sciences Religieuses » — et la prendre pour un séparateur dédoublait le nom, chaque moitié étant une variante qui résout vers le tout. Le découpage du RENDU, lui, ajoute la barre parce que c’est par elle qu’il joint ses résultats : sans quoi repasser un affichage déjà composé le découperait autrement la seconde fois.
@@ -4926,7 +4926,7 @@ Sept demandes de l'auteur sur la page « Bible classique ». Doctrine : charte
 
 # La Bible polyglotte — réglages, menu des colonnes, en-têtes (2026-09-04)
 
-Doctrine : charte `parametres.charte_ia`, § 38.3. Règles de code, toutes dans
+Doctrine : charte `parametres.charte_ia`, § 50.1. Règles de code, toutes dans
 `app/polyglotte/page.tsx` sauf mention contraire :
 
 - ⛔ **AUCUN `background` EN LIGNE sur un élément dont la feuille gouverne le survol.**
@@ -5062,7 +5062,7 @@ TR0011 et TR0012, qui n'en avaient aucune.
 
 ## ⛔ Rectification du soir : retirer un ornement n'est pas gratuit (2026-09-04)
 
-Doctrine : charte `parametres.charte_ia`, § 38.3, sous « Rectification du même jour ».
+Doctrine : charte `parametres.charte_ia`, § 50.1, sous « Rectification du même jour ».
 Trois des règles posées le matin sont reprises, et toutes pour la même raison : on avait
 chaque fois retiré un ornement **de trop**. ⚠️ La règle générale vaut au delà de cette
 page — **la bonne mesure ne se trouve pas en enlevant tant qu'on peut** ; après avoir
@@ -5411,7 +5411,7 @@ nettoyage.
 
 # Catalogue des traductions — la marque retirée, le prérempli figé (2026-09-04)
 
-Doctrine : charte `parametres.charte_ia`, § 38.12. Règles de code, dans
+Doctrine : charte `parametres.charte_ia`, § 51.5. Règles de code, dans
 `app/bibliotheque/BibliothequeClient.tsx` :
 
 - ⛔ **La marque « ✦ Référence en cours de vérification » est SUPPRIMÉE.** Elle se
@@ -5488,7 +5488,7 @@ Doctrine : charte `parametres.charte_ia`, § 38.13. Règles de code :
   0,875 rem.
 - ⚠️ **La case porte aussi son MOT** (`title`, « Œuvres en latin » / « Œuvres en grec ») :
   une information portée par la seule couleur n'est lisible que de qui connaît le code.
-  ⛔ Ce n'est pas l'infobulle en l'air du § 38.12 : celle-ci dit ce que la couleur seule ne
+  ⛔ Ce n'est pas l'infobulle en l'air du § 51.5 : celle-ci dit ce que la couleur seule ne
   peut pas dire, et elle ne s'annonce par aucun curseur d'aide.
 - ⚠️ **Le premier jeu de teintes, LAVÉES, a été mesuré puis écarté** : ΔE 9,7 entre les
   deux séries et 5,0 entre le rouge et la case neutre. Délaver une couleur pour la rendre
@@ -5626,7 +5626,7 @@ Migration `20260904190000_editions_sources_notices_lisibles`, sauvegarde
 
 ## ⛔ Un VOILE D'ATTENTE couvre tout ce qui attend, en-tête compris (2026-09-04)
 
-Doctrine : charte `parametres.charte_ia`, § 38.9, rectification du soir. Relevé de
+Doctrine : charte `parametres.charte_ia`, § 50.2, rectification du soir. Relevé de
 l'auteur : « quand on charge un texte, le fond change légèrement de couleur ; c'est ok,
 mais il faut aussi qu'il change au niveau des en-têtes de colonne ».
 
@@ -5819,7 +5819,7 @@ toujours les niveaux existants ». Trois causes, et elles n'ont rien en commun.
 
 # Les NOTIFICATIONS — une rangée, trois rangs, un ton (2026-09-04)
 
-Doctrine : charte `parametres.charte_ia`, § 38.17. Le volet vit dans
+Doctrine : charte `parametres.charte_ia`, § 51.4. Le volet vit dans
 `app/components/VoletNotifications.tsx`, son modèle dans `app/lib/notificationsClient.ts`,
 ses formes dans `globals.css` (§ « Une notification est une rangée »). ⛔ Il n'y a plus de
 page `/notifications` : la route redirige vers l'accueil.
@@ -5966,7 +5966,7 @@ décisions de l'auteur (questions Q1 à Q8 du rapport) :
 
 # ⛔ UN moteur de rendu bibliographique, et la BASE est la source (2026-09-05)
 
-Doctrine : charte `parametres.charte_ia`, § 35.6.5. Mission de l'auteur du 5 septembre 2026 ;
+Doctrine : charte `parametres.charte_ia`, § 47.5. Mission de l'auteur du 5 septembre 2026 ;
 audit des six écritures existantes et décisions dans
 `work/notes/PROPOSITION_RENDU_BIBLIOGRAPHIQUE_20260905.txt`. Règles de code :
 
@@ -6066,7 +6066,7 @@ Doctrine : charte § 42. Demande de l'auteur du 6 septembre 2026 (« un outil bi
 
 # ⛔ La référence qui SORT du site se compose du même moteur (2026-09-05)
 
-Doctrine : charte `parametres.charte_ia`, **§ 35.6.6**. Demande de l'auteur : « uniformiser
+Doctrine : charte `parametres.charte_ia`, **§ 47.6**. Demande de l'auteur : « uniformiser
 sur l'ensemble des pages les références bibliographiques via le moteur bibliographique mis
 en place ; y compris dans le copier/coller ». Règles de code :
 
@@ -6129,7 +6129,7 @@ en place ; y compris dans le copier/coller ». Règles de code :
   navigation, non des notices — les passer au moteur y ajouterait des petites capitales et
   un point final. Et `composerBibliographie` (`bibleBibliographie.ts`) ne compose rien : il
   découpe une bibliographie déjà écrite dans un bloc, ce que la charte admet comme repli
-  (§ 35.6.2), ⛔ sans jamais en tirer titre, auteur ni éditeur.
+  (§ 47.2), ⛔ sans jamais en tirer titre, auteur ni éditeur.
 - ⚠️ **Piège d'atelier, payé encore ce jour** : une FINE insécable (U+202F) tapée dans un
   test ne se distingue pas d'une espace ordinaire, et un patch passé par un heredoc la perd.
   Les attentes qui portent `coll. « … »` ou la barre des coéditeurs se composent depuis
@@ -6141,7 +6141,7 @@ en place ; y compris dans le copier/coller ». Règles de code :
 
 # ⛔ L'ADRESSE d'une édition : ville, éditeur, année (2026-09-05)
 
-Doctrine : charte `parametres.charte_ia`, **§ 35.6.7**. Rappel de l'auteur : « c'est
+Doctrine : charte `parametres.charte_ia`, **§ 47.7**. Rappel de l'auteur : « c'est
 ville, éditeur, année ; il faut uniformiser. » Règles de code :
 
 - **Une seule écriture, `app/lib/adresseEdition.ts`** (pur, 10 tests) :
@@ -6264,7 +6264,7 @@ colonnes à égalité.
 
 # ⛔ La LACUNE du témoin garde ses CROCHETS, et les met en forme (2026-09-05)
 
-Doctrine : charte `parametres.charte_ia`, **§ 38.21**. Demande de l'auteur : « les
+Doctrine : charte `parametres.charte_ia`, **§ 50.3**. Demande de l'auteur : « les
 “lacunes” doivent être mises en forme : corps légèrement plus petit, léger espace avant
 et après les crochets, ocre ou maroquin ». Règles de code, toutes dans
 `app/lib/marqueurs899.tsx` :
@@ -6837,7 +6837,7 @@ Ici, ce qu'il faut savoir pour y toucher.
 - **La page est `app/compte/chaine/PageChaine.tsx`**, et son style d'entrée reprend celui
   de la lecture : le lemme se compose par `styleTexteVerset` (`compositionBible.ts`),
   ⛔ jamais par une copie de ses valeurs. Le texte d'une glose garde ses alinéas
-  (`pre-line`), donc il ne se justifie jamais : il se ferre et se césure (charte § 41.4).
+  (`pre-line`), donc il ne se justifie jamais : il se ferre et se césure (charte § 3.11.4).
 - ⛔ **La colonne de traduction est CALCULÉE, donc elle passe par `codesTraductionsLecture`** :
   nommer une bible non matérialisée dans `versets_lecture` fait échouer TOUTE la requête
   des lemmes, en silence. C'est la garde `traductionsLisibles.test.ts`, et elle vaut ici
@@ -7219,7 +7219,7 @@ migrer est un rangement à part, non un effet de bord d'un chantier voisin.
 
 # ⛔ LE ROUGE DE LA POLYGLOTTE SUIT LE STATUT, et le relevé structurel (2026-09-07)
 
-Doctrine : charte `parametres.charte_ia`, **§ 38.28**. Ici, ce qu'il faut savoir pour y
+Doctrine : charte `parametres.charte_ia`, **§ 50.4**. Ici, ce qu'il faut savoir pour y
 toucher.
 
 - ⛔ **`STATUTS_CLOS` et `pointOuvert` (`app/polyglotte/page.tsx`) décident de la TEINTE, et
@@ -7299,7 +7299,7 @@ décisions philologiques — l'outil sait dire où regarder, il ne sait pas dire
 
 # ⛔ `canon_id_fin` — une case COUVERTE n'est pas une case vide (2026-09-07)
 
-Doctrine : charte `parametres.charte_ia`, **§ 38.29**. Ici, ce qu'il faut savoir pour y
+Doctrine : charte `parametres.charte_ia`, **§ 50.5**. Ici, ce qu'il faut savoir pour y
 toucher.
 
 - ⛔ **`creneauxCouverts(ligne, index)` (`scripts/_audit-structure-regles.mjs`) est la seule
@@ -7372,7 +7372,7 @@ dans la Vulgate, **3 dans la colonne de l'AELF**, qui est la référence de l'os
 
 # ⛔ Réalignement de la Vulgate — le témoin qui traduit tranche (2026-09-07)
 
-Doctrine : charte `parametres.charte_ia`, **§ 38.30**. Règles de code et de méthode :
+Doctrine : charte `parametres.charte_ia`, **§ 50.6**. Règles de code et de méthode :
 
 - ⛔ **DEUX TÉMOINS QUI PORTENT LE MÊME VERSET SOUS LE MÊME NUMÉRO ET TOMBENT DANS DEUX
   CRÉNEAUX DIFFÉRENTS SIGNALENT UN FAUX.** Sacy traduit la Vulgate : leurs alignements ne
