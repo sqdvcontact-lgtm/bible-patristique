@@ -8,10 +8,22 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// ⚠️ Les formes que ce triage DEMANDE, pas celles des tables : elles suivent les
+// `select` ci-dessous, et se cassent à la compilation si l'un d'eux change.
+type SegmentTriage = {
+  id: number
+  segment_texte: string | null
+  // ⚠️ Colonne caméléon : tableau en base, mais certaines lignes anciennes portent
+  // le JSON en chaîne. C'est `verifiesSeg` qui réconcilie les deux.
+  verifies: string[] | string | null
+}
+
+type VersetTriage = { id_verset: string; ref: string | null; TR0001: string | null }
+
 type TypeLien = 1 | 2 | 3 | 4
 type Decision = 'GARDER' | 'REJETER' | 'AMBIGU'
 
-function verifiesSeg(seg: any): string[] {
+function verifiesSeg(seg: SegmentTriage): string[] {
   const v = seg.verifies
   if (Array.isArray(v)) return v
   if (typeof v === 'string') { try { return JSON.parse(v) } catch { return [] } }
@@ -86,7 +98,7 @@ Réponds uniquement avec le JSON, sans explication. Exemple : ["GARDER","REJETER
 }
 
 async function appliquerDecision(
-  seg: any,
+  seg: SegmentTriage,
   lienId: number,
   idVerset: string,
   decision: Decision
@@ -141,10 +153,10 @@ export async function POST(req: NextRequest) {
     .from('segments')
     .select('id, segment_texte, verifies')
     .in('id', [...new Set((liens ?? []).map(l => l.segment_id))])
-  const segParId = new Map((segsData ?? []).map((s: any) => [s.id, s]))
+  const segParId = new Map<number, SegmentTriage>(((segsData ?? []) as SegmentTriage[]).map(s => [s.id, s]))
 
   // 2. Construire les paires que personne n'a encore passées en revue
-  const paires: { seg: any; lienId: number; type: TypeLien; idVerset: string }[] = []
+  const paires: { seg: SegmentTriage; lienId: number; type: TypeLien; idVerset: string }[] = []
   for (const l of (liens ?? [])) {
     const seg = segParId.get(l.segment_id)
     if (!seg) continue
@@ -163,7 +175,8 @@ export async function POST(req: NextRequest) {
     .from('versets_lecture')
     .select('id_verset, ref, TR0001')
     .in('id_verset', idsVersets)
-  const versetMap = new Map((versets ?? []).map((v: any) => [v.id_verset, { ref: v.ref, texte: v.TR0001 ?? '' }]))
+  const versetMap = new Map<string, { ref: string | null; texte: string }>(
+    ((versets ?? []) as VersetTriage[]).map(v => [v.id_verset, { ref: v.ref, texte: v.TR0001 ?? '' }]))
 
   // 4. Appeler Claude
   const entrees = paires.map(p => ({
@@ -176,8 +189,8 @@ export async function POST(req: NextRequest) {
   let decisions: Decision[]
   try {
     decisions = await classerAvecClaude(entrees)
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
   }
 
   // 5. Appliquer les décisions

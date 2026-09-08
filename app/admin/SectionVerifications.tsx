@@ -17,7 +17,26 @@ const OPTIONS: { label: string; action: Action; couleur?: string }[] = [
   { label: 'Pas de lien',              action: 'pas_de_lien', couleur: 'var(--cs-danger)' },
 ]
 
-function verifies(seg: any): string[] {
+// ⚠️ Les formes que cette planche DEMANDE, une par `select` ci-dessous — pas celles
+// des tables. Une colonne retirée d'un `select` casse ici, à la compilation.
+type SegmentVerif = {
+  id: number
+  id_oeuvre: string | null
+  segment_numero: number | null
+  segment_texte: string | null
+  ref_niv1: string | null
+  ref_niv2: string | null
+  ref_niv3: string | null
+  // ⚠️ Colonne caméléon : tableau en base, chaîne JSON sur des lignes anciennes.
+  // C'est `verifies()` qui réconcilie les deux, et c'est pourquoi elle existe.
+  verifies: string[] | string | null
+}
+type LienVerif = { id: number; segment_id: number; canon_id: string; type: number; fiabilite: string | null }
+type LigneOeuvre = { id_oeuvre: string; titre: string | null; id_auteur: string | null }
+type LigneAuteur = { id_auteur: string; nom: string | null }
+type LigneVerset = { id_verset: string; ref: string | null; TR0001: string | null }
+
+function verifies(seg: SegmentVerif): string[] {
   const v = seg.verifies
   if (Array.isArray(v)) return v
   if (typeof v === 'string') { try { return JSON.parse(v) } catch { return [] } }
@@ -26,12 +45,15 @@ function verifies(seg: any): string[] {
 
 
 export default function SectionVerifications({ onCountChange }: { onCountChange?: (n: number) => void }) {
-  const [segments, setSegments] = React.useState<any[]>([])
+  const [segments, setSegments] = React.useState<SegmentVerif[]>([])
   const [chargement, setChargement] = React.useState(true)
   const [oeuvres, setOeuvres] = React.useState<Record<string, { titre: string; auteur: string }>>({})
   const [versetMap, setVersetMap] = React.useState<Record<string, { ref: string; texte: string }>>({})
   const [page, setPage] = React.useState(0)
-  const [statut, setStatut] = React.useState<Record<string, 'loading' | 'ok' | 'err'>>({})
+  // ⚠️ DEUX SORTES DE CLÉS dans une seule carte, et le type le disait faux : `${id}_${verset}`
+  // porte l'état ('loading' | 'ok' | 'err'), `${id}_${verset}_msg` porte le MESSAGE d'erreur.
+  // Le type annoncé était l'union seule — un mensonge que le `any` alentour couvrait.
+  const [statut, setStatut] = React.useState<Record<string, string>>({})
   const [liensParSegment, setLiensParSegment] = React.useState<Map<number, { canon_id: string; type: number }[]>>(new Map())
 
   React.useEffect(() => {
@@ -39,7 +61,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
       setChargement(true)
       // La file de travail se lit maintenant sur les LIENS, non sur les segments :
       // c'est le lien qu'on arbitre. On prend ceux qui ne sont pas encore fermes.
-      let liens: any[] = []
+      let liens: LienVerif[] = []
       for (let from = 0; ; from += 1000) {
         const { data: batch } = await supabase
           .from('liens_bibliques')
@@ -49,7 +71,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
           .order('segment_id')
           .range(from, from + 999)
         if (!batch || batch.length === 0) break
-        liens = liens.concat(batch)
+        liens = liens.concat(batch as LienVerif[])
         if (batch.length < 1000) break
       }
 
@@ -61,15 +83,15 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
       setLiensParSegment(parSegment)
 
       const idsSeg = [...parSegment.keys()]
-      let segs: any[] = []
+      let segs: SegmentVerif[] = []
       for (let i = 0; i < idsSeg.length; i += 500) {
         const { data } = await supabase
           .from('segments')
           .select('id, id_oeuvre, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, verifies')
           .in('id', idsSeg.slice(i, i + 500))
-        segs = segs.concat(data ?? [])
+        segs = segs.concat((data ?? []) as SegmentVerif[])
       }
-      segs.sort((a, b) => String(a.id_oeuvre).localeCompare(String(b.id_oeuvre)) || a.segment_numero - b.segment_numero)
+      segs.sort((a, b) => String(a.id_oeuvre).localeCompare(String(b.id_oeuvre)) || (a.segment_numero ?? 0) - (b.segment_numero ?? 0))
 
       // Ne garder que les segments qui ont encore des versets non passés en revue
       const segsFiltres = segs.filter(s => {
@@ -80,9 +102,11 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
 
       const { data: ods } = await supabase.from('oeuvres').select('id_oeuvre, titre, id_auteur')
       const { data: ads } = await supabase.from('auteurs').select('id_auteur, nom')
-      const auteurs = new Map((ads ?? []).map((a: any) => [a.id_auteur, a.nom]))
+      const auteurs = new Map<string, string>(((ads ?? []) as LigneAuteur[]).map(a => [a.id_auteur, a.nom ?? '']))
       const om: Record<string, { titre: string; auteur: string }> = {}
-      ;(ods ?? []).forEach((o: any) => { om[o.id_oeuvre] = { titre: o.titre, auteur: auteurs.get(o.id_auteur) ?? '' } })
+      ;((ods ?? []) as LigneOeuvre[]).forEach(o => {
+        om[o.id_oeuvre] = { titre: o.titre ?? '', auteur: (o.id_auteur ? auteurs.get(o.id_auteur) : undefined) ?? '' }
+      })
       setOeuvres(om)
 
       const ids = new Set<string>()
@@ -91,7 +115,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
       const idsArr = Array.from(ids)
       for (let i = 0; i < idsArr.length; i += 500) {
         const { data: vs } = await supabase.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsArr.slice(i, i + 500))
-        ;(vs ?? []).forEach((v: any) => { vm[v.id_verset] = { ref: v.ref, texte: v.TR0001 ?? '' } })
+        ;((vs ?? []) as LigneVerset[]).forEach(v => { vm[v.id_verset] = { ref: v.ref ?? '', texte: v.TR0001 ?? '' } })
       }
       setVersetMap(vm)
       setChargement(false)
@@ -99,7 +123,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     charger()
   }, [])
 
-  const choisir = async (seg: any, idVerset: string, action: Action) => {
+  const choisir = async (seg: SegmentVerif, idVerset: string, action: Action) => {
     const key = `${seg.id}_${idVerset}`
     setStatut(p => ({ ...p, [key]: 'loading' }))
 
@@ -107,9 +131,9 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     try {
       const result = await verifierLien({ id: seg.id, verifies: verifies(seg) }, idVerset, action)
       verifiesApres = result.verifies
-    } catch (e: any) {
+    } catch (e) {
       console.error('[SectionVerifications] update error:', e)
-      setStatut(p => ({ ...p, [key]: 'err', [`${key}_msg`]: e?.message || 'inconnue' }))
+      setStatut(p => ({ ...p, [key]: 'err', [`${key}_msg`]: (e instanceof Error && e.message) || 'inconnue' }))
       setTimeout(() => setStatut(p => { const n = { ...p }; delete n[key]; delete n[`${key}_msg`]; return n }), 6000)
       return
     }
@@ -131,7 +155,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
   // or un lemme porte deux liens vers le même verset (type 1 « citation » + type 3 « commentaire »).
   // On dédoublonne donc par canon_id pour ne montrer et ne compter chaque paire qu'une fois
   // (sans quoi la clé React `${seg.id}_${idVerset}` n'est pas unique et le badge compte double).
-  const paires: { seg: any; idVerset: string }[] = []
+  const paires: { seg: SegmentVerif; idVerset: string }[] = []
   segments.forEach(seg => {
     const vv = verifies(seg)
     const vus = new Set<string>()
@@ -176,7 +200,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {pageCourante.map(({ seg, idVerset }) => {
-          const oeuvre = oeuvres[seg.id_oeuvre] ?? { titre: seg.id_oeuvre, auteur: '' }
+          const oeuvre = (seg.id_oeuvre ? oeuvres[seg.id_oeuvre] : undefined) ?? { titre: seg.id_oeuvre ?? '—', auteur: '' }
           const refsPatristiques = [seg.ref_niv1, seg.ref_niv2, seg.ref_niv3].filter(Boolean).join(', ')
           const verset = versetMap[idVerset]
           const refVerset = verset ? refFrVer(verset.ref) : idVerset
@@ -204,7 +228,7 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
                   <p style={texteBibleStyle}>{verset?.texte ? rendreTexteEnrichi(verset.texte) : 'Verset introuvable.'}</p>
                 </div>
                 <div style={{ padding: '14px 16px', borderLeft: '1px solid var(--cs-fond-doux)' }}>
-                  <p style={textePatristiqueStyle}>{rendreTexteEnrichi(seg.segment_texte)}</p>
+                  <p style={textePatristiqueStyle}>{rendreTexteEnrichi(seg.segment_texte ?? '')}</p>
                 </div>
               </div>
 

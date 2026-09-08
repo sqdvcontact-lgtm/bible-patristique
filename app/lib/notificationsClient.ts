@@ -20,6 +20,69 @@ import { parsePointCanonique } from '@/app/lib/referencesBibliques'
  * validation, danger pour un refus, gris pour le reste. La couleur dit en un coup d'œil
  * ce que six mots en capitales disaient à la ligne au-dessus.
  */
+// ── Ce que cette page DEMANDE à la base ─────────────────────────────────────
+//
+// ⚠️ Ces types ne décrivent PAS les tables : ils décrivent la forme exacte que
+// chaque `select` ci-dessous en rapporte. C'est ce qui les rend utiles — retirer une
+// colonne d'un `select` casse ici, à la compilation, et non chez le lecteur. Ils
+// remplacent vingt `any`, qui laissaient passer n'importe quelle faute de nom.
+type LigneCommentaire = {
+  id: number
+  texte: string | null
+  user_id: string | null
+  reponse_a: number | null
+  valide: boolean | null
+  certifie: boolean | null
+  demande_validation: boolean | null
+  message_admin: string | null
+  message_admin_at: string | null
+  created_at: string | null
+  id_verset: string | null
+}
+
+type LigneEssai = {
+  id: number
+  titre: string | null
+  sous_titre: string | null
+  statut: string | null
+  note_admin: string | null
+  updated_at: string | null
+  publie_at: string | null
+  user_id: string | null
+}
+
+type LigneSignalement = {
+  id: number
+  message: string | null
+  message_admin: string | null
+  message_admin_at: string | null
+}
+
+type LigneLike = { id_commentaire: number; user_id: string | null; valeur: number | null }
+
+// ⚠️ `reponse_a` n'est pas nullable ICI, à la différence de la colonne : la requête
+// filtre par `.in('reponse_a', idsCommentaires)`, donc toute ligne rendue en porte un.
+type LigneReponse = {
+  id: number
+  texte: string | null
+  user_id: string | null
+  reponse_a: number
+  created_at: string | null
+  id_verset: string | null
+}
+
+type LigneCommentaireEssai = {
+  id: number
+  texte: string | null
+  id_essai: number
+  user_id: string | null
+  auteur_nom: string | null
+  created_at: string | null
+}
+
+type LigneAppreciation = { id_essai: number; user_id: string | null }
+type LigneProfil = { id: string; pseudo: string | null }
+
 export type TonNotification = 'validation' | 'refus' | 'neutre'
 
 export type NotificationItem = {
@@ -64,7 +127,7 @@ function extrait(texte: string | null | undefined, taille = 120) {
   return t.length > taille ? `${t.slice(0, taille)}…` : t
 }
 
-function nomAuteur(uid: string | null | undefined, profils: Map<string, any>) {
+function nomAuteur(uid: string | null | undefined, profils: Map<string, LigneProfil>) {
   if (!uid) return 'Utilisateur'
   return profils.get(uid)?.pseudo ?? 'Utilisateur'
 }
@@ -98,7 +161,7 @@ function urlDuVerset(idVerset: string | null | undefined): string | undefined {
 const ALLER_AU_COMMENTAIRE = 'Aller au commentaire'
 const VOIR_LA_PUBLICATION = 'Voir la publication'
 
-function notificationModerationCommentaire(c: any): NotificationItem {
+function notificationModerationCommentaire(c: LigneCommentaire): NotificationItem {
   const certifie = c.certifie === true
   const certificationRefusee = c.certifie === false && c.valide === true && c.demande_validation === false
   const accepte = c.valide === true
@@ -135,7 +198,7 @@ function notificationModerationCommentaire(c: any): NotificationItem {
   }
 }
 
-function notificationStatutEssai(e: any): NotificationItem | null {
+function notificationStatutEssai(e: LigneEssai): NotificationItem | null {
   if (e.statut === 'publie') {
     return {
       key: `essai-accepte:${e.id}:${e.publie_at ?? e.updated_at ?? ''}`,
@@ -205,24 +268,24 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
     throw new Error('Chargement des notifications impossible')
   }
 
-  const mesCommentaires = (mesCommentairesRes.data ?? []) as any[]
-  const mesEssais = (mesEssaisRes.data ?? []) as any[]
+  const mesCommentaires = (mesCommentairesRes.data ?? []) as LigneCommentaire[]
+  const mesEssais = (mesEssaisRes.data ?? []) as LigneEssai[]
   const idsCommentaires = mesCommentaires.map(c => c.id)
   const idsEssais = mesEssais.map(e => e.id)
 
   const [likesRes, reponsesCommentairesRes, commentairesEssaisRes, appreciationsEssaisRes] = await Promise.all([
     idsCommentaires.length
       ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', idsCommentaires).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[], error: null }),
+      : Promise.resolve({ data: [] as LigneLike[], error: null }),
     idsCommentaires.length
       ? supabase.from('commentaires').select('id, texte, user_id, reponse_a, created_at, id_verset').in('reponse_a', idsCommentaires).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[], error: null }),
+      : Promise.resolve({ data: [] as LigneReponse[], error: null }),
     idsEssais.length
       ? supabase.from('essais_commentaires').select('id, texte, id_essai, user_id, auteur_nom, created_at').in('id_essai', idsEssais).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[], error: null }),
+      : Promise.resolve({ data: [] as LigneCommentaireEssai[], error: null }),
     idsEssais.length
       ? supabase.from('essais_appreciations').select('id_essai, user_id').in('id_essai', idsEssais).neq('user_id', userId)
-      : Promise.resolve({ data: [] as any[], error: null }),
+      : Promise.resolve({ data: [] as LigneAppreciation[], error: null }),
   ])
 
   if (likesRes.error || reponsesCommentairesRes.error || commentairesEssaisRes.error || appreciationsEssaisRes.error) {
@@ -230,20 +293,20 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
   }
 
   const idsAuteurs = [
-    ...((likesRes.data ?? []) as any[]).map(l => l.user_id),
-    ...((reponsesCommentairesRes.data ?? []) as any[]).map(r => r.user_id),
-    ...((commentairesEssaisRes.data ?? []) as any[]).map(c => c.user_id),
-    ...((appreciationsEssaisRes.data ?? []) as any[]).map(a => a.user_id),
+    ...((likesRes.data ?? []) as LigneLike[]).map(l => l.user_id),
+    ...((reponsesCommentairesRes.data ?? []) as LigneReponse[]).map(r => r.user_id),
+    ...((commentairesEssaisRes.data ?? []) as LigneCommentaireEssai[]).map(c => c.user_id),
+    ...((appreciationsEssaisRes.data ?? []) as LigneAppreciation[]).map(a => a.user_id),
   ].filter((id): id is string => !!id)
 
   const profilsRes = idsAuteurs.length
     ? await supabase.from('profils').select('id, pseudo').in('id', [...new Set(idsAuteurs)])
-    : { data: [] as any[], error: null }
+    : { data: [] as LigneProfil[], error: null }
   if (profilsRes.error) throw new Error('Chargement des notifications impossible')
 
-  const profils = new Map((profilsRes.data ?? []).map((p: any) => [p.id, p]))
-  const commentaireParId = new Map(mesCommentaires.map(c => [c.id, c]))
-  const essaiParId = new Map(mesEssais.map(e => [e.id, e]))
+  const profils = new Map<string, LigneProfil>(((profilsRes.data ?? []) as LigneProfil[]).map(p => [p.id, p]))
+  const commentaireParId = new Map<number, LigneCommentaire>(mesCommentaires.map(c => [c.id, c]))
+  const essaiParId = new Map<number, LigneEssai>(mesEssais.map(e => [e.id, e]))
 
   const notifications: NotificationItem[] = []
 
@@ -259,7 +322,7 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
       .filter((n): n is NotificationItem => !!n)
   )
 
-  notifications.push(...((signalementsRes.data ?? []) as any[]).map(s => ({
+  notifications.push(...((signalementsRes.data ?? []) as LigneSignalement[]).map(s => ({
     key: `signalement:${s.id}:${s.message_admin_at ?? ''}`,
     id: s.id,
     type: 'signalement' as const,
@@ -270,7 +333,7 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
     date: s.message_admin_at,
   })))
 
-  notifications.push(...((likesRes.data ?? []) as any[]).map(l => {
+  notifications.push(...((likesRes.data ?? []) as LigneLike[]).map(l => {
     const commentaire = commentaireParId.get(l.id_commentaire)
     const positif = l.valeur === 1
     const href = urlDuVerset(commentaire?.id_verset)
@@ -290,7 +353,7 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
     }
   }))
 
-  notifications.push(...((appreciationsEssaisRes.data ?? []) as any[]).map(a => {
+  notifications.push(...((appreciationsEssaisRes.data ?? []) as LigneAppreciation[]).map(a => {
     const essai = essaiParId.get(a.id_essai)
     return {
       key: `reaction-publication:${a.id_essai}:${a.user_id}`,
@@ -306,7 +369,7 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
     }
   }))
 
-  notifications.push(...((reponsesCommentairesRes.data ?? []) as any[]).map(r => {
+  notifications.push(...((reponsesCommentairesRes.data ?? []) as LigneReponse[]).map(r => {
     const href = urlDuVerset(r.id_verset ?? commentaireParId.get(r.reponse_a)?.id_verset)
     return {
       key: `reponse-commentaire:${r.id}:${r.created_at ?? ''}`,
@@ -322,7 +385,7 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
     }
   }))
 
-  notifications.push(...((commentairesEssaisRes.data ?? []) as any[]).map(c => {
+  notifications.push(...((commentairesEssaisRes.data ?? []) as LigneCommentaireEssai[]).map(c => {
     const essai = essaiParId.get(c.id_essai)
     return {
       key: `commentaire-publication:${c.id}:${c.created_at ?? ''}`,
