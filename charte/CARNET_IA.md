@@ -37,3 +37,39 @@ Relevé du jour, avant remise en ordre :
 | dont copies complètes de la charte | **180, pour 82 Mo** |
 
 **La cause de la dislocation n'est pas un relâchement, c'est un invariant.** Les 139 scripts `charte-*.mjs` portent tous `if (!attendu.startsWith(distant.trimEnd())) throw` : le garde-fou rend impossible de tronquer 900 000 signes par accident, et impossible d'insérer une section à sa place. Toute doctrine nouvelle s'est donc posée en queue, et une section neuve a fini par tomber sur un numéro déjà pris — ce qui bloquait `--push` depuis le 25 août, et forçait à écrire directement en base, ce qui aggravait la dislocation. La boucle est fermée le 2026-09-08.
+
+### 2026-09-08 — Remise en ordre de la charte : ce que la mesure a donné
+
+| | avant | après |
+|---|---:|---:|
+| numéros portés deux fois | 3 | **0** |
+| retours en arrière dans la numérotation | 9 | **0** |
+| titres de premier rang sans numéro | 1 | **0** |
+| sous-sections à plus de 300 lignes de leur chapitre | 96 | **0 par dislocation** |
+| plus grand écart | 4 787 lignes | 1 449 (épaisseur du § 35, non dislocation) |
+| `--push` | refusé depuis le 25 août | **rendu au service** |
+
+Le déplacement a été mené comme une **permutation vérifiée** : mêmes lignes des deux côtés, même longueur, aucun mot touché. Les blocs sans numéro voyagent avec le bloc numéroté qu'ils suivent — ils n'ont pas d'adresse propre, et les déplacer seuls les couperait de ce qu'ils précisent.
+
+**Le rangement a révélé les vraies tailles, que la dislocation masquait :**
+
+| § | mesuré avant | mesuré après | sous-sections |
+|---|---:|---:|---:|
+| 35 — Chantier Fillion | 132 499 | **210 426** | 75 |
+| 38 — surfaces de lecture | 166 714 | **142 424** | 34 |
+| 13 — Notes et apparats | 14 586 | **46 987** | 17 |
+| 40 — Espace du lecteur | 81 668 | 38 131 | 12 |
+| 46 — La visite | 66 456 | 21 572 | 0 |
+
+Le § 13 avait perdu les deux tiers de lui-même ; le § 40 et le § 46 hébergeaient ce que d'autres chapitres avaient déposé chez eux. **Le § 35 et le § 38 pèsent 38 % de la charte à eux deux.**
+
+### 2026-09-08 — Il n'y a AUCUN doublon textuel dans la charte
+
+Mesuré sur les 416 sections, par empreintes de suites de huit mots significatifs (accents, ponctuation et mots courts ôtés) :
+
+- recouvrement ≥ **30 %** de la section la plus courte : **zéro paire** ;
+- recouvrement ≥ **12 %** : **deux paires**, et toutes deux légitimes — § 13.6 (ancres positionnelles) contre § 19.5 (notes structurées), qui disent la même matière en doctrine puis en modèle de données ; § 35.9 (manchette) contre § 41.4 (mesure étroite), qui se complètent.
+
+⚠️ **Le seul vrai doublon ne se voyait pas aux empreintes**, parce qu'il redit la règle en d'autres mots : les anciens § 14.14 et § 14.15 prescrivaient tous deux de ne jamais fabriquer d'offsets contre un ordre OCR corrompu, de revenir au fac-similé et de corriger la source avant de recalculer. Fondus le jour même.
+
+**Conclusion de méthode :** ce qu'on prend pour un doublon dans la charte n'est presque jamais une répétition, c'est une **dispersion de sujet**. La règle typographique vit en sept endroits (§ 3, § 41, § 35.0, § 35.7, § 35.10, § 23.11, § 13.9) sans se répéter une seule fois. On ne la dédoublonne pas : on la rassemble.
